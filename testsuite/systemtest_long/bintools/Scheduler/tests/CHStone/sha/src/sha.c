@@ -68,7 +68,7 @@ memset (LONG * s, int c, int n, int e)
 }
 
 void
-memcpy (LONG * s1, const BYTE * s2, int n)
+byteorder_shift_memcpy (LONG * s1, const BYTE * s2, int n)
 {
   unsigned long *p1;
   unsigned char *p2;
@@ -163,12 +163,12 @@ sha_update (const BYTE * buffer, int count)
   sha_info_count_hi += (LONG) count >> 29;
   while (count >= SHA_BLOCKSIZE)
     {
-      memcpy (sha_info_data, buffer, SHA_BLOCKSIZE);
+      byteorder_shift_memcpy (sha_info_data, buffer, SHA_BLOCKSIZE);
       sha_transform ();
       buffer += SHA_BLOCKSIZE;
       count -= SHA_BLOCKSIZE;
     }
-  memcpy (sha_info_data, buffer, count);
+  byteorder_shift_memcpy (sha_info_data, buffer, count);
 }
 
 /* finish computing the SHA digest */
