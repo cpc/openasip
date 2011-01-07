@@ -43,8 +43,11 @@ using std::vector;
 
 
 ModelsimSimulator::ModelsimSimulator(
-    std::string tbFile, std::vector<std::string> hdlFiles, bool verbose):
-    ImplementationSimulator(tbFile, hdlFiles, verbose) {
+    std::string tbFile,
+    std::vector<std::string> hdlFiles,
+    bool verbose,
+    bool leaveDirty):
+    ImplementationSimulator(tbFile, hdlFiles, verbose, leaveDirty) {
 }
 
 ModelsimSimulator::~ModelsimSimulator() {

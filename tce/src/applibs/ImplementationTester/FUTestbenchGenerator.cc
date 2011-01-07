@@ -324,7 +324,12 @@ FUTestbenchGenerator::createStimulus() {
     int pipelineClearCycles =
         fuArch_->architecture().operation(lastOpIndex)->latency();
     for (int i = 0; i < pipelineClearCycles; i++) {
-        
+        if (fuArch_->architecture().operationCount() > 1) {
+            // insert dummy values for opcode port
+            const string operation = 
+                fuArch_->architecture().operation(lastOpIndex)->name();
+            startedOperations.push_back(operation);
+        }
         for (std::size_t j = 0; j < inputPorts_.size(); ++j) {
             const string portName = inputPorts_.at(j);
             // operation does not matter

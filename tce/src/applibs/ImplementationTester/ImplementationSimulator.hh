@@ -40,7 +40,9 @@ class ImplementationSimulator {
 public:
     ImplementationSimulator(
         std::string tbFile,
-        std::vector<std::string> hdlFiles, bool verbose);
+        std::vector<std::string> hdlFiles,
+        bool verbose,
+        bool leaveDirty);
 
     virtual ~ImplementationSimulator();
 
@@ -70,6 +72,8 @@ protected:
         std::vector<std::string>& inputMsg, std::vector<std::string>& errors);
 
 private:
+    ImplementationSimulator();
+
     /// Testbench file name with path
     std::string tbFile_;
     /// Vector containing other vhdl files needed to compile testbench
@@ -82,6 +86,8 @@ private:
     std::string oldCwd_;
     /// Enable verbose output
     bool verbose_;
+    /// Don't delete work dir
+    bool leaveDirty_;
 };
 
 #endif

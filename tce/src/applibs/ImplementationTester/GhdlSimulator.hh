@@ -40,7 +40,10 @@
 class GhdlSimulator : public ImplementationSimulator {
 public:
     GhdlSimulator(
-        std::string tbFile, std::vector<std::string> hdlFiles, bool verbose);
+        std::string tbFile,
+        std::vector<std::string> hdlFiles,
+        bool verbose,
+        bool leaveDirty);
 
     virtual ~GhdlSimulator();
 

@@ -40,10 +40,13 @@ using std::string;
 using std::vector;
 
 ImplementationSimulator::ImplementationSimulator(
-    std::string tbFile, std::vector<std::string> hdlFiles, bool verbose): 
+    std::string tbFile,
+    std::vector<std::string> hdlFiles,
+    bool verbose,
+    bool leaveDirty): 
     tbFile_(tbFile),
     hdlFiles_(hdlFiles), baseDir_(""), workDir_(""), oldCwd_(""),
-    verbose_(verbose) {
+    verbose_(verbose), leaveDirty_(leaveDirty) {
 
     baseDir_ = FileSystem::directoryOfPath(tbFile);
     oldCwd_ = FileSystem::currentWorkingDir();
@@ -51,7 +54,9 @@ ImplementationSimulator::ImplementationSimulator(
 
 ImplementationSimulator::~ImplementationSimulator() {
     if (!workDir_.empty() && FileSystem::fileExists(workDir_)) {
-        FileSystem::removeFileOrDirectory(workDir_);
+        if (!leaveDirty_) {
+            FileSystem::removeFileOrDirectory(workDir_);
+        }
     }
     if (!oldCwd_.empty()) {
         FileSystem::changeWorkingDir(oldCwd_);

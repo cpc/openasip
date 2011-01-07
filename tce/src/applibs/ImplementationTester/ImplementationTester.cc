@@ -543,9 +543,10 @@ ImplementationTester::simulateTestbench(
 
     ImplementationSimulator* sim = NULL;
     if (simulator_ == SIM_GHDL) {
-        sim = new GhdlSimulator(testbench, hdlFiles, verbose_);
+        sim = new GhdlSimulator(testbench, hdlFiles, verbose_, leaveDirty_);
     } else if (simulator_ == SIM_MODELSIM) {
-        sim = new ModelsimSimulator(testbench, hdlFiles, verbose_);
+        sim = new ModelsimSimulator(
+            testbench, hdlFiles, verbose_, leaveDirty_);
     }
 
     if (!sim->compile(errors)) {
