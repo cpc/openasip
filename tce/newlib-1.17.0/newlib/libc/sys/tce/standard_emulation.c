@@ -419,6 +419,10 @@ memset(m, c, n)
         /* Pick up the remainder with a bytewise loop.  */
         s = (char*)aligned_addr;
     }
+    while (n--)
+        *s++ = (char) c;
+    
+    return m;
 }
 
 /**************************************************************************
