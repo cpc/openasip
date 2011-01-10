@@ -33,6 +33,7 @@
 #ifndef TCE_SYSTEMC_HH
 #define TCE_SYSTEMC_HH
 
+#include <stdint.h>
 #include <systemc.h>
 #include <Operation.hh>
 #include <SimpleSimulatorFrontend.hh>
