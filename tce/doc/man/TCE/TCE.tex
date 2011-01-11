@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.4}
-\ver{18}
+\ver{20}
 \firstday{2006-10-25}
-\lastday{2010-11-01}
+\lastday{2011-01-11}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -6664,6 +6664,24 @@ The VHDL implementation and the HDB entry of the FU should be fixed to use
 this kind of opcode numbering. See section \ref{sec:opcodeorder} for more 
 details.
 
+\section{tcecc}
+
+\subsubsection{Disappearing code}
+
+Tcecc is using the efficient LLVM compiler framework for its optimizations.
+Sometimes LLVM is too aggressive and removes code that you might not
+intend to get removed. This happens in case you write your output to a
+global variable which you might dump only in the simulator and never read 
+it in your program nor e.g. print it with \textbf{printf()}. In this case 
+LLVM sees writes to a global variable which is never read by the program, 
+thus thinks the computation producing the written value is useless and 
+removes it as dead code.
+
+A solution to the problem is to always mark the global ``output/verification'' 
+variables as 'volatile' which means that the content of the variable should 
+be always written to the memory. Thus, LLVM has to assume that there might 
+be other readers of the same variable that are just not visible in the 
+current program.
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}
