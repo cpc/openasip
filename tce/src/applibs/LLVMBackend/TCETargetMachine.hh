@@ -37,7 +37,11 @@
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
 #include "llvm/Target/TargetFrameInfo.h"
+#else
+#include "llvm/Target/TargetFrameLowering.h"
+#endif
 #include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
@@ -99,10 +103,15 @@ namespace llvm {
             return &DataLayout;
         }
 
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
         virtual const TargetFrameInfo* getFrameInfo() const {
             return plugin_->getFrameInfo();
         }
-        
+#else        
+        virtual const TargetFrameLowering* getFrameLowering() const {
+            return plugin_->getFrameLowering();
+        }
+#endif
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }

@@ -52,7 +52,11 @@ public:
     virtual ~GeneratedTCEPlugin();
     virtual const TargetInstrInfo* getInstrInfo() const;
     virtual const TargetRegisterInfo* getRegisterInfo() const;
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
     virtual const TargetFrameInfo* getFrameInfo() const;
+#else
+    virtual const TargetFrameLowering* getFrameLowering() const;
+#endif
     virtual TargetLowering* getTargetLowering() const;
 
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
@@ -168,8 +172,13 @@ GeneratedTCEPlugin::getRegisterInfo() const {
 /**
  * Returns TargetFrameInfo object for TCE target.
  */
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
 const TargetFrameInfo* 
 GeneratedTCEPlugin::getFrameInfo() const {
+#else
+const TargetFrameLowering* 
+GeneratedTCEPlugin::getFrameLowering() const {
+#endif
     return frameInfo_;
 }
 

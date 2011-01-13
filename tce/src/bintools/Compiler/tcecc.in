@@ -304,7 +304,9 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # optimization set for overall performance... since when separately
     # adding own set we just end up tuning denbench / fft optimed switches
     # (its practically impossible to know how switches effect on any other case)
-    default_opts = " -O3 "
+    # disable-simplify-libcalls needed to prevent memset/memset loop detection
+    # LoopIdiomRecognize pass, which breaks things
+    default_opts = " -O3 --disable-simplify-libcalls "
 
     # no inline 
     default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold

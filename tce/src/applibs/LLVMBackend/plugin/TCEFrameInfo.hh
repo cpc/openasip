@@ -33,7 +33,11 @@
 #define TCE_FRAME_INFO_H
 
 #include <llvm/Support/ErrorHandling.h>
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
 #include <llvm/Target/TargetFrameInfo.h>
+#else
+#include <llvm/Target/TargetFrameLowering.h>
+#endif
 #include "TCERegisterInfo.hh"
 
 #include "tce_config.h"
@@ -49,12 +53,17 @@ namespace llvm {
      * very good job.
      */
 
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
     class TCEFrameInfo : public TargetFrameInfo {
+#else
+    class TCEFrameInfo : public TargetFrameLowering {
+#endif
     public:
-	TCEFrameInfo(const TCERegisterInfo* tri)
-	    : TargetFrameInfo(
+
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
-            TargetFrameInfo::StackGrowsDown, 4, -4), tri_(tri) {}
+	TCEFrameInfo(const TCERegisterInfo* tri)
+	    : TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
 	void emitPrologue(MachineFunction &mf) const;
 	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
 	bool hasFP(const MachineFunction &MF) const { return false; }
@@ -62,6 +71,8 @@ namespace llvm {
     private:
 	const TCERegisterInfo* tri_;
 #else
+	TCEFrameInfo(const TCERegisterInfo* tri)
+	    : TargetFrameInfo(
         TargetFrameInfo::StackGrowsDown, 4, -4) {}
 #endif
     };

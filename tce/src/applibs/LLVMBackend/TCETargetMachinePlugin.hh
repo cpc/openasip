@@ -50,7 +50,11 @@ namespace llvm {
    class TargetInstrInfo;
    class TargetLowering;
    class TargetRegisterInfo;
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
    class TargetFrameInfo;
+#else
+   class TargetFrameLowering;
+#endif
    class FunctionPass;
    class TCETargetMachine;
 
@@ -61,7 +65,11 @@ namespace llvm {
 
        virtual const TargetInstrInfo* getInstrInfo() const = 0;
        virtual const TargetRegisterInfo* getRegisterInfo() const = 0;
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
        virtual const TargetFrameInfo* getFrameInfo() const = 0;
+#else
+       virtual const TargetFrameLowering* getFrameLowering() const = 0;
+#endif
        virtual TargetLowering* getTargetLowering() const = 0;
 
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
@@ -112,7 +120,11 @@ namespace llvm {
        /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;
        TargetLowering* lowering_;
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
        TargetFrameInfo* frameInfo_;
+#else
+       TargetFrameLowering* frameInfo_;
+#endif
        TCETargetMachine* tm_;
    };
 
