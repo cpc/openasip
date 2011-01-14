@@ -1,4 +1,3 @@
 Release branch:
-tce-1.4 r854: llvm-trunk r122493 OK
-tce-1.4 r870: llvm-trunk r123373 torpesult fails - terrible slowdoen chstone jpeg
+tce-1.4 r872: llvm-trunk r123373 OK
 -------

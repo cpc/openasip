@@ -190,10 +190,13 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # it won't be linked to final binary from libc.a
                 # (ld knows how to select only needed parts from libc.a,
                 # even thoug it does it very bad, it shorten optimizetime)
+
+                # -fno-builtin prevents running LoopIdiomRecognizer which converts
+                # memcpy-doing loops into memcpy calls (which are slower on TCE)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
-                        command =  ("clang -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
+                        command =  ("clang -fno-builtin -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;" ) % options.optimization_level
