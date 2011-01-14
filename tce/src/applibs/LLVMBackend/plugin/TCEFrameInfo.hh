@@ -32,6 +32,8 @@
 #ifndef TCE_FRAME_INFO_H
 #define TCE_FRAME_INFO_H
 
+#include "tce_config.h"
+
 #include <llvm/Support/ErrorHandling.h>
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
 #include <llvm/Target/TargetFrameInfo.h>
@@ -39,8 +41,6 @@
 #include <llvm/Target/TargetFrameLowering.h>
 #endif
 #include "TCERegisterInfo.hh"
-
-#include "tce_config.h"
 
 namespace llvm {
 

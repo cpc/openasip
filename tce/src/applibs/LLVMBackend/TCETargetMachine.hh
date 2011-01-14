@@ -33,6 +33,8 @@
 #ifndef TCE_TARGET_MACHINE_H
 #define TCE_TARGET_MACHINE_H
 
+#include "tce_config.h"
+
 #include <set>
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
@@ -46,7 +48,6 @@
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetSelectionDAGInfo.hh"
-#include "tce_config.h"
 
 namespace TTAMachine {
     class Machine;

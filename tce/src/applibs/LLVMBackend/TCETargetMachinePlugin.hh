@@ -33,6 +33,8 @@
 #ifndef TCE_TARGET_MACHINE_PLUGIN_HH
 #define TCE_TARGET_MACHINE_PLUGIN_HH
 
+#include "tce_config.h"
+
 #include <iostream>
 #include <llvm/Target/TargetInstrInfo.h>
 
