@@ -1,4 +1,4 @@
 Release branch:
-tce-1.4 r873: llvm-trunk r123910 OK
+tce-1.4 r875: llvm-trunk r123972 OK
 Performance worsening at around r123400: No longer optimizes away "constant" parameters in qsort test. 
 -------

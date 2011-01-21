@@ -1,5 +1,5 @@
 2regcopies.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,23.12.10 10:40,182430
-ti64x_subset.adf,/home/hkultala26/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,23.12.10 12:02,551845
+ti64x_subset.adf,/home/hkultala26/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,21.01.11 10:35,552524
 huge.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,23.12.10 10:40,61541
 minimal_with_io.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,23.12.10 10:40,4249854
 3_bus_short_immediate_fields_and_reduced_connectivity.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,23.12.10 10:40,193610
