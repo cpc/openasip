@@ -29,7 +29,7 @@
 \title{TTA Codesign Environment v1.4}
 \ver{20}
 \firstday{2006-10-25}
-\lastday{2011-01-11}
+\lastday{2011-01-21}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -6682,6 +6682,16 @@ variables as 'volatile' which means that the content of the variable should
 be always written to the memory. Thus, LLVM has to assume that there might 
 be other readers of the same variable that are just not visible in the 
 current program.
+
+\section{Hardware characteristics}
+
+\subsection{Interrupt support}
+
+Currently TCE does not have support for TTA interrupts. This is mostly due to
+the fact that context saving is an expensive operation on TTA because the
+processor context can be huge. In general, TTA might not be the best
+architecture choice for control-oriented or reactive system.
+
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}
