@@ -8,7 +8,7 @@ SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
-BBSchedulerController.cc
+BBSchedulerController.cc PreOptimizer.cc
 
 
 libscheduleralgorithms_la_LIBADD = \
@@ -63,7 +63,8 @@ libscheduleralgorithms_la_SOURCES += \
 	SoftwareBypasser.hh ControlFlowGraphPass.hh \
 	SimpleGuardAllocatorCore.hh ProgramPass.hh \
 	BasicBlockScheduler.hh InterPassDatum.hh \
-	PreBypassBasicBlockScheduler.hh
+	PreBypassBasicBlockScheduler.hh \
+	PreOptimizer.hh
 
 ## headers end
 

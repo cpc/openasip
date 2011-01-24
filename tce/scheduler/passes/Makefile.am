@@ -1,5 +1,5 @@
 SUBDIRS = SequentialFirstFitResourceMapper LinearScanAllocator \
-	BasicBlockScheduler SequentialScheduler
+	BasicBlockScheduler SequentialScheduler PreOptimizer
 
 basedir = ${prefix}/share/tce/scheduler/passes
 nobase_base_DATA = \
