@@ -15,7 +15,7 @@ soup = BeautifulSoup.BeautifulSoup(
 
 revcount = len(soup.find('tr').findAll('td'))
 
-oks_per_column = [[0,0]] + [[0, int(i.string)]
+oks_per_column = [[0,0]] + [[0, int(i.contents[0]) ]
                             for i in soup.findAll('td', 'sourcestamp')]
 
 for i in soup.findAll('tr'):
