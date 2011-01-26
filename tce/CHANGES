@@ -36,6 +36,7 @@ Bugfixes
 - ProGe: Some FUs had unnecessary 'SHIFTW' parameters in the default HDB
   causing broken top level VHDL to be generated. Fixed by Jani Boutellier of 
   University of Oulu.
+- Some missing patterns could cause internal compiler error while compiling.
 
 1.3    November 2010
 ====================
