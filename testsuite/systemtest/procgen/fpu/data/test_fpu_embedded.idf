@@ -3,7 +3,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../tce/icdecoder_plugins/base/DefaultICDecoderPlugin.so</file>
+    <file>../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
 <!-- Bustrace is not used to verify results
     <parameter name="bustrace">
       <value>yes</value>
