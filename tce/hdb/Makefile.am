@@ -13,6 +13,8 @@ nobase_base_DATA = $(srcdir)/asic_130nm_1.5V.hdb \
                    $(srcdir)/hibi_adapter.hdb \
                    $(srcdir)/hibi_adapter_vhdl/* \
                    $(srcdir)/stream.hdb \
-                   $(srcdir)/stream_vhdl/*
+                   $(srcdir)/stream_vhdl/* \
+                   $(srcdir)/fpu_embedded.hdb \
+                   $(srcdir)/fpu_embedded_vhdl/*
 
 EXTRA_DIST = ${nobase_base_DATA}
