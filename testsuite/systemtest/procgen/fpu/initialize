@@ -1,1 +1,7 @@
-finalize
+#!/bin/bash
+rm -f *.disabled
+ghdl_bin=$(which ghdl 2> /dev/null)
+if [ "x${ghdl_bin}" == "x" ]; then
+    touch test_fpu_embedded.testdesc.disabled
+fi
+

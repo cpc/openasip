@@ -4,3 +4,4 @@ rm -rf proge-output
 rm -f test_code.img
 rm -f test_code_data.img
 rm -f test_code.tpef*
+rm -f test_fpu_embedded.testdesc.disabled
