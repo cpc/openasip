@@ -57,7 +57,7 @@ public:
 
     virtual ~ControlDependenceEdge();
 
-    std::string toString() const;
+    TCEString toString() const;
     bool isNormalEdge() const;
     bool isTrueEdge() const;
     bool isFalseEdge() const;

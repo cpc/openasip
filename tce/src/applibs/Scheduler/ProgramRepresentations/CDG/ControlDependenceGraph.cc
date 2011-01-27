@@ -339,7 +339,7 @@ ControlDependenceGraph::createPostDominanceTree(
                     ControlFlowEdge* edge = new
                     ControlFlowEdge(
 //                        cGraph_->edgeCount(),
-                        ControlFlowEdge::CFLOW_EDGE_LOOP_BREAK,true);
+                        ControlFlowEdge::CFLOW_EDGE_LOOP_BREAK);
                     cGraph_->connectNodes(
                         *postZero[i], cGraph_->exitNode(), *edge);
                     addedEdges.push_back(edge);

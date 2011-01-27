@@ -177,7 +177,7 @@ RegisterCopyAdderPassTest::testPass() {
                        Use a text search on the disassembly to test it.
                     */
                     
-                    const std::string disassembly = bb0.disassemble();
+                    const std::string disassembly = bb0.disassembly();
 #ifdef DEBUG_OUTPUT
                      Application::logStream() 
                         << "#### AFTER SCHEDULING: " << std::endl 

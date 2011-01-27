@@ -9,6 +9,7 @@ Notable new features
 Code generator improvements
 ---------------------------
 - Passes the first function parameter in register instead of stack.
+- Uses negative guard more aggressively, less stupid guard xoring operations.
 
 Optimizations
 -------------

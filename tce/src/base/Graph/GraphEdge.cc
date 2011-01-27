@@ -62,7 +62,7 @@ GraphEdge::clone() const {
  *
  * @return The edge ID as a string
  */
-std::string
+TCEString
 GraphEdge::toString() const {
     return Conversion::toString(edgeID());
 }
@@ -77,7 +77,7 @@ GraphEdge::toString() const {
  *
  * @return String describing the Dot properties of the edge.
  */
-std::string 
+TCEString
 GraphEdge::dotString() const {
     return std::string("label=\"") + toString() + "\"";
 }
@@ -94,7 +94,7 @@ GraphEdge::edgeID() const {
 }
 
 /**
- * Compariron based on edge ID's for maps and sets.
+ * Comparison based on edge ID's for maps and sets.
  */
 bool 
 GraphEdge::Comparator::operator()(GraphEdge* e1, GraphEdge* e2) const {

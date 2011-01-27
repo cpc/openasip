@@ -38,9 +38,9 @@
 
 #include <map>
 #include <vector>
-#include <string>
 
 #include <boost/graph/reverse_graph.hpp>
+#include <boost/graph/depth_first_search.hpp>
 
 #include "Exception.hh"
 #include "BoostGraph.hh"
@@ -50,6 +50,7 @@
 #include "Address.hh"
 #include "NullAddress.hh"
 #include "CFGStatistics.hh"
+#include "hash_map.hh"
 
 namespace TTAProgram {
     class Program;
@@ -63,6 +64,8 @@ namespace TTAProgram {
 }
 using boost::reverse_graph;
 
+class InterPassData;
+
 /**
  * Control Flow Graph.
  *
@@ -71,24 +74,41 @@ using boost::reverse_graph;
  */
 class ControlFlowGraph : public BoostGraph<BasicBlockNode, ControlFlowEdge> {
 public:
+    ControlFlowGraph(
+        const TCEString name,
+        TTAProgram::Program& program);
+    ControlFlowGraph(
+        const TTAProgram::Procedure& procedure,
+        InterPassData& passData);
     ControlFlowGraph(const TTAProgram::Procedure& procedure);
     virtual ~ControlFlowGraph();
 
-    
-    std::string procedureName() const;
+    TCEString procedureName() const;
     int alignment() const;
     TTAProgram::Program* program() const;
 
-    BasicBlockNode& entryNode();
-    BasicBlockNode& exitNode();
-    std::string printStatistics();
+    BasicBlockNode& entryNode() const;
+    BasicBlockNode& exitNode() const;
+    TCEString printStatistics();
     const CFGStatistics& statistics();
     friend class ControlDependenceGraph;
-    
-    
+    friend class ProgramDependenceGraph;
+
+    void copyToProcedure(TTAProgram::Procedure& proc);
+
+    void updateReferencesFromProcToCfg();
+
+    bool hasIncomingFallThru(const BasicBlockNode& bbn) const;
+
+    void deleteNodeAndRefs(BasicBlockNode& node);
+
+    TTAProgram::InstructionReferenceManager& instructionReferenceManager();
+
+    BasicBlockNode* jumpSuccessor(BasicBlockNode& bbn);
+    BasicBlockNode* fallThruSuccessor(BasicBlockNode& bbn);
 private:
     // For temporary storage
-    typedef std::map<InstructionAddress, const TTAProgram::Instruction*>
+    typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>
         InstructionAddressMap;
     typedef std::vector<InstructionAddress> InstructionAddressVector;
     // Type of reversed underlying graph, needed for control dependence
@@ -96,54 +116,76 @@ private:
     typedef reverse_graph<ControlFlowGraph::Graph> ReversedGraph;
     typedef BoostGraph<BasicBlockNode, ControlFlowEdge>::NodeDescriptor
         NodeDescriptor;
- 
+    typedef std::pair<InstructionAddress, ControlFlowEdge::CFGEdgePredicate>
+    ReturnSource;
+    typedef std::set<ReturnSource> ReturnSourceSet;
+    /// DFS visitor which when finding back edge marks such edge as
+    /// back edge
+    class DFSBackEdgeVisitor : public boost::default_dfs_visitor    {
+    public:
+        DFSBackEdgeVisitor(){}
+        template < typename EdgeDescriptor, typename Graph >
+        void back_edge(EdgeDescriptor e, const Graph & g)const {
+            g[e]->setBackEdge();
+        }
+    };
+
+    void buildFrom(const TTAProgram::Procedure& procedure);
+    void createBBEdges(
+        const TTAProgram::Procedure& procedure,
+        InstructionAddressMap& leaders,
+        InstructionAddressMap& dataCodeRellocations);
+
     ReversedGraph& reversedGraph() const;
 
+    bool hasInstructionAnotherJump(
+        const TTAProgram::Instruction& ins, 
+        int moveIndex);
     void computeLeadersFromRefManager(
         InstructionAddressMap& leaders,
         const TTAProgram::Procedure& procedure);
-    void computeLeadersFromJumpSuccessors(
+    bool computeLeadersFromJumpSuccessors(
         InstructionAddressMap& leaders,
         const TTAProgram::Procedure& procedure);
     void computeLeadersFromRelocations(
         InstructionAddressMap& leaderSet,
         InstructionAddressMap& dataCodeRellocations,
         const TTAProgram::Procedure& procedure);
-    void createBBEdges(
-        const TTAProgram::Procedure& procedure,
-        InstructionAddressMap& leaders,
-        InstructionAddressMap& dataCodeRellocations);
+
     void createAllBlocks(
         InstructionAddressMap& leaders,
         const TTAProgram::Procedure& procedure);
     BasicBlockNode& createBlock(
-        const TTAProgram::Instruction& leader,
+        TTAProgram::Instruction& leader,
         const TTAProgram::Instruction& endBlock);
     ControlFlowEdge& createControlFlowEdge(
         const TTAProgram::Instruction& iTail,
         const TTAProgram::Instruction& iHead,
         ControlFlowEdge::CFGEdgePredicate edgePredicate =
             ControlFlowEdge::CFLOW_EDGE_NORMAL,
-        bool isJump = true);
+        ControlFlowEdge::CFGEdgeType edgeType =
+            ControlFlowEdge::CFLOW_EDGE_JUMP);
 
     void directJump(
         InstructionAddressMap& leaders,
         const InstructionAddress& leaderAddr,
-        const TTAProgram::Instruction& instruction,
+        int insIndex, 
+        int moveIndex,
         const TTAProgram::Instruction& instructionTarget,
         const TTAProgram::Procedure& procedure);
     void indirectJump(
         InstructionAddressMap& leaders,
         const InstructionAddress& leaderAddr,
         InstructionAddressMap& dataCodeRellocations,
-        const TTAProgram::Instruction& instruction,
+        int insIndex, 
+        int moveIndex,
         const TTAProgram::Procedure& procedure);
     void createJumps(
         InstructionAddressMap& leaders,
         const InstructionAddress& leaderAddr,
         InstructionAddressMap& dataCodeRellocations,
         const TTAProgram::Procedure& procedure,
-        int insIndex, 
+        int insIndex,
         int moveIndex);
     unsigned int findNextIndex(
         const TTAProgram::Procedure& proc, 
@@ -152,16 +194,46 @@ private:
     void addExit();
     void addEntryExitEdge();
     void removeEntryExitEdge();
+
+    bool hasFallThruPredecessor(BasicBlockNode& bbn);
+
+    NodeSet findReachableNodes();
+
+    void detectBackEdges();
+
+    enum RemovedJumpData {
+        JUMP_NOT_REMOVED = 0, /// nothing removed
+        JUMP_REMOVED, /// jump removed, other things remain in BB
+        LAST_ELEMENT_REMOVED /// last jump removed, no immeds in BB.
+    };
+
+    RemovedJumpData removeJumpToTarget(
+        TTAProgram::CodeSnippet& cs, const TTAProgram::Instruction& target,
+        int idx);
+
     // Data saved from original procedure object
-    std::string procedureName_;
+    TCEString procedureName_;
     TTAProgram::Program* program_;
+    const TTAProgram::Procedure* procedure_;
     TTAProgram::Address startAddress_;
     TTAProgram::Address endAddress_;
     int alignment_;
 
     // Collection of all basic blocks of the control flow graph indexed by
     // the address of their start instruction (leader).
-    std::map<InstructionAddress, BasicBlockNode*> blocks_;
+    hash_map<InstructionAddress, BasicBlockNode*> blocks_;
 
+    // Mapping between original instructions and those in the cfg.
+    typedef hash_map<TTAProgram::Instruction*,TTAProgram::Instruction*>
+        InsMap;
+
+    InsMap originalToCfgInstructions_;
+    InsMap cfgToOriginalInstructions_;
+
+    // all basic blocks which contain a return instruction.
+    ReturnSourceSet returnSources_;
+
+    // Optional interpass data to aid in the construction of the CFG.
+    InterPassData* passData_;
 };
 #endif

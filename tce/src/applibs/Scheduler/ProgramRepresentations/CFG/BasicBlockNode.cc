@@ -37,6 +37,7 @@
 #include "BasicBlock.hh"
 #include "Conversion.hh"
 #include "POMDisassembler.hh"
+#include "InstructionReferenceManager.hh"
 
 /**
  * Constructor.
@@ -55,8 +56,10 @@ BasicBlockNode::BasicBlockNode(
     bool exit) :
     originalStartAddress_(originalStartAddress),
     originalEndAddress_(originalEndAddress),
-    hasOriginalAddress_(true), basicBlock_(new BasicBlock()), bbOwned_(true),
-    entry_(entry), exit_(exit) {
+    hasOriginalAddress_(true), 
+    basicBlock_(new BasicBlock(originalStartAddress)), bbOwned_(true),
+    entry_(entry), exit_(exit),
+    scheduled_(false), refsUpdated_(false), loopScheduled_(false) {
 
     if (entry || exit) {
         hasOriginalAddress_ = false;
@@ -75,9 +78,14 @@ BasicBlockNode::BasicBlockNode(
  * A wrapper for BasicBlock. When constructed with this one, the given bb
  * will not be deleted in the destructor.
  */
-BasicBlockNode::BasicBlockNode(BasicBlock& bb) :
-    originalStartAddress_(0), originalEndAddress_(0), 
-    hasOriginalAddress_(false), basicBlock_(&bb), bbOwned_(false) {
+BasicBlockNode::BasicBlockNode(
+    BasicBlock& bb, bool scheduled, bool refsUpdated, 
+    int originalStartAddress, bool loopScheduled) :
+    originalStartAddress_(originalStartAddress), originalEndAddress_(0), 
+    hasOriginalAddress_(false), basicBlock_(&bb), bbOwned_(false), 
+    entry_(false), exit_(false),
+    scheduled_(scheduled), refsUpdated_(refsUpdated), 
+    loopScheduled_(loopScheduled) {
 }
 
 /**
@@ -217,4 +225,58 @@ BasicBlockNode::statistics() {
     }
     BasicBlockStatistics* bbs = new BasicBlockStatistics();    
     return *bbs;
+}
+
+/** 
+ * Finds jumps from a BasicBlockNode.
+ * 
+ * @return second is last jump or NULL if no jumps, first NULL or first jump 
+ * if the BB has two jumps
+ */
+std::pair<TTAProgram::Move*,TTAProgram::Move*> 
+BasicBlockNode::findJumps() {
+    std::pair<TTAProgram::Move*, TTAProgram::Move*> moves(NULL,NULL);
+    for (int i = basicBlock_->instructionCount()-1; i >= 0; i--) {
+        TTAProgram::Instruction& ins = basicBlock_->instructionAtIndex(i);
+        for (int j = 0; j < ins.moveCount(); j++) {
+            TTAProgram::Move& move = ins.move(j);
+            if (move.isJump()) {
+                if (moves.second == NULL) {
+                    moves.second = &move;
+                } else {
+                    moves.first = &move;
+                    return moves;
+                    break;
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+/**
+ * Updates instruction references to this BB from procedure to cfg
+ *
+ * @param prog program where instructions are.
+ */
+void 
+BasicBlockNode::updateReferencesFromProcToCfg(TTAProgram::Program& prog) {
+
+    if (refsUpdated_) { 
+        return;
+    }
+    TTAProgram::InstructionReferenceManager& refManager =
+        prog.instructionReferenceManager();
+    
+    if (isNormalBB()) {
+        if (basicBlock_->instructionCount() > 0) {
+            TTAProgram::Instruction& newIns = basicBlock_->firstInstruction();
+            TTAProgram::Instruction& oldIns = prog.instructionAt(
+                originalStartAddress_);
+            if (refManager.hasReference(oldIns)) {
+                refManager.replace(oldIns, newIns);
+            }
+        }
+    }
+    refsUpdated_ = true;
 }

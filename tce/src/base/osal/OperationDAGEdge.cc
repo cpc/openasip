@@ -55,7 +55,7 @@ OperationDAGEdge::dstOperand() const {
     return dstOperand_;
 }
 
-std::string
+TCEString
 OperationDAGEdge::toString() const {
     return Conversion::toString(srcOperand_) + "," +
         Conversion::toString(dstOperand_);

@@ -36,7 +36,7 @@
 #ifndef TTA_GRAPH_EDGE_HH
 #define TTA_GRAPH_EDGE_HH
 
-#include <string>
+#include "TCEString.hh"
 
 /**
  * Edge of the graph-based program representation. Each edge identifies a
@@ -58,8 +58,8 @@ public:
     
     virtual ~GraphEdge();
     virtual int edgeID() const;
-    virtual std::string toString() const;
-    virtual std::string dotString() const;
+    virtual TCEString toString() const;
+    virtual TCEString dotString() const;
 
     struct Comparator {
         bool operator()(GraphEdge* e1, GraphEdge* e2) const;

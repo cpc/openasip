@@ -65,7 +65,7 @@ ProgramDependenceEdge::~ProgramDependenceEdge() {
  * Returns the edge description as a string.
  * @return string describing the edge payload
  */
-std::string
+TCEString
 ProgramDependenceEdge::toString() const {
     if (isDataDependence()) {
         return dEdge_->toString();
@@ -79,7 +79,7 @@ ProgramDependenceEdge::toString() const {
  * Returns the edge description as a string in .dot format.
  * @return string describing the edge payload in .dot format
  */
-std::string
+TCEString
 ProgramDependenceEdge::dotString() const {
     if (isControlDependence()) {
         if (cEdge_->isTrueEdge()) {

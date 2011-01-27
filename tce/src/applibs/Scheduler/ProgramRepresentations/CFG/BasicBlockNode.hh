@@ -65,7 +65,9 @@ public:
         InstructionAddress originalEndAddress,
         bool entry = false,
         bool exit = false);
-    explicit BasicBlockNode(BasicBlock& bb);
+    explicit BasicBlockNode(
+        BasicBlock& bb, bool scheduled = false, bool refsUpdated = false,
+        int originalStartAddress = 0, bool loopScheduled = false);
     virtual ~BasicBlockNode();
 
     bool isBasicBlockNode() const { return true; }
@@ -84,6 +86,15 @@ public:
 
     const BasicBlockStatistics& statistics();
     
+    bool isScheduled() const { return scheduled_; }
+    void setScheduled(bool state=true) { scheduled_ = state;}
+
+    std::pair<TTAProgram::Move*,TTAProgram::Move*> findJumps();
+
+    void updateReferencesFromProcToCfg(TTAProgram::Program& prog);
+
+    bool isLoopScheduled() const { return loopScheduled_; }
+    void setLoopScheduled() { loopScheduled_ = true; }
 private:
     /// start address of the original basic block, used for reconstructing
     /// the original program after modifying the CFG and its nodes
@@ -102,6 +113,11 @@ private:
     bool entry_;
     /// true if this is an exit basic block (not real one)
     bool exit_;    
+
+    bool scheduled_;
+    bool refsUpdated_;
+    // if this bb was scheduled with loop scheduler
+    bool loopScheduled_; 
 };
 
 #endif

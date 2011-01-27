@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,14 +26,20 @@
  *
  * Declaration of the BasicBlock class.
  *
- * @author Pekka Jï¿½ï¿½skelï¿½inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2007-2010
  * @note rating: red
  */
 
 #ifndef TTA_BASIC_BLOCK_HH
 #define TTA_BASIC_BLOCK_HH
 
+
 #include <vector>
+#include <set>
+#include <map>
+
+
+#include "TCEString.hh"
 #include "Exception.hh"
 #include "CodeSnippet.hh"
 
@@ -78,21 +84,33 @@ private:
 class BasicBlock : public TTAProgram::CodeSnippet {
 public:
 
-    BasicBlock();
+    BasicBlock(int startAddress);
     virtual ~BasicBlock();
 
     BasicBlock* copy() const;
     virtual void clear();
     
-    std::string disassemble() const;
-
     int skippedFirstInstructions() const;
     void skipFirstInstructions(int count);
     const BasicBlockStatistics& statistics();
+
+    /// returns true in case the BB is *known* to be inside an inner loop
+    bool isInInnerLoop() const { return innerLoop_; }
+    void setInInnerLoop(bool inner = true) { innerLoop_ = inner; }
+
+    /// in case the BB is inside a loop and trip count is known,
+    /// returns it, otherwise returns 0
+    unsigned tripCount() const { return tripCount_; }
+    void setTripCount(unsigned count) { tripCount_ = count; }
+
 private:
+
     int skippedFirstInstructions_;
     bool statisticsValid_;
     BasicBlockStatistics statistics_;    
+
+    bool innerLoop_;
+    unsigned tripCount_;
 };
 
 #endif

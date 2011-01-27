@@ -33,8 +33,6 @@
 #ifndef TTA_DATA_DEPENDENCE_EDGE_HH
 #define TTA_DATA_DEPENDENCE_EDGE_HH
 
-#include <string>
-
 #include "GraphEdge.hh"
 
 class ObjectState;
@@ -63,7 +61,7 @@ public:
         bool tailPseudo = false, bool headPseudo = false );
     virtual ~DataDependenceEdge() {}
 
-    std::string toString() const;
+    TCEString toString() const;
 
     // For xml dumping
     ObjectState* saveState(
@@ -98,10 +96,10 @@ public:
 
     bool operator ==(const DataDependenceEdge& other) const;
 private:
-    std::string depTypeSt() const;
-    std::string edgeReasonSt() const;
-    std::string guardSt() const;
-    std::string pseudoSt() const;
+    TCEString depTypeSt() const;
+    TCEString edgeReasonSt() const;
+    TCEString guardSt() const;
+    TCEString pseudoSt() const;
 
     DependenceType dependenceType_;
     EdgeReason edgeReason_;

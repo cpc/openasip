@@ -38,12 +38,12 @@
  * Constructor creates Control Flow Edge of given type
  *
  * @param edgePredicate The truth value of edge (or normal)
- * @param isJump Define if edge represents jump, if false the it is call
+ * @param edgeType Define if edge represents jump, if false the it is call
  */
 ControlFlowEdge::ControlFlowEdge(
     CFGEdgePredicate edgePredicate,
-    bool isJump) :
-    edgePredicate_(edgePredicate), isJumpEdge_(isJump) {
+    CFGEdgeType edgeType) :
+    edgePredicate_(edgePredicate), edgeType_(edgeType), backEdge_(false) {
 }
 
 /**
@@ -56,14 +56,20 @@ ControlFlowEdge::~ControlFlowEdge() { }
  *
  * @return String representing type of edge.
  */
-std::string
+TCEString
 ControlFlowEdge::toString() const {
-    std::string result = "";
+    TCEString result = "";
     if (isJumpEdge()) {
         result += "Jump_";
     }
+    if (isFallThroughEdge()) {
+        result += "FallThrough_";
+    }
     if (isCallPassEdge()) {
         result += "CallPass_";
+    }
+    if (isBackEdge()) {
+        result += "BackEdge_";
     }
     if (isNormalEdge()) {
         result += "normal";
@@ -126,7 +132,7 @@ ControlFlowEdge::isFalseEdge() const {
  */
 bool
 ControlFlowEdge::isCallPassEdge() const {
-    return !isJumpEdge();
+    return edgeType_ == CFLOW_EDGE_CALL;
 }
 
 /**
@@ -136,7 +142,17 @@ ControlFlowEdge::isCallPassEdge() const {
  */
 bool
 ControlFlowEdge::isJumpEdge() const {
-    return isJumpEdge_ == true;
+    return edgeType_ == CFLOW_EDGE_JUMP;
+}
+
+/**
+ * Returns true if the edge is representing fall through.
+ *
+ * @return True if the edge represents fall through.
+ */
+bool
+ControlFlowEdge::isFallThroughEdge() const {
+    return edgeType_ == CFLOW_EDGE_FALLTHROUGH;
 }
 
 /**
@@ -148,5 +164,15 @@ ControlFlowEdge::isJumpEdge() const {
 bool
 ControlFlowEdge::isLoopBreakEdge() const {
     return edgePredicate_ == CFLOW_EDGE_LOOP_BREAK;
+}
+
+/**
+ * Returns true if edge is loop back edge
+ *
+ * @return True if edge is loop back edge
+ */
+bool
+ControlFlowEdge::isBackEdge() const {
+    return backEdge_;
 }
 

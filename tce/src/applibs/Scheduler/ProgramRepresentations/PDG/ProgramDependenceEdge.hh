@@ -52,8 +52,8 @@ public:
     bool isDataDependence() const ;
     ControlDependenceEdge& controlDependenceEdge();
     DataDependenceEdge& dataDependenceEdge();
-    std::string toString() const;
-    std::string dotString() const;
+    TCEString toString() const;
+    TCEString dotString() const;
     
 private:
     ControlDependenceEdge* cEdge_;

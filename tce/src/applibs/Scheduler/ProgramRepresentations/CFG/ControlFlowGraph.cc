@@ -36,6 +36,8 @@
 #include <algorithm>
 #include <functional>
 
+#include <boost/graph/depth_first_search.hpp>
+
 #include "ControlFlowGraph.hh"
 
 #include "BaseType.hh"
@@ -62,11 +64,17 @@
 #include "FunctionUnit.hh"
 #include "ControlUnit.hh"
 #include "Machine.hh"
-#include "NullProgram.hh"
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
 #include "BasicBlock.hh"
 #include "CFGStatistics.hh"
+#include "Conversion.hh"
+#include "InterPassData.hh"
+#include "InterPassDatum.hh"
+#include "TerminalInstructionAddress.hh"
+#include "CodeGenerator.hh"
+#include "UniversalMachine.hh"
+#include "Guard.hh"
 
 using TTAProgram::Program;
 using TTAProgram::Procedure;
@@ -79,16 +87,20 @@ using TTAProgram::DataMemory;
 using TTAProgram::DataDefinition;
 using TTAProgram::Address;
 using TTAProgram::CodeSnippet;
+using TTAProgram::ProgramAnnotation;
+using TTAProgram::CodeGenerator;
 using TTAMachine::SpecialRegisterPort;
 using TTAMachine::Port;
 using TTAMachine::FunctionUnit;
 using TTAMachine::ControlUnit;
 
 
-
 /**
- * Destructor. Removes nodes and edge from a graph.
- * Removal of node automatically free also the edges.
+ * Removes nodes and edge from the graph.
+ *
+ * Removal of nodes automatically frees also the edges.
+ *
+ * @todo: this routine is O(n�)
  */
 ControlFlowGraph::~ControlFlowGraph() {
     while (nodeCount() > 0) {
@@ -97,24 +109,67 @@ ControlFlowGraph::~ControlFlowGraph() {
         delete b;
     }
 }
+
 /**
- * Constructor.
+ * Create empty CFG with given name
+ *
+ */
+ControlFlowGraph::ControlFlowGraph(
+    const TCEString name,
+    TTAProgram::Program& program) :
+    BoostGraph<BasicBlockNode, ControlFlowEdge>(name),
+    program_(&program),
+    startAddress_(TTAProgram::NullAddress::instance()),
+    endAddress_(TTAProgram::NullAddress::instance()),
+    passData_(NULL) {
+}
+
+/**
  * Read a procedure of TTA program and build a control flow graph
  * out of it.
  *
  * Create a control flow graph using the procedure of POM. Procedure must be
- * registered in Program to get access to rellocations...
- *
- * @param procedure The procedure to analyse.
+ * registered in Program to get access to relocations.
  */
-
 ControlFlowGraph::ControlFlowGraph(
-    const TTAProgram::Procedure& procedure) : 
+    const TTAProgram::Procedure& procedure) :
     BoostGraph<BasicBlockNode, ControlFlowEdge>(procedure.name()),
-    program_(&TTAProgram::NullProgram::instance()),
+    program_(NULL),
+    procedure_(&procedure),
     startAddress_(TTAProgram::NullAddress::instance()),
-    endAddress_(TTAProgram::NullAddress::instance()) {
+    endAddress_(TTAProgram::NullAddress::instance()),
+    passData_(NULL) {
+    buildFrom(procedure);
+}
 
+/**
+ * Read a procedure of TTA program and build a control flow graph
+ * out of it.
+ *
+ * A version that allows adding inter pass data with additional data
+ * to add to the CFG (currently inner loop BB trip counts).
+ *
+ * Create a control flow graph using the procedure of POM. Procedure must be
+ * registered in Program to get access to relocations.
+ */
+ControlFlowGraph::ControlFlowGraph(
+    const TTAProgram::Procedure& procedure,
+    InterPassData& passData) :
+    BoostGraph<BasicBlockNode, ControlFlowEdge>(procedure.name()),
+    program_(NULL),
+    procedure_(&procedure),
+    startAddress_(TTAProgram::NullAddress::instance()),
+    endAddress_(TTAProgram::NullAddress::instance()),
+    passData_(&passData) {
+    buildFrom(procedure);
+}
+
+/**
+ * Constructs the CFG from the given procedure.
+ */
+void
+ControlFlowGraph::buildFrom(const TTAProgram::Procedure& procedure) {
+    procedure_ = &procedure;
     procedureName_ = procedure.name();
     if (procedure.isInProgram()) {
         program_ = &procedure.parent();
@@ -128,44 +183,20 @@ ControlFlowGraph::ControlFlowGraph(
     InstructionAddressMap dataCodeRellocations;
 
     computeLeadersFromRefManager(leaders, procedure);
-    computeLeadersFromJumpSuccessors(leaders, procedure);
-    computeLeadersFromRelocations(leaders, dataCodeRellocations, procedure);
-    createAllBlocks(leaders, procedure);
-    createBBEdges(procedure, leaders, dataCodeRellocations);
-    addExit();
-
-#if 0
-	// Causes problems with test case with infinite loop and no
-	// gcc optimization. References are not removed correctly.
-    // remove unreachable basic blocks recursivelly,
-    std::list<BasicBlockNode*> candidates;
-    InstructionReferenceManager& refManager =
-        procedure.parent().instructionReferenceManager();
-    
-    while(1){
-        typedef std::pair<NodeIter, NodeIter> NodeIterPair;
-        NodeIterPair nodes = boost::vertices(graph_);
-        for (NodeIter i = nodes.first; i != nodes.second; i++) {
-            NodeDescriptor nd = descriptor(*graph_[*i]);
-            int degree = boost::in_degree(nd, graph_); 
-            if (degree == 0 &&
-                !graph_[*i]->isEntryBB() &&
-                graph_[*i]->basicBlock().instructionCount() != 0) {
-                candidates.push_back(graph_[*i]);            
-            }
-        }
-        if (candidates.size() == 0) {
-            break;
-        }
-        std::list<BasicBlockNode*>::iterator itr = candidates.begin();
-        while (itr != candidates.end()) {
-            BasicBlock& b = (*itr)->basicBlock();
-            b.clear();
-            itr++;
-        }
-        candidates.clear();
+    /// While finding jump successors, also test if there is indirect jump
+    /// in procedure, in such case also rellocations are used to find
+    /// basic block starts.
+    if (computeLeadersFromJumpSuccessors(leaders, procedure)) {
+        computeLeadersFromRelocations(
+            leaders, dataCodeRellocations, procedure);
     }
-#endif
+
+    createAllBlocks(leaders, procedure);
+
+    // Creates edges between basic blocks
+    createBBEdges(procedure, leaders, dataCodeRellocations);
+    detectBackEdges();
+    addExit();
 }
 
 /**
@@ -184,6 +215,24 @@ ControlFlowGraph::createBBEdges(
 
     InstructionAddress leaderAddr;
     bool hasCFMove = false;
+
+    InstructionAddress exitAddr = 0;
+    bool hasExit = false;
+    if (procedure.isInProgram()) {
+        /// Look for __exit procedure, if it is found, calls to it will not
+        /// have fall through edges in CFG to avoid possible endless loops
+        /// and create possible unreachable basic blocks
+        try {
+            exitAddr =
+                program_->procedure("__exit").firstInstruction().address().
+                location();
+            hasExit = true;
+        } catch (const KeyNotFound& e) {
+            /// The __exit procedure was not found, we do not detect calls to
+            /// __exit in calls
+            hasExit = false;
+        }
+    }
 
     const int iCount = procedure.instructionCount();
     for (int insIndex = 0; insIndex < iCount; insIndex++) {
@@ -204,11 +253,25 @@ ControlFlowGraph::createBBEdges(
                 hasCFMove = true;
                 int nextIndex = findNextIndex(procedure, insIndex, i);
                 if (iCount > nextIndex) {
+                    /// Do not create fall through edge after call to __exit
+                    if (hasExit &&
+                        instruction->move(i).source().isInstructionAddress()) {
+                        TTAProgram::TerminalInstructionAddress* address =
+                        dynamic_cast<TTAProgram::TerminalInstructionAddress*>
+                            (&instruction->move(i).source());
+                        Instruction& destination =
+                            address->instructionReference().instruction();
+                        if (destination.address().location() == exitAddr) {
+                           break;
+                        }
+                    }
                     Instruction& iNext = 
                         procedure.instructionAtIndex(nextIndex);
                     createControlFlowEdge(
                         *leaders[leaderAddr], iNext,
-                        ControlFlowEdge::CFLOW_EDGE_NORMAL, false);
+                        ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                        ControlFlowEdge::CFLOW_EDGE_CALL);
+
                 }
                 break;
             }
@@ -236,7 +299,8 @@ ControlFlowGraph::createBBEdges(
                 if (!hasEdge(blockSource, blockTarget)) {
                     createControlFlowEdge(
                         *leaders[leaderAddr],nextInstruction,
-                        ControlFlowEdge::CFLOW_EDGE_NORMAL, true);
+                        ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                        ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
                 }
             }
         } else {
@@ -277,6 +341,7 @@ ControlFlowGraph::computeLeadersFromRefManager(
         InstructionAddress insAddr = instruction.address().location();
         if (insAddr > startAddress_.location() &&
             insAddr < endAddress_.location()) {
+            assert(&instruction.parent() == &procedure);
             leaders[insAddr] = &instruction;
         }
     }
@@ -338,14 +403,19 @@ ControlFlowGraph::computeLeadersFromRelocations(
  * Computes starts of basic blocks which follows jumps or calls or are
  * targets of jump.
  *
+ * Also detect if any of jumps is indirect, which will require data-code
+ * rellocation information for creating jumps as well.
+ *
  * @param leaders Set of leader instructions to update.
  * @param procedure The procedure to analyse.
+ * @return true indicates there is indirect jump in procedure
  */
-void
+bool
 ControlFlowGraph::computeLeadersFromJumpSuccessors(
     InstructionAddressMap& leaders,
     const Procedure& procedure) {
-
+    
+    bool indirectJump = false;
     // record target instructions of jumps, because they are
     // leaders of basic block too
     InstructionAddressMap targets;
@@ -369,6 +439,11 @@ ControlFlowGraph::computeLeadersFromJumpSuccessors(
                     // been yet identified as a leader, do it here.
                     leaders[targetAddr] = &iTarget;
                 }
+                if (m.isJump() && 
+                     (m.source().isGPR() || 
+                      m.source().isImmediateRegister())) {
+                    indirectJump = true;
+                }
                 increase = false;
                 unsigned int nextIndex = findNextIndex(procedure, insIndex, i);
                 if (iCount > nextIndex) {
@@ -376,7 +451,7 @@ ControlFlowGraph::computeLeadersFromJumpSuccessors(
                     instruction = &procedure.instructionAtIndex(insIndex);
                     leaders[instruction->address().location()] = instruction;
                 } else {
-                    return;
+                    return indirectJump; // end of procedure.
                 }
                 break;
             }
@@ -385,6 +460,7 @@ ControlFlowGraph::computeLeadersFromJumpSuccessors(
             insIndex++;
         }
     }
+    return indirectJump;
 }
 
 /**
@@ -432,11 +508,12 @@ ControlFlowGraph::createAllBlocks(
  */
 BasicBlockNode&
 ControlFlowGraph::createBlock(
-    const Instruction& leader,
+    Instruction& leader,
     const Instruction& endBlock) {
 
     InstructionAddress blockStart = leader.address().location();
     InstructionAddress blockEnd = endBlock.address().location();
+
     CodeSnippet& proc = leader.parent();
 
     unsigned int blockStartIndex = blockStart - proc.startAddress().location();
@@ -469,6 +546,24 @@ ControlFlowGraph::createBlock(
         ControlFlowEdge* edge = new ControlFlowEdge;//(edgeCount());
         connectNodes(*entry, *node, *edge);
     }
+
+    if (leader.hasAnnotations(TTAProgram::ProgramAnnotation::ANN_LOOP_INNER)) {
+        node->basicBlock().setInInnerLoop();
+        node->basicBlock().setTripCount(0); // 0 indicates unknown trip count
+        
+        if (leader.hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_LOOP_TRIP_COUNT)) {
+
+            unsigned tripCount =
+                static_cast<unsigned>(
+                    leader.annotation(
+                        0, TTAProgram::ProgramAnnotation::ANN_LOOP_TRIP_COUNT).
+                    intValue());
+            if (tripCount > 0) {
+                node->basicBlock().setTripCount(tripCount);
+            }
+        }
+    }
     blocks_[blockStart] = node;
     return *node;
 }
@@ -485,7 +580,8 @@ ControlFlowGraph::createBlock(
  * @param iTail The first instruction of the tail basic block (from).
  * @param iHead The first instruction of the head basic block (to).
  * @param edgePredicate The value of an edge (true, false, normal, call)
- * @param isJumpEdge Defines if edge represents jump or call, default jump
+ * @param edgeType Defines if edge represents jump or call or fall-through,
+ * default jump
  * @return The created control flow edge.
  */
 ControlFlowEdge&
@@ -493,16 +589,34 @@ ControlFlowGraph::createControlFlowEdge(
     const Instruction& iTail,
     const Instruction& iHead,
     ControlFlowEdge::CFGEdgePredicate edgePredicate,
-    bool isJumpEdge) {
+    ControlFlowEdge::CFGEdgeType edgeType) {
 
     InstructionAddress sourceAddr = iTail.address().location();
     InstructionAddress targetAddr = iHead.address().location();
     if (!MapTools::containsKey(blocks_, sourceAddr)) {
+        if (Application::verboseLevel() >= 1) {
+            TCEString msg = (boost::format(
+                "Source instruction %d:%s\nDestination instruction %d:%s\n")
+                % Conversion::toString(sourceAddr)
+                % POMDisassembler::disassemble(iTail)
+                % Conversion::toString(targetAddr)
+                % POMDisassembler::disassemble(iHead)).str();
+            Application::logStream() << msg;
+        }
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             "Source basic block is missing!");
     }
     if (!MapTools::containsKey(blocks_, targetAddr)) {
+        if (Application::verboseLevel() >= 1) {
+            TCEString msg =(boost::format(
+                "Source instruction %d:%s\nDestination instruction %d:%s\n")
+                % Conversion::toString(sourceAddr)
+                % POMDisassembler::disassemble(iTail)
+                % Conversion::toString(targetAddr)
+                % POMDisassembler::disassemble(iHead)).str();
+            Application::logStream() << msg;
+        }
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             "Destination basic block is missing!");
@@ -512,9 +626,14 @@ ControlFlowGraph::createControlFlowEdge(
     BasicBlockNode& blockTarget(*blocks_[targetAddr]);
 
     ControlFlowEdge* theEdge;
-    theEdge = new ControlFlowEdge(edgePredicate, isJumpEdge);
-    connectNodes(blockSource, blockTarget, *theEdge);
+    theEdge = new ControlFlowEdge(edgePredicate, edgeType);
 
+    if (edgeType == ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH) {
+	assert(blockSource.originalEndAddress() +1 ==
+	       blockTarget.originalStartAddress());
+    }
+
+    connectNodes(blockSource, blockTarget, *theEdge);
     return *theEdge;
 }
 
@@ -530,80 +649,92 @@ void
 ControlFlowGraph::directJump(
     InstructionAddressMap& leaders,
     const InstructionAddress& leaderAddr,
-    const TTAProgram::Instruction& instruction,
+    int insIndex, int cfMoveIndex,
     const TTAProgram::Instruction& instructionTarget,
     const TTAProgram::Procedure& procedure) {
 
-    int cfIndex = 0;
-    int delaySlots = 0;
-    for (int i = 0; i < instruction.moveCount(); i++) {
-        if (instruction.move(i).isControlFlowMove()) {
-            cfIndex = i;
-            break;
-        }
-    }
-
-    TTAProgram::Move& move = instruction.move(cfIndex);
+    Instruction& instruction = procedure.instructionAtIndex(insIndex);
+    // find other jumps from same ins.
+    bool hasAnotherJump = hasInstructionAnotherJump(instruction, cfMoveIndex);
+    TTAProgram::Move& move = instruction.move(cfMoveIndex);
     InstructionAddress targetAddr = instructionTarget.address().location();
     if (!MapTools::containsKey(leaders, targetAddr)) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             "Target basic block of jump is missing!");
     }
-    // POM allows mixed scheduled an unscheduled code, so each jump
-    // must check from machine how many delay slots it needs
-    FunctionUnit& unit =
-        const_cast<FunctionUnit&>(move.destination().functionUnit());
-    ControlUnit& control = dynamic_cast<ControlUnit&>(unit);
-    delaySlots = control.delaySlots() ;
 
     if (!move.isUnconditional()) {
         // if jump is conditional we consider guard
-        // we add also fall-through edge to next block,
+        // if we add also fall-through edge to next block,
         // for inverted value of guard
-        Instruction* iNext = const_cast<Instruction*>(&instruction);
-        for (int i = 0; i < delaySlots + 1; i++) {
-            if (procedure.hasNextInstruction(*iNext)) {
-                iNext = &procedure.nextInstruction(*iNext);
-            }
-            if (iNext->hasControlFlowMove() &&
-                i < delaySlots) {
-                //test if there  is no another CF operation in delay
-                // slots
+        // no other jump in same BB.
+
+        Instruction* iNext = NULL;
+        if (!hasAnotherJump) {
+            int nextIndex = findNextIndex(procedure, insIndex, cfMoveIndex);
+            if (nextIndex >= procedure.instructionCount()) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,
                     (boost::format(
-                    "Control flow operation in delay slot"
-                    " in %d!")
-                    % iNext->address().location()).str());
+                         "Fall-through of jump missing:"
+                         "Address: %d jump: %s\n") 
+                     % (procedure.startAddress().location() + insIndex)
+                     % POMDisassembler::disassemble(instruction)).str());
             }
-        }
-        if (!MapTools::containsValue(leaders, iNext)) {
-            throw InvalidData(
-                __FILE__, __LINE__, __func__,
-                "Fall through basic block is missing!");
+            iNext = &procedure.instructionAtIndex(nextIndex);
+            InstructionAddress nextAddr = 
+                procedure.startAddress().location() + nextIndex;
+            if (!MapTools::containsKey(leaders, nextAddr)) {
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    "Fall through basic block is missing!");
+            }
         }
         if (move.guard().isInverted()) {
             // jumps on !bool, fall-through on bool
             createControlFlowEdge(
                 *leaders[leaderAddr], instructionTarget,
                 ControlFlowEdge::CFLOW_EDGE_FALSE);
-            createControlFlowEdge(
-                *leaders[leaderAddr], *iNext,
-                ControlFlowEdge::CFLOW_EDGE_TRUE);
-
+            if (iNext != NULL) {
+                createControlFlowEdge(
+                    *leaders[leaderAddr], *iNext,
+                    ControlFlowEdge::CFLOW_EDGE_TRUE,
+                    ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+            }
         } else {
             createControlFlowEdge(
                 *leaders[leaderAddr], instructionTarget,
                 ControlFlowEdge::CFLOW_EDGE_TRUE);
-            createControlFlowEdge(
-                *leaders[leaderAddr], *iNext,
-                ControlFlowEdge::CFLOW_EDGE_FALSE);
+            if (iNext != NULL) {
+                createControlFlowEdge(
+                    *leaders[leaderAddr], *iNext,
+                    ControlFlowEdge::CFLOW_EDGE_FALSE,
+                    ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+            }
         }
     } else {
         createControlFlowEdge(*leaders[leaderAddr], instructionTarget);
     }
 }
+
+/**
+ * Tells whether an instruction has another jump in addition to the given.
+ *
+ * @param ins instruction to check
+ * @param moveIndex index of the move triggering the known jump.
+ */
+bool 
+ControlFlowGraph::hasInstructionAnotherJump(
+    const Instruction& ins, int moveIndex) {
+    for (int i = 0; i < ins.moveCount(); i++) {
+        if (i != moveIndex && ins.move(i).isJump()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * Creates edges for indirect jump (source is NOT immediate value).
@@ -619,43 +750,38 @@ ControlFlowGraph::indirectJump(
     InstructionAddressMap& leaders,
     const InstructionAddress& leaderAddr,
     InstructionAddressMap& dataCodeRellocations,
-    const TTAProgram::Instruction& instruction,
+    int insIndex, int cfMoveIndex,
     const TTAProgram::Procedure& procedure) {
 
+    Instruction& instruction = procedure.instructionAtIndex(insIndex);
     InstructionAddressMap::iterator dataCodeIterator =
         dataCodeRellocations.begin();
-    int cfIndex = 0;
-    int delaySlots = 0;
-    for (int i = 0; i < instruction.moveCount(); i++) {
-        if (instruction.move(i).isControlFlowMove()) {
-            cfIndex = i;
-            break;
-        }
-    }
-    Port* port =
-        const_cast<Port*>(&instruction.move(cfIndex).source().port());
+    bool hasAnotherJump = hasInstructionAnotherJump(instruction, cfMoveIndex);
+    TTAProgram::Move& move = instruction.move(cfMoveIndex);
 
-    if (dynamic_cast<SpecialRegisterPort*>(port) != NULL) {
-        ///TODO: double check or replace with some more meaningfull
-        /// solution. This one doesn't add edges from ra->jump.1 and
-        /// trusts that edge to Exit node will be added later by addEntryExit
-        /// from node that has no outgoing edges.
+    if (move.hasAnnotations(ProgramAnnotation::ANN_JUMP_TO_NEXT)) {
+        int nextIndex = findNextIndex(procedure, insIndex, cfMoveIndex);
+        if (nextIndex < procedure.instructionCount()) {
+            const Instruction& iNext = procedure.instructionAtIndex(nextIndex);
+            createControlFlowEdge(
+                *leaders[leaderAddr], iNext,
+                ControlFlowEdge::CFLOW_EDGE_FAKE);
+        }
+        else {
+            throw IllegalProgram(
+                __FILE__,__LINE__,__func__,
+                "Jump to next annotation without next instruction");
+        }
         return;
     }
-    // POM can contain scheduled and unscheduled code so each jump
-    // must test how many delay slots it uses from machine
-    FunctionUnit& unit = const_cast<FunctionUnit&>(
-        instruction.move(cfIndex).destination().functionUnit());
-    ControlUnit& control = dynamic_cast<ControlUnit&>(unit);
-    delaySlots = control.delaySlots();
 
 
     ControlFlowEdge::CFGEdgePredicate edgePredicate =
         ControlFlowEdge::CFLOW_EDGE_NORMAL;
     ControlFlowEdge::CFGEdgePredicate fallPredicate =
         ControlFlowEdge::CFLOW_EDGE_NORMAL;
-    if (instruction.move(cfIndex).isUnconditional() == false) {
-        if (instruction.move(cfIndex).guard().isInverted()) {
+    if (instruction.move(cfMoveIndex).isUnconditional() == false) {
+        if (instruction.move(cfMoveIndex).guard().isInverted()) {
             edgePredicate = ControlFlowEdge::CFLOW_EDGE_FALSE;
             fallPredicate = ControlFlowEdge::CFLOW_EDGE_TRUE;
         } else {
@@ -663,34 +789,36 @@ ControlFlowGraph::indirectJump(
             fallPredicate = ControlFlowEdge::CFLOW_EDGE_FALSE;
         }
     }
-    if (procedure.hasNextInstruction(instruction)) {
-        Instruction* iNext = const_cast<Instruction*>(&instruction);
-        for (int i = 0; i < delaySlots + 1; i++) {
-            if (procedure.hasNextInstruction(*iNext)) {
-                iNext = &procedure.nextInstruction(*iNext);
-            }
-            if (iNext->hasControlFlowMove() &&
-                i < delaySlots) {
-                //test if there  is no another CF operation in delay
-                // slots
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__,
-                    (boost::format(
-                    "Control flow operation in delay slot in %d!")
-                    % iNext->address().location()).str());
-            }
-        }
 
-        if (instruction.move(cfIndex).isUnconditional() == false) {
-            if (!MapTools::containsValue(leaders, iNext)){
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__,
-                    "Fall through basic block is missing!");
-            }
-            createControlFlowEdge(
-                    *leaders[leaderAddr], *iNext,fallPredicate);
+    if (!instruction.move(cfMoveIndex).isUnconditional() &&
+        !hasAnotherJump) {
+        int nextIndex = findNextIndex(procedure, insIndex, cfMoveIndex);
+        InstructionAddress nextAddr = 
+            procedure.startAddress().location() + nextIndex;
+        if (nextIndex >= procedure.instructionCount() ||
+            !MapTools::containsKey(leaders, nextAddr)) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                "Fall through basic block is missing!");
         }
+        Instruction& iNext = procedure.instructionAtIndex(nextIndex);
+        createControlFlowEdge(
+                    *leaders[leaderAddr], iNext,fallPredicate,
+                    ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
     }
+
+    // Check if this jump is a return. 
+    const Port* port =
+        &instruction.move(cfMoveIndex).source().port();
+
+    if (dynamic_cast<const SpecialRegisterPort*>(port) != NULL || 
+        move.hasAnnotations(
+            ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN)) {
+        returnSources_.insert(
+            ReturnSource(leaderAddr, edgePredicate));
+        return;
+    }
+    
     while (dataCodeIterator != dataCodeRellocations.end()) {
     // Target of jump is reachable also from it's predecessor
     // block, in case there is no unconditional jump at the end.
@@ -765,10 +893,38 @@ void
 ControlFlowGraph::addExit() {
     BasicBlockNode* exit = new BasicBlockNode(0, 0, false, true);
     addNode(*exit);
+
+    // the actual code which inserts the exit on normal case.
+    for (ReturnSourceSet::iterator i = returnSources_.begin();
+         i != returnSources_.end(); i++) {
+
+        InstructionAddress sourceAddr = i->first;
+        if (!MapTools::containsKey(blocks_, sourceAddr)) {
+            if (Application::verboseLevel() >= 1) {
+                TCEString msg = (
+                    boost::format(
+                        "Source instr %d:%s\nDestination instr %d:%s\n")
+                    % Conversion::toString(sourceAddr)
+                    ).str();
+                Application::logStream() << msg;
+            }
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                "Source basic block of edge to exit is missing!");
+        }
+        BasicBlockNode& blockSource(*blocks_[sourceAddr]);
+        ControlFlowEdge* theEdge = 
+            new ControlFlowEdge(i->second, ControlFlowEdge::CFLOW_EDGE_JUMP);
+        connectNodes(blockSource, *exit, *theEdge);
+    } 
+
+    // kludge needed for start and exit methods which do nto have ret inst.
     for (int i = 0; i < nodeCount(); i++) {
         BasicBlockNode& block(static_cast<BasicBlockNode&>(node(i)));
         if (outDegree(block) == 0 && exit != &block) {
-            ControlFlowEdge* edge = new ControlFlowEdge;
+            ControlFlowEdge* edge = new ControlFlowEdge(
+                ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                ControlFlowEdge::CFLOW_EDGE_CALL);
             connectNodes(block, *exit, *edge);
         }
     }
@@ -797,7 +953,7 @@ ControlFlowGraph::reversedGraph() const {
  *            recognised as entry nodes.
  */
 BasicBlockNode&
-ControlFlowGraph::entryNode() {
+ControlFlowGraph::entryNode() const {
     BasicBlockNode* result = NULL;
     bool found = false;
     bool unlinkedEntryNode = false;
@@ -817,12 +973,12 @@ ControlFlowGraph::entryNode() {
                     __FILE__, __LINE__, __func__,
                     "Corrupted graph. Found multiple entry nodes.");
             }
-            result = dynamic_cast<BasicBlockNode*>(&node(i));
+            result = &node(i);
             found = true;
         }
     }
     if (found == false || result == NULL) {
-        string errorMsg("Graph does not have entry node.");
+        TCEString errorMsg("Graph does not have entry node.");
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
     return *result;
@@ -839,7 +995,7 @@ ControlFlowGraph::entryNode() {
  *            recognised as stop nodes.
  */
 BasicBlockNode&
-ControlFlowGraph::exitNode() {
+ControlFlowGraph::exitNode() const {
 
     BasicBlockNode* result = NULL;
     bool found = false;
@@ -858,12 +1014,12 @@ ControlFlowGraph::exitNode() {
                     __FILE__, __LINE__, __func__,
                     "Corrupted graph. Found multiple exit nodes.");
             }
-            result = dynamic_cast<BasicBlockNode*>(&node(i));
+            result = &node(i);
             found = true;
         }
     }
     if (found == false || result == NULL || unlinkedExitNode == true) {
-        string errorMsg("Graph does not have exit node.");
+        TCEString errorMsg("Graph does not have exit node.");
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
     return *result;
@@ -891,7 +1047,7 @@ ControlFlowGraph::addEntryExitEdge() {
     for (unsigned int i = 0; i < fromEntry.size(); i++) {
         disconnectNodes(entry, *(fromEntry[i].first));
         ControlFlowEdge* edge = new ControlFlowEdge(
-            /*fromEntry[i].second,*/ ControlFlowEdge::CFLOW_EDGE_TRUE);
+            ControlFlowEdge::CFLOW_EDGE_TRUE);
         connectNodes(entry, *(fromEntry[i].first), *edge);
     }
     ControlFlowEdge* edge = new ControlFlowEdge(
@@ -930,7 +1086,7 @@ ControlFlowGraph::removeEntryExitEdge() {
  *
  * @return The name of procedure as a string
  */
-std::string
+TCEString
 ControlFlowGraph::procedureName() const {
     return procedureName_;
 }
@@ -983,7 +1139,7 @@ ControlFlowGraph::createJumps(
     if (instruction.move(moveIndex).source().isInstructionAddress()) {
         Move* tmp = &instruction.move(moveIndex);
         directJump(
-            leaders, leaderAddr, instruction,
+            leaders, leaderAddr, insIndex, moveIndex,
             tmp->source().instructionReference().instruction(),
             procedure);
          return;
@@ -1005,8 +1161,9 @@ ControlFlowGraph::createJumps(
                     TTAProgram::Immediate* tmpImm = &iPrev->immediate(j);
                     if (sourceTerm->equals(*destTerm)) {
                         directJump(
-                            leaders, leaderAddr, instruction,
-                        tmpImm->value().instructionReference().instruction(),
+                            leaders, leaderAddr, insIndex, moveIndex,
+                            tmpImm->value().instructionReference().
+                            instruction(),
                             procedure);
                         return;
                     }
@@ -1024,7 +1181,7 @@ ControlFlowGraph::createJumps(
                     if (sourceTerm->equals(*destTerm)) {
                         if (tmpTerm->isInstructionAddress()){
                             directJump(
-                                leaders, leaderAddr, instruction,
+                                leaders, leaderAddr, insIndex, moveIndex,
                                 tmpTerm->instructionReference().instruction(),
                                 procedure);
                             return;
@@ -1039,7 +1196,7 @@ ControlFlowGraph::createJumps(
                         if (tmpTerm->isFUPort()) {
                             indirectJump(
                                 leaders, leaderAddr,
-                                dataCodeRellocations, instruction,
+                                dataCodeRellocations, insIndex, moveIndex,
                                 procedure);
                             return;
                         }
@@ -1055,7 +1212,7 @@ ControlFlowGraph::createJumps(
         }
         indirectJump(
             leaders, leaderAddr, dataCodeRellocations,
-            instruction, procedure);
+            insIndex, moveIndex, procedure);
             return;
     }
 }
@@ -1065,19 +1222,19 @@ ControlFlowGraph::createJumps(
  *
  * @return String with basic statistics about control flow graph.
  */
-std::string
+TCEString
 ControlFlowGraph::printStatistics() {
     const CFGStatistics& stats = statistics();
-    
-    std::string result = "";
+
+    TCEString result = "";
     result += (boost::format("Procedure '%s' has %d moves, %d immediate"
         " writes, %d instructions and %d bypassed moves in %d basic blocks.")
         %procedureName() % stats.moveCount() % stats.immediateCount()
-        % stats.instructionCount() % stats.bypassedCount() 
+        % stats.instructionCount() % stats.bypassedCount()
         % stats.normalBBCount()).str();
     result += (boost::format("\n\tLargest basic block has %d moves, %d"
         " immediate writes, %d instructions and %d bypassed moves.")
-        % stats.maxMoveCount() % stats.maxImmediateCount() 
+        % stats.maxMoveCount() % stats.maxImmediateCount()
         % stats.maxInstructionCount() % stats.maxBypassedCount()).str();
     return result;
 }
@@ -1088,8 +1245,8 @@ ControlFlowGraph::printStatistics() {
  * @return Object with basic statistics about control flow graph.
  */
 const CFGStatistics&
-ControlFlowGraph::statistics() {  
-    
+ControlFlowGraph::statistics() {
+
     CFGStatistics* result = new CFGStatistics;
     int moveCount = 0;
     int immediateCount = 0;
@@ -1127,4 +1284,465 @@ ControlFlowGraph::statistics() {
     result->setMaxImmediateCount(immediateCountInMax);
     result->setMaxBypassedCount(bypassCountInMax);
     return *result;
+}
+
+
+/**
+ * Finds a node where control falls thru from the give node.
+ *
+ * @param bbn basic block node whose successor we are searching
+ * @return node where control falls thru from given node or NULL if not exist.
+ */
+BasicBlockNode*
+ControlFlowGraph::fallThruSuccessor(BasicBlockNode& bbn) {
+    if (bbn.isExitBB()) {
+        return NULL;
+    }
+
+    EdgeSet oEdges = outEdges(bbn);
+    for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+        if ((*i)->isFallThroughEdge() || (*i)->isCallPassEdge()) {
+            return &headNode(**i);
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Returns true if given basic blocks has a predecessor which
+ * falls thru to it.
+ *
+ * @param bbn bbn to check for fall-thru predecessors
+ * @return if control can fall-thru to this BB.
+ */
+bool ControlFlowGraph::hasFallThruPredecessor(BasicBlockNode& bbn) {
+    EdgeSet iEdges = inEdges(bbn);
+    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
+        if ((*i)->isFallThroughEdge() || (*i)->isCallPassEdge()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Does a breadth first search to find all reachable nodes.
+ */
+ControlFlowGraph::NodeSet
+ControlFlowGraph::findReachableNodes() {
+    NodeSet queuedBBs;
+    NodeSet processedBBs;
+
+    ControlFlowGraph::NodeSet firstBBs = successors(entryNode());
+    AssocTools::append(firstBBs,queuedBBs);
+
+    while (queuedBBs.size() != 0) {
+        BasicBlockNode& current = **queuedBBs.begin();
+        if (current.isNormalBB()) {
+            processedBBs.insert(&current);
+            NodeSet succs = successors(current);
+            for (NodeSet::iterator i = succs.begin(); i != succs.end(); i++) {
+                if (!AssocTools::containsKey(processedBBs,*i)) {
+                    queuedBBs.insert(*i);
+                }
+            }
+            processedBBs.insert(&current);
+        }
+        queuedBBs.erase(&current);
+    }
+    return processedBBs;
+}
+
+/**
+ * Copies the CFG into a procedure. Clears the procedure and
+ * replaces all instructions in it with ones in CFG.
+ * Tries to get rid of some unnecessary jumps.
+ *
+ * @param proc procedure where the copy the cfg.
+ */
+void
+ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
+
+    // todo: make sure not indeterministic.
+    // two-way maps between copied and in cfg instructions.
+    typedef std::map<TTAProgram::Instruction*,TTAProgram::Instruction*>
+        InsMap;
+    InsMap copiedInsFromCFG;
+
+    std::vector<Instruction*> oldInstructions;
+
+    int jumpsRemoved = 0;
+    ControlFlowGraph::NodeSet firstBBs = successors(entryNode());
+    assert(firstBBs.size() == 1);
+    BasicBlockNode* firstBBN = *firstBBs.begin();
+    BasicBlockNode* currentBBN = firstBBN;
+
+    // fix refs to old first to point to first in cfg - later fixed to
+    // first in program
+    InstructionReferenceManager& irm = program_->instructionReferenceManager();
+    assert(firstBBN->isNormalBB());
+
+    // procedure should not have any references.
+    for (int i = 0; i < proc.instructionCount(); i++) {
+        assert(!irm.hasReference(proc.instructionAtIndex(i)));
+    }
+
+    proc.clear();
+
+    // find and queue reachable nodes
+    NodeSet queuedNodes = findReachableNodes();
+    NodeSet unreachableNodes;
+
+    // find dead nodes
+    for (int i = 0; i < nodeCount(); i++) {
+        BasicBlockNode& n = node(i);
+        if (!AssocTools::containsKey(queuedNodes,&n) &&
+            n.isNormalBB()) {
+            unreachableNodes.insert(&n);
+        }
+    }
+
+    // then loop as long as we have BBs which have not been written to
+    // the procedure.
+    while (currentBBN != NULL) {
+        BasicBlockNode* nextNode = NULL;
+        BasicBlock& bb = currentBBN->basicBlock();
+
+        // todo: if refs to skipped instructions, breaks?
+
+        for (int i = 0; i < bb.skippedFirstInstructions(); i++) {
+            Instruction& ins = bb.instructionAtIndex(i);
+            assert(!irm.hasReference(ins));
+        }
+
+        // copy instructions of a BB to procedure.
+        for (int i = bb.skippedFirstInstructions();
+             i < bb.instructionCount(); i++) {
+            Instruction* ins = &bb.instructionAtIndex(i);
+            Instruction* copiedIns = ins->copy();
+            copiedInsFromCFG[ins] = copiedIns;
+
+            // CodeSnippet:: is a speed optimization here.
+            // only later fix the addresses of followind functions.
+            proc.CodeSnippet::add(copiedIns);
+        }
+
+        queuedNodes.erase(currentBBN);
+
+        // then start searching for the next node.
+
+        // if has fall-turu-successor, select it so no need to add
+        // extra jump
+        BasicBlockNode* ftNode = fallThruSuccessor(*currentBBN);
+        if (ftNode != NULL && ftNode->isNormalBB()) {
+
+            if (queuedNodes.find(ftNode) == queuedNodes.end()) {
+                std::cerr << "not-queued fall-thru: " << ftNode->toString()
+                          << " current: " << currentBBN->toString() << 
+                    std::endl;
+                writeToDotFile("copyToProcedureFallThruBBNotQueued.dot");
+            }
+            // must not be already processed.
+            assert(queuedNodes.find(ftNode) != queuedNodes.end());
+            currentBBN = ftNode;
+            continue;
+        }
+
+        // Select some node, preferably successrs without ft-preds
+        // The jump can then be removed.
+        EdgeSet oEdges = outEdges(*currentBBN);
+        for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+            ControlFlowEdge& e = **i;
+            BasicBlockNode& head = headNode(e);
+            if (!hasFallThruPredecessor(head) && head.isNormalBB() &&
+                queuedNodes.find(&head) != queuedNodes.end()) {
+                // try to remove the jump as it's jump to the next BB.
+                RemovedJumpData rjd = removeJumpToTarget(
+                    proc, head.basicBlock().firstInstruction(),
+                    proc.instructionCount() - bb.instructionCount());
+                if (rjd != JUMP_NOT_REMOVED) {
+                    jumpsRemoved++;
+                    // if BB got empty,
+                    // move refs to beginning of the next BB.
+                    if (rjd == LAST_ELEMENT_REMOVED) {
+                        Instruction& ins = bb.instructionAtIndex(0);
+                        if (irm.hasReference(ins)) {
+                            irm.replace(
+                                ins, head.basicBlock().instructionAtIndex(
+                                    head.basicBlock().
+                                    skippedFirstInstructions()));
+                        }
+                    }
+                    // we removed a jump so convert the jump edge into
+                    // fall-through edge.
+                    ControlFlowEdge* ftEdge = new ControlFlowEdge(
+                        e.edgePredicate(), 
+                        ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                    removeEdge(e);
+                    connectNodes(*currentBBN, head, *ftEdge);
+                    nextNode = &head;
+                    break;
+                }
+            }
+        }
+
+        // need to select SOME node as successor.
+        // first without ft-predecessor usually is a good candidate.
+        // smarter heuristic does not seem to help at all.
+        // try to select
+        if (nextNode == NULL) {
+            bool ftPred = false;
+            for (NodeSet::iterator i = queuedNodes.begin();
+                 i != queuedNodes.end(); i++) {
+                if (!hasFallThruPredecessor(**i)) {
+                    nextNode = *i;
+                    break;
+                } else {
+                    ftPred = true;
+                }
+            }
+            
+            // unreachable node having ft may have prevented us from
+            // managing some node whose fall-thru succs prevent
+            // futher nodes. try to select some unreached node.
+            if (nextNode == NULL && ftPred) {
+                for (NodeSet::iterator i = unreachableNodes.begin();
+                     i != queuedNodes.end(); i++) {
+                    if (fallThruSuccessor(**i) != NULL) {
+                        nextNode = *i;
+                        unreachableNodes.erase(*i);
+                        break;
+                    }
+                }
+            }
+
+            // did not help. we cannot select node which has
+            // fall-thru predecessor.
+            if (nextNode == NULL && ftPred) {
+                writeToDotFile(
+                    "CopyToProcedure_multiple_fall_thorough_nodes.dot");
+                assert(0 && "CFG may have multiple fall-thorough nodes!");
+            }
+        }
+        currentBBN = nextNode;
+    }
+
+    // now all instructions are copied.
+
+    // this can happen in indeterministic order.
+    // but it should not cause any indeterministicity
+    // effects on the schedule.
+
+    // Update refs from cfg into final program
+    // only works for refs
+    for (InsMap::iterator i = copiedInsFromCFG.begin();
+         i != copiedInsFromCFG.end(); i++) {
+        std::pair<Instruction*,Instruction*> insPair = *i;
+        if (irm.hasReference(*insPair.first)) {
+            irm.replace(*insPair.first, *insPair.second);
+        }
+    }
+
+    // move the following procedures to correct place
+    if (proc.instructionCount() != 0 && proc.isInProgram()) {
+        if (!(&proc == &proc.parent().lastProcedure())) {
+            proc.parent().moveProcedure(
+                proc.parent().nextProcedure(proc),
+                proc.instructionCount());
+        }
+    }
+
+    // make sure no refs to dead code?
+/*
+    for (NodeSet::iterator i = unreachableNodes.begin();
+         i != unreachableNodes.end(); i++) {
+        BasicBlockNode& bbn = **i;
+        if (bbn.isNormalBB()) {
+            BasicBlock& bb = bbn.basicBlock();
+            for (int i = 0; i < bb.instructionCount();i++) {
+                Instruction& ins = bb.instructionAtIndex(i);
+                assert(!irm.hasReference(ins));
+            }
+        }
+    }
+*/
+}
+
+/**
+ * Updates instruction references from procedure to cfg
+ * Which is constructed from the procedure.
+ *
+ */
+void
+ControlFlowGraph::updateReferencesFromProcToCfg() {
+
+    // make all refs point to the new copied instructions.
+    for (int i = 0; i < nodeCount(); i++) {
+        BasicBlockNode& bbn = node(i);
+        bbn.updateReferencesFromProcToCfg(*program_);
+    }
+
+    InstructionReferenceManager& irm = program_->instructionReferenceManager();
+    // procedure should not have any references.
+    for (int i = 0; i < procedure_->instructionCount(); i++) {
+        assert(!irm.hasReference(procedure_->instructionAtIndex(i)));
+    }
+
+}
+
+
+/**
+ * Tells whether a node has incoming fall-thru edge.
+ * Jump and entry is also considered fall-thru
+ *
+ * @param bbn the node
+ * @return whether control flow can fall thru to this node
+ */
+bool
+ControlFlowGraph::hasIncomingFallThru(const BasicBlockNode& bbn) const {
+    ControlFlowGraph::EdgeSet iEdges = inEdges(bbn);
+
+    for (ControlFlowGraph::EdgeSet::const_iterator i = iEdges.begin();
+         i != iEdges.end(); i++) {
+        const ControlFlowEdge& e = **i;
+        if (!e.isJumpEdge()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Finds a jump that jumps to target from a codesnippet and removes the
+ * jump.
+ *
+ * @param cs CodeSnippet where to remove the jump from.
+ * @param target jump target instruction.
+ * @param idx index which after to check for existing moves and immeds
+ * @return whther not removed, removed and some moves last after idx,
+ *         or if removed and  no moves/immeds left after idx.
+ * @TODO should be able to handle also jumps where address is LIMM
+ */
+ControlFlowGraph::RemovedJumpData
+ControlFlowGraph::removeJumpToTarget(
+    CodeSnippet& cs, const Instruction& target, int idx) {
+    int index = cs.instructionCount() -1; // - delaySlots;
+
+    Move* lastJump = NULL;
+    for (;index >= idx ; index--) {
+        Instruction& ins = cs.instructionAtIndex(index);
+        for (int j = 0; j < ins.moveCount(); j++) {
+            Move& move = ins.move(j);
+            if (!move.isJump()) {
+                continue;
+            }
+
+            TTAProgram::Terminal& term = move.source();
+            if (term.isInstructionAddress()) {
+                TTAProgram::TerminalInstructionAddress& tia =
+                    dynamic_cast<TTAProgram::TerminalInstructionAddress&>(
+                        term);
+                TTAProgram::InstructionReference& ir =
+                    tia.instructionReference();
+
+                // found jump to target? remove this?
+                if (&ir.instruction() == &target) {
+                    if (lastJump != NULL) {
+                        // TODO: should also check that no other moves
+                        // as the lastJump after the delay slots of
+                        // the move.
+                        if (lastJump->isUnconditional()) {
+                            // if removing conditional jump,
+                            // make the other jump have opposite guard
+                            if (!move.isUnconditional()) {
+
+                                TTAProgram::MoveGuard* invG = NULL;
+                                // if already scheduled,
+                                // guard must be in same bus
+                                if (!lastJump->bus().machine()->
+                                    isUniversalMachine()) {
+                                    invG = CodeGenerator::createInverseGuard(
+                                        move.guard(), &lastJump->bus());
+                                } else {
+                                    invG = CodeGenerator::createInverseGuard(
+                                        move.guard());
+                                }
+                                if (invG == NULL) {
+                                    return JUMP_NOT_REMOVED;
+                                }
+                                lastJump->setGuard(invG);
+                            }
+                            ins.removeMove(move);
+                            delete &move;
+                            return JUMP_REMOVED;
+                        } else {
+                            // two conditional jumps? nasty. no can do
+                            return JUMP_NOT_REMOVED;
+                        }
+                    } else {
+                        ins.removeMove(move);
+                        delete &move;
+                        // check if there are moves/immeds left.
+                        // if not, update refs.
+                        for (; idx < cs.instructionCount(); idx++) {
+                            Instruction& ins2 = cs.instructionAtIndex(idx);
+                            if (ins2.moveCount() > 0 ||
+                                ins2.immediateCount() > 0) {
+                                return JUMP_REMOVED;
+                            }
+                        }
+                        return LAST_ELEMENT_REMOVED;
+                    }
+                }
+            }
+            lastJump = &move;
+        }
+    }
+    return JUMP_NOT_REMOVED;
+}
+
+/**
+ * Removes and deletes a basic block node from the grpahs and
+ * updates all references that point to it to point elsewhere.
+ *
+ * @param node basic block node to be removed and deleted.
+ */
+void
+ControlFlowGraph::deleteNodeAndRefs(BasicBlockNode& node) {
+    removeNode(node);
+    delete &node;
+}
+
+TTAProgram::InstructionReferenceManager&
+ControlFlowGraph::instructionReferenceManager() {
+    if (program_ == NULL) {
+        throw NotAvailable(__FILE__,__LINE__,__func__,
+            "cfg does not have program");
+    }
+    return program_->instructionReferenceManager();
+}
+
+BasicBlockNode*
+ControlFlowGraph::jumpSuccessor(BasicBlockNode& bbn) {
+    for (int i = 0; i < outDegree(bbn); i++) {
+        Edge& e = outEdge(bbn,i);
+        if (e.isJumpEdge()) {
+            return &headNode(e);
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Tests created control flow graph using depth first search algorithm
+ * of boost graph library and mark back edges.
+ */
+void
+ControlFlowGraph::detectBackEdges() {
+    DFSBackEdgeVisitor vis;
+    /// Default starting vertex is vertex(g).first, which is actually
+    /// first basic block created. Entry is created as second and
+    /// there is connection added from entry to first BB.
+    /// Using default parameter for root_vertex is therefore sufficient
+    boost::depth_first_search(graph_, visitor(vis));
 }

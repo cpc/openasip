@@ -35,8 +35,6 @@
 #include "MoveNode.hh"
 #include "HWOperation.hh"
 
-using std::string;
-
 DataDependenceEdge::DataDependenceEdge(EdgeReason edgereason,
                                        DependenceType deptype,
                                        bool guard,
@@ -47,12 +45,12 @@ DataDependenceEdge::DataDependenceEdge(EdgeReason edgereason,
         guard_(guard), certainAlias_(certainAlias),
         tailPseudo_(tailPs), headPseudo_(headPs) {}
 
-std::string
+TCEString
 DataDependenceEdge::toString() const {
     return edgeReasonSt() + guardSt() + depTypeSt() + pseudoSt();
 }
 
-std::string
+TCEString
 DataDependenceEdge::edgeReasonSt() const {
     switch (edgeReason_) {
         case EDGE_REGISTER:
@@ -69,7 +67,7 @@ DataDependenceEdge::edgeReasonSt() const {
     return "BUG";
 }
 
-std::string
+TCEString
 DataDependenceEdge::depTypeSt() const {
     switch (dependenceType_) {
         case DEP_RAW:
@@ -84,12 +82,12 @@ DataDependenceEdge::depTypeSt() const {
     }
 }
 
-std::string
+TCEString
 DataDependenceEdge::guardSt() const {
     return guard_ ? "_G" : "";
 }
 
-std::string
+TCEString
 DataDependenceEdge::pseudoSt() const {
     return std::string(tailPseudo_ ? "_TP" : "") + (headPseudo_ ? "_HP" : "");
 }

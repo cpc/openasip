@@ -35,8 +35,6 @@
 #ifndef TTA_CONTROL_FLOW_EDGE_HH
 #define TTA_CONTROL_FLOW_EDGE_HH
 
-#include <string>
-
 #include "GraphEdge.hh"
 
 /**
@@ -51,12 +49,18 @@ public:
         CFLOW_EDGE_NORMAL,
         CFLOW_EDGE_TRUE,
         CFLOW_EDGE_FALSE,
-	CFLOW_EDGE_LOOP_BREAK
+        CFLOW_EDGE_LOOP_BREAK,
+        CFLOW_EDGE_FAKE
+    };
+    enum CFGEdgeType {
+        CFLOW_EDGE_JUMP,
+        CFLOW_EDGE_CALL,
+        CFLOW_EDGE_FALLTHROUGH
     };
 
     ControlFlowEdge(
         CFGEdgePredicate edgePredicate = CFLOW_EDGE_NORMAL,
-        bool isJumpEdge = true);
+        CFGEdgeType edgeType = CFLOW_EDGE_JUMP);
 
     virtual ~ControlFlowEdge();
 
@@ -66,12 +70,22 @@ public:
     bool isFalseEdge() const;
     bool isCallPassEdge() const;
     bool isJumpEdge() const;
+    bool isFallThroughEdge() const;
     bool isLoopBreakEdge() const;
-    std::string toString() const;
+    bool isBackEdge() const;
+    TCEString toString() const;
+
+    CFGEdgePredicate edgePredicate() { return edgePredicate_; }
+    CFGEdgeType edgeType() { return edgeType_; }
+
+    /// Add property to edge to mark is as back edge - loop edge
+    /// DO NOT USE unless you know what you are doing!!!
+    void setBackEdge() { backEdge_ = true;}
 
 private:
     CFGEdgePredicate edgePredicate_;
-    bool isJumpEdge_;
+    CFGEdgeType edgeType_;
+    bool backEdge_;
 };
 
 #endif

@@ -33,8 +33,6 @@
 #ifndef TTA_OPERATION_DAG_EDGE_HH
 #define TTA_OPERATION_DAG_EDGE_HH
 
-#include <string>
-
 #include "GraphEdge.hh"
 
 class OperationDAGEdge : public GraphEdge {
@@ -48,7 +46,7 @@ public:
     int srcOperand() const;
     int dstOperand() const;
 
-    std::string toString() const;    
+    TCEString toString() const;    
 
 private:
     int srcOperand_;

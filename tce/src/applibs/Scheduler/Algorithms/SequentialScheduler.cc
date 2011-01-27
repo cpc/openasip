@@ -192,7 +192,7 @@ SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
             __FILE__,__LINE__,__func__,
             "Scheduling operands failed for: " +moves.toString());
     }
-    
+
     int lastCycle = scheduleResultReads(triggerCycle+1, moves, addedCopies);
 
     if (lastCycle == -1) {
@@ -208,7 +208,7 @@ SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
  *
  * Assumes the given MoveNodeGroup contains all moves in the operation
  * execution. Also assumes that all inputs to the MoveNodeGroup have
- * been scheduled. 
+ * been scheduled.
  * Exception to this are the possible temporary register
  * copies inserted before the operand move due to missing connectivity.
  * If found, the temp moves are scheduled atomically with the operand move.
@@ -229,7 +229,6 @@ SequentialScheduler::scheduleOperandWrites(
     MoveNode* trigger = NULL;
     MoveNode& firstNode = moves.node(0);
     ProgramOperation& po = firstNode.destinationOperation();
-    
 
     for (int i = 0; i < moves.nodeCount(); i++) {
 
@@ -242,11 +241,11 @@ SequentialScheduler::scheduleOperandWrites(
         cycle = scheduleInputOperandTempMoves(cycle, node, regCopies);
         scheduleMove(cycle, node);
         scheduledMoves++;
-        
+
         TTAProgram::Terminal& dest = node.move().destination();
         // got triger?
         if (dest.isFUPort() && dest.isTriggering()) {
-            
+
             // if all operands not scheduled, delay trigger
             if (scheduledMoves < po.inputMoveCount()) {
                 unscheduleInputOperandTempMoves(node, regCopies);
@@ -278,13 +277,13 @@ SequentialScheduler::scheduleOperandWrites(
  */
 int
 SequentialScheduler::scheduleResultReads(
-    int cycle, MoveNodeGroup& moves, 
+    int cycle, MoveNodeGroup& moves,
     RegisterCopyAdder::AddedRegisterCopies& regCopies)
     throw (Exception) {
-    
+
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
         MoveNode& node = moves.node(moveIndex);
-        
+
         if (!node.isScheduled()) {
             if (!node.isSourceOperation()) {
                 throw InvalidData(
@@ -300,8 +299,8 @@ SequentialScheduler::scheduleResultReads(
             if (!node.isScheduled()) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,
-                    (boost::format("Move '%s' did not get scheduled!") 
-                    % node.toString()).str());                
+                    (boost::format("Move '%s' did not get scheduled!")
+                    % node.toString()).str());
             }
         }
     }
@@ -352,9 +351,9 @@ SequentialScheduler::scheduleMove(
     if (moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
-            (boost::format("Move '%s' is already scheduled!") 
-            % moveNode.toString()).str());                
-    }            
+            (boost::format("Move '%s' is already scheduled!")
+            % moveNode.toString()).str());
+    }
 
     // if it's a conditional move then we have to be sure that the guard
     // is defined before executing the move
@@ -364,7 +363,7 @@ SequentialScheduler::scheduleMove(
 
         earliestCycle += guardLatency; // jut for sure?
         TTAMachine::Guard& guard = moveNode.move().guard().guard();
-        TTAMachine::RegisterGuard* rg = 
+        TTAMachine::RegisterGuard* rg =
             dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
         if (rg != NULL) {
             guardLatency += rg->registerFile()->guardLatency();
@@ -376,56 +375,56 @@ SequentialScheduler::scheduleMove(
     // moveNode here.
     MoveNodeSet tempSet;
     tempSet.addMoveNode(moveNode);
-    if (moveNode.isSourceConstant() && 
+    if (moveNode.isSourceConstant() &&
         !moveNode.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         // If source is constant and node does not have annotation already,
-        // we add it if constant can not be transported so IU broker and 
+        // we add it if constant can not be transported so IU broker and
         // OutputPSocket brokers will add Immediate
         // Example : 999999 -> integer0.2
         if (!rm_->canTransportImmediate(moveNode)){
             TTAProgram::ProgramAnnotation annotation(
                 TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM);
-            moveNode.move().setAnnotation(annotation); 
+            moveNode.move().setAnnotation(annotation);
             
         } else if (!moveNode.isDestinationOperation() &&
                    rm_->earliestCycle(rm_->largestCycle()+1,moveNode) == -1) {
-            // If source is constant and node does not have annotation 
-            // already, we add it if node has no connection, so IU broker and 
+            // If source is constant and node does not have annotation
+            // already, we add it if node has no connection, so IU broker and
             // OutputPSocket brokers will add Immediate
             // Example: 27 -> integer0.2
             // With bus capable of transporting 27 as short immediate but
             // no connection from that bus to integer0 unit
             TTAProgram::ProgramAnnotation annotation(
                 TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM);
-            moveNode.move().setAnnotation(annotation);    
+            moveNode.move().setAnnotation(annotation);
         }
-    } 
+    }
     // annotate the return move otherwise it might get undetected in the
     // simulator after the short to long immediate conversion and thus
     // stopping simulation automatically might not work
     if (moveNode.isSourceConstant() &&
-        moveNode.move().isReturn() && 
+        moveNode.move().isReturn() &&
         !rm_->canTransportImmediate(moveNode)) {
         TTAProgram::ProgramAnnotation annotation(
             TTAProgram::ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN);
         moveNode.move().setAnnotation(annotation);
     }
-    
+
     earliestCycle = rm_->earliestCycle(earliestCycle, moveNode);
     if (earliestCycle == -1 || earliestCycle == INT_MAX) {
         if (moveNode.isSourceConstant() &&
             !moveNode.isDestinationOperation() &&
             moveNode.move().hasAnnotations(
                 TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
-            // If earliest cycle returns -1 and source is constant 
-            // and moveNode needs long immediate 
-            // there is most likely missing long immediate unit            
+            // If earliest cycle returns -1 and source is constant
+            // and moveNode needs long immediate
+            // there is most likely missing long immediate unit
             std::string msg = "Assignment of MoveNode " + moveNode.toString();
             msg += " failed! Most likely missing Long Immediate Unit";
             msg += " or Instruction Template!";
             throw IllegalMachine(
-                __FILE__, __LINE__, __func__, msg);            
+                __FILE__, __LINE__, __func__, msg);
         }
         std::string msg = "Assignment of MoveNode " + moveNode.toString();
         msg += " failed!";
@@ -435,8 +434,8 @@ SequentialScheduler::scheduleMove(
     rm_->assign(earliestCycle,  moveNode);
     if (!moveNode.isScheduled()) {
         throw ModuleRunTimeError(
-            __FILE__, __LINE__, __func__, 
-            (boost::format("Assignment of MoveNode '%s' failed!") 
+            __FILE__, __LINE__, __func__,
+            (boost::format("Assignment of MoveNode '%s' failed!")
             % moveNode.toString()).str());
     }
     return earliestCycle;
@@ -547,7 +546,7 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
  */
 int
 SequentialScheduler::scheduleResultTempMoves(
-    int cycle, MoveNode& resultMove, 
+    int cycle, MoveNode& resultMove,
     RegisterCopyAdder::AddedRegisterCopies& regCopies)
     throw (Exception) {
     
@@ -577,7 +576,7 @@ SequentialScheduler::scheduleResultTempMoves(
  * @param moveNode Move to unschedule.
  */
 void
-SequentialScheduler::unschedule(MoveNode& moveNode) {    
+SequentialScheduler::unschedule(MoveNode& moveNode) {
     if (!moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -594,7 +593,7 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
     if (moveNode.isScheduled() || moveNode.isPlaced()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
-            (boost::format("Unscheduling of move '%s' failed!") 
+            (boost::format("Unscheduling of move '%s' failed!")
             % moveNode.toString()).str());
     }
 }
@@ -663,12 +662,12 @@ SequentialScheduler::longDescription() const {
 /**
  * Splits a procedure into basic blocks.
  */
-void 
+void
 SequentialScheduler::createBasicBlocks(
-    TTAProgram::Procedure& proc, 
+    TTAProgram::Procedure& proc,
     std::vector<BasicBlock*> &basicBlocks,
     std::vector<int>& bbAddresses) {
-    TTAProgram::InstructionReferenceManager& irm = 
+    TTAProgram::InstructionReferenceManager& irm =
         proc.parent().instructionReferenceManager();
     BasicBlock* currentBB = NULL;
     int lastStartAddress = 0;
@@ -688,23 +687,23 @@ SequentialScheduler::createBasicBlocks(
                     delete currentBB;
                 }
             }
-            currentBB = new BasicBlock;
             lastStartAddress = ins.address().location();
+            currentBB = new BasicBlock(lastStartAddress);
             // update instruction references.
 //            irm.replace(ins, *insCopy);
         }
         assert(currentBB != NULL); // first ins of proc should have a ref.
-        currentBB->add(insCopy);        
+        currentBB->add(insCopy);
 
         // jump or call starts a new BB, after this instruction.
         if (ins.hasControlFlowMove()) {
             basicBlocks.push_back(currentBB);
             bbAddresses.push_back(lastStartAddress);
-            currentBB = new BasicBlock;
             lastStartAddress = ins.address().location() + 1;
+            currentBB = new BasicBlock(lastStartAddress);
         }
     }
-    
+
     // at end, add last BB if non-empty
     if (currentBB->instructionCount() != 0) {
         basicBlocks.push_back(currentBB);
@@ -714,12 +713,12 @@ SequentialScheduler::createBasicBlocks(
     }
 }
 
-void 
+void
 SequentialScheduler::copyBasicBlocksToProcedure(
-    TTAProgram::Procedure& proc, 
+    TTAProgram::Procedure& proc,
     std::vector<BasicBlock*>& basicBlocks,
     std::vector<int>& bbAddresses) {
-    TTAProgram::InstructionReferenceManager& irm = 
+    TTAProgram::InstructionReferenceManager& irm =
         proc.parent().instructionReferenceManager();
 
     for (unsigned int i = 0; i < basicBlocks.size(); i++) {
@@ -736,7 +735,7 @@ SequentialScheduler::copyBasicBlocksToProcedure(
     for (unsigned int i = 0; i < basicBlocks.size(); i++) {
         BasicBlock& bb = *basicBlocks.at(i);
 
-        // first one is a special case. can contain ref which need to 
+        // first one is a special case. can contain ref which need to
         // be update
         TTAProgram::Instruction& ins = bb.firstInstruction();
         TTAProgram::Instruction* insCopy = ins.copy();
@@ -745,19 +744,19 @@ SequentialScheduler::copyBasicBlocksToProcedure(
         if (irm.hasReference(ins)) {
             irm.replace(ins, *insCopy);
         }
-        
+
         for (int j = 1; j < bb.instructionCount(); j++) {
             TTAProgram::Instruction& ins = bb.instructionAtIndex(j);
             TTAProgram::Instruction* insCopy = ins.copy();
             proc.CodeSnippet::add(insCopy); // delay address fix
         }
     }
- 
+
     // update inst addresses
     if (proc.isInProgram()) {
         if (!(&proc == &proc.parent().lastProcedure())) {
             proc.parent().moveProcedure(
-                proc.parent().nextProcedure(proc), 
+                proc.parent().nextProcedure(proc),
                 proc.instructionCount());
         }
     }

@@ -40,7 +40,7 @@ ControlDependenceEdge::~ControlDependenceEdge() {}
  * Returns a predicate of edge as string.
  * @return The value of edge - true, false, neutral
  */
-std::string
+TCEString
 ControlDependenceEdge::toString() const {
     if (isTrueEdge()) {
         return "True";

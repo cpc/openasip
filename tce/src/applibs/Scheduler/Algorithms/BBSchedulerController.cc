@@ -216,6 +216,9 @@ BBSchedulerController::handleProcedure(
 
     handleControlFlowGraph(cfg, targetMachine);
 
+    cfg.updateReferencesFromProcToCfg();
+    procedure.clear();
+
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
         delaySlotFiller_->fillDelaySlots(
             cfg, *bigDDG_, targetMachine, um, true);
@@ -224,7 +227,8 @@ BBSchedulerController::handleProcedure(
     // now all basic blocks are scheduled, let's put them back to the
     // original procedure
 
-    copyCfgToProcedure(procedure, cfg);
+//    copyCfgToProcedure(procedure, cfg);
+    cfg.copyToProcedure(procedure);
 
     if (bigDDG_ != NULL) {
 

@@ -37,16 +37,18 @@
 #include "Exception.hh"
 #include "Instruction.hh"
 #include "POMDisassembler.hh"
-#include "NullInstruction.hh"
+#include "NullAddressSpace.hh"
 
 using namespace TTAProgram;
 
 /**
  * Constructor.
  */
-BasicBlock::BasicBlock() : 
-    skippedFirstInstructions_(0), 
-    statisticsValid_(false) {
+BasicBlock::BasicBlock(int startAddress) : 
+    CodeSnippet(Address(startAddress, 
+                        TTAMachine::NullAddressSpace::instance())), 
+                skippedFirstInstructions_(0), 
+                statisticsValid_(false), innerLoop_(false), tripCount_(0) {
 }
 
 /**
@@ -63,7 +65,7 @@ BasicBlock::~BasicBlock() {
 BasicBlock*
 BasicBlock::copy() const {
 
-    BasicBlock* newBB = new BasicBlock();
+    BasicBlock* newBB = new BasicBlock(start_.location());
     if (instructionCount() > 0) {
         for (int i = skippedFirstInstructions(); i < instructionCount(); i++) {
             newBB->add(instructionAtIndex(i).copy());
@@ -72,23 +74,6 @@ BasicBlock::copy() const {
     return newBB;
 }
 
-/**
- * Returns the disassembly of the basic block as string.
- *
- * @return The disassembly of the basic block.
- */
-std::string
-BasicBlock::disassemble() const {
-
-    std::string content = "";
-    const int iCount = instructionCount();
-    for (int i = 0; i < iCount; ++i) {
-        const TTAProgram::Instruction& instr = instructionAtIndex(i);
-        content += POMDisassembler::disassemble(instr);
-        content += "\n";
-    }
-    return content;
-}
 
 /**
  * Returns the count of instructions in the beginning of this BB that 
@@ -112,7 +97,6 @@ BasicBlock::skippedFirstInstructions() const {
 void BasicBlock::skipFirstInstructions(int count) {
     skippedFirstInstructions_ = count;
 }
-
 
 /**
  * Updates and returns the statistics about Basic Block
@@ -252,3 +236,4 @@ void
 BasicBlockStatistics::setBypassedCount(int count) {
     bypassedCount_ = count;
 }
+
