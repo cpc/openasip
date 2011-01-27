@@ -5,6 +5,7 @@ Notable new features
 --------------------
 - Generic VHDL implementations for the basic streaming operations
   from Jani Boutellier / University of Oulu.
+- OpenCL Embedded compliant FPU implementations by Timo Viitanen / TUT
 
 Code generator improvements
 ---------------------------
