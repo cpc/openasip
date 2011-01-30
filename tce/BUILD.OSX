@@ -1,0 +1,170 @@
+Notice: TCE on Mac OS X is not "supported"!. It sometimes works, sometimes it does not...
+
+
+
+Tested on OSX 10.5.6 with XCode 3.1 and OSX 10.6.2 with XCode 3.2.1
+
+1. Prerequisites
+
+Mac OSX, 10.5.X (Leopard)  or OSX 10.6.X (Snow Leopard)
+
+gcc compiler, from Xcode, version 4.0 or later
+
+Using MacPorts, install following:
+
+- boost (version 1.35 at least, TCE may not build with 1.34)
+- xercesc (version 2.7, 2.8 and 3.X works on Leopard, for Snow leopard only
+version 3.X works)
+
+Example:
+port -v install boost xercesc
+
+For Snow Leopard, all libraries needs to be installed as 32bit.
+
+Example:
+port -v install boost xercesc3 +universal
+
+Installing sqlite3, tcl, Python and wxWidgets is not required, they are distributed with OSX.
+
+Do not install tcl, since there is working one from Apple, and one in MacPorts is known to cause problems (tcl 8.5 makes proxim useless).
+
+LLVM 2.6 is available from MacPorts.
+
+Example:
+port -v install llvm +universal
+
+On Snow Leopard, check the libraries are "correct", that is there is 32bit 
+version included in fat binary.
+
+Example:
+file /opt/local/lib/libboost_*.dylib
+file /opt/local/lib/libxerces*.dylib
+file /opt/local/lib/opt
+
+Should show that the i386 architecture is present. If it is not, check the
+Snow Leopard comment at the end of file more possible hints.
+
+
+2. Environment variables
+
+MacPorts by default installs everything into /opt/local.
+
+export CFLAGS="-O2 -arch i386"
+export CPPFLAGS="-isystem /opt/local/include"
+export CXXFLAGS=$CFLAGS
+export MACOSX_DEPLOYMENT_TARGET=10.5
+export PATH=/opt/local/bin:/opt/local/sbin:${PATH}
+export TTASIM_COMPILER_FLAGS="-flat_namespace -bundle -undefined suppress -fPIC"
+export TTASIM_COMPILER=g++-4.2
+export EGREP=egrep
+export SED=sed
+
+DO NOT set DYLD_LIBRARY_PATH or any other variations for now.
+
+3. Configure, build install with Autotools
+
+3.1. Configure
+
+In tce source directory, run 
+autoreconf -v
+NOTE:
+If you install libtool2 from fink or macports, you can run autoreconf -i -f to replace ltmain.sh with version from libtool2. It should also work.
+
+./configure --prefix=<path to install TCE> --with-boost=/opt/local/ --with-xerces=/opt/local/
+
+
+You can try to enable Python bindings (add --enable-python --with-boost-python=boost_python-mt), though this may cause build to fail.
+
+3.2. Build
+
+Type 'make' and hope for the best:-)
+
+In case make fails, check the error output for complains about --fno-rtti --fno-exceptions. 
+If you find those, most likely reason is wxWidgets installed by FinkProject or MacPorts which was compiled with those flags. 
+Remove wxWidgets, or at least make sure that wx-config installed by them is not found before /usr/bin/wx-config from Apple.
+
+3.2. Install
+
+Simply 'make install'.
+Assuming you have rights to write into directory that you selected by --prefix.
+
+4. Configure, build install with CMake
+
+Decide where to use Makefiles or Xcode directly.
+If using Makefiles, follow guidelines in README-CMAKE in same directory as this file
+
+If using Xcode, read README_CMAKE for general information first.
+There is little difference in in source and out of source builds with Xcode generator.
+
+In TCE source directory for example, run
+cmake -G Xcode .
+or
+ccmake -G Xcode .
+Both should create tce.xcodeproj directory with project.
+
+From Xcode tool then, open that project, click prefered target and build.
+
+Alternatively, from command line, xcodebuild command will start build. It however would not rerun cmake in case some CMakeLists.txt files had changed.
+cmakexbuild command however does both, run cmake and then starts xcodebuild.
+
+cmakexbuild -target install will install TCE in location specified by CMAKE_INSTALL_PREFIX.
+
+5. TCE-frontend
+
+Build llvm-gcc from tce-llvm-gcc subdir. Make sure you do not use any "fancy" CFLAGS or CXXFLAGS (CFLAGS=-O2 should work).  Install somewhere to the path, general suggestion is to use same directory as for TCE install.
+
+6. Use tcecc
+
+Just type  "tcecc whatever options" and enjoy!
+
+NOTE: in case you get problems with opt -load, complaining about missing symbols when running tcecc, simple solution is to copy 'opt' binary from llvm build directory to the bin directory where you installed llvm.
+Seems stripping of binary during install may cause some problems. Other solution can be to build LLVM in "Debug" mode and install, though this should lead to slow LLVM.
+
+7. Test
+
+Change from tce source directory one directory higher.
+Try:
+
+tce/tools/scripts/compiletest.sh -qc
+
+NOTE: for some reason libtool produced libraries and binaries in .libs subdirectories points to install version of their dependencies. You HAVE TO install tce before you can run unit tests or systemtests. Reasons are unknown. (This is probably now resolved)
+
+This should try to compile whole tce (it says compilation FAILED, you can check result in compiletest.error.log, it should be just some warnings about architecture info missing), run unit tests (those should pass), run short systemtests.
+
+8. Enjoy! :-)
+
+The installed graphical tools (osed, proxim, prode, hdbeditor ..) should work, if you used  CMake build, for example right click on executable from Xcode and run it.
+In case you use autotools, you need to create directory structure and put binary in proper place, otherwise application will not receive focus.
+
+Example:
+
+cd <TCE installation prefix>/bin
+mkdir prode.app
+mkdir -p prode.app/Contents/Resources
+cp prode prode.app/Contents/Resources
+
+Afterwards, either use "open /opt/tce/bin/prode.app" from command line, or find it using Finder, or run /opt/tce/bin/prode.app/Contents/Resources/prode directly from command line.
+
+Similarly for other graphical tools.
+
+
+Some explanation about Snow Leopard:
+
+With OS X 10.6, for 64bit architectures there is additional choice of compiling TCE and required libraries
+as 32bit or 64bit. The only rule is, all libraries linked together with application must be of same architecture variation or as "fat" libraries, with multiple architecture variants linked together.
+
+In practice, TCE depends on WxWidgets graphical framework. One provided by OS X, wxmac 2.8.8 is compiled as 32bit only.
+So it is strongly recommended to compile TCE and required libraries as 32bit variants as well, or install other, 64bit version of WxWidgets.
+
+MacPorts project includes configuration file for building all ports which allows setting of default architecture variants
+in /opt/local/etc/macports/macports.conf. Variable build_arch defines default architecture.
+
+For building TCE itself, adding "-arch i386" to compile flags seems to be sufficient.
+Python-bindings were not tested.
+
+TCE also depends on Tcl, which is provided by Snow Leopard in version 8.5.7. TCE checks during configure process if version of Tcl is between 8.0 and 8.4 resulting in configure failure in TCE.
+Changing configure.ac, replacing line
+#if TCL_MINOR_VERSION > 4
+with 
+#if TCL_MINOR_VERSION > 5
+allows for configure to run correctly. But may cause Proxim error when trying to load machine and program.
