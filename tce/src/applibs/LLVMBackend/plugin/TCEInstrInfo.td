@@ -332,6 +332,8 @@ def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDri (LDQi ADDRri:$addr),1)>;
 def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBir 0,(ANDri (LDQr ADDRrr:$addr),1))>;
 def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBir 0,(ANDri (LDQi ADDRri:$addr),1))>;
 
+def: Pat <(i32 (sext I1Regs:$src)), (SUBir 0,(ANDext I1Regs:$src, 1))>;
+
 // float store and load in a way that machine code validator likes them
 def STWFir : InstTCE<(outs), (ins MEMri:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRri:$op1)]>;
 def STWFrr : InstTCE<(outs), (ins MEMrr:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRrr:$op1)]>;
