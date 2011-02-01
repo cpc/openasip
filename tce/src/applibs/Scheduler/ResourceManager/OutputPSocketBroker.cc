@@ -167,7 +167,7 @@ OutputPSocketBroker::assign(
 
         Port* port = NULL;
         const Socket& socket =
-            dynamic_cast<const Socket&>(machinePartOf(res));
+            static_cast<const Socket&>(machinePartOf(res));
         for (int i = 0; i < socket.portCount(); i++) {
             if (socket.port(i)->outputSocket() == &socket) {
                 if ((move.source().isGPR() &&
@@ -357,7 +357,7 @@ OutputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
          resIter != resMap_.end(); resIter++) {
 
         const Socket* socket =
-            dynamic_cast<const Socket*>((*resIter).first);
+            static_cast<const Socket*>((*resIter).first);
 
         SchedulingResource* socketResource = (*resIter).second;
 

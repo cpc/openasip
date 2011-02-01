@@ -173,6 +173,8 @@ OutputPSocketResource::validateRelatedGroups() {
  * Comparison operator.
  * 
  * Favours sockets which have less connections.
+ *
+ * TODO: precalc/cache these to optimize scheduling time?
  */
 bool 
 OutputPSocketResource::operator< (const SchedulingResource& other) const {
