@@ -258,5 +258,12 @@ main(void) {
     // End output with '.' to show during debugging that there was enough runtime
     _TCE_STDOUT('.'); 
     
+    /* Endless loop prevents the vhdl simulation from restarting in case
+     * the runtime is too long. In other words, the runtime can now be set
+     * overly long to compensate variation of the actual test runtime.
+     */
+    while (1)
+        i++;
+
     return 0;
 }
