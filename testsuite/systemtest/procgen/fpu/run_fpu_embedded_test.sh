@@ -29,11 +29,10 @@ $PIG -d -w 4 -p $TPEF -x $PDIR $ADF >& /dev/null
 cd $PDIR || exit 1
 
 # change the simulation time
-sed -i 's/5234/$RUNCYCLES/g' tb/testbench_constants_pkg.vhdl
-
+eval "sed -i 's/5234/${RUNCYCLES}/g' tb/testbench_constants_pkg.vhdl"
 ./ghdl_compile.sh >& /dev/null ||  exit 1
 # TODO how long does the simulation actually need to run?
-./testbench --assert-level=none --stop-time=$RUNTIMEns >& /dev/null || exit 1
+eval "./testbench --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
 
 # Print simulation output
 cat printchar_output.txt
