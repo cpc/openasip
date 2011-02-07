@@ -140,8 +140,8 @@ Example:
 
 cd <TCE installation prefix>/bin
 mkdir prode.app
-mkdir -p prode.app/Contents/Resources
-cp prode prode.app/Contents/Resources
+mkdir -p prode.app/Contents/MacOS
+cp prode prode.app/Contents/MacOS
 
 Afterwards, either use "open /opt/tce/bin/prode.app" from command line, or find it using Finder, or run /opt/tce/bin/prode.app/Contents/Resources/prode directly from command line.
 
