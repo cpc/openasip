@@ -96,6 +96,10 @@
 
 #include "tce_config.h"
 
+#if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
+#include <llvm/ADT/SmallString.h>
+#endif
+
 #define END_SYMBOL_NAME "_end"
 
 using namespace TTAMachine;
@@ -261,7 +265,13 @@ LLVMTCEBuilder::initDataSections() {
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
 
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
         TCEString name = mang_->getNameWithPrefix(i);
+#else
+	SmallString<256> Buffer;
+	mang_->getNameWithPrefix(Buffer, i, false);
+	TCEString name(Buffer.c_str());
+#endif
         
         const llvm::GlobalValue& gv = *i;
 
@@ -402,9 +412,16 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
         const  GlobalVariable* var = NULL;
         for (Module::const_global_iterator i = mod_->global_begin();
              i != mod_->global_end(); i++) {
-	    
-            if (def.name == mang_->getNameWithPrefix(i)) {
-                var = i;
+
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+            if (def.name == mang_->getNameWithPrefix(i))
+#else
+		SmallString<256> Buffer;
+	    mang_->getNameWithPrefix(Buffer, i, false);
+	    if (def.name == Buffer.c_str())
+#endif
+	    {
+		var = i;
                 break;
             }
         }
@@ -623,7 +640,14 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
     unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
-    std::string label = mang_->getNameWithPrefix(gv);
+
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+    TCEString label = mang_->getNameWithPrefix(gv);
+#else
+    SmallString<256> Buffer;
+    mang_->getNameWithPrefix(Buffer, gv, false);
+    TCEString label(Buffer.c_str());
+#endif
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
 
@@ -754,8 +778,14 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     if (mf.begin() == mf.end()) return true;
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
-
-    std::string fnName = mang_->getNameWithPrefix(mf.getFunction());
+    
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+    TCEString fnName = mang_->getNameWithPrefix(mf.getFunction());
+#else
+    SmallString<256> Buffer;
+    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+    TCEString fnName(Buffer.c_str());
+#endif
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -1463,7 +1493,13 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
 
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobal()) {
-        std::string name = mang_->getNameWithPrefix(mo.getGlobal());
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+	TCEString name = mang_->getNameWithPrefix(mo.getGlobal());
+#else
+	SmallString<256> Buffer;
+	mang_->getNameWithPrefix(Buffer, mo.getGlobal(), false);
+	TCEString name(Buffer.c_str());
+#endif
         if (name == "_end") {
             return NULL;
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
@@ -1691,7 +1727,13 @@ LLVMTCEBuilder::emitSelect(
  */
 std::string
 LLVMTCEBuilder::mbbName(const MachineBasicBlock& mbb) {
-    std::string name = mang_->getNameWithPrefix(mbb.getParent()->getFunction());
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+    TCEString name = mang_->getNameWithPrefix(mbb.getParent()->getFunction());
+#else
+    SmallString<256> Buffer;
+    mang_->getNameWithPrefix(Buffer, mbb.getParent()->getFunction(), false);
+    TCEString name(Buffer.c_str());
+#endif
     name += " ";
     name += Conversion::toString(mbb.getNumber());
     return name;
@@ -2221,7 +2263,14 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
 		    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
 			cs->getOperand(1));
 		    assert(gv != NULL&&"global constructor name not constv");
-		    std::string name = mang_->getNameWithPrefix(gv);
+
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
+		    TCEString name = mang_->getNameWithPrefix(gv);
+#else
+		    SmallString<256> Buffer;
+		    mang_->getNameWithPrefix(Buffer, gv, false);
+		    TCEString name(Buffer.c_str());
+#endif
                     // who deletes xtorRef?
                     codeLabelReferences_[xtorRef] = name; 
 

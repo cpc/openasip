@@ -1,4 +1,7 @@
 Release branch:
-tce-1.4 r879: llvm-trunk r124185 OK
+tce-1.4 r899: llvm-trunk r125469 OK
+llvm r125470 does not compile,
+llvm r125471 and newer contains a stack alignment bug.
+With bugfix patch to this bug, tce-1.4 r899 works with llvm-trunk r125563.
 Performance worsening at around r123400: No longer optimizes away "constant" parameters in qsort test. 
 -------
