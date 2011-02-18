@@ -2,7 +2,6 @@
 _TCE_ROOT="../../../../../tce"
 EXPLORE_BIN="${_TCE_ROOT}/src/codesign/Explorer/explore"
 COMPILER_BIN="${_TCE_ROOT}/src/bintools/Compiler/tcecc"
-SCHEDULER_CONF=${_TCE_ROOT}/scheduler/passes/old_gcc.conf
 TTASIM_BIN="${_TCE_ROOT}/src/codesign/ttasim/ttasim"
 MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal.adf"
 
@@ -24,7 +23,7 @@ NEW_CONFIGS=(${NEW_CONFIGS[@]} 1)
 declare -a CYCLECOUNTS
 for conf in ${NEW_CONFIGS[@]}; do
     "${EXPLORE_BIN}" -w ${conf} growmachine.dsdb 1>/dev/null
-    "${COMPILER_BIN}" ${OPT} -o ${conf}.tpef -a ${conf}.adf data/program.bc 1>/dev/null
+    "${COMPILER_BIN}" ${OPT} -o ${conf}.tpef -a ${conf}.adf data/program.bc 1>/dev/null 2>errs; grep -v "WARNING: Linking two modules of different data layouts" errs 1>&2
     
     CYCLECOUNT=$(
     ${TTASIM_BIN} <<EOF
