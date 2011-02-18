@@ -3,6 +3,8 @@
 
 Notable new features
 --------------------
+- Support for LLVM 2.9-(svn) (support for LLVM 2.7 and 2.8 retained, but deprecated).
+  We strongly recommend upgrading to LLVM 2.9(todo: when it's available). 
 - Generic VHDL implementations for the basic streaming operations
   from Jani Boutellier / University of Oulu.
 - OpenCL Embedded compliant FPU implementations by Timo Viitanen / TUT
@@ -39,6 +41,29 @@ Bugfixes
   causing broken top level VHDL to be generated. Fixed by Jani Boutellier of 
   University of Oulu.
 - Some missing patterns could cause internal compiler error while compiling.
+
+Misc
+----
+- ABI change: Alignment rules for some data types changes when using llvm 2.9
+  This means that old .o and .bc files have to be regerenerated when upgrading tce
+  from using llvm 2.7 or llvm 2.8 into llvm 2.9
+- llvm-gcc support deprecated. Only clang will work correctly with llvm 2.9.
+  llvm-gcc may still work with llvm 2.7 and llvm 2.8
+
+Known problems
+--------------
+- Use LLVM 2.9 with clang to avoid all these problems. Then you can stop reading this.
+- LLVM 2.8 has a bug which may cause incorrectly compiled programs when
+  the is a comparison of (only) lowest bits of integers in the code 
+  being compiled.
+  A patch for this bug is included in TCE release, it should be applied
+  to the LLVM source tree and LLVM recompiled and reinstalled with the patch.
+  LLVM 2.7 might also be affected, but we have not seen the bug appear with
+  LLVM 2.7.
+- Clang 2.7 and 2.8 has a bug related to code generation of bitfields, illegal
+  code may be generated if the code contains bitfield and clang is used 
+  as C frontend (which is the default). This bug appears with libmad.
+  See http://llvm.org/bugs/show_bug.cgi?id=8171 for the bug report.
 
 1.3    November 2010
 ====================
