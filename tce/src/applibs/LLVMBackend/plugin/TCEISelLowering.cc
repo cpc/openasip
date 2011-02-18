@@ -216,7 +216,7 @@ TCETargetLowering::LowerFormalArguments(
                     Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
                                           NULL, 0, ObjectVT, false, false, 0);
 #else // LLVM_29_svn
-                    Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
+                    Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
                                           MachinePointerInfo(), ObjectVT, 
                                           false, false,0);
 #endif

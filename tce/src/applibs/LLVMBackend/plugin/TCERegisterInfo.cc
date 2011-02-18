@@ -230,7 +230,6 @@ TCERegisterInfo::getRARegister() const {
 
 unsigned
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
-    assert(false && "Remove this assert if this is really called.");
     return 0;
 }
 

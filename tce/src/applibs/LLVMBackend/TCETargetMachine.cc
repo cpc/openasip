@@ -67,20 +67,19 @@ extern "C" void LLVMInitializeTCETargetInfo() {
 //
 // Data layout:
 //--------------
-// E-p:32:32:32-i1:8:8-i8:8:8-i32:32:32-i64:32:64-f32:32:32-f64:32:64"
+// E-p:32:32:32-a0:0:64-i1:8:8-i8:8:8-i32:32:32-i64:32:64-f32:32:32-f64:32:64" (old)
+// E-p:32:32:32-a0:0:32-i1:8:8-i8:8:8-i32:32:32-i64:32:32-f32:32:32-f64:32:32" (new)
 // E = Big endian data
 // -p:32:32:32 = Pointer size 32 bits, api & preferred alignment 32 bits.
 // -i8:8:8 = 8bit integer api & preferred alignment 8 bits.
+// a0:0:32 = struct alignment (abi packed?), preferred 32 bits.
 // etc.
 // 
-//  Frame info:
-// -------------
-// Grows down, alignment 4 bytes.
-//
 TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
                                    const std::string &FS)
     : LLVMTargetMachine(T,TT),
       Subtarget(TT,FS),
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
       DataLayout(
         "E-p:32:32:32"
         "-a0:0:64"
@@ -88,9 +87,21 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
         "-i8:8:32"
         "-i16:16:32"
         "-i32:32:32"
-        "-i64:32:64"
+        "-i64:32:32"
         "-f32:32:32"
         "-f64:64:64"),
+#else
+      DataLayout(
+        "E-p:32:32:32"
+        "-a0:0:32"
+        "-i1:8:8"
+        "-i8:8:32"
+        "-i16:16:32"
+        "-i32:32:32"
+        "-i64:32:32"
+        "-f32:32:32"
+        "-f64:32:32"),
+#endif
 #ifndef LLVM_2_7
       tsInfo(*this),
 #endif

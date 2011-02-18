@@ -53,6 +53,10 @@ namespace llvm {
      * very good job.
      */
 
+//  Frame info:
+// -------------
+// Grows down, alignment 4 bytes.
+//
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
     class TCEFrameInfo : public TargetFrameInfo {
 #else
