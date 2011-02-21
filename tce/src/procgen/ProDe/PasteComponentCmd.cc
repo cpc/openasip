@@ -115,16 +115,19 @@ PasteComponentCmd::Do() {
         Machine::FunctionUnitNavigator navigator =
             machine->functionUnitNavigator();
         TTAMachine::FunctionUnit* copiedFU = new FunctionUnit(contents);
-        TTAMachine::FunctionUnit& original = 
-            *navigator.item(copiedFU->name());
+        std::string fuName = copiedFU->name();
         paste(*machine, copiedFU, navigator);
-
-        // need to do this after paste() as the FU must be registered to
-        // the machine before the address space can be set
-        if (original.hasAddressSpace()) {
-            copiedFU->setAddressSpace(original.addressSpace());
-        }
-
+        
+        // cannot copy address space from one machien to another.
+        if (clipboard->sourceMachine() == machine) {
+            TTAMachine::FunctionUnit& original = 
+                *navigator.item(fuName);
+            // need to do this after paste() as the FU must be registered to
+            // the machine before the address space can be set
+            if (original.hasAddressSpace()) {
+                copiedFU->setAddressSpace(original.addressSpace());
+            }
+        } 
     } else if (contents->name() == ImmediateUnit::OSNAME_IMMEDIATE_UNIT) {
         // immediate unit
         Machine::ImmediateUnitNavigator navigator =

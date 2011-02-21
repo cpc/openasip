@@ -85,10 +85,12 @@ ProDeClipboard::destroy() {
  * @param component Copied/cut component.
  */
 void
-ProDeClipboard::setContents(ObjectState* component) {
+ProDeClipboard::setContents(
+    ObjectState* component, const TTAMachine::Machine* sourceMachine) {
     if (contents_ != NULL) {
         delete contents_;
     }
+    sourceMachine_ = sourceMachine;
     contents_ = component;
 }
 

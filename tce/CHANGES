@@ -15,6 +15,9 @@ Bugfixes
   WxWidgets 2.8
 - Prode: When some editing command is cancelled, and nothing is changed, 
   the machine is not marked as modified so ProDe does not want to save it.
+- Prode: Copying FU from one machine to another no longer causes
+  prode to crash. The address space of FU copied from one machine to
+  another is left unset.
 - ttasim: when the last instruction executed was a jump and the
   simulation was killed (reseted), the jump was executed in the 
   new simulation.
