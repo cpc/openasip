@@ -64,7 +64,7 @@ CopyComponent::Do() {
     Component* component = dynamic_cast<Component*>(editPart_->model());
     assert (component != NULL);
     ProDeClipboard* clipboard = ProDeClipboard::instance();
-    clipboard->setContents(component->saveState());
+    clipboard->setContents(component->saveState(), component->machine());
     return true;
 }
 

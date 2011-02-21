@@ -34,6 +34,10 @@
 
 class ObjectState;
 
+namespace TTAMachine {
+    class Machine;
+}
+
 /**
  * A Clipboard class for copying machine components in ProDe.
  *
@@ -44,8 +48,10 @@ class ProDeClipboard {
 public:
     static ProDeClipboard* instance();
     static void destroy();
-    void setContents(ObjectState* contents);
+    void setContents(
+        ObjectState* contents, const TTAMachine::Machine* sourceMachine);
     ObjectState* copyContents();
+    const TTAMachine::Machine* sourceMachine() { return sourceMachine_; }
     bool isEmpty();
 
 private:
@@ -54,5 +60,6 @@ private:
 
     static ProDeClipboard* instance_;
     ObjectState* contents_;
+    const TTAMachine::Machine* sourceMachine_;
 };
 #endif
