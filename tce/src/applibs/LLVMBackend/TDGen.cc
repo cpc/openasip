@@ -1157,9 +1157,6 @@ TDGen::writeEmulationPattern(
     const Operation& op,
     const OperationDAG& dag) {
 
-    std::string llvmPat = llvmOperationPattern(op.name());
-    assert(llvmPat != "" && "Unknown operation to emulate.");
-
     const OperationDAGNode* res = *(dag.endNodes().begin());
     const OperationNode* opNode = dynamic_cast<const OperationNode*>(res);
     if (opNode == NULL) {
@@ -1169,34 +1166,70 @@ TDGen::writeEmulationPattern(
         assert(res != NULL);
     }
 
-    boost::format match1(llvmPat);
-    boost::format match2(llvmPat);
-    for (int i = 0; i < op.numberOfInputs(); i++) {
-        match1 % operandToString(op.operand(i + 1), false, 0, false);
-        match2 % operandToString(op.operand(i + 1), false, 0, true);
-    }
+    int inputCount = op.numberOfInputs();
+    for (int immInput = 0;
+	 immInput <= inputCount; immInput++) {
 
-    o << "def : Pat<(" << match1.str() << "), "
-      << dagNodeToString(op, dag, *res, 0, true, false)
-      << ">;" << std::endl;
+	std::string llvmPat = llvmOperationPattern(op.name());
+	assert(llvmPat != "" && "Unknown operation to emulate.");
 
-    if (op.name() == "EQ" ||
-        op.name() == "EQF" || op.name() == "EQUF" ||
-        op.name() == "GE" ||op.name() == "GEU" ||
-        op.name() == "GEF" || op.name() == "GEUF" || 
-        op.name() == "GT" || op.name() == "GTU" ||
-        op.name() == "GTF" || op.name() == "GTUF" ||
-        op.name() == "LE" || op.name() == "LEU" ||
-        op.name() == "LEF" || op.name() == "LEUF" ||
-        op.name() == "LT" || op.name() == "LTU" ||
-        op.name() == "LTF" || op.name() == "LTUF" ||
-        op.name() == "NE" ||
-        op.name() == "NEF" || op.name() == "NEUF") {
+	boost::format match1(llvmPat);
+	boost::format match2(llvmPat);
 
-        // todo: b versions of those
-        o << "def : Pat<(" << match1.str() << "), "
-          << dagNodeToString(op, dag, *res, 0, true, 1)
-          << ">;" << std::endl;        
+	// check here if nodes connected to inputs are commutative
+	if (immInput > 0) {
+	    if (immInput == 1) {
+		// Don't create op(imm, reg) patterns for commutative
+		// binary operations. tablegen wants only
+		// op(reg, imm) pattern for them.
+		if (inputCount == 2 && op.canSwap(1, 2)) {
+		    // LLVM does not understand that setne and seteq
+		    // are commutative. so make both versions of them.
+		    if (op.name() != "EQ" && op.name() != "NE") {
+			continue;
+		    }
+		}
+		if (inputCount == 1 && !op.input(0).isAddress()) {
+		    continue;
+		}
+	    }
+	    
+	    if (!(op.operand(immInput).type() == Operand::SINT_WORD ||
+		  op.operand(immInput).type() == Operand::UINT_WORD)) {
+		
+		// Only integer immediates.
+		continue;
+	    }
+	}
+
+	for (int i = 0; i < op.numberOfInputs(); i++) {
+	    match1 % operandToString(op.operand(i + 1), false, (i+1 == immInput), false);
+	    match2 % operandToString(op.operand(i + 1), false, (i+1 == immInput), true);
+	}
+
+	o << "def : Pat<(" << match1.str() << "), "
+	  << dagNodeToString(op, dag, *res, immInput, true, false)
+	  << ">;" << std::endl;
+	
+	if (op.name() == "EQ" ||
+	    op.name() == "EQF" || op.name() == "EQUF" ||
+	    op.name() == "GE" ||op.name() == "GEU" ||
+	    op.name() == "GEF" || op.name() == "GEUF" || 
+	    op.name() == "GT" || op.name() == "GTU" ||
+	    op.name() == "GTF" || op.name() == "GTUF" ||
+	    op.name() == "LE" || op.name() == "LEU" ||
+	    op.name() == "LEF" || op.name() == "LEUF" ||
+	    op.name() == "LT" || op.name() == "LTU" ||
+	    op.name() == "LTF" || op.name() == "LTUF" ||
+	    op.name() == "NE" ||
+	    op.name() == "NEF" || op.name() == "NEUF") {
+
+	    // todo: b versions of those. should this be match2?
+	    o << "def : Pat<(" << match1.str() << "), "
+	      << dagNodeToString(op, dag, *res, immInput, true, 1)
+	      << ">;" << std::endl;
+
+	}
     }
 }
 
@@ -1620,11 +1653,40 @@ TDGen::operationNodeToString(
     std::string operationPat;
 
     if (emulationPattern) {
-        // FIXME: UGLYhhh
-        char regInputChar = (intToBool != 2) ? 'r' : 'b';
 
-        operationPat = StringTools::stringToUpper(operation.name()) +
-            std::string(operation.numberOfInputs(), regInputChar);
+	// Look at incoming nodes. If operand comes from another op,
+	// the value is in register. If operand comes from constant,
+	// it's immediate.
+	// if it's terminal, check if it's an immediate operand
+	// of the emulated operation.
+        operationPat = StringTools::stringToUpper(operation.name());
+	int inputs = operation.numberOfInputs();
+
+	for (int i = 1; i < inputs + 1; i++) {
+	    for (int e = 0; e < dag.inDegree(node); e++) {
+		const OperationDAGEdge& edge = dag.inEdge(node, e);
+		int dst = edge.dstOperand();
+		if (dst == i) {
+		    if (dynamic_cast<OperationNode*>(&(dag.tailNode(edge)))) {
+			operationPat += 'r';
+		    } else {
+			if (dynamic_cast<ConstantNode*>(&(dag.tailNode(edge)))) {
+			    operationPat += 'i';
+			} else {
+			    TerminalNode* t = dynamic_cast<TerminalNode*>(&(dag.tailNode(edge)));
+			    assert (t != NULL);
+			    int terminalIndex = t->operandIndex();
+			    if (immOp == terminalIndex) {
+				operationPat += 'i';
+			    } else {
+				operationPat += 'r';
+			    }
+			}
+		    }
+		    
+		}
+	    }
+	}
 
         if (intToBool == 1) {
             operationPat += 'b';

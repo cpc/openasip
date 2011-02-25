@@ -13,6 +13,8 @@ Code generator improvements
 ---------------------------
 - Passes the first function parameter in register instead of stack.
 - Uses negative guard more aggressively, less stupid guard xoring operations.
+- Emulation pattern generation improved, can use immediates directly when
+  using DAG to emulate missing operations.
 
 Optimizations
 -------------
