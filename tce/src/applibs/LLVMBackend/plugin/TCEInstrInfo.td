@@ -85,72 +85,6 @@ include "GenCallSeq.td"
 //                           [SDNPHasChain, SDNPOptInGlue]>;
 // #endif
 
-// ==========================================================
-//  SELECT
-//  Selects between two values based on true/false condition
-//  and puts the selected value in result register.
-//  Expanded by the scheduler into a branch sequence.
-// ==========================================================
-
-
-def SDT_TCESelect : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
-                                         SDTCisSameAs<1, 2>,
-                                         SDTCisVT<3, i1>]>;
-
-def TCEselectI1 : SDNode<"TCEISD::SELECT_I1", SDT_TCESelect, []>;
-def TCEselectI8 : SDNode<"TCEISD::SELECT_I8", SDT_TCESelect, []>;
-def TCEselectI16 : SDNode<"TCEISD::SELECT_I16", SDT_TCESelect, []>;
-def TCEselectI32 : SDNode<"TCEISD::SELECT_I32", SDT_TCESelect, []>;
-def TCEselectI64 : SDNode<"TCEISD::SELECT_I64", SDT_TCESelect, []>;
-def TCEselectF32 : SDNode<"TCEISD::SELECT_F32", SDT_TCESelect, []>;
-def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
-
-  def SELECT_I1 : InstTCE<(outs I1Regs:$dst),
-                          (ins I1Regs:$c, I1Regs:$T, I1Regs:$F),
-                          "# SELECT_I1 PSEUDO!",
-                          [(set I1Regs:$dst, 
-    (select I1Regs:$c, I1Regs:$T, I1Regs:$F))]>;
-
-  def SELECT_I8 : InstTCE<(outs I8Regs:$dst),
-                          (ins I1Regs:$c, I8Regs:$T, I8Regs:$F),
-                          "# SELECT_I8 PSEUDO!",
-                          [(set I8Regs:$dst,
-                            (select I1Regs:$c, I8Regs:$T, I8Regs:$F))]>;
-
-  def SELECT_I16 : InstTCE<(outs I16Regs:$dst),
-                          (ins I1Regs:$c, I16Regs:$T, I16Regs:$F),
-                          "# SELECT_I16 PSEUDO!",
-                          [(set I16Regs:$dst,
-                           (select I1Regs:$c, I16Regs:$T, I16Regs:$F))
-                          ]>;
-
-  def SELECT_I32 : InstTCE<(outs I32Regs:$dst),
-                          (ins I1Regs:$c, I32Regs:$T, I32Regs:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set I32Regs:$dst, 
-                            (select I1Regs:$c, I32Regs:$T, I32Regs:$F))]>;
-
-
-  def SELECT_I64 : InstTCE<(outs I64Regs:$dst),
-                          (ins I1Regs:$c, I64Regs:$T, I64Regs:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set I64Regs:$dst, 
-                            (select I1Regs:$c, I64Regs:$T, I64Regs:$F))]>;
-
-  def SELECT_F32 : InstTCE<(outs F32Regs:$dst),
-                          (ins I1Regs:$c, F32Regs:$T, F32Regs:$F),
-                          "# SELECT_F32 PSEUDO!",
-                          [(set F32Regs:$dst, 
-                            (select I1Regs:$c, F32Regs:$T, F32Regs:$F))]>;
-
-  // 64-bit ints not supported.
-
-
-  def SELECT_F64 : InstTCE<(outs F64Regs:$dst),
-                          (ins I1Regs:$c, F64Regs:$T, F64Regs:$F),
-                          "# SELECT_F64 PSEUDO!",
-                          [(set F64Regs:$dst,
-                            (select I1Regs:$c, F64Regs:$T, F64Regs:$F))]>;
 
 
 // =========================
@@ -327,6 +261,114 @@ let isTerminator = 1, isBranch = 1 in {
 }
 
 include "GenInstrInfo.td"
+
+
+
+// ==========================================================
+//  SELECT
+//  Selects between two values based on true/false condition
+//  and puts the selected value in result register.
+//  Expanded by the scheduler into a branch sequence.
+// ==========================================================
+
+// some peephole patterns.
+// 1-bit select with imm values - xor or mov.
+def : Pat<(i1 (select I1Regs:$c, (i1 0), (i1 -1))), (XORbj I1Regs:$c, 1)>;
+def : Pat<(i1 (select I1Regs:$c, (i1 -1), (i1 0))), (MOVI1rr I1Regs:$c)>;
+
+def : Pat<(i1 (select I1Regs:$c, (i1 -1), I1Regs:$F)), (IORbb I1Regs:$c, I1Regs:$F)>;
+def : Pat<(i1 (select I1Regs:$c, I1Regs:$T, (i1 0))), (ANDbb I1Regs:$c, I1Regs:$T)>;
+
+// select of 1 or 0.
+def : Pat<(i32 (select I1Regs:$c, (i32 1), (i32 0))), (ANDext I1Regs:$c, 1)>;
+
+
+// then the actual select patterns.
+
+  def SELECT_I1rr : InstTCE<(outs I1Regs:$dst),
+                          (ins I1Regs:$c, I1Regs:$T, I1Regs:$F),
+                          "# SELECT_I1 PSEUDO!",
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, I1Regs:$T, I1Regs:$F))]>;
+
+  def SELECT_I1ri : InstTCE<(outs I1Regs:$dst),
+                          (ins I1Regs:$c, I1Regs:$T, i1imm:$F),
+                          "# SELECT_I1 PSEUDO!",
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, I1Regs:$T, (i1 imm:$F)))]>;
+
+  def SELECT_I1ir : InstTCE<(outs I1Regs:$dst),
+                          (ins I1Regs:$c, i1imm:$T, I1Regs:$F),
+                          "# SELECT_I1 PSEUDO!",
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, (i1 imm:$T), I1Regs:$F))]>;
+
+  def SELECT_I1ii : InstTCE<(outs I1Regs:$dst),
+                          (ins I1Regs:$c, i1imm:$T, i1imm:$F),
+                          "# SELECT_I1 PSEUDO!",
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, (i1 imm:$T), (i1 imm:$F)))]>;
+
+
+  def SELECT_I8rr : InstTCE<(outs I8Regs:$dst),
+                          (ins I1Regs:$c, I8Regs:$T, I8Regs:$F),
+                          "# SELECT_I8 PSEUDO!",
+                          [(set I8Regs:$dst,
+                            (select I1Regs:$c, I8Regs:$T, I8Regs:$F))]>;
+
+  def SELECT_I16rr : InstTCE<(outs I16Regs:$dst),
+                          (ins I1Regs:$c, I16Regs:$T, I16Regs:$F),
+                          "# SELECT_I16 PSEUDO!",
+                          [(set I16Regs:$dst,
+                           (select I1Regs:$c, I16Regs:$T, I16Regs:$F))
+                          ]>;
+
+  def SELECT_I32rr : InstTCE<(outs I32Regs:$dst),
+                          (ins I1Regs:$c, I32Regs:$T, I32Regs:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I32Regs:$dst, 
+                            (select I1Regs:$c, I32Regs:$T, I32Regs:$F))]>;
+
+  def SELECT_I32ri : InstTCE<(outs I32Regs:$dst),
+                          (ins I32Regs:$c, I32Regs:$T, i32imm:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I32Regs:$dst, 
+    (select I32Regs:$c, I32Regs:$T, (i32 imm:$F)))]>;
+
+  def SELECT_I32ir : InstTCE<(outs I32Regs:$dst),
+                          (ins I32Regs:$c, i32imm:$T, I32Regs:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I32Regs:$dst, 
+    (select I32Regs:$c, (i32 imm:$T), I32Regs:$F))]>;
+
+  def SELECT_I32ii : InstTCE<(outs I32Regs:$dst),
+                          (ins I32Regs:$c, i32imm:$T, i32imm:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I32Regs:$dst, 
+    (select I32Regs:$c, (i32 imm:$T), (i32 imm:$F)))]>;
+
+
+  def SELECT_I64 : InstTCE<(outs I64Regs:$dst),
+                          (ins I1Regs:$c, I64Regs:$T, I64Regs:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I64Regs:$dst, 
+                            (select I1Regs:$c, I64Regs:$T, I64Regs:$F))]>;
+
+  def SELECT_F32 : InstTCE<(outs F32Regs:$dst),
+                          (ins I1Regs:$c, F32Regs:$T, F32Regs:$F),
+                          "# SELECT_F32 PSEUDO!",
+                          [(set F32Regs:$dst, 
+                            (select I1Regs:$c, F32Regs:$T, F32Regs:$F))]>;
+
+  // 64-bit ints not supported.
+
+
+  def SELECT_F64 : InstTCE<(outs F64Regs:$dst),
+                          (ins I1Regs:$c, F64Regs:$T, F64Regs:$F),
+                          "# SELECT_F64 PSEUDO!",
+                          [(set F64Regs:$dst,
+                            (select I1Regs:$c, F64Regs:$T, F64Regs:$F))]>;
+
 
 // sign extension from i1 means 0 -> 0 , 1(true) -> -1
 def: Pat <(i32 (sext I1Regs:$src)), (SUBir 0, (ANDext I1Regs:$src,1))>;

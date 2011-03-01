@@ -212,10 +212,18 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     const std::string SELECT = "SELECT";
 
     // Pseudo operations
-    if (opc == TCE::SELECT_I1) return SELECT;
-    else if (opc == TCE::SELECT_I8) return SELECT;
-    else if (opc == TCE::SELECT_I16) return SELECT;
-    else if (opc == TCE::SELECT_I32) return SELECT;
+    if (opc == TCE::SELECT_I1rr) return SELECT;
+    else if (opc == TCE::SELECT_I1ri) return SELECT;
+    else if (opc == TCE::SELECT_I1ir) return SELECT;
+    else if (opc == TCE::SELECT_I1ii) return SELECT;
+
+    else if (opc == TCE::SELECT_I8rr) return SELECT;
+
+    else if (opc == TCE::SELECT_I32rr) return SELECT;
+    else if (opc == TCE::SELECT_I32ri) return SELECT;
+    else if (opc == TCE::SELECT_I32ir) return SELECT;
+    else if (opc == TCE::SELECT_I32ii) return SELECT;
+
     else if (opc == TCE::SELECT_I64) return SELECT;
     else if (opc == TCE::SELECT_F32) return SELECT;
     else if (opc == TCE::SELECT_F64) return SELECT;
