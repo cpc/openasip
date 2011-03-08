@@ -1762,7 +1762,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       TargetRegisterClass::iterator I = RC->allocation_order_begin(*mf_);
       TargetRegisterClass::iterator E = RC->allocation_order_end(*mf_);
       for (; I != E; ++I) {
-#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
 	  // Skip reserved registers.
 	  if (reservedRegs_.test(*I))
 	      continue;
@@ -1795,7 +1795,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       int minFalseDepsFromAssign = INT_MAX;
       for (; I != E; ++I) {
           unsigned physRegCandidate = *I;
-#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
 	  // Skip reserved registers.
 	  if (reservedRegs_.test(physRegCandidate))
 	      continue;
@@ -1904,7 +1904,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       unsigned BestFound = 0;
       for (; I != E && FreeReg == 0; ++I) {
           unsigned physRegCandidate = *I;
-#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
 	  // Skip reserved registers.
 	  if (reservedRegs_.test(physRegCandidate))
 	      continue;
@@ -1997,7 +1997,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
     // Ignore "downgraded" registers.
     if (SkipDGRegs && DowngradedRegs.count(Reg))
       continue;
-#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
     // Skip reserved registers.
     if (reservedRegs_.test(Reg))
 	continue;
@@ -2034,7 +2034,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
     // Ignore "downgraded" registers.
     if (SkipDGRegs && DowngradedRegs.count(Reg))
       continue;
-#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
     // Skip reserved registers.
     if (reservedRegs_.test(Reg))
 	continue;
