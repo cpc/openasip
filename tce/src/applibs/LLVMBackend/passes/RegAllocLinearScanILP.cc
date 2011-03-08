@@ -17,9 +17,13 @@
 //===----------------------------------------------------------------------===//
 
 #define DEBUG_TYPE "regalloc"
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+#include "LiveDebugVariables.h"
+#endif
 #include "VirtRegMap.h"
 #include "VirtRegRewriter.h"
 #include "Spiller.h"
+#include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Function.h"
 #include "llvm/CodeGen/CalcSpillWeights.h"
 #include "llvm/CodeGen/LiveIntervalAnalysis.h"
@@ -131,6 +135,23 @@ namespace {
 #else
     RALinScanILP() : MachineFunctionPass(ID) {
 #endif
+
+// TODO: why is this here? works without?
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+      initializeLiveDebugVariablesPass(*PassRegistry::getPassRegistry());
+      initializeLiveIntervalsPass(*PassRegistry::getPassRegistry());
+      initializeStrongPHIEliminationPass(*PassRegistry::getPassRegistry());
+      initializeRegisterCoalescerAnalysisGroup(
+        *PassRegistry::getPassRegistry());
+      initializeCalculateSpillWeightsPass(*PassRegistry::getPassRegistry());
+      initializePreAllocSplittingPass(*PassRegistry::getPassRegistry());
+      initializeLiveStacksPass(*PassRegistry::getPassRegistry());
+      initializeMachineDominatorTreePass(*PassRegistry::getPassRegistry());
+      initializeMachineLoopInfoPass(*PassRegistry::getPassRegistry());
+      initializeVirtRegMapPass(*PassRegistry::getPassRegistry());
+      initializeMachineDominatorTreePass(*PassRegistry::getPassRegistry());
+#endif
+
       // Initialize the queue to record recently-used registers.
       if (NumRecentlyUsedRegs > 0)
         RecentRegs.resize(NumRecentlyUsedRegs, 0);
@@ -165,8 +186,12 @@ namespace {
     const TargetRegisterInfo* tri_;
     const TargetInstrInfo* tii_;
     BitVector allocatableRegs_;
-    LiveIntervals* li_;
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+    BitVector reservedRegs_;
+#else
     LiveStacks* ls_;
+#endif
+    LiveIntervals* li_;
     const MachineLoopInfo *loopInfo;
 
     /// handled_ - Intervals are added to the handled_ set in the order of their
@@ -235,6 +260,10 @@ namespace {
 
     virtual void getAnalysisUsage(AnalysisUsage &AU) const {
       AU.setPreservesCFG();
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+      AU.addRequired<AliasAnalysis>();
+      AU.addPreserved<AliasAnalysis>();
+#endif
       AU.addRequired<LiveIntervals>();
       AU.addPreserved<SlotIndexes>();
       if (StrongPHIElim)
@@ -245,12 +274,23 @@ namespace {
       AU.addRequired<CalculateSpillWeights>();
       if (PreSplitIntervals)
         AU.addRequiredID(PreAllocSplittingID);
+
+//#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+//      AU.addRequired(LiveStacksID);
+//      AU.addPreserved(LiveStacksID);
+//#else
       AU.addRequired<LiveStacks>();
       AU.addPreserved<LiveStacks>();
+//#endif
       AU.addRequired<MachineLoopInfo>();
       AU.addPreserved<MachineLoopInfo>();
       AU.addRequired<VirtRegMap>();
       AU.addPreserved<VirtRegMap>();
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+      AU.addRequired<LiveDebugVariables>();
+      AU.addPreserved<LiveDebugVariables>();
+      AU.addRequiredID(MachineDominatorsID);
+#endif
       AU.addPreservedID(MachineDominatorsID);
       MachineFunctionPass::getAnalysisUsage(AU);
     }
@@ -408,6 +448,19 @@ namespace {
                             SmallVector<unsigned, 256> &inactiveCounts,
                             bool SkipDGRegs);
 
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+    /// getFirstNonReservedPhysReg - return the first non-reserved physical
+    /// register in the register class.
+    unsigned getFirstNonReservedPhysReg(const TargetRegisterClass *RC) {
+        TargetRegisterClass::iterator aoe = RC->allocation_order_end(*mf_);
+        TargetRegisterClass::iterator i = RC->allocation_order_begin(*mf_);
+        while (i != aoe && reservedRegs_.test(*i))
+          ++i;
+        assert(i != aoe && "All registers reserved?!");
+        return *i;
+      }
+#endif
+
     void ComputeRelatedRegClasses();
 
     template <typename ItTy>
@@ -479,12 +532,25 @@ void RALinScanILP::ComputeRelatedRegClasses() {
   // Second pass, now that we know conservatively what register classes each reg
   // belongs to, add info about aliases.  We don't need to do this for targets
   // without register aliases.
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
   if (HasAliases)
     for (DenseMap<unsigned, const TargetRegisterClass*>::iterator
          I = OneClassForEachPhysReg.begin(), E = OneClassForEachPhysReg.end();
          I != E; ++I)
       for (const unsigned *AS = tri_->getAliasSet(I->first); *AS; ++AS)
         RelatedRegClasses.unionSets(I->second, OneClassForEachPhysReg[*AS]);
+#else
+  if (HasAliases)
+    for (DenseMap<unsigned, const TargetRegisterClass*>::iterator
+         I = OneClassForEachPhysReg.begin(), E = OneClassForEachPhysReg.end();
+         I != E; ++I)
+      for (const unsigned *AS = tri_->getAliasSet(I->first); *AS; ++AS) {
+        const TargetRegisterClass *AliasClass = 
+          OneClassForEachPhysReg.lookup(*AS);
+        if (AliasClass)
+          RelatedRegClasses.unionSets(I->second, AliasClass);
+      }
+#endif
 }
 
 /// attemptTrivialCoalescing - If a simple interval is defined by a copy, try
@@ -506,9 +572,13 @@ unsigned RALinScanILP::attemptTrivialCoalescing(LiveInterval &cur, unsigned Reg)
   const LiveRange &range = cur.ranges.front();
 
   VNInfo *vni = range.valno;
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+  if (vni->isUnused() || !vni->def.isValid())
+    return Reg;
+#else
   if (vni->isUnused())
     return Reg;
-
+#endif
   unsigned CandReg;
   {
     MachineInstr *CopyMI;
@@ -543,6 +613,12 @@ unsigned RALinScanILP::attemptTrivialCoalescing(LiveInterval &cur, unsigned Reg)
 #endif
     else
       return Reg;
+
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+    // If the target of the copy is a sub-register then don't coalesce.
+    if(CopyMI->getOperand(0).getSubReg())
+      return Reg;
+#endif
   }
 
   if (TargetRegisterInfo::isVirtualRegister(CandReg)) {
@@ -577,8 +653,13 @@ bool RALinScanILP::runOnMachineFunction(MachineFunction &fn) {
   tri_ = tm_->getRegisterInfo();
   tii_ = tm_->getInstrInfo();
   allocatableRegs_ = tri_->getAllocatableSet(fn);
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+  reservedRegs_ = tri_->getReservedRegs(fn);
+#endif
   li_ = &getAnalysis<LiveIntervals>();
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
   ls_ = &getAnalysis<LiveStacks>();
+#endif
   loopInfo = &getAnalysis<MachineLoopInfo>();
 
   // We don't run the coalescer here because we have no reason to
@@ -627,6 +708,11 @@ bool RALinScanILP::runOnMachineFunction(MachineFunction &fn) {
   // TCE
   vrm_->markSpillInstructions();
   // /TCE
+
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+  // Write out new DBG_VALUE instructions.
+  getAnalysis<LiveDebugVariables>().emitDebugValues(vrm_);
+#endif
 
   assert(unhandled_.empty() && "Unhandled live intervals remain!");
 
@@ -775,8 +861,10 @@ void RALinScanILP::linearScan() {
 
   // Look for physical registers that end up not being allocated even though
   // register allocator had to spill other registers in its register class.
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
   if (ls_->getNumIntervals() == 0)
     return;
+#endif
   if (!vrm_->FindUnusedRegisters(li_))
     return;
 }
@@ -910,7 +998,8 @@ FindIntervalInVector(RALinScanILP::IntervalPtrs &IP, LiveInterval *LI) {
   return IP.end();
 }
 
-static void RevertVectorIteratorsTo(RALinScanILP::IntervalPtrs &V, SlotIndex Point){
+static void RevertVectorIteratorsTo(RALinScanILP::IntervalPtrs &V,
+                                    SlotIndex Point){
   for (unsigned i = 0, e = V.size(); i != e; ++i) {
     RALinScanILP::IntervalPtr &IP = V[i];
     LiveInterval::iterator I = std::upper_bound(IP.first->begin(),
@@ -920,6 +1009,7 @@ static void RevertVectorIteratorsTo(RALinScanILP::IntervalPtrs &V, SlotIndex Poi
   }
 }
 
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
 /// addStackInterval - Create a LiveInterval for stack if the specified live
 /// interval has been spilled.
 static void addStackInterval(LiveInterval *cur, LiveStacks *ls_,
@@ -947,6 +1037,7 @@ static void addStackInterval(LiveInterval *cur, LiveStacks *ls_,
   // FIXME: This may be overly conservative.
   SI.MergeRangesInAsValue(RI, VNI);
 }
+#endif
 
 /// getConflictWeight - Return the number of conflicts between cur
 /// live interval and defs and uses of Reg weighted by loop depthes.
@@ -1065,6 +1156,7 @@ LiveInterval *RALinScanILP::hasNextReloadInterval(LiveInterval *cur) {
 }
 
 void RALinScanILP::DowngradeRegister(LiveInterval *li, unsigned Reg) {
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
   bool isNew = DowngradedRegs.insert(Reg);
   isNew = isNew; // Silence compiler warning.
   assert(isNew && "Multiple reloads holding the same register?");
@@ -1076,6 +1168,15 @@ void RALinScanILP::DowngradeRegister(LiveInterval *li, unsigned Reg) {
     DowngradeMap.insert(std::make_pair(li->reg, *AS));
   }
   ++NumDowngrade;
+#else
+  for (const unsigned *AS = tri_->getOverlaps(Reg); *AS; ++AS) {
+    bool isNew = DowngradedRegs.insert(*AS);
+    (void)isNew; // Silence compiler warning.
+    assert(isNew && "Multiple reloads holding the same register?");
+    DowngradeMap.insert(std::make_pair(li->reg, *AS));
+  }
+  ++NumDowngrade;
+#endif
 }
 
 void RALinScanILP::UpgradeRegister(unsigned Reg) {
@@ -1097,14 +1198,19 @@ namespace {
 /// assignRegOrStackSlotAtInterval - assign a register if one is available, or
 /// spill.
 void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
-  DEBUG(dbgs() << "\tallocating current interval: ");
+  const TargetRegisterClass *RC = mri_->getRegClass(cur->reg);
+  DEBUG(dbgs() << "\tallocating current interval from "
+               << RC->getName() << ": ");
 
   // This is an implicitly defined live interval, just assign any register.
-  const TargetRegisterClass *RC = mri_->getRegClass(cur->reg);
   if (cur->empty()) {
     unsigned physReg = vrm_->getRegAllocPref(cur->reg);
     if (!physReg)
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
       physReg = *RC->allocation_order_begin(*mf_);
+#else
+      physReg = getFirstNonReservedPhysReg(RC);
+#endif
     DEBUG(dbgs() <<  tri_->getName(physReg) << '\n');
     // Note the register is not really in use.
     vrm_->assignVirt2Phys(cur->reg, physReg);
@@ -1127,8 +1233,8 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
 #if defined(LLVM_2_7) || defined(LLVM_2_8)
     if ((vni->def != SlotIndex()) && !vni->isUnused() &&
          vni->isDefAccurate()) {
-#else // LLVM_2_9-svn
-    if (!vni->isUnused()) {
+#else // LLVM_2_9
+    if (!vni->isUnused() && vni->def.isValid()) {
 #endif
       MachineInstr *CopyMI = li_->getInstructionFromIndex(vni->def);
 #ifdef LLVM_2_7
@@ -1166,7 +1272,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     assert(TargetRegisterInfo::isVirtualRegister(Reg) &&
            "Can only allocate virtual registers!");
     const TargetRegisterClass *RegRC = mri_->getRegClass(Reg);
-    // If this is not in a related reg class to the register we're allocating, 
+    // If this is not in a related reg class to the register we're allocating,
     // don't check it.
     if (RelatedRegClasses.getLeaderValue(RegRC) == RCLeader &&
         cur->overlapsFrom(*i->first, i->second-1)) {
@@ -1222,7 +1328,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
         LiveInterval *I = IP.first;
 
         const TargetRegisterClass *RegRC = OneClassForEachPhysReg[I->reg];
-        if (RelatedRegClasses.getLeaderValue(RegRC) == RCLeader &&       
+        if (RelatedRegClasses.getLeaderValue(RegRC) == RCLeader &&
             I->endIndex() > StartPosition) {
           LiveInterval::iterator II = I->advanceTo(IP.second, StartPosition);
           IP.second = II;
@@ -1301,7 +1407,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     UpgradeRegister(physReg);
     if (LiveInterval *NextReloadLI = hasNextReloadInterval(cur)) {
       // "Downgrade" physReg to try to keep physReg from being allocated until
-      // the next reload from the same SS is allocated. 
+      // the next reload from the same SS is allocated.
       mri_->setRegAllocationHint(NextReloadLI->reg, 0, physReg);
       DowngradeRegister(cur, physReg);
     }
@@ -1338,7 +1444,12 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
            e = RC->allocation_order_end(*mf_); i != e; ++i) {
       unsigned reg = *i;
       float regWeight = SpillWeights[reg];
-      // Skip recently allocated registers.
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+      // Don't even consider reserved regs.
+      if (reservedRegs_.test(reg))
+        continue;
+#endif
+      // Skip recently allocated registers (and reserved registers)
       if (minWeight > regWeight && !isRecentlyUsed(reg))
         Found = true;
       RegsWeights.push_back(std::make_pair(reg, regWeight));
@@ -1349,6 +1460,10 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     for (TargetRegisterClass::iterator i = RC->allocation_order_begin(*mf_),
            e = RC->allocation_order_end(*mf_); i != e; ++i) {
       unsigned reg = *i;
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+      if (reservedRegs_.test(reg))
+        continue;
+#endif
       // No need to worry about if the alias register size < regsize of RC.
       // We are going to spill all registers that alias it anyway.
       for (const unsigned* as = tri_->getAliasSet(reg); *as; ++as)
@@ -1362,7 +1477,11 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
   minWeight = RegsWeights[0].second;
   if (minWeight == HUGE_VALF) {
     // All registers must have inf weight. Just grab one!
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+    minReg = BestPhysReg ? BestPhysReg : getFirstNonReservedPhysReg(RC);
+#else
     minReg = BestPhysReg ? BestPhysReg : *RC->allocation_order_begin(*mf_);
+#endif
     if (cur->weight == HUGE_VALF ||
         li_->getApproximateInstructionCount(*cur) == 0) {
       // Spill a physical register around defs and uses.
@@ -1420,7 +1539,9 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     spiller_->spill(cur, added, spillIs);
 #endif
     std::sort(added.begin(), added.end(), LISorter());
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
     addStackInterval(cur, ls_, li_, mri_, *vrm_);
+#endif
     if (added.empty())
       return;  // Early exit if all spills were folded.
 
@@ -1479,7 +1600,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
 
   // The earliest start of a Spilled interval indicates up to where
   // in handled we need to roll back
-  assert(!spillIs.empty() && "No spill intervals?"); 
+  assert(!spillIs.empty() && "No spill intervals?");
   SlotIndex earliestStart = spillIs[0]->beginIndex();
   
   // Spill live intervals of virtual regs mapped to the physical register we
@@ -1506,7 +1627,9 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     std::copy(newIs.begin(), newIs.end(), std::back_inserter(added));
 #else
     spiller_->spill(sli, added, spillIs);
+#ifdef LLVM_2_8
     addStackInterval(sli, ls_, li_, mri_, *vrm_);
+#endif
 #endif
     spilled.insert(sli->reg);
   }
@@ -1619,8 +1742,12 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
   std::pair<unsigned, unsigned> Hint = mri_->getRegAllocationHint(cur->reg);
   // Resolve second part of the hint (if possible) given the current allocation.
   unsigned physReg = Hint.second;
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
   if (physReg &&
       TargetRegisterInfo::isVirtualRegister(physReg) && vrm_->hasPhys(physReg))
+#else
+  if (TargetRegisterInfo::isVirtualRegister(physReg) && vrm_->hasPhys(physReg))
+#endif
     physReg = vrm_->getPhys(physReg);
 
 
@@ -1635,6 +1762,11 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       TargetRegisterClass::iterator I = RC->allocation_order_begin(*mf_);
       TargetRegisterClass::iterator E = RC->allocation_order_end(*mf_);
       for (; I != E; ++I) {
+#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+	  // Skip reserved registers.
+	  if (reservedRegs_.test(*I))
+	      continue;
+#endif
           if (regUse_[*I] == 0) freeCount++;
           if (!regEverUsed_[*I]) freshCount++;
           if (regUse_[*I] == 0 && !regEverUsed_[*I]) {
@@ -1663,6 +1795,11 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       int minFalseDepsFromAssign = INT_MAX;
       for (; I != E; ++I) {
           unsigned physRegCandidate = *I;
+#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+	  // Skip reserved registers.
+	  if (reservedRegs_.test(physRegCandidate))
+	      continue;
+#endif
           if (!isRegAvail(physRegCandidate))
               continue;
           if (FreeReg == 0)
@@ -1767,6 +1904,12 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
       unsigned BestFound = 0;
       for (; I != E && FreeReg == 0; ++I) {
           unsigned physRegCandidate = *I;
+#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+	  // Skip reserved registers.
+	  if (reservedRegs_.test(physRegCandidate))
+	      continue;
+#endif
+
           if (!isRegAvail(physRegCandidate))
               continue;
 
@@ -1854,6 +1997,11 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
     // Ignore "downgraded" registers.
     if (SkipDGRegs && DowngradedRegs.count(Reg))
       continue;
+#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+    // Skip reserved registers.
+    if (reservedRegs_.test(Reg))
+	continue;
+#endif
     // Skip recently allocated registers.
     if (isRegAvail(Reg) && !isRecentlyUsed(Reg)) {
       FreeReg = Reg;
@@ -1886,6 +2034,11 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval* cur,
     // Ignore "downgraded" registers.
     if (SkipDGRegs && DowngradedRegs.count(Reg))
       continue;
+#if (!defined(LLVM_2_7) || defined(LLVM_2_8))
+    // Skip reserved registers.
+    if (reservedRegs_.test(Reg))
+	continue;
+#endif
     if (isRegAvail(Reg) && Reg < inactiveCounts.size() &&
         FreeRegInactiveCount < inactiveCounts[Reg] && !isRecentlyUsed(Reg)) {
       FreeReg = Reg;
@@ -1944,7 +2097,7 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval *cur) {
   unsigned Preference = vrm_->getRegAllocPref(cur->reg);
   if (Preference) {
     DEBUG(dbgs() << "(preferred: " << tri_->getName(Preference) << ") ");
-    if (isRegAvail(Preference) && 
+    if (isRegAvail(Preference) &&
         RC->contains(Preference))
       return Preference;
 #if 0

@@ -446,9 +446,17 @@ fi
 case "$LLVM_VERSION" in
      2.7)
      AC_DEFINE([LLVM_2_7], [], "Using LLVM v2.7")
+     AC_MSG_NOTICE(
+     [
+Warning. Old version of LLVM(2.7) in use. You should upgrade to LLVM 2.9.
+     ])
    ;;
      2.8*)
      AC_DEFINE([LLVM_2_8], [], "Using LLVM v2.8")
+     AC_MSG_NOTICE(
+     [
+Warning. Old version of LLVM(2.8) in use. You should upgrade to LLVM 2.9.
+     ])
      if test "$LLVM_FIXED_28" != YES;
 	then
 	AC_MSG_ERROR(
@@ -462,9 +470,11 @@ Please refer to INSTALL for instructions on how to do this correctly.
 	LLVM_VERSION=
 	fi
    ;;
-     *svn)
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 2.9)")     
+     2.9*)
      AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
+   ;;
+     *svn)
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 2.10?)")     
    ;;   
      *)
    AC_MSG_NOTICE(
