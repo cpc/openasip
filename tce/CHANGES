@@ -3,8 +3,9 @@
 
 Notable new features
 --------------------
-- Support for LLVM 2.9-(svn) (support for LLVM 2.7 and 2.8 retained, but deprecated).
-  We strongly recommend upgrading to LLVM 2.9(todo: when it's available). 
+- Support for LLVM 2.9.
+  LLVM 2.7 and 2.8 unsupported but might still work, see below for known 
+  problems.  We strongly recommend upgrading to LLVM 2.9. 
 - Generic VHDL implementations for the basic streaming operations
   from Jani Boutellier / University of Oulu.
 - OpenCL Embedded compliant FPU implementations by Timo Viitanen / TUT
@@ -51,15 +52,18 @@ Bugfixes
 
 Misc
 ----
-- ABI change: Alignment rules for some data types changes when using llvm 2.9
+- ABI change: Alignment rules for some data types changes when using
+  llvm 2.9.
   This means that old .o and .bc files have to be regerenerated when upgrading tce
-  from using llvm 2.7 or llvm 2.8 into llvm 2.9
-- llvm-gcc support deprecated. Only clang will work correctly with llvm 2.9.
-  llvm-gcc may still work with llvm 2.7 and llvm 2.8
+  from using llvm 2.7 or llvm 2.8 into llvm 2.9.
+- llvm-gcc support deprecated. Only Clang will work correctly with llvm 2.9.
+  llvm-gcc may still work with llvm 2.7 and llvm 2.8.
 
 Known problems
 --------------
-- Use LLVM 2.9 with clang to avoid all these problems. Then you can stop reading this.
+Use LLVM 2.9 with Clang to avoid all these problems. 
+If you do, you can stop reading here :)
+
 - LLVM 2.8 has a bug which may cause incorrectly compiled programs when
   the is a comparison of (only) lowest bits of integers in the code 
   being compiled.

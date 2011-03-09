@@ -15,7 +15,7 @@ wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.33+                                very permissive
 sqlite3               3.0.0+                               public domain
-LLVM                  2.7,2.8                              LLVM Release License
+LLVM                  2.9                                  LLVM Release License
 Editline              2.9                                  BSD-style
 
 Remarks concerning all libraries
