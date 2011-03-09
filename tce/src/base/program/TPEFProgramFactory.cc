@@ -1734,26 +1734,18 @@ TPEFProgramFactory::resolveSocketAllocations(
             bool prevFound = false;
             // find first freed allocation where we continue search
             for (int k = prevIndex; k >= 0 && !prevFound; k--) {
-                for (unsigned int j = 0; j < freedAllocs.size(); j++) {
-                    if (static_cast<int>(freedAllocs[j]->index) == k) {
+                for (std::vector<SocketAllocation*>::iterator j =
+                         freedAllocs.begin(); j != freedAllocs.end(); j++) {
+                    
+                    if (static_cast<int>((*j)->index) == k) {
+                        (*j)->src++;
                         currIndex = k;
                         prevFound = true;
+                        freedAllocs.erase(j);
                         break;
                     }                        
                 }
             }
-
-            // clean allocation indexes and increment index that is used
-            // as a next start point for the search loop
-            for (unsigned int j = 0; j < freedAllocs.size(); j++) {
-                if (freedAllocs[j]->index != currIndex) {
-                    freedAllocs[j]->src = 0;
-                } else {
-                    freedAllocs[j]->src++;
-                }
-            }
-
-            fixedSockets.erase(socketToFree);
             continue; // don't touch currIndex here
         }
 
