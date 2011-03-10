@@ -478,7 +478,7 @@ private:
                 bool success = evaluate(db().configuration(confId));
 
                 if (success) {
-                    int avgWorsening = averageWorsening(confId);
+                    unsigned int avgWorsening = averageWorsening(confId);
                     if (avgWorsening <= ccWorseningThreshold_ &&
                         avgWorsening < bestAvgccWorsening) {
                         mostUnneededConn = conn;
