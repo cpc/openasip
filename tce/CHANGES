@@ -51,7 +51,8 @@ Bugfixes
 - Some missing patterns could cause internal compiler error while compiling.
 - Missing operation behaviour file could cause simulator or osal tester to 
   fail. Now warning message is given and the .opp without corresponding .opb
-  is ignored.
+  is ignored, if behaviour source file is found. If source file not found,
+  the module is still loaded(assumes all operation xecuted via dag code)
 - Trying to load machine which used same socket as source for multiple 
   register reads (either reads same register, or moves are guarded and
   always exclusive moves) might cause the simulation to hang.

@@ -92,18 +92,24 @@ OperationIndex::addPath(const std::string& path) {
     for (unsigned int i = 0; i < modules.size(); i++) {
         string file = FileSystem::fileOfPath(modules[i]);
 	string behaviourFile = modules[i];
+	string behaviourSourceFile = 
+	    behaviourFile.substr(0, behaviourFile.length() - 3) + "cc";
+							  
 	// behaviour is .opb , change last letter from p to b
 	*(behaviourFile.rbegin()) = 'b';
 
 	// load only modules which have behaviour file.
-	if (FileSystem::fileExists(behaviourFile)) {
+	if (FileSystem::fileExists(behaviourFile) ||
+	    !FileSystem::fileExists(behaviourSourceFile)) {
 	    OperationModule*  module = 
 		new OperationModule(FileSystem::fileNameBody(file), path);
 	    modules_.push_back(module);
 	    opModules.push_back(module);
 	} else {
 	    std::cerr << "Warning: Found operation module specification file "
-		      << modules[i] << " without behaviour implementation "
+		      << modules[i] << " and operation behavious source file "
+		      << behaviourSourceFile << " without compiled behaviour "
+		      << "implementation file "
 		      << behaviourFile << "." << std::endl 
 		      << "Did you forgot to run \'buildopset\'?." << std::endl
 		      << "This operation module is ignored." << std::endl;
