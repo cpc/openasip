@@ -275,7 +275,7 @@ namespace llvm {
 // let's start cleaning this file in LLVM_2_9 (and drop support for 2.8 and
 // previous. These cause errors when libtce loaded with llc --load as they
 // are already in LLVMTargetMachine.cc, thus shouldn't be here
-#if !defined(LLVM_2_9)
+#if (defined (LLVM_2_7) || defined(LLVM_2_8))
 
 // These are multiply defined. Why they are here? A copy paste leftover?
 static cl::opt<bool> DisablePostRA("disable-post-ra", cl::Hidden,
@@ -318,7 +318,7 @@ EnableFastISelOption("fast-isel", cl::Hidden,
 
 #endif
 
-#if !defined(LLVM_2_9)
+#if (defined (LLVM_2_7) || defined(LLVM_2_8))
 
 static void printAndVerify(PassManagerBase &PM,
                            const char *Banner,
@@ -336,8 +336,7 @@ static void printAndVerify(PassManagerBase &PM,
 
 #endif
 
-#if !defined(LLVM_2_9)
-//#ifdef LLVM_2_7
+#if (defined (LLVM_2_7) || defined(LLVM_2_8))
 //FileModel::Model
 bool
 TCETargetMachine::addPassesToEmitFile(PassManagerBase &PM,
