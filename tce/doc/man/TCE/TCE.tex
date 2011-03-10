@@ -434,6 +434,55 @@ Optional.  Indicates that the output contains a value that depends on a
 data word read from memory by this operation.  This property implies that
 the operation reads data from memory.
 
+\subsubsection{Operation DAG}
+\label{ssec:operation-dag}
+
+The semantics of an operation may be modeled with a simple dag-based language.
+This can be used to both simulate the operation without writing the 
+simulation code, and to allow the compiler to automatically use custom
+operations.
+
+\paragraph{trigger-semantics}
+Optional. contains description of the operation semantic as a dag. 
+The DAG language code is given as the content of this element.
+
+The dag language has the following syntax:
+
+All commands in the operation DAG language end in semicolon.
+
+\begin{description}
+
+\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
+  Creates a temporary variables with given name. Usage examples:
+
+SimValue temp;
+
+SimValue temp1, temp2;
+
+\item[EXEC\_OPERATION(\emph{operationname}, \emph{firstinputoperand}, \emph{operand2}, ... , \emph{lastoutputoperand})] %
+ Calls another operation with given parameters. 
+
+The input values can be either temporary variables, inputs to the operation
+whose semantics is being modeled, or integer constants.
+
+The output value can be either temporary variables or outputs of the operation
+whose semantics is being modelled.
+
+Operands of the modeled operation are referred with name IO(<number>) 
+where 1 is first input operand, 2 second input operand, and after input operands come output operands. 
+
+Temporary values are referred by their name, and integer constants are given
+in decimal format.
+
+Usage examples:
+
+EXEC\_OPERATION(add IO(1), IO(2), temp);
+
+EXEC\_OPERATION(xor temp, 1337, IO(3));
+
+\end{description}
+
+
 \subsubsection{Operation Behavior}
 \label{ssec:operation-behavior}
 
