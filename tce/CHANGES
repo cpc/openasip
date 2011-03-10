@@ -60,7 +60,7 @@ Misc
 ----
 - ABI change: Alignment rules for some data types changes when using
   llvm 2.9.
-  This means that old .o and .bc files have to be regerenerated when upgrading tce
+  This means that old .o and .bc files have to be regenerated when upgrading tce
   from using llvm 2.7 or llvm 2.8 into llvm 2.9.
 - llvm-gcc support deprecated. Only Clang will work correctly with llvm 2.9.
   llvm-gcc may still work with llvm 2.7 and llvm 2.8.
