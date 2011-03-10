@@ -49,6 +49,9 @@ Bugfixes
   causing broken top level VHDL to be generated. Fixed by Jani Boutellier of 
   University of Oulu.
 - Some missing patterns could cause internal compiler error while compiling.
+- Missing operation behaviour file could cause simulator or osal tester to 
+  fail. Now warning message is given and the .opp without corresponding .opb
+  is ignored.
 
 Misc
 ----

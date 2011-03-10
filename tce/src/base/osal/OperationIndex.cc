@@ -91,10 +91,23 @@ OperationIndex::addPath(const std::string& path) {
     vector<OperationModule*> opModules;
     for (unsigned int i = 0; i < modules.size(); i++) {
         string file = FileSystem::fileOfPath(modules[i]);
-        OperationModule*  module = 
-            new OperationModule(FileSystem::fileNameBody(file), path);
-        modules_.push_back(module);
-        opModules.push_back(module);
+	string behaviourFile = modules[i];
+	// behaviour is .opb , change last letter from p to b
+	*(behaviourFile.rbegin()) = 'b';
+
+	// load only modules which have behaviour file.
+	if (FileSystem::fileExists(behaviourFile)) {
+	    OperationModule*  module = 
+		new OperationModule(FileSystem::fileNameBody(file), path);
+	    modules_.push_back(module);
+	    opModules.push_back(module);
+	} else {
+	    std::cerr << "Warning: Found operation module specification file "
+		      << modules[i] << " without behaviour implementation "
+		      << behaviourFile << "." << std::endl 
+		      << "Did you forgot to run \'buildopset\'?." << std::endl
+		      << "This operation module is ignored." << std::endl;
+	}
     }
 
     modulesInPath_[path] = opModules;
