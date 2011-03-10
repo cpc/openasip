@@ -52,6 +52,9 @@ Bugfixes
 - Missing operation behaviour file could cause simulator or osal tester to 
   fail. Now warning message is given and the .opp without corresponding .opb
   is ignored.
+- Trying to load machine which used same socket as source for multiple 
+  register reads (either reads same register, or moves are guarded and
+  always exclusive moves) might cause the simulation to hang.
 
 Misc
 ----
