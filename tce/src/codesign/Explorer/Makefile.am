@@ -49,7 +49,7 @@ LIB_LLVMBACKEND_APPLIBS = ../../applibs/LLVMBackend
 LIB_OSAL_APPLIBS = ../../applibs/osal
 
 bin_PROGRAMS = explore
-bin_SCRIPTS = buildexplorerplugin
+bin_SCRIPTS = buildexplorerplugin pareto_vis
 explore_SOURCES = Explorer.cc ExplorerCmdLineOptions.cc
 
 explore_LDADD = ../../libtce.la

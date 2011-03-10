@@ -72,11 +72,9 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                 Conversion::toString(superiority_));
     }
 
-
+    virtual bool requiresStartingPointArchitecture() const { return true; }
     virtual bool producesArchitecture() const { return true; }
-
     virtual bool requiresHDB() const { return true; }
-
     virtual bool requiresSimulationData() const { return false; }
 
     /**
@@ -143,7 +141,11 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             return result;
         }
 
-        if (estimates.cycleCounts() < 1) {
+        std::vector<ClockCycleCount> cycleCounts = 
+            db().cycleCounts(startConf);
+
+
+        if (cycleCounts.size() < 1) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "GrowMachine Plugin Error: Couldn't evaluate cycle "
                 << "counts for applications, correct_simulation_output"
@@ -156,10 +158,10 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
         }
 
         // all applications minimum cycle count
-        ClockCycleCount currentMinCycles = estimates.cycleCount(0);
-        for (int i = 1; i < estimates.cycleCounts(); i++) {
-            if (estimates.cycleCount(i) < currentMinCycles) {
-                currentMinCycles = estimates.cycleCount(i);
+        ClockCycleCount currentMinCycles = cycleCounts.at(0);
+        for (int i = 1; i < (int)cycleCounts.size(); i++) {
+            if (cycleCounts.at(i) < currentMinCycles) {
+                currentMinCycles = cycleCounts.at(i);
             }
         }
 
@@ -191,10 +193,13 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                 // evaluate to get new cycle counts
                 if (explorer.evaluate(newConfiguration, newEstimates, false)) {
                     // resets the currentMinCycles 
-                    currentMinCycles = newEstimates.cycleCount(0);
-                    for (int i = 1; i < newEstimates.cycleCounts(); i++) {
-                        if (newEstimates.cycleCount(i) < currentMinCycles) {
-                            currentMinCycles = newEstimates.cycleCount(i);
+                    std::vector<ClockCycleCount> newCycleCounts = 
+                        db().cycleCounts(newConfiguration);
+
+                    currentMinCycles = newCycleCounts.at(0);
+                    for (int i = 1; i < (int)newCycleCounts.size(); i++) {
+                        if (newCycleCounts.at(i) < currentMinCycles) {
+                            currentMinCycles = newCycleCounts.at(i);
                         }
                     }
 

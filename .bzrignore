@@ -15,6 +15,9 @@ RE:src/.*/Makefile.in
 tce/Makefile.in
 compiletest.*.log
 **/runner.cpp
+**/*.html
+**/*.orig
+**/tta_stream.out
 testsuite/systemtest/bintools/Scheduler/**/program.bc
 testsuite/systemtest_long/bintools/Scheduler/**/program.bc
 testsuite/systemtest_long/bintools/Compiler/**/program.bc
@@ -31,6 +34,7 @@ RE:tce/src/.*/Makefile
 RE:tce/test/.*/Makefile.in
 tce/scheduler/**/Makefile
 tce/scheduler/**/Makefile.in
+tce/src/bintools/Compiler/tdgen/tdgen_transport
 tce/src/bintools/Compiler/llvm-tce/llvm-tce
 tce/src/bintools/Compiler/tceopgen/tceoclextgen
 tce/src/bintools/Compiler/tceopgen/tceopgen

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,8 @@
  * Explorer plugin that checks that given config or adf meets minimal opset
  * requirements stated by minimal machine adf or user given reference adf.
  *
- * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -71,10 +72,9 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
             Conversion::toString(printMissingOps_));
     }
 
+    virtual bool requiresStartingPointArchitecture() const { return false; }
     virtual bool producesArchitecture() const { return false; }
-
     virtual bool requiresHDB() const { return false; }
-
     virtual bool requiresSimulationData() const { return false; }
     
     /**
@@ -129,12 +129,14 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
             std::vector<std::string> missingOps;
             minimalOpSetCheck.missingOperations(*mach, missingOps);
             if (missingOps.empty()) {
-                verboseLog("MinimalOpSet: Configuration/machine has all"
-                        " the operations in the minimal opset already.")
+                std::cout << "MinimalOpSet: Configuration/machine has all"
+                          << " the operations in the minimal opset already."
+                          << std::endl;
                 return result;
             }
             for (unsigned int i = 0; i < missingOps.size(); ++i) {
-                verboseLog(missingOps.at(i) + " : operation is missing.");
+                std::cout << missingOps.at(i) + " : operation is missing."
+                          << std::endl;
             }
         }
 

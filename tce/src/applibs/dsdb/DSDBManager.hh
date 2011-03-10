@@ -36,10 +36,12 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <boost/tuple/tuple.hpp>
 #include "DBTypes.hh"
 #include "Exception.hh"
 #include "SimulatorConstants.hh"
 #include "CostEstimatorTypes.hh"
+
 
 class SQLite;
 class RelationalDBConnection;
@@ -51,6 +53,8 @@ namespace TTAMachine {
 namespace IDF {
     class MachineImplementation;
 }
+
+#define ILLEGAL_ROW_ID (-1)
 
 /**
  * Design space database manager.
@@ -74,6 +78,16 @@ public:
         RowID architectureID;
         bool hasImplementation;
         RowID implementationID;
+        MachineConfiguration(
+            RowID arch, bool hasImpl, RowID impl) : 
+            architectureID(arch), 
+            hasImplementation(hasImpl),
+            implementationID(impl) {}
+
+        MachineConfiguration() : 
+            architectureID(ILLEGAL_ROW_ID), 
+            hasImplementation(false),
+            implementationID(ILLEGAL_ROW_ID) {}
     };
 
     struct ApplicationData {
@@ -134,6 +148,12 @@ public:
         }
     };
 
+    typedef boost::tuple<RowID, int, ClockCycleCount>
+    ParetoPointConnectivityAndCycles;
+
+    typedef std::set<ParetoPointConnectivityAndCycles> 
+    ParetoSetConnectivityAndCycles;
+
     /// Identifiers for ordering results.
     enum Order {
         ORDER_BY_CONFIGURATION,
@@ -193,6 +213,8 @@ public:
     TTAMachine::Machine* architecture(RowID id) const
         throw (KeyNotFound);
 
+    RowID architectureId(const TTAMachine::Machine& mach) const;
+
     bool hasImplementation(RowID id) const;
     IDF::MachineImplementation* implementation(RowID id) const
         throw (KeyNotFound);
@@ -200,6 +222,7 @@ public:
     bool hasConfiguration(RowID id) const;
     MachineConfiguration configuration(RowID id) const
         throw (KeyNotFound);
+    RowID configurationId(const MachineConfiguration& conf) const;
 
     void removeConfiguration(RowID id)
         throw (KeyNotFound);
@@ -211,10 +234,19 @@ public:
     bool hasCycleCount(RowID application, RowID architecture) const;
     ClockCycleCount cycleCount(RowID application, RowID architecture) const
         throw (KeyNotFound);
-
-    double longestPathDelayEstimate(RowID implementation) const 
+    std::vector<ClockCycleCount> 
+    cycleCounts(const MachineConfiguration& conf) const;
+    bool
+    isUnschedulable(
+        RowID application, RowID architecture) const;
+    void
+    setUnschedulable(
+        RowID application, RowID architecture)
         throw (KeyNotFound);
 
+    double
+    longestPathDelayEstimate(RowID implementation) const
+        throw (KeyNotFound);
     CostEstimator::AreaInGates areaEstimate(RowID implementation) const
         throw (KeyNotFound);
 
@@ -235,6 +267,9 @@ public:
 
     std::vector<ConfigurationCosts> applicationCostEstimatesByConf(
         Order ordering = ORDER_BY_CONFIGURATION) const;
+
+    ParetoSetConnectivityAndCycles 
+    paretoSetConnectivityAndCycles(RowID application=ILLEGAL_ROW_ID) const;
 
     int applicationCount() const;
 private:

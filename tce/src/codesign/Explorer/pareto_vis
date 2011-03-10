@@ -1,0 +1,100 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+    Copyright (c) 2002-2011 Tampere University of Technology.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+"""
+"""
+Visualizes the pareto points as outputted by the explore --pareto_set
+
+Reads the explorer pareto set output from stdin. Optional filename
+argument can be given in which case the chart is saved to the given
+filename, otherwise displayed directly.
+
+@author Pekka Jääskeläinen 2011
+
+-*- mode: python -*-
+"""
+
+import sys
+
+try:
+   from pylab import *
+except:
+   print "Requires Matplotlib. Install it, for example using:"
+   print 'apt-get install python-matplotlib'
+   sys.exit(1)
+
+def plot_data():
+   header = None
+   data = []
+   prev_data = []
+   for line in sys.stdin:
+      line = line.strip()
+      if line == "": continue
+      if header is None:
+         header_pieces = [x.strip() for x in line.split('|')[0:3]]
+         if header_pieces != ["conf #", "conn", "cycles"]:
+            print "Unsupported table header", header_pieces
+            sys.exit(1)
+         header = ("conf #", "connections", "instruction cycles")
+         continue
+      if line.startswith("-------"): continue
+      pieces = [int(x) for x in line.split('|')]
+      if pieces[1:2] == prev_data[1:2]:
+         # Filter configurations with identical results.
+         prev_data = pieces
+         continue
+      prev_data = pieces
+      data.append(pieces)
+
+   figure(figsize=(6,6))
+
+   ylabel(header[2])
+   xlabel(header[1])
+
+   data = sorted(data, key=lambda datum: datum[1])
+
+   # Add the configuration numbers as labels to the points.
+   for datum in data:
+      text(datum[1], datum[2], "#%d" % datum[0])
+
+   plot([x[1] for x in data], [x[2] for x in data], 'k-x')
+
+
+if __name__ == "__main__":
+   plot_data()
+   if len(sys.argv) == 1:
+      show()
+   elif len(sys.argv) == 2:
+      try:
+         savefig(sys.argv[1])
+      except Exception, e:
+         print e
+         sys.exit(1)
+   else:
+      print "Illegal number of arguments. "
+      print "Usage: explore --pareto_set C myresults.dsdb | pareto_vis [imagefn]"
+
+
+
+

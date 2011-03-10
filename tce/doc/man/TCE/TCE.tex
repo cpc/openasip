@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.4}
-\ver{20}
+\ver{21}
 \firstday{2006-10-25}
-\lastday{2011-01-21}
+\lastday{2011-03-10}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -442,13 +442,14 @@ This can be used to both simulate the operation without writing the
 simulation code, and to allow the compiler to automatically use custom
 operations.
 
-\paragraph{trigger-semantics}
-Optional. contains description of the operation semantic as a dag. 
-The DAG language code is given as the content of this element.
+The optional field to describe the Operation DAGs is 
+\textit{trigger-semantics}. It contains description of the operation 
+semantics as a directed acyclic graph (DAG). 
 
-The dag language has the following syntax:
+The OperationDAG language description is given as the content of this element.
+The OperationDAG language has the following syntax:
 
-All commands in the operation DAG language end in semicolon.
+All commands end in semicolon.
 
 \begin{description}
 
@@ -459,8 +460,8 @@ SimValue temp;
 
 SimValue temp1, temp2;
 
-\item[EXEC\_OPERATION(\emph{operationname}, \emph{firstinputoperand}, \emph{operand2}, ... , \emph{lastoutputoperand})] %
- Calls another operation with given parameters. 
+\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
+ Calls another operation with the given operand values. 
 
 The input values can be either temporary variables, inputs to the operation
 whose semantics is being modeled, or integer constants.
@@ -469,16 +470,21 @@ The output value can be either temporary variables or outputs of the operation
 whose semantics is being modelled.
 
 Operands of the modeled operation are referred with name IO(<number>) 
-where 1 is first input operand, 2 second input operand, and after input operands come output operands. 
+where 1 is first input operand, 2 second input operand, and after input 
+operands come output operands. 
 
 Temporary values are referred by their name, and integer constants are given
 in decimal format.
 
-Usage examples:
+Example OperationDAG of the ADDSUB operation:
 
-EXEC\_OPERATION(add IO(1), IO(2), temp);
+\begin{verbatim}
+     <trigger-semantics>
+       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
+       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
+     </trigger-semantics>
+\end{verbatim}
 
-EXEC\_OPERATION(xor temp, 1337, IO(3));
 
 \end{description}
 
@@ -6346,7 +6352,7 @@ is given, it is ignored.
 Automatic Design Space \textbf{Explorer} automates the
 process of searching for target processor configurations with favourable
 cost/performance characteristics for a given set of applications by
-evaluating hundreds of processor configurations.
+evaluating hundreds or even thousands of processor configurations.
 
 \textbf{Input}: ADF (a starting point architecture), TPEF, HDB
 
@@ -6393,31 +6399,7 @@ database can be queried applications can be added into and removed from the
 database and the explored configurations in the database can be written as
 files for further examination.
 
-The possible options of the application are as follows:\\
-
-\begin{tabular}{p{0.08\textwidth}p{0.17\textwidth}p{0.75\textwidth}}
-\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
-\hline
-d & add\_app\_dir & Path(s) of the test application(s) to be added into the DSDB.\\
-a & adf & ADF to add into the DSDB.\\
-n & conf\_count & Print the number of machine configurations in the DSDB.\\
-c & conf\_summary & Print the summary of machine configurations in the DSDB
-ordered by: Ordering may be one of the following: \emph{I} ordering by 
-configuration Id, \emph{P} ordering by application path, \emph{C} ordering by
-cycle count, \emph{E} ordering by energy estimate.\\
-e & explorer\_plugin & Design Space Explorer plugin to be used.\\
-b & hdb & HDB to use with exploration.\\
-i & idf & IDF to add into the DSDB, needs also ADF.\\
-l & list\_apps & List the applications in the DSDB.\\
-g & list\_plugins & List loadable explorer plugins.\\
-p & plugin\_info & Get information about a plugin.\\
-u & plugin\_param & Parameter to the explorer plugin in form 'name=value'.
-If parameter value is boolean, use 'true', 'false', 1 or 0.\\
-r & rm\_app & ID(s) of the test program path(s) to be removed from the DSDB.\\
-s & start & Starting point configuration ID in the DSDB.\\
-w & write\_conf & export the ADF and IDF files from the DSDB with given
-configuration id. Does not remove the configuration from the DSDB.\\
-\end{tabular}\\
+Please refer to \textit{explroe -h} for a full listing of possible options.
 
 Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
@@ -6444,6 +6426,35 @@ And their parameters with a command:
 \shellcmd{explore -p <plugin name>}
 
 These commands can help if, for some reason, this documentation is not up-to-date.
+
+\subsection{Explorer Plugin: ConnectionSweeper}
+
+ConnectionSweeper reduces the interconnection network gradually until a
+given cycle count worsening threshold is reached. The algorithm tries to
+reduce register file connections first as they tend to be more expensive.
+
+Example:
+
+\shellcmd{explore -v -e ConnectionSweeper -u cc\_worsening\_threshold=10 -s 1 database.dsdb}
+
+This reduces the connections in the IC network starting from the configuration 
+number 1 until the cycle count drops over 10\%. This algorithm might take 
+quite a while to finish, thus the verbose switch is recommended to print 
+the progress and possibly to pick up interesting configurations during the 
+execution of the algorithm.
+
+The explore tool has a pareto set finder which can output the interesting
+configurations from the DSDB after the IC exploration. The pareto set
+can be printed with:
+
+\shellcmd{explore --pareto\_set C database.dsdb}
+
+This prints out the pareto efficient configurations using the
+number of connections in the architecture and the execution cycle count as
+the quality measures. For visualizing the pareto set you can use the
+\textit{pareto\_vis} script (installed with TCE) to plot the configurations:
+
+\shellcmd{explore --pareto\_set C database.dsdb | pareto\_vis}
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 

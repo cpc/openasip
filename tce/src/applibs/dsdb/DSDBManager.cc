@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,10 +27,12 @@
  * Implementation of DSDBManager class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
 #include <boost/format.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 #include <utility>
 #include "DSDBManager.hh"
 #include "SQLite.hh"
@@ -42,6 +44,8 @@
 #include "Machine.hh"
 #include "MachineImplementation.hh"
 #include "DataObject.hh"
+#include "FileSystem.hh"
+#include "MachineConnectivityCheck.hh"
 
 using std::pair;
 using std::map;
@@ -54,6 +58,8 @@ using namespace CostEstimator;
 const string CREATE_ARCH_TABLE =
     "CREATE TABLE architecture ("
     "       id INTEGER PRIMARY KEY,"
+    "       connection_count INTEGER DEFAULT NULL, "
+    "       adf_hash VARCHAR,"
     "       adf_xml VARCHAR)";
 
 const string CREATE_IMPL_TABLE =
@@ -78,7 +84,10 @@ const string CREATE_CYCLE_COUNT_TABLE =
     "CREATE TABLE cycle_count ("
     "       architecture REFERENCES architecture(id) NOT NULL,"
     "       application REFERENCES application(id) NOT NULL,"
-    "       cycles BIGINT NOT NULL)";
+// this is set to TRUE in case cycle count production failed due to 
+// unschedulable program 
+    "       unschedulable BOOL DEFAULT 0," 
+    "       cycles BIGINT DEFAULT NULL)";
 
 const string CREATE_ENERGY_ESTIMATE_TABLE =
     "CREATE TABLE energy_estimate ("
@@ -100,7 +109,6 @@ DSDBManager::DSDBManager(const std::string& file)
     db_(new SQLite()), dbConnection_(NULL), file_(file) {
 
    
-
     if (!FileSystem::fileExists(file)) {
         string msg = "File '" + file + "' doesn't exist.";
         throw FileNotFound(__FILE__, __LINE__, __func__, msg);
@@ -178,12 +186,20 @@ DSDBManager::dsdbFile() const {
 /**
  * Adds machine architecture to the database.
  *
+ * In case an existing equal architecture is found in the DB,
+ * does not add a new one, but returns the ID of the old one.
+ *
  * @param mom Machine architecture to add.
  * @return RowID of the added architecture.
  */
 RowID
 DSDBManager::addArchitecture(const TTAMachine::Machine& mom) 
     throw (RelationalDBException) {
+
+    RowID existing = architectureId(mom);
+    if (existing != ILLEGAL_ROW_ID) {
+        return existing;
+    }    
 
     string adf = "";
     try {
@@ -210,10 +226,12 @@ DSDBManager::addArchitecture(const TTAMachine::Machine& mom)
     RowID id = -1;
     try {
         dbConnection_->updateQuery(
-            std::string(
-                "INSERT INTO architecture(id, adf_xml) VALUES"
-                "(NULL,\'" + adf + "\');"));
-
+            (boost::format(
+                "INSERT INTO architecture(id, adf_hash, adf_xml, "
+                "connection_count) VALUES"
+                "(NULL, \'%s\', \'%s\', %d);") %
+             mom.hash() % adf % 
+             MachineConnectivityCheck::totalConnectionCount(mom)).str());
         id = dbConnection_->lastInsertRowID();
         dbConnection_->commit();
     } catch (const RelationalDBException& e) {
@@ -281,6 +299,8 @@ DSDBManager::addImplementation(
 /**
  * Adds a new machine configuration to the database.
  *
+ * In case a same configuration found in the DB, reuses that one.
+ *
  * @param conf Configuration to add.
  * @return RowID of the new configuration.
  * @throw KeyNotFound if the configuration contained unknown IDs.
@@ -289,8 +309,11 @@ RowID
 DSDBManager::addConfiguration(const MachineConfiguration& conf)
     throw (KeyNotFound) {
 
+    RowID existing = configurationId(conf);
+    if (existing != ILLEGAL_ROW_ID) {
+        return existing;
+    }    
     RowID id = -1;
-
     if (!hasArchitecture(conf.architectureID)) {
         std::string msg =
             "Architecture with ID " +
@@ -303,7 +326,7 @@ DSDBManager::addConfiguration(const MachineConfiguration& conf)
         std::string msg =
             "Implementation with ID " +
             Conversion::toString(conf.implementationID) +
-            "not found.";
+            " not found.";
         throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -440,7 +463,12 @@ DSDBManager::addApplication(const std::string& path) {
         dbConnection_->updateQuery(
             std::string(
                 "INSERT INTO application(id, path) VALUES"
-                "(NULL,\"" + path + "\");"));
+                "(NULL,\"" + 
+                // remove trailing file system separator from path
+                ((path.substr(path.length() - 1) 
+                  == FileSystem::DIRECTORY_SEPARATOR) ? 
+                 path.substr(0,path.length()-1) : 
+                 path) + "\");"));
 
         id = dbConnection_->lastInsertRowID();
         dbConnection_->commit();
@@ -494,6 +522,80 @@ DSDBManager::addEnergyEstimate(
 }
 
 /**
+ * Sets the application to be unschedulable for an architecture,
+ * thus cycle count nor further estimation could not be done.
+ *
+ * This is saved to the DB so future evaluations of the same architecture 
+ * can be skipped.
+ *
+ * @param application RowID of the application.
+ * @param architecture RowID of the machine architecture.
+ */
+void
+DSDBManager::setUnschedulable(
+    RowID application, RowID architecture)
+    throw (KeyNotFound) {
+
+    if (!hasApplication(application)) {
+        const std::string error = (boost::format(
+            "DSDB file '%s' has no application with id '%d'."
+            "Can't add a cycle count.") 
+            % file_ % application).str();
+        throw KeyNotFound(__FILE__, __LINE__, __func__, error);
+    }
+    if (!hasArchitecture(architecture)) {
+        const std::string error = (boost::format(
+            "DSDB file '%s' has no architecture with id '%d'."
+            "Can't add a cycle count.") 
+            % file_ % architecture).str();
+        throw KeyNotFound(__FILE__, __LINE__, __func__, error);
+    }
+
+    std::string q =
+        "INSERT INTO cycle_count(application, architecture, "
+        "unschedulable) VALUES(" +
+        Conversion::toString(application) + ", " +
+        Conversion::toString(architecture) + ", 1);";
+
+    dbConnection_->updateQuery(q);
+}
+
+/**
+ * Checks if the application has been scheduled for the given
+ * architecture previously unsuccessfully.
+ *
+ * @param application RowID of the application.
+ * @param architecture RowID of the machine architecture.
+ * @return True, if it's known that the application is unschedulable
+ * for the given architecture.
+ */ 
+bool
+DSDBManager::isUnschedulable(
+    RowID application, RowID architecture) const {
+
+    RelationalDBQueryResult* result = NULL;
+    
+    try {
+        result = dbConnection_->query(
+            "SELECT unschedulable FROM cycle_count WHERE application=" +
+            Conversion::toString(application) + " AND " +
+            "architecture=" + Conversion::toString(architecture) + " "
+            "AND unschedulable = 1;");
+    } catch (Exception& e) {
+        abortWithError(e.errorMessage());
+    }
+
+    if (result->hasNext()) {
+        delete result;
+        return true;
+    } else {
+        delete result;
+        return false;
+    }
+}
+
+
+/**
  * Adds cycle count of an application on specific architecture.
  *
  * @param application RowID of the application.
@@ -507,24 +609,25 @@ DSDBManager::addCycleCount(
 
     if (!hasApplication(application)) {
         const std::string error = (boost::format(
-            "DSDP file '%s' has no application with id '%d'."
+            "DSDB file '%s' has no application with id '%d'."
             "Can't add a cycle count.") 
             % file_ % application).str();
         throw KeyNotFound(__FILE__, __LINE__, __func__, error);
     }
     if (!hasArchitecture(architecture)) {
         const std::string error = (boost::format(
-            "DSDP file '%s' has no architecture with id '%d'."
+            "DSDB file '%s' has no architecture with id '%d'."
             "Can't add a cycle count.") 
             % file_ % architecture).str();
         throw KeyNotFound(__FILE__, __LINE__, __func__, error);
     }
 
     std::string q =
-        "INSERT INTO cycle_count(application, architecture, cycles) VALUES(" +
+        "INSERT INTO cycle_count(application, architecture, cycles, "
+        "unschedulable) VALUES(" +
         Conversion::toString(application) + ", " +
         Conversion::toString(architecture) + ", " +
-        Conversion::toString(count) + ");";
+        Conversion::toString(count) + ", 0);";
 
     dbConnection_->updateQuery(q);
 }
@@ -622,6 +725,110 @@ DSDBManager::architectureString(RowID id) const
     delete result;
     return arch;
 }
+
+/**
+ * Returns the row ID of the given architecture.
+ *
+ * Searches for the architecture using its Machine::hash() string.
+ *e
+ * @param id RowID of the machine architecture. ILLEGAL_ROW_ID, if not found.
+ * @return The architecture ID.
+ */
+RowID
+DSDBManager::architectureId(const TTAMachine::Machine& mach) const {
+
+    RelationalDBQueryResult* result = NULL;
+    try {
+        result = dbConnection_->query(
+            TCEString("SELECT id FROM architecture WHERE adf_hash = \'") +
+            mach.hash() + "\';");
+    } catch (const Exception& e) {
+        delete result;
+        abortWithError(e.errorMessage());
+    }
+
+    if (!result->hasNext()) {
+        delete result;
+        return ILLEGAL_ROW_ID;
+    }
+
+    result->next();
+    const DataObject& data = result->data(0);
+
+    int id = data.integerValue();
+    delete result;
+    return id;
+}
+
+/**
+ * Returns the cycle counts for the given configuration for all applications,
+ * if known.
+ *
+ * @return The cycle counts ordered by the application order. 
+ * Empty if at least one application missed a cycle count.
+ */
+std::vector<ClockCycleCount>
+DSDBManager::cycleCounts(const MachineConfiguration& conf) const {
+
+    std::vector<ClockCycleCount> ccs;    
+    std::set<RowID> appIds = applicationIDs();
+    for (std::set<RowID>::const_iterator appI = appIds.begin(); 
+         appI != appIds.end(); ++appI) {
+        RowID appID = *appI;
+        if (!hasCycleCount(appID, conf.architectureID)) {
+            ccs.clear();
+            return ccs;
+        }
+        ccs.push_back(cycleCount(appID, conf.architectureID));
+    }   
+    return ccs;
+}
+
+
+/**
+ * Returns the row ID of the given configuration.
+ *
+ * @param id RowID of the configuration. ILLEGAL_ROW_ID, if not found.
+ * @return The configuration ID.
+ */
+RowID
+DSDBManager::configurationId(const MachineConfiguration& conf) const {
+
+    RelationalDBQueryResult* result = NULL;
+    try {
+        TCEString queryStr;
+        if (conf.hasImplementation) {
+            queryStr =
+                (boost::format(
+                    "SELECT id FROM machine_configuration "
+                    "WHERE architecture = %d AND implementation = %d;")
+                 % conf.architectureID % conf.implementationID).str();
+        } else {
+            queryStr =
+                (boost::format(
+                    "SELECT id FROM machine_configuration "
+                    "WHERE architecture = %d AND implementation IS NULL;")
+                 % conf.architectureID).str();
+        }
+        result = dbConnection_->query(queryStr);
+    } catch (const Exception& e) {
+        delete result;
+        abortWithError(e.errorMessage());
+    }
+
+    if (!result->hasNext()) {
+        delete result;
+        return ILLEGAL_ROW_ID;
+    }
+
+    result->next();
+    const DataObject& data = result->data(0);
+
+    int id = data.integerValue();
+    delete result;
+    return id;
+}
+
 
 /**
  * Returns machine architecture with the given id.
@@ -882,11 +1089,14 @@ bool
 DSDBManager::hasApplication(const std::string& applicationPath) const {
 
     RelationalDBQueryResult* result = NULL;
-    
     try {
         result = dbConnection_->query(
             "SELECT * FROM application WHERE path='" +
-            applicationPath + "';");
+            // remove trailing file system separator from path
+            ((applicationPath.substr(applicationPath.length() - 1) 
+              == FileSystem::DIRECTORY_SEPARATOR) ? 
+             applicationPath.substr(0,applicationPath.length()-1) : 
+             applicationPath) + "';");
     } catch (Exception&) {
         assert(false);
     }
@@ -1074,7 +1284,8 @@ DSDBManager::hasCycleCount(RowID application, RowID architecture) const {
     
     try {
         result = dbConnection_->query(
-            "SELECT cycles FROM cycle_count WHERE application=" +
+            "SELECT cycles FROM cycle_count WHERE cycles IS NOT NULL AND "
+            " application=" +
             Conversion::toString(application) + " AND " +
             "architecture=" + Conversion::toString(architecture) + ";");
     } catch (Exception&) {
@@ -1538,4 +1749,85 @@ DSDBManager::applicationCount() const {
     }
     delete queryResult;
     return result;
+}
+
+/**
+ * Finds a pareto set of configurations using the connection count and the
+ * cycle count of the given application as criteria.
+ */
+DSDBManager::ParetoSetConnectivityAndCycles 
+DSDBManager::paretoSetConnectivityAndCycles(RowID application) const {
+
+    if (application == ILLEGAL_ROW_ID) {
+        std::set<RowID> ids = applicationIDs();
+        assert(ids.size() == 1);
+        application = *ids.begin();
+    } 
+
+
+    ParetoSetConnectivityAndCycles paretoSet;
+
+    // make the SQL query to obtain IDs.
+    RelationalDBQueryResult* queryResult = NULL;
+    TCEString theQuery;
+    try {
+        theQuery =
+            (boost::format(
+                "SELECT machine_configuration.id AS id, connection_count, "
+                "       cycles "
+                "FROM application, architecture, machine_configuration, "
+                "     cycle_count "
+                "WHERE machine_configuration.architecture = "
+                "      cycle_count.architecture AND "
+                "      cycle_count.unschedulable = 0 AND "
+                "      cycle_count.cycles IS NOT NULL AND "
+                "      cycle_count.application = %d AND "
+                "      architecture.id = cycle_count.architecture;") %
+             application).str();
+
+        queryResult = dbConnection_->query(theQuery);
+
+    } catch (const Exception& e) {
+        // should not throw in any case
+        delete queryResult;
+        abortWithError(TCEString("FAIL: ") + theQuery + ": " + e.errorMessage());
+    }
+
+    while (queryResult->hasNext()) {
+        queryResult->next();
+        ParetoPointConnectivityAndCycles newPoint = 
+            boost::make_tuple(
+                queryResult->data(0).integerValue(),
+                queryResult->data(1).integerValue(),
+                queryResult->data(2).integerValue());
+        // go through the old pareto sets and remove those that are
+        // dominated by the new point, in case at least one point that
+        // dominates this point is found, do not add the point
+        bool dominated = false;
+        for (ParetoSetConnectivityAndCycles::iterator i = paretoSet.begin();
+             i != paretoSet.end(); ) {
+            ParetoPointConnectivityAndCycles oldPoint = *i;
+            if (newPoint.get<1>() <= oldPoint.get<1>() &&
+                newPoint.get<2>() <= oldPoint.get<2>() &&
+                (newPoint.get<1>() < oldPoint.get<1>() ||
+                 newPoint.get<2>() < oldPoint.get<2>())) {
+                // newPoint dominates the oldPoint, remove the oldPoint
+                paretoSet.erase(i++);
+                continue;
+            } else if (oldPoint.get<1>() <= newPoint.get<1>() &&
+                       oldPoint.get<2>() <= newPoint.get<2>() &&
+                       (oldPoint.get<1>() < newPoint.get<1>() ||
+                        oldPoint.get<2>() < newPoint.get<2>())) {
+                // there was an old point in the set that dominates this one,
+                // we cannot add it to the set but we should look for other
+                // points this point could dominate
+                dominated = true;
+            } 
+            i++;
+        }
+        if (!dominated) paretoSet.insert(newPoint);
+
+    }
+    delete queryResult;
+    return paretoSet;
 }

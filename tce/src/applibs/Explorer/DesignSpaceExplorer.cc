@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Jari M‰ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -69,6 +70,9 @@ using namespace CostEstimator;
 PluginTools
 DesignSpaceExplorer::pluginTool_;
 
+CostEstimates 
+DesignSpaceExplorer::dummyEstimate_;
+
 
 /**
  * The constructor.
@@ -102,7 +106,6 @@ DesignSpaceExplorer::setDSDB(DSDBManager& dsdb) {
 
     dsdb_ = &dsdb;
 }
-
 
 /**
  * Evaluates one processor configuration (architecture+implementation pair).
@@ -160,6 +163,17 @@ DesignSpaceExplorer::evaluate(
         for (set<RowID>::const_iterator i = applicationIDs.begin();
              i != applicationIDs.end(); i++) {
 
+            if (dsdb_->isUnschedulable((*i), configuration.architectureID)) {
+                return false;
+            }
+
+            if (!estimate && 
+                dsdb_->hasCycleCount(*i, configuration.architectureID)) {
+                // this configuration has been compiled+simulated previously,
+                // the old cycle count can be reused for this app
+                continue; 
+            }
+
             string applicationPath = dsdb_->applicationPath(*i);
             TestApplication testApplication(applicationPath);
             
@@ -183,7 +197,7 @@ DesignSpaceExplorer::evaluate(
                 schedule(applicationFile, *adf);
 
             if (scheduledProgram == NULL) {
-                verboseLogC("Evaluate failed: Scheduling program failed.", 1)
+                dsdb_->setUnschedulable((*i), configuration.architectureID);
                 delete adf;
                 adf = NULL;
                 delete idf;
@@ -244,9 +258,6 @@ DesignSpaceExplorer::evaluate(
                     (*i), configuration.architectureID,
                     runnedCycles);
 
-            // add cycle count to result
-            result.setCycleCount(*scheduledProgram, runnedCycles);
-
             if (configuration.hasImplementation && estimate) {
                 // energy estimate the simulated program
                 EnergyInMilliJoules programEnergy =
@@ -302,13 +313,14 @@ DesignSpaceExplorer::schedule(
     TTAMachine::Machine& machine) {
 
     // optimization level
-    const int optLevel = 2;
+    const int optLevel = 3;
 
     // Run compiler and scheduler for current machine
     try {
         LLVMBackend compiler;
-        return compiler.compileAndSchedule(applicationFile, machine, 
-                optLevel, Application::verboseLevel());
+        return compiler.compileAndSchedule(
+            applicationFile, machine, 
+            optLevel, 0);
     } catch (Exception& e) {
         std::cerr << "Error compiling and scheduling '" 
             << applicationFile << "':" << std::endl

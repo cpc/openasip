@@ -911,6 +911,17 @@ bool MachineConnectivityCheck::busConnectedToDestination(
     return false;
 }
 
+int
+MachineConnectivityCheck::totalConnectionCount(
+    const TTAMachine::Machine& mach) {
+    int totalFound = 0;
+    for (int bi = 0; bi < mach.busNavigator().count(); ++bi) {
+        const TTAMachine::Segment& s = 
+            *mach.busNavigator().item(bi)->segment(0);
+        totalFound += s.connectionCount();
+    }
+    return totalFound;
+}
 
 /* These are static */
 MachineConnectivityCheck::PortPortBoolMap MachineConnectivityCheck::portPortCache_;

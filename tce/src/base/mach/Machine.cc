@@ -33,6 +33,7 @@
 
 #include <string>
 #include <set>
+#include <boost/functional/hash.hpp>
 
 #include "Machine.hh"
 #include "Bus.hh"
@@ -909,6 +910,33 @@ Machine::writeToADF(const std::string& adfFileName) const
     serializer.writeMachine(*this);
 }
 
+/**
+ * Returns a hash string of the machine to determine quickly
+ * in case two machines are the same.
+ *
+ * The hash consists of a 32bit hash of the .adf xml data concat with
+ * the .adf data length as a hex string. 
+ *
+ * @note The hash string is dependent on the XML format and does 
+ * not account any architecture file changes that still retain
+ * the identical architecture.
+ */
+TCEString
+Machine::hash() const {
+    ADFSerializer serializer;
+    std::string buffer;
+    serializer.setDestinationString(buffer);
+    serializer.writeMachine(*this);
 
+    boost::hash<std::string> string_hasher;
+    size_t h = string_hasher(buffer);
+
+    TCEString hash =
+        (Conversion::toHexString(buffer.length())).substr(2);
+
+    hash += "_";
+    hash += (Conversion::toHexString(h)).substr(2);
+    return hash;
+}
 
 }

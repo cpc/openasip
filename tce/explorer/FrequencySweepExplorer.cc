@@ -119,10 +119,9 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
                 Conversion::toString(superiority_));
     }
 
+    virtual bool requiresStartingPointArchitecture() const { return true; }
     virtual bool producesArchitecture() const { return false; }
-
     virtual bool requiresHDB() const { return true; }
-
     virtual bool requiresSimulationData() const { return false; }
 
 
@@ -143,14 +142,6 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
         std::vector<RowID> result;
         
         RowID startPointConfID = startPointConfigurationID;
-        if (startPointConfID == 0) {
-            // Starting point is going to be needed, or the new componentAdder
-            // called. That would add FUs that support basic opset if needed.
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "Error: No starting configuration specified." << endl;
-            verboseLog(msg.str())
-            return result;
-        }
 
         // other explorer plugins used
         DesignSpaceExplorerPlugin* icOptimizer =

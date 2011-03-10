@@ -143,6 +143,8 @@ public:
     static bool busConnectedToDestination(
         const TTAMachine::Bus& bus, const MoveNode& moveNode);
 
+    static int totalConnectionCount(const TTAMachine::Machine& mach);
+
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();
 

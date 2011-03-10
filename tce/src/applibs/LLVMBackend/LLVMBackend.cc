@@ -77,7 +77,6 @@
 
 #include <cstdlib> // system()
 #include <fstream>
-#include <boost/functional/hash.hpp>
 
 #include "LLVMBackend.hh"
 #include "LLVMTCECmdLineOptions.hh"
@@ -97,7 +96,7 @@
 #include "MachineValidatorResults.hh"
 #include "Instruction.hh"
 #include "ProgramAnnotation.hh"
-
+#include "TCEString.hh"
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
 
@@ -988,29 +987,16 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 /**
  * Returns (hopefully) unique plugin filename for target architecture.
  *
- * The filename consist of a 32bit hash of the .adf xml data and the .adf data
- * length as a hex string. Also the TCE version string is part of the hash
- * to avoid problems with incompatible backend plugins between TCE revisions.
- * The filename is used for cached plugins.
+ * The filename includes also the TCE version string to avoid problems with 
+ * incompatible backend plugins between TCE revisions.
+ *  The filename is used for cached plugins.
  *
  * @param target Target architecture.
  * @return Filename for the target architecture.
  */
 std::string
 LLVMBackend::pluginFilename(const TTAMachine::Machine& target) {
-    ADFSerializer serializer;
-    std::string buffer;
-    serializer.setDestinationString(buffer);
-    serializer.writeMachine(target);
-
-    boost::hash<std::string> string_hasher;
-    size_t h = string_hasher(buffer);
-
-    std::string fileName =
-        (Conversion::toHexString(buffer.length())).substr(2);
-
-    fileName += "_";
-    fileName += (Conversion::toHexString(h)).substr(2);
+    TCEString fileName = target.hash();
     fileName += "-" + Application::TCEVersionString();
     fileName += PLUGIN_SUFFIX;
 

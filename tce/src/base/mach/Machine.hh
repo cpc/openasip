@@ -39,6 +39,7 @@
 
 #include "Exception.hh"
 #include "Serializable.hh"
+#include "TCEString.hh"
 
 class MachineTester;
 class DummyMachineTester;
@@ -152,6 +153,8 @@ public:
 
     void writeToADF(const std::string& adfFileName) const
         throw (Exception);
+
+    TCEString hash() const;
 
     /**
      * A template class which contains machine components.

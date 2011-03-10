@@ -59,6 +59,8 @@ public:
 
     virtual ~DesignSpaceExplorerPlugin();
     
+    virtual bool requiresStartingPointArchitecture() const = 0;
+
     virtual bool producesArchitecture() const = 0;
 
     virtual bool requiresHDB() const = 0;

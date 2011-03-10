@@ -76,7 +76,8 @@ public:
 
     virtual bool evaluate(
         const DSDBManager::MachineConfiguration& configuration,
-        CostEstimates& results, bool estimate);
+        CostEstimates& results=dummyEstimate_, bool estimate=false);
+
     virtual DSDBManager& db();
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
         const std::string& pluginName, DSDBManager* dsdb = NULL)
@@ -137,6 +138,9 @@ private:
     CostEstimator::Estimator estimator_;
     /// Output stream.
     std::ostringstream* oStream_;
+    /// Used for the default evaluate() argument.
+    static CostEstimates dummyEstimate_;
+
 };
 
 #endif

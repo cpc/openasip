@@ -67,10 +67,10 @@ class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
             Conversion::toString(allowRemoval_));
     }
 
+
+    virtual bool requiresStartingPointArchitecture() const { return true; }
     virtual bool producesArchitecture() const { return true; }
-
     virtual bool requiresHDB() const { return false; }
-
     virtual bool requiresSimulationData() const { return false; }
     
     /**
@@ -92,14 +92,6 @@ class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
         std::vector<RowID> result;
 
         readParameters();
-
-        if (configurationID == 0) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "No configuration nor adf defined. Use -s <confID> to "
-                << "define the configuration to be optimized." << endl;
-            verboseLog(msg.str());
-            return result;
-        }
 
         try {
             DSDBManager& dsdb = db();

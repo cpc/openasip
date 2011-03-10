@@ -69,11 +69,9 @@ class Evaluate : public DesignSpaceExplorerPlugin {
         addParameter(printPN_, BOOL, false, Conversion::toString(print_));
     }
 
-
+    virtual bool requiresStartingPointArchitecture() const { return false; }
     virtual bool producesArchitecture() const { return false; }
-
     virtual bool requiresHDB() const { return false; }
-
     virtual bool requiresSimulationData() const { return true; }
 
     virtual std::vector<RowID>
@@ -122,7 +120,7 @@ class Evaluate : public DesignSpaceExplorerPlugin {
                 + (estimate ? "with" : "without") + " estimation.",1)
 
         if (print_ && estimate) {
-            printEstimates(estimates);
+            printEstimates(estimates, conf);
         }
 
         // add new configuration to the database
@@ -211,7 +209,9 @@ private:
      *
      * @param estimates The cost estimates to be printed.
      */
-    void printEstimates(const CostEstimates& estimates) {
+    void printEstimates(
+        const CostEstimates& estimates,
+        const DSDBManager::MachineConfiguration& configuration) {
         std::ostream& log = std::cout;
         log.flags(std::ios::left);
         int fw = 27;
@@ -223,9 +223,13 @@ private:
             log << "application " << i << setw(14) << " energy: " <<
                 estimates.energy(i) << endl;
         }
-        for (int i = 0; i < estimates.cycleCounts(); ++i) {
+
+        std::vector<ClockCycleCount> cycleCounts = 
+            db().cycleCounts(configuration);
+
+        for (int i = 0; i < (int)cycleCounts.size(); ++i) {
             log << "application " << i << " cycle count: " <<
-                estimates.cycleCount(i) << endl;
+                cycleCounts.at(i) << endl;
         }
     }
 };

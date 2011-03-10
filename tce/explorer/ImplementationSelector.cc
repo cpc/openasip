@@ -92,11 +92,9 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
         addParameter(adfPN_, STRING, false, adf_);
     }
 
-
+    virtual bool requiresStartingPointArchitecture() const { return true; }
     virtual bool producesArchitecture() const { return false; }
-
     virtual bool requiresHDB() const { return true; }
-
     virtual bool requiresSimulationData() const { return false; }
     
     /**

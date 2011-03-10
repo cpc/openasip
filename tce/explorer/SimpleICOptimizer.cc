@@ -98,10 +98,9 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                 Conversion::toString(preserveMinimalOpset_));
     }
 
+    virtual bool requiresStartingPointArchitecture() const { return true; }
     virtual bool producesArchitecture() const { return true; }
-
     virtual bool requiresHDB() const { return false; }
-
     virtual bool requiresSimulationData() const { return false; }
     
     /**
@@ -125,14 +124,6 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
     explore(const RowID& startPointConfigurationID, const unsigned int&) {
 
         std::vector<RowID> result;
-
-        if (startPointConfigurationID == 0) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "No configuration nor adf defined. Use -s <confID> to "
-                << "define the configuration to be optimized." << endl;
-            verboseLog(msg.str());
-            return result;
-        }
 
         readParameters();
         

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,8 @@
  *
  * Declaration of ExplorerCmdLineOptions.
  *
- * @author Jari Mï¿½ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -59,14 +60,13 @@ const std::string SWS_TEST_DIR_ADD = "d";
 const std::string SWL_START_ID = "start";
 /// Short switch string for giving a start configuration id.
 const std::string SWS_START_ID = "s";
-/// Long switch for verbose level.
-const std::string SWL_VERBOSE_LEVEL = "verbose";
-/// Short switch for verbose level.
-const std::string SWS_VERBOSE_LEVEL = "v";
 /// Long switch string for number of configurations flag.
 const std::string SWL_CONFIGURATION_SUMMARY = "conf_summary";
 /// Short switch string for number of configurations flag.
 const std::string SWS_CONFIGURATION_SUMMARY = "c";
+/// Switch strings for the pareto set flag.
+const std::string SWL_PARETO_SET = "pareto_set";
+const std::string SWS_PARETO_SET = "t";
 /// Long switch string for number of configurations flag.
 const std::string SWL_CONFIGURATION_COUNT = "conf_count";
 /// Short switch string for number of configurations flag.
@@ -137,11 +137,6 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             "Starting point configuration ID in the DSDB.",
             SWS_START_ID));
     addOption(
-        new IntegerCmdLineOptionParser(
-            SWL_VERBOSE_LEVEL,
-            "The level of verbosity of errors and warnings.",
-            SWS_VERBOSE_LEVEL));
-    addOption(
         new StringCmdLineOptionParser(
             SWL_CONFIGURATION_SUMMARY,
             "Print the summary of machine configurations in the DSDB"
@@ -152,6 +147,14 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             "    C  ordering by cycle count,\n"
             "    E  ordering by energy estimate.",
             SWS_CONFIGURATION_SUMMARY));
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_PARETO_SET,
+            "Print the pareto sets of machine configurations in the DSDB "
+            "with certain value sets:\n"
+            "  Value set may be one of the following:\n"
+            "    C  cycle counts and number of connections.",
+            SWS_PARETO_SET));
     addOption(
         new BoolCmdLineOptionParser(
             SWL_CONFIGURATION_COUNT,
@@ -218,7 +221,7 @@ ExplorerCmdLineOptions::printHelp() const {
               << "Usage: explore [options] [dsdb_file]"
               << std::endl
               << "Example: -e InitialMachineExplorer "
-              << "-a data/newApplication "
+              << "-d data/newApplication "
               << "-u bus_count=5 -u build_idf=true test.dsdb"
               << std::endl
               << std::endl
@@ -346,6 +349,20 @@ std::string
 ExplorerCmdLineOptions::summaryOrdering() const {
     return findOption(SWL_CONFIGURATION_SUMMARY)->String();
 }
+
+/**
+ * Returns the valuing type of the pareto set printing.
+ *
+ * @return Empty if pareto set not wanted.
+ */
+std::string
+ExplorerCmdLineOptions::paretoSetValues() const {
+    if (!findOption(SWL_PARETO_SET)->isDefined()) {
+        return "";
+    }
+    return findOption(SWL_PARETO_SET)->String();
+}
+
 
 /**
  * Returns true if writing out configuration(s) option is used.
@@ -490,24 +507,6 @@ ExplorerCmdLineOptions::startConfiguration() const {
         return findOption(SWL_START_ID)->integer();
     } else {
         return 0;
-    }
-}
-
-/**
- * Returns the ID of the start configuration given as option.
- *
- * If start configuration option was not given returns zero.
- *
- * @return The ID of given start configuration or zero if the option was not
- * used.
- */
-int
-ExplorerCmdLineOptions::verboseLevel() const {
-
-    if (findOption(SWL_VERBOSE_LEVEL)->isDefined()) {
-        return findOption(SWL_VERBOSE_LEVEL)->integer();
-    } else {
-        return -1;
     }
 }
 

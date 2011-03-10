@@ -40,6 +40,7 @@
 #include <string>
 
 #include "CmdLineParser.hh"
+//#include "CmdLineOptionParser.hh"
 #include "Exception.hh"
 #include "Application.hh"
 
@@ -56,12 +57,16 @@ public:
     virtual ~CmdLineOptions();
 
     void parse(char* argv[], int argc)
-	throw (IllegalCommandLine, ParserStopRequest);
+        throw (IllegalCommandLine, ParserStopRequest);
     void parse(std::string argv[], int argc)
-	throw (IllegalCommandLine, ParserStopRequest);
+        throw (IllegalCommandLine, ParserStopRequest);
     virtual void printHelp() const;
     virtual void printVersion() const = 0;
+    
+    virtual bool isVerboseSwitchDefined() const;
 
+protected:
+    bool optionGiven(std::string key) const;
 private:
     /// For adding new values to maps.
     typedef  std::map<std::string, CmdLineOptionParser*>::value_type valType;
@@ -92,6 +97,10 @@ private:
     /// Number of characters reserved for printing long version
     /// of commandline flag.
     static const int LONG_FLAG;
+
+    /// Switch for verbose output listing scheduler modules
+    static const std::string VERBOSE_SWITCH;
+
 };
 
 #endif

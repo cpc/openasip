@@ -1,4 +1,3 @@
-
 /*
     Copyright (c) 2002-2009 Tampere University of Technology.
 
@@ -214,7 +213,7 @@ CallExplorerPluginWindow::onRun(wxCommandEvent&) {
     RowID archID = dsdb->addArchitecture(machine_);
     
     // no implementation?
-    DSDBManager::MachineConfiguration confIn = {archID, false, -1};
+    DSDBManager::MachineConfiguration confIn(archID, false, ILLEGAL_ROW_ID);
     RowID confID = dsdb->addConfiguration(confIn);
 
     // run the plugin
@@ -223,7 +222,8 @@ CallExplorerPluginWindow::onRun(wxCommandEvent&) {
         std::vector<RowID> result = selectedPlugin_->explore(confID, 0);
     
         // store the new machine
-        TTAMachine::Machine& machine = *dsdb->architecture(confID+result.size());
+        TTAMachine::Machine& machine = 
+            *dsdb->architecture(confID+result.size());
         model_.getMachine()->copyFromMachine(machine);
     } catch (KeyNotFound& e) { 
         // no new adf created by the plugin. just exit
@@ -232,7 +232,8 @@ CallExplorerPluginWindow::onRun(wxCommandEvent&) {
         return;
     } catch (Exception& e) {
         // error in parameters
-        InformationDialog diag(this, WxConversion::toWxString(e.errorMessage()));
+        InformationDialog diag(
+            this, WxConversion::toWxString(e.errorMessage()));
         diag.ShowModal();
         FileSystem::removeFileOrDirectory(dsdbFile);
         return;

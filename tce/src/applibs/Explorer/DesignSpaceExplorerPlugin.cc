@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of DesignSpaceExplorerPlugin class
  *
  * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -150,8 +151,8 @@ DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const
  */
 void 
 DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
-    PMCIt it = parameters_.begin();
-    while (it != parameters_.end()) {
+   
+    for (PMCIt it = parameters_.begin(); it != parameters_.end(); it++) {
         if (it->second.isCompulsory() && !it->second.isSet()) {
             std::string msg = it->second.name() + " parameter is needed.";
             throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
@@ -169,13 +170,14 @@ DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
  * that are ordered so that the best results are first in the result vector.
  * 
  * @param startPoint Starting point machine configuration for the plugin.
- * @param maxIter Maximum number of iterations that the program is allowed to
- * run. Default value for maxIter is zero when the iteration number is not
- * taken into account.
+ * @param maxIter Maximum number of design space points the plugin is allowed to
+ * explore. Default value for maxIter is zero when the iteration number is not
+ * taken into account. In that case the exploration runs indefinetly or stops
+ * at a point defined by the algorithm.
  * @return Ordered vector of IDs of the best machine configurations where the
  * target programs can be successfully run. The IDs of the best machine
  * configurations are first in the result vector. Returns an empty vector if
- * does not found any possible machine configurations.
+ * does not find any possible machine configurations.
  */
 std::vector<RowID>
 DesignSpaceExplorerPlugin::explore(

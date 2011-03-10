@@ -84,11 +84,9 @@ class ComponentAdder : public DesignSpaceExplorerPlugin {
         addParameter(buildIdfPN_, BOOL, false, Conversion::toString(buildIdf_));
     }
 
-
+    virtual bool requiresStartingPointArchitecture() const { return false; }
     virtual bool producesArchitecture() const { return true; }
-
     virtual bool requiresHDB() const { return false; }
-
     virtual bool requiresSimulationData() const { return true; }
     
     /**

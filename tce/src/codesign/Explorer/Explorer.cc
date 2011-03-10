@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file DegisnSpaceExlorer.cc
+ * @file DesignSpaceExlorer.cc
  *
  * Implementation of explorer.
  *
@@ -30,6 +30,7 @@
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -64,7 +65,7 @@ const string EXPLORER_DEFAULT_HDB = "asic_130nm_1.5V.hdb";
 /**
  * Loads the output Design Space Database file and creates a DSDB from it.
  * 
- * If the given filename doesn't exists creates a new DSDB file whit the given
+ * If the given filename doesn't exists creates a new DSDB file with the given
  * name.
  * 
  * @param dsdbFile The DSDB file name.
@@ -344,6 +345,50 @@ printPluginParamInfo(DesignSpaceExplorerPlugin& plugin) {
     }
 }
 
+/**
+ * Prints the pareto set of configurations in the DSDB using the given
+ * criteria set.
+ */
+void
+printParetoSet(const DSDBManager& dsdb, TCEString criteriaSet) {
+    if (criteriaSet != "C")
+        return; // only connectivity,cycles criteria supported
+     
+    DSDBManager::ParetoSetConnectivityAndCycles paretoSet = 
+        dsdb.paretoSetConnectivityAndCycles();
+
+    const int CONF_COL_W = 6;
+    const int CONNECTIVITY_COL_W = 6;
+    const int CYCLES_COL_W = 8;
+
+    std::cout << std::setw(CONF_COL_W) << std::right << "conf #" 
+              << " | ";
+
+    std::cout << std::setw(CONNECTIVITY_COL_W) << std::right << "conn" 
+              << " | ";
+
+    std::cout << std::setw(CYCLES_COL_W) << std::right << "cycles" 
+              << std::endl;
+
+    for (int i = 0; i < CONF_COL_W + CONNECTIVITY_COL_W + CYCLES_COL_W + 10; 
+         ++i) {
+        std::cout << "-";
+    }
+    std::cout << std::endl;
+
+    for (DSDBManager::ParetoSetConnectivityAndCycles::const_iterator i = 
+             paretoSet.begin(); i != paretoSet.end(); ++i) {
+        DSDBManager::ParetoPointConnectivityAndCycles point = *i;
+        std::cout << std::setw(CONF_COL_W) << std::right << point.get<0>()
+                  << " | ";
+
+        std::cout << std::setw(CONNECTIVITY_COL_W) << std::right << point.get<1>()
+                  << " | ";
+
+        std::cout << std::setw(CYCLES_COL_W) << std::right << point.get<2>()
+                  << std::endl;        
+    }
+}
 
 /**
  * Main function.
@@ -362,9 +407,10 @@ int main(int argc, char* argv[]) {
     bool doneUseful = false;
 
     // Parses the command line options.
-    ExplorerCmdLineOptions options;
+    ExplorerCmdLineOptions* options = new ExplorerCmdLineOptions();
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
+        Application::setCmdLineOptions(options);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
@@ -372,20 +418,20 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    int verboseLevel = options.verboseLevel();
+    int verboseLevel = Application::verboseLevel();
     if (verboseLevel < 0) {
         Application::setVerboseLevel();
     } else {
         Application::setVerboseLevel(verboseLevel);
     }
 
-    if (options.printPlugins()) {
+    if (options->printPlugins()) {
         printPlugins();
         return EXIT_SUCCESS;
     }
 
-    if (options.pluginInfo().length() != 0) {
-        std::string plugin = options.pluginInfo();
+    if (options->pluginInfo().length() != 0) {
+        std::string plugin = options->pluginInfo();
         DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(plugin, NULL);
         if (!explorer) {
             return EXIT_FAILURE;
@@ -397,14 +443,14 @@ int main(int argc, char* argv[]) {
     }
 
     // Only argument should be dsdb.
-    if (options.numberOfArguments() != 1) {
+    if (options->numberOfArguments() != 1) {
         std::cerr << "Illegal number of arguments." << std::endl << std::endl;
-        options.printHelp();
+        options->printHelp();
         return EXIT_FAILURE;
     }
     // Get the database file.
     std::string dsdbFile = "";
-    dsdbFile = options.argument(1);
+    dsdbFile = options->argument(1);
 
     // Loads the database.
     DSDBManager* dsdb = NULL;
@@ -417,21 +463,25 @@ int main(int argc, char* argv[]) {
     }
 
     // adds new configuration to the DSDB
-    if (options.adfFile()) {
+    if (options->adfFile()) {
         TTAMachine::Machine* adf = NULL;
         IDF::MachineImplementation* idf = NULL;
         try {
             DSDBManager::MachineConfiguration conf;
             conf.hasImplementation = false;
-            adf = TTAMachine::Machine::loadFromADF(options.adfFileName());
+            adf = TTAMachine::Machine::loadFromADF(options->adfFileName());
             conf.architectureID = dsdb->addArchitecture(*adf);
-            if (options.idfFile()) {
-                idf = IDF::MachineImplementation::loadFromIDF(options.idfFileName());
+            if (options->idfFile()) {
+                idf = 
+                    IDF::MachineImplementation::loadFromIDF(
+                        options->idfFileName());
                 conf.implementationID = dsdb->addImplementation(*idf, 0, 0);
                 conf.hasImplementation = true;
             }
             RowID confID = dsdb->addConfiguration(conf);
-            std::cout << "Added configuration " << confID << " into the DSDB." << std::endl;
+            std::cout 
+                << "Added configuration " << confID << " into the DSDB." 
+                << std::endl;
             delete adf;
             delete idf;
             doneUseful = true;
@@ -444,9 +494,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Check and add the test application directories.
-    int testDirectories = options.testApplicationDirectoryCount();
+    int testDirectories = options->testApplicationDirectoryCount();
     for (int i = 0; i < testDirectories; i++) {
-        std::string testDir = options.testApplicationDirectory(i);
+        std::string testDir = options->testApplicationDirectory(i);
         if (FileSystem::fileExists(testDir) &&
             FileSystem::fileIsDirectory(testDir)) {
             TestApplication app(testDir);
@@ -472,9 +522,20 @@ int main(int argc, char* argv[]) {
         doneUseful = true;
     }
 
+    TCEString paretoSet = options->paretoSetValues();
+    if (paretoSet != "") {
+        // Prints the pareto sets
+        if (paretoSet != "C") {
+            std::cerr << "Unsupported pareto set value type." << std::endl;
+            return EXIT_FAILURE;
+        }
+        printParetoSet(*dsdb, paretoSet);
+        return EXIT_SUCCESS;
+    }
+
     // Prints the summary of the configurations in the database.
-    if (options.printSummary()) {
-        DSDBManager::Order ordering = orderingOfData(options.summaryOrdering());
+    if (options->printSummary()) {
+        DSDBManager::Order ordering = orderingOfData(options->summaryOrdering());
         cout << "Configurations in DSDB: " << endl;
         int idLength = 7;
         int pathLength = 16;
@@ -491,7 +552,8 @@ int main(int argc, char* argv[]) {
         // Checks the longes strings of all data values that will be printed.
         // Values are used to create a clean output of the results.
         determineLongest(
-            confCosts, idLength, pathLength, cycleLength, energyLength, lpdLength, areaLength);
+            confCosts, idLength, pathLength, cycleLength, 
+            energyLength, lpdLength, areaLength);
         for (unsigned int i = 0; i < confCosts.size(); i++) {
             cout << "| ";
             cout << confCosts[i].configurationID;
@@ -529,7 +591,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Prints the total amount of configurations in the database.
-    if (options.printSummary() || options.numberOfConfigurations()) {
+    if (options->printSummary() || options->numberOfConfigurations()) {
         cout << "Total: " << dsdb->configurationIDs().size() 
              << " configurations "
              << "in the database." << endl;
@@ -538,19 +600,19 @@ int main(int argc, char* argv[]) {
     }
 
     // Write the configuration ADF and IDF to files.
-    if (options.writeOutConfiguration()) {
-        for (int i = 0; i < options.numberOfConfigurationsToWrite(); i++) {
-            if (dsdb->hasConfiguration(options.configurationToWrite(i))) {
+    if (options->writeOutConfiguration()) {
+        for (int i = 0; i < options->numberOfConfigurationsToWrite(); i++) {
+            if (dsdb->hasConfiguration(options->configurationToWrite(i))) {
                 DSDBManager::MachineConfiguration configuration = 
-                    dsdb->configuration(options.configurationToWrite(i));
+                    dsdb->configuration(options->configurationToWrite(i));
                 std::string adfFileName = 
-                    Conversion::toString(options.configurationToWrite(i))
+                    Conversion::toString(options->configurationToWrite(i))
                     + ".adf";
                 try {
                     dsdb->writeArchitectureToFile(
                         configuration.architectureID, adfFileName);
                     std::cout << "Written ADF file of configuration "
-                              << options.configurationToWrite(i)
+                              << options->configurationToWrite(i)
                               << std::endl;
                 } catch (const Exception& e) {
                     std::cerr << "Error occured while writing the ADF." 
@@ -561,13 +623,13 @@ int main(int argc, char* argv[]) {
 
                 if (configuration.hasImplementation) {
                     std::string idfFileName = 
-                        Conversion::toString(options.configurationToWrite(i))
+                        Conversion::toString(options->configurationToWrite(i))
                         + ".idf";
                     try {
                         dsdb->writeImplementationToFile(
                             configuration.implementationID, idfFileName);
                         std::cout << "Written IDF file of configuration "
-                                  << options.configurationToWrite(i)
+                                  << options->configurationToWrite(i)
                                   << std::endl;
                     } catch (const Exception& e) {
                         std::cerr << "Error occured while writing the IDF."
@@ -579,7 +641,7 @@ int main(int argc, char* argv[]) {
             } else {
                 // dsdb didn't have requested configuration
                 std::cerr << "No configuration found with id: " 
-                          << options.configurationToWrite(i) << "." 
+                          << options->configurationToWrite(i) << "." 
                           << std::endl;
                 delete dsdb;
                 return EXIT_FAILURE;
@@ -590,9 +652,9 @@ int main(int argc, char* argv[]) {
     }
     
     // Remove applications from DSDB if requested
-    if (options.applicationIDToRemoveCount() > 0) {
-        for (int i = 0; i < options.applicationIDToRemoveCount(); i++) {
-            RowID id = options.applicationIDToRemove(i);
+    if (options->applicationIDToRemoveCount() > 0) {
+        for (int i = 0; i < options->applicationIDToRemoveCount(); i++) {
+            RowID id = options->applicationIDToRemove(i);
             try {
                 dsdb->removeApplication(id);
             } catch (const KeyNotFound&) {
@@ -613,7 +675,7 @@ int main(int argc, char* argv[]) {
     }
 
     // If the list applications option is given.
-    if (options.printApplications()) {
+    if (options->printApplications()) {
         std::cout << "Applications in the DSDB:" << std::endl;
         std::cout << " ID | Application" << std::endl;
         std::cout << "---------------------------------" << std::endl;
@@ -633,7 +695,7 @@ int main(int argc, char* argv[]) {
 
     // Check the explorer plugin.
     std::string pluginToUse = "";
-    pluginToUse = options.explorerPlugin();
+    pluginToUse = options->explorerPlugin();
     if (pluginToUse == "") {
         if (!doneUseful) {
             std::cerr << "No explorer plugin given." << std::endl;
@@ -647,19 +709,19 @@ int main(int argc, char* argv[]) {
     
     // Try to load the explorer plugin.
     DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(pluginToUse, dsdb);
-    if (!explorer || !loadPluginParameters(explorer, options)) {
+    if (!explorer || !loadPluginParameters(explorer, *options)) {
         delete dsdb;
         return EXIT_FAILURE;
     }
     
     // Load the HDB files if given as option
-    if (options.hdbFileNames()) {
-        for (int i = 0; i < options.hdbFileNameCount(); i++) {
+    if (options->hdbFileNames()) {
+        for (int i = 0; i < options->hdbFileNameCount(); i++) {
             try {
-                HDB::HDBRegistry::instance().hdb(options.hdbFileName(i));
+                HDB::HDBRegistry::instance().hdb(options->hdbFileName(i));
             } catch (const FileNotFound& e) {
                 std::cerr << "Could not find HDB file " 
-                          << options.hdbFileName(i) << std::endl;
+                          << options->hdbFileName(i) << std::endl;
             }
         }
     } else {
@@ -684,11 +746,21 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        RowID startPointConfigurationID = options.startConfiguration();        
+        RowID startPointConfigurationID = options->startConfiguration();        
+        if (startPointConfigurationID == 0 &&
+            explorer->requiresStartingPointArchitecture()) {
+            std::cerr 
+                << "No starting point configuration defined. " << std::endl
+                << "Use -s <confID> to define the configuration to "
+                << "start the exploration from." << std::endl;
+            return EXIT_FAILURE;
+
+        }
         vector<RowID> result =
             explorer->explore(startPointConfigurationID);
         if (result.empty()) {
-            cout << "No new configurations could be created." << endl;
+            cout 
+                << "No fitting processor configurations were created." << endl;
         } else {
             std::cout << "Best result configurations:" << std::endl;
             for (unsigned int i = 0; i < result.size(); i++) {

@@ -93,28 +93,6 @@ CostEstimates::setEnergy(
 }
 
 /**
- * Sets new cycle count for the given program.
- *
- * If there was an old cycle count value for the given key it is removed first.
- *
- * @param program Program that is used as a key.
- * @param cycles Cycle count of the program (in cycles).
- */
-void
-CostEstimates::setCycleCount(
-    const TTAProgram::Program& program, ClockCycleCount cycles) {
-
-    map<const TTAProgram::Program*, ClockCycleCount>::iterator iter = 
-        cycleMap_.find(&program);
-    if (iter != cycleMap_.end()) {
-        cycleMap_.erase(iter);
-    }
-    cycleMap_.insert(
-        std::pair<const TTAProgram::Program*, ClockCycleCount>(
-            &program, cycles));
-}
-
-/**
  * Returns the area estimate (in gates).
  *
  * @return Returns the area estimate (in gates).
@@ -191,57 +169,3 @@ CostEstimates::energy(const TTAProgram::Program& program) const
     return (*iter).second;
 }
 
-/**
- * Returns the number of different cycle counts (one for each program)
- * in the cost estimation data.
- * 
- * @return Returns the number of stored cycle counts.
- */
-int
-CostEstimates::cycleCounts() const {
-
-    return cycleMap_.size();
-}
-
-/**
- * Returns the cycle count value from the given index.
- *
- * @param index The index.
- * @return The cycle count value in the given index.
- * @exception OutOfRange If the given index is less than 0 or greater or 
- * equal to the number of cycle counts.
- */
-ClockCycleCount
-CostEstimates::cycleCount(int index) const
-    throw (OutOfRange) {
-
-    if (index < 0 || index >= cycleCounts()) {
-        throw OutOfRange(__FILE__, __LINE__, __func__);
-    }
-    map<const TTAProgram::Program*, ClockCycleCount>::const_iterator iter = 
-        cycleMap_.begin();
-    while (index > 0) {
-        iter++;
-        index--;
-    }
-    return (*iter).second;
-}
-
-/**
- * Returns the cycle count value corresponding to the Program.
- *
- * @param program Program of which cycle count is returned.
- * @return The cycle count of the Program.
- * @exception KeyNotFound Is thrown if program has no cycle count set.
- */
-ClockCycleCount
-CostEstimates::cycleCount(const TTAProgram::Program& program) const
-    throw (KeyNotFound) {
-
-    map<const TTAProgram::Program*, ClockCycleCount>::const_iterator iter = 
-        cycleMap_.find(&program);
-    if (iter == cycleMap_.end()) {
-        throw KeyNotFound(__FILE__, __LINE__, __func__);
-    }
-    return (*iter).second;
-}

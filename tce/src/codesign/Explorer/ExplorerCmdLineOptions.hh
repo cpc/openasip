@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of ExplorerCmdLineOptions.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -79,6 +80,8 @@ public:
     bool idfFile() const;
     std::string adfFileName() const;
     std::string idfFileName() const;
+
+    std::string paretoSetValues() const;
 
 private:
     /// Copying not allowed.

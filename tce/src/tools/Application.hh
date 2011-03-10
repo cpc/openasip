@@ -82,9 +82,6 @@
     Application::writeToErrorLog(__FILE__, __LINE__, __func__, \
         std::string("DEBUG: ") + std::string(text))
 
-// provide an easy way to verbose log printing
-#define verboseLog(text) Application::logStream() << text << std::endl;
-
 // provide an easy way to print out exception data
 #define CATCH_ANY(XXX__) \
     try { XXX__; } \
@@ -100,6 +97,8 @@
     if (Application::verboseLevel() >= neededVerbosity) { \
        Application::logStream() << text << std::endl; }
 
+// provide an easy way to verbose log printing
+#define verboseLog(text) verboseLogC(text, 1)
 
 // provide an easy way to print out the contents of a variable
 #define PRINT_VAR(VARIABLE__) \

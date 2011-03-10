@@ -130,8 +130,8 @@ DSDBManagerTest::testDSDB() {
         *impl, longestPathDelayEstimate, areaEstimate);
 
     // Test machine configurations.
-    DSDBManager::MachineConfiguration conf1 = {archID, false, -1};
-    DSDBManager::MachineConfiguration conf2= {archID, true, implID};
+    DSDBManager::MachineConfiguration conf1(archID, false, -1);
+    DSDBManager::MachineConfiguration conf2(archID, true, implID);
     RowID confID1 = manager->addConfiguration(conf1);
     RowID confID2 = manager->addConfiguration(conf2);
     TS_ASSERT(manager->hasConfiguration(confID1));
