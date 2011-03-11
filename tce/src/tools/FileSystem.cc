@@ -41,6 +41,8 @@
 #include <unistd.h> // for truncate
 #include <sys/types.h> // for truncate
 
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>

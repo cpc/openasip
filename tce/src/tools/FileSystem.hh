@@ -37,6 +37,9 @@
 
 #include <string>
 #include <vector>
+
+#define BOOST_FILESYSTEM_VERSION 2
+
 #include <boost/filesystem/path.hpp>
 
 #include <unistd.h> // access()
