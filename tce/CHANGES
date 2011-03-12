@@ -68,6 +68,9 @@ Bugfixes
 - Trying to load machine which used same socket as source for multiple 
   register reads (either reads same register, or moves are guarded and
   always exclusive moves) might cause the simulation to hang.
+- When a machine was fully RF connected but not fully connected
+  (direct busses from all RF's to FU's and FU's to RF's, but all
+  buses were not connected to all sockets) some registers were never used.
 
 Documentation
 -------------

@@ -41,8 +41,7 @@
 #include "HWOperation.hh"
 #include "FUPort.hh"
 #include "Conversion.hh"
-#include "MachineCheckResults.hh"
-#include "FullyConnectedCheck.hh"
+#include "MachineConnectivityCheck.hh"
 #include "Bus.hh"
 #include "Guard.hh"
 #include "StringTools.hh"
@@ -70,9 +69,7 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
     mach_(mach), dregNum_(0) {
-    FullyConnectedCheck fc;
-    MachineCheckResults res;
-    fullyConnected_ = fc.check(mach_, res);
+    tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
 }
 
 /**
@@ -318,8 +315,17 @@ TDGen::analyzeRegisters() {
 
             int lastIdx = rf->size();
             // todo: find a good solution to use just one big rf for this.
-            if (!fullyConnected_ && width > 1) {
-                // If the machine is not fully connected,
+            
+            bool isTempRegRf = false;
+            for (int j = 0; j < tempRegFiles_.size(); j++) {
+                if (tempRegFiles_[j] == rf) {
+                    isTempRegRf = true;
+                    break;
+                }
+            }
+
+            if (isTempRegRf) {
+                // If the machine is not enough connected,
                 // preserve last register
                 // of all register files for routing values.
                 lastIdx--;
@@ -628,7 +634,7 @@ TDGen::checkRequiredRegisters()
              % regs32bit_.size() % REQUIRED_I32_REGS)
             .str();
 
-        if (!fullyConnected_) {
+        if (tempRegFiles_.size() > 0) {
             msg += "Your machine is not fully connected, thus one register\n"
                 "from each register file are reserved for temp moves and\n"
                 "not used as general purpose registers.";

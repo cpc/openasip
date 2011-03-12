@@ -49,6 +49,7 @@ class TerminalNode;
 
 namespace TTAMachine {
     class Machine;
+    class RegisterFile;
 }
 
 /**
@@ -199,8 +200,10 @@ protected:
     unsigned static const REQUIRED_I32_REGS;
     /// List of register that are associated with a guard on a bus.
     std::set<RegInfo> guardedRegs_;
-    /// True, if the target machine is fully connected with all busses<->ports
-    bool fullyConnected_;
+
+    /// Register files whose last reg reserved for temp reg copies.
+    std::vector<TTAMachine::RegisterFile*> tempRegFiles_;
+
 };
 
 #endif
