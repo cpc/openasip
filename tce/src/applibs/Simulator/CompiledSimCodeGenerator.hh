@@ -56,6 +56,7 @@ namespace TTAMachine {
     class RegisterFile;
     class ControlUnit;
     class Bus;
+    class RegisterGuard;
 }
 
 namespace TTAProgram {
@@ -173,7 +174,15 @@ private:
     std::string generateTriggerCode(const TTAMachine::HWOperation& op);
     std::string generateStoreTrigger(const TTAMachine::HWOperation& op);
     std::string generateLoadTrigger(const TTAMachine::HWOperation& op);
+
+// guard-pipeline related methods    
+    bool handleRegisterWrite(
+        const std::string& regSymbolName, std::ostream& stream);
     
+    std::string guardPipelineTopSymbol(const TTAMachine::RegisterGuard& guard);
+    void generateGuardPipelineVariables(std::ostream& stream);
+    void generateGuardPipelineAdvance(std::ostream& stream);
+
     std::string generateAddFUResult(
         const TTAMachine::FUPort& resultPort, 
         const std::string& value, 
@@ -280,6 +289,11 @@ private:
     unsigned maxInstructionsPerFile_;
     /// Max for each simulation function.
     unsigned maxInstructionsPerSimulationFunction_;
+
+    typedef std::map<std::string, int> GuardPipeline;
+    GuardPipeline guardPipeline_;
+
+    bool needGuardPipeline_;
     
 };
 

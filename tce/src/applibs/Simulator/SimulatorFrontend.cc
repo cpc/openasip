@@ -226,7 +226,7 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (compiledSimulation_ == true && 
-        MachineInfo::longestGuardLatency(machine) > 1) {
+        machine.controlUnit()->globalGuardLatency() > 1) {
         compiledSimulation_ = false;
         // TODO: warn about this, when the warning can be ignored
         // by tests.
@@ -529,7 +529,7 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (compiledSimulation_ == true && 
-        MachineInfo::longestGuardLatency(*currentMachine_) > 1) {
+        currentMachine_->controlUnit()->globalGuardLatency() > 1) {
         compiledSimulation_ = false;
         // TODO: warn about this, when the warning can be ignored
         // by tests.

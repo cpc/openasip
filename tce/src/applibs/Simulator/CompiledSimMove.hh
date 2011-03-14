@@ -61,6 +61,7 @@ public:
     
     std::string copyToBusCode() const;
     std::string copyFromBusCode() const;
+    const TTAProgram::Terminal& destination() const { return *destination_; }
 private:
     /// The move
     const TTAProgram::Move* move_;

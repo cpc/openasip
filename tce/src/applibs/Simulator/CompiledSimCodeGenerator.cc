@@ -71,9 +71,12 @@
 #include "ControlFlowGraph.hh"
 #include "tce_config.h"
 #include "BaseType.hh"
+#include "MachineInfo.hh"
 #include "CompiledSimSymbolGenerator.hh"
 #include "CompiledSimMove.hh"
 #include "CompiledSimCompiler.hh"
+#include "DisassemblyRegister.hh"
+#include "MapTools.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -116,12 +119,39 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     className_("CompiledSimulationEngine"),
     os_(NULL), symbolGen_(),
     conflictDetectionGenerator_(
-        machine_, symbolGen_, fuResourceConflictDetection) {
+        machine_, symbolGen_, fuResourceConflictDetection),
+    needGuardPipeline_(false) {
 
     // this should result in roughly 100K-400K .cpp files
     maxInstructionsPerFile_ = 2000 / machine.busNavigator().count();
     // roughly 300-600 c++ lines per simulation function
     maxInstructionsPerSimulationFunction_ = 500 / machine.busNavigator().count();
+
+// Create the guardpipeline.
+
+    if (MachineInfo::longestGuardLatency(machine) > 1) {
+        needGuardPipeline_ = true;
+
+        int ggLatency = machine.controlUnit()->globalGuardLatency();
+        
+        const TTAMachine::Machine::BusNavigator busNav =
+            machine.busNavigator();
+        
+        for (int i = 0; i < busNav.count(); i++) {
+            const TTAMachine::Bus* bus = busNav.item(i);
+            for (int j = 0; j < bus->guardCount(); j++) {
+                Guard* guard = bus->guard(j);
+                RegisterGuard* rg = dynamic_cast<RegisterGuard*>(guard);
+                if (rg != NULL) {
+                    const RegisterFile* rf = rg->registerFile();
+                    int rgLat = rg->registerFile()->guardLatency();
+                    string symbolName = 
+                        symbolGen_.registerSymbol(*rf, rg->registerIndex());
+                    guardPipeline_[symbolName] = ggLatency + rgLat + 1;
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -372,6 +402,11 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
         addDeclaredSymbol(symbolGen_.busSymbol(bus), bus.width());
     }
     
+    // guard pipeline
+    if (needGuardPipeline_) {
+        generateGuardPipelineVariables(*os_);
+    }
+
     generateSymbolDeclarations();
     generateConstructorParameters();
     *os_ << ";" << endl;
@@ -683,7 +718,9 @@ CompiledSimCodeGenerator::generateHaltCode(const string& message) {
  */
 void CompiledSimCodeGenerator::generateAdvanceClockCode() {
     *os_ << endl << "void inline advanceClocks() {" << endl;
-            
+    if (needGuardPipeline_) {
+        generateGuardPipelineAdvance(*os_);
+    }
     *os_ << conflictDetectionGenerator_.advanceClockCode();
          
     *os_ << endl << "}" << endl;
@@ -939,8 +976,10 @@ CompiledSimCodeGenerator::generateGuardRead(
     
     TTAMachine::Guard& guard = move.guard().guard();
     
+    const TTAMachine::RegisterGuard* rg = 
+        dynamic_cast<const RegisterGuard*>(&guard);
     // Find out the guard type
-    if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {
+    if (rg != NULL) {
         const RegisterGuard& rg = dynamic_cast<const RegisterGuard&>(guard);
         RegisterFile& rf = *rg.registerFile();
         guardSymbolName = symbolGen_.registerSymbol(rf, rg.registerIndex());        
@@ -955,13 +994,21 @@ CompiledSimCodeGenerator::generateGuardRead(
         
     // Make sure to create only one bool per guard read and store the symbol
     if (usedGuardSymbols_.find(guardSymbolName) == usedGuardSymbols_.end()) {
-        lastGuardBool_ = symbolGen_.guardBoolSymbol();
-        usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
-        
-        ss << "const bool " << lastGuardBool_ << 
-	    " = !(MathTools::fastZeroExtendTo(" 
-           << guardSymbolName << ".value_.uIntWord, " <<
-	    guardSymbolName << ".width()) == 0u);";
+
+        // read from the guard pipeline? then use the pipeline ar directly
+        if (needGuardPipeline_ && rg != NULL) {
+            std::string guardSym = guardPipelineTopSymbol(*rg);
+            lastGuardBool_ = usedGuardSymbols_[guardSymbolName] = guardSym;
+        } else {
+            lastGuardBool_ = symbolGen_.guardBoolSymbol();
+            usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
+
+            // red from the register.
+            ss << "const bool " << lastGuardBool_ << 
+                " = !(MathTools::fastZeroExtendTo(" 
+               << guardSymbolName << ".value_.uIntWord, " <<
+                guardSymbolName << ".width()) == 0u);";
+        }
     } else {
         lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
     }
@@ -1088,7 +1135,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     *os_ << endl << "/* Instruction " << instructionNumber_ << " */" << endl;
     
     // Advance clocks of the conflict detectors
-    if (conflictDetectionGenerator_.conflictDetectionEnabled()) {
+    if (conflictDetectionGenerator_.conflictDetectionEnabled() ||
+        needGuardPipeline_) {
         *os_ << "engine.advanceClocks();" << endl;  
     }
     
@@ -1188,6 +1236,9 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
         if (!dependingMove) {
             *os_ << moveDestination << " = " << moveSource << "; ";
+            if (needGuardPipeline_) {
+                handleRegisterWrite(moveDestination, *os_);
+            }
         }
         
         if (endGuardBracket) {
@@ -1314,7 +1365,13 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     // Do bus moves
     for (std::vector<CompiledSimMove>::const_iterator it = lateMoves.begin();
         it != lateMoves.end(); ++it) {
-            *os_ << it->copyFromBusCode();
+        *os_ << it->copyFromBusCode();
+        if (needGuardPipeline_) {
+            if (it->destination().isGPR()) {
+                handleRegisterWrite(
+                    symbolGen_.registerSymbol(it->destination()), *os_);
+            }
+        }
     }
 
     // No operation?
@@ -1654,3 +1711,61 @@ CompiledSimCodeGenerator::fuOutputPorts(
     }
     return ports;
 }
+
+void CompiledSimCodeGenerator::generateGuardPipelineAdvance(
+    std::ostream& stream) {
+    for (GuardPipeline::iterator i = guardPipeline_.begin(); 
+         i != guardPipeline_.end(); i++) {
+        const std::string& regName = i->first;
+        for (int j = i->second -1 ; j > 0; j--) {
+            stream  << "guard_pipeline_" << regName << "_" << j << " = "
+                    << "guard_pipeline_" << regName << "_" << j -1 
+                    << ";" << std::endl;
+        }
+    }
+}
+
+void CompiledSimCodeGenerator::generateGuardPipelineVariables(
+    std::ostream& stream) {
+    for (GuardPipeline::iterator i = guardPipeline_.begin(); 
+         i != guardPipeline_.end(); i++) {
+        const std::string& regName = i->first;
+        for (int j = 0; j < i->second ; j++) {
+            stream  << "bool guard_pipeline_" + regName << "_" << j << 
+                ";" << std::endl;
+        }
+    }
+}
+
+std::string CompiledSimCodeGenerator::guardPipelineTopSymbol(
+    const TTAMachine::RegisterGuard& rg) {
+    const RegisterFile* rf = rg.registerFile();
+    std::string regName = "RF_"  + rf->name() + "_" + 
+        Conversion::toString(rg.registerIndex());
+    GuardPipeline::iterator i = guardPipeline_.find(regName);
+    assert(i!= guardPipeline_.end());
+    return "engine.guard_pipeline_RF_" + 
+        DisassemblyRegister::registerName(*rf, rg.registerIndex(), '_') +
+        "_" + Conversion::toString(i->second -1);
+}
+
+// if register found from guard registe list. put the value if the just written
+// register into the guard pipeline.
+bool CompiledSimCodeGenerator::handleRegisterWrite(
+    const std::string& regSymbolName, std::ostream& stream) {
+    string tmpString;
+    // if found, copy to tmp and take ref to tmp. not found, ref to param
+    const string& tmpRef = (regSymbolName.find("engine.") == 0) ? 
+        tmpString = regSymbolName.substr(7) : regSymbolName;
+    
+    GuardPipeline::iterator i = guardPipeline_.find(tmpRef);
+    if ( i != guardPipeline_.end()) {
+        stream << "engine.guard_pipeline_" << tmpRef << "_0 " 
+               << " = !(MathTools::fastZeroExtendTo(" 
+               << regSymbolName << ".value_.uIntWord, "
+               << regSymbolName << ".width()) == 0u);" << std::endl;
+        return true;
+    }
+    return false;
+}
+             
