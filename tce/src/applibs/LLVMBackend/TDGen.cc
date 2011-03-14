@@ -317,7 +317,7 @@ TDGen::analyzeRegisters() {
             // todo: find a good solution to use just one big rf for this.
             
             bool isTempRegRf = false;
-            for (int j = 0; j < tempRegFiles_.size(); j++) {
+            for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
                 if (tempRegFiles_[j] == rf) {
                     isTempRegRf = true;
                     break;
