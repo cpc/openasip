@@ -31,6 +31,9 @@ Optimizations
 -------------
 - tcecc: Decreased scheduling time.
 - tcecc: Decreased memory usage.
+- Compiling simulator can correctly simulate machines with guard latency 
+  higher than 1. Simulating such machines no longer make the simulator 
+  revert to interpreting mode.
 
 Usability features
 ------------------
