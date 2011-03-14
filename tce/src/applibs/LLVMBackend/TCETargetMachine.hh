@@ -126,7 +126,7 @@ namespace llvm {
         // we had to actually override also addPassesToEmitFile
         // because addCommonCodeGenPasses was not virtual...
 
-#ifndef LLVM_2_9
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
         // for LLVM 2.8 and later, use the default one
         virtual bool addPassesToEmitFile(PassManagerBase &,
 					 formatted_raw_ostream &,
