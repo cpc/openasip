@@ -31,9 +31,9 @@ Optimizations
 -------------
 - tcecc: Decreased scheduling time.
 - tcecc: Decreased memory usage.
-- Compiling simulator can correctly simulate machines with guard latency 
-  higher than 1. Simulating such machines no longer make the simulator 
-  revert to interpreting mode.
+- ttasim: Compiled simulation (-q) can correctly simulate machines with
+  guard latency higher than 1. Simulating such machines no longer makes 
+  the simulator revert to interpreting mode.
 
 Usability features
 ------------------
@@ -50,11 +50,11 @@ Usability features
 
 Bugfixes
 --------
-- Prode: Shows the machine which is being edited immediately also with
+- ProDe: Shows the machine which is being edited immediately also with
   WxWidgets 2.8
-- Prode: When some editing command is cancelled, and nothing is changed, 
+- ProDe: When some editing command is cancelled, and nothing is changed, 
   the machine is not marked as modified so ProDe does not want to save it.
-- Prode: Copying FU from one machine to another no longer causes
+- ProDe: Copying FU from one machine to another no longer causes
   prode to crash. The address space of FU copied from one machine to
   another is left unset.
 - ttasim: when the last instruction executed was a jump and the
@@ -63,7 +63,7 @@ Bugfixes
 - ProGe: Some FUs had unnecessary 'SHIFTW' parameters in the default HDB
   causing broken top level VHDL to be generated. Fixed by Jani Boutellier of 
   University of Oulu.
-- Some missing patterns could cause internal compiler error while compiling.
+- tcecc: Some missing patterns could cause internal compiler error while compiling.
 - Missing operation behaviour file could cause simulator or osal tester to 
   fail. Now warning message is given and the .opp without corresponding .opb
   is ignored, if behaviour source file is found. If source file not found,
@@ -83,29 +83,17 @@ Documentation
   
 Misc
 ----
+- llvm-gcc support deprecated. Only Clang will work correctly with LLVM 2.9
+  and TCE 1.4. llvm-gcc might still work with LLVM 2.7 and LLVM 2.8,
+  but is unsupported.
 - ABI change: Alignment rules for some data types changes when using
-  llvm 2.9.
-  This means that old .o and .bc files have to be regenerated when upgrading tce
-  from using llvm 2.7 or llvm 2.8 into llvm 2.9.
-- llvm-gcc support deprecated. Only Clang will work correctly with llvm 2.9.
-  llvm-gcc may still work with llvm 2.7 and llvm 2.8.
+  LLVM 2.9. This means that old .o and .bc files have to be regenerated when 
+  upgrading TCE from using llvm 2.7 or llvm 2.8 into llvm 2.9.
 
 Known problems
 --------------
-Use LLVM 2.9 with Clang to avoid all these problems. 
-If you do, you can stop reading here :)
-
-- LLVM 2.8 has a bug which may cause incorrectly compiled programs when
-  the is a comparison of (only) lowest bits of integers in the code 
-  being compiled.
-  A patch for this bug is included in TCE release, it should be applied
-  to the LLVM source tree and LLVM recompiled and reinstalled with the patch.
-  LLVM 2.7 might also be affected, but we have not seen the bug appear with
-  LLVM 2.7.
-- Clang 2.7 and 2.8 has a bug related to code generation of bitfields, illegal
-  code may be generated if the code contains bitfield and clang is used 
-  as C frontend (which is the default). This bug appears with libmad.
-  See http://llvm.org/bugs/show_bug.cgi?id=8171 for the bug report.
+No known problems with LLVM 2.9 and Clang. See below for the known 
+problems in TCE 1.3 if you have to use an older LLVM for some reason.
 
 1.3    November 2010
 ====================
