@@ -422,7 +422,7 @@ private:
                     TCEString s;
                     s << "removing all connections was within threshold: #" 
                       << confId << " avg worsening: ";
-                    s << worsening << "% " << " total connections: "
+                    s << (int)worsening << "% " << " total connections: "
                       << MachineConnectivityCheck::totalConnectionCount(
                           *db().architecture(
                               db().configuration(confId).architectureID));
@@ -433,7 +433,7 @@ private:
                     s << "removing all connections was not within the "
                       << "threshold: #" 
                       << confId << " avg worsening: ";
-                    s << worsening << "% " << " total connections: "
+                    s << (int)worsening << "% " << " total connections: "
                       << MachineConnectivityCheck::totalConnectionCount(
                           *db().architecture(
                               db().configuration(confId).architectureID));
@@ -478,7 +478,8 @@ private:
                 bool success = evaluate(db().configuration(confId));
 
                 if (success) {
-                    unsigned int avgWorsening = averageWorsening(confId);
+                    unsigned int avgWorsening = 
+                        (unsigned)averageWorsening(confId);
                     if (avgWorsening <= ccWorseningThreshold_ &&
                         avgWorsening < bestAvgccWorsening) {
                         mostUnneededConn = conn;
@@ -488,7 +489,7 @@ private:
                         TCEString s;
                         s << "new config: #" << bestConfInThisIteration 
                           << " avg worsening: ";
-                        s << bestAvgccWorsening << "% " 
+                        s << (int)bestAvgccWorsening << "% " 
                           << " total connections: "
                           << MachineConnectivityCheck::totalConnectionCount(
                               *db().architecture(
@@ -511,7 +512,7 @@ private:
                 TCEString s;
                 s << "best config from this bus sweep: #" 
                   << bestConfInThisIteration << " avg worsening: ";
-                s << bestAvgccWorsening << "% " << " total connections: "
+                s << (int)bestAvgccWorsening << "% " << " total connections: "
                   << MachineConnectivityCheck::totalConnectionCount(
                       *db().architecture(bestConf.architectureID));
                 verboseLog(s);
