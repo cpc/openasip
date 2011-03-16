@@ -1286,7 +1286,7 @@ DataDependenceGraph::setMachine(const TTAMachine::Machine& machine) {
         for (int j = 0; j < fu->operationCount(); j++) {
             TTAMachine::HWOperation* hwop = fu->operation(j);
             int latency = hwop->latency();
-            std::string name = StringTools::stringToLower(hwop->name());
+            TCEString name = StringTools::stringToUpper(hwop->name());
             // if does not exist or is existing is bigger update
             if (!AssocTools::containsKey(operationLatencies_, name)
                 || latency < operationLatencies_[name]) {
