@@ -202,7 +202,7 @@ class TestCompiler(TCETestCase):
     def _verify_output(self, tpef):
         (timeout, stdout, stderr, code) = \
            self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
-                               (self.get_minimalStdoutADF(), tpef), 5*60)
+                               (self.get_minimalStdoutADF(), tpef), 15*60)
         self.assertEquals(stdout.strip(), "Hello \nTTA World!")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)        
@@ -214,7 +214,7 @@ class TestCompiler(TCETestCase):
            self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
                                (switches, self.get_minimalStdoutADF(),
                                 tpef_file_name, self.get_helloWorldCFile()),
-                               10*60)
+                               20*60)
         self.assertEquals(stdout, "")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)
@@ -241,7 +241,7 @@ class TestSimulator(TCETestCase):
            self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
                                ("-O0", self.get_minimalStdoutADF(),
                                 self.tpef_file_name, self.get_helloWorldCFile()),
-                               10*60)
+                               20*60)
 
     def __del__(self):
         os.unlink(self.tpef_file_name)
@@ -252,6 +252,7 @@ class TestSimulator(TCETestCase):
                                (switches,
                                 self.get_minimalStdoutADF(),
                                 self.tpef_file_name), 5*60)
+        self.assertFalse(timeout)
         self.assertEquals(stdout.strip(), "Hello \nTTA World!")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)
@@ -425,7 +426,7 @@ class TestExplorer(TCETestCase):
 
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e Evaluate -s 1 test.dsdb', 60*30)
+            'explore -e Evaluate -s 1 test.dsdb', 40*60)
 
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
@@ -493,7 +494,7 @@ class TestEstimator(TCETestCase):
        
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'estimate -l -a 1.adf 1.idf', 20*60)
+            'estimate -l -a 1.adf 1.idf', 40*60)
 
         self.assertFalse(timeout)
 
