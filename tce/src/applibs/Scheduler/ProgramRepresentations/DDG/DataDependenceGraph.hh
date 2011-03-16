@@ -42,7 +42,7 @@
 #include <utility>
 #include <vector>
 #include <utility>
-
+#include "TCEString.hh"
 #include "MoveNode.hh"
 
 typedef std::vector<class ProgramOperation*> POList;
@@ -126,7 +126,7 @@ public:
         throw (Exception);
 
     /// Dot printing related methods
-    virtual std::string dotString() const;
+    virtual TCEString dotString() const;
     virtual void setCycleGrouping(bool flag);
 
     // XML dumping
@@ -214,7 +214,7 @@ private:
         const MoveNode& tailNode, const MoveNode& headNode, 
         const DataDependenceEdge& edge) const;
     
-    int getOperationLatency(Operation& op) const;
+    int getOperationLatency(const TCEString& name) const;
 
     // own all the programoperations
     POList programOperations_;
@@ -227,7 +227,7 @@ private:
     // Machine related variables. 
     const TTAMachine::Machine* machine_;
     int delaySlots_;
-    std::map<std::string, int> operationLatencies_;
+    std::map<TCEString, int> operationLatencies_;
 
     bool procedureDDG_;
     AntidependenceLevel registerAntidependenceLevel_;

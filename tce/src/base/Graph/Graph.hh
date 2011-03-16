@@ -36,6 +36,7 @@
 #define TTA_GRAPH_HH
 
 #include "Exception.hh"
+#include "TCEString.hh"
 
 #include <set>
 
@@ -96,8 +97,8 @@ public:
     virtual EdgeSet connectingEdges(
         const Node& nTail, const Node& nHead) const = 0;
 
-    virtual std::string dotString() const;
-    virtual void writeToDotFile(const std::string& fileName) const;
+    virtual TCEString dotString() const;
+    virtual void writeToDotFile(const TCEString& fileName) const;
 
     virtual void addNode(Node& node)
         throw (ObjectAlreadyExists) = 0;
@@ -111,6 +112,7 @@ public:
     virtual void connectNodes(const Node& nTail, const Node& nHead, Edge& e)
         throw (ObjectAlreadyExists) = 0;
     virtual void disconnectNodes(const Node& nTail, const Node& nHead) = 0;
+    virtual const TCEString& name() const = 0;
 protected:
     virtual bool hasNode(const Node&) const = 0;
 };

@@ -42,11 +42,11 @@
  * @return Graph represented as a Dot string.
  */
 template<typename GraphNode, typename GraphEdge>
-std::string
+TCEString
 GraphBase<GraphNode, GraphEdge>::dotString() const {
 
     std::ostringstream s;
-    s << "digraph G {" << std::endl;
+    s << "digraph " << name() << " {" << std::endl;
 
     // first print all the nodes and their properties
     for (int i = 0; i < nodeCount(); ++i) {
@@ -78,7 +78,7 @@ GraphBase<GraphNode, GraphEdge>::dotString() const {
 template<typename GraphNode, typename GraphEdge>
 void
 GraphBase<GraphNode, GraphEdge>::writeToDotFile(
-    const std::string& fileName) const {
+    const TCEString& fileName) const {
 
     std::ofstream output(fileName.c_str());
     output << dotString();

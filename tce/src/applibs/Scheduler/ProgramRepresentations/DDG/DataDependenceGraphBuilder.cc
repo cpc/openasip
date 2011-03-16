@@ -708,7 +708,8 @@ void DataDependenceGraphBuilder::createOperationEdges(
                         DataDependenceEdge* dde = 
                             new DataDependenceEdge(
                                 DataDependenceEdge::EDGE_OPERATION,
-                                DataDependenceEdge::DEP_UNKNOWN);
+                                DataDependenceEdge::DEP_UNKNOWN,
+                                op.name());
                         
                         currentDDG_->connectOrDeleteEdge(
                             mnsi.at(inp), mnso.at(outp), dde);
@@ -735,7 +736,7 @@ DataDependenceGraphBuilder::processGuard(MoveNode& moveNode) {
     Guard& g = moveNode.move().guard().guard();
     RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
     if (rg != NULL) {
-        string regName = rg->registerFile()->name() + '.' +
+        std::string regName = rg->registerFile()->name() + '.' +
             Conversion::toString(rg->registerIndex());
         processRegUse(MNData2(moveNode, true),regName);
     } else {
@@ -773,7 +774,7 @@ DataDependenceGraphBuilder::processSource(MoveNode& moveNode) {
         if (source.isGPR()) {
             // new code
             TerminalRegister& tr = dynamic_cast<TerminalRegister&>(source);
-            string regName = trName(tr);
+            std::string regName = trName(tr);
                 /* tr.registerFile().name() + 
                    Conversion::toString(tr.index());*/
             processRegUse(MNData2(moveNode), regName);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,12 +28,33 @@
  *
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Heikki Kultala 2007-2010
+ * @author Pekka J‰‰skel‰inen 2009-2010
  * @note rating: red
  */
 
 
 #ifndef TTA_BOOST_GRAPH_HH
 #define TTA_BOOST_GRAPH_HH
+
+#include <boost/version.hpp>
+
+#if BOOST_VERSION < 103500
+// from boost v1.35 (missing from 1.34 making findAllPaths() fail)
+#include <boost/graph/detail/edge.hpp>
+
+namespace boost {
+    namespace detail {
+        template <class D, class V>
+        inline bool
+        operator<(const detail::edge_desc_impl<D,V>& a, 
+                  const detail::edge_desc_impl<D,V>& b) {
+            return a.get_property() < b.get_property();
+        }
+    }
+}
+
+#endif
 
 #include <map>
 #include <set>
@@ -61,17 +82,15 @@ public:
 
     typedef std::set<GraphNode*, typename GraphNode::Comparator > NodeSet;
     typedef std::set<GraphEdge*, typename GraphEdge::Comparator > EdgeSet;
-
     /// The (base) node type managed by this graph. 
     /// @todo What's the point of these typedefs?
     typedef GraphNode Node;
     /// The (base) edge type managed by this graph.
     typedef GraphEdge Edge;
 
-    BoostGraph();
-    BoostGraph(const std::string& name);
-    BoostGraph(const BoostGraph& other);
-
+    BoostGraph(bool allowLoopEdges = true);
+    BoostGraph(const TCEString& name, bool allowLoopEdges = true);
+    BoostGraph(const BoostGraph& other, bool allowLoopEdges = true);
     ~BoostGraph();
 
     int nodeCount() const;
@@ -101,6 +120,9 @@ public:
         throw (InstanceNotFound);
 
     virtual EdgeSet rootGraphInEdges(const Node& node) const
+        throw (InstanceNotFound);
+
+    virtual Edge& rootGraphInEdge(const Node& node, const int index) const
         throw (InstanceNotFound);
 
     virtual int rootGraphInDegree(const Node& node) const
@@ -138,6 +160,13 @@ public:
                              Edge& edge, 
                              const Node* head = NULL, bool childs = false);
 
+    virtual void copyInEdge(const Node& destination, Edge& edge, 
+                             const Node* tail = NULL);
+
+    virtual void copyOutEdge(const Node& destination, Edge& edge, 
+                             const Node* head = NULL);
+
+
     virtual void removeNode(Node& node)
         throw (InstanceNotFound);
     virtual void removeEdge(Edge& e)
@@ -155,34 +184,43 @@ public:
 
     /// useful utility functions 
     virtual NodeSet rootNodes() const;
+    virtual NodeSet sinkNodes() const;
 
-    virtual NodeSet successors(const Node& node) const;
-    virtual NodeSet predecessors(const Node& node) const;
+    virtual NodeSet successors(
+        const Node& node, bool ignoreBackEdges=false, 
+        bool ignoreForwardEdges=false) const;
+    virtual NodeSet predecessors(
+        const Node& node, bool ignoreBackEdges=false,
+        bool ignoreForwardEdges=false) const;
 
     // critical path-related functions
     int maxPathLength(const GraphNode& node) const;
     int maxSinkDistance(const GraphNode& node) const;
     int maxSourceDistance(const GraphNode& node) const;
+    bool isInCriticalPath(const GraphNode& node) const {
+        return maxSinkDistance(node) + maxSourceDistance(node) == height();
+    }
     int height() const;
+    void findAllPaths() const;
 
     void detachSubgraph(BoostGraph& subGraph);
 
     BoostGraph* parentGraph();
     BoostGraph* rootGraph();
 
+    const BoostGraph* rootGraph() const;
+
     bool hasNode(const Node&) const;
 
-    virtual const std::string& name() const;
+    virtual const TCEString& name() const;
+
+    bool hasPath(GraphNode& src, const GraphNode& dest) const;
 
 private:
     /// Assignment forbidden.
     BoostGraph& operator=(const BoostGraph&);
 
-protected:
-    /// Internal graph type, providing actual graph-like operations.
-    /// This type definition relies on bundled properties of boost library,
-    /// which need the host compiler to support partial template
-    /// specialisation.
+protected:   
 
     class GraphHashFunctions {
     public:
@@ -195,11 +233,17 @@ protected:
             return tmp ^ (tmp >> 16);
         }
     };
+
+
+    /// Internal graph type, providing actual graph-like operations.
+    /// This type definition relies on bundled properties of boost library,
+    /// which need the host compiler to support partial template
+    /// specialisation.
     
     typedef typename boost::adjacency_list<
         boost::listS, boost::vecS,
-        boost::bidirectionalS, Node*, Edge* > Graph;
-    
+        boost::bidirectionalS, Node*, Edge*> Graph;
+
     /// Traits characterising the internal graph type.
     typedef typename boost::graph_traits<Graph> GraphTraits;
     
@@ -225,7 +269,7 @@ protected:
     EdgeDescriptor edgeDescriptor(
         const NodeDescriptor& tailNode, const Edge& e) const;
     EdgeDescriptor edgeDescriptor(
-        const Edge& e,const NodeDescriptor& headNode) const;
+        const Edge& e, const NodeDescriptor& headNode) const;
     NodeDescriptor descriptor(const Node& n) const;
     bool hasEdge(
         const Node& nTail,
@@ -253,11 +297,16 @@ protected:
 
     // internal implementation of path-length-related things.
     void calculatePathLengths() const;
-    void calculateSinkDistance(const GraphNode& node, int len) const;
+
+    void calculatePathLengthsFast() const;
+
+    void calculateSinkDistance(
+        const GraphNode& node, int len, bool looping = false) const;
     
     void calculateSourceDistances(
-        const GraphNode* startNode = NULL, int startingLength = 0) const;
-
+        const GraphNode* startNode = NULL, int startingLength = 0,
+        bool looping = false) const;
+    
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths
@@ -265,6 +314,12 @@ protected:
     sourceDistances_;
     mutable std::map<const GraphNode*,int, typename GraphNode::Comparator> 
     sinkDistances_;
+
+    // Calculated path lengths
+    mutable std::map<const GraphNode*,int, typename GraphNode::Comparator>
+    loopingSourceDistances_;
+    mutable std::map<const GraphNode*,int, typename GraphNode::Comparator> 
+    loopingSinkDistances_;
     
     mutable int height_;
 
@@ -272,20 +327,16 @@ protected:
     Graph graph_;
 
     // these cache data that may get cached even on ro operations,
-    // so they are mutable.
-    typedef hash_map<const Edge*,EdgeDescriptor,GraphHashFunctions >
+    // so they are mutable. 
+    typedef hash_map<const Edge*, EdgeDescriptor, GraphHashFunctions>
     EdgeDescMap;
-    typedef hash_map<const Node*,NodeDescriptor,GraphHashFunctions >
+    typedef hash_map<const Node*, NodeDescriptor, GraphHashFunctions>
     NodeDescMap;
 
     mutable EdgeDescMap edgeDescriptors_;
     mutable NodeDescMap nodeDescriptors_;
 
     void clearDescriptorCache(EdgeSet edges);
-
-    // for subgraphs
-    BoostGraph<GraphNode, GraphEdge>* parentGraph_;
-    std::vector<BoostGraph<GraphNode,GraphEdge>*> childGraphs_;
 
     // graph editing functions which tell the changes to parents and childs
 
@@ -302,31 +353,40 @@ protected:
         throw (ObjectAlreadyExists);
 
     void moveInEdges(
-        const Node& source, const Node& destination,BoostGraph* modifierGraph)
+        const Node& source, const Node& destination, BoostGraph* modifierGraph)
         throw (NotAvailable);
+
     virtual void moveOutEdges(
-        const Node& source, const Node& destination,BoostGraph* modifierGraph)
+        const Node& source, const Node& destination, BoostGraph* modifierGraph)
         throw (NotAvailable);
-    void constructSubGraph(
-        BoostGraph& subGraph, NodeSet& nodes);
+    void constructSubGraph(BoostGraph& subGraph, NodeSet& nodes);
 
     /**
      * This class is used in the pririty queue, to select which node to
      * start sink distance calculations */
     struct PathLengthHelper {
         inline PathLengthHelper(
-            NodeDescriptor nd, int len, int sd);
+            NodeDescriptor nd, int len, int sd, bool looping = false);
         NodeDescriptor nd_;
         int len_;
         int sd_;
+        bool looping_;
         inline bool operator< (const PathLengthHelper& other) const;
     };
 
-    std::string name_;
+    // for subgraphs
+    BoostGraph<GraphNode, GraphEdge>* parentGraph_;
+    std::vector<BoostGraph<GraphNode,GraphEdge>*> childGraphs_;
+
+    TCEString name_;
     int sgCounter_;
 
-    std::list<Edge*> ownedEdges_;
-
+    std::set<Edge*> ownedEdges_;
+    bool allowLoopEdges_;
+    
+    // cache to speed up hasPath(), call findAllPaths() to initialize
+    typedef std::vector<std::vector<int> > PathCache;
+    mutable PathCache* pathCache_;
 };
 
 #include "BoostGraph.icc"

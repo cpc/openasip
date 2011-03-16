@@ -79,7 +79,7 @@ GraphEdge::toString() const {
  */
 TCEString
 GraphEdge::dotString() const {
-    return std::string("label=\"") + toString() + "\"";
+    return TCEString("label=\"") + toString() + "\"";
 }
 
 
@@ -93,12 +93,5 @@ GraphEdge::edgeID() const {
     return edgeID_;
 }
 
-/**
- * Comparison based on edge ID's for maps and sets.
- */
-bool 
-GraphEdge::Comparator::operator()(GraphEdge* e1, GraphEdge* e2) const {
-    return e1->edgeID_ < e2->edgeID_;
-}
 
 int GraphEdge::edgeCounter_ = 0;

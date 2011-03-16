@@ -648,7 +648,7 @@ DataDependenceGraph::sanityCheck() const
  *
  * @return Graph represented as a Dot string.
  */
-std::string
+TCEString
 DataDependenceGraph::dotString() const {
 
     // TODO group based on both BB and cycle
@@ -1232,9 +1232,7 @@ DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n) const 
     
     switch (e.edgeReason()) {
     case DataDependenceEdge::EDGE_OPERATION: {
-        ProgramOperation& po = n.sourceOperation();
-        Operation& op = po.operation();
-        return getOperationLatency(op) * 3;
+            return getOperationLatency(e.data()) * 3;
     }
     case DataDependenceEdge::EDGE_MEMORY: {
         return 5;
@@ -1353,9 +1351,8 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
  * @return minimum latency of given operation. 
  */
 int 
-DataDependenceGraph::getOperationLatency(Operation& op) const {
-    string name = StringTools::stringToLower(op.name());
-    std::map<std::string, int>::const_iterator iter =
+DataDependenceGraph::getOperationLatency(const TCEString& name) const {
+    std::map<TCEString, int>::const_iterator iter =
         operationLatencies_.find(name);
     if (iter != operationLatencies_.end()) {
         return iter->second;

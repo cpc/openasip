@@ -26,18 +26,20 @@
  *
  * Declaration of data dependence edge class
  *
- * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
 #ifndef TTA_DATA_DEPENDENCE_EDGE_HH
 #define TTA_DATA_DEPENDENCE_EDGE_HH
 
+#include "TCEString.hh"
+#include "Application.hh"
 #include "GraphEdge.hh"
 
+class MoveNode;
 class ObjectState;
 class DataDependenceGraph;
-class MoveNode;
 
 class DataDependenceEdge : public GraphEdge {
 public:
@@ -57,11 +59,27 @@ public:
 
     DataDependenceEdge(
         EdgeReason edgereason, DependenceType deptype,
+        TCEString data,
         bool guard = false, bool certainAlias = false, 
-        bool tailPseudo = false, bool headPseudo = false );
-    virtual ~DataDependenceEdge() {}
+        bool tailPseudo = false, bool headPseudo = false,
+        int loop = 0);
+
+    DataDependenceEdge(
+        EdgeReason edgereason, DependenceType deptype,
+        bool guard = false, bool certainAlias = false, 
+        bool tailPseudo = false, bool headPseudo = false,
+        int loop = 0);
+
+    DataDependenceEdge(const DataDependenceEdge& other);
+    DataDependenceEdge(const DataDependenceEdge& other, bool invertLoop);
+
+    virtual ~DataDependenceEdge() {
+        delete[] data_;
+        data_ = NULL;
+    }
 
     TCEString toString() const;
+    TCEString toString(MoveNode& tail) const;
 
     // For xml dumping
     ObjectState* saveState(
@@ -69,44 +87,82 @@ public:
         const MoveNode& head);
 
     DependenceType dependenceType() {
-        return dependenceType_;
+        return static_cast<DependenceType>(dependenceType_);
     }
-    EdgeReason edgeReason() {
-        return edgeReason_;
-    };
-    bool guardUse() {
-        return guard_;
+    EdgeReason edgeReason() const {
+        return static_cast<EdgeReason>(edgeReason_);
     }
-    bool certainAlias() {
-        return certainAlias_;
+
+    bool isFalseDep() const {
+        return edgeReason_ != EDGE_OPERATION && 
+            (dependenceType_ == DEP_WAR || dependenceType_ == DEP_WAW);
+    }
+
+    bool guardUse() const {
+        return edgeProperties_ & EPF_GUARD;
+    }
+    bool certainAlias() const {
+        return edgeProperties_ & EPF_CERTAIN_ALIAS;
     }
     /** returns whether the tail of the dependence does not directly 
         write/read the data but instead is a control flow move which may 
         cause it to be read/written */
-    bool tailPseudo() {
-        return tailPseudo_;
+    bool tailPseudo() const {
+        return edgeProperties_ & EPF_TAIL_PSEUDO;
     }
-
     /** returns whether the head of the dependence does not directly write/read
        the data but instead is a control flow move which may cause it to be
        read/written */
-    bool headPseudo() {
-        return headPseudo_;
+    bool headPseudo() const {
+        return edgeProperties_ & EPF_HEAD_PSEUDO;
+    }
+    bool isBackEdge() const {
+        return loopEdge_ != 0;
+    }
+    int loopDepth() const {
+        return loopEdge_;
     }
 
+    const TCEString data() const { 
+        if (data_ == NULL) {
+            return TCEString("");
+        } else {
+            return TCEString(data_);
+        }
+    }
     bool operator ==(const DataDependenceEdge& other) const;
+
+    static void printStats(std::ostream& out);
+
+    // statistic counters for different types of edges created
+    static int regAntidepCount_;
+
+    void setData(const TCEString& newData);
+
 private:
     TCEString depTypeSt() const;
     TCEString edgeReasonSt() const;
     TCEString guardSt() const;
     TCEString pseudoSt() const;
+    TCEString latencySt(MoveNode& node) const;
 
-    DependenceType dependenceType_;
-    EdgeReason edgeReason_;
-    bool guard_;
-    bool certainAlias_;
-    bool tailPseudo_;
-    bool headPseudo_;
+    // note: the size of this class must be highly optimized as there
+    // will be *lots* of edges in big basic blocks
+
+    // the flags stored in edgeProperties_
+    enum EdgePropertyFlags {
+        EPF_GUARD = 1 << 0,
+        EPF_CERTAIN_ALIAS = 1 << 1,
+        EPF_TAIL_PSEUDO = 1 << 2,
+        EPF_HEAD_PSEUDO = 1 << 3
+    };
+
+    unsigned char dependenceType_; // DependenceType
+    unsigned char edgeReason_; // EdgeReason
+    unsigned char edgeProperties_;
+    unsigned char loopEdge_;
+    // register or mem alias info.
+    char* data_;
 };
 
 #endif

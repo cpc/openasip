@@ -60,9 +60,14 @@ public:
     virtual int edgeID() const;
     virtual TCEString toString() const;
     virtual TCEString dotString() const;
+    virtual bool isBackEdge() const {
+        return false;
+    }
 
     struct Comparator {
-        bool operator()(GraphEdge* e1, GraphEdge* e2) const;
+        inline bool operator()(GraphEdge* e1, GraphEdge* e2) const {
+            return e1->edgeID_ < e2->edgeID_;
+        }
     };
 
 private:

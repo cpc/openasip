@@ -452,7 +452,7 @@ ControlDependenceGraph::entryNode() {
         }
     }
     if (found == false || result == NULL || unlinkedEntryNode == true) {
-        string errorMsg("Graph does not have entry node.");
+        std::string errorMsg("Graph does not have entry node.");
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
     return *result;

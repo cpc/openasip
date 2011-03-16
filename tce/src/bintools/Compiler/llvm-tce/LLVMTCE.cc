@@ -154,10 +154,10 @@ main(int argc, char* argv[]) {
     bool debug = options->debugFlag();
     
     //--- check if program was ran in src dir or from install dir ---
-    std::string runPath = string(argv[0]);
+    std::string runPath = std::string(argv[0]);
     bool useInstalledVersion = 
-        runPath.find("bintools/Compiler/llvm-tce/.libs") == string::npos &&
-        runPath.find("lt-llvm-tce") == string::npos;
+        runPath.find("bintools/Compiler/llvm-tce/.libs") == std::string::npos &&
+        runPath.find("lt-llvm-tce") == std::string::npos;
     
     // All emulation code which cannot be linked in before last global dce is
     // executed, for emulation of instructions which are generated during 
