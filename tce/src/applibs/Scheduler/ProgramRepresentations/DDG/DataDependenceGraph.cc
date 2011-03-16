@@ -1228,7 +1228,7 @@ void DataDependenceGraph::restoreNode(MoveNode& node) {
  * @return weigth of the edge.
  */
 int
-DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n) const {
+DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode&) const {
     
     switch (e.edgeReason()) {
     case DataDependenceEdge::EDGE_OPERATION: {
