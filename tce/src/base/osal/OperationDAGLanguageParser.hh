@@ -66,6 +66,8 @@
 
 #if BOOST_VERSION >= 103800
 
+#define PHOENIX_LIMIT 10
+
 #include <boost/spirit/include/classic.hpp>
 #include <boost/spirit/include/classic_utility.hpp>
 #include <boost/spirit/include/classic_symbols.hpp>
