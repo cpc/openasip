@@ -615,8 +615,12 @@ options, inFiles = p.parse_args(args)
 tempDir = mkdtemp("","tcecc-")
 
 # assign signal handlers to exit cleanly
-signal.signal(signal.SIGHUP, handler)
-signal.signal(signal.SIGTSTP, handler)
+try:
+    signal.signal(signal.SIGHUP, handler)
+    signal.signal(signal.SIGTSTP, handler)
+except:
+    # The signals do not work in MinGW/Windows
+    pass
 
 # clear plugin cache and do nothing else if the --clear-plugin-cache
 # option is given
