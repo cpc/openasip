@@ -1,0 +1,112 @@
+TCE on MinGW status
+===================
+A work in progress. Build does not yet work.
+Configure finishes.
+
+Requirements for running TCE on Windows
+=======================================
+
+LLVM & Clang
+------------
+
+Try this:
+
+./configure --enable-shared --disable-threads && \
+make REQUIRES_RTTI=1 LLVM_ON_WIN32=1
+
+The shared library does not build (at least with LLVM 2.8)
+so the old shared library generation script has to be used.
+
+Python
+------
+
+The project has a Windows installer. It should be fine.
+Copy the python.exe to a MinGW path (test by running 'python'
+in Msys).
+
+Libs for building TCE under MinGW
+=================================
+
+These should be needed only at TCE build time. In case
+building TCE to a static library, only the above mentioned
+libs are needed for running the TCE tools.
+
+You probably need to give the following arguments
+to TCE configure to make the libs to be found:
+
+./configure CPPFLAGS="-I /usr/local/include" LDFLAGS="-L /usr/local/lib"
+
+Boost
+-----
+Here are useful tips for building the latest Boost on MinGW:
+http://code-slim-jim.blogspot.com/2011/02/boost-in-vista-using-mingw-and-cmdexe.html
+
+The key point is to build the bjam from the Boost tar ball
+for the MinGW instead of using a prepackaged one.
+
+The main steps copied here:
+
+1) Build Bjam:
+
+cd boost_1_45_0\tools\build\v2\engine\src
+./build
+cp bin.ntx86/bjam.exe /bin
+
+2) Build Boost
+
+cd boost_1_45_0
+bjam toolset=gcc --build-type=complete stage
+
+3) Copy the libs to a default location
+
+cp stage/lib/* /lib
+
+4) Copy the headers to a default location
+
+cp -r boost /include/
+
+wxWidgets
+---------
+
+Builds and install nicely out of the box (like a portability
+lib should).
+
+TCL
+---
+
+Builds and installs nicely out of the box. 
+8.5.x is blacklisted in configure.ac and 8.4.x does
+not seem to compile so just unblacklist it in
+configure.ac to make it pass.
+
+Xerces-C++
+----------
+
+Builds and installs with these instructions:
+http://xerces.apache.org/xerces-c/build-winunix-2.html#MinGW
+
+SQLite
+------
+
+Builds and installs from the autoconf'd package.
+
+Editline
+--------
+http://sourceforge.net/projects/mingweditline/
+
+Tried this quickly but configure.ac didn't detect it.
+Either because of -ltermcap or because it was not
+listed in the candidate library list. This is not
+required.
+
+Known unsolved problems
+=======================
+
+- LLVM builds without plugin support as dlopen() is not
+  found, the LLVM configure complains. tcecc uses opt 
+  plugins loading so this means tcecc might not work.
+- detection of mingweditline fails thus linereader
+  falls to the crappy std::cin reader
+- Next should make Application.cc compile. Does not
+  compile due to some POSIX signal stuff.
+

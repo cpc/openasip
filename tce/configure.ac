@@ -355,7 +355,6 @@ then
 AC_MSG_ERROR(
 [boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
 fi
-
 #boost::system is not needed for anything AFAIK, works without...
 AX_BOOST_SYSTEM
 if test -z "$BOOST_SYSTEM_LIB"
@@ -1064,6 +1063,8 @@ dlerror();
 # following MACRO: HAVE_DIRENT_H, HAVE_SYS_NDIR_H,
 # HAVE_SYS_DIR_H, or HAVE_NDIR_H.
 AC_HEADER_DIRENT
+
+AC_HEADER_SYS_WAIT
 
 # Define STDC_HEADERS if the system has Ansi C header files.
 # Checks especially for stdlib.h, stdarg.h, string.h, and 
