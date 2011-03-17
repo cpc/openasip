@@ -385,21 +385,20 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
         } else {
             // mem deps + fu state deps
 
-            // size at beginning.
-            size_t size = succData.memDefReaches_.size() + 
-                succData.memUseReaches_.size() + succData.fuDepReaches_.size();
-        
-            AssocTools::append(
+            changed |= appendUseMapSets(
                 bbd.memDefAfter_, succData.memDefReaches_);
-            AssocTools::append(
+
+            changed |= appendUseMapSets(
                 bbd.memUseAfter_, succData.memUseReaches_);
+
+            // size at beginning.
+            size_t size = succData.fuDepReaches_.size();
+
             AssocTools::append(
                 bbd.fuDepAfter_, succData.fuDepReaches_);
             
             // if size increased, something is changed.
-            if (succData.memDefReaches_.size() + 
-                succData.memUseReaches_.size() + 
-                succData.fuDepReaches_.size() > size) {
+            if (succData.fuDepReaches_.size() > size) {
                 changed = true;
             }
             // need to queue successor for update?
@@ -458,15 +457,29 @@ DataDependenceGraphBuilder::updateBB(BBData& bbd, ConstructionPhase phase) {
     } else {
         // phase 1 .. mem deps and fu state/side effect dependencies.
         // then memory deps.. use
-        for (RegisterUseSet::iterator firstUseIter = bbd.memFirstUses_.begin();
+        for (RegisterUseMapSet::iterator firstUseIter = 
+                 bbd.memFirstUses_.begin();
              firstUseIter != bbd.memFirstUses_.end(); firstUseIter++) {
-            updateMemUse(*firstUseIter);
+            TCEString category = firstUseIter->first;
+            for (RegisterUseSet::iterator firstUseIter = 
+                     bbd.memFirstUses_[category].begin();
+                 firstUseIter != bbd.memFirstUses_[category].end(); 
+                 firstUseIter++) {
+                updateMemUse(*firstUseIter, category);
+            }
         }
-        // and defs for memory antideps
-        for (RegisterUseSet::iterator firstDefIter = 
+
+        // antidependencies to memory
+        for (RegisterUseMapSet::iterator firstDefineIter =
                  bbd.memFirstDefines_.begin();
-             firstDefIter != bbd.memFirstDefines_.end(); firstDefIter++) {
-            updateMemWrite(*firstDefIter);
+             firstDefineIter != bbd.memFirstDefines_.end(); firstDefineIter++) {
+            TCEString category = firstDefineIter->first;
+            for (RegisterUseSet::iterator firstDefIter = 
+                     bbd.memFirstDefines_[category].begin();
+                 firstDefIter != bbd.memFirstDefines_[category].end(); 
+                 firstDefIter++) {
+                updateMemWrite(*firstDefIter, category);
+            }
         }
         // and fu state deps
         for (RegisterUseSet::iterator iter = bbd.fuDeps_.begin();
@@ -649,20 +662,46 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
 
     // mem deps and fu state deps
 
-    size_t size = bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
-        bbd.fuDepAfter_.size();
-    // no killing write? then copy pre-deps.
-    if (bbd.memKill_.mn_ == NULL) {
-        AssocTools::append(bbd.memDefReaches_, bbd.memDefAfter_);
-        AssocTools::append(bbd.memUseReaches_, bbd.memUseAfter_);
-    } 
+    // copy mem definitions that are alive
+    for (RegisterUseMapSet::iterator iter = bbd.memDefReaches_.begin();
+         iter != bbd.memDefReaches_.end(); iter++) {
+        
+        TCEString category = iter->first;
+        std::set<MNData2>& defAfter = bbd.memDefAfter_[category];
 
-    AssocTools::append(bbd.memDefines_, bbd.memDefAfter_);
-    AssocTools::append(bbd.memLastUses_, bbd.memUseAfter_);
+        if (bbd.memKills_.find(category) == bbd.memKills_.end()) {
+            size_t size = defAfter.size();
+            AssocTools::append(iter->second, defAfter);
+            if (size < defAfter.size()) {
+                changed = true;
+            }
+        }
+    }
+    
+    changed |= appendUseMapSets(bbd.memDefines_, bbd.memDefAfter_);
+
+    // copy uses that are alive
+    for (RegisterUseMapSet::iterator iter = bbd.memUseReaches_.begin();
+         iter != bbd.memUseReaches_.end(); iter++) {
+        
+        TCEString category = iter->first;
+        std::set<MNData2>& useAfter = bbd.memUseAfter_[category];
+
+        if (bbd.memKills_.find(category) == bbd.memKills_.end()) {
+            size_t size = useAfter.size();
+            AssocTools::append(iter->second, useAfter);
+            if (size < useAfter.size()) {
+                changed = true;
+            }
+        }
+    }
+
+    changed |= appendUseMapSets(bbd.memLastUses_, bbd.memUseAfter_);
+
+    size_t size = bbd.fuDepAfter_.size();
     AssocTools::append(bbd.fuDeps_, bbd.fuDepAfter_);
     
-    if (bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
-        bbd.fuDepAfter_.size() > size) {
+    if (bbd.fuDepAfter_.size() > size) {
         changed = true;
     }
     return changed;
@@ -1237,15 +1276,17 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
  * @param mnd MNData2 of movenode being processed.
 */
 void
-DataDependenceGraphBuilder::updateMemWrite(MNData2 mnd) {
+DataDependenceGraphBuilder::updateMemWrite(
+    MNData2 mnd, const TCEString& category) {
 
-    for (RegisterUseSet::iterator iter = currentData_->memDefReaches_.begin();
-         iter != currentData_->memDefReaches_.end(); iter++) {
+    for (RegisterUseSet::iterator iter = 
+             currentData_->memDefReaches_[category].begin();
+         iter != currentData_->memDefReaches_[category].end(); iter++) {
         checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW);
     }
 
-    for (RegisterUseSet::iterator iter = currentData_->memUseReaches_.begin();
-         iter != currentData_->memUseReaches_.end(); iter++) {
+    for (RegisterUseSet::iterator iter = currentData_->memUseReaches_[category].begin();
+         iter != currentData_->memUseReaches_[category].end(); iter++) {
         checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR);
     }
 }
@@ -1258,53 +1299,63 @@ DataDependenceGraphBuilder::updateMemWrite(MNData2 mnd) {
  * processing.
  */
 void
-DataDependenceGraphBuilder::processMemWrite(
-    MNData2 mnd) {
+DataDependenceGraphBuilder::processMemWrite(MNData2 mnd) {
     
+    TCEString category = memoryCategory(mnd);
+
+    std::set<MNData2>& defines =
+        currentData_->memDefines_[category];
+
+    std::set<MNData2>& lastUses =
+        currentData_->memLastUses_[category];
+
     // no kills to this one.
-    if (currentData_->memKill_.mn_ == NULL) {
+    if (currentData_->memKills_[category].mn_ == NULL) {
         // is this a kill?
         if (mnd.mn_->move().isUnconditional() &&
             !addressTraceable(addressMove(*mnd.mn_))) {
-            currentData_->memKill_ = mnd;
+            currentData_->memKills_[category] = mnd;
         }
         // may have incoming WaW's / WaRs to this
-        currentData_->memFirstDefines_.insert(mnd);
-        updateMemWrite(mnd);
+        currentData_->memFirstDefines_[category].insert(mnd);
+        updateMemWrite(mnd, category);
     }
+
+    bool traceable = addressTraceable(addressMove(*mnd.mn_));
+
     // create WaW to another in own bb
-    for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
-         iter != currentData_->memDefines_.end();) {
+    for (RegisterUseSet::iterator iter = 
+             currentData_->memDefines_[category].begin();
+         iter != currentData_->memDefines_[category].end();) {
         if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW)
             && mnd.mn_->move().isUnconditional()) {
             // remove current element and update iterator to next.
-            currentData_->memDefines_.erase(iter++);
+            currentData_->memDefines_[category].erase(iter++);
         } else { // just take next from the set
             iter++;
         }
     }
 
     // create WaR to reads in same bb
-    for (RegisterUseSet::iterator iter = currentData_->memLastUses_.begin();
-         iter != currentData_->memLastUses_.end();) {
+    for (RegisterUseSet::iterator iter = currentData_->memLastUses_[category].begin();
+         iter != currentData_->memLastUses_[category].end();) {
         if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR)
             && mnd.mn_->move().isUnconditional()) {
             // remove current element and update iterator to next.
-            currentData_->memLastUses_.erase(iter++);
+            currentData_->memLastUses_[category].erase(iter++);
         } else { // just take next from the set
             iter++;
         }
     }
 
     // does this kill previous deps?
-    if (mnd.mn_->move().isUnconditional() &&
-        !addressTraceable(addressMove(*mnd.mn_))) {
-        currentData_->memLastKill_ = mnd;
-        currentData_->memDefines_.clear();
-        currentData_->memLastUses_.clear();
+    if (mnd.mn_->move().isUnconditional() && !traceable) {
+        currentData_->memLastKills_[category] = mnd;
+        defines.clear();
+        lastUses.clear();
     }
 
-    currentData_->memDefines_.insert(mnd);
+    defines.insert(mnd);
 }
 
 
@@ -1470,10 +1521,11 @@ void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
  *
  * @param mnd MNData2 of movenode being processed.
 */
-void DataDependenceGraphBuilder::updateMemUse(MNData2 mnd) {
+void DataDependenceGraphBuilder::updateMemUse(MNData2 mnd, const TCEString& category) {
     
-    for (RegisterUseSet::iterator iter = currentData_->memDefReaches_.begin();
-         iter != currentData_->memDefReaches_.end(); iter++) {
+    for (RegisterUseSet::iterator iter = 
+             currentData_->memDefReaches_[category].begin();
+         iter != currentData_->memDefReaches_[category].end(); iter++) {
         checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
     }
 }
@@ -1487,20 +1539,26 @@ void DataDependenceGraphBuilder::updateMemUse(MNData2 mnd) {
  */
 void DataDependenceGraphBuilder::processMemUse(MNData2 mnd) {
     
+    TCEString category = memoryCategory(mnd);
+
+    // could be multiple if some write predicated?
+    std::set<MNData2>& defines =
+        currentData_->memDefines_[category];
+
     // no kills to this one.
-    if (currentData_->memKill_.mn_ == NULL) {
-        currentData_->memFirstUses_.insert(mnd);
+    if (currentData_->memKills_[category].mn_ == NULL) {
+        currentData_->memFirstUses_[category].insert(mnd);
         // so create deps from previous BB's
-        updateMemUse(mnd);
+        updateMemUse(mnd, category);
     }
     
     // create deps from writes in this BB.
-    for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
-         iter != currentData_->memDefines_.end(); iter++) {
+    for (RegisterUseSet::iterator iter = 
+             defines.begin(); iter != defines.end(); iter++) {
         checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
     }
     // update bookkeeping.
-    currentData_->memLastUses_.insert(mnd);
+    currentData_->memLastUses_[category].insert(mnd);
 }
 
 /**
@@ -1889,6 +1947,102 @@ DataDependenceGraphBuilder::createMemAndFUstateDeps() {
     AssocTools::deleteAllValues(bbData_);
 }
 
+/**
+ * Checks into which category this memory address belongs.
+ *
+ * Memory accesses in different categories cannot alias, and there is
+ * separate bookkeeping for every category. Current implementation separates
+ * spills, different alias spaces, restrict keywords and opencl work items.
+ *
+ * @param mnd MoveNodeUse which transfers the address of the memory operation.
+ * @return string which is then used as key for map.
+ *         unique for different categories, empty for the default category.
+ *
+ * @TODO: create some memorycategorizer interface for this analysis?
+ */
+
+TCEString
+DataDependenceGraphBuilder::memoryCategory(const MNData2& mnd) {
+
+    TCEString category;
+
+    const TTAProgram::Move& move = mnd.mn_->move();
+    
+    // spill annotations are in all operands.
+    for (int j = 0; j < move.annotationCount(); j++) {
+        TTAProgram::ProgramAnnotation anno = move.annotation(j);
+        if (anno.id() ==
+            TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL) {
+            return "_SPILL";
+        }
+        if (anno.id() ==
+            TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE) {
+            return "_RA";
+        }
+    }
+    
+    ProgramOperation& po = mnd.mn_->destinationOperation();
+
+    // address space
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& mn = po.inputMove(i);
+        Move& m = mn.move();
+        if (m.hasAnnotations(
+                ProgramAnnotation::ANN_POINTER_ADDR_SPACE)) {
+            if (m.annotation(
+                    0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE).stringValue()
+                != "0") {
+                category +=
+                    "_AS:" +
+                    m.annotation(
+                        0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE)
+                    .stringValue();
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& mn = po.inputMove(i);
+        Move& m = mn.move();
+        TCEString pointerName = "";
+        // restrict keyword.
+        if (m.hasAnnotations(
+                ProgramAnnotation::ANN_POINTER_NAME) &&
+            m.hasAnnotations(
+                ProgramAnnotation::ANN_POINTER_NOALIAS)) {
+            pointerName =
+                m.annotation(
+                    0, ProgramAnnotation::ANN_POINTER_NAME).stringValue();
+            category += "_RESTRICT:" + pointerName;            
+            break;
+        }
+    }
+
+    /* OpenCL work item variable access.
+       
+    OpenCL kernels enforce memory consistency for local and global
+    memory only at explicit barrier() calls within a work group.
+    Thus, all memory accesses between work items can be considered
+    independent in alias analysis in the regions between barrier
+    calls. 
+    */ 
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& mn = po.inputMove(i);
+        Move& m = mn.move();
+        if (m.hasAnnotations(ProgramAnnotation::ANN_OPENCL_WORK_ITEM_ID)) {
+            category += 
+                "_OPENCL_WI:" + 
+                Conversion::toHexString(
+                    m.annotation(
+                        0, ProgramAnnotation::ANN_OPENCL_WORK_ITEM_ID).
+                    intValue(), 8);
+            break;
+        }
+    }
+    return category;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Static data members
 //////////////////////////////////////////////////////////////////////////////
@@ -1906,8 +2060,7 @@ const std::string DataDependenceGraphBuilder::RA_NAME = "RA";
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
-    state_(BB_UNREACHED), constructed_(false), bblock_(&bb) , memLastKill_(),
-    memKill_() {
+    state_(BB_UNREACHED), constructed_(false), bblock_(&bb) {
 }
 
 /**

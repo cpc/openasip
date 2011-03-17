@@ -179,22 +179,22 @@ protected:
         RegisterUseMapSet regUseAfter_;
 
         // dependencies out from this BB
-        RegisterUseSet memDefines_;
-        RegisterUseSet memLastUses_;
-        MNData2 memLastKill_;
+        RegisterUseMapSet memDefines_;
+        RegisterUseMapSet memLastUses_;
+        RegisterUseMap memLastKills_;
 
         // dependencies into this one
-        MNData2 memKill_;
-        RegisterUseSet memFirstUses_;
-        RegisterUseSet memFirstDefines_;
+        RegisterUseMap memKills_;
+        RegisterUseMapSet memFirstUses_;
+        RegisterUseMapSet memFirstDefines_;
 
         // deps from previous BBs
-        RegisterUseSet memDefReaches_;
-        RegisterUseSet memUseReaches_;
+        RegisterUseMapSet memDefReaches_;
+        RegisterUseMapSet memUseReaches_;
 
         // all alive after this
-        RegisterUseSet memDefAfter_;
-        RegisterUseSet memUseAfter_;
+        RegisterUseMapSet memDefAfter_;
+        RegisterUseMapSet memUseAfter_;
         
         // fu state deps
         RegisterUseSet fuDepReaches_;
@@ -247,11 +247,11 @@ protected:
 
     void processRegUse(MNData2 mn, const std::string& reg);
     void updateRegUse(MNData2 mn, const std::string& reg);
-    void updateMemUse(MNData2 mnd);
+    void updateMemUse(MNData2 mnd, const TCEString& category);
 
     void processRegWrite(MNData2 mn, const std::string& reg);
     void updateRegWrite(MNData2 mn, const std::string& reg);
-    void updateMemWrite(MNData2 mnd);
+    void updateMemWrite(MNData2 mnd, const TCEString& category);
 
     void processTriggerPO(
         class MoveNode& moveNode, Operation &dop) throw (IllegalProgram);
@@ -281,7 +281,8 @@ protected:
         const MoveNode* mn1, const MoveNode* mn2);
 
     bool addressTraceable(const MoveNode* mn);
-    
+    TCEString memoryCategory(const MNData2& mnd);
+
     bool checkAndCreateMemWAW(
         const MoveNode& prev, const MoveNode& mn, bool pseudo = false);
 
@@ -293,9 +294,12 @@ protected:
 
     bool exclusingGuards(const MoveNode& mn1, const MoveNode& mn2);
 
-    void createRegRaw(const MNData2& current, const MNData2& source, const TCEString& reg);
-    void createRegWar(const MNData2& current, const MNData2& source, const TCEString& reg);
-    void createRegWaw(const MNData2& current, const MNData2& source, const TCEString& reg);
+    void createRegRaw(
+        const MNData2& current, const MNData2& source, const TCEString& reg);
+    void createRegWar(
+        const MNData2& current, const MNData2& source, const TCEString& reg);
+    void createRegWaw(
+        const MNData2& current, const MNData2& source, const TCEString& reg);
 
     // functions related to iterating over basic blocks 
 

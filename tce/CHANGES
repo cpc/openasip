@@ -26,6 +26,8 @@ Code generator improvements
   using DAG to emulate missing operations.
 - Some other minor pattern improvements leading to slightly better code
   on some situations.
+- Alias analysis improvements, understands that register spills to stack
+  cannot alias with other memory operations
 
 Optimizations
 -------------
