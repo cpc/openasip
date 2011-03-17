@@ -59,7 +59,7 @@ public:
 
     DataDependenceEdge(
         EdgeReason edgereason, DependenceType deptype,
-        TCEString data,
+        const TCEString& data,
         bool guard = false, bool certainAlias = false, 
         bool tailPseudo = false, bool headPseudo = false,
         int loop = 0);

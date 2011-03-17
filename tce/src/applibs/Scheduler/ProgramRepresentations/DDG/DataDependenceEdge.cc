@@ -62,7 +62,7 @@ int DataDependenceEdge::regAntidepCount_ = 0;
 DataDependenceEdge::DataDependenceEdge(
     EdgeReason edgereason,
     DependenceType deptype,
-    TCEString data, bool guard,
+    const TCEString& data, bool guard,
     bool certainAlias, bool tailPs,
     bool headPs, int loopEdge) :
     dependenceType_(deptype), edgeReason_(edgereason),

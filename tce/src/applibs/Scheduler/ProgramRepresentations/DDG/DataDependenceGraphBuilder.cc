@@ -828,12 +828,12 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
  */
 void
 DataDependenceGraphBuilder::createRegRaw(
-    const MNData2& source, const MNData2& current) {
+    const MNData2& source, const MNData2& current, const TCEString& reg) {
     DataDependenceEdge* dde =
         new DataDependenceEdge(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
-            DataDependenceEdge::DEP_RAW, current.guard_, false, 
+            DataDependenceEdge::DEP_RAW, reg, current.guard_, false, 
             source.pseudo_, current.pseudo_);
     
         // create dependency edge
@@ -848,12 +848,12 @@ DataDependenceGraphBuilder::createRegRaw(
  */
 void 
 DataDependenceGraphBuilder::createRegWar(
-    const MNData2& source, const MNData2& current) {
+    const MNData2& source, const MNData2& current, const TCEString& reg) {
     DataDependenceEdge* dde =
         new DataDependenceEdge(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
-            DataDependenceEdge::DEP_WAR, source.guard_, false, 
+            DataDependenceEdge::DEP_WAR, reg, source.guard_, false, 
             source.pseudo_, current.pseudo_);
     
         // create dependency edge
@@ -870,13 +870,13 @@ DataDependenceGraphBuilder::createRegWar(
  */
 void 
 DataDependenceGraphBuilder::createRegWaw(
-    const MNData2& source, const MNData2& current) {
+    const MNData2& source, const MNData2& current, const TCEString& reg) {
     if (source.mn_->isMove()) {
         DataDependenceEdge* dde =
             new DataDependenceEdge(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
-                DataDependenceEdge::DEP_WAW, false, false, 
+                DataDependenceEdge::DEP_WAW, reg, false, false, 
                 source.pseudo_, current.pseudo_);
         
         // create dependency edge
@@ -931,7 +931,7 @@ void DataDependenceGraphBuilder::updateRegUse(
     std::set<MNData2>& defReaches = currentData_->regDefReaches_[reg];
     for (std::set<MNData2>::iterator i = defReaches.begin();
          i != defReaches.end(); i++) {
-        createRegRaw(*i,mnd);
+        createRegRaw(*i, mnd, reg);
     }
 }
 
@@ -949,7 +949,7 @@ void DataDependenceGraphBuilder::processRegUse(
 
     for (std::set<MNData2>::iterator i = defines_.begin();
          i != defines_.end(); i++) {
-        createRegRaw(*i,mnd);
+        createRegRaw(*i, mnd, reg);
     }
     // add this read to list of uses
     currentData_->regLastUses_[reg].insert(mnd);
@@ -966,14 +966,14 @@ DataDependenceGraphBuilder::updateRegWrite(
     std::set<MNData2>& defReaches_ = currentData_->regDefReaches_[reg];
     for (std::set<MNData2>::iterator i = defReaches_.begin();
          i != defReaches_.end(); i++) {
-        createRegWaw(*i,mnd);
+        createRegWaw(*i, mnd, reg);
     }
     
     // WaRs
     std::set<MNData2>& useReaches_ = currentData_->regUseReaches_[reg];
     for (std::set<MNData2>::iterator i = useReaches_.begin();
          i != useReaches_.end(); i++) {
-        createRegWar(*i,mnd);
+        createRegWar(*i, mnd, reg);
     }
 }
 
@@ -1051,14 +1051,14 @@ DataDependenceGraphBuilder::processRegWrite(
          i != defines_.end(); i++) {
         // Do not create mem WaW if writes have excluding guards(select op)
         if (!exclusingGuards(*(i->mn_), *(mnd.mn_))) {
-            createRegWaw(*i,mnd);
+            createRegWaw(*i, mnd, reg);
         }
     }
     
     // create WaR to reads in same bb
     for (std::set<MNData2>::iterator i = lastUses_.begin();
          i != lastUses_.end(); i++) {
-        createRegWar(*i,mnd);
+        createRegWar(*i, mnd, reg);
     }
 
     // if unconditional , this kills previous deps.
