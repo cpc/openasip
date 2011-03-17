@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Emulate qmegawiz with a script
-export PATH=$PWD/data:$PATH
+export PATH=$PWD/../data:$PATH
 
 PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
 INTEG=Stratix2DSP

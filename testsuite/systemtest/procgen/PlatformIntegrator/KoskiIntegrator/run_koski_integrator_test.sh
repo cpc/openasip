@@ -10,7 +10,7 @@ INTEG=KoskiIntegrator
 LOG=koski_integrator.runlog
 
 # set qmegawiz script
-export PATH=$PWD/data:$PATH
+export PATH=$PWD/../data:$PATH
 
 # run integrator
 rm -f $IPXACT

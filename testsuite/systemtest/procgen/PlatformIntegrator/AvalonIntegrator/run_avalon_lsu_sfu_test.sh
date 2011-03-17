@@ -20,7 +20,7 @@ then
 else
     HW=no
     # set qmegawiz script
-    export PATH=$PWD/data:$PATH
+    export PATH=$PWD/../data:$PATH
 fi
 
 # run integrator
