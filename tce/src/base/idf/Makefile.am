@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libidf.la
 libidf_la_SOURCES = MachineImplementation.cc UnitImplementationLocation.cc \
 IDFSerializer.cc NullUnitImplementationLocation.cc 
 
-libidf_la_LDFLAGS = -lpthread
+libidf_la_LDFLAGS = $PTHREAD_LIBS
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config

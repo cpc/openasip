@@ -14,7 +14,7 @@ libmach_la_SOURCES =							     \
         NullRegisterFile.cc NullMachine.cc          \
 	DummyMachineTester.cc
 
-libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c -lpthread
+libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c ${PTHREAD_LIBS}
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config

@@ -147,6 +147,8 @@ fi
 AM_CONDITIONAL([MANUALS], test x$MAKEMANUALS = xtrue)
 
 
+AX_PTHREAD()
+
 # Checks whether compiler supports vector at() operation. It is a known
 # fact that gcc 2.95.4 lacks support for this feature. If compiler 
 # supports this VECTOR_AT_SUPPORTED is set to 1.
@@ -473,7 +475,7 @@ Please refer to INSTALL for instructions on how to do this correctly.
      AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
    ;;
      *svn)
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 2.10?)")     
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.0)")     
    ;;   
      *)
    AC_MSG_NOTICE(
@@ -766,7 +768,7 @@ if test -n "$tcl_headers"; then
 fi
 
 # Check Tcl version. 
-AC_MSG_CHECKING([if tcl version is one from 8.0 to 8.4])
+AC_MSG_CHECKING([tcl version])
 AC_PREPROC_IFELSE(
 [[
 #include <tcl.h>
@@ -779,7 +781,7 @@ AC_PREPROC_IFELSE(
 ][
 #if TCL_MINOR_VERSION == 5
 ][
-#error tcl minor version is equal to 5, Proxim won't work 
+#warning tcl minor version is equal to 5, Proxim won't work 
 ][
 #endif
 ]],
@@ -857,7 +859,7 @@ if test -n "$xerces"; then
   CPPFLAGS="$CPPFLAGS -I$xerces/include"
 fi
 
-LIBS="$LIBS -lxerces-c -lpthread"
+LIBS="$LIBS -lxerces-c $PTHREAD_LIBS"
 AC_LANG(C++)
 AC_MSG_CHECKING([whether xerces-c library is available to the linker])
 AC_LINK_IFELSE(
@@ -875,7 +877,7 @@ XERCES_CPP_NAMESPACE_USE
 [XMLPlatformUtils::Initialize();])], 
 [
   AC_MSG_RESULT([yes])
-  AC_SUBST([XERCES_LIBS], ["-lxerces-c -lpthread"])
+  AC_SUBST([XERCES_LIBS], ["-lxerces-c $PTHREAD_LIBS"])
 ],
 [AC_MSG_ERROR([xerces-c library linkage failed.])])
 LIBS="$TEMP_LIBS"
@@ -1439,6 +1441,13 @@ fi
 if test x"$TCL" = xtrue;
 then
   echo "Found tcl library >= v.8.0"
+
+  case "$TCL_VERSION" in
+     8.5*)
+     echo "WARNING! Your TCL version $TCL_VERSION might be buggy. "
+     echo "If you have problems with Proxim, downgrade to 8.4 or older."
+   ;;
+  esac
 else
   echo "tcl library not found. TclInterpreter cannot be build."
 fi

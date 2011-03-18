@@ -16,7 +16,7 @@ libbem_la_SOURCES = BinaryEncoding.cc ImmediateControlField.cc \
 	ImmediateSlotField.cc BEMTextGenerator.cc PortCode.cc \
 	NullBridgeEncoding.cc
 
-libbem_la_LDFLAGS = -lpthread
+libbem_la_LDFLAGS = $PTHREAD_LIBS
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config

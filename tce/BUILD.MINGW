@@ -107,6 +107,7 @@ Known unsolved problems
   plugins loading so this means tcecc might not work.
 - detection of mingweditline fails thus linereader
   falls to the crappy std::cin reader
-- Next should make Application.cc compile. Does not
-  compile due to some POSIX signal stuff.
+- FileSystem.cc: glob() cannot be used, better implement
+  the function with Boost::filesystem and Boost::regexp
+
 

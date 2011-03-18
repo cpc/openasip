@@ -45,8 +45,17 @@
 // for backtrace printing:
 #include <signal.h>
 
-// macros to evaluate exit status of pclose()
-#include <sys/wait.h>
+#include <sys/types.h>
+// macros to evaluate exit status of pclose() (from autoconf manual)
+#ifdef HAVE_SYS_WAIT_H
+# include <sys/wait.h>
+#endif
+#ifndef WEXITSTATUS
+# define WEXITSTATUS(stat_val) ((unsigned int) (stat_val) >> 8)
+#endif
+#ifndef WIFEXITED
+# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
+#endif
 
 #include "Environment.hh"
 #include "Application.hh"
@@ -288,13 +297,22 @@ Application::cmdLineOptions() {
 /**
  * Sets a new signal handler for the given signal
  *
+ * Note in platforms which do not support signals (e.g. Windows),
+ * this function does nothing.
+ *
  * @param signalNum signal number
  * @param handler The handler to be set
  */
+#ifdef __MINGW32__
+void
+Application::setSignalHandler(int, UnixSignalHandler&) {
+    return;
+}
+#else
 void
 Application::setSignalHandler(int signalNum, UnixSignalHandler& handler) {
     signalHandlers_[signalNum] = &handler;
-
+    
     struct sigaction action;
     action.sa_flags = SA_SIGINFO;
     action.sa_sigaction = signalRedirector;
@@ -302,13 +320,23 @@ Application::setSignalHandler(int signalNum, UnixSignalHandler& handler) {
     sigemptyset(&action.sa_mask);
     sigaction(signalNum, &action, NULL);
 }
+#endif
 
 /**
  * Returns a pointer to the signal's current handler
  *
+ * In platforms which do not support signals this method always
+ * returns NULL.
+ *
  * @return a pointer to the signal's current handler
  * @exception InstanceNotFound if the signal has not been set a custom handler
  */
+#ifdef __MINGW32__
+Application::UnixSignalHandler*
+Application::getSignalHandler(int) {
+    return NULL;
+}
+#else
 Application::UnixSignalHandler*
 Application::getSignalHandler(int signalNum) {
     std::map<int, UnixSignalHandler*>::iterator it =
@@ -319,31 +347,52 @@ Application::getSignalHandler(int signalNum) {
         throw InstanceNotFound(__FILE__, __LINE__, __FUNCTION__);
     }
 }
+#endif
 
 /**
  * Restores to the signal its original handler
  *
+ * Note in platforms which do not support signals (e.g. Windows),
+ * this function does nothing.
+ *
  * @param signalNum signal number
  */
+#ifdef __MINGW32__
+void
+Application::restoreSignalHandler(int) {
+    return;
+}
+#else
 void
 Application::restoreSignalHandler(int signalNum) {
     signal(signalNum, SIG_DFL);
     signalHandlers_.erase(signalNum);
 }
+#endif
 
 /**
  * Redirects the signal received to the current signal handler
+ *
+ * Note in platforms which do not support signals (e.g. Windows),
+ * this function does nothing.
  *
  * @param data Data from the signal.
  * @param info signal information struct
  * @param context signal context
  */
+#ifdef __MINGW32__
+void
+Application::signalRedirector(int, siginfo_t*, void*) {
+    return;
+}
+#else
 void
 Application::signalRedirector(int data, siginfo_t* info, void* /*context*/) {
     UnixSignalHandler* handler = getSignalHandler(info->si_signo);
     assert(handler != NULL);
     handler->execute(data, info);
 }
+#endif
 
 /**
  * Returns the version string of the TCE build.

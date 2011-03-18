@@ -42,7 +42,13 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <signal.h>
+#ifndef __MINGW32__
+# include <signal.h>
+#else
+// provide a dummy type to allow dummy signal functionality
+typedef int siginfo_t;
+
+#endif
 #include <map>
 
 #ifdef assert

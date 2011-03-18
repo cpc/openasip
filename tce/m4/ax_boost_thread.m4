@@ -86,9 +86,10 @@ AC_DEFUN([AX_BOOST_THREAD],
 		if test "x$ax_cv_boost_thread" = "xyes"; then
            if test "x$build_os" = "xsolaris" ; then
 			  BOOST_CPPFLAGS="-pthreads $BOOST_CPPFLAGS"
-		   elif test "x$build_os" = "xming32" ; then
+		   elif test "x$build_os" = "xmingw32" ; then
 			  BOOST_CPPFLAGS="-mthreads $BOOST_CPPFLAGS"
 		   else
+             echo "BUILD OS:", $build_os
 			  BOOST_CPPFLAGS="-pthread $BOOST_CPPFLAGS"
 		   fi
 
