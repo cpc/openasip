@@ -222,12 +222,13 @@ ControlFlowGraph::createBBEdges(
         /// Look for __exit procedure, if it is found, calls to it will not
         /// have fall through edges in CFG to avoid possible endless loops
         /// and create possible unreachable basic blocks
-        try {
+
+        if (program_->hasProcedure("__exit")) {
             exitAddr =
                 program_->procedure("__exit").firstInstruction().address().
                 location();
-            hasExit = true;
-        } catch (const KeyNotFound& e) {
+            hasExit = true; 
+        } else {
             /// The __exit procedure was not found, we do not detect calls to
             /// __exit in calls
             hasExit = false;
