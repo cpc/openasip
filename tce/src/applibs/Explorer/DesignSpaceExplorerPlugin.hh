@@ -60,12 +60,10 @@ public:
     virtual ~DesignSpaceExplorerPlugin();
     
     virtual bool requiresStartingPointArchitecture() const = 0;
-
     virtual bool producesArchitecture() const = 0;
-
     virtual bool requiresHDB() const = 0;
-
     virtual bool requiresSimulationData() const = 0;
+    virtual bool requiresApplication() const { return true; }
 
     typedef std::pair<std::string, 
             ExplorerPluginParameter> Parameter;

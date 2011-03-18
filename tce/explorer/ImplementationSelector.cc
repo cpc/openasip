@@ -96,6 +96,7 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
     virtual bool producesArchitecture() const { return false; }
     virtual bool requiresHDB() const { return true; }
     virtual bool requiresSimulationData() const { return false; }
+    virtual bool requiresApplication() const { return false; }
     
     /**
      */

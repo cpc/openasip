@@ -396,9 +396,13 @@ int main(int argc, char* argv[]) {
             bem = loadBEM(bemFile);
         } else {
             PIGCLITextGenerator textGen;
+#if 0
+            // useless error output as this happens 100% of the time,
+            // no-one hasn't wanted to customize BEMs yet
             std::cerr 
                 << textGen.text(PIGCLITextGenerator::TXT_GENERATING_BEM).
                 str() << std::endl;
+#endif
             BEMGenerator bemGenerator(*mach);
             bem = bemGenerator.generate();
         }

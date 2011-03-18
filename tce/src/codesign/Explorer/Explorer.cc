@@ -666,14 +666,6 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    if (testDirectories < 1 && !dsdb->applicationCount()) {
-        // used plugin may not need a test application, or the app is
-        // provided to the plugin with its own parameter
-        std::cout << "Warning: No test application paths given or found in "
-                     "dsdb."
-                  << std::endl;
-    }
-
     // If the list applications option is given.
     if (options->printApplications()) {
         std::cout << "Applications in the DSDB:" << std::endl;
@@ -711,6 +703,15 @@ int main(int argc, char* argv[]) {
     DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(pluginToUse, dsdb);
     if (!explorer || !loadPluginParameters(explorer, *options)) {
         delete dsdb;
+        return EXIT_FAILURE;
+    }
+
+    if (testDirectories < 1 && !dsdb->applicationCount() &&
+        explorer->requiresApplication()) {
+        // used plugin may not need a test application, or the app is
+        // provided to the plugin with its own parameter
+        std::cerr << "No test application paths given or found in dsdb."
+                  << std::endl;
         return EXIT_FAILURE;
     }
     

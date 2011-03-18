@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8
-# Copyright (c) 2002-2009 Tampere University of Technology.
+# Copyright (c) 2002-2011 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -30,7 +30,7 @@
 # It's sort of a "smoke test" that tells whether there is something seriously
 # broken with the TCE installation.
 #
-# (C) 2009 Pekka Jääskeläinen
+# (C) 2009-2011 Pekka Jääskeläinen
 
 # exploit the unittest framework even though this is actually a system test
 import unittest, os, tempfile, signal, time, glob
@@ -360,23 +360,23 @@ class TestExplorer(TCETestCase):
         # Generate .idf using the ImplementationSelector plugin
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
+            'explore -e ImplementationSelector -a %s -s1 test.dsdb' % \
             self.get_minimalADF(), 120)
         self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('1' in stdout)
+        self.assertTrue('2' in stdout)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -w 1 test.dsdb', 120)
+            'explore -w 2 test.dsdb', 120)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)        
-        self.assertTrue('Written ADF file of configuration 1' in stdout)
-        self.assertTrue('Written IDF file of configuration 1' in stdout)      
-        self.assertTrue(os.path.exists('1.adf'))
-        self.assertTrue(os.path.exists('1.idf'))
+        self.assertTrue('Written ADF file of configuration 2' in stdout)
+        self.assertTrue('Written IDF file of configuration 2' in stdout)      
+        self.assertTrue(os.path.exists('2.adf'))
+        self.assertTrue(os.path.exists('2.idf'))
 
         # Add a dummy test application.
         dummy_app_c = """
@@ -417,7 +417,7 @@ class TestExplorer(TCETestCase):
 
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -v1 -d test_app test.dsdb', 120)
+            'explore -v -d test_app test.dsdb', 120)
 
         self.assertEquals(stdout, '')
         self.assertEquals(stderr.strip(), '')
@@ -426,11 +426,11 @@ class TestExplorer(TCETestCase):
 
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e Evaluate -s 1 test.dsdb', 40*60)
+            'explore -e Evaluate -s 2 test.dsdb', 40*60)
 
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
-        self.assertTrue('No new configurations could be created.' in stdout)
+        self.assertTrue('No fitting processor configurations were created.' in stdout)
         self.assertEquals(stderr, '')
         self.assertEquals(code, 0)
 
@@ -439,9 +439,9 @@ class TestExplorer(TCETestCase):
              self.runWithTimeout(
             'explore -c C test.dsdb', 60)        
 
-        expected_output = "| 1       | test_app         | 12          | 1.32785e-07     | 12.33              | 6262.15 |"
+        #expected_output = "| 1       | test_app         | 12          | 1.32785e-07     | 12.33              | 6262.15 |"
 
-        row = stdout.split('\n')[3]
+        row = stdout.split('\n')[4]
         id, cycles, energy, delay, area = \
             [float(x.strip()) for x in row.split('|') if x.strip() != '' and x.strip() != 'test_app']
 
@@ -474,27 +474,27 @@ class TestEstimator(TCETestCase):
         # Generate .idf using explorer
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
+            'explore -e ImplementationSelector -a %s -s 1 test.dsdb' % \
             self.get_minimalADF(), 120)
         self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('1' in stdout)
+        self.assertTrue('2' in stdout)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -w 1 test.dsdb', 60)
+            'explore -w 2 test.dsdb', 60)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)        
-        self.assertTrue('Written ADF file of configuration 1' in stdout)
-        self.assertTrue('Written IDF file of configuration 1' in stdout)      
-        self.assertTrue(os.path.exists('1.adf'))
-        self.assertTrue(os.path.exists('1.idf'))
+        self.assertTrue('Written ADF file of configuration 2' in stdout)
+        self.assertTrue('Written IDF file of configuration 2' in stdout)      
+        self.assertTrue(os.path.exists('2.adf'))
+        self.assertTrue(os.path.exists('2.idf'))
        
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'estimate -l -a 1.adf 1.idf', 40*60)
+            'estimate -l -a 2.adf 2.idf', 40*60)
 
         self.assertFalse(timeout)
 
@@ -531,23 +531,23 @@ class TestProGeAndPIG(TCETestCase):
         # Generate .idf using the ImplementationSelector plugin
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
+            'explore -e ImplementationSelector -a %s -s1 test.dsdb' % \
             self.get_minimalADF(), 120)
         self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('1' in stdout)
+        self.assertTrue('2' in stdout)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -w 1 test.dsdb', 120)
+            'explore -w 2 test.dsdb', 120)
         self.assertEquals(stderr.strip(), '')
         self.assertEquals(code, 0)        
-        self.assertTrue('Written ADF file of configuration 1' in stdout)
-        self.assertTrue('Written IDF file of configuration 1' in stdout)      
-        self.assertTrue(os.path.exists('1.adf'))
-        self.assertTrue(os.path.exists('1.idf'))
+        self.assertTrue('Written ADF file of configuration 2' in stdout)
+        self.assertTrue('Written IDF file of configuration 2' in stdout)      
+        self.assertTrue(os.path.exists('2.adf'))
+        self.assertTrue(os.path.exists('2.idf'))
 
         # Add a dummy test application.
         dummy_app_c = """
@@ -568,7 +568,7 @@ class TestProGeAndPIG(TCETestCase):
         # test.tpef
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'tcecc -O0 test.c -a 1.adf -o test.tpef', 60*10)
+            'tcecc -O0 test.c -a 2.adf -o test.tpef', 60*10)
 
         self.assertFalse(timeout)
         self.assertEquals(stdout, '')
@@ -579,7 +579,7 @@ class TestProGeAndPIG(TCETestCase):
         # generate VHDL for the processor
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'generateprocessor -o proc_vhdl -i 1.idf 1.adf', 60*5)
+            'generateprocessor -o proc_vhdl -i 2.idf 2.adf', 60*5)
         self.assertFalse(timeout)
         self.assertEquals(stdout, '')
         self.assertEquals(stderr, '')
@@ -591,12 +591,13 @@ class TestProGeAndPIG(TCETestCase):
         # generate the program image
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'generatebits -c InstructionDictionary.so -d -g -x proc_vhdl -p test.tpef 1.adf', 60*5)
+            'generatebits -c InstructionDictionary.so -d -g -x proc_vhdl -p test.tpef 2.adf', 60*5)
 
         self.assertFalse(timeout)
         self.assertEquals(stdout, '')
+        self.assertEquals(stderr, '')
         self.assertEquals(code, 0)        
-        self.assertEquals('BEM file was not given --> Generating default BEM..', stderr.strip())
+        self.assertEquals('', stderr.strip())
         self.assert_(os.path.exists('proc_vhdl/vhdl/imem_mau_pkg.vhdl'))
         self.assert_(os.path.exists('test_data.img'))
         self.assert_(os.path.exists('test.img'))        

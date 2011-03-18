@@ -76,6 +76,7 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
     virtual bool producesArchitecture() const { return false; }
     virtual bool requiresHDB() const { return false; }
     virtual bool requiresSimulationData() const { return false; }
+    virtual bool requiresApplication() const { return false; }
     
     /**
      * Explorer plugin that checks that given config or adf meets minimal opset

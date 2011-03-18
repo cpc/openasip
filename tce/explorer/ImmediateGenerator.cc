@@ -99,6 +99,7 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
     virtual bool producesArchitecture() const { return true; }
     virtual bool requiresHDB() const { return false; }
     virtual bool requiresSimulationData() const { return false; }
+    virtual bool requiresApplication() const { return false; }
 
     /**
      * Explorer plugin that creates or modifies machine instruction templates.
