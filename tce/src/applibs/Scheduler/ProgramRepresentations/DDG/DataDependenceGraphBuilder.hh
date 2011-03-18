@@ -110,9 +110,14 @@ protected:
         MNData2() : mn_(NULL) {} // just because STL sucks. there is always = after this.
         MNData2(
             const MoveNode& mn, bool guard = false, bool ra = false, 
-            bool pseudo = false) :
-            mn_(&mn), guard_(guard), ra_(ra), pseudo_(pseudo) {}
-        // TODO: should be deterministic - this is not!
+            bool pseudo = false, int loop = 0) :
+            mn_(&mn), guard_(guard), ra_(ra), pseudo_(pseudo), loop_(loop) {}
+
+        MNData2(
+            const MNData2& mnd, bool addLoopProperty) :
+            mn_(mnd.mn_), guard_(mnd.guard_), ra_(mnd.ra_), 
+            pseudo_(mnd.pseudo_), loop_(mnd.loop_ | addLoopProperty) {}
+
         bool operator< (const MNData2& other) const {
             if (mn_ == NULL) return false;
             if (other.mn_ == NULL) return true;
@@ -134,6 +139,7 @@ protected:
         bool guard_;
         bool ra_;
         bool pseudo_;
+        int loop_;
     };
 
     typedef std::set<MNData2 > RegisterUseSet;
@@ -215,8 +221,19 @@ protected:
     void setSucceedingPredeps(
         BBData& bbd, bool queueAll,
         ConstructionPhase phase);
+
+    void setSucceedingPredepsForBB(
+        BasicBlockNode& bbn,
+        BBData& bbData,
+        BasicBlockNode& succ,
+        bool queueAll,
+        bool loop,
+        ConstructionPhase phase);
+
     bool appendUseMapSets(
-        const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap);
+        const RegisterUseMapSet& srcMap, 
+        RegisterUseMapSet& dstMap,
+        bool addLoopProperty);
    
     void updateBB(
         BBData& bbd, 
@@ -333,6 +350,11 @@ protected:
     void getStaticRegisters(
         const UniversalMachine& um, 
         std::map<int,std::string>& registers);
+
+    void appendMoveNodeUse(
+        const RegisterUseSet& src,
+        RegisterUseSet& dst,
+        bool setLoopProperty);
 
     // then member variables.
 

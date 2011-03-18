@@ -80,7 +80,7 @@ public:
     DataDependenceGraph(
         const std::string& name="", 
         AntidependenceLevel antidependenceLevel = ALL_ANTIDEPS,
-        bool containsProcedure=false);
+        bool containsProcedure = false, bool noLoopEdges = false);
     virtual ~DataDependenceGraph();    
 
     /* Gets the BB in which this move belongs. This should be moved to
@@ -163,8 +163,6 @@ public:
         throw (InstanceNotFound);
 
     MoveNode& nodeOfMove(TTAProgram::Move& move) throw (InstanceNotFound);
-
-    void dropBackEdges();
 
     void fixInterBBAntiEdges(BasicBlockNode& bbn1, BasicBlockNode& bbn2)
         throw (Exception);

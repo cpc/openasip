@@ -53,6 +53,22 @@
 #include "ObjectState.hh"
 #include "XMLSerializer.hh"
 
+/**
+ * Constructor.
+ *
+ * @param name The graph can be named for debugging purposes.
+ * @param containsProcedure whether the DDG contains complete procedure
+ */
+DataDependenceGraph::DataDependenceGraph(
+    const std::string& name, 
+    AntidependenceLevel antidependenceLevel,
+    bool containsProcedure,
+    bool noLoopEdges) : 
+    BoostGraph<MoveNode, DataDependenceEdge>(name, !noLoopEdges), cycleGrouping_(true), 
+    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure),
+    registerAntidependenceLevel_(antidependenceLevel) {
+}
+
 
 /**
  * Sets bookkeeping that the given movende belongs to the given basic block.
@@ -123,20 +139,6 @@ DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
 }
 
 
-/**
- * Constructor.
- *
- * @param name The graph can be named for debugging purposes.
- * @param containsProcedure whether the DDG contains complete procedure
- */
-DataDependenceGraph::DataDependenceGraph(
-    const std::string& name, 
-    AntidependenceLevel antidependenceLevel,
-    bool containsProcedure) : 
-    BoostGraph<MoveNode, DataDependenceEdge>(name), cycleGrouping_(true), 
-    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure),
-    registerAntidependenceLevel_(antidependenceLevel) {
-}
 
 /**
  * Destructor.
@@ -1449,7 +1451,9 @@ DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
     NodeSet& nodes, bool includeLoops) 
     throw (InstanceNotFound) {
-    DataDependenceGraph *subGraph = new DataDependenceGraph;
+    DataDependenceGraph *subGraph = new DataDependenceGraph(
+        "", registerAntidependenceLevel_, false, !includeLoops);
+
     constructSubGraph(*subGraph, nodes);
 
     typedef std::set<ProgramOperation*, ProgramOperation::Comparator> POSet;
@@ -1471,10 +1475,11 @@ DataDependenceGraph::createSubgraph(
          i != subgraphPOs.end();i++) {
         subGraph->programOperations_.push_back(*i);
     }
-
+/*
     if ( !includeLoops ) {
         subGraph->dropBackEdges();
     }
+*/
     return subGraph;
 }
 
@@ -1557,61 +1562,6 @@ DataDependenceGraph::nodeOfMove(TTAProgram::Move& move)
             POMDisassembler::disassemble(move);
     throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
 
-}
-
-/**
- * Drops back edges from a sub-DDG.
- *
- * This works only with simple control structures. 
- */
-void DataDependenceGraph::dropBackEdges() {
-
-    const int nc = nodeCount();
-
-    // first loop thru all nodes.
-    for (int n = 0; n < nc; n++) {
-        NodeDescriptor nd = boost::vertex(n, graph_);
-
-        Node* tn = graph_[nd];
-
-        // the thru all output edges of the node.
-        std::pair<OutEdgeIter, OutEdgeIter> edges = 
-            boost::out_edges(nd, graph_);
-
-        for (OutEdgeIter ei = edges.first; ei != edges.second;) {
-            DataDependenceEdge* e = graph_[(*ei)];
-
-            MoveNode& hn = headNode(*e,nd);
-            if (hn.nodeID() <= tn->nodeID() || 
-                (e->edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
-                 e->dependenceType() == DataDependenceEdge::DEP_WAW &&
-                 hn.isDestinationOperation() &&
-                 tn->isDestinationOperation() &&
-                 &hn.destinationOperation() == 
-                 &tn->destinationOperation())) {
-                
-                // remove from internal bookkeeping
-                boost::remove_edge(*ei, graph_);
-
-                // iterators must be resetted when deleted something.
-                edges = boost::out_edges(nd, graph_);
-                ei = edges.first;
-
-                // remove from edge descriptor cache
-                DataDependenceGraph::EdgeDescMap::iterator
-                    edIter = edgeDescriptors_.find(e);
-                if (edIter != edgeDescriptors_.end()) {
-                    edgeDescriptors_.erase(edIter);
-                }
-
-                for (unsigned int i = 0; i < childGraphs_.size(); i++) {
-                    childGraphs_.at(i)->dropEdge(*e);
-                }    
-            } else {
-                ei++;
-            }
-        }
-    }
 }
 
 /**

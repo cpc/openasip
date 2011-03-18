@@ -334,7 +334,8 @@ void DataDependenceGraphBuilder::iterateBBs(ConstructionPhase phase) {
  * @return true if destination changed (needs updating)
  */
 bool DataDependenceGraphBuilder::appendUseMapSets(
-    const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap) {
+    const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap,
+    bool addLoopProperty) {
     bool changed = false;
     for (RegisterUseMapSet::const_iterator srcIter = srcMap.begin();
          srcIter != srcMap.end(); srcIter++) {
@@ -343,7 +344,8 @@ bool DataDependenceGraphBuilder::appendUseMapSets(
         RegisterUseSet& dstSet = dstMap[reg];
         // dest set size before appending.
         size_t size = dstSet.size();
-        AssocTools::append(srcSet, dstSet);
+        appendMoveNodeUse(srcSet, dstSet, addLoopProperty);
+//        AssocTools::append(srcSet, dstSet);
         // if size has changed, dest is changed.
         if (dstSet.size() > size) {
             changed = true;
@@ -365,48 +367,64 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
     BBData& bbd, bool queueAll, ConstructionPhase phase) {
 
     BasicBlockNode& bbn = *bbd.bblock_;
-    BBNodeSet successors = cfg_->successors(bbn);
-    for (BBNodeSet::iterator succIter = successors.begin(); 
-         succIter != successors.end(); succIter++) {
-        BasicBlockNode* succ = *succIter;
 
-        BBData& succData = *bbData_[succ];
-        bool changed = false;
-        if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
+    BBNodeSet forwardSuccessors = cfg_->successors(bbn, true);
+    for (BBNodeSet::iterator succIter = forwardSuccessors.begin();
+         succIter != forwardSuccessors.end(); succIter++) {
+        setSucceedingPredepsForBB(
+            bbn, bbd, **succIter, queueAll, false, phase);
+    }
+
+    // successors over loop edges.
+    BBNodeSet backwardSuccessors = cfg_->successors(bbn, false, true);
+    for (BBNodeSet::iterator succIter = backwardSuccessors.begin();
+         succIter != backwardSuccessors.end(); succIter++) {
+        setSucceedingPredepsForBB(
+            bbn, bbd, **succIter, queueAll, true, phase);
+    }
+}
+
+void
+DataDependenceGraphBuilder::setSucceedingPredepsForBB(
+    BasicBlockNode& bbn, BBData& bbd, BasicBlockNode& succ, bool queueAll, 
+    bool loop, ConstructionPhase phase) {
+
+    BBData& succData = *bbData_[&succ];
+    bool changed = false;
+    if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
+        changed |= appendUseMapSets(
+            bbd.regDefAfter_, succData.regDefReaches_, loop);
+        
+        if (currentDDG_->hasAllRegisterAntidependencies() ||
+            (&bbn == &succ &&
+             currentDDG_->hasSingleBBLoopRegisterAntidependencies())) {
             changed |= appendUseMapSets(
-                bbd.regDefAfter_, succData.regDefReaches_);
-            
-            if (currentDDG_->hasAllRegisterAntidependencies() ||
-                (&bbn == succ &&
-                 currentDDG_->hasSingleBBLoopRegisterAntidependencies())) {
-                changed |= appendUseMapSets(
-                    bbd.regUseAfter_, succData.regUseReaches_);
-            }
-        } else {
-            // mem deps + fu state deps
-
-            changed |= appendUseMapSets(
-                bbd.memDefAfter_, succData.memDefReaches_);
-
-            changed |= appendUseMapSets(
-                bbd.memUseAfter_, succData.memUseReaches_);
-
-            // size at beginning.
-            size_t size = succData.fuDepReaches_.size();
-
-            AssocTools::append(
-                bbd.fuDepAfter_, succData.fuDepReaches_);
-            
-            // if size increased, something is changed.
-            if (succData.fuDepReaches_.size() > size) {
-                changed = true;
-            }
-            // need to queue successor for update?
+                bbd.regUseAfter_, succData.regUseReaches_, loop);
         }
-        if (changed || queueAll) {
-            if (succData.state_ != BB_QUEUED) {
-                changeState(succData, BB_QUEUED);
-            }
+    } else {
+        // mem deps + fu state deps
+        
+        changed |= appendUseMapSets(
+            bbd.memDefAfter_, succData.memDefReaches_, loop);
+        
+        changed |= appendUseMapSets(
+            bbd.memUseAfter_, succData.memUseReaches_, loop);
+        
+        // size at beginning.
+        size_t size = succData.fuDepReaches_.size();
+        
+        appendMoveNodeUse(            
+            bbd.fuDepAfter_, succData.fuDepReaches_, loop);
+        
+        // if size increased, something is changed.
+        if (succData.fuDepReaches_.size() > size) {
+            changed = true;
+        }
+        // need to queue successor for update?
+    }
+    if (changed || queueAll) {
+        if (succData.state_ != BB_QUEUED) {
+            changeState(succData, BB_QUEUED);
         }
     }
 }
@@ -421,6 +439,7 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
   */
 void
 DataDependenceGraphBuilder::updateBB(BBData& bbd, ConstructionPhase phase) {
+
     currentData_ = &bbd;
     currentBB_ = bbd.bblock_;
 
@@ -619,7 +638,7 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(BBData& bbd) {
     }
 
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bbd.regDefines_, bbd.regDefAfter_);
+    changed |= appendUseMapSets(bbd.regDefines_, bbd.regDefAfter_, false);
 
     if (currentDDG_->hasAllRegisterAntidependencies()) {
         // copy uses that are alive
@@ -643,7 +662,7 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(BBData& bbd) {
         }
     }
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bbd.regLastUses_, bbd.regUseAfter_);
+    changed |= appendUseMapSets(bbd.regLastUses_, bbd.regUseAfter_, false);
     return changed;
 }
 
@@ -678,7 +697,7 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
         }
     }
     
-    changed |= appendUseMapSets(bbd.memDefines_, bbd.memDefAfter_);
+    changed |= appendUseMapSets(bbd.memDefines_, bbd.memDefAfter_, false);
 
     // copy uses that are alive
     for (RegisterUseMapSet::iterator iter = bbd.memUseReaches_.begin();
@@ -696,7 +715,7 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
         }
     }
 
-    changed |= appendUseMapSets(bbd.memLastUses_, bbd.memUseAfter_);
+    changed |= appendUseMapSets(bbd.memLastUses_, bbd.memUseAfter_, false);
 
     size_t size = bbd.fuDepAfter_.size();
     AssocTools::append(bbd.fuDeps_, bbd.fuDepAfter_);
@@ -873,7 +892,7 @@ DataDependenceGraphBuilder::createRegRaw(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
             DataDependenceEdge::DEP_RAW, reg, current.guard_, false, 
-            source.pseudo_, current.pseudo_);
+            source.pseudo_, current.pseudo_, source.loop_);
     
         // create dependency edge
     currentDDG_->connectOrDeleteEdge(*source.mn_, *current.mn_, dde);
@@ -893,10 +912,11 @@ DataDependenceGraphBuilder::createRegWar(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
             DataDependenceEdge::DEP_WAR, reg, source.guard_, false, 
-            source.pseudo_, current.pseudo_);
+            source.pseudo_, current.pseudo_, source.loop_);
     
         // create dependency edge
     currentDDG_->connectOrDeleteEdge(*source.mn_, *current.mn_, dde);
+
 }
 
 /**
@@ -916,7 +936,7 @@ DataDependenceGraphBuilder::createRegWaw(
             current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
                 DataDependenceEdge::DEP_WAW, reg, false, false, 
-                source.pseudo_, current.pseudo_);
+            source.pseudo_, current.pseudo_, source.loop_);
         
         // create dependency edge
         currentDDG_->connectOrDeleteEdge(
@@ -1089,7 +1109,7 @@ DataDependenceGraphBuilder::processRegWrite(
     for (std::set<MNData2>::iterator i = defines_.begin();
          i != defines_.end(); i++) {
         // Do not create mem WaW if writes have excluding guards(select op)
-        if (!exclusingGuards(*(i->mn_), *(mnd.mn_))) {
+        if (!exclusingGuards(*(i->mn_), *(mnd.mn_)) && i->mn_ != mnd.mn_) {
             createRegWaw(*i, mnd, reg);
         }
     }
@@ -1097,7 +1117,9 @@ DataDependenceGraphBuilder::processRegWrite(
     // create WaR to reads in same bb
     for (std::set<MNData2>::iterator i = lastUses_.begin();
          i != lastUses_.end(); i++) {
-        createRegWar(*i, mnd, reg);
+         if (i->mn_ != mnd.mn_) {
+             createRegWar(*i, mnd, reg);
+         }
     }
 
     // if unconditional , this kills previous deps.
@@ -1260,7 +1282,7 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
             DataDependenceEdge* dde2 =
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_MEMORY, depType, false, 
-                    trueAlias, prev.pseudo_, mnd.pseudo_);
+                    trueAlias, prev.pseudo_, mnd.pseudo_, prev.loop_);
             currentDDG_->connectOrDeleteEdge(
                 prevPo.inputMove(i), *mnd.mn_, dde2);
         }
@@ -1676,7 +1698,8 @@ void DataDependenceGraphBuilder::createSideEffectEdges(
                 DataDependenceEdge* dde =
                     new DataDependenceEdge(
                         DataDependenceEdge::EDGE_FUSTATE,
-                        DataDependenceEdge::DEP_UNKNOWN);
+                        DataDependenceEdge::DEP_UNKNOWN, 
+                        false, false, false, false, i->loop_);
                 currentDDG_->connectOrDeleteEdge(
                     *(i->mn_), mn, dde);
             }
@@ -2041,6 +2064,24 @@ DataDependenceGraphBuilder::memoryCategory(const MNData2& mnd) {
         }
     }
     return category;
+}
+
+/**
+ * Appends a MoveNodeUseSet to another. May set loop property of copied
+ * moves to true.
+ *
+ * @param src source set
+ * @param dst destination set
+ * @param setLoopProperty whether to set loop property true in copied data
+ */
+void DataDependenceGraphBuilder::appendMoveNodeUse(
+    const RegisterUseSet& src, RegisterUseSet& dst, bool setLoopProperty) {
+
+    for (RegisterUseSet::const_iterator i =
+             src.begin(); i != src.end(); i++) {
+        const MNData2& mnu = *i;
+        dst.insert(MNData2(mnu, setLoopProperty));
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
