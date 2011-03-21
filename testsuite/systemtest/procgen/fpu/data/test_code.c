@@ -16,7 +16,11 @@ inline void test( int a ) {
   }
 }
 
-inline float abs( float a ) {
+inline float abs( float a ) { // TODO hardware instruction
+  //if( a < 0 ) {
+  //  return -a;
+  //}
+  //return a;
   float returnval;
   _TCE_ABSF( a, returnval );
   return returnval;
@@ -32,144 +36,67 @@ static union {
 } uni;
 
 #define MAXFLOAT_BITPATTERN 0x7f7fffff
+#define INF_BITPATTERN 0x7f800000
 #define MINNORMALFLOAT_BITPATTERN 0x00800000
 #define MINNORMALFLOATx2_BITPATTERN 0x01000000
+#define MINNORMALFLOATdiv2_BITPATTERN 0x00400000
 #define MAXDENORMALFLOAT_BITPATTERN 0x007fffff
+#define MAXDENORMALFLOATx2_BITPATTERN 0x00fffffe
 #define NAN_BITPATTERN 0x7f800001
 
 int
 main(void) {
-	
     // *
-    // * Adder tests
+    // * Generic tests. These should succeed with f.ex. half-floats even if the others fail.
     // *
-  
-    // Simple addition
-    a = 3.f;
-    b = 4.f;
-    c = a + b;
-    test( c == 7.f );
+    //_TCE_STDOUT('\n'); 
+    _TCE_STDOUT('1'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
     
-    // Simple substraction
-    c = b - a;
-    test( c == 1.f );
-    
-    // Negative numbers
-    b = -4.f;
-    c = a + b;
-    test( c == -1.f );
-    
-    c = a - b;
-    test( c == 7.f );
-    
-    // Overflow should generate QNAN
-    uni.di = MAXFLOAT_BITPATTERN;
-    uni.df = uni.df + uni.df;
-    test( uni.di == NAN_BITPATTERN );
-    
-    // This produces INF with IEEE compliant floats, but not with rounding mode round_to_zero
-    uni.di = MAXFLOAT_BITPATTERN;
-    uni.df = uni.df+a;
-    test( uni.di == MAXFLOAT_BITPATTERN );    
-    
-    // This would produce nonzero with IEEE floats, but denormal operands are flushed to zero
-    uni.di = MAXDENORMALFLOAT_BITPATTERN;
-    uni.df = uni.df+uni.df;
-    test( uni.df == 0.f );    
-    
-    // However, this works...
-    uni.di = MINNORMALFLOAT_BITPATTERN;
-    uni.df = uni.df+uni.df;
-    test( uni.di == MINNORMALFLOATx2_BITPATTERN );    
-    
-    
-    // *
-    // * Multiplier tests
-    // *
-    
-    // Simple multiplication
-    a = 3.f;
-    b = 4.f;
-    c = a*b;
-    test( c == 12.f );
-    
-    b = -4.f;
-    c = a*b;
-    test( c == -12.f );
-    
-    // Overflow should generate QNAN
-    uni.di = MAXFLOAT_BITPATTERN;
-    uni.df = uni.df * uni.df;
-    test( uni.di == NAN_BITPATTERN );
-    
-    // Small-number behavior should be same as adder..
-    uni.di = MAXDENORMALFLOAT_BITPATTERN;
-    uni.df = uni.df*2.f;
-    test( uni.df == 0.f );    
-    
-    uni.di = MINNORMALFLOAT_BITPATTERN;
-    uni.df = uni.df*2.f;
-    test( uni.di == MINNORMALFLOATx2_BITPATTERN );
-    
-    // Also, denormal results should be flushed to zero, even if operands were normal.
-    uni.di = MINNORMALFLOAT_BITPATTERN;
-    uni.df = uni.df*0.5f;
-    test( uni.df == 0.f );
-    
-    // *
-    // * Divider tests
-    // *
-    
-    // Simple division
-    a = 12.f;
-    b = 4.f;
-    c = a/b;
-    test( c == 3.f );
-    
-    b = -4.f;
-    c = a/b;
-    test( c == -3.f );
-    
-    // Overflow should generate QNAN
-    uni.di = MAXFLOAT_BITPATTERN;
-    uni.df = uni.df / 0.5f;
-    test( uni.di == NAN_BITPATTERN );
-    
-    b = 0.f;
-    c = a/b;
-    test( uni.di == NAN_BITPATTERN );
-    
-    // Small-number behavior should be same as adder and multiplier..
-    uni.di = MAXDENORMALFLOAT_BITPATTERN;
-    uni.df = uni.df/0.5f;
-    test( uni.df == 0.f );    
-    
-    uni.di = MINNORMALFLOAT_BITPATTERN;
-    uni.df = uni.df/0.5f;
-    test( uni.di == MINNORMALFLOATx2_BITPATTERN );
-    
-    uni.di = MINNORMALFLOAT_BITPATTERN;
-    uni.df = uni.df/2.f;
-    test( uni.df == 0.f );
-    
-    
-    // *
-    // * SQRT tests
-    // *
     
     // Simple SQRT
-    b=4.f;
-    _TCE_SQRTF( b, c );
-    test( abs( c - 2.f ) < 0.000001 ); // TODO exact error bound from OpenCL standard
+    i=81;
+    a = (float) i;
+    _TCE_SQRTF( a, c );
+    i = (int) c;
+    test( i == 9 ); 
     
     
-    _TCE_SQRTF( b, c );
-    test( abs( c - 2.f ) < 0.000001 ); // TODO exact error bound from OpenCL standard
+    i = 312;
+    a = (float)i;
+    i = 13;
+    b = (float)i;
+    
+    c = a / b;
+    i = (int)c;
+    test( i == 24 );
+    
+    i = 13;
+    a = (float)i;
+    i = 24;
+    b = (float)i;
+    
+    c = a + b;
+    
+    i = (int)c;
+    
+    test( i==37 );
+    
+    c = a * b;
+    
+    i = (int)c;
+    test( i==312 );
+    
     
     
     // *
     // * CIF and CFI converter tests
     // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('2'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
     
     // Signed float-to-int conversion
     a = 12.f;
@@ -199,14 +126,120 @@ main(void) {
     test( ui == 0x80000000 );
     
     c = -2.f; // Negative float -> unsigned int = zero
+    // TODO is this correct IEEE behavior?
     ui = (unsigned int)c;
-    test( ui == 0 );
+    // Undefined!
+    //test( ui == 0 );
+    
+    // *
+    // * SQRTF tests
+    // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('3'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    
+    
+    b=32084023.f;
+    _TCE_SQRTF( b, c );
+    test( abs( c - 5664.2760349403879f ) < 0.001 );
+    
+    // Simple SQRT
+    b=90000.f;
+    _TCE_SQRTF( b, c );
+    test( abs( c - 300.f ) < 0.00001 ); 
+    
+    b=9.f;
+    _TCE_SQRTF( b, c );
+    test( abs( c - 3.f ) < 0.00001 ); 
+    
+    b=-1.f;
+    _TCE_SQRTF( b, uni.df );
+    test( uni.di == NAN_BITPATTERN );
+    
+    
+    
+    // *
+    // * ABSF, NEGF tests
+    // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('4'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    a=-2.f;
+    b=2.f;
+    
+    //ABS
+    test( abs( a ) == 2.f );
+    
+    test( abs( -a ) == 2.f );
+    
+    //NEG
+    b = -a;
+    test( b == 2.f );
+    
+    a = -b;
+    test( a == -2.f );
+    
+    
+    // *
+    // * Adder tests
+    // *
+  
+    //_TCE_STDOUT('\n'); 
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('5'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    
+    // Simple addition
+    a = 3.f;
+    b = 4.f;
+    c = a + b;
+    test( c == 7.f );
+    
+    // Simple substraction
+    c = b - a;
+    test( c == 1.f );
+    
+    // Negative numbers
+    b = -4.f;
+    c = a + b;
+    test( c == -1.f );
+    
+    c = a - b;
+    test( c == 7.f );
+    
+    // Overflow should generate QNAN
+    uni.di = MAXFLOAT_BITPATTERN;
+    uni.df = uni.df + uni.df;
+    test( uni.di == INF_BITPATTERN );
+    
+    // 
+    uni.di = MAXFLOAT_BITPATTERN;
+    uni.df = uni.df+a;
+    test( uni.di == INF_BITPATTERN );
+    
+    // This produces a nonzero number with IEEE floats
+    uni.di = MAXDENORMALFLOAT_BITPATTERN;
+    uni.df = uni.df+uni.df;
+    test( uni.df == 0.f );    
+    
+    // This also works
+    uni.di = MINNORMALFLOAT_BITPATTERN;
+    uni.df = uni.df+uni.df;
+    test( uni.di == MINNORMALFLOATx2_BITPATTERN );    
+    
     
     
     
     // *
     // * Comparator tests
     // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('6'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
     
     a=2.f;
     b=4.f;
@@ -248,22 +281,109 @@ main(void) {
     i = (c <= a);
     test( !i ); 
     
-    //ABS
-    test( abs( -a ) == 2.f );
+    a=2.f;
+    b=4.f;    
+//#endif
+  
     
-    //NEG
-    b = -a;
-    test( b == -2.f );
     
-    // End output with '.' to show during debugging that there was enough runtime
-    _TCE_STDOUT('.'); 
+    // *
+    // * Multiplier tests
+    // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('7'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
     
-    /* Endless loop prevents the vhdl simulation from restarting in case
-     * the runtime is too long. In other words, the runtime can now be set
-     * overly long to compensate variation of the actual test runtime.
-     */
-    while (1)
-        i++;
-
+    // Simple multiplication
+    a = 123.f;
+    b = 456.f;
+    c = a*b;
+    test( c == 56088.f );
+    
+    a = 3.f;
+    b = 4.f;
+    c = a*b;
+    test( c == 12.f );
+    
+    b = -4.f;
+    c = a*b;
+    test( c == -12.f );
+    
+    // Overflow should generate INF
+    uni.di = MAXFLOAT_BITPATTERN;
+    uni.df = uni.df * uni.df;
+    test( uni.di == INF_BITPATTERN );
+    
+    // Small-number behavior should be same as adder..
+    uni.di = MAXDENORMALFLOAT_BITPATTERN;
+    uni.df = uni.df*2.f;
+    test( uni.df == 0.f );    //!!
+    
+    uni.di = MINNORMALFLOAT_BITPATTERN;
+    uni.df = uni.df*2.f;
+    test( uni.di == MINNORMALFLOATx2_BITPATTERN );
+    
+    // Denormal results should also work...
+    uni.di = MINNORMALFLOAT_BITPATTERN;
+    uni.df = uni.df*0.5f;
+    test( uni.df == 0.f );
+  
+    // *
+    // * Divider tests
+    // *
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('8'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    
+    // Simple division
+    a = 137475.f;
+    b = 423.f;
+    c = a/b;
+    test( c == 325.f );
+    
+//#if 0
+    // Simple division
+    a = 21.f;
+    b = 4.f;
+    c = a/b;
+    test( c == 5.25f );
+    
+    a = 12.f;
+    b = 4.f;
+    c = a/b;
+    test( c == 3.f );
+    
+    b = -4.f;
+    c = a/b;
+    test( c == -3.f );
+    
+    // Overflow should generate INF
+    uni.di = MAXFLOAT_BITPATTERN;
+    uni.df = uni.df / 0.5f;
+    test( uni.di == INF_BITPATTERN );
+    
+    b = 0.f;
+    c = a/b;
+    test( uni.di == INF_BITPATTERN );
+    
+    // Small-number behavior should be same as adder and multiplier..
+    uni.di = MAXDENORMALFLOAT_BITPATTERN;
+    uni.df = uni.df/0.5f;
+    test( uni.df == 0.f );    
+    
+    uni.di = MINNORMALFLOAT_BITPATTERN;
+    uni.df = uni.df/0.5f;
+    test( uni.di == MINNORMALFLOATx2_BITPATTERN );
+    
+    uni.di = MINNORMALFLOAT_BITPATTERN;
+    uni.df = uni.df/2.f;
+    test( uni.df == 0.f );
+    
+    _TCE_STDOUT('\n'); 
+    c=3;
+    
+    
     return 0;
 }

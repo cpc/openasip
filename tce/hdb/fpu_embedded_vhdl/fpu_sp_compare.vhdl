@@ -42,15 +42,15 @@ end float_compare_opcodes;
 
 library IEEE;
 use IEEE.std_logic_1164.all;
-use IEEE.std_logic_arith.all;
 use ieee.numeric_std.all;
-use work.cop_definitions.all;
 use work.float_compare_opcodes.all;
 
 entity fpu_sp_compare is
   
   generic (
-    busw : integer := 32);
+    busw : integer := 32;
+    mw   : integer := 23;
+    ew   : integer := 8);
 
   port (
     t1data   : in  std_logic_vector(busw-1 downto 0);
@@ -71,14 +71,6 @@ end fpu_sp_compare;
 
 architecture rtl of fpu_sp_compare is
 
-    component sp_fcomparator
-    port( clk,reset,enable              : in  std_logic;
-          unordered_query,equal_query,
-          less_query,invalid_enable     : in std_logic;
-          opa,opb                       : in  std_logic_vector(word_width-1 downto 0);
-          comparison_result             : out std_logic_vector(word_width-1 downto 0);
-          exc_invalid_operation_compare : out std_logic );
-    end component;
 
   signal t1reg   : std_logic_vector (busw-1 downto 0);
   signal opc1reg : std_logic_vector (2 downto 0);
@@ -86,20 +78,10 @@ architecture rtl of fpu_sp_compare is
   signal o1temp  : std_logic_vector (busw-1 downto 0);
   signal r1      : std_logic_vector (busw-1 downto 0);
   signal control : std_logic_vector(1 downto 0);
-  signal enable  : std_logic;
-  signal equal_query       : std_logic;
-  signal less_query        : std_logic;
-  signal unordered_query   : std_logic;
-  signal invalid_enable   : std_logic;
-  signal comparison_result : std_logic_vector( busw-1 downto 0 );
 
+  signal eq, gt  : std_logic;
   
 begin
-  invalid_enable <= '1';
-  process( glock )
-  begin
-    enable <= not glock;
-  end process;
 
   control <= o1load&t1load;
 
@@ -133,67 +115,89 @@ begin
     end if;
   end process regs;
 
-  COMPARE_LOGIC : process( o1reg, t1reg, opc1reg, comparison_result )
+  process( t1reg, o1reg )
+    variable signa, signb : std_logic;
+    variable absa, absb : unsigned( mw+ew-1 downto 0 );
+    variable absgt : std_logic;
+    variable abseq : std_logic;
   begin
-    equal_query <= '0';
-    less_query <= '0';
-    unordered_query <= '0';
+    signa := t1reg( mw+ew );
+    signb := o1reg( mw+ew );
+    absa := unsigned( t1reg( mw+ew-1 downto 0 ) );
+    absb := unsigned( o1reg( mw+ew-1 downto 0 ) );
+
+    if absa > absb then
+      absgt := '1';
+    else
+      absgt := '0';
+    end if;
+
+    if absa = absb then
+      abseq := '1';
+    else
+      abseq := '0';
+    end if;
+
+    --handle negative zero
+    if absa = 0 then
+      signa := '0';
+    end if;
+
+    if absb = 0 then
+      signb := '0';
+    end if;
+
+    --if( absa = 0 and abseq='1' ) then
+    --  gt <= '0';
+    --  eq <= '1';
+    --els
+    if( signa = '0' and signb = '1' ) then
+      gt <= '0';
+      eq <= '0';
+    elsif( signa = '1' and signb = '0' ) then
+      gt <= '1';
+      eq <= '0';
+    elsif( signa = '1' and signb = '1' ) then
+      gt <= not absgt;
+      eq <= abseq;
+    else -- signa=0, signb=0
+      gt <= absgt;
+      eq <= abseq;
+    end if;
+
+  end process;
+
+  COMPARE_LOGIC : process( o1reg, t1reg, opc1reg, eq, gt )
+  begin
     case opc1reg is 
-      
       when OPC_ABSF =>
-        r1( busw-2 downto 0 ) <= t1reg( busw-2 downto 0 );
-        r1( busw-1 ) <= '0';
+        r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
+        r1( mw+ew ) <= '0';
       when OPC_NEGF =>
-        r1( busw-2 downto 0 ) <= t1reg( busw-2 downto 0 );
-        r1( busw-1 ) <= not t1reg( busw-1 );
+        r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
+        r1( mw+ew ) <= not t1reg( mw+ew );
       when OPC_EQF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= comparison_result(busw-1);
-        equal_query <= '1';
+        r1( 0 ) <= eq;
       when OPC_NEF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= not comparison_result(busw-1);
-        equal_query <= '1';
+        r1( 0 ) <= not eq;
       when OPC_LTF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= comparison_result(busw-1);
-        less_query <= '1';
+        r1( 0 ) <= not (eq or gt);
       when OPC_LEF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= comparison_result(busw-1);
-        less_query <= '1';
-        equal_query <= '1';
+        r1( 0 ) <= not gt;
       when OPC_GTF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= not comparison_result(busw-1);
-        less_query <= '1';
-        equal_query <= '1';
-      when OPC_GEF =>
+        r1( 0 ) <= gt;
+      when others => -- OPC_GEF
         r1( busw-1 downto 1 ) <= (others=>'0');
-        r1( 0 ) <= not comparison_result(busw-1);
-        less_query <= '1';
-      when others => 
-        r1( busw-1 downto 0 ) <= (others=>'0');
-        less_query <= '1';
+        r1( 0 ) <= eq or gt;
+      --when others => 
+      --  r1( busw-1 downto 0 ) <= (others=>'0');
     end case;
-
-
   end process COMPARE_LOGIC;
-
-
-
-  fu_arch : sp_fcomparator 
-    port map(
-      clk => clk,
-      reset => rstx,
-      enable => enable,
-      opa   => t1reg,
-      opb   => o1reg,
-      comparison_result => comparison_result,
-      equal_query => equal_query,
-      less_query => less_query,
-      invalid_enable => invalid_enable,
-      unordered_query => unordered_query );
 
   r1data <= r1;
 

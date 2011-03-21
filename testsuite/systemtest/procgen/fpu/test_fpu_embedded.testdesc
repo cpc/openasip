@@ -2,7 +2,7 @@
 // file: test_no_lsunits.testdesc
 
 // short test description
-$test_description="OpenCL Embedded compliant FPUs by generating and simulating a processor.";
+$test_description="OpenCL Embedded compliant FPUs by generating and simulating a processor";
 // the binary being tested
 $test_bin="./run_fpu_embedded_test.sh";
 // arguments given to the program
