@@ -76,6 +76,8 @@ Bugfixes
 - When a machine was fully RF connected but not fully connected
   (direct busses from all RF's to FU's and FU's to RF's, but all
   buses were not connected to all sockets) some registers were never used.
+- If machine has SUBF operation but no NEGF operation, compiler could
+  fail to compile code for the machine.
 
 Documentation
 -------------

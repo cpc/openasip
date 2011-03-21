@@ -625,6 +625,11 @@
     <trigger-semantics>
       EXEC_OPERATION(negf, IO(1), IO(2));
     </trigger-semantics>
+    <trigger-semantics>
+      SimValue tmp;
+      EXEC_OPERATION(subf, IO(1), IO(1), tmp);
+      EXEC_OPERATION(subf, tmp, IO(1), IO(2));
+    </trigger-semantics>
   </operation>
 
   <operation>
