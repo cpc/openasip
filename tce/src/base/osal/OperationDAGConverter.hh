@@ -41,6 +41,7 @@
 
 class OperationDAG;
 class OperationDAGNode;
+class OperationPimpl;
 
 /**
  * Parser for creating Operation DAG from Operation DAG Language and
@@ -48,7 +49,7 @@ class OperationDAGNode;
  */
 class OperationDAGConverter {
 public:
-    static OperationDAG* createDAG(std::string sourceCode);
+    static OperationDAG* createDAG(const OperationPimpl& operation, std::string sourceCode);
     static std::string createOsalCode(const OperationDAG& dag);
     static std::string createSimulationCode(
         const OperationDAG& dag, 

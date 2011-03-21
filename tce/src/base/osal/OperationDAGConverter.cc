@@ -54,7 +54,7 @@
  * @exception IllegalParameters There was an error during parsing.
  */
 OperationDAG*
-OperationDAGConverter::createDAG(std::string sourceCode) {
+OperationDAGConverter::createDAG(const OperationPimpl& operation, std::string sourceCode) {
     OperationDAGLanguageGrammar g;
     skip_grammar skip;
   
@@ -71,7 +71,7 @@ OperationDAGConverter::createDAG(std::string sourceCode) {
     if (result.full) {
         const TokenizerData::TokenTreeNode* root = g.tokenData_.tokenTree();
         OperationDAG* retVal = new OperationDAG();
-        OperationDAGBuilder builder(*retVal, *root);
+        OperationDAGBuilder builder(operation, *retVal, *root);
     
         //    std::cerr << g.tokenData_.tokenTree()->toStr() << std::endl;
     

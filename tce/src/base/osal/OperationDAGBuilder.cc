@@ -40,6 +40,7 @@
 #include "ConstantNode.hh"
 #include "Operation.hh"
 #include "Operand.hh"
+#include "OperationPimpl.hh"
 
 /**
  * Constructor.
@@ -48,8 +49,10 @@
  * @param root Tokenized OSAL DAG Language code. 
  */
 OperationDAGBuilder::OperationDAGBuilder(
+    const OperationPimpl& operation,
     OperationDAG& dag, const TokenizerData::TokenTreeNode& root) : 
-    dag_(&dag), rootNode_(root), currentOperation_(NULL) { 
+    dag_(&dag), rootNode_(root), currentOperation_(NULL), 
+    operation_(operation) { 
 }
 
 /**
@@ -162,6 +165,24 @@ OperationDAGBuilder::connectOperandToNode(
     
     if (currOp.operand(operandIndex).isInput()) {
         VariableBinding* srcNode = &getBinding(var);
+        if (srcNode->first == NULL) {
+            throw IllegalParameters(
+                __FILE__,__LINE__,__func__, 
+                TCEString("Source node: ") + Conversion::toString(operandIndex)
+                + " of operation " + currentOperation_->toString() 
+                + " is NULL. This happens in DAG of operation: " + operation_.name());
+        }
+            
+        std::cerr << "VariableBinding at addr: " << srcNode << std::endl;
+        if (!dag_->hasNode(*srcNode->first)) {
+            throw IllegalParameters(
+                __FILE__,__LINE__,__func__, 
+                TCEString("Source node: ") + Conversion::toString(operandIndex)
+                + " of operation " + currentOperation_->toString() 
+                + " not in dag. This happens in DAG of operation: " + operation_.name());
+        }
+                                    
+        std::cerr << "VariableBinding at addr(2): " << srcNode->first << std::endl;
         OperationDAGEdge* newEdge = 
             new OperationDAGEdge(srcNode->second, operandIndex);
         dag_->connectNodes(*srcNode->first, *currentOperation_, *newEdge);
@@ -194,6 +215,14 @@ OperationDAGBuilder::finalize() {
         
         if (iter->second.first == NULL) {                
             VariableBinding& ioVar = getBinding(iter->second.second);
+            if (iter->second.second > operation_.numberOfInputs() + 
+                operation_.numberOfOutputs()) {
+                throw IllegalParameters(
+                    __FILE__, __LINE__, __func__,
+                    TCEString("Operation ") +  operation_.name() + 
+                    TCEString(" doesn't have result operand number: ") +
+                    Conversion::toString(iter->second.second));
+            }
             iter->second.first = new TerminalNode(iter->second.second);
             dag_->addNode(*(iter->second.first));
             OperationDAGEdge* newEdge = 

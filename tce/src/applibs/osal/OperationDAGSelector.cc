@@ -55,6 +55,12 @@ OperationDAGSelector::findDags(const std::string& opName, OperationSet opSet) {
     for (int i = 0; i < op.dagCount(); i++) {
         OperationDAG& currDag = op.dag(i);        
         
+        if (op.dagError(i) != "") {
+            throw IllegalParameters(__FILE__,__LINE__,__func__,
+                                    TCEString("Operation:") + op.name() + " has invalid dag, index: "
+                                    + Conversion::toString(i) + "\n\tError: " + op.dagError(i));
+        }
+
         if (countUnknownOperations(currDag, opSet) == 0) {
             retDags.push_back(&currDag);
         }

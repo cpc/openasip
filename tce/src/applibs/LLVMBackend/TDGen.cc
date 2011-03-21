@@ -1164,6 +1164,11 @@ TDGen::writeEmulationPattern(
     const OperationDAG& dag) {
 
     const OperationDAGNode* res = *(dag.endNodes().begin());
+    if (dag.endNodes().empty()) {
+        std::cerr << "end nodes of dag for operation: " << op.name() << " is empty!" << std::endl;
+        assert(false);
+    }
+
     const OperationNode* opNode = dynamic_cast<const OperationNode*>(res);
     if (opNode == NULL) {
         assert(dag.inDegree(*res) ==  1);
@@ -1465,6 +1470,12 @@ TDGen::operationCanBeMatched(
     // check if one of dags of operation is ok
     for (int i = 0; i < op.dagCount(); i++) {
         OperationDAG& dag = op.dag(i);
+        if (op.dagError(i) != "") {
+            std::cerr << "Broken dag in operation " << op.name() <<
+                op.dagCode(i) << std::endl;
+            assert(0);
+        }
+
         bool dagIsGood = true;
       
         for (int j = 0; j < dag.nodeCount(); j++) {
@@ -1482,7 +1493,7 @@ TDGen::operationCanBeMatched(
                 useSet->insert(refOp.name());                
                 if (!operationCanBeMatched(refOp, useSet)) {
                     dagIsGood =  false;
-                    useSet->erase(refOp.name());                
+                    useSet->erase(refOp.name());
                     break;
                 }
             }

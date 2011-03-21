@@ -177,8 +177,9 @@ OperationPimpl::dag(int index) const {
         
         try {
             dags_[index].dag = 
-                OperationDAGConverter::createDAG(dags_[index].code);
+                OperationDAGConverter::createDAG(*this, dags_[index].code);
             dags_[index].compilationFailed = false;
+            dags_[index].error = "";
             
         } catch (const IllegalParameters &e) {
             dags_[index].dag = &OperationDAG::null;

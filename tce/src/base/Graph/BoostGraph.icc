@@ -1632,7 +1632,7 @@ BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphEdge& e) const {
 
     typename EdgeDescMap::iterator cacheIter = edgeDescriptors_.find(&e);
     if (cacheIter != edgeDescriptors_.end()) {
-	return cacheIter->second;
+        return cacheIter->second;
     }
 
     typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
@@ -1655,7 +1655,7 @@ BoostGraph<GraphNode, GraphEdge>::edgeDescriptor(
 
     typename EdgeDescMap::iterator cacheIter = edgeDescriptors_.find(&e);
     if (cacheIter != edgeDescriptors_.end()) {
-	return cacheIter->second;
+        return cacheIter->second;
     }
 
     typedef std::pair<InEdgeIter, InEdgeIter> EdgeIterPair;
@@ -1712,7 +1712,11 @@ BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphNode& n) const {
             return *i;
         }
     }
-    std::cerr << "Node " << n.toString() << "not in graph!" << std::endl;
+    if (&n == NULL) {
+        std::cerr << "Null-reference node not in graph!" << std::endl;
+    } else {
+        std::cerr << "Node " << n.toString() << "not in graph!" << std::endl;
+    }
     BoostGraph<GraphNode, GraphEdge>::writeToDotFile("missing_node.dot");
 
     assert(false);

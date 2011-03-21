@@ -266,6 +266,15 @@ OperationDAGDialog::updateDAG() {
         FindWindow(ID_NEW_DAG_BUTTON)->Enable();
 
         OperationDAG& currentDAG = operation_->dag(index);
+        if (operation_->dagError(index) != "") {
+            wxString message(
+                wxString::FromAscii(
+                    operation_->dagError(index).c_str()));
+            wxString caption(wxString::FromAscii("Warning"));
+            wxMessageBox(message, caption);
+            dagImageStaticBoxSizer_->Show(false);
+            Layout();
+        }
 
         std::string temp = FileSystem::createTempDirectory();
         std::string pngDag = temp + "/dag.png";

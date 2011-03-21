@@ -44,7 +44,9 @@
 class OperationDAGBuilder {
 public:
     OperationDAGBuilder(
-        OperationDAG& dag, const TokenizerData::TokenTreeNode& root);
+        const OperationPimpl& operation,
+        OperationDAG& dag, 
+        const TokenizerData::TokenTreeNode& root);
 
     void parse();
     
@@ -97,4 +99,6 @@ private:
     
     /// IO(x) variables and corresponding TerminalNodes and operand indices.
     std::map<std::string, TerminalBinding> ioVariables_;
+
+    const OperationPimpl& operation_;
 };

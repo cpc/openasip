@@ -47,20 +47,22 @@ class OperationPimpl {
 public:    
     friend class Operation;
     ~OperationPimpl();
-    
+
+    int numberOfInputs() const;
+    int numberOfOutputs() const;
+    TCEString name() const;
+
 private:
     OperationPimpl(
         const TCEString& name, 
         OperationBehavior& behavior);
     OperationPimpl();
     
-    
     /// Copying not allowed.
     OperationPimpl(const OperationPimpl&);
     /// Assignment not allowed.
     OperationPimpl& operator=(const OperationPimpl&);
     
-    TCEString name() const;
     TCEString description() const;
     
     void addDag(const TCEString& code);
@@ -71,8 +73,6 @@ private:
     void setDagCode(int index, const TCEString& code);
     TCEString dagError(int index) const;
 
-    int numberOfInputs() const;
-    int numberOfOutputs() const;
     bool usesMemory() const;
     bool readsMemory() const;
     bool writesMemory() const;

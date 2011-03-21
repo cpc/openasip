@@ -49,6 +49,9 @@ Usability features
   design space database (DSDB). Thus it's possible to speed up resumed
   explorations by using the DSDB from the previous exploration to
   get cycle counts from the DSDB instead of a new compile&simulation.
+- Improved error handling caused by broken operation DAGs. Now sometimes
+  gives reasonable error message instead of cryptic error message or crash
+  when operation DAG has some error.
 
 Bugfixes
 --------
