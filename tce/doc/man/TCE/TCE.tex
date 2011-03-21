@@ -2407,21 +2407,26 @@ shipped with the tutorial files. Notice that there are 2 implementations for
 the rtimer. ID 3 is for 50 MHz clock frequency and ID 4 for 100 MHz. All other
 FUs are found from the default hdb.
 
-After you have generated \file{tutorial1.idf} generate the binary encoding for
-the arhitecture:
+Save the implementation configuration to \file{tutorial1.idf}.
+% After you have generated \file{tutorial1.idf} generate the binary encoding for
+% the arhitecture:
 
-\shellcmd{createbem tutorial1.adf}
+% \shellcmd{createbem tutorial1.adf}
 
-Next step is to generate vhdl of the processor:
+Next step is to generate the VHDL implementation of the processor:
 
-\shellcmd{generateprocessor -b tutorial1.bem -i tutorial1.idf -o asm\_vhdl/proge-output tutorial1.adf}
+% -b tutorial1.bem
 
-And after that create proram image:
+\shellcmd{generateprocessor -i tutorial1.idf -o asm\_vhdl/proge-output tutorial1.adf}
 
-\shellcmd{generatebits -b tutorial1.bem -f vhdl -p asm.tpef -x asm\_vhdl/proge-output tutorial1.adf}
+Then create the proram image:
+
+% -b tutorial1.bem
+
+\shellcmd{generatebits -f vhdl -p asm.tpef -x asm\_vhdl/proge-output tutorial1.adf}
 
 Notice that the instruction image format is ``vhdl'' and we request
-generatebits to create data image at all. Now move the generated 
+generatebits to not create data image at all. Now, move the generated 
 \file{asm\_imem\_pkg.vhdl} to the asm\_vhdl directory and cd there.
 
 \shellcmd{mv asm\_imem\_pkg.vhdl asm\_vhdl/}
@@ -2447,7 +2452,7 @@ create a new project for your target FPGA. Add the three files in
 asm\_vhdl-directory (toplevel file \file{tutorial\_processor1.vhdl}, 
 \file{inst\_mem\_logic.vhd} and \file{asm\_imem\_pkg.vhdl}) and all the
 files in proge-output/gcu\_ic/ and proge-output/vhdl directories to the
-project.
+project. The toplevel entity name is 'tutorial_processor1'.
 
 Then connect the toplevel signals to appropriate FPGA pins. The pins are most
 probably described in the FPGA board's user manual. Signal 'clk' is obviously
