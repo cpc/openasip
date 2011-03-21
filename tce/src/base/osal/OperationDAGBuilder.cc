@@ -170,10 +170,10 @@ OperationDAGBuilder::connectOperandToNode(
                 __FILE__,__LINE__,__func__, 
                 TCEString("Source node: ") + Conversion::toString(operandIndex)
                 + " of operation " + currentOperation_->toString() 
-                + " is NULL. This happens in DAG of operation: " + operation_.name());
+                + " is NULL. Maybe it is temp variable that has not been"
+                + " written yet? This happens in DAG of operation: " + operation_.name());
         }
             
-        std::cerr << "VariableBinding at addr: " << srcNode << std::endl;
         if (!dag_->hasNode(*srcNode->first)) {
             throw IllegalParameters(
                 __FILE__,__LINE__,__func__, 
@@ -182,7 +182,6 @@ OperationDAGBuilder::connectOperandToNode(
                 + " not in dag. This happens in DAG of operation: " + operation_.name());
         }
                                     
-        std::cerr << "VariableBinding at addr(2): " << srcNode->first << std::endl;
         OperationDAGEdge* newEdge = 
             new OperationDAGEdge(srcNode->second, operandIndex);
         dag_->connectNodes(*srcNode->first, *currentOperation_, *newEdge);
