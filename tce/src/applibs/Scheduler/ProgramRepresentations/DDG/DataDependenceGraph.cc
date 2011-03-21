@@ -1230,37 +1230,67 @@ void DataDependenceGraph::restoreNode(MoveNode& node) {
  * @return weigth of the edge.
  */
 int
-DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode&) const {
+DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n)
+    const {
+    
+    if (e.headPseudo()) {
+        // pseudo deps do not really limit the scheduling.
+        return 0;
+    }
     
     switch (e.edgeReason()) {
     case DataDependenceEdge::EDGE_OPERATION: {
-            return getOperationLatency(e.data()) * 3;
+        return getOperationLatency(e.data());
     }
     case DataDependenceEdge::EDGE_MEMORY: {
-        return 5;
+        if (e.dependenceType() == DataDependenceEdge::DEP_RAW) {
+            // allowed to write a new value at the same cycle
+            // another reads it (the load gets the old value)
+            return 0; 
+        } else {
+            return 1;
+        }
     }
+    case DataDependenceEdge::EDGE_RA: 
     case DataDependenceEdge::EDGE_REGISTER: {
         switch (e.dependenceType()) {
             // TODO: some connectivity heuristics
         case DataDependenceEdge::DEP_RAW: {
-            return 3; // Sw bypass puts this down, reduced connectivity up
+            if (e.guardUse()) {
+                int glat = n.guardLatency();
+                // jump guard?
+                
+                // for predicated control flow ops the edge weight is
+                // guard latency + delay slots, as the predicated cflow
+                // ins has to be scehduled delay slots cycles before 
+                // end.
+                if (n.isMove() && n.move().isControlFlowMove()) {
+                    return std::max(1, glat + delaySlots_);
+                }
+                // some other predicated operation
+                return std::max(1, glat);
+            } else {
+                // jump address of indirect branch
+                // indirect control flow ops the delay slots is added
+                // to the edgeweight, as the indirect control flow ins
+                // has to be scehduled delay slots cycles before end.
+                if (n.isMove() && n.move().isControlFlowMove()) {
+                    return delaySlots_ + 1;
+                }
+            }
+            return 1;
+            
         }
         case DataDependenceEdge::DEP_WAR: {
-            return 1; // can be scheduled to same cycle
-        }
-        case DataDependenceEdge::DEP_WAW: {
-            return 3; // correct one has to be the last one
+            return 0; // can be scheduled to same cycle
         }
         default: {
-            return 3;
+            return 1;
         }
         }
-    }
-    case DataDependenceEdge::EDGE_RA: {
-        return delaySlots_ != 0 ? (delaySlots_+1)*3 : 3; //6 better default?
     }
     default:
-        return 3; 
+        return 1; // can be scheduled to the next cycle (default)
     }
 }
 

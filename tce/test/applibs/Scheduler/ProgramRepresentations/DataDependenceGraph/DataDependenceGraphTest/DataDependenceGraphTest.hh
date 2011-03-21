@@ -545,12 +545,12 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
 
 void
 DataDependenceGraphTest::testPathCalculation() {
-    int longestPathLengths0[] = { 12 ,-1,12 };
-    int longestPathLengths0M[] = { 12 ,-1,24 };
-    int longestPathLengths1[] = { 9, -1,24 ,6};
-    int longestPathLengths1M[] = { 9, -1,36 ,18};
-    int longestPathLengths2[] = { 18, -1,12};
-    int longestPathLengths2M[] = { 18, -1,18};
+    int longestPathLengths0[] = { 3 ,-1,4 };
+    int longestPathLengths0M[] = { 3 ,-1,8 };
+    int longestPathLengths1[] = { 3, -1,8 ,2};
+    int longestPathLengths1M[] = { 6, -1,12 ,6};
+    int longestPathLengths2[] = { 5, -1,3};
+    int longestPathLengths2M[] = { 5, -1,4};
     try {
         UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
@@ -599,7 +599,7 @@ DataDependenceGraphTest::testPathCalculation() {
                     MoveNode &node = ddg->node(j);
                     if (ddg->maxSourceDistance(node) == ddg->height()) {
                         
-                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+//                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
                         
                         MoveNode *mn0 = new MoveNode(*move0);
                         MoveNode *mn1 = new MoveNode(*move1);
@@ -623,22 +623,22 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end.  should increase height
                         ddg->connectNodes(node, *mn0,*e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+3);
+                                         longestPathLengths0[i]+1);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1,*e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+6);
+                                         longestPathLengths0[i]+2);
 
                         // add node which has edge to last
                         // should NOT increase height
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+6);
+                                         longestPathLengths0[i]+2);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
 
                         sinkFound = true;
                         break;
@@ -650,7 +650,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths0M[i]+6);
+                                 longestPathLengths0M[i]+2);
 
                 delete ddg; ddg = NULL;
                 delete move0; delete move1; delete move2;
@@ -699,22 +699,22 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0,*e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+3);
+                                         longestPathLengths1[i]+1);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1,*e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+6);
+                                         longestPathLengths1[i]+2);
 
                         // add node which has edge to last
                         // should NOT increase height
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+6);
+                                         longestPathLengths1[i]+2);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
 
                         sinkFound = true;
                         break;
@@ -726,7 +726,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths1M[i]+6);
+                                 longestPathLengths1M[i]+2);
 
                 delete ddg; ddg = NULL;
                 delete move0; delete move1; delete move2;
@@ -753,7 +753,7 @@ DataDependenceGraphTest::testPathCalculation() {
                     MoveNode &node = ddg->node(j);
                     if (ddg->maxSourceDistance(node) == ddg->height()) {
                         
-                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+//                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
                         
                         MoveNode *mn0 = new MoveNode(*move0);
                         MoveNode *mn1 = new MoveNode(*move1);
@@ -778,13 +778,13 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0, *e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+3);
+                                         longestPathLengths2[i]+1);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1, *e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+6);
+                                         longestPathLengths2[i]+2);
 
                         // add node which has edge to last
                         // should NOT increase height.
@@ -792,9 +792,9 @@ DataDependenceGraphTest::testPathCalculation() {
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+6);
+                                         longestPathLengths2[i]+2);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
 
                         sinkFound = true;
                         break;
@@ -806,7 +806,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths2M[i]+6);
+                                 longestPathLengths2M[i]+2);
 
                 delete ddg; ddg = NULL;
                 delete move0; delete move1; delete move2;
