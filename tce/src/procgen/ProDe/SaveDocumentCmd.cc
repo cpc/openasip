@@ -68,10 +68,10 @@ SaveDocumentCmd::Do() {
     // warning: Dirty trick to avoid file dialog on saving a document
     // already assigned into a specific file name. wxID_SAVE handler
     // always opens file dialog. Checking that file name does not
-    // contain a slash should verify that the document has not been
+    // contain a . should verify that the document has not been
     // saved before.
     wxString currentDocFilename = doc->GetFilename();
-    if (doc->GetFilename().Find('/') == -1) {
+    if (doc->GetFilename().Find('.') == -1) {
         wxCommandEvent dummy(wxID_SAVE, 0);
         wxGetApp().docManager()->OnFileSave(dummy);
     } else {

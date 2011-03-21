@@ -62,6 +62,8 @@ Bugfixes
 - ProDe: Copying FU from one machine to another no longer causes
   prode to crash. The address space of FU copied from one machine to
   another is left unset.
+- ProDe: No longer asks the filename again when editing a adf file in
+  current directory and saving it.
 - ttasim: when the last instruction executed was a jump and the
   simulation was killed (reseted), the jump was executed in the 
   new simulation.
