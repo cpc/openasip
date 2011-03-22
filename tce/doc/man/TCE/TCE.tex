@@ -2345,7 +2345,6 @@ one assembly code has 52 instructions and it runs the DCT8x8 in
 \section{Running TTA on FPGA}
 \label{sec:fpgatutorial}
 
-\subsection{Introduction}
 This tutorial illustrates how you can run your TTA designs on a FPGA board.
 Tutorial consists of two simple example sections and a more general case
 description section.
@@ -2467,15 +2466,16 @@ Compile and synthesize your design with the FPGA tools, program your FPGA and
 behold the light show!
 
 \subsection{Second example: Adding data memory}
-\subsubsection{Introduction}
+
 In this tutorial we will implement the same kind of system as above but this
 time we include data memory and use C coded application. Application has
-the same functionality but algorithm is bit different. This time we read the
+the same functionality but the algorithm is a bit different. This time we read the
 led pattern from a look up table and to also test store operation the pattern
 is stored back to the look up table. Take a look at file \file{blink\_mem.c}
 to see how the timer and led operations are used in C code.
 
 \subsubsection{Create TTA processor core and binary images}
+
 The architecture for this tutorial is \file{tutorial2.adf}. This architecture
 is the same as \file{tutorial1.adf} with the exception that now it has a load
 store unit to interface it with data memory.
@@ -2502,17 +2502,17 @@ found from fpga.hdb. As mentioned in the previous tutorial, timer
 implementation ID 3 is meant for 50 MHz clock frequency and ID 4 for 100 MHz
 clock. Other FUs are found from the default hdb.
 
-Now create binary enconding for the architecture and generate the processor:
+%Now create binary enconding for the architecture and 
 
-\shellcmd{createbem tutorial2.adf}
+Generate the processor VHDL:
+% \shellcmd{createbem tutorial2.adf}
 
-\shellcmd{generateprocessor -b tutorial2.bem -i tutorial2.idf -o 
-c\_vhdl/proge-output tutorial2.adf}
+\shellcmd{generateprocessor -i tutorial2.idf -o c\_vhdl/proge-output tutorial2.adf}
 
 Next step is to generate binary images of the program. Instruction image will
-be generated again as a vhdl array package. But the data memory image needs
-some consideration. If you're using Altera FPGA board the Program Image
-Generator can output Altera's Memory Initialization Format (mif) by default.
+be generated again as a VHDL array package. But the data memory image needs
+some consideration. If you're using an Altera FPGA board the Program Image
+Generator can output Altera's Memory Initialization Format (mif).
 Otherwise you need to consult the FPGA vendor's documentation to see what kind
 of format is used for memory instantiation. Then select the PIG output format
 that you can convert to the needed format with the least amount of work. Of
@@ -2521,11 +2521,11 @@ welcome.
 
 Image generation command is basically the following:
 
-\shellcmd{generatebits -b tutorial2.bem -f vhdl -d -w 4 -o mif -p blink.tpef 
+\shellcmd{generatebits -f vhdl -d -w 4 -o mif -p blink.tpef 
 -x c\_vhdl/proge-output tutorial2.adf}
 
 Switch '-d' tells PIG to generate data image. Switch '-o' defines the data
-image output format. Change it suite your needs if necessary. Switch '-w'
+image output format. Change it to suit your needs if necessary. Switch '-w'
 defines the width of data memory in MAUs. By default MAU is assumed to be 8
 bits and the default LSU implementations are made for memories with 32-bit
 data width. Thus the width of data memory is 4 MAUs.
