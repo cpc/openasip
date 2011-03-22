@@ -511,10 +511,10 @@
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="3">
+        <writes name="3">
           <start-cycle>4</start-cycle>
           <cycles>1</cycles>
-        </reads>
+        </writes>
       </pipeline>
     </operation>
     <address-space/>
