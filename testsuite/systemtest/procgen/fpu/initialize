@@ -5,4 +5,3 @@ if [ "x${ghdl_bin}" == "x" ]; then
     touch test_fpu_embedded.testdesc.disabled
 fi
 
-sh finalize
