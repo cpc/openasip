@@ -50,6 +50,7 @@
 #include "BasicBlockNode.hh"
 #include "TCEString.hh"
 #include "Guard.hh"
+#include "DisassemblyRegister.hh"
 #include "ObjectState.hh"
 #include "XMLSerializer.hh"
 
@@ -146,10 +147,6 @@ DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
  * Deletes all MoveNodes and ProgramOperations.
  */
 DataDependenceGraph::~DataDependenceGraph() {
-
-    // only delete removed node data, not the node pointers themselves
-    // they should already have been deleted by the one who removed them
-    AssocTools::deleteAllValues(removedNodes_);
 
     if (parentGraph_ == NULL) {
 
@@ -1061,10 +1058,6 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
 void
 DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
 
-    // bookkeeping about the removed node, in order to be able to restore it
-    RemovedNodeData* rmn = new RemovedNodeData;
-    removedNodes_[&node] = rmn;
-
     // remove move -> movenode mapping.
     if (node.isMove()) {
         TTAProgram::Move* move = &node.move();
@@ -1078,25 +1071,7 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
     DataDependenceGraph::NodeDescriptor nd = descriptor(node);
 
     EdgeSet iEdges = inEdges(node);
-    
-    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
-        DataDependenceEdge& iEdge = **i;
-        DataDependenceEdge* newIEdge = new DataDependenceEdge(iEdge);
-        rmn->inEdges.push_back(
-            std::pair<DataDependenceEdge*,MoveNode*>(
-                newIEdge, &tailNode(iEdge,nd)));
-    }
-
     EdgeSet oEdges = outEdges(node);
-
-    for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
-        DataDependenceEdge& oEdge = **i;
-        DataDependenceEdge* newOEdge = new DataDependenceEdge(oEdge);
-        rmn->outEdges.push_back(
-            std::pair<DataDependenceEdge*,MoveNode*>(
-                newOEdge, &headNode(oEdge,nd)));
-    }
-
     // end of bookkeeping
 
     // remove node from program operations
@@ -1166,56 +1141,6 @@ DataDependenceGraph::deleteNode(MoveNode& node) {
     delete &node;
 }
 
-/*
- * Restores a removed node into graph.
- *
- * Restores node into graph. Restores also all edges the node had when
- * it was removed from the graph. All the nodes the node had egdes when
- * if was removed have to exist in the graph.
- *
- * @param node node being restored into the graph.
- */
-void DataDependenceGraph::restoreNode(MoveNode& node) {
-    
-    addNode(node);
-    
-    std::map<MoveNode*,RemovedNodeData*>::iterator i = 
-        removedNodes_.find(&node);
-    if (i != removedNodes_.end()) {
-        RemovedNodeData* rnd = i->second;
-        // restore incoming edges
-        
-        for (int iec = rnd->inEdges.size() -1 ; iec >= 0 ; iec--) {
-            std::pair<DataDependenceEdge*,MoveNode*>& p = rnd->inEdges[iec];
-            if (hasNode(*p.second)) {
-                connectNodes(*p.second, node, *p.first);
-            } else {
-                std::string msg = "Cannot restore edges to nodes not in graph."
-                    " Trying to restore multiple nodes in non-stack-order?";
-                throw NotAvailable(__FILE__,__LINE__,__func__,msg);
-            }
-            rnd->inEdges.pop_back();
-        }
-            
-        // restore outgoing edges
-        for (int oec = rnd->outEdges.size() -1; oec >= 0; oec--) {
-            std::pair<DataDependenceEdge*,MoveNode*>& p = rnd->outEdges[oec];
-
-            if (hasNode(*p.second)) {
-                connectNodes(node, *p.second, *p.first);
-            } else {
-                std::string msg = "Cannot restore edges to nodes not in graph."
-                    " Trying to restore multiple nodes in non-stack-order?";
-                throw NotAvailable(__FILE__,__LINE__,__func__,msg);
-            }
-            rnd->outEdges.pop_back();
-        }
-        removedNodes_.erase(i);
-    }
-    
-    // lets not care about removing overgoing antideps now, they are just
-    // extra edges that only cost some memory but don't change the schedule
-}
 
 /**
  * Calculates a weight value for edges, to be used for 
@@ -1444,29 +1369,6 @@ DataDependenceGraph::connectOrDeleteEdge(
         return true;
     }
 }
-/**
- * Destructor.
- * 
- * Removes the bookkeeping about nodes that are removed.
- */
-DataDependenceGraph::RemovedNodeData::~RemovedNodeData() {
-
-    // delete incoming edges
-    for (int iec = inEdges.size() -1 ; iec >= 0 ; iec--) {
-        std::pair<DataDependenceEdge*,MoveNode*>& p = inEdges[iec];
-
-        delete p.first;
-        inEdges.pop_back();
-    }
-            
-    // delete outgoing edges
-    for (int oec = outEdges.size() -1; oec >= 0; oec--) {
-        std::pair<DataDependenceEdge*,MoveNode*>& p = outEdges[oec];
-        delete p.first;
-        
-        outEdges.pop_back();
-    }
-}
 
 /**
  * Creates a subgraph of a ddg from set of cede snippets
@@ -1479,8 +1381,7 @@ DataDependenceGraph::RemovedNodeData::~RemovedNodeData() {
  */
 DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
-    NodeSet& nodes, bool includeLoops) 
-    throw (InstanceNotFound) {
+    NodeSet& nodes, bool includeLoops) {
     DataDependenceGraph *subGraph = new DataDependenceGraph(
         "", registerAntidependenceLevel_, false, !includeLoops);
 
@@ -1505,11 +1406,6 @@ DataDependenceGraph::createSubgraph(
          i != subgraphPOs.end();i++) {
         subGraph->programOperations_.push_back(*i);
     }
-/*
-    if ( !includeLoops ) {
-        subGraph->dropBackEdges();
-    }
-*/
     return subGraph;
 }
 
@@ -1524,21 +1420,28 @@ DataDependenceGraph::createSubgraph(
  */
 DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
-    TTAProgram::CodeSnippet& cs, bool includeLoops) 
-    throw (InstanceNotFound) {
+    TTAProgram::CodeSnippet& cs, bool includeLoops) {
     NodeSet moveNodes;
-    for (int i = 0; i < cs.instructionCount(); i++) {
-        TTAProgram::Instruction& ins = cs.instructionAtIndex(i);
-        for (int j = 0; j < ins.moveCount(); j++ ) {
-            MoveNode& node = nodeOfMove(ins.move(j));
-            moveNodes.insert(&node);
+    int nc = nodeCount();
+    for (int i = 0; i < nc; i++) {
+        MoveNode& mn = node(i,false);
+        if (mn.isMove()) {
+            TTAProgram::Move& move = mn.move();
+            if (move.isInInstruction()) {
+                TTAProgram::Instruction& parentIns = move.parent();
+                if (parentIns.isInProcedure()) { // is in code snippet
+                    if (&parentIns.parent() == &cs) {
+                        moveNodes.insert(&mn);
+                    }
+                }
+            } 
         }
     }
     return createSubgraph(moveNodes, includeLoops);
 }
 
 /**
- * Creates a subgraph of a ddg from set of cede snippets
+ * Creates a subgraph of a ddg from set of code snippets
  * which contains instructions which contains moves
  * in this graph.
  *
@@ -1548,18 +1451,25 @@ DataDependenceGraph::createSubgraph(
  */
 DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
-    std::list<TTAProgram::CodeSnippet*>& codeSnippets, bool includeLoops) 
-    throw (InstanceNotFound) {
+    std::list<TTAProgram::CodeSnippet*>& codeSnippets, bool includeLoops) {
     NodeSet moveNodes;
-    for( std::list<TTAProgram::CodeSnippet*>::iterator iter =
-             codeSnippets.begin(); iter != codeSnippets.end(); iter++ ) {
-        TTAProgram::CodeSnippet& cs = **iter;
-        for (int i = 0; i < cs.instructionCount(); i++) {
-            TTAProgram::Instruction& ins = cs.instructionAtIndex(i);
-            for (int j = 0; j < ins.moveCount(); j++ ) {
-                MoveNode& node = nodeOfMove(ins.move(j));
-                moveNodes.insert(&node);
-            }
+
+    int nc = nodeCount();
+    for (int i = 0; i < nc; i++) {
+        MoveNode& mn = node(i,false);
+        if (mn.isMove()) {
+            TTAProgram::Move& move = mn.move();
+            TTAProgram::Instruction& parentIns = move.parent();
+            if (parentIns.isInProcedure()) { // is in code snippet
+                for (std::list<TTAProgram::CodeSnippet*>::iterator iter = 
+                         codeSnippets.begin(); 
+                     iter != codeSnippets.end(); iter++) {
+                    TTAProgram::CodeSnippet& cs = **iter;
+                    if (&move.parent().parent() == &cs) {
+                        moveNodes.insert(&mn);
+                    }
+                }
+            } 
         }
     }
     return createSubgraph(moveNodes, includeLoops);
@@ -1639,10 +1549,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
             TTAProgram::Move& move = ins.move(j2);
             TTAProgram::Terminal& dest = move.destination();
             if (dest.isGPR()) {
-                int index = dest.index();
-                const TTAMachine::RegisterFile& rf = dest.registerFile();
-                TCEString reg2 = rf.name() + '.' + 
-                    Conversion::toString(index);
+                TCEString reg2 = DisassemblyRegister::registerName(dest);
 
                 std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
                     firstWrites2.find(reg2);
@@ -1662,10 +1569,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
             TTAProgram::Terminal& src = move.source();
             // Writes for WaWs
             if (dest.isGPR()) {
-                int index = dest.index();
-                const TTAMachine::RegisterFile& rf = dest.registerFile();
-                TCEString reg1 = rf.name() + '.' + 
-                    Conversion::toString(index);
+                TCEString reg1 = DisassemblyRegister::registerName(dest);
 
                 std::map<TCEString, TTAProgram::Move*>::iterator iter1 = 
                     lastWrites1.find(reg1);
@@ -1675,10 +1579,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
             }
             // reads for WaRs
             if (src.isGPR()) {
-                int index = src.index();
-                const TTAMachine::RegisterFile& rf = src.registerFile();
-                TCEString reg1 = rf.name() + '.' + 
-                    Conversion::toString(index);
+                TCEString reg1 = DisassemblyRegister::registerName(src);
 
                 std::map<TCEString, TTAProgram::Move*>::iterator iter1 = 
                     lastReads1.find(reg1);
@@ -1761,22 +1662,31 @@ DataDependenceGraph::copyDependencies(
     // performance optimization 
     NodeDescriptor nd = descriptor(src);
 
-    EdgeSet iEdges = inEdges(src);
-    for (EdgeSet::iterator iter = iEdges.begin(); 
-         iter != iEdges.end(); iter++) {
-        DataDependenceEdge* edge = *iter;
-        DataDependenceEdge* newEdge = new DataDependenceEdge(*edge);
-        MoveNode& tail = tailNode(*edge,nd);
-        connectNodes(tail, dst, *newEdge);
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    std::pair<InEdgeIter, InEdgeIter> iEdges =
+        boost::in_edges(nd, graph_);
+
+    for (InEdgeIter ii = iEdges.first; ii != iEdges.second; ii++) {
+        EdgeDescriptor ed = *ii;
+        DataDependenceEdge* edge = graph_[ed];
+        MoveNode* tail = graph_[boost::source(ed, graph_)];
+        DataDependenceEdge* newEdge = new DataDependenceEdge(
+            *edge, (tail != &src && tail != &dst));
+        connectNodes(*tail, dst, *newEdge);
     }
 
-    EdgeSet oEdges = outEdges(src);
-    for (EdgeSet::iterator iter = oEdges.begin(); iter != oEdges.end(); 
-         iter++) {
-        DataDependenceEdge* edge = *iter;
-        DataDependenceEdge* newEdge = new DataDependenceEdge(*edge);
-        MoveNode& head = headNode(*edge,nd);
-        connectNodes(dst, head, *newEdge);
+    std::pair<OutEdgeIter, OutEdgeIter> oEdges =
+        boost::out_edges(nd, graph_);
+
+    for (OutEdgeIter oi = oEdges.first; oi != oEdges.second; oi++) {
+        EdgeDescriptor ed = *oi;
+        DataDependenceEdge* edge = graph_[ed];
+        MoveNode* head = graph_[boost::target(ed, graph_)];
+        DataDependenceEdge* newEdge = new DataDependenceEdge(
+            *edge, (head != &src && head != &dst));
+        connectNodes(dst, *head, *newEdge);
     }
 }
 

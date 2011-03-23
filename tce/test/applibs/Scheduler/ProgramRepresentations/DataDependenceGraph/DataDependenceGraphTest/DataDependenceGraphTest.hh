@@ -913,25 +913,6 @@ DataDependenceGraphTest::testSWBypassing() {
     // original edge should have returned
     TS_ASSERT(ddg->hasEdge(res2,user2));
 
-    // try to undo DRE 
-
-    ddg->restoreNode(res); // also changes indeces? or not?
-
-    // are operation edges returned?
-    TS_ASSERT(ddg->hasEdge(ddg->node(22), res));
-    TS_ASSERT(ddg->hasEdge(ddg->node(23), res));
-    // WaW edge?
-    TS_ASSERT(ddg->hasEdge(res, warDest));
-
-    // try to unmerge the first bypass
-    ddg->unMerge(res,user);
-
-    // reg raw reappeared?
-    TS_ASSERT(ddg->hasEdge(res,user));
-    // and operation edges gone?
-    TS_ASSERT(!ddg->hasEdge(ddg->node(22),user));
-    TS_ASSERT(!ddg->hasEdge(ddg->node(23),user));
-
     delete ddg;
     delete currentProgram;
     currentProgram = NULL;

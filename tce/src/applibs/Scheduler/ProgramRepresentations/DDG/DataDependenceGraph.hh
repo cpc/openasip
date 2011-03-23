@@ -138,7 +138,6 @@ public:
     bool resultUsed(MoveNode& resultNode);
     
     void removeNode(MoveNode& node) throw (InstanceNotFound);
-    void restoreNode(MoveNode& node);
     void deleteNode(MoveNode& node);
 
     int edgeWeight(DataDependenceEdge& e, const MoveNode& hNode) const;
@@ -150,17 +149,14 @@ public:
         DataDependenceEdge* edge);
 
     DataDependenceGraph* createSubgraph(
-        NodeSet& nodes, bool includeLoops = false)
-        throw (InstanceNotFound);
+        NodeSet& nodes, bool includeLoops = false);
 
     DataDependenceGraph* createSubgraph(
-        TTAProgram::CodeSnippet& cs, bool includeLoops = false)
-        throw (InstanceNotFound);
+        TTAProgram::CodeSnippet& cs, bool includeLoops = false);
 
     DataDependenceGraph* createSubgraph(
         std::list<TTAProgram::CodeSnippet*>& codeSnippets,
-        bool includeLoops)
-        throw (InstanceNotFound);
+        bool includeLoops);
 
     MoveNode& nodeOfMove(TTAProgram::Move& move) throw (InstanceNotFound);
 
@@ -196,13 +192,6 @@ private:
         MoveNode& mn, BasicBlockNode& bblock, DataDependenceGraph* updater);
 
     bool isRootGraphProcedureDDG();
-
-    struct RemovedNodeData {
-        std::vector<std::pair<DataDependenceEdge*,MoveNode*> > inEdges;
-        std::vector<std::pair<DataDependenceEdge*,MoveNode*> > outEdges;
-        ~RemovedNodeData();
-    };
-    std::map<MoveNode*,RemovedNodeData*> removedNodes_;
 
     // cache to make things faster
     // may not be ised with iterator.
