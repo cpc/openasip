@@ -20,14 +20,15 @@ rm -rf $PO_DIR
 $PROGE -i $IDF -g $INTEG -e $ENT -d onchip -f onchip -o $PO_DIR \
 -p $TPEF $ADF >& run_onchip.log
 
-# reset env params to make sure sort is deterministic
-export LANG=C
-export LC_LL=C
+
 # check project file
-cat $ENT.qsf | sort
+cat $ENT.qsf | grep "set_global_assignment" | grep -v "VHDL_FILE"
+echo "vhdl files"
+cat $ENT.qsf | grep "VHDL_FILE" | wc -l
+echo "pin assignments"
+cat $ENT.qsf | grep "PIN_" | wc -l
+
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
 cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
-# Then check signals by sorting them
-cat $PO_DIR/platform/$ENT.vhdl | grep " signal " | sort
-exit $?
+exit 0

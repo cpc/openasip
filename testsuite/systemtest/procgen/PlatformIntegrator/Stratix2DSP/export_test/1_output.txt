@@ -129,27 +129,3 @@ begin
       data_out => fu_LSU_dmem_wr_en_x_util_inverter_data_out_wire);
 
 end structural;
-  signal core_busy_wire : std_logic;
-  signal core_fu_LSU_dmem_addr_wire : std_logic_vector(fu_LSU_addrw-2-1 downto 0);
-  signal core_fu_LSU_dmem_bytemask_wire : std_logic_vector(fu_LSU_dataw/8-1 downto 0);
-  signal core_fu_LSU_dmem_data_in_wire : std_logic_vector(31 downto 0);
-  signal core_fu_LSU_dmem_data_out_wire : std_logic_vector(31 downto 0);
-  signal core_fu_LSU_dmem_mem_en_x_wire : std_logic_vector(0 downto 0);
-  signal core_fu_LSU_dmem_wr_en_x_wire : std_logic_vector(0 downto 0);
-  signal core_imem_addr_wire : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-  signal core_imem_data_wire : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-  signal core_imem_en_x_wire : std_logic;
-  signal core_pc_init_wire : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-  signal fu_LSU_dmem_mem_en_x_util_inverter_data_in_wire : std_logic;
-  signal fu_LSU_dmem_mem_en_x_util_inverter_data_out_wire : std_logic;
-  signal fu_LSU_dmem_wr_en_x_util_inverter_data_in_wire : std_logic;
-  signal fu_LSU_dmem_wr_en_x_util_inverter_data_out_wire : std_logic;
-  signal ground_signal : std_logic_vector(0 downto 0);
-  signal onchip_dmem_address_wire : std_logic_vector(21 downto 0);
-  signal onchip_dmem_byteena_wire : std_logic_vector(3 downto 0);
-  signal onchip_dmem_clken_wire : std_logic;
-  signal onchip_dmem_data_wire : std_logic_vector(31 downto 0);
-  signal onchip_dmem_q_wire : std_logic_vector(31 downto 0);
-  signal onchip_dmem_wren_wire : std_logic;
-  signal onchip_imem_address_wire : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-  signal onchip_imem_q_wire : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);

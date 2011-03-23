@@ -22,12 +22,16 @@ $PROGE -i $IDF -f vhdl_array -d onchip -e $ENT -o $PO_DIR -p $TPEF \
 export LANG=C
 export LC_LL=C
 # check that hibi bus interface is found and mapped to component ports
-grep "bus" $IPXACT | sort
-grep "component" $IPXACT | sort
+grep "component " $IPXACT
+grep "busType" $IPXACT 
+echo "Component signal mappings"
+grep "componentSignalName" $IPXACT | wc -l
+echo "Bus signal mappings"
+grep "busSignalName" $IPXACT | wc -l
 
+exit 0
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
 cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
-# Then check signals by sorting them
-cat $PO_DIR/platform/$ENT.vhdl | grep " signal " | sort
+
 

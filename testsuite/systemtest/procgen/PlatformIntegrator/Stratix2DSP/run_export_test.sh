@@ -23,15 +23,11 @@ $PROGE -i $IDF -g $INTEG -e $ENT -d onchip -f onchip -o $PO_DIR \
 # check that warnings are correct
 cat $LOG | grep "Warning: didn't find mapping"
 
-# reset env params to make sure sort is deterministic
-export LANG=C
-export LC_LL=C
 # test if there's pin mappings for debug signals
-cat $ENT.qsf | grep debug | sort
+cat $ENT.qsf | grep debug
 
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
 cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
-# Then check signals by sorting them
-cat $PO_DIR/platform/$ENT.vhdl | grep " signal " | sort
-exit $?
+
+exit 0
