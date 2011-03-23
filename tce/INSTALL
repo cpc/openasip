@@ -63,25 +63,19 @@ In order to compile programs from C/C++ with TCE, you need to install
 LLVM and Clang.
 
 Unless a correct LLVM version is available for your distribution 
-(at least Ubuntu 10.04 includes LLVM 2.7), the best way is to install it from 
-the sources. 
+(at least Ubuntu 10.04 includes LLVM 2.7), the best way is to install 
+it from the sources. 
 
 Please follow the steps below to ensure LLVM and Clang are built
 correctly to be used by TCE:
 
- 1) wget http://llvm.org/releases/2.8/llvm-2.8.tgz
- 2) tar xfz llvm-2.8.tgz
- 3) cd llvm-2.8/tools
- 4) wget http://llvm.org/releases/2.8/clang-2.8.tgz
- 5) tar xfz clang-2.8.tgz
- 6) mv clang-2.8 clang
+ 1) wget http://llvm.org/releases/2.9/llvm-2.9.tgz
+ 2) tar xfz llvm-2.9.tgz
+ 3) cd llvm-2.9/tools
+ 4) wget http://llvm.org/releases/2.9/clang-2.9.tgz
+ 5) tar xfz clang-2.9.tgz
+ 6) mv clang-2.9 clang
  7) cd ..
-
-LLVM 2.8 has a bug causing miscompilation on some TTA targets. Therefore TCE
-refuses to configure in case a patch fixing this has not been applied. You
-can apply the patch as follows:
-
- 8) patch -p0 < [tce_source_root]/tools/patches/llvm-2.8-lowest-bit-compare.patch
 
 IMPORTANT NOTE! In order to use LLVM with TCE you need to configure LLVM 
 with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1',
@@ -89,9 +83,6 @@ as follows:
 
  8) ./configure --prefix=YOUR_INSTALLATION_PREFIX_HERE --enable-shared
  9) make REQUIRES_RTTI=1 && make install
-
-Remember to download a supported LLVM version, as listed above.
-
 
 Building and installing TCE
 ===========================

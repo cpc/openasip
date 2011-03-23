@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.4}
-\ver{21}
+\ver{22}
 \firstday{2006-10-25}
-\lastday{2011-03-10}
+\lastday{2011-03-23}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -2451,7 +2451,7 @@ create a new project for your target FPGA. Add the three files in
 asm\_vhdl-directory (toplevel file \file{tutorial\_processor1.vhdl}, 
 \file{inst\_mem\_logic.vhd} and \file{asm\_imem\_pkg.vhdl}) and all the
 files in proge-output/gcu\_ic/ and proge-output/vhdl directories to the
-project. The toplevel entity name is 'tutorial_processor1'.
+project. The toplevel entity name is 'tutorial\_processor1'.
 
 Then connect the toplevel signals to appropriate FPGA pins. The pins are most
 probably described in the FPGA board's user manual. Signal 'clk' is obviously
@@ -2668,6 +2668,174 @@ command is then:
 
 %\subsection{FPGA process in general}
 %Yet to be written.
+
+
+\section{Designing Floating-point Processors with TCE}
+
+TCE supports hardware floating-point calculations. They can be performed by using the 
+\emph{float} datatype in C code, or by using macros from \emph{tceops.h}, such 
+as \emph{\_TCE\_FADD}.
+If the compilation target architecture does not support these operations, 
+they are emulated using integer arithmetic in software. Passing the switch \emph{--no-fp-emu} 
+to tcecc disables the software emulation library linkage.
+
+A set of floating-point FUs is included with TCE, in a HDB file named 
+\emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/tce/hdb/fpu\_embedded.hdb}. 
+The FUs operate with 32-bit, single-precision floating point numbers. 
+Supported operations include addition, subtraction, negation, absolute value, 
+multiplication, division, square root, conversion between floats and integers, 
+and various comparisons.
+
+The FUs are based on the VHDL-2008 support library (http://www.vhdl.org/fphdl/), 
+which is in public domain. Changes include:
+
+\begin{itemize}
+ \item Full pipelining.
+ \item Radix-2 division changed to Radix-4.
+ \item Simple newton's iteration square root (with division in each pass) replaced 
+by Hain's algorithm from paper "Fast Floating Point Square Root" by Hain T. and Mercer D.
+\end{itemize}
+
+The FUs are optimized for synthesis on Altera Stratix II FPGA's, and they have been 
+benchmarked both on a Stratix II EP2S180F1020C3, and a Stratix III 
+EP3SL340H1152C2. They have maximum frequencies between 190-200 MHz on the 
+Stratix II, and between 230-280 MHz on the Stratix III. 
+Compared to an earlier implementation based on the Milk coprocessor 
+(coffee.cs.tut.fi), they are between 30\% and 200\% faster.
+
+\subsection{Restrictions}
+
+The FUs are not IEEE compliant, but instead comply to the less strict OpenCL 
+Embedded Profile standard, which trades off accuracy for speed. Differences include:
+
+\begin{itemize}
+    \item Instead of the default rounding mode round-to-nearest-even, round-to-zero is used.
+    \item Denormal numbers as inputs or outputs are flushed to zero.
+    \item Division may not be correctly rounded, but should be accurate within 4 ulp.
+\end{itemize}
+
+The TCE Processor Simulator uses IEEE-compliant floats. With a processor simulated on GHDL or 
+synthesized on actual hardware, the calculation results are thus slightly different from the 
+ones from Processor Simulator.
+
+\subsection{Function Units}
+
+The emph{fpu\_embedded} function units are described in detail below.
+
+
+\begin{description}
+ \item[fpu\_sp\_add\_sub]
+
+Supported operations: addf, subf
+
+Latency: 5
+
+A straightforward floating-point adder.
+
+ \item[fpu\_sp\_mul]
+
+Supported operations:         mulf
+
+Latency:             5
+
+A straightforward floating-point multiplier.
+
+\item[fpu\_sp\_div]
+
+Supported operations:         divf
+
+Latency:             15 (mw/2+3)
+
+A radix-4 floating-point divider.
+
+\item[fpu\_sp\_sqrt]
+
+Supported operations:         sqrtf
+
+Latency:             26 (mw+3)
+
+A floating-point square root FU, using Hain's algorithm.
+
+Note that the C standard function sqrt does not take advantage of hardware acceleration; the
+\emph{\_TCE\_SQRTF} macro must be used instead.
+
+\item[fpu\_sp\_conv]
+
+Supported operations:         cif, cifu, cfi, cfiu
+
+Latency:             4
+
+Converts between 32-bit signed and unsigned integers, and single-precision floats. OpenCL embedded allows no loss of accuracy in these conversions, so rounding is to nearest even.
+
+\item[fpu\_sp\_compare]
+
+Supported operations:         absf, negf, eqf, nef, gtf, gef, ltf, lef
+
+Latency:             1
+
+A floating-point comparator. Also supports the absolute value and negation operations, which are extremely simple with floating points (the former sets the sign bit to 0, the latter negates it).
+
+\end{description}
+
+
+\subsection{Benchmark results}
+
+The FPUs have been benchmarked on the FPGAs Stratix II EP2S180F1020C3 and 
+Stratix III EP3SL340H1152C2. As a baseline, a simple TTA processor 
+was synthesized that had enough functionality to support an empty C program. 
+After this, each of the FPUs was added to the baseline processor and synthesized. 
+The results are shown below in Tables \ref{table:fpu_benchmark1}
+and \ref{table:fpu_benchmark2}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|l|l|}\cline{1-8}
+ & mul & add\_sub & sqrt & conv & comp & div & baseline \\\cline{1-8}
+Comb ALUTs & 1263 & 1591 & 4186 & 1500 & 1012 & 2477 & 907 \\\cline{1-8}
+Total regs & 892 & 967 & 2444 & 917 & 669 & 1942 & 567 \\\cline{1-8}
+DSP blocks & 8 & 0 & 0 & 0 & 0 & 0 & 0 \\\cline{1-8}
+$F_{max} (MHz)$ & 196.39 & 198.81 & 194.78 & 191.5 & 192.2 & 199.32 & 222.82 \\\cline{1-8}
+Latency & 5 & 5 & 26 & 4 & 1 & 15 & - \\\cline{1-8}
+\end{tabular}
+\end{center}
+\caption{Synthesis results for Stratix II EP2S180F1020C3}
+\label{table:fpu_benchmark1}
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|l|l|}\cline{1-8}
+ & mul & add\_sub & sqrt & conv & comp & div & baseline \\\cline{1-8}
+Comb ALUTs & 1253 & 1630 & 4395 & 1507 & 1002 & 2597 & 1056 \\\cline{1-8}
+Total regs & 819 & 1007 & 2401 & 997 & 665 & 2098 & 710 \\\cline{1-8}
+DSP blocks & 4 & 0 & 0 & 0 & 0 & 0 & 0 \\\cline{1-8}
+$F_{max} (MHz)$ & 272.03 & 252.4 & 232.07 & 232.88 & 244.32 & 260.82 & 286.45 \\\cline{1-8}
+Latency & 5 & 5 & 26 & 4 & 1 & 15 & - \\\cline{1-8}
+\end{tabular}
+\end{center}
+\caption{Synthesis results for Stratix III EP3SL340H1152C2}
+\label{table:fpu_benchmark2}
+\end{table}
+
+\subsection{Alternative bit widths}
+
+The fpu\_embedded Function Units have mantissa width and exponent width as generic 
+parameters, so they can be used for float widths other than the IEEE single precision. 
+The FPUs are likely prohibitively slow for double-precision calculation, but 
+half-precision floats should be usable.
+
+The parameters are \emph{mw} and \emph{ew} for all FUs. In addition, the float-int converter FU 
+\emph{fpu\_sp\_conv} has a parameter \emph{intw}, which decides the width of the integer to be 
+converted.
+
+Use of these parameters has the following caveats:
+
+\begin{itemize}
+    \item The TCE-CC compiler converts floating-point literals into 32-bit floats, so they have to be entered some other way, f.ex. by casting integer bitpatterns to floats, or with a \emph{cif} operation.
+    \item TCE does not include a HDB file for alternative bit widths
+    \item Mantissa width affects the latency of the divider and square root FUs. The divider FU's latency is $(mw/2)+3$, and the square root FU's latency is $mw+3$.
+    \item Bit widths other than single-precision have not been exhaustively tested. Half-precision floats appear to work in a simple test case.
+\end{itemize}
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
