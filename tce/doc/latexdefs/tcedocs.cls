@@ -60,7 +60,7 @@
 %  COMMANDS
 % ------------------------------------------------------------------
 
-\newcommand{\theproject}[0]{TTA Codesign Environment}
+\newcommand{\theproject}[0]{TTA-based Co-design Environment}
 \newcommand{\theschool}[0]{Tampere University of Technology}
 \newcommand{\theinstitute}[0]{Department of Computer Systems}
 
