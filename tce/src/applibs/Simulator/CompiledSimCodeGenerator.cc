@@ -1753,17 +1753,28 @@ std::string CompiledSimCodeGenerator::guardPipelineTopSymbol(
 // register into the guard pipeline.
 bool CompiledSimCodeGenerator::handleRegisterWrite(
     const std::string& regSymbolName, std::ostream& stream) {
-    string tmpString;
-    // if found, copy to tmp and take ref to tmp. not found, ref to param
-    const string& tmpRef = (regSymbolName.find("engine.") == 0) ? 
-        tmpString = regSymbolName.substr(7) : regSymbolName;
-    
-    GuardPipeline::iterator i = guardPipeline_.find(tmpRef);
+    std::string tmpString;
+    std::string tmpString2;
+
+    // drop "value_.uintWord" from end.
+    size_t nameLen = regSymbolName.find(".value_.uIntWord");
+   // if found, copy to tmp and take ref to tmp. not found, ref to original
+    const string tmpRef1 = (nameLen != string::npos) ?
+        tmpString = regSymbolName.substr(0,nameLen) : 
+        regSymbolName;
+
+    // drop ".engine" from beginning
+    // if found, copy to tmp and take ref to tmp. not found, ref to original
+    const string& tmpRef2 = (tmpRef1.find("engine.") == 0) ? 
+        tmpString2 = tmpRef1.substr(7) : 
+        tmpRef1;
+
+    GuardPipeline::iterator i = guardPipeline_.find(tmpRef2);
     if ( i != guardPipeline_.end()) {
-        stream << "engine.guard_pipeline_" << tmpRef << "_0 " 
+        stream << "engine.guard_pipeline_" << tmpRef2 << "_0 " 
                << " = !(MathTools::fastZeroExtendTo(" 
-               << regSymbolName << ".value_.uIntWord, "
-               << regSymbolName << ".width()) == 0u);" << std::endl;
+               << tmpRef1 << ".value_.uIntWord, "
+               << tmpRef1 << ".width()) == 0u);" << std::endl;
         return true;
     }
     return false;
