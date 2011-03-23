@@ -1235,7 +1235,8 @@ cannot simulate programs that use these operations with the TCE processor
 simulator. Open again the operation property dialog by right-clicking REFLECT8,
 then choosing \emph{Modify properties}. Now press the \emph{Open} button to
 open an empty behavior source file for the module. Copy-paste (or type if you
-have the time!) the following code in the editor window:
+have the time!) the following code in the editor window (you can copy
+most of this code from the crc.c reflect function):
 
 \begin{verbatim}
 #include "OSAL.hh"
@@ -1583,8 +1584,8 @@ Set the operation codes as they are in the top of the vhdl file. REFLECT32
 has operation code ``0'' and REFLECT8 has operation code ``1''. 
 
 The operation codes must be always numbered according to the alphabetical order of 
-the OSAL operation names, starting at 0. For example, in this case REFLECT8 is 
-earlier than REFLECT32 in the alphabetical order.
+the OSAL operation names, starting at 0. For example, in this case REFLECT32 is 
+earlier than REFLECT8 in the alphabetical order.
 
 \textbf{3. Parameters.}
 
@@ -1797,10 +1798,11 @@ lines in that file:
 %By multiplying the count with the instruction width we found earlier you
 %can get the required size of instruction memory for the program.
 
-Accoringly the file \file{crc\_with\_custom\_op\_data.img} contains the data
+Accordingly, the file \file{crc\_with\_custom\_op\_data.img} contains the data
 memory image of the processor. Program Image Generator also created file
-\file{proge-output/gcu\_ic/imem\_mau\_width.vhdl} which contains the correct
-MAU width for the instruction memory.
+\file{proge-output/vhdl/imem\_mau\_pkg.vhdl} which contains the 
+width of the instruction memory (each designed TTA can have a different 
+instruction width).
 
 \paragraph{Simulation and verification}
 
@@ -1837,10 +1839,10 @@ As the current architecture is minimalistic we can increase the performance
 even further by adding resources to the processor.
 
 \paragraph{Transport buses.} 
-The architecture has only one transport bus the compiler can't exploit 
-instruction level parallelism. Let's start architecture customization by adding another
-transport bus. After this there can be 2 moves per clock cycle. First copy
-the current architecture:
+The architecture has only one transport bus, thus the compiler can't exploit 
+any instruction level parallelism. Let's start architecture customization by 
+adding another transport bus. After this there can be 2 moves per clock cycle. 
+First copy the current architecture:
 
 \shellcmd{cp custom.adf modified.adf}
 
@@ -1855,7 +1857,7 @@ sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
 Save the architecture, recompile the source code for the new architecture
 and simulate.
 
-\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc.c main.c}
+\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc\_with\_custom\_op.c main.c}
 
 \shellcmd{ttasim -a modified.adf -p crc.tpef}
 
@@ -1863,16 +1865,17 @@ Now when you check the cycle count from the simulator:
 
 \shellcmd{info proc cycles}
 
-you might a significant drop in cycles. Also check the processor 
+You might see a significant drop in cycles. Also check the processor 
 utilization statistics from the simulator with command:
 
 \shellcmd{info proc stats}
 
 \paragraph{Register files.}
+
 From the previous simulator statistics you can see from ``operations'' table
 that there are a lot of load and store operations being executed. As the
 architecture has only 5 general purpose registers this tells us that there
-are a lot of register spilling. Let's try how the amount of registers affect
+are a lot of register spilling to memory. Let's try how the amount of registers affect
 the cycle count. There are two options how we can add registers. We can either
 increase the number of registers in a register file or add a new register file.
 
@@ -1881,14 +1884,14 @@ that can be accessed simultaneously on one clock cycle. This can be done by
 selecting the RF and using copy and paste. Then connect it to the IC.
 Simulation statistics should indicate performance increase. As expected, the
 number of load and store opertations decreased. But notice also that the number
-of add operations decreased quite a lot. The reason is simple, addition is used
-to calculate memory addresses.
+of add operations decreased quite a lot. The reason is simple: addition is used
+to calculate stack memory addresses for the spilled registers.
 
 \paragraph{Function units.}
 Next subject for the bottleneck is the ALU as now all the basic operations
 are performed in a single function unit. From the simulator statistics you can
 see that logical operations and addition are quite heavily utilized. Instead
-of dublicating the ALU let's add more specific FUs from the Hardware Database.
+of duplicating the ALU let's add more specific FUs from the Hardware Database.
 Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
 operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
 add(1) and click ``Add''. Close the dialog, connect the function units and save the
