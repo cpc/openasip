@@ -31,7 +31,7 @@
  * the nodes in a program representation are linked together by dependences
  * and thus form a graph.
  *
- * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Metsï¿½halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
@@ -66,8 +66,8 @@ using namespace TTAMachine;
  */
 
 MoveNode::MoveNode(TTAProgram::Move& newmove) :
-    placed_(false), cycle_(0), move_(&newmove),
-    moveOwned_(false), srcOp_(NULL), dstOp_(NULL) {
+    move_(&newmove), srcOp_(NULL), dstOp_(NULL),
+    cycle_(0), moveOwned_(false), placed_(false) {
 }
 
 /**
@@ -79,8 +79,8 @@ MoveNode::MoveNode(TTAProgram::Move& newmove) :
  * @param newmove the Move this node contains.
  */
 MoveNode::MoveNode(TTAProgram::Move* newmove) :
-    placed_(false), cycle_(0), move_(newmove),
-    moveOwned_(true), srcOp_(NULL), dstOp_(NULL) {
+    move_(newmove), srcOp_(NULL), dstOp_(NULL), cycle_(0),
+    moveOwned_(true), placed_(false) {
 }
 
 
@@ -92,9 +92,8 @@ MoveNode::MoveNode(TTAProgram::Move* newmove) :
  */
 
 MoveNode::MoveNode() :
-/*    GraphNode(idCounter_++),  */
-    placed_(false), cycle_(0), move_(NULL),
-    moveOwned_(false), srcOp_(NULL), dstOp_(NULL) {
+    move_(NULL), srcOp_(NULL), dstOp_(NULL), cycle_(0),
+    moveOwned_(false), placed_(false) {
 }
 
 /**
@@ -191,7 +190,7 @@ MoveNode::isSourceImmediateRegister() const {
 
 /**
  * Tells whether the source of the node (move) is a program constant. If
- * assigned, the constant is an in-line immediate or an immediate register.
+ * assigned, the constant is an in-line immediate.
  *
  * @return True if the source of the node is a constant.
  */
@@ -204,18 +203,6 @@ MoveNode::isSourceConstant() const {
 }
 
 
-/**
- * Tells whether the destination of the node (move) belongs to an operation.
- *
- * @return True if the destination of the node is an operation input.
- */
-bool
-MoveNode::isDestinationOperation() const {
-    if (move_ == NULL) {
-        return false;
-    }
-    return dstOp_ != NULL;
-}
 
 /**
  * Tells whether the move belongs to an operation execution.
@@ -334,10 +321,8 @@ MoveNode::isAssigned() const {
         return false;
     }
 
-    UniversalMachine* uMach =
-        dynamic_cast<UniversalMachine*>(move_->bus().machine());
     /// Machine found is NOT UniversalMachine - we are happy
-    if (uMach == NULL) {
+    if (!move_->bus().machine()->isUniversalMachine()) {
         if ((isSourceOperation() ||
             isSourceVariable() ||
             isSourceImmediateRegister()) &&
@@ -419,34 +404,13 @@ ProgramOperation&
 MoveNode::sourceOperation() const
     throw(InvalidData){
     if (!isSourceOperation()){
-        std::string msg = 
+        std::string msg =
             (boost::format(
                 "MoveNode: '%s' source is not Operation.") % toString()).
             str();
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
         return *srcOp_;
-    }
-}
-
-
-/**
- * Returns the instance of operation in the program whose input is the
- * destination of this node.
- *
- * @return A program operation.
- * @exception InvalidData if the given node does not write an operation
- *     input.
- */
-ProgramOperation&
-MoveNode::destinationOperation() const
-    throw(InvalidData){
-
-    if (!isDestinationOperation()){
-        std::string msg = "MoveNode destination is not Operation.";
-        throw InvalidData(__FILE__, __LINE__, __func__, msg);
-    } else {
-        return *dstOp_;
     }
 }
 
@@ -484,34 +448,6 @@ MoveNode::unsetCycle()
     }
     cycle_ = 0;
     placed_ = false;
-}
-
-/**
- * Access Move inside MoveNode, casting constantness away
- *
- * @return reference to Move inside MoveNode
- */
-TTAProgram::Move&
-MoveNode::move(){
-    if (move_ == NULL) {
-        throw NotAvailable(__FILE__,__LINE__,__func__,
-            "Move of MoveNode is NULL");
-    }
-    return const_cast<TTAProgram::Move&> (*move_);
-}
-
-/**
- * Access Move inside MoveNode, const version.
- *
- * @return reference to Move inside MoveNode
- */
-const TTAProgram::Move&
-MoveNode::move() const {
-    if (move_ == NULL) {
-        throw NotAvailable(__FILE__,__LINE__,__func__,
-            "Move of MoveNode is NULL");
-    }
-    return *move_;
 }
 
 /**
@@ -557,7 +493,9 @@ MoveNode::toString() const {
     if (move_ == NULL) {
         return "-1:\tENTRYNODE";
     }
-    std::string content = POMDisassembler::disassemble(*move_);
+    std::string content = 
+        (isPlaced() ? Conversion::toString(cycle()) + " " : 
+         std::string()) + POMDisassembler::disassemble(*move_);
     return content;
 }
 
@@ -584,7 +522,7 @@ MoveNode::dotString() const {
             operationId = destinationOperation().poId();
 
         // hash the colors so that they are easy to separate/recognise.
-        // srand();rand() pair only used as a hash function, 
+        // srand();rand() pair only used as a hash function,
         // this needs to be deterministic.
         srand(operationId);
         int operationColor = rand() / (RAND_MAX>>24);
@@ -600,14 +538,6 @@ MoveNode::dotString() const {
         contents += ",shape=ellipse";
     }
     return contents;
-}
-
-/**
- * Returns true if it's a real move, not a pseudo move such as entry node.
- */
-bool
-MoveNode::isMove() const {
-    return move_ != NULL;
 }
 
 /**
@@ -628,19 +558,19 @@ MoveNode::earliestResultReadCycle() const {
     const ProgramOperation& po = sourceOperation();
 
     try {
-        MoveNode& trigger = po.triggeringMove();
-        if (!trigger.isScheduled()) {
+        MoveNode* trigger = po.triggeringMove();
+        if (trigger == NULL || !trigger->isScheduled()) {
             return INT_MAX;
         }
 
         // find the latency of the operation output we are reading
         const TTAMachine::HWOperation& hwop =
-            *trigger.move().destination().functionUnit().operation(
+            *trigger->move().destination().functionUnit().operation(
                 po.operation().name());
 
         // find the OSAL id of the operand of the output we are reading
         const int outputIndex = move_->source().operationIndex();
-        return trigger.cycle() + hwop.latency(outputIndex);
+        return trigger->cycle() + hwop.latency(outputIndex);
     } catch (const InvalidData& id) {
         // triggeringMove() throws if the triggering move cannot be resolved
         // again ignore this. causd by either
@@ -716,7 +646,7 @@ int MoveNode::guardLatency() const {
     if (!move_->isUnconditional()) {
 
         const TTAMachine::Guard& guard = move().guard().guard();
-        const TTAMachine::RegisterGuard* rg = 
+        const TTAMachine::RegisterGuard* rg =
             dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
         if (rg != NULL) {
             const TTAMachine::RegisterFile& rf =
@@ -731,4 +661,35 @@ int MoveNode::guardLatency() const {
     } else {
         return 0;
     }
+}
+
+/**
+ * Checks if the source of the movenode is the given reg.
+ *
+ * This method assumes incoming reg name is in correct
+ * rf.number format, and does not check it, due performance reasons.
+ *
+ * @param reg register to check against source of the movenode
+ *
+ * @return true if the source of the movenode is the given reg.
+ *         false if some other reg or not reg.
+ */
+bool
+MoveNode::isSourceReg(const std::string& reg) const {
+    if (!isMove()) {
+        return false;
+    }
+    if (!move().source().isGPR()) {
+        return false;
+    }
+
+    // try to do as quickly as possible,
+    // compare the reg in string and reg in terminalregister.
+    size_t dotPlace = reg.find('.');
+    const std::string& rfName = move().source().registerFile().name();
+    if (reg.compare(0, dotPlace, rfName) != 0) {
+        return false;
+    }
+
+    return atoi(reg.c_str()+dotPlace+1) == move().source().index();
 }

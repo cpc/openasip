@@ -26,7 +26,7 @@
  *
  * Declaration of Memory Alias Analyzer interface
  *
- * @author Heikki Kultala 2006-2007 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -37,8 +37,10 @@ namespace TTAProgram {
     class Procedure;
 }
 
-class MoveNode;
+class ProgramOperation;
 class DataDependenceGraph;
+class Operation;
+class MoveNode;
 
 class MemoryAliasAnalyzer {
 public:
@@ -50,8 +52,8 @@ public:
     virtual void initProcedure(TTAProgram::Procedure&) {}
 
     virtual AliasingResult analyze(
-        DataDependenceGraph& ddg, const MoveNode& node1, 
-        const MoveNode& node2) = 0;
+        DataDependenceGraph& ddg, const ProgramOperation& pop1, 
+        const ProgramOperation& pop2) = 0;
 
     /**
      * Checks whether the analyzer knows anything about the address.
@@ -61,10 +63,39 @@ public:
      * 
      * @return true if analyzer can know something about the address.
      */
-    virtual bool addressTraceable(
-        const MoveNode& mn) = 0;
+    virtual bool isAddressTraceable(
+        DataDependenceGraph& ddg,
+        const ProgramOperation& pop) = 0;
 
     virtual ~MemoryAliasAnalyzer() {}
+protected:
+    AliasingResult compareIndeces(
+        int index1, 
+        int index2, 
+        const ProgramOperation& pop1, 
+        const ProgramOperation& pop2);
+    const MoveNode* addressOperandMove(const ProgramOperation&po);
+
+    struct TwoPartAddressOperandDetection {
+        enum OffsetOperation { NOT_FOUND, ADD, SUB };
+        OffsetOperation offsetOperation;
+        int operand1;
+        int operand2;
+        TwoPartAddressOperandDetection() : 
+            offsetOperation(NOT_FOUND), operand1(0), operand2(0) {}
+
+        void clear() {
+            offsetOperation = NOT_FOUND;
+            operand1 = 0;
+            operand2 = 0;
+        }
+    };
+
+    TwoPartAddressOperandDetection findTwoPartAddressOperands(
+        const ProgramOperation& po);
+
+private:
+    unsigned int mausOfOperation(const Operation& op);
 };
 
 #endif

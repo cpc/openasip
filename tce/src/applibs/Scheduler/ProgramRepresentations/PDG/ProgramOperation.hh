@@ -65,8 +65,8 @@ public:
     bool areInputsAssigned();
 
     MoveNode& opcodeSettingNode() throw (InvalidData);
-    MoveNodeSet& inputNode(int in) throw (OutOfRange,KeyNotFound);
-    MoveNodeSet& outputNode(int out) throw (OutOfRange,KeyNotFound);
+    MoveNodeSet& inputNode(int in) const throw (OutOfRange, KeyNotFound);
+    MoveNodeSet& outputNode(int out) const throw (OutOfRange, KeyNotFound);
 
     bool hasOutputNode(int out) const;
     bool hasInputNode(int in) const;
@@ -79,12 +79,15 @@ public:
     MoveNode& inputMove(int index) const;
     MoveNode& outputMove(int index) const;
 
-    MoveNode& triggeringMove() const throw (InvalidData);
+    MoveNode* triggeringMove() const;
+
+    void switchInputs();
 
     std::string toString() const;
 
     unsigned int poId() const;
 
+    bool hasConstantOperand() const;
     // Comparator for maps and sets
     class Comparator {
     public:
@@ -92,6 +95,7 @@ public:
             const ProgramOperation* po1, const ProgramOperation* po2) const;
     };
 private:
+    typedef std::vector<MoveNode*> MoveVector;
     // copying forbidden
     ProgramOperation(const ProgramOperation&);
     // assignment forbidden
@@ -103,9 +107,9 @@ private:
     // map from operand index to MoveNodeSet
     std::map<int,MoveNodeSet*> outputMoves_;
     // all input moves
-    std::vector<MoveNode*> allInputMoves_;
+    MoveVector allInputMoves_;
     // all output moves
-    std::vector<MoveNode*> allOutputMoves_;
+    MoveVector allOutputMoves_;
     unsigned int poId_;
     static unsigned int idCounter;
 };

@@ -34,7 +34,11 @@
 #define TTA_CYCLE_LOOK_BACK_SOFTWARE_BYPASSER_HH
 
 #include <map>
+#include <set>
+
 #include "SoftwareBypasser.hh"
+#include "DataDependenceGraph.hh"
+#include "Move.hh"
 
 class MoveNodeSelector;
 class MoveNode;
@@ -45,19 +49,27 @@ class MoveNode;
  */
 class CycleLookBackSoftwareBypasser : public SoftwareBypasser {
 public:
-    CycleLookBackSoftwareBypasser(int cyclesToLookBack=1,
-                                  bool killDeadResult=true);
+    CycleLookBackSoftwareBypasser(
+        int cyclesToLookBack=1, int cyclesToLookBackNoDRE=1,
+        bool killDeadResult=true, bool bypassFromRegs=false, 
+        bool bypassToRegs=false);
     virtual ~CycleLookBackSoftwareBypasser();
 
     virtual int bypass(
         MoveNodeGroup& candidates,
         DataDependenceGraph& ddg,
-        ResourceManager& rm);
+        ResourceManager& rm, bool bypassTrigger);
 
     virtual void removeBypass(
         MoveNodeGroup& candidates,
         DataDependenceGraph& ddg,
         ResourceManager& rm);
+
+    virtual void removeBypass(
+        MoveNode& moveNode,
+        DataDependenceGraph& ddg,
+        ResourceManager& rm, bool restoreSource=true);
+
     virtual int removeDeadResults(
         MoveNodeGroup& candidates,
         DataDependenceGraph& ddg,
@@ -65,27 +77,50 @@ public:
 
     void setSelector(MoveNodeSelector* selector);
     
-    virtual void clearCaches();
+    virtual void clearCaches(DataDependenceGraph& ddg, bool removeDeadResults);
 private:
     /// count of cycles before the operand write to look for the producer
     /// of the read value
     int cyclesToLookBack_;
 
-    // whether dead resutls should be killed.
+    /// count of cycles before the operand write to look for the producer
+    /// of the read value when cannot kill result
+    int cyclesToLookBackNoDRE_;
+    
+    // whether dead results should be killed.
     bool killDeadResults_;
+
+    // whether to bypass from register-to-register moves
+    bool bypassFromRegs_;
+
+    // whether to bypass to register-to-register moves
+    bool bypassToRegs_;
 
     int bypassNode(
         MoveNode& nodeToBypass,
         int& lastOperandCycle,
         DataDependenceGraph& ddg,
         ResourceManager& rm);
-        
+
     /// Stores sources and bypassed moves in case they
     /// have to be unassigned (case when operands are scheduled
     /// and bypassed but result can not be scheduled with such operands
     // First is bypassed node, second is original source
-    std::map<MoveNode*, MoveNode*> storedSources_;
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> storedSources_;
+    
+    // cycles of source nodes so that they can be reassigned.
+    std::map<MoveNode*, int> sourceCycles_;
+
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> removedStoredSources_;
+
+    // these are alreayd removed from the dubgraph. remove also from the
+    // big ddg.
+    DataDependenceGraph::NodeSet removedNodes_;
+
     MoveNodeSelector* selector_;
+
+    int bypassCount_;
+    int deadResultCount_;
 };
 
 #endif

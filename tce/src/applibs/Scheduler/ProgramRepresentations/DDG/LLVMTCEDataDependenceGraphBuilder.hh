@@ -45,7 +45,8 @@
 class LLVMTCEDataDependenceGraphBuilder : 
     public DataDependenceGraphBuilder {
 public:
-    LLVMTCEDataDependenceGraphBuilder(InterPassData&) {}        
+    LLVMTCEDataDependenceGraphBuilder(InterPassData& ipd) : 
+        DataDependenceGraphBuilder(ipd) {}
     virtual ~LLVMTCEDataDependenceGraphBuilder() {}
 
     virtual DataDependenceGraph* build(

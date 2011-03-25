@@ -181,7 +181,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             // all edges, at least if filling fall-thru jumps.
             // so always run the routine until fixed,
             // if-fall-thru jumps enabled.
-            ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN);
+            ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN, edge.isBackEdge());
 
             // also try to fill into jump instruction.
             // fillSize = delaySlots still adpcm-3-full-fails, should be +1

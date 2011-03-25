@@ -39,7 +39,7 @@
 /**
  * Empty constructor.
  */
-SoftwareBypasser::SoftwareBypasser() {
+SoftwareBypasser::SoftwareBypasser() : bypassCount_(0), deadResultCount_(0){
 }
 
 /**
@@ -58,13 +58,15 @@ SoftwareBypasser::~SoftwareBypasser() {
  * @param ddg The data dependence grap in which the movenodes belong to.
  * @param rm The resource manager which is used to check for resource
  *        availability.
+ * @param bypassTrigger whether to bypass the trigger or not.
  * @return The count of bypassed moves.
  */
 int
 SoftwareBypasser::bypass(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
-    ResourceManager& rm) {
+    ResourceManager& rm, 
+    bool /*bypassTrigger*/) {
 
     // use the arguments just to avoid compiler warnings with strict flags
     candidates.nodeCount();
@@ -105,6 +107,10 @@ SoftwareBypasser::removeBypass(
  * @param ddg The data dependence grap in which the movenodes belong to.
  * @param rm The resource manager which is used to check for resource
  *        availability.
+ * @param removedMoves The dead result eliminated moves and their original 
+ * cycles, to allow rescheduling of moves that were previously
+ * resource (RF write port usually) constrained by the removed moves.
+ * @return number of dead results killed
  */
 int
 SoftwareBypasser::removeDeadResults(
@@ -126,18 +132,11 @@ SoftwareBypasser::removeDeadResults(
  * bypasses can notify the selector about dependence changes
  * (like WAR/WAW edge removal duo bypassing)
  *
- * Default implementation is empty, only actual byöpasser implementations 
+ * Default implementation is empty, only actual bypasser implementations 
  * implement this.
  *
  * @param selector selector which bypasser notifies on some dependence changes.
  */
 void 
 SoftwareBypasser::setSelector(MoveNodeSelector*) {
-}
-
-/**
- * Clears all temporary data structures/caches used byt the bypasser.
- */
-void 
-SoftwareBypasser::clearCaches() {
 }

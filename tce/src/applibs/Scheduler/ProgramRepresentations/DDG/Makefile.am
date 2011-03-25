@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libddg.la
 libddg_la_SOURCES = \
 	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc \
-	LLVMTCEDataDependenceGraphBuilder.cc
+	LLVMTCEDataDependenceGraphBuilder.cc MemoryAliasAnalyzer.cc
 
 #MNData.cc
 #MemoryAliasAnalyzer.cc
@@ -40,5 +40,5 @@ libddg_la_SOURCES += \
 	DataDependenceGraphBuilder.hh ConstantAliasAnalyzer.hh \
 	MemoryAliasAnalyzer.hh DataDependenceEdge.hh \
 	DataDependenceGraph.hh FalseAliasAnalyzer.hh \
-	LLVMTCEDataDependenceGraphBuilder.hh
+	LLVMTCEDataDependenceGraphBuilder.hh MoveNodeUse.hh MoveNodeUse.icc
 ## headers end

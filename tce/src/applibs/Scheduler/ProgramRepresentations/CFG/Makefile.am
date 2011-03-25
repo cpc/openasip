@@ -15,10 +15,14 @@ MACH_DIR = ${BASE_DIR}/mach
 UM_DIR = ${BASE_DIR}/umach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
+SCHEDULER_DIR = ${APPLIBS_DIR}/Scheduler
+PR_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/
+DDG_DIR = ${PR_DIR}/DDG/
+PDG_DIR = ${PR_DIR}/PDG/
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
--I${SCHED_ALGO_DIR}
+-I${DDG_DIR} -I${PDG_DIR} -I${SCHED_ALGO_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

@@ -166,7 +166,7 @@ BasicBlockScheduler::handleDDG(
     }
 
     if (softwareBypasser_ != NULL) {
-        softwareBypasser_->clearCaches();
+        softwareBypasser_->clearCaches(ddg, true);
     }
 
     if (ddg.nodeCount() !=
@@ -256,6 +256,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     const int retryCount = 20;
     int minOperand = operandsStartCycle;
     bool tryBypassing = softwareBypasser_ != NULL;
+    bool bypassTrigger = true;
 
     while ((operandsFailed || resultsFailed) &&
         operandsStartCycle < maxFromRm + retryCount) {
@@ -280,13 +281,17 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
 
         int bypassedMoves = -1;
         if (tryBypassing) {
-            bypassedMoves = softwareBypasser_->bypass(moves, *ddg_, *rm_);
+            bypassedMoves = softwareBypasser_->bypass(moves, *ddg_, *rm_, bypassTrigger);
             if (bypassedMoves == -1){
                 // bypassing failed try again without attempt to bypass
                 // this restores the original schedule of operands
                 // and disable bypassing
-                tryBypassing = false;
                 operandsFailed = true;
+                if (bypassTrigger == false) {
+                    tryBypassing = false;
+                } else {
+                    bypassTrigger = false;
+                }
                 softwareBypasser_->removeBypass(moves, *ddg_, *rm_);
                 continue;
             }
@@ -300,7 +305,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
             // of this program operation. Lets check if some of the
             // bypassed operands did not produce dead result moves
             if (tryBypassing) {
-                try{
+                try {
                     deadResults_ +=
                         softwareBypasser_->removeDeadResults(
                             moves, *ddg_, *rm_);

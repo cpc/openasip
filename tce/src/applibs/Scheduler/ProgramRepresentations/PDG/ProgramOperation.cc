@@ -51,7 +51,6 @@
 #include "TCEString.hh"
 
 namespace TTAProgram{
-    class NullMove;
     class NullOperation;
 }
 /**
@@ -361,16 +360,16 @@ ProgramOperation::opcodeSettingNode()
  * inputs
  */
 MoveNodeSet&
-ProgramOperation::inputNode(int index)
+ProgramOperation::inputNode(int index) const
     throw (OutOfRange,KeyNotFound) {
     if (index < 1 || index > (int)inputMoves_.size()) {
         std::string msg = "InputNode index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
-    if (MapTools::containsKey(inputMoves_, index)) {
-        MoveNodeSet* nodeSet =
-            MapTools::valueForKey<MoveNodeSet*>(inputMoves_, index);
-        return *nodeSet;
+    
+    std::map<int, MoveNodeSet*>::const_iterator i = inputMoves_.find(index);
+    if (i != inputMoves_.end()) {
+        return *(i->second);
     } else {
         std::string msg = "InputNode index not found.";
         throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
@@ -384,7 +383,7 @@ ProgramOperation::inputNode(int index)
  * @throw OutOfRange If index is not found
  */
 MoveNodeSet&
-ProgramOperation::outputNode(int index)
+ProgramOperation::outputNode(int index) const
     throw (OutOfRange,KeyNotFound) {
     if (index <= operation_.numberOfInputs() ||
         index > operation_.numberOfInputs()+
@@ -489,13 +488,11 @@ ProgramOperation::outputMove(int index) const {
 /**
  * Returns the triggering move of the operation.
  *
- * @return The triggering move.
- * exception InvalidData In case the operation is not yet assigned to an
- * FU, or the triggering move has not been assigned yet.
+ * @return The triggering move. NULL in case the operation is not yet 
+ * assigned to an FU, or the triggering move has not been assigned yet.
  */
-MoveNode&
-ProgramOperation::triggeringMove() const
-    throw (InvalidData) {
+MoveNode*
+ProgramOperation::triggeringMove() const {
 
     for (std::size_t i = 0; i < allInputMoves_.size(); ++i) {
         MoveNode& moveNode = *allInputMoves_.at(i);
@@ -504,12 +501,10 @@ ProgramOperation::triggeringMove() const
             if (move.destination().isFUPort() &&
                 (dynamic_cast<const TTAMachine::BaseFUPort&>(
                     move.destination().port())).isTriggering())
-                return moveNode;
+                return &moveNode;
         }
     }
-    throw InvalidData(
-        __FILE__, __LINE__, __func__, 
-        TCEString("Triggering move not found: ") + toString());
+    return NULL;
 }
 
 /**
@@ -554,5 +549,46 @@ ProgramOperation::Comparator::operator()(
     return po1->poId() < po2->poId();
 }
 
-unsigned int ProgramOperation::idCounter = 0;
+/**
+ * Switches inputs of 2-operand commutative operations
+ */
+void
+ProgramOperation::switchInputs() {
 
+    Operation& op = operation();
+    assert (op.numberOfInputs() == 2 && op.canSwap(1,2));
+    
+    // switch input nodes.
+    MoveNodeSet tmpSet = *inputMoves_[1];
+    *inputMoves_[1] = *inputMoves_[2];
+    *inputMoves_[2] = tmpSet;
+
+    for (int i = 0; i < inputMoveCount(); i++) {
+        MoveNode& node = inputMove(i);
+        TTAProgram::Move& move = node.move();
+        TTAProgram::Terminal& oldDest = move.destination();
+        
+        // then update the moves.
+        move.setDestination(
+            new TTAProgram::TerminalFUPort(
+                *static_cast<TTAProgram::TerminalFUPort&>(oldDest).
+                hwOperation(), 3-oldDest.operationIndex()));
+    }
+}
+
+/**
+ * Returns true in case the operation has at least one operand that
+ * is a contant/immediate.
+ */
+bool
+ProgramOperation::hasConstantOperand() const {
+    for (MoveVector::const_iterator i = allInputMoves_.begin(); 
+         i != allInputMoves_.end(); ++i) {
+        MoveNode* mn = *i;
+        if (mn->isSourceConstant())
+            return true;
+    }
+    return false;
+}
+
+unsigned int ProgramOperation::idCounter = 0;

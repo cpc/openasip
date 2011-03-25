@@ -29,6 +29,7 @@ Code generator improvements
   on some situations.
 - Alias analysis improvements, understands that register spills to stack
   cannot alias with other memory operations
+- Software Bypasser is much more aggressive.
 
 Optimizations
 -------------

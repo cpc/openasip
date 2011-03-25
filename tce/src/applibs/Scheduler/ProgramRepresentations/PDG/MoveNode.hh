@@ -71,7 +71,7 @@ public:
     MoveNode* copy();
 
     bool isSourceOperation() const;
-    bool isDestinationOperation() const;
+    inline bool isDestinationOperation() const;
     bool isOperationMove() const;
 
     bool isSourceVariable() const;
@@ -114,7 +114,8 @@ public:
     std::string dotString() const;
 
     // is move or entry node?
-    bool isMove() const;
+    inline bool isMove() const;
+    bool isSourceReg(const std::string& reg) const;
 
     /// Node can be entry node
     MoveNode();
@@ -124,23 +125,25 @@ private:
     /// Assignment forbidden
     MoveNode& operator=(const MoveNode&);
 
-    /// True when the node placed (is given a cycle in program).
-    bool placed_;
+    /// Pointer to Move this node represents, Node itself do not change move
+    const TTAProgram::Move* move_;
+
+    ProgramOperation *srcOp_;
+    ProgramOperation *dstOp_;
 
     /// Cycle in which the node is placed. Each cycle uniquely identifies an
     /// instruction slot within the current scheduling scope.
     int cycle_;
-
-    /// Pointer to Move this node represents, Node itself do not change move
-    const TTAProgram::Move* move_;
 
     /// True in case the Move is owned by the MoveNode.
     /// Ownership changes during scheduling when Move is placed into
     /// Instruction
     bool moveOwned_;
 
-    ProgramOperation *srcOp_;
-    ProgramOperation *dstOp_;
+    /// True when the node placed (is given a cycle in program).
+    bool placed_;
 };
+
+#include "MoveNode.icc"
 
 #endif

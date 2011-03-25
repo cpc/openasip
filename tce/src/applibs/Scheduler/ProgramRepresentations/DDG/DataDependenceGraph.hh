@@ -26,12 +26,12 @@
  *
  * Declaration of data dependence graph class
  *
- * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_LOCAL_DATA_DEPENDENCE_GRAPH_HH
-#define TTA_LOCAL_DATA_DEPENDENCE_GRAPH_HH
+#ifndef TTA_DATA_DEPENDENCE_GRAPH_HH
+#define TTA_DATA_DEPENDENCE_GRAPH_HH
 
 #include "BoostGraph.hh"
 #include "DataDependenceEdge.hh"
@@ -42,15 +42,17 @@
 #include <utility>
 #include <vector>
 #include <utility>
-#include "TCEString.hh"
+
 #include "MoveNode.hh"
 
 typedef std::vector<class ProgramOperation*> POList;
 typedef POList::iterator POLIter;
 
 class BasicBlockNode;
+class BasicBlock;
 class DataGraphBuilder;
 class ControlFlowGraph;
+class MoveNodeUse;
 
 namespace TTAMachine {
     class BaseRegisterFile;
@@ -77,22 +79,33 @@ public:
         DUMP_XML
     };
 
+    enum EdgeWeightHeuristics {        
+        EWH_HEURISTIC,   ///< Weights memory dependencies more, etc.
+        EWH_REAL,        ///< Height returns the minimum cycle count for the
+                         ///< schedule given enough resources.
+        EWH_DEFAULT = EWH_HEURISTIC
+    };
+
     DataDependenceGraph(
-        const std::string& name="", 
+        std::set<TCEString> allParamRegs,
+        const TCEString& name="", 
         AntidependenceLevel antidependenceLevel = ALL_ANTIDEPS,
-        bool containsProcedure = false, bool noLoopEdges = false);
+        BasicBlockNode* ownedBBN = NULL, 
+        bool containsProcedure=false, bool noLoopEdges=false);
+
     virtual ~DataDependenceGraph();    
 
     /* Gets the BB in which this move belongs. This should be moved to
        a better place: DDG API should not deal with basic blocks. Correct
        place BasicBlockNode? */
+    const BasicBlockNode& getBasicBlockNode(const MoveNode& mn) const;
     BasicBlockNode& getBasicBlockNode(MoveNode& mn);
 
     int programOperationCount();
     ProgramOperation& programOperation(int index);
 
-    DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn);
-    DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn);
+    DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn) const;
+    DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn) const;
 
     // should not be called by the user, only by a DataDependenceGraphBuilder
     void addNode(MoveNode& moveNode) 
@@ -104,22 +117,47 @@ public:
     using BoostGraph<MoveNode, DataDependenceEdge>::addNode;
 
     int earliestCycle(
-        const MoveNode& moveNode, 
-        bool ignoreUnscheduledPredecessors=false) const;
+        const MoveNode& moveNode, unsigned int ii = UINT_MAX, 
+        bool ignoreRegWaRs = false, 
+        bool ignoreRegWaWs = false, bool ignoreGuards = false,
+        bool ignoreFUDeps = false) const;
 
-    int latestCycle(const MoveNode& moveNode) const;
+    int latestCycle(
+        const MoveNode& moveNode, unsigned int ii = UINT_MAX,
+        bool ignoreRegAntideps = false) const;
     
     int smallestCycle() const;
     int largestCycle() const;
     int scheduledNodeCount() const;
 
     NodeSet unscheduledMoves() const;
+    NodeSet scheduledMoves() const;
     NodeSet movesAtCycle(int cycle) const;
 
-    MoveNode* guardDefMove(MoveNode& moveNode);
+    MoveNode* lastGuardDefMove(MoveNode& moveNode);
+    NodeSet guardDefMoves(const MoveNode& moveNode);
 
     MoveNode*
     lastScheduledRegisterRead(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
+    NodeSet
+    lastScheduledRegisterReads(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
+    NodeSet
+    lastScheduledRegisterGuardReads(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+    
+    NodeSet
+    lastScheduledRegisterWrites(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
+    MoveNode*
+    lastScheduledRegisterKill(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
+    int lastRegisterCycle(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
 
     void sanityCheck() const
@@ -132,7 +170,7 @@ public:
     // XML dumping
     void writeToXMLFile(std::string fileName) const;
 
-    void mergeAndKeep(MoveNode& resultNode, MoveNode& userNode);
+    bool mergeAndKeep(MoveNode& resultNode, MoveNode& userNode);
     void unMerge(MoveNode& resultNode, MoveNode& mergedNode);
 
     bool resultUsed(MoveNode& resultNode);
@@ -140,9 +178,20 @@ public:
     void removeNode(MoveNode& node) throw (InstanceNotFound);
     void deleteNode(MoveNode& node);
 
+    void setEdgeWeightHeuristics(EdgeWeightHeuristics ewh) {
+        if (edgeWeightHeuristics_ != ewh) {
+            // force path recalculation
+            height_ = -1; 
+            sourceDistances_.clear();
+            sinkDistances_.clear();
+        }
+        edgeWeightHeuristics_ = ewh;
+    }
+
     int edgeWeight(DataDependenceEdge& e, const MoveNode& hNode) const;
     bool predecessorsReady(MoveNode& node) const;
     void setMachine(const TTAMachine::Machine& machine);
+    const TTAMachine::Machine& machine() const { return *machine_; } 
 
     bool connectOrDeleteEdge(        
         const MoveNode& tailNode, const MoveNode& headNode, 
@@ -156,20 +205,76 @@ public:
 
     DataDependenceGraph* createSubgraph(
         std::list<TTAProgram::CodeSnippet*>& codeSnippets,
-        bool includeLoops);
+        bool includeLoops = false);
+
+    DataDependenceGraph* trueDependenceGraph(
+        bool removeMemAntideps=true, bool ignoreMemDeps=false);
+    DataDependenceGraph* criticalPathGraph();
 
     MoveNode& nodeOfMove(TTAProgram::Move& move) throw (InstanceNotFound);
 
-    void fixInterBBAntiEdges(BasicBlockNode& bbn1, BasicBlockNode& bbn2)
+    void dropBackEdges();
+
+    void fixInterBBAntiEdges(BasicBlockNode& bbn1, 
+                             BasicBlockNode& bbn2,
+                             bool loopEdges)
         throw (Exception);
 
     // Duplicates all in- and outgoing edges in dst to src
     void copyDependencies(MoveNode& src, MoveNode& dst) 
         throw (InstanceNotFound); 
 
-    DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn);
+    void copyIncomingGuardEdges(const MoveNode& src, MoveNode& dst);
+    void copyOutgoingGuardWarEdges(const MoveNode& src, MoveNode& dst);
     
+    NodeSet guardRawPredecessors(const MoveNode& node) const;
+
+    DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn) const;
+    MoveNode* onlyRegisterRawSource(const MoveNode& mn) const;
+
+    NodeSet regWarSuccessors(const MoveNode& node) const;
+    NodeSet regRawSuccessors(const MoveNode& node) const;
+    NodeSet regWawSuccessors(const MoveNode& node) const;
+
+    void createRegisterAntiDependenciesBetweenNodes(NodeSet& nodes);
+
+    bool exclusingGuards(const MoveNode& mn1, const MoveNode& mn2) const;
+    bool sameGuards(const MoveNode& mn1, const MoveNode& mn2) const;
+
+    int rWarEdgesOut(MoveNode& mn);
+    int regRawSuccessorCount(const MoveNode& mn, bool onlyScheduled);
+
+    bool guardsAllowBypass(const MoveNode& defNode, const MoveNode& useNode);
+
+    const MoveNode* onlyRegisterRawAncestor(
+        const MoveNode& node, const std::string& sp) const;
+
+    void copyDepsOver(MoveNode& node, bool anti, bool raw);
+
+    TTAProgram::Move* findLoopLimit(MoveNode& jumpMove);
+
     void moveFUDependenciesToTrigger(MoveNode& trigger);
+
+    std::pair<NodeSet,NodeSet> findLiveRange(
+        MoveNode& lrNode, bool writingNode=true) const;
+
+    MoveNode* findLimitingAntidependenceSource(MoveNode& mn);
+    MoveNode* findLimitingAntidependenceDestination(MoveNode& mn);
+
+    void sourceRenamed(MoveNode& mn);
+    void destRenamed(MoveNode& mn);
+
+    void copyExternalInEdges(MoveNode& nodeCopy, const MoveNode& source);
+    void copyExternalOutEdges(MoveNode& nodeCopy, const MoveNode& source);
+
+    void updateRegWrite(
+        const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb);
+
+    void updateRegUse(
+        const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb);
+
+    void removeIncomingGuardEdges(MoveNode& node);
+    void removeOutgoingGuardWarEdges(MoveNode& node);
 
     inline bool hasAllRegisterAntidependencies() {
         return registerAntidependenceLevel_ >= ALL_ANTIDEPS;
@@ -184,7 +289,6 @@ public:
     }
 
 private:
-    bool rWarEdgesOutUncond(MoveNode& mn);
     bool rWawRawEdgesOutUncond(MoveNode& mn);
     int rAntiEdgesIn(MoveNode& mn);
 
@@ -192,10 +296,6 @@ private:
         MoveNode& mn, BasicBlockNode& bblock, DataDependenceGraph* updater);
 
     bool isRootGraphProcedureDDG();
-
-    // cache to make things faster
-    // may not be ised with iterator.
-    std::map<TTAProgram::Move*, MoveNode*> nodesOfMoves_;
     
     bool hasEqualEdge(
         const MoveNode& tailNode, const MoveNode& headNode, 
@@ -203,9 +303,15 @@ private:
     
     int getOperationLatency(const TCEString& name) const;
 
+    std::set<TCEString> allParamRegs_;
+
+    // cache to make things faster
+    // may not be used with iterator.
+    std::map<TTAProgram::Move*, MoveNode*> nodesOfMoves_;
+
     // own all the programoperations
     POList programOperations_;
-    std::map<MoveNode*, BasicBlockNode*> moveNodeBlocks_;
+    std::map<const MoveNode*, BasicBlockNode*> moveNodeBlocks_;
 
     /// Dot printing related variables.
     /// Group the printed MoveNodes according to their cycles.
@@ -216,8 +322,12 @@ private:
     int delaySlots_;
     std::map<TCEString, int> operationLatencies_;
 
+    BasicBlockNode* ownedBBN_;
     bool procedureDDG_;
     AntidependenceLevel registerAntidependenceLevel_;
+
+    /// The heuristics to use to weight edges in the longest path computation.
+    EdgeWeightHeuristics edgeWeightHeuristics_;
 };
 
 #endif

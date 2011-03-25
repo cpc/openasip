@@ -36,10 +36,11 @@
 #include "MemoryAliasAnalyzer.hh"
 
 class FalseAliasAnalyzer : public MemoryAliasAnalyzer {
-        virtual bool addressTraceable(const MoveNode& mn);
+    virtual bool isAddressTraceable(
+        DataDependenceGraph& ddg, const ProgramOperation& pop);
     virtual AliasingResult analyze(
-        DataDependenceGraph& ddg, const MoveNode& node1, 
-        const MoveNode& node2);
+        DataDependenceGraph& ddg, const ProgramOperation& pop1, 
+        const ProgramOperation& pop2);
     
     ~FalseAliasAnalyzer();
 };

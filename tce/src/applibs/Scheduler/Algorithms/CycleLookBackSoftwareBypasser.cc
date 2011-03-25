@@ -43,6 +43,9 @@
 #include "MoveNodeSelector.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
+#include "SimpleResourceManager.hh"
+
+#include "ProgramOperation.hh"
 
 // DEBUG:
 #include "SimpleResourceManager.hh"
@@ -58,9 +61,14 @@
  * @param killDeadResults Whether dead results should be killed.
  */
 CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser(
-    int cyclesToLookBack, bool killDeadResults) : 
-    cyclesToLookBack_(cyclesToLookBack),
-    killDeadResults_(killDeadResults), selector_(NULL) {
+    int cyclesToLookBack, int cyclesToLookBackNoDRE,
+    bool killDeadResults, bool bypassFromRegs,
+    bool bypassToRegs) :
+    cyclesToLookBack_(cyclesToLookBack), 
+    cyclesToLookBackNoDRE_(cyclesToLookBackNoDRE),
+    killDeadResults_(killDeadResults),
+    bypassFromRegs_(bypassFromRegs), bypassToRegs_(bypassToRegs), 
+    selector_(NULL), bypassCount_(0), deadResultCount_(0) {
 }
 
 /**
@@ -87,22 +95,21 @@ CycleLookBackSoftwareBypasser::bypassNode(
     DataDependenceGraph& ddg,
     ResourceManager& rm) {
 
-    // result value or already bypassed - don't bypass this
-    if (moveNode.isSourceOperation()) {
+    int cyclesToLookBack = cyclesToLookBack_;
+    if (moveNode.isDestinationVariable() && !bypassToRegs_) {
         return 0;
     }
-
-    if (!moveNode.isDestinationOperation()){
-        throw InvalidData(__FILE__, __LINE__, __func__, 
-                          "Bypassed move is not Operand move!");
-    }
+    
+    int originalCycle = moveNode.cycle();
+    int latestCycle = originalCycle;
+    
     DataDependenceGraph::EdgeSet edges = ddg.inEdges(moveNode);
     DataDependenceGraph::EdgeSet::iterator edgeIter = edges.begin();
     DataDependenceEdge* bypassEdge = NULL;
-    
+
     // find one incoming raw edge. if multiple, cannot bypass.
     while (edgeIter != edges.end()) {
-        
+
         DataDependenceEdge& edge = *(*edgeIter);
         // if the edge is not a real reg/ra raw edge, skip to next edge
         if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
@@ -111,7 +118,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
             edgeIter++;
             continue;
         }
-        
+
         if (bypassEdge == NULL) {
             bypassEdge = &edge;
         } else {
@@ -120,13 +127,17 @@ CycleLookBackSoftwareBypasser::bypassNode(
         }
         edgeIter++;
     }
-    
+
     // if no bypassable edge found, cannot bypass
-    if (bypassEdge == NULL) {
+    if (bypassEdge == NULL || bypassEdge->isBackEdge()) {
         return 0;
     }
 
     MoveNode& source = ddg.tailNode(*bypassEdge);
+
+    if (!source.isScheduled()) {
+        return 0;
+    }
 
     // don't bypass from incoming tempregcopies of immediates
     if (source.isSourceConstant() &&
@@ -134,62 +145,168 @@ CycleLookBackSoftwareBypasser::bypassNode(
             TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE)) {
         return 0;
     }
-            
+
+    // if cannot kill dead result, divide bypass dist by 2
+    if (source.isSourceOperation() &&
+        moveNode.isDestinationOperation() &&
+        cyclesToLookBack != INT_MAX && 
+        cyclesToLookBack > cyclesToLookBackNoDRE_ &&
+        (ddg.regRawSuccessorCount(source, true) > 1 ||
+         ddg.regRawSuccessorCount(source, false) < 
+         static_cast<DataDependenceGraph*>(ddg.rootGraph())->
+         regRawSuccessorCount(source, false))) {
+        cyclesToLookBack = cyclesToLookBackNoDRE_;
+    }
+
     // source node is too far for our purposes
     // do not bypass this operand
-    if (cyclesToLookBack_ != INT_MAX &&
-        source.cycle() + cyclesToLookBack_ < moveNode.cycle()) {
+    if (cyclesToLookBack != INT_MAX &&
+        source.cycle() + cyclesToLookBack < moveNode.cycle()) {
         return 0;
     }
 
-    if (!source.move().isUnconditional()) {
-        // cannot bypass from conditional to unconditional
-        if (moveNode.move().isUnconditional()) {
-            return 0;
-        }
-        // cannot bypass from different guard.
-        if (!moveNode.move().guard().guard().isEqual(
-                source.move().guard().guard())){
-            return 0;
-        }
+    if (!ddg.guardsAllowBypass(source, moveNode)) {
+        return 0;
     }
 
-    // do no bypass from reg-reg moves - antidependencies not handled
-    if (source.isSourceOperation() || source.isSourceConstant()) {
-        int originalCycle = moveNode.cycle();
-        rm.unassign(moveNode);
-        storedSources_.insert(
-            std::pair<MoveNode*,MoveNode*>(&moveNode, &source));
-        
-        ddg.mergeAndKeep(source, moveNode);
-        int ddgCycle = ddg.earliestCycle(moveNode);
-        if (!moveNode.move().isUnconditional()) {
-            ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
+    // if dest register, only allow input from reg or imm.
+    // and limit the read to same as original read
+    // in order to not make live ranges longer, limiting schdule
+    if (!moveNode.isDestinationOperation()) {
+        latestCycle = source.cycle();
+    }
+    if (!(source.isSourceOperation() || source.isSourceConstant())) {
+        if (!bypassFromRegs_) {
+            return 0;
         }
-        if (ddgCycle != INT_MAX) {
-#ifdef MOVE_BYPASSER
-            ddgCycle = originalCycle;
-#endif
-            int cycle = rm.earliestCycle(ddgCycle, moveNode);
-            if (cycle != -1 && cycle <= originalCycle) {
-                rm.assign(cycle, moveNode);
-                if (!moveNode.isScheduled()){
-                    throw InvalidData(
-                        __FILE__, __LINE__, __func__, 
-                        "Move assignment failed");
-                }                                               
-                lastOperandCycle = std::max(lastOperandCycle, cycle);
-                // only one bypass per operand is possible, no point to
-                // test other edges of same moveNode
-                return 1;
+        // handle antidependencies from reg-reg moves.
+        DataDependenceGraph::NodeSet warSuccs =
+            ddg.regWarSuccessors(source);
+        for (DataDependenceGraph::NodeSet::iterator i = warSuccs.begin();
+             i != warSuccs.end();i++) {
+            MoveNode& mn = **i;
+            if (mn.isScheduled()) {
+                if (mn.cycle() < latestCycle) {
+                    latestCycle = std::min(latestCycle, mn.cycle());
+                }
+            } 
+        }
+        
+        // redundant latest check to prevent loops in ddg.
+        for (edgeIter = edges.begin(); edgeIter != edges.end(); edgeIter++) {
+            DataDependenceEdge& edge = **edgeIter;
+            if (&edge != bypassEdge) {
+                MoveNode& tail = ddg.tailNode(edge);
+                if (!tail.isScheduled()) {
+                    return 0;
+                }
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                    if (tail.cycle() > latestCycle) {
+                        return 0;
+                    }
+                } else {
+                    if (tail.cycle() > latestCycle-1) {
+                        return 0;
+                    }
+                }
             }
         }
-        // if node could not be bypassed, we return -1 and let
-        // BBScheduler call removeBypass
-        return -1;
+    } 
+    rm.unassign(moveNode);
+    storedSources_.insert(
+        std::pair<MoveNode*, MoveNode*>(&moveNode, &source));
+    
+    // if mergeandkeep fails, undo bypass and return 0
+    if (!ddg.mergeAndKeep(source, moveNode)) {
+        rm.assign(originalCycle, moveNode);
+        assert(moveNode.isScheduled());
+        storedSources_.erase(&moveNode);
+        return 0;
     }
-    // nothing bypassed
-    return 0;
+
+    // then try to assign the bypassed node..
+    int ddgCycle = ddg.earliestCycle(moveNode);
+    if (!moveNode.move().isUnconditional()) {
+        ddgCycle = std::max(ddgCycle, moveNode.guardLatency() - 1);
+    }
+    if (ddgCycle != INT_MAX) {
+#ifdef MOVE_BYPASSER
+        ddgCycle = originalCycle;
+#endif
+        // remove dead results now?
+        int sourceCycle = source.cycle();
+        bool sourceRemoved = false;
+        // disable DRE if ii != 0
+        // only kill if dest is op
+        if (killDeadResults_ && !ddg.resultUsed(source)) {
+            // if restoring lated
+            sourceCycles_[&source] = sourceCycle;
+            sourceRemoved = true;
+            // results that has no "use" later and are overwritten are
+            // dead if there are some other edges we don't do anything
+            // Resuls is positively death
+            // we need to properly get rid of it
+            rm.unassign(source);
+        }
+
+        int cycle = rm.earliestCycle(ddgCycle, moveNode);
+        if (cycle != -1 && cycle <= latestCycle) {
+            rm.assign(cycle, moveNode);
+            if (!moveNode.isScheduled()){
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    "Move assignment failed");
+            }
+            lastOperandCycle = std::max(lastOperandCycle, cycle);
+            // only one bypass per operand is possible, no point to
+            // test other edges of same moveNode
+            if (sourceRemoved) {
+                ddg.copyDepsOver(source, true, false);
+            }
+            bypassCount_++;
+            return 1;
+        } else {
+            // undo only this bypass.
+            // allow other moves of same po to be bypassed.
+            ddg.unMerge(source, moveNode);
+            if (!rm.canAssign(originalCycle, moveNode)) {
+                // Cannot return to original position. getting problematic.
+                // return source to it's position
+                if (sourceRemoved) {
+                    assert(rm.canAssign(sourceCycle, source));
+                    rm.assign(sourceCycle, source);
+                    sourceCycles_.erase(&source);
+                }
+                // Try if we can assign it to some earlier place.
+                ddgCycle = ddg.earliestCycle(moveNode);
+                if (!moveNode.move().isUnconditional()) {
+                    ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
+                }
+                int ec = rm.earliestCycle(ddgCycle, moveNode);
+                if (ec != -1 && ec < originalCycle) {
+                    rm.assign(ec, moveNode);
+                    return 0;
+                } else {
+                    // Need to abort bypassing.
+                    return -1;
+                }
+            }
+            rm.assign(originalCycle, moveNode);
+            assert(moveNode.isScheduled());
+            storedSources_.erase(&moveNode);
+
+            // return source to it's position
+            if (sourceRemoved) {
+                assert(rm.canAssign(sourceCycle, source));
+                rm.assign(sourceCycle, source);
+                sourceCycles_.erase(&source);
+            }
+            return 0;
+        }
+    }
+    // if node could not be bypassed, we return -1 and let
+    // BBScheduler call removeBypass
+    return -1;
 }
 
 /**
@@ -209,7 +326,8 @@ int
 CycleLookBackSoftwareBypasser::bypass(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
-    ResourceManager& rm) {
+    ResourceManager& rm,
+    bool bypassTrigger) {
 
     // bypassing disabled with 0
     if (cyclesToLookBack_ <= 0) {
@@ -222,28 +340,46 @@ CycleLookBackSoftwareBypasser::bypass(
 
     MoveNode* trigger = NULL;
     int lastOperandCycle = 0;
+
     for (int i = 0; i < candidates.nodeCount(); i++) {
         MoveNode& moveNode = candidates.node(i);
 
-        // find the trigger
-        if (moveNode.move().isTriggering()) {
-            trigger = &moveNode;
+        // result value or already bypassed - don't bypass this
+        if (moveNode.isSourceOperation()) {
+            continue;
         }
 
-        if (moveNode.move().isControlFlowMove()) {
-            // don't try to bypass control flow moves, they have lot
-            // of pseudo dependencies because of return values
-            break;
+        // find the trigger, will try to bypass it as the last one
+        if (moveNode.move().isTriggering()) {
+            trigger = &moveNode;
+            continue;
         }
 
         // bypass this node.
         int rv = bypassNode(moveNode, lastOperandCycle, ddg, rm);
         if (rv == -1) {
             return -1; // failed, need cleanup
-        } else {
-            bypassCounter += rv; 
-        } 
+        }  else {
+            bypassCounter += rv;
+        }
     }
+    // Try to bypass triggering move, if possible ok, if not
+    // it will be rescheduled at the end after all not bypassed
+    // moves are tried to be rescheduled
+    bool triggerWasBypassed = false;
+    if (trigger != NULL && !trigger->move().isControlFlowMove() &&
+        !trigger->isSourceOperation() && bypassTrigger) {
+        int rv = bypassNode(*trigger, lastOperandCycle, ddg, rm);
+        if (rv == -1) {
+            return -1; // failed, need cleanup
+        }  else {
+            bypassCounter += rv;
+            if (rv == 1) {
+                triggerWasBypassed = true;
+            }
+        }
+    }
+
     // at this point the schedule might be broken in case we
     // managed to bypass the trigger and it got pushed above
     // an operand move
@@ -262,68 +398,69 @@ CycleLookBackSoftwareBypasser::bypass(
             moveNode.move().isControlFlowMove()) {
             continue;
         }
-        if (moveNode.isBypass()) {
+        
+        if (trigger != &moveNode) {
             lastOperandCycle =
                 std::max(lastOperandCycle, moveNode.cycle());
+        }
+
+        // Bypassed moves and bypassed trigger are not rescheduled here
+        if (moveNode.isBypass() ||
+            (trigger == &moveNode && triggerWasBypassed)) {
             continue;
         }
         int oldCycle = moveNode.cycle();
-
-        rm.unassign(moveNode);
         int earliestCycleDDG = ddg.earliestCycle(moveNode);
 
+        if (earliestCycleDDG >= oldCycle) {
+            continue;
+        }
+        rm.unassign(moveNode);
         int earliestCycle = earliestCycleDDG;
 
         if (!moveNode.move().isUnconditional()) {
             earliestCycle = 
                 std::max(earliestCycleDDG, moveNode.guardLatency() - 1);
         }
-        earliestCycle = rm.earliestCycle(earliestCycleDDG, moveNode);
-
-        if (earliestCycle == -1) {            
-            // this failure is caused by the case
-            // when we have pushed a trigger move too early 
-            // due to eager bypassing and the operand move(s) 
-            // cannot be scheduled before it due to lacking
-            // resources
-            assert(trigger != NULL);
-            assert(trigger->isScheduled());
-            assert(trigger->cycle() < oldCycle);
-                   
-            // unassign trigger so it can be rescheduled after
-            // the operand
-            rm.unassign(*trigger);
-            
-            // now the schedule should not fail anymore
-            earliestCycle = rm.earliestCycle(earliestCycleDDG, moveNode);
-            assert(earliestCycle >= 0);
-            rm.assign(earliestCycle, moveNode);
-
-            int earliestForTrigger = 
-                rm.earliestCycle(moveNode.cycle(), *trigger);
-            // reschedule the trigger after the operand move
-            if (earliestForTrigger <0) {
-                return -1;
+        earliestCycle = rm.earliestCycle(earliestCycle, moveNode);
+        if ((oldCycle > earliestCycle && earliestCycle != -1) ||
+            (trigger == &moveNode && earliestCycle != -1)){
+            try {
+                rm.assign(earliestCycle, moveNode);
+            } catch (const Exception& e) {
+                throw ModuleRunTimeError(__FILE__, __LINE__, __func__,
+                    e.errorMessageStack());
             }
-            rm.assign(earliestForTrigger, *trigger);
-        } else {        
-            rm.assign(earliestCycle, moveNode);
+        } else {
+            try {
+                if (!rm.canAssign(oldCycle, moveNode)) {
+                    return -1;
+                }
+                rm.assign(oldCycle, moveNode);
+            } catch (const Exception& e) {
+                throw ModuleRunTimeError(__FILE__, __LINE__, __func__,
+                    e.errorMessageStack());
+            }
         }
         lastOperandCycle =
             std::max(lastOperandCycle, moveNode.cycle());
         if (!moveNode.isScheduled()){
             throw InvalidData(
                 __FILE__, __LINE__, __func__, "Move assignment failed");
-        }                                               
+        }
 
     }
     // Traditional test if trigger is not earlier then some operand,
     // could happen due to bypass of trigger
+    // todo: this could be optimized by trying to uxchange cycles of
+    // trigger and operand in this case.
     if (trigger != NULL) {
+        try{
         if (trigger->cycle() < lastOperandCycle) {
             rm.unassign(*trigger);
             int newCycle = rm.earliestCycle(lastOperandCycle, *trigger);
-            if (newCycle == -1) {
+            int latestDDG = ddg.latestCycle(*trigger);
+            if (newCycle == -1 || newCycle > latestDDG) {
                 // BBScheduler will call removeBypass
                 return -1;
             }
@@ -331,7 +468,11 @@ CycleLookBackSoftwareBypasser::bypass(
             if (!trigger->isScheduled()){
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,"Trigger assignment failed");
-            }                                                           
+            }
+        }
+        } catch (const Exception& e) {
+            throw ModuleRunTimeError(
+                __FILE__, __LINE__, __func__,e.errorMessageStack());
         }
     }
     return bypassCounter;
@@ -363,51 +504,74 @@ CycleLookBackSoftwareBypasser::removeBypass(
     // this is followed by another attempt to schedule operands
 
     for (int k = 0; k < candidates.nodeCount(); k++) {
-
-        MoveNode& tempNode = candidates.node(k);
-        if (MapTools::containsKey(storedSources_, &tempNode)) {
-            // if node was bypassed, find a original source
-            // and restore it, also unassign if bypass was
-            // assigned
-            MoveNode* tempSource =
-                MapTools::valueForKey<MoveNode*>(storedSources_, &tempNode);
-            storedSources_.erase(&tempNode);
-            // if it was bypass and was scheduled we
-            // need to unassign and restore, should allways be a case
-            if (tempNode.isScheduled()) {
-                rm.unassign(tempNode);
-            }
-            ddg.unMerge(*tempSource, tempNode);
-            continue;
-        }
-        if (tempNode.isScheduled()) {
+        MoveNode& moveNode = candidates.node(k);
+        removeBypass(moveNode, ddg, rm);
+        if (moveNode.isScheduled()) {
             // it wasn't bypassed but was scheduled as regular
             // operand, so we unschedule it also
-            rm.unassign(tempNode);         
+            rm.unassign(moveNode);
         }
     }
 }
 
-/**
- * Removes dead resuls for each of the scheduler operand moves, if applicable
- * after whole program operation was scheduled.
- *
- * @param candidates The moves for which remove the dead result moves. Have
- * to be scheduled.
- * @param ddg The data dependence grap in which the movenodes belong to.
- * @param rm The resource manager which is used to check for resource
- *        availability.
- * @return number of dead results killed
- */
+void 
+CycleLookBackSoftwareBypasser::removeBypass(
+    MoveNode& moveNode,
+    DataDependenceGraph& ddg,
+    ResourceManager& rm, bool restoreSource) {
+    
+    // bypassing disabled
+    if (cyclesToLookBack_ <= 0) {
+        return;
+    }
+    
+    if (MapTools::containsKey(storedSources_, &moveNode)) {
+        // if node was bypassed, find a original source
+        // and restore it, also unassign if bypass was
+        // assigned
+        MoveNode* tempSource =
+            MapTools::valueForKey<MoveNode*>(storedSources_, &moveNode);
+        assert(tempSource != NULL);
+        storedSources_.erase(&moveNode);
+        // if it was bypass and was scheduled we
+        // need to unassign and restore, should allways be a case
+        if (moveNode.isScheduled()) {
+            rm.unassign(moveNode);
+        }
+
+        // if we unassigned the source of the bypass, restore it.
+        if (!tempSource->isScheduled()) {
+            std::map<MoveNode*, int>::iterator cycleIter = 
+                sourceCycles_.find(tempSource);
+            if (cycleIter != sourceCycles_.end()) {
+                if (restoreSource) {
+                    rm.assign(cycleIter->second, *tempSource);
+                }
+                sourceCycles_.erase(cycleIter);
+            }
+        }
+        ddg.unMerge(*tempSource, moveNode);
+	    bypassCount_--;
+    }
+    // this is only for afterwards cleanup.
+    if (MapTools::containsKey(removedStoredSources_, &moveNode)) {
+        MoveNode* tempSource =
+            MapTools::valueForKey<MoveNode*>(removedStoredSources_, &moveNode);
+        assert(tempSource != NULL);
+        removedStoredSources_.erase(&moveNode);
+
+        if (moveNode.isScheduled()) {
+            rm.unassign(moveNode);
+        }
+        ddg.unMerge(*tempSource, moveNode);
+    }
+}
+
 int
 CycleLookBackSoftwareBypasser::removeDeadResults(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
     ResourceManager& rm) {
-
-    if (!killDeadResults_) {
-        return 0;
-    }
 
     for (int i = 0; i < candidates.nodeCount(); i++) {
         // For now, this version is called after operands AND results
@@ -416,19 +580,16 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
             return 0;
         }
     }
-    // For each of bypassed moves, look for it's original source and
+
+    // For each of bypassed moves, look for its original source and
     // if that one has no more outgoing RAW edges and will be
-    // overwriten in same basic block (WAW edge) remove it
+    // overwritten in same basic block (WAW edge) remove it
 
     int resultsRemoved = 0;
     for (int i = 0; i < candidates.nodeCount(); i++) {
         MoveNode& moveNode = candidates.node(i);
         // Results in candidates are freshly scheduled so they have no
         // bypasses so far
-        if (!moveNode.isBypass()) {
-            continue;
-        }
-
         if (!MapTools::containsKey(storedSources_, &moveNode)) {
             // In case the result was already removed by other move from same
             // candidates set (both operands were bypassed from same result
@@ -436,43 +597,114 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
             continue;
         }
 
-        MoveNode& testedMove = *MapTools::valueForKey<MoveNode*>(
-            storedSources_, &moveNode);
-        if (!testedMove.isSourceOperation()){
-            throw InvalidData(
-                __FILE__, __LINE__, __func__, 
-                "Stored source is not result move!");
-        }                                                       
+        // the original result move for the bypassed move
+        MoveNode& resultMove = 
+            *MapTools::valueForKey<MoveNode*>(storedSources_, &moveNode);
 
-        if (!ddg.resultUsed(testedMove)) {
-            // results that has no "use" later and are overwritten are death
-            // if there are some other edges we don't do anything
-            // Resuls is positively death
-            // we need to properly get rid of it
-            rm.unassign(testedMove);
+        // if killed this one, finish the kill
+
+        // try to get the original cycle of the result move
+        std::map<MoveNode*, int>::iterator srcIter = 
+            sourceCycles_.find(&resultMove);
+        if (srcIter != sourceCycles_.end()) {
+
+            // we lose edges so our notifyScheduled does not notify
+            // some antidependencies, store them for notification.
+            DataDependenceGraph::NodeSet successors =
+                ddg.successors(resultMove);
+
+            successors.erase(&resultMove); // if WaW to itself, remove it.
+
+            ddg.dropNode(resultMove);
+            removedNodes_.insert(&resultMove);
+
+            // remove dead result also from map of sources and bypassed
+            // moves, it should not by tried to get removed second time
+            // by some other bypassed move from same candidate set
+            for (std::map<MoveNode*, MoveNode*, MoveNode::Comparator>::
+                     iterator j = storedSources_.begin(); 
+                 j != storedSources_.end();) {
+                if (j->second == &resultMove) {
+                    removedStoredSources_[j->first] = &resultMove;
+                    storedSources_.erase(j++);
+                } else {
+                    j++;
+                }
+            }
+
+            sourceCycles_.erase(srcIter);
+            resultsRemoved++;
+            deadResultCount_++;
+	    
+            // we lost edges so our notifyScheduled does not notify
+            // some antidependencies. notify them.
+            if (selector_ != NULL) {
+                for (DataDependenceGraph::NodeSet::iterator iter =
+                         successors.begin();
+                     iter != successors.end(); iter++) {
+                    // don't notify other dead results
+                    if (sourceCycles_.find(*iter) == sourceCycles_.end()) {
+                        selector_->mightBeReady(**iter);
+                    }
+                }
+            }
+        } else {
+            // we might have some orhpan nodes because some antideps have moved
+            // from user node to source node,
+            // so make sure notify the scheduler about them.
+            if (ddg.hasNode(resultMove)) {
+                DataDependenceGraph::NodeSet successors =
+                    ddg.regWawSuccessors(resultMove);
+                if (selector_ != NULL) {
+                    for (DataDependenceGraph::NodeSet::iterator iter =
+                             successors.begin();
+                         iter != successors.end(); iter++) {
+                        // don't notify other dead results
+                        if (sourceCycles_.find(*iter) == sourceCycles_.end()) {
+                            selector_->mightBeReady(**iter);
+                        }
+                    }
+                }
+            }
+        }
+
+        // also remove dummy move to itself moves, as the bypassed move.
+        if (moveNode.move().source().equals(
+                moveNode.move().destination())) {
 
             // we lost edges so our notifyScheduled does not notify
             // some antidependencies. store them for notification.
             DataDependenceGraph::NodeSet successors =
-                ddg.successors(testedMove);
-            ddg.removeNode(testedMove);
-            // remove dead result also from map of sources and bypassed
-            // moves, it should not by tried to get removed second time
-            // by some other bypassed move from same candidate set
-            MapTools::removeItemsByValue(storedSources_, &testedMove);
-            resultsRemoved++;
+                ddg.successors(moveNode);
+            
+            successors.erase(&moveNode); // if WaW to itself, rremove it.
+
+            rm.unassign(moveNode);
+
+            // this may lead to extra raw edges.
+            static_cast<DataDependenceGraph*>(ddg.rootGraph())->
+                copyDepsOver(moveNode, true, true);
+
+            ddg.dropNode(moveNode);
+            removedNodes_.insert(&moveNode);
 
             // we lost edges so our notifyScheduled does not notify
             // some antidependencies. notify them.
             if (selector_ != NULL) {
-                for (DataDependenceGraph::NodeSet::iterator iter = 
+                for (DataDependenceGraph::NodeSet::iterator iter =
                          successors.begin();
                      iter != successors.end(); iter++) {
-                    selector_->mightBeReady(**iter);
+                    // don't notify other dead results
+                    if (sourceCycles_.find(*iter) == sourceCycles_.end()) {
+                        selector_->mightBeReady(**iter);
+                    }
                 }
             }
         }
     }
+
+
+    assert(sourceCycles_.empty());
 
     return resultsRemoved;
 }
@@ -487,17 +719,33 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
  *
  * @param selector selector which bypasser notifies on some dependence changes.
  */
-void 
+void
 CycleLookBackSoftwareBypasser::setSelector(MoveNodeSelector* selector) {
     selector_ = selector;
 }
 
 /** 
- * Clears the storesSources data structure, when the old values in it are
- * not needed anymore. (Allowing them to be deleted by the objects who
- * own them)
+ * Clears the storedSources data structure, when the old values in it are
+ * not needed anymore, allowing them to be deleted by the objects who
+ * own them.
+ *
+ * Delete node from sourceCycles structure, as thesse are not deleted 
+ * elsewhere.
  */
 void
-CycleLookBackSoftwareBypasser::clearCaches() {
+CycleLookBackSoftwareBypasser::clearCaches(DataDependenceGraph& ddg,
+    bool removeDeletedResults) {
     storedSources_.clear();
+    if (removeDeletedResults) {
+        // TODO: somebody should also delete these
+        for (DataDependenceGraph::NodeSet::iterator i = removedNodes_.begin();
+             i != removedNodes_.end(); i++) {
+            if (ddg.rootGraph() != &ddg) {
+                ddg.rootGraph()->removeNode(**i);
+            }
+            delete *i;
+        }
+    }
+    removedNodes_.clear();
+    removedStoredSources_.clear();
 }

@@ -113,7 +113,7 @@ CLBBypasserModule::bypasser() {
         }
 
         clbs_ = new CycleLookBackSoftwareBypasser(
-            bypassDistance_,killDeadResults_);
+            bypassDistance_,bypassDistance_,killDeadResults_);
     }
     return *clbs_;
 }

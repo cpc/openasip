@@ -21,6 +21,7 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
+
 /**
  * @file ConstantAliasAnalyzer.hh
  *
@@ -40,10 +41,11 @@
 
 class ConstantAliasAnalyzer : public MemoryAliasAnalyzer {
 
-    virtual bool addressTraceable(const MoveNode& mn);
+    virtual bool isAddressTraceable(
+        DataDependenceGraph& ddg, const ProgramOperation& pop);
     virtual AliasingResult analyze(
-        DataDependenceGraph& ddg, const MoveNode& node1, 
-        const MoveNode& node2);
+        DataDependenceGraph& ddg, const ProgramOperation& pop1, 
+        const ProgramOperation& pop2);
     
     ~ConstantAliasAnalyzer();
 };

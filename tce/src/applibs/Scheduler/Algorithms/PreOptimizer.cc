@@ -313,11 +313,30 @@ PreOptimizer::handleProcedure(
     // Loop over all programoperations. find XOR's by 1.
     for (int i = 0; i < ddg->programOperationCount(); i++) {
         ProgramOperation& po = ddg->programOperation(i);
-        if (po.operation().name() == "XOR") {
-            if (tryToRemoveXor(*ddg,po,irm)) {
-                continue;
+
+        // ei optimointia work
+        // optimointi fail
+        // >100 fail
+        // 1000 fail
+        // 1125 fail
+        // 1138 fail.
+        // 1141 fail.
+        // 1143 fail.
+        // 1144 fail.
+        // 1145 work.
+        // 1152 work.
+        // 1180 work.
+        // 1250 work
+        // 1500 work
+
+        if (po.poId() > 1144) {
+            if (po.operation().name() == "XOR") {
+                if (tryToRemoveXor(*ddg,po,irm)) {
+                    continue;
+                }
             }
         }
+
         if (po.operation().readsMemory()) {
             tryToOptimizeAddressReg(*ddg, po);
         }

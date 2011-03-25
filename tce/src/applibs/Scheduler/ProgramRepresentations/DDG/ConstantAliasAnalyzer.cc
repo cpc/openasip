@@ -37,14 +37,27 @@
 
 #include "MoveNode.hh"
 #include "Move.hh"
+#include "DataDependenceGraph.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
 
 bool 
-ConstantAliasAnalyzer::addressTraceable(const MoveNode& mn) {
-    if (mn.isMove()) {
-        const Move& move = mn.move();
+ConstantAliasAnalyzer::isAddressTraceable(
+    DataDependenceGraph& ddg, const ProgramOperation& po) {
+
+    const MoveNode *rawSrc = addressOperandMove(po);
+
+    while (rawSrc != NULL && rawSrc->isMove() && 
+           rawSrc->move().source().isGPR()) {
+        rawSrc = ddg.onlyRegisterRawSource(*rawSrc);
+    }
+    if (rawSrc == NULL) {
+        return false;
+    }
+           
+    if (rawSrc->isMove()) {
+        const Move& move = rawSrc->move();
         if (!move.isCall()) {
             const Terminal& src = move.source();
             if (src.isImmediate()) {
@@ -58,19 +71,28 @@ ConstantAliasAnalyzer::addressTraceable(const MoveNode& mn) {
 // TODO: does not handle unaligned 64-bit memory operations well.
 MemoryAliasAnalyzer::AliasingResult
 ConstantAliasAnalyzer::analyze(
-    DataDependenceGraph&, const MoveNode& node1, const MoveNode& node2) {
+    DataDependenceGraph& ddg, 
+    const ProgramOperation& pop1, 
+    const ProgramOperation& pop2) {
 
-    if (addressTraceable(node1) && addressTraceable(node2)) {
-        int addr1 = node1.move().source().value().intValue();
-        int addr2 = node2.move().source().value().intValue();
-        if (addr1 == addr2) {
-            return ALIAS_TRUE;
+    if (isAddressTraceable(ddg, pop1) && isAddressTraceable(ddg, pop2)) {
+
+        const MoveNode *rawSrc1 = addressOperandMove(pop1);
+        while (rawSrc1 != NULL && rawSrc1->isMove() && rawSrc1->move().
+               source().isGPR()) {
+            rawSrc1 = ddg.onlyRegisterRawSource(*rawSrc1);
         }
-        if ( addr1 - addr2 > 3 || addr2 - addr1 >3 ) {
-            return ALIAS_FALSE;
+
+        const MoveNode *rawSrc2 = addressOperandMove(pop2);
+        while (rawSrc2 != NULL && rawSrc2->isMove() && rawSrc2->move().
+               source().isGPR()) {
+            rawSrc2 = ddg.onlyRegisterRawSource(*rawSrc2);
         }
-        // off-by-few addresses.
-        return ALIAS_UNKNOWN;
+
+        int addr1 = rawSrc1->move().source().value().intValue();
+        int addr2 = rawSrc2->move().source().value().intValue();
+
+        return compareIndeces(addr1, addr2, pop1, pop2);
     } else {
         return ALIAS_UNKNOWN;
     }

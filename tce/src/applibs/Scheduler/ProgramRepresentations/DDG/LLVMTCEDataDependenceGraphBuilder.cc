@@ -36,7 +36,7 @@ DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::build(
     ControlFlowGraph& cGraph, const UniversalMachine*) {
 
-    currentDDG_ = new DataDependenceGraph();
+    currentDDG_ = new DataDependenceGraph(allParamRegs_);
     for (int bbi = 0; bbi < cGraph.nodeCount(); ++bbi) {
         BasicBlockNode& bbnode = cGraph.node(bbi);
         buildLocalDDG(bbnode.basicBlock());
@@ -52,7 +52,7 @@ DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::build(
     BasicBlock& bb, const UniversalMachine*) 
     throw (IllegalProgram) {
-    currentDDG_ = new DataDependenceGraph();
+    currentDDG_ = new DataDependenceGraph(allParamRegs_);
     buildLocalDDG(bb);
     return currentDDG_;
 }

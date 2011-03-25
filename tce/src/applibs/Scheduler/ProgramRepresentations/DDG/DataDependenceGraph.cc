@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,12 +26,12 @@
  *
  * Implementation of data dependence graph class
  *
- * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2010 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
+
  * @note rating: red
  */
-
-#include <iostream>
 
 #include "StringTools.hh"
 #include "AssocTools.hh"
@@ -58,18 +58,49 @@
  * Constructor.
  *
  * @param name The graph can be named for debugging purposes.
- * @param containsProcedure whether the DDG contains complete procedure
+ * @param containsProcedure whether the DDG contains complete procedure.
+ * @param ownedBBN if the DDG should delete a BBn at destructor.
+ * @param containsProcedure if the ddg contains a whole procedure.
+ * @param if the ddg should not accept loop edges.
+ * @param antidependenceLevel level of register antidependencies which this 
+ *        ddg should contain.
  */
 DataDependenceGraph::DataDependenceGraph(
-    const std::string& name, 
-    AntidependenceLevel antidependenceLevel,
-    bool containsProcedure,
-    bool noLoopEdges) : 
-    BoostGraph<MoveNode, DataDependenceEdge>(name, !noLoopEdges), cycleGrouping_(true), 
-    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure),
-    registerAntidependenceLevel_(antidependenceLevel) {
+    std::set<TCEString> allParamRegs,
+    const TCEString& name, AntidependenceLevel antidependenceLevel,
+    BasicBlockNode* ownedBBN, bool containsProcedure, 
+    bool noLoopEdges) :
+    BoostGraph<MoveNode, DataDependenceEdge>(name, !noLoopEdges), 
+    allParamRegs_(allParamRegs), cycleGrouping_(true), 
+    machine_(NULL), delaySlots_(0), ownedBBN_(ownedBBN),
+    procedureDDG_(containsProcedure), 
+    registerAntidependenceLevel_(antidependenceLevel),
+    edgeWeightHeuristics_(EWH_HEURISTIC) {
 }
 
+/**
+ * Deletes all MoveNodes and ProgramOperations.
+ */
+DataDependenceGraph::~DataDependenceGraph() {
+
+    if (parentGraph_ == NULL) {
+
+        //delete nodes.
+        int nc = nodeCount();
+        for (int i = 0; i < nc; i++) {
+            delete &node(i, false);
+        }
+
+        // delete program operations.
+        for (POLIter i = programOperations_.begin();
+             i != programOperations_.end(); i++) {
+            delete *i;
+        }
+    }
+    if (ownedBBN_ != NULL) {
+        delete ownedBBN_;
+    }
+}
 
 /**
  * Sets bookkeeping that the given movende belongs to the given basic block.
@@ -140,28 +171,20 @@ DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
 }
 
 
-
 /**
- * Destructor.
+ * Gives the basic block node where the node belongs to.
  *
- * Deletes all MoveNodes and ProgramOperations.
+ * @param mn MoveNode whose basic block we are asking
+ * @return BasicBlockNode of the move
  */
-DataDependenceGraph::~DataDependenceGraph() {
-
-    if (parentGraph_ == NULL) {
-
-        //delete nodes.
-        int nc = nodeCount();
-        for (int i = 0; i < nc; i++) {
-            delete &node(i, false);
-        }
-
-        // delete program operations.
-        for (POLIter i = programOperations_.begin();
-             i != programOperations_.end(); i++) {
-            delete *i;
-        }
+const BasicBlockNode&
+DataDependenceGraph::getBasicBlockNode(const MoveNode& mn) const {
+    std::map<const MoveNode*, BasicBlockNode*>::const_iterator iter = 
+        moveNodeBlocks_.find(&mn);
+    if (iter == moveNodeBlocks_.end()) {
+        throw InvalidData(__FILE__,__LINE__,__func__,"MoveNode not in DDG!");
     }
+    return *iter->second;
 }
 
 /**
@@ -171,22 +194,39 @@ DataDependenceGraph::~DataDependenceGraph() {
  * @return BasicBlockNode of the move
  */
 BasicBlockNode&
-DataDependenceGraph::getBasicBlockNode(MoveNode& mn) {
-    return *moveNodeBlocks_[&mn];
+DataDependenceGraph::getBasicBlockNode(MoveNode& mn)  {
+    std::map<const MoveNode*, BasicBlockNode*>::iterator iter = 
+        moveNodeBlocks_.find(&mn);
+    if (iter == moveNodeBlocks_.end()) {
+        throw InvalidData(__FILE__,__LINE__,__func__,"MoveNode not in DDG!");
+    }
+    return *iter->second;
 }
 
+/** 
+ * Returs programoperation which is in this graph.
+ * 
+ * @param index index of the programoperation.
+ */
 ProgramOperation& 
 DataDependenceGraph::programOperation(int index) {
     return *programOperations_.at(index);
 }
 
+/**
+ * Returns the number of programoperations in this ddg.
+ */
 int 
 DataDependenceGraph::programOperationCount() {
     return programOperations_.size();
 }
 
+/**
+ * Returns the only incoming register edge to a node. 
+ * If none or multiple, returns NULL.
+ */
 DataDependenceEdge* 
-DataDependenceGraph::onlyRegisterEdgeIn(MoveNode& mn) {
+DataDependenceGraph::onlyRegisterEdgeIn(MoveNode& mn) const {
     
     DataDependenceEdge* result = NULL;
     for (int i = 0; i < inDegree(mn); i++) {
@@ -202,8 +242,12 @@ DataDependenceGraph::onlyRegisterEdgeIn(MoveNode& mn) {
     return result;
 }
 
+/**
+ * Returns the only outgoing register edge from a node. 
+ * If none or multiple, returns NULL.
+ */
 DataDependenceEdge* 
-DataDependenceGraph::onlyRegisterEdgeOut(MoveNode& mn) {
+DataDependenceGraph::onlyRegisterEdgeOut(MoveNode& mn) const {
 
     DataDependenceEdge* result = NULL;
     for (int i = 0; i < outDegree(mn); i++) {
@@ -220,7 +264,7 @@ DataDependenceGraph::onlyRegisterEdgeOut(MoveNode& mn) {
 }
 
 /**
- * Adds a program operation to the graph, and it's parent graphs.
+ * Adds a program operation to the graph, and its parent graphs.
  *
  * The graph then owns this programOperation.
  *
@@ -249,13 +293,24 @@ DataDependenceGraph::addProgramOperation(ProgramOperation* po) {
  */
 int
 DataDependenceGraph::earliestCycle(
-    const MoveNode& moveNode, bool ignoreUnscheduledPredecessors) const {
+    const MoveNode& moveNode, unsigned int ii, bool ignoreRegWaRs,
+    bool ignoreRegWaWs, bool ignoreGuards, bool ignoreFuDeps) const {
 
     const EdgeSet edges = inEdges(moveNode);
     int minCycle = 0;
-    for (EdgeSet::const_iterator i = edges.begin(); 
-         i != edges.end(); ++i) {
+    for (EdgeSet::const_iterator i = edges.begin(); i != edges.end(); ++i) {
         DataDependenceEdge& edge = **i;
+
+        if (ignoreGuards && edge.guardUse()) {
+            continue;
+        }
+
+        if (ignoreFuDeps && 
+            (edge.edgeReason() == DataDependenceEdge::EDGE_FUSTATE ||
+             edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
+            continue;
+        }
+
         MoveNode& tail = tailNode(edge);
 
         /// @todo Consider the latency for result read move!
@@ -270,11 +325,24 @@ DataDependenceGraph::earliestCycle(
                 effTailCycle -= delaySlots_;
             } else {
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-                    
+
+                    // ignore reg antidep? then skip over this edge.
+                    if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+                        && !edge.headPseudo() && 
+                        ignoreRegWaWs) {
+                        continue;
+                    }
                     // latency does not matter with WAW. always +1.
                     effTailCycle += 1;
                 } else {
                     if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                        // ignore reg antidep? then skip over this edge.
+                        if (edge.edgeReason() == 
+                            DataDependenceEdge::EDGE_REGISTER && 
+                            !edge.headPseudo() && ignoreRegWaRs) {
+                            continue;
+                        }
+
                         // WAR allows writing at same cycle than reading.
                         // in WAR also the latency goes backwards, 
                         // new value can
@@ -294,12 +362,13 @@ DataDependenceGraph::earliestCycle(
                     }
                 }
             }
+
+            assert ((ii != 0 || edge.loopDepth() ==0) && 
+                    "ii should not be 0 if we have an loop edge");
+
+            effTailCycle -= (ii * edge.loopDepth());
             minCycle = std::max(effTailCycle, minCycle);
-        } else {
-            if (!ignoreUnscheduledPredecessors) {
-                return INT_MAX;
-            }
-        }
+        } 
     }
     return minCycle;
 }
@@ -318,7 +387,9 @@ DataDependenceGraph::earliestCycle(
  * data dependencies, 0 if unknown.
  */
 int
-DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
+DataDependenceGraph::latestCycle(
+    const MoveNode& moveNode, unsigned int ii, bool ignoreRegAntideps) const {
+
     
     const EdgeSet edges = outEdges(moveNode);
     int maxCycle = INT_MAX;
@@ -340,10 +411,24 @@ DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
             } else {
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
                     
+                    // ignore deg antidep? then skip over this edge.
+                    if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+                        && !edge.tailPseudo() && ignoreRegAntideps) {
+                        continue;
+                    }
+
                     // latency does not matter with WAW. always +1.
                     effHeadCycle -= 1;
                 } else {
                     if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+
+                        // ignore deg antidep? then skip over this edge.
+                        if (edge.edgeReason() == 
+                            DataDependenceEdge::EDGE_REGISTER && 
+                            !edge.tailPseudo() && ignoreRegAntideps) {
+                            continue;
+                        }
+
                         // WAR allows writing at same cycle than reading.
                         // in WAR also the latency goes backwards, 
                         // new value can
@@ -363,9 +448,12 @@ DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
                     }
                 }
             }
+
+            assert ((ii != 0 || edge.loopDepth() ==0) && 
+                    "ii should not be 0 if we have an loop edge");
+            effHeadCycle += (ii * edge.loopDepth());
+
             maxCycle = std::min(effHeadCycle, maxCycle);
-        } else {
-            return 0;
         }
     }
     return maxCycle;
@@ -392,30 +480,49 @@ DataDependenceGraph::movesAtCycle(int cycle) const {
 
 /**
  * Returns the MoveNode that defines (writes the value of) the guard
- * the given move node is predicated with.
+ * the given move node is predicated with. If there are multiple,
+ * returns the last.
  *
  * @param moveNode The move node of which guard defining move to find.
  * @return The MoveNode that produces the guard value. 
  * If not found, returns NULL
  */
 MoveNode*
-DataDependenceGraph::guardDefMove(MoveNode& moveNode) {
-
-    const int inEdges = inDegree(moveNode);
-    for (int i = 0; i < inEdges; i++) {
-        DataDependenceEdge &edge = inEdge(moveNode, i);
-        if (edge.guardUse()) {
-            return &tailNode(edge);
+DataDependenceGraph::lastGuardDefMove(MoveNode& moveNode) {
+    NodeSet guardDefs = guardDefMoves(moveNode);
+    MoveNode* last = NULL;
+    for (NodeSet::iterator i = guardDefs.begin(); 
+         i != guardDefs.end(); i++) {
+        if (last == NULL || last->cycle() < (*i)->cycle()) {
+            last = *i;
         }
     }
-/*
-    writeToDotFile("broken_ddg.dot");
-    throw InstanceNotFound(
-        __FILE__, __LINE__, __func__, 
-        "Cannot find the MoveNode which defines the guard for " +
-        moveNode.toString() + ".");
-*/
-    return NULL;
+    return last;
+}
+
+/**
+ * Returns all movenodes that define (write the value of) the guard
+ * the given move node is predicated with. 
+ *
+ * @param moveNode The move node of which guard defining move to find.
+ * @return The MoveNodes that produces the guard value. 
+ *         Can be multiple if the writes are predicated or in different BB.
+ * If not found, returns NULL
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::guardDefMoves(const MoveNode& moveNode) {
+
+    NodeSet guardDefMoves;
+    EdgeSet inputEdges = inEdges(moveNode);
+    for (EdgeSet::iterator i = inputEdges.begin();
+         i != inputEdges.end(); i++) {
+        DataDependenceEdge &edge = **i;
+        if (edge.guardUse() && 
+            edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+            guardDefMoves.insert(&tailNode(edge));
+        }
+    }
+    return guardDefMoves;
 }
 
 /**
@@ -456,6 +563,262 @@ DataDependenceGraph::lastScheduledRegisterRead(
 }
 
 /**
+ * Returns the highest cycle where accesses the given register.
+ * If unscheudled moves accessing the register, returns INT_MAX;
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return cycle, or INT_MAX if some unscheduled found.
+ */
+int
+DataDependenceGraph::lastRegisterCycle(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int lastCycle = -1;
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+        
+        // check source
+        TTAProgram::Terminal& source = n.move().source();
+        bool sourceImmReg = source.isImmediateRegister();
+        bool sourceGPR = source.isGPR();
+        
+        if (sourceImmReg || sourceGPR) {
+            
+            if (sourceImmReg)
+                currentRF = &source.immediateUnit();
+            else
+                currentRF = &source.registerFile();
+            
+            if (&rf == currentRF && source.index() == registerIndex) {
+                if (!n.isScheduled()) {
+                    return INT_MAX;
+                }
+                if (n.cycle() > lastCycle) {
+                    lastCycle = n.cycle();
+                }
+            }
+        }
+        
+        // check destination
+        TTAProgram::Terminal& destination = n.move().destination();
+        if (destination.isGPR()) {
+            currentRF = &destination.registerFile();
+            
+            if (&rf == currentRF && destination.index() == registerIndex) {
+                if (!n.isScheduled()) {
+                    return INT_MAX;
+                }
+                if (n.cycle() > lastCycle) {
+                    lastCycle = n.cycle();
+                }
+
+                if (n.move().isUnconditional()) {
+                    if (outDegree(n) == 0) {
+                        assert(lastCycle == n.cycle());
+                        return lastCycle;
+                    }
+                }
+            }
+        }
+        
+        // check guard.
+        if (!n.move().isUnconditional()) {
+            TTAMachine::Guard& guard = n.move().guard().guard();
+            TTAMachine::RegisterGuard* rg = 
+                dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+            if (rg != NULL) {
+                if (rg->registerFile() == &rf && 
+                    rg->registerIndex() == registerIndex) {
+                    if (!n.isScheduled()) {
+                        return INT_MAX;
+                    }
+                    if (n.cycle() > lastCycle) {
+                        lastCycle = n.cycle();
+                    }
+                }
+            }
+        }
+        if (n.move().isCall()) {
+            const TTAMachine::RegisterFile* rrf = 
+                dynamic_cast<const TTAMachine::RegisterFile*>(&rf);
+            assert(rrf != NULL);
+            TCEString reg = 
+                DisassemblyRegister::registerName(*rrf, registerIndex);
+            if (allParamRegs_.find(reg) != allParamRegs_.end()) {
+                if (!n.isScheduled()) {
+                    return INT_MAX;
+                }
+                if (n.cycle() + delaySlots_> lastCycle) {
+                    lastCycle = n.cycle() + delaySlots_ ;
+                }
+            }                    
+        }
+    }
+    return lastCycle;
+}
+
+
+/**
+ * Returns the set of MoveNodes which reads given register after
+ * last unconditional scheduled write to the register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The set of movenodes.
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::lastScheduledRegisterReads(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    MoveNode* lastKill = lastScheduledRegisterKill(rf, registerIndex);
+    int killCycle = lastKill == NULL ? -1 : lastKill->cycle();
+    NodeSet lastReads;
+
+    // first search last kill.
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& source = n.move().source();
+        if (!n.isScheduled() || 
+            !(source.isImmediateRegister() || source.isGPR())) 
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+        if (source.isImmediateRegister())
+            currentRF = &source.immediateUnit();
+        else
+            currentRF = &source.registerFile();
+
+        if (&rf == currentRF && 
+            source.index() == registerIndex) {
+            if (n.cycle() > killCycle) {
+                lastReads.insert(&n);
+            }
+        }
+    }
+    return lastReads;
+}
+
+/**
+ * Returns the set of MoveNodes which reads given register as guard after
+ * last unconditional scheduled write to the register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The set of movenodes.
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::lastScheduledRegisterGuardReads(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    MoveNode* lastKill = lastScheduledRegisterKill(rf, registerIndex);
+    int killCycle = lastKill == NULL ? -1 : lastKill->cycle();
+    NodeSet lastGuards;
+
+    // first search last kill.
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+        TTAProgram::Move& move = n.move();
+        if (move.isUnconditional() || !n.isScheduled()) {
+            continue;
+        }
+
+        TTAMachine::Guard* guard = &move.guard().guard();
+        TTAMachine::RegisterGuard* rg = 
+            dynamic_cast<TTAMachine::RegisterGuard*>(guard);
+        if (rg == NULL) {
+            continue;
+        }
+        const TTAMachine::BaseRegisterFile* currentRF = rg->registerFile();
+        if (&rf == currentRF && 
+            rg->registerIndex() == registerIndex) {
+            if (n.cycle() > killCycle) {
+                lastGuards.insert(&n);
+            }
+        }
+    }
+    return lastGuards;
+}
+
+/**
+ * Returns the set of MoveNodes which writes given register after
+ * last unconditional scheduled write to the register,
+ * and the last unconditional write.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The set of movenodes.
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::lastScheduledRegisterWrites(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    MoveNode* lastKill = lastScheduledRegisterKill(rf, registerIndex);
+    int killCycle = lastKill == NULL ? -1 : lastKill->cycle();
+    NodeSet lastReads;
+
+    // first search last kill.
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& dest = n.move().destination();
+        if (!n.isScheduled() || !dest.isGPR())
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+            currentRF = &dest.registerFile();
+
+        if (&rf == currentRF && 
+            dest.index() == registerIndex) {
+            if (n.cycle() >= killCycle) {
+                lastReads.insert(&n);
+            }
+        }
+    }
+    return lastReads;
+}
+
+
+
+/**
+ * Returns the MoveNode of unconditional move with highest cycle that writes the given register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The MoveNode, NULL, if not found.
+ */
+MoveNode*
+DataDependenceGraph::lastScheduledRegisterKill(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int lastCycle = -1;
+    MoveNode* lastFound = NULL;
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& dest = n.move().destination();
+        if (!n.isScheduled() || !dest.isGPR())
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+            currentRF = &dest.registerFile();
+
+        if (&rf == currentRF && 
+            dest.index() == registerIndex &&
+            n.cycle() > lastCycle &&
+            n.move().isUnconditional()) {
+            lastCycle = n.cycle();
+            lastFound = &n;
+        }
+    }
+    return lastFound;
+}
+
+
+/**
  * Returns all unscheduled moves.
  *
  * @param cycle The cycle.
@@ -468,6 +831,25 @@ DataDependenceGraph::unscheduledMoves() const {
     for (int i = 0; i < nodeCount(); ++i) {
         Node& n = node(i);
         if (!n.isScheduled())
+            moves.insert(&n);
+    }
+
+    return moves;
+}
+
+/**
+ * Returns all scheduled moves.
+ *
+ * @param cycle The cycle.
+ * @return Scheduled moves.
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::scheduledMoves() const {
+
+    NodeSet moves;
+    for (int i = 0; i < nodeCount(); ++i) {
+        Node& n = node(i);
+        if (n.isScheduled())
             moves.insert(&n);
     }
 
@@ -599,12 +981,14 @@ DataDependenceGraph::sanityCheck() const
             if (headDestination.equals(tailDestination))
                 break;
 
-            // memory WAW
+            // memory WAW - can also point to call?
             if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
                 tailDestination.isFUPort() && 
-                tailDestination.hintOperation().writesMemory() &&
-                headDestination.isFUPort() &&
-                headDestination.hintOperation().writesMemory())
+                (tailDestination.hintOperation().writesMemory() &&
+                ((headDestination.isFUPort() &&
+                  headDestination.hintOperation().writesMemory()) ||
+                 (headDestination.isFUPort() &&
+                  head.move().isCall()))))
                 break;
 
 	    // memory WAW between memory op and call
@@ -652,7 +1036,7 @@ DataDependenceGraph::dotString() const {
 
     // TODO group based on both BB and cycle
     std::ostringstream s;
-    s << "digraph G {" << std::endl;
+    s << "digraph " << name() << " {" << std::endl;
     
     if (cycleGrouping_&& !procedureDDG_) {
         // print the "time line"
@@ -685,9 +1069,17 @@ DataDependenceGraph::dotString() const {
     // print all the nodes and their properties
     for (int i = 0; i < nodeCount(); ++i) {
         Node& n = node(i);
-        s << "\tn" << n.nodeID() << " [" 
-          << n.dotString() << "]; " 
-          << std::endl;
+
+        TCEString nodeStr(n.dotString());
+        if (false && isInCriticalPath(n)) {
+            // convert critical path node shapes to invtriangle to make
+            // the path stand out in the graph, this slows down the
+            // printout probably quite a bit, TODO: optimize by caching
+            // critical path data
+            nodeStr.replaceString("shape=box", "shape=invtriangle");
+            nodeStr.replaceString("shape=ellipse", "shape=invtriangle");
+        }
+        s << "\tn" << n.nodeID() << " [" << nodeStr << "]; " << std::endl;
     }
 
     // edges. optimized low-level routines.
@@ -700,9 +1092,34 @@ DataDependenceGraph::dotString() const {
         Node& head = *graph_[boost::target(ed, graph_)];
 
         s << "\tn" << tail.nodeID() 
-          << " -> n" << head.nodeID() << "[" 
-          << e.dotString() << "];" << std::endl;    }
+          << " -> n" << head.nodeID() << "[";
+
+        if (e.isFalseDep()) {
+            s << "color=\"red\", ";
+        }
+
+        s << "label=\""
+          << e.toString(tail) 
+          << "\"];" << std::endl;    
+    }
+
+    // implicit operand to trigger edges
+    for (int i = 0; i < nodeCount(); ++i) {
+        Node& n = node(i);
+        if (n.isMove() && n.move().isTriggering() &&
+            n.isDestinationOperation()) {
+	    ProgramOperation &dst = n.destinationOperation();
+	    for (int j = 0; j < dst.inputMoveCount(); ++j) {
+            if (dst.inputMove(j).nodeID() != n.nodeID()) {
+                s << "\tn" << dst.inputMove(j).nodeID()
+                  << " -> n" << n.nodeID() << "["
+                  << "label=\"T\"" << "];" << std::endl;
+            }
+	    }
+        }
+    }
     s << "}" << std::endl;   
+
     return s.str();    
 }
 
@@ -759,25 +1176,25 @@ DataDependenceGraph::writeToXMLFile(std::string fileName) const {
         Edge& e = *graph_[*i];
         Node& tail = *graph_[boost::source(*i, graph_)];
         Node& head = *graph_[boost::target(*i, graph_)];
-	edgesOS->addChild(e.saveState(tail, head));
+        edgesOS->addChild(e.saveState(tail, head));
     }
 
     // Implicit operand to trigger edges
     for (int i = 0; i < nodeCount(); ++i) {
-	Node& n = node(i);
-	if (n.isPlaced() && n.isMove() && n.move().isTriggering() &&
+        Node& n = node(i);
+        if (n.isPlaced() && n.isMove() && n.move().isTriggering() &&
             n.isDestinationOperation()) {
-	    ProgramOperation &dst = n.destinationOperation();
-	    for (int j = 0; j < dst.inputMoveCount(); ++j) {
-		if (dst.inputMove(j).nodeID() != n.nodeID()) {
-
-		    // Create a dummy edge and dump it
-		    DataDependenceEdge e(DataDependenceEdge::EDGE_OPERATION,
-					 DataDependenceEdge::DEP_TRIGGER);
-		    edgesOS->addChild(e.saveState(dst.inputMove(j), n));
-		}
-	    }
-	}
+            ProgramOperation &dst = n.destinationOperation();
+            for (int j = 0; j < dst.inputMoveCount(); ++j) {
+                if (dst.inputMove(j).nodeID() != n.nodeID()) {
+                    
+                    // Create a dummy edge and dump it
+                    DataDependenceEdge e(DataDependenceEdge::EDGE_OPERATION,
+                                         DataDependenceEdge::DEP_TRIGGER);
+                    edgesOS->addChild(e.saveState(dst.inputMove(j), n));
+                }
+            }
+        }
     }
 
     serializer.setDestinationFile(fileName);
@@ -787,7 +1204,7 @@ DataDependenceGraph::writeToXMLFile(std::string fileName) const {
 /**
  * Returns the smallest cycle of a move in the DDG.
  *
- * Current implementation is very slow, so don't call in critical places.
+ * Current implementation is quite slow, so don't call in critical places.
  *
  * @return The smallest cycle of a move.
  */
@@ -807,7 +1224,7 @@ DataDependenceGraph::smallestCycle() const {
 /**
  * Returns the largest cycle of a move in the DDG.
  *
- * Current implementation is very slow, so don't call in critical places.
+ * Current implementation is quite slow, so don't call in critical places.
  *
  * @return The largest cycle of a move.
  */
@@ -828,7 +1245,7 @@ DataDependenceGraph::largestCycle() const {
 /**
  * Returns the count of nodes in the graph that have been scheduled.
  *
- * Current implementation is very slow, so don't call in critical places.
+ * Current implementation is quite slow, so don't call in critical places.
  *
  * @return The count of scheduled nodes.
  */
@@ -851,83 +1268,164 @@ DataDependenceGraph::scheduledNodeCount() const {
  * 
  * Also updates the source of the second move.
  *
- * @param resultNode node creating a result being bypassed.
- * @param userNode node whose source will be updated.
- */
-void
-DataDependenceGraph::mergeAndKeep(MoveNode& resultNode, MoveNode& userNode) {
+ * @param sourceNode node writing the value which is bypassed
+ * @param userNode node using the value, source of this node will be updated.
+ *
+*/
 
-    if (!hasEdge(resultNode, userNode)) {
+bool
+DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
+
+    // check against to WAR's to each others caused by
+    // A->B ; B-A trying to be bypassed to same cycle. don't allow this.
+    // TODO: this does not handle/detect: A -> B ; C -> A; D -> C  where
+    // B -> D is being bypassed from A. creates a loop.
+
+    for (int i = 0; i < outDegree(sourceNode); i++) {
+        DataDependenceEdge& edge = outEdge(sourceNode,i);
+        if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+            !edge.tailPseudo()) {
+            MoveNode& target = headNode(edge);
+            if (!exclusingGuards(userNode, target)) {
+                if (&target != &userNode && hasPath(target, userNode)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+//    writeToDotFile("before_merge.dot");
+
+    assert(sourceNode.isMove());
+
+    if (!hasEdge(sourceNode, userNode)) {
         throw Exception(
             __FILE__,__LINE__,__func__,"No edge between nodes being merged");
     }
 
-    if (!resultNode.isMove() || !userNode.isMove()) {
+    if (!sourceNode.isMove() || !userNode.isMove()) {
         throw Exception(
             __FILE__,__LINE__,__func__,"Cannot merge entry/exit node!");
     }
 
-    // update the move
-    userNode.move().setSource(resultNode.move().source().copy());
+    bool nodeWasRegToItselfCopy = false;
 
+    if (userNode.move().source().equals(userNode.move().destination())) {
+        nodeWasRegToItselfCopy = true;
+    }
+
+    // update the move
+    userNode.move().setSource(sourceNode.move().source().copy());
+
+    bool sourceOp = false;
+    bool sourceIsRegToItselfCopy = false;
+    bool nodeIsRegToItselfCopy = false;
     // If source is an operation, set programOperation
-    if (resultNode.isSourceOperation()) {
-        ProgramOperation& srcOp = resultNode.sourceOperation();
+    if (sourceNode.isSourceOperation()) {
+        ProgramOperation& srcOp = sourceNode.sourceOperation();
         srcOp.addOutputNode(userNode);
         userNode.setSourceOperation(srcOp);
+        sourceOp = true;
+    } else {
+        // bypassing from stupid reg-to-itself needs extra handling.
+        if (sourceNode.move().source().equals(
+                sourceNode.move().destination())) {
+            sourceIsRegToItselfCopy = true;
+        }
     }
-    
-    // remove RAW deps
+
+    if (userNode.move().source().equals(userNode.move().destination())) {
+        nodeIsRegToItselfCopy = true;
+    }
+
+    // remove RAW deps between source and user.
+
+    TCEString regName;
 
     EdgeSet edges = connectingEdges(
-        resultNode, userNode);
+        sourceNode, userNode);
 
     for (EdgeSet::iterator i = edges.begin();
          i != edges.end(); i++ ) {
          DataDependenceEdge* edge = *i;
         if (edge->dependenceType() == DataDependenceEdge::DEP_RAW) {
-            removeEdge(*edge);
+            regName = edge->data();
+            removeEdge(*edge, &sourceNode, &userNode);
         }
     }
 
-    for (int i = 0; i < inDegree(resultNode); i++) {
-        DataDependenceEdge& edge = inEdge(resultNode,i);
+    // there must have been a register raw edge between source and user node
+    assert(regName != "");
+
+    // if we are bypassign from a register-to-register copy, we'll have to
+    // copy incoming raw edges also in rootgraph level to preserve inter-bb
+    // -dependencies. 
+    for (int i = 0; i < rootGraphInDegree(sourceNode); i++) {
+        DataDependenceEdge& edge = rootGraphInEdge(sourceNode,i);
 
         // skip antidependencies due bypassed register.. these are no more
-        if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
-            (edge.dependenceType() != DataDependenceEdge::DEP_WAW &&
-             edge.dependenceType() != DataDependenceEdge::DEP_WAR)) {
+        if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            edge.data() == regName) {
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW ||
+                edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                continue;
+            }
+        }
 
-            // copy other edges
-            DataDependenceEdge* newEdge = new DataDependenceEdge(edge);
-            MoveNode& source = tailNode(edge);
+        // copy other edges.
+        MoveNode& source = rootGraph()->tailNode(edge);
+        DataDependenceEdge* newEdge = new DataDependenceEdge(edge);
+        
+        // it the edge is a loop edge, put it only in root/parent graph.
+        if (parentGraph_ != NULL) {
+            static_cast<DataDependenceGraph*>(rootGraph())->
+                connectNodes(source, userNode, *newEdge, 
+                             (edge.isBackEdge()?this:NULL));
+        } else {
             connectNodes(source, userNode, *newEdge);
         }
     }
-    
+
+    if (sourceNode.isSourceVariable()) {
+        // if bypassing reg-to-reg this copy anti edges resulting from the
+        // read of the other register.
+        for (int i = 0; i < outDegree(sourceNode); i++) {
+            DataDependenceEdge& edge = outEdge(sourceNode,i);
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+                edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                !edge.tailPseudo()) {
+                MoveNode& target = headNode(edge);
+                if (!exclusingGuards(userNode, target) && 
+                    &userNode != &target) {
+                    
+                    DataDependenceEdge* newEdge = new DataDependenceEdge(edge);
+                    // TODO: loop here!
+                    connectNodes(userNode, target, *newEdge);
+                }
+            }
+        }
+    }
+
     // fix WAR antidependencies to WaW
     for (int i = 0; i < outDegree(userNode); i++) {
         DataDependenceEdge& edge = outEdge(userNode,i);
     
         // create new WaW in place of old WaR
         if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
-            edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+            edge.dependenceType() == DataDependenceEdge::DEP_WAR && 
+            edge.data() == regName) {
 
-            MoveNode& dest = headNode(edge);
-
-            // do not create duplicate WaW edges
-            if (!hasEdge(resultNode, dest)) {
-                DataDependenceEdge* newEdge = new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_REGISTER,
-                    DataDependenceEdge::DEP_WAW);
-
-                connectNodes(resultNode, dest, *newEdge);
-            }
+            // if stupid reg to itself copy, keep to in edges..
+            if (!sourceIsRegToItselfCopy) {
             // and remove the old WaR
-            removeEdge(edge);
+                removeEdge(edge, &userNode, NULL);
+                i--; // don't skip one edge here!
+            }
         }
     }
- }
+    return true;
+}
 
 /**
  * Reverses work done by mergeAndKeep routine
@@ -935,11 +1433,25 @@ DataDependenceGraph::mergeAndKeep(MoveNode& resultNode, MoveNode& userNode) {
  * changes node to read it's data from register and returns the original
  * edges.
  *
- * @param resultNode node which writes to the register mergedNode should read.
+ * @param sourceNode node which writes to the register mergedNode should read.
  * @param mergedNode node being changed
  */
 void
-DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
+DataDependenceGraph::unMerge(MoveNode &sourceNode, MoveNode& mergedNode) {
+
+    // if this is not rootgraph, do it there. allows this to work even if
+    // source node being deleted from this this sub-ddg.
+
+    if (rootGraph() != this) {
+        static_cast<DataDependenceGraph*>(rootGraph())->
+            unMerge(sourceNode, mergedNode);
+        return;
+    } 
+
+    // name of the bypass reg.
+    TTAProgram::Terminal& dest = sourceNode.move().destination();
+    assert(dest.isGPR());
+    TCEString regName = DisassemblyRegister::registerName(dest);
 
     // unset programoperation from bypassed
     if (mergedNode.isSourceOperation()) {
@@ -948,8 +1460,11 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
         mergedNode.unsetSourceOperation();
     }
 
-    // remove unnecessary edges from merged node
+    // All incoming RAW and operation dependencies were created by
+    // the bypassing, originally there was just one RAW edge which was removed.
+    // so remove the incoming edges merge routine copied to here.
     // these can be operation edges or ordinary register RaWs.
+    // these should only go to source node.
     for (int i = 0; i < inDegree(mergedNode); i++) {
         DataDependenceEdge& edge = inEdge(mergedNode,i);
         // removes operation edges and 
@@ -957,37 +1472,58 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
             (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
              edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
              !edge.headPseudo() && !edge.guardUse())) {
-            removeEdge(edge);
+            removeEdge(edge, NULL, &mergedNode);
             i--; // do not skip next edge which now has same index
         } 
     }
 
-    mergedNode.move().setSource(resultNode.move().destination().copy());
+    // do the actual unmerge by returning source to original register.
+    mergedNode.move().setSource(sourceNode.move().destination().copy());
 
-    // create register edge between nodes
+    bool nodeRegToItselfCopy = false;
+    if (mergedNode.move().source().equals(mergedNode.move().destination())) {
+        nodeRegToItselfCopy = true;
+    }
+
+    // create register edge between nodes.
+    // this was removed by the merge.
     DataDependenceEdge* dde = new DataDependenceEdge(
         DataDependenceEdge::EDGE_REGISTER,
-        DataDependenceEdge::DEP_RAW);
-    connectNodes(resultNode, mergedNode, *dde);
+        DataDependenceEdge::DEP_RAW, regName);
+    connectNodes(sourceNode, mergedNode, *dde);
 
-    // If we changed WaR from second move to WaW of first move 
-    // during bypassign, reverse this.
-    for (int i = 0; i < outDegree(resultNode); i++) {
-        DataDependenceEdge& edge = outEdge(resultNode,i);
+    // remove war antidependence edges that should 
+    // come from source. these should only come from the
+    if (sourceNode.isSourceVariable()) {
+        for( int i = 0; i < outDegree(mergedNode); i++) {
+            DataDependenceEdge& edge = outEdge(mergedNode,i);
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+                edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                edge.data() != regName && !edge.tailPseudo() &&
+		!edge.guardUse()) {
+                removeEdge(edge, &mergedNode, NULL);
+                i--; // do not skip next edge which now has same index
+            }
+        }
+    }
+
+    // All all outgoing WAR's to merged node. The war's go to 
+    // all same places where WAW's fo from source node.
+    for (int i = 0; i < outDegree(sourceNode); i++) {
+        DataDependenceEdge& edge = outEdge(sourceNode,i);
         if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
-            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-            DataDependenceEdge* newEdge = new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER,
-                DataDependenceEdge::DEP_WAR);
-
+            edge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+            edge.data() == regName) {
             MoveNode& dest = headNode(edge);
-            connectNodes(mergedNode, dest, *newEdge);
-            
-            // leave the extra WaW there. it's existence does not
-            // make schedule worse neither cause any bugs. It's just
-            // unnecessary edge on some cases.
-            // but removing it would break situations where we have
-            // multiple bypasses from same source and we unmerge those.
+            // skip nodes with exclusive guard.
+            if (!exclusingGuards(dest, mergedNode)) {
+                DataDependenceEdge* newEdge = new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAR, regName, false, false,
+                    false, edge.headPseudo(), edge.loopDepth() + 
+                    nodeRegToItselfCopy);
+                connectNodes(mergedNode, dest, *newEdge);
+            }
         }
     }
 }
@@ -1002,6 +1538,7 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
 bool
 DataDependenceGraph::resultUsed(MoveNode& resultNode) {
 
+    //naming of this variabl si reverse logic, ok if not used
     bool killingWrite = true;
     if (!isRootGraphProcedureDDG()) {
         killingWrite = false;
@@ -1014,7 +1551,7 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
     while (edgeIter != edges.end()) {
 
         DataDependenceEdge& edge = *(*edgeIter);
-        // don't care about operation edges.
+        // don't case about operation edges.
         if (edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION) {
             edgeIter++;
             continue;
@@ -1049,9 +1586,105 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
 }
 
 /**
+ * Copies dependencies over the node, like when the node is being deleted.
+ *
+ * Converts WaR + WaW to WaR and WaW + WaW to WaW.
+ * @param node node whose in- and outgoing antideps are being combined/copied.
+ */
+void
+DataDependenceGraph::copyDepsOver(MoveNode& node, bool anti, bool raw) {
+
+    DataDependenceGraph::NodeDescriptor nd = descriptor(node);
+
+    EdgeSet iEdges = inEdges(node);
+    EdgeSet oEdges = outEdges(node);
+
+    // Loop thru all outedges.
+    for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
+        
+        // Care about WaW edges. (WaW+Waw -> Waw, WaR+WaW->War)
+        // Also raw edges (raw+raw -> raw)
+        if ((oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
+            (((oEdge.dependenceType() == DataDependenceEdge::DEP_WAW && anti)||
+              (oEdge.dependenceType() == DataDependenceEdge::DEP_RAW && raw)))){
+
+            // Then loop all incoming edges.
+            for (EdgeSet::iterator j = iEdges.begin(); 
+                 j != iEdges.end(); j++) {
+                DataDependenceEdge& iEdge = **j;
+                
+                // if WAW and same register, copy edge
+                if (iEdge.dependenceType() == oEdge.dependenceType() &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+                    
+                    MoveNode& tail = tailNode(iEdge,nd);
+                    MoveNode& head = headNode(oEdge,nd);
+                    
+                    if (!exclusingGuards(tail, head) ||
+                        (oEdge.dependenceType() == 
+                         DataDependenceEdge::DEP_RAW &&
+                         oEdge.guardUse())) {
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+
+                // if WAR and same register, and oedge was waw, copy edge.
+                if (iEdge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                    oEdge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+                    
+                    MoveNode& tail = tailNode(iEdge,nd);
+                    MoveNode& head = headNode(oEdge,nd);
+                    
+                    if (!exclusingGuards(tail, head) || iEdge.guardUse()) {
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Removes MoveNode from graph and ProgramOperations.
  *
  * Does not delete the movenode.
+ *
+ * This does NOT update overgoing antideps - consider calling
+ *    copyAntidepsOver(node);
+ * before calling this.
  *
  * @param node MoveNode being removed.
  */
@@ -1068,12 +1701,6 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
         } 
     }
 
-    DataDependenceGraph::NodeDescriptor nd = descriptor(node);
-
-    EdgeSet iEdges = inEdges(node);
-    EdgeSet oEdges = outEdges(node);
-    // end of bookkeeping
-
     // remove node from program operations
     if (node.isMove()) {
         if (node.isSourceOperation()) {
@@ -1087,44 +1714,9 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
             dstOp.removeInputNode(node);
             node.unsetDestinationOperation();
         }
-
-        // fix WaW and WaR antidependencies that go over this node
-
-        for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
-            DataDependenceEdge& oEdge = **i;
-        
-            if (oEdge.dependenceType() == DataDependenceEdge::DEP_WAW
-                && oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) {
-
-                for (EdgeSet::iterator j = iEdges.begin(); 
-                     j != iEdges.end(); j++) {
-                    DataDependenceEdge& iEdge = **j;
-                    
-                    if (iEdge.dependenceType() == 
-                        DataDependenceEdge::DEP_WAW &&
-                        iEdge.edgeReason() == 
-                        DataDependenceEdge::EDGE_REGISTER) {
-                        
-                        MoveNode& tail = tailNode(iEdge,nd);
-                        MoveNode& head = headNode(oEdge,nd);
-                        connectNodes(tail, head,*(new DataDependenceEdge(
-                                         DataDependenceEdge::EDGE_REGISTER,
-                                         DataDependenceEdge::DEP_WAW)));
-                    } else if (iEdge.dependenceType() == 
-                               DataDependenceEdge::DEP_WAR &&
-                               iEdge.edgeReason() == 
-                               DataDependenceEdge::EDGE_REGISTER) {
-                        
-                        MoveNode& tail = tailNode(iEdge,nd);
-                        MoveNode& head = headNode(oEdge,nd);
-                        connectNodes(tail, head, *(new DataDependenceEdge(
-                                         DataDependenceEdge::EDGE_REGISTER,
-                                         DataDependenceEdge::DEP_WAR)));
-                    }
-                }
-            }
-        }
     }
+    
+//    copyAntidepsOver(node);
     
     // remove node from graph
     BoostGraph<MoveNode,DataDependenceEdge>::removeNode(node);
@@ -1141,7 +1733,6 @@ DataDependenceGraph::deleteNode(MoveNode& node) {
     delete &node;
 }
 
-
 /**
  * Calculates a weight value for edges, to be used for 
  * path weight calculation for selector
@@ -1150,14 +1741,24 @@ DataDependenceGraph::deleteNode(MoveNode& node) {
  * fixed weight without having to analyze the machine.
  * 3 equals about one cycle.
  *
+ * In order to use a version that computes the weight strictly using only
+ * the operation latencies, thus gives the minimum achievable schedule
+ * length given enough resources (with operation latencies as in the
+ * machine), call setEdgeWeightHeuristics(EWH_REAL) before calling this.
+ * To get back to the default one, call setEdgeWeightHeuristics(EWH_DEFAULT).
+ *
+ * @todo EWH_HEURISTIC is incomplete. It should take in account the number
+ * of resources in the current target machine and not assume a "generic
+ * machine".
+ *
  * @param e edge whose weight is being measured
  * @param n head node of the edge.
  * @return weigth of the edge.
  */
 int
-DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n)
-    const {
-    
+DataDependenceGraph::edgeWeight(
+    DataDependenceEdge& e, const MoveNode& n) const {
+
     if (e.headPseudo()) {
         // pseudo deps do not really limit the scheduling.
         return 0;
@@ -1187,8 +1788,7 @@ DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n)
                 
                 // for predicated control flow ops the edge weight is
                 // guard latency + delay slots, as the predicated cflow
-                // ins has to be scehduled delay slots cycles before 
-                // end.
+                // ins has to be scehduled delay slots cycles before end.
                 if (n.isMove() && n.move().isControlFlowMove()) {
                     return std::max(1, glat + delaySlots_);
                 }
@@ -1204,7 +1804,6 @@ DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n)
                 }
             }
             return 1;
-            
         }
         case DataDependenceEdge::DEP_WAR: {
             return 0; // can be scheduled to same cycle
@@ -1223,10 +1822,10 @@ DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n)
  * Sets a machine into DDG. 
  *
  * This machine is used to some heuristics and helper functions that 
- * selector uses, for example path lenght calculation and earliestCycle.
+ * selector uses, for example path length calculation and earliestCycle.
  *
  * If no machine is set, these functions will still work but will
- * give non-optimal results
+ * give non-optimal results.
  *
  * @param machine machine to be used for heristics
  */
@@ -1254,6 +1853,8 @@ DataDependenceGraph::setMachine(const TTAMachine::Machine& machine) {
     height_ = -1; // force path recalculation
     sourceDistances_.clear();
     sinkDistances_.clear();
+    loopingSinkDistances_.clear();
+    loopingSourceDistances_.clear();
 }
 
 /**
@@ -1267,12 +1868,21 @@ DataDependenceGraph::setMachine(const TTAMachine::Machine& machine) {
  */
 bool
 DataDependenceGraph::predecessorsReady(MoveNode& node) const {
-    
-    NodeSet pred = predecessors(node);
-    for (NodeSet::iterator i = pred.begin(); i != pred.end();
-         ++i) {
 
-        MoveNode& m = **i;
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    NodeDescriptor nd = descriptor(node);
+    std::pair<InEdgeIter, InEdgeIter> edges =
+        boost::in_edges(nd, graph_);
+
+    for (InEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge& edge = *graph_[ed];
+        if (edge.isBackEdge()) {
+            continue;
+        }
+        const MoveNode& m = *graph_[boost::source(ed, graph_)];
 
         const bool operandMoveOfSameOperation =
             (node.isSourceOperation() && m.isDestinationOperation() && 
@@ -1299,7 +1909,7 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
 /**
  * Gets the lowest instruction latency for given operation.
  *
- * If latency is know known ( no machine is given ) does some simple
+ * If latency is not known (no machine is given) does some simple
  * heuristics.
  *
  * This function should propably be on somewhere else.
@@ -1329,7 +1939,8 @@ DataDependenceGraph::getOperationLatency(const TCEString& name) const {
  */
 bool
 DataDependenceGraph::hasEqualEdge(
-    const MoveNode& tailNode, const MoveNode& headNode, const DataDependenceEdge& edge) 
+    const MoveNode& tailNode, const MoveNode& headNode, 
+    const DataDependenceEdge& edge) 
     const {
     
     typedef GraphTraits::out_edge_iterator outEdgeIter;
@@ -1382,22 +1993,25 @@ DataDependenceGraph::connectOrDeleteEdge(
 DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
     NodeSet& nodes, bool includeLoops) {
-    DataDependenceGraph *subGraph = new DataDependenceGraph(
-        "", registerAntidependenceLevel_, false, !includeLoops);
-
+    DataDependenceGraph* subGraph = 
+        new DataDependenceGraph(
+            allParamRegs_, "", registerAntidependenceLevel_, NULL, false,
+            !includeLoops);
     constructSubGraph(*subGraph, nodes);
 
     typedef std::set<ProgramOperation*, ProgramOperation::Comparator> POSet;
     POSet subgraphPOs;
 
-    int nc = subGraph->nodeCount();
-    for (int i = 0; i < nc; i++) {
+    // copy the node -> bbn mapping.
+    // also find POs to copy.
+    for (int i = 0, nc = subGraph->nodeCount(); i < nc; i++) {
         MoveNode& mn = subGraph->node(i);
         BasicBlockNode* bbn = moveNodeBlocks_[&mn];
         subGraph->moveNodeBlocks_[&mn] = bbn;
         if (mn.isSourceOperation()) {
             subgraphPOs.insert(&mn.sourceOperation());
         }
+        
         if (mn.isDestinationOperation()) {
             subgraphPOs.insert(&mn.destinationOperation());
         }
@@ -1406,6 +2020,67 @@ DataDependenceGraph::createSubgraph(
          i != subgraphPOs.end();i++) {
         subGraph->programOperations_.push_back(*i);
     }
+    return subGraph;
+}
+
+/**
+ * Returns a version of the graph with only true dependence edges.
+ */
+DataDependenceGraph*
+DataDependenceGraph::trueDependenceGraph(
+    bool removeMemAntideps, bool ignoreMemDeps) {
+    DataDependenceGraph* subGraph = 
+        new DataDependenceGraph(
+            allParamRegs_, "true DDG", registerAntidependenceLevel_,
+            NULL, false, false);
+    NodeSet nodes;
+    for (int i = 0; i < nodeCount(); ++i) {
+        nodes.insert(&node(i));
+    }
+    if (machine_ != NULL)
+        subGraph->setMachine(*machine_);
+
+    constructSubGraph(*subGraph, nodes);
+    
+    for (int i = 0; i < nodeCount(); i++) {
+        MoveNode& tail = node(i);
+        for (int e = 0; e < subGraph->outDegree(tail);) {
+            DataDependenceEdge& edge = subGraph->outEdge(tail,e);
+            if ((ignoreMemDeps && 
+                 edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) ||
+                (edge.isFalseDep() && 
+                 (removeMemAntideps || 
+                  edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER))) {
+                subGraph->dropEdge(edge);
+            } else {
+                e++;
+            }
+        }
+    }
+    return subGraph;
+}
+
+/**
+ * Returns a version of the graph with only nodes that are in the
+ * critical path.
+ */
+DataDependenceGraph*
+DataDependenceGraph::criticalPathGraph() {
+    DataDependenceGraph* subGraph = 
+        new DataDependenceGraph(
+            allParamRegs_, "critical path DDG",
+            registerAntidependenceLevel_, NULL, false, false);
+
+    if (machine_ != NULL)
+        subGraph->setMachine(*machine_);
+    
+    NodeSet nodes;
+    for (int i = 0; i < nodeCount(); ++i) {
+        if (isInCriticalPath(node(i)))
+            nodes.insert(&node(i));
+    }
+    constructSubGraph(*subGraph, nodes);
+
     return subGraph;
 }
 
@@ -1497,11 +2172,58 @@ DataDependenceGraph::nodeOfMove(TTAProgram::Move& move)
         return *(i->second);
     } 
 
-    std::string msg = "move not in ddg: " + 
-            Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
-            POMDisassembler::disassemble(move);
+    TCEString msg = "move not in ddg: " + 
+        Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
+        POMDisassembler::disassemble(move);
     throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
 
+}
+
+/**
+ * Drops loop edges from a sub-DDG.
+ *
+ * This works only with simple control structures;
+ * Only works for edges marked as loop edges. 
+ * Currently loop edges spanning over multiple basic blocks may be missing.
+ */
+void DataDependenceGraph::dropBackEdges() {
+    const int nc = nodeCount();
+
+    // first loop thru all nodes.
+    for (int n = 0; n < nc; n++) {
+        NodeDescriptor nd = boost::vertex(n, graph_);
+
+        // the thru all output edges of the node.
+        // this is propably the fastest way to iterate over 
+        // all edges of a graph. (or is just all edges faster?)
+        std::pair<OutEdgeIter, OutEdgeIter> edges = 
+            boost::out_edges(nd, graph_);
+
+        for (OutEdgeIter ei = edges.first; ei != edges.second;) {
+            DataDependenceEdge* e = graph_[(*ei)];
+            if (e->isBackEdge()) {
+                // remove from internal bookkeeping
+                boost::remove_edge(*ei, graph_);
+
+                // iterators must be resetted when deleted something.
+                edges = boost::out_edges(nd, graph_);
+                ei = edges.first;
+
+                // remove from edge descriptor cache
+                DataDependenceGraph::EdgeDescMap::iterator
+                    edIter = edgeDescriptors_.find(e);
+                if (edIter != edgeDescriptors_.end()) {
+                    edgeDescriptors_.erase(edIter);
+                }
+
+                for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+                    childGraphs_.at(i)->dropEdge(*e);
+                }    
+            } else {
+                ei++;
+            }
+        }
+    }
 }
 
 /**
@@ -1517,7 +2239,7 @@ DataDependenceGraph::isRootGraphProcedureDDG() {
     if (parentGraph_ == NULL) {
         return procedureDDG_;
     } else {
-        return dynamic_cast<DataDependenceGraph*>(parentGraph_)
+        return static_cast<DataDependenceGraph*>(parentGraph_)
             ->isRootGraphProcedureDDG();
     }
 }
@@ -1527,12 +2249,15 @@ DataDependenceGraph::isRootGraphProcedureDDG() {
  *
  * currently quite a heavy routine
  * 
- * @param bbn1 first basic block, executed first, sources of antidependence edges
- * @param bbn2 second basic block, executed later, targets of antidependence edges
+ * @param bbn1 first basic block, executed first, sources of antidependence 
+ *             edges
+ * @param bbn2 second basic block, executed later, targets of antidependence 
+ *             edges
  */
 void
 DataDependenceGraph::fixInterBBAntiEdges(
-    BasicBlockNode& bbn1, BasicBlockNode& bbn2) throw (Exception) {
+    BasicBlockNode& bbn1, BasicBlockNode& bbn2, bool loopEdges) 
+    throw (Exception) {
 
     std::map<TCEString, TTAProgram::Move*> firstWrites2;
     std::map<TCEString, TTAProgram::Move*> lastReads1;
@@ -1592,15 +2317,15 @@ DataDependenceGraph::fixInterBBAntiEdges(
                 TTAMachine::Guard& g = move.guard().guard();
                 TTAMachine::RegisterGuard* rg = 
                     dynamic_cast<TTAMachine::RegisterGuard*>(&g);
-                int index = rg->registerIndex();
-                const TTAMachine::RegisterFile& rf = *rg->registerFile();
-                TCEString reg1 = rf.name() + '.' + 
-                    Conversion::toString(index);
-                
-                std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
-                    lastGuards1.find(reg1);
-                if (iter2 == lastGuards1.end()) {
-                    lastGuards1[reg1] = &move;
+                if (rg != NULL) {
+                    TCEString reg1 = DisassemblyRegister::registerName(
+                        *rg->registerFile(), rg->registerIndex());
+                    
+                    std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
+                        lastGuards1.find(reg1);
+                    if (iter2 == lastGuards1.end()) {
+                        lastGuards1[reg1] = &move;
+                    }
                 }
             }
         }
@@ -1619,8 +2344,9 @@ DataDependenceGraph::fixInterBBAntiEdges(
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
-                    DataDependenceEdge::DEP_WAR);
-            connectNodes(nodeOfMove(*move1), mn2, *edge);
+                    DataDependenceEdge::DEP_WAR, reg2, false, false, false,
+                    false, loopEdges);
+            connectOrDeleteEdge(nodeOfMove(*move1), mn2, edge);
         }
         
         // WaWs
@@ -1629,8 +2355,9 @@ DataDependenceGraph::fixInterBBAntiEdges(
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
-                    DataDependenceEdge::DEP_WAW);
-            connectNodes(nodeOfMove(*move1), mn2, *edge);
+                    DataDependenceEdge::DEP_WAW, reg2, false, false, false,
+                    false, loopEdges);
+            connectOrDeleteEdge(nodeOfMove(*move1), mn2, edge);
         }
         
         // guard WaRs
@@ -1639,8 +2366,9 @@ DataDependenceGraph::fixInterBBAntiEdges(
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
-                    DataDependenceEdge::DEP_WAR,true);
-            connectNodes(nodeOfMove(*move1), mn2, *edge);
+                    DataDependenceEdge::DEP_WAR, reg2, true, false, false, 
+                    false, loopEdges);
+            connectOrDeleteEdge(nodeOfMove(*move1), mn2, edge);
         }
     }
 }
@@ -1691,6 +2419,70 @@ DataDependenceGraph::copyDependencies(
 }
 
 /**
+ * Copies all incoming guard dependencies going to a movenode to another
+ * 
+ * @param src movenode to copy dependencies from
+ * @param dst movenode to copy dependencies to
+ */
+void 
+DataDependenceGraph::copyIncomingGuardEdges(
+    const MoveNode& src, MoveNode& dst) {
+
+    // performance optimization 
+    NodeDescriptor nd = descriptor(src);
+
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    std::pair<InEdgeIter, InEdgeIter> iEdges =
+        boost::in_edges(nd, graph_);
+
+    for (InEdgeIter ii = iEdges.first; ii != iEdges.second; ii++) {
+        EdgeDescriptor ed = *ii;
+        DataDependenceEdge* edge = graph_[ed];
+        if (edge->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            edge->dependenceType() == DataDependenceEdge::DEP_RAW &&
+            edge->guardUse()) {
+            DataDependenceEdge* newEdge = new DataDependenceEdge(*edge);
+            MoveNode& tail = *graph_[boost::source(ed, graph_)];
+            connectNodes(tail, dst, *newEdge);
+        }
+    }
+}
+
+/**
+ * Copies all outgoing guard war dependencies going to a movenode to another
+ * 
+ * @param src movenode to copy dependencies from
+ * @param dst movenode to copy dependencies to
+ */
+void 
+DataDependenceGraph::copyOutgoingGuardWarEdges(
+    const MoveNode& src, MoveNode& dst) {
+
+    // performance optimization 
+    NodeDescriptor nd = descriptor(src);
+
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    std::pair<OutEdgeIter, OutEdgeIter> oEdges =
+        boost::out_edges(nd, graph_);
+
+    for (OutEdgeIter oi = oEdges.first; oi != oEdges.second; oi++) {
+        EdgeDescriptor ed = *oi;
+        DataDependenceEdge* edge = graph_[ed];
+        if (edge->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            edge->dependenceType() == DataDependenceEdge::DEP_WAR &&
+            edge->guardUse()) {
+            DataDependenceEdge* newEdge = new DataDependenceEdge(*edge);
+            MoveNode& head = *graph_[boost::target(ed, graph_)];
+            connectNodes(dst, head, *newEdge);
+        }
+    }
+}
+
+/**
  * Calculates number of register WAR antidependecies originating from 
  * given node
  *
@@ -1698,19 +2490,43 @@ DataDependenceGraph::copyDependencies(
  * @return number of register WAR antidependencies originating
  * from given node
  */
-bool DataDependenceGraph::rWarEdgesOutUncond(MoveNode& mn) {
+int DataDependenceGraph::rWarEdgesOut(MoveNode& mn) {
+    int count = 0;
     EdgeSet oEdges = outEdges(mn);
     for (EdgeSet::iterator iter = 
              oEdges.begin(); iter != oEdges.end(); iter++) {
         if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
             (*iter)->dependenceType() == DataDependenceEdge::DEP_WAR) {
-            MoveNode& head = headNode(**iter);
-            if (head.move().isUnconditional()) {
-                return true;
+            count++;
+        }
+    }
+    return count;
+}
+
+/**
+ * Calculates number of register RAW dependecies originating from 
+ * given node
+ *
+ * @param mn Movenodes whose dependencies to calculate
+ * @param onlySchedules only care about dependencies to Scheduled nodes.
+ * @return number of register RAW dependencies originating
+ * from given node
+ */
+int DataDependenceGraph::regRawSuccessorCount(
+    const MoveNode& mn, bool onlyScheduled) {
+    int count = 0;
+    EdgeSet oEdges = outEdges(mn);
+    for (EdgeSet::iterator iter = 
+             oEdges.begin(); iter != oEdges.end(); iter++) {
+        if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            (*iter)->dependenceType() == DataDependenceEdge::DEP_RAW) {
+            MoveNode& mn = headNode(**iter);
+            if (!onlyScheduled || mn.isScheduled()) {
+                count++;
             }
         }
     }
-    return false;
+    return count;
 }
 
 /**
@@ -1769,23 +2585,515 @@ int DataDependenceGraph::rAntiEdgesIn(MoveNode& mn) {
  */
 DataDependenceEdge* 
 DataDependenceGraph::onlyIncomingGuard(
-    const MoveNode& mn) {
+    const MoveNode& mn) const {
     DataDependenceEdge* guard = NULL;
     DataDependenceGraph::EdgeSet iEdges = inEdges(mn);
 
     for (DataDependenceGraph::EdgeSet::iterator i = iEdges.begin();
          i != iEdges.end(); i++) {
-        DataDependenceEdge* edge = *i;
-        if (edge->guardUse() && edge->dependenceType() == 
+        DataDependenceEdge* iEdge = *i;
+        if (iEdge->guardUse() && iEdge->dependenceType() == 
             DataDependenceEdge::DEP_RAW) {
             if (guard == NULL) {
-                guard = edge;
+                guard = iEdge;
             } else {
-                return NULL; // too complicated guard
+                if (!(*guard == *iEdge) || 
+                    &tailNode(*iEdge) != &tailNode(*guard)) {
+                    return NULL; // too complicated guard
+                }
             }
         }
     }
     return guard;
+}
+
+DataDependenceGraph::NodeSet 
+DataDependenceGraph::guardRawPredecessors(const MoveNode& node) const {
+    NodeSet preds;
+    DataDependenceGraph::EdgeSet iEdges = inEdges(node);
+    for (DataDependenceGraph::EdgeSet::iterator i = iEdges.begin();
+         i != iEdges.end(); i++) {
+        DataDependenceEdge* iEdge = *i;
+        if (iEdge->guardUse() && iEdge->dependenceType() == 
+            DataDependenceEdge::DEP_RAW) {
+            preds.insert(&tailNode(*iEdge));
+        }
+    }
+    return preds;
+}
+
+
+/**
+ * Returns the source of only ordinary register RAW edge to given node,
+ * ie the only move which writes the value this move reads.
+ *
+ * if there are multiple nodes where the value may come, return NULL,
+ * or if none found.
+ * 
+ * @param mn MoveNode whose predecessor noves we are searching.
+ * @return only move writing reg this reads or NULL if no or multiple.
+ */
+
+MoveNode* 
+DataDependenceGraph::onlyRegisterRawSource(const MoveNode& mn) const {
+    MoveNode* source = NULL;
+    NodeDescriptor nd = descriptor(mn);
+    
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    std::pair<InEdgeIter, InEdgeIter> edges =
+        boost::in_edges(nd, graph_);
+
+    for (InEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge* edge = graph_[ed];
+        if (edge->dependenceType() == DataDependenceEdge::DEP_RAW &&
+            edge->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !edge->guardUse() && !edge->headPseudo()) {
+            if (!edge->tailPseudo() &&  source == NULL) {
+                source = graph_[boost::source(ed, graph_)];
+            } else {
+                return NULL;
+            }
+        }
+    }
+    return source;
+}
+
+/**
+ * Tracks the origin of the data a movenode reads. Goes back thru DDG
+ * and tracks register-to register reads. 
+ *
+ * If data comes from operation, returns the operation result read. 
+ * If data comes from stack pointer, returns the stack pointer read.
+ * If the data may come from multiple places (conditional writes to reg,
+ * or writes to same reg in multiple BB's), return the move which read the 
+ * value from the reg.
+ */
+const MoveNode* 
+DataDependenceGraph::onlyRegisterRawAncestor(
+    const MoveNode& mn, const std::string& sp) const {
+    const MoveNode* node = &mn;
+
+    while(true) {
+        if (node->isSourceReg(sp)) {
+            return node;
+        }
+        MoveNode* src = onlyRegisterRawSource(*node);
+        if (src == NULL) {
+            return node;
+        } else {
+            // this should not be needed if incoming code were sensible
+            // but it often is not. extra check to prevetn forever loop.
+            if (node == src) {
+                return node;
+            }
+            node = src;
+        }
+    } 
+}
+
+
+/**
+ * Returns the register war successors of the given node.
+ *
+ * If node has no register war successors, an empty set is returned. 
+ * Note: the node can also be a successor of itself. 
+ * Register war successor means successor which is
+ * connected by register or ra war edge
+ *
+ * @param node The node of which successors to find.
+ * @return Set of root nodes, can be empty. 
+ */
+
+DataDependenceGraph::NodeSet
+DataDependenceGraph::regWarSuccessors(const MoveNode& node) const {
+    
+    NodeSet succ;
+
+    NodeDescriptor nd = descriptor(node);
+    EdgeSet out = outEdges(node);
+    typedef EdgeSet::iterator EdgeIterator;
+
+    for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
+        DataDependenceEdge& e = **i;
+        if (e.dependenceType() == DataDependenceEdge::DEP_WAR &&
+            (e.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+             e.edgeReason() == DataDependenceEdge::EDGE_RA)) {
+            succ.insert(&headNode(**i, nd));
+        }
+    }
+    
+    return succ;
+}
+
+/**
+ * Returns the register raw successors of the given node.
+ *
+ * If node has no register war successors, an empty set is returned. 
+ * Note: the node can also be a successor of itself. 
+ * Register war successor means successor which is
+ * connected by register or ra war edge
+ *
+ * @param node The node of which successors to find.
+ * @return Set of root nodes, can be empty. 
+ */
+
+DataDependenceGraph::NodeSet
+DataDependenceGraph::regRawSuccessors(const MoveNode& node) const {
+    
+    NodeSet succ;
+
+    NodeDescriptor nd = descriptor(node);
+    EdgeSet out = outEdges(node);
+    typedef EdgeSet::iterator EdgeIterator;
+
+    for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
+        DataDependenceEdge& e = **i;
+        if (e.dependenceType() == DataDependenceEdge::DEP_RAW &&
+            (e.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+             e.edgeReason() == DataDependenceEdge::EDGE_RA)) {
+            succ.insert(&headNode(**i, nd));
+        }
+    }
+    
+    return succ;
+}
+
+/**
+ * Returns the register waw successors of the given node.
+ *
+ * If node has no reg waw successors, an empty set is returned. 
+ * Note: the node can also be a successor of itself. 
+ * register waw successor means successor which is
+ * connected by register waw edge.
+ *
+ * @param node The node of which successors to find.
+ * @return Set of root nodes, can be empty. 
+ */
+
+DataDependenceGraph::NodeSet
+DataDependenceGraph::regWawSuccessors(const MoveNode& node) const {
+    
+    NodeSet succ;
+
+    NodeDescriptor nd = descriptor(node);
+    EdgeSet out = outEdges(node);
+    typedef EdgeSet::iterator EdgeIterator;
+
+    for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
+        DataDependenceEdge& e = **i;
+
+        // if we would bypass also over ra, then allow also ra in following
+        if (e.dependenceType() == DataDependenceEdge::DEP_WAW &&
+            e.edgeReason() == DataDependenceEdge::EDGE_REGISTER) {
+            succ.insert(&headNode(**i, nd));
+        }
+    }
+    
+    return succ;
+}
+
+
+/**
+ * Creates antidependencies between certains nodes of a ddg.
+ * 
+ * This is used after regcopyadded to insert antideps between the
+ * temp registers added by the regcopyadder.
+ *
+ * All nodes given to the method should be scheduled.
+ * The nodes should have already been added to the graph.
+ *
+ * @param nodes nodes whose antidependencies to add.
+ */
+void
+DataDependenceGraph::createRegisterAntiDependenciesBetweenNodes(
+    DataDependenceGraph::NodeSet& nodes) {
+    
+    typedef std::map<int, NodeSet > 
+        MovesByCycles;
+    MovesByCycles movesInCycles;
+    typedef std::map<TCEString, NodeSet> NodeSetMap;
+    
+    NodeSetMap reads;
+    NodeSetMap writes;
+    // insert all moves int correct cycle in bookkeeping
+    for (NodeSet::iterator nsIter = nodes.begin(); 
+         nsIter != nodes.end(); nsIter++) {
+        MoveNode* mn = *nsIter;
+        assert(mn->isScheduled());
+        movesInCycles[mn->cycle()].insert(mn);
+    }
+
+    // loop thru all cycles
+    for (MovesByCycles::iterator i = movesInCycles.begin(); 
+         i != movesInCycles.end(); i++) {
+        
+        NodeSet& nodesInCycle = i->second;
+        // then check sources of all nodes in the cycle
+        for (NodeSet::iterator j = nodesInCycle.begin();
+             j != nodesInCycle.end(); j++) {
+            MoveNode* mn = *j;
+            TTAProgram::Move& move = mn->move();
+            TTAProgram::Terminal& src = move.source();
+            if (src.isGPR()) {
+                TCEString reg = DisassemblyRegister::registerName(src);
+                reads[reg].insert(mn);
+            }
+        }
+
+        // then check destinations of all nodes in the cycle
+        for (NodeSet::iterator j = nodesInCycle.begin();
+             j != nodesInCycle.end(); j++) {
+
+            MoveNode* mn = *j;
+            TTAProgram::Move& move = mn->move();
+            TTAProgram::Terminal& dst = move.destination();
+            if (dst.isGPR()) {
+                TCEString reg = DisassemblyRegister::registerName(dst);
+
+                NodeSet& readsFromReg = reads[reg];
+                NodeSet& writesToReg = writes[reg];
+                
+                // create the dependencies.
+                // WaRs
+                for (NodeSet::iterator k = readsFromReg.begin(); 
+                     k != readsFromReg.end(); k++) {
+                    MoveNode& prevMN = **k;
+                    if (!exclusingGuards(prevMN, *mn)) {
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                DataDependenceEdge::EDGE_REGISTER,
+                                DataDependenceEdge::DEP_WAR, reg);
+                        connectOrDeleteEdge(**k, *mn, edge);
+                    }
+                }
+
+                // WaWs.
+                for (NodeSet::iterator k = writesToReg.begin(); 
+                     k != writesToReg.end(); k++) {
+                    MoveNode& prevMN = **k;
+                    if (!exclusingGuards(prevMN, *mn)) {
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                DataDependenceEdge::EDGE_REGISTER,
+                                DataDependenceEdge::DEP_WAW, reg);
+                        connectOrDeleteEdge(**k, *mn, edge);
+                    }
+                }
+
+                // if this is unconditional, kills previous writes to the reg
+                if (move.isUnconditional()) {
+                    writes[reg].clear();
+                    reads[reg].clear();
+                }
+                writes[reg].insert(mn);
+            }
+        }
+    }
+}
+
+
+
+/* 
+ * Checks whether two movenodes have exclusive guard, ie
+ * same guard but inverted on one of them.
+ *
+ * If not sure returns false
+ * 
+ * @param mn1 first movenode to check.
+ * @param mn2 second movenode to check.
+ * @return true if they have same guard inverted, false otherwise.
+ */
+bool
+DataDependenceGraph::exclusingGuards(
+    const MoveNode& mn1, const MoveNode& mn2) const {
+    if (!mn1.isMove() || !mn2.isMove()) {
+        return false;
+    }
+    const TTAProgram::Move& move1 = mn1.move();
+    const TTAProgram::Move& move2 = mn2.move();
+    if (move1.isUnconditional() || move2.isUnconditional()) {
+        return false;
+    }
+    TTAProgram::MoveGuard& mg1 = move1.guard();
+    TTAProgram::MoveGuard& mg2 = move2.guard();
+    if (mg1.isInverted() == mg2.isInverted()) {
+        return false;
+    }
+    NodeSet incomingGuards1 =
+        guardRawPredecessors(mn1);
+
+    NodeSet incomingGuards2 = 
+        guardRawPredecessors(mn2);
+
+    return !incomingGuards1.empty() && 
+        incomingGuards1 == incomingGuards2;
+}
+
+bool
+DataDependenceGraph::sameGuards(
+    const MoveNode& mn1, const MoveNode& mn2) const {
+    if (!mn1.isMove() || !mn2.isMove()) {
+        return false;
+    }
+    const TTAProgram::Move& move1 = mn1.move();
+    const TTAProgram::Move& move2 = mn2.move();
+
+    if (move1.isUnconditional() && move2.isUnconditional()) {
+        return true;
+    }
+
+    if (move1.isUnconditional() || move2.isUnconditional()) {
+        return false;
+    }
+    TTAProgram::MoveGuard& mg1 = move1.guard();
+    TTAProgram::MoveGuard& mg2 = move2.guard();
+    if (mg1.isInverted() != mg2.isInverted()) {
+        return false;
+    }
+    NodeSet incomingGuards1 =
+        guardRawPredecessors(mn1);
+
+    NodeSet incomingGuards2 = 
+        guardRawPredecessors(mn2);
+
+    return !incomingGuards1.empty() && 
+        incomingGuards1 == incomingGuards2;
+}
+
+/**
+ * Checks whether guards allow bypassing.
+ * 
+ * @param defNode node defining a value, bypass source.
+ * @param useNode node using the value, node being bypassed.
+ * @return true if guards do not prevent bypassing.
+ */
+bool DataDependenceGraph::guardsAllowBypass(
+    const MoveNode& defNode, const MoveNode& useNode) {
+    
+    // can always bypass from unconditional
+    if (defNode.move().isUnconditional()) {
+        return true;
+    }
+
+    // cannot bypass from conditional to unconditional
+    if (useNode.move().isUnconditional()) {
+        return false;
+    }
+
+    NodeSet defGuardDefMoves = guardDefMoves(defNode);
+    NodeSet useGuardDefMoves = guardDefMoves(useNode);
+    
+    // if guards defined in different place, 
+    // we do now know if they are equal.
+    if (defGuardDefMoves != useGuardDefMoves) {
+        return false;
+    }
+
+    // if guards are equal, bypass allowed.
+    return defNode.move().guard().guard().isEqual(
+        useNode.move().guard().guard());
+}
+    
+/**
+ * Finds the move which writes the loop limit comparison value into
+ * the loop comparison operation.
+ *
+ * If cannot find, returs null.
+ *
+ * Assumes positively-gworing loop with ne (or eq + xor 1) as end condition.
+ * (llvm creates this kind of loops)
+ *
+ * @param jumpMove jump move of a loop.
+ * @return loop limit move or NULL of not found.
+ */
+TTAProgram::Move* 
+DataDependenceGraph::findLoopLimit(MoveNode& jumpMove) {
+    
+    NodeSet guardDefs = guardDefMoves(jumpMove);
+    if (guardDefs.size() != 1) {
+        return NULL;
+    }
+    MoveNode* guardDef = *guardDefs.begin();
+    while (guardDef->isSourceVariable()) {
+        guardDef = onlyRegisterRawSource(*guardDef);
+        if (guardDef == NULL) {
+            return NULL;
+        }
+    }
+    if (guardDef->isSourceOperation()) {
+        ProgramOperation* gdpo = &guardDef->sourceOperation();
+        bool inverted = jumpMove.move().guard().isInverted();
+
+        // machine does not have ne operation so eq + xor used.
+        if (gdpo->operation().name() == "XOR") {
+            MoveNodeSet& input1Set = gdpo->inputNode(1);
+            MoveNodeSet& input2Set = gdpo->inputNode(2);
+            if (input1Set.count() != 1 || input2Set.count() != 1) {
+                return NULL;
+            }
+            MoveNode& input1 = input1Set.at(0);
+            MoveNode& input2 = input2Set.at(0);
+
+            MoveNode *regMove = NULL;
+            if (input1.move().source().isGPR() && 
+                input2.move().source().isImmediate()) {
+                regMove = &input1;
+            } 
+
+            if (input2.move().source().isGPR() && 
+                input1.move().source().isImmediate()) {
+                regMove = &input2;
+            }
+
+            // bypassed directly from eq?
+            if (input1.isSourceOperation() &&
+                input2.move().source().isImmediate()) {
+                gdpo = &input1.sourceOperation();
+            } else {
+                if (input2.isSourceOperation() &&
+                    input1.move().source().isImmediate()) {
+                    gdpo = &input2.sourceOperation();
+                } else { // not bypassed.
+                    if (regMove != NULL) {
+                        MoveNode* xorSrc = onlyRegisterRawSource(*regMove);
+                        if (xorSrc != NULL && xorSrc->isSourceOperation()) {
+                            inverted = !inverted;
+                            gdpo = &xorSrc->sourceOperation();
+                        } else {
+                            return NULL;
+                        }
+                    } else {
+                        return NULL;
+                    }
+                }
+            }
+        }
+
+        if ((gdpo->operation().name() == "NE" && !inverted) ||
+            (gdpo->operation().name() == "EQ"  && inverted)) {
+            MoveNodeSet& input1Set = gdpo->inputNode(1);
+            MoveNodeSet& input2Set = gdpo->inputNode(2);
+            if (input1Set.count() != 1 || input2Set.count() != 1) {
+                return NULL;
+            }
+            MoveNode& input1 = input1Set.at(0);
+            MoveNode& input2 = input2Set.at(0);
+            if ((input1.move().source().isGPR() ||
+                 input1.isSourceOperation()) && 
+                input2.move().source().isImmediate()) {
+                return &input2.move();
+            } 
+            if ((input2.move().source().isGPR() ||
+                 input2.isSourceOperation()) && 
+                input1.move().source().isImmediate()) {
+                return &input1.move();
+            }
+        }
+    }
+    return NULL;
 }
 
 /** 
@@ -1825,6 +3133,466 @@ DataDependenceGraph::moveFUDependenciesToTrigger(MoveNode& trigger) {
                     moveOutEdge(node, trigger, e);
                 }
             }
+        }
+    }
+}
+
+/**
+ * Finds a liverange, consisting of one (or multiple if guarded writes)
+ * write and one or multiple reads to same registers.
+ * if none found, returns empty pair.
+ * @return first set contains writes, second set uses
+ */
+std::pair<DataDependenceGraph::NodeSet, DataDependenceGraph::NodeSet>
+DataDependenceGraph::findLiveRange(
+    MoveNode& moveNode, bool dest) const {
+
+    NodeSet queuedWrites;
+    NodeSet queuedReads;
+    typedef EdgeSet::iterator EdgeIterator;
+
+    // todo: play ping-pong between users and definers. 
+    std::pair<NodeSet, NodeSet> liveRange;
+
+    if (dest == true) {
+        queuedWrites.insert(&moveNode);
+    } else {
+        queuedReads.insert(&moveNode);
+    }
+
+    // loop as long as we have not checked successors of some
+    // write or predecessors of some read.
+    while (!queuedWrites.empty() || !queuedReads.empty()) {
+
+        // first check writes.
+        if (!queuedWrites.empty()) {
+            MoveNode& write = **queuedWrites.begin();
+            
+            NodeDescriptor nd = descriptor(write);
+            EdgeSet out = rootGraphOutEdges(write);
+            
+            for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
+                DataDependenceEdge& e = **i;
+
+                // only register raws. pseudo deps not yet supported.
+                if (e.dependenceType() == DataDependenceEdge::DEP_RAW &&
+                    e.edgeReason() == DataDependenceEdge::EDGE_REGISTER) {
+                    MoveNode& succ = 
+                        (static_cast<const DataDependenceGraph*>
+                         (rootGraph()))->headNode(e, nd);
+            
+                    if (e.isBackEdge() || e.headPseudo() || e.tailPseudo() || 
+                        !hasNode(succ) || e.guardUse() ) { 
+                        liveRange.first.clear();
+                        liveRange.second.clear();
+                        return liveRange;
+                    } else {
+                        // not yet handled. queue it
+                        if (liveRange.second.find(&succ) == 
+                            liveRange.second.end()) {
+                            queuedReads.insert(&succ);
+                        }
+                    }
+                }
+            }
+            // this is fully checked. add to result, remove from queue
+            liveRange.first.insert(&write);
+            queuedWrites.erase(&write);
+        }
+
+        // then check reads.
+        if (!queuedReads.empty()) {
+            
+            MoveNode& read = **queuedReads.begin();
+            
+            NodeDescriptor nd = descriptor(read);
+            EdgeSet in = rootGraphInEdges(read);
+
+            for (EdgeIterator j = in.begin(); j != in.end(); j++) {
+                DataDependenceEdge& e = **j;
+
+                if (e.dependenceType() == DataDependenceEdge::DEP_RAW &&
+                    e.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+                    !e.guardUse()) {
+                    MoveNode& pred = 
+                        (static_cast<const DataDependenceGraph*>
+                         (rootGraph()))->tailNode(e, nd);
+                    if (e.isBackEdge() || e.headPseudo() ||
+                        e.tailPseudo() || !hasNode(pred)) {
+                        liveRange.first.clear();
+                        liveRange.second.clear();
+                        return liveRange;
+                    } else {
+                        if (liveRange.first.find(&pred) == 
+                            liveRange.first.end()) {
+                            queuedWrites.insert(&pred);
+                        }
+                    }
+                }
+            }
+            // this is fully checked. add to result, remove from queue
+            liveRange.second.insert(&read);
+            queuedReads.erase(&read);
+        }
+    }
+    return liveRange;
+}
+
+/**
+ * Source of a move is renamed to a register which is not used in
+ * this ddg. Removes old edges not needed anymore.
+ *
+ * If destination of edge also renamed to this reg, keep the edge, 
+ * update the data of the edge.
+ */
+void 
+DataDependenceGraph::sourceRenamed(MoveNode& mn) {
+
+    TTAProgram::Terminal& term = mn.move().source();
+    const TCEString newReg = DisassemblyRegister::registerName(term);
+
+    for (int i = 0; i < outDegree(mn); i++) {
+        DataDependenceEdge& oEdge = outEdge(mn,i);
+    
+        if (oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            oEdge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+            !oEdge.tailPseudo() && !oEdge.guardUse()) {
+            
+            MoveNode& head = headNode(oEdge);            
+            TTAProgram::Terminal& writeTerm = head.move().destination();
+
+            // if this edge disappers because of the renaming?
+            if (oEdge.headPseudo() ||
+                (writeTerm.isGPR() && (
+                     writeTerm.index() != term.index() ||
+                     &writeTerm.registerFile() != &term.registerFile()))) {
+                removeEdge(oEdge, NULL, &mn);
+                i--; // don't skip one edge here!
+            } else {
+                // update the edge. also other end changed
+                oEdge.setData(newReg);
+            }
+        }
+    }
+}
+
+/**
+ * Destination of a move is renamed to a register which is not used in
+ * this ddg. Removes old edges not needed anymore and updates some edges.
+ * Assumes all the RAW successors of this node are also udpated to read thr
+ * new register.
+ */
+
+void 
+DataDependenceGraph::destRenamed(MoveNode& mn) {
+
+    copyDepsOver(mn, true, false);
+    
+    TTAProgram::Terminal& term = mn.move().destination();
+    const TCEString newReg = DisassemblyRegister::registerName(term);
+
+    for (int i = 0 ; i < inDegree(mn); i++) {
+        DataDependenceEdge& iEdge = inEdge(mn,i);
+        MoveNode& tail = tailNode(iEdge);
+
+        // WAR's
+        if (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+             iEdge.dependenceType() == DataDependenceEdge::DEP_WAW && 
+            !iEdge.headPseudo()) {
+
+            TTAProgram::Terminal& writeTerm = tail.move().destination();
+
+            // if this edge disappers because of the renaming?
+            if (iEdge.tailPseudo() ||
+                (writeTerm.isGPR() && (
+                     writeTerm.index() != term.index() ||
+                     &writeTerm.registerFile() != &term.registerFile()))) {
+                removeEdge(iEdge, NULL, &mn);
+                i--; // don't skip one edge here!
+            } else {
+                // update the edge. also other end changed
+                iEdge.setData(newReg);
+            }
+        }
+            
+            
+        if (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            iEdge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+            !iEdge.headPseudo()) {
+
+            TTAProgram::Terminal& readTerm = tail.move().source();
+            
+            // if this edge disappers because of the renaming?
+            if (iEdge.tailPseudo() ||
+                (readTerm.isGPR() && (
+                     readTerm.index() != term.index() ||
+                     &readTerm.registerFile() != &term.registerFile()))) {
+                removeEdge(iEdge, NULL, &mn);
+                i--; // don't skip one edge here!
+            } else {
+                // update the edge. also other end changed
+                iEdge.setData(newReg);
+            }
+        }
+    }
+
+    for (int i = 0; i < outDegree(mn); i++) {
+        DataDependenceEdge& edge = outEdge(mn,i);
+
+        if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER) {
+            continue;
+        }
+
+        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
+            !edge.tailPseudo()) {
+            // update the data!
+            edge.setData(newReg);
+
+        } else {
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                !edge.tailPseudo()) {
+                removeEdge(edge, &mn, NULL);
+                i--;
+            }
+        }
+    }
+}
+
+MoveNode* 
+DataDependenceGraph::findLimitingAntidependenceSource(MoveNode& mn) {
+    NodeDescriptor nd = descriptor(mn);
+    MoveNode* limitingAntidep = NULL;
+    EdgeSet iEdges = inEdges(mn);
+    for (EdgeSet::iterator ie = iEdges.begin(); ie != iEdges.end(); ie++) {
+        DataDependenceEdge& e = **ie;
+        // TODO: WAW?
+        if (e.dependenceType() == DataDependenceEdge::DEP_WAR && 
+            e.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !e.headPseudo() && !e.tailPseudo() && !e.guardUse()) {
+            MoveNode& tail = tailNode(e,nd);
+            if (tail.isScheduled() && (limitingAntidep == NULL || 
+                                       tail.cycle()>limitingAntidep->cycle())){
+                limitingAntidep = &tail;
+            }
+        }
+    }
+    return limitingAntidep;
+}
+
+MoveNode* 
+DataDependenceGraph::findLimitingAntidependenceDestination(MoveNode& mn) {
+    NodeDescriptor nd = descriptor(mn);
+    MoveNode* limitingAntidep = NULL;
+    EdgeSet oEdges = outEdges(mn);
+    for (EdgeSet::iterator oe = oEdges.begin(); oe != oEdges.end(); oe++) {
+        DataDependenceEdge& e = **oe;
+        // TODO: WAW?
+
+
+        if (e.dependenceType() == DataDependenceEdge::DEP_WAR && 
+            e.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !e.headPseudo() && !e.tailPseudo() && !e.guardUse()) {
+            MoveNode& head = headNode(e,nd);
+            if (head.isScheduled() && (limitingAntidep == NULL || 
+                                       head.cycle()<limitingAntidep->cycle())){
+                limitingAntidep = &head;
+            }
+        }
+    }
+    return limitingAntidep;
+}
+
+/**
+ * Copies incoming edges which come from nodes on other BB's to a node
+ * into another node. If an edge comes from inside same BB, does not copy.
+ *
+ * @param source node containing original incoming edges.
+ * @param nodeCopy node where to copy the inedges to.
+ */
+void 
+DataDependenceGraph::copyExternalInEdges(
+    MoveNode& nodeCopy, const MoveNode& source) {
+    const BasicBlockNode* origBB = &getBasicBlockNode(source);
+    
+    EdgeSet edges = inEdges(source);
+    for (EdgeSet::iterator i = edges.begin(); i != edges.end(); i++) {
+        Edge& edge = **i;
+        MoveNode& tail = tailNode(edge);
+        if (&getBasicBlockNode(tail) != origBB) {
+            DataDependenceEdge* newEdge = new DataDependenceEdge(edge);
+            connectNodes(tail, nodeCopy, *newEdge);
+        }
+    }
+}
+
+/**
+ * Copies outgoing edges which goes from a node to nodes in other BB's
+ * into another node. If an edge goes to a node inside same BB, does not copy.
+ *
+ * @param source node containing original outgoingcoming edges.
+ * @param nodeCopy node where to copy the outedges to.
+ */
+void 
+DataDependenceGraph::copyExternalOutEdges(
+    MoveNode& nodeCopy, const MoveNode& source) {
+    const BasicBlockNode* origBB = &getBasicBlockNode(source);
+    
+    EdgeSet edges = outEdges(source);
+    for (EdgeSet::iterator i = edges.begin(); i != edges.end(); i++) {
+        Edge& edge = **i;
+        MoveNode& head = headNode(edge);
+        if (&getBasicBlockNode(head) != origBB) {
+            DataDependenceEdge* newEdge = new DataDependenceEdge(edge);
+            connectNodes(nodeCopy, head, *newEdge);
+        }
+    }
+}
+
+/**
+ * Creates dependencies from incoming definitions in other BB's to a reg use.
+ * 
+ * @param mnd data about the register usage.
+ */
+void 
+DataDependenceGraph::updateRegUse(
+    const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb) {
+
+    // create RAW's from definitions in previous BBs.
+    std::set<MoveNodeUse>& defReaches = 
+        bb.regDefReaches_[reg];
+    for (std::set<MoveNodeUse>::iterator i = defReaches.begin();
+         i != defReaches.end(); i++) {
+
+        const MoveNodeUse& source = *i;
+        if (hasNode(*source.mn())) {
+            DataDependenceEdge* dde =
+                // create dependency edge
+                new DataDependenceEdge(
+                    mnd.ra() ? DataDependenceEdge::EDGE_RA :
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_RAW, reg, mnd.guard(), false, 
+                    source.pseudo(), mnd.pseudo(), source.loop());
+
+            // and connect.
+            connectOrDeleteEdge(*source.mn(), *mnd.mn(), dde);
+        }
+    }
+}
+
+/**
+ * Creates dependencies to a register write from  MN's in other BBs.
+ *
+ * @param mnd movenode which writes to a register
+ * @param reg register wrere the movenode writes to
+ * @param createAllAntideps whether to create antideps from all BB's
+ *        or just from same bb in case of single-bb loop.
+ */
+void
+DataDependenceGraph::updateRegWrite(
+    const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb) {
+    // WaWs
+    std::set<MoveNodeUse>& defReaches = 
+        bb.regDefReaches_[reg];
+    for (std::set<MoveNodeUse>::iterator i = defReaches.begin();
+         i != defReaches.end(); i++) {
+
+        const MoveNodeUse& source = *i;
+        if (hasNode(*source.mn()) && source.mn()->isMove() &&
+            (hasAllRegisterAntidependencies() || 
+             &getBasicBlockNode(*source.mn()) == 
+             &getBasicBlockNode(*mnd.mn()))) {
+            // create dependency edge
+            DataDependenceEdge* dde =
+                new DataDependenceEdge(
+                    mnd.ra() ? DataDependenceEdge::EDGE_RA :
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAW, reg, false, false, 
+                    source.pseudo(), mnd.pseudo(), source.loop());
+            // and connect.
+            connectOrDeleteEdge(*source.mn(), *mnd.mn(), dde);
+        }
+    }
+    
+    // WaRs
+    std::set<MoveNodeUse>& useReaches = 
+        bb.regUseReaches_[reg];
+    for (std::set<MoveNodeUse>::iterator i = useReaches.begin();
+         i != useReaches.end(); i++) {
+
+        const MoveNodeUse& source = *i;
+        if (hasNode(*source.mn()) && source.mn()->isMove() &&
+            (hasAllRegisterAntidependencies() || 
+             &getBasicBlockNode(*source.mn()) == 
+            &getBasicBlockNode(*mnd.mn()))) {
+            // create dependency edge
+            DataDependenceEdge* dde =
+                new DataDependenceEdge(
+                    mnd.ra() ? DataDependenceEdge::EDGE_RA :
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAR, reg, source.guard(), false, 
+                    source.pseudo(), mnd.pseudo(), source.loop());
+            // and connect.
+            connectOrDeleteEdge(*source.mn(), *mnd.mn(), dde);
+        }
+    }
+}
+
+/**
+ * Removes guard raw edges coming to some node.
+ * 
+ * This is called if the guard is removed from the node.
+ *
+ * @param node The node.
+ */
+void 
+DataDependenceGraph::removeIncomingGuardEdges(MoveNode& node) {
+    NodeDescriptor nd = descriptor(node);
+    std::pair<InEdgeIter, InEdgeIter> edges =
+        boost::in_edges(nd, graph_);
+
+    // loop thru all edges
+    for (InEdgeIter ei = edges.first; ei != edges.second; ) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge& edge = *graph_[ed];
+        if (edge.guardUse() && edge.dependenceType() == 
+            DataDependenceEdge::DEP_RAW) {
+            boost::remove_edge(*ei, graph_);
+
+            // removing messes up the iterator. start again from first.
+            edges = boost::in_edges(nd, graph_);
+            ei = edges.first;
+        } else {
+            ei++;
+        }
+    }
+}
+
+/**
+ * Removes guard raw edges coming to some node.
+ * 
+ * This is called if the guard is removed from the node.
+ *
+ * @param node The node.
+ */
+void 
+DataDependenceGraph::removeOutgoingGuardWarEdges(MoveNode& node) {
+    NodeDescriptor nd = descriptor(node);
+    std::pair<OutEdgeIter, OutEdgeIter> edges =
+        boost::out_edges(nd, graph_);
+
+    // loop thru all edges
+    for (OutEdgeIter ei = edges.first; ei != edges.second; ) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge& edge = *graph_[ed];
+        if (edge.guardUse() && edge.dependenceType() == 
+            DataDependenceEdge::DEP_WAR) {
+            boost::remove_edge(*ei, graph_);
+
+            // removing messes up the iterator. start again from first.
+            edges = boost::out_edges(nd, graph_);
+            ei = edges.first;
+        } else {
+            ei++;
         }
     }
 }
