@@ -980,9 +980,10 @@ Environment::defaultTextEditorPath() {
         // if couldn't get editor from env variables test if some usual
         // default editor is found
         vector<std::string> editors;
+        editors.push_back("/usr/bin/emacs");
+        editors.push_back("/usr/bin/xemacs");
         editors.push_back("/bin/nano");
         editors.push_back("/usr/bin/nano");
-        editors.push_back("/usr/bin/emacs");
         editors.push_back("/usr/bin/vim");
         editors.push_back("/usr/bin/vi");
         for (unsigned int i = 0; i < editors.size(); ++i) {
