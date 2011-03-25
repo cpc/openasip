@@ -49,7 +49,8 @@ MoveNodeGroup::MoveNodeGroup() : ddg_(NULL), operation_(NULL) {
  *
  * @param ddg The data dependence graph the moves in the group belong to.
  */
-MoveNodeGroup::MoveNodeGroup(const DataDependenceGraph& ddg) : ddg_(&ddg) {
+MoveNodeGroup::MoveNodeGroup(const DataDependenceGraph& ddg) : 
+    ddg_(&ddg), operation_(NULL){
 }
 
 
@@ -156,6 +157,25 @@ MoveNodeGroup::isScheduled() const {
     for (std::size_t i = 0; i < nodes_.size(); ++i) {
         if (!nodes_.at(i)->isScheduled())
             return false;
+    }
+    return true;
+}
+
+/**
+ * Returns true if all moves in the move group are alive.
+ *
+ * An empty MoveNodeGroup is considered always alive.
+ *
+ * @return True if scheduled.
+ */
+bool
+MoveNodeGroup::isAlive() const {
+    if (ddg_ != NULL) {
+        for (std::size_t i = 0; i < nodes_.size(); ++i) {
+            if (!ddg_->hasNode(*nodes_.at(i))) {
+                return false;
+            }
+        }
     }
     return true;
 }

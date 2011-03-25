@@ -148,7 +148,7 @@ CriticalPathBBMoveNodeSelector::candidates() {
     // find a MoveNodeGroup with unscheduled MoveNodes
     while (readyList_.size() > 0) {
         MoveNodeGroup moves = readyList_.top();
-        if (moves.isScheduled())
+        if (!moves.isAlive() || moves.isScheduled())
             readyList_.pop();
         else
             return moves;
@@ -231,6 +231,10 @@ CriticalPathBBMoveNodeSelector::notifyScheduled(MoveNode& node) {
  */
 void
 CriticalPathBBMoveNodeSelector::mightBeReady(MoveNode& node) {
+
+    if (node.isScheduled()) {
+        return;
+    }
 
     if (!isReadyToBeScheduled(node)) 
         return;

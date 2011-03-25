@@ -64,6 +64,7 @@ public:
 
     bool isScheduled() const;
     std::string toString() const;
+    bool isAlive() const;
 
     /// in case this MNG contains strictly the nodes of a single operation,
     /// it can be set and queried with these methods

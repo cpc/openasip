@@ -608,13 +608,14 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
             sourceCycles_.find(&resultMove);
         if (srcIter != sourceCycles_.end()) {
 
+            ddg.writeToDotFile("foo.dot");
+
             // we lose edges so our notifyScheduled does not notify
             // some antidependencies, store them for notification.
             DataDependenceGraph::NodeSet successors =
                 ddg.successors(resultMove);
 
             successors.erase(&resultMove); // if WaW to itself, remove it.
-
             ddg.dropNode(resultMove);
             removedNodes_.insert(&resultMove);
 
@@ -636,6 +637,7 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
             resultsRemoved++;
             deadResultCount_++;
 	    
+
             // we lost edges so our notifyScheduled does not notify
             // some antidependencies. notify them.
             if (selector_ != NULL) {

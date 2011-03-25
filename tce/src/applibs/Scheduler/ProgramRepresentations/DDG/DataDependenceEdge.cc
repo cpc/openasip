@@ -86,6 +86,9 @@ DataDependenceEdge::DataDependenceEdge(
 
     data_ = NULL;
     setData(data);
+    if (edgeReason_ == EDGE_REGISTER) {
+        assert(data_ != NULL && "Register name required for reg deps");
+    }
 }
 
 /**
@@ -126,6 +129,10 @@ DataDependenceEdge::DataDependenceEdge(
     assert(loopEdge < UCHAR_MAX);
     loopEdge = (unsigned char)loopEdge_;
     data_ = NULL;
+    if (edgeReason_ == EDGE_REGISTER) {
+        assert(0 && "Register name required for reg deps");
+    }
+
 }
 
 /**

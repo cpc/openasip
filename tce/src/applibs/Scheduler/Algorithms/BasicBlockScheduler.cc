@@ -139,7 +139,7 @@ BasicBlockScheduler::handleDDG(
 
     MoveNodeGroup moves = selector.candidates();
     while (moves.nodeCount() > 0) {
-
+        bool movesRemoved = false;
         MoveNode& firstMove = moves.node(0);
         if (firstMove.isOperationMove()) {
             scheduleOperation(moves);
@@ -148,19 +148,45 @@ BasicBlockScheduler::handleDDG(
                 scheduleMove(firstMove, 0);
             } else {
                 scheduleRRMove(firstMove);
+                int lastOperandFake = 0;
+                if (softwareBypasser_ != NULL) {
+                    int rv = 
+                        softwareBypasser_->bypassNode(
+                            firstMove, lastOperandFake, ddg, rm);
+                    if (rv < 0) {
+                        softwareBypasser_->removeBypass(
+                            firstMove, ddg, rm, true);
+                        scheduleRRMove(firstMove);
+                    } 
+                    
+                    // did the bypass cause a reg-to-itself copy?
+                    // if it did, let's kill it.
+                    if (firstMove.move().source().equals(
+                            firstMove.move().destination())) {
+                        movesRemoved = true;
+                    }
+                    
+                    if (rv > 0) {
+                        std::set<std::pair<TTAProgram::Move*, int> >
+                            removedMoves;                        
+                        softwareBypasser_->removeDeadResults(
+                            moves, ddg, rm);
+                    }
+                }
             }
         }
-
-        if (!moves.isScheduled()) {
-            std::string message = " Move(s) did not get scheduled: ";
-            for (int i = 0; i < moves.nodeCount(); i++) {
-                message += moves.node(i).toString() + " ";
+        if (!movesRemoved) {
+            if (!moves.isScheduled()) {
+                std::string message = " Move(s) did not get scheduled: ";
+                for (int i = 0; i < moves.nodeCount(); i++) {
+                    message += moves.node(i).toString() + " ";
+                }
+                throw ModuleRunTimeError(__FILE__,__LINE__,__func__,message);
             }
-            throw ModuleRunTimeError(__FILE__, __LINE__, __func__, message);
-        }
 
-        // notifies successors of the scheduled moves.
-        notifyScheduled(moves, selector);
+            // notifies successors of the scheduled moves.
+            notifyScheduled(moves, selector);
+        }
 
         moves = selector.candidates();
     }

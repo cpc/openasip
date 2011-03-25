@@ -1354,7 +1354,7 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
             removeEdge(*edge, &sourceNode, &userNode);
         }
     }
-
+    
     // there must have been a register raw edge between source and user node
     assert(regName != "");
 

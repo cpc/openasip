@@ -51,8 +51,8 @@ class CycleLookBackSoftwareBypasser : public SoftwareBypasser {
 public:
     CycleLookBackSoftwareBypasser(
         int cyclesToLookBack=1, int cyclesToLookBackNoDRE=1,
-        bool killDeadResult=true, bool bypassFromRegs=false, 
-        bool bypassToRegs=false);
+        bool killDeadResult=true, bool bypassFromRegs=true, 
+        bool bypassToRegs=true);
     virtual ~CycleLookBackSoftwareBypasser();
 
     virtual int bypass(

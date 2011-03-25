@@ -1035,11 +1035,14 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
         }
     }    
 
+    TCEString tempReg = DisassemblyRegister::registerName(
+        firstMove->move().destination());
+
     // add the new edge(s)
     DataDependenceEdge* edge1 = 
     new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
 
     MoveNode* lastUse =
@@ -1049,7 +1052,7 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
         DataDependenceEdge* war = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR);
+                DataDependenceEdge::DEP_WAR, tempReg);
 
         ddg.connectNodes(*lastUse, *firstMove, *war);
     }
@@ -1175,11 +1178,14 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
         }
     }    
 
+    TCEString tempReg = DisassemblyRegister::registerName(
+        firstMove->move().destination());
+
     // add the new edge(s)
     DataDependenceEdge* edgeFirst = 
     new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *intMoves[0], *edgeFirst);
 	
     MoveNode* lastUse =
@@ -1191,17 +1197,21 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
       DataDependenceEdge* war = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR);
+                DataDependenceEdge::DEP_WAR, tempReg);
 
         ddg.connectNodes(*lastUse, *firstMove, *war);
     }
 
 
     for (int i = 0; i < regsRequired - 2; ++i) {
+
+        TCEString tempReg = DisassemblyRegister::registerName(
+            intMoves[i]->move().destination());
+
         DataDependenceEdge* edgeInt = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*intMoves[i], *intMoves[i + 1], *edgeInt);
         lastUse =
             ddg.lastScheduledRegisterRead(*intRF[i], intRegisterIndex[i]);
@@ -1212,27 +1222,31 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
             DataDependenceEdge* war = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER, 
-                    DataDependenceEdge::DEP_WAR);
+                    DataDependenceEdge::DEP_WAR, tempReg);
 
             ddg.connectNodes(*lastUse, *intMoves[i], *war);
         }
     }
 
+    tempReg = DisassemblyRegister::registerName(lastMove->move().source());
+
     DataDependenceEdge* edgeLast = 
       new DataDependenceEdge(DataDependenceEdge::EDGE_REGISTER, 
-			     DataDependenceEdge::DEP_RAW);
+                             DataDependenceEdge::DEP_RAW, tempReg);
     ddg.connectNodes(*intMoves[regsRequired - 2], *lastMove, *edgeLast);
 
     lastUse =
       ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
 
     if (lastUse != NULL) {
+        tempReg = DisassemblyRegister::registerName(lastUse->move().source());
+
       // the WAR edges from the last (scheduled) use of the temporary
       // registers
       DataDependenceEdge* edgeWAR = 
 	new DataDependenceEdge(
 			       DataDependenceEdge::EDGE_REGISTER, 
-			       DataDependenceEdge::DEP_WAR);
+			       DataDependenceEdge::DEP_WAR, tempReg);
 
       ddg.connectNodes(*lastUse, *intMoves[regsRequired - 2], *edgeWAR);
       
@@ -1364,36 +1378,45 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
 
     // add the new edge(s)
     if (regToRegCopy != NULL) {
+        TCEString tempReg = 
+            DisassemblyRegister::registerName(firstMove->move().destination());
+
         DataDependenceEdge* edge1 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *regToRegCopy, *edge1);
 
+        tempReg = DisassemblyRegister::registerName(lastMove->move().source());
         DataDependenceEdge* edge2 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*regToRegCopy, *lastMove, *edge2);
 
         MoveNode* lastUse =
             ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);
 
         if (lastUse != NULL) {
+            tempReg = DisassemblyRegister::registerName(
+                lastUse->move().source());
+
             // the WAR edges from the last (scheduled) use of the temporary
             // registers
             DataDependenceEdge* edge3 = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER, 
-                    DataDependenceEdge::DEP_WAR);
+                    DataDependenceEdge::DEP_WAR, tempReg);
 
             ddg.connectNodes(*lastUse, *regToRegCopy, *edge3);
         } 
     } else {
+        TCEString tempReg = 
+            DisassemblyRegister::registerName(firstMove->move().destination());
         DataDependenceEdge* edge1 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW);
+                DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
     } 
 
@@ -1401,10 +1424,13 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
         ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);
 
     if (lastUse != NULL) {
+        TCEString tempReg = 
+            DisassemblyRegister::registerName(lastUse->move().source());
+
         DataDependenceEdge* war = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR);
+                DataDependenceEdge::DEP_WAR, tempReg);
 
         ddg.connectNodes(*lastUse, *firstMove, *war);
     }
