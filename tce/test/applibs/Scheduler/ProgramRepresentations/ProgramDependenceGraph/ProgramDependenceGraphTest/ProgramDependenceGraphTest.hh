@@ -162,7 +162,7 @@ ProgramGraphTest::testImmediatesGraph() {
         TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
         TTAProgram::Program* currentProgram = factory.build();
         
-        TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram), IllegalProgram);
+        TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram), InvalidData);
 
         delete currentProgram;
         currentProgram = NULL;

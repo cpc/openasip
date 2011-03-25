@@ -610,15 +610,15 @@ DataDependenceGraphTest::testPathCalculation() {
 
                         DataDependenceEdge *e0 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e1 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e2 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         // add node to end.  should increase height
                         ddg->connectNodes(node, *mn0,*e0);
@@ -686,15 +686,15 @@ DataDependenceGraphTest::testPathCalculation() {
 
                         DataDependenceEdge *e0 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e1 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e2 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0,*e0);
@@ -765,15 +765,15 @@ DataDependenceGraphTest::testPathCalculation() {
 
                         DataDependenceEdge *e0 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e1 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         DataDependenceEdge *e2 = new DataDependenceEdge(
                             DataDependenceEdge::EDGE_REGISTER,
-                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+                            DataDependenceEdge::DEP_UNKNOWN,TCEString("foo"),false, false);
 
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0, *e0);
@@ -875,20 +875,21 @@ DataDependenceGraphTest::testSWBypassing() {
 
     // do DRE
     TS_ASSERT(!ddg->resultUsed(res));
-    ddg->removeNode(res); // should fix WaW edge 
-/*
-    TTAProgram::Instruction& ins =  res.move().parent();
-    ins.removeMove(res.move());
-    if (ins.moveCount() == 0) {
-        ins.parent().remove(ins);
-    }
-    delete &res;
-*/
+
+    ddg->copyDepsOver(res, true, false);
+
     // updated WaW edge due node removal
     TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest)); //ddg->node(26))); 
 
     // updated WaR edge due node removal
     TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest)); //ddg->node(26))); 
+
+    ddg->removeNode(res); // should fix WaW edge 
+
+    // updated WaW edge shoudl still be there
+    TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest));
+    // updated WaR edge should stll be there
+    TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest));
 
     // try to do another bypass.. that cannot ne DRE'd.
     MoveNode& res2 = ddg->node(6);
