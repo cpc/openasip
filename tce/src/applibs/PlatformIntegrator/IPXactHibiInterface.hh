@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,41 +22,46 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file IPXactFileGenerator.hh
+ * @file IPXactHibiInterface.hh
  *
- * Declaration of IPXactFileGenerator class.
+ * Declaration of IPXactHibiInterface class.
  *
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_IP_XACT_FILE_GENERATOR_HH
-#define TTA_IP_XACT_FILE_GENERATOR_HH
+#ifndef TTA_IP_XACT_HIBI_INTERFACE_HH
+#define TTA_IP_XACT_HIBI_INTERFACE_HH
 
-#include <string>
-#include <vector>
-#include "ProjectFileGenerator.hh"
-#include "IPXactModel.hh"
+#include "IPXactInterface.hh"
 
-class PlatformIntegrator;
-class IPXactSerializer;
-
-class IPXactFileGenerator : public ProjectFileGenerator {
+class IPXactHibiInterface : public IPXactInterface {
 public:
 
-    IPXactFileGenerator(std::string toplevelEntity,
-                        const PlatformIntegrator* integrator);
+    IPXactHibiInterface();
 
-    virtual ~IPXactFileGenerator();
+    virtual ~IPXactHibiInterface();
 
-    virtual void writeProjectFiles();
+    virtual bool mapPortsToInterface(const ProGe::NetlistBlock& toplevel);
 
 private:
+    void createInstanceName(
+        const std::string& fullName,
+        const std::string& portName);
 
-    void addBusInterfaces(IPXactModel* model);
+    /// Mapping of known port names and interface port names
+    SignalMappingList interfaceSearch_;
 
-    std::string outputFileName() const;
+    static const std::string DEFAULT_INSTANCE_NAME;
+    static const std::string VENDOR;
+    static const std::string LIBRARY;
+    static const std::string NAME;
+    static const std::string BUS_VERSION;
+    static const std::string ABS_VENDOR;
+    static const std::string ABS_LIBRARY;
+    static const std::string ABS_NAME;
+    static const std::string ABS_VERSION;
 
-    IPXactSerializer* ipXactWriter_;
-
+    static const IPXactModel::BusMode DEFAULT_BUS_MODE;
 };
+
 #endif

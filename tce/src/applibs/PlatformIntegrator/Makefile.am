@@ -7,7 +7,9 @@ libplatformintegrator_la_SOURCES = \
 	AlteraHibiDpRamGenerator.cc DefaultProjectFileGenerator.cc \
 	IPXactFileGenerator.cc IPXactSerializer.cc IPXactModel.cc \
 	AlteraIntegrator.cc AvalonIntegrator.cc SOPCBuilderFileGenerator.cc \
-	SOPCInterface.cc AvalonMMMasterInterface.cc
+	SOPCInterface.cc AvalonMMMasterInterface.cc IPXactInterface.cc \
+	IPXactHibiInterface.cc IPXactClkInterface.cc IPXactResetInterface.cc \
+	Vlnv.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -45,7 +47,9 @@ libplatformintegrator_la_SOURCES += \
 	AlteraHibiDpRamGenerator.hh DefaultProjectFileGenerator.hh \
 	IPXactFileGenerator.hh IPXactSerializer.hh IPXactModel.hh \
 	AlteraIntegrator.hh AvalonIntegrator.hh SOPCBuilderFileGenerator.hh \
-	SOPCInterface.hh AvalonMMMasterInterface.hh
+	SOPCInterface.hh AvalonMMMasterInterface.hh IPXactInterface.hh \
+	IPXactHibiInterface.hh IPXactClkInterface.hh IPXactResetInterface.hh \
+	Vlnv.hh
 	
 ## headers end
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,41 +22,45 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file IPXactFileGenerator.hh
+ * @file Vlnv.hh
  *
- * Declaration of IPXactFileGenerator class.
+ * Declaration of Vlnv struct.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_IP_XACT_FILE_GENERATOR_HH
-#define TTA_IP_XACT_FILE_GENERATOR_HH
-
+#ifndef TTA_IP_XACT_VLNV_HH
+#define TTA_IP_XACT_VLNV_HH
 #include <string>
-#include <vector>
-#include "ProjectFileGenerator.hh"
-#include "IPXactModel.hh"
 
-class PlatformIntegrator;
-class IPXactSerializer;
+namespace IPXact {
 
-class IPXactFileGenerator : public ProjectFileGenerator {
-public:
+/**
+ * Struct that models Vendor, Library, Name, Vendor
+ */
+struct Vlnv {
+    Vlnv();
 
-    IPXactFileGenerator(std::string toplevelEntity,
-                        const PlatformIntegrator* integrator);
+    Vlnv(std::string vendor,
+         std::string library,
+         std::string name,
+         std::string version);
 
-    virtual ~IPXactFileGenerator();
+    Vlnv(const Vlnv& old);
 
-    virtual void writeProjectFiles();
+    bool operator==(const Vlnv& other);
 
-private:
+    bool operator!=(const Vlnv& other);
 
-    void addBusInterfaces(IPXactModel* model);
-
-    std::string outputFileName() const;
-
-    IPXactSerializer* ipXactWriter_;
-
+    /// Vendor name
+    std::string vendor;
+    /// Library name
+    std::string library;
+    /// Entity name
+    std::string name;
+    /// Entity version
+    std::string version;
 };
+
+}
 #endif

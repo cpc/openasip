@@ -37,15 +37,23 @@
 #include "Serializable.hh"
 #include "ProjectFileGenerator.hh" // for SignalMappingList
 #include "HDLPort.hh"
+#include "Vlnv.hh"
+
+class IPXactInterface;
 
 
 class IPXactModel : public Serializable {
 public:
 
-    // TODO: append new bus interfaces here
-    enum IPXactBus {
-        UNKNOWN,
-        HIBI
+    enum BusMode {
+        INVALID,
+        MASTER,
+        MIRRORED_MASTER,
+        SLAVE,
+        MIRRORED_SLAVE,
+        SYSTEM,
+        MIRRORED_SYSTEM,
+        MONITOR
     };
 
     IPXactModel();
@@ -63,7 +71,7 @@ public:
         std::string vendor,
         std::string library,
         std::string name,
-        int version);
+        std::string version);
 
     void setHdlFile(const std::string& file);
 
@@ -73,10 +81,7 @@ public:
 
     void addSignal(const HDLPort& signal);
 
-    bool addBusInterface(
-        const std::string& fuName,
-        IPXactBus busType,
-        const SignalMappingList& signalMap);
+    void addBusInterface(IPXactInterface* interface);
 
     static const std::string OSNAME_IPXACT_MODEL;
     static const std::string OSNAME_VENDOR;
@@ -86,36 +91,39 @@ public:
     static const std::string OSNAME_BUS_INTERFACES;
     static const std::string OSNAME_BUS_INTERFACE;
     static const std::string OSNAME_BUS_TYPE;
+    static const std::string OSNAME_BUS_ABS_TYPE;
     static const std::string OSNAME_BUS_MASTER;
+    static const std::string OSNAME_BUS_MIRRORED_MASTER;
     static const std::string OSNAME_BUS_SLAVE;
-    static const std::string OSNAME_BUS_SIGNAL_MAP;
-    static const std::string OSNAME_BUS_SIGNAL_MAP_NAME;
-    static const std::string OSNAME_BUS_SIGNAL_MAP_COMP;
-    static const std::string OSNAME_BUS_SIGNAL_MAP_BUS;
+    static const std::string OSNAME_BUS_MIRRORED_SLAVE;
+    static const std::string OSNAME_BUS_SYSTEM;
+    static const std::string OSNAME_BUS_MIRRORED_SYSTEM;
+    static const std::string OSNAME_BUS_MONITOR;
+    static const std::string OSNAME_BUS_PORT_MAPS;
+    static const std::string OSNAME_BUS_PORT_MAP;
+    static const std::string OSNAME_BUS_PORT_MAP_NAME;
+    static const std::string OSNAME_BUS_PORT_MAP_COMP;
+    static const std::string OSNAME_BUS_PORT_MAP_BUS;
     static const std::string OSNAME_MODEL;
-    static const std::string OSNAME_SIGNALS;
-    static const std::string OSNAME_SIGNAL;
-    static const std::string OSNAME_SIGNAL_DIRECTION;
-    static const std::string OSNAME_SIGNAL_LEFT;
-    static const std::string OSNAME_SIGNAL_RIGHT;
+    static const std::string OSNAME_PORTS;
+    static const std::string OSNAME_WIRE;
+    static const std::string OSNAME_VECTOR;
+    static const std::string OSNAME_PORT;
+    static const std::string OSNAME_PORT_DIRECTION;
+    static const std::string OSNAME_PORT_LEFT;
+    static const std::string OSNAME_PORT_RIGHT;
     static const std::string OSNAME_FILESETS;
     static const std::string OSNAME_FILESET;
-    static const std::string OSNAME_FILESET_ID;
     static const std::string OSNAME_FILE;
+    static const std::string OSNAME_FILE_NAME;
     static const std::string OSNAME_FILE_TYPE;
 
 private:
 
-    struct BusInterfaceMapping {
-        std::string ifName;
-        IPXactBus busType;
-        SignalMappingList* signalMapList;
-    };
-
     IPXactModel(const IPXactModel& old);    
 
     void addBusInterfaceObject(
-        const BusInterfaceMapping* bus,
+        const IPXactInterface* bus,
         ObjectState* parent) const;
 
     void addSignalObject(const HDLPort* port, ObjectState* parent) const;
@@ -127,28 +135,38 @@ private:
 
     void extractVLNV(const ObjectState* root);
 
+    IPXact::Vlnv extractVlnvFromAttr(const ObjectState* busType) const;
+
     void extractBusInterfaces(const ObjectState* busInterfaces);
 
     void extractBusInterface(const ObjectState* busInterface);
+    
+    BusMode extractBusMode(const ObjectState* busInterface) const;
 
-    IPXactModel::IPXactBus busType(const ObjectState* busInterface);
+    void extractPortMappings(
+        const ObjectState* portMaps,
+        IPXactInterface& interface) const;
+
+    void extractPortMap(
+        const ObjectState* portMap,
+        IPXactInterface& interface) const;
+
 
     void extractSignals(const ObjectState* signals);
 
     void extractFiles(const ObjectState* fileSets);
 
-    std::string interfaceName(
-        const std::string& fuName,
-        IPXactBus busType) const;
+    IPXactInterface* interfaceByType(
+        const IPXact::Vlnv& type,
+        const IPXact::Vlnv& absType,
+        const std::string instanceName,
+        BusMode mode) const;
     
-    std::string vendor_;
-    std::string library_;
-    std::string name_;
-    int version_;
+    IPXact::Vlnv vlnv_;
     
     std::vector<HDLPort*> signals_;
 
-    std::vector<BusInterfaceMapping*> busInterfaces_;
+    std::vector<IPXactInterface*> busInterfaces_;
 
     std::vector<std::string> hdlFiles_;
     std::vector<std::string> otherFiles_;
@@ -156,13 +174,6 @@ private:
     static const std::string HDL_SET_ID;
     static const std::string VHDL_FILE;
     static const std::string OTHER_FILE;
-
-    // TODO: create separate bus interface class
-    static const std::string HIBI_BUS_NAME;
-    static const std::string HIBI_LIBRARY;
-    static const std::string HIBI_IF_NAME;
-    static const std::string HIBI_VENDOR;
-    static const int HIBI_VERSION;
 
 };
 #endif

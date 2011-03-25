@@ -17,6 +17,7 @@ Notable new features
 - Added --pareto_set switch to the explorer for printing pareto efficient
   configurations. Currently supports the connectivity and cycle count as
   the quality metrics.
+- IP-XACT support changed to version 1.5
 
 Code generator improvements
 ---------------------------

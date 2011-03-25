@@ -38,43 +38,30 @@
 #include "IPXactSerializer.hh"
 #include "IPXactModel.hh"
 #include "HDLPort.hh"
+#include "IPXactInterface.hh"
+#include "IPXactHibiInterface.hh"
+#include "IPXactClkInterface.hh"
+#include "IPXactResetInterface.hh"
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 using std::pair;
 using std::string;
 
 const std::string DEF_VENDOR = "TCE";
-const std::string DEF_LIBRARY = "Koski";
-const int DEF_VERSION = 1;
+const std::string DEF_LIBRARY = "ip.hwp.tta";
+const std::string DEF_VERSION = "1.0";
 
 
 IPXactFileGenerator::IPXactFileGenerator(
     std::string toplevelEntity,
     const PlatformIntegrator* integrator):
     ProjectFileGenerator(toplevelEntity, integrator),
-    ipXactWriter_(new IPXactSerializer()), busInterfaces_() {
+    ipXactWriter_(new IPXactSerializer()) {
 
-    SignalMappingList* hibi = new SignalMappingList();
-    hibi->push_back(pair<string,string>("hibi_comm_out", "COMM_FROM_IP"));
-    hibi->push_back(pair<string,string>("hibi_data_out", "DATA_FROM_IP"));
-    hibi->push_back(pair<string,string>("hibi_av_out", "AV_FROM_IP"));
-    hibi->push_back(pair<string,string>("hibi_we_out", "WE_FROM_IP"));
-    hibi->push_back(pair<string,string>("hibi_re_out", "RE_FROM_IP"));
-    hibi->push_back(pair<string,string>("hibi_comm_in", "COMM_TO_IP"));
-    hibi->push_back(pair<string,string>("hibi_data_in", "DATA_TO_IP"));
-    hibi->push_back(pair<string,string>("hibi_av_in", "AV_TO_IP"));
-    hibi->push_back(pair<string,string>("hibi_full_in", "FULL_TO_IP"));
-    hibi->push_back(pair<string,string>("hibi_empty_in", "EMPTY_TO_IP"));
-    busInterfaces_[IPXactModel::HIBI] = hibi;
 }
 
 IPXactFileGenerator::~IPXactFileGenerator() {
     
-    BusMapping::iterator iter = busInterfaces_.begin();
-    while (iter != busInterfaces_.end()) {
-        delete iter->second;
-        iter++;
-    }
     delete ipXactWriter_;
 }
 
@@ -104,64 +91,23 @@ IPXactFileGenerator::writeProjectFiles() {
 
 void
 IPXactFileGenerator::addBusInterfaces(IPXactModel* model) {
-    
-    BusMapping::iterator iter = busInterfaces_.begin();
-    while (iter != busInterfaces_.end()) {
-        IPXactModel::IPXactBus bus = iter->first;
-        const SignalMappingList& search = *iter->second;
-        searchInterface(bus, search, model);
-        iter++;
-    }
-}
 
+    std::vector<IPXactInterface*> interfaces;
+    interfaces.push_back(new IPXactClkInterface());
+    interfaces.push_back(new IPXactResetInterface());
+    interfaces.push_back(new IPXactHibiInterface());
+    
 
-void
-IPXactFileGenerator::searchInterface(
-    const IPXactModel::IPXactBus& bus,
-    const SignalMappingList& search,
-    IPXactModel* model) {
-    
-    assert(search.size() > 0);
-    
-    const ProGe::NetlistBlock& toplevel = integrator()->toplevelBlock();
-    for (int i = 0; i < toplevel.portCount(); i++) {
-        NetlistPort& port = toplevel.port(i);
-        string interfaceSignal = search.at(0).first;
-        if (port.name().find(interfaceSignal) != string::npos) {
-            string fuName = extractFUName(port.name(), interfaceSignal);
-            SignalMappingList mapping;
-            if (mapFUToInterface(fuName, search, mapping)) {
-                model->addBusInterface(fuName, bus, mapping);
-            }
+    const NetlistBlock& toplevel = integrator()->toplevelBlock();
+    for (unsigned int i = 0; i < interfaces.size(); i++) {
+        if (interfaces.at(i)->mapPortsToInterface(toplevel)) {
+            // mapping was successful, add interface
+            model->addBusInterface(interfaces.at(i));
+        } else {
+            delete interfaces.at(i);
+            interfaces.at(i) = NULL;
         }
     }
-}
-
-
-bool
-IPXactFileGenerator::mapFUToInterface(
-    const std::string& fuName,
-    const SignalMappingList& search,
-    SignalMappingList& found) const {
-
-    const ProGe::NetlistBlock& toplevel = integrator()->toplevelBlock();
-    for (int i = 0; i < toplevel.portCount(); i++) {
-        NetlistPort& port = toplevel.port(i);
-        for (unsigned int j = 0; j < search.size(); j++) {
-            string fullName = fuName + search.at(j).first;
-            if (port.name().find(fullName) != string::npos) {
-                // add mapping from toplevel signal name to bus signal name
-                found.push_back(
-                    pair<string,string>(port.name(), search.at(j).second));
-            }
-        }
-    }
-
-    bool foundAll = false;
-    if (search.size() == found.size()) {
-        foundAll = true;
-    }
-    return foundAll;
 }
 
 

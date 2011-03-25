@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,41 +22,49 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file IPXactFileGenerator.hh
+ * @file Vlnv.cc
  *
- * Declaration of IPXactFileGenerator class.
+ * Implementation of Vlnv struct.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_IP_XACT_FILE_GENERATOR_HH
-#define TTA_IP_XACT_FILE_GENERATOR_HH
+#include "Vlnv.hh"
 
-#include <string>
-#include <vector>
-#include "ProjectFileGenerator.hh"
-#include "IPXactModel.hh"
+IPXact::Vlnv::Vlnv(): vendor(""), library(""), name(""), version("") {
+}
 
-class PlatformIntegrator;
-class IPXactSerializer;
+IPXact::Vlnv::Vlnv(
+    std::string vendor,
+    std::string library,
+    std::string name,
+    std::string version):
+    vendor(vendor), library(library), name(name), version(version) {
+}
 
-class IPXactFileGenerator : public ProjectFileGenerator {
-public:
+IPXact::Vlnv::Vlnv(const Vlnv& old) {
+    
+    vendor = old.vendor;
+    library = old.library;
+    name = old.name;
+    version = old.version;
+}
 
-    IPXactFileGenerator(std::string toplevelEntity,
-                        const PlatformIntegrator* integrator);
+bool
+IPXact::Vlnv::operator==(const Vlnv& other) {
+    
+    return (vendor == other.vendor &&
+            library == other.library &&
+            name == other.name &&
+            version == other.version);
+}
 
-    virtual ~IPXactFileGenerator();
+bool
+IPXact::Vlnv::operator!=(const Vlnv& other) {
 
-    virtual void writeProjectFiles();
+    return !(vendor == other.vendor &&
+             library == other.library &&
+             name == other.name &&
+             version == other.version);
+}
 
-private:
-
-    void addBusInterfaces(IPXactModel* model);
-
-    std::string outputFileName() const;
-
-    IPXactSerializer* ipXactWriter_;
-
-};
-#endif

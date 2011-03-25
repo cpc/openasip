@@ -23,15 +23,15 @@ export LANG=C
 export LC_LL=C
 # check that hibi bus interface is found and mapped to component ports
 grep "component " $IPXACT
-grep "busType" $IPXACT 
+grep "busType" $IPXACT
+grep "abstractionType" $IPXACT
 echo "Component signal mappings"
-grep "componentSignalName" $IPXACT | wc -l
+grep "physicalPort" $IPXACT | wc -l
 echo "Bus signal mappings"
-grep "busSignalName" $IPXACT | wc -l
+grep "logicalPort" $IPXACT | wc -l
 
-exit 0
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
 cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
-
+exit 0
 

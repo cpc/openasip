@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file PlatformIntegerator.hh
+ * @file PlatformIntegerator.cc
  *
  * Implementation of PlatformIntegrator class.
  *
