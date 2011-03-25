@@ -117,7 +117,7 @@ OperationIndex::addPath(const std::string& path) {
                 std::cerr << "Tried to compile behaviour impelementaton "
                           << "file, but the compilation failed to error: "
                           << std::endl;
-                for (int j = 0; j < output.size(); j++) {
+                for (unsigned int j = 0; j < output.size(); j++) {
                     std::cerr << output[j] << std::endl;
                 }
                 std::cerr << "This may cause program to hang if operation "
