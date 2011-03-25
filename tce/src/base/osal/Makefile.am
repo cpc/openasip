@@ -7,7 +7,8 @@ libosal_la_SOURCES = OperationBehavior.cc OperationContext.cc \
 	OperationDAGNode.cc OperationNode.cc TerminalNode.cc \
 	OperationDAGEdge.cc OperationDAGBehavior.cc OperationDAGConverter.cc \
 	OperationDAGBuilder.cc OperationGlobals.cc OperationPoolPimpl.cc \
-	OperationContextPimpl.cc OperationPimpl.cc ConstantNode.cc
+	OperationContextPimpl.cc OperationPimpl.cc ConstantNode.cc \
+    OperationBuilder.cc
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
@@ -20,8 +21,9 @@ AM_CXXFLAGS = -UNDEBUG
 include_HEADERS = OSAL.hh OperationContext.hh OperationBehavior.hh \
 	Operation.hh OperationState.hh Operand.hh OperationState.icc \
 	OperationBehavior.icc Operand.icc Operation.icc OperationGlobals.hh \
-	OperationPool.hh OperationPool.icc SimulateTriggerWrappers.icc
-	
+	OperationPool.hh OperationPool.icc SimulateTriggerWrappers.icc \
+    OperationBuilder.hh
+
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
@@ -52,5 +54,5 @@ libosal_la_SOURCES += \
 	OperationModule.icc Operation.icc \
 	OperationBehavior.icc OperationState.icc \
 	OperationPool.icc Operand.icc \
-	OperationIndex.icc 
+	OperationIndex.icc OperationBuilder.hh
 ## headers end

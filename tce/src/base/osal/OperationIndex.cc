@@ -41,6 +41,7 @@
 #include "StringTools.hh"
 #include "SequenceTools.hh"
 #include "MapTools.hh"
+#include "OperationBuilder.hh"
 
 using std::map;
 using std::string;
@@ -99,17 +100,31 @@ OperationIndex::addPath(const std::string& path) {
         *(behaviourFile.rbegin()) = 'b';
         
         // load only modules which have behaviour file.
-        if (!(FileSystem::fileExists(behaviourFile) ||
-              !FileSystem::fileExists(behaviourSourceFile))) {
-            std::cerr << "Warning: Found operation module specification file "
-                      << modules[i] << " and operation behavious source file "
-                      << behaviourSourceFile << " without compiled behaviour "
-                      << "implementation file "
-                      << behaviourFile << "." << std::endl 
-                      << "Did you forgot to run \'buildopset\'?." << std::endl
-                      << "This may cause the program to hang." << std::endl;
+        if (!FileSystem::fileExists(behaviourFile) &&
+            FileSystem::fileExists(behaviourSourceFile)) {
+            OperationBuilder& opBuilder = OperationBuilder::instance();
+            std::vector<std::string> output;
+            bool buildOk = opBuilder.buildObject(
+                file.substr(0, file.length()-4), behaviourSourceFile, 
+                path, output);
+            if (!buildOk || !FileSystem::fileExists(behaviourFile)) {
+                std::cerr << "Warning: Found operation module specification "
+                          << "file " << modules[i] << " and operation "
+                          << "behavious source file " << behaviourSourceFile
+                          << " without compiled behaviour "
+                          << "implementation file "
+                          << behaviourFile << "." << std::endl;
+                std::cerr << "Tried to compile behaviour impelementaton "
+                          << "file, but the compilation failed to error: "
+                          << std::endl;
+                for (int j = 0; j < output.size(); j++) {
+                    std::cerr << output[j] << std::endl;
+                }
+                std::cerr << "This may cause program to hang if operation "
+                          << "in this module is attempted to be simulated."
+                          << std::endl;
+            }
         }
-        
         OperationModule*  module = 
             new OperationModule(FileSystem::fileNameBody(file), path);
         modules_.push_back(module);

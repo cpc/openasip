@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libapplibsosal.la
-libapplibsosal_la_SOURCES = OperationBuilder.cc OperationSimulator.cc \
+libapplibsosal_la_SOURCES = OperationSimulator.cc \
 							OperationDAGSelector.cc
 
 PROJECT_ROOT = $(top_srcdir)
@@ -20,6 +20,6 @@ dist-hook:
 
 ## headers start
 libapplibsosal_la_SOURCES += \
-	OperationBuilder.hh OperationDAGSelector.hh \
+	OperationDAGSelector.hh \
 	OperationSimulator.hh 
 ## headers end
