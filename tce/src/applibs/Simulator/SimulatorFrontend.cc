@@ -120,7 +120,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
-    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(true) {
+    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false) {
 
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
