@@ -966,15 +966,23 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNo
     int lastUse = 0;
     
     // find all unscheduled preceeding temp moves of the operand move
-    DataDependenceGraph::NodeSet pred = ddg_->predecessors(operandMove);
+    DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(operandMove);
     MoveNode* tempMove = NULL;
-    for (DataDependenceGraph::NodeSet::iterator i = pred.begin(); 
-         i != pred.end(); ++i) {
-        MoveNode& m = **i;
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin();
+         i != inEdges.end(); ++i) {
+
+        if ((**i).edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
+            (**i).guardUse() ||
+            (**i).dependenceType() != DataDependenceEdge::DEP_RAW) {
+            continue;
+        }
+
+        MoveNode& m = ddg_->tailNode(**i);
         if (m.isScheduled() ||
             !m.move().hasAnnotations(
-                TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE))
+                TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE)) {
             continue;
+        }
 
         assert(tempMove == NULL &&
                "Multiple unscheduled moves for the operand move, should have "
