@@ -43,8 +43,8 @@ Optimizations
   guard latency higher than 1. Simulating such machines no longer makes 
   the simulator revert to interpreting mode.
 
-Usability features
-------------------
+Smaller features
+----------------
 - tcecc: Reasonable error message if disk space runs out during TPEF writing.
 - ttasim: Refuses to simulate a program that moves a too wide immediate to 
   a too narrow jump/PC port in the control unit. It would result in wrong
@@ -58,6 +58,9 @@ Usability features
 - Improved error handling caused by broken operation DAGs. Now sometimes
   gives reasonable error message instead of cryptic error message or crash
   when operation DAG has some error.
+- tcecc: tceops.h is now included automatically, not necessary to
+  include it explicitly.
+- tcecc: added --emit-llvm switch for fully linked LLVM .bc output.
 
 Bugfixes
 --------

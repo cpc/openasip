@@ -122,6 +122,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
 
+    compileFlags += "-include " + tmpDir + "/tceops.h "
+
     for w in options.warnings:
         # Types of warnings supported by the compiler:
         white_list = []
@@ -199,12 +201,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                         command =  ("clang -fno-builtin -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
-                                       outFileName + ".tobelowered;" ) % options.optimization_level
+                                       outFileName + ".tobelowered;" ) % \
+                                       options.frontend_optlevel
                     else:
                         command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
                                        "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
-                                       outFileName + ".tobelowered;") % options.gcc_optlevel
+                                       outFileName + ".tobelowered;") % \
+                                       options.frontend_optlevel
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
                     
@@ -213,7 +217,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     command = ("tce-llvm-g++ --emit-llvm -O%d -ffreestanding "\
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName + ".tobelowered;") % options.gcc_optlevel
+                              outFileName + ".tobelowered;") % options.frontend_optlevel
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
@@ -572,12 +576,13 @@ p.add_option('--extra-llvm-opts',
              metavar='opt1,opt2,opt3', dest='extra_llvm_opts', default="",
              help="List of additional LLVM passes to run after the regular ones.")
 
-p.add_option('--gcc-optlevel',
-             type="int", action="store", dest="gcc_optlevel",
-             default=2,
+p.add_option('--frontend-optlevel',
+             type="int", action="store", dest="frontend_optlevel",
+             default=None,
              help=\
-"""The level of optimization done by the llvm-gcc frontend,
-if applicable.""")             
+"""The level of optimization done by the frontend compiler,
+if applicable. The -O switch controls the optimizations applied to the
+whole linked program.""")             
 
 if @CLANG_AS_DEFAULT@:
     p.add_option('--llvm-gcc', action='store_false', dest='use_clang', default=True,
@@ -606,6 +611,11 @@ p.add_option('--print-resource-constraints', action='store_true',
              "Print (to stderr) the resources that potentially constraint " +
              "the schedule.")
 
+p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False,
+             help=\
+"Output LLVM bitcode. Does not pass the linked bitcode to the "\
+"code generator to produce target specific TTA code.")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -616,6 +626,9 @@ for opt in sys.argv[1:]:
 
 # parse valid args
 options, inFiles = p.parse_args(args)
+
+if options.frontend_optlevel is None:
+    options.frontend_optlevel = options.optimization_level
 
 # create temp dir
 tempDir = mkdtemp("","tcecc-")
@@ -747,7 +760,7 @@ else:
     # optimize the fully linked program also
     optimizedFileName = optimizeBytecode(linkedFileName, namePrefix)
 
-    if (options.adf_file == ""):
+    if options.adf_file == "" or options.emit_llvm:
         (exitCode, output) = runCommandBuffered(
             "mv " +  optimizedFileName + " " + outputName,
             options.verbose)
