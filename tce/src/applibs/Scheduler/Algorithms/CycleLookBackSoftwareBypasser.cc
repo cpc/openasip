@@ -607,9 +607,6 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
         std::map<MoveNode*, int>::iterator srcIter = 
             sourceCycles_.find(&resultMove);
         if (srcIter != sourceCycles_.end()) {
-
-            ddg.writeToDotFile("foo.dot");
-
             // we lose edges so our notifyScheduled does not notify
             // some antidependencies, store them for notification.
             DataDependenceGraph::NodeSet successors =
