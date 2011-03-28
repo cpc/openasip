@@ -10,7 +10,7 @@ GCC                   3.2.2+
 
 Library               supported versions                   library licence
 -----------------     ------------------                   ---------------
-Xerces-C++            2.3.0-2.8.0                          Apache v2.0
+Xerces-C++            2.3.0+                               Apache v2.0
 wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.33+                                very permissive
