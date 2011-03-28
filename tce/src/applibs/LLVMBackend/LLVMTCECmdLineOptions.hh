@@ -36,6 +36,7 @@
 #define LLVM_TCE_CMD_LINE_OPTIONS_HH
 
 #include <string>
+#include "SchedulerCmdLineOptions.hh"
 #include "InterPassDatum.hh"
 #include "CmdLineOptions.hh"
 #include "tce_config.h" // VERSION
@@ -43,7 +44,7 @@
 /**
  * Command line options class for LLVMTCE compiler CLI.
  */
-class LLVMTCECmdLineOptions : public CmdLineOptions {
+class LLVMTCECmdLineOptions : public SchedulerCmdLineOptions {
 public:
     LLVMTCECmdLineOptions();
     ~LLVMTCECmdLineOptions();

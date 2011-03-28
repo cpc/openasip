@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of SchedulerCmdLineOptions class.
  *
  * @author Ari Metsï¿½halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -53,6 +54,7 @@ public:
     std::string outputFile() const;
     bool isVerboseSwitchDefined() const;
     virtual void printVersion() const;
+    bool printResourceConstraints() const;
 
 private:
     /// Copying forbidden.

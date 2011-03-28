@@ -18,6 +18,10 @@ Notable new features
   configurations. Currently supports the connectivity and cycle count as
   the quality metrics.
 - proge: IP-XACT support updated to version 1.5
+- Added switch --print-resource-constraints to tcecc to assist in 
+  deciding which resources to add to the machine to improve the
+  schedule. Dumps DDGs to dot files along with dependence and
+  resource constraint analysis data.
 
 Code generator improvements
 ---------------------------

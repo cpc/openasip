@@ -59,8 +59,7 @@ const std::string LLVMTCECmdLineOptions::USAGE =
 /**
  * Constructor.
  */
-LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
-    CmdLineOptions(USAGE) {
+LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
 
     addOption(
         new StringCmdLineOptionParser(

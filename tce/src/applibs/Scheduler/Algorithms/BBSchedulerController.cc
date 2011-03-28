@@ -64,6 +64,7 @@
 #include "InterPassData.hh"
 #include "TerminalFUPort.hh"
 #include "HWOperation.hh"
+#include "ResourceConstraintAnalyzer.hh"
 #include "BasicBlockScheduler.hh"
 
 namespace TTAMachine {
@@ -331,6 +332,7 @@ BBSchedulerController::executeDDGPass(
     DDGPass& ddgPass)
     throw (Exception) {
 
+    static int bbNumber = 0;
     DataDependenceGraph* ddg = createDDGFromBB(bb);
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
 
@@ -343,6 +345,14 @@ BBSchedulerController::executeDDGPass(
     } else {
         SimpleResourceManager::disposeRM(rm);
     }
+
+    if (options_ != NULL && options_->printResourceConstraints()) {
+        TCEString ddgName = ddg->name();
+        ddgName << bbNumber;
+        ResourceConstraintAnalyzer rcAnalyzer(*ddg, *rm, ddgName);
+        rcAnalyzer.analyze();
+    }
+    ++bbNumber;
 
     delete ddg;
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,8 @@
  *
  * Implementation of SchedulerCmdLineOptions class.
  *
- * @author Ari Metsï¿½halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -41,10 +42,14 @@ const std::string SchedulerCmdLineOptions::ADF_PARAM_NAME = "adf";
 const std::string SchedulerCmdLineOptions::CONF_PARAM_NAME = "config";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
 const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
+
 const std::string SchedulerCmdLineOptions::USAGE =
     "Usage: schedule [OPTION]... SOURCE\n"
     "Schedule SOURCE binary with the given options\n"
     "Example: schedule -a mach.adf hello.tpef";
+
+static const std::string SWL_RESOURCE_CONSTRAINT_PRINTING = 
+    "print-resource-constraints";
 
 /**
  * Constructor.
@@ -62,6 +67,11 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
     StringCmdLineOptionParser* outputFile = new StringCmdLineOptionParser(
         OUTPUT_PARAM_NAME, "The output file", "o");
     addOption(outputFile);
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_RESOURCE_CONSTRAINT_PRINTING,
+            "Print out the resource constraints that potentially limit the "
+            "basic block's schedule."));
 }
 
 /**
@@ -141,6 +151,14 @@ SchedulerCmdLineOptions::isOutputFileDefined() const {
 std::string
 SchedulerCmdLineOptions::outputFile() const {
     return findOption(OUTPUT_PARAM_NAME)->String();
+}
+
+bool
+SchedulerCmdLineOptions::printResourceConstraints() const {
+    if (!optionGiven(SWL_RESOURCE_CONSTRAINT_PRINTING)) {
+        return false;
+    } 
+    return findOption(SWL_RESOURCE_CONSTRAINT_PRINTING)->isFlagOn();
 }
 
 /**
