@@ -32,9 +32,9 @@ $PROGE -i $IDF -f onchip -d none -e $ENT -o $PO_DIR -p $TPEF \
 # check sopc builder component file
 echo "Component file contents:"
 echo "module properties:"
-cat ${ENT}_hw.tcl | grep "set_module_property" | wc -l
+cat ${ENT}_hw.tcl | grep "set_module_property" | wc -l | tr -d "\ "
 echo "design files:"
-cat ${ENT}_hw.tcl | grep "add_file" | wc -l
+cat ${ENT}_hw.tcl | grep "add_file" | wc -l | tr -d "\ "
 echo "interfaces:"
 cat ${ENT}_hw.tcl | grep "add_interface "
 

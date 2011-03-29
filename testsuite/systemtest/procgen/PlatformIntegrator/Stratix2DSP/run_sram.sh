@@ -22,9 +22,9 @@ $PROGE -i $IDF -g $INTEG -e $ENT -d sram -f vhdl_array -o $PO_DIR \
 # reset env params to make sure sort is deterministic
 cat $ENT.qsf | grep "set_global_assignment" | grep -v "VHDL_FILE"
 echo "vhdl files"
-cat $ENT.qsf | grep "VHDL_FILE" | wc -l
+cat $ENT.qsf | grep "VHDL_FILE" | wc -l | tr -d "\ "
 echo "pin assignments"
-cat $ENT.qsf | grep "PIN_" | wc -l
+cat $ENT.qsf | grep "PIN_" | wc -l | tr -d "\ "
 
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
