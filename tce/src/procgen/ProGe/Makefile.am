@@ -59,3 +59,9 @@ AM_LDFLAGS = ${TCE_LDFLAGS}
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+## headers start
+generateprocessor_SOURCES += \
+	GenerateProcessor.hh ProGeCmdLineOptions.hh \
+	TTAUnitTesterCmdLineOptions.hh TTAUnitTester.hh 
+## headers end

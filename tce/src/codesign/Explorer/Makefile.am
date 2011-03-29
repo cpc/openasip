@@ -50,6 +50,9 @@ LIB_OSAL_APPLIBS = ../../applibs/osal
 
 bin_PROGRAMS = explore
 bin_SCRIPTS = buildexplorerplugin pareto_vis
+
+EXTRA_DIST = ${bin_SCRIPTS}
+
 explore_SOURCES = Explorer.cc ExplorerCmdLineOptions.cc
 
 explore_LDADD = ../../libtce.la

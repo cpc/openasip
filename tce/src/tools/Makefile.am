@@ -27,8 +27,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
 	Conversion.icc MathTools.hh MathTools.icc TCEString.hh TCEString.icc \
 	CmdLineOptions.hh CmdLineParser.hh CmdLineParser.icc StringTools.hh \
-	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
-	AssocTools.hh
+	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc 
 
 REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo "" | tr -d "\n")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
@@ -40,3 +39,40 @@ tce_version_string.h: ../../../.bzr/branch/last-revision
 # A hack, we'll see if something breaks.
 ../../../.bzr/branch/last-revision:
 	@echo "Not compiling in a bazaar branch"
+
+## headers start
+libtcetools_la_SOURCES += \
+	SequenceTools.hh CmdLineParser.hh \
+	RelationalDBConnection.hh MathTools.hh \
+	PluginTools.hh ContainerTools.hh \
+	SQLite.hh OptionValue.hh \
+	ObjectState.hh Serializable.hh \
+	Listener.hh hash_set.hh \
+	SQLiteConnection.hh CmdLineOptions.hh \
+	BitMatrix.hh XMLSerializer.hh \
+	Exception.hh SetTools.hh \
+	CIStringSet.hh SimValue.hh \
+	Environment.hh RelationalDBQueryResult.hh \
+	TCEString.hh DOMBuilderErrorHandler.hh \
+	SQLiteQueryResult.hh DBTypes.hh \
+	Informer.hh StringTools.hh \
+	Conversion.hh TextGenerator.hh \
+	ConfigurationFile.hh CmdLineOptionParser.hh \
+	FileSystem.hh Options.hh \
+	BaseType.hh Serializer.hh \
+	ProcessorConfigurationFile.hh hash_map.hh \
+	RelationalDB.hh VectorTools.hh \
+	AssocTools.hh MapTools.hh \
+	Application.hh PagedArray.hh \
+	DataObject.hh TCEString.icc \
+	AssocTools.icc CmdLineOptionParser.icc \
+	SetTools.icc ContainerTools.icc \
+	ObjectState.icc CmdLineParser.icc \
+	DataObject.icc SimValue.icc \
+	SequenceTools.icc Exception.icc \
+	MathTools.icc MapTools.icc \
+	BitMatrix.icc FileSystem.icc \
+	VectorTools.icc PagedArray.icc \
+	PluginTools.icc Informer.icc \
+	Conversion.icc 
+## headers end

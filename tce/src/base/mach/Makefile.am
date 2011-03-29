@@ -31,9 +31,6 @@ dist-hook:
 
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
-
-
-
 ## headers start
 libmach_la_SOURCES += \
 	HWOperation.hh DummyMachineTester.hh \
