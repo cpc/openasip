@@ -21,3 +21,10 @@ AM_CPPFLAGS = ${LLVM_CPPFLAGS}
 # compilation warnings from llvm headers...
 AM_CXXFLAGS = ${CXXFLAGS} 
 CXXFLAGS=-Wno-unused-parameter -g
+
+## headers start
+LowerIntrinsics_la_SOURCES += \
+	MachineDCE.hh Spiller.h \
+	LiveDebugVariables.h VirtRegRewriter.h \
+	VirtRegMap.h 
+## headers end

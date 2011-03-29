@@ -26,9 +26,9 @@ grep "component " $IPXACT
 grep "busType" $IPXACT
 grep "abstractionType" $IPXACT
 echo "Component signal mappings"
-grep "physicalPort" $IPXACT | wc -l
+grep "physicalPort" $IPXACT | wc -l | tr -d "\ "
 echo "Bus signal mappings"
-grep "logicalPort" $IPXACT | wc -l
+grep "logicalPort" $IPXACT | wc -l | tr -d "\ "
 
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away

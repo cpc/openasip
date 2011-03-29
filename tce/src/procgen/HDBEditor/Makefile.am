@@ -107,3 +107,26 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+## headers start
+hdbeditor_SOURCES += \
+	AddBusEntryCmd.hh OpenHDBCmd.hh \
+	CreateHDBCmd.hh RFImplementationDialog.hh \
+	FUImplementationDialog.hh HDBEditorMainFrame.hh \
+	HDBEditorQuitCmd.hh HDBToHtml.hh \
+	AddRFImplementationCmd.hh AddFUEntryCmd.hh \
+	BlockImplementationFileDialog.hh RFArchitectureDialog.hh \
+	HDBEditorAboutCmd.hh FUPortImplementationDialog.hh \
+	HDBEditor.hh HDBBrowserWindow.hh \
+	TestHDBCmdLineOptions.hh SetRFArchitectureCmd.hh \
+	AddCostFunctionPluginCmd.hh AddRFEntryCmd.hh \
+	AddFUArchFromADFCmd.hh CostEstimationDataDialog.hh \
+	RFPortImplementationDialog.hh FUExternalPortDialog.hh \
+	AddFUImplementationCmd.hh AddSocketEntryCmd.hh \
+	AddRFArchitectureCmd.hh CostFunctionPluginDialog.hh \
+	SetFUArchitectureCmd.hh FUArchitectureParametersDialog.hh \
+	FUImplementationParameterDialog.hh HDBEditorAboutDialog.hh \
+	HDBBrowserInfoPanel.hh HDBEditorDeleteCmd.hh \
+	HDBEditorConstants.hh HDBEditorModifyCmd.hh \
+	FUArchitectureDialog.hh SetCostFunctionPluginCmd.hh 
+## headers end

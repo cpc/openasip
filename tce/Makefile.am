@@ -21,6 +21,7 @@ bin_SCRIPTS = tce-config
 # the whole newlib-1.17.0 dir here.
 EXTRA_DIST = README-AUTOTOOLS INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
 		tools/Doxygen/doxygen.config \
+		tools/patches \		
 		tce-llvm-gcc/INSTALL \
 		tce-llvm-gcc/config.guess \
 		tce-llvm-gcc/config.sub \

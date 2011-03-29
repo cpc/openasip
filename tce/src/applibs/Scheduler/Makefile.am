@@ -14,6 +14,8 @@ libscheduler_la_LIBADD = ProgramRepresentations/libprogramrepresentations.la \
 	Algorithms/libscheduleralgorithms.la \
 	Selector/libselector.la
 
+include_HEADERS = SchedulerCmdLineOptions.hh
+
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
