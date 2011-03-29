@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT([tce],[1.4-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.4],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
