@@ -47,34 +47,38 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da *.gcno *.gcda
 
 ## headers start
 libprogram_la_SOURCES += \
-	Address.hh AnnotatedInstructionElement.hh \
-	CodeLabel.hh CodeSnippet.hh \
-	DataAddressDef.hh DataDefinition.hh \
-	DataInstructionAddressDef.hh DataLabel.hh \
-	DataMemory.hh GlobalScope.hh \
-	Immediate.hh Instruction.hh \
-	InstructionReference.hh InstructionReferenceManager.hh \
-	Label.hh Move.hh \
-	MoveGuard.hh NullAddress.hh \
-	NullGlobalScope.hh \
-	NullInstruction.hh NullInstructionReferenceManager.hh \
-	NullProcedure.hh NullProgram.hh \
-	POMDisassembler.hh Procedure.hh \
-	Program.hh ProgramAnnotation.hh \
-	ProgramWriter.hh Scope.hh \
-	TPEFProgramFactory.hh Terminal.hh \
-	TerminalAddress.hh TerminalFUPort.hh \
-	TerminalImmediate.hh TerminalInstructionAddress.hh \
-	TerminalRegister.hh Address.icc \
-	InstructionReferenceManager.icc Procedure.icc \
-	TerminalRegister.icc InstructionReferenceImpl.hh \
-	Disassembler.hh DisassemblyElement.hh DisassemblyOperand.hh \
-	DisassemblyInstruction.hh DisassemblyRegister.hh DisassemblyFUPort.hh \
-	DisassemblyIntRegister.hh DisassemblyFPRegister.hh DisassemblyImmediate.hh \
-	DisassemblyGuard.hh DisassemblyBoolRegister.hh TPEFDisassembler.hh \
-	DisassemblyNOP.hh DisassemblyReturnAddressRegister.hh DisassemblyControlUnitPort.hh \
-	DisassemblyAnnotation.hh DisassemblyImmediateAssignment.hh DisassemblyLabel.hh \
-	DisassemblySequentialGuard.hh CodeGenerator.hh InstructionReferenceImpl.icc \
-	DisassemblyFUOpcodePort.hh DisassemblyMove.hh DisassemblyImmediateRegister.hh \
-	DisassemblyFUOperand.hh DisassemblyInstructionSlot.hh 
+	DisassemblySequentialGuard.hh Program.hh \
+	CodeGenerator.hh TPEFProgramFactory.hh \
+	DisassemblyGuard.hh DisassemblyFUOperand.hh \
+	Address.hh Scope.hh \
+	DataLabel.hh DataDefinition.hh \
+	Disassembler.hh Label.hh \
+	DisassemblyImmediateRegister.hh InstructionReferenceImpl.hh \
+	DisassemblyBoolRegister.hh DisassemblyControlUnitPort.hh \
+	DisassemblyInstruction.hh DisassemblyMove.hh \
+	MoveGuard.hh DisassemblyNOP.hh \
+	DisassemblyFPRegister.hh Move.hh \
+	InstructionReferenceManager.hh AnnotatedInstructionElement.hh \
+	DisassemblyRegister.hh Procedure.hh \
+	NullProcedure.hh DisassemblyImmediate.hh \
+	NullGlobalScope.hh DisassemblyIntRegister.hh \
+	DisassemblyElement.hh DisassemblyFUPort.hh \
+	DisassemblyInstructionSlot.hh ProgramWriter.hh \
+	TerminalAddress.hh DisassemblyAnnotation.hh \
+	CodeLabel.hh TPEFDisassembler.hh \
+	Terminal.hh TerminalRegister.hh \
+	DisassemblyFUOpcodePort.hh DataAddressDef.hh \
+	POMDisassembler.hh Immediate.hh \
+	NullProgram.hh DisassemblyOperand.hh \
+	TerminalImmediate.hh DataInstructionAddressDef.hh \
+	TerminalInstructionAddress.hh NullAddress.hh \
+	CodeSnippet.hh DataMemory.hh \
+	NullInstructionReferenceManager.hh ProgramAnnotation.hh \
+	InstructionReference.hh Instruction.hh \
+	NullInstruction.hh DisassemblyReturnAddressRegister.hh \
+	DisassemblyLabel.hh DisassemblyImmediateAssignment.hh \
+	TerminalFUPort.hh GlobalScope.hh \
+	InstructionReferenceManager.icc TerminalRegister.icc \
+	Address.icc Procedure.icc \
+	InstructionReferenceImpl.icc 
 ## headers end

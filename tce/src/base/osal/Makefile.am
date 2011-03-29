@@ -44,15 +44,15 @@ libosal_la_SOURCES += \
 	OperationPool.hh OperationBehaviorProxy.hh \
 	OperationGlobals.hh OperationDAGConverter.hh \
 	OperationIndex.hh OperationDAGLanguageParser.hh \
-	OperationPropertyLoader.hh OperationContext.hh \
-	OperationBehavior.hh OperationNode.hh \
-	ConstantNode.hh OSAL.hh \
-	OperationBehaviorLoader.hh OperationModule.hh \
-	OperationDAGBehavior.hh OperationPoolPimpl.hh \
-	OperationSerializer.hh TerminalNode.hh \
-	Operand.hh SimulateTriggerWrappers.icc \
-	OperationModule.icc Operation.icc \
-	OperationBehavior.icc OperationState.icc \
-	OperationPool.icc Operand.icc \
-	OperationIndex.icc OperationBuilder.hh
+	OperationPropertyLoader.hh OperationBuilder.hh \
+	OperationContext.hh OperationBehavior.hh \
+	OperationNode.hh ConstantNode.hh \
+	OSAL.hh OperationBehaviorLoader.hh \
+	OperationModule.hh OperationDAGBehavior.hh \
+	OperationPoolPimpl.hh OperationSerializer.hh \
+	TerminalNode.hh Operand.hh \
+	SimulateTriggerWrappers.icc OperationModule.icc \
+	Operation.icc OperationBehavior.icc \
+	OperationState.icc OperationPool.icc \
+	Operand.icc OperationIndex.icc 
 ## headers end

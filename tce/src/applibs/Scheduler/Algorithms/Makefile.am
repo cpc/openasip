@@ -50,22 +50,20 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 
+include_HEADERS = InterPassDatum.hh
+
 ## headers start
 libscheduleralgorithms_la_SOURCES += \
-	BBSchedulerController.hh \
 	ProcedurePass.hh LinearScanAllocatorCore.hh \
 	CycleLookBackSoftwareBypasser.hh SequentialScheduler.hh \
 	DSFillerModule.hh InterPassData.hh \
 	RegisterCopyAdder.hh CopyingDelaySlotFiller.hh \
-	SchedulerPass.hh BasicBlockPass.hh \
+	SchedulerPass.hh PreOptimizer.hh \
+	BasicBlockPass.hh ResourceConstraintAnalyzer.hh \
 	BypasserModule.hh DDGPass.hh \
 	RegisterMap.hh AddressSpaceMapper.hh \
-	SoftwareBypasser.hh ControlFlowGraphPass.hh \
-	SimpleGuardAllocatorCore.hh ProgramPass.hh \
-	BasicBlockScheduler.hh InterPassDatum.hh \
-	PreBypassBasicBlockScheduler.hh \
-	PreOptimizer.hh ResourceConstraintAnalyzer.hh
-
+	PreBypassBasicBlockScheduler.hh SoftwareBypasser.hh \
+	ControlFlowGraphPass.hh SimpleGuardAllocatorCore.hh \
+	ProgramPass.hh BBSchedulerController.hh \
+	BasicBlockScheduler.hh InterPassDatum.hh 
 ## headers end
-
-include_HEADERS = InterPassDatum.hh

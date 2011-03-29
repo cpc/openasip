@@ -35,8 +35,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libselector_la_SOURCES += \
-	MoveNodeSelector.hh MoveNodeGroup.hh \
-	SequentialMoveNodeSelector.hh ReadyMoveNodeGroupList.hh \
-	CriticalPathBBMoveNodeSelector.hh \
-	MoveNodeGroupBuilder.hh
+	MoveNodeGroupBuilder.hh MoveNodeSelector.hh \
+	MoveNodeGroup.hh SequentialMoveNodeSelector.hh \
+	ReadyMoveNodeGroupList.hh CriticalPathBBMoveNodeSelector.hh 
 ## headers end

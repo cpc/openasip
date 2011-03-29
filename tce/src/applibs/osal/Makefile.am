@@ -20,6 +20,5 @@ dist-hook:
 
 ## headers start
 libapplibsosal_la_SOURCES += \
-	OperationDAGSelector.hh \
-	OperationSimulator.hh 
+	OperationDAGSelector.hh OperationSimulator.hh 
 ## headers end

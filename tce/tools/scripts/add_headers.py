@@ -54,7 +54,7 @@ for root, dirs, files in os.walk(start_dir):
         if old_start >= 0 and old_end >= 0:
             print "Strip out the old generated headers list."
             file_contents = \
-                file_contents[0:old_start] + file_contents[old_end+1:]
+                file_contents[0:old_start-1] + file_contents[old_end+1:]
         new_file = open('Makefile.am', 'w+')
         new_file.write("".join(file_contents))
         new_file.close()            
@@ -66,7 +66,7 @@ for root, dirs, files in os.walk(start_dir):
         os.chdir(old_dir)
         continue
 
-    header_str = "\n\n## headers start\n"
+    header_str = "\n## headers start\n"
     header_str += "%s_SOURCES += \\\n" % libname
     headers_per_line = 0
     for header in headers:

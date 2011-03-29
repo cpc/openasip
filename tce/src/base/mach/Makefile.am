@@ -36,15 +36,14 @@ MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libmach_la_SOURCES += \
-	HWOperation.hh \
-	DummyMachineTester.hh ExecutionPipeline.hh \
-	ControlUnit.hh Connection.hh \
-	FUPort.hh Socket.hh \
-	BaseRegisterFile.hh NullBus.hh \
-	TemplateSlot.hh SpecialRegisterPort.hh \
-	ImmediateSlot.hh Unit.hh \
-	RFPort.hh PipelineElement.hh \
-	AddressSpace.hh \
+	HWOperation.hh DummyMachineTester.hh \
+	ExecutionPipeline.hh ControlUnit.hh \
+	Connection.hh FUPort.hh \
+	Socket.hh BaseRegisterFile.hh \
+	NullBus.hh TemplateSlot.hh \
+	SpecialRegisterPort.hh ImmediateSlot.hh \
+	Unit.hh RFPort.hh \
+	PipelineElement.hh AddressSpace.hh \
 	Port.hh Bus.hh \
 	Guard.hh MOMTextGenerator.hh \
 	InstructionTemplate.hh ADFSerializer.hh \
@@ -53,8 +52,7 @@ libmach_la_SOURCES += \
 	ADFSerializerTextGenerator.hh Bridge.hh \
 	Segment.hh MachineTestReporter.hh \
 	BaseFUPort.hh ImmediateUnit.hh \
-	MachineTestReportTextGenerator.hh \
-	NullInstructionTemplate.hh \
+	MachineTestReportTextGenerator.hh NullInstructionTemplate.hh \
 	RegisterFile.hh NullRegisterFile.hh \
 	NullAddressSpace.hh Machine.hh \
 	Socket.icc TemplateSlot.icc \

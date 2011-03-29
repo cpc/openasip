@@ -96,15 +96,16 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libsimulator_la_SOURCES += \
 	LongImmediateRegisterState.hh SettingCommand.hh \
-	CompiledSimCompiler.hh CompiledSimSettingCommand.hh \
-	SimulatorFrontend.hh CompiledSimSymbolGenerator.hh \
-	RegisterFileState.hh UntilCommand.hh \
-	CompiledSimMove.hh LongImmediateUnitState.hh \
-	InputPortState.hh GCUState.hh \
-	MachCommand.hh MemoryAccessingFUState.hh \
-	CommandsCommand.hh FUConflictDetectorIndex.hh \
-	SimulatorToolbox.hh RunCommand.hh \
-	OperationExecutor.hh \
+	CompiledSimCompiler.hh DetailedOperationSimulator.hh \
+	CompiledSimSettingCommand.hh SimulatorFrontend.hh \
+	CompiledSimSymbolGenerator.hh RegisterFileState.hh \
+	UntilCommand.hh CompiledSimMove.hh \
+	LongImmediateUnitState.hh InputPortState.hh \
+	GCUState.hh MachCommand.hh \
+	MemoryAccessingFUState.hh CommandsCommand.hh \
+	FUConflictDetectorIndex.hh SimulatorToolbox.hh \
+	RunCommand.hh ExecutingOperation.hh \
+	OperationExecutor.hh SimpleSimulatorFrontend.hh \
 	ExecutableInstruction.hh OutputPortState.hh \
 	StepiCommand.hh MachineStateBuilder.hh \
 	CompiledSimulation.hh FUState.hh \
@@ -112,33 +113,33 @@ libsimulator_la_SOURCES += \
 	ReadableState.hh OpcodeSettingVirtualInputPortState.hh \
 	DeleteBPCommand.hh BuslessExecutableMove.hh \
 	CompiledSimulationPimpl.hh QuitCommand.hh \
-	DisableBPCommand.hh \
-	StateData.hh EnableBPCommand.hh \
-	Watch.hh SimulationEventHandler.hh \
-	ResourceVectorFUResourceConflictDetector.hh NextiCommand.hh \
-	ProcedureTransferTracker.hh SimulationController.hh \
-	MemoryProxy.hh StateLocator.hh \
-	DisassembleCommand.hh PortState.hh \
-	UtilizationStats.hh StopPointManager.hh \
-	FixedRegisters.hh InlineImmediateValue.hh \
-	OperationIDIndex.hh KillCommand.hh \
-	SimulatorConstants.hh BusTracker.hh \
-	ExecutionTracker.hh LongImmUpdateAction.hh \
-	CompiledSimInterpreter.hh GuardState.hh \
-	RegisterState.hh SimControlLanguageCommand.hh \
-	ClockedState.hh MemorySystem.hh \
-	CompiledSimController.hh CompiledSimCodeGenerator.hh \
-	TTASimulationController.hh SymbolAddressCommand.hh \
-	RFAccessTracker.hh ConfCommand.hh \
-	ReservationTableFUResourceConflictDetector.hh FUResourceConflictDetector.hh \
-	ConflictDetectionCodeGenerator.hh ProgCommand.hh \
-	SimpleOperationExecutor.hh BusState.hh \
-	FSAFUResourceConflictDetector.hh CompiledSimUtilizationStats.hh \
-	WatchCommand.hh SimProgramBuilder.hh \
-	ResumeCommand.hh HelpCommand.hh \
-	ExecutableMove.hh TBPCommand.hh \
-	OneCycleOperationExecutor.hh SimulationStatistics.hh \
-	MachineState.hh ConditionCommand.hh \
+	DisableBPCommand.hh StateData.hh \
+	EnableBPCommand.hh Watch.hh \
+	SimulationEventHandler.hh ResourceVectorFUResourceConflictDetector.hh \
+	NextiCommand.hh ProcedureTransferTracker.hh \
+	SimulationController.hh MemoryProxy.hh \
+	StateLocator.hh DisassembleCommand.hh \
+	PortState.hh UtilizationStats.hh \
+	StopPointManager.hh FixedRegisters.hh \
+	InlineImmediateValue.hh OperationIDIndex.hh \
+	KillCommand.hh SimulatorConstants.hh \
+	BusTracker.hh ExecutionTracker.hh \
+	LongImmUpdateAction.hh CompiledSimInterpreter.hh \
+	GuardState.hh RegisterState.hh \
+	SimControlLanguageCommand.hh ClockedState.hh \
+	MemorySystem.hh CompiledSimController.hh \
+	CompiledSimCodeGenerator.hh TTASimulationController.hh \
+	SymbolAddressCommand.hh RFAccessTracker.hh \
+	ConfCommand.hh ReservationTableFUResourceConflictDetector.hh \
+	FUResourceConflictDetector.hh ConflictDetectionCodeGenerator.hh \
+	ProgCommand.hh SimpleOperationExecutor.hh \
+	BusState.hh FSAFUResourceConflictDetector.hh \
+	CompiledSimUtilizationStats.hh WatchCommand.hh \
+	SimProgramBuilder.hh ResumeCommand.hh \
+	HelpCommand.hh ExecutableMove.hh \
+	TBPCommand.hh OneCycleOperationExecutor.hh \
+	SimulationStatistics.hh MachineState.hh \
+	ConditionCommand.hh tce_systemc.hh \
 	SimulatorInterpreterContext.hh TriggeringInputPortState.hh \
 	BPCommand.hh DCMFUResourceConflictDetector.hh \
 	SimulatorInterpreter.hh StopPoint.hh \
@@ -154,5 +155,5 @@ libsimulator_la_SOURCES += \
 	OperationExecutor.icc ExecutableInstruction.icc \
 	InstructionMemory.icc ReservationTableFUResourceConflictDetector.icc \
 	GCUState.icc SettingCommand.icc \
-	DCMFUResourceConflictDetector.icc SimpleSimulatorFrontend.hh
+	DCMFUResourceConflictDetector.icc 
 ## headers end

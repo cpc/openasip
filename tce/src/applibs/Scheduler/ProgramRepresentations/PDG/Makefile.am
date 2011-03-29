@@ -33,5 +33,5 @@ libprogramdependencegraph_la_SOURCES += \
 	MoveNodeSet.hh MoveNode.hh \
 	ProgramGraph.hh ProgramOperation.hh \
 	ProgramDependenceGraph.hh ProgramDependenceNode.hh \
-	ProgramDependenceEdge.hh 
+	ProgramDependenceEdge.hh MoveNode.icc 
 ## headers end

@@ -38,19 +38,22 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libplatformintegrator_la_SOURCES += \
-	Stratix2DSPBoardIntegrator.hh PlatformIntegrator.hh MemoryGenerator.hh \
-	AlteraOnchipRamGenerator.hh AlteraOnchipRomGenerator.hh VhdlRomGenerator.hh \
-	ProjectFileGenerator.hh QuartusProjectGenerator.hh Stratix2SramGenerator.hh \
-	AlteraMegawizMemGenerator.hh HDLPort.hh KoskiIntegrator.hh \
-	AlteraHibiDpRamGenerator.hh DefaultProjectFileGenerator.hh \
-	IPXactFileGenerator.hh IPXactSerializer.hh IPXactModel.hh \
-	AlteraIntegrator.hh AvalonIntegrator.hh SOPCBuilderFileGenerator.hh \
-	SOPCInterface.hh AvalonMMMasterInterface.hh IPXactInterface.hh \
-	IPXactHibiInterface.hh IPXactClkInterface.hh IPXactResetInterface.hh \
-	Vlnv.hh
-	
+	IPXactFileGenerator.hh IPXactInterface.hh \
+	SOPCBuilderFileGenerator.hh SOPCInterface.hh \
+	PlatformIntegrator.hh AvalonIntegrator.hh \
+	AlteraMegawizMemGenerator.hh HDLPort.hh \
+	Vlnv.hh DefaultProjectFileGenerator.hh \
+	IPXactClkInterface.hh QuartusProjectGenerator.hh \
+	IPXactModel.hh MemoryGenerator.hh \
+	AlteraIntegrator.hh IPXactHibiInterface.hh \
+	AlteraOnchipRomGenerator.hh AlteraOnchipRamGenerator.hh \
+	Stratix2SramGenerator.hh KoskiIntegrator.hh \
+	Stratix2DSPBoardIntegrator.hh AvalonMMMasterInterface.hh \
+	AlteraHibiDpRamGenerator.hh IPXactSerializer.hh \
+	ProjectFileGenerator.hh IPXactResetInterface.hh \
+	VhdlRomGenerator.hh 
 ## headers end
-
-

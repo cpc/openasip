@@ -41,6 +41,5 @@ libproge_la_SOURCES += \
 	NetlistPort.hh ProcessorGenerator.hh \
 	BlockSourceCopier.hh NetlistBlock.hh \
 	Netlist.hh VHDLNetlistWriter.hh \
-	ProGeScriptGenerator.icc \
-	VirtualNetlistBlock.hh
+	VirtualNetlistBlock.hh ProGeScriptGenerator.icc 
 ## headers end
