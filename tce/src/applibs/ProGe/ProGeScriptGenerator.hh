@@ -46,6 +46,7 @@ public:
     ProGeScriptGenerator(
         const std::string& dstDir,
         const std::string& progeOutDir,
+        const std::string& sharedOutDir,
         const std::string& testBenchDir);
 
     virtual ~ProGeScriptGenerator();
@@ -108,6 +109,8 @@ private:
     std::string dstDir_;
     // directory where processor generators output vhdl files are
     std::string progeOutDir_;
+    // directory where processor generators shared HDL files are
+    std::string sharedOutDir_;
     // directories where to read test bench vhdl files.
     std::string testBenchDir_;
 

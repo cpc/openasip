@@ -1,2 +1,3 @@
 #!/bin/bash
 rm -rf ./proge-output
+rm -fr shared-vhdl

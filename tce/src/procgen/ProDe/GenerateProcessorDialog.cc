@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -209,7 +210,8 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     try {
         generator.generateProcessor(
             ProGe::VHDL,
-            machine_, impl_, *plugin, 1, targetDir, errorStream, warningStream);
+            machine_, impl_, *plugin, 1, targetDir, targetDir, 
+            errorStream, warningStream);
     } catch (Exception& e) {
         wxString message = WxConversion::toWxString(e.errorMessage());
         ErrorDialog dialog(this, message);
@@ -234,7 +236,8 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
 
     // generate vhdl compilation and simulation scripts
     try {
-        ProGeScriptGenerator sGen(targetDir, targetDir, testbenchDir);
+        ProGeScriptGenerator sGen(
+            targetDir, targetDir, targetDir, testbenchDir);
         sGen.generateAll();
     } 
     catch (const Exception& e) {

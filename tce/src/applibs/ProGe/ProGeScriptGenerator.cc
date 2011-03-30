@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,9 @@
  *
  * Implementation of ProGeScriptGenerator class.
  *
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -67,9 +68,11 @@ using std::list;
 ProGeScriptGenerator::ProGeScriptGenerator( 
     const std::string& dstDir,
     const std::string& progeOutDir,
+    const std::string& sharedOutDir,
     const std::string& testBenchDir) :
     dstDir_(dstDir), 
     progeOutDir_(progeOutDir),
+    sharedOutDir_(sharedOutDir),
     testBenchDir_(testBenchDir),
     workDir_("work"),
     vhdlDir_("vhdl"),
@@ -494,6 +497,14 @@ ProGeScriptGenerator::fetchFiles() {
             + "imem_mau_pkg.vhdl";
         vhdlFiles_.push_back(imemMauPkg);
     }
+    std::string sharedDir = 
+        sharedOutDir_ + FileSystem::DIRECTORY_SEPARATOR + vhdlDir_;
+    if (sharedDir != dirName && FileSystem::fileIsDirectory(sharedDir)) {
+        findFiles(
+            vhdlRegex, 
+            FileSystem::directoryContents(sharedDir, absolutePaths),
+            vhdlFiles_);
+    }    
 
     dirName = progeOutDir_ + FileSystem::DIRECTORY_SEPARATOR + gcuicDir_;
     if (FileSystem::fileIsDirectory(dirName)) {

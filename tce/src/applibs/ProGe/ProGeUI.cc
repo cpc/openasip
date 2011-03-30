@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,8 +27,9 @@
  * Implementation of ProGeUI class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -265,6 +266,9 @@ ProGeUI::loadICDecoderGeneratorPlugin(
  * @param imemWidthInMAUs Width of the instruction memory in MAUs.
  * @param language The language to generate.
  * @param dstDirectory The destination directory.
+ * @param sharedDstDirectory The destination directory for VHDL files that
+ *                           are potentially shared between multiple TTAs in
+ *                           the same toplevel design.
  * @param errorStream Stream where error messages are written.
  * @param warningStream Stream where warning messages are written.
  * @exception InvalidData If ADF or IDF is not loaded.
@@ -281,6 +285,7 @@ ProGeUI::generateProcessor(
     int imemWidthInMAUs,
     HDL language,
     const std::string& dstDirectory,
+    const std::string& sharedDstDirectory,
     std::ostream& errorStream,
     std::ostream& warningStream)
     throw (InvalidData, DynamicLibraryException, IOException,
@@ -334,7 +339,7 @@ ProGeUI::generateProcessor(
 
     generator_.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,
-        dstDirectory, errorStream, warningStream);
+        dstDirectory, sharedDstDirectory, errorStream, warningStream);
 }
 
 
@@ -363,15 +368,17 @@ ProGeUI::generateTestBench(
  * 
  * @param dstDir Destination directory for the scripts.
  * @param progeOutDir ProGe output directory.
+ * @param progeOutDir Shared HDL output directory.
  * @param testBenchDir Directory where a test bench is stored. 
  */
 void 
 ProGeUI::generateScripts(
     const std::string& dstDir,
     const std::string& progeOutDir,
+    const std::string& sharedOutDir,
     const std::string& testBenchDir) {
 
-    ProGeScriptGenerator sGen(dstDir, progeOutDir, testBenchDir);
+    ProGeScriptGenerator sGen(dstDir, progeOutDir, sharedOutDir, testBenchDir);
     sGen.generateAll();
 }
 

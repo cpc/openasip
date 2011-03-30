@@ -7,6 +7,7 @@ ADF=data/fft_limm_opt.adf
 IDF=data/fft_limm.idf
 BEM=data/fft_limm_opt.bem
 PROGE_OUT=proge-output
+SHARED_OUT=shared-vhdl
 TPEF=data/fft_limm_opt.tpef
 
 # runtime in cycles
@@ -19,7 +20,7 @@ function eexit {
 
 rm -f *.img
 rm -rf $PROGE_OUT
-$PROGE -b $BEM -i $IDF -o $PROGE_OUT $ADF || eexit "Proge failed with $ADF"
+$PROGE -b $BEM -i $IDF -o $PROGE_OUT -s shared-vhdl $ADF || eexit "Proge failed with $ADF"
 
 $PIG -b $BEM -p $TPEF -d -w 4 -x $PROGE_OUT $ADF || eexit "PIG failed with $ADF"
 

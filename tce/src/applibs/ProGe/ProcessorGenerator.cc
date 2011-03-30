@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,8 +27,9 @@
  * Implementation of ProcessorGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Esa MÃ¤Ã¤ttÃ¤ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -104,6 +105,9 @@ ProcessorGenerator::~ProcessorGenerator() {
  * @param plugin The IC/decoder generator plugin.
  * @param imemWidthInMAUs Width of the instruction memory in MAUs.
  * @param dstDirectory The destination directory.
+ * @param sharedDstDirectory The destination directory for VHDL files that
+ *                           are potentially shared between multiple TTAs in
+ *                           the same toplevel design.
  * @param outputStream Stream where errors are written.
  * @param warningStream Stream where warnings are written
  * @exception IOException If an IO error occurs.
@@ -122,6 +126,7 @@ ProcessorGenerator::generateProcessor(
     ICDecoderGeneratorPlugin& plugin,
     int imemWidthInMAUs,
     const std::string& dstDirectory,
+    const std::string& sharedDstDirectory,
     std::ostream& errorStream,
     std::ostream& warningStream)
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
@@ -136,8 +141,7 @@ ProcessorGenerator::generateProcessor(
     checkIULatencies(machine, implementation, plugin);
 
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
-    netlist_ = netlistGenerator.generate(
-        imemWidthInMAUs, warningStream);
+    netlist_ = netlistGenerator.generate(imemWidthInMAUs, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";
@@ -164,12 +168,33 @@ ProcessorGenerator::generateProcessor(
         assert(false);
     }
 
+    if (!FileSystem::fileExists(topLevelDir)) {
+        bool directoryCreated = FileSystem::createDirectory(topLevelDir);
+        if (!directoryCreated) {
+            string errorMsg = "Unable to create directory " +
+                topLevelDir + ".";
+            throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+        }
+    }
+
+
     writer->write(topLevelDir);
     delete writer;
     writer = NULL;
 
+    if (!FileSystem::fileExists(sharedDstDirectory)) {
+        bool directoryCreated = 
+            FileSystem::createDirectory(sharedDstDirectory);
+        if (!directoryCreated) {
+            string errorMsg = "Unable to create directory " +
+                sharedDstDirectory + ".";
+            throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+        }
+    }
+
     BlockSourceCopier copier(implementation);
-    copier.copy(dstDirectory);
+    copier.copyShared(sharedDstDirectory);
+    copier.copyProcessorSpecific(dstDirectory);
 
     if (language == VHDL) {
         generateGlobalsPackage(

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,6 +29,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -95,7 +96,8 @@ bool
 GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
     ProGeCmdLineOptions options;
-    string outputDirectory = "";
+    std::string outputDirectory = "";
+    std::string sharedOutputDir = "";
     ProGe::HDL language = ProGe::VHDL;
 
     try {
@@ -123,10 +125,18 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
 
         getOutputDir(options, outputDirectory);
-        if(FileSystem::fileExists(outputDirectory)) {
+        if (FileSystem::fileExists(outputDirectory)) {
             cerr << "Error: Output directory " << outputDirectory
                  << " already exists." << endl;
             return false;
+        }
+        
+        if (options.sharedOutputDirectory() != "") {
+            sharedOutputDir = options.sharedOutputDirectory();
+            sharedOutputDir = FileSystem::expandTilde(sharedOutputDir);
+            sharedOutputDir = FileSystem::absolutePathOf(sharedOutputDir);
+        } else {
+            sharedOutputDir = outputDirectory;
         }
         
         string processorDefinition = options.processorToGenerate();
@@ -163,7 +173,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
         
         ProGeUI::generateProcessor(
-            imemWidthInMAUs, language, outputDirectory, std::cerr, std::cerr);
+            imemWidthInMAUs, language, outputDirectory, 
+            sharedOutputDir, std::cerr, std::cerr);
     } catch (ParserStopRequest) {
         return false;
     } catch (const IllegalCommandLine& exception) {
@@ -187,8 +198,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     }
 
     try {
-        ProGeUI::generateScripts(outputDirectory, outputDirectory, 
-            testBenchDir);
+        ProGeUI::generateScripts(
+            outputDirectory, outputDirectory, sharedOutputDir, testBenchDir);
     } catch (const Exception& e) {
         std::cerr << "Warning: Processor Generator failed to "
                   << "generate simulation/compilation scripts."

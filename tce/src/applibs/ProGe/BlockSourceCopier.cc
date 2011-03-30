@@ -72,12 +72,16 @@ BlockSourceCopier::~BlockSourceCopier() {
  * Copies the block definition files of the blocks given in IDF to
  * proper subdirectories of the given directory.
  *
+ * This method copies the files that can and are potentially shared by
+ * multiple TTAs in the same system design. That is, the FU, RF and IU
+ * implementations.
+ *
  * @param dstDirectory The destination "root" directory.
  * @exception IOException If some file cannot be copied or HDB cannot be
  *                        opened.
  */
 void
-BlockSourceCopier::copy(const std::string& dstDirectory)
+BlockSourceCopier::copyShared(const std::string& dstDirectory)
     throw (IOException) {
 
     // copy FU files
@@ -107,6 +111,23 @@ BlockSourceCopier::copy(const std::string& dstDirectory)
             implementation_.iuImplementation(i);
         copyBaseRFFiles(rfImpl, dstDirectory);
     }
+
+}
+
+/**
+ * Copies the block definition files of the blocks given in IDF to
+ * proper subdirectories of the given directory.
+ *
+ * This method copies the processor-specific files that are not reused
+ * between multiple TTAs.
+ *
+ * @param dstDirectory The destination "root" directory.
+ * @exception IOException If some file cannot be copied or HDB cannot be
+ *                        opened.
+ */
+void
+BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
+    throw (IOException) {
 
     // copy decompressor file
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
@@ -207,15 +228,26 @@ BlockSourceCopier::copyFiles(
 
         if (!isCopied(absoluteFile)) {
             string fileName = FileSystem::fileOfPath(absoluteFile);
-            string targetFile;
+            string targetDir, targetFile;
             string DS = FileSystem::DIRECTORY_SEPARATOR;
 
             switch (file.format()) {
             case BlockImplementationFile::VHDL:
-                targetFile = dstDirectory + DS + "vhdl" + DS + fileName;
+                targetDir = dstDirectory + DS + "vhdl";
+                targetFile = targetDir + DS + fileName;
                 break;
             default: 
                 assert(false);
+            }
+
+            if (!FileSystem::fileExists(targetDir)) {
+                bool directoryCreated = 
+                    FileSystem::createDirectory(targetDir);
+                if (!directoryCreated) {
+                    string errorMsg = "Unable to create directory " +
+                        targetDir  + ".";
+                    throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+                }
             }
 
             try {

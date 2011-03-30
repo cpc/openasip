@@ -88,18 +88,9 @@ void
 VHDLNetlistWriter::write(const std::string& dstDirectory)
     throw (IOException, InvalidData) {
 
-    if (!FileSystem::fileExists(dstDirectory)) {
-        bool directoryCreated = FileSystem::createDirectory(dstDirectory);
-        if (!directoryCreated) {
-            string errorMsg = "Unable to create directory " +
-                dstDirectory + ".";
-            throw IOException(__FILE__, __LINE__, __func__, errorMsg);
-        }
-    }
-
     const Netlist& netlist = this->netlist();
     if (netlist.isEmpty()) {
-	string errorMsg = "Empty input netlist.";
+        string errorMsg = "Empty input netlist.";
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 

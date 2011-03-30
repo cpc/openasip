@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of BlockSourceCopier class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -55,7 +56,10 @@ public:
     BlockSourceCopier(const IDF::MachineImplementation& implementation);
     virtual ~BlockSourceCopier();
 
-    void copy(const std::string& dstDirectory)
+    void copyShared(const std::string& dstDirectory)
+        throw (IOException);
+
+    void copyProcessorSpecific(const std::string& dstDirectory)
         throw (IOException);
 
 private:

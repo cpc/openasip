@@ -1,3 +1,12 @@
+1.5 not yet released
+====================
+
+Smaller features
+----------------
+- ProGe: switch -s that can be used to define a separate directory for
+  files that are potentially shared between multiple TTA processors in
+  the same heterogeneous TTA multicore design.
+
 1.4       April 2011
 ====================
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,8 +27,9 @@
  * Declaration of ProGeUI class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -84,6 +85,7 @@ protected:
         int imemWidthInMAUs,
         HDL language,
         const std::string& dstDirectory,
+        const std::string& sharedDstDirectory,
         std::ostream& errorStream,
         std::ostream& warningStream)
         throw (InvalidData, DynamicLibraryException, IOException,
@@ -94,6 +96,7 @@ protected:
     void generateScripts(
         const std::string& dstDir,
         const std::string& progeOutDir,
+        const std::string& sharedOutDir,
         const std::string& testBenchDir);
 
     void integrateProcessor(

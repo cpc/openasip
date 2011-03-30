@@ -44,6 +44,7 @@ const string IDF_PARAM_NAME = "idf";
 const string ICDECODER_PARAM_NAME = "gen";
 const string HDL_PARAM_NAME = "hdl";
 const string OUTPUTDIR_PARAM_NAME = "output";
+const string SHARED_OUTPUTDIR_PARAM_NAME = "shared-files-dir";
 const string PLUGIN_PARAMETERS_PARAM_NAME = "pluginparameters";
 
 const string INTEGRATOR_NAME = "integrator";
@@ -66,16 +67,27 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
     StringCmdLineOptionParser* bemFile = new StringCmdLineOptionParser(
         BEM_PARAM_NAME, "The BEM file", "b");
     addOption(bemFile);
+
     StringCmdLineOptionParser* idfFile = new StringCmdLineOptionParser(
         IDF_PARAM_NAME, "The IDF file", "i");
     addOption(idfFile);
+
     StringCmdLineOptionParser* hdlParam = new StringCmdLineOptionParser(
         HDL_PARAM_NAME, "The HDL to generate. 'vhdl' = VHDL", "l");
     addOption(hdlParam);
+
     StringCmdLineOptionParser* outputDirectory = 
         new StringCmdLineOptionParser(
             OUTPUTDIR_PARAM_NAME, "The output directory", "o");
     addOption(outputDirectory);
+
+    StringCmdLineOptionParser* sharedOutputDirectory = 
+        new StringCmdLineOptionParser(
+            SHARED_OUTPUTDIR_PARAM_NAME, 
+            "The directory for HDL files that are potentially shared between "
+            "multiple generated processors.", "s");
+    addOption(sharedOutputDirectory);
+
     StringCmdLineOptionParser* pluginParameters = 
         new StringCmdLineOptionParser(
             PLUGIN_PARAMETERS_PARAM_NAME, "List plugin parameters for an "
@@ -87,41 +99,49 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             INTEGRATOR_NAME, "Select the target for platform integration.",
             "g");
     addOption(integratorName);
+
     StringCmdLineOptionParser* imemType =
         new StringCmdLineOptionParser(
             IMEM_TYPE, "Instruction memory type. Available types depends on "
             "the platform integrator. Types are 'vhdl_array', 'onchip', "
             "'sram' and 'dram'", "f");
     addOption(imemType);
+
     StringCmdLineOptionParser* dmemType =
         new StringCmdLineOptionParser(
             DMEM_TYPE, "Data memory type. Available types depends on the "
             "platform integrator. Types are 'vhdl_array', 'onchip', 'sram',"
             " 'dram' and 'none'", "d");
     addOption(dmemType);
+
     IntegerCmdLineOptionParser* imemWidth =
         new IntegerCmdLineOptionParser(
             IMEM_WIDTH, "Defines instruction memory width. This value "
             "overrides the instruction width from BEM.", "w");
     addOption(imemWidth);
+
     IntegerCmdLineOptionParser* fmax =
         new IntegerCmdLineOptionParser(
             CLK_FREQUENCY, "Defines the target clock frequency.", "c");
     addOption(fmax);
+
     StringCmdLineOptionParser* programName =
         new StringCmdLineOptionParser(
             TPEF_NAME, "Name of tpef program.", "p");
     addOption(programName);
+
     StringCmdLineOptionParser* entityName = 
         new StringCmdLineOptionParser(
             ENTITY_NAME, "Name of the entity which platform integrator "
             "creates", "e");
     addOption(entityName);
+
     BoolCmdLineOptionParser* useAbsolutePaths = 
         new BoolCmdLineOptionParser(
             USE_ABSOLUTE_PATHS, "Use absolute paths in generated platform "
             "integrator files.", "a");
     addOption(useAbsolutePaths);
+
     BoolCmdLineOptionParser* listIntegrators = 
         new BoolCmdLineOptionParser(
             LIST_INTEGRATORS, "List available integrators and information "
@@ -190,6 +210,17 @@ std::string
 ProGeCmdLineOptions::outputDirectory() const {
     return findOption(OUTPUTDIR_PARAM_NAME)->String();
 }
+
+/**
+ * Returns the given output directory.
+ *
+ * @return The given output directory.
+ */
+std::string
+ProGeCmdLineOptions::sharedOutputDirectory() const {
+    return findOption(SHARED_OUTPUTDIR_PARAM_NAME)->String();
+}
+
 
 /**
  * Returns the IC/decoder generator plugin parameter list query.
