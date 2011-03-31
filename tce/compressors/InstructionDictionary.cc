@@ -141,13 +141,13 @@ public:
      * @param stream The stream to write.
      */
     virtual void 
-    generateDecompressor(std::ostream& stream) {
+    generateDecompressor(std::ostream& stream, TCEString entityStr) {
 
         stream << "library ieee;" << endl;
         stream << "use ieee.std_logic_1164.all;" << endl;
         stream << "use ieee.std_logic_arith.all;" << endl << endl;
         
-        stream << "package dict_init is" << endl << endl;
+        stream << "package " << entityStr << "_dict_init is" << endl << endl;
         stream << indentation(1)
                << "type std_logic_dict_matrix is array (natural range <>) "
                << "of std_logic_vector(" << binaryEncoding().width() - 1
@@ -169,17 +169,17 @@ public:
                 stream << ");" << endl;
             }
         }
-        stream << "end dict_init;" << endl << endl;
+        stream << "end " << entityStr << "_dict_init;" << endl << endl;
 
         stream << "library ieee;" << endl;
         stream << "use ieee.std_logic_1164.all;" << endl;
         stream << "use ieee.std_logic_arith.all;" << endl;
-        stream << "use work.globals.all;" << endl;
-        stream << "use work.dict_init.all;" << endl;
-        stream << "use work.imem_mau.all;" << endl << endl;
+        stream << "use work." << entityStr << "_globals.all;" << endl;
+        stream << "use work." << entityStr << "_dict_init.all;" << endl;
+        stream << "use work." << entityStr << "_imem_mau.all;" << endl << endl;
      
         // write the decompressor entity
-        stream << "entity decompressor is" << endl;
+        stream << "entity " << entityStr << "_decompressor is" << endl;
         stream << indentation(1) << "port (" << endl;
         stream << indentation(2) << "fetch_en : out std_logic;" << endl;
         stream << indentation(2) << "lock : in std_logic;" << endl;
@@ -193,10 +193,10 @@ public:
         stream << indentation(2) << "lock_r : in std_logic;" << endl;
         stream << indentation(2) << "clk : in std_logic;" << endl;
         stream << indentation(2) << "rstx : in std_logic);" << endl << endl;
-        stream << "end decompressor;" << endl << endl;
+        stream << "end " << entityStr << "_decompressor;" << endl << endl;
 
-        stream << "architecture simple_dict of decompressor is"
-               << endl << endl;
+        stream << "architecture simple_dict of " << entityStr 
+               << "_decompressor is" << endl << endl;
 
         stream << indentation(1)
                << "subtype dict_index is integer range 0 to "

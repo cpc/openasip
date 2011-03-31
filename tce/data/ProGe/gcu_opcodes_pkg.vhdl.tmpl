@@ -1,4 +1,4 @@
--- Copyright (c) 2002-2009 Tampere University of Technology.
+-- Copyright (c) 2002-2011 Tampere University of Technology.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
 -- 
@@ -20,15 +20,15 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 ----------------------------------------------------------------------------
--- Opcodes package
+-- Control unit opcodes package
 ----------------------------------------------------------------------------
 
 library IEEE;
 use IEEE.std_logic_1164.all;
 
-package opcodes is
+package ENTITY_STR_gcu_opcodes is
   -- ifetch (jump/call):
   constant IFE_CALL : std_logic_vector := "0";
   constant IFE_JUMP : std_logic_vector := "1";
 
-end opcodes;
+end ENTITY_STR_gcu_opcodes;

@@ -49,6 +49,7 @@ public:
     std::string bemFile() const;
     std::string idfFile() const;
     std::string hdl() const;
+    std::string processorIdentifierString() const;
     std::string outputDirectory() const;
     std::string sharedOutputDirectory() const;
     std::string pluginParametersQuery() const;

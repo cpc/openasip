@@ -35,6 +35,8 @@
 #define TTA_BLOCK_SOURCE_COPIER_HH
 
 #include <set>
+
+#include "TCEString.hh"
 #include "RFImplementationLocation.hh"
 
 namespace IDF {
@@ -53,7 +55,9 @@ namespace ProGe {
  */
 class BlockSourceCopier {
 public:
-    BlockSourceCopier(const IDF::MachineImplementation& implementation);
+    BlockSourceCopier(
+        const IDF::MachineImplementation& implementation,
+        TCEString entityStr);
     virtual ~BlockSourceCopier();
 
     void copyShared(const std::string& dstDirectory)
@@ -72,6 +76,12 @@ private:
         const std::string& hdbFile,
         const std::string& dstDirectory)
         throw (UnreachableStream, FileNotFound);
+
+    void copyFromTemplate(
+        const std::string& templateFile,
+        const std::string& dstDirectory)
+        throw (UnreachableStream, FileNotFound);
+
     void setCopied(const std::string& file);
     bool isCopied(const std::string& file) const;
 
@@ -79,6 +89,7 @@ private:
     const IDF::MachineImplementation& implementation_;
     /// Copied files.
     std::set<std::string> copiedFiles_;
+    TCEString entityStr_;
 };
 }
 

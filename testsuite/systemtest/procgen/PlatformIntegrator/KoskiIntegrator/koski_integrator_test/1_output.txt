@@ -14,9 +14,9 @@ Bus signal mappings
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.globals.all;
 use work.util.all;
-use work.imem_mau.all;
+use work.koskenlaskija_globals.all;
+use work.koskenlaskija_imem_mau.all;
 use work.koskenlaskija_params.all;
 
 entity koskenlaskija is
@@ -40,7 +40,7 @@ end koskenlaskija;
 architecture structural of koskenlaskija is
 
 
-  component toplevel
+  component koskenlaskija
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -122,7 +122,7 @@ begin
   onchip_dp_dmem_byteena_b_wire <= core_fu_LSU_dmem2_wr_mask_wire;
   ground_signal <= (others => '0');
 
-  core : toplevel
+  core : koskenlaskija
     port map (
       clk => clk,
       rstx => rstx,

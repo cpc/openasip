@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,8 @@
  *
  * Declaration of ProGeTestBenchGenerator class.
  *
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -54,7 +55,8 @@ public:
         const TTAMachine::Machine& mach,
         const IDF::MachineImplementation& implementation,
         const std::string& dstDirectory,
-        const std::string& progeOutDir)
+        const std::string& progeOutDir,
+        const std::string& entityStr="tta0")
         throw (IOException, OutOfRange, InvalidName, InvalidData);
 
 private:
@@ -78,6 +80,7 @@ private:
         const std::string& signalMappings)
         throw (IOException);
 
+    TCEString entityStr_;
 };
 
 #endif

@@ -36,6 +36,7 @@
 #include <map>
 #include <iostream>
 
+#include "TCEString.hh"
 #include "RFImplementationLocation.hh"
 #include "FUImplementationLocation.hh"
 #include "Exception.hh"
@@ -76,7 +77,9 @@ public:
         ICDecoderGeneratorPlugin& plugin);
     virtual ~NetlistGenerator();
 
-    Netlist* generate(int imemWidthInMAUs, std::ostream& warningStream)
+    Netlist* generate(
+        int imemWidthInMAUs, TCEString entityNameStr,
+        std::ostream& warningStream)
         throw (IOException, InvalidData, OutOfRange, InstanceNotFound);
 
     NetlistPort& netlistPort(const TTAMachine::Port& port) const
@@ -246,6 +249,9 @@ private:
     NetlistPort* raInPort_;
     /// Returns address out port in GCU (ifetch).
     NetlistPort* raOutPort_;
+    /// A string used to make block names unique to avoid name clashes in
+    /// HDL generation with multiple TTAs in the same design.
+    TCEString entityNameStr_;
 };
 }
 

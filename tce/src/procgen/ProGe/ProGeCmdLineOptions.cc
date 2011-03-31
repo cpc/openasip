@@ -46,7 +46,6 @@ const string HDL_PARAM_NAME = "hdl";
 const string OUTPUTDIR_PARAM_NAME = "output";
 const string SHARED_OUTPUTDIR_PARAM_NAME = "shared-files-dir";
 const string PLUGIN_PARAMETERS_PARAM_NAME = "pluginparameters";
-
 const string INTEGRATOR_NAME = "integrator";
 const string IMEM_TYPE = "imem";
 const string DMEM_TYPE = "dmem";
@@ -132,8 +131,10 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
 
     StringCmdLineOptionParser* entityName = 
         new StringCmdLineOptionParser(
-            ENTITY_NAME, "Name of the entity which platform integrator "
-            "creates", "e");
+            ENTITY_NAME, 
+            "String to use to make the generated VHDL entities unique. This is "
+            "also the name of the top level entity platform integrator "
+            "creates (default is 'tta0').", "e");
     addOption(entityName);
 
     BoolCmdLineOptionParser* useAbsolutePaths = 

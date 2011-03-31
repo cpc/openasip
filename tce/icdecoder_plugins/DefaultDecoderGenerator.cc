@@ -137,6 +137,8 @@ DefaultDecoderGenerator::completeDecoderBlock(
     NetlistBlock& decoder = nlGenerator.instructionDecoder();
     decoderBlock_ = &decoder;
 
+    entityNameStr_ = netlist.topLevelBlock().moduleName();
+
     // add ports for short immediates to decoder and connect them to IC
     Machine::BusNavigator busNav = machine_.busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
@@ -568,10 +570,10 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
     stream << "library IEEE;" << endl;
     stream << "use IEEE.std_logic_1164.all;" << endl;
     stream << "use IEEE.std_logic_arith.all;" << endl;
-    stream << "use work.globals.all;" << endl;
-    stream << "use work.opcodes.all;" << endl << endl;
+    stream << "use work." << entityNameStr_ << "_globals.all;" << endl;
+    stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;" << endl << endl;
     
-    string entityName = "decoder";
+    string entityName = entityNameStr_ + "_decoder";
     stream << "entity " << entityName << " is" << endl << endl;
     
     // create generic and port declarations

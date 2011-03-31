@@ -130,10 +130,10 @@ public:
      * @param stream The stream to write.
      */
     virtual void 
-    generateDecompressor(std::ostream& stream) {
-        generateDictionaryVhdl(stream);
-        generateDecompressorEntity(stream);
-        generateDecompressorArchitecture(stream);
+    generateDecompressor(std::ostream& stream, TCEString entityStr) {
+        generateDictionaryVhdl(stream, entityStr);
+        generateDecompressorEntity(stream, entityStr);
+        generateDecompressorArchitecture(stream, entityStr);
     }
     
     /**
@@ -256,12 +256,14 @@ private:
         }
     }
 
-    void generateDictionaryVhdl(std::ostream& stream) {
+    void generateDictionaryVhdl(std::ostream& stream, TCEString entityStr) {
         stream << "library ieee;" << endl;
         stream << "use ieee.std_logic_1164.all;" << endl;
         stream << "use ieee.std_logic_arith.all;" << endl << endl;
         
-        stream << "package dict_init is" << endl << endl;
+        TCEString packageName = entityStr + "_dict_init";
+
+        stream << "package " << packageName << " is" << endl << endl;
 
         for (int i = 0; i < moveSlotCount(); i++) {
             if (dictionary_.at(i)->size() > 1) {
@@ -308,19 +310,19 @@ private:
             }
             stream << endl;
         }
-        stream << "end dict_init;" << endl << endl;
+        stream << "end " << packageName << ";" << endl << endl;
     }
 
-    void generateDecompressorEntity(std::ostream& stream) {
+    void generateDecompressorEntity(std::ostream& stream, TCEString entityStr) {
         // write the decompressor entity
         stream << "library ieee;" << endl;
         stream << "use ieee.std_logic_1164.all;" << endl;
         stream << "use ieee.std_logic_arith.all;" << endl;
-        stream << "use work.globals.all;" << endl;
-        stream << "use work.dict_init.all;" << endl;
-        stream << "use work.imem_mau.all;" << endl << endl;
+        stream << "use work." << entityStr << "_globals.all;" << endl;
+        stream << "use work." << entityStr << "_dict_init.all;" << endl;
+        stream << "use work." << entityStr << "_imem_mau.all;" << endl << endl;
         
-        stream << "entity decompressor is" << endl;
+        stream << "entity " << entityStr << "_decompressor is" << endl;
         stream << indentation(1) << "port (" << endl;
         stream << indentation(2) << "fetch_en : out std_logic;" << endl;
         stream << indentation(2) << "lock : in std_logic;" << endl;
@@ -334,12 +336,13 @@ private:
         stream << indentation(2) << "lock_r : in std_logic;" << endl;
         stream << indentation(2) << "clk : in std_logic;" << endl;
         stream << indentation(2) << "rstx : in std_logic);" << endl << endl;
-        stream << "end decompressor;" << endl << endl;
+        stream << "end " << entityStr << "_decompressor;" << endl << endl;
     }
 
-    void generateDecompressorArchitecture(std::ostream& stream) {
-        stream << "architecture move_slot_dict of decompressor is"
-               << endl << endl;
+    void generateDecompressorArchitecture(
+        std::ostream& stream, TCEString entityStr) {
+        stream << "architecture move_slot_dict of " << entityStr 
+               << "_decompressor is" << endl << endl;
 
         bool haveLimm = false;
         generateDecompressorSignals(stream,haveLimm);
@@ -349,7 +352,7 @@ private:
         stream << "end move_slot_dict;" << endl;
     }
 
-void generateDecompressorSignals(std::ostream& stream, bool& haveLimm) {
+    void generateDecompressorSignals(std::ostream& stream, bool& haveLimm) {
         // signal types & signals for dictionaries
         for (int i = 0; i < moveSlotCount(); i++) {
             if (dictionary_.at(i)->size() > 1) {

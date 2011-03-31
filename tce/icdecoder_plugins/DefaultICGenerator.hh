@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -98,23 +99,23 @@ private:
 
     bool isGcuPort(const TTAMachine::Port* port) const;
 
-    static void generateSocket(
+    void generateSocket(
         TTAMachine::Socket::Direction direction,
         int portConns,
         int segmentConns,
-        const std::string& dstDirectory)
+        const std::string& dstDirectory) const
         throw (IOException);
-    static void generateInputSocket(
+    void generateInputSocket(
         int segmentConns,
-        std::ofstream& stream);
-    static void generateInputSocketRuleForBus(
+        std::ofstream& stream) const;
+    void generateInputSocketRuleForBus(
         int bus,
         int ind,
-        std::ofstream& stream);
-    static void generateOutputSocket(
+        std::ofstream& stream) const;
+    void generateOutputSocket(
         int portConns,
         int segmentConns,
-        std::ofstream& stream);
+        std::ofstream& stream) const;
     void createSignalsForIC(std::ostream& stream);
     void declareSocketEntities(std::ostream& stream) const;
     static void writeOutputSocketComponentDeclaration(
@@ -127,9 +128,7 @@ private:
         int ind,
         std::ostream& stream);
     void writeBusDumpCode(std::ostream& stream) const;
-    static void copyHighestPackage(const std::string& dstDirectory)
-        throw (IOException);
-    static std::string highestPkgFilePath();
+
     static std::set<TTAMachine::Socket*> outputSockets(
         const TTAMachine::Bus& bus);
 
@@ -179,12 +178,12 @@ private:
         TTAMachine::Socket::Direction direction,
         int portConns,
         int segmentConns);
-    static std::string socketEntityName(
+    std::string socketEntityName(
         TTAMachine::Socket::Direction direction,
         int portConns,
-        int segmentConns);
-    static std::string inputSocketEntityName(int conns);
-    static std::string outputSocketEntityName(int busConns, int portConns);
+        int segmentConns) const;
+    std::string inputSocketEntityName(int conns) const;
+    std::string outputSocketEntityName(int busConns, int portConns) const;
 
     static std::string indentation(unsigned int level);
 
@@ -198,6 +197,7 @@ private:
     bool generateBusTrace_;
     /// The starting cycle for bus tracing.
     unsigned int busTraceStartingCycle_;
+    TCEString entityNameStr_;
 };
 
 #endif

@@ -3,9 +3,9 @@ Warning: didn't find mapping for signal name fu_export_test_debug_internal
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.globals.all;
 use work.util.all;
-use work.imem_mau.all;
+use work.stratix_export_test_globals.all;
+use work.stratix_export_test_imem_mau.all;
 use work.stratix_export_test_params.all;
 
 entity stratix_export_test is
@@ -22,7 +22,7 @@ end stratix_export_test;
 architecture structural of stratix_export_test is
 
 
-  component toplevel
+  component stratix_export_test
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -83,7 +83,7 @@ begin
   onchip_dmem_wren_wire <= fu_LSU_dmem_wr_en_x_util_inverter_data_out_wire;
   ground_signal <= (others => '0');
 
-  core : toplevel
+  core : stratix_export_test
     port map (
       clk => clk,
       rstx => rstx,

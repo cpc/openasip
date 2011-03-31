@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -66,9 +67,6 @@ const string INPUT_SOCKET_DATA_PORT = "data";
 const string SOCKET_BUS_CONTROL_PORT = "databus_cntrl";
 const string SOCKET_DATA_CONTROL_PORT = "data_cntrl";
 
-const string HIGHEST_PKG_FILE_NAME = "highest_pkg.vhdl";
-
-
 /**
  * The constructor.
  *
@@ -105,7 +103,11 @@ DefaultICGenerator::addICToNetlist(
     const ProGe::NetlistGenerator& generator,
     ProGe::Netlist& netlist) {
 
-    NetlistBlock* icBlock = new NetlistBlock("interconn", "ic", netlist);
+    entityNameStr_ = netlist.topLevelBlock().moduleName();
+
+    NetlistBlock* icBlock = 
+        new NetlistBlock(
+            entityNameStr_ + "_" + "interconn", "ic", netlist);
     icBlock_ = icBlock;
     netlist.topLevelBlock().addSubBlock(icBlock);
     ControlUnit* gcu = machine_.controlUnit();
@@ -380,8 +382,6 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const
             }
         }
     }   
-
-    copyHighestPackage(dstDirectory);
 }
 
 /**
@@ -415,7 +415,7 @@ DefaultICGenerator::generateSocket(
     TTAMachine::Socket::Direction direction,
     int portConns,
     int segmentConns,
-    const std::string& dstDirectory) 
+    const std::string& dstDirectory) const
     throw (IOException) {
     
     string fileName = socketFileName(direction, portConns, segmentConns);
@@ -432,7 +432,7 @@ DefaultICGenerator::generateSocket(
     stream << "use IEEE.std_logic_1164.all;" << endl;
     stream << "use IEEE.std_logic_arith.all;" << endl;
     if (direction == Socket::OUTPUT) {
-        stream << "use work.highest.all;" << endl;
+        stream << "use work.tce_util.all;" << endl;
     } 
     stream << endl;
     
@@ -446,36 +446,6 @@ DefaultICGenerator::generateSocket(
     stream.close();
 }
 
-
-/**
- * Copies the file that contains the highest_pkg to the given destination 
- * directory.
- *
- * @param dstDirectory The destination directory.
- */
-void
-DefaultICGenerator::copyHighestPackage(const std::string& dstDirectory)
-    throw (IOException) {
-
-    string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR + 
-        HIGHEST_PKG_FILE_NAME;
-    FileSystem::copy(highestPkgFilePath(), dstFile);
-}
-
-
-/**
- * Returns the path to the hard coded highest package file.
- *
- * @return Path to the file.
- */
-std::string
-DefaultICGenerator::highestPkgFilePath() { 
-    string application = "ProGe";
-    return Environment::dataDirPath(application) + 
-        FileSystem::DIRECTORY_SEPARATOR + HIGHEST_PKG_FILE_NAME;
-} 
-
-
 /**
  * Generates the given input socket to the given stream.
  *
@@ -485,7 +455,7 @@ DefaultICGenerator::highestPkgFilePath() {
 void
 DefaultICGenerator::generateInputSocket(
     int segmentConns,
-    std::ofstream& stream) {
+    std::ofstream& stream) const {
     
     assert(segmentConns > 0);
     
@@ -561,9 +531,7 @@ DefaultICGenerator::generateInputSocket(
  */
 void
 DefaultICGenerator::generateInputSocketRuleForBus(
-    int bus, 
-    int ind, 
-    std::ofstream& stream) {
+    int bus, int ind, std::ofstream& stream) const {
     
     stream << indentation(ind) << "if " << busWidthGeneric(bus) << " < " 
            << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
@@ -593,7 +561,7 @@ void
 DefaultICGenerator::generateOutputSocket(
     int portConns,
     int segmentConns,
-    std::ofstream& stream) {
+    std::ofstream& stream) const {
     
     string entityName = socketEntityName(
         Socket::OUTPUT, portConns, segmentConns);
@@ -728,9 +696,9 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
     stream << "use IEEE.std_logic_1164.all;" << endl;
     stream << "use IEEE.std_logic_arith.all;" << endl;
     stream << "use STD.textio.all;" << endl;
-    stream << "use work.globals.all;" << endl << endl;
+    stream << "use work." << entityNameStr_ << "_globals.all;" << endl << endl;
         
-    string entityName = "interconn";
+    string entityName = entityNameStr_ + "_interconn";
     stream << "entity " << entityName << " is" << endl << endl;
 
     VHDLNetlistWriter::writePortDeclaration(
@@ -1645,7 +1613,7 @@ std::string
 DefaultICGenerator::socketEntityName(
     TTAMachine::Socket::Direction direction,
     int portConns,
-    int segmentConns) {
+    int segmentConns) const {
 
     if (direction == Socket::INPUT) {
         return inputSocketEntityName(segmentConns);
@@ -1665,8 +1633,10 @@ DefaultICGenerator::socketEntityName(
  * @return The name of the entity.
  */
 std::string
-DefaultICGenerator::inputSocketEntityName(int conns) {
-    return "input_socket_cons_" + Conversion::toString(conns);
+DefaultICGenerator::inputSocketEntityName(int conns) const {
+    return 
+        entityNameStr_ + "_input_socket_cons_" + 
+        Conversion::toString(conns);
 }
 
 
@@ -1679,8 +1649,10 @@ DefaultICGenerator::inputSocketEntityName(int conns) {
  * @return The name of the entity.
  */
 std::string
-DefaultICGenerator::outputSocketEntityName(int busConns, int portConns) {
-    return "output_socket_cons_" + Conversion::toString(busConns) + "_" +
+DefaultICGenerator::outputSocketEntityName(int busConns, int portConns) const {
+    return 
+        entityNameStr_ + "_output_socket_cons_" + 
+        Conversion::toString(busConns) + "_" +
         Conversion::toString(portConns);
 }
 

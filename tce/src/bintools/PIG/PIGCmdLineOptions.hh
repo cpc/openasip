@@ -58,6 +58,7 @@ public:
         throw (OutOfRange);
     bool showCompressors() const;
     std::string progeOutputDirectory() const;
+    std::string entityName() const;
 
     virtual void printVersion() const;
     virtual void printHelp() const;

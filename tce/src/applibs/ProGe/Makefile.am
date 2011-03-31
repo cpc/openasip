@@ -3,7 +3,7 @@ libproge_la_SOURCES = Netlist.cc NetlistBlock.cc NetlistPort.cc \
 NetlistGenerator.cc PortConnectionProperty.cc ICDecoderGeneratorPlugin.cc \
 NetlistWriter.cc VHDLNetlistWriter.cc ProGeUI.cc ProcessorGenerator.cc \
 BlockSourceCopier.cc ProGeScriptGenerator.cc ProGeTestBenchGenerator.cc \
-VirtualNetlistBlock.cc
+VirtualNetlistBlock.cc HDLTemplateInstantiator.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base

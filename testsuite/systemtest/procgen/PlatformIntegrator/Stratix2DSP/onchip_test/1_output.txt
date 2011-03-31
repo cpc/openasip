@@ -16,9 +16,9 @@ pin assignments
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.globals.all;
 use work.util.all;
-use work.imem_mau.all;
+use work.stratix_test_onchip_onchip_globals.all;
+use work.stratix_test_onchip_onchip_imem_mau.all;
 use work.stratix_test_onchip_onchip_params.all;
 
 entity stratix_test_onchip_onchip is
@@ -33,7 +33,7 @@ end stratix_test_onchip_onchip;
 architecture structural of stratix_test_onchip_onchip is
 
 
-  component toplevel
+  component stratix_test_onchip_onchip
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -92,7 +92,7 @@ begin
   onchip_dmem_wren_wire <= fu_LSU_dmem_wr_en_x_util_inverter_data_out_wire;
   ground_signal <= (others => '0');
 
-  core : toplevel
+  core : stratix_test_onchip_onchip
     port map (
       clk => clk,
       rstx => rstx,

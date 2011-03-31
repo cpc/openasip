@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,11 +27,13 @@
  * Implementation of BlockSourceCopier class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
 #include <string>
 #include <vector>
+#include <fstream>
 #include <boost/format.hpp>
 
 #include "BlockSourceCopier.hh"
@@ -44,11 +46,14 @@
 #include "RFImplementation.hh"
 #include "FileSystem.hh"
 #include "AssocTools.hh"
+#include "HDLTemplateInstantiator.hh"
 
 using namespace IDF;
 using namespace HDB;
 using std::string;
 using std::vector;
+
+static const std::string UTILITY_VHDL_FILE = "tce_util_pkg.vhdl";
 
 namespace ProGe {
 
@@ -56,8 +61,9 @@ namespace ProGe {
  * The constructor.
  */
 BlockSourceCopier::BlockSourceCopier(
-    const IDF::MachineImplementation& implementation) :
-    implementation_(implementation) {
+    const IDF::MachineImplementation& implementation,
+    TCEString entityStr) :
+    implementation_(implementation), entityStr_(entityStr) {
 }
 
 
@@ -112,6 +118,12 @@ BlockSourceCopier::copyShared(const std::string& dstDirectory)
         copyBaseRFFiles(rfImpl, dstDirectory);
     }
 
+    const string DS = FileSystem::DIRECTORY_SEPARATOR;
+    string sourceDir = Environment::dataDirPath("ProGe");
+    // copy the utility VHDL file
+    FileSystem::copy(
+        sourceDir + DS + UTILITY_VHDL_FILE,
+        dstDirectory + DS + "vhdl" + DS + UTILITY_VHDL_FILE);
 }
 
 /**
@@ -139,40 +151,46 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
             throw IOException(__FILE__, __LINE__, __func__, errorMsg);
         }
     }
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(entityStr_);
+
     string sourceFile;
     string dstFile;
     if (implementation_.hasDecompressorFile()) {
         sourceFile = implementation_.decompressorFile();
         string file = FileSystem::fileOfPath(sourceFile);
         dstFile = decompressorTargetDir + DS + file;
-    } else {
+        FileSystem::copy(sourceFile, dstFile);
+        } else {
         sourceFile = Environment::dataDirPath("ProGe") + DS +
-            "decompressor.vhdl";
-        string file = FileSystem::fileOfPath(sourceFile);
+            "idecompressor.vhdl.tmpl";
+        string file = "idecompressor.vhdl";
         dstFile = decompressorTargetDir + DS + file;
+        inst.instantiateTemplateFile(sourceFile, dstFile);
     }
-
-    boost::format unableToCopy("Unable to copy file %1% to %2%");
-    FileSystem::copy(sourceFile, dstFile);
 
     // copy ifetch unit
     string ifetchTargetDir = decompressorTargetDir;
     assert(FileSystem::fileExists(ifetchTargetDir));
     string ifetchSrcFile = Environment::dataDirPath("ProGe") + DS +
-        "ifetch.vhdl";
-    string ifetchDstFile = ifetchTargetDir + DS + FileSystem::fileOfPath(
-        ifetchSrcFile);
-    FileSystem::copy(ifetchSrcFile, ifetchDstFile);
+        "ifetch.vhdl.tmpl";
+    string ifetchDstFile = 
+        ifetchTargetDir + DS + "ifetch.vhdl";
+
+    inst.instantiateTemplateFile(ifetchSrcFile, ifetchDstFile);
 
     // copy opcodes package
     string opcodesTargetDir = decompressorTargetDir;
     assert(FileSystem::fileExists(opcodesTargetDir));
-    string opcodesSrcFile = Environment::dataDirPath("ProGe") + DS + 
-        "opcodes_pkg.vhdl";
+    string opcodesSrcFile = 
+        Environment::dataDirPath("ProGe") + DS + 
+        "gcu_opcodes_pkg.vhdl.tmpl";
     string opcodesDstFile = opcodesTargetDir + DS + 
-        FileSystem::fileOfPath(opcodesSrcFile);
-    FileSystem::copy(opcodesSrcFile, opcodesDstFile);
+        "gcu_opcodes_pkg.vhdl";
+    inst.instantiateTemplateFile(opcodesSrcFile, opcodesDstFile);
 }
+
 
 
 /**

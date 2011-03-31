@@ -210,7 +210,7 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     try {
         generator.generateProcessor(
             ProGe::VHDL,
-            machine_, impl_, *plugin, 1, targetDir, targetDir, 
+            machine_, impl_, *plugin, 1, targetDir, targetDir, "",
             errorStream, warningStream);
     } catch (Exception& e) {
         wxString message = WxConversion::toWxString(e.errorMessage());

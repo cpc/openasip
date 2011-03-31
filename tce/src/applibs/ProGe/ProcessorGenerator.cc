@@ -99,24 +99,7 @@ ProcessorGenerator::~ProcessorGenerator() {
 /**
  * Generates the processor.
  *
- * @param language The HDL to be used.
- * @param machine The target architecture to generate an implementation for.
- * @param implementation The implementation definition to use.
- * @param plugin The IC/decoder generator plugin.
- * @param imemWidthInMAUs Width of the instruction memory in MAUs.
- * @param dstDirectory The destination directory.
- * @param sharedDstDirectory The destination directory for VHDL files that
- *                           are potentially shared between multiple TTAs in
- *                           the same toplevel design.
- * @param outputStream Stream where errors are written.
- * @param warningStream Stream where warnings are written
- * @exception IOException If an IO error occurs.
- * @exception InvalidData If implementation of a block defined in IDF is
- *                        not available or if HDB is erroneous or if the
- *                        GCU/IC plugin is incompatible with the machine.
- * @exception IllegalMachine If the machine is illegal.
- * @exception OutOfRange If the given instruction memory width is not positive.
- * @exception InstanceNotFound HDB is missing some data.
+ * @see ProGeUI::generateProcessor()
  */
 void
 ProcessorGenerator::generateProcessor(
@@ -127,10 +110,13 @@ ProcessorGenerator::generateProcessor(
     int imemWidthInMAUs,
     const std::string& dstDirectory,
     const std::string& sharedDstDirectory,
+    const std::string& entityString,
     std::ostream& errorStream,
     std::ostream& warningStream)
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
            InstanceNotFound) {
+
+    entityStr_ = entityString;
 
     // validate the machine
     validateMachine(machine, errorStream, warningStream);
@@ -141,7 +127,9 @@ ProcessorGenerator::generateProcessor(
     checkIULatencies(machine, implementation, plugin);
 
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
-    netlist_ = netlistGenerator.generate(imemWidthInMAUs, warningStream);
+    netlist_ = 
+        netlistGenerator.generate(
+            imemWidthInMAUs, entityString, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";
@@ -192,7 +180,7 @@ ProcessorGenerator::generateProcessor(
         }
     }
 
-    BlockSourceCopier copier(implementation);
+    BlockSourceCopier copier(implementation, entityString);
     copier.copyShared(sharedDstDirectory);
     copier.copyProcessorSpecific(dstDirectory);
 
@@ -231,7 +219,7 @@ ProcessorGenerator::generateGlobalsPackage(
     }
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    stream << "package globals is" << endl;
+    stream << "package " << entityStr_ << "_globals is" << endl;
     stream << "  -- instruction width" << endl;
     stream << "  constant INSTRUCTIONWIDTH : positive := " << bem.width()
            << ";" << endl;
@@ -243,7 +231,7 @@ ProcessorGenerator::generateGlobalsPackage(
            << ";" << endl;
     stream << "  -- clock period" << endl;
     stream << "  constant PERIOD : time := 10 ns;" << endl;
-    stream << "end globals;" << endl;
+    stream << "end " << entityStr_ << "_globals;" << endl;
 
     stream.close();
 }

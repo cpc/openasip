@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -38,6 +39,7 @@
 #include <map>
 #include <vector>
 
+#include "TCEString.hh"
 #include "Exception.hh"
 
 class InstructionBitVector;
@@ -116,7 +118,8 @@ public:
      *
      * @param stream The stream to write.
      */
-    virtual void generateDecompressor(std::ostream& stream) = 0;
+    virtual void generateDecompressor(
+        std::ostream& stream, TCEString entityStr) = 0;
 
     /**
      * Prints description of the plugin to the given stream.

@@ -23,11 +23,11 @@
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
-use work.globals.all;
-use work.opcodes.all;
-use work.imem_mau.all;
+use work.ENTITY_STR_globals.all;
+use work.ENTITY_STR_gcu_opcodes.all;
+use work.ENTITY_STR_imem_mau.all;
 
-entity ifetch is
+entity ENTITY_STR_ifetch is
 
   port (
 
@@ -57,9 +57,9 @@ entity ifetch is
 
     clk  : in std_logic;
     rstx : in std_logic);
-end ifetch;
+end ENTITY_STR_ifetch;
 
-architecture rtl_andor of ifetch is
+architecture rtl_andor of ENTITY_STR_ifetch is
 
   -- signals for program counter
   signal pc_reg      : std_logic_vector (IMEMADDRWIDTH-1 downto 0);

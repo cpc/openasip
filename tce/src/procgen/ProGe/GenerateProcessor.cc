@@ -99,6 +99,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     std::string outputDirectory = "";
     std::string sharedOutputDir = "";
     ProGe::HDL language = ProGe::VHDL;
+    string entity = "";
 
     try {
 
@@ -138,6 +139,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         } else {
             sharedOutputDir = outputDirectory;
         }
+
+        entity = options.entityName();
         
         string processorDefinition = options.processorToGenerate();
         if (FileSystem::fileExtension(processorDefinition) == ".adf") {
@@ -174,7 +177,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         
         ProGeUI::generateProcessor(
             imemWidthInMAUs, language, outputDirectory, 
-            sharedOutputDir, std::cerr, std::cerr);
+            sharedOutputDir, entity, std::cerr, std::cerr);
     } catch (ParserStopRequest) {
         return false;
     } catch (const IllegalCommandLine& exception) {
@@ -190,7 +193,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     string testBenchDir = outputDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "tb";
     try {
-        ProGeUI::generateTestBench(testBenchDir, outputDirectory);
+        ProGeUI::generateTestBench(testBenchDir, outputDirectory, entity);
     } catch (const Exception& e) {
         std::cerr << "Warning: Processor Generator failed to "
                   << "generate testbench." << std::endl;
@@ -217,7 +220,6 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
         "platform";
-        string entity = options.entityName();
         string program = 
             StringTools::chopString(options.tpefName(), ".tpef").at(0);
         MemType imem = string2MemType(options.imemType());

@@ -37,6 +37,7 @@
 
 #include "ProGeTypes.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -72,6 +73,7 @@ public:
         int imemWidthInMAUs,
         const std::string& dstDirectory,
         const std::string& sharedDstDirectory,
+        const std::string& entityString,
         std::ostream& errorStream,
         std::ostream& warningStream)
         throw (IOException, InvalidData, IllegalMachine, OutOfRange,
@@ -102,6 +104,7 @@ private:
         throw (IOException);
 
     Netlist* netlist_;
+    TCEString entityStr_;
 };
 }
 

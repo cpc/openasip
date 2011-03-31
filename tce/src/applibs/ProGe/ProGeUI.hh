@@ -38,6 +38,7 @@
 
 #include <string>
 
+#include "TCEString.hh"
 #include "ProcessorGenerator.hh"
 #include "ProGeTypes.hh"
 #include "ICDecoderGeneratorPlugin.hh"
@@ -84,15 +85,17 @@ protected:
     void generateProcessor(
         int imemWidthInMAUs,
         HDL language,
-        const std::string& dstDirectory,
-        const std::string& sharedDstDirectory,
+        TCEString dstDirectory,
+        TCEString sharedDstDirectory,
+        TCEString entityString,
         std::ostream& errorStream,
         std::ostream& warningStream)
         throw (InvalidData, DynamicLibraryException, IOException,
                InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
     void generateTestBench(
         const std::string& dstDir, 
-        const std::string& progeOutDir);
+        const std::string& progeOutDir,
+        const std::string& entityStr);
     void generateScripts(
         const std::string& dstDir,
         const std::string& progeOutDir,

@@ -80,7 +80,7 @@ using std::set;
 using std::string;
 using boost::format;
 
-const string TOPLEVEL_BLOCK_NAME = "toplevel";
+const string TOPLEVEL_BLOCK_DEFAULT_NAME = "toplevel";
 const string CLOCK_PORT_NAME = "clk";
 const string RESET_PORT_NAME = "rstx";
 const string RA_OUT_PORT_NAME = "ra_out";
@@ -161,6 +161,8 @@ NetlistGenerator::~NetlistGenerator() {
  * Generates the netlist.
  *
  * @param imemWidthInMAUs Width of instruction memory in MAUs.
+ * @param entityNameStr The name string used to make the netlist blocks 
+ *                      uniquely named.
  * @return The newly generated netlist.
  * @exception IOException If some of the HDBs given in IDF cannot be
  *                        accessed.
@@ -170,8 +172,13 @@ NetlistGenerator::~NetlistGenerator() {
  * @exception InstanceNotFound Something missing missing from HDB.
  */
 Netlist*
-NetlistGenerator::generate(int imemWidthInMAUs, std::ostream& warningStream)
+NetlistGenerator::generate(
+    int imemWidthInMAUs, 
+    TCEString entityNameStr=TOPLEVEL_BLOCK_DEFAULT_NAME,
+    std::ostream& warningStream=std::cerr) 
     throw (IOException, InvalidData, OutOfRange, InstanceNotFound) {
+
+    entityNameStr_ = entityNameStr;
 
     if (imemWidthInMAUs < 1) {
         string errorMsg = "Instruction memory width in MAUs must be positive.";
@@ -182,7 +189,7 @@ NetlistGenerator::generate(int imemWidthInMAUs, std::ostream& warningStream)
     
     // add toplevel block
     NetlistBlock* toplevelBlock = new NetlistBlock(
-        TOPLEVEL_BLOCK_NAME, "toplevel", *netlist);
+        entityNameStr, "toplevel", *netlist);
 
     // add GCU to the netlist
     addGCUToNetlist(*toplevelBlock, imemWidthInMAUs);
@@ -621,7 +628,7 @@ NetlistGenerator::addGCUToNetlist(
 
     // add ifetch block
     NetlistBlock* ifetchBlock = new NetlistBlock(
-        IFETCH_BLOCK_NAME, "inst_fetch", netlist);
+        entityNameStr_ + "_" + IFETCH_BLOCK_NAME, "inst_fetch", netlist);
     toplevelBlock.addSubBlock(ifetchBlock);
     NetlistPort* ifetchClkPort = new NetlistPort(
         CLOCK_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
@@ -683,7 +690,7 @@ NetlistGenerator::addGCUToNetlist(
 
     // add decompressor block
     NetlistBlock* decompressorBlock = new NetlistBlock(
-        DECOMPRESSOR_BLOCK_NAME, "decomp", netlist);
+        entityNameStr_ + "_" + DECOMPRESSOR_BLOCK_NAME, "decomp", netlist);
     toplevelBlock.addSubBlock(decompressorBlock);
     NetlistPort* decFetchPort = new NetlistPort(
         FETCH_PORT_NAME, "1", BIT, HDB::OUT, *decompressorBlock);
@@ -716,7 +723,7 @@ NetlistGenerator::addGCUToNetlist(
 
     // add decoder block
     NetlistBlock* decoderBlock = new NetlistBlock(
-        DECODER_BLOCK_NAME, "inst_decoder", netlist);
+        entityNameStr_ + "_" + DECODER_BLOCK_NAME, "inst_decoder", netlist);
     toplevelBlock.addSubBlock(decoderBlock);
     instructionDecoder_ = decoderBlock;
     NetlistPort* decodIWordPort = new NetlistPort(

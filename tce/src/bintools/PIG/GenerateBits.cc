@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -62,7 +63,7 @@ using namespace TTAMachine;
 const int DEFAULT_IMEMWIDTH_IN_MAUS = 1;
 const int PERIOD = 10;
 const string IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
-const string DECOMPRESSOR_FILE = "decompressor.vhdl";
+const string DECOMPRESSOR_FILE = "idecompressor.vhdl";
 
 const string TB_DIR = "tb";
 const string DIR_SEP = FileSystem::DIRECTORY_SEPARATOR;
@@ -231,7 +232,7 @@ parseParameter(
 
 
 void 
-createMauPkg(int imemMauWidth, string fileName) {
+createMauPkg(int imemMauWidth, string fileName, string entityNameStr) {
 
     string indentation = "   ";
  
@@ -244,18 +245,21 @@ createMauPkg(int imemMauWidth, string fileName) {
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
     std::ofstream stream(fileName.c_str());
+    
+    string entityName = entityNameStr + "_imem_mau";
 
-    stream << "package imem_mau is" << endl
-
+    stream << "package " << entityName << " is" << endl
            << indentation << "-- created by generatebits" << endl
            << indentation << "constant IMEMMAUWIDTH : positive := "
            << imemMauWidth << ";" << endl
-           << "end imem_mau;" << endl;
+           << "end " << entityName << ";" << endl;
     stream.close();
 }
 
 void
-createCompressor(string fileName, ProgramImageGenerator& imageGenerator) {
+createCompressor(
+    string fileName, ProgramImageGenerator& imageGenerator, 
+    string entityStr) {
 
     bool created = FileSystem::createFile(fileName);
     if (!created) {
@@ -265,7 +269,7 @@ createCompressor(string fileName, ProgramImageGenerator& imageGenerator) {
     }
     std::ofstream decompressorStream(
         fileName.c_str(), std::ofstream::out);
-    imageGenerator.generateDecompressor(decompressorStream);
+    imageGenerator.generateDecompressor(decompressorStream, entityStr);
     decompressorStream.close();
 }
 
@@ -330,6 +334,10 @@ int main(int argc, char* argv[]) {
     bool showCompressors = options.showCompressors();
     int imemMAUsPerLine = DEFAULT_IMEMWIDTH_IN_MAUS;
     string progeOutputDir = options.progeOutputDirectory();
+
+    TCEString entityStr = options.entityName();
+    if (entityStr == "")
+        entityStr = "tta0";
 
     if (showCompressors) {
         std::vector<string> compressorFiles = 
@@ -517,7 +525,7 @@ int main(int argc, char* argv[]) {
                    decomp = temp;
                }
             }
-            createCompressor(decomp, imageGenerator);            
+            createCompressor(decomp, imageGenerator, entityStr);            
         }
         
         int compressedInstructionWidth = imageGenerator.imemMauWidth();
@@ -531,7 +539,7 @@ int main(int argc, char* argv[]) {
                 imemMauPkg = temp;
             }
         }
-        createMauPkg(compressedInstructionWidth, imemMauPkg);
+        createMauPkg(compressedInstructionWidth, imemMauPkg, entityStr);
 
         for (std::vector<Binary*>::iterator iter = tpefTable.begin();
              iter != tpefTable.end(); iter++) {

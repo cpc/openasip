@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -366,13 +367,17 @@ ProgramImageGenerator::generateDataImage(
  * this may not function properly.
  *
  * @param stream The output stream.
+ * @param entityStr The entity string used to make HDL entity/component
+ *                  names unique for multiprocessor designs.
  */
 void
-ProgramImageGenerator::generateDecompressor(std::ostream& stream) {
+ProgramImageGenerator::generateDecompressor(
+    std::ostream& stream,
+    TCEString entityStr) {
     if (compressor_ == NULL) {
         return;
     } else {
-        compressor_->generateDecompressor(stream);
+        compressor_->generateDecompressor(stream, entityStr);
     }
 }
 

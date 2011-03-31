@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,8 @@
  *
  * Implementation of ProGeTestBenchGenerator class.
  *
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -41,6 +42,7 @@
 #include <boost/regex.hpp>
 
 #include "ProGeTestBenchGenerator.hh"
+#include "HDLTemplateInstantiator.hh"
 #include "FileSystem.hh"
 #include "Conversion.hh"
 #include "Machine.hh"
@@ -112,9 +114,12 @@ ProGeTestBenchGenerator::generate(
     const TTAMachine::Machine& mach,
     const IDF::MachineImplementation& implementation,
     const std::string& dstDirectory,
-    const std::string& progeOutDir)
+    const std::string& progeOutDir,
+    const std::string& entityStr)
     throw (IOException, OutOfRange, InvalidName, InvalidData) {
      
+    entityStr_ = entityStr;
+
     // map to store FUs that use address spaces
     std::map<string, std::vector<FunctionUnit*> > ASFUs;
     
@@ -292,7 +297,8 @@ ProGeTestBenchGenerator::generate(
     
     // read toplevel.vhdl from proge output dir for proc_arch.vhdl
     string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
-        + "vhdl" + FileSystem::DIRECTORY_SEPARATOR + "toplevel.vhdl";
+        + "vhdl" + FileSystem::DIRECTORY_SEPARATOR + 
+        entityStr + ".vhdl";
 
     createProcArchVhdl(dstDirectory, toplevel, LSUMapConst);
 }
@@ -317,20 +323,37 @@ ProGeTestBenchGenerator::createProcArchVhdl(
     const std::string& signalMappings) 
     throw (IOException) {
 
-    if(!FileSystem::fileIsReadable(topLevelVhdl)) {
+    if (!FileSystem::fileIsReadable(topLevelVhdl)) {
         string eMsg = "File was not readable: " + topLevelVhdl;
         IOException error(__FILE__, __LINE__, __func__, eMsg);
         throw error;
     }
 
-    string startRE = ".*entity.toplevel.is.*";
-    string endRE = ".*end.toplevel;.*";
-    string block;
-    FileSystem::readBlockFromFile(topLevelVhdl, startRE, endRE, block, false);
+    string startRE = std::string(".*entity.") + entityStr_ + ".is.*";
+    string endRE = std::string(".*end.") + entityStr_ + ";.*";
+    string block = "";
+    bool ok = 
+        FileSystem::readBlockFromFile(
+            topLevelVhdl, startRE, endRE, block, false);
+    
+    if (!ok || block == "") 
+        throw IOException(__FILE__, __LINE__, __func__, 
+                          TCEString(
+                              "Could not read processor entity from ") +
+                          topLevelVhdl);
+               
+
+    TCEString sourceFile = 
+        Environment::dataDirPath("ProGe") + FileSystem::DIRECTORY_SEPARATOR +
+        "tb" + FileSystem::DIRECTORY_SEPARATOR + "proc_arch.vhdl.tmpl";
 
     // change proc_arch.vhdl
     string procArch = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "proc_arch.vhdl";
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(entityStr_);
+    inst.instantiateTemplateFile(sourceFile, procArch);
 
     // check if readable and writable
     if(!FileSystem::fileIsReadable(procArch) || 
@@ -341,8 +364,8 @@ ProGeTestBenchGenerator::createProcArchVhdl(
         throw error;
     }
 
-    startRE = ".*component.toplevel.*";
-    endRE = ".*end.component;.*";
+    startRE = std::string(".*component.") + entityStr_ + ".*";
+    endRE = std::string(".*end.component;.*");
     if (!FileSystem::appendReplaceFile(procArch, startRE, block, endRE,
         false)) {
 
@@ -351,12 +374,12 @@ ProGeTestBenchGenerator::createProcArchVhdl(
         throw error;
     }
 
-    startRE = ".*core.:.toplevel.*";
+    startRE = std::string(".*core.:.") + entityStr_ + ".*";
     endRE = ".*datamem.:.synch_dualport_sram.*";
     if (!FileSystem::appendReplaceFile(procArch, startRE, signalMappings, 
         endRE, false)) {
 
-        string eMsg = "Cold not write core to: " + procArch;
+        string eMsg = "Could not write core to: " + procArch;
         IOException error(__FILE__, __LINE__, __func__, eMsg);
         throw error;
     }
@@ -483,9 +506,10 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
         return; 
     }
 
+    const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     // copy testbench base files to dstDirectory
     string sourceDir = Environment::dataDirPath("ProGe");
-    sourceDir = sourceDir + FileSystem::DIRECTORY_SEPARATOR + "tb";
+    sourceDir = sourceDir + DS + "tb";
     std::list<string> foundSourceFiles;
 
     string vhdlRegex = ".*\\.vhdl$";
@@ -495,6 +519,16 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
         FileSystem::copy(*it, dstDirectory);
         it++;
     }
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(entityStr_);
+    inst.instantiateTemplateFile(
+        sourceDir + DS + "testbench.vhdl.tmpl", 
+        dstDirectory + DS + "testbench.vhdl");
+    inst.instantiateTemplateFile(
+        sourceDir + DS + "proc_ent.vhdl.tmpl", 
+        dstDirectory + DS + "proc_ent.vhdl");
+
 }
 
 /**

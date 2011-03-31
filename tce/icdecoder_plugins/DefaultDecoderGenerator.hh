@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of DefaultDecoderGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  */
 
 #ifndef TTA_DEFAULT_DECODER_GENERATOR_HH
@@ -35,6 +36,7 @@
 #include <string>
 #include <set>
 
+#include "TCEString.hh"
 #include "Exception.hh"
 
 namespace TTAMachine {
@@ -249,9 +251,9 @@ private:
     const CentralizedControlICGenerator& icGenerator_;
     /// The netlist generator.
     const ProGe::NetlistGenerator* nlGenerator_;    
-
     /// The instruction decoder block in the netlist.
     ProGe::NetlistBlock* decoderBlock_;
+    TCEString entityNameStr_;
 };
 
 #endif

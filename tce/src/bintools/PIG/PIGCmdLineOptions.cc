@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -52,62 +53,83 @@ const std::string PIGCmdLineOptions::COMPRESSOR_PARAMS_PARAM_NAME =
 const std::string PIGCmdLineOptions::SHOW_COMPRESSORS_PARAM_NAME =
     "showcompressors";
 const std::string PIGCmdLineOptions::HDL_OUTPUT_DIR = "hdl-dir";
+const string ENTITY_NAME = "entity-name";
 
 /**
  * The constructor.
  */
 PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
+
     StringListCmdLineOptionParser* tpefFile = 
         new StringListCmdLineOptionParser(
             TPEF_PARAM_NAME, "The TPEF program file(s)", "p");
     addOption(tpefFile);
+
     StringCmdLineOptionParser* bemFile = new StringCmdLineOptionParser(
         BEM_PARAM_NAME, "The BEM file", "b");
     addOption(bemFile);
+
     StringCmdLineOptionParser* piOutputMode = new StringCmdLineOptionParser(
         PI_FORMAT_PARAM_NAME,
         "The output format of program image(s) ('ascii', 'array', 'mif', "
         "'coe', 'vhdl' or 'binary'). Default is 'ascii'.", "f");
     addOption(piOutputMode);
+
     StringCmdLineOptionParser* diOutputMode = new StringCmdLineOptionParser(
         DI_FORMAT_PARAM_NAME, "The output format of data image(s) "
         "('ascii', 'array', 'mif', 'coe', 'vhdl' or 'binary'). Default is "
         "'ascii'.", "o");
     addOption(diOutputMode);
+
     StringCmdLineOptionParser* pluginFile = new StringCmdLineOptionParser(
         COMPRESSOR_PARAM_NAME, "Name of the code compressor plugin file.", 
         "c");
     addOption(pluginFile);
+
     BoolCmdLineOptionParser* createDataImages = new BoolCmdLineOptionParser(
         DATA_IMG_PARAM_NAME, 
         "Create data images.",
         "d");
     addOption(createDataImages);
+
     BoolCmdLineOptionParser* createDecompressor = 
         new BoolCmdLineOptionParser(
             GEN_DECOMP_PARAM_NAME, "Generate decompressor block.", "g");
     addOption(createDecompressor);
+
     IntegerCmdLineOptionParser* dmemMAUsPerLine = 
         new IntegerCmdLineOptionParser(
             DMEM_WIDTH_IN_MAUS_PARAM_NAME,
             "Width of data memory in MAUs. Default is 1.", "w");
     addOption(dmemMAUsPerLine);
+
     StringListCmdLineOptionParser* compressorParams = 
         new StringListCmdLineOptionParser(
             COMPRESSOR_PARAMS_PARAM_NAME,
             "Parameter to the code compressor in form 'name=value'.", "u");
     addOption(compressorParams);
+
     BoolCmdLineOptionParser* showCompressors = new BoolCmdLineOptionParser(
         SHOW_COMPRESSORS_PARAM_NAME, "Show compressor plugin descriptions.",
         "s");
     addOption(showCompressors);
+
     string hdlDirDesc("Directory root where ProGe generated HDL files. "
                       "Generatebits will write imem_mau_pkg and "
                       "decompressor, if it is needed, under the given "
                       "directory. Otherwise they are written to cwd.");
+
     StringCmdLineOptionParser* hdlDir = new StringCmdLineOptionParser(
         HDL_OUTPUT_DIR, hdlDirDesc, "x");
     addOption(hdlDir);
+
+    StringCmdLineOptionParser* entityName = 
+        new StringCmdLineOptionParser(
+            ENTITY_NAME, 
+            "String to use to make the generated VHDL entities unique. This "
+            "should be the same which was given to ProGe when the processor "
+            "was generated (default is 'tta0').", "e");
+    addOption(entityName);
 }
 
 
@@ -272,6 +294,11 @@ PIGCmdLineOptions::showCompressors() const {
 std::string
 PIGCmdLineOptions::progeOutputDirectory() const {
     return findOption(HDL_OUTPUT_DIR)->String();
+}
+
+std::string
+PIGCmdLineOptions::entityName() const {
+    return findOption(ENTITY_NAME)->String();
 }
 
 

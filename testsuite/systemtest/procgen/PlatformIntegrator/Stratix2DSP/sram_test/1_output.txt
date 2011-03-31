@@ -14,9 +14,9 @@ pin assignments
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.globals.all;
 use work.util.all;
-use work.imem_mau.all;
+use work.stratix_test_array_sram_globals.all;
+use work.stratix_test_array_sram_imem_mau.all;
 use work.stratix_test_array_sram_params.all;
 
 entity stratix_test_array_sram is
@@ -44,7 +44,7 @@ end stratix_test_array_sram;
 architecture structural of stratix_test_array_sram is
 
 
-  component toplevel
+  component stratix_test_array_sram
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -84,7 +84,7 @@ begin
   core_pc_init_wire <= (others => '0');
   ground_signal <= (others => '0');
 
-  core : toplevel
+  core : stratix_test_array_sram
     port map (
       clk => clk,
       rstx => rstx,

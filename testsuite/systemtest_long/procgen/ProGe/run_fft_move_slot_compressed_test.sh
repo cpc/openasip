@@ -3,13 +3,12 @@
 PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../tce/src/bintools/PIG/generatebits
 
-ADF=data/fft_limm_opt.adf
-IDF=data/fft_limm.idf
-BEM=data/fft_limm_opt.bem
+ADF=data/fft_simm.adf
+IDF=data/fft_simm.idf
+BEM=data/fft_simm.bem
 PROGE_OUT=proge-output
-SHARED_OUT=shared-vhdl
-ENTITY_NAME=tta_core0
-TPEF=data/fft_limm_opt.tpef
+TPEF=data/fft_simm.tpef
+COMP=../../../../tce/compressors/MoveSlotDictionary.so
 
 # runtime in cycles
 CYCLES=5234
@@ -21,9 +20,9 @@ function eexit {
 
 rm -f *.img
 rm -rf $PROGE_OUT
-$PROGE --entity-name ${ENTITY_NAME} -b $BEM -i $IDF -o $PROGE_OUT -s shared-vhdl $ADF || eexit "Proge failed with $ADF"
+$PROGE -b $BEM -i $IDF -o $PROGE_OUT $ADF || eexit "Proge failed with $ADF"
 
-$PIG --entity-name ${ENTITY_NAME} -b $BEM -p $TPEF -d -w 4 -x $PROGE_OUT $ADF || eexit "PIG failed with $ADF"
+$PIG -b $BEM -p $TPEF -d -w 4 -x $PROGE_OUT -g -c $COMP $ADF || eexit "PIG failed with $ADF"
 
 cd $PROGE_OUT || eexit "No such dir: $PROGE_OUT"
 ./ghdl_compile.sh >& /dev/null || eexit "Ghdl compile failed"

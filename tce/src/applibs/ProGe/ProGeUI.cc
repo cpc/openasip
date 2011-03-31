@@ -75,6 +75,8 @@ using namespace IDF;
 using std::string;
 using std::vector;
 
+static const std::string DEFAULT_ENTITY_STR = "tta0";
+
 namespace ProGe {
 
 /**
@@ -269,6 +271,9 @@ ProGeUI::loadICDecoderGeneratorPlugin(
  * @param sharedDstDirectory The destination directory for VHDL files that
  *                           are potentially shared between multiple TTAs in
  *                           the same toplevel design.
+ * @param entityString The string that is used as the top level entity name
+ *                     and to differentiate the entity and package names in 
+ *                     processor-specific HDL files.  
  * @param errorStream Stream where error messages are written.
  * @param warningStream Stream where warning messages are written.
  * @exception InvalidData If ADF or IDF is not loaded.
@@ -284,12 +289,19 @@ void
 ProGeUI::generateProcessor(
     int imemWidthInMAUs,
     HDL language,
-    const std::string& dstDirectory,
-    const std::string& sharedDstDirectory,
-    std::ostream& errorStream,
-    std::ostream& warningStream)
+    TCEString dstDirectory,
+    TCEString sharedDstDirectory = "",
+    TCEString entityString = DEFAULT_ENTITY_STR,
+    std::ostream& errorStream = std::cerr,
+    std::ostream& warningStream = std::cerr)
     throw (InvalidData, DynamicLibraryException, IOException,
            IllegalMachine, OutOfRange, InstanceNotFound) {
+
+    if (sharedDstDirectory == "")
+        sharedDstDirectory = dstDirectory;
+
+    if (entityString == "")
+        entityString = DEFAULT_ENTITY_STR;
 
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
@@ -339,7 +351,8 @@ ProGeUI::generateProcessor(
 
     generator_.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,
-        dstDirectory, sharedDstDirectory, errorStream, warningStream);
+        dstDirectory, sharedDstDirectory, entityString, errorStream, 
+        warningStream);
 }
 
 
@@ -354,13 +367,17 @@ ProGeUI::generateProcessor(
 void
 ProGeUI::generateTestBench(
     const std::string& dstDir, 
-    const std::string& progeOutDir) {
+    const std::string& progeOutDir,
+    const std::string& entityStr) {
 
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
-    
+
+    TCEString entity = entityStr;
+    if (entity == "") entity = DEFAULT_ENTITY_STR;
+
     ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-    tbGen.generate(*machine_, *idf_, dstDir, progeOutDir);
+    tbGen.generate(*machine_, *idf_, dstDir, progeOutDir, entity);
 }
 
 /** 

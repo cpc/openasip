@@ -6,6 +6,9 @@ Smaller features
 - ProGe: switch -s that can be used to define a separate directory for
   files that are potentially shared between multiple TTA processors in
   the same heterogeneous TTA multicore design.
+- ProGe and PIG: the string given with --entity-name is now used to make
+  the generated VHDL entity etc. names unique to allow easier
+  instantiation of multiple TTA cores in designs.
 
 1.4       April 2011
 ====================

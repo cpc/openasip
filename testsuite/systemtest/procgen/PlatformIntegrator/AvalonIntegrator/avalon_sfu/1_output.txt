@@ -11,9 +11,9 @@ add_interface conduit_interface conduit end
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.globals.all;
 use work.util.all;
-use work.imem_mau.all;
+use work.tta_avalon_sfu_globals.all;
+use work.tta_avalon_sfu_imem_mau.all;
 use work.tta_avalon_sfu_params.all;
 
 entity tta_avalon_sfu is
@@ -36,7 +36,7 @@ end tta_avalon_sfu;
 architecture structural of tta_avalon_sfu is
 
 
-  component toplevel
+  component tta_avalon_sfu
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -103,7 +103,7 @@ begin
   onchip_dmem_wren_wire <= fu_lsu_dmem_wr_en_x_util_inverter_data_out_wire;
   ground_signal <= (others => '0');
 
-  core : toplevel
+  core : tta_avalon_sfu
     port map (
       clk => clk,
       rstx => rstx,

@@ -33,6 +33,7 @@
 #include "CodeCompressor.hh"
 #include "Program.hh"
 #include "NullInstruction.hh"
+#include "TCEString.hh"
 
 using TTAProgram::Instruction;
 using TTAProgram::NullInstruction;
@@ -70,7 +71,7 @@ public:
     }
 
     virtual void 
-    generateDecompressor(std::ostream&) {}
+    generateDecompressor(std::ostream&, TCEString) {}
 };
 
 EXPORT_CODE_COMPRESSOR(DEFAULT_Compressor)

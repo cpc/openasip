@@ -41,6 +41,7 @@
 #include "BaseType.hh"
 #include "PluginTools.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
 
 namespace TPEF {
     class Binary;
@@ -101,7 +102,7 @@ public:
         int mausPerLine,
         bool usePregeneratedImage)
         throw (InvalidData, OutOfRange);
-    void generateDecompressor(std::ostream& stream);
+    void generateDecompressor(std::ostream& stream, TCEString entityStr);
 
     int imemMauWidth() const;
 

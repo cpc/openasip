@@ -40,13 +40,13 @@
 -- 2003-11-26  1.0      sertamo	Created
 -------------------------------------------------------------------------------
 
-use work.toplevel_params.all;
 use work.testbench_constants.all;
-use work.imem_mau.all;
+use work.ENTITY_STR_imem_mau.all;
+use work.ENTITY_STR_params.all;
 
 architecture structural_dp_dmem of proc is
 
-  component toplevel
+  component ENTITY_STR
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -198,7 +198,7 @@ architecture structural_dp_dmem of proc is
   
 begin  -- struct
 
-  core : toplevel
+  core : ENTITY_STR
     port map (
       clk              => clk,
       rstx             => rst_x,
