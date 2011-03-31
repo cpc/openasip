@@ -440,6 +440,7 @@ LLVMBackend::compile(
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
 
+#if (defined(LLVM_2_7) || defined(LLVM_2_8) || defined(LLVM_2_9))
     LLVMTCECmdLineOptions* options =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options->useExperimentalRegAllocator()) {
@@ -447,6 +448,7 @@ LLVMBackend::compile(
             createILPLinearScanRegisterAllocator);
     }
 
+#endif
     /**
      * This is quite straight copy how llc actually creates passes for target.
      */       
