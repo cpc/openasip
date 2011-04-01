@@ -423,7 +423,7 @@ ProGeUI::integrateProcessor(
     std::ostream& errorStream,
     std::string progeOutDir,
     const std::string& platformIntegrator,
-    const std::string& entityName,
+    const std::string& coreEntityName,
     const std::string& programName,
     MemType imem,
     MemType dmem,
@@ -448,15 +448,15 @@ ProGeUI::integrateProcessor(
     // TODO: append new integrators here
     if (platformIntegrator == "Stratix2DSP") {
         integrator = new Stratix2DSPBoardIntegrator(
-            language, progeOutDir, entityName, platformDir, programName, fmax,
+            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
             warningStream, errorStream, imemInfo, dmemInfo);
     } else if (platformIntegrator == "KoskiIntegrator") {
         integrator = new KoskiIntegrator(
-            language, progeOutDir, entityName, platformDir, programName, fmax,
+            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
             warningStream, errorStream, imemInfo, dmemInfo);
     } else if (platformIntegrator == "AvalonIntegrator") {
         integrator = new AvalonIntegrator(
-            language, progeOutDir, entityName, platformDir, programName, fmax,
+            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
             warningStream, errorStream, imemInfo, dmemInfo);
     } else {
         string errorMsg = "Unknown platform integrator: "

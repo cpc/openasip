@@ -45,9 +45,9 @@ using std::ofstream;
 using std::endl;
 
 QuartusProjectGenerator::QuartusProjectGenerator(
-    std::string toplevelEntity,
+    std::string coreEntity,
     const PlatformIntegrator* integrator):
-    ProjectFileGenerator(toplevelEntity,integrator) {
+    ProjectFileGenerator(coreEntity, integrator) {
 }
 
 QuartusProjectGenerator::~QuartusProjectGenerator() {

@@ -51,13 +51,12 @@ using std::endl;
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 
-const std::string PlatformIntegrator::TTA_CORE_NAME = "toplevel";
 const std::string PlatformIntegrator::TTA_CORE_CLK = "clk";
 const std::string PlatformIntegrator::TTA_CORE_RSTX = "rstx";
 
 
 PlatformIntegrator::PlatformIntegrator():
-    netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), entityName_(""),
+    netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), coreEntityName_(""),
     outputDir_(""), programName_(""), targetFrequency_(0),
     warningStream_(std::cout), errorStream_(std::cerr), ttaCore_(NULL),
     imem_(), dmem_() {
@@ -74,7 +73,7 @@ PlatformIntegrator::PlatformIntegrator():
 PlatformIntegrator::PlatformIntegrator(
     ProGe::HDL hdl,
     std::string progeOutputDir,
-    std::string entityName,
+    std::string coreEntityName,
     std::string outputDir,
     std::string programName,
     int targetClockFreq,
@@ -83,7 +82,7 @@ PlatformIntegrator::PlatformIntegrator(
     const MemInfo& imem,
     const MemInfo& dmem): 
     netlist_(new ProGe::Netlist()), hdl_(hdl),
-    progeOutputDir_(progeOutputDir), entityName_(entityName),
+    progeOutputDir_(progeOutputDir), coreEntityName_(coreEntityName),
     outputDir_(outputDir), programName_(programName),
     targetFrequency_(targetClockFreq), warningStream_(warningStream),
     errorStream_(errorStream), ttaCore_(NULL), imem_(imem),
@@ -93,6 +92,8 @@ PlatformIntegrator::PlatformIntegrator(
     imemSignals_.push_back("pc_init");
     imemSignals_.push_back("busy"); 
 
+    netlist_->setCoreEntityName(coreEntityName_);
+   
     createOutputDir();
 }
 
@@ -104,9 +105,9 @@ PlatformIntegrator::~PlatformIntegrator() {
 
 
 std::string 
-PlatformIntegrator::entityName() const {
+PlatformIntegrator::coreEntityName() const {
     
-    return entityName_;
+    return coreEntityName_;
 }
 
 
@@ -256,7 +257,9 @@ bool
 PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
 
     NetlistBlock* highestBlock =
-        new NetlistBlock(entityName(), entityName(), *netlist());
+        new NetlistBlock(
+            coreEntityName() + "_toplevel", 
+            coreEntityName() + "_toplevel", *netlist());
     
     // Must add ports to highest block *before* copying tta toplevel
     NetlistPort* clk = new NetlistPort(TTA_CORE_CLK, "0", 1, ProGe::BIT,
@@ -446,7 +449,7 @@ PlatformIntegrator::writeNewToplevel() {
     writer->write(platformDir);
     delete writer;
 
-    string toplevelFile = outputFilePath(entityName() + ".vhdl");
+    string toplevelFile = outputFilePath(coreEntityName() + "_toplevel.vhdl");
     if (!FileSystem::fileExists(toplevelFile)) {
         string msg = "NetlistWriter failed to create file " + toplevelFile;
         FileNotFound exc(__FILE__, __LINE__, "platformIntegrator", msg);
@@ -454,7 +457,7 @@ PlatformIntegrator::writeNewToplevel() {
     }
     projectFileGenerator()->addHdlFile(toplevelFile);
 
-    string paramFile = outputFilePath(entityName() + "_params_pkg.vhdl");
+    string paramFile = outputFilePath(coreEntityName() + "_toplevel_params_pkg.vhdl");
     if (FileSystem::fileExists(paramFile)) {
         projectFileGenerator()->addHdlFile(paramFile);
     }

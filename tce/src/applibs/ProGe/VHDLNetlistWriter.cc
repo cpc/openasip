@@ -132,7 +132,7 @@ VHDLNetlistWriter::writeNetlistParameterPackage(
  */
 std::string
 VHDLNetlistWriter::netlistParameterPkgName() const {
-    return netlist().topLevelBlock().moduleName() + "_params";
+    return netlist().coreEntityName() + "_params";
 }
 
 
@@ -167,10 +167,10 @@ VHDLNetlistWriter::writeBlock(
     outFile << "library IEEE;" << endl;
     outFile << "use IEEE.std_logic_1164.all;" << endl;
     outFile << "use IEEE.std_logic_arith.all;" << endl;
-    outFile << "use work.util.all;" << endl;
-    outFile << "use work." << netlist().topLevelBlock().moduleName() 
+    outFile << "use work.tce_util.all;" << endl;
+    outFile << "use work." << netlist().coreEntityName()
             << "_globals.all;" << endl;
-    outFile << "use work." << netlist().topLevelBlock().moduleName() 
+    outFile << "use work." << netlist().coreEntityName()
             << "_imem_mau.all;" << endl;
 
 

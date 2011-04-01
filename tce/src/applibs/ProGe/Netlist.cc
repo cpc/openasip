@@ -51,7 +51,7 @@ const std::string Netlist::INVERTER_OUTPUT = "data_out";
 /**
  * The constructor.
  */
-Netlist::Netlist() {
+Netlist::Netlist() : coreEntityName_("") {
 }
 
 
@@ -303,4 +303,13 @@ Netlist::parameter(int index) const
 
     return parameters_[index];
 }
+
+TCEString
+Netlist::coreEntityName() const { 
+    if (coreEntityName_ == "")
+        return topLevelBlock().moduleName();
+    else
+        return coreEntityName_;
+}
+
 }

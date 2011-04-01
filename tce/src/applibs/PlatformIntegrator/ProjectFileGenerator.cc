@@ -40,9 +40,9 @@
 using std::string;
 
 ProjectFileGenerator::ProjectFileGenerator(
-    std::string toplevelEntity,
+    std::string coreEntity,
     const PlatformIntegrator* integrator):
-    toplevelEntity_(toplevelEntity), integrator_(integrator) {
+    coreEntity_(coreEntity), integrator_(integrator) {
 }
 
 
@@ -96,17 +96,8 @@ ProjectFileGenerator::memInitFileList() const {
 
 const PlatformIntegrator*
 ProjectFileGenerator::integrator() const {
-
     return integrator_;
 }
-
-
-std::string
-ProjectFileGenerator::toplevelEntity() const {
-
-    return toplevelEntity_;
-}
-
 
 int
 ProjectFileGenerator::signalMappingCount() const {

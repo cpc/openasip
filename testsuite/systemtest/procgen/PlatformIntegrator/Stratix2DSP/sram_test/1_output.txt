@@ -1,6 +1,6 @@
 set_global_assignment -name FAMILY "Stratix II"
 set_global_assignment -name DEVICE EP2S180F1020C3
-set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_array_sram
+set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_array_sram_toplevel
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 8.0
 set_global_assignment -name LAST_QUARTUS_VERSION 8.0
 set_global_assignment -name USE_GENERATED_PHYSICAL_CONSTRAINTS OFF -section_id eda_palace
@@ -8,18 +8,18 @@ set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_global_assignment -name FMAX_REQUIREMENT "100 MHz"
 vhdl files
-24
+23
 pin assignments
 69
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.util.all;
+use work.tce_util.all;
 use work.stratix_test_array_sram_globals.all;
 use work.stratix_test_array_sram_imem_mau.all;
 use work.stratix_test_array_sram_params.all;
 
-entity stratix_test_array_sram is
+entity stratix_test_array_sram_toplevel is
 
   generic (
     sram_dataw : integer := 32;
@@ -39,9 +39,9 @@ entity stratix_test_array_sram is
     STRATIXII_SRAM_OE_N : out std_logic_vector(0 downto 0);
     STRATIXII_SRAM_WE_N : out std_logic_vector(0 downto 0));
 
-end stratix_test_array_sram;
+end stratix_test_array_sram_toplevel;
 
-architecture structural of stratix_test_array_sram is
+architecture structural of stratix_test_array_sram_toplevel is
 
 
   component stratix_test_array_sram

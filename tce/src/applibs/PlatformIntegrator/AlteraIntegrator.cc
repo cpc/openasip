@@ -65,7 +65,7 @@ AlteraIntegrator::~AlteraIntegrator() {
 void
 AlteraIntegrator::integrateProcessor(const ProGe::NetlistBlock* ttaCore) {
 
-    if(!createPorts(ttaCore)) {
+    if (!createPorts(ttaCore)) {
         return;
     }
 

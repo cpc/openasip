@@ -24,7 +24,7 @@ else
 fi
 
 # run integrator
-rm -f ${ENT}_hw.tcl $LOG
+rm -f ${ENT}_toplevel_hw.tcl $LOG
 rm -rf $PO_DIR
 $PROGE -i $IDF -f onchip -d none -e $ENT -o $PO_DIR -p $TPEF \
 -g $INTEG $ADF >& $LOG || exit 1
@@ -32,15 +32,15 @@ $PROGE -i $IDF -f onchip -d none -e $ENT -o $PO_DIR -p $TPEF \
 # check sopc builder component file
 echo "Component file contents:"
 echo "module properties:"
-cat ${ENT}_hw.tcl | grep "set_module_property" | wc -l | tr -d "\ "
+cat ${ENT}_toplevel_hw.tcl | grep "set_module_property" | wc -l | tr -d "\ "
 echo "design files:"
-cat ${ENT}_hw.tcl | grep "add_file" | wc -l | tr -d "\ "
+cat ${ENT}_toplevel_hw.tcl | grep "add_file" | wc -l | tr -d "\ "
 echo "interfaces:"
-cat ${ENT}_hw.tcl | grep "add_interface "
+cat ${ENT}_toplevel_hw.tcl | grep "add_interface "
 
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
-cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
+cat $PO_DIR/platform/${ENT}_toplevel.vhdl | grep -v " signal "
 
 if [ "$HW" == "yes" ]
 then

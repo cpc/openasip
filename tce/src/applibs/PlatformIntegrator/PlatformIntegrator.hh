@@ -55,7 +55,7 @@ public:
     PlatformIntegrator(
         ProGe::HDL hdl,
         std::string progeOutputDir,
-        std::string entityName,
+        std::string coreEntityName,
         std::string outputDir,
         std::string programName,
         int targetClockFreq,
@@ -168,7 +168,7 @@ protected:
     /**
      * Return new toplevel entity name
      */
-    std::string entityName() const;
+    std::string coreEntityName() const;
 
     /**
      * Returns the scheduled program name without .tpef ending
@@ -220,7 +220,7 @@ private:
     ProGe::HDL hdl_;
     
     std::string progeOutputDir_;
-    std::string entityName_;
+    std::string coreEntityName_;
     std::string outputDir_;
     std::string programName_;
     int targetFrequency_;
@@ -235,7 +235,6 @@ private:
 
     std::vector<std::string> imemSignals_;
 
-    static const std::string TTA_CORE_NAME;
     static const std::string TTA_CORE_CLK;
     static const std::string TTA_CORE_RSTX;
 

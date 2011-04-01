@@ -5,7 +5,7 @@ IDF=$(echo $ADF | sed 's/.adf/.idf/g')
 TPEF=prog.tpef
 PO_DIR=proge-out-koski
 ENT=koskenlaskija
-IPXACT=spirit_comp_def_${ENT}.xml
+IPXACT=spirit_comp_def_${ENT}_toplevel.xml
 INTEG=KoskiIntegrator
 LOG=koski_integrator.runlog
 
@@ -32,6 +32,6 @@ grep "logicalPort" $IPXACT | wc -l | tr -d "\ "
 
 # Check if new toplevel is correct. Signals might be in different order
 # depending on the language setting so grep them away
-cat $PO_DIR/platform/$ENT.vhdl | grep -v " signal "
+cat $PO_DIR/platform/${ENT}_toplevel.vhdl | grep -v " signal "
 exit 0
 

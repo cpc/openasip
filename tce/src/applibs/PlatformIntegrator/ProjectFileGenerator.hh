@@ -42,7 +42,7 @@ typedef std::vector<SignalMapping> SignalMappingList;
 
 class ProjectFileGenerator {
 public:
-    ProjectFileGenerator(std::string toplevelEntity,
+    ProjectFileGenerator(std::string coreEntity,
                          const PlatformIntegrator* integrator);
     virtual ~ProjectFileGenerator();
 
@@ -64,7 +64,10 @@ protected:
     
     const PlatformIntegrator* integrator() const;
 
-    std::string toplevelEntity() const;
+    std::string coreEntity() const { return coreEntity_; }
+    std::string toplevelEntity() const {
+        return coreEntity_ + "_toplevel";
+    }
 
     int signalMappingCount() const;
 
@@ -75,7 +78,8 @@ protected:
         const std::string& delimiter) const;
 
 private:
-    std::string toplevelEntity_;
+    /// the HDL entity of the non-integrated TTA core
+    std::string coreEntity_;
     const PlatformIntegrator* integrator_;
     
     std::vector<std::string> hdlFiles_;

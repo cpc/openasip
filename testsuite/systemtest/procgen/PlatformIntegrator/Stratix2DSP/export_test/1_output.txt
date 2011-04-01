@@ -3,12 +3,12 @@ Warning: didn't find mapping for signal name fu_export_test_debug_internal
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.util.all;
+use work.tce_util.all;
 use work.stratix_export_test_globals.all;
 use work.stratix_export_test_imem_mau.all;
 use work.stratix_export_test_params.all;
 
-entity stratix_export_test is
+entity stratix_export_test_toplevel is
 
   port (
     clk : in std_logic;
@@ -17,9 +17,9 @@ entity stratix_export_test is
     fu_export_test_debug_result : out std_logic_vector(fu_export_test_dataw-1 downto 0);
     fu_export_test_debug_internal : out std_logic);
 
-end stratix_export_test;
+end stratix_export_test_toplevel;
 
-architecture structural of stratix_export_test is
+architecture structural of stratix_export_test_toplevel is
 
 
   component stratix_export_test

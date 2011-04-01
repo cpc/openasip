@@ -107,7 +107,7 @@ protected:
         std::ostream& errorStream,
         std::string progeOutDir,
         const std::string& platformIntegrator,
-        const std::string& entityName,
+        const std::string& coreEntityName,
         const std::string& programName,
         MemType imem,
         MemType dmem,

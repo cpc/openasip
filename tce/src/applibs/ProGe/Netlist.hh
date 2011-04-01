@@ -43,6 +43,7 @@
 
 #include "PortConnectionProperty.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
 
 namespace ProGe {
 
@@ -84,6 +85,10 @@ public:
     NetlistBlock& topLevelBlock() const
         throw (InstanceNotFound);
 
+    void setCoreEntityName(TCEString coreEntityName) { 
+        coreEntityName_ = coreEntityName; 
+    }
+    TCEString coreEntityName() const;
     void mapDescriptor(const NetlistPort& port, size_t descriptor);
     size_t descriptor(const NetlistPort& port) const;
 
@@ -107,6 +112,10 @@ private:
     DescriptorMap vertexDescriptorMap_;
     /// Parameters of the netlist.
     ParameterTable parameters_;
+
+    /// This should be set to the entity name of the generate core,
+    /// if it's not the same as the toplevel module name.
+    TCEString coreEntityName_;
 
     static const std::string INVERTER_MODULE;
     static const std::string INVERTER_INPUT;

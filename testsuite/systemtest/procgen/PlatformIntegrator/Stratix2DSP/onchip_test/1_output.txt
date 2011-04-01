@@ -1,6 +1,6 @@
 set_global_assignment -name FAMILY "Stratix II"
 set_global_assignment -name DEVICE EP2S180F1020C3
-set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_onchip_onchip
+set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_onchip_onchip_toplevel
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 8.0
 set_global_assignment -name LAST_QUARTUS_VERSION 8.0
 set_global_assignment -name USE_GENERATED_PHYSICAL_CONSTRAINTS OFF -section_id eda_palace
@@ -10,27 +10,27 @@ set_global_assignment -name FMAX_REQUIREMENT "100 MHz"
 set_global_assignment -name MIF_FILE "program.mif"
 set_global_assignment -name MIF_FILE "program_data.mif"
 vhdl files
-24
+23
 pin assignments
 10
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.util.all;
+use work.tce_util.all;
 use work.stratix_test_onchip_onchip_globals.all;
 use work.stratix_test_onchip_onchip_imem_mau.all;
 use work.stratix_test_onchip_onchip_params.all;
 
-entity stratix_test_onchip_onchip is
+entity stratix_test_onchip_onchip_toplevel is
 
   port (
     clk : in std_logic;
     rstx : in std_logic;
     STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0));
 
-end stratix_test_onchip_onchip;
+end stratix_test_onchip_onchip_toplevel;
 
-architecture structural of stratix_test_onchip_onchip is
+architecture structural of stratix_test_onchip_onchip_toplevel is
 
 
   component stratix_test_onchip_onchip

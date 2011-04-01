@@ -14,12 +14,12 @@ Bus signal mappings
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.util.all;
+use work.tce_util.all;
 use work.koskenlaskija_globals.all;
 use work.koskenlaskija_imem_mau.all;
 use work.koskenlaskija_params.all;
 
-entity koskenlaskija is
+entity koskenlaskija_toplevel is
 
   port (
     clk : in std_logic;
@@ -35,9 +35,9 @@ entity koskenlaskija is
     fu_LSU_hibi_comm_out : out std_logic_vector(2 downto 0);
     fu_LSU_hibi_we_out : out std_logic);
 
-end koskenlaskija;
+end koskenlaskija_toplevel;
 
-architecture structural of koskenlaskija is
+architecture structural of koskenlaskija_toplevel is
 
 
   component koskenlaskija

@@ -2,7 +2,7 @@ Component file contents:
 module properties:
 13
 design files:
-27
+26
 interfaces:
 add_interface clock_reset clock end
 add_interface fu_avalon_sfu_avalon_master avalon start
@@ -11,12 +11,12 @@ add_interface conduit_interface conduit end
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
-use work.util.all;
+use work.tce_util.all;
 use work.tta_avalon_sfu_globals.all;
 use work.tta_avalon_sfu_imem_mau.all;
 use work.tta_avalon_sfu_params.all;
 
-entity tta_avalon_sfu is
+entity tta_avalon_sfu_toplevel is
 
   port (
     clk : in std_logic;
@@ -31,9 +31,9 @@ entity tta_avalon_sfu is
     fu_avalon_sfu_avalon_d_readdata : in std_logic_vector(fu_avalon_sfu_a_dataw_g-1 downto 0);
     fu_avalon_sfu_avalon_d_waitrequest : in std_logic);
 
-end tta_avalon_sfu;
+end tta_avalon_sfu_toplevel;
 
-architecture structural of tta_avalon_sfu is
+architecture structural of tta_avalon_sfu_toplevel is
 
 
   component tta_avalon_sfu
