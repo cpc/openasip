@@ -4,8 +4,4 @@ rm -fr shared-output
 rm -f *.img
 
 # renames the disabled tests back to normal
-rm -f test_fft_case_with_limm.testdesc.disabled
-rm -f test_fft_case_with_simm.testdesc.disabled
-rm -f test_fft_case_with_limm_opt.testdesc.disabled
-rm -f test_fft_case_with_compression.testdesc.disabled
-rm -f verify_limm_operation.testdesc.disabled
+rm -f *.disabled
