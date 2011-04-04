@@ -2322,10 +2322,6 @@ assembly code works and you have completed this tutorial. Of
 cource you might wish to improve your assembly code to minimize cycle
 count or/and instruction count.
 
-If it is too hard to visualize the whole program in parallel assembly
-you can start by writing sequential code and then write it to
-parallel assembly.
-
 You should also compile the C program and run it because it gives more
 detailed information which can be used as reference data if you need to debug
 your assembly code.
@@ -4869,13 +4865,13 @@ and its operand `1' is bound to the same port:
 This alternative syntax is the only one permitted for TTA moves where
 operations are not assigned to a function unit of the target machine.
 
-When operations are not assigned to a function unit of the target machine,
-they are formally assigned to the Universal Function Unit of the Universal
-Machine. See Section~\ref{sec:um-conventions} for details on the Universal
-Machine and other conventions that apply to unscheduled TTA code. The name
-of the unit, in this case, may be omitted from the string.
-%
-\note{how to distinguish a RF name from an operation name then?}
+% When operations are not assigned to a function unit of the target machine,
+% they are formally assigned to the Universal Function Unit of the Universal
+% Machine. See Section~\ref{sec:um-conventions} for details on the Universal
+% Machine and other conventions that apply to unscheduled TTA code. The name
+% of the unit, in this case, may be omitted from the string.
+% %
+% \note{how to distinguish a RF name from an operation name then?}
 
 \subsection{Assembler Command Directives}
 \label{ssec:directives}
@@ -5263,7 +5259,8 @@ similar condition).  See Section~\ref{ssec:warnings} for a description of
 this and other conditions for which a warning should be issued.
 
 \paragraph{Disambiguation of variables and operation terms.}
-In unscheduled code, operation terms cannot be confused with variables. The
+In unscheduled code, operation terms cannot be confused with variables. 
+The
 special RF names `r', `f' and `b' are reserved, respectively, to integer,
 floating-point and Boolean register files of the universal machine. The
 assembler does not allow any operation to have one of these names.
@@ -5617,7 +5614,7 @@ ttasim --no-debugmode -a machine.adf -p program.tpef
 \paragraph{Example: Simulating a Program Until Main Function Without
 Entering Interactive Mode}
 
-The following command simulates a sequential program until its main function and
+The following command simulates a program until its main function and
 prints consumed clock cycles so far. This is achieved by utilizing the simulator
 control language and the '-e' option, which allows entering scripts 
 from the command line.
