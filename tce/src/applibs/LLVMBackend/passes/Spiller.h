@@ -50,7 +50,7 @@ namespace llvm {
                          const MachineLoopInfo *loopInfo, VirtRegMap *vrm);
 }
 
-#else
+#else // LLVM > 2.7
 
 #include "llvm/ADT/SmallVector.h"
 
@@ -77,16 +77,28 @@ namespace llvm {
     /// @param spillIs       A list of intervals that are about to be spilled,
     ///                      and so cannot be used for remat etc.
     /// @param newIntervals  The newly created intervals will be appended here.
+#if (defined(LLVM_2_8) || defined(LLVM_2_9))
     virtual void spill(LiveInterval *li,
                        SmallVectorImpl<LiveInterval*> &newIntervals,
                        SmallVectorImpl<LiveInterval*> &spillIs) = 0;
 
+#else
+      virtual void spill(LiveRangeEdit& LRE) = 0;
+#endif
   };
 
   /// Create and return a spiller object, as specified on the command line.
   Spiller* createSpiller(MachineFunctionPass &pass,
                          MachineFunction &mf,
                          VirtRegMap &vrm);
+
+#if (!(defined(LLVM_2_8) || defined(LLVM_2_9)))
+  /// Create and return a spiller that will insert spill code directly instead
+  /// of deferring though VirtRegMap.
+  Spiller *createInlineSpiller(MachineFunctionPass &pass,
+                               MachineFunction &mf,
+                               VirtRegMap &vrm);
+#endif
 }
 
 #endif

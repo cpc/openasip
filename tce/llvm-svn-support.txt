@@ -1,4 +1,4 @@
-Release branch:
-tce-1.4 r906: llvm-trunk r126742 OK
+Devel branch:
+tce-devel r999: llvm-trunk r128620 only topresult fails?
 Performance worsening at around r123400: No longer optimizes away "constant" parameters in qsort test. 
 -------

@@ -19,6 +19,9 @@
 #define DEBUG_TYPE "regalloc"
 #if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
 #include "LiveDebugVariables.h"
+#ifndef LLVM_2_9
+#include "LiveRangeEdit.h"
+#endif
 #endif
 #include "VirtRegMap.h"
 #include "VirtRegRewriter.h"
@@ -136,7 +139,8 @@ namespace {
     RALinScanILP() : MachineFunctionPass(ID) {
 #endif
 
-// TODO: why is this here? works without?
+// r127400 requires these in order to not to segfault on liveintervals?or not.
+// TODO: why is this here? works without? but fails with llvm-svn with these.
 #if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
       initializeLiveDebugVariablesPass(*PassRegistry::getPassRegistry());
       initializeLiveIntervalsPass(*PassRegistry::getPassRegistry());
@@ -486,8 +490,8 @@ namespace {
 
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 
-INITIALIZE_PASS_BEGIN(RALinScanILP, "linearscan-regalloc",
-                "Linear Scan Register Allocator", false, false)
+INITIALIZE_PASS_BEGIN(RALinScanILP, "linearscan-ilp-regalloc",
+                "Linear Scan-ILP-Register Allocator", false, false)
 INITIALIZE_PASS_DEPENDENCY(LiveIntervals)
 INITIALIZE_PASS_DEPENDENCY(StrongPHIElimination)
 INITIALIZE_PASS_DEPENDENCY(CalculateSpillWeights)
@@ -1233,7 +1237,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
 #if defined(LLVM_2_7) || defined(LLVM_2_8)
     if ((vni->def != SlotIndex()) && !vni->isUnused() &&
          vni->isDefAccurate()) {
-#else // LLVM_2_9
+#else // LLVM_2_9 or newer
     if (!vni->isUnused() && vni->def.isValid()) {
 #endif
       MachineInstr *CopyMI = li_->getInstructionFromIndex(vni->def);
@@ -1535,8 +1539,14 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     std::vector<LiveInterval*> added;
     added = spiller_->spill(cur, spillIs); 
 #else
+#if (defined(LLVM_2_8) || defined(LLVM_2_9))
     SmallVector<LiveInterval*, 8> spillIs, added;
     spiller_->spill(cur, added, spillIs);
+#else // LLVM-3.0-svn
+    SmallVector<LiveInterval*, 8> added;
+    LiveRangeEdit LRE(*cur, added);
+    spiller_->spill(LRE);
+#endif
 #endif
     std::sort(added.begin(), added.end(), LISorter());
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
@@ -1626,7 +1636,12 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
     addStackInterval(sli, ls_, li_, mri_, *vrm_);
     std::copy(newIs.begin(), newIs.end(), std::back_inserter(added));
 #else
+#if (defined(LLVM_2_8) || defined(LLVM_2_9))
     spiller_->spill(sli, added, spillIs);
+#else // LLVM-3.0-svn
+    LiveRangeEdit LRE(*sli, added, 0, &spillIs);
+    spiller_->spill(LRE);
+#endif
 #ifdef LLVM_2_8
     addStackInterval(sli, ls_, li_, mri_, *vrm_);
 #endif
