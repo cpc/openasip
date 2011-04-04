@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,6 +29,7 @@
  * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
  * @author Jari M‰ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note reviewed 3 December 2003 by jn, kl, ao
  */
 
@@ -39,12 +40,14 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 
 #include "CmdLineOptions.hh"
 #include "Exception.hh"
 
 #include "CmdLineOptionParser.hh"
 
+// text column lengths for the flags in --help printout
 const int CmdLineOptions::SHORT_FLAG = 2;
 const int CmdLineOptions::LONG_FLAG = 22;
 
@@ -244,8 +247,22 @@ CmdLineOptions::printHelp() const {
     for (i = optionLongNames_.begin(); i != optionLongNames_.end(); i++) {
         CmdLineOptionParser* opt = findOption((*i).first);
         cout << left << setw(SHORT_FLAG) << "-" + opt->shortName() + ", "
-             << left << setw(LONG_FLAG) << "--" + opt->longName()
-             << opt->description() << endl;
+             << left << setw(LONG_FLAG) << "--" + opt->longName();
+        
+        std::stringstream str(opt->description());
+        int charsPrintedInRow = 0;
+        while (!str.eof()) {
+            std::string nextToken = "";
+            str >> nextToken;
+            if (nextToken.size() + charsPrintedInRow > 60) {
+                cout << std::endl;
+                cout << std::left << setw(SHORT_FLAG + LONG_FLAG + 2) << " ";
+                charsPrintedInRow = 0;
+            }
+            cout << nextToken << " ";
+            charsPrintedInRow += nextToken.size();
+        }
+        cout << std::endl;
     }
 }
 

@@ -133,8 +133,9 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
         new StringCmdLineOptionParser(
             ENTITY_NAME, 
             "String to use to make the generated VHDL entities unique. This is "
-            "also the name of the top level entity platform integrator "
-            "creates (default is 'tta0').", "e");
+            "also used in the name of the top level entity platform integrator "
+            "creates. Default is 'tta0' for the core, thus 'tta0_toplevel' for "
+            "the platform integrator top level component.", "e");
     addOption(entityName);
 
     BoolCmdLineOptionParser* useAbsolutePaths = 
