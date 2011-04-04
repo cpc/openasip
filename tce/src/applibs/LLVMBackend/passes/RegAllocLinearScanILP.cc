@@ -68,9 +68,11 @@
 
 #include "tce_config.h"
 
+#ifndef LLVM_2_7
 namespace llvm {
     void initializeRALinScanILPPass(llvm::PassRegistry&);
 }
+#endif
 
 using namespace llvm;
 
