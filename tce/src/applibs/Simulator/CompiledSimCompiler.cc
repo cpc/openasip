@@ -77,22 +77,25 @@ CompiledSimCompiler::CompiledSimCompiler() {
     
     // Get number of threads
     threadCount_ = 3;
-    const char* USER_THREAD_COUNT = std::getenv("TTASIM_COMPILER_THREADS");
-    if (USER_THREAD_COUNT != NULL) {
+    std::string USER_THREAD_COUNT = 
+        Environment::environmentVariable("TTASIM_COMPILER_THREADS");
+    if (USER_THREAD_COUNT != "") {
         threadCount_ = Conversion::toInt(string(USER_THREAD_COUNT));
     }
     
     // Get compiler
     compiler_ = "g++";
-    const char* USER_COMPILER = std::getenv("TTASIM_COMPILER");
-    if (USER_COMPILER != NULL) {
+    std::string USER_COMPILER = 
+        Environment::environmentVariable("TTASIM_COMPILER");
+    if (USER_COMPILER != "") {
         compiler_ = string(USER_COMPILER);
     }
     
     // Get global compile flags
     globalCompileFlags_ = " -O0 ";
-    const char* fl = std::getenv("TTASIM_COMPILER_FLAGS");
-    if (fl != NULL)
+    std::string fl = 
+        Environment::environmentVariable("TTASIM_COMPILER_FLAGS");
+    if (fl != "")
         globalCompileFlags_ = std::string(fl);
 }
 

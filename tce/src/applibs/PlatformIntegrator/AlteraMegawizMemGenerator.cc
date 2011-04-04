@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of AlteraMegawizMemGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen
  * @note rating: red
  */
 
@@ -87,8 +88,17 @@ AlteraMegawizMemGenerator::runMegawizard(std::string outputFile) {
     file << createMemParameters();
     file.close();
     
+
+    TCEString command = "";
+    string alteraLibPath =
+        Environment::environmentVariable(
+            "ALTERA_LIBRARY_PATH");
+
+    if (alteraLibPath != "") {
+        command << "export LD_LIBRARY_PATH=" << alteraLibPath << ";";
+    }
     // execute "Altera MegaWizard Plug-In Manager(c)"
-    string command = "qmegawiz -silent module=altsyncram -f:" +
+    command += "qmegawiz -silent module=altsyncram -f:" +
         parameterFile + " " + outputFile + " 2>&1";
     std::vector<string> output;
     int rv = Application::runShellCommandAndGetOutput(command, output);
@@ -97,6 +107,11 @@ AlteraMegawizMemGenerator::runMegawizard(std::string outputFile) {
         errorStream() 
             << "Failed to create memory component. Make sure 'qmegawiz' "
             << "is in PATH" << endl;
+        errorStream()
+            << "The command was:" << endl
+            << command << endl;
+        errorStream()
+            << "Error:" << endl;
         for (unsigned int i = 0; i < output.size(); i++) {
             errorStream() << output.at(i) << endl;
         }

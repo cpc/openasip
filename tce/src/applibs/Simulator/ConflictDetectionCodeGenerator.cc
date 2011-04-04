@@ -38,6 +38,7 @@
 #include "Operation.hh"
 #include "Machine.hh"
 #include "HWOperation.hh"
+#include "Environment.hh"
 
 #include <string>
 #include <sstream>
@@ -66,8 +67,9 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
     
     string conflictDetectionSetting;
     
-    const char* SETTING = getenv("TTASIM_CONFLICT_DETECTOR");
-    if (SETTING == NULL) {
+    std::string SETTING = 
+        Environment::environmentVariable("TTASIM_CONFLICT_DETECTOR");
+    if (SETTING == "") {
         conflictDetectionSetting = "AFSA"; // by default
     } else {
         conflictDetectionSetting = SETTING;
