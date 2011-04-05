@@ -132,10 +132,4 @@ computer's speed.
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
 
-As of TCE 1.2 Clang became the default compiler frontend. However, the
-old tce-llvm-gcc cross-compiler should work as a secondary option, and
-for better C++ language support.
-
-Further instructions for building and installing the llvm-gcc-based compiler
-can be found in the tce-llvm-gcc/INSTALL file. In order to use it instead of Clang, 
-use the switch '--llvm-gcc' with tcecc.
+As of TCE 1.4 Clang became the only supported TCE compiler frontend for now.
