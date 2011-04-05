@@ -147,7 +147,8 @@ DataDependenceEdge::DataDependenceEdge(const DataDependenceEdge& other) :
     this->edgeProperties_ = other.edgeProperties_;
     this->loopEdge_ = other.loopEdge_;
     if (other.data_ != NULL) {
-        this->data_ = strdup(other.data_);
+        data_ = new char[strlen(other.data_)+1];
+        strcpy(data_, other.data_);
     } else {
         data_ = NULL;
     }
@@ -171,7 +172,8 @@ DataDependenceEdge::DataDependenceEdge(
         this->loopEdge_ = !other.loopEdge_;
     }
     if (other.data_ != NULL) {
-        this->data_ = strdup(other.data_);
+        data_ = new char[strlen(other.data_)+1];
+        strcpy(data_, other.data_);
     } else {
         data_ = NULL;
     }
