@@ -27,7 +27,7 @@
  * Implementation of AlteraMegawizMemGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
@@ -149,9 +149,18 @@ AlteraMegawizMemGenerator::defaultDeviceFamily() const {
 int
 AlteraMegawizMemGenerator::quartusMajorVersion() const {
 
+    TCEString command = "";
+    string alteraLibPath =
+        Environment::environmentVariable(
+            "ALTERA_LIBRARY_PATH");
+
+    if (alteraLibPath != "") {
+        command << "export LD_LIBRARY_PATH=" << alteraLibPath << ";";
+    }
+    command += VERSION_CMD;
 
     std::vector<string> output;
-    int rv = Application::runShellCommandAndGetOutput(VERSION_CMD, output);
+    int rv = Application::runShellCommandAndGetOutput(command, output);
     if (rv != 0) {
         return -1;
     }
