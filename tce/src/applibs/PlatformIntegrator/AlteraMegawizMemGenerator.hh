@@ -61,6 +61,12 @@ protected:
 
     std::string defaultDeviceFamily() const;
 
+    int quartusMajorVersion() const;
+
+private:
+
+    static const std::string VERSION_CMD;
+    static const std::string VERSION_TAG;
 };
 
 #endif

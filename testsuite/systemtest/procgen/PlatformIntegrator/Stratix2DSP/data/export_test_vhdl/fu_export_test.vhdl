@@ -5,7 +5,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity fu_export_test is
+entity fu_export_test_always_1 is
 
   generic (
     dataw : integer := 32);
@@ -22,9 +22,9 @@ entity fu_export_test is
     glock          : in  std_logic
     );
 
-end fu_export_test;
+end fu_export_test_always_1;
 
-architecture rtl of fu_export_test is
+architecture rtl of fu_export_test_always_1 is
 
   signal t1data_r : std_logic_vector(dataw-1 downto 0);
   
@@ -41,10 +41,10 @@ begin  -- rtl
         end if;
 
         debug_result   <= t1data_r;
-        debug_internal <= '0';
+        debug_internal <= "0";
       else
         -- glock = 1
-        debug_internal <= '1';
+        debug_internal <= "1";
       end if;
     end if;
   end process;

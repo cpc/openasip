@@ -12,16 +12,16 @@ LOG=run_avalon_lsu.log
 
 # Extra option for generating real HW with functional program images
 # Require real qmegawiz found from PATH
-# Give cmd line parameter: -hw
 HW=no
-if [ "x$1" == "x-hw" ]
+QMEGAWIZ=$(which qmegawiz 2> /dev/null)
+if [ "x$QMEGAWIZ" == "x" ]
 then
-    HW=yes
+  # Emulate qmegawiz with a script
+  export PATH=$PWD/../data:$PATH
 else
-    HW=no
-    # set qmegawiz script
-    export PATH=$PWD/../data:$PATH
+  HW=yes
 fi
+
 
 # run integrator
 rm -f ${ENT}_hw.tcl $LOG

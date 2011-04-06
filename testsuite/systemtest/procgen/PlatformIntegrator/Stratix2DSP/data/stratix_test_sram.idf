@@ -11,11 +11,6 @@
     <fu-id>375</fu-id>
   </fu>
 
-  <fu name="ALU_1">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <fu-id>375</fu-id>
-  </fu>
-
   <fu name="rtc_rtimer">
     <hdb-file>../../../../../tce/hdb/stratixII.hdb</hdb-file>
     <fu-id>5</fu-id>
@@ -39,11 +34,6 @@
   <rf name="BOOL">
     <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
-  </rf>
-
-  <rf name="RF_1">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>958</rf-id>
   </rf>
 
 </adf-implementation>

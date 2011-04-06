@@ -221,7 +221,8 @@ AlteraHibiDpRamGenerator::createMemParameters() const {
         << "RDEN_POWER_OPTIMIZATION=OFF "
         << "READ_DURING_WRITE_MODE_MIXED_PORTS=DONT_CARE "
         << "WRCONTROL_ACLR_A=UNUSED WRCONTROL_ACLR_B=NONE "
-        << "WRCONTROL_WRADDRESS_REG_B=CLOCK1" << endl;
+        << "WRCONTROL_WRADDRESS_REG_B=CLOCK1 " << "LOW_POWER_MODE=NONE"
+        << endl;
 
     // port parameters
     parameters

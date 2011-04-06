@@ -40,11 +40,15 @@
 #include "Exception.hh"
 #include "StringTools.hh"
 #include "FileSystem.hh"
+#include "Conversion.hh"
 #include "Application.hh"
 #include "MemoryGenerator.hh"
 #include "AlteraMegawizMemGenerator.hh"
 using std::string;
 using std::endl;
+
+const std::string AlteraMegawizMemGenerator::VERSION_CMD = "quartus_sh -v";
+const std::string AlteraMegawizMemGenerator::VERSION_TAG = "Version";
 
 AlteraMegawizMemGenerator::AlteraMegawizMemGenerator(
     int memMauWidth,
@@ -81,7 +85,7 @@ AlteraMegawizMemGenerator::runMegawizard(std::string outputFile) {
     file.open(parameterFile.c_str());
     if (!file) {
         string msg = "Couldn't open file " + parameterFile + " for writing";
-        IOException exc(__FILE__, __LINE__, "AlteraMeqwizMemGenerator",
+        IOException exc(__FILE__, __LINE__, "AlteraMeqawizMemGenerator",
                         msg);
         throw exc;
     }
@@ -134,3 +138,47 @@ AlteraMegawizMemGenerator::defaultDeviceFamily() const {
     return "Stratix II";
 }
 
+/**
+ * Tries to find out quartus II major version
+ *
+ * quartus_sh outputs following version string:
+ * Version 8.0 Build 215 05/29/2008 SJ Full Version
+ *
+ * @return Major version number. Returns -1 if not successful
+ */
+int
+AlteraMegawizMemGenerator::quartusMajorVersion() const {
+
+
+    std::vector<string> output;
+    int rv = Application::runShellCommandAndGetOutput(VERSION_CMD, output);
+    if (rv != 0) {
+        return -1;
+    }
+    int versionNumber = -1;
+    for (unsigned int i = 0; i < output.size(); i++) {
+        string::size_type pos = output.at(i).find(VERSION_TAG);
+        // Version string must be at the beginning of line
+        if (pos != string::npos && pos == 0) {
+
+            // remove chars before version number
+            string version = output.at(i).substr(VERSION_TAG.size());
+            version = StringTools::trim(version);
+
+            // chop from major number
+            std::vector<string> chopped;
+            StringTools::chopString(version, ".", chopped);
+            if (chopped.at(0).size() < 1) {
+                continue;
+            }
+            try {
+                versionNumber = Conversion::toInt(chopped.at(0));
+                break;
+            } catch (Exception& e) {
+                // couldn't convert
+                continue;
+            }
+        }
+    }
+    return versionNumber;
+}

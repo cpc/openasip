@@ -12,15 +12,14 @@ LOG=run_avalon_lsu_sfu.log
 
 # Extra option for generating real HW with functional program images
 # Require real qmegawiz found from PATH
-# Give cmd line parameter: -hw
 HW=no
-if [ "x$1" == "x-hw" ]
+QMEGAWIZ=$(which qmegawiz 2> /dev/null)
+if [ "x$QMEGAWIZ" == "x" ]
 then
-    HW=yes
+  # Emulate qmegawiz with a script
+  export PATH=$PWD/../data:$PATH
 else
-    HW=no
-    # set qmegawiz script
-    export PATH=$PWD/../data:$PATH
+  HW=yes
 fi
 
 # run integrator
@@ -46,6 +45,6 @@ if [ "$HW" == "yes" ]
 then
     # compile code
     $TCECC -O3 -a $ADF -o $TPEF data/src/main_dual.c || exit 1
-    generatebits -d -w 4 -o mif -f mif -p $TPEF -x $PO_DIR $ADF || exit 1
+    $PIG -d -w 4 -o mif -f mif -p $TPEF -x $PO_DIR $ADF || exit 1
 fi
 

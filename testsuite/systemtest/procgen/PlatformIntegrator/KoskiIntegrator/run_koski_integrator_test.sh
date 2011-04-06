@@ -9,8 +9,12 @@ IPXACT=spirit_comp_def_${ENT}.xml
 INTEG=KoskiIntegrator
 LOG=koski_integrator.runlog
 
-# set qmegawiz script
-export PATH=$PWD/../data:$PATH
+QMEGAWIZ=$(which qmegawiz 2> /dev/null)
+if [ "x$QMEGAWIZ" == "x" ]
+then
+  # Emulate qmegawiz with a script
+  export PATH=$PWD/../data:$PATH
+fi
 
 # run integrator
 rm -f $IPXACT

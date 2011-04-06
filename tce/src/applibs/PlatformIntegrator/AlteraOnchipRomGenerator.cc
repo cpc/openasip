@@ -123,10 +123,13 @@ AlteraOnchipRomGenerator::createMemParameters() const {
     
     std::ostringstream parameters;
     
+    quartusMajorVersion();
+
     parameters
         << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth
         << endl << "NUMWORDS_A=" << sizeInWords << endl 
-        << "INIT_FILE=" << initFile << endl;
+        << "INIT_FILE=" << initFile << endl << "WIDTH_B=1" << endl
+        << "WIDTHAD_B=1" << endl;
 
     if (!deviceFamily.empty()) {
         parameters
@@ -146,7 +149,13 @@ AlteraOnchipRomGenerator::createMemParameters() const {
         << "RAM_BLOCK_TYPE=AUTO " << "OUTDATA_REG_A=UNREGISTERED "
         << "WRCONTROL_ACLR_A=UNUSED " << "RDEN_POWER_OPTIMIZATION=OFF "
         << "LPM_TYPE=altsyncram " << "OPERATION_MODE=ROM "
-        << "POWER_UP_UNINITIALIZED=FALSE " << "OPTIONAL_FILES=NONE " << endl;
+        << "POWER_UP_UNINITIALIZED=FALSE " << "OPTIONAL_FILES=NONE " 
+        << "LOW_POWER_MODE=NONE" << endl;
+    
+    // Quartus II requires extra parameters from version 10 onwards
+    if (quartusMajorVersion() > 9) {
+        parameters << "CLOCK_ENABLE_OUTPUT_B=BYPASS" << endl;
+    }
     
     parameters
         << "q_a=used " << "address_a=used " << "clock0=used " 
@@ -154,9 +163,9 @@ AlteraOnchipRomGenerator::createMemParameters() const {
         << "clocken2=unused " << "rden_a=unused " << "aclr0=unused "
         << "addressstall_a=unused " << "clocken3=unused " << "data_a=unused "
         << "q_b=unused " << "rden_b=unused " << "aclr1=unused "
-        << "address_b=unused " << "addressstall_b=unused " 
+        << "address_b=unused " << "addressstall_b=unused "
         << "clocken0=unused " << "data_b=unused " << "eccstatus=unused "
-        << "wren_a=unused " << "clock1=unused " << "wren_b=unused " << endl;
+        << "wren_a=unused " << "clock1=unused " << "wren_b=unused" << endl;
 
     return parameters.str();
 }

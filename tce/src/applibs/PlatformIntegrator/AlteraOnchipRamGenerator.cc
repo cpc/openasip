@@ -125,7 +125,8 @@ AlteraOnchipRamGenerator::createMemParameters() const {
     parameters 
         << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth 
         << endl << "NUMWORDS_A=" << sizeInWords << endl << "WIDTH_BYTEENA_A="
-        << bytemaskWidth << endl << "INIT_FILE=" << initFile << endl;
+        << bytemaskWidth << endl << "INIT_FILE=" << initFile << endl
+        << "WIDTH_B=1" << endl << "WIDTHAD_B=1" << endl;
 
     if (!deviceFamily.empty()) {
         parameters
@@ -145,7 +146,12 @@ AlteraOnchipRamGenerator::createMemParameters() const {
         << "OUTDATA_REG_A=UNREGISTERED WRCONTROL_ACLR_A=UNUSED "
         << "RDEN_POWER_OPTIMIZATION=OFF LPM_TYPE=altsyncram "
         << "OPERATION_MODE=SINGLE_PORT POWER_UP_UNINITIALIZED=FALSE "
-        << "OPTIONAL_FILES=NONE" << endl;
+        << "OPTIONAL_FILES=NONE " << "LOW_POWER_MODE=NONE" << endl;
+
+    // Quartus II requires extra parameters from version 10 onwards
+    if (quartusMajorVersion() > 9) {
+        parameters << "CLOCK_ENABLE_OUTPUT_B=BYPASS" << endl;
+    }
 
     parameters
         << "byteena_a=used clocken1=unused byteena_b=unused clocken2=unused "
