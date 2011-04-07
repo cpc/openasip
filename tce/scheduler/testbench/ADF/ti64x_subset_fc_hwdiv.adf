@@ -7926,6 +7926,327 @@
     </writes-to>
   </socket>
 
+  <socket name="DIV_i1">
+    <reads-from>
+      <bus>CL1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_4</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_6</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_9</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_10</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_11</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_12</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>X1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_4</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_5</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_6</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_9</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_10</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_11</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>X2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="DIV_i2">
+    <reads-from>
+      <bus>CL1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_4</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_6</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_9</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_10</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_11</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_12</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>X1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_4</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_5</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_6</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_9</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_10</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL2_11</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>X2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="DIV_o1">
+    <writes-to>
+      <bus>CL1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_4</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_5</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_6</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_9</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_10</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_11</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_12</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>X1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_4</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_5</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_6</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_9</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_10</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL2_11</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>X2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
   <function-unit name="L1">
     <port name="S1">
       <connects-to>L1_i1</connects-to>
@@ -9898,19 +10219,19 @@
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="extra_DELETEME">
+  <function-unit name="DIV">
     <port name="in1t">
-      <connects-to>L1_i1</connects-to>
+      <connects-to>DIV_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
-      <connects-to>L1_i2</connects-to>
+      <connects-to>DIV_i2</connects-to>
       <width>32</width>
     </port>
     <port name="out1">
-      <connects-to>L1_o1</connects-to>
+      <connects-to>DIV_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -10207,26 +10528,6 @@
     </port>
     <port name="R9">
       <connects-to>B_i7</connects-to>
-    </port>
-  </register-file>
-
-  <register-file name="FPR_DELETEME">
-    <type>normal</type>
-    <size>8</size>
-    <width>64</width>
-    <max-reads>2</max-reads>
-    <max-writes>2</max-writes>
-    <port name="IN">
-      <connects-to>B_i1</connects-to>
-    </port>
-    <port name="OUT">
-      <connects-to>B_i7</connects-to>
-    </port>
-    <port name="IN2">
-      <connects-to>A_o2</connects-to>
-    </port>
-    <port name="OUT2">
-      <connects-to>A_i7</connects-to>
     </port>
   </register-file>
 
