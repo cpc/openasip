@@ -39,6 +39,7 @@
 #include "ErrorDialog.hh"
 #include "WarningDialog.hh"
 #include "WidgetTools.hh"
+#include "StringTools.hh"
 
 using std::string;
 
@@ -82,23 +83,70 @@ UserManualCmd::Do() {
     wxFileType* ft =
         wxTheMimeTypesManager->GetFileTypeFromExtension(extension);
 
-    if (ft == NULL) {
-        return askFromUser();
+    std::string cmdStr;
+    wxString cmd;
+    if (ft != NULL) {
+        cmd = ft->GetOpenCommand(manual);
+        delete ft;
+        ft = NULL;
+        cmdStr = std::string(cmd.ToAscii());
     }
 
-    wxString cmd = ft->GetOpenCommand(manual);
-    delete ft;
-    ft = NULL;
-
-    std::string cmdStr = std::string(cmd.ToAscii());
     // Stupid hack for now. For fedora some reason this cmd would end up
     // being 'gimp' which is not very nice PDF reader ;)
-    if (cmd.IsEmpty() || 
-        !(cmdStr.find("evince") != std::string::npos || 
+    // on ubuntu this could be gv which cannot view PDF's.
+    if (!(cmdStr.find("evince") != std::string::npos || 
           cmdStr.find("kpdf") != std::string::npos || 
           cmdStr.find("kghostview") != std::string::npos || 
           cmdStr.find("acroread") != std::string::npos || 
           cmdStr.find("okular") != std::string::npos)) {
+        cmdStr = "";
+    }
+    if (cmdStr == "") {
+        // if couldn't get viewer from mime types test if some usual
+        // default viewer is found
+        std::vector<std::string> viewers;
+        viewers.push_back("/usr/bin/evince");
+        viewers.push_back("/usr/bin/kpdf");
+        viewers.push_back("/usr/bin/kghostview");
+        viewers.push_back("/usr/bin/acroread");
+        viewers.push_back("/usr/bin/okular");
+        for (unsigned int i = 0; i < viewers.size(); ++i) {
+            if (FileSystem::fileIsExecutable(viewers.at(i))) {
+                wxExecute(
+                    wxString::FromAscii(
+                        (viewers.at(i) + " ").c_str()) + manual);
+                return true;
+            }
+        }
+
+        // if none of above viewers were found try to find from PATH env
+        // variable
+        viewers.clear();
+        std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+        viewers.push_back("evince");
+        viewers.push_back("kpdf");
+        viewers.push_back("kghostview");
+        viewers.push_back("acroread");
+        viewers.push_back("okular");
+
+        std::vector<std::string> paths;
+        std::string pathsEnv = Environment::environmentVariable("PATH");
+        StringTools::chopString(pathsEnv, ":", paths);
+
+        for (unsigned int i = 0; i < paths.size(); ++i) {
+            for (unsigned int j = 0; j < viewers.size(); ++j) {
+                std::string viewer = paths.at(i) + DS + viewers.at(j);
+                if (FileSystem::fileIsExecutable(viewer)) {
+                    wxExecute(
+                        wxString::FromAscii(
+                            (viewers.at(i) + " ").c_str()) + manual);
+                    return true;
+                }
+            }
+        }
+        // did not find any viewer from path or default locations
+
         return askFromUser();
     } else {
         wxExecute(cmd);
