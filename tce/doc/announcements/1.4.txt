@@ -9,7 +9,7 @@ binaries. Processor customization points include the register files,
 function units, supported operations, and the interconnection network.
 
 This release includes support for LLVM 2.9, some new VHDL
-implementations (an FPU and streaming operations), connectivity
+implementations (an FPU and streaming operations), a connectivity
 optimizer, code generation improvements, plenty of bug fixes and
 more. See the CHANGES file for a more thorough listing.
 
