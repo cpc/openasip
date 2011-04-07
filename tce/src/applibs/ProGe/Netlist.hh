@@ -85,9 +85,7 @@ public:
     NetlistBlock& topLevelBlock() const
         throw (InstanceNotFound);
 
-    void setCoreEntityName(TCEString coreEntityName) { 
-        coreEntityName_ = coreEntityName; 
-    }
+    void setCoreEntityName(TCEString coreEntityName);
     TCEString coreEntityName() const;
     void mapDescriptor(const NetlistPort& port, size_t descriptor);
     size_t descriptor(const NetlistPort& port) const;

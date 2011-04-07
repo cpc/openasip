@@ -42,7 +42,8 @@
  */
 class VhdlProgramImageWriter : public ArrayProgramImageWriter {
 public:
-    VhdlProgramImageWriter(const InstructionBitVector& bits);
+    VhdlProgramImageWriter(const InstructionBitVector& bits,
+                           const std::string& entityName);
     virtual ~VhdlProgramImageWriter();
 
     virtual void writeImage(std::ostream& stream) const;    
@@ -51,6 +52,10 @@ private:
     void writeHeader(std::ostream& stream) const;
     
     void writeEnding(std::ostream& stream) const;
+
+    std::string packageName() const;
+
+    std::string entityName_;
 };
 
 #endif

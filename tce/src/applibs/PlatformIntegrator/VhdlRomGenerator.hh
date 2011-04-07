@@ -63,6 +63,10 @@ protected:
     virtual std::string moduleName() const;
     
     virtual std::string instanceName() const;
+
+private:
+
+    std::string imagePackageName() const;
 };
 
 #endif

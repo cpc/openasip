@@ -304,6 +304,11 @@ Netlist::parameter(int index) const
     return parameters_[index];
 }
 
+void
+Netlist::setCoreEntityName(TCEString coreEntityName) { 
+    coreEntityName_ = coreEntityName; 
+}
+
 TCEString
 Netlist::coreEntityName() const { 
     if (coreEntityName_ == "")

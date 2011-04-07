@@ -423,6 +423,7 @@ int main(int argc, char* argv[]) {
         imageGenerator.loadBEM(*bem);
         imageGenerator.loadMachine(*mach);        
         imageGenerator.loadPrograms(tpefMap);
+        imageGenerator.setEntityName(entityStr);
 
         for (size_t i = 0; i < tpefTable.size(); i++) {
 

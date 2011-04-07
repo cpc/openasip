@@ -62,9 +62,8 @@ LLVM and Clang
 In order to compile programs from C/C++ with TCE, you need to install 
 LLVM and Clang.
 
-Unless a correct LLVM version is available for your distribution 
-(at least Ubuntu 10.04 includes LLVM 2.7), the best way is to install 
-it from the sources. 
+Unless a correct LLVM version is available for your distribution, 
+the best way is to install it from the sources. 
 
 Please follow the steps below to ensure LLVM and Clang are built
 correctly to be used by TCE:

@@ -138,6 +138,8 @@ protected:
 
     void addParameter(const ProGe::Netlist::Parameter& add);
 
+    std::string ttaCoreName() const;
+
     virtual std::string moduleName() const = 0;
     
     virtual std::string instanceName() const = 0;

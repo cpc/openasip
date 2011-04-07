@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="ALU">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>375</fu-id>
+  </fu>
+
+  <fu name="rtc_rtimer">
+    <hdb-file>../../../../../tce/hdb/stratixII.hdb</hdb-file>
+    <fu-id>5</fu-id>
+  </fu>
+
+  <fu name="leds">
+    <hdb-file>../../../../../tce/hdb/stratixII.hdb</hdb-file>
+    <fu-id>6</fu-id>
+  </fu>
+
+  <fu name="LSU">
+    <hdb-file>../../../../../tce/hdb/stratixII.hdb</hdb-file>
+    <fu-id>2</fu-id>
+  </fu>
+
+  <fu name="export_test">
+    <hdb-file>data/export_test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>

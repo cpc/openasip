@@ -169,7 +169,7 @@ std::vector<std::string>
 AlteraHibiDpRamGenerator::generateComponentFile(std::string outputPath) {
 
     string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
-        "altera_onchip_dp_ram_comp.vhd";
+        moduleName() + ".vhd";
 
     return runMegawizard(outputFile);
 }
@@ -221,7 +221,8 @@ AlteraHibiDpRamGenerator::createMemParameters() const {
         << "RDEN_POWER_OPTIMIZATION=OFF "
         << "READ_DURING_WRITE_MODE_MIXED_PORTS=DONT_CARE "
         << "WRCONTROL_ACLR_A=UNUSED WRCONTROL_ACLR_B=NONE "
-        << "WRCONTROL_WRADDRESS_REG_B=CLOCK1" << endl;
+        << "WRCONTROL_WRADDRESS_REG_B=CLOCK1 " << "LOW_POWER_MODE=NONE"
+        << endl;
 
     // port parameters
     parameters
@@ -241,7 +242,7 @@ AlteraHibiDpRamGenerator::createMemParameters() const {
 std::string
 AlteraHibiDpRamGenerator::moduleName() const {
 
-    return "altera_onchip_dp_ram_comp";
+    return ttaCoreName() + "_altera_onchip_dp_ram_comp";
 }
     
 std::string

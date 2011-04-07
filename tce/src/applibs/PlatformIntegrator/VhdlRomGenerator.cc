@@ -116,7 +116,7 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
         << "library ieee;" << endl
         << "use ieee.std_logic_1164.all;" << endl
         << "use ieee.std_logic_arith.all;" << endl
-        << "use work.imem_image.all;" << endl << endl
+        << "use work." << imagePackageName() << ".all;" << endl << endl
         << "entity " << moduleName() << " is" << endl << endl
         << StringTools::indent(1) << "generic (" << endl
         << StringTools::indent(2) << "addrw  : integer := 10;" << endl
@@ -161,7 +161,7 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
 std::string
 VhdlRomGenerator::moduleName() const {
 
-    return "rom_array_comp";
+    return ttaCoreName() + "_rom_array_comp";
 }
 
     
@@ -169,4 +169,10 @@ std::string
 VhdlRomGenerator::instanceName() const {
 
     return "imem_array_instance";
+}
+
+std::string
+VhdlRomGenerator::imagePackageName() const {
+
+    return ttaCoreName() + "_imem_image";
 }

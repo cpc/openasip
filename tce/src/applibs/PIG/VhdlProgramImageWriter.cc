@@ -43,8 +43,8 @@ using std::endl;
  * @param rowLength Length of the rows to write.
  */
 VhdlProgramImageWriter::VhdlProgramImageWriter(
-    const InstructionBitVector& bits) :
-    ArrayProgramImageWriter(bits) {
+    const InstructionBitVector& bits, const std::string& entityName):
+    ArrayProgramImageWriter(bits), entityName_(entityName) {
 }
 
 /**
@@ -72,9 +72,13 @@ void VhdlProgramImageWriter::writeHeader(std::ostream& stream) const {
     stream << "library ieee;" << endl
            << "use ieee.std_logic_1164.all;" << endl
            << "use ieee.std_logic_arith.all;" << endl
-           << "use work.imem_mau.all;" << endl << endl;
+           << "use work.";
+    if (!entityName_.empty()) {
+        stream << entityName_ << "_";
+    }
+    stream << "imem_mau.all;" << endl << endl;
 
-    stream << "package imem_image is" << endl << endl
+    stream << "package " << packageName() << " is" << endl << endl
            << "  type std_logic_imem_matrix is array (natural range <>) of "
            << "std_logic_vector(IMEMMAUWIDTH-1 downto 0);" << endl << endl;
 
@@ -86,5 +90,15 @@ void VhdlProgramImageWriter::writeHeader(std::ostream& stream) const {
  */
 void VhdlProgramImageWriter::writeEnding(std::ostream& stream) const {
     stream << ");" << endl << endl
-           << "end imem_image;" << endl;
+           << "end " << packageName() << ";" << endl;
+}
+
+std::string
+VhdlProgramImageWriter::packageName() const {
+    
+    std::string package = "imem_image";
+    if (!entityName_.empty()) {
+        package = entityName_ + "_" + package;
+    }
+    return package;
 }

@@ -1,0 +1,183 @@
+Warning: Processor Generator failed to generate testbench.
+External port name didn't match any: dmem1_data_in
+<spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1.5">
+      <spirit:busType spirit:library="busdef.clock" spirit:name="clock" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
+      <spirit:busType spirit:library="busdef.reset" spirit:name="reset" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
+      <spirit:busType spirit:library="ip.hwp.communication.hibi" spirit:name="hibi_ip_r4.busdef" spirit:vendor="TUT" spirit:version="3.0"/>
+      <spirit:abstractionType spirit:library="busdef.clock" spirit:name="clock_rtl" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:library="busdef.reset" spirit:name="reset_rtl" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:library="ip.hwp.communication.hibi" spirit:name="hibi_ip_r4.absdef" spirit:vendor="TUT" spirit:version="3.0"/>
+Component signal mappings
+24
+Bus signal mappings
+24
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.tce_util.all;
+use work.koskenlaskija_globals.all;
+use work.koskenlaskija_imem_mau.all;
+use work.koskenlaskija_params.all;
+
+entity koskenlaskija_toplevel is
+
+  port (
+    clk : in std_logic;
+    rstx : in std_logic;
+    fu_LSU_hibi_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
+    fu_LSU_hibi_av_in : in std_logic;
+    fu_LSU_hibi_empty_in : in std_logic;
+    fu_LSU_hibi_comm_in : in std_logic_vector(2 downto 0);
+    fu_LSU_hibi_re_out : out std_logic;
+    fu_LSU_hibi_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
+    fu_LSU_hibi_av_out : out std_logic;
+    fu_LSU_hibi_full_in : in std_logic;
+    fu_LSU_hibi_comm_out : out std_logic_vector(2 downto 0);
+    fu_LSU_hibi_we_out : out std_logic);
+
+end koskenlaskija_toplevel;
+
+architecture structural of koskenlaskija_toplevel is
+
+
+  component koskenlaskija
+    port (
+      clk : in std_logic;
+      rstx : in std_logic;
+      busy : in std_logic;
+      imem_en_x : out std_logic;
+      imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      fu_LSU_dmem1_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_dmem1_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_dmem1_addr : out std_logic_vector(fu_LSU_addrw-2-1 downto 0);
+      fu_LSU_dmem1_mem_en : out std_logic_vector(1-1 downto 0);
+      fu_LSU_dmem1_wr_en : out std_logic_vector(1-1 downto 0);
+      fu_LSU_dmem1_wr_mask : out std_logic_vector(fu_LSU_dataw/8-1 downto 0);
+      fu_LSU_dmem2_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_dmem2_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_dmem2_addr : out std_logic_vector(fu_LSU_addrw-2-1 downto 0);
+      fu_LSU_dmem2_mem_en : out std_logic_vector(1-1 downto 0);
+      fu_LSU_dmem2_wr_en : out std_logic_vector(1-1 downto 0);
+      fu_LSU_dmem2_wr_mask : out std_logic_vector(fu_LSU_dataw/8-1 downto 0);
+      fu_LSU_hibi_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_hibi_av_in : in std_logic_vector(1-1 downto 0);
+      fu_LSU_hibi_empty_in : in std_logic_vector(1-1 downto 0);
+      fu_LSU_hibi_comm_in : in std_logic_vector(3-1 downto 0);
+      fu_LSU_hibi_re_out : out std_logic_vector(1-1 downto 0);
+      fu_LSU_hibi_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
+      fu_LSU_hibi_av_out : out std_logic_vector(1-1 downto 0);
+      fu_LSU_hibi_full_in : in std_logic_vector(1-1 downto 0);
+      fu_LSU_hibi_comm_out : out std_logic_vector(3-1 downto 0);
+      fu_LSU_hibi_we_out : out std_logic_vector(1-1 downto 0));
+  end component;
+
+  component koskenlaskija_rom_array_comp
+    generic (
+      addrw : integer;
+      instrw : integer);
+    port (
+      clock : in std_logic;
+      addr : in std_logic_vector(addrw-1 downto 0);
+      dataout : out std_logic_vector(instrw-1 downto 0));
+  end component;
+
+  component koskenlaskija_altera_onchip_dp_ram_comp
+    port (
+      clock_a : in std_logic;
+      clock_b : in std_logic;
+      address_a : in std_logic_vector(14-1 downto 0);
+      q_a : out std_logic_vector(32-1 downto 0);
+      data_a : in std_logic_vector(32-1 downto 0);
+      enable_a : in std_logic;
+      wren_a : in std_logic;
+      byteena_a : in std_logic_vector(4-1 downto 0);
+      address_b : in std_logic_vector(14-1 downto 0);
+      q_b : out std_logic_vector(32-1 downto 0);
+      data_b : in std_logic_vector(32-1 downto 0);
+      enable_b : in std_logic;
+      wren_b : in std_logic;
+      byteena_b : in std_logic_vector(4-1 downto 0));
+  end component;
+
+
+begin
+
+  core_busy_wire <= '0';
+  imem_array_instance_addr_wire <= core_imem_addr_wire;
+  core_imem_data_wire <= imem_array_instance_dataout_wire;
+  core_pc_init_wire <= (others => '0');
+  core_fu_LSU_dmem1_data_in_wire <= onchip_dp_dmem_q_a_wire;
+  onchip_dp_dmem_data_a_wire <= core_fu_LSU_dmem1_data_out_wire;
+  onchip_dp_dmem_address_a_wire(13 downto 0) <= core_fu_LSU_dmem1_addr_wire(13 downto 0);
+  onchip_dp_dmem_enable_a_wire <= core_fu_LSU_dmem1_mem_en_wire(0);
+  onchip_dp_dmem_wren_a_wire <= core_fu_LSU_dmem1_wr_en_wire(0);
+  onchip_dp_dmem_byteena_a_wire <= core_fu_LSU_dmem1_wr_mask_wire;
+  core_fu_LSU_dmem2_data_in_wire <= onchip_dp_dmem_q_b_wire;
+  onchip_dp_dmem_data_b_wire <= core_fu_LSU_dmem2_data_out_wire;
+  onchip_dp_dmem_address_b_wire(13 downto 0) <= core_fu_LSU_dmem2_addr_wire(13 downto 0);
+  onchip_dp_dmem_enable_b_wire <= core_fu_LSU_dmem2_mem_en_wire(0);
+  onchip_dp_dmem_wren_b_wire <= core_fu_LSU_dmem2_wr_en_wire(0);
+  onchip_dp_dmem_byteena_b_wire <= core_fu_LSU_dmem2_wr_mask_wire;
+  ground_signal <= (others => '0');
+
+  core : koskenlaskija
+    port map (
+      clk => clk,
+      rstx => rstx,
+      busy => core_busy_wire,
+      imem_en_x => core_imem_en_x_wire,
+      imem_addr => core_imem_addr_wire,
+      imem_data => core_imem_data_wire,
+      pc_init => core_pc_init_wire,
+      fu_LSU_dmem1_data_in => core_fu_LSU_dmem1_data_in_wire,
+      fu_LSU_dmem1_data_out => core_fu_LSU_dmem1_data_out_wire,
+      fu_LSU_dmem1_addr => core_fu_LSU_dmem1_addr_wire,
+      fu_LSU_dmem1_mem_en => core_fu_LSU_dmem1_mem_en_wire,
+      fu_LSU_dmem1_wr_en => core_fu_LSU_dmem1_wr_en_wire,
+      fu_LSU_dmem1_wr_mask => core_fu_LSU_dmem1_wr_mask_wire,
+      fu_LSU_dmem2_data_in => core_fu_LSU_dmem2_data_in_wire,
+      fu_LSU_dmem2_data_out => core_fu_LSU_dmem2_data_out_wire,
+      fu_LSU_dmem2_addr => core_fu_LSU_dmem2_addr_wire,
+      fu_LSU_dmem2_mem_en => core_fu_LSU_dmem2_mem_en_wire,
+      fu_LSU_dmem2_wr_en => core_fu_LSU_dmem2_wr_en_wire,
+      fu_LSU_dmem2_wr_mask => core_fu_LSU_dmem2_wr_mask_wire,
+      fu_LSU_hibi_data_in => fu_LSU_hibi_data_in,
+      fu_LSU_hibi_av_in(0) => fu_LSU_hibi_av_in,
+      fu_LSU_hibi_empty_in(0) => fu_LSU_hibi_empty_in,
+      fu_LSU_hibi_comm_in => fu_LSU_hibi_comm_in,
+      fu_LSU_hibi_re_out(0) => fu_LSU_hibi_re_out,
+      fu_LSU_hibi_data_out => fu_LSU_hibi_data_out,
+      fu_LSU_hibi_av_out(0) => fu_LSU_hibi_av_out,
+      fu_LSU_hibi_full_in(0) => fu_LSU_hibi_full_in,
+      fu_LSU_hibi_comm_out => fu_LSU_hibi_comm_out,
+      fu_LSU_hibi_we_out(0) => fu_LSU_hibi_we_out);
+
+  imem_array_instance : koskenlaskija_rom_array_comp
+    generic map (
+      addrw => IMEMADDRWIDTH,
+      instrw => IMEMMAUWIDTH*IMEMWIDTHINMAUS)
+    port map (
+      clock => clk,
+      addr => imem_array_instance_addr_wire,
+      dataout => imem_array_instance_dataout_wire);
+
+  onchip_dp_dmem : koskenlaskija_altera_onchip_dp_ram_comp
+    port map (
+      clock_a => clk,
+      clock_b => clk,
+      address_a => onchip_dp_dmem_address_a_wire,
+      q_a => onchip_dp_dmem_q_a_wire,
+      data_a => onchip_dp_dmem_data_a_wire,
+      enable_a => onchip_dp_dmem_enable_a_wire,
+      wren_a => onchip_dp_dmem_wren_a_wire,
+      byteena_a => onchip_dp_dmem_byteena_a_wire,
+      address_b => onchip_dp_dmem_address_b_wire,
+      q_b => onchip_dp_dmem_q_b_wire,
+      data_b => onchip_dp_dmem_data_b_wire,
+      enable_b => onchip_dp_dmem_enable_b_wire,
+      wren_b => onchip_dp_dmem_wren_b_wire,
+      byteena_b => onchip_dp_dmem_byteena_b_wire);
+
+end structural;

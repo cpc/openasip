@@ -43,8 +43,10 @@ using std::endl;
  * @param rowLength Length of the rows to write.
  */
 VhdlImageWriter::VhdlImageWriter(
-    const BitVector& bits, int rowLength) :
-    ArrayImageWriter(bits, rowLength) {
+    const BitVector& bits,
+    int rowLength,
+    const std::string& entityName) : 
+    ArrayImageWriter(bits, rowLength), entityName_(entityName) {
 }
 
 /**
@@ -73,7 +75,7 @@ void VhdlImageWriter::writeHeader(std::ostream& stream) const {
            << "use ieee.std_logic_1164.all;" << endl
            << "use ieee.std_logic_arith.all;" << endl << endl;
 
-    stream << "package dmem_image is" << endl << endl
+    stream << "package " << packageName() << " is" << endl << endl
            << "  type std_logic_dmem_matrix is array (natural range <>) of "
            << "std_logic_vector(" << rowLength() << "-1 downto 0);" 
            << endl << endl;
@@ -86,5 +88,15 @@ void VhdlImageWriter::writeHeader(std::ostream& stream) const {
  */
 void VhdlImageWriter::writeEnding(std::ostream& stream) const {
     stream << ");" << endl << endl
-           << "end dmem_image;" << endl;
+           << "end " << packageName() << ";" << endl;
+}
+
+std::string
+VhdlImageWriter::packageName() const {
+    
+    std::string package = "dmem_image";
+    if (!entityName_.empty()) {
+        package = entityName_ + "_" + package;
+    }
+    return package;
 }

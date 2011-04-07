@@ -252,14 +252,18 @@ PlatformIntegrator::netlist() {
     return netlist_;
 }
 
+std::string
+PlatformIntegrator::platformEntityName() const {
+
+    return coreEntityName() + "_toplevel";
+}
 
 bool
 PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
 
     NetlistBlock* highestBlock =
         new NetlistBlock(
-            coreEntityName() + "_toplevel", 
-            coreEntityName() + "_toplevel", *netlist());
+            platformEntityName(), platformEntityName(), *netlist());
     
     // Must add ports to highest block *before* copying tta toplevel
     NetlistPort* clk = new NetlistPort(TTA_CORE_CLK, "0", 1, ProGe::BIT,
@@ -457,7 +461,8 @@ PlatformIntegrator::writeNewToplevel() {
     }
     projectFileGenerator()->addHdlFile(toplevelFile);
 
-    string paramFile = outputFilePath(coreEntityName() + "_toplevel_params_pkg.vhdl");
+    string paramFile =
+        outputFilePath(platformEntityName() + "_params_pkg.vhdl");
     if (FileSystem::fileExists(paramFile)) {
         projectFileGenerator()->addHdlFile(paramFile);
     }

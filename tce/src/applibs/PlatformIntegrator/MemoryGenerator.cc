@@ -280,3 +280,9 @@ MemoryGenerator::addParameter(const ProGe::Netlist::Parameter& add) {
     ProGe::Netlist::Parameter toAdd = {add.name, add.type, add.value};
     params_.push_back(toAdd);
 }
+
+std::string
+MemoryGenerator::ttaCoreName() const {
+
+    return platformIntegrator()->coreEntityName();
+}

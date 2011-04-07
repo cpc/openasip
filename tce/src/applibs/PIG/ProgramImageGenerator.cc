@@ -77,8 +77,8 @@ using boost::format;
  * @param bem The binary encoding map.
  * @param machine The machine.
  */
-ProgramImageGenerator::ProgramImageGenerator() :
-    compressor_(new DEFAULT_Compressor()) {
+ProgramImageGenerator::ProgramImageGenerator(): 
+    compressor_(new DEFAULT_Compressor()), entityName_("") {
 }
 
 
@@ -208,7 +208,7 @@ ProgramImageGenerator::generateProgramImage(
     } else if (format == MIF) {
         writer = new MifImageWriter(*programBits, mau);
     } else if (format == VHDL) {
-        writer = new VhdlProgramImageWriter(*programBits);
+        writer = new VhdlProgramImageWriter(*programBits, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
     } else {
@@ -348,7 +348,8 @@ ProgramImageGenerator::generateDataImage(
     } else if (format == MIF) {
         writer = new MifImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == VHDL) {
-        writer = new VhdlImageWriter(dataBits, as->width() * mausPerLine);
+        writer = new VhdlImageWriter(
+            dataBits, as->width() * mausPerLine, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
     } else {
@@ -524,7 +525,15 @@ ProgramImageGenerator::relocTarget(
  *
  * @return instruction memory mau width
  */
-int ProgramImageGenerator::imemMauWidth() const {
+int
+ProgramImageGenerator::imemMauWidth() const {
+
     return compressor_->imemMauWidth();
 }
     
+
+void
+ProgramImageGenerator::setEntityName(const std::string& entity) {
+    
+    entityName_ = entity;
+}

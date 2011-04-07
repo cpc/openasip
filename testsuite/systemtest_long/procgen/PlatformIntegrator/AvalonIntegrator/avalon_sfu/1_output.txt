@@ -1,0 +1,157 @@
+Component file contents:
+module properties:
+13
+design files:
+26
+interfaces:
+add_interface clock_reset clock end
+add_interface fu_avalon_sfu_avalon_master avalon start
+add_interface fu_avalon_sfu_avalon_masterinterrupt_recv interrupt start
+add_interface conduit_interface conduit end
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use work.tce_util.all;
+use work.tta_avalon_sfu_globals.all;
+use work.tta_avalon_sfu_imem_mau.all;
+use work.tta_avalon_sfu_params.all;
+
+entity tta_avalon_sfu_toplevel is
+
+  port (
+    clk : in std_logic;
+    rstx : in std_logic;
+    fu_leds_STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
+    fu_avalon_sfu_avalon_d_address : out std_logic_vector(fu_avalon_sfu_a_addrw_g-1 downto 0);
+    fu_avalon_sfu_avalon_d_byteenable : out std_logic_vector(fu_avalon_sfu_a_byteenable_g-1 downto 0);
+    fu_avalon_sfu_avalon_d_read : out std_logic;
+    fu_avalon_sfu_avalon_d_write : out std_logic;
+    fu_avalon_sfu_avalon_d_writedata : out std_logic_vector(fu_avalon_sfu_a_dataw_g-1 downto 0);
+    fu_avalon_sfu_avalon_d_irq : in std_logic_vector(fu_avalon_sfu_a_irqw_g-1 downto 0);
+    fu_avalon_sfu_avalon_d_readdata : in std_logic_vector(fu_avalon_sfu_a_dataw_g-1 downto 0);
+    fu_avalon_sfu_avalon_d_waitrequest : in std_logic);
+
+end tta_avalon_sfu_toplevel;
+
+architecture structural of tta_avalon_sfu_toplevel is
+
+
+  component tta_avalon_sfu
+    port (
+      clk : in std_logic;
+      rstx : in std_logic;
+      busy : in std_logic;
+      imem_en_x : out std_logic;
+      imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      fu_lsu_dmem_data_in : in std_logic_vector(fu_lsu_dataw-1 downto 0);
+      fu_lsu_dmem_data_out : out std_logic_vector(fu_lsu_dataw-1 downto 0);
+      fu_lsu_dmem_addr : out std_logic_vector(fu_lsu_addrw-2-1 downto 0);
+      fu_lsu_dmem_mem_en_x : out std_logic_vector(1-1 downto 0);
+      fu_lsu_dmem_wr_en_x : out std_logic_vector(1-1 downto 0);
+      fu_lsu_dmem_bytemask : out std_logic_vector(fu_lsu_dataw/8-1 downto 0);
+      fu_leds_STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
+      fu_avalon_sfu_avalon_d_address : out std_logic_vector(fu_avalon_sfu_a_addrw_g-1 downto 0);
+      fu_avalon_sfu_avalon_d_byteenable : out std_logic_vector(fu_avalon_sfu_a_byteenable_g-1 downto 0);
+      fu_avalon_sfu_avalon_d_read : out std_logic_vector(1-1 downto 0);
+      fu_avalon_sfu_avalon_d_write : out std_logic_vector(1-1 downto 0);
+      fu_avalon_sfu_avalon_d_writedata : out std_logic_vector(fu_avalon_sfu_a_dataw_g-1 downto 0);
+      fu_avalon_sfu_avalon_d_irq : in std_logic_vector(fu_avalon_sfu_a_irqw_g-1 downto 0);
+      fu_avalon_sfu_avalon_d_readdata : in std_logic_vector(fu_avalon_sfu_a_dataw_g-1 downto 0);
+      fu_avalon_sfu_avalon_d_waitrequest : in std_logic_vector(1-1 downto 0));
+  end component;
+
+  component tta_avalon_sfu_altera_onchip_rom_comp
+    port (
+      clock : in std_logic;
+      address : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      q : out std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0));
+  end component;
+
+  component tta_avalon_sfu_altera_onchip_ram_comp
+    port (
+      clock : in std_logic;
+      address : in std_logic_vector(9-1 downto 0);
+      byteena : in std_logic_vector(4-1 downto 0);
+      q : out std_logic_vector(32-1 downto 0);
+      data : in std_logic_vector(32-1 downto 0);
+      clken : in std_logic;
+      wren : in std_logic);
+  end component;
+
+  component util_inverter
+    port (
+      data_in : in std_logic;
+      data_out : out std_logic);
+  end component;
+
+
+begin
+
+  core_busy_wire <= '0';
+  onchip_imem_address_wire <= core_imem_addr_wire;
+  core_imem_data_wire <= onchip_imem_q_wire;
+  core_pc_init_wire <= (others => '0');
+  core_fu_lsu_dmem_data_in_wire <= onchip_dmem_q_wire;
+  onchip_dmem_data_wire <= core_fu_lsu_dmem_data_out_wire;
+  onchip_dmem_address_wire <= core_fu_lsu_dmem_addr_wire;
+  fu_lsu_dmem_mem_en_x_util_inverter_data_in_wire <= core_fu_lsu_dmem_mem_en_x_wire(0);
+  fu_lsu_dmem_wr_en_x_util_inverter_data_in_wire <= core_fu_lsu_dmem_wr_en_x_wire(0);
+  onchip_dmem_byteena_wire <= core_fu_lsu_dmem_bytemask_wire;
+  onchip_dmem_clken_wire <= fu_lsu_dmem_mem_en_x_util_inverter_data_out_wire;
+  onchip_dmem_wren_wire <= fu_lsu_dmem_wr_en_x_util_inverter_data_out_wire;
+  ground_signal <= (others => '0');
+
+  core : tta_avalon_sfu
+    port map (
+      clk => clk,
+      rstx => rstx,
+      busy => core_busy_wire,
+      imem_en_x => core_imem_en_x_wire,
+      imem_addr => core_imem_addr_wire,
+      imem_data => core_imem_data_wire,
+      pc_init => core_pc_init_wire,
+      fu_lsu_dmem_data_in => core_fu_lsu_dmem_data_in_wire,
+      fu_lsu_dmem_data_out => core_fu_lsu_dmem_data_out_wire,
+      fu_lsu_dmem_addr => core_fu_lsu_dmem_addr_wire,
+      fu_lsu_dmem_mem_en_x => core_fu_lsu_dmem_mem_en_x_wire,
+      fu_lsu_dmem_wr_en_x => core_fu_lsu_dmem_wr_en_x_wire,
+      fu_lsu_dmem_bytemask => core_fu_lsu_dmem_bytemask_wire,
+      fu_leds_STRATIXII_LED => fu_leds_STRATIXII_LED,
+      fu_avalon_sfu_avalon_d_address => fu_avalon_sfu_avalon_d_address,
+      fu_avalon_sfu_avalon_d_byteenable => fu_avalon_sfu_avalon_d_byteenable,
+      fu_avalon_sfu_avalon_d_read(0) => fu_avalon_sfu_avalon_d_read,
+      fu_avalon_sfu_avalon_d_write(0) => fu_avalon_sfu_avalon_d_write,
+      fu_avalon_sfu_avalon_d_writedata => fu_avalon_sfu_avalon_d_writedata,
+      fu_avalon_sfu_avalon_d_irq => fu_avalon_sfu_avalon_d_irq,
+      fu_avalon_sfu_avalon_d_readdata => fu_avalon_sfu_avalon_d_readdata,
+      fu_avalon_sfu_avalon_d_waitrequest(0) => fu_avalon_sfu_avalon_d_waitrequest);
+
+  onchip_imem : tta_avalon_sfu_altera_onchip_rom_comp
+    port map (
+      clock => clk,
+      address => onchip_imem_address_wire,
+      q => onchip_imem_q_wire);
+
+  onchip_dmem : tta_avalon_sfu_altera_onchip_ram_comp
+    port map (
+      clock => clk,
+      address => onchip_dmem_address_wire,
+      byteena => onchip_dmem_byteena_wire,
+      q => onchip_dmem_q_wire,
+      data => onchip_dmem_data_wire,
+      clken => onchip_dmem_clken_wire,
+      wren => onchip_dmem_wren_wire);
+
+  fu_lsu_dmem_mem_en_x_util_inverter : util_inverter
+    port map (
+      data_in => fu_lsu_dmem_mem_en_x_util_inverter_data_in_wire,
+      data_out => fu_lsu_dmem_mem_en_x_util_inverter_data_out_wire);
+
+  fu_lsu_dmem_wr_en_x_util_inverter : util_inverter
+    port map (
+      data_in => fu_lsu_dmem_wr_en_x_util_inverter_data_in_wire,
+      data_out => fu_lsu_dmem_wr_en_x_util_inverter_data_out_wire);
+
+end structural;

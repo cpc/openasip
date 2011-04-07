@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <set>
+#include <string>
 
 #include "CodeCompressorPlugin.hh"
 #include "BaseType.hh"
@@ -106,6 +107,8 @@ public:
 
     int imemMauWidth() const;
 
+    void setEntityName(const std::string& entity);
+
     static std::vector<std::string> availableCompressors();
     static void printCompressorDescription(
         const std::string& fileName,
@@ -127,8 +130,11 @@ private:
 
     /// The code compressor.
     CodeCompressorPlugin* compressor_;
+    /// Toplevel entity name
+    std::string entityName_;
     /// The plugin tool.
     PluginTools pluginTool_;
+    
 };
 
 #endif

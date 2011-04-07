@@ -123,6 +123,11 @@ public:
     std::string outputFilePath(std::string fileName, bool absolute = false) 
         const;
 
+    /**
+     * Return TTA core entity name
+     */
+    std::string coreEntityName() const;
+
 protected:
 
     ProGe::Netlist* netlist();
@@ -164,11 +169,6 @@ protected:
     virtual ProjectFileGenerator* projectFileGenerator() const = 0;
 
     void addProGeFiles() const;
-    
-    /**
-     * Return new toplevel entity name
-     */
-    std::string coreEntityName() const;
 
     /**
      * Returns the scheduled program name without .tpef ending
@@ -210,6 +210,8 @@ protected:
     std::ostream& warningStream();
 
     std::ostream& errorStream();
+
+    std::string platformEntityName() const;
 
 private:
 

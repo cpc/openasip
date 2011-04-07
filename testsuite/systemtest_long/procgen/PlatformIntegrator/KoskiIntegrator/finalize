@@ -1,0 +1,6 @@
+#!/bin/bash
+rm -rf proge-out-koski greybox_tmp
+rm -f altera_onchip_dp_ram_comp.qip
+rm -f spirit_comp_def_koskenlaskija_toplevel.xml
+rm -f koski_integrator.runlog *.qip
+
