@@ -1,0 +1,59 @@
+TTA-Based Codesign Environment (TCE) v1.4 released
+--------------------------------------------------
+
+TTA-Based Codesign Environment (TCE) is a toolset for designing 
+application-specific processors (ASP) based on the Transport Triggered 
+Architecture (TTA). The toolset provides a complete retargetable codesign 
+flow from C programs down to synthesizable VHDL and parallel program 
+binaries. Processor customization points include the register files, 
+function units, supported operations, and the interconnection network.
+
+This release includes support for LLVM 2.9, some new VHDL
+implementations (an FPU and streaming operations), connectivity
+optimizer, code generation improvements, plenty of bug fixes and
+more. See the CHANGES file for a more thorough listing.
+
+Notable new features
+--------------------
+- Support for LLVM 2.9.
+- OpenCL Embedded compliant FPU implementations by Timo Viitanen / TUT
+- Generic VHDL implementations for the basic streaming operations
+  from Jani Boutellier / University of Oulu.
+- ConnectionSweeper IC network exploration algorithm.
+  Optimizes the IC network by sweeping the buses of the machine and 
+  removing the least important connections first until a cycle count
+  worsening threshold is reached. Tries to remove RF connections 
+  first as they are usually more expensive than the bypass connections.
+- Added --pareto_set switch to the explorer for printing pareto efficient
+  configurations. Currently supports the connectivity and cycle count as
+  the quality metrics.
+- proge: IP-XACT support updated to version 1.5
+- Added switch --print-resource-constraints to tcecc to assist in 
+  deciding which resources to add to the machine to improve the
+  schedule. Dumps DDGs to dot files along with dependence and
+  resource constraint analysis data.
+
+Code generator improvements
+---------------------------
+- Passes the first function parameter in register instead of stack.
+- Uses negative guard more aggressively, less stupid guard xoring operations.
+- Emulation pattern generation improved, can use immediates directly when
+  using DAG to emulate missing operations.
+- Some other minor pattern improvements leading to slightly better code
+  on some situations.
+- Alias analysis improvements, understands that register spills to stack
+  cannot alias with other memory operations
+- Software Bypasser is much more aggressive.
+
+Acknowledgements
+----------------
+Thanks to Timo Viitanen for your first TCE contribution (the OpenCL
+embedded-compliant FPU implementations) in this release!
+
+Links
+-----
+
+TCE home page:     http://tce.cs.tut.fi
+This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Download:          http://tce.cs.tut.fi/downloads
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
