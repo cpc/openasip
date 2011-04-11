@@ -111,6 +111,8 @@ namespace llvm {
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) LFA_CONST;
         
+        SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
+
         virtual SDValue
         LowerCall(SDValue Chain, SDValue Callee,
                   CallingConv::ID CallConv, bool isVarArg,

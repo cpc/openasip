@@ -571,6 +571,7 @@ TCETargetLowering::TCETargetLowering(
 
     setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
+    setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
@@ -739,6 +740,20 @@ static SDValue LowerSELECT(
         opcode, op.getDebugLoc(), trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
+SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
+    TargetLowering::ArgListTy Args;
+    DebugLoc dl = Op->getDebugLoc();
+    std::pair<SDValue, SDValue> CallResult =
+      LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
+                  false, false, false, false, 0, CallingConv::C,
+                  /*isTailCall=*/false,
+                  /*isReturnValueUsed=*/true,
+                  DAG.getExternalSymbol("_exit", getPointerTy()),
+                  Args, DAG, dl);
+    return CallResult.second;
+
+}
+
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
 #ifdef LLVM_2_7
@@ -804,6 +819,7 @@ TCETargetLowering::getSetCCResultType(llvm::EVT VT) const {
 SDValue
 TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) LO_CONST {
     switch(op.getOpcode()) {
+    case ISD::TRAP: return LowerTRAP(op, dag);
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
     case ISD::SELECT: return LowerSELECT(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag, *this);
