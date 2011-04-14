@@ -11,15 +11,27 @@ INTEG=AvalonIntegrator
 LOG=run_avalon_lsu_sfu.log
 
 # Extra option for generating real HW with functional program images
-# Require real qmegawiz found from PATH
 HW=no
+
 QMEGAWIZ=$(which qmegawiz 2> /dev/null)
-if [ "x$QMEGAWIZ" == "x" ]
+XVFB=$(which xvfb-run 2> /dev/null)
+EMULATE_QMEGAWIZ=yes
+## is real qmegawiz available?
+if [ "x$QMEGAWIZ" != "x" ];then
+  if [ "x$DISPLAY" != "x" ];then
+    # qmegawiz is in PATH and X connection available
+    EMULATE_QMEGAWIZ=no
+  elif [ "x$XVFB" != "x" ];then
+    # can emulate X connection with xvfb-run
+    EMULATE_QMEGAWIZ=no
+    PROGE="$XVFB -a $PROGE"
+  fi
+fi
+
+if [ "x$EMULATE_QMEGAWIZ" == "xyes" ]
 then
   # Emulate qmegawiz with a script
   export PATH=$PWD/../data:$PATH
-else
-  HW=yes
 fi
 
 # run integrator

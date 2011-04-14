@@ -10,7 +10,21 @@ INTEG=KoskiIntegrator
 LOG=koski_integrator.runlog
 
 QMEGAWIZ=$(which qmegawiz 2> /dev/null)
-if [ "x$QMEGAWIZ" == "x" ]
+XVFB=$(which xvfb-run 2> /dev/null)
+EMULATE_QMEGAWIZ=yes
+## is real qmegawiz available?
+if [ "x$QMEGAWIZ" != "x" ];then
+  if [ "x$DISPLAY" != "x" ];then
+    # qmegawiz is in PATH and X connection available
+    EMULATE_QMEGAWIZ=no
+  elif [ "x$XVFB" != "x" ];then
+    # can emulate X connection with xvfb-run
+    EMULATE_QMEGAWIZ=no
+    PROGE="$XVFB -a $PROGE"
+  fi
+fi
+
+if [ "x$EMULATE_QMEGAWIZ" == "xyes" ]
 then
   # Emulate qmegawiz with a script
   export PATH=$PWD/../data:$PATH
