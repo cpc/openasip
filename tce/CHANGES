@@ -111,6 +111,8 @@ Bugfixes
   ALTERA_LIBRARY_PATH before calling qmegawiz as a workaround to 
   a problem where TCE was compiled against a different C++ library
   than the Quartus tools.
+- handling for llvm's TRAP intrinsic was missing, and could cause
+  compiler complain about missing "abort"-function and to fail.
 
 Documentation
 -------------
