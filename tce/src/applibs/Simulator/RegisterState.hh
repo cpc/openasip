@@ -60,7 +60,7 @@ protected:
     /// Value of the RegisterState. @todo Fix this mutable mess.
     /// It's needed because OutputPortState needs to mask the value_ in
     /// its value() implementation.
-    mutable SimValue& value_;
+    SimValue& value_;
 
 private:
     /// Copying not allowed.
