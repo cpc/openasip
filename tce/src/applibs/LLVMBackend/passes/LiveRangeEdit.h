@@ -33,7 +33,7 @@ public:
   /// Callback methods for LiveRangeEdit owners.
   struct Delegate {
     /// Called immediately before erasing a dead machine instruction.
-    virtual void LRE_WillEraseInstruction(MachineInstr *MI) {}
+    virtual void LRE_WillEraseInstruction(MachineInstr*) {}
     virtual ~Delegate() {}
   };
 
