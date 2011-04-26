@@ -8,7 +8,7 @@ Compiler              supported versions
 -----------------     ----------------
 GCC                   3.2.2+
 
-Library               supported versions                   library licence
+Library               supported versions                   library license
 -----------------     ------------------                   ---------------
 Xerces-C++            2.3.0+                               Apache v2.0
 wxWidgets             2.6.0+                               wxWidgets
@@ -17,6 +17,7 @@ Boost                 1.33+                                very permissive
 sqlite3               3.0.0+                               public domain
 LLVM                  2.9                                  LLVM Release License
 Editline              2.9                                  BSD-style
+Python                2.4-2.8                              PSF license
 
 Remarks concerning all libraries
 --------------------------------
