@@ -1,3 +1,12 @@
+1.5 not yet released
+====================
+
+Bugfixes
+--------
+- Hardware bug fix for Load Store Unit in hibi_adapter.hdb and stratixII.hdb.
+  Global lock signal might cause pipelined load result to be ignored.
+
+
 1.4       April 2011
 ====================
 
