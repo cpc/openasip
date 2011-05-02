@@ -503,14 +503,16 @@ CycleLookBackSoftwareBypasser::removeBypass(
     // Unschedule all operands, unassign them also since in BBSched
     // this is followed by another attempt to schedule operands
 
+    for (int i = 0; i < candidates.nodeCount(); i++) {
+        MoveNode& moveNode = candidates.node(i);
+        if (moveNode.isScheduled()) {
+            rm.unassign(moveNode);
+        }
+    }
+
     for (int k = 0; k < candidates.nodeCount(); k++) {
         MoveNode& moveNode = candidates.node(k);
         removeBypass(moveNode, ddg, rm);
-        if (moveNode.isScheduled()) {
-            // it wasn't bypassed but was scheduled as regular
-            // operand, so we unschedule it also
-            rm.unassign(moveNode);
-        }
     }
 }
 
