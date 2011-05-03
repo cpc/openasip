@@ -5,6 +5,11 @@ Bugfixes
 --------
 - Hardware bug fix for Load Store Unit in hibi_adapter.hdb and stratixII.hdb.
   Global lock signal might cause pipelined load result to be ignored.
+- Scheduler could sometimes fail to schedule on sparsely connected machines.
+
+Smaller features
+----------------
+- ProGe: Reasonable error message when implementation for some FU is invalid.
 
 
 1.4       April 2011

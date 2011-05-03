@@ -2904,6 +2904,9 @@ DefaultDecoderGenerator::opcode(
             FUImplementation& impl = entry.implementation();
             return impl.opcode(operation.name());
         } catch (const Exception&) {
+            std::cerr << "Implementation for FU: " << fuName << 
+                " required for operation: " << operation.name() <<
+                " not found!" << std::endl;
             assert(false);
         }
     }
