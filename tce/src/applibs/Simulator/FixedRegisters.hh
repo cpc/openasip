@@ -34,6 +34,7 @@
 #define TTA_FIXED_REGISTERS_HH
 
 #include <vector>
+#include <cstddef>
 
 class SimValue;
 

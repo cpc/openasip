@@ -34,6 +34,7 @@
 #define WRITE_REQUEST_HH
 
 #include <vector>
+#include <cstddef>
 
 /**
 * Models an uncommitted write request.

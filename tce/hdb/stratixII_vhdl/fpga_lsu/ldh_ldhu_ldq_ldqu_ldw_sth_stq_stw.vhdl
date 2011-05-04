@@ -28,7 +28,7 @@
 --            : Otto Esko
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-03-09
+-- Last update: 2011-04-28
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -332,11 +332,11 @@ begin
     end if;
   end process seq;
 
-  dmem_mem_en_x <= mem_en_x_reg;
-  dmem_wr_en_x  <= wr_en_x_reg;
-  dmem_bytemask <= bytemask_reg;
-  dmem_data_out <= data_out_reg;
-  dmem_addr     <= addr_reg;
-  r1data        <= r1_reg;
+  dmem_mem_en_x(0) <= mem_en_x_reg(0) or glock;
+  dmem_wr_en_x     <= wr_en_x_reg;
+  dmem_bytemask    <= bytemask_reg;
+  dmem_data_out    <= data_out_reg;
+  dmem_addr        <= addr_reg;
+  r1data           <= r1_reg;
 
 end rtl;
