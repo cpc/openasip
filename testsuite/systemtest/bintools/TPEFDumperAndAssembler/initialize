@@ -1,5 +1,4 @@
 #!/bin/bash
-bash compile_needed_parts
 bash compile_test_cases
 bash create_compare_data
 
