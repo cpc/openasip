@@ -36,6 +36,8 @@
 #include "Machine.hh"
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraph.hh"
+#include "ControlUnit.hh"
+#include "TerminalInstructionAddress.hh"
 #include "ControlFlowGraphPass.hh"
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
@@ -82,9 +84,22 @@ ProcedurePass::copyCfgToProcedure(
     TTAProgram::Procedure& procedure,
     ControlFlowGraph& cfg) throw (Exception) {
 
+    TTAProgram::InstructionReferenceManager& irm = 
+        procedure.parent().instructionReferenceManager();
     
+    int insCountDelta = 0;
+
     // collect the starting point instructions to keep as place holders
-    std::map<const BasicBlockNode*, TTAProgram::Instruction*> placeHolders;
+    typedef std::map<const BasicBlockNode*, TTAProgram::Instruction*,
+        BasicBlockNode::Comparator> PlaceHolders;
+    PlaceHolders placeHolders;
+
+    // store pointers to al original instrs so we can remove them
+    std::set<TTAProgram::Instruction*> originalInstr;
+    for (int i = 0; i < procedure.instructionCount(); i++) {
+        originalInstr.insert(&procedure.instructionAtIndex(i));
+    }
+
     for (int bbIndex = 0; bbIndex < cfg.nodeCount(); ++bbIndex) {
         BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
         if (!bb.isNormalBB())
@@ -102,22 +117,37 @@ ProcedurePass::copyCfgToProcedure(
         if (!bb.isNormalBB())
             continue;
      
-        TTAProgram::Instruction& placeHolder = *placeHolders[&bb];
+        PlaceHolders::iterator placeHolderIter = placeHolders.find(&bb);
+        TTAProgram::Instruction& placeHolder = *placeHolderIter->second;
+        placeHolders.erase(placeHolderIter);
 
         // Remove all original instructions (after the place holder first
         // instruction) from the procedure as we are dealing with basic blocks,
         // we can assume that only at most the first instruction is referred to.
         const int originalBBSize = 
             bb.originalEndAddress() - bb.originalStartAddress() + 1;
-        int addr = placeHolder.address().location() +1;
+        int addr = placeHolder.address().location() + 1;
         for (int i = 1; i < originalBBSize; ++i) {
-            procedure.deleteInstructionAt(addr);
+            TTAProgram::Instruction& ins = 
+                procedure.instructionAt(addr);
+            originalInstr.erase(&ins);
+            procedure.CodeSnippet::remove(ins);
+            delete &ins;
+            insCountDelta--;
         }
 
         TTAProgram::Instruction* firstNewInstruction = NULL;
         TTAProgram::Instruction* lastNewInstruction = &placeHolder;
-        TTAProgram::InstructionReferenceManager& irm = 
-            procedure.parent().instructionReferenceManager();
+
+        // consistency check.
+        for (int i = 0; i < bb.basicBlock().skippedFirstInstructions(); i++) {
+            TTAProgram::Instruction& ins =
+                bb.basicBlock().instructionAtIndex(i);
+            if (irm.hasReference(ins)) {
+                throw IllegalProgram(__FILE__,__LINE__, __func__, 
+                                     "Skipped ins has a ref");
+            }
+        }
 
         // Copy the instructions from the scheduled basic block back 
         // to the program.
@@ -126,7 +156,8 @@ ProcedurePass::copyCfgToProcedure(
             TTAProgram::Instruction& instrToCopy =
                 bb.basicBlock().instructionAtIndex(i);
             TTAProgram::Instruction* newInstruction = instrToCopy.copy();
-            procedure.insertAfter(*lastNewInstruction, newInstruction);
+            procedure.insertAfter(
+                *lastNewInstruction, newInstruction);
             // update references..
             if (irm.hasReference(instrToCopy)) {
                 irm.replace(instrToCopy,*newInstruction);
@@ -140,14 +171,84 @@ ProcedurePass::copyCfgToProcedure(
         // the new first instruction
         if (procedure.parent().instructionReferenceManager().hasReference(
                 placeHolder)) {
+            assert(firstNewInstruction != NULL);
             procedure.parent().instructionReferenceManager().replace(
                 placeHolder, *firstNewInstruction);
         } 
         // now we can delete also the place holder old instruction
         // @todo what if the instruction itself had a reference?
-        procedure.deleteInstructionAt(placeHolder.address().location());
+        originalInstr.erase(&placeHolder);
 
+        // might have code labels so do not optimize this
+        procedure.remove(placeHolder);
+        delete &placeHolder;
         // ...and we're done with this basic block
+    }
+
+    // refs to dead instructions are dead refs but there is no way to
+    // remove insr refs. so replace them to refs to first instr.
+//    TTAProgram::Instruction& firstIns = procedure.instructionAtIndex(0);
+
+    // delete dead instructios (ones from the original procedure
+    for(std::set<TTAProgram::Instruction*>::iterator i = 
+            originalInstr.begin(); i != originalInstr.end(); i++) {
+        TTAProgram::Instruction* ins = *i;
+        assert(!irm.hasReference(*ins));
+        procedure.CodeSnippet::remove(*ins);
+        delete ins;
+        insCountDelta--;
+    }
+
+    // fix the addresses of following procedures. 
+    if (insCountDelta != 0) {
+        if (procedure.isInProgram()) {
+            if (!(&procedure == &procedure.parent().lastProcedure())) {
+                procedure.parent().moveProcedure(
+                    procedure.parent().nextProcedure(procedure), 
+                    insCountDelta);
+            }
+        }
+    }
+
+    // scan for meaningless jumps and remove them.
+    // currently does not work for jump addresses in long immediates,
+    // just ignores them.
+    // but this gets rid of unnecessary jumps after tce side if conversion.
+    for (int i = 0; i < procedure.instructionCount()-1; i++) {
+        TTAProgram::Instruction& ins = procedure.instructionAtIndex(i);
+        for (int j = 0; j < ins.moveCount(); j++) {
+            TTAProgram::Move& move = ins.move(j);
+            // jump those target is easily known?
+            if (move.isJump() && move.source().isInstructionAddress()) {
+                TTAProgram::TerminalInstructionAddress& tia =
+                    dynamic_cast<TTAProgram::TerminalInstructionAddress&>(
+                        move.source());
+                TTAProgram::Instruction& targetIns = 
+                    tia.instructionReference().instruction();
+                TTAProgram::TerminalFUPort& tfp = 
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        move.destination());
+                const TTAMachine::FunctionUnit* fu = &tfp.functionUnit();
+                const TTAMachine::ControlUnit* gcu = 
+                    dynamic_cast<const TTAMachine::ControlUnit*>(fu);
+
+                // index of the instruction after delay slots
+                int nextIndex = gcu == NULL ? 
+                    i+1 : 
+                    i+1+ gcu->delaySlots();
+                
+                // is index inside the procedure?
+                if (nextIndex < procedure.instructionCount()) {
+                    TTAProgram::Instruction& nextIns = 
+                        procedure.instructionAtIndex(nextIndex);
+                    // if jump to next ins, remove jump
+                    if (&targetIns == &nextIns) {
+                        ins.removeMove(move);
+                        delete &move;
+                    }
+                }
+            }
+        }
     }
 }
 
