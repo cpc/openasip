@@ -3,7 +3,7 @@
 
 Bugfixes
 --------
-- Hardware bug fix for Load Store Unit in hibi_adapter.hdb and stratixII.hdb.
+- Hardware bug fix for load-store units in hibi_adapter.hdb and stratixII.hdb.
   Global lock signal might cause pipelined load result to be ignored.
 - Scheduler could sometimes fail to schedule on sparsely connected machines.
 
@@ -15,6 +15,9 @@ Smaller features
 - ProGe and PIG: the string given with --entity-name is now used to make
   the generated VHDL entity etc. names unique to allow easier
   instantiation of multiple TTA cores in designs.
+
+Usability features
+------------------
 - ProGe: Reasonable error message when implementation for some FU is invalid.
 
 External interface changes
