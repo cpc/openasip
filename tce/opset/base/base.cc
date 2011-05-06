@@ -36,10 +36,18 @@
 #include <math.h> // isnan()
 
 #include "OSAL.hh"
+#include "TCEString.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
 #include "Conversion.hh"
 
+#define RUNTIME_ERROR_WITH_INT(MESSAGE, DATA) {\
+       int len = strlen(MESSAGE) + 15;                \
+       char *tmpBuf = static_cast<char*>(alloca(len));\
+       snprintf(tmpBuf, len, "%s %d", MESSAGE, DATA); \
+       OperationGlobals::runtimeError(                \
+           tmpBuf, __FILE__, __LINE__, parent_);      \
+}
 
 // A macro to obtain maximum value that can be represented with 'x' bits.
 // NOTE: If this is needed a lot it should be in the OSAL
@@ -82,9 +90,9 @@ END_OPERATION(SUB)
 OPERATION(LDW)
 
 TRIGGER
-    if (UINT(1) % 4 != 0)
-	RUNTIME_ERROR_WITH_DATA(
-	    "Memory access alignment error, address: ", UINT(1));
+   if (UINT(1) % 4 != 0) 
+       RUNTIME_ERROR_WITH_INT(
+           "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 4, data);
     IO(2) = data;
@@ -112,7 +120,7 @@ OPERATION(LDH)
 
 TRIGGER
     if (UINT(1) % 2 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 2, data);
@@ -131,7 +139,7 @@ OPERATION(LDD)
 
 TRIGGER
     if (UINT(1) % 4 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     DoubleWord d;
     MEMORY.read(UINT(1), d);
@@ -147,7 +155,7 @@ OPERATION(STW)
 
 TRIGGER
     if (UINT(1) % 4 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     MEMORY.write(UINT(1), 4, UINT(2));
 END_TRIGGER;
@@ -172,7 +180,7 @@ OPERATION(STH)
 
 TRIGGER
     if (UINT(1) % 2 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     MEMORY.write(UINT(1), 2, UINT(2));
 END_TRIGGER;
@@ -189,7 +197,7 @@ OPERATION(STD)
 
 TRIGGER
     if (UINT(1) % 4 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     assert(MAU_SIZE == sizeof(Byte)*8 && 
            "STD works only with byte sized MAU at the moment.");
@@ -1067,7 +1075,7 @@ OPERATION(LDHU)
 
 TRIGGER
     if (UINT(1) % 2 != 0)
-	RUNTIME_ERROR_WITH_DATA(
+	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 2, data);

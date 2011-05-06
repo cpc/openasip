@@ -418,15 +418,6 @@ bool simulateTrigger( \
 #define RUNTIME_ERROR(MESSAGE) OperationGlobals::runtimeError(\
     MESSAGE, __FILE__, __LINE__, parent_);
 
-
-#define RUNTIME_ERROR_WITH_DATA(MESSAGE,DATA) {\
-	int len = strlen(MESSAGE) + 15;		       \
-	char *tmpBuf = static_cast<char*>(alloca(len));\
-	snprintf(tmpBuf, len, "%s %d", MESSAGE, DATA); \
-	OperationGlobals::runtimeError(		       \
-	    tmpBuf, __FILE__, __LINE__, parent_);      \
-}
-
 /**
  * Executes operation.
  */

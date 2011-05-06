@@ -17,6 +17,11 @@ Smaller features
   instantiation of multiple TTA cores in designs.
 - ProGe: Reasonable error message when implementation for some FU is invalid.
 
+External interface changes
+--------------------------
+- OSAL.hh: removed RUNTIME_ERROR_WITH_DATA as it's a too specific helper
+  for OSAL API. Let's keep it minimal and clean.
+
 1.4       April 2011
 ====================
 
