@@ -136,8 +136,11 @@ OperationBehaviorProxy::deleteState(OperationContext& context) const {
  */
 bool
 OperationBehaviorProxy::canBeSimulated() const {    
-    initializeBehavior();
-    
+    try {
+        initializeBehavior();
+    } catch (Exception&) {
+        return false;
+    }
     // if initialization was not success
     if (&target_->behavior() == this) {
         return false;
