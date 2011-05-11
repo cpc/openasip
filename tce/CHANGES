@@ -3,9 +3,11 @@
 
 Bugfixes
 --------
-- Hardware bug fix for load-store units in hibi_adapter.hdb and stratixII.hdb.
+- HDB: Hardware bug fix for load-store units in hibi_adapter.hdb and stratixII.hdb.
   Global lock signal might cause pipelined load result to be ignored.
-- Scheduler could sometimes fail to schedule on sparsely connected machines.
+- tcecc: Scheduler could sometimes fail to schedule on sparsely connected machines.
+- OSEd: OSEd crashed when selecting an operation for which there was no simulation
+  model in an otherwise valid .opb.
 
 Smaller features
 ----------------
