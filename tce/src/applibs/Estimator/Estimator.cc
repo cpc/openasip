@@ -236,7 +236,6 @@ Estimator::fuCostFunctionPluginOfImplementation(
  
     std::string pluginFileName = "";
     std::string pluginName = "";
-    int pluginId = -1;
     HDB::HDBManager* theHDB = NULL;
     try {
         // use the HDB to find the estimation plugin from the plugin
