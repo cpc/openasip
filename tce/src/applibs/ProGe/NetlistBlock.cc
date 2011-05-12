@@ -413,19 +413,18 @@ NetlistBlock::copyToNewNetlist(
     
     for (int i = 0; i < portCount(); i++) {
         NetlistPort* srcPort = &port(i);
-        NetlistPort* copy = NULL;
         if (srcPort->realWidthAvailable()) {
-            copy = new NetlistPort(srcPort->name(), srcPort->widthFormula(),
-                                   srcPort->realWidth(), srcPort->dataType(),
-                                   srcPort->direction(), *core);
+            new NetlistPort(srcPort->name(), srcPort->widthFormula(),
+                            srcPort->realWidth(), srcPort->dataType(),
+                            srcPort->direction(), *core);
         } else {
             int width = 0;
             if (resolveRealWidth(srcPort, width)) {
-                copy = new NetlistPort(
+                new NetlistPort(
                     srcPort->name(), srcPort->widthFormula(),
                     width, srcPort->dataType(), srcPort->direction(), *core);
             } else {
-                copy = new NetlistPort(
+                new NetlistPort(
                     srcPort->name(), srcPort->widthFormula(),
                     srcPort->dataType(), srcPort->direction(), *core);
             }
