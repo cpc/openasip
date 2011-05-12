@@ -528,22 +528,9 @@ CodeSnippet::insertBefore(const Instruction& pos, Instruction* ins)
 void
 CodeSnippet::remove(Instruction& ins) throw (IllegalRegistration) {
 
-    bool first = false;
-    bool refs = false;
-
-    if( parent_ != NULL ) {
-        InstructionReferenceManager& irm = 
-            parent_->instructionReferenceManager();
-        refs = irm.hasReference(ins);
-    }
-
     if (!ins.isInProcedure() || !(&ins.parent() == this)) {
         string msg = "Instruction doesn't belong to the procedure.";
         throw IllegalRegistration(__FILE__, __LINE__, __func__, msg);
-    }
-
-    if (&ins == &firstInstruction()) {
-        first = true;
     }
 
     InsList::iterator iter = instructions_.begin();

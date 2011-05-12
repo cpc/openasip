@@ -1570,8 +1570,6 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
     const std::vector<MachineConstantPoolEntry>& cp = mcp.getConstants();
 
     for (unsigned i = 0, e = cp.size(); i != e; ++i) {
-        MachineConstantPoolEntry cpe = cp[i];
-
         assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
         currentFnCP_[i] = createDataDefinition(end_, cp[i].Val.ConstVal);
     }

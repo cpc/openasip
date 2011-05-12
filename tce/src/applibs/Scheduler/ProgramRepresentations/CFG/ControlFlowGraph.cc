@@ -957,7 +957,6 @@ BasicBlockNode&
 ControlFlowGraph::entryNode() const {
     BasicBlockNode* result = NULL;
     bool found = false;
-    bool unlinkedEntryNode = false;
     for (int i = 0; i < nodeCount(); i++) {
         if (inDegree(node(i)) == 0) {
             // sanity check
@@ -966,7 +965,6 @@ ControlFlowGraph::entryNode() const {
                 // or there are more nodes which are not reachable from
                 // entry nodes... likely caused by frontend not doing
                 // any of -O{1,2} optimizations (in case of gcc)
-                unlinkedEntryNode = true;
                 continue;
             }
             if (found == true) {

@@ -258,7 +258,6 @@ Estimator::fuCostFunctionPluginOfImplementation(
         HDB::CostFunctionPlugin& pluginData = fuEntry->costFunction();
         pluginFileName = pluginData.pluginFilePath();
         pluginName = pluginData.name();
-        pluginId = pluginData.id();
 
         try {
             return fuEstimatorPluginRegistry_.plugin(
@@ -292,7 +291,6 @@ Estimator::rfCostFunctionPluginOfImplementation(
  
     std::string pluginFileName = "";
     std::string pluginName = "";
-    int pluginId = -1;
     HDB::HDBManager* theHDB = NULL;
     try {
         // use the HDB to find the estimation plugin from the plugin
@@ -313,7 +311,6 @@ Estimator::rfCostFunctionPluginOfImplementation(
         HDB::CostFunctionPlugin& pluginData = rfEntry->costFunction();
         pluginFileName = pluginData.pluginFilePath();
         pluginName = pluginData.name();
-        pluginId = pluginData.id();
 
         try {
             return rfEstimatorPluginRegistry_.plugin(

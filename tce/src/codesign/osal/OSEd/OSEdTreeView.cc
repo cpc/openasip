@@ -728,7 +728,6 @@ bool
 OSEdTreeView::isModuleSelected() const {
     if (MapTools::containsValue(modules_, GetSelection()) ||
         infoView_->selectedModule() != "") {
-        wxTreeItemId id = GetSelection();
         return true;
     }
     return false;

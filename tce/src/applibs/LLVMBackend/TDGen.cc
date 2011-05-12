@@ -1746,12 +1746,10 @@ TDGen::operationNodeToString(
     assert(outputs == 0 || outputs == 1);
 
     for (int i = 1; i < inputs + 1; i++) {
-        bool ok = false;
         for (int e = 0; e < dag.inDegree(node); e++) {
             const OperationDAGEdge& edge = dag.inEdge(node, e);
             int dst = edge.dstOperand();
             if (dst == i) {
-                ok = true;
                 const OperationDAGNode& in = dag.tailNode(edge);
                 pattern % dagNodeToString(
                     op, dag, in, immOp, emulationPattern, intToBool==2?2:0);

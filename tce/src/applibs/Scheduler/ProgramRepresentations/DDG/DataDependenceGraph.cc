@@ -1309,34 +1309,21 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
             __FILE__,__LINE__,__func__,"Cannot merge entry/exit node!");
     }
 
-    bool nodeWasRegToItselfCopy = false;
-
-    if (userNode.move().source().equals(userNode.move().destination())) {
-        nodeWasRegToItselfCopy = true;
-    }
-
     // update the move
     userNode.move().setSource(sourceNode.move().source().copy());
 
-    bool sourceOp = false;
     bool sourceIsRegToItselfCopy = false;
-    bool nodeIsRegToItselfCopy = false;
     // If source is an operation, set programOperation
     if (sourceNode.isSourceOperation()) {
         ProgramOperation& srcOp = sourceNode.sourceOperation();
         srcOp.addOutputNode(userNode);
         userNode.setSourceOperation(srcOp);
-        sourceOp = true;
     } else {
         // bypassing from stupid reg-to-itself needs extra handling.
         if (sourceNode.move().source().equals(
                 sourceNode.move().destination())) {
             sourceIsRegToItselfCopy = true;
         }
-    }
-
-    if (userNode.move().source().equals(userNode.move().destination())) {
-        nodeIsRegToItselfCopy = true;
     }
 
     // remove RAW deps between source and user.
