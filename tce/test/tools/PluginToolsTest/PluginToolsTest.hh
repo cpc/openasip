@@ -126,7 +126,7 @@ PluginToolsTest::testLoadFunction() {
     PluginTools tools;
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo.so"));
-    int (*function)(int);
+    int (*function)(int) = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("bar", function, "foo.so"));
     TS_ASSERT_EQUALS(15, (*function)(5));
 }
@@ -141,7 +141,7 @@ PluginToolsTest::testLoadBadSymbol() {
     PluginTools tools;
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo.so"));
-    int (*func)(int);
+    int (*func)(int) = NULL;
     TS_ASSERT_THROWS(
         tools.importSymbol("daa", func, "foo.so"), SymbolNotFound);
 }
@@ -154,12 +154,12 @@ PluginToolsTest::testLoadBadSymbol() {
 void
 PluginToolsTest::testLoadWithAbsolutePath() {
     PluginTools tools;
-    int* variable;
+    int* variable = NULL;
     string path = PLUGIN_SEARCH_PATH + FileSystem::DIRECTORY_SEPARATOR +
         "foo2.so";
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("var", variable, path));
     TS_ASSERT_EQUALS(*variable, 50);
-    int (*function)(int);
+    int (*function)(int) = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("bar", function, "foo2.so"));
     TS_ASSERT_EQUALS(15, (*function)(15));
 }
@@ -207,7 +207,7 @@ PluginToolsTest::testRegisterModuleWithAbsolutePath() {
     PluginTools tools;
     string path = PLUGIN_SEARCH_PATH + FileSystem::DIRECTORY_SEPARATOR +
         "foo.so";
-    int* variable;
+    int* variable = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule(path));
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("var", variable));
@@ -233,7 +233,7 @@ PluginToolsTest::testRegisterModuleMultipleTimes() {
 void
 PluginToolsTest::testLoadSymWhenNoModuleDefined() {
     PluginTools tools;
-    int* variable;
+    int* variable = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo.so"));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo2.so"));
@@ -268,7 +268,7 @@ PluginToolsTest::testUnregisterAll() {
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo.so"));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo2.so"));
-    int (*func)(int);
+    int (*func)(int) = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("bar", func));
     TS_ASSERT_EQUALS((*func)(3), 9);
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("bar", func, "foo2.so"));
@@ -310,7 +310,7 @@ PluginToolsTest::testModulesWithClashingSymbols() {
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("clashing1.so"));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("clashing2.so"));
 
-    int (*func)();
+    int (*func)() = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("bar1", func));
     TS_ASSERT_EQUALS(func(), 51);
 
@@ -326,7 +326,7 @@ PluginToolsTest::testModulesWithClashingSymbols() {
 void
 PluginToolsTest::testLoadWithoutRegistering() {
     PluginTools tools;
-    int* variable;
+    int* variable = NULL;
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.importSymbol("var", variable, "foo.so"));
     TS_ASSERT_EQUALS(*variable, 5);

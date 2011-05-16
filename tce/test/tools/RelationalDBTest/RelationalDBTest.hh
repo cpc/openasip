@@ -310,6 +310,8 @@ RelationalDBTest::testIllegalQueries() {
     TS_ASSERT_THROWS(
         result = connection_->query("SELECT * FROM Emovies_seen;"),
         RelationalDBException);
+
+    delete result;
 }
 
 /**

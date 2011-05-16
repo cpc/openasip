@@ -126,9 +126,7 @@ RelocSectionTest::tearDown() {
 inline void
 RelocSectionTest::testChunkMethod() {
     Section* relocSection = Section::createSection(Section::ST_RELOC);
-    Chunk* testChunk = NULL;
-    TS_ASSERT_THROWS(testChunk = relocSection->chunk(LOCATION),
-                     NotChunkable);
+    TS_ASSERT_THROWS(relocSection->chunk(LOCATION), NotChunkable);
     
     delete relocSection;
     relocSection = NULL;
