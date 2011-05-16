@@ -139,7 +139,7 @@ Terminal::isRA() const {
  *            TerminalImmediate.
  */
 SimValue
-Terminal::value() const throw(WrongSubclass) {
+Terminal::value() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 

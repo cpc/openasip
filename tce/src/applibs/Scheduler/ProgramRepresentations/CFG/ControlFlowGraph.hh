@@ -76,7 +76,7 @@ class ControlFlowGraph : public BoostGraph<BasicBlockNode, ControlFlowEdge> {
 public:
     ControlFlowGraph(
         const TCEString name,
-        TTAProgram::Program& program);
+        TTAProgram::Program* program = NULL);
     ControlFlowGraph(
         const TTAProgram::Procedure& procedure,
         InterPassData& passData);
@@ -94,9 +94,13 @@ public:
     friend class ControlDependenceGraph;
     friend class ProgramDependenceGraph;
 
-    void copyToProcedure(TTAProgram::Procedure& proc);
+    void copyToProcedure(
+        TTAProgram::Procedure& proc, 
+        TTAProgram::InstructionReferenceManager* irm = NULL);
 
     void updateReferencesFromProcToCfg();
+    void convertBBRefsToInstRefs(
+        TTAProgram::InstructionReferenceManager& irm);
 
     bool hasIncomingFallThru(const BasicBlockNode& bbn) const;
 
@@ -106,6 +110,10 @@ public:
 
     BasicBlockNode* jumpSuccessor(BasicBlockNode& bbn);
     BasicBlockNode* fallThruSuccessor(BasicBlockNode& bbn);
+
+    void addExitFromSinkNodes(BasicBlockNode* exitNode);
+    void detectBackEdges();
+
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>
@@ -198,8 +206,6 @@ private:
     bool hasFallThruPredecessor(BasicBlockNode& bbn);
 
     NodeSet findReachableNodes();
-
-    void detectBackEdges();
 
     enum RemovedJumpData {
         JUMP_NOT_REMOVED = 0, /// nothing removed

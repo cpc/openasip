@@ -996,7 +996,7 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitInstruction(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     const llvm::TargetInstrDesc* opDesc = &mi->getDesc();
 
@@ -1470,14 +1470,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isMBB()) {
 
-        TTAProgram::InstructionReference dummy(NULL);
-
-        TTAProgram::TerminalInstructionAddress* ref =
-            new TTAProgram::TerminalInstructionAddress(dummy);
-
-
-        mbbReferences_[ref] = mbbName(*mo.getMBB());
-        return ref;
+        return createMBBReference(mo);
     } else if (mo.isFI()) {
         std::cerr << " Frame index source operand NOT IMPLEMENTED!"
                   << std::endl;
@@ -1508,44 +1501,13 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
                 address, *dataAddressSpace_);
 
         } else {
-            TTAProgram::InstructionReference dummy(NULL);
-
-            TTAProgram::TerminalInstructionAddress* ref =
-                new TTAProgram::TerminalInstructionAddress(dummy);
-
-            codeLabelReferences_[ref] = name;
-            return ref;
+            return createSymbolReference(name);
         }
     } else if (mo.isJTI()) {
         std::cerr << " Jump table index operand NOT IMPLEMENTED!\n";
         assert(false);
     } else if (mo.isSymbol()) {
-        //} else if (mo.isExternalSymbol()) {
-
-        /**
-         * NOTE: Hack to get code compiling even if llvm falsely makes libcalls to
-         *       external functions even if they are found from currently lowered program.
-         *
-         *       http://llvm.org/bugs/show_bug.cgi?id=2673
-         *
-         *       Should be removed after fix is applied to llvm.. (maybe never...)
-         */
-
-        std::string name = mo.getSymbolName();
-
-        TTAProgram::InstructionReference* dummy =
-            new TTAProgram::InstructionReference(NULL);
-
-
-        TTAProgram::TerminalInstructionAddress* ref =
-            new TTAProgram::TerminalInstructionAddress(
-                *dummy);
-
-        codeLabelReferences_[ref] = name;
-        return ref;
-        /**
-         * END OF HACK
-         */
+        return createSymbolReference(mo);
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
         assert(false);
@@ -1554,6 +1516,50 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
     return NULL;
 }
 
+TTAProgram::Terminal*
+LLVMTCEBuilder::createMBBReference(const MachineOperand& mo) {
+    TTAProgram::InstructionReference dummy(NULL);
+    
+    TTAProgram::TerminalInstructionAddress* ref =
+        new TTAProgram::TerminalInstructionAddress(dummy);
+    
+    mbbReferences_[ref] = mbbName(*mo.getMBB());
+    return ref;
+}
+
+TTAProgram::Terminal*
+LLVMTCEBuilder::createSymbolReference(const MachineOperand& mo) {
+    //} else if (mo.isExternalSymbol()) {
+    
+    /**
+     * NOTE: Hack to get code compiling even if llvm falsely makes libcalls to
+     *       external functions even if they are found from currently lowered program.
+     *
+     *       http://llvm.org/bugs/show_bug.cgi?id=2673
+     *
+     *       Should be removed after fix is applied to llvm.. (maybe never...)
+     */
+    return createSymbolReference(mo.getSymbolName());
+}
+
+TTAProgram::Terminal*
+LLVMTCEBuilder::createSymbolReference(const TCEString& name) {
+    
+    TTAProgram::InstructionReference* dummy =
+        new TTAProgram::InstructionReference(NULL);
+    
+    
+    TTAProgram::TerminalInstructionAddress* ref =
+        new TTAProgram::TerminalInstructionAddress(
+            *dummy);
+    
+    codeLabelReferences_[ref] = name;
+    return ref;
+    /**
+     * END OF HACK
+     */
+    
+}
 
 /**
  * Emits data definitions for a function constant pool.
@@ -1610,7 +1616,7 @@ LLVMTCEBuilder::createMove(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitMove(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     assert(mi->getNumOperands() == 2); // src, dst
     const MachineOperand& dst = mi->getOperand(0);
@@ -1634,7 +1640,7 @@ LLVMTCEBuilder::emitMove(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitReturn(
-    const MachineInstr* /* mi */, TTAProgram::Procedure* proc) {
+    const MachineInstr* /* mi */, TTAProgram::CodeSnippet* proc) {
 
     Bus& bus = umach_->universalBus();
     TTAProgram::TerminalFUPort* src = new TTAProgram::TerminalFUPort(
@@ -1660,7 +1666,7 @@ LLVMTCEBuilder::emitReturn(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitSelect(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
 // 0 = dest?
 
@@ -1770,6 +1776,16 @@ LLVMTCEBuilder::isInitialized(const Constant* cv) {
  */
 void
 LLVMTCEBuilder::emitSPInitialization() {
+    TTAProgram::Instruction& first = prog_->firstInstruction();
+
+    TTAProgram::Procedure& proc =
+        dynamic_cast<TTAProgram::Procedure&>(first.parent());
+
+    emitSPInitialization(proc);
+}
+
+void
+    LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
 
     unsigned spDRN = spDRegNum();
     std::string rfName = registerFileName(spDRN);
@@ -1797,13 +1813,18 @@ LLVMTCEBuilder::emitSPInitialization() {
     TTAProgram::Move* move = createMove(src, dst, bus);
     TTAProgram::Instruction* spInit = new TTAProgram::Instruction();
     spInit->addMove(move);
-    TTAProgram::Instruction& first = prog_->firstInstruction();
-    TTAProgram::Procedure& proc =
-        dynamic_cast<TTAProgram::Procedure&>(first.parent());
-
-    proc.insertBefore(first, spInit);
-    prog_->instructionReferenceManager().replace(first, *spInit);
+    
+    if (target.instructionCount() > 0) {
+        TTAProgram::Instruction& first = target.firstInstruction(); 
+        target.insertBefore(first, spInit);
+        if (prog_->instructionReferenceManager().hasReference(first)) {
+            prog_->instructionReferenceManager().replace(first, *spInit);
+        }
+    } else {
+        target.add(spInit);
+    }
 }
+
 
 
 /**
@@ -1817,7 +1838,7 @@ LLVMTCEBuilder::emitSPInitialization() {
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitInlineAsm(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
 #ifndef NDEBUG
     unsigned numOperands = 
@@ -1966,7 +1987,8 @@ LLVMTCEBuilder::emitInlineAsm(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitSpecialInlineAsm(
-    const std::string op, const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const std::string op, const MachineInstr* mi, 
+    TTAProgram::CodeSnippet* proc) {
 
     assert(op[0] == '.');
 
@@ -2005,7 +2027,7 @@ LLVMTCEBuilder::emitSpecialInlineAsm(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitReadSP(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 3) {
         abortWithError(
@@ -2045,7 +2067,7 @@ LLVMTCEBuilder::emitReadSP(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::handleMemoryCategoryInfo(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
         Application::logStream() 
@@ -2104,7 +2126,7 @@ LLVMTCEBuilder::handleMemoryCategoryInfo(
 
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitSetjmp(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
         std::cerr << "ERROR: wrong number of operands in "".setjmp"""
@@ -2218,7 +2240,7 @@ LLVMTCEBuilder::emitSetjmp(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitGlobalXXtructorCalls(
-    const MachineInstr* /*mi*/, TTAProgram::Procedure* proc,
+    const MachineInstr* /*mi*/, TTAProgram::CodeSnippet* proc,
     bool constructors) {
 
     std::string globalName = 
@@ -2297,7 +2319,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitLongjmp(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
         std::cerr << "ERROR: wrong number of operands in "".longjmp"""

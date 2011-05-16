@@ -39,6 +39,7 @@
 #include "TCEString.hh"
 #include "MoveNodeUse.hh"
 #include "DisassemblyRegister.hh"
+#include "LiveRangeData.hh"
 
 namespace TTAProgram {
     class Program;
@@ -88,11 +89,11 @@ protected:
     typedef ControlFlowGraph::NodeSet BasicBlockNodeSet;
     typedef DataDependenceGraph::NodeSet MNodeSet;
 
-    typedef BasicBlock::MoveNodeUseSet MoveNodeUseSet;
-    typedef BasicBlock::MoveNodeUseMapSet MoveNodeUseMapSet;
-    typedef BasicBlock::MoveNodeUseMap MoveNodeUseMap;
-    typedef BasicBlock::MoveNodeUseSetPair MoveNodeUseSetPair;
-    typedef BasicBlock::MoveNodeUsePair MoveNodeUsePair;
+    typedef LiveRangeData::MoveNodeUseSet MoveNodeUseSet;
+    typedef LiveRangeData::MoveNodeUseMapSet MoveNodeUseMapSet;
+    typedef LiveRangeData::MoveNodeUseMap MoveNodeUseMap;
+    typedef LiveRangeData::MoveNodeUseSetPair MoveNodeUseSetPair;
+    typedef LiveRangeData::MoveNodeUsePair MoveNodeUsePair;
 
     typedef std::map<int, TCEString> SpecialRegisters;
     typedef std::vector<MemoryAliasAnalyzer*> AliasAnalyzerVector;
@@ -284,8 +285,8 @@ protected:
         std::map<int,TCEString>& registers);
 
     void appendMoveNodeUse(
-        const BasicBlock::MoveNodeUseSet& src,
-        BasicBlock::MoveNodeUseSet& dst,
+        const LiveRangeData::MoveNodeUseSet& src,
+        LiveRangeData::MoveNodeUseSet& dst,
         bool setLoopProperty);
 
     BBDataList blocksByState_[BB_STATES];

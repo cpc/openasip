@@ -9,7 +9,7 @@
 
 #include "CodeGenerator.hh"
 
-#include "Procedure.hh"
+#include "CodeSnippet.hh"
 #include "Machine.hh"
 #include "ControlUnit.hh"
 #include "InstructionReferenceManager.hh"
@@ -29,6 +29,7 @@
 #include "Guard.hh"
 #include "MoveGuard.hh"
 #include "Program.hh"
+#include "Procedure.hh"
 
 namespace TTAProgram {
 
@@ -41,7 +42,7 @@ CodeGenerator::~CodeGenerator() {}
 
 void
 CodeGenerator::addMoveToProcedure(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal) {
 
@@ -58,7 +59,7 @@ CodeGenerator::addMoveToProcedure(
 
 void
 CodeGenerator::addAnnotatedMoveToProcedure(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal,
     const TTAProgram::ProgramAnnotation& annotation) {
@@ -142,7 +143,7 @@ CodeGenerator::createTerminalRegister(const TCEString& name, bool readPort) {
  */
 void
 CodeGenerator::loadTerminal(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal) {
 
@@ -169,7 +170,7 @@ CodeGenerator::loadTerminal(
  */
 void
 CodeGenerator::storeTerminal(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* dstTerminal,
     TTAProgram::Terminal* srcTerminal) {
 
@@ -192,7 +193,7 @@ CodeGenerator::storeTerminal(
  */
 void
 CodeGenerator::loadFromAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
     const TCEString& dstReg) {
 
@@ -212,7 +213,7 @@ CodeGenerator::loadFromAddress(
  */
 void
 CodeGenerator::storeToAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* dstTerminal,
     const TCEString& srcReg) {
 
@@ -231,7 +232,7 @@ CodeGenerator::storeToAddress(
  */
 void
 CodeGenerator::loadFromRegisterAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& srcReg,
     const TCEString& dstReg) {
 
@@ -251,7 +252,7 @@ CodeGenerator::loadFromRegisterAddress(
  */
 void
 CodeGenerator::storeToRegisterAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& dstReg,
     const TCEString& srcReg) {
 
@@ -270,7 +271,7 @@ CodeGenerator::storeToRegisterAddress(
  */
 void
 CodeGenerator::incrementRegisterAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& dstReg) {
 
     // create terminal references
@@ -312,7 +313,7 @@ CodeGenerator::incrementRegisterAddress(
  */
 void
 CodeGenerator::decrementRegisterAddress(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& dstReg) {
 
     // create terminal references
@@ -354,7 +355,7 @@ CodeGenerator::decrementRegisterAddress(
  */
 void
 CodeGenerator::popFromStack(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     TTAProgram::Terminal* dstTerminal) {
 
@@ -374,7 +375,7 @@ CodeGenerator::popFromStack(
  */
 void
 CodeGenerator::popRegisterFromStack(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     const TCEString& dstReg) {
 
@@ -392,7 +393,7 @@ CodeGenerator::popRegisterFromStack(
  */
 void
 CodeGenerator::pushToStack(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     TTAProgram::Terminal* srcTerminal) {
 
@@ -412,7 +413,7 @@ CodeGenerator::pushToStack(
  */
 void
 CodeGenerator::pushRegisterToStack(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     const TCEString& srcReg) {
 
@@ -430,7 +431,7 @@ CodeGenerator::pushRegisterToStack(
  */
 void
 CodeGenerator::popFromBuffer(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     TTAProgram::Terminal* dstTerminal) {
 
@@ -450,7 +451,7 @@ CodeGenerator::popFromBuffer(
  */
 void
 CodeGenerator::popRegisterFromBuffer(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     const TCEString& dstReg) {
 
@@ -468,7 +469,7 @@ CodeGenerator::popRegisterFromBuffer(
  */
 void
 CodeGenerator::pushToBuffer(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     TTAProgram::Terminal* srcTerminal) {
 
@@ -488,7 +489,7 @@ CodeGenerator::pushToBuffer(
  */
 void
 CodeGenerator::pushRegisterToBuffer(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     const TCEString& srcReg) {
 
@@ -499,7 +500,7 @@ CodeGenerator::pushRegisterToBuffer(
 
 void
 CodeGenerator::pushInstructionReferenceToStack(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     TTAProgram::InstructionReference& srcAddr) {
 
@@ -512,7 +513,7 @@ CodeGenerator::pushInstructionReferenceToStack(
 
 void
 CodeGenerator::pushInstructionReferenceToBuffer(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     TTAProgram::InstructionReference& srcAddr) {
 
@@ -525,7 +526,7 @@ CodeGenerator::pushInstructionReferenceToBuffer(
 
 void
 CodeGenerator::registerJump(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& jumpAddrReg) {
 
     TTAProgram::Terminal* jumpDestTerminal =
@@ -540,7 +541,7 @@ CodeGenerator::registerJump(
 
 void
 CodeGenerator::registerJump(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& jumpAddrReg,
     const TTAProgram::ProgramAnnotation& annotation) {
 
@@ -587,7 +588,7 @@ CodeGenerator::createCall(TTAProgram::InstructionReference& callDst) {
  */
 void
 CodeGenerator::createCall(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::InstructionReference& callDst) {
 
     TTAProgram::TerminalInstructionAddress* srcTerminal =
@@ -601,7 +602,7 @@ CodeGenerator::createCall(
 
 void
 CodeGenerator::registerMove(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& srcReg, const TCEString& dstReg) {
 
     TTAProgram::Terminal* srcTerminal =
@@ -615,7 +616,7 @@ CodeGenerator::registerMove(
 
 void
 CodeGenerator::immediateMove(
-    TTAProgram::Procedure& dstProcedure,
+    TTAProgram::CodeSnippet& dstProcedure,
     int imm, const TCEString& dstReg) {
 
     SimValue immVal(32);
@@ -639,7 +640,7 @@ CodeGenerator::immediateMove(
  * @param rvReg Return value register name.
  * @param saveRegs Set of registers, which should be saved.
  */
-TTAProgram::Procedure*
+TTAProgram::CodeSnippet*
 CodeGenerator::createSchedYieldProcedure(
     TTAProgram::InstructionReferenceManager& refManager,
     const TCEString& name,

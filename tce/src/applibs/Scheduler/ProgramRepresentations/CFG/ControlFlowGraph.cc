@@ -75,6 +75,7 @@
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
+#include "TerminalBasicBlockReference.hh"
 
 using TTAProgram::Program;
 using TTAProgram::Procedure;
@@ -116,9 +117,9 @@ ControlFlowGraph::~ControlFlowGraph() {
  */
 ControlFlowGraph::ControlFlowGraph(
     const TCEString name,
-    TTAProgram::Program& program) :
+    TTAProgram::Program* program) :
     BoostGraph<BasicBlockNode, ControlFlowEdge>(name),
-    program_(&program),
+    program_(program),
     startAddress_(TTAProgram::NullAddress::instance()),
     endAddress_(TTAProgram::NullAddress::instance()),
     passData_(NULL) {
@@ -919,14 +920,21 @@ ControlFlowGraph::addExit() {
         connectNodes(blockSource, *exit, *theEdge);
     } 
 
+    addExitFromSinkNodes(exit);
+
+}
+
+void 
+ControlFlowGraph::addExitFromSinkNodes(BasicBlockNode* exitNode) {
+    
     // kludge needed for start and exit methods which do nto have ret inst.
     for (int i = 0; i < nodeCount(); i++) {
-        BasicBlockNode& block(static_cast<BasicBlockNode&>(node(i)));
-        if (outDegree(block) == 0 && exit != &block) {
+        BasicBlockNode& block(node(i));
+        if (outDegree(block) == 0 && exitNode != &block) {
             ControlFlowEdge* edge = new ControlFlowEdge(
                 ControlFlowEdge::CFLOW_EDGE_NORMAL,
                 ControlFlowEdge::CFLOW_EDGE_CALL);
-            connectNodes(block, *exit, *edge);
+            connectNodes(block, *exitNode, *edge);
         }
     }
 }
@@ -1360,7 +1368,8 @@ ControlFlowGraph::findReachableNodes() {
  * @param proc procedure where the copy the cfg.
  */
 void
-ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
+ControlFlowGraph::copyToProcedure(
+    TTAProgram::Procedure& proc, InstructionReferenceManager* irm) {
 
     // todo: make sure not indeterministic.
     // two-way maps between copied and in cfg instructions.
@@ -1378,12 +1387,15 @@ ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
 
     // fix refs to old first to point to first in cfg - later fixed to
     // first in program
-    InstructionReferenceManager& irm = program_->instructionReferenceManager();
+    if (irm == NULL) {
+        irm = &program_->instructionReferenceManager();
+        assert(irm != NULL);
+    }
     assert(firstBBN->isNormalBB());
 
     // procedure should not have any references.
     for (int i = 0; i < proc.instructionCount(); i++) {
-        assert(!irm.hasReference(proc.instructionAtIndex(i)));
+        assert(!irm->hasReference(proc.instructionAtIndex(i)));
     }
 
     proc.clear();
@@ -1411,7 +1423,7 @@ ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
 
         for (int i = 0; i < bb.skippedFirstInstructions(); i++) {
             Instruction& ins = bb.instructionAtIndex(i);
-            assert(!irm.hasReference(ins));
+            assert(!irm->hasReference(ins));
         }
 
         // copy instructions of a BB to procedure.
@@ -1465,8 +1477,8 @@ ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
                     // move refs to beginning of the next BB.
                     if (rjd == LAST_ELEMENT_REMOVED) {
                         Instruction& ins = bb.instructionAtIndex(0);
-                        if (irm.hasReference(ins)) {
-                            irm.replace(
+                        if (irm->hasReference(ins)) {
+                            irm->replace(
                                 ins, head.basicBlock().instructionAtIndex(
                                     head.basicBlock().
                                     skippedFirstInstructions()));
@@ -1537,8 +1549,8 @@ ControlFlowGraph::copyToProcedure(TTAProgram::Procedure& proc) {
     for (InsMap::iterator i = copiedInsFromCFG.begin();
          i != copiedInsFromCFG.end(); i++) {
         std::pair<Instruction*,Instruction*> insPair = *i;
-        if (irm.hasReference(*insPair.first)) {
-            irm.replace(*insPair.first, *insPair.second);
+        if (irm->hasReference(*insPair.first)) {
+            irm->replace(*insPair.first, *insPair.second);
         }
     }
 
@@ -1744,4 +1756,49 @@ ControlFlowGraph::detectBackEdges() {
     /// there is connection added from entry to first BB.
     /// Using default parameter for root_vertex is therefore sufficient
     boost::depth_first_search(graph_, visitor(vis));
+}
+
+
+void ControlFlowGraph::convertBBRefsToInstRefs(
+    TTAProgram::InstructionReferenceManager& irm) {
+    for (int i = 0; i < nodeCount(); i++) {
+        BasicBlockNode& bbn = node(i);
+        if (bbn.isNormalBB()) {
+            BasicBlock& bb = bbn.basicBlock();
+            for (int j = 0; j < bb.instructionCount(); j++) {
+                TTAProgram::Instruction& ins = bb.instructionAtIndex(j);
+                for (int k = 0; k < ins.moveCount(); k++) {
+                    TTAProgram::Move& move = ins.move(k);
+                    TTAProgram::Terminal& src = move.source();
+                    TTAProgram::TerminalBasicBlockReference* tbbr =
+                        dynamic_cast<TTAProgram::TerminalBasicBlockReference*>
+                        (&src);
+                    if (tbbr != NULL) {
+                        const BasicBlock& target = tbbr->basicBlock();
+                        assert(target.instructionCount() >0);
+                        move.setSource(
+                            new TTAProgram::TerminalInstructionAddress(
+                                irm.createReference(
+                                    target.firstInstruction())));
+                    }
+                }
+
+                for (int k = 0; k < ins.immediateCount(); k++) {
+                    TTAProgram::Immediate& imm = ins.immediate(k);
+                    TTAProgram::Terminal& immVal = imm.value();
+                    TTAProgram::TerminalBasicBlockReference* tbbr =
+                        dynamic_cast<TTAProgram::TerminalBasicBlockReference*>
+                        (&immVal);
+                    if (tbbr != NULL) {
+                        const BasicBlock& target = tbbr->basicBlock();
+                        assert(target.instructionCount() >0);
+                        imm.setValue(
+                            new TTAProgram::TerminalInstructionAddress(
+                                irm.createReference(
+                                    target.firstInstruction())));
+                    }
+                }
+            }
+        }
+    }
 }

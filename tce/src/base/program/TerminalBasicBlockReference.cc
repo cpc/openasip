@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,46 +22,40 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file DisassemblyImmediate.cc
+ * @file TerminalBasicBlockReference.cc
  *
- * Implementation of DisassemblyImmediate class.
+ * Implementation of TerminalBasicBlockReference class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2011 (hkultala-at-cs.tut.fi)
  * @note rating: red
  */
 
-#include "DisassemblyImmediate.hh"
-#include "Conversion.hh"
+#include "TerminalBasicBlockReference.hh"
+#include "BasicBlock.hh"
 
-/**
- * The constructor.
- *
- * @param value Inline immediate value.
- */
-DisassemblyImmediate::DisassemblyImmediate(SimValue value):
-    DisassemblyElement(),
-    value_(value) {
-}
+namespace TTAProgram {
+TerminalBasicBlockReference::TerminalBasicBlockReference(
+    const BasicBlock& bb) : 
+    TerminalImmediate(
+        SimValue(bb.startAddress().location(),WORD_BITWIDTH)),
+    bb_(&bb) {}
+    
+Terminal* 
+TerminalBasicBlockReference::copy() const { 
+    return new TerminalBasicBlockReference(*bb_); }
 
-
-/**
- * The destructor.
- */
-DisassemblyImmediate::~DisassemblyImmediate() {
-}
-
-
-/**
- * Returns disassembly of the inline immediate value.
- *
- * @return Disassembly of the inline immediate value as a string.
- */
-std::string
-DisassemblyImmediate::toString() const {
-    if (value_.width() == 0) {
-        std::cerr << "nullsimvalue?:" << value_.intValue() << ":" << 
-            value_.width() << std::endl;
-        return "Invalid Immediate";
+bool
+TerminalBasicBlockReference::equals(const Terminal& other) const {
+    const TerminalBasicBlockReference* otherBBRef = 
+        dynamic_cast<const TerminalBasicBlockReference*>(&other);
+    if (otherBBRef == NULL) {
+        return false;
     }
-    return Conversion::toString(value_.intValue());
+    return otherBBRef->bb_ == bb_;
+}
+
+SimValue 
+TerminalBasicBlockReference::value() const {
+    return SimValue(bb_->startAddress().location(), WORD_BITWIDTH);
+}
 }

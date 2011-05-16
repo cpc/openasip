@@ -63,6 +63,8 @@
 #include "TPEFWriter.hh"
 #include "Immediate.hh"
 
+#include "TerminalSymbolReference.hh"
+#include "TerminalInstructionAddress.hh"
 using std::string;
 
 using namespace TTAMachine;
@@ -1190,5 +1192,58 @@ Program::instructionVector() const {
     return instructions;
 }
 
+void 
+Program::convertSymbolRefsToInsRefs() {
+    for (int i = 0; i < procedureCount();i++) {
+        Procedure& proc = procedure(i);
+        for (int j = 0; j < proc.instructionCount(); j++) {
+            TTAProgram::Instruction& ins = proc.instructionAtIndex(j);
+            for (int k = 0; k < ins.moveCount(); k++) {
+                TTAProgram::Move& move = ins.move(k);
+                TTAProgram::Terminal& src = move.source();
+                TTAProgram::TerminalSymbolReference* tsr =
+                    dynamic_cast<TTAProgram::TerminalSymbolReference*>
+                    (&src);
+                if (tsr != NULL) {
+                    TCEString procName = tsr->getSymbol();
+                    if (!hasProcedure(procName)) {
+                        throw InstanceNotFound(__FILE__,__LINE__,__func__,
+                                       TCEString("procedure with  symbol: ")
+                                       + procName + TCEString(" not found!"));
+                    }
+                    const Procedure& target = procedure(procName);
+                    assert(target.instructionCount() >0);
+                    move.setSource(
+                        new TTAProgram::TerminalInstructionAddress(
+                            refManager_->createReference(
+                                target.firstInstruction())));
+                    }
+                }
+
+                for (int k = 0; k < ins.immediateCount(); k++) {
+                    TTAProgram::Immediate& imm = ins.immediate(k);
+                    TTAProgram::Terminal& immVal = imm.value();
+                    TTAProgram::TerminalSymbolReference* tsr =
+                        dynamic_cast<TTAProgram::TerminalSymbolReference*>
+                        (&immVal);
+                    if (tsr != NULL) {
+                        TCEString procName = tsr->getSymbol();
+                        if (hasProcedure(procName)) {
+                            throw InstanceNotFound(__FILE__,__LINE__,
+                                                   __func__,
+                                           TCEString("procedure with  symbol: ")
+                                           + procName + TCEString(" not found!"));
+                        }
+                        const Procedure& target = procedure(procName);
+                        assert(target.instructionCount() >0);
+                        imm.setValue(
+                            new TTAProgram::TerminalInstructionAddress(
+                                refManager_->createReference(
+                                    target.firstInstruction())));
+                    }
+                }
+        }
+    }
+}
 } // namespace TTAProgram
 

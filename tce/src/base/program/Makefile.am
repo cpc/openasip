@@ -29,7 +29,8 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	DisassemblyReturnAddressRegister.cc DisassemblyControlUnitPort.cc \
 	DisassemblyInstructionSlot.cc DisassemblyImmediateAssignment.cc \
 	DisassemblyLabel.cc DisassemblyNOP.cc DisassemblyFUOperand.cc \
-	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc CodeGenerator.cc
+	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc CodeGenerator.cc \
+    TerminalBasicBlockReference.cc BasicBlock.cc TerminalSymbolReference.cc
 
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
@@ -80,5 +81,6 @@ libprogram_la_SOURCES += \
 	TerminalFUPort.hh GlobalScope.hh \
 	InstructionReferenceManager.icc TerminalRegister.icc \
 	Address.icc Procedure.icc \
-	InstructionReferenceImpl.icc 
+	InstructionReferenceImpl.icc \
+    TerminalSymbolReference.hh TerminalBasicBlockReference.hh BasicBlock.hh
 ## headers end

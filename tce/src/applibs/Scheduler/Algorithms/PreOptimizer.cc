@@ -54,7 +54,8 @@ static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
  * @param data InterPassData to store.
  */
 PreOptimizer::PreOptimizer(InterPassData& data) : ProcedurePass(data),
-                                                    ProgramPass(data){
+                                                  ProgramPass(data),
+                                                  ControlFlowGraphPass(data) {
 }
 
 /**
@@ -150,7 +151,7 @@ PreOptimizer::tryToOptimizeAddressReg(
 bool 
 PreOptimizer::tryToRemoveXor(
     DataDependenceGraph& ddg, ProgramOperation& po,
-    TTAProgram::InstructionReferenceManager& irm) {
+    TTAProgram::InstructionReferenceManager* irm) {
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
         return false;
     }
@@ -209,8 +210,10 @@ PreOptimizer::tryToRemoveXor(
     TTAProgram::Instruction& resultIns = resultMove.parent();
     
     // cannot remove if has refs. TODO: move refs to next ins.
-    if (irm.hasReference(operand1Ins) || irm.hasReference(operand2Ins) ||
-        irm.hasReference(resultIns)) {
+    // if we don't have irm, assume we don't have irefs.
+    if (irm != NULL && 
+        (irm->hasReference(operand1Ins) || irm->hasReference(operand2Ins) ||
+         irm->hasReference(resultIns))) {
         return false;
     }
     
@@ -279,7 +282,7 @@ PreOptimizer::tryToRemoveXor(
 void
 PreOptimizer::handleProcedure(
     TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine&)
+    const TTAMachine::Machine& mach)
     throw (Exception) {
 
 /*
@@ -298,38 +301,53 @@ PreOptimizer::handleProcedure(
         return;
     }
 */
-    TTAProgram::InstructionReferenceManager& irm = 
-        procedure.parent().instructionReferenceManager();
-
     ControlFlowGraph cfg(procedure /*, ProcedurePass::interPassData()*/);
-    DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
-    // only RAW register edges and operation edges. no mem edges, 
-    // no anti-edges.
-    DataDependenceGraph* ddg = ddgBuilder.build(
-        cfg, DataDependenceGraph::NO_ANTIDEPS, NULL, false);
-
     cfg.updateReferencesFromProcToCfg();
-    
-    // Loop over all programoperations. find XOR's by 1.
-    for (int i = 0; i < ddg->programOperationCount(); i++) {
-        ProgramOperation& po = ddg->programOperation(i);
-        if (po.operation().name() == "XOR") {
-            if (tryToRemoveXor(*ddg,po,irm)) {
-                continue;
-            }
-        }
 
-        if (po.operation().readsMemory()) {
-            tryToOptimizeAddressReg(*ddg, po);
-        }
-
-        // TODO: remove also programoperation.
-    }
-    delete ddg;
+    handleControlFlowGraph(cfg, mach);
 
     // copy back to the program.
     cfg.copyToProcedure(procedure);
 }
     
+void PreOptimizer::handleDDG(
+    DataDependenceGraph& ddg, TTAProgram::InstructionReferenceManager* irm) {
     
+    // Loop over all programoperations. find XOR's by 1.
+    for (int i = 0; i < ddg.programOperationCount(); i++) {
+        ProgramOperation& po = ddg.programOperation(i);
+        if (po.operation().name() == "XOR") {
+            if (tryToRemoveXor(ddg,po,irm)) {
+                continue;
+            }
+        }
+
+        if (po.operation().readsMemory()) {
+            tryToOptimizeAddressReg(ddg, po);
+        }
+
+        // TODO: remove also programoperation.
+    }
+}
+
+void
+PreOptimizer::handleControlFlowGraph(
+    ControlFlowGraph& cfg,
+    const TTAMachine::Machine&)
+    throw (Exception) {
+
+    TTAProgram::Program* program = cfg.program();
+    TTAProgram::InstructionReferenceManager* irm = 
+        program == NULL ? NULL :
+        &program->instructionReferenceManager();
+
+    DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
+    // only RAW register edges and operation edges. no mem edges, 
+    // no anti-edges.
+    DataDependenceGraph* ddg = ddgBuilder.build(
+        cfg, DataDependenceGraph::NO_ANTIDEPS, NULL, false);
+    
+    handleDDG(*ddg, irm);
+    delete ddg;
+}
 

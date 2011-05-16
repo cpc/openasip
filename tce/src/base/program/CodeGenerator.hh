@@ -25,6 +25,7 @@ namespace TTAProgram {
     class InstructionReference;
     class InstructionReferenceManager;
     class Procedure;
+    class CodeSnippet;
     class TerminalRegister;
     class Terminal;
     class TerminalFUPort;
@@ -56,11 +57,11 @@ public:
 
     virtual ~CodeGenerator();
 
-    void addMoveToProcedure(TTAProgram::Procedure& dstProcedure,
+    void addMoveToProcedure(TTAProgram::CodeSnippet& dstProcedure,
                             TTAProgram::Terminal* srcTerminal,
                             TTAProgram::Terminal* dstTerminal);
 
-    void addAnnotatedMoveToProcedure(TTAProgram::Procedure& dstProcedure,
+    void addAnnotatedMoveToProcedure(TTAProgram::CodeSnippet& dstProcedure,
                                      TTAProgram::Terminal* srcTerminal,
                                      TTAProgram::Terminal* dstTerminal,
                                      const TTAProgram::ProgramAnnotation&
@@ -72,85 +73,85 @@ public:
     TTAProgram::TerminalFUPort* createTerminalFUPort(
         const TCEString& opName, int operand);
 
-    void loadTerminal(TTAProgram::Procedure& dstProcedure,
+    void loadTerminal(TTAProgram::CodeSnippet& dstProcedure,
                       TTAProgram::Terminal* srcTerminal,
                       TTAProgram::Terminal* dstTerminal);
 
-    void storeTerminal(TTAProgram::Procedure& dstProcedure,
+    void storeTerminal(TTAProgram::CodeSnippet& dstProcedure,
                        TTAProgram::Terminal* dstTerminal,
                        TTAProgram::Terminal* srcTerminal);
 
-    void loadFromAddress(TTAProgram::Procedure& dstProcedure,
+    void loadFromAddress(TTAProgram::CodeSnippet& dstProcedure,
                          TTAProgram::Terminal* srcTerminal,
                          const TCEString& dstReg);
 
-    void storeToAddress(TTAProgram::Procedure& dstProcedure,
+    void storeToAddress(TTAProgram::CodeSnippet& dstProcedure,
                         TTAProgram::Terminal* dstTerminal,
                         const TCEString& srcReg);
 
-    void loadFromRegisterAddress(TTAProgram::Procedure& dstProcedure,
+    void loadFromRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
                                  const TCEString& srcReg,
                                  const TCEString& dstReg);
 
-    void storeToRegisterAddress(TTAProgram::Procedure& dstProcedure,
+    void storeToRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
                                 const TCEString& dstReg,
                                 const TCEString& srcReg);
 
-    void incrementRegisterAddress(TTAProgram::Procedure& dstProcedure,
+    void incrementRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
                                   const TCEString& dstReg);
 
-    void decrementRegisterAddress(TTAProgram::Procedure& dstProcedure,
+    void decrementRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
                                   const TCEString& dstReg);
 
-    void popFromStack(TTAProgram::Procedure& dstProcedure,
+    void popFromStack(TTAProgram::CodeSnippet& dstProcedure,
                       const TCEString& stackRegister,
                       TTAProgram::Terminal* dstTerminal);
 
-    void popRegisterFromStack(TTAProgram::Procedure& dstProcedure,
+    void popRegisterFromStack(TTAProgram::CodeSnippet& dstProcedure,
                               const TCEString& stackRegister,
                               const TCEString& dstReg);
 
-    void pushToStack(TTAProgram::Procedure& dstProcedure,
+    void pushToStack(TTAProgram::CodeSnippet& dstProcedure,
                      const TCEString& stackRegister,
                      TTAProgram::Terminal* srcTerminal);
 
-    void pushRegisterToStack(TTAProgram::Procedure& dstProcedure,
+    void pushRegisterToStack(TTAProgram::CodeSnippet& dstProcedure,
                              const TCEString& stackRegister,
                              const TCEString& srcReg);
 
 
-    void popFromBuffer(TTAProgram::Procedure& dstProcedure,
+    void popFromBuffer(TTAProgram::CodeSnippet& dstProcedure,
                        const TCEString& indexRegister,
                        TTAProgram::Terminal* dstTerminal);
 
-    void popRegisterFromBuffer(TTAProgram::Procedure& dstProcedure,
+    void popRegisterFromBuffer(TTAProgram::CodeSnippet& dstProcedure,
                                const TCEString& indexRegister,
                                const TCEString& dstReg);
 
-    void pushToBuffer(TTAProgram::Procedure& dstProcedure,
+    void pushToBuffer(TTAProgram::CodeSnippet& dstProcedure,
                       const TCEString& indexRegister,
                       TTAProgram::Terminal* srcTerminal);
 
-    void pushRegisterToBuffer(TTAProgram::Procedure& dstProcedure,
+    void pushRegisterToBuffer(TTAProgram::CodeSnippet& dstProcedure,
                               const TCEString& stackRegister,
                               const TCEString& srcReg);
 
     void pushInstructionReferenceToStack(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         const TCEString& stackRegister,
         TTAProgram::InstructionReference& srcAddr);
 
     void pushInstructionReferenceToBuffer(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         const TCEString& indexRegister,
         TTAProgram::InstructionReference& srcAddr);
 
     void registerJump(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         const TCEString& jumpAddrReg);
 
     void registerJump(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         const TCEString& jumpAddrReg,
         const TTAProgram::ProgramAnnotation& annotation);
 
@@ -160,18 +161,18 @@ public:
         TTAProgram::InstructionReference& callDst);
 
     void createCall(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         TTAProgram::InstructionReference& callDst);
 
     void registerMove(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         const TCEString& srcReg, const TCEString& dstReg);
 
     void immediateMove(
-        TTAProgram::Procedure& dstProcedure,
+        TTAProgram::CodeSnippet& dstProcedure,
         int imm, const TCEString& dstReg);
 
-    TTAProgram::Procedure* createSchedYieldProcedure(
+    TTAProgram::CodeSnippet* createSchedYieldProcedure(
         TTAProgram::InstructionReferenceManager& refManager,
         const TCEString& name,
         TTAProgram::InstructionReference& schedProcedure,

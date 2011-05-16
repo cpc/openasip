@@ -99,8 +99,11 @@
 #include "TCEString.hh"
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
+#include "LLVMTCECFGDDGBuilder.hh"
 
 //#define DEBUG_TDGEN
+
+//#define USE_CFGDDG_BUILDER
 
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 namespace llvm {
@@ -473,15 +476,25 @@ LLVMBackend::compile(
 //    setCodeModelForStatic();
     Passes.add(createGCInfoDeleter());
 
+#ifdef USE_CFGDDG_BUILDER
+    LLVMTCECFGDDGBuilder* cfgddgbuilder = new LLVMTCECFGDDGBuilder(
+        *targetMachine, &target, *ipData);
+
+    Passes.add(cfgddgbuilder);
+
+#else
     // TODO: This should be moved to emit file pass maybe
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
     Passes.add(pomBuilder);
 
+#endif
     Passes.run(module);
 
+#ifndef USE_CFGDDG_BUILDER
     // get and write out pom
     TTAProgram::Program* prog = pomBuilder->result();
     assert(prog != NULL);
+#endif
 
     if (ipData_ != NULL) {
         
@@ -503,15 +516,19 @@ LLVMBackend::compile(
         rvHighReg->second = plugin.registerIndex(plugin.rvHighDRegNum());
         ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
         
+#ifndef USE_CFGDDG_BUILDER
         if (pomBuilder->isProgramUsingRestrictedPointers()) {
             ipData_->setDatum("RESTRICTED_POINTERS_FOUND", NULL);
         }
         if (pomBuilder->isProgramUsingAddressSpaces()) {
             ipData_->setDatum("MULTIPLE_ADDRESS_SPACES_FOUND", NULL);
         }
+#endif
     }
 
+#ifndef USE_CFGDDG_BUILDER
     return prog;
+#endif
 }
 
 /**

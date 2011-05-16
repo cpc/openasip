@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libcfg.la
 libcfg_la_SOURCES = BasicBlockNode.cc ControlFlowEdge.cc ControlFlowGraph.cc \
-BasicBlock.cc CFGStatistics.cc
+CFGStatistics.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -35,6 +35,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libcfg_la_SOURCES += \
 	CFGStatistics.hh ControlFlowGraph.hh \
-	ControlFlowEdge.hh BasicBlock.hh \
-	BasicBlockNode.hh 
+	ControlFlowEdge.hh BasicBlockNode.hh 
 ## headers end

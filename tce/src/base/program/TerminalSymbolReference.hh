@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,48 +22,35 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TerminalInstructionAddress.hh
+ * @file TerminalSymbolReference.hh
  *
- * Declaration of TerminalInstructionAddress class.
+ * Declaration of TerminalSymbolReference class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * This class is only used inside llvmbackend for 
+ *
+ * @author Heikki Kultala 2011 (hkultala-at-cs.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
-#define TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
+#ifndef TTA_TERMINAL_SYMBOL_REFERENCE_HH
+#define TTA_TERMINAL_SYMBOL_REFERENCE_HH
 
-#include "TerminalAddress.hh"
-#include "InstructionReference.hh"
+#include "TerminalImmediate.hh"
 
 namespace TTAProgram {
 
-class InstructionReference;
+class Procedure;
 
-/**
- * Represents an inline immediate that refers to an instruction address.
- */
-class TerminalInstructionAddress : public TerminalImmediate {
+class TerminalSymbolReference : public TerminalImmediate {
 public:
-    TerminalInstructionAddress(InstructionReference ref);
-    virtual ~TerminalInstructionAddress();
-
-    virtual bool isInstructionAddress() const;
-    virtual SimValue value() const;
-    virtual const InstructionReference& instructionReference() const
-        throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() 
-        throw (WrongSubclass);
-    virtual void setInstructionReference(InstructionReference ref) 
-        throw (WrongSubclass);
+    TerminalSymbolReference(const TCEString& symbolName);
+    virtual ~TerminalSymbolReference() {}
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
-
+    virtual SimValue value() const { return NullSimValue::instance(); }
+    virtual TCEString getSymbol() const { return symbolName_; }
 private:
-    /// Assignment not allowed.
-    TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
-    /// Referred instruction.
-    InstructionReference ref_;
+    TCEString symbolName_;
 };
 
 }

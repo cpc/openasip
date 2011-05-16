@@ -73,16 +73,9 @@ TerminalInstructionAddress::isInstructionAddress() const {
  * @return The value of the immediate (instruction address).
  */
 SimValue
-TerminalInstructionAddress::value() const throw (WrongSubclass) {
-    try {
-        return SimValue(
-            ref_.instruction().address().location(), WORD_BITWIDTH);
-    } catch (const Exception& e) {
-        // Instruction::address() might throw IllegalRegistration in case of
-        // a broken program
-        abortWithError(e.errorMessage());
-    }
-    return NullSimValue::instance();
+TerminalInstructionAddress::value() const {
+    return SimValue(
+        ref_.instruction().address().location(), WORD_BITWIDTH);
 }
 
 /**

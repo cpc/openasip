@@ -348,3 +348,12 @@ BBSchedulerController::executeDDGPass(
 
     delete ddg;
 }
+
+void
+BBSchedulerController::handleCFGDDG(
+    ControlFlowGraph& cfg,
+    DataDependenceGraph& ddg,
+    const TTAMachine::Machine& targetMachine) {
+    bigDDG_ = &ddg;
+    executeBasicBlockPass(cfg, targetMachine, *this);
+}

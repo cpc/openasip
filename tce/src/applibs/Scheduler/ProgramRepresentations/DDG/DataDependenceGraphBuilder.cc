@@ -397,6 +397,10 @@ DataDependenceGraphBuilder::build(
     const UniversalMachine* um, 
     bool createMemAndFUDeps) {
 
+    if (bb.liveRangeData_ == NULL) {
+        bb.liveRangeData_ = new LiveRangeData;
+    }
+
     currentBB_ = new BasicBlockNode(bb);
     currentDDG_ = new DataDependenceGraph(
         allParamRegs_, ddgName, registerAntidependenceLevel, currentBB_,
@@ -506,7 +510,7 @@ DataDependenceGraphBuilder::constructIndividualBB(
     }
 
     // these are needed no more.
-    currentBB_->basicBlock().potentialRegKills_.clear();
+    currentBB_->basicBlock().liveRangeData_->potentialRegKills_.clear();
 
     // Checks if we have some unready program operations at the end
     // of a basic block.
@@ -673,37 +677,37 @@ DataDependenceGraphBuilder::clearUnneededBookkeeping(
 
     if (!interBBInformationNeeded) {
         //used by regcopyadder.
-        bb.regFirstDefines_.clear();
-        bb.regLastUses_.clear();
+        bb.liveRangeData_->regFirstDefines_.clear();
+        bb.liveRangeData_->regLastUses_.clear();
 
         // used by both
-        bb.regDefines_.clear();
+        bb.liveRangeData_->regDefines_.clear();
 
         // these are neede for live range things
-        bb.regDefReaches_.clear();
-        bb.registersUsedAfter_.clear();
-        bb.regFirstUses_.clear();
+        bb.liveRangeData_->regDefReaches_.clear();
+        bb.liveRangeData_->registersUsedAfter_.clear();
+        bb.liveRangeData_->regFirstUses_.clear();
     }
-    bb.regUseReaches_.clear();
-    bb.regLastKills_.clear();
+    bb.liveRangeData_->regUseReaches_.clear();
+    bb.liveRangeData_->regLastKills_.clear();
 
-    bb.regDefAfter_.clear();
-    bb.regUseAfter_.clear();
+    bb.liveRangeData_->regDefAfter_.clear();
+    bb.liveRangeData_->regUseAfter_.clear();
 
-    bb.memDefines_.clear();
-    bb.memLastUses_.clear();
+    bb.liveRangeData_->memDefines_.clear();
+    bb.liveRangeData_->memLastUses_.clear();
 
-    bb.memFirstUses_.clear();
-    bb.memFirstDefines_.clear();
+    bb.liveRangeData_->memFirstUses_.clear();
+    bb.liveRangeData_->memFirstDefines_.clear();
 
-    bb.memDefReaches_.clear();
-    bb.memUseReaches_.clear();
+    bb.liveRangeData_->memDefReaches_.clear();
+    bb.liveRangeData_->memUseReaches_.clear();
 
-    bb.fuDepReaches_.clear();
-    bb.fuDeps_.clear();
-    bb.fuDepAfter_.clear();
+    bb.liveRangeData_->fuDepReaches_.clear();
+    bb.liveRangeData_->fuDeps_.clear();
+    bb.liveRangeData_->fuDepAfter_.clear();
 
-    bb.registersUsedInOrAfter_.clear();
+    bb.liveRangeData_->registersUsedInOrAfter_.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -960,7 +964,7 @@ DataDependenceGraphBuilder::processRegUse(
     // so we don't know which of them were actually executed,
     // so we have a set instead of single value.
     std::set<MoveNodeUse>& defines =
-        currentBB_->basicBlock().regDefines_[reg];
+        currentBB_->basicBlock().liveRangeData_->regDefines_[reg];
 
     // find if we have a earlier write with same guard. In this case
     // no need to draw dependencies over it.
@@ -990,15 +994,15 @@ DataDependenceGraphBuilder::processRegUse(
 
     // writes in previous BB's killed or not?
     // if not(this bb has a kill), has to check deps from incoming BB's.
-    if (currentBB_->basicBlock().regKills_.find(reg) ==
-        currentBB_->basicBlock().regKills_.end()) {
-        currentBB_->basicBlock().regFirstUses_[reg].insert(mnd);
+    if (currentBB_->basicBlock().liveRangeData_->regKills_.find(reg) ==
+        currentBB_->basicBlock().liveRangeData_->regKills_.end()) {
+        currentBB_->basicBlock().liveRangeData_->regFirstUses_[reg].insert(mnd);
         if (!guardedKillFound) {
             // process dependencies from previous BB's
             currentDDG_->updateRegUse(mnd, reg, currentBB_->basicBlock());
         }
     }
-    currentBB_->basicBlock().regLastUses_[reg].insert(mnd);
+    currentBB_->basicBlock().liveRangeData_->regLastUses_[reg].insert(mnd);
 
     // Two writes to opposite guard may create a combined kill-pair.
     // But if this is a read between them, it has to be marked in order
@@ -1006,8 +1010,8 @@ DataDependenceGraphBuilder::processRegUse(
     // So mark here that we have a read if we have one guarded write
     // in our bookkeeping as potential half of a kill pair.
     std::map<TCEString, std::pair<MoveNodeUse, bool> >::iterator iter =
-        currentBB_->basicBlock().potentialRegKills_.find(reg);
-    if (iter != currentBB_->basicBlock().potentialRegKills_.end()) {
+        currentBB_->basicBlock().liveRangeData_->potentialRegKills_.find(reg);
+    if (iter != currentBB_->basicBlock().liveRangeData_->potentialRegKills_.end()) {
         iter->second.second = true;
     }
 }
@@ -1095,54 +1099,54 @@ DataDependenceGraphBuilder::processRegWrite(
     // so we don't know which of them were actually executed,
     // so we have a set instead of single value.
     std::set<MoveNodeUse>& defines =
-        currentBB_->basicBlock().regDefines_[reg];
+        currentBB_->basicBlock().liveRangeData_->regDefines_[reg];
 
     // Set of register reads which after last kill.
     std::set<MoveNodeUse>& lastUses =
-        currentBB_->basicBlock().regLastUses_[reg];
+        currentBB_->basicBlock().liveRangeData_->regLastUses_[reg];
 
     // find if we have a earlier write with same guard. In this case
     // no need to draw dependencies over it.
     bool guardedKillFound = hasEarlierWriteWithSameGuard(mnd, defines);
 
     // if no kills to this reg in this BB, this one kills it.
-    if (currentBB_->basicBlock().regKills_.find(reg) ==
-        currentBB_->basicBlock().regKills_.end()) {
+    if (currentBB_->basicBlock().liveRangeData_->regKills_.find(reg) ==
+        currentBB_->basicBlock().liveRangeData_->regKills_.end()) {
 
         // is this alone a kill?
         if (mnd.mn()->move().isUnconditional()) {
-            currentBB_->basicBlock().regKills_[reg].first = mnd;
-            currentBB_->basicBlock().regKills_[reg].second = MoveNodeUse();
+            currentBB_->basicBlock().liveRangeData_->regKills_[reg].first = mnd;
+            currentBB_->basicBlock().liveRangeData_->regKills_[reg].second = MoveNodeUse();
         } else {
             // two guarded moves with opposite guards together may be a kill.
             // Check if we have such previous guarded write with opposite
             // guard.
             std::map<TCEString, std::pair<MoveNodeUse, bool> >::iterator
                 iter =
-                currentBB_->basicBlock().potentialRegKills_.find(reg);
-            if (iter != currentBB_->basicBlock().potentialRegKills_.end() &&
+                currentBB_->basicBlock().liveRangeData_->potentialRegKills_.find(reg);
+            if (iter != currentBB_->basicBlock().liveRangeData_->potentialRegKills_.end() &&
                 currentDDG_->exclusingGuards(
                     *(iter->second.first.mn()), *(mnd.mn()))) {
-                currentBB_->basicBlock().regKills_[reg].first =
+                currentBB_->basicBlock().liveRangeData_->regKills_[reg].first =
                     iter->second.first;
-                currentBB_->basicBlock().regKills_[reg].second = mnd;
+                currentBB_->basicBlock().liveRangeData_->regKills_[reg].second = mnd;
             }
         }
         if (!guardedKillFound) {
             // may have incoming WaW's / WaRs to this
             // insert to bookkeeping for further analysis.
-            currentBB_->basicBlock().regFirstDefines_[reg].insert(mnd);
+            currentBB_->basicBlock().liveRangeData_->regFirstDefines_[reg].insert(mnd);
 
             // do we need to create some inter-bb-antideps?
             if (currentDDG_->hasSingleBBLoopRegisterAntidependencies()) {
-                // deps from other BB.
+                // deps from other BB.LIVERANGEDATA_->
                 currentDDG_->updateRegWrite(
                     mnd, reg, currentBB_->basicBlock());
             }
         }
     }
 
-    // Create antideps to defines and uses in this same BB.
+    // Create antideps to defines and uses in this same BB.LIVERANGEDATA_->
     if (currentDDG_->hasIntraBBRegisterAntidependencies()) {
         createRegisterAntideps(
             reg, mnd, defines, DataDependenceEdge::DEP_WAW, guardedKillFound);
@@ -1156,27 +1160,27 @@ DataDependenceGraphBuilder::processRegWrite(
     if (mnd.mn()->move().isUnconditional()) {
         defines.clear();
 
-        currentBB_->basicBlock().regLastKills_[reg].first = mnd;
-        currentBB_->basicBlock().regLastKills_[reg].second = MoveNodeUse();
+        currentBB_->basicBlock().liveRangeData_->regLastKills_[reg].first = mnd;
+        currentBB_->basicBlock().liveRangeData_->regLastKills_[reg].second = MoveNodeUse();
 
         // clear reads to given reg.
         lastUses.clear();
-        currentBB_->basicBlock().potentialRegKills_.erase(reg);
+        currentBB_->basicBlock().liveRangeData_->potentialRegKills_.erase(reg);
     } else {
         // two guarded moves with opposite guards together may be a kill.
         // Check if we have such previous guarded write with opposite
         // guard.
         std::map<TCEString, std::pair<MoveNodeUse, bool> >::iterator iter =
-            currentBB_->basicBlock().potentialRegKills_.find(reg);
-        if (iter != currentBB_->basicBlock().potentialRegKills_.end() &&
+            currentBB_->basicBlock().liveRangeData_->potentialRegKills_.find(reg);
+        if (iter != currentBB_->basicBlock().liveRangeData_->potentialRegKills_.end() &&
             currentDDG_->exclusingGuards(
                 *(iter->second.first.mn()), *(mnd.mn()))) {
 
             // found earlier write which is exclusive with this one.
             // mark that these two together are a kill.
-            currentBB_->basicBlock().regLastKills_[reg].first =
+            currentBB_->basicBlock().liveRangeData_->regLastKills_[reg].first =
                 iter->second.first;
-            currentBB_->basicBlock().regLastKills_[reg].second = mnd;
+            currentBB_->basicBlock().liveRangeData_->regLastKills_[reg].second = mnd;
 
             // If we have no usage of the register between these two
             // writes forming the kill pair, we can clear our bookkeeping.
@@ -1190,7 +1194,7 @@ DataDependenceGraphBuilder::processRegWrite(
                 lastUses.clear();
             }
         }
-        currentBB_->basicBlock().potentialRegKills_[reg] =
+        currentBB_->basicBlock().liveRangeData_->potentialRegKills_[reg] =
             std::pair<MoveNodeUse, bool>(mnd, false);
     }
     defines.insert(mnd);
@@ -1299,9 +1303,9 @@ DataDependenceGraphBuilder::createTriggerDependencies(
         processMemWrite(MoveNodeUse(moveNode));
     } 
 
-    createSideEffectEdges(currentBB_->basicBlock().fuDeps_, moveNode, dop);
+    createSideEffectEdges(currentBB_->basicBlock().liveRangeData_->fuDeps_, moveNode, dop);
     createSideEffectEdges(
-        currentBB_->basicBlock().fuDepReaches_, moveNode, dop);
+        currentBB_->basicBlock().liveRangeData_->fuDepReaches_, moveNode, dop);
 
     if (dop.hasSideEffects() || dop.affectsCount() > 0 ||
         dop.affectedByCount() > 0) {
@@ -1310,18 +1314,18 @@ DataDependenceGraphBuilder::createTriggerDependencies(
         // this should prevent exponential explosion or edge count.
         if (dop.hasSideEffects() && moveNode.move().isUnconditional()) {
             for (MoveNodeUseSet::iterator iter =
-                     currentBB_->basicBlock().fuDeps_.begin();
-                 iter != currentBB_->basicBlock().fuDeps_.end(); iter++) {
+                     currentBB_->basicBlock().liveRangeData_->fuDeps_.begin();
+                 iter != currentBB_->basicBlock().liveRangeData_->fuDeps_.end(); iter++) {
 
                 Operation& o = iter->mn()->destinationOperation().operation();
                 if (&o == &dop) {
-                    currentBB_->basicBlock().fuDeps_.erase(iter);
+                    currentBB_->basicBlock().liveRangeData_->fuDeps_.erase(iter);
                     break;
                 }
             }
         }
         // add the new one to bookkeeping
-        currentBB_->basicBlock().fuDeps_.insert(MoveNodeUse(moveNode));
+        currentBB_->basicBlock().liveRangeData_->fuDeps_.insert(MoveNodeUse(moveNode));
     }
 }
 
@@ -1437,18 +1441,18 @@ DataDependenceGraphBuilder::processMemWrite(MoveNodeUse mnd) {
     TCEString category = memoryCategory(mnd);
 
     std::set<MoveNodeUse>& defines =
-        currentBB_->basicBlock().memDefines_[category];
+        currentBB_->basicBlock().liveRangeData_->memDefines_[category];
 
     std::set<MoveNodeUse>& lastUses =
-        currentBB_->basicBlock().memLastUses_[category];
+        currentBB_->basicBlock().liveRangeData_->memLastUses_[category];
 
     // check if no earlier barriers/kills to this one in this bb?
-    if (currentBB_->basicBlock().memKills_[category].mn() == NULL) {
+    if (currentBB_->basicBlock().liveRangeData_->memKills_[category].mn() == NULL) {
 
         // is this a kill?
         if (mnd.mn()->move().isUnconditional() &&
             !isAddressTraceable(mnd.mn()->destinationOperation())) {
-            currentBB_->basicBlock().memKills_[category] = mnd;
+            currentBB_->basicBlock().liveRangeData_->memKills_[category] = mnd;
         }
 
         // check if there is "guarded kill" to this mem address
@@ -1457,7 +1461,7 @@ DataDependenceGraphBuilder::processMemWrite(MoveNodeUse mnd) {
         
         if (!guardedKillFound) {
             // may have incoming WaW's / WaRs to this
-            currentBB_->basicBlock().memFirstDefines_[category].insert(mnd);
+            currentBB_->basicBlock().liveRangeData_->memFirstDefines_[category].insert(mnd);
             updateMemWrite(mnd, category);
         }
     }
@@ -1472,7 +1476,7 @@ DataDependenceGraphBuilder::processMemWrite(MoveNodeUse mnd) {
 
     // does this kill previous deps?
     if (mnd.mn()->move().isUnconditional() && !traceable) {
-        currentBB_->basicBlock().memLastKill_[category] = mnd;
+        currentBB_->basicBlock().liveRangeData_->memLastKill_[category] = mnd;
         defines.clear();
         lastUses.clear();
     }
@@ -1494,29 +1498,29 @@ DataDependenceGraphBuilder::processMemUse(MoveNodeUse mnd) {
 
     // can be multiple if some write predicated
     std::set<MoveNodeUse>& defines =
-        currentBB_->basicBlock().memDefines_[category];
+        currentBB_->basicBlock().liveRangeData_->memDefines_[category];
 
     // no kills/barriers to this one in this basic block.
-    if (currentBB_->basicBlock().memKills_[category].mn() == NULL) {
+    if (currentBB_->basicBlock().liveRangeData_->memKills_[category].mn() == NULL) {
 
         // check if there is "guarded kill" to this mem address
         bool guardedKillFound = 
             hasEarlierMemWriteToSameAddressWithSameGuard(mnd, defines);
 
         if (!guardedKillFound) {
-            currentBB_->basicBlock().memFirstUses_[category].insert(mnd);
+            currentBB_->basicBlock().liveRangeData_->memFirstUses_[category].insert(mnd);
             // so create deps from previous BB's
             updateMemUse(mnd, category);
         }
     }
 
-    // create deps from writes in this BB.
+    // create deps from writes in this BB.LIVERANGEDATA_->
     for (MoveNodeUseSet::iterator iter =
              defines.begin(); iter != defines.end(); iter++) {
         checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_RAW);
     }
     // update bookkeeping.
-    currentBB_->basicBlock().memLastUses_[category].insert(mnd);
+    currentBB_->basicBlock().liveRangeData_->memLastUses_[category].insert(mnd);
 }
 
 /**
@@ -1812,6 +1816,10 @@ DataDependenceGraphBuilder::initializeBBStates() {
     // initialize state lists
     for (int bbi = 0; bbi < cfg_->nodeCount(); bbi++) {
         BasicBlockNode& bbn = cfg_->node(bbi);
+        BasicBlock& bb = bbn.basicBlock();
+        if (bb.liveRangeData_ == NULL) {
+            bb.liveRangeData_ = new LiveRangeData;
+        }
         BBData* bbd = new BBData(bbn);
         bbData_[&bbn] = bbd;
         // in the beginning all are unreached
@@ -2011,12 +2019,12 @@ DataDependenceGraphBuilder::updatePreceedingRegistersUsedAfter(
         BasicBlockNode* pred = *predIter;
         BasicBlock& predBB = pred->basicBlock();
         BBData& predData = *bbData_[pred];
-        size_t size = predBB.registersUsedAfter_.size();
+        size_t size = predBB.liveRangeData_->registersUsedAfter_.size();
         AssocTools::append(
-            bb.registersUsedInOrAfter_, predBB.registersUsedAfter_);
+            bb.liveRangeData_->registersUsedInOrAfter_, predBB.liveRangeData_->registersUsedAfter_);
 
         // if updated, need to be handled again.
-        if (predBB.registersUsedAfter_.size() > size || firstTime) {
+        if (predBB.liveRangeData_->registersUsedAfter_.size() > size || firstTime) {
             if (predData.state_ != BB_QUEUED) {
                 changeState(predData, BB_QUEUED);
             }
@@ -2116,26 +2124,32 @@ DataDependenceGraphBuilder::setSucceedingPredepsForBB(
 
     if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
         changed |= appendUseMapSets(
-            bb.regDefAfter_, succBB.regDefReaches_, loop);
+            bb.liveRangeData_->regDefAfter_, 
+            succBB.liveRangeData_->regDefReaches_, loop);
 
         if (currentDDG_->hasAllRegisterAntidependencies() || 
             (&bb == &succBB && 
              currentDDG_->hasSingleBBLoopRegisterAntidependencies())) {
             changed |= appendUseMapSets(
-                bb.regUseAfter_, succBB.regUseReaches_, loop);
+                bb.liveRangeData_->regUseAfter_, 
+                succBB.liveRangeData_->regUseReaches_, loop);
         }
     } else {
         // mem deps + fu state deps
 
         changed |= appendUseMapSets(
-            bb.memDefAfter_, succBB.memDefReaches_, loop);
+            bb.liveRangeData_->memDefAfter_, 
+            succBB.liveRangeData_->memDefReaches_, loop);
 
         changed |= appendUseMapSets(
-            bb.memUseAfter_, succBB.memUseReaches_, loop);
+            bb.liveRangeData_->memUseAfter_, 
+            succBB.liveRangeData_->memUseReaches_, loop);
 
-        size_t size = succBB.fuDepReaches_.size();
-        appendMoveNodeUse(bb.fuDepAfter_, succBB.fuDepReaches_, loop);
-        if (succBB.fuDepReaches_.size() > size) {
+        size_t size = succBB.liveRangeData_->fuDepReaches_.size();
+        appendMoveNodeUse(
+            bb.liveRangeData_->fuDepAfter_, 
+            succBB.liveRangeData_->fuDepReaches_, loop);
+        if (succBB.liveRangeData_->fuDepReaches_.size() > size) {
             changed = true;
         }
     }
@@ -2159,10 +2173,11 @@ DataDependenceGraphBuilder::setSucceedingPredepsForBB(
  * @param setLoopProperty whether to set loop property true in copied data
  */
 void DataDependenceGraphBuilder::appendMoveNodeUse(
-    const BasicBlock::MoveNodeUseSet& src, BasicBlock::MoveNodeUseSet& dst,
-                       bool setLoopProperty) {
+    const LiveRangeData::MoveNodeUseSet& src, 
+    LiveRangeData::MoveNodeUseSet& dst,
+    bool setLoopProperty) {
 
-    for (BasicBlock::MoveNodeUseSet::const_iterator i =
+    for (LiveRangeData::MoveNodeUseSet::const_iterator i =
              src.begin(); i != src.end(); i++) {
         const MoveNodeUse& mnu = *i;
         dst.insert(MoveNodeUse(mnu, setLoopProperty));
@@ -2184,17 +2199,18 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(
     bool changed = false;
 
     // copy reg definitions that are alive
-    for (MoveNodeUseMapSet::iterator iter = bb.regDefReaches_.begin();
-         iter != bb.regDefReaches_.end(); iter++) {
-
+    for (MoveNodeUseMapSet::iterator iter = 
+             bb.liveRangeData_->regDefReaches_.begin();
+         iter != bb.liveRangeData_->regDefReaches_.end(); iter++) {
+        
         TCEString reg = iter->first;
         std::set<MoveNodeUse>& preDefs = iter->second;
         // todo: clear or not?
-        std::set<MoveNodeUse>& defAfter = bb.regDefAfter_[reg];
+        std::set<MoveNodeUse>& defAfter = bb.liveRangeData_->regDefAfter_[reg];
         size_t size = defAfter.size();
 
         // only copy incomin dep if this has no unconditional writes
-        if (bb.regKills_.find(reg) == bb.regKills_.end()) {
+        if (bb.liveRangeData_->regKills_.find(reg) == bb.liveRangeData_->regKills_.end()) {
             for (std::set<MoveNodeUse>::iterator i = preDefs.begin();
                  i != preDefs.end(); i++ ) {
                 defAfter.insert(*i);
@@ -2206,18 +2222,18 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(
         }
     }
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.regDefines_, bb.regDefAfter_, false);
+    changed |= appendUseMapSets(bb.liveRangeData_->regDefines_, bb.liveRangeData_->regDefAfter_, false);
     
     if (currentDDG_->hasAllRegisterAntidependencies()) {
         // copy uses that are alive
         for (MoveNodeUseMapSet::iterator iter =
-                 bb.regUseReaches_.begin(); iter != bb.regUseReaches_.end();
+                 bb.liveRangeData_->regUseReaches_.begin(); iter != bb.liveRangeData_->regUseReaches_.end();
              iter++) {
             TCEString reg = iter->first;
             std::set<MoveNodeUse>& preUses = iter->second;
-            std::set<MoveNodeUse>& useAfter = bb.regUseAfter_[reg];
+            std::set<MoveNodeUse>& useAfter = bb.liveRangeData_->regUseAfter_[reg];
             size_t size = useAfter.size();
-            if (bb.regKills_.find(reg) == bb.regKills_.end()) {
+            if (bb.liveRangeData_->regKills_.find(reg) == bb.liveRangeData_->regKills_.end()) {
                 for (std::set<MoveNodeUse>::iterator i = preUses.begin();
                      i != preUses.end(); i++ ) {
                     useAfter.insert(*i);
@@ -2231,7 +2247,7 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(
     }
     
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.regLastUses_, bb.regUseAfter_, false);
+    changed |= appendUseMapSets(bb.liveRangeData_->regLastUses_, bb.liveRangeData_->regUseAfter_, false);
     return changed;
 }
 
@@ -2251,17 +2267,17 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
     bool changed = false;
 
     // copy mem definitions that are alive
-    for (MoveNodeUseMapSet::iterator iter = bb.memDefReaches_.begin();
-         iter != bb.memDefReaches_.end(); iter++) {
+    for (MoveNodeUseMapSet::iterator iter = bb.liveRangeData_->memDefReaches_.begin();
+         iter != bb.liveRangeData_->memDefReaches_.end(); iter++) {
 
         TCEString category = iter->first;
         std::set<MoveNodeUse>& preDefs = iter->second;
-        std::set<MoveNodeUse>& defAfter = bb.memDefAfter_[category];
-        std::set<MoveNodeUse>& ownDefines = bb.memDefines_[category];
+        std::set<MoveNodeUse>& defAfter = bb.liveRangeData_->memDefAfter_[category];
+        std::set<MoveNodeUse>& ownDefines = bb.liveRangeData_->memDefines_[category];
         size_t size = defAfter.size();
 
         // only copy incomin dep if this has no unconditional writes,
-        if (bb.memKills_.find(category) == bb.memKills_.end()) {
+        if (bb.liveRangeData_->memKills_.find(category) == bb.liveRangeData_->memKills_.end()) {
             for (std::set<MoveNodeUse>::iterator i = preDefs.begin();
                  i != preDefs.end(); i++ ) {
 //                MoveNode* preAddress = addressMove(*(i->mn()));
@@ -2291,19 +2307,19 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
         }
     }
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.memDefines_, bb.memDefAfter_, false);
+    changed |= appendUseMapSets(bb.liveRangeData_->memDefines_, bb.liveRangeData_->memDefAfter_, false);
 
     // copy uses that are alive
-    for (MoveNodeUseMapSet::iterator iter = bb.memUseReaches_.begin();
-         iter != bb.memUseReaches_.end(); iter++) {
+    for (MoveNodeUseMapSet::iterator iter = bb.liveRangeData_->memUseReaches_.begin();
+         iter != bb.liveRangeData_->memUseReaches_.end(); iter++) {
 
         TCEString category = iter->first;
         std::set<MoveNodeUse>& preUses = iter->second;
-        std::set<MoveNodeUse>& useAfter = bb.memUseAfter_[category];
-        std::set<MoveNodeUse>& ownDefines = bb.memDefines_[category];
+        std::set<MoveNodeUse>& useAfter = bb.liveRangeData_->memUseAfter_[category];
+        std::set<MoveNodeUse>& ownDefines = bb.liveRangeData_->memDefines_[category];
 
         size_t size = useAfter.size();
-        if (bb.memKills_.find(category) == bb.memKills_.end()) {
+        if (bb.liveRangeData_->memKills_.find(category) == bb.liveRangeData_->memKills_.end()) {
             for (std::set<MoveNodeUse>::iterator i = preUses.begin();
                  i != preUses.end(); i++ ) {
 //                MoveNode* preAddress = addressMove(*(i->mn()));
@@ -2332,9 +2348,9 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
     }
 
     // fu deps
-    size_t size = bb.fuDepAfter_.size();
-    AssocTools::append(bb.fuDeps_, bb.fuDepAfter_);
-    if (bb.fuDepAfter_.size() > size) {
+    size_t size = bb.liveRangeData_->fuDepAfter_.size();
+    AssocTools::append(bb.liveRangeData_->fuDeps_, bb.liveRangeData_->fuDepAfter_);
+    if (bb.liveRangeData_->fuDepAfter_.size() > size) {
         changed = true;
     }
     return changed;
@@ -2349,19 +2365,19 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
 void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
 
     // initializes RA
-    currentBB_->basicBlock().regDefReaches_[RA_NAME].insert(mn);
+    currentBB_->basicBlock().liveRangeData_->regDefReaches_[RA_NAME].insert(mn);
 
     // sp
     MoveNodeUse mnd2(mn);
     TCEString sp = specialRegisters_[REG_SP];
     if (sp != "") {
-        currentBB_->basicBlock().regDefReaches_[sp].insert(mnd2);
+        currentBB_->basicBlock().liveRangeData_->regDefReaches_[sp].insert(mnd2);
     }
 
     if (rvIsParamReg_) {
 	TCEString rv = specialRegisters_[REG_RV];
 	if (rv != "") {
-	    currentBB_->basicBlock().regDefReaches_[rv].insert(mnd2);
+	    currentBB_->basicBlock().liveRangeData_->regDefReaches_[rv].insert(mnd2);
 	}
     }
 
@@ -2370,7 +2386,7 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
     for (int i = 0; i < 4;i++) {
         TCEString paramReg = specialRegisters_[REG_IPARAM+i];
         if(paramReg != "") {
-            currentBB_->basicBlock().regDefReaches_[paramReg].insert(mnd2);
+            currentBB_->basicBlock().liveRangeData_->regDefReaches_[paramReg].insert(mnd2);
         }
     }
 }
@@ -2395,8 +2411,8 @@ DataDependenceGraphBuilder::updateBB(
     // register and operation dependencies
     if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
         //loop all regs having ext deps and create reg edges
-        for (MoveNodeUseMapSet::iterator firstUseIter=bb.regFirstUses_.begin();
-             firstUseIter != bb.regFirstUses_.end(); firstUseIter++) {
+        for (MoveNodeUseMapSet::iterator firstUseIter=bb.liveRangeData_->regFirstUses_.begin();
+             firstUseIter != bb.liveRangeData_->regFirstUses_.end(); firstUseIter++) {
             TCEString reg = firstUseIter->first;
             std::set<MoveNodeUse>& firstUseSet = firstUseIter->second;
             for (std::set<MoveNodeUse>::iterator iter2 = firstUseSet.begin();
@@ -2409,8 +2425,8 @@ DataDependenceGraphBuilder::updateBB(
         if (currentDDG_->hasSingleBBLoopRegisterAntidependencies()) {
             // antidependencies to registers
             for (MoveNodeUseMapSet::iterator firstDefineIter =
-                     bb.regFirstDefines_.begin();
-                 firstDefineIter != bb.regFirstDefines_.end(); 
+                     bb.liveRangeData_->regFirstDefines_.begin();
+                 firstDefineIter != bb.liveRangeData_->regFirstDefines_.end(); 
                  firstDefineIter++) {
                 TCEString reg = firstDefineIter->first;
                 std::set<MoveNodeUse>& firstDefineSet = 
@@ -2427,8 +2443,8 @@ DataDependenceGraphBuilder::updateBB(
         // phase 1 .. mem deps and fu state/side effect dependencies.
 
         //loop all regs having ext deps and create reg edges
-        for (MoveNodeUseMapSet::iterator firstUseIter=bb.memFirstUses_.begin();
-             firstUseIter != bb.memFirstUses_.end(); firstUseIter++) {
+        for (MoveNodeUseMapSet::iterator firstUseIter=bb.liveRangeData_->memFirstUses_.begin();
+             firstUseIter != bb.liveRangeData_->memFirstUses_.end(); firstUseIter++) {
             TCEString category = firstUseIter->first;
             std::set<MoveNodeUse>& firstUseSet = firstUseIter->second;
             for (std::set<MoveNodeUse>::iterator iter2 = firstUseSet.begin();
@@ -2439,8 +2455,8 @@ DataDependenceGraphBuilder::updateBB(
 
         // antidependencies to registers
         for (MoveNodeUseMapSet::iterator firstDefineIter =
-                 bb.memFirstDefines_.begin();
-             firstDefineIter != bb.memFirstDefines_.end(); firstDefineIter++) {
+                 bb.liveRangeData_->memFirstDefines_.begin();
+             firstDefineIter != bb.liveRangeData_->memFirstDefines_.end(); firstDefineIter++) {
             TCEString category = firstDefineIter->first;
             std::set<MoveNodeUse>& firstDefineSet = firstDefineIter->second;
             for (std::set<MoveNodeUse>::iterator iter2=firstDefineSet.begin();
@@ -2450,13 +2466,13 @@ DataDependenceGraphBuilder::updateBB(
         }
 
         // and fu state deps
-        for (MoveNodeUseSet::iterator iter = bb.fuDeps_.begin();
-             iter != bb.fuDeps_.end(); iter++) {
+        for (MoveNodeUseSet::iterator iter = bb.liveRangeData_->fuDeps_.begin();
+             iter != bb.liveRangeData_->fuDeps_.end(); iter++) {
             Terminal& dest = iter->mn()->move().destination();
             TerminalFUPort& tfpd = dynamic_cast<TerminalFUPort&>(dest);
             Operation &dop = tfpd.hintOperation();
             createSideEffectEdges(
-                currentBB_->basicBlock().fuDepReaches_, *iter->mn(), dop);
+                currentBB_->basicBlock().liveRangeData_->fuDepReaches_, *iter->mn(), dop);
         }
     }
 }
@@ -2474,15 +2490,15 @@ DataDependenceGraphBuilder::updateMemWrite(
 
     // create waw edges from all alive writes to this node.
     for (MoveNodeUseSet::iterator iter =
-	     currentBB_->basicBlock().memDefReaches_[category].begin();
-         iter != currentBB_->basicBlock().memDefReaches_[category].end();) {
+	     currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].begin();
+         iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();) {
         checkAndCreateMemDep(*iter++, mnd, DataDependenceEdge::DEP_WAW);
     }
 
     // create war edges from all alive reads to this node.
-    for (MoveNodeUseSet::iterator iter = currentBB_->basicBlock().
+    for (MoveNodeUseSet::iterator iter = currentBB_->basicBlock().liveRangeData_->
 	     memUseReaches_[category].begin();
-         iter != currentBB_->basicBlock().memUseReaches_[category].end();) {
+         iter != currentBB_->basicBlock().liveRangeData_->memUseReaches_[category].end();) {
         checkAndCreateMemDep(*iter++, mnd, DataDependenceEdge::DEP_WAR);
     }
 }
@@ -2499,8 +2515,8 @@ void DataDependenceGraphBuilder::updateMemUse(
     MoveNodeUse mnd, const TCEString& category) {
 
     for (MoveNodeUseSet::iterator iter =
-             currentBB_->basicBlock().memDefReaches_[category].begin();
-         iter != currentBB_->basicBlock().memDefReaches_[category].end();
+             currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].begin();
+         iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();
 	 iter++) {
         checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
     }
@@ -2594,25 +2610,25 @@ bool
 DataDependenceGraphBuilder::updateRegistersUsedInOrAfter(
     BBData& bbd) {
     BasicBlock& bb = bbd.bblock_->basicBlock();
-    size_t size = bb.registersUsedInOrAfter_.size();
+    size_t size = bb.liveRangeData_->registersUsedInOrAfter_.size();
 
     // if definition not here, it's earlier - copy.
     // if definition here, not alive unless read here.
-    for (std::set<TCEString>::iterator i = bb.registersUsedAfter_.begin();
-         i != bb.registersUsedAfter_.end(); i++) {
+    for (std::set<TCEString>::iterator i = bb.liveRangeData_->registersUsedAfter_.begin();
+         i != bb.liveRangeData_->registersUsedAfter_.end(); i++) {
         // if not written in this, written earlier.
-        if (bb.regKills_.find(*i) == bb.regKills_.end()) {
-            bb.registersUsedInOrAfter_.insert(*i);
+        if (bb.liveRangeData_->regKills_.find(*i) == bb.liveRangeData_->regKills_.end()) {
+            bb.liveRangeData_->registersUsedInOrAfter_.insert(*i);
         }
     }
 
-    // reads in this BB. Only reads whose defining value comes/can come
-    // outside this BB.
-    for (MoveNodeUseMapSet::iterator i = bb.regFirstUses_.begin();
-         i != bb.regFirstUses_.end(); i++) {
-        bb.registersUsedInOrAfter_.insert(i->first);
+    // reads in this BB.liveRangeData_-> Only reads whose defining value comes/can come
+    // outside this BB.liveRangeData_->
+    for (MoveNodeUseMapSet::iterator i = bb.liveRangeData_->regFirstUses_.begin();
+         i != bb.liveRangeData_->regFirstUses_.end(); i++) {
+        bb.liveRangeData_->registersUsedInOrAfter_.insert(i->first);
     }
-    if (bb.registersUsedInOrAfter_.size() > size) {
+    if (bb.liveRangeData_->registersUsedInOrAfter_.size() > size) {
         return true;
     }
     return false;

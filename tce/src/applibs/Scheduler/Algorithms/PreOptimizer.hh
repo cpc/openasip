@@ -40,7 +40,7 @@
 
 #include "ProcedurePass.hh"
 #include "ProgramPass.hh"
-
+#include "ControlFlowGraphPass.hh"
 namespace TTAProgram {
     class Procedure;
     class Program;
@@ -55,7 +55,7 @@ class DataDependenceGraph;
 class ProgramOperation;
 
 class PreOptimizer:
-    public ProcedurePass, public ProgramPass {
+    public ProcedurePass, public ProgramPass , public ControlFlowGraphPass {
 
 public:
     PreOptimizer(InterPassData& data);
@@ -65,9 +65,20 @@ public:
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
     
-    void handleProcedure(TTAProgram::Procedure& procedure,
-                         const TTAMachine::Machine& targetMachine)
-    throw (Exception);
+    void handleProcedure(
+        TTAProgram::Procedure& procedure,
+        const TTAMachine::Machine& targetMachine)        
+        throw (Exception);
+    
+    void handleControlFlowGraph(
+        ControlFlowGraph& cfg,
+        const TTAMachine::Machine& targetMachine)
+        throw (Exception);
+
+    // interface not same as ddgpass. this handles whole-procedure ddg.
+    void handleDDG(
+        DataDependenceGraph& ddg,
+        TTAProgram::InstructionReferenceManager* irm = NULL);
 
     std::string shortDescription() const { return "optimizes away guard nagation operaions, uses opposite guards instead"; };
 private:
@@ -75,7 +86,7 @@ private:
         DataDependenceGraph& ddg, ProgramOperation&po);
     bool tryToRemoveXor(
         DataDependenceGraph& ddg, ProgramOperation& po,
-        TTAProgram::InstructionReferenceManager& irm);
+        TTAProgram::InstructionReferenceManager* irm);
 
 
 };

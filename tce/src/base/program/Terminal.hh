@@ -68,7 +68,7 @@ public:
     virtual bool isGPR() const;
     virtual bool isFUPort() const;
     virtual bool isRA() const;
-    virtual SimValue value() const throw (WrongSubclass);
+    virtual SimValue value() const;
     virtual Address address() const throw (WrongSubclass);
     virtual const InstructionReference& instructionReference() const
         throw (WrongSubclass);

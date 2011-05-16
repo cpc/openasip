@@ -68,7 +68,7 @@ TerminalImmediate::isImmediate() const {
  * @exception WrongSubclass never.
  */
 SimValue
-TerminalImmediate::value() const throw (WrongSubclass) {
+TerminalImmediate::value() const {
     return value_;
 }
 

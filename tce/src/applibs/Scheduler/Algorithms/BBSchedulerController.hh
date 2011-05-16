@@ -92,6 +92,11 @@ public:
         DDGPass& ddgPass)
         throw (Exception);
 
+    virtual void handleCFGDDG(
+        ControlFlowGraph& cfg,
+        DataDependenceGraph& ddg,
+        const TTAMachine::Machine& targetMachine);
+
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 

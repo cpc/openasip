@@ -54,6 +54,9 @@
 #include "ObjectState.hh"
 #include "XMLSerializer.hh"
 
+#include "LiveRangeData.hh"
+
+
 /**
  * Constructor.
  *
@@ -3446,7 +3449,7 @@ DataDependenceGraph::updateRegUse(
 
     // create RAW's from definitions in previous BBs.
     std::set<MoveNodeUse>& defReaches = 
-        bb.regDefReaches_[reg];
+        bb.liveRangeData_->regDefReaches_[reg];
     for (std::set<MoveNodeUse>::iterator i = defReaches.begin();
          i != defReaches.end(); i++) {
 
@@ -3479,7 +3482,7 @@ DataDependenceGraph::updateRegWrite(
     const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb) {
     // WaWs
     std::set<MoveNodeUse>& defReaches = 
-        bb.regDefReaches_[reg];
+        bb.liveRangeData_->regDefReaches_[reg];
     for (std::set<MoveNodeUse>::iterator i = defReaches.begin();
          i != defReaches.end(); i++) {
 
@@ -3502,7 +3505,7 @@ DataDependenceGraph::updateRegWrite(
     
     // WaRs
     std::set<MoveNodeUse>& useReaches = 
-        bb.regUseReaches_[reg];
+        bb.liveRangeData_->regUseReaches_[reg];
     for (std::set<MoveNodeUse>::iterator i = useReaches.begin();
          i != useReaches.end(); i++) {
 

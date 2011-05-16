@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,46 +22,36 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file DisassemblyImmediate.cc
+ * @file TerminalSymbolReference.cc
  *
- * Implementation of DisassemblyImmediate class.
+ * Implementation of TerminalSymbolReference class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2011 (hkultala-at-cs.tut.fi)
  * @note rating: red
  */
 
-#include "DisassemblyImmediate.hh"
-#include "Conversion.hh"
+#include "TerminalSymbolReference.hh"
+#include "BasicBlock.hh"
 
-/**
- * The constructor.
- *
- * @param value Inline immediate value.
- */
-DisassemblyImmediate::DisassemblyImmediate(SimValue value):
-    DisassemblyElement(),
-    value_(value) {
-}
+namespace TTAProgram {
+TerminalSymbolReference::TerminalSymbolReference(
+    const TCEString& symbolName) :
+    TerminalImmediate(
+        SimValue(0,WORD_BITWIDTH)),
+    symbolName_(symbolName) {}
+    
+Terminal* 
+TerminalSymbolReference::copy() const { 
+    return new TerminalSymbolReference(symbolName_); }
 
-
-/**
- * The destructor.
- */
-DisassemblyImmediate::~DisassemblyImmediate() {
-}
-
-
-/**
- * Returns disassembly of the inline immediate value.
- *
- * @return Disassembly of the inline immediate value as a string.
- */
-std::string
-DisassemblyImmediate::toString() const {
-    if (value_.width() == 0) {
-        std::cerr << "nullsimvalue?:" << value_.intValue() << ":" << 
-            value_.width() << std::endl;
-        return "Invalid Immediate";
+bool
+TerminalSymbolReference::equals(const Terminal& other) const {
+    const TerminalSymbolReference* otherRef = 
+        dynamic_cast<const TerminalSymbolReference*>(&other);
+    if (otherRef == NULL) {
+        return false;
     }
-    return Conversion::toString(value_.intValue());
+    return otherRef->symbolName_ == symbolName_;
+}
+
 }

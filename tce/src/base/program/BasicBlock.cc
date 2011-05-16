@@ -47,8 +47,9 @@ using namespace TTAProgram;
 BasicBlock::BasicBlock(int startAddress) : 
     CodeSnippet(Address(startAddress, 
                         TTAMachine::NullAddressSpace::instance())), 
-                skippedFirstInstructions_(0), 
-                statisticsValid_(false), innerLoop_(false), tripCount_(0) {
+    liveRangeData_(NULL),
+    skippedFirstInstructions_(0), 
+    statisticsValid_(false), innerLoop_(false), tripCount_(0) {
 }
 
 /**

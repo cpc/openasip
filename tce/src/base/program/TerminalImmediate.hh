@@ -47,7 +47,7 @@ public:
     virtual ~TerminalImmediate();
 
     virtual bool isImmediate() const;
-    virtual SimValue value() const throw (WrongSubclass);
+    virtual SimValue value() const;
 
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;

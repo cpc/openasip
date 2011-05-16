@@ -149,6 +149,7 @@ public:
         const std::string& tpefFileName)
         throw (Exception);
 
+    void convertSymbolRefsToInsRefs();
 private:
     /// List for procedures.
     typedef std::vector<Procedure*> ProcList;

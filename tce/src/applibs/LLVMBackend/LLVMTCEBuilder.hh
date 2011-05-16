@@ -54,6 +54,7 @@
 namespace TTAProgram {
     class Program;
     class Procedure;
+    class CodeSnippet;
     class Terminal;
     class TerminalRegister;
     class TerminalInstructionAddress;
@@ -120,7 +121,8 @@ namespace llvm {
         bool runOnMachineFunction(MachineFunction &MF);
         bool doFinalization(Module &M);
 
-        bool writeMachineFunction(MachineFunction &MF);
+        virtual bool writeMachineFunction(MachineFunction &MF);
+        void initDataSections();
 
         TTAProgram::Move* createMove(
             const MachineOperand& src, const MachineOperand& dst);
@@ -144,6 +146,8 @@ namespace llvm {
         }
 
         /* Helper methods */
+        std::string mbbName(const MachineBasicBlock& mbb);
+
         TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
 
         TTAProgram::Move* createMove(
@@ -152,12 +156,35 @@ namespace llvm {
             TTAMachine::Bus &bus,
             TTAProgram::MoveGuard *guard = NULL);
 
+        virtual TTAProgram::Terminal* createMBBReference(
+            const MachineOperand& mo);
+
+        virtual TTAProgram::Terminal* createSymbolReference(
+            const MachineOperand& mo);
+
+        virtual TTAProgram::Terminal* createSymbolReference(
+            const TCEString& symbolName);
+
+        TTAProgram::Instruction* emitInstruction(
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
         virtual TTAProgram::Instruction* emitMove(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+        virtual void emitSPInitialization();
+        
+        void emitSPInitialization(TTAProgram::CodeSnippet& target);
 
         /// Machine for building the program.
         TTAMachine::Machine* mach_;
 
+        /// Target machine description.
+        const llvm::TargetMachine* tm_;
+        /// Mangler for mangling label strings.
+        llvm::Mangler* mang_;
+
+        /// Current program being built.
+        TTAProgram::Program* prog_;
     private:
 
         struct DataDef {
@@ -169,7 +196,6 @@ namespace llvm {
             bool initialize;
         };
         void initMembers();
-        void initDataSections();
 
         void emitDataDef(const DataDef& def);
 
@@ -194,50 +220,44 @@ namespace llvm {
         TTAProgram::Terminal* createAddrTerminal(
             const MachineOperand& base, const MachineOperand& offset);
 
-        TTAProgram::Instruction* emitInstruction(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
         TTAProgram::Instruction* emitLoad(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
         
         TTAProgram::Instruction* emitStore(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitReturn(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitInlineAsm(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitSpecialInlineAsm(
             const std::string op,
             const MachineInstr* mi,
-            TTAProgram::Procedure* proc);
+            TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitSetjmp(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitLongjmp(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitSelect(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
         
         TTAProgram::Instruction* emitGlobalXXtructorCalls(
-            const MachineInstr* mi, TTAProgram::Procedure* proc,
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
             bool constructors);
 
         TTAProgram::Instruction* emitReadSP(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* handleMemoryCategoryInfo(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
-        std::string mbbName(const MachineBasicBlock& mbb);
         bool isInitialized(const Constant* cv);
 
-        void emitSPInitialization();
-        
         TTAProgram::MoveGuard* createGuard(
             const TTAProgram::Terminal* guardReg, bool trueOrFalse);
 
@@ -256,18 +276,12 @@ namespace llvm {
 
         llvm::Module* mod_;
 
-        /// Target machine description.
-        const llvm::TargetMachine* tm_;
         /// Univeral machine for building the program.
         UniversalMachine* umach_;
 
         TTAMachine::AddressSpace* instrAddressSpace_;
         TTAMachine::AddressSpace* dataAddressSpace_;
 
-        /// Current program being built.
-        TTAProgram::Program* prog_;
-        /// Mangler for mangling label strings.
-        llvm::Mangler* mang_;
         /// Data memory initializations.
         TTAProgram::DataMemory* dmem_;
 

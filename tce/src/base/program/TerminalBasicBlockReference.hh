@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,48 +22,34 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TerminalInstructionAddress.hh
+ * @file TerminalBasicBlockReference.hh
  *
- * Declaration of TerminalInstructionAddress class.
+ * Declaration of TerminalBasicBlockReference class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Heikki Kultala 2011 (hkultala-at-cs.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
-#define TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
+#ifndef TTA_TERMINAL_BASIC_BLOCK_REFERENCE_HH
+#define TTA_TERMINAL_BASIC_BLOCK_REFERENCE_HH
 
-#include "TerminalAddress.hh"
-#include "InstructionReference.hh"
+#include "TerminalImmediate.hh"
+
+class BasicBlock;
 
 namespace TTAProgram {
 
-class InstructionReference;
-
-/**
- * Represents an inline immediate that refers to an instruction address.
- */
-class TerminalInstructionAddress : public TerminalImmediate {
+class TerminalBasicBlockReference : public TerminalImmediate {
 public:
-    TerminalInstructionAddress(InstructionReference ref);
-    virtual ~TerminalInstructionAddress();
-
-    virtual bool isInstructionAddress() const;
-    virtual SimValue value() const;
-    virtual const InstructionReference& instructionReference() const
-        throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() 
-        throw (WrongSubclass);
-    virtual void setInstructionReference(InstructionReference ref) 
-        throw (WrongSubclass);
+    TerminalBasicBlockReference(const BasicBlock& bb);
+    virtual ~TerminalBasicBlockReference() {}
+    
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
-
+    virtual SimValue value() const;
+    const BasicBlock& basicBlock() const { return *bb_; }
 private:
-    /// Assignment not allowed.
-    TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
-    /// Referred instruction.
-    InstructionReference ref_;
+    const BasicBlock* bb_;
 };
 
 }

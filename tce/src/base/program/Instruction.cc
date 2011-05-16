@@ -253,7 +253,6 @@ Instruction::immediate(int i) const throw (OutOfRange) {
 Address
 Instruction::address() const 
     throw (IllegalRegistration) {
-
     if (!isInProcedure()) {
         TCEString msg = "Instruction is not registered in a procedure: ";
         msg += POMDisassembler::disassemble(*this);

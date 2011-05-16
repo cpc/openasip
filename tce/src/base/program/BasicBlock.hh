@@ -39,15 +39,15 @@
 #include <map>
 
 
-#include "TCEString.hh"
 #include "Exception.hh"
 #include "CodeSnippet.hh"
-#include "MoveNodeUse.hh"
 
 namespace TTAProgram {
     class Instruction;
     class CodeSnippet;
 }
+
+class LiveRangeData;
 
 /**
  * Represents statistics about single basic block.
@@ -95,21 +95,6 @@ public:
     void skipFirstInstructions(int count);
     const BasicBlockStatistics& statistics();
 
-    std::set<TCEString> registersAlive(
-        int cycle, int delaySlots, class DataDependenceGraph& ddg);
-
-    typedef std::set<MoveNodeUse > MoveNodeUseSet;
-    typedef std::map<TCEString, MoveNodeUseSet > MoveNodeUseMapSet;
-    typedef std::map<TCEString, MoveNodeUse > MoveNodeUseMap;
-    typedef std::map<TCEString, std::pair<MoveNodeUse, MoveNodeUse> > 
-    MoveNodeUseMapPair;
-
-    typedef std::pair<TCEString, MoveNodeUseSet > MoveNodeUseSetPair;
-    typedef std::pair<TCEString, MoveNodeUse> MoveNodeUsePair;
-
-    const std::set<TCEString>& usedAfter() {
-        return registersUsedAfter_;
-    }
 
     /// returns true in case the BB is *known* to be inside an inner loop
     bool isInInnerLoop() const { return innerLoop_; }
@@ -120,52 +105,7 @@ public:
     unsigned tripCount() const { return tripCount_; }
     void setTripCount(unsigned count) { tripCount_ = count; }
 
-    // dependencies out from this BB
-    MoveNodeUseMapSet regDefines_;
-    MoveNodeUseMapSet regLastUses_;
-    MoveNodeUseMapPair regLastKills_;
-    
-    std::map<TCEString, std::pair<MoveNodeUse, bool> >potentialRegKills_;
-
-    // dependencies in to this BB
-    MoveNodeUseMapPair regKills_;
-    MoveNodeUseMapSet regFirstUses_;
-    MoveNodeUseMapSet regFirstDefines_;
-    
-    // dependencies from previous BBs.
-    MoveNodeUseMapSet regDefReaches_;
-    MoveNodeUseMapSet regUseReaches_;
-    
-    // all alive after this BB.
-    MoveNodeUseMapSet regDefAfter_;
-    MoveNodeUseMapSet regUseAfter_;
-    
-    // dependencies out from this BB
-    MoveNodeUseMapSet memDefines_;
-    MoveNodeUseMapSet memLastUses_;
-    MoveNodeUseMap memLastKill_;
-    
-    // dependencies into this one
-    MoveNodeUseMap memKills_;
-    MoveNodeUseMapSet memFirstUses_;
-    MoveNodeUseMapSet memFirstDefines_;
-    
-    // deps from previous BBs
-    MoveNodeUseMapSet memDefReaches_;
-    MoveNodeUseMapSet memUseReaches_;
-    
-    // all alive after this
-    MoveNodeUseMapSet memDefAfter_;
-    MoveNodeUseMapSet memUseAfter_;
-    
-    // fu state deps
-    MoveNodeUseSet fuDepReaches_;
-    MoveNodeUseSet fuDeps_;
-    MoveNodeUseSet fuDepAfter_;
-    
-    // live range information
-    std::set<TCEString> registersUsedAfter_;
-    std::set<TCEString> registersUsedInOrAfter_;
+    LiveRangeData* liveRangeData_;
 
 private:
 

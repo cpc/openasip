@@ -76,6 +76,8 @@
 #include "DisassemblySequentialGuard.hh"
 #include "NullInstructionTemplate.hh"
 
+//#include "TerminalBasicBlockReference.hh"
+#include "TerminalSymbolReference.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -263,7 +265,11 @@ POMDisassembler::createTerminal(const Terminal& terminal)
  */
 DisassemblyImmediate*
 POMDisassembler::createInlineImmediate(const Terminal& terminal) {
-    return new DisassemblyImmediate(terminal.value());
+    try {
+        return new DisassemblyImmediate(terminal.value());
+    } catch (Exception& e) {
+        return new DisassemblyImmediate(NullSimValue::instance());
+    }
 }
 
 
@@ -596,25 +602,42 @@ POMDisassembler::disassemble(const TTAProgram::Move& move) {
    
     // special handling for calls: find out the procedure name to make
     // the disassembly a bit more readable
-    if (move.isCall() && move.source().isInstructionAddress()) {
-
-        DisassemblyMove* dMove = createMove(move);
-        std::string disasm = "";
-        disasm = dMove->toString();
-
-        Procedure* proc = dynamic_cast<TTAProgram::Procedure*>(
-            &move.source().instructionReference().instruction().parent());
-        std::string procName = 
-            proc != NULL ? proc->name() : "unknown_proc";
-        return (boost::format("%s -> %s.call.1") 
-                % procName % move.destination().functionUnit().name()).str();
-    } else {
-        DisassemblyMove* dMove = createMove(move);
-        std::string disasm = "";
-        disasm = dMove->toString();
-        delete dMove;
-        return disasm;
+    if (move.isCall()) {
+        if (move.source().isInstructionAddress()) {
+            
+            DisassemblyMove* dMove = createMove(move);
+            std::string disasm = "";
+            disasm = dMove->toString();
+            
+            Procedure* proc = NULL;
+            try {
+                proc = dynamic_cast<TTAProgram::Procedure*>(
+                    &move.source().instructionReference().instruction().parent());
+            } catch (...) {
+                // proc stays NULL if something goes wrong.
+            }
+            
+            std::string procName = 
+                proc != NULL ? proc->name() : "unknown_proc";
+            return (boost::format("%s -> %s.call.1") 
+                    % procName
+                    % move.destination().functionUnit().name()).str();
+        } 
+        
+        const TerminalSymbolReference* tsr = 
+            dynamic_cast<const TerminalSymbolReference*>(&move.source());
+        if (tsr != NULL) {
+            return (boost::format("%s -> %s.call.1")
+                    % tsr->getSymbol()
+                    % move.destination().functionUnit().name()).str();
+        }
     }
+
+    DisassemblyMove* dMove = createMove(move);
+    std::string disasm = "";
+    disasm = dMove->toString();
+    delete dMove;
+    return disasm;
 }
 
 /**
