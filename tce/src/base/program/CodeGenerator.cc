@@ -676,16 +676,20 @@ CodeGenerator::createSchedYieldProcedure(
     // *** Save sp, switch thread and update sp
 
     // put stackpointer address to be parameter
+#ifdef ALL_STACK_PARAMETERS
     pushRegisterToStack(*retVal, stackReg, stackReg);
+#else
+    registerMove(*retVal, stackReg, rvReg);
+#endif
     createCall(*retVal, schedProcedure);
 
     // read new sp value from rv register
     registerMove(*retVal, rvReg, stackReg);
 
+#ifdef ALL_STACK_PARAMETERS
     // need to pop the parameter from stack
-//     popFromStack(*retVal, stackReg);
     incrementRegisterAddress(*retVal, stackReg);
-
+#endif
 
     // read yeld address from stack
     popRegisterFromStack(*retVal, stackReg, "RA");

@@ -59,8 +59,6 @@ DisassemblyImmediate::~DisassemblyImmediate() {
 std::string
 DisassemblyImmediate::toString() const {
     if (value_.width() == 0) {
-        std::cerr << "nullsimvalue?:" << value_.intValue() << ":" << 
-            value_.width() << std::endl;
         return "Invalid Immediate";
     }
     return Conversion::toString(value_.intValue());
