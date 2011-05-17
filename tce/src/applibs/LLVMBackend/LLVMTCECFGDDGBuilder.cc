@@ -107,9 +107,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         NULL, true, false);
 */
 
-    // do not all codelabel to start yet.
-    bool firstInsOfProc = false;
-
     bbMapping_.clear();
 
     std::set<const MachineBasicBlock*> endingCallBBs;
@@ -135,7 +132,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         // TODO: what should these contain?
         std::set<std::string> emptyMBBs;
         
-        bool newMBB = true;
         TCEString bbName = mbbName(mbb);
         BasicBlockNode* bbn = new BasicBlockNode(*bb);
 
@@ -195,7 +191,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
         
-        bool newMBB = true;
         TCEString bbName = mbbName(mbb);
         BasicBlockNode* bbn = bbMapping_[&mbb];
         ::BasicBlock* bb = &bbn->basicBlock();
@@ -343,6 +338,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     delete ddg;
     delete cfg;
+    return false;
 }
 
 TTAProgram::Terminal*

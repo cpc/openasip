@@ -139,7 +139,6 @@ void BasicBlockPass::copyRMToBB(
     int jumpCycle = -1;
 
     TTAProgram::Instruction* firstNewInstruction = NULL;
-    TTAProgram::Instruction* placeHolder = &bb.instructionAtIndex(0);
 
     // update the BB with the new instructions
     bb.clear();

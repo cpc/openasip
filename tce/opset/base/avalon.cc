@@ -79,6 +79,7 @@ TRIGGER
 int dummy = INT(1);
 int dummy2 = INT(2);
 dummy=dummy2;
+dummy2=dummy;
 END_TRIGGER
 END_OPERATION(AVALON_STW)
 
@@ -87,6 +88,7 @@ TRIGGER
 int dummy = INT(1);
 int dummy2 = INT(2);
 dummy=dummy2;
+dummy2=dummy;
 END_TRIGGER
 END_OPERATION(AVALON_STH)
 
@@ -95,6 +97,7 @@ TRIGGER
 int dummy = INT(1);
 int dummy2 = INT(2);
 dummy=dummy2;
+dummy2=dummy;
 END_TRIGGER
 END_OPERATION(AVALON_STQ)
 
