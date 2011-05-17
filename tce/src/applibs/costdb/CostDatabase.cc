@@ -466,8 +466,10 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         set<string> operations;
         set<vector<string> > parameters;
         vector<string> portSet;
+#ifdef CAUSE_COMPILER_WARNING_AND_NOT_USED_REMOVE_IF_NOT_EVER_NEEDED
         int operationCount = 0;
         int latency = 0;
+#endif
         double area = 0;
         double delay = 0;
         int width = 0;
@@ -485,10 +487,11 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         }
 
         if (entry->hasArchitecture()) {            
+#ifdef CAUSE_COMPILER_WARNING_AND_NOT_USED_REMOVE_IF_NOT_EVER_NEEDED
             operationCount = entry->architecture().architecture().
                 operationCount();                
             latency = entry->architecture().architecture().maxLatency();
-
+#endif
             int ports = entry->architecture().architecture().portCount();
             int i;
             for (i = 0; i < ports; i++) {
@@ -663,7 +666,9 @@ CostDatabase::buildBuses(const std::string& busEstimatorPluginName)
         int bitWidth = 0;
         int fanin = 0;
         int fanout = 0;
+#ifdef CAUSE_COMPILER_WARNING_AND_NOT_USED_REMOVE_IF_NOT_EVER_NEEDED
         int cntrlDelay = 0;
+#endif
         double area = 0.0;
         double delay = 0.0;
         double activeEnergy = 0.0;
@@ -697,7 +702,9 @@ CostDatabase::buildBuses(const std::string& busEstimatorPluginName)
                 continue;
             }
             if (data.name() == "cntrl_delay") {
+#ifdef CAUSE_COMPILER_WARNING_AND_NOT_USED_REMOVE_IF_NOT_EVER_NEEDED
                 cntrlDelay = data.value().integerValue();
+#endif
                 continue;
             }
             if (data.name() == "energy") {
