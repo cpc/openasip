@@ -41,6 +41,8 @@
 
 #include "PreOptimizer.hh"
 #include "BBSchedulerController.hh"
+#include "CycleLookBackSoftwareBypasser.hh"
+#include "CopyingDelaySlotFiller.hh"
 
 #include "InstructionReferenceManager.hh"
 
@@ -111,6 +113,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     std::set<const MachineBasicBlock*> endingCallBBs;
     std::set<const MachineBasicBlock*> endingCondJumpBBs;
+    std::set<const MachineBasicBlock*> endingUncondJumpBBs;
     std::map<const BasicBlockNode*,BasicBlockNode*> callSuccs;
     std::map<const BasicBlockNode*, const MachineBasicBlock*> condJumpSucc;
     std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccs;
@@ -181,6 +184,11 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                             bbn = succBBN;
                             cfg->addNode(*bbn);
                         }
+                    } else {
+                        // has to be uncond jump, and last ins of bb.
+                        assert(operationName(*j) == "jump");
+                        assert(&(*j) == &(mbb.back()));
+                        endingUncondJumpBBs.insert(&(*i));
                     }
                 }
             }
@@ -210,6 +218,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 bb = &bbn->basicBlock();
             }
 
+            // conditional jump that is not last ins splits a bb.
             if (j->getDesc().isBranch() && operationName(*j) == "?jump"
                 && &(*j) != &(mbb.back())) {
                 bbn = ftSuccs[bbn];
@@ -229,6 +238,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         // is last ins a call?
         bool callPass = AssocTools::containsKey(endingCallBBs, &mbb);
         bool ftPass = AssocTools::containsKey(endingCondJumpBBs, &mbb);
+        bool hasUncondJump = 
+            AssocTools::containsKey(endingUncondJumpBBs, &mbb);
 
         const MachineBasicBlock* jumpSucc = NULL;
 
@@ -274,28 +285,30 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             break;
         }
 
-
-
         for (MachineBasicBlock::const_succ_iterator si = mbb.succ_begin();
              si != mbb.succ_end(); si++) {
             const MachineBasicBlock* succ = *si;
             BasicBlockNode *succBBN = bbMapping_[succ];
             // TODO: type of the edge
             ControlFlowEdge* cfe = NULL;
+            // if last ins of bb was call, cheyte call-pass edge.
             if (callPass) {
                 cfe = new ControlFlowEdge(
                     ControlFlowEdge::CFLOW_EDGE_NORMAL, 
                     ControlFlowEdge::CFLOW_EDGE_CALL);
             } else {
+                // do we have conditional jump?
                 if (jumpSucc != NULL) {
                     if (succ != jumpSucc) {
+                        // cond jump was last ins of bb.
+                        // fall-through to next bb.
                         if (ftPass) {
                             // fall through. But did we create a new BB?
                             cfe = new ControlFlowEdge(
                                 ControlFlowEdge::CFLOW_EDGE_FALSE,
                                 ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
                         } else {
-                            // jump from our created BB into next..
+                            // has jump to some other BB.
                             cfe = new ControlFlowEdge;
                         }
                     } else {
@@ -303,8 +316,18 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                         // earlier.
                         continue;
                     }
-                } else { // no conditional jump.
-                    cfe = new ControlFlowEdge;
+                } else { // no conditional jump. ft to next bb.
+                    // unconditional jump to nxt bb
+                    if (hasUncondJump) {
+                        cfe = new ControlFlowEdge;
+                    } else {
+                        // no unconditional jump to next bb. limits bb
+                        // reordering
+                        std::cerr << "No uncond jump, Creating ft" <<std::endl;
+                        cfe = new ControlFlowEdge(
+                            ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                            ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                    }
                 }
             }
             cfg->connectNodes(*bbn, *succBBN, *cfe);
@@ -325,7 +348,9 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     PreOptimizer preOpt(*ipData_);
     preOpt.handleDDG(*ddg, NULL);
 
-    BBSchedulerController bbsc(*ipData_);
+//    CycleLookBackSoftwareBypasser bypasser;
+//    CopyingDelaySlotFiller dsf;
+    BBSchedulerController bbsc(*ipData_); //, &bypasser, &dsf);
     bbsc.handleCFGDDG(*cfg, *ddg, *mach_ );
 
     cfg->convertBBRefsToInstRefs(prog_->instructionReferenceManager());

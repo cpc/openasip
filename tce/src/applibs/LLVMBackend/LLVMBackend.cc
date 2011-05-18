@@ -488,16 +488,8 @@ LLVMBackend::compile(
     Passes.add(pomBuilder);
 
 #endif
-    Passes.run(module);
-
-#ifndef USE_CFGDDG_BUILDER
-    // get and write out pom
-    TTAProgram::Program* prog = pomBuilder->result();
-    assert(prog != NULL);
-#endif
 
     if (ipData_ != NULL) {
-        
         // Stack pointer datum.
         RegDatum* spReg = new RegDatum;
         spReg->first = plugin.rfName(plugin.spDRegNum());
@@ -515,6 +507,17 @@ LLVMBackend::compile(
         rvHighReg->first = plugin.rfName(plugin.rvHighDRegNum());
         rvHighReg->second = plugin.registerIndex(plugin.rvHighDRegNum());
         ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
+    }
+
+    Passes.run(module);
+
+#ifndef USE_CFGDDG_BUILDER
+    // get and write out pom
+    TTAProgram::Program* prog = pomBuilder->result();
+    assert(prog != NULL);
+#endif
+
+    if (ipData_ != NULL) {
         
 #ifndef USE_CFGDDG_BUILDER
         if (pomBuilder->isProgramUsingRestrictedPointers()) {
