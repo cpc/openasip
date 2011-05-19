@@ -1487,20 +1487,21 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobal()) {
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
-	TCEString name = mang_->getNameWithPrefix(mo.getGlobal());
+        TCEString name = mang_->getNameWithPrefix(mo.getGlobal());
 #else
-	SmallString<256> Buffer;
-	mang_->getNameWithPrefix(Buffer, mo.getGlobal(), false);
-	TCEString name(Buffer.c_str());
+        SmallString<256> Buffer;
+        mang_->getNameWithPrefix(Buffer, mo.getGlobal(), false);
+        TCEString name(Buffer.c_str());
 #endif
-        if (name == "_end") {
-            return NULL;
+        if (name == END_SYMBOL_NAME) {
+            return createSymbolReference(name);
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
             SimValue address(dataLabels_[name] + mo.getOffset(), 32);
             return new TTAProgram::TerminalAddress(
                 address, *dataAddressSpace_);
 
         } else {
+            // TODO: this lacks offset??
             return createSymbolReference(name);
         }
     } else if (mo.isJTI()) {
@@ -1544,7 +1545,10 @@ LLVMTCEBuilder::createSymbolReference(const MachineOperand& mo) {
 
 TTAProgram::Terminal*
 LLVMTCEBuilder::createSymbolReference(const TCEString& name) {
-    
+    if (name == END_SYMBOL_NAME) {
+        return NULL;
+    }
+
     TTAProgram::InstructionReference* dummy =
         new TTAProgram::InstructionReference(NULL);
     

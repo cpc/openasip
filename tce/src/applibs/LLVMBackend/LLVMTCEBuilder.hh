@@ -156,6 +156,8 @@ namespace llvm {
             TTAMachine::Bus &bus,
             TTAProgram::MoveGuard *guard = NULL);
 
+        void emitConstantPool(const llvm::MachineConstantPool& cp);
+
         virtual TTAProgram::Terminal* createMBBReference(
             const MachineOperand& mo);
 
@@ -214,8 +216,6 @@ namespace llvm {
 
         void createExprDataDefinition(
             unsigned& addr, const ConstantExpr* gv, int offset = 0);
-
-        void emitConstantPool(const llvm::MachineConstantPool& cp);
 
         TTAProgram::Terminal* createAddrTerminal(
             const MachineOperand& base, const MachineOperand& offset);

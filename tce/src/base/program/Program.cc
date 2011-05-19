@@ -62,6 +62,7 @@
 #include "BinaryWriter.hh"
 #include "TPEFWriter.hh"
 #include "Immediate.hh"
+#include "MathTools.hh"
 
 #include "TerminalSymbolReference.hh"
 #include "TerminalInstructionAddress.hh"
@@ -1192,6 +1193,47 @@ Program::instructionVector() const {
     return instructions;
 }
 
+/**
+ * Converts single TerminalSymbolReference into 
+ * InstructionReference to the symbol or TerminalImmediate into the
+ * data label.
+ *
+ * @TODO: Use CodeLabels isntead of procedure?
+ */
+TerminalImmediate* 
+Program::convertSymbolRef(TerminalSymbolReference* tsr) {
+    TCEString procName = tsr->getSymbol();
+    if (!hasProcedure(procName)) {
+        if (procName == "_end") {
+            for (int i = 0; i < globalScope_->globalDataLabelCount(); i++) {
+                const DataLabel& dl = globalScope_->globalDataLabel(i);
+                if (dl.name() == "_end") {
+                    return new TTAProgram::TerminalImmediate(
+                        SimValue(
+                            dl.address().location(),
+                            MathTools::requiredBits(dl.address().location())));
+                }
+            }
+            throw InstanceNotFound(__FILE__,__LINE__,__func__,
+                                   "_end not found in program!");
+        }
+        throw InstanceNotFound(__FILE__,__LINE__,__func__,
+                               TCEString("procedure with  symbol: ")
+                               + procName + TCEString(" not found!"));
+    }
+    const Procedure& target = procedure(procName);
+    assert(target.instructionCount() >0);
+    return new TTAProgram::TerminalInstructionAddress(
+        refManager_->createReference(
+            target.firstInstruction()));
+}
+
+/**
+ * Converts all TerminalSymbolReferences into 
+ * InstructionReference to the symbol or TerminalImmediate into the 
+ * data label.
+ *
+ */
 void 
 Program::convertSymbolRefsToInsRefs() {
     for (int i = 0; i < procedureCount();i++) {
@@ -1205,43 +1247,19 @@ Program::convertSymbolRefsToInsRefs() {
                     dynamic_cast<TTAProgram::TerminalSymbolReference*>
                     (&src);
                 if (tsr != NULL) {
-                    TCEString procName = tsr->getSymbol();
-                    if (!hasProcedure(procName)) {
-                        throw InstanceNotFound(__FILE__,__LINE__,__func__,
-                                       TCEString("procedure with  symbol: ")
-                                       + procName + TCEString(" not found!"));
-                    }
-                    const Procedure& target = procedure(procName);
-                    assert(target.instructionCount() >0);
-                    move.setSource(
-                        new TTAProgram::TerminalInstructionAddress(
-                            refManager_->createReference(
-                                target.firstInstruction())));
-                    }
+                    move.setSource(convertSymbolRef(tsr));
                 }
-
-                for (int k = 0; k < ins.immediateCount(); k++) {
-                    TTAProgram::Immediate& imm = ins.immediate(k);
-                    TTAProgram::Terminal& immVal = imm.value();
-                    TTAProgram::TerminalSymbolReference* tsr =
-                        dynamic_cast<TTAProgram::TerminalSymbolReference*>
-                        (&immVal);
-                    if (tsr != NULL) {
-                        TCEString procName = tsr->getSymbol();
-                        if (hasProcedure(procName)) {
-                            throw InstanceNotFound(__FILE__,__LINE__,
-                                                   __func__,
-                                           TCEString("procedure with  symbol: ")
-                                           + procName + TCEString(" not found!"));
-                        }
-                        const Procedure& target = procedure(procName);
-                        assert(target.instructionCount() >0);
-                        imm.setValue(
-                            new TTAProgram::TerminalInstructionAddress(
-                                refManager_->createReference(
-                                    target.firstInstruction())));
-                    }
+            }
+            for (int k = 0; k < ins.immediateCount(); k++) {
+                TTAProgram::Immediate& imm = ins.immediate(k);
+                TTAProgram::Terminal& immVal = imm.value();
+                TTAProgram::TerminalSymbolReference* tsr =
+                    dynamic_cast<TTAProgram::TerminalSymbolReference*>
+                    (&immVal);
+                if (tsr != NULL) {
+                    imm.setValue(convertSymbolRef(tsr));
                 }
+            }
         }
     }
 }

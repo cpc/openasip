@@ -91,6 +91,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     TCEString fnName(Buffer.c_str());
 #endif
 
+    emitConstantPool(*mf.getConstantPool());
+
     std::cerr << fnName << std::endl;
 
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
@@ -323,7 +325,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                     } else {
                         // no unconditional jump to next bb. limits bb
                         // reordering
-                        std::cerr << "No uncond jump, Creating ft" <<std::endl;
                         cfe = new ControlFlowEdge(
                             ControlFlowEdge::CFLOW_EDGE_NORMAL,
                             ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
@@ -345,8 +346,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     DataDependenceGraph* ddg = ddgBuilder_.build(
         *cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
 
-    PreOptimizer preOpt(*ipData_);
-    preOpt.handleDDG(*ddg, NULL);
+//    PreOptimizer preOpt(*ipData_);
+//    preOpt.handleDDG(*ddg, NULL);
 
 //    CycleLookBackSoftwareBypasser bypasser;
 //    CopyingDelaySlotFiller dsf;
@@ -380,8 +381,8 @@ LLVMTCECFGDDGBuilder::createSymbolReference(const TCEString& symbolName) {
 bool
 LLVMTCECFGDDGBuilder::doFinalization(Module& m ) { 
 
-    prog_->convertSymbolRefsToInsRefs();
     LLVMTCEBuilder::doFinalization(m);
+    prog_->convertSymbolRefsToInsRefs();
     TTAProgram::Program::writeToTPEF(*prog_, "cfgddgbuilder.tpef");
     return false; 
 }
