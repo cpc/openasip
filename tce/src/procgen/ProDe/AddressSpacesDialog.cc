@@ -48,6 +48,7 @@
 #include "GUITextGenerator.hh"
 #include "ProDeTextGenerator.hh"
 #include "WidgetTools.hh"
+#include "MathTools.hh"
 
 using boost::format;
 using std::string;
@@ -299,7 +300,7 @@ AddressSpacesDialog::updateASList() {
 
     for (int i = 0; i < asNavigator.count(); i++) {
         AddressSpace* as = asNavigator.item(i);
-        int bitWidth = int(ceil((log(as->end()) / log(2))));
+        int bitWidth = MathTools::requiredBits(as->end());
         asList_->InsertItem(i, WxConversion::toWxString(as->name()));
         asList_->SetItem(i, 1, WxConversion::toWxString(as->width()));
         asList_->SetItem(i, 2, WxConversion::toWxString(as->start()));
