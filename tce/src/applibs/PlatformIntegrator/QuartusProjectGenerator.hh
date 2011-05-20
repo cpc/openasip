@@ -40,7 +40,7 @@
 
 class QuartusProjectGenerator : public ProjectFileGenerator {
 public:
-    QuartusProjectGenerator(std::string toplevelEntity,
+    QuartusProjectGenerator(TCEString toplevelEntity,
                             const PlatformIntegrator* integrator);
     virtual ~QuartusProjectGenerator();
 

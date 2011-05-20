@@ -425,18 +425,18 @@ ProGeUI::integrateProcessor(
     const std::string& platformIntegrator,
     const std::string& coreEntityName,
     const std::string& programName,
+    const std::string& deviceFamily,
     MemType imem,
     MemType dmem,
     HDL language,
-    int fmax,
-    int imemWidth) {
+    int fmax) {
 
     string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
         "platform";
 
     MemInfo imemInfo;
     imemInfo.type = imem;
-    readImemParameters(imemWidth, imemInfo);
+    readImemParameters(imemInfo);
 
     MemInfo dmemInfo;
     dmemInfo.type = dmem;
@@ -464,6 +464,9 @@ ProGeUI::integrateProcessor(
         InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
         throw exc;
     }
+    if (!deviceFamily.empty()) {
+        integrator->setDeviceFamily(deviceFamily);
+    }
 
     NetlistBlock& ttaToplevel = generator_.netlist()->topLevelBlock();
 
@@ -477,15 +480,9 @@ ProGeUI::integrateProcessor(
 }
 
 void
-ProGeUI::readImemParameters(
-    int imemWidthFromCmdline,
-    MemInfo& imem) const {
+ProGeUI::readImemParameters(MemInfo& imem) const {
         
-    if (imemWidthFromCmdline == 0) {
-        imem.mauWidth = bem_->width();
-    } else {
-        imem.mauWidth = imemWidthFromCmdline;
-    }
+    imem.mauWidth = bem_->width();
     // imem width in MAUs is fixed to 1 in ProGe
     imem.widthInMaus = 1;
     imem.asName = machine_->controlUnit()->addressSpace()->name();

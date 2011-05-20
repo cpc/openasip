@@ -38,6 +38,7 @@
 #include "ProjectFileGenerator.hh" // for SignalMappingList
 #include "HDLPort.hh"
 #include "Vlnv.hh"
+#include "Netlist.hh"
 
 class IPXactInterface;
 
@@ -68,55 +69,65 @@ public:
     virtual ObjectState* saveState() const;
 
     void setVLNV(
-        std::string vendor,
-        std::string library,
-        std::string name,
-        std::string version);
+        TCEString vendor,
+        TCEString library,
+        TCEString name,
+        TCEString version);
 
-    void setHdlFile(const std::string& file);
+    void setHdlFile(const TCEString& file);
 
-    void setFile(const std::string& file);
+    void setFile(const TCEString& file);
 
-    void setHdlFiles(const std::vector<std::string>& files);
+    void setHdlFiles(const std::vector<TCEString>& files);
 
     void addSignal(const HDLPort& signal);
 
+    void addParameter(const ProGe::Netlist::Parameter& parameter);
+
     void addBusInterface(IPXactInterface* interface);
 
-    static const std::string OSNAME_IPXACT_MODEL;
-    static const std::string OSNAME_VENDOR;
-    static const std::string OSNAME_LIBRARY;
-    static const std::string OSNAME_NAME;
-    static const std::string OSNAME_VERSION;
-    static const std::string OSNAME_BUS_INTERFACES;
-    static const std::string OSNAME_BUS_INTERFACE;
-    static const std::string OSNAME_BUS_TYPE;
-    static const std::string OSNAME_BUS_ABS_TYPE;
-    static const std::string OSNAME_BUS_MASTER;
-    static const std::string OSNAME_BUS_MIRRORED_MASTER;
-    static const std::string OSNAME_BUS_SLAVE;
-    static const std::string OSNAME_BUS_MIRRORED_SLAVE;
-    static const std::string OSNAME_BUS_SYSTEM;
-    static const std::string OSNAME_BUS_MIRRORED_SYSTEM;
-    static const std::string OSNAME_BUS_MONITOR;
-    static const std::string OSNAME_BUS_PORT_MAPS;
-    static const std::string OSNAME_BUS_PORT_MAP;
-    static const std::string OSNAME_BUS_PORT_MAP_NAME;
-    static const std::string OSNAME_BUS_PORT_MAP_COMP;
-    static const std::string OSNAME_BUS_PORT_MAP_BUS;
-    static const std::string OSNAME_MODEL;
-    static const std::string OSNAME_PORTS;
-    static const std::string OSNAME_WIRE;
-    static const std::string OSNAME_VECTOR;
-    static const std::string OSNAME_PORT;
-    static const std::string OSNAME_PORT_DIRECTION;
-    static const std::string OSNAME_PORT_LEFT;
-    static const std::string OSNAME_PORT_RIGHT;
-    static const std::string OSNAME_FILESETS;
-    static const std::string OSNAME_FILESET;
-    static const std::string OSNAME_FILE;
-    static const std::string OSNAME_FILE_NAME;
-    static const std::string OSNAME_FILE_TYPE;
+    static const TCEString OSNAME_IPXACT_MODEL;
+    static const TCEString OSNAME_VENDOR;
+    static const TCEString OSNAME_LIBRARY;
+    static const TCEString OSNAME_NAME;
+    static const TCEString OSNAME_VERSION;
+    static const TCEString OSNAME_BUS_INTERFACES;
+    static const TCEString OSNAME_BUS_INTERFACE;
+    static const TCEString OSNAME_BUS_TYPE;
+    static const TCEString OSNAME_BUS_ABS_TYPE;
+    static const TCEString OSNAME_BUS_MASTER;
+    static const TCEString OSNAME_BUS_MIRRORED_MASTER;
+    static const TCEString OSNAME_BUS_SLAVE;
+    static const TCEString OSNAME_BUS_MIRRORED_SLAVE;
+    static const TCEString OSNAME_BUS_SYSTEM;
+    static const TCEString OSNAME_BUS_MIRRORED_SYSTEM;
+    static const TCEString OSNAME_BUS_MONITOR;
+    static const TCEString OSNAME_BUS_PORT_MAPS;
+    static const TCEString OSNAME_BUS_PORT_MAP;
+    static const TCEString OSNAME_BUS_PORT_MAP_NAME;
+    static const TCEString OSNAME_BUS_PORT_MAP_COMP;
+    static const TCEString OSNAME_BUS_PORT_MAP_BUS;
+    static const TCEString OSNAME_MODEL;
+    static const TCEString OSNAME_PORTS;
+    static const TCEString OSNAME_WIRE;
+    static const TCEString OSNAME_VECTOR;
+    static const TCEString OSNAME_PORT;
+    static const TCEString OSNAME_PORT_DIRECTION;
+    static const TCEString OSNAME_PORT_LEFT;
+    static const TCEString OSNAME_PORT_RIGHT;
+    static const TCEString OSNAME_FILESETS;
+    static const TCEString OSNAME_FILESET;
+    static const TCEString OSNAME_FILE;
+    static const TCEString OSNAME_FILE_NAME;
+    static const TCEString OSNAME_FILE_TYPE;
+    static const TCEString OSNAME_MODEL_PARAMS;
+    static const TCEString OSNAME_MODEL_PARAM;
+    static const TCEString OSNAME_DISPLAY_NAME;
+    static const TCEString OSNAME_VALUE;
+    static const TCEString OSNAME_ATTR_DATA_TYPE;
+    static const TCEString OSNAME_ATTR_FORMAT;
+    static const TCEString OSNAME_ATTR_ID;
+    static const TCEString OSNAME_ATTR_RESOLVE;
 
 private:
 
@@ -128,9 +139,11 @@ private:
 
     void addSignalObject(const HDLPort* port, ObjectState* parent) const;
 
+    void addModelParamsObject(ObjectState* parent) const;
+
     void addFileObject(
-        const std::string& name,
-        const std::string& type,
+        const TCEString& name,
+        const TCEString& type,
         ObjectState* parent) const;
 
     void extractVLNV(const ObjectState* root);
@@ -154,26 +167,37 @@ private:
 
     void extractSignals(const ObjectState* signals);
 
+    void extractModelParams(const ObjectState* modelParameters);
+
+    void extractModelParam(const ObjectState* modelParameter);
+
     void extractFiles(const ObjectState* fileSets);
 
     IPXactInterface* interfaceByType(
         const IPXact::Vlnv& type,
         const IPXact::Vlnv& absType,
-        const std::string instanceName,
+        const TCEString instanceName,
         BusMode mode) const;
     
     IPXact::Vlnv vlnv_;
     
     std::vector<HDLPort*> signals_;
 
+    std::vector<ProGe::Netlist::Parameter> parameters_;
+
     std::vector<IPXactInterface*> busInterfaces_;
 
-    std::vector<std::string> hdlFiles_;
-    std::vector<std::string> otherFiles_;
+    std::vector<TCEString> hdlFiles_;
+    std::vector<TCEString> otherFiles_;
 
-    static const std::string HDL_SET_ID;
-    static const std::string VHDL_FILE;
-    static const std::string OTHER_FILE;
+    static const TCEString HDL_SET_ID;
+    static const TCEString VHDL_FILE;
+    static const TCEString OTHER_FILE;
+    static const TCEString RESOLVE_USER;
+    static const TCEString STRING_PARAM;
+    static const TCEString INTEGER_PARAM;
+    static const TCEString LONG_PARAM;
+    static const TCEString DEV_FAMILY_GENERIC;
 
 };
 #endif

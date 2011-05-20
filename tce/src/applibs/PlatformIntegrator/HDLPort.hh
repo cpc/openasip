@@ -33,7 +33,7 @@
 #ifndef TTA_HDL_PORT_HH
 #define TTA_HDL_PORT_HH
 
-#include <string>
+#include "TCEString.hh"
 #include "ProGeTypes.hh"
 #include "HDBTypes.hh"
 #include "NetlistPort.hh"
@@ -50,15 +50,15 @@ class HDLPort {
 public:
 
     HDLPort(
-        const std::string name,
-        const std::string& widthFormula,
+        const TCEString name,
+        const TCEString& widthFormula,
         ProGe::DataType type,
         HDB::Direction direction,
         bool needsInversion);
 
     HDLPort(
-        const std::string name,
-        const std::string& widthFormula,
+        const TCEString name,
+        const TCEString& widthFormula,
         ProGe::DataType type,
         HDB::Direction direction,
         bool needsInversion,
@@ -68,9 +68,11 @@ public:
 
     HDLPort(const ProGe::NetlistPort& port);
 
-    std::string name() const;
+    TCEString name() const;
 
-    std::string widthFormula() const;
+    TCEString widthFormula() const;
+
+    void updateWidthFormula(const TCEString& widthFormula);
 
     bool hasRealWidth() const;
 
@@ -92,8 +94,8 @@ public:
 
 private:
 
-    std::string name_;
-    std::string widthFormula_;
+    TCEString name_;
+    TCEString widthFormula_;
     ProGe::DataType type_;
     HDB::Direction direction_;
     bool needsInversion_;

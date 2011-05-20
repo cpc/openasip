@@ -33,69 +33,69 @@
 #define TTA_SOPC_INTERFACE_HH
 
 #include <iostream>
-#include <string>
 #include <map>
 #include <vector>
 #include "HDBTypes.hh"
+#include "TCEString.hh"
 
 class SOPCInterface {
 public:
 
-    SOPCInterface(std::string name, std::string declaration);
+    SOPCInterface(TCEString name, TCEString declaration);
 
     virtual ~SOPCInterface();
 
     void setProperty(
-        const std::string& propertyName,
-        const std::string& propertyValue);
+        const TCEString& propertyName,
+        const TCEString& propertyValue);
     void setProperty(
-        const std::string& propertyName,
+        const TCEString& propertyName,
         int propertyValue);
 
     void setPort(
-        const std::string& hdlName,
-        const std::string& interfaceName,
+        const TCEString& hdlName,
+        const TCEString& interfaceName,
         HDB::Direction direction,
         int width);
     
-    std::string name() const;
+    TCEString name() const;
 
     bool hasPorts() const;
 
     virtual void writeInterface(std::ostream& stream) const;
     
-    static const std::string SOPC_ADD_INTERFACE;
-    static const std::string SOPC_SET_INT_PROPERTY;
-    static const std::string SOPC_ADD_INT_PORT;
-    static const std::string SOPC_ASSOCIATED_CLOCK;
+    static const TCEString SOPC_ADD_INTERFACE;
+    static const TCEString SOPC_SET_INT_PROPERTY;
+    static const TCEString SOPC_ADD_INT_PORT;
+    static const TCEString SOPC_ASSOCIATED_CLOCK;
 
-    static const std::string SOPC_MASTER_INT_NAME;
-    static const std::string SOPC_MASTER_INT_DECLR;
+    static const TCEString SOPC_MASTER_INT_NAME;
+    static const TCEString SOPC_MASTER_INT_DECLR;
 
-    static const std::string SOPC_CLOCK_INT_NAME;
-    static const std::string SOPC_CLOCK_INT_DECLR;
+    static const TCEString SOPC_CLOCK_INT_NAME;
+    static const TCEString SOPC_CLOCK_INT_DECLR;
 
-    static const std::string SOPC_EXPORT_INT_NAME;
-    static const std::string SOPC_EXPORT_INT_DECLR;
-    static const std::string SOPC_EXPORT_NAME;
+    static const TCEString SOPC_EXPORT_INT_NAME;
+    static const TCEString SOPC_EXPORT_INT_DECLR;
+    static const TCEString SOPC_EXPORT_NAME;
 
-    static const std::string SOPC_IRQ_RECV_INT_NAME;
-    static const std::string SOPC_IRQ_RECV_INT_DECLR;
+    static const TCEString SOPC_IRQ_RECV_INT_NAME;
+    static const TCEString SOPC_IRQ_RECV_INT_DECLR;
 
-    static const std::string SOPC_INPUT;
-    static const std::string SOPC_OUTPUT;
-    static const std::string SOPC_BIDIR;
+    static const TCEString SOPC_INPUT;
+    static const TCEString SOPC_OUTPUT;
+    static const TCEString SOPC_BIDIR;
     
 protected:
 
     struct SOPCPort {
-        std::string hdlName;
-        std::string interfaceName;
+        TCEString hdlName;
+        TCEString interfaceName;
         HDB::Direction direction;
         int width;
     };
 
-    typedef std::map<std::string, std::string> PropertyMap;
+    typedef std::map<TCEString, TCEString> PropertyMap;
     typedef std::vector<SOPCPort> PortList;
 
     const PropertyMap* properties() const;
@@ -111,8 +111,8 @@ private:
     SOPCInterface(const SOPCInterface& old);
     SOPCInterface& operator=(SOPCInterface old);
 
-    std::string name_;
-    std::string declaration_;
+    TCEString name_;
+    TCEString declaration_;
     PropertyMap properties_;
     PortList ports_; 
 };

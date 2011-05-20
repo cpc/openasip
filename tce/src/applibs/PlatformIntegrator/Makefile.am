@@ -3,13 +3,13 @@ libplatformintegrator_la_SOURCES = \
 	Stratix2DSPBoardIntegrator.cc PlatformIntegrator.cc MemoryGenerator.cc  \
 	AlteraOnchipRamGenerator.cc AlteraOnchipRomGenerator.cc VhdlRomGenerator.cc \
 	ProjectFileGenerator.cc QuartusProjectGenerator.cc Stratix2SramGenerator.cc \
-	AlteraMegawizMemGenerator.cc HDLPort.cc KoskiIntegrator.cc \
+	HDLPort.cc KoskiIntegrator.cc \
 	AlteraHibiDpRamGenerator.cc DefaultProjectFileGenerator.cc \
 	IPXactFileGenerator.cc IPXactSerializer.cc IPXactModel.cc \
 	AlteraIntegrator.cc AvalonIntegrator.cc SOPCBuilderFileGenerator.cc \
 	SOPCInterface.cc AvalonMMMasterInterface.cc IPXactInterface.cc \
 	IPXactHibiInterface.cc IPXactClkInterface.cc IPXactResetInterface.cc \
-	Vlnv.cc
+	Vlnv.cc AlteraMemGenerator.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -45,7 +45,7 @@ libplatformintegrator_la_SOURCES += \
 	IPXactFileGenerator.hh IPXactInterface.hh \
 	SOPCBuilderFileGenerator.hh SOPCInterface.hh \
 	PlatformIntegrator.hh AvalonIntegrator.hh \
-	AlteraMegawizMemGenerator.hh HDLPort.hh \
+	HDLPort.hh \
 	Vlnv.hh DefaultProjectFileGenerator.hh \
 	IPXactClkInterface.hh QuartusProjectGenerator.hh \
 	IPXactModel.hh MemoryGenerator.hh \
@@ -55,5 +55,5 @@ libplatformintegrator_la_SOURCES += \
 	Stratix2DSPBoardIntegrator.hh AvalonMMMasterInterface.hh \
 	AlteraHibiDpRamGenerator.hh IPXactSerializer.hh \
 	ProjectFileGenerator.hh IPXactResetInterface.hh \
-	VhdlRomGenerator.hh 
+	VhdlRomGenerator.hh AlteraMemGenerator.hh
 ## headers end

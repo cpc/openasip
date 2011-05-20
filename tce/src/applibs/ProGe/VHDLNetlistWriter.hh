@@ -96,6 +96,18 @@ private:
         std::ofstream& stream) const;
     std::string indentation(unsigned int level) const;
 
+    /**
+     * Tries to determine whether the string generic needs quot marks for
+     * generic mapping
+     *
+     * If string literal contains '.',  or "__" it cannot be a valid
+     * VHDL label (i.e. another generic), thus it needs quotation marks.
+     *
+     * @param generic String generic value
+     * @return Generic mapping string
+     */
+    TCEString genericMapStringValue(const TCEString& generic) const;
+
     static std::string directionString(HDB::Direction direction);
     static std::string generateIndentation(
         unsigned int level, const std::string& indentation);

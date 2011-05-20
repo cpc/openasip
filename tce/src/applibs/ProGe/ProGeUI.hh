@@ -109,11 +109,11 @@ protected:
         const std::string& platformIntegrator,
         const std::string& coreEntityName,
         const std::string& programName,
+        const std::string& deviceFamily,
         MemType imem,
         MemType dmem,
         HDL language,
-        int fmax,
-        int imemWidth);
+        int fmax);
 
 private:
     void checkIfNull(void * nullPointer, const std::string& errorMsg)
@@ -121,8 +121,7 @@ private:
 
     void readLSUParameters(MemInfo& dmem) const;
 
-    void
-    readImemParameters(int imemWidthFromCmdline, MemInfo& imem) const;
+    void readImemParameters(MemInfo& imem) const;
 
     /// The loaded machine.
     TTAMachine::Machine* machine_;

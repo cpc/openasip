@@ -1,6 +1,4 @@
 #!/bin/bash
-# Does not need qmegawiz
-
 TCECC=../../../../../tce/src/bintools/Compiler/tcecc
 PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../../tce/src/bintools/PIG/generatebits

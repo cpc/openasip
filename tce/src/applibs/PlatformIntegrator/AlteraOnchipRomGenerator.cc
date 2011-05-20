@@ -31,49 +31,37 @@
  */
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <vector>
-#include <boost/format.hpp>
-#include "StringTools.hh"
-#include "FileSystem.hh"
-#include "Application.hh"
-#include "MemoryGenerator.hh"
 #include "AlteraOnchipRomGenerator.hh"
 #include "PlatformIntegrator.hh"
-#include "NetlistBlock.hh"
-#include "NetlistPort.hh"
 #include "HDLPort.hh"
-using std::string;
 using std::endl;
-using ProGe::NetlistBlock;
-using ProGe::NetlistPort;
 using ProGe::StaticSignal;
 
+const TCEString AlteraOnchipRomGenerator::COMPONENT_FILE =
+    "altera_onchip_rom_comp.vhd";
 
 AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
     int memMauWidth,
     int widthInMaus,
     int addrWidth,
-    std::string initFile,
+    TCEString initFile,
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
-    AlteraMegawizMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                              integrator, warningStream, errorStream) {
+    AlteraMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
+                       integrator, warningStream, errorStream) {
     
     bool noInvert = false;
+    bool inverted = true;
     
     addPort("clk",
             new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
-
     addPort("imem_addr",
             new HDLPort("address", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
                         HDB::IN, noInvert));
-
-    // imem_en_x signal is left unconnected on purpose
-
+    addPort("imem_en_x",
+            new HDLPort("clken", "1", ProGe::BIT, HDB::IN, inverted, 1));
     addPort("imem_data",
             new HDLPort("q", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
                         ProGe::BIT_VECTOR, HDB::OUT, noInvert));
@@ -83,7 +71,6 @@ AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
         new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, noInvert, 1);
     busyToGnd->setToStatic(ProGe::GND);
     addPort("busy", busyToGnd);
-
     
     HDLPort* initToZero = new HDLPort("startAddr", "IMEMADDRWIDTH",
                                       ProGe::BIT_VECTOR, HDB::OUT, noInvert);
@@ -101,85 +88,34 @@ AlteraOnchipRomGenerator::generatesComponentHdlFile() const {
 }
 
 
-std::vector<std::string>
-AlteraOnchipRomGenerator::generateComponentFile(std::string outputPath) {
+std::vector<TCEString>
+AlteraOnchipRomGenerator::generateComponentFile(TCEString outputPath) {
 
-    // extension must be .vhd
-    string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
-        moduleName() + ".vhd";
-    
-    return runMegawizard(outputFile);
+    return instantiateAlteraTemplate(COMPONENT_FILE, outputPath);
 }
 
-std::string
-AlteraOnchipRomGenerator::createMemParameters() const {
+void
+AlteraOnchipRomGenerator::addMemory(ProGe::Netlist& netlist, int index) {
 
-    int addrWidth = memoryAddrWidth();
-    int dataWidth = memoryTotalWidth();
-    // 2^addrWidth
-    unsigned int sizeInWords = 1 << addrWidth;
-    string initFile = initializationFile();
-    string deviceFamily = platformIntegrator()->deviceFamily();
-    
-    std::ostringstream parameters;
-    
-    quartusMajorVersion();
+    ProGe::NetlistBlock& topBlock = netlist.topLevelBlock();
+    // Add generics as string constants!
+    TCEString addrwGeneric = "IMEMADDRWIDTH";
+    TCEString datawGeneric = "IMEMWIDTHINMAUS*IMEMMAUWIDTH";
+    addGenerics(topBlock, addrwGeneric, datawGeneric, index);
 
-    parameters
-        << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth
-        << endl << "NUMWORDS_A=" << sizeInWords << endl 
-        << "INIT_FILE=" << initFile << endl << "WIDTH_B=1" << endl
-        << "WIDTHAD_B=1" << endl;
-
-    if (!deviceFamily.empty()) {
-        parameters
-            << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl;
-    } else {
-        parameters << "INTENDED_DEVICE_FAMILY=\"" << defaultDeviceFamily()
-                   << "\"" << endl;
-    }
-
-    parameters
-        << "INIT_FILE_LAYOUT=PORT_A " << "ADDRESS_ACLR_A=UNUSED "
-        << "BYTEENA_ACLR_A=UNUSED " << "INDATA_ACLR_A=UNUSED "
-        << "OUTDATA_ACLR_A=NONE " << "BYTE_ENABLE=0 " << "BYTE_SIZE=8 "
-        << "CLOCK_ENABLE_INPUT_A=BYPASS " << "CLOCK_ENABLE_OUTPUT_A=BYPASS "
-        << "CLOCK_ENABLE_CORE_A=BYPASS " << "IMPLEMENT_IN_LES=OFF "
-        << "ENABLE_RUNTIME_MOD=NO " << "MAXIMUM_DEPTH=0 " 
-        << "RAM_BLOCK_TYPE=AUTO " << "OUTDATA_REG_A=UNREGISTERED "
-        << "WRCONTROL_ACLR_A=UNUSED " << "RDEN_POWER_OPTIMIZATION=OFF "
-        << "LPM_TYPE=altsyncram " << "OPERATION_MODE=ROM "
-        << "POWER_UP_UNINITIALIZED=FALSE " << "OPTIONAL_FILES=NONE " 
-        << "LOW_POWER_MODE=NONE" << endl;
-    
-    // Quartus II requires extra parameters from version 10 onwards
-    if (quartusMajorVersion() > 9) {
-        parameters << "CLOCK_ENABLE_OUTPUT_B=BYPASS" << endl;
-    }
-    
-    parameters
-        << "q_a=used " << "address_a=used " << "clock0=used " 
-        << "byteena_a=unused " << "clocken1=unused " << "byteena_b=unused "
-        << "clocken2=unused " << "rden_a=unused " << "aclr0=unused "
-        << "addressstall_a=unused " << "clocken3=unused " << "data_a=unused "
-        << "q_b=unused " << "rden_b=unused " << "aclr1=unused "
-        << "address_b=unused " << "addressstall_b=unused "
-        << "clocken0=unused " << "data_b=unused " << "eccstatus=unused "
-        << "wren_a=unused " << "clock1=unused " << "wren_b=unused" << endl;
-
-    return parameters.str();
+    MemoryGenerator::addMemory(netlist, index);
 }
 
-
-std::string
+TCEString
 AlteraOnchipRomGenerator::moduleName() const {
 
     return ttaCoreName() + "_altera_onchip_rom_comp";
 }
     
 
-std::string
-AlteraOnchipRomGenerator::instanceName() const {
+TCEString
+AlteraOnchipRomGenerator::instanceName(int index) const {
 
-    return "onchip_imem";
+    TCEString iname("onchip_imem_");
+    return iname << index;
 }

@@ -31,22 +31,21 @@
  */
 #include "IPXactResetInterface.hh"
 #include "Exception.hh"
-using std::string;
 
-const std::string IPXactResetInterface::DEFAULT_INSTANCE_NAME = "rst_n";
-const std::string IPXactResetInterface::TTA_RESET_PORT = "rstx";
-const std::string IPXactResetInterface::SPIRIT_RESET_PORT = "RESETn";
+const TCEString IPXactResetInterface::DEFAULT_INSTANCE_NAME = "rst_n";
+const TCEString IPXactResetInterface::TTA_RESET_PORT = "rstx";
+const TCEString IPXactResetInterface::SPIRIT_RESET_PORT = "RESETn";
 
-const std::string IPXactResetInterface::VENDOR = "spiritconsortium.org";
-const std::string IPXactResetInterface::LIBRARY ="busdef.reset";
-const std::string IPXactResetInterface::NAME ="reset";
-const std::string IPXactResetInterface::BUS_VERSION = "1.0";
-const std::string IPXactResetInterface::ABS_VENDOR =
+const TCEString IPXactResetInterface::VENDOR = "spiritconsortium.org";
+const TCEString IPXactResetInterface::LIBRARY ="busdef.reset";
+const TCEString IPXactResetInterface::NAME ="reset";
+const TCEString IPXactResetInterface::BUS_VERSION = "1.0";
+const TCEString IPXactResetInterface::ABS_VENDOR =
     IPXactResetInterface::VENDOR;
-const std::string IPXactResetInterface::ABS_LIBRARY = 
+const TCEString IPXactResetInterface::ABS_LIBRARY = 
     IPXactResetInterface::LIBRARY;
-const std::string IPXactResetInterface::ABS_NAME = "reset_rtl";
-const std::string IPXactResetInterface::ABS_VERSION =
+const TCEString IPXactResetInterface::ABS_NAME = "reset_rtl";
+const TCEString IPXactResetInterface::ABS_VERSION =
     IPXactResetInterface::BUS_VERSION;
 
 const IPXactModel::BusMode IPXactResetInterface::DEFAULT_BUS_MODE =
@@ -72,7 +71,7 @@ IPXactResetInterface::mapPortsToInterface(const ProGe::NetlistBlock& toplevel) {
             return true;
         }
     }
-    string msg = "Reset port " + TTA_RESET_PORT + " not found!";
+    TCEString msg = "Reset port " + TTA_RESET_PORT + " not found!";
     InvalidData exc(__FILE__, __LINE__, "IPXactResetInterface", msg);
     throw exc;
 

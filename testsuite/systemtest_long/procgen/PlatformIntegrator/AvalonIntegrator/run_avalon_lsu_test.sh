@@ -10,31 +10,6 @@ ENT=tta_avalon_lsu
 INTEG=AvalonIntegrator
 LOG=run_avalon_lsu.log
 
-# Extra option for generating real HW with functional program images
-HW=no
-
-QMEGAWIZ=$(which qmegawiz 2> /dev/null)
-XVFB=$(which xvfb-run 2> /dev/null)
-EMULATE_QMEGAWIZ=yes
-## is real qmegawiz available?
-if [ "x$QMEGAWIZ" != "x" ];then
-  if [ "x$DISPLAY" != "x" ];then
-    # qmegawiz is in PATH and X connection available
-    EMULATE_QMEGAWIZ=no
-  elif [ "x$XVFB" != "x" ];then
-    # can emulate X connection with xvfb-run
-    EMULATE_QMEGAWIZ=no
-    PROGE="$XVFB -a $PROGE"
-  fi
-fi
-
-if [ "x$EMULATE_QMEGAWIZ" == "xyes" ]
-then
-  # Emulate qmegawiz with a script
-  export PATH=$PWD/../data:$PATH
-fi
-
-
 # run integrator
 rm -f ${ENT}_toplevel_hw.tcl $LOG
 rm -rf $PO_DIR
@@ -54,11 +29,7 @@ cat ${ENT}_toplevel_hw.tcl | grep "add_interface "
 # depending on the language setting so grep them away
 cat $PO_DIR/platform/${ENT}_toplevel.vhdl | grep -v " signal "
 
-if [ "$HW" == "yes" ]
-then
-    # compile code
-    $TCECC -O3 -a $ADF -o $TPEF data/src/main.c || exit 1
-    # create images
-    $PIG -d -w 4 -o mif -f mif -p $TPEF -x $PO_DIR $ADF  || exit 1
-fi
-
+# compile code
+$TCECC -O3 -a $ADF -o $TPEF data/src/main.c || exit 1
+# create images
+$PIG -d -w 4 -o mif -f mif -p $TPEF -e $ENT -x $PO_DIR $ADF  || exit 1

@@ -45,18 +45,18 @@ public:
 
 private:
 
-    static const std::string TTA_RESET_PORT;
-    static const std::string SPIRIT_RESET_PORT;
+    static const TCEString TTA_RESET_PORT;
+    static const TCEString SPIRIT_RESET_PORT;
 
-    static const std::string DEFAULT_INSTANCE_NAME;
-    static const std::string VENDOR;
-    static const std::string LIBRARY;
-    static const std::string NAME;
-    static const std::string BUS_VERSION;
-    static const std::string ABS_VENDOR;
-    static const std::string ABS_LIBRARY;
-    static const std::string ABS_NAME;
-    static const std::string ABS_VERSION;
+    static const TCEString DEFAULT_INSTANCE_NAME;
+    static const TCEString VENDOR;
+    static const TCEString LIBRARY;
+    static const TCEString NAME;
+    static const TCEString BUS_VERSION;
+    static const TCEString ABS_VENDOR;
+    static const TCEString ABS_LIBRARY;
+    static const TCEString ABS_NAME;
+    static const TCEString ABS_VERSION;
 
     static const IPXactModel::BusMode DEFAULT_BUS_MODE;
 };

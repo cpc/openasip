@@ -34,10 +34,10 @@
 #define TTA_MEMORY_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include <map>
 #include "Netlist.hh"
+#include "TCEString.hh"
 
 class HDLPort;
 class PlatformIntegrator;
@@ -58,7 +58,7 @@ struct MemInfo {
     int widthInMaus;
     int portAddrw;  //< port address width = port width - bytemask bits
     int asAddrw;    //< address width from ADF address space
-    std::string asName;
+    TCEString asName;
 };
 
 namespace ProGe {
@@ -74,7 +74,7 @@ public:
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
@@ -91,14 +91,14 @@ public:
      */
     virtual bool isCompatible(
         const ProGe::NetlistBlock& ttaCore,
-        std::vector<std::string>& reasons) const;
+        std::vector<TCEString>& reasons) const;
 
-    virtual void addMemory(ProGe::Netlist& netlist);
+    virtual void addMemory(ProGe::Netlist& netlist, int index);
 
     virtual bool generatesComponentHdlFile() const = 0;
 
-    virtual std::vector<std::string>
-    generateComponentFile(std::string outputPath) = 0;
+    virtual std::vector<TCEString>
+    generateComponentFile(TCEString outputPath) = 0;
 
     int memoryTotalWidth() const;
     
@@ -108,13 +108,13 @@ public:
 
     int memoryAddrWidth() const;
 
-    std::string initializationFile() const;
+    TCEString initializationFile() const;
 
 protected:
 
     // Key: LSU port name
     // Value: pointer to corresponding memory component/controller port
-    typedef std::multimap<std::string, HDLPort*> PortMap;
+    typedef std::multimap<TCEString, HDLPort*> PortMap;
 
     const PlatformIntegrator* platformIntegrator() const;
 
@@ -126,11 +126,11 @@ protected:
     
     const HDLPort* port(int index) const;
 
-    const HDLPort* portByKeyName(std::string name) const;
+    const HDLPort* portByKeyName(TCEString name) const;
 
-    std::string portKeyName(const HDLPort* port) const;
+    TCEString portKeyName(const HDLPort* port) const;
 
-    void addPort(const std::string& name, HDLPort* port);
+    void addPort(const TCEString& name, HDLPort* port);
 
     int parameterCount() const;
     
@@ -138,11 +138,21 @@ protected:
 
     void addParameter(const ProGe::Netlist::Parameter& add);
 
-    std::string ttaCoreName() const;
+    TCEString ttaCoreName() const;
 
-    virtual std::string moduleName() const = 0;
+    virtual TCEString moduleName() const = 0;
     
-    virtual std::string instanceName() const = 0;
+    virtual TCEString instanceName(int index) const = 0;
+
+    /**
+     * Returns base path to template files.
+     */
+    TCEString templatePath() const;
+
+    void instantiateTemplate(
+        const TCEString& inFile,
+        const TCEString& outFile,
+        const TCEString& entity) const;
 
 private:
     
@@ -152,7 +162,7 @@ private:
     int widthInMaus_;
     int addrWidth_;
 
-    std::string initFile_;
+    TCEString initFile_;
     
     const PlatformIntegrator* integrator_;
 
@@ -162,8 +172,8 @@ private:
     PortMap memPorts_;
     ParameterList params_;
 
-    static const std::string CLOCK_PORT;
-    static const std::string RESET_PORT;
+    static const TCEString CLOCK_PORT;
+    static const TCEString RESET_PORT;
 };
 
 #endif

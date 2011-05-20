@@ -8,7 +8,7 @@ set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
 set_global_assignment -name FMAX_REQUIREMENT "100 MHz"
 vhdl files
-23
+24
 pin assignments
 69
 library IEEE;
@@ -17,7 +17,7 @@ use IEEE.std_logic_arith.all;
 use work.tce_util.all;
 use work.stratix_test_array_sram_globals.all;
 use work.stratix_test_array_sram_imem_mau.all;
-use work.stratix_test_array_sram_params.all;
+use work.stratix_test_array_sram_toplevel_params.all;
 
 entity stratix_test_array_sram_toplevel is
 
@@ -79,8 +79,8 @@ architecture structural of stratix_test_array_sram_toplevel is
 begin
 
   core_busy_wire <= '0';
-  imem_array_instance_addr_wire <= core_imem_addr_wire;
-  core_imem_data_wire <= imem_array_instance_dataout_wire;
+  imem_array_instance_0_addr_wire <= core_imem_addr_wire;
+  core_imem_data_wire <= imem_array_instance_0_dataout_wire;
   core_pc_init_wire <= (others => '0');
   ground_signal <= (others => '0');
 
@@ -104,13 +104,13 @@ begin
       fu_LSU_STRATIXII_SRAM_BE_N2 => STRATIXII_SRAM_BE_N2,
       fu_LSU_STRATIXII_SRAM_BE_N3 => STRATIXII_SRAM_BE_N3);
 
-  imem_array_instance : stratix_test_array_sram_rom_array_comp
+  imem_array_instance_0 : stratix_test_array_sram_rom_array_comp
     generic map (
       addrw => IMEMADDRWIDTH,
       instrw => IMEMMAUWIDTH*IMEMWIDTHINMAUS)
     port map (
       clock => clk,
-      addr => imem_array_instance_addr_wire,
-      dataout => imem_array_instance_dataout_wire);
+      addr => imem_array_instance_0_addr_wire,
+      dataout => imem_array_instance_0_dataout_wire);
 
 end structural;

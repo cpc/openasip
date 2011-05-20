@@ -38,22 +38,24 @@
 #include "NetlistBlock.hh"
 #include "IPXactFileGenerator.hh"
 #include "FileSystem.hh"
-using std::string;
 using std::vector;
 using std::endl;
 
-const std::string KoskiIntegrator::PIN_TAG_ = "hibi";
+const TCEString KoskiIntegrator::PIN_TAG_ = "hibi";
+const TCEString KoskiIntegrator::DEFAULT_DEVICE_FAMILY_ = "Stratix II";
 
-KoskiIntegrator::KoskiIntegrator(): AlteraIntegrator(), ipXactGen_(NULL) {
+KoskiIntegrator::KoskiIntegrator():
+    AlteraIntegrator(), ipXactGen_(NULL),
+    deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
 }
 
 
 KoskiIntegrator::KoskiIntegrator(
     ProGe::HDL hdl,
-    std::string progeOutputDir,
-    std::string entityName,
-    std::string outputDir,
-    std::string programName,
+    TCEString progeOutputDir,
+    TCEString entityName,
+    TCEString outputDir,
+    TCEString programName,
     int targetClockFreq,
     std::ostream& warningStream,
     std::ostream& errorStream,
@@ -62,7 +64,8 @@ KoskiIntegrator::KoskiIntegrator(
     AlteraIntegrator(hdl, progeOutputDir, entityName, outputDir,
                        programName, targetClockFreq, warningStream,
                      errorStream, imem, dmem),
-    ipXactGen_(new IPXactFileGenerator(entityName, this)) {
+    ipXactGen_(new IPXactFileGenerator(entityName, this)),
+    deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
 }
 
 
@@ -73,7 +76,7 @@ KoskiIntegrator::~KoskiIntegrator() {
     }
 }
 
-std::string
+TCEString
 KoskiIntegrator::pinTag() const {
 
     return PIN_TAG_;
@@ -100,7 +103,7 @@ KoskiIntegrator::dmemInstance() {
     const MemInfo& dmem = dmemInfo();
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
-        string initFile = programName() + "_" + dmem.asName + ".mif";
+        TCEString initFile = programName() + "_" + dmem.asName + ".mif";
         // onchip mem size is scalable, use value from adf's Address Space
         int addrw = dmem.asAddrw;
         dmemGen =
@@ -109,7 +112,7 @@ KoskiIntegrator::dmemInstance() {
                 this, warningStream(), errorStream());
         ipXactGen_->addMemInitFile(initFile);
     } else {
-        string msg = "Unsupported data memory type";
+        TCEString msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "KoskiIntegrator",
                         msg);
         throw exc;
@@ -125,32 +128,41 @@ KoskiIntegrator::printInfo(std::ostream& stream) const {
         << "Integrator name: KoskiIntegrator" << endl
         << "---------------------------------" << endl
         << "Integrates TTA core to Koski flow compatible IP-block. "
-        << "Processor must have a HiBi-LSU. " << endl
+        << "Processor must have a HIBIs-LSU. " << endl
         << "Creates an IP-XACT description of the created IP." << endl
         << "This integrator works with Altera tools and FPGAs." << endl
         << "Requires Altera's 'qmegawiz' program to be found from PATH." 
         << endl
         << "Supported instruction memory types are 'onchip' and 'vhdl_array."
-        << endl << "Supported data memory type is 'onchip'." << endl << endl;
+        << endl << "Supported data memory type is 'onchip'." << endl
+        << "FPGA device family can be changed. Default device family is "
+        << DEFAULT_DEVICE_FAMILY_ << endl << endl;
+}
+
+TCEString
+KoskiIntegrator::deviceFamily() const {
+
+    return deviceFamily_;
+}
+
+void
+KoskiIntegrator::setDeviceFamily(TCEString devFamily) {
+
+    deviceFamily_ = devFamily;
 }
 
 // these are not relevant here
-std::string
-KoskiIntegrator::deviceFamily() const {
-    return "";
-}
-
-std::string
+TCEString
 KoskiIntegrator::deviceName() const {
     return "";
 }
     
-std::string
+TCEString
 KoskiIntegrator::devicePackage() const {
     return "";
 }
 
-std::string
+TCEString
 KoskiIntegrator::deviceSpeedClass() const {
     return "";
 }

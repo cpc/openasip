@@ -34,10 +34,10 @@
 #define TTA_VHDL_ROM_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "MemoryGenerator.hh"
 #include "PlatformIntegrator.hh"
+#include "TCEString.hh"
 
 class VhdlRomGenerator : public MemoryGenerator {
 public:
@@ -46,7 +46,7 @@ public:
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
@@ -55,18 +55,18 @@ public:
 
     virtual bool generatesComponentHdlFile() const;
 
-    virtual std::vector<std::string>
-    generateComponentFile(std::string outputPath);
+    virtual std::vector<TCEString>
+    generateComponentFile(TCEString outputPath);
 
 protected:
 
-    virtual std::string moduleName() const;
+    virtual TCEString moduleName() const;
     
-    virtual std::string instanceName() const;
+    virtual TCEString instanceName(int index) const;
 
 private:
 
-    std::string imagePackageName() const;
+    TCEString imagePackageName() const;
 };
 
 #endif

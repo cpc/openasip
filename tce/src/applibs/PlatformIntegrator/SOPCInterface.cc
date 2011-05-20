@@ -33,40 +33,37 @@
 #include <cassert>
 #include "SOPCInterface.hh"
 #include "Conversion.hh"
-using std::string;
 using std::vector;
 using std::map;
 using std::endl;
 
-
-
-const std::string SOPCInterface::SOPC_ADD_INTERFACE =
+const TCEString SOPCInterface::SOPC_ADD_INTERFACE =
     "add_interface";
-const std::string SOPCInterface::SOPC_SET_INT_PROPERTY = 
+const TCEString SOPCInterface::SOPC_SET_INT_PROPERTY = 
     "set_interface_property";
-const std::string SOPCInterface::SOPC_ADD_INT_PORT =
+const TCEString SOPCInterface::SOPC_ADD_INT_PORT =
     "add_interface_port";
-const std::string SOPCInterface::SOPC_ASSOCIATED_CLOCK =
+const TCEString SOPCInterface::SOPC_ASSOCIATED_CLOCK =
     "ASSOCIATED_CLOCK";
 
-const std::string SOPCInterface::SOPC_CLOCK_INT_NAME = "clock_reset";
-const std::string SOPCInterface::SOPC_CLOCK_INT_DECLR = "clock end";
+const TCEString SOPCInterface::SOPC_CLOCK_INT_NAME = "clock_reset";
+const TCEString SOPCInterface::SOPC_CLOCK_INT_DECLR = "clock end";
 
-const std::string SOPCInterface::SOPC_EXPORT_INT_NAME = "conduit_interface";
-const std::string SOPCInterface::SOPC_EXPORT_INT_DECLR = "conduit end";
-const std::string SOPCInterface::SOPC_EXPORT_NAME = "export";
+const TCEString SOPCInterface::SOPC_EXPORT_INT_NAME = "conduit_interface";
+const TCEString SOPCInterface::SOPC_EXPORT_INT_DECLR = "conduit end";
+const TCEString SOPCInterface::SOPC_EXPORT_NAME = "export";
 
-const std::string SOPCInterface::SOPC_MASTER_INT_NAME = "avalon_master";
-const std::string SOPCInterface::SOPC_MASTER_INT_DECLR = "avalon start";
+const TCEString SOPCInterface::SOPC_MASTER_INT_NAME = "avalon_master";
+const TCEString SOPCInterface::SOPC_MASTER_INT_DECLR = "avalon start";
 
-const std::string SOPCInterface::SOPC_IRQ_RECV_INT_NAME = "interrupt_recv";
-const std::string SOPCInterface::SOPC_IRQ_RECV_INT_DECLR = "interrupt start";
+const TCEString SOPCInterface::SOPC_IRQ_RECV_INT_NAME = "interrupt_recv";
+const TCEString SOPCInterface::SOPC_IRQ_RECV_INT_DECLR = "interrupt start";
 
-const std::string SOPCInterface::SOPC_INPUT = "Input";
-const std::string SOPCInterface::SOPC_OUTPUT = "Output";
-const std::string SOPCInterface::SOPC_BIDIR = "Bidir";
+const TCEString SOPCInterface::SOPC_INPUT = "Input";
+const TCEString SOPCInterface::SOPC_OUTPUT = "Output";
+const TCEString SOPCInterface::SOPC_BIDIR = "Bidir";
 
-SOPCInterface::SOPCInterface(std::string name, std::string declaration):
+SOPCInterface::SOPCInterface(TCEString name, TCEString declaration):
     name_(name), declaration_(declaration) {
 }
 
@@ -74,24 +71,24 @@ SOPCInterface::~SOPCInterface() {
 }
 
 void SOPCInterface::setProperty(
-    const std::string& propertyName,
-    const std::string& propertyValue) {
+    const TCEString& propertyName,
+    const TCEString& propertyValue) {
 
     properties_[propertyName] = propertyValue;
 }
 
 
 void SOPCInterface::setProperty(
-    const std::string& propertyName,
+    const TCEString& propertyName,
     int propertyValue) {
 
-    string convertedValue = Conversion::toString(propertyValue);
+    TCEString convertedValue = Conversion::toString(propertyValue);
     setProperty(propertyName, convertedValue);
 }
 
 void SOPCInterface::setPort(
-    const std::string& hdlName,
-    const std::string& interfaceName,
+    const TCEString& hdlName,
+    const TCEString& interfaceName,
     HDB::Direction direction,
     int width) {
 
@@ -99,7 +96,7 @@ void SOPCInterface::setPort(
     ports_.push_back(port);
 }
 
-std::string
+TCEString
 SOPCInterface::name() const {
 
     return name_;

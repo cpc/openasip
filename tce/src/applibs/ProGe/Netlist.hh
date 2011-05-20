@@ -59,9 +59,9 @@ class Netlist : public boost::adjacency_list<
 public:
     /// Struct for parameter type.
     struct Parameter {
-        std::string name;
-        std::string type;
-        std::string value;
+        TCEString name;
+        TCEString type;
+        TCEString value;
     };
 
     Netlist();

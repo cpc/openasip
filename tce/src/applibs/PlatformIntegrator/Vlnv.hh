@@ -31,7 +31,7 @@
  */
 #ifndef TTA_IP_XACT_VLNV_HH
 #define TTA_IP_XACT_VLNV_HH
-#include <string>
+#include "TCEString.hh"
 
 namespace IPXact {
 
@@ -41,10 +41,10 @@ namespace IPXact {
 struct Vlnv {
     Vlnv();
 
-    Vlnv(std::string vendor,
-         std::string library,
-         std::string name,
-         std::string version);
+    Vlnv(TCEString vendor,
+         TCEString library,
+         TCEString name,
+         TCEString version);
 
     Vlnv(const Vlnv& old);
 
@@ -53,13 +53,13 @@ struct Vlnv {
     bool operator!=(const Vlnv& other);
 
     /// Vendor name
-    std::string vendor;
+    TCEString vendor;
     /// Library name
-    std::string library;
+    TCEString library;
     /// Entity name
-    std::string name;
+    TCEString name;
     /// Entity version
-    std::string version;
+    TCEString version;
 };
 
 }

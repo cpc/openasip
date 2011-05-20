@@ -31,22 +31,21 @@
  */
 #include "IPXactClkInterface.hh"
 #include "Exception.hh"
-using std::string;
 
-const std::string IPXactClkInterface::DEFAULT_INSTANCE_NAME = "clk_in";
-const std::string IPXactClkInterface::TTA_CLK_PORT = "clk";
-const std::string IPXactClkInterface::SPIRIT_CLK_PORT = "CLK";
+const TCEString IPXactClkInterface::DEFAULT_INSTANCE_NAME = "clk_in";
+const TCEString IPXactClkInterface::TTA_CLK_PORT = "clk";
+const TCEString IPXactClkInterface::SPIRIT_CLK_PORT = "CLK";
 
-const std::string IPXactClkInterface::VENDOR = "spiritconsortium.org";
-const std::string IPXactClkInterface::LIBRARY ="busdef.clock";
-const std::string IPXactClkInterface::NAME ="clock";
-const std::string IPXactClkInterface::BUS_VERSION = "1.0";
-const std::string IPXactClkInterface::ABS_VENDOR =
+const TCEString IPXactClkInterface::VENDOR = "spiritconsortium.org";
+const TCEString IPXactClkInterface::LIBRARY ="busdef.clock";
+const TCEString IPXactClkInterface::NAME ="clock";
+const TCEString IPXactClkInterface::BUS_VERSION = "1.0";
+const TCEString IPXactClkInterface::ABS_VENDOR =
     IPXactClkInterface::VENDOR;
-const std::string IPXactClkInterface::ABS_LIBRARY = 
+const TCEString IPXactClkInterface::ABS_LIBRARY = 
     IPXactClkInterface::LIBRARY;
-const std::string IPXactClkInterface::ABS_NAME = "clock_rtl";
-const std::string IPXactClkInterface::ABS_VERSION =
+const TCEString IPXactClkInterface::ABS_NAME = "clock_rtl";
+const TCEString IPXactClkInterface::ABS_VERSION =
     IPXactClkInterface::BUS_VERSION;
 
 const IPXactModel::BusMode IPXactClkInterface::DEFAULT_BUS_MODE =
@@ -72,7 +71,7 @@ IPXactClkInterface::mapPortsToInterface(const ProGe::NetlistBlock& toplevel) {
             return true;
         }
     }
-    string msg = "Clock port " + TTA_CLK_PORT + " not found!";
+    TCEString msg = "Clock port " + TTA_CLK_PORT + " not found!";
     InvalidData exc(__FILE__, __LINE__, "IPXactClkInterface", msg);
     throw exc;
     return false;

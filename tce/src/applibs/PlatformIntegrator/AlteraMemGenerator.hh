@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,51 +22,57 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file AlterMegaWizRamGenerator.hh
+ * @file AlteraMemGenerator.hh
  *
- * Declaration of AlteraMegawizMemGenerator class.
+ * Declaration of AlteraMemGenerator class.
  *
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_ALTERA_MEGAWIZ_MEM_GENERATOR_HH
-#define TTA_ALTERA_MEGAWIZ_MEM_GENERATOR_HH
+#ifndef TTA_ALTERA_MEM_GENERATOR_HH
+#define TTA_ALTERA_MEM_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "MemoryGenerator.hh"
-#include "PlatformIntegrator.hh"
+#include "TCEString.hh"
 
-class AlteraMegawizMemGenerator : public MemoryGenerator {
+class PlatformIntegrator;
+
+class AlteraMemGenerator : public MemoryGenerator {
 public:
 
-    AlteraMegawizMemGenerator(
+    AlteraMemGenerator(
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
     
-    virtual ~AlteraMegawizMemGenerator();
+    virtual ~AlteraMemGenerator();
 
+    virtual void addMemory(ProGe::Netlist& netlist, int index);
+    
 protected:
 
-    virtual std::vector<std::string> runMegawizard(std::string outputFile);
+    std::vector<TCEString> instantiateAlteraTemplate(
+        const TCEString& templateFile,
+        const TCEString& outputPath) const;
 
-    virtual std::string createMemParameters() const = 0;
+    void addGenerics(
+        ProGe::NetlistBlock& topBlock,
+        const TCEString& addrWidth,
+        const TCEString& dataWidth,
+        int index);
 
-    std::string defaultDeviceFamily() const;
-
-    int quartusMajorVersion() const;
-
-private:
-
-    static const std::string VERSION_CMD;
-    static const std::string VERSION_TAG;
+    static const TCEString INIT_FILE_G;
+    static const TCEString DEV_FAMILY_G;
+    static const TCEString ADDRW_G;
+    static const TCEString DATAW_G;
+    
 };
 
 #endif

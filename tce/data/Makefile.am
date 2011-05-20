@@ -12,6 +12,7 @@ nobase_data_DATA = $(srcdir)/ProDe/confschema.xsd \
                    $(srcdir)/ProGe/tce_util_pkg.vhdl ProGe/gcu_opcodes_pkg.vhdl.tmpl \
                    $(srcdir)/icons/*.png \
                    $(srcdir)/ProGe/tb/*.vhdl $(srcdir)/ProGe/tb/*.vhdl.tmpl \
+                   $(srcdir)/ProGe/platform/*.vhd \
                    $(srcdir)/Proxim/confschema.xsd \
                    $(srcdir)/hdb/*.vhdl.template
 

@@ -115,13 +115,13 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             return true;
         }
         
-        if (options.numberOfArguments() == 0 ||
-            !validIntegratorParameters(options)) {
+        if (options.numberOfArguments() == 0) {
             options.printHelp();
             return false;
         }
 
         if (!validIntegratorParameters(options)) {
+            options.printHelp();
             return false;
         }
 
@@ -224,13 +224,13 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             StringTools::chopString(options.tpefName(), ".tpef").at(0);
         MemType imem = string2MemType(options.imemType());
         MemType dmem = string2MemType(options.dmemType());
-        int imemWidth = options.imemWidth();
         int fmax = options.clockFrequency();
+        string devFamily = options.deviceFamilyName();
         
         try {
             ProGeUI::integrateProcessor(
                 std::cout, std::cerr, progeOutDir, integrator, entity,
-                program, imem, dmem, language, fmax, imemWidth);
+                program, devFamily, imem, dmem, language, fmax);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.errorMessage() << endl;

@@ -34,40 +34,42 @@
 #define TTA_ALTERA_HIBI_DP_RAM_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include "AlteraMegawizMemGenerator.hh"
-#include "PlatformIntegrator.hh"
+#include "AlteraMemGenerator.hh"
+#include "TCEString.hh"
 
-class AlteraHibiDpRamGenerator : public AlteraMegawizMemGenerator {
+class PlatformIntegrator;
+
+class AlteraHibiDpRamGenerator : public AlteraMemGenerator {
 public:
 
     AlteraHibiDpRamGenerator(
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
 
     virtual ~AlteraHibiDpRamGenerator();
 
-    virtual void addMemory(ProGe::Netlist& netlist);
+    virtual void addMemory(ProGe::Netlist& netlist, int index);
 
     virtual bool generatesComponentHdlFile() const;
 
-    virtual std::vector<std::string>
-    generateComponentFile(std::string outputPath);
+    virtual std::vector<TCEString>
+    generateComponentFile(TCEString outputPath);
 
 protected:
 
-    virtual std::string createMemParameters() const;
-
-    virtual std::string moduleName() const;
+    virtual TCEString moduleName() const;
     
-    virtual std::string instanceName() const;
+    virtual TCEString instanceName(int index) const;
 
+private:
+
+    static const TCEString COMPONENT_FILE;
 };
 
 #endif

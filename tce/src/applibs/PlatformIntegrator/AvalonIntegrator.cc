@@ -33,8 +33,9 @@
 #include "AvalonIntegrator.hh"
 #include "MemoryGenerator.hh"
 #include "SOPCBuilderFileGenerator.hh"
-using std::string;
 using std::endl;
+
+const TCEString AvalonIntegrator::DEFAULT_DEVICE_FAMILY_ = "Stratix II";
 
 AvalonIntegrator::AvalonIntegrator():
     AlteraIntegrator(), sopcGenerator_(NULL) {
@@ -42,10 +43,10 @@ AvalonIntegrator::AvalonIntegrator():
 
 AvalonIntegrator::AvalonIntegrator(
     ProGe::HDL hdl,
-    std::string progeOutputDir,
-    std::string entityName,
-    std::string outputDir,
-    std::string programName,
+    TCEString progeOutputDir,
+    TCEString entityName,
+    TCEString outputDir,
+    TCEString programName,
     int targetClockFreq,
     std::ostream& warningStream,
     std::ostream& errorStream,
@@ -54,8 +55,8 @@ AvalonIntegrator::AvalonIntegrator(
     AlteraIntegrator(hdl, progeOutputDir, entityName, outputDir,
                      programName, targetClockFreq, warningStream,
                      errorStream, imem, dmem),
-    sopcGenerator_(new SOPCBuilderFileGenerator(entityName, this))
-{
+    sopcGenerator_(new SOPCBuilderFileGenerator(entityName, this)),
+    deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
 }
 
 
@@ -76,9 +77,12 @@ AvalonIntegrator::printInfo(std::ostream& stream) const {
         << "Processor must have avalon_lsu or avalon_sfu (from avalon.hdb) "
         << "for correct behaviour." << endl
         << "Supported instruction memory types are 'onchip' and 'vhdl_array."
+        << endl
         << "If 'normal' lsu is used, supported data memory type is 'onchip'."
-        << "If avalon_lsu is used, data memory type must be 'none'."
-        << endl;
+        << endl
+        << "If avalon_lsu is used, data memory type must be 'none'." << endl
+        << "FPGA device family can be changed. Default device family is "
+        << DEFAULT_DEVICE_FAMILY_ << endl << endl;
 }
     
 
@@ -91,7 +95,7 @@ AvalonIntegrator::dmemInstance() {
     if (dmemInfo().type == ONCHIP) {
         dmemGen = AlteraIntegrator::dmemInstance();
     } else {
-        string msg = "Unsupported data memory type";
+        TCEString msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "AvalonIntegrator",
                         msg);
         throw exc;
@@ -100,7 +104,7 @@ AvalonIntegrator::dmemInstance() {
 }
 
 
-std::string
+TCEString
 AvalonIntegrator::pinTag() const {
 
     return "avalon_d";
@@ -121,23 +125,30 @@ AvalonIntegrator::projectFileGenerator() const {
 }
 
 
-// not relevant in this case
-std::string
+TCEString
 AvalonIntegrator::deviceFamily() const {
-    return "";
+
+    return deviceFamily_;
 }
 
-std::string
+
+void
+AvalonIntegrator::setDeviceFamily(TCEString devFamily) {
+
+    deviceFamily_ = devFamily;
+}
+
+TCEString
 AvalonIntegrator::deviceName() const {
     return "";
 }
 
-std::string
+TCEString
 AvalonIntegrator::devicePackage() const {
     return "";
 }
 
-std::string
+TCEString
 AvalonIntegrator::deviceSpeedClass() const {
     return "";
 }

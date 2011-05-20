@@ -35,10 +35,10 @@ IPXact::Vlnv::Vlnv(): vendor(""), library(""), name(""), version("") {
 }
 
 IPXact::Vlnv::Vlnv(
-    std::string vendor,
-    std::string library,
-    std::string name,
-    std::string version):
+    TCEString vendor,
+    TCEString library,
+    TCEString name,
+    TCEString version):
     vendor(vendor), library(library), name(name), version(version) {
 }
 

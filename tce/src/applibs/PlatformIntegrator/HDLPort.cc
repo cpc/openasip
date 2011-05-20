@@ -30,15 +30,14 @@
  * @note rating: red
  */
 
-#include <string>
 #include "HDLPort.hh"
 #include "NetlistPort.hh"
 #include "NetlistBlock.hh"
 using ProGe::NetlistPort;
 
 HDLPort::HDLPort(
-    const std::string name,
-    const std::string& widthFormula,
+    const TCEString name,
+    const TCEString& widthFormula,
     ProGe::DataType type,
     HDB::Direction direction,
     bool needsInversion): name_(name), widthFormula_(widthFormula),
@@ -49,8 +48,8 @@ HDLPort::HDLPort(
 }
 
 HDLPort::HDLPort(
-    const std::string name,
-    const std::string& widthFormula,
+    const TCEString name,
+    const TCEString& widthFormula,
     ProGe::DataType type,
     HDB::Direction direction,
     bool needsInversion,
@@ -80,14 +79,19 @@ HDLPort::HDLPort(const ProGe::NetlistPort& port):
 }
 
 
-std::string 
+TCEString 
 HDLPort::name() const {
     return name_;
 }
 
-std::string 
+TCEString 
 HDLPort::widthFormula() const {
     return widthFormula_;
+}
+
+void
+HDLPort::updateWidthFormula(const TCEString& widthFormula) {
+    widthFormula_ = widthFormula;
 }
 
 bool 

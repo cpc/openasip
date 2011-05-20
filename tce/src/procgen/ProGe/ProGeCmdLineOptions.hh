@@ -58,12 +58,12 @@ public:
     std::string integratorName() const;
     std::string imemType() const;
     std::string dmemType() const;
-    int imemWidth() const;
     int clockFrequency() const;
     std::string tpefName() const;
     std::string entityName() const;
     bool useAbsolutePaths() const;
     bool listAvailableIntegrators() const;
+    std::string deviceFamilyName() const;
 
     virtual void printVersion() const;
     virtual void printHelp() const;

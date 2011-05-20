@@ -31,7 +31,6 @@
  */
 #include "IPXactInterface.hh"
 using std::pair;
-using std::string;
 
 IPXactInterface::IPXactInterface():
     instanceName_(""), busMode_(IPXactModel::INVALID), busType_("","","",""),
@@ -41,7 +40,7 @@ IPXactInterface::IPXactInterface():
 IPXactInterface::~IPXactInterface() {
 }
 
-std::string
+TCEString
 IPXactInterface::instanceName() const {
     return instanceName_;
 }
@@ -73,14 +72,15 @@ IPXactInterface::interfaceMapping() const {
 
 void
 IPXactInterface::addSignalMapping(
-    const std::string& actualSignal,
-    const std::string& busSignal) {
+    const TCEString& actualSignal,
+    const TCEString& busSignal) {
 
-    interfaceMap_.push_back(pair<string,string>(actualSignal, busSignal));
+    interfaceMap_.push_back(
+        pair<TCEString,TCEString>(actualSignal, busSignal));
 }
 
 void
-IPXactInterface::setInstanceName(const std::string& name) {
+IPXactInterface::setInstanceName(const TCEString& name) {
     
     instanceName_ = name;
 }
@@ -93,10 +93,10 @@ IPXactInterface::setBusMode(IPXactModel::BusMode mode) {
 
 void 
 IPXactInterface::setBusType(
-    const std::string& vendor,
-    const std::string& library,
-    const std::string& name,
-    const std::string& version) {
+    const TCEString& vendor,
+    const TCEString& library,
+    const TCEString& name,
+    const TCEString& version) {
 
     busType_.vendor = vendor;
     busType_.library = library;
@@ -106,10 +106,10 @@ IPXactInterface::setBusType(
 
 void
 IPXactInterface::setBusAbsType(
-    const std::string& vendor,
-    const std::string& library,
-    const std::string& name,
-    const std::string& version) {
+    const TCEString& vendor,
+    const TCEString& library,
+    const TCEString& name,
+    const TCEString& version) {
 
     busAbstractionType_.vendor = vendor;
     busAbstractionType_.library = library;

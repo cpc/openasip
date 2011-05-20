@@ -33,10 +33,11 @@
 #define TTA_STRATIX2_SRAM_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "MemoryGenerator.hh"
-#include "PlatformIntegrator.hh"
+#include "TCEString.hh"
+
+class PlatformIntegrator;
 
 class Stratix2SramGenerator : public MemoryGenerator {
 public:
@@ -45,25 +46,25 @@ public:
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
 
     virtual ~Stratix2SramGenerator();
 
-    virtual void addMemory(ProGe::Netlist& netlist);
+    virtual void addMemory(ProGe::Netlist& netlist, int index);
 
     virtual bool generatesComponentHdlFile() const;
 
-    virtual std::vector<std::string>
-    generateComponentFile(std::string outputPath);
+    virtual std::vector<TCEString>
+    generateComponentFile(TCEString outputPath);
 
 protected:
     
-    virtual std::string moduleName() const;
+    virtual TCEString moduleName() const;
     
-    virtual std::string instanceName() const;
+    virtual TCEString instanceName(int index) const;
     
 };
 

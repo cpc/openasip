@@ -46,7 +46,7 @@ public:
 
     virtual bool mapPortsToInterface(const ProGe::NetlistBlock& toplevel) = 0;
 
-    virtual std::string instanceName() const;
+    virtual TCEString instanceName() const;
 
     virtual IPXact::Vlnv busType() const;
 
@@ -57,31 +57,31 @@ public:
     virtual const SignalMappingList& interfaceMapping() const;
 
     virtual void addSignalMapping(
-        const std::string& actualSignal,
-        const std::string& busSignal);
+        const TCEString& actualSignal,
+        const TCEString& busSignal);
 
-    void setInstanceName(const std::string& name);
+    void setInstanceName(const TCEString& name);
 
 protected:
 
     void setBusMode(IPXactModel::BusMode mode);
 
     void setBusType(
-        const std::string& vendor,
-        const std::string& library,
-        const std::string& name,
-        const std::string& version);
+        const TCEString& vendor,
+        const TCEString& library,
+        const TCEString& name,
+        const TCEString& version);
 
     void setBusAbsType(
-        const std::string& vendor,
-        const std::string& library,
-        const std::string& name,
-        const std::string& version);
+        const TCEString& vendor,
+        const TCEString& library,
+        const TCEString& name,
+        const TCEString& version);
 
 private:
 
     /// Instance Name
-    std::string instanceName_;
+    TCEString instanceName_;
     /// Bus mode
     IPXactModel::BusMode busMode_;
     /// Vendor,Library,Name,Version of the bus type

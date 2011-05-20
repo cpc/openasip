@@ -29,26 +29,24 @@
  * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#include <string>
 #include <vector>
 #include "IPXactHibiInterface.hh"
 #include "StringTools.hh"
 #include "NetlistPort.hh"
 using std::pair;
-using std::string;
 using ProGe::NetlistPort;
 
-const std::string IPXactHibiInterface::DEFAULT_INSTANCE_NAME = "hibi_p";
-const std::string IPXactHibiInterface::VENDOR = "TUT";
-const std::string IPXactHibiInterface::LIBRARY ="ip.hwp.communication.hibi";
-const std::string IPXactHibiInterface::NAME ="hibi_ip_r4.busdef";
-const std::string IPXactHibiInterface::BUS_VERSION = "3.0";
-const std::string IPXactHibiInterface::ABS_VENDOR =
+const TCEString IPXactHibiInterface::DEFAULT_INSTANCE_NAME = "hibi_p";
+const TCEString IPXactHibiInterface::VENDOR = "TUT";
+const TCEString IPXactHibiInterface::LIBRARY ="ip.hwp.communication.hibi";
+const TCEString IPXactHibiInterface::NAME ="hibi_ip_r4.busdef";
+const TCEString IPXactHibiInterface::BUS_VERSION = "3.0";
+const TCEString IPXactHibiInterface::ABS_VENDOR =
     IPXactHibiInterface::VENDOR;
-const std::string IPXactHibiInterface::ABS_LIBRARY = 
+const TCEString IPXactHibiInterface::ABS_LIBRARY = 
     IPXactHibiInterface::LIBRARY;
-const std::string IPXactHibiInterface::ABS_NAME = "hibi_ip_r4.absdef";
-const std::string IPXactHibiInterface::ABS_VERSION =
+const TCEString IPXactHibiInterface::ABS_NAME = "hibi_ip_r4.absdef";
+const TCEString IPXactHibiInterface::ABS_VERSION =
     IPXactHibiInterface::BUS_VERSION;
 
 const IPXactModel::BusMode IPXactHibiInterface::DEFAULT_BUS_MODE =
@@ -64,25 +62,25 @@ IPXactHibiInterface::IPXactHibiInterface():
     setBusMode(DEFAULT_BUS_MODE);
 
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_comm_out", "COMM_FROM_IP"));
+        pair<TCEString,TCEString>("hibi_comm_out", "COMM_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_data_out", "DATA_FROM_IP"));
+        pair<TCEString,TCEString>("hibi_data_out", "DATA_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_av_out", "AV_FROM_IP"));
+        pair<TCEString,TCEString>("hibi_av_out", "AV_FROM_IP"));
     interfaceSearch_. push_back(
-        pair<string,string>("hibi_we_out", "WE_FROM_IP"));
+        pair<TCEString,TCEString>("hibi_we_out", "WE_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_re_out", "RE_FROM_IP"));
+        pair<TCEString,TCEString>("hibi_re_out", "RE_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_comm_in", "COMM_TO_IP"));
+        pair<TCEString,TCEString>("hibi_comm_in", "COMM_TO_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_data_in", "DATA_TO_IP"));
+        pair<TCEString,TCEString>("hibi_data_in", "DATA_TO_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_av_in", "AV_TO_IP"));
+        pair<TCEString,TCEString>("hibi_av_in", "AV_TO_IP"));
     interfaceSearch_. push_back(
-        pair<string,string>("hibi_full_in", "FULL_TO_IP"));
+        pair<TCEString,TCEString>("hibi_full_in", "FULL_TO_IP"));
     interfaceSearch_.push_back(
-        pair<string,string>("hibi_empty_in", "EMPTY_TO_IP"));
+        pair<TCEString,TCEString>("hibi_empty_in", "EMPTY_TO_IP"));
 }
 
 IPXactHibiInterface::~IPXactHibiInterface() {
@@ -95,10 +93,10 @@ IPXactHibiInterface::mapPortsToInterface(
     bool instanceNameSet = false;
     for (unsigned int i = 0; i < interfaceSearch_.size(); i++) {
         for (int j = 0; j < toplevel.portCount(); j++) {           
-            string interfacePort = interfaceSearch_.at(i).first;
+            TCEString interfacePort = interfaceSearch_.at(i).first;
             NetlistPort& port = toplevel.port(j);
-            if (port.name().find(interfacePort) != string::npos) {
-                string abstractPort = interfaceSearch_.at(i).second;
+            if (port.name().find(interfacePort) != TCEString::npos) {
+                TCEString abstractPort = interfaceSearch_.at(i).second;
                 addSignalMapping(port.name(), abstractPort);
                 if (!instanceNameSet) {
                     createInstanceName(port.name(), interfacePort);
@@ -121,16 +119,16 @@ IPXactHibiInterface::mapPortsToInterface(
 
 void
 IPXactHibiInterface::createInstanceName(
-    const std::string& fullName,
-    const std::string& portName) {
+    const TCEString& fullName,
+    const TCEString& portName) {
 
-    string fu = "";
-    string::size_type pos = fullName.find(portName);
-    if (pos == string::npos || pos == 0) {
+    TCEString fu = "";
+    TCEString::size_type pos = fullName.find(portName);
+    if (pos == TCEString::npos || pos == 0) {
         fu = fullName;
     } else {
         fu = StringTools::trim(fullName.substr(0, pos));
     }
-    string instance = fu + DEFAULT_INSTANCE_NAME;
+    TCEString instance = fu + DEFAULT_INSTANCE_NAME;
     setInstanceName(instance);
 }

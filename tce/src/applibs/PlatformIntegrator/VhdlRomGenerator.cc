@@ -33,9 +33,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <string>
 #include <vector>
-#include <boost/format.hpp>
 #include "Exception.hh"
 #include "StringTools.hh"
 #include "FileSystem.hh"
@@ -45,7 +43,6 @@
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "HDLPort.hh"
-using std::string;
 using std::endl;
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
@@ -54,7 +51,7 @@ VhdlRomGenerator::VhdlRomGenerator(
     int memMauWidth,
     int widthInMaus,
     int addrWidth,
-    std::string initFile,
+    TCEString initFile,
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
@@ -97,16 +94,17 @@ VhdlRomGenerator::generatesComponentHdlFile() const {
 }
 
 
-std::vector<std::string>
-VhdlRomGenerator::generateComponentFile(std::string outputPath) {
+std::vector<TCEString>
+VhdlRomGenerator::generateComponentFile(TCEString outputPath) {
 
-    string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
-        moduleName() + ".vhd";
+    TCEString outputFile =
+        outputPath << FileSystem::DIRECTORY_SEPARATOR << moduleName() 
+                   << ".vhd";
 
     std::ofstream file;
     file.open(outputFile.c_str());
     if (!file) {
-        string msg = "Couldn't open file " + outputFile + " for writing";
+        TCEString msg = "Couldn't open file " + outputFile + " for writing";
         IOException exc(__FILE__, __LINE__, "VhdlRomGenerator", msg);
         throw exc;
     }
@@ -151,27 +149,28 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
     file << stream.str();
     file.close();
 
-    std::vector<string> componentFiles;
+    std::vector<TCEString> componentFiles;
     componentFiles.push_back(outputFile);
     componentFiles.push_back(initializationFile());
     return componentFiles;
 } 
 
 
-std::string
+TCEString
 VhdlRomGenerator::moduleName() const {
 
     return ttaCoreName() + "_rom_array_comp";
 }
 
     
-std::string
-VhdlRomGenerator::instanceName() const {
+TCEString
+VhdlRomGenerator::instanceName(int index) const {
 
-    return "imem_array_instance";
+    TCEString iname("imem_array_instance_");
+    return iname << index;
 }
 
-std::string
+TCEString
 VhdlRomGenerator::imagePackageName() const {
 
     return ttaCoreName() + "_imem_image";

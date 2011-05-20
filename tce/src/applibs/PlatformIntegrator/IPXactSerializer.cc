@@ -33,7 +33,7 @@
 #include "IPXactSerializer.hh"
 #include "IPXactModel.hh"
 
-const std::string IPXactSerializer::SPIRIT_NS_URI = 
+const TCEString IPXactSerializer::SPIRIT_NS_URI = 
     "http://www.spiritconsortium.org/XMLSchema/SPIRIT/1.5";
 
 IPXactSerializer::IPXactSerializer(): XMLSerializer() {

@@ -43,7 +43,7 @@ class IPXactSerializer;
 class IPXactFileGenerator : public ProjectFileGenerator {
 public:
 
-    IPXactFileGenerator(std::string toplevelEntity,
+    IPXactFileGenerator(TCEString toplevelEntity,
                         const PlatformIntegrator* integrator);
 
     virtual ~IPXactFileGenerator();
@@ -54,7 +54,7 @@ private:
 
     void addBusInterfaces(IPXactModel* model);
 
-    std::string outputFileName() const;
+    TCEString outputFileName() const;
 
     IPXactSerializer* ipXactWriter_;
 

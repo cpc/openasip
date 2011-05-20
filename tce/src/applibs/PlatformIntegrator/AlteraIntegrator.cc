@@ -35,7 +35,6 @@
 #include "AlteraOnchipRomGenerator.hh"
 #include "VhdlRomGenerator.hh"
 #include "ProjectFileGenerator.hh"
-using std::string;
 
 AlteraIntegrator::AlteraIntegrator(): PlatformIntegrator() {
 }
@@ -43,10 +42,10 @@ AlteraIntegrator::AlteraIntegrator(): PlatformIntegrator() {
 
 AlteraIntegrator::AlteraIntegrator(
     ProGe::HDL hdl,
-    std::string progeOutputDir,
-    std::string entityName,
-    std::string outputDir,
-    std::string programName,
+    TCEString progeOutputDir,
+    TCEString entityName,
+    TCEString outputDir,
+    TCEString programName,
     int targetClockFreq,
     std::ostream& warningStream,
     std::ostream& errorStream,
@@ -89,19 +88,19 @@ AlteraIntegrator::imemInstance() {
     const MemInfo& imem = imemInfo();
     MemoryGenerator* imemGen = NULL;
     if (imem.type == ONCHIP) {
-        string initFile = programName() + ".mif";
+        TCEString initFile = programName() + ".mif";
         imemGen = 
             new AlteraOnchipRomGenerator(
                 imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
                 warningStream(), errorStream());
         projectFileGenerator()->addMemInitFile(initFile);
     } else if (imem.type == VHDL_ARRAY) {
-        string initFile = programName() + "_imem_pkg.vhdl";
+        TCEString initFile = programName() + "_imem_pkg.vhdl";
         imemGen = new VhdlRomGenerator(
             imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
             warningStream(), errorStream());
     } else {
-        string msg = "Unsupported instruction memory type";
+        TCEString msg = "Unsupported instruction memory type";
         InvalidData exc(__FILE__, __LINE__, "AlteraIntegrator",
                         msg);
         throw exc;
@@ -116,7 +115,7 @@ AlteraIntegrator::dmemInstance() {
     const MemInfo& dmem = dmemInfo();
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
-        string initFile = programName() + "_" + dmem.asName + ".mif";
+        TCEString initFile = programName() + "_" + dmem.asName + ".mif";
         // onchip mem size is scalable, use value from adf's Address Space
         int addrw = dmem.asAddrw;
         dmemGen =
@@ -125,7 +124,7 @@ AlteraIntegrator::dmemInstance() {
                 this, warningStream(), errorStream());
         projectFileGenerator()->addMemInitFile(initFile); 
     } else {
-        string msg = "Unsupported data memory type";
+        TCEString msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "AlteraIntegrator",
                         msg);
         throw exc;
@@ -134,13 +133,13 @@ AlteraIntegrator::dmemInstance() {
 }
 
 bool
-AlteraIntegrator::isDataMemorySignal(const std::string& signalName) const {
+AlteraIntegrator::isDataMemorySignal(const TCEString& signalName) const {
 
     bool isDmemSignal = false;
     if (dmemInfo().type == NONE) {
         isDmemSignal = false;
     } else if (dmemInfo().type == ONCHIP) {
-        isDmemSignal = signalName.find("dmem") != string::npos;
+        isDmemSignal = signalName.find("dmem") != TCEString::npos;
     } else {
         isDmemSignal = false;
     }

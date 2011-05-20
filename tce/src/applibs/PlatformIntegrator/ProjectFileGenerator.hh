@@ -32,40 +32,40 @@
 #ifndef TTA_PROJECT_FILE_GENERATOR_HH
 #define TTA_PROJECT_FILE_GENERATOR_HH
 
-#include <string>
 #include <vector>
+#include "TCEString.hh"
 
 class PlatformIntegrator;
 
-typedef std::pair<std::string, std::string> SignalMapping;
+typedef std::pair<TCEString, TCEString> SignalMapping;
 typedef std::vector<SignalMapping> SignalMappingList;
 
 class ProjectFileGenerator {
 public:
-    ProjectFileGenerator(std::string coreEntity,
+    ProjectFileGenerator(TCEString coreEntity,
                          const PlatformIntegrator* integrator);
     virtual ~ProjectFileGenerator();
 
     virtual void writeProjectFiles() = 0;
 
-    void addHdlFile(const std::string& file);
+    void addHdlFile(const TCEString& file);
 
-    void addHdlFiles(const std::vector<std::string>& files);
+    void addHdlFiles(const std::vector<TCEString>& files);
 
-    void addMemInitFile(const std::string& memInit);
+    void addMemInitFile(const TCEString& memInit);
 
     void addSignalMapping(const SignalMapping& mapping);
 
 protected:
 
-    const std::vector<std::string>& hdlFileList() const;
+    const std::vector<TCEString>& hdlFileList() const;
 
-    const std::vector<std::string>& memInitFileList() const;
+    const std::vector<TCEString>& memInitFileList() const;
     
     const PlatformIntegrator* integrator() const;
 
-    std::string coreEntity() const { return coreEntity_; }
-    std::string toplevelEntity() const {
+    TCEString coreEntity() const { return coreEntity_; }
+    TCEString toplevelEntity() const {
         return coreEntity_ + "_toplevel";
     }
 
@@ -73,17 +73,17 @@ protected:
 
     const SignalMapping* signalMapping(int index) const;
 
-    std::string extractFUName(
-        const std::string& port,
-        const std::string& delimiter) const;
+    TCEString extractFUName(
+        const TCEString& port,
+        const TCEString& delimiter) const;
 
 private:
     /// the HDL entity of the non-integrated TTA core
-    std::string coreEntity_;
+    TCEString coreEntity_;
     const PlatformIntegrator* integrator_;
     
-    std::vector<std::string> hdlFiles_;
-    std::vector<std::string> memInitFiles_;
+    std::vector<TCEString> hdlFiles_;
+    std::vector<TCEString> memInitFiles_;
     SignalMappingList signalMap_;
 };
 

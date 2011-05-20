@@ -34,14 +34,15 @@
 
 #include "SOPCInterface.hh"
 #include "NetlistPort.hh"
+#include "TCEString.hh"
 
 class AvalonMMMasterInterface : public SOPCInterface {
 public:
     
     AvalonMMMasterInterface(
-        const std::string& name,
-        const std::string& declaration,
-        const std::string& avalonPrefix,
+        const TCEString& name,
+        const TCEString& declaration,
+        const TCEString& avalonPrefix,
         const SOPCInterface& clock);
     
     virtual ~AvalonMMMasterInterface();
@@ -52,26 +53,26 @@ public:
 
     virtual void writeInterface(std::ostream& stream) const;
 
-    static const std::string AVALON_MM_ADDRESS;
-    static const std::string AVALON_MM_WDATA;
-    static const std::string AVALON_MM_RDATA;
-    static const std::string AVALON_MM_READ;
-    static const std::string AVALON_MM_WRITE;
-    static const std::string AVALON_MM_BYTE_ENABLE;
-    static const std::string AVALON_MM_WAIT_REQ;
-    static const std::string AVALON_MM_IRQ_RECV;
+    static const TCEString AVALON_MM_ADDRESS;
+    static const TCEString AVALON_MM_WDATA;
+    static const TCEString AVALON_MM_RDATA;
+    static const TCEString AVALON_MM_READ;
+    static const TCEString AVALON_MM_WRITE;
+    static const TCEString AVALON_MM_BYTE_ENABLE;
+    static const TCEString AVALON_MM_WAIT_REQ;
+    static const TCEString AVALON_MM_IRQ_RECV;
 
 private:
 
     const SOPCPort* findInterfacePort(
-        std::string hdlName,
+        TCEString hdlName,
         HDB::Direction direction) const;
 
     void addIrqInterface(
         const ProGe::NetlistPort& port,
         const SOPCPort& avalonPort);
 
-    std::string avalonPrefix_;
+    TCEString avalonPrefix_;
 
     PortList masterPorts_;
     SOPCPort irqPort_;

@@ -31,50 +31,40 @@
  */
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <vector>
-#include <boost/format.hpp>
-#include "Exception.hh"
-#include "StringTools.hh"
-#include "FileSystem.hh"
-#include "Application.hh"
-#include "Conversion.hh"
-#include "MemoryGenerator.hh"
 #include "AlteraOnchipRamGenerator.hh"
-#include "NetlistBlock.hh"
-#include "NetlistPort.hh"
+#include "Netlist.hh"
 #include "HDLPort.hh"
-using std::string;
 using std::endl;
-using ProGe::NetlistBlock;
-using ProGe::NetlistPort;
 
+const TCEString AlteraOnchipRamGenerator::COMPONENT_FILE = 
+    "altera_onchip_ram_comp.vhd";
 
 AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     int memMauWidth,
     int widthInMaus,
     int addrWidth,
-    std::string initFile,
+    TCEString initFile,
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
-    AlteraMegawizMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
+    AlteraMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                               integrator, warningStream, errorStream) {
     
     bool inverted = true;
     bool noInvert = false;
+    TCEString byteEnableWidth;
+    byteEnableWidth << DATAW_G << "/8";
     addPort("dmem_data_in", 
-            new HDLPort("q", Conversion::toString(memoryTotalWidth()),
+            new HDLPort("q", DATAW_G,
                         ProGe::BIT_VECTOR, HDB::OUT, noInvert,
                         memoryTotalWidth()));
     addPort("dmem_data_out",
-            new HDLPort("data", Conversion::toString(memoryTotalWidth()),
+            new HDLPort("data", DATAW_G,
                         ProGe::BIT_VECTOR, HDB::IN, noInvert,
                         memoryTotalWidth()));
     addPort("dmem_addr",
-            new HDLPort("address", Conversion::toString(memoryAddrWidth()),
+            new HDLPort("address", ADDRW_G,
                         ProGe::BIT_VECTOR, HDB::IN, noInvert,
                         memoryAddrWidth()));
     addPort("dmem_mem_en_x",
@@ -82,9 +72,8 @@ AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     addPort("dmem_wr_en_x",
             new HDLPort("wren", "1", ProGe::BIT, HDB::IN, inverted, 1));
     addPort("dmem_bytemask",
-            new HDLPort("byteena", Conversion::toString(memoryWidthInMaus()),
-                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
-                        memoryWidthInMaus()));
+            new HDLPort("byteena", byteEnableWidth, ProGe::BIT_VECTOR,
+                        HDB::IN, noInvert, memoryWidthInMaus()));
     addPort("clk",
             new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
 }
@@ -98,84 +87,23 @@ AlteraOnchipRamGenerator::generatesComponentHdlFile() const {
 }
 
 
-std::vector<std::string>
-AlteraOnchipRamGenerator::generateComponentFile(std::string outputPath) {
+std::vector<TCEString>
+AlteraOnchipRamGenerator::generateComponentFile(TCEString outputPath) {
 
-    // extension must be .vhd
-    string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
-        moduleName() + ".vhd";
-    
-    return runMegawizard(outputFile);
+    return instantiateAlteraTemplate(COMPONENT_FILE, outputPath);
 }
 
-
-std::string 
-AlteraOnchipRamGenerator::createMemParameters() const {
-
-    int addrWidth = memoryAddrWidth();
-    int dataWidth = memoryTotalWidth();
-    int bytemaskWidth = memoryWidthInMaus();
-    // 2^addrWidth
-    unsigned int sizeInWords = 1 << addrWidth;
-    string initFile = initializationFile();
-    string deviceFamily = platformIntegrator()->deviceFamily();
-
-    std::ostringstream parameters;
-    
-    parameters 
-        << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth 
-        << endl << "NUMWORDS_A=" << sizeInWords << endl << "WIDTH_BYTEENA_A="
-        << bytemaskWidth << endl << "INIT_FILE=" << initFile << endl
-        << "WIDTH_B=1" << endl << "WIDTHAD_B=1" << endl;
-
-    if (!deviceFamily.empty()) {
-        parameters
-            << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl;
-    } else {
-        parameters << "INTENDED_DEVICE_FAMILY=\"" << defaultDeviceFamily()
-                   << "\"" << endl;
-    }
-
-    parameters
-        << "INIT_FILE_LAYOUT=PORT_A ADDRESS_ACLR_A=UNUSED " 
-        << "BYTEENA_ACLR_A=UNUSED INDATA_ACLR_A=UNUSED OUTDATA_ACLR_A=NONE "
-        << "BYTE_ENABLE=1 BYTE_SIZE=8 CLOCK_ENABLE_INPUT_A=NORMAL "
-        << "CLOCK_ENABLE_OUTPUT_A=BYPASS CLOCK_ENABLE_CORE_A=USE_INPUT_CLKEN "
-        << "IMPLEMENT_IN_LES=OFF INIT_FILE_LAYOUT=PORT_A "
-        << "ENABLE_RUNTIME_MOD=NO MAXIMUM_DEPTH=0 RAM_BLOCK_TYPE=AUTO "
-        << "OUTDATA_REG_A=UNREGISTERED WRCONTROL_ACLR_A=UNUSED "
-        << "RDEN_POWER_OPTIMIZATION=OFF LPM_TYPE=altsyncram "
-        << "OPERATION_MODE=SINGLE_PORT POWER_UP_UNINITIALIZED=FALSE "
-        << "OPTIONAL_FILES=NONE " << "LOW_POWER_MODE=NONE" << endl;
-
-    // Quartus II requires extra parameters from version 10 onwards
-    if (quartusMajorVersion() > 9) {
-        parameters << "CLOCK_ENABLE_OUTPUT_B=BYPASS" << endl;
-    }
-
-    parameters
-        << "byteena_a=used clocken1=unused byteena_b=unused clocken2=unused "
-        << "q_a=used rden_a=unused aclr0=unused address_a=used "
-        << "addressstall_a=unused clocken3=unused data_a=used q_b=unused "
-        << "rden_b=unused aclr1=unused address_b=unused "
-        << "addressstall_b=unused clocken0=used data_b=unused "
-        << "eccstatus=unused clock0=used wren_a=used clock1=unused "
-        << "wren_b=unused" << endl;
-    
-    return parameters.str();
-}
-
-
-std::string
+TCEString
 AlteraOnchipRamGenerator::moduleName() const {
 
     return ttaCoreName() + "_altera_onchip_ram_comp";
 }
     
 
-std::string
-AlteraOnchipRamGenerator::instanceName() const {
+TCEString
+AlteraOnchipRamGenerator::instanceName(int index) const {
     
-    // TODO: variable instance name? Needed if more than 1 data memory
-    return "onchip_dmem";
+    TCEString iname("onchip_dmem_");
+    return iname << index;
 }
+

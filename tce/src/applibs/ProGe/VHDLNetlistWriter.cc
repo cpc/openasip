@@ -132,7 +132,8 @@ VHDLNetlistWriter::writeNetlistParameterPackage(
  */
 std::string
 VHDLNetlistWriter::netlistParameterPkgName() const {
-    return netlist().coreEntityName() + "_params";
+//    return netlist().coreEntityName() + "_params";
+    return netlist().topLevelBlock().moduleName() + "_params";
 }
 
 
@@ -205,8 +206,9 @@ VHDLNetlistWriter::writeBlock(
     outFile << endl;
     outFile << "begin" << endl << endl;
     writeSignalAssignments(block, outFile);
+    outFile << endl;
     writePortMappings(block, outFile);
-    outFile << "end " + architectureName + ";";
+    outFile << "end " + architectureName + ";" << endl;
     outFile.close();
 }
 
@@ -236,7 +238,17 @@ VHDLNetlistWriter::writeGenericDeclaration(
             stream << generateIndentation(indentationLevel+1, indentation)
                    << param.name << " : " << param.type;
             if (param.value != "") {
-                stream << " := " << param.value;
+                stream << " := ";
+                if (param.type.lower() == PARAM_STRING) {
+                    // string literal needs quot. marks
+                    if (!param.value.startsWith("\""))
+                        stream << "\"";
+                    stream << param.value;
+                    if (!param.value.endsWith("\""))
+                        stream << "\"";
+                } else {
+                    stream << param.value;
+                }
             }
             if (i + 1 == block.parameterCount()) {
                 stream << ");";
@@ -362,7 +374,7 @@ VHDLNetlistWriter::writeSignalDeclarations(
         stream << indentation(1) << "signal " << GROUND_SIGNAL
                << " : std_logic_vector(" << groundWidth_ - 1
                << " downto 0);" << endl;
-    }   
+    }
 }
 
 
@@ -499,7 +511,7 @@ VHDLNetlistWriter::writeSignalAssignments(
 
     if (groundWidth_ > 0) {
         stream << indentation(1) << GROUND_SIGNAL << " <= (others => '0');"
-               << endl << endl;
+               << endl;
     }
 }
             
@@ -601,8 +613,8 @@ VHDLNetlistWriter::writePortMappings(
             for (int i = 0; i < component.parameterCount(); i++) {
                 Netlist::Parameter param = component.parameter(i);
                 stream << indentation(3) << param.name << " => ";
-                if (StringTools::stringToLower(param.type) == PARAM_STRING) {
-                    stream << "\"" << param.value << "\"";
+                if (param.type.lower() == PARAM_STRING) {
+                    stream << genericMapStringValue(param.value);
                 } else {
                     stream << param.value;
                 }
@@ -780,5 +792,24 @@ VHDLNetlistWriter::portSignalType(const NetlistPort& port) {
                 "-1 downto 0)";
         }
     }
+}
+
+TCEString
+VHDLNetlistWriter::genericMapStringValue(const TCEString& generic) const {
+
+    if (generic.startsWith("\"") && generic.endsWith("\"")) {
+        return generic;
+    }
+    std::vector<TCEString> unallowed;
+    unallowed.push_back(".");
+    unallowed.push_back("__");
+    for (unsigned int i = 0; i < unallowed.size(); i++) {
+        if (generic.find(unallowed.at(i)) != TCEString::npos) {
+            TCEString quoted;
+            quoted << "\"" << generic << "\"";
+            return quoted;
+        }
+    }
+    return generic;
 }
 }

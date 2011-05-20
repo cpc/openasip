@@ -45,7 +45,7 @@ class AvalonMMMasterInterface;
 class SOPCBuilderFileGenerator : public ProjectFileGenerator {
 public:
     
-    SOPCBuilderFileGenerator(std::string toplevelEntity,
+    SOPCBuilderFileGenerator(TCEString toplevelEntity,
                              const PlatformIntegrator* integrator);
 
     virtual ~SOPCBuilderFileGenerator();
@@ -64,31 +64,33 @@ private:
 
     void writeModuleProperties(std::ostream& stream);
 
+    void writeGenerics(std::ostream& stream);
+
     void writeFileList(std::ostream& stream);
 
     void writeInterfaces(std::ostream& stream) const;
 
-    AvalonMMMasterInterface* getMaster(const std::string& fuName);
+    AvalonMMMasterInterface* getMaster(const TCEString& fuName);
 
     SOPCInterface* clock_;
     SOPCInterface* export_;
-    std::map<std::string, AvalonMMMasterInterface*> masters_;
+    std::map<TCEString, AvalonMMMasterInterface*> masters_;
 
 
-    static const std::string HDB_AVALON_PREFIX;
-    static const std::string SOPC_COMPONENT_FILE_TYPE;
+    static const TCEString HDB_AVALON_PREFIX;
+    static const TCEString SOPC_COMPONENT_FILE_TYPE;
 
-    static const std::string TTA_CLOCK_NAME;
-    static const std::string TTA_RESET_NAME;
-    static const std::string SOPC_CLOCK_NAME;
-    static const std::string SOPC_RESET_NAME;
+    static const TCEString TTA_CLOCK_NAME;
+    static const TCEString TTA_RESET_NAME;
+    static const TCEString SOPC_CLOCK_NAME;
+    static const TCEString SOPC_RESET_NAME;
 
-    static const std::string SOPC_DEFAULT_GROUP;
-    static const std::string SOPC_DEFAULT_VHDL_LIBS;
-    static const std::string SOPC_SET_MODULE_PROPERTY;
-    static const std::string SOPC_ADD_FILE;
+    static const TCEString SOPC_DEFAULT_GROUP;
+    static const TCEString SOPC_DEFAULT_VHDL_LIBS;
+    static const TCEString SOPC_SET_MODULE_PROPERTY;
+    static const TCEString SOPC_ADD_FILE;
 
-    
+    static const TCEString PI_DEVICE_FAMILY_GENERIC;
 
 };
 

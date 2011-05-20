@@ -47,7 +47,7 @@
     </short-immediate>
   </bus>
 
-  <bus name="B1_1">
+  <bus name="B2">
     <width>32</width>
     <guard>
       <always-true/>
@@ -88,192 +88,64 @@
       <writes-to/>
     </segment>
     <short-immediate>
-      <extension>zero</extension>
-      <width>32</width>
+      <extension>sign</extension>
+      <width>8</width>
     </short-immediate>
   </bus>
 
-  <bus name="B1_1_1">
+  <bus name="B3">
     <width>32</width>
     <guard>
       <always-true/>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>0</width>
     </short-immediate>
   </bus>
 
-  <bus name="B1_1_2">
+  <bus name="B4">
     <width>32</width>
     <guard>
       <always-true/>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>0</width>
     </short-immediate>
   </bus>
 
-  <bus name="B1_1_3">
+  <bus name="B5">
     <width>32</width>
     <guard>
       <always-true/>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>0</width>
     </short-immediate>
   </bus>
 
-  <bus name="B1_1_4">
+  <bus name="B6">
     <width>32</width>
     <guard>
       <always-true/>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>0</width>
     </short-immediate>
   </bus>
 
@@ -283,23 +155,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -310,23 +182,23 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -337,23 +209,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -364,23 +236,7 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_2</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_3</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -391,23 +247,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -418,23 +274,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -445,23 +301,23 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -472,23 +328,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -499,23 +355,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -526,23 +382,23 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -550,26 +406,6 @@
   <socket name="rtc_rtimer_i1">
     <reads-from>
       <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_2</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_3</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_4</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -580,23 +416,11 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_2</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_3</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -607,23 +431,7 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_2</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_3</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -634,23 +442,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -661,23 +469,23 @@
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -688,23 +496,23 @@
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1</bus>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_1</bus>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_2</bus>
+      <bus>B4</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_3</bus>
+      <bus>B5</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
-      <bus>B1_1_4</bus>
+      <bus>B6</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>

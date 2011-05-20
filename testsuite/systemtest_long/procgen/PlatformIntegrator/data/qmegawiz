@@ -1,8 +1,0 @@
-#!/bin/bash
-# TODO: get last positional parameter in nice way
-# (Currently) the HDL file to be created is always the 4th command line
-# parameter.
-
-# create requested file
-touch $4
-exit $?

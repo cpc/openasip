@@ -33,6 +33,7 @@
 #define TTA_IP_XACT_HIBI_INTERFACE_HH
 
 #include "IPXactInterface.hh"
+#include "TCEString.hh"
 
 class IPXactHibiInterface : public IPXactInterface {
 public:
@@ -45,21 +46,21 @@ public:
 
 private:
     void createInstanceName(
-        const std::string& fullName,
-        const std::string& portName);
+        const TCEString& fullName,
+        const TCEString& portName);
 
     /// Mapping of known port names and interface port names
     SignalMappingList interfaceSearch_;
 
-    static const std::string DEFAULT_INSTANCE_NAME;
-    static const std::string VENDOR;
-    static const std::string LIBRARY;
-    static const std::string NAME;
-    static const std::string BUS_VERSION;
-    static const std::string ABS_VENDOR;
-    static const std::string ABS_LIBRARY;
-    static const std::string ABS_NAME;
-    static const std::string ABS_VERSION;
+    static const TCEString DEFAULT_INSTANCE_NAME;
+    static const TCEString VENDOR;
+    static const TCEString LIBRARY;
+    static const TCEString NAME;
+    static const TCEString BUS_VERSION;
+    static const TCEString ABS_VENDOR;
+    static const TCEString ABS_LIBRARY;
+    static const TCEString ABS_NAME;
+    static const TCEString ABS_VERSION;
 
     static const IPXactModel::BusMode DEFAULT_BUS_MODE;
 };

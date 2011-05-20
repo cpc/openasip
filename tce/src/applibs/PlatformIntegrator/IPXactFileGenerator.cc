@@ -45,15 +45,14 @@
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 using std::pair;
-using std::string;
 
-const std::string DEF_VENDOR = "TCE";
-const std::string DEF_LIBRARY = "ip.hwp.tta";
-const std::string DEF_VERSION = "1.0";
+const TCEString DEF_VENDOR = "TCE";
+const TCEString DEF_LIBRARY = "ip.hwp.tta";
+const TCEString DEF_VERSION = "1.0";
 
 
 IPXactFileGenerator::IPXactFileGenerator(
-    std::string toplevelEntity,
+    TCEString toplevelEntity,
     const PlatformIntegrator* integrator):
     ProjectFileGenerator(toplevelEntity, integrator),
     ipXactWriter_(new IPXactSerializer()) {
@@ -77,6 +76,11 @@ IPXactFileGenerator::writeProjectFiles() {
         HDLPort port(toplevel.port(i));
         ip->addSignal(port);
     }
+
+    for (int i = 0; i < toplevel.parameterCount(); i++) {
+        ip->addParameter(toplevel.parameter(i));
+    }
+
     addBusInterfaces(ip);
 
     ip->setHdlFiles(hdlFileList());
@@ -111,7 +115,7 @@ IPXactFileGenerator::addBusInterfaces(IPXactModel* model) {
 }
 
 
-std::string
+TCEString
 IPXactFileGenerator::outputFileName() const {
 
     return "spirit_comp_def_" + toplevelEntity() + ".xml";

@@ -31,7 +31,6 @@
  */
 
 #include <iostream>
-#include <string>
 #include <map>
 #include "MemoryGenerator.hh"
 #include "PlatformIntegrator.hh"
@@ -40,20 +39,21 @@
 #include "NetlistPort.hh"
 #include "Exception.hh"
 #include "HDLPort.hh"
-using std::string;
-using std::vector;
+#include "FileSystem.hh"
+#include "Environment.hh"
+#include "HDLTemplateInstantiator.hh"
 using ProGe::NetlistBlock;
 using ProGe::VirtualNetlistBlock;
 using ProGe::NetlistPort;
 
-const std::string MemoryGenerator::CLOCK_PORT = "clk";
-const std::string MemoryGenerator::RESET_PORT = "rstx";
+const TCEString MemoryGenerator::CLOCK_PORT = "clk";
+const TCEString MemoryGenerator::RESET_PORT = "rstx";
 
 MemoryGenerator::MemoryGenerator(
     int mauWidth,
     int widthInMaus,
     int addrWidth,
-    std::string initFile,
+    TCEString initFile,
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream):
@@ -73,13 +73,13 @@ MemoryGenerator::~MemoryGenerator() {
 bool
 MemoryGenerator::isCompatible(
     const ProGe::NetlistBlock& ttaCore,
-    std::vector<std::string>& reasons) const {
+    std::vector<TCEString>& reasons) const {
 
     bool foundAll = true;
     PortMap::const_iterator iter = memPorts_.begin();
     while (iter != memPorts_.end()) {
         if (ttaCore.portByName(iter->first) == NULL) {
-            string message = "Couldn't find port " + iter->first +
+            TCEString message = "Couldn't find port " + iter->first +
                 " from toplevel";
             reasons.push_back(message);
             foundAll = false;
@@ -91,16 +91,16 @@ MemoryGenerator::isCompatible(
 
 
 void
-MemoryGenerator::addMemory(ProGe::Netlist& netlist) {
+MemoryGenerator::addMemory(ProGe::Netlist& netlist, int index) {
 
     const NetlistBlock& core = integrator_->ttaCoreBlock();
 
     VirtualNetlistBlock* virt =
         new VirtualNetlistBlock(
-            moduleName() + "_virt",instanceName() + "_virt", netlist);
+            moduleName() + "_virt", instanceName(index) + "_virt", netlist);
 
     NetlistBlock* mem =
-        new NetlistBlock(moduleName(), instanceName(), netlist);
+        new NetlistBlock(moduleName(), instanceName(index), netlist);
     netlist.topLevelBlock().addSubBlock(mem);
     
     for (int i = 0; i < parameterCount(); i++) {
@@ -117,7 +117,7 @@ MemoryGenerator::addMemory(ProGe::Netlist& netlist) {
         }
         assert(memPort != NULL);
 
-        string corePortName = portKeyName(hdlPort);
+        TCEString corePortName = portKeyName(hdlPort);
         NetlistPort* corePort = NULL;
         // clock and reset must be connected to new toplevel ports
         if (corePortName == CLOCK_PORT) {
@@ -175,7 +175,7 @@ MemoryGenerator::memoryAddrWidth() const {
 }
 
 
-std::string 
+TCEString 
 MemoryGenerator::initializationFile() const {
     
     return initFile_;
@@ -209,7 +209,7 @@ const HDLPort*
 MemoryGenerator::port(int index) const {
     
     if (index > static_cast<int>(memPorts_.size())) {
-        string message = "Index out of range";
+        TCEString message = "Index out of range";
         OutOfRange exc(__FILE__, __LINE__, "MemoryGenerator", message);
         throw exc;
     }
@@ -222,10 +222,10 @@ MemoryGenerator::port(int index) const {
 
 
 const HDLPort*
-MemoryGenerator::portByKeyName(std::string name) const {
+MemoryGenerator::portByKeyName(TCEString name) const {
 
     if (memPorts_.find(name) == memPorts_.end()) {
-        string message = "Port " + name + " not found";
+        TCEString message = "Port " + name + " not found";
         KeyNotFound exc(__FILE__, __LINE__, "MemoryGenerator", message);
         throw exc;
     }
@@ -233,10 +233,10 @@ MemoryGenerator::portByKeyName(std::string name) const {
 }
 
 
-std::string
+TCEString
 MemoryGenerator::portKeyName(const HDLPort* port) const {
     
-    string name = "";
+    TCEString name = "";
     PortMap::const_iterator iter = memPorts_.begin();
     while (iter != memPorts_.end()) {
         if (iter->second == port) {
@@ -246,7 +246,7 @@ MemoryGenerator::portKeyName(const HDLPort* port) const {
         iter++;
     }
     if (name.empty()) {
-        string message = "Key for port " + port->name() + " not found";
+        TCEString message = "Key for port " + port->name() + " not found";
         KeyNotFound exc(__FILE__, __LINE__, "MemoryGenerator", message);
         throw exc;
     }
@@ -254,10 +254,10 @@ MemoryGenerator::portKeyName(const HDLPort* port) const {
 }
 
 void
-MemoryGenerator::addPort(const std::string& name, HDLPort* port) {
+MemoryGenerator::addPort(const TCEString& name, HDLPort* port) {
 
     assert(port != NULL);
-    memPorts_.insert(std::pair<string, HDLPort*>(name, port));
+    memPorts_.insert(std::pair<TCEString, HDLPort*>(name, port));
 }
 
 
@@ -281,8 +281,27 @@ MemoryGenerator::addParameter(const ProGe::Netlist::Parameter& add) {
     params_.push_back(toAdd);
 }
 
-std::string
+TCEString
 MemoryGenerator::ttaCoreName() const {
 
     return platformIntegrator()->coreEntityName();
+}
+
+TCEString
+MemoryGenerator::templatePath() const {
+    
+    TCEString path = Environment::dataDirPath("ProGe");
+    path << FileSystem::DIRECTORY_SEPARATOR << "platform";
+    return path;
+}
+
+void
+MemoryGenerator::instantiateTemplate(
+    const TCEString& inFile,
+    const TCEString& outFile,
+    const TCEString& entity) const {
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(entity);
+    inst.instantiateTemplateFile(inFile, outFile);
 }

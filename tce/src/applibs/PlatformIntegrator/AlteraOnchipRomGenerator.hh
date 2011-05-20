@@ -34,19 +34,20 @@
 #define TTA_ALTERA_ONCHIP_ROM_GENERATOR_HH
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include "AlteraMegawizMemGenerator.hh"
-#include "PlatformIntegrator.hh"
+#include "AlteraMemGenerator.hh"
+#include "TCEString.hh"
 
-class AlteraOnchipRomGenerator : public AlteraMegawizMemGenerator {
+class PlatformIntegrator;
+
+class AlteraOnchipRomGenerator : public AlteraMemGenerator {
 public:
 
     AlteraOnchipRomGenerator(
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
-        std::string initFile,
+        TCEString initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
         std::ostream& errorStream);
@@ -55,16 +56,20 @@ public:
 
     virtual bool generatesComponentHdlFile() const;
 
-    virtual std::vector<std::string>
-    generateComponentFile(std::string outputPath);
+    virtual std::vector<TCEString>
+    generateComponentFile(TCEString outputPath);
+
+    virtual void addMemory(ProGe::Netlist& netlist, int index);
 
 protected:
 
-    virtual std::string createMemParameters() const;
-
-    virtual std::string moduleName() const;
+    virtual TCEString moduleName() const;
     
-    virtual std::string instanceName() const;
+    virtual TCEString instanceName(int index) const;
+
+private:
+    
+    static const TCEString COMPONENT_FILE;
 
 };
 

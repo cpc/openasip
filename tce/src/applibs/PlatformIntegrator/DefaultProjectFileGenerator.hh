@@ -42,7 +42,7 @@
  */
 class DefaultProjectFileGenerator : public ProjectFileGenerator {
 public:
-    DefaultProjectFileGenerator(std::string toplevelEntity,
+    DefaultProjectFileGenerator(TCEString toplevelEntity,
                          PlatformIntegrator* integrator);
     virtual ~DefaultProjectFileGenerator();
 

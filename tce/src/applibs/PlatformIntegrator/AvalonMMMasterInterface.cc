@@ -31,17 +31,16 @@
  */
 
 #include "AvalonMMMasterInterface.hh"
-using std::string;
 
-const std::string AvalonMMMasterInterface::AVALON_MM_ADDRESS = "address";
-const std::string AvalonMMMasterInterface::AVALON_MM_WDATA = "writedata";
-const std::string AvalonMMMasterInterface::AVALON_MM_RDATA = "readdata";
-const std::string AvalonMMMasterInterface::AVALON_MM_READ = "read";
-const std::string AvalonMMMasterInterface::AVALON_MM_WRITE = "write";
-const std::string AvalonMMMasterInterface::AVALON_MM_BYTE_ENABLE = 
+const TCEString AvalonMMMasterInterface::AVALON_MM_ADDRESS = "address";
+const TCEString AvalonMMMasterInterface::AVALON_MM_WDATA = "writedata";
+const TCEString AvalonMMMasterInterface::AVALON_MM_RDATA = "readdata";
+const TCEString AvalonMMMasterInterface::AVALON_MM_READ = "read";
+const TCEString AvalonMMMasterInterface::AVALON_MM_WRITE = "write";
+const TCEString AvalonMMMasterInterface::AVALON_MM_BYTE_ENABLE = 
     "byteenable";
-const std::string AvalonMMMasterInterface::AVALON_MM_WAIT_REQ = "waitrequest";
-const std::string AvalonMMMasterInterface::AVALON_MM_IRQ_RECV = "irq";
+const TCEString AvalonMMMasterInterface::AVALON_MM_WAIT_REQ = "waitrequest";
+const TCEString AvalonMMMasterInterface::AVALON_MM_IRQ_RECV = "irq";
 
 const int AvalonMMMasterInterface::ADDRESS_DEF_WIDTH = 32;
 const int AvalonMMMasterInterface::WDATA_DEF_WIDTH = 32;
@@ -53,9 +52,9 @@ const int AvalonMMMasterInterface::WAIT_REQ_DEF_WIDTH = 1;
 const int AvalonMMMasterInterface::IRQ_RECV_DEF_WIDTH = 32;
 
 AvalonMMMasterInterface::AvalonMMMasterInterface(
-    const std::string& name,
-    const std::string& declaration,
-    const std::string& avalonPrefix,
+    const TCEString& name,
+    const TCEString& declaration,
+    const TCEString& avalonPrefix,
     const SOPCInterface& clock):
     SOPCInterface(name, declaration), avalonPrefix_(avalonPrefix),
     clock_(&clock) {
@@ -132,13 +131,13 @@ AvalonMMMasterInterface::writeInterface(std::ostream& stream) const {
 
 const SOPCInterface::SOPCPort*
 AvalonMMMasterInterface::findInterfacePort(
-    std::string hdlName,
+    TCEString hdlName,
     HDB::Direction direction) const {
 
     const SOPCPort* found = NULL;
     for (unsigned int i = 0; i < masterPorts_.size(); i++) {
-        string search = avalonPrefix_ + masterPorts_.at(i).interfaceName;
-        if (hdlName.find(search) != string::npos) {
+        TCEString search = avalonPrefix_ + masterPorts_.at(i).interfaceName;
+        if (hdlName.find(search) != TCEString::npos) {
             if (direction == masterPorts_.at(i).direction) {
                 found = &masterPorts_.at(i);
                 break;
@@ -153,8 +152,8 @@ AvalonMMMasterInterface::addIrqInterface(
     const ProGe::NetlistPort& port,
     const SOPCPort& avalonPort) {
 
-    string irqName = name() + SOPC_IRQ_RECV_INT_NAME;
-    string declr = SOPC_IRQ_RECV_INT_DECLR;
+    TCEString irqName = name() + SOPC_IRQ_RECV_INT_NAME;
+    TCEString declr = SOPC_IRQ_RECV_INT_DECLR;
     SOPCInterface* irq = new SOPCInterface(irqName, declr);
     irq->setProperty("associatedAddressablePoint", name());
     irq->setProperty("irqScheme", "INDIVIDUAL_REQUESTS");

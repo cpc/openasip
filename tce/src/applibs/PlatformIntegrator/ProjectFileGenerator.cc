@@ -30,17 +30,14 @@
  * @note rating: red
  */
 
-#include <string>
 #include <vector>
 #include <iostream>
-#include <sstream>
 #include "ProjectFileGenerator.hh"
 #include "PlatformIntegrator.hh"
 #include "StringTools.hh"
-using std::string;
 
 ProjectFileGenerator::ProjectFileGenerator(
-    std::string coreEntity,
+    TCEString coreEntity,
     const PlatformIntegrator* integrator):
     coreEntity_(coreEntity), integrator_(integrator) {
 }
@@ -51,14 +48,14 @@ ProjectFileGenerator::~ProjectFileGenerator() {
 
 
 void
-ProjectFileGenerator::addHdlFile(const std::string& file) {
+ProjectFileGenerator::addHdlFile(const TCEString& file) {
 
     hdlFiles_.push_back(file);
 }
 
 
 void
-ProjectFileGenerator::addHdlFiles(const std::vector<std::string>& files) {
+ProjectFileGenerator::addHdlFiles(const std::vector<TCEString>& files) {
 
     for (unsigned int i = 0; i < files.size(); i++) {
         hdlFiles_.push_back(files.at(i));
@@ -67,7 +64,7 @@ ProjectFileGenerator::addHdlFiles(const std::vector<std::string>& files) {
 
 
 void
-ProjectFileGenerator::addMemInitFile(const std::string& memInit) {
+ProjectFileGenerator::addMemInitFile(const TCEString& memInit) {
     
     memInitFiles_.push_back(memInit);
 }
@@ -80,14 +77,14 @@ ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
 }
 
 
-const std::vector<std::string>&
+const std::vector<TCEString>&
 ProjectFileGenerator::hdlFileList() const {
 
     return hdlFiles_;
 }
 
 
-const std::vector<std::string>&
+const std::vector<TCEString>&
 ProjectFileGenerator::memInitFileList() const {
 
     return memInitFiles_;
@@ -113,16 +110,16 @@ ProjectFileGenerator::signalMapping(int index) const {
 }
 
 
-std::string
+TCEString
 ProjectFileGenerator::extractFUName(
-    const std::string& port,
-    const std::string& delimiter) const {
+    const TCEString& port,
+    const TCEString& delimiter) const {
     
-    string::size_type pos = port.find(delimiter);
-    if (pos == string::npos || pos == 0) {
+    TCEString::size_type pos = port.find(delimiter);
+    if (pos == TCEString::npos || pos == 0) {
         return port;
     }
 
-    string fuName = port.substr(0, pos);
+    TCEString fuName = port.substr(0, pos);
     return StringTools::trim(fuName);
 }

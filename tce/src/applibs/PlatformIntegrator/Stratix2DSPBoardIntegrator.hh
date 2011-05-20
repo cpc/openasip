@@ -55,10 +55,10 @@ public:
 
     Stratix2DSPBoardIntegrator(
         ProGe::HDL hdl,
-        std::string progeOutputDir,
-        std::string entityName,
-        std::string outputDir,
-        std::string programName,
+        TCEString progeOutputDir,
+        TCEString entityName,
+        TCEString outputDir,
+        TCEString programName,
         int targetClockFreq,
         std::ostream& warningStream,
         std::ostream& errorStream,
@@ -69,13 +69,15 @@ public:
 
     virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
 
-    virtual std::string deviceFamily() const;
+    virtual TCEString deviceFamily() const;
 
-    virtual std::string deviceName() const;
+    virtual void setDeviceFamily(TCEString devFamily);
+
+    virtual TCEString deviceName() const;
     
-    virtual std::string devicePackage() const;
+    virtual TCEString devicePackage() const;
 
-    virtual std::string deviceSpeedClass() const;
+    virtual TCEString deviceSpeedClass() const;
 
     virtual int targetClockFrequency() const;
 
@@ -85,11 +87,11 @@ protected:
     
     virtual MemoryGenerator* dmemInstance();
 
-    virtual std::string pinTag() const;
+    virtual TCEString pinTag() const;
 
     virtual bool chopTaggedSignals() const;
 
-    virtual bool isDataMemorySignal(const std::string& signalName) const;
+    virtual bool isDataMemorySignal(const TCEString& signalName) const;
 
     virtual ProjectFileGenerator* projectFileGenerator() const;
 
@@ -99,25 +101,25 @@ private:
 
     void mapToplevelPorts();
 
-    void addSignalMapping(const std::string& signal);
+    void addSignalMapping(const TCEString& signal);
 
     QuartusProjectGenerator* quartusGen_;
 
     typedef std::vector<SignalMapping*> MappingList;
 
-    typedef std::map<std::string, MappingList*> PinMap;
+    typedef std::map<TCEString, MappingList*> PinMap;
 
     PinMap stratixPins_;
 
-    static const std::string DEVICE_FAMILY_;
+    static const TCEString DEVICE_FAMILY_;
 
-    static const std::string DEVICE_NAME_;
+    static const TCEString DEVICE_NAME_;
 
-    static const std::string DEVICE_PACKAGE_;
+    static const TCEString DEVICE_PACKAGE_;
 
-    static const std::string DEVICE_SPEED_CLASS_;
+    static const TCEString DEVICE_SPEED_CLASS_;
 
-    static const std::string PIN_TAG_;
+    static const TCEString PIN_TAG_;
 
     static const int DEFAULT_FREQ_;
 };

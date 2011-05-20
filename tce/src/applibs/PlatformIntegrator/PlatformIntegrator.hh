@@ -34,7 +34,6 @@
 #define TTA_PLATFORM_INTEGRATOR_HH
 
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include "MemoryGenerator.hh"
@@ -54,10 +53,10 @@ public:
 
     PlatformIntegrator(
         ProGe::HDL hdl,
-        std::string progeOutputDir,
-        std::string coreEntityName,
-        std::string outputDir,
-        std::string programName,
+        TCEString progeOutputDir,
+        TCEString coreEntityName,
+        TCEString outputDir,
+        TCEString programName,
         int targetClockFreq,
         std::ostream& warningStream,
         std::ostream& errorStream,
@@ -71,24 +70,31 @@ public:
     /**
      * Returns the FPGA device family
      */
-    virtual std::string deviceFamily() const = 0;
+    virtual TCEString deviceFamily() const = 0;
 
+    /**
+     * Set the FPGA device family.
+     *
+     * Intended for TTA IP integration. Integrator can device whether this
+     * overrides the default device family.
+     */
+    virtual void setDeviceFamily(TCEString devFamily) = 0;
 
     /**
      * Returns the FPGA device name
      */
-    virtual std::string deviceName() const = 0;
+    virtual TCEString deviceName() const = 0;
 
 
     /**
      * Returns the device package name
      */
-    virtual std::string devicePackage() const = 0;
+    virtual TCEString devicePackage() const = 0;
 
     /**
      * Returns the device speed class
      */
-    virtual std::string deviceSpeedClass() const = 0;
+    virtual TCEString deviceSpeedClass() const = 0;
 
 
     /**
@@ -111,7 +117,7 @@ public:
      *
      * @return Platform Integrator output path
      */
-    std::string outputPath() const;
+    TCEString outputPath() const;
 
     /**
      * Returns string to the platform integrator output path of the fileName
@@ -120,13 +126,13 @@ public:
      * @param absolute Return absolute path
      * @return Path to file
      */
-    std::string outputFilePath(std::string fileName, bool absolute = false) 
+    TCEString outputFilePath(TCEString fileName, bool absolute = false) 
         const;
 
     /**
      * Return TTA core entity name
      */
-    std::string coreEntityName() const;
+    TCEString coreEntityName() const;
 
 protected:
 
@@ -135,18 +141,18 @@ protected:
     virtual bool createPorts(const ProGe::NetlistBlock* ttaCore);
 
     virtual void connectToplevelPort(
-        const std::string& toplevelName, 
+        const TCEString& toplevelName, 
         ProGe::NetlistPort& corePort);
 
-    virtual std::string pinTag() const = 0;
+    virtual TCEString pinTag() const = 0;
 
     virtual bool chopTaggedSignals() const = 0;
 
-    virtual bool hasPinTag(const std::string& signal) const;
+    virtual bool hasPinTag(const TCEString& signal) const;
 
-    bool isInstructionMemorySignal(const std::string& signalName) const;
+    bool isInstructionMemorySignal(const TCEString& signalName) const;
 
-    virtual bool isDataMemorySignal(const std::string& signalName) const = 0;
+    virtual bool isDataMemorySignal(const TCEString& signalName) const = 0;
 
     void copyTTACoreToNetlist(const ProGe::NetlistBlock* original);
 
@@ -158,7 +164,8 @@ protected:
 
     virtual bool generateMemory(
         MemoryGenerator& memGen,
-        std::vector<std::string>& generatedFiles);
+        std::vector<TCEString>& generatedFiles,
+        int index);
 
     virtual MemoryGenerator* imemInstance() = 0;
 
@@ -173,7 +180,7 @@ protected:
     /**
      * Returns the scheduled program name without .tpef ending
      */
-    std::string programName() const;
+    TCEString programName() const;
 
     /**
      * Returns string to the proge-output path of the fileName
@@ -182,8 +189,8 @@ protected:
      * @param absolute Return absolute path
      * @return Path to file
      */
-    std::string
-    progeFilePath(std::string fileName, bool absolute = false) const;
+    TCEString
+    progeFilePath(TCEString fileName, bool absolute = false) const;
 
     /**
      * Utility function for processing vhdl signals.
@@ -196,8 +203,8 @@ protected:
      * @param tag Starting tag
      * @return Chopped string
      */
-    std::string chopSignalToTag(
-        const std::string& original, const std::string& tag) const;
+    TCEString chopSignalToTag(
+        const TCEString& original, const TCEString& tag) const;
 
     /**
      * Appends all the vhdl files from ProGe output directory's vhdl and
@@ -205,13 +212,13 @@ protected:
      *
      * @param files Vector where the filenames are appended to.
      */
-    void progeOutputHdlFiles(std::vector<std::string>& files) const;
+    void progeOutputHdlFiles(std::vector<TCEString>& files) const;
 
     std::ostream& warningStream();
 
     std::ostream& errorStream();
 
-    std::string platformEntityName() const;
+    TCEString platformEntityName() const;
 
 private:
 
@@ -221,10 +228,10 @@ private:
     
     ProGe::HDL hdl_;
     
-    std::string progeOutputDir_;
-    std::string coreEntityName_;
-    std::string outputDir_;
-    std::string programName_;
+    TCEString progeOutputDir_;
+    TCEString coreEntityName_;
+    TCEString outputDir_;
+    TCEString programName_;
     int targetFrequency_;
 
     std::ostream& warningStream_;
@@ -235,10 +242,10 @@ private:
     MemInfo imem_;
     MemInfo dmem_;
 
-    std::vector<std::string> imemSignals_;
+    std::vector<TCEString> imemSignals_;
 
-    static const std::string TTA_CORE_CLK;
-    static const std::string TTA_CORE_RSTX;
+    static const TCEString TTA_CORE_CLK;
+    static const TCEString TTA_CORE_RSTX;
 
 };
 #endif

@@ -34,7 +34,7 @@
 #include "DefaultProjectFileGenerator.hh"
 
 DefaultProjectFileGenerator::DefaultProjectFileGenerator(
-    std::string toplevelEntity,
+    TCEString toplevelEntity,
     PlatformIntegrator* integrator): ProjectFileGenerator(toplevelEntity,
                                                           integrator) {
 }

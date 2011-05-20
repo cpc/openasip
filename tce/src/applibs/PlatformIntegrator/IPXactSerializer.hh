@@ -33,6 +33,7 @@
 #define TTA_IP_XACT_SERIALIZER_HH
 
 #include "XMLSerializer.hh"
+#include "TCEString.hh"
 
 class IPXactModel;
 
@@ -58,7 +59,7 @@ private:
     ObjectState* readState()
         throw (SerializerException);
 
-    static const std::string SPIRIT_NS_URI;
+    static const TCEString SPIRIT_NS_URI;
 
 };
 #endif

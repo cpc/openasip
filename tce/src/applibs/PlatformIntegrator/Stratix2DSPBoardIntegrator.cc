@@ -31,20 +31,16 @@
  */
 
 #include <iostream>
-#include <sstream>
 #include <map>
 #include <vector>
-#include <string>
 #include "Exception.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
 #include "Stratix2SramGenerator.hh"
-#include "StringTools.hh"
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "VirtualNetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "FileSystem.hh"
-using std::string;
 using std::vector;
 using std::endl;
 using ProGe::Netlist;
@@ -52,12 +48,12 @@ using ProGe::NetlistBlock;
 using ProGe::VirtualNetlistBlock;
 using ProGe::NetlistPort;
 
-const std::string Stratix2DSPBoardIntegrator::DEVICE_FAMILY_ = "Stratix II";
-const std::string Stratix2DSPBoardIntegrator::DEVICE_NAME_ =
+const TCEString Stratix2DSPBoardIntegrator::DEVICE_FAMILY_ = "Stratix II";
+const TCEString Stratix2DSPBoardIntegrator::DEVICE_NAME_ =
     "EP2S180F1020C3";
-const std::string Stratix2DSPBoardIntegrator::DEVICE_PACKAGE_ = "F1020";
-const std::string Stratix2DSPBoardIntegrator::DEVICE_SPEED_CLASS_ = "3";
-const std::string Stratix2DSPBoardIntegrator::PIN_TAG_ = "STRATIXII";
+const TCEString Stratix2DSPBoardIntegrator::DEVICE_PACKAGE_ = "F1020";
+const TCEString Stratix2DSPBoardIntegrator::DEVICE_SPEED_CLASS_ = "3";
+const TCEString Stratix2DSPBoardIntegrator::PIN_TAG_ = "STRATIXII";
 const int Stratix2DSPBoardIntegrator::DEFAULT_FREQ_ = 100;
 
 
@@ -68,10 +64,10 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator():
 
 Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
     ProGe::HDL hdl,
-    std::string progeOutputDir,
-    std::string coreEntityName,
-    std::string outputDir,
-    std::string programName,
+    TCEString progeOutputDir,
+    TCEString coreEntityName,
+    TCEString outputDir,
+    TCEString programName,
     int targetClockFreq,
     std::ostream& warningStream,
     std::ostream& errorStream,
@@ -104,7 +100,7 @@ void
 Stratix2DSPBoardIntegrator::integrateProcessor(
     const ProGe::NetlistBlock* ttaCore) {
 
-    generatePinMap();
+     generatePinMap();
 
     if(!createPorts(ttaCore)) {
         return;
@@ -131,7 +127,7 @@ Stratix2DSPBoardIntegrator::dmemInstance() {
     if (dmem.type == ONCHIP) {
         dmemGen = AlteraIntegrator::dmemInstance();
     } else if (dmemInfo().type == SRAM) {
-        string initFile = programName() + "_" + dmem.asName + ".img";
+        TCEString initFile = programName() + "_" + dmem.asName + ".img";
         // SRAM component has a fixed size, thus use the addr width from hdb
         int addrw = dmem.portAddrw;
         dmemGen =
@@ -141,7 +137,7 @@ Stratix2DSPBoardIntegrator::dmemInstance() {
         warningStream() << "Warning: Data memory is not initialized during "
                         << "FPGA programming." << endl;
     } else {
-        string msg = "Unsupported data memory type";
+        TCEString msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "Stratix2DSPBoardIntegrator",
                         msg);
         throw exc;
@@ -159,7 +155,7 @@ Stratix2DSPBoardIntegrator::mapToplevelPorts() {
 }
 
 void
-Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
+Stratix2DSPBoardIntegrator::addSignalMapping(const TCEString& signal) {
     
     if (stratixPins_.find(signal) == stratixPins_.end()) {
         warningStream() << "Warning: didn't find mapping for signal name "
@@ -174,7 +170,7 @@ Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
 }
 
 
-std::string
+TCEString
 Stratix2DSPBoardIntegrator::pinTag() const {
 
     return PIN_TAG_;
@@ -190,13 +186,13 @@ Stratix2DSPBoardIntegrator::chopTaggedSignals() const {
 
 bool
 Stratix2DSPBoardIntegrator::isDataMemorySignal(
-    const std::string& signalName) const {
+    const TCEString& signalName) const {
 
     bool isDmemSignal = false;
     if (dmemInfo().type == ONCHIP) {
         isDmemSignal = AlteraIntegrator::isDataMemorySignal(signalName);
     } else if (dmemInfo().type == SRAM) {
-        isDmemSignal = signalName.find("SRAM") != string::npos;
+        isDmemSignal = signalName.find("SRAM") != TCEString::npos;
     } else {
         isDmemSignal = false;
     }
@@ -212,28 +208,40 @@ Stratix2DSPBoardIntegrator::projectFileGenerator() const {
 
 
 
-std::string
+TCEString
 Stratix2DSPBoardIntegrator::deviceFamily() const {
     
     return DEVICE_FAMILY_;
 }
 
 
-std::string
+void
+Stratix2DSPBoardIntegrator::setDeviceFamily(TCEString devFamily) {
+    
+    if (devFamily != DEVICE_FAMILY_) {
+        warningStream() 
+            << "Warning: Refusing to change device family!" << endl
+            << "- Original device family: " << DEVICE_FAMILY_ << endl
+            << "- New device family: " << devFamily << endl;
+    }
+}
+
+
+TCEString
 Stratix2DSPBoardIntegrator::deviceName() const {
 
     return DEVICE_NAME_;
 }
 
 
-std::string
+TCEString
 Stratix2DSPBoardIntegrator::devicePackage() const {
 
     return DEVICE_PACKAGE_;
 }
 
 
-std::string
+TCEString
 Stratix2DSPBoardIntegrator::deviceSpeedClass() const {
 
     return DEVICE_SPEED_CLASS_;
@@ -262,7 +270,9 @@ Stratix2DSPBoardIntegrator::printInfo(std::ostream& stream) const {
         << "Supported instruction memory types are 'onchip' and 'vhdl_array."
         << std::endl
         << "Supported data memory types are 'onchip' and 'sram'." << std::endl
-        << "Default clock frequency is 100 MHz." << std::endl << std::endl;
+        << "Default clock frequency is 100 MHz." << std::endl 
+        << "Active low reset is connected to CPU RESET button." << std::endl
+        << std::endl;
 }
 
 
@@ -275,9 +285,9 @@ Stratix2DSPBoardIntegrator::generatePinMap() {
     clk->push_back(new SignalMapping("PIN_AM17","clk"));
     stratixPins_["clk"] = clk;
 
-    // reset to push button USER_PB3
+    // reset to push button CPU_RESET
     MappingList* rstx = new MappingList;
-    rstx->push_back(new SignalMapping("PIN_J13","rstx"));
+    rstx->push_back(new SignalMapping("PIN_AG19","rstx"));
     stratixPins_["rstx"] = rstx;
     
     // leds

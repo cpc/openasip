@@ -34,6 +34,7 @@
 #define TTA_ALTERA_INTEGRATOR_HH
 
 #include "PlatformIntegrator.hh"
+#include "TCEString.hh"
 
 class AlteraIntegrator : public PlatformIntegrator {
 public:
@@ -42,10 +43,10 @@ public:
 
     AlteraIntegrator(
         ProGe::HDL hdl,
-        std::string progeOutputDir,
-        std::string entityName,
-        std::string outputDir,
-        std::string programName,
+        TCEString progeOutputDir,
+        TCEString entityName,
+        TCEString outputDir,
+        TCEString programName,
         int targetClockFreq,
         std::ostream& warningStream,
         std::ostream& errorStream,
@@ -62,7 +63,7 @@ protected:
 
     virtual MemoryGenerator* dmemInstance();
 
-    virtual bool isDataMemorySignal(const std::string& signalName) const;
+    virtual bool isDataMemorySignal(const TCEString& signalName) const;
 };
 
 #endif

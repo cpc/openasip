@@ -31,10 +31,8 @@
  */
 
 #include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
-#include <boost/format.hpp>
+#include <string>
 #include "PlatformIntegrator.hh"
 #include "MemoryGenerator.hh"
 #include "FileSystem.hh"
@@ -45,14 +43,13 @@
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
 #include "ProjectFileGenerator.hh"
-using std::string;
 using std::vector;
 using std::endl;
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 
-const std::string PlatformIntegrator::TTA_CORE_CLK = "clk";
-const std::string PlatformIntegrator::TTA_CORE_RSTX = "rstx";
+const TCEString PlatformIntegrator::TTA_CORE_CLK = "clk";
+const TCEString PlatformIntegrator::TTA_CORE_RSTX = "rstx";
 
 
 PlatformIntegrator::PlatformIntegrator():
@@ -72,10 +69,10 @@ PlatformIntegrator::PlatformIntegrator():
 
 PlatformIntegrator::PlatformIntegrator(
     ProGe::HDL hdl,
-    std::string progeOutputDir,
-    std::string coreEntityName,
-    std::string outputDir,
-    std::string programName,
+    TCEString progeOutputDir,
+    TCEString coreEntityName,
+    TCEString outputDir,
+    TCEString programName,
     int targetClockFreq,
     std::ostream& warningStream,
     std::ostream& errorStream,
@@ -104,24 +101,24 @@ PlatformIntegrator::~PlatformIntegrator() {
 }
 
 
-std::string 
+TCEString 
 PlatformIntegrator::coreEntityName() const {
     
     return coreEntityName_;
 }
 
 
-std::string
+TCEString
 PlatformIntegrator::programName() const {
 
     return programName_;
 }
 
 
-std::string 
-PlatformIntegrator::progeFilePath(std::string fileName, bool absolute) const {
+TCEString 
+PlatformIntegrator::progeFilePath(TCEString fileName, bool absolute) const {
  
-    std::string pathToFile =
+    TCEString pathToFile =
         progeOutputDir_ + FileSystem::DIRECTORY_SEPARATOR + fileName;
 
     if (absolute) {
@@ -132,11 +129,11 @@ PlatformIntegrator::progeFilePath(std::string fileName, bool absolute) const {
 }
 
 
-std::string
+TCEString
 PlatformIntegrator::outputFilePath(
-    std::string fileName, bool absolute) const {
+    TCEString fileName, bool absolute) const {
 
-    std::string pathToFile =
+    TCEString pathToFile =
         outputDir_ + FileSystem::DIRECTORY_SEPARATOR + fileName;
     
     if (absolute) {
@@ -147,19 +144,19 @@ PlatformIntegrator::outputFilePath(
 }
 
 
-std::string
+TCEString
 PlatformIntegrator::outputPath() const {
     return outputDir_;
 }
 
 
-std::string
+TCEString
 PlatformIntegrator::chopSignalToTag(
-    const std::string& original,
-    const std::string& tag) const {
+    const TCEString& original,
+    const TCEString& tag) const {
 
-    string signal = original;
-    if (original.find(tag) != string::npos) {
+    TCEString signal = original;
+    if (original.find(tag) != TCEString::npos) {
         signal = original.substr(original.find(tag));
     }
     return StringTools::trim(signal);
@@ -168,11 +165,11 @@ PlatformIntegrator::chopSignalToTag(
 
 void 
 PlatformIntegrator::progeOutputHdlFiles(
-    std::vector<std::string>& files) const {
+    std::vector<TCEString>& files) const {
 
     bool makeAbsolute = false;
     try {
-        std::string gcuPath = 
+        TCEString gcuPath = 
             progeOutputDir_ + FileSystem::DIRECTORY_SEPARATOR + "gcu_ic";
         std::vector<std::string> gcuFiles = 
             FileSystem::directoryContents(gcuPath, makeAbsolute);
@@ -186,14 +183,14 @@ PlatformIntegrator::progeOutputHdlFiles(
     
     try {
         bool foundImemMau = false;
-        string imemMau = "imem_mau_pkg.vhdl";
+        TCEString imemMau = "imem_mau_pkg.vhdl";
 
-        std::string vhdlPath =
+        TCEString vhdlPath =
             progeOutputDir_ + FileSystem::DIRECTORY_SEPARATOR + "vhdl";
         std::vector<std::string> vhdlFiles =
             FileSystem::directoryContents(vhdlPath, makeAbsolute);
         for (unsigned int i = 0; i < vhdlFiles.size(); i++) {
-            if (vhdlFiles.at(i).find(imemMau) != string::npos) {
+            if (vhdlFiles.at(i).find(imemMau) != TCEString::npos) {
                 foundImemMau = true;
             }
             files.push_back(vhdlFiles.at(i));
@@ -201,7 +198,7 @@ PlatformIntegrator::progeOutputHdlFiles(
         
         // imem_mau_pkg was not yet present, but add it to file list
         if (!foundImemMau) {
-            string path = 
+            TCEString path = 
                 vhdlPath + FileSystem::DIRECTORY_SEPARATOR + imemMau;
             files.push_back(path);
         }
@@ -215,7 +212,7 @@ PlatformIntegrator::progeOutputHdlFiles(
 void
 PlatformIntegrator::createOutputDir() {
 
-    std::string absolute = FileSystem::absolutePathOf(outputDir_);
+    TCEString absolute = FileSystem::absolutePathOf(outputDir_);
     if (!FileSystem::createDirectory(absolute)) {
         IOException exc(__FILE__, __LINE__, "PlatformIntegrator",
                         "Couldn't create dir " + absolute);
@@ -252,7 +249,7 @@ PlatformIntegrator::netlist() {
     return netlist_;
 }
 
-std::string
+TCEString
 PlatformIntegrator::platformEntityName() const {
 
     return coreEntityName() + "_toplevel";
@@ -279,13 +276,13 @@ PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
     netlist()->connectPorts(*rstx, *coreRstx);
     
     for (int i = 0; i < core.portCount(); i++) {
-        string portName = core.port(i).name();
+        TCEString portName = core.port(i).name();
         if (portName == TTA_CORE_CLK || portName == TTA_CORE_RSTX) {
             continue;
         } else if (!isInstructionMemorySignal(portName) 
             && !isDataMemorySignal(portName)) {
 
-            string toplevelName = portName;
+            TCEString toplevelName = portName;
             if (chopTaggedSignals() && hasPinTag(portName)) {
                 toplevelName = chopSignalToTag(portName, pinTag());
             }
@@ -298,7 +295,7 @@ PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
 
 void
 PlatformIntegrator::connectToplevelPort(
-    const std::string& toplevelName, ProGe::NetlistPort& corePort) {
+    const TCEString& toplevelName, ProGe::NetlistPort& corePort) {
 
     NetlistPort* topPort = NULL;
     if (corePort.realWidthAvailable()) {
@@ -328,19 +325,19 @@ PlatformIntegrator::connectToplevelPort(
 
 
 bool
-PlatformIntegrator::hasPinTag(const std::string& signal) const {
+PlatformIntegrator::hasPinTag(const TCEString& signal) const {
     
-    return signal.find(pinTag()) != string::npos;
+    return signal.find(pinTag()) != TCEString::npos;
 }
 
 
 bool
 PlatformIntegrator::isInstructionMemorySignal(
-    const std::string& signalName) const {
+    const TCEString& signalName) const {
 
     bool isMatch = false;
     for (unsigned int i = 0; i < imemSignals_.size(); i++) {
-        if (signalName.find(imemSignals_.at(i)) != string::npos) {
+        if (signalName.find(imemSignals_.at(i)) != TCEString::npos) {
             isMatch = true;
             break;
         }
@@ -385,9 +382,10 @@ PlatformIntegrator::createMemories() {
     assert(imem_.type != UNKNOWN);
     assert(dmem_.type != UNKNOWN);
 
+    int imemIndex = 0;
     MemoryGenerator* imemGen = imemInstance();
-    vector<string> imemFiles;
-    if (!generateMemory(*imemGen, imemFiles)) {
+    vector<TCEString> imemFiles;
+    if (!generateMemory(*imemGen, imemFiles, imemIndex)) {
         delete imemGen;
         return false;
     }
@@ -396,11 +394,12 @@ PlatformIntegrator::createMemories() {
     }
     delete imemGen;
 
+    int dmemIndex = 0;
     bool success = true;
     if (dmem_.type != NONE) {
         MemoryGenerator* dmemGen = dmemInstance();
-        vector<string> dmemFiles;
-        success = generateMemory(*dmemGen, dmemFiles);
+        vector<TCEString> dmemFiles;
+        success = generateMemory(*dmemGen, dmemFiles, dmemIndex);
         if (dmemFiles.size() != 0) {
             projectFileGenerator()->addHdlFiles(dmemFiles);
         }
@@ -412,9 +411,10 @@ PlatformIntegrator::createMemories() {
 bool
 PlatformIntegrator::generateMemory(
     MemoryGenerator& memGen,
-    std::vector<std::string>& generatedFiles) {
+    std::vector<TCEString>& generatedFiles, 
+    int index) {
 
-    vector<string> reasons;
+    vector<TCEString> reasons;
     if (!memGen.isCompatible(ttaCoreBlock(), reasons)) {
         errorStream() << "TTA core doesn't have compatible memory "
                       <<"interface:" << std::endl;
@@ -424,7 +424,7 @@ PlatformIntegrator::generateMemory(
         return false;
     }
 
-    memGen.addMemory(*netlist());
+    memGen.addMemory(*netlist(), index);
 
     if (memGen.generatesComponentHdlFile()) {
         generatedFiles =
@@ -449,19 +449,21 @@ PlatformIntegrator::writeNewToplevel() {
         assert(false);
     }
 
-    string platformDir = outputPath();
+    TCEString platformDir = outputPath();
     writer->write(platformDir);
     delete writer;
 
-    string toplevelFile = outputFilePath(coreEntityName() + "_toplevel.vhdl");
+    
+    TCEString toplevelFile =
+        outputFilePath(coreEntityName() + "_toplevel.vhdl");
     if (!FileSystem::fileExists(toplevelFile)) {
-        string msg = "NetlistWriter failed to create file " + toplevelFile;
+        TCEString msg = "NetlistWriter failed to create file " + toplevelFile;
         FileNotFound exc(__FILE__, __LINE__, "platformIntegrator", msg);
         throw exc;
     }
     projectFileGenerator()->addHdlFile(toplevelFile);
 
-    string paramFile =
+    TCEString paramFile =
         outputFilePath(platformEntityName() + "_params_pkg.vhdl");
     if (FileSystem::fileExists(paramFile)) {
         projectFileGenerator()->addHdlFile(paramFile);
@@ -472,7 +474,7 @@ PlatformIntegrator::writeNewToplevel() {
 void
 PlatformIntegrator::addProGeFiles() const {
 
-    vector<string> progeOutFiles;
+    vector<TCEString> progeOutFiles;
     progeOutputHdlFiles(progeOutFiles);
     for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
         projectFileGenerator()->addHdlFile(progeOutFiles.at(i));

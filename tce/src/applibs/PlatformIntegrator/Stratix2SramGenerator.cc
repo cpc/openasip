@@ -31,19 +31,15 @@
  */
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 #include <vector>
-#include "Exception.hh"
 #include "StringTools.hh"
+#include "PlatformIntegrator.hh"
 #include "MemoryGenerator.hh"
 #include "Stratix2SramGenerator.hh"
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "HDLPort.hh"
-using std::string;
 using std::vector;
 using std::endl;
 using ProGe::NetlistBlock;
@@ -53,7 +49,7 @@ Stratix2SramGenerator::Stratix2SramGenerator(
     int memMauWidth,
     int widthInMaus,
     int addrWidth,
-    std::string initFile,
+    TCEString initFile,
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream) :
@@ -99,7 +95,7 @@ Stratix2SramGenerator::~Stratix2SramGenerator() {
 
 
 void
-Stratix2SramGenerator::addMemory(ProGe::Netlist& netlist) {
+Stratix2SramGenerator::addMemory(ProGe::Netlist& netlist, int /*index*/) {
     
     const NetlistBlock& core = platformIntegrator()->ttaCoreBlock();
     NetlistBlock& toplevel = netlist.topLevelBlock();
@@ -107,7 +103,7 @@ Stratix2SramGenerator::addMemory(ProGe::Netlist& netlist) {
     for (int i = 0; i < portCount(); i++) {
         const HDLPort* hdlPort = port(i);
         NetlistPort* memPort = hdlPort->convertToNetlistPort(toplevel);
-        string corePortName = portKeyName(hdlPort);
+        TCEString corePortName = portKeyName(hdlPort);
 
         NetlistPort* corePort = core.portByName(corePortName);
         // clock and reset must be connected to new toplevel ports
@@ -133,23 +129,24 @@ Stratix2SramGenerator::generatesComponentHdlFile() const {
     return false;
 }
 
-std::vector<std::string>
-Stratix2SramGenerator::generateComponentFile(std::string) {
+std::vector<TCEString>
+Stratix2SramGenerator::generateComponentFile(TCEString) {
 
-    vector<string> noFileToGenerate;
+    vector<TCEString> noFileToGenerate;
     return noFileToGenerate;
 }
 
 
-std::string
+TCEString
 Stratix2SramGenerator::moduleName() const {
 
     return "stratixII_sram_comp";
 }
     
 
-std::string
-Stratix2SramGenerator::instanceName() const {
-
-    return "stratixII_sram";
+TCEString
+Stratix2SramGenerator::instanceName(int index) const {
+    
+    TCEString iname("stratixII_sram_");
+    return iname << index;
 }

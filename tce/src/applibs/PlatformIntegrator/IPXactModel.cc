@@ -29,7 +29,6 @@
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#include <string>
 #include <vector>
 #include <cassert>
 #include "IPXactModel.hh"
@@ -41,57 +40,68 @@
 #include "HDLPort.hh"
 #include "Conversion.hh"
 using std::vector;
-using std::string;
 using IPXact::Vlnv;
 
-const std::string IPXactModel::OSNAME_IPXACT_MODEL = "spirit:component";
-const std::string IPXactModel::OSNAME_VENDOR = "spirit:vendor";
-const std::string IPXactModel::OSNAME_LIBRARY = "spirit:library";
-const std::string IPXactModel::OSNAME_NAME = "spirit:name";
-const std::string IPXactModel::OSNAME_VERSION = "spirit:version";
-const std::string IPXactModel::OSNAME_BUS_INTERFACES = "spirit:busInterfaces";
-const std::string IPXactModel::OSNAME_BUS_INTERFACE = "spirit:busInterface";
-const std::string IPXactModel::OSNAME_BUS_TYPE = "spirit:busType";
-const std::string IPXactModel::OSNAME_BUS_ABS_TYPE = "spirit:abstractionType";
-const std::string IPXactModel::OSNAME_BUS_MASTER = "spirit:master";
-const std::string IPXactModel::OSNAME_BUS_MIRRORED_MASTER =
+const TCEString IPXactModel::OSNAME_IPXACT_MODEL = "spirit:component";
+const TCEString IPXactModel::OSNAME_VENDOR = "spirit:vendor";
+const TCEString IPXactModel::OSNAME_LIBRARY = "spirit:library";
+const TCEString IPXactModel::OSNAME_NAME = "spirit:name";
+const TCEString IPXactModel::OSNAME_VERSION = "spirit:version";
+const TCEString IPXactModel::OSNAME_BUS_INTERFACES = "spirit:busInterfaces";
+const TCEString IPXactModel::OSNAME_BUS_INTERFACE = "spirit:busInterface";
+const TCEString IPXactModel::OSNAME_BUS_TYPE = "spirit:busType";
+const TCEString IPXactModel::OSNAME_BUS_ABS_TYPE = "spirit:abstractionType";
+const TCEString IPXactModel::OSNAME_BUS_MASTER = "spirit:master";
+const TCEString IPXactModel::OSNAME_BUS_MIRRORED_MASTER =
     "spirit:mirroredMaster";
-const std::string IPXactModel::OSNAME_BUS_SLAVE = "spirit:slave";
-const std::string IPXactModel::OSNAME_BUS_MIRRORED_SLAVE =
+const TCEString IPXactModel::OSNAME_BUS_SLAVE = "spirit:slave";
+const TCEString IPXactModel::OSNAME_BUS_MIRRORED_SLAVE =
     "spirit:mirroredSlave";
-const std::string IPXactModel::OSNAME_BUS_SYSTEM = "spirit:system";
-const std::string IPXactModel::OSNAME_BUS_MIRRORED_SYSTEM =
+const TCEString IPXactModel::OSNAME_BUS_SYSTEM = "spirit:system";
+const TCEString IPXactModel::OSNAME_BUS_MIRRORED_SYSTEM =
     "spirit:mirroredSystem";
-const std::string IPXactModel::OSNAME_BUS_MONITOR = "spirit:monitor";
-const std::string IPXactModel::OSNAME_BUS_PORT_MAPS = "spirit:portMaps";
-const std::string IPXactModel::OSNAME_BUS_PORT_MAP = "spirit:portMap";
-const std::string IPXactModel::OSNAME_BUS_PORT_MAP_NAME = "spirit:name";
-const std::string IPXactModel::OSNAME_BUS_PORT_MAP_COMP = 
+const TCEString IPXactModel::OSNAME_BUS_MONITOR = "spirit:monitor";
+const TCEString IPXactModel::OSNAME_BUS_PORT_MAPS = "spirit:portMaps";
+const TCEString IPXactModel::OSNAME_BUS_PORT_MAP = "spirit:portMap";
+const TCEString IPXactModel::OSNAME_BUS_PORT_MAP_NAME = "spirit:name";
+const TCEString IPXactModel::OSNAME_BUS_PORT_MAP_COMP = 
     "spirit:physicalPort";
-const std::string IPXactModel::OSNAME_BUS_PORT_MAP_BUS =
+const TCEString IPXactModel::OSNAME_BUS_PORT_MAP_BUS =
     "spirit:logicalPort";
-const std::string IPXactModel::OSNAME_MODEL = "spirit:model";
-const std::string IPXactModel::OSNAME_PORTS = "spirit:ports";
-const std::string IPXactModel::OSNAME_WIRE = "spirit:wire";
-const std::string IPXactModel::OSNAME_VECTOR = "spirit:vector";
-const std::string IPXactModel::OSNAME_PORT = "spirit:port";
-const std::string IPXactModel::OSNAME_PORT_DIRECTION = "spirit:direction";
-const std::string IPXactModel::OSNAME_PORT_LEFT = "spirit:left";
-const std::string IPXactModel::OSNAME_PORT_RIGHT = "spirit:right";
-const std::string IPXactModel::OSNAME_FILESETS = "spirit:fileSets";
-const std::string IPXactModel::OSNAME_FILESET = "spirit:fileSet";
-const std::string IPXactModel::OSNAME_FILE = "spirit:file";
-const std::string IPXactModel::OSNAME_FILE_NAME = "spirit:name";
-const std::string IPXactModel::OSNAME_FILE_TYPE = "spirit:fileType";
+const TCEString IPXactModel::OSNAME_MODEL = "spirit:model";
+const TCEString IPXactModel::OSNAME_PORTS = "spirit:ports";
+const TCEString IPXactModel::OSNAME_WIRE = "spirit:wire";
+const TCEString IPXactModel::OSNAME_VECTOR = "spirit:vector";
+const TCEString IPXactModel::OSNAME_PORT = "spirit:port";
+const TCEString IPXactModel::OSNAME_PORT_DIRECTION = "spirit:direction";
+const TCEString IPXactModel::OSNAME_PORT_LEFT = "spirit:left";
+const TCEString IPXactModel::OSNAME_PORT_RIGHT = "spirit:right";
+const TCEString IPXactModel::OSNAME_FILESETS = "spirit:fileSets";
+const TCEString IPXactModel::OSNAME_FILESET = "spirit:fileSet";
+const TCEString IPXactModel::OSNAME_FILE = "spirit:file";
+const TCEString IPXactModel::OSNAME_FILE_NAME = "spirit:name";
+const TCEString IPXactModel::OSNAME_FILE_TYPE = "spirit:fileType";
+const TCEString IPXactModel::OSNAME_MODEL_PARAMS = "spirit:modelParameters";
+const TCEString IPXactModel::OSNAME_MODEL_PARAM = "spirit:modelParameter";
+const TCEString IPXactModel::OSNAME_DISPLAY_NAME = "spirit:displayName";
+const TCEString IPXactModel::OSNAME_VALUE = "spirit:value";
+const TCEString IPXactModel::OSNAME_ATTR_DATA_TYPE = "spirit:dataType";
+const TCEString IPXactModel::OSNAME_ATTR_FORMAT = "spirit:format";
+const TCEString IPXactModel::OSNAME_ATTR_ID = "spirit:id";
+const TCEString IPXactModel::OSNAME_ATTR_RESOLVE = "spirit:resolve";
 
-const std::string IPXactModel::HDL_SET_ID = "hdlSources";
-const std::string IPXactModel::VHDL_FILE = "vhdlSource";
-const std::string IPXactModel::OTHER_FILE = "unknown";
+const TCEString IPXactModel::HDL_SET_ID = "hdlSources";
+const TCEString IPXactModel::VHDL_FILE = "vhdlSource";
+const TCEString IPXactModel::OTHER_FILE = "unknown";
+const TCEString IPXactModel::RESOLVE_USER = "user";
+const TCEString IPXactModel::STRING_PARAM = "string";
+const TCEString IPXactModel::INTEGER_PARAM = "integer";
+const TCEString IPXactModel::LONG_PARAM = "long";
+const TCEString IPXactModel::DEV_FAMILY_GENERIC = "dev_family_g";
 
-
-IPXactModel::IPXactModel(): vlnv_("","","",""),
-                            signals_(), busInterfaces_(), hdlFiles_(),
-                            otherFiles_() {
+IPXactModel::IPXactModel(): 
+    vlnv_("","","",""), signals_(), parameters_(), busInterfaces_(),
+    hdlFiles_(), otherFiles_() {
 }
 
 
@@ -130,6 +140,13 @@ IPXactModel::loadState(const ObjectState* state) {
         const ObjectState* model = state->childByName(OSNAME_MODEL);
         if (model->hasChild(OSNAME_PORTS)) {
             extractSignals(model->childByName(OSNAME_PORTS));
+        }
+        if (model->hasChild(OSNAME_MODEL_PARAMS)) {
+            const ObjectState* modelParams =
+                model->childByName(OSNAME_MODEL_PARAMS);
+            if (modelParams->hasChild(OSNAME_MODEL_PARAM)) {
+                extractModelParams(modelParams);
+            }
         }
     }
 
@@ -178,6 +195,11 @@ IPXactModel::saveState() const {
         signals->addChild(signal);
     }
 
+    // add model parameters if any
+    if (parameters_.size() > 0) {
+        addModelParamsObject(model);
+    }
+
     // add hdl files
     ObjectState* fileSets = new ObjectState(OSNAME_FILESETS);
     root->addChild(fileSets);
@@ -203,10 +225,10 @@ IPXactModel::saveState() const {
 
 void
 IPXactModel::setVLNV(
-    std::string vendor,
-    std::string library,
-    std::string name,
-    std::string version) {
+    TCEString vendor,
+    TCEString library,
+    TCEString name,
+    TCEString version) {
 
     vlnv_.vendor = vendor;
     vlnv_.library = library;
@@ -216,20 +238,20 @@ IPXactModel::setVLNV(
 
 
 void
-IPXactModel::setHdlFile(const std::string& file) {
+IPXactModel::setHdlFile(const TCEString& file) {
     
     hdlFiles_.push_back(file);
 }
 
 void
-IPXactModel::setFile(const std::string& file) {
+IPXactModel::setFile(const TCEString& file) {
 
     otherFiles_.push_back(file);
 }
 
 
 void
-IPXactModel::setHdlFiles(const std::vector<std::string>& files) {
+IPXactModel::setHdlFiles(const std::vector<TCEString>& files) {
 
     for (unsigned int i = 0; i < files.size(); i++) {
         setHdlFile(files.at(i));
@@ -241,6 +263,13 @@ void
 IPXactModel::addSignal(const HDLPort& signal) {
 
     signals_.push_back(new HDLPort(signal));
+}
+
+
+void
+IPXactModel::addParameter(const ProGe::Netlist::Parameter& parameter) {
+
+    parameters_.push_back(parameter);
 }
 
 
@@ -287,7 +316,7 @@ IPXactModel::addBusInterfaceObject(
     } else if (busMode == MIRRORED_SLAVE) {
         mode = new ObjectState(OSNAME_BUS_MIRRORED_SLAVE);
     } else {
-        string msg = "Unknown bus mode!";
+        TCEString msg = "Unknown bus mode!";
         InvalidData exc(__FILE__, __LINE__, "IPXactModel", msg);
         throw exc;
     }
@@ -329,7 +358,7 @@ IPXactModel::addSignalObject(
     parent->addChild(wire);
 
     ObjectState* direction = new ObjectState(OSNAME_PORT_DIRECTION);
-    string dir = "";
+    TCEString dir = "";
     if (port->direction() == HDB::IN) {
         dir = "in";
     } else if (port->direction() == HDB::OUT) {
@@ -371,10 +400,53 @@ IPXactModel::addSignalObject(
     }
 }
 
+
+void
+IPXactModel::addModelParamsObject(ObjectState* parent) const {
+
+    ObjectState* params = new ObjectState(OSNAME_MODEL_PARAMS);
+    parent->addChild(params);
+    for (unsigned int i = 0; i < parameters_.size(); i++) {
+        ObjectState* param= new ObjectState(OSNAME_MODEL_PARAM);
+        if (parameters_.at(i).type.lower() == STRING_PARAM) {
+            param->setAttribute(OSNAME_ATTR_DATA_TYPE, STRING_PARAM);
+        } else if (parameters_.at(i).type.lower() == INTEGER_PARAM) {
+            param->setAttribute(OSNAME_ATTR_DATA_TYPE, LONG_PARAM);
+        } else {
+            // unsuppored type, ignore
+            delete param;
+            continue;
+        }
+        params->addChild(param);
+
+        ObjectState* name = new ObjectState(OSNAME_NAME);
+        name->setValue(parameters_.at(i).name);
+        param->addChild(name);
+
+        ObjectState* displayName =  new ObjectState(OSNAME_DISPLAY_NAME);
+        displayName->setValue(parameters_.at(i).name);
+        param->addChild(displayName);
+
+        ObjectState* value = new ObjectState(OSNAME_VALUE);
+        if (parameters_.at(i).type.lower() == STRING_PARAM) {
+            value->setAttribute(OSNAME_ATTR_FORMAT, STRING_PARAM);
+        } else if (parameters_.at(i).type.lower() == INTEGER_PARAM) {
+            value->setAttribute(OSNAME_ATTR_FORMAT, LONG_PARAM);
+        }
+        TCEString id; 
+        id << parameters_.at(i).name.upper() << "_ID";
+        value->setAttribute(OSNAME_ATTR_ID, id);
+        value->setAttribute(OSNAME_ATTR_RESOLVE, RESOLVE_USER);
+        value->setValue(parameters_.at(i).value);
+        param->addChild(value);
+    }
+}
+
+
 void 
 IPXactModel::addFileObject(
-    const std::string& name,
-    const std::string& type,
+    const TCEString& name,
+    const TCEString& type,
     ObjectState* parent) const {
 
     ObjectState* fileName = new ObjectState(OSNAME_FILE_NAME);
@@ -390,10 +462,10 @@ void
 IPXactModel::extractVLNV(const ObjectState* root) {
 
     assert(root->name() == OSNAME_IPXACT_MODEL);
-    string vendor = "";
-    string library = "";
-    string name = "";
-    string version = "";
+    TCEString vendor = "";
+    TCEString library = "";
+    TCEString name = "";
+    TCEString version = "";
     if (root->hasChild(OSNAME_VENDOR)) {
         vendor = root->childByName(OSNAME_VENDOR)->stringValue();
     }
@@ -452,28 +524,28 @@ IPXactModel::extractBusInterface(const ObjectState* busInterface) {
 
     assert(busInterface->name() == OSNAME_BUS_INTERFACE);
     if (!busInterface->hasChild(OSNAME_NAME)) {
-        string msg = "Bus has no name";
+        TCEString msg = "Bus has no name";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
         throw exc;
     }
     if (!busInterface->hasChild(OSNAME_BUS_TYPE)) {
-        string msg = "Bus has no type";
+        TCEString msg = "Bus has no type";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
         throw exc;
     }
     if (!busInterface->hasChild(OSNAME_BUS_ABS_TYPE)) {
-        string msg = "Bus has no abstraction type";
+        TCEString msg = "Bus has no abstraction type";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__, 
                                             "IPXactModel", msg);
         throw exc;
     }
     
-    string instanceName =
+    TCEString instanceName =
         busInterface->childByName(OSNAME_NAME)->stringValue();
     const ObjectState* busType =
         busInterface->childByName(OSNAME_BUS_TYPE);
@@ -486,7 +558,7 @@ IPXactModel::extractBusInterface(const ObjectState* busInterface) {
     IPXactInterface* interface =
         interfaceByType(type, absType, instanceName, mode);
     if (!interface) {
-        string msg = "Unknown bus type";
+        TCEString msg = "Unknown bus type";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
@@ -553,7 +625,7 @@ IPXactModel::extractPortMap(
     if (!(portMap->hasChild(OSNAME_BUS_PORT_MAP_BUS) &&
           portMap->hasChild(OSNAME_BUS_PORT_MAP_COMP))) {
         
-        string msg = "Bus interface port map is invalid";
+        TCEString msg = "Bus interface port map is invalid";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
@@ -567,19 +639,19 @@ IPXactModel::extractPortMap(
     if (!busPort->hasChild(OSNAME_BUS_PORT_MAP_NAME) || 
         !compPort->hasChild(OSNAME_BUS_PORT_MAP_NAME)) {
         
-        string msg = "Port name missing from port map";
+        TCEString msg = "Port name missing from port map";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
         throw exc;
     }
-    string compPortName =
+    TCEString compPortName =
         compPort->childByName(OSNAME_BUS_PORT_MAP_NAME)->stringValue();
-    string busPortName =
+    TCEString busPortName =
         busPort->childByName(OSNAME_BUS_PORT_MAP_NAME)->stringValue();
 
     if (busPortName.empty() || compPortName.empty()) {
-        string msg = "Port name is empty in port map";
+        TCEString msg = "Port name is empty in port map";
         ObjectStateLoadingException* exc = 
             new ObjectStateLoadingException(__FILE__, __LINE__,
                                             "IPXactModel", msg);
@@ -599,7 +671,7 @@ IPXactModel::extractSignals(const ObjectState* signals) {
             continue;
         }
 
-        string name = "";
+        TCEString name = "";
         HDB::Direction direction = HDB::IN;
         ProGe::DataType type = ProGe::BIT;
         int width = 0;
@@ -608,13 +680,13 @@ IPXactModel::extractSignals(const ObjectState* signals) {
             name = signal->childByName(OSNAME_NAME)->stringValue();
         }
         if (!signal->hasChild(OSNAME_WIRE)) {
-            string msg = "Wire node not found from Port!";
+            TCEString msg = "Wire node not found from Port!";
             InvalidData exc(__FILE__, __LINE__, "IPXactModel", msg);
             throw exc;
         }
         const ObjectState* wire = signal->childByName(OSNAME_WIRE);
         if (wire->hasChild(OSNAME_PORT_DIRECTION)) {
-            string dir =
+            TCEString dir =
                 wire->childByName(OSNAME_PORT_DIRECTION)->stringValue();
             if (dir == "in") {
                 direction = HDB::IN;
@@ -626,7 +698,7 @@ IPXactModel::extractSignals(const ObjectState* signals) {
                 assert(false && "Unknown direction");
             }
         } else {
-            string msg = "Port does not have direction!";
+            TCEString msg = "Port does not have direction!";
             InvalidData exc(__FILE__, __LINE__, "IPXactModel", msg);
             throw exc;
         }
@@ -647,7 +719,7 @@ IPXactModel::extractSignals(const ObjectState* signals) {
                 assert(rightBorder >= 0);
             }
             if (leftBorder < rightBorder) {
-                string msg = "Reversed bit order is not supported";
+                TCEString msg = "Reversed bit order is not supported";
                 UnexpectedValue* exc =
                     new UnexpectedValue(__FILE__, __LINE__, "IPXactModel",
                         msg);
@@ -659,7 +731,7 @@ IPXactModel::extractSignals(const ObjectState* signals) {
             width = 0;
         }
 
-        string widthFormula = Conversion::toString(width);
+        TCEString widthFormula = Conversion::toString(width);
         HDLPort* port = new HDLPort(name, widthFormula, type, direction,
                                     false, width);
         signals_.push_back(port);
@@ -676,11 +748,11 @@ IPXactModel::extractFiles(const ObjectState* fileSets) {
             continue;
         }
         if (!fs->hasChild(OSNAME_FILE_NAME)) {
-            string msg = "Fileset has no name!";
+            TCEString msg = "Fileset has no name!";
             InvalidData exc(__FILE__, __LINE__, "IPXactModel", msg);
             throw exc;
         }
-        string fsName = fs->childByName(OSNAME_FILE_NAME)->stringValue();
+        TCEString fsName = fs->childByName(OSNAME_FILE_NAME)->stringValue();
         if (fsName != HDL_SET_ID) {
             // unknown stuff, ignore
             continue;
@@ -691,8 +763,8 @@ IPXactModel::extractFiles(const ObjectState* fileSets) {
             if (file->name() != OSNAME_FILE) {
                 continue;
             }
-            string fileName = "";
-            string fileType = "";
+            TCEString fileName = "";
+            TCEString fileType = "";
             if (file->hasChild(OSNAME_NAME)) {
                 fileName = file->childByName(OSNAME_NAME)->stringValue();
             }
@@ -717,7 +789,7 @@ IPXactInterface*
 IPXactModel::interfaceByType(
         const IPXact::Vlnv& type,
         const IPXact::Vlnv& absType,
-        const std::string instanceName,
+        const TCEString instanceName,
         BusMode mode) const {
     
     IPXactInterface* interface = NULL;
@@ -744,3 +816,53 @@ IPXactModel::interfaceByType(
     return interface;
 }
 
+
+void
+IPXactModel::extractModelParams(const ObjectState* modelParameters) {
+
+    assert(modelParameters->name() == OSNAME_MODEL_PARAMS);
+    for (int i = 0; i < modelParameters->childCount(); i++) {
+        TCEString childName = modelParameters->child(i)->name();
+        if (childName ==  OSNAME_MODEL_PARAM) {
+            extractModelParam(modelParameters->child(i));
+        }
+    }
+}
+
+void
+IPXactModel::extractModelParam(const ObjectState* modelParameter) {
+    
+    assert(modelParameter->name() == OSNAME_MODEL_PARAM);
+    if (!modelParameter->hasChild(OSNAME_NAME)) {
+        TCEString msg = "Model parameter has no name";
+        ObjectStateLoadingException* exc = 
+            new ObjectStateLoadingException(__FILE__, __LINE__,
+                                            "IPXactModel", msg);
+        throw exc;
+    }
+    if (!modelParameter->hasChild(OSNAME_VALUE)) {
+        TCEString msg = "Model parameter has no value";
+        ObjectStateLoadingException* exc = 
+            new ObjectStateLoadingException(__FILE__, __LINE__,
+                                            "IPXactModel", msg);
+        throw exc;
+    }
+    ProGe::Netlist::Parameter parameter;
+    const ObjectState* nameObj = modelParameter->childByName(OSNAME_NAME);
+    parameter.name = nameObj->stringValue();
+    
+    parameter.type = STRING_PARAM;
+    if (nameObj->hasAttribute(OSNAME_ATTR_DATA_TYPE)) {
+        TCEString typeAttr =
+            nameObj->stringAttribute(OSNAME_ATTR_DATA_TYPE);
+        if (typeAttr.lower() == STRING_PARAM) {
+            parameter.type = STRING_PARAM;
+        } else if (typeAttr.lower() == LONG_PARAM) {
+            parameter.type = INTEGER_PARAM;
+        }
+    }
+    
+    const ObjectState* valueObj = modelParameter->childByName(OSNAME_VALUE);
+    parameter.value = valueObj->stringValue();
+    parameters_.push_back(parameter);
+}

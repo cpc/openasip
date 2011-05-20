@@ -49,12 +49,12 @@ const string PLUGIN_PARAMETERS_PARAM_NAME = "pluginparameters";
 const string INTEGRATOR_NAME = "integrator";
 const string IMEM_TYPE = "imem";
 const string DMEM_TYPE = "dmem";
-const string IMEM_WIDTH = "imem-width";
 const string CLK_FREQUENCY = "clock-frequency";
 const string TPEF_NAME = "program";
 const string ENTITY_NAME = "entity-name";
 const string USE_ABSOLUTE_PATHS = "absolute-paths";
 const string LIST_INTEGRATORS = "list-integrators";
+const string DEVICE_FAMILY = "device-family";
 
 
 /**
@@ -113,12 +113,6 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             " 'dram' and 'none'", "d");
     addOption(dmemType);
 
-    IntegerCmdLineOptionParser* imemWidth =
-        new IntegerCmdLineOptionParser(
-            IMEM_WIDTH, "Defines instruction memory width. This value "
-            "overrides the instruction width from BEM.", "w");
-    addOption(imemWidth);
-
     IntegerCmdLineOptionParser* fmax =
         new IntegerCmdLineOptionParser(
             CLK_FREQUENCY, "Defines the target clock frequency.", "c");
@@ -149,6 +143,14 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             LIST_INTEGRATORS, "List available integrators and information "
             "about them.", "n");
     addOption(listIntegrators);
+
+    StringCmdLineOptionParser* deviceFamilyName = 
+        new StringCmdLineOptionParser(
+            DEVICE_FAMILY, 
+            "Set FPGA device family for integration. Stand-alone integrators "
+            "may ignore this parameter. Example: \"Stratix II\" or "
+            "Stratix\\ II", "m");
+    addOption(deviceFamilyName);
 }
 
 
@@ -254,17 +256,6 @@ ProGeCmdLineOptions::dmemType() const {
 
 
 int
-ProGeCmdLineOptions::imemWidth() const {
-
-    int width = 0;
-    if (findOption(IMEM_WIDTH)->isDefined()) {
-        width = findOption(IMEM_WIDTH)->integer();
-    }
-    return width;
-}
-
-
-int
 ProGeCmdLineOptions::clockFrequency() const {
 
     int freq = 0;
@@ -295,6 +286,15 @@ ProGeCmdLineOptions::useAbsolutePaths() const {
 bool
 ProGeCmdLineOptions::listAvailableIntegrators() const {
     return findOption(LIST_INTEGRATORS)->isFlagOn();
+}
+
+std::string
+ProGeCmdLineOptions::deviceFamilyName() const {
+    string deviceFamily = "";
+    if (findOption(DEVICE_FAMILY)->isDefined()) {
+        deviceFamily = findOption(DEVICE_FAMILY)->String();
+    }
+    return deviceFamily;
 }
 
 

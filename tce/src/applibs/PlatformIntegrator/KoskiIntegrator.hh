@@ -43,10 +43,10 @@ public:
 
     KoskiIntegrator(
         ProGe::HDL hdl,
-        std::string progeOutputDir,
-        std::string entityName,
-        std::string outputDir,
-        std::string programName,
+        TCEString progeOutputDir,
+        TCEString entityName,
+        TCEString outputDir,
+        TCEString programName,
         int targetClockFreq,
         std::ostream& warningStream,
         std::ostream& errorStream,
@@ -55,13 +55,15 @@ public:
 
     virtual ~KoskiIntegrator();
 
-    virtual std::string deviceFamily() const;
+    virtual TCEString deviceFamily() const;
 
-    virtual std::string deviceName() const;
+    virtual void setDeviceFamily(TCEString devFamily);
+
+    virtual TCEString deviceName() const;
     
-    virtual std::string devicePackage() const;
+    virtual TCEString devicePackage() const;
 
-    virtual std::string deviceSpeedClass() const;
+    virtual TCEString deviceSpeedClass() const;
 
     virtual int targetClockFrequency() const;
 
@@ -69,7 +71,7 @@ public:
 
 protected:
 
-    virtual std::string pinTag() const;
+    virtual TCEString pinTag() const;
 
     virtual bool chopTaggedSignals() const;
     
@@ -81,7 +83,10 @@ private:
 
     ProjectFileGenerator* ipXactGen_;
 
-    static const std::string PIN_TAG_;
+    TCEString deviceFamily_;
+
+    static const TCEString PIN_TAG_;
+    static const TCEString DEFAULT_DEVICE_FAMILY_;
 };
 
 
