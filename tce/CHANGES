@@ -8,6 +8,8 @@ Bugfixes
 - tcecc: Scheduler could sometimes fail to schedule on sparsely connected machines.
 - OSEd: OSEd crashed when selecting an operation for which there was no simulation
   model in an otherwise valid .opb.
+- ProDe: Bit width calculation of address spaces was incorrect if max-address
+  was power of 2.
 
 Usability features
 ------------------

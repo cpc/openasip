@@ -36,6 +36,7 @@
 #include <wx/spinctrl.h>
 #include <boost/format.hpp>
 
+#include "MathTools.hh"
 #include "AddressSpaceDialog.hh"
 #include "Conversion.hh"
 #include "WxConversion.hh"
@@ -284,7 +285,7 @@ AddressSpaceDialog::onMaxAddress(wxCommandEvent&) {
     if (maxControl_->unsignedValue() <= minControl_->unsignedValue()) {
         maxControl_->setValue(minControl_->unsignedValue() + 1);
     }
-    int bitWidth = int(ceil((log(maxControl_->unsignedValue()) / log(2))));
+    int bitWidth = MathTools::requiredBits(maxControl_->unsignedValue());
     bitWidthSpinCtrl_->SetValue(bitWidth);
 }
 
