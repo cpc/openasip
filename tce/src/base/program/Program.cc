@@ -1193,6 +1193,16 @@ Program::instructionVector() const {
     return instructions;
 }
 
+int
+Program::instructionCount() const { 
+    if (procedureCount() == 0) {
+        return 0;
+    }
+    return lastProcedure().startAddress().location() + 
+        lastProcedure().instructionCount() -
+        start_.location();
+}
+
 /**
  * Converts single TerminalSymbolReference into 
  * InstructionReference to the symbol or TerminalImmediate into the

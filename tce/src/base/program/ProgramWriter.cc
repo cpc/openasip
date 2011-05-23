@@ -719,9 +719,10 @@ ProgramWriter::createBinary() const
     ControlUnit* unit = adf.controlUnit();
     AddressSpace* adfInstrASpace = unit->addressSpace();
 
-    if (prog_.startAddress().location() < adfInstrASpace->start() ||
+    if (prog_.instructionCount() > 0 && 
+        (prog_.startAddress().location() < adfInstrASpace->start() ||
         prog_.startAddress().location() + prog_.instructionCount() > 
-        adfInstrASpace->end()) {
+        adfInstrASpace->end())) {
         std::cerr << "Warning: The program is out of bounds of the imem." 
             " This will not work on real hardware."
             " Please increase the instruction address space size in adf or "

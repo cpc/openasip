@@ -102,9 +102,7 @@ public:
     Instruction& firstInstruction() const throw (InstanceNotFound);
     Instruction& instructionAt(InstructionAddress address) const
         throw (KeyNotFound);
-    int instructionCount() const { 
-        return lastInstruction().address().location() - start_.location();
-    }
+    int instructionCount() const;
     
     const Move& moveAt(int number) const throw (KeyNotFound);
     int moveCount() const;
