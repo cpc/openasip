@@ -713,7 +713,8 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
             originalMove.move().source());
 
     const int immediateBitWidth = 
-        MachineConnectivityCheck::requiredImmediateWidth(false, immediate);
+        MachineConnectivityCheck::requiredImmediateWidth(
+            false, immediate, *destinationPort.parentUnit()->machine());
 
 
     /* Find out an RF that is connected to the target (targetConnectedRF) and

@@ -57,7 +57,7 @@ class ShortImmPSocketResource;
  */
 class BusBroker : public ResourceBroker {
 public:
-    BusBroker(std::string name);
+    BusBroker(std::string name, const TTAMachine::Machine& mach);
     virtual ~BusBroker();
 
     virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
@@ -93,6 +93,7 @@ private:
         BusResource& busRes) const;
     std::list<SchedulingResource*> shortImmPSocketResources_;
     bool hasLimm_;
+    const TTAMachine::Machine* mach_;
 };
 
 #endif

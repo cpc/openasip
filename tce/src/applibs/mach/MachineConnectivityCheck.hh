@@ -125,7 +125,8 @@ public:
 
     static int requiredImmediateWidth(
         bool signExtension,
-        const TTAProgram::TerminalImmediate& source);
+        const TTAProgram::TerminalImmediate& source,
+        const TTAMachine::Machine& mach);
 
     static bool busConnectedToPort(
         const TTAMachine::Bus& bus, const TTAMachine::Port& port);

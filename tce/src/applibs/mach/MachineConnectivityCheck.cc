@@ -134,7 +134,7 @@ MachineConnectivityCheck::canTransportImmediate(
 
         int requiredBits = 
             MachineConnectivityCheck::requiredImmediateWidth(
-                bus.signExtends(), immediate);
+                bus.signExtends(), immediate, *destRF.machine());
         if (bus.immediateWidth() >= requiredBits)
             return true;
     }
@@ -164,7 +164,8 @@ MachineConnectivityCheck::canTransportImmediate(
 
         int requiredBits = 
             MachineConnectivityCheck::requiredImmediateWidth(
-                bus.signExtends(), immediate);
+                bus.signExtends(), immediate, 
+                *destinationPort.parentUnit()->machine());
         if (bus.immediateWidth() >= requiredBits)
             return true;
     }
@@ -727,7 +728,8 @@ MachineConnectivityCheck::canWriteAllImmediates(Port& destPort) {
 int
 MachineConnectivityCheck::requiredImmediateWidth(
     bool signExtension,
-    const TTAProgram::TerminalImmediate& source) {
+    const TTAProgram::TerminalImmediate& source,
+    const TTAMachine::Machine& mach) {
 
     int bits = -1;
     if (signExtension) {
@@ -738,24 +740,9 @@ MachineConnectivityCheck::requiredImmediateWidth(
             MathTools::requiredBits(source.value().unsignedValue());
     } 
 
-    /* This heuristics always reserves at least 10 bits to the required width
-       of an instruction address, since the actual final address
-       is not known before generating the binary program image. The 
-       address depends on compression, encoding, etc. and compression 
-       might depend on the schedule itself, etc. It's an egg-and-chicken 
-       problem. In addition it always adds an additional bit to the
-       original address width "for safety".
-
-       The minimum bit guess is totally arbitrary, it can be much
-       more (especially if a whole function is moved around) or much
-       less (much improved schedule from the sequential program).
-
-       @todo We should get this from the largest address of the
-       instruction memory address space or using smarter heuristics?*/
-    if (source.isInstructionAddress() && bits < 32) {
-        ++bits;
-        if (bits < 10)
-            bits = 10;
+    if (source.isInstructionAddress()) {
+        const AddressSpace& as = *mach.controlUnit()->addressSpace();
+        return MathTools::requiredBits(as.end());
     }
     return bits;
 }

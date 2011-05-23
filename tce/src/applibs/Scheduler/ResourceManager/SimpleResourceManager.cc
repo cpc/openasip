@@ -65,7 +65,7 @@ SimpleResourceManager::SimpleResourceManager(
     brokers.push_back(new InputPSocketBroker("InputPSocketBroker"));
     brokers.push_back(new IUBroker("IUBroker", this));
     brokers.push_back(new OutputPSocketBroker("OutputPSocketBroker", this));
-    brokers.push_back(new BusBroker("BusBroker"));
+    brokers.push_back(new BusBroker("BusBroker", machine));
     brokers.push_back(new SegmentBroker("SegmentBroker"));
     brokers.push_back(new ITemplateBroker("ITemplateBroker", this));
 

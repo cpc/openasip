@@ -58,8 +58,8 @@ using namespace TTAMachine;
 /**
  * Constructor.
  */
-BusBroker::BusBroker(std::string name) : 
-    ResourceBroker(name), hasLimm_(false) {
+BusBroker::BusBroker(std::string name, const TTAMachine::Machine& mach) : 
+    ResourceBroker(name), hasLimm_(false), mach_(&mach) {
 }
 
 /**
@@ -684,7 +684,8 @@ BusBroker::canTransportImmediate(
     Move& move = const_cast<MoveNode&>(node).move();
     int bits = MachineConnectivityCheck::requiredImmediateWidth(
         immRes.signExtends(),
-        static_cast<const TTAProgram::TerminalImmediate&>(move.source()));
+        static_cast<const TTAProgram::TerminalImmediate&>(move.source()),
+        *mach_);
     if (bits <= immRes.immediateWidth()) {
         return true;
     } else {
