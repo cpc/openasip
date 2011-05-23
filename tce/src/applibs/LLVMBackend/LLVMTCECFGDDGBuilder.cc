@@ -93,8 +93,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     emitConstantPool(*mf.getConstantPool());
 
-    std::cerr << fnName << std::endl;
-
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     
     TTAProgram::Procedure* procedure = 
@@ -384,6 +382,7 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m ) {
     LLVMTCEBuilder::doFinalization(m);
     prog_->convertSymbolRefsToInsRefs();
     TTAProgram::Program::writeToTPEF(*prog_, "cfgddgbuilder.tpef");
+    exit(0);
     return false; 
 }
     

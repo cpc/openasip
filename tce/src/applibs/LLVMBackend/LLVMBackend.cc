@@ -476,19 +476,6 @@ LLVMBackend::compile(
 //    setCodeModelForStatic();
     Passes.add(createGCInfoDeleter());
 
-#ifdef USE_CFGDDG_BUILDER
-    LLVMTCECFGDDGBuilder* cfgddgbuilder = new LLVMTCECFGDDGBuilder(
-        *targetMachine, &target, *ipData);
-
-    Passes.add(cfgddgbuilder);
-
-#else
-    // TODO: This should be moved to emit file pass maybe
-    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    Passes.add(pomBuilder);
-
-#endif
-
     if (ipData_ != NULL) {
         // Stack pointer datum.
         RegDatum* spReg = new RegDatum;
@@ -508,6 +495,19 @@ LLVMBackend::compile(
         rvHighReg->second = plugin.registerIndex(plugin.rvHighDRegNum());
         ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
     }
+
+#ifdef USE_CFGDDG_BUILDER
+    LLVMTCECFGDDGBuilder* cfgddgbuilder = new LLVMTCECFGDDGBuilder(
+        *targetMachine, &target, *ipData);
+
+    Passes.add(cfgddgbuilder);
+
+#else
+    // TODO: This should be moved to emit file pass maybe
+    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
+    Passes.add(pomBuilder);
+
+#endif
 
     Passes.run(module);
 
