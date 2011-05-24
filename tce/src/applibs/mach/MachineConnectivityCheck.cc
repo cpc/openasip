@@ -740,7 +740,7 @@ MachineConnectivityCheck::requiredImmediateWidth(
             MathTools::requiredBits(source.value().unsignedValue());
     } 
 
-    if (source.isInstructionAddress()) {
+    if (source.isInstructionAddress() || source.isBasicBlockReference()) {
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
         return MathTools::requiredBits(as.end());
     }
