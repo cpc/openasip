@@ -42,7 +42,8 @@ TerminalSymbolReference::TerminalSymbolReference(
     
 Terminal* 
 TerminalSymbolReference::copy() const { 
-    return new TerminalSymbolReference(symbolName_); }
+    return new TerminalSymbolReference(symbolName_); 
+}
 
 bool
 TerminalSymbolReference::equals(const Terminal& other) const {

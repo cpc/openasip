@@ -54,7 +54,7 @@ class DataMemory;
 class Move;
 class InstructionReferenceManager;
 class TerminalImmediate;
-class TerminalSymbolReference;
+class Terminal;
 
 /**
  * Represents a TTA program.
@@ -170,8 +170,7 @@ private:
     void copyFrom(const Program& source);
     void cleanup();
 
-    TerminalImmediate* convertSymbolRef(
-        TerminalSymbolReference* tsr);
+    TerminalImmediate* convertSymbolRef(Terminal& tsr);
 
     /// Global scope of the program.
     GlobalScope* globalScope_;

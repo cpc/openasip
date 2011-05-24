@@ -48,7 +48,7 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
     virtual SimValue value() const { return NullSimValue::instance(); }
-    virtual TCEString getSymbol() const { return symbolName_; }
+    virtual TCEString toString() const { return symbolName_; }
     virtual bool isCodeSymbolReference() const { return true; }
 private:
     TCEString symbolName_;

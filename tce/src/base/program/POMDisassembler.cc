@@ -76,9 +76,6 @@
 #include "DisassemblySequentialGuard.hh"
 #include "NullInstructionTemplate.hh"
 
-//#include "TerminalBasicBlockReference.hh"
-#include "TerminalSymbolReference.hh"
-
 using std::string;
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -624,11 +621,9 @@ POMDisassembler::disassemble(const TTAProgram::Move& move) {
                     % move.destination().functionUnit().name()).str();
         } 
         
-        const TerminalSymbolReference* tsr = 
-            dynamic_cast<const TerminalSymbolReference*>(&move.source());
-        if (tsr != NULL) {
+        if (move.source().isCodeSymbolReference()) {
             return (boost::format("%s -> %s.call.1")
-                    % tsr->getSymbol()
+                    % move.source().toString()
                     % move.destination().functionUnit().name()).str();
         }
     }

@@ -740,6 +740,21 @@ MachineConnectivityCheck::requiredImmediateWidth(
             MathTools::requiredBits(source.value().unsignedValue());
     } 
 
+    if (source.isCodeSymbolReference()) {
+        const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
+        if (source.toString() == "_end") {
+            TTAMachine::Machine::AddressSpaceNavigator asNav =
+                mach.addressSpaceNavigator();
+            for (int i = 0; i < asNav.count(); i++) {
+                if (asNav.item(i) != &instrAS) {
+                    return MathTools::requiredBits(asNav.item(i)->end());
+                }
+            }
+            assert(false && "No data address space found!");
+        } else {
+            return MathTools::requiredBits(instrAS.end());
+        }
+    }
     if (source.isInstructionAddress() || source.isBasicBlockReference()) {
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
         return MathTools::requiredBits(as.end());

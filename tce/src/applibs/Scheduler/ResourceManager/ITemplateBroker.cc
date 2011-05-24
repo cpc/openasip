@@ -266,7 +266,9 @@ ITemplateBroker::assignImmediate(
         const ImmediateUnit&  iu = immediate.destination().immediateUnit();
         int neededBitWidth = iTemplate.supportedWidth(iu);
         if (neededBitWidth <= INT_WORD_SIZE &&
-            !immediate.value().isInstructionAddress()) { 
+            (!immediate.value().isInstructionAddress() &&
+             !immediate.value().isBasicBlockReference() &&
+             !immediate.value().isCodeSymbolReference())) {
             // If it is not floating point or instruction address
             // we recreate SimValue with proper bit width based on destination
             if (iu.extensionMode() == Machine::ZERO) {
@@ -681,14 +683,19 @@ ITemplateBroker::findITemplates(
             // instruction's address. So it is not possible to modify the
             // bit width of such SimValue
             if (immediates[i]->value().isInstructionAddress() &&
+                !immediates[i]->value().isBasicBlockReference() &&
+                !immediates[i]->value().isCodeSymbolReference() &&
                 (immediates[i]->value().value().width() >
-                    iTemplate.supportedWidth(unit))) {
+                 iTemplate.supportedWidth(unit))) {
+
                 addResult = false;
                 break;
             }
             // Ignore instruction addresses, based on destination mode
             // tests required bits of correct representation of SimValue
             if (!immediates[i]->value().isInstructionAddress() &&
+                !immediates[i]->value().isBasicBlockReference() &&
+                !immediates[i]->value().isCodeSymbolReference() &&
                 unit.extensionMode() == Machine::ZERO &&
                 MathTools::requiredBits(
                     immediates[i]->value().value().unsignedValue()) >
@@ -697,6 +704,8 @@ ITemplateBroker::findITemplates(
                 break;
             } 
             if (!immediates[i]->value().isInstructionAddress() &&
+                !immediates[i]->value().isBasicBlockReference() &&
+                !immediates[i]->value().isCodeSymbolReference() &&
                 unit.extensionMode() == Machine::SIGN &&
                 MathTools::requiredBitsSigned(
                     immediates[i]->value().value().intValue()) >

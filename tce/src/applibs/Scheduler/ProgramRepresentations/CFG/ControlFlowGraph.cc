@@ -75,7 +75,6 @@
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
-#include "TerminalBasicBlockReference.hh"
 
 using TTAProgram::Program;
 using TTAProgram::Procedure;

@@ -64,7 +64,6 @@
 #include "Immediate.hh"
 #include "MathTools.hh"
 
-#include "TerminalSymbolReference.hh"
 #include "TerminalInstructionAddress.hh"
 using std::string;
 
@@ -1211,8 +1210,8 @@ Program::instructionCount() const {
  * @TODO: Use CodeLabels isntead of procedure?
  */
 TerminalImmediate* 
-Program::convertSymbolRef(TerminalSymbolReference* tsr) {
-    TCEString procName = tsr->getSymbol();
+Program::convertSymbolRef(Terminal& tsr) {
+    TCEString procName = tsr.toString();
     if (!hasProcedure(procName)) {
         if (procName == "_end") {
             for (int i = 0; i < globalScope_->globalDataLabelCount(); i++) {
@@ -1253,21 +1252,15 @@ Program::convertSymbolRefsToInsRefs() {
             for (int k = 0; k < ins.moveCount(); k++) {
                 TTAProgram::Move& move = ins.move(k);
                 TTAProgram::Terminal& src = move.source();
-                TTAProgram::TerminalSymbolReference* tsr =
-                    dynamic_cast<TTAProgram::TerminalSymbolReference*>
-                    (&src);
-                if (tsr != NULL) {
-                    move.setSource(convertSymbolRef(tsr));
+                if (src.isCodeSymbolReference()) {
+                    move.setSource(convertSymbolRef(src));
                 }
             }
             for (int k = 0; k < ins.immediateCount(); k++) {
                 TTAProgram::Immediate& imm = ins.immediate(k);
                 TTAProgram::Terminal& immVal = imm.value();
-                TTAProgram::TerminalSymbolReference* tsr =
-                    dynamic_cast<TTAProgram::TerminalSymbolReference*>
-                    (&immVal);
-                if (tsr != NULL) {
-                    imm.setValue(convertSymbolRef(tsr));
+                if (immVal.isCodeSymbolReference()) {
+                    imm.setValue(convertSymbolRef(immVal));
                 }
             }
         }
