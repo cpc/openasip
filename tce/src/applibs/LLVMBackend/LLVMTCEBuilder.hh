@@ -177,6 +177,9 @@ namespace llvm {
         
         void emitSPInitialization(TTAProgram::CodeSnippet& target);
 
+        /// Code labels.
+        std::map<std::string, TTAProgram::Instruction*> codeLabels_;
+
         /// Machine for building the program.
         TTAMachine::Machine* mach_;
 
@@ -295,8 +298,6 @@ namespace llvm {
         /// Basic Block -> first instruction in the BB map
         std::map<const llvm::BasicBlock*, TTAProgram::Instruction*> bbIndex_;
 
-        /// Code labels.
-        std::map<std::string, TTAProgram::Instruction*> codeLabels_;
         /// Data labels.
         std::map<std::string, unsigned> dataLabels_;
 

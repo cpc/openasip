@@ -358,6 +358,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     cfg->writeToDotFile(fnName + "_cfg.dot");
 
     cfg->copyToProcedure(*procedure, &prog_->instructionReferenceManager());
+    codeLabels_[fnName] = &procedure->firstInstruction();
 
 
     delete ddg;
