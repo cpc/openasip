@@ -27,7 +27,7 @@
 -- Author     : Otto Esko <otto.esko-no.spam-tut.fi>
 -- Company    : 
 -- Created    : 2009-02-04
--- Last update: 2010-03-04
+-- Last update: 2011-05-24
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Timer unit with 32-bit rtimer and rtc operations
@@ -42,6 +42,7 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2009-02-04  1.0      eskoo    Initial version
+-- 2011-05-24  1.1      eskoo    Lock cycles are also counted as ticks
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -109,19 +110,19 @@ begin  -- rtl
       tick_counter   <= to_unsigned(1, tick_counter'length);
       r1reg          <= (others => '0');
     elsif clk'event and clk = '1' then  -- rising clock edge
-      if glock = '0' then
 
-        tick_counter <= tick_counter + to_unsigned(1, tick_counter'length);
-        -- if one usec has passed
-        if tick_counter = ticks_per_usec then
-          tick_counter <= to_unsigned(1, tick_counter'length);
-          if not(rtimer_counter = 0) then
-            rtimer_counter <=
-              rtimer_counter - to_unsigned(1, rtimer_counter'length);
-          end if;
-          rtc_counter <= rtc_counter + to_unsigned(1, rtc_counter'length);
+      tick_counter <= tick_counter + to_unsigned(1, tick_counter'length);
+      -- if one usec has passed
+      if tick_counter = ticks_per_usec then
+        tick_counter <= to_unsigned(1, tick_counter'length);
+        if not(rtimer_counter = 0) then
+          rtimer_counter <=
+            rtimer_counter - to_unsigned(1, rtimer_counter'length);
         end if;
+        rtc_counter <= rtc_counter + to_unsigned(1, rtc_counter'length);
+      end if;
 
+      if glock = '0' then
         if t1load = '1' then
           case t1opcode is
             when OPC_RTIMER =>
