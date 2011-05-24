@@ -49,6 +49,8 @@ namespace TTAMachine {
     class Port;
 }
 
+class BasicBlock;
+
 namespace TTAProgram {
 
 class InstructionReference;
@@ -68,6 +70,8 @@ public:
     virtual bool isGPR() const;
     virtual bool isFUPort() const;
     virtual bool isRA() const;
+    virtual bool isBasicBlockReference() const;
+    virtual bool isCodeSymbolReference() const;
     virtual SimValue value() const;
     virtual Address address() const throw (WrongSubclass);
     virtual const InstructionReference& instructionReference() const
@@ -79,6 +83,8 @@ public:
     virtual const TTAMachine::ImmediateUnit& immediateUnit() const
         throw (WrongSubclass);
     virtual const TTAMachine::FunctionUnit& functionUnit() const
+        throw (WrongSubclass);
+    virtual const BasicBlock& basicBlock() const
         throw (WrongSubclass);
     virtual int index() const 
         throw (WrongSubclass);

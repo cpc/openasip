@@ -1046,15 +1046,18 @@ ProgramWriter::createCodeSection(
                         } else {
                             int location =  
                                 progMove.parent().address().location();
+                            TCEString message = "Inline immediate value ";
+                            message <<
+                                progMove.source().value().unsignedValue() <<
+                                " of required width " <<
+                                Conversion::toString(requiredBits) <<
+                                " at location " <<
+                                Conversion::toString(location) <<
+                                " doesn't fit to bus: " <<
+                                progMove.bus().name();
+
                             throw NotAvailable(
-                                __FILE__, __LINE__, __func__, 
-                                "Inline immediate value "
-                                " of required width " +
-                                Conversion::toString(requiredBits) +
-                                " at location " +
-                                Conversion::toString(location) +
-                                " doesn't fit to bus: " + 
-                                progMove.bus().name());
+                                __FILE__, __LINE__, __func__, message);
                         }   
                         
                         newImmediate->setWord(wordToStore);

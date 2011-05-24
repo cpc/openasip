@@ -1770,11 +1770,8 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                 for (int k = 0; k < ins.moveCount(); k++) {
                     TTAProgram::Move& move = ins.move(k);
                     TTAProgram::Terminal& src = move.source();
-                    TTAProgram::TerminalBasicBlockReference* tbbr =
-                        dynamic_cast<TTAProgram::TerminalBasicBlockReference*>
-                        (&src);
-                    if (tbbr != NULL) {
-                        const BasicBlock& target = tbbr->basicBlock();
+                    if (src.isBasicBlockReference()) {
+                        const BasicBlock& target = src.basicBlock();
                         assert(target.instructionCount() >0);
                         move.setSource(
                             new TTAProgram::TerminalInstructionAddress(
@@ -1786,11 +1783,8 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                 for (int k = 0; k < ins.immediateCount(); k++) {
                     TTAProgram::Immediate& imm = ins.immediate(k);
                     TTAProgram::Terminal& immVal = imm.value();
-                    TTAProgram::TerminalBasicBlockReference* tbbr =
-                        dynamic_cast<TTAProgram::TerminalBasicBlockReference*>
-                        (&immVal);
-                    if (tbbr != NULL) {
-                        const BasicBlock& target = tbbr->basicBlock();
+                    if (immVal.isBasicBlockReference()) {
+                        const BasicBlock& target = immVal.basicBlock();
                         assert(target.instructionCount() >0);
                         imm.setValue(
                             new TTAProgram::TerminalInstructionAddress(

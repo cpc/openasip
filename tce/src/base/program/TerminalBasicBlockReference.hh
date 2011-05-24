@@ -47,7 +47,9 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
     virtual SimValue value() const;
-    const BasicBlock& basicBlock() const { return *bb_; }
+    virtual const BasicBlock& basicBlock() const
+        throw (WrongSubclass) { return *bb_; }
+    virtual bool isBasicBlockReference() const { return true; }
 private:
     const BasicBlock* bb_;
 };

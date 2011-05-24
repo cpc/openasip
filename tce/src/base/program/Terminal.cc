@@ -130,6 +130,25 @@ Terminal::isRA() const {
     return false;
 }
 
+/**
+ * Tells whether the terminal is reference to a basic block.
+ *
+ * @return True if the terminal is a ref to a basic block
+ */
+bool
+Terminal::isBasicBlockReference() const {
+    return false;
+}
+
+/**
+ * Tells whether the terminal is reference to a code symbol
+ *
+ * @return True if the terminal is a ref to a code symbol
+ */
+bool
+Terminal::isCodeSymbolReference() const {
+    return false;
+}
 
 /**
  * Returns the value of the inline immediate.
@@ -218,6 +237,18 @@ Terminal::immediateUnit() const throw (WrongSubclass) {
  */
 const FunctionUnit&
 Terminal::functionUnit() const throw (WrongSubclass) {
+    throw WrongSubclass(__FILE__, __LINE__);
+}
+
+/**
+ * Returns a reference to the basic block to which the immediate points.
+ *
+ * @return A reference to the basic block to which the immediate points.
+ */
+const BasicBlock&
+Terminal::basicBlock() const
+    throw (WrongSubclass) {
+
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
