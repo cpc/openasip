@@ -163,12 +163,11 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         int slotsFilled = 0;
 
         ControlFlowEdge& edge = **iter;
-        if(isFallThruEdge(edge,*jumpMove) != fillFallThru) {
+        if (edge.isFallThroughEdge() != fillFallThru) {
             continue;
         }
 
         BasicBlockNode& nextBBN = cfg_->headNode(edge);
-
         if (nextBBN.isNormalBB()) {
 
             // cannot remove ins if more than one input path to BB
@@ -304,20 +303,6 @@ void
 CopyingDelaySlotFiller::addResourceManager(
     BasicBlock& bb, SimpleResourceManager& rm) {
     resourceManagers_[&bb] = &rm;
-}
-
-/**
- * Checks if an edge is a fall-thru or a jump edge
- * 
- * @param e edge being checked
- * @param jumpMove move containing the jump
- * @return true if edge is fall-thru, not jump
- */
-bool 
-CopyingDelaySlotFiller::isFallThruEdge(ControlFlowEdge& e, Move& jumpMove) {
-
-    return (e.isTrueEdge() && jumpMove.guard().guard().isInverted())
-        || (e.isFalseEdge() && !jumpMove.guard().guard().isInverted());
 }
 
 /**

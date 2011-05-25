@@ -114,6 +114,7 @@ public:
     void addExitFromSinkNodes(BasicBlockNode* exitNode);
     void detectBackEdges();
 
+    void reverseGuardOnOutEdges(const BasicBlockNode& bbn);
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>

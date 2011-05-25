@@ -74,6 +74,7 @@ public:
     bool isLoopBreakEdge() const;
     bool isBackEdge() const;
     TCEString toString() const;
+    void setPredicate(CFGEdgePredicate pred) { edgePredicate_ = pred; }
 
     CFGEdgePredicate edgePredicate() { return edgePredicate_; }
     CFGEdgeType edgeType() { return edgeType_; }

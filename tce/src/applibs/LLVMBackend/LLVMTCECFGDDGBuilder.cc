@@ -48,6 +48,8 @@
 
 #include "POMDisassembler.hh"
 
+#include "LLVMTCECmdLineOptions.hh"
+
 #if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
 #include <llvm/ADT/SmallString.h>
 #endif
@@ -100,7 +102,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     prog_->addProcedure(procedure);
 
-    ControlFlowGraph* cfg = new ControlFlowGraph(fnName);
+    ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
     
 /*
     // TODO: antidep level bigger on trunk where loop scheduling.
@@ -344,12 +346,12 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     DataDependenceGraph* ddg = ddgBuilder_.build(
         *cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
 
-//    PreOptimizer preOpt(*ipData_);
-//    preOpt.handleDDG(*ddg, NULL);
+    PreOptimizer preOpt(*ipData_);
+    preOpt.handleCFGDDG(*cfg, *ddg);
 
-//    CycleLookBackSoftwareBypasser bypasser;
-//    CopyingDelaySlotFiller dsf;
-    BBSchedulerController bbsc(*ipData_); //, &bypasser, &dsf);
+    CycleLookBackSoftwareBypasser bypasser;
+    CopyingDelaySlotFiller dsf;
+    BBSchedulerController bbsc(*ipData_, &bypasser, &dsf);
     bbsc.handleCFGDDG(*cfg, *ddg, *mach_ );
 
     cfg->convertBBRefsToInstRefs(prog_->instructionReferenceManager());
@@ -357,9 +359,10 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     ddg->writeToDotFile(fnName + "_ddg.dot");
     cfg->writeToDotFile(fnName + "_cfg.dot");
 
-    cfg->copyToProcedure(*procedure, &prog_->instructionReferenceManager());
-    codeLabels_[fnName] = &procedure->firstInstruction();
+    dsf.fillDelaySlots(*cfg, *ddg, *mach_, prog_->universalMachine(), true);
 
+    cfg->copyToProcedure(*procedure);//, &prog_->instructionReferenceManager());
+    codeLabels_[fnName] = &procedure->firstInstruction();
 
     delete ddg;
     delete cfg;
@@ -382,7 +385,17 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m ) {
 
     LLVMTCEBuilder::doFinalization(m);
     prog_->convertSymbolRefsToInsRefs();
-    TTAProgram::Program::writeToTPEF(*prog_, "cfgddgbuilder.tpef");
+
+    LLVMTCECmdLineOptions* options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
+
+    std::string outputFileName = "cfgddgbuilder.tpef";
+    if (options->isOutputFileDefined()) {
+        outputFileName = options->outputFile();
+    }
+
+//    TTAProgram::Program::writeToTPEF(*prog_, "cfgddgbuilder.tpef");
+    TTAProgram::Program::writeToTPEF(*prog_, outputFileName);
     exit(0);
     return false; 
 }

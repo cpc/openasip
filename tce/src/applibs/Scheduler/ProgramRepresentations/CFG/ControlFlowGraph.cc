@@ -1417,11 +1417,15 @@ ControlFlowGraph::copyToProcedure(
     while (currentBBN != NULL) {
         BasicBlockNode* nextNode = NULL;
         BasicBlock& bb = currentBBN->basicBlock();
-
         // todo: if refs to skipped instructions, breaks?
 
         for (int i = 0; i < bb.skippedFirstInstructions(); i++) {
             Instruction& ins = bb.instructionAtIndex(i);
+            if (irm->hasReference(ins)) {
+                std::cerr << "\tSkipped inst has refs, proc: " << proc.name()
+                          << " index: " << i << std::endl;
+                writeToDotFile("\tSkipped_has_ref.dot");
+            }
             assert(!irm->hasReference(ins));
         }
 
@@ -1792,6 +1796,27 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Reverses predicate of outgoing edges.
+ *
+ */
+void
+ControlFlowGraph::reverseGuardOnOutEdges(const BasicBlockNode& bbn) {
+    for (int i = 0; i < outDegree(bbn); i++) {
+        Edge& e = outEdge(bbn,i);
+        if (e.isTrueEdge()) {
+            e.setPredicate(ControlFlowEdge::CFLOW_EDGE_FALSE);
+        } else if (e.isFalseEdge()) {
+            e.setPredicate(ControlFlowEdge::CFLOW_EDGE_TRUE);
+        } else {
+            std::cerr << "node in question: " << bbn.toString() <<
+                " edge: " << e.toString() << std::endl;
+            writeToDotFile("invalid_predicate.dot");
+            assert(false && "Can only reverse predicate true or false");
         }
     }
 }

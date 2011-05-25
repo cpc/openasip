@@ -148,7 +148,7 @@ PreOptimizer::tryToOptimizeAddressReg(
 }
 
 
-bool 
+TTAProgram::CodeSnippet*
 PreOptimizer::tryToRemoveXor(
     DataDependenceGraph& ddg, ProgramOperation& po,
     TTAProgram::InstructionReferenceManager* irm) {
@@ -160,7 +160,7 @@ PreOptimizer::tryToRemoveXor(
     MoveNode& operand2 = po.inputMove(1);
     TTAProgram::Terminal& src2 = operand2.move().source();
     if (!src2.isImmediate() || src2.value().intValue() != 1) {
-        return false;
+        return NULL;
     }
     // now we have a xor op which is a truth value reversal.
     // find where the result is used.
@@ -197,12 +197,11 @@ PreOptimizer::tryToRemoveXor(
                 }
             }
         }
-        
     }
     // some more complex things done with the guard.
     // converting those not yet supported.
     if (!ok) {
-        return false;
+        return NULL;
     }
     
     TTAProgram::Instruction& operand1Ins = operand1.move().parent();
@@ -214,9 +213,10 @@ PreOptimizer::tryToRemoveXor(
     if (irm != NULL && 
         (irm->hasReference(operand1Ins) || irm->hasReference(operand2Ins) ||
          irm->hasReference(resultIns))) {
-        return false;
+        return NULL;
     }
     
+    bool reversesJump = false;
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
@@ -226,6 +226,9 @@ PreOptimizer::tryToRemoveXor(
         guardUseMove.setGuard(
             TTAProgram::CodeGenerator::createInverseGuard(
                 guardUseMove.guard()));
+        if (guardUseMove.isJump()) {
+            reversesJump = true;
+        }
     }
     
     // need some copy from one predicate to another?
@@ -253,24 +256,29 @@ PreOptimizer::tryToRemoveXor(
     }
     
     // delete the xor operation. (the moves and instructions.)
+    TTAProgram::CodeSnippet& parent = operand1Ins.parent();
     
     assert(operand1Ins.moveCount() == 1);
     ddg.deleteNode(operand1);
-    operand1Ins.parent().remove(operand1Ins);
+    parent.remove(operand1Ins);
     delete &operand1Ins;
     
     assert(operand2Ins.moveCount() == 1);
     ddg.deleteNode(operand2);
-    operand2Ins.parent().remove(operand2Ins);
+    parent.remove(operand2Ins);
     delete &operand2Ins;
     
     
     assert(resultIns.moveCount() == 1);
     ddg.deleteNode(result);
-    resultIns.parent().remove(resultIns);
+    parent.remove(resultIns);
     delete &resultIns;
-    
-    return true;
+
+    if (reversesJump) {
+        return &parent;
+    } else {
+        return NULL;
+    }
 }
 
 /**
@@ -285,22 +293,6 @@ PreOptimizer::handleProcedure(
     const TTAMachine::Machine& mach)
     throw (Exception) {
 
-/*
-    // If procedure has too many instructions, may run out of memory.
-    // so check the lowmem mode. in lowmem mode this optimiziation 
-    // is disabled, so returns.
-    SchedulerCmdLineOptions* opts = 
-        dynamic_cast<SchedulerCmdLineOptions*>(Application::cmdLineOptions());
-    int lowMemThreshold = DEFAULT_LOWMEM_MODE_THRESHOLD;
-
-    if (opts != NULL && opts->lowMemModeThreshold() > -1) {
-        lowMemThreshold = opts->lowMemModeThreshold();
-    }
-
-    if (procedure.instructionCount() >=lowMemThreshold) {
-        return;
-    }
-*/
     ControlFlowGraph cfg(procedure /*, ProcedurePass::interPassData()*/);
     cfg.updateReferencesFromProcToCfg();
 
@@ -309,16 +301,36 @@ PreOptimizer::handleProcedure(
     // copy back to the program.
     cfg.copyToProcedure(procedure);
 }
-    
-void PreOptimizer::handleDDG(
-    DataDependenceGraph& ddg, TTAProgram::InstructionReferenceManager* irm) {
-    
+
+void
+PreOptimizer::handleCFGDDG(
+    ControlFlowGraph& cfg,
+    DataDependenceGraph& ddg) {
+
+    TTAProgram::Program* program = cfg.program();
+    TTAProgram::InstructionReferenceManager* irm = 
+        program == NULL ? NULL :
+        &program->instructionReferenceManager();
+
     // Loop over all programoperations. find XOR's by 1.
     for (int i = 0; i < ddg.programOperationCount(); i++) {
         ProgramOperation& po = ddg.programOperation(i);
         if (po.operation().name() == "XOR") {
-            if (tryToRemoveXor(ddg,po,irm)) {
-                continue;
+            TTAProgram::CodeSnippet* parent = tryToRemoveXor(ddg,po,irm);
+            if (parent) {
+                bool found = false;
+                for (int j = 0; j < cfg.nodeCount(); j++) {
+                    BasicBlockNode& bbn = cfg.node(j);
+                    if (&bbn.basicBlock() == parent) {
+                        cfg.reverseGuardOnOutEdges(bbn);
+                        found = true;
+                        break;
+                    }
+                }
+                if (found == true) {
+                    continue;
+                }
+                assert(false && "invalid parent on removed xor inst.");
             }
         }
 
@@ -330,16 +342,12 @@ void PreOptimizer::handleDDG(
     }
 }
 
+
 void
 PreOptimizer::handleControlFlowGraph(
     ControlFlowGraph& cfg,
     const TTAMachine::Machine&)
     throw (Exception) {
-
-    TTAProgram::Program* program = cfg.program();
-    TTAProgram::InstructionReferenceManager* irm = 
-        program == NULL ? NULL :
-        &program->instructionReferenceManager();
 
     DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
     // only RAW register edges and operation edges. no mem edges, 
@@ -347,7 +355,8 @@ PreOptimizer::handleControlFlowGraph(
     DataDependenceGraph* ddg = ddgBuilder.build(
         cfg, DataDependenceGraph::NO_ANTIDEPS, NULL, false);
     
-    handleDDG(*ddg, irm);
+    handleCFGDDG(cfg, *ddg);
+
     delete ddg;
 }
 

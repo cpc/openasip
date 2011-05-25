@@ -75,16 +75,15 @@ public:
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    // interface not same as ddgpass. this handles whole-procedure ddg.
-    void handleDDG(
-        DataDependenceGraph& ddg,
-        TTAProgram::InstructionReferenceManager* irm = NULL);
+    void handleCFGDDG(
+        ControlFlowGraph& cfg,
+        DataDependenceGraph& ddg);
 
     std::string shortDescription() const { return "optimizes away guard nagation operaions, uses opposite guards instead"; };
 private:
     bool tryToOptimizeAddressReg(
         DataDependenceGraph& ddg, ProgramOperation&po);
-    bool tryToRemoveXor(
+    TTAProgram::CodeSnippet* tryToRemoveXor(
         DataDependenceGraph& ddg, ProgramOperation& po,
         TTAProgram::InstructionReferenceManager* irm);
 

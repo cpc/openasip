@@ -79,7 +79,6 @@ private:
     typedef std::vector <std::list<MoveNode*> > MoveNodeListVector;
 
     TTAProgram::MoveGuard* createInverseGuard(TTAProgram::MoveGuard &mg);
-    bool isFallThruEdge(ControlFlowEdge& e, TTAProgram::Move& jumpMove);
     TTAProgram::Immediate* findJumpImmediate(
         int jumpIndex, TTAProgram::Move& jumpMove)
         throw (Exception);
