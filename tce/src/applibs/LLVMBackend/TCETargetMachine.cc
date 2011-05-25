@@ -34,7 +34,6 @@
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Target/TargetRegistry.h"
-#include "llvm/Support/StandardPasses.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"

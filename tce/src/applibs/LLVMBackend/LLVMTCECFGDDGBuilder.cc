@@ -166,9 +166,9 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 // also need to split BB on cond branch.
                 // LLVM BB may contain 2 branches.
                 if (j->getDesc().isBranch()) {
+		    // TODO: correctly detect conditional branches
                     if (operationName(*j) == "?jump") {
-                        // TODO: why does this match TCEBR ????
-                        assert(mi->getNumOperands() == 2);
+                        assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
                         assert(mo.isMBB());
                         condJumpSucc[bbn] = mo.getMBB();
