@@ -244,15 +244,11 @@ PreOptimizer::tryToRemoveXor(
             resultMove.parent(), newIns);
         MoveNode* newMN = new MoveNode(*newMove);
         ddg.addNode(*newMN);
-        ddg.moveOutEdges(result, *newMN);
-        ddg.moveInEdges(operand1, *newMN);
+        ddg.combineNodes(operand1, result, *newMN);
+
     } else {
-        // should update DDG over these, but because the same ddg
-        // is not used but is recreated, this update is not done here.
-        
-        // TODO: creates cycle?
-//            ddg.moveinEdges(operand1, result);
-//            ddg.copyDepsOver(result, true, true);
+        // the op just gets deleted.
+        ddg.copyDepsOver(operand1, result);
     }
     
     // delete the xor operation. (the moves and instructions.)
@@ -333,11 +329,9 @@ PreOptimizer::handleCFGDDG(
                 assert(false && "invalid parent on removed xor inst.");
             }
         }
-
         if (po.operation().readsMemory()) {
             tryToOptimizeAddressReg(ddg, po);
         }
-
         // TODO: remove also programoperation.
     }
 }

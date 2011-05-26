@@ -1770,7 +1770,7 @@ DataDependenceGraphBuilder::build(
 
     // @TODO: when CFG subgraphs are in use, 2nd param not always true
     DataDependenceGraph* ddg = new DataDependenceGraph(
-        allParamRegs_, cfg.procedureName(), antidependenceLevel, NULL, true, 
+        allParamRegs_, cfg.name(), antidependenceLevel, NULL, true, 
         false);
     try {
         // this is just for old frontend code.

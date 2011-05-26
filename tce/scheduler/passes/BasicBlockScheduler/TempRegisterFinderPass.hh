@@ -25,7 +25,9 @@
  * @file TempRegisterFinderPass.hh
  *
  * Class which finds free regs for temp reg copier.
- * 
+ *
+ * @TODO: remove this class totally.
+ *
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */

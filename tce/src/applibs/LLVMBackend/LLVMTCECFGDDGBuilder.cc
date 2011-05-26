@@ -46,8 +46,7 @@
 
 #include "InstructionReferenceManager.hh"
 
-#include "POMDisassembler.hh"
-
+#include "RegisterCopyAdder.hh"
 #include "LLVMTCECmdLineOptions.hh"
 
 #if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
@@ -64,6 +63,7 @@ char LLVMTCECFGDDGBuilder::ID = -1;
 LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
     llvm::TargetMachine& tm, TTAMachine::Machine* mach, InterPassData& ipd) :
     LLVMTCEBuilder(tm, mach, ID), ipData_(&ipd), ddgBuilder_(ipd) {
+    RegisterCopyAdder::findTempRegisters(*mach, ipd);
 }
 
 /**

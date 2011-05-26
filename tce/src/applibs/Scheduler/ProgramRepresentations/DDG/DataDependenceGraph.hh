@@ -251,6 +251,11 @@ public:
 
     void copyDepsOver(MoveNode& node, bool anti, bool raw);
 
+    void copyDepsOver(MoveNode& node1, MoveNode& node2);
+
+    void combineNodes(
+        MoveNode& node1, MoveNode& node2, MoveNode& destination);
+
     TTAProgram::Move* findLoopLimit(MoveNode& jumpMove);
 
     void moveFUDependenciesToTrigger(MoveNode& trigger);

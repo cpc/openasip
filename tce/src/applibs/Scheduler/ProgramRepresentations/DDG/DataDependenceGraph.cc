@@ -1667,6 +1667,222 @@ DataDependenceGraph::copyDepsOver(MoveNode& node, bool anti, bool raw) {
     }
 }
 
+void
+DataDependenceGraph::copyDepsOver(MoveNode& node1, MoveNode& node2) {
+
+    DataDependenceGraph::NodeDescriptor nd1 = descriptor(node1);
+    DataDependenceGraph::NodeDescriptor nd2 = descriptor(node2);
+
+    EdgeSet iEdges1 = inEdges(node1);
+    EdgeSet oEdges1 = outEdges(node1);
+    EdgeSet iEdges2 = inEdges(node2);
+    EdgeSet oEdges2 = outEdges(node2);
+        
+    // Loop thru all outedges.
+    for (EdgeSet::iterator i = oEdges2.begin(); i != oEdges2.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
+
+        if ((oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
+            (oEdge.dependenceType() == DataDependenceEdge::DEP_WAW ||
+             oEdge.dependenceType() == DataDependenceEdge::DEP_RAW)) {
+
+            MoveNode& head = headNode(oEdge, nd2);
+            // Then loop all incoming edges for raw deps
+            for (EdgeSet::iterator j = iEdges1.begin(); 
+                 j != iEdges1.end(); j++) {
+                DataDependenceEdge& iEdge = **j;
+                
+                // RAW going over node.
+                if (iEdge.dependenceType() == oEdge.dependenceType() &&
+                    iEdge.dependenceType() == DataDependenceEdge::DEP_RAW &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+
+                    MoveNode& tail = tailNode(iEdge, nd1);
+
+                    if (!exclusingGuards(tail, head) ||
+                        (oEdge.dependenceType() == oEdge.guardUse())) {
+
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+            }
+
+            // Then loop all incoming edges for waw deps
+            for (EdgeSet::iterator j = iEdges2.begin(); 
+                 j != iEdges2.end(); j++) {
+                DataDependenceEdge& iEdge = **j;
+
+                // WAW going over node.
+                if (iEdge.dependenceType() == oEdge.dependenceType() &&
+                    iEdge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+
+                    MoveNode& tail = tailNode(iEdge);
+
+                    if (!exclusingGuards(tail, head) && &tail != &node1) {
+
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+
+                // if WAR and same register, and oedge was waw, copy edge.
+                if (iEdge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                    oEdge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+                    
+                    MoveNode& tail = tailNode(iEdge,nd2);
+                    
+                    if (!exclusingGuards(tail, head)) {
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+            }
+        }
+    }
+
+    // copy WARs over.
+    for (EdgeSet::iterator i = oEdges1.begin(); i != oEdges1.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
+
+        if ((oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
+            oEdge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+
+            MoveNode& head = headNode(oEdge,nd1);
+            if (&head == &node2) {
+                continue;
+            }
+
+            // Then loop all incoming edges for waw deps
+            for (EdgeSet::iterator j = iEdges2.begin(); 
+                 j != iEdges2.end(); j++) {
+                DataDependenceEdge& iEdge = **j;
+
+                // WAW going over node.
+                if (iEdge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                    (iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                    iEdge.data() == oEdge.data()) {
+
+                    MoveNode& tail = tailNode(iEdge,nd2);
+                    if (!exclusingGuards(tail, head) && &tail != &node1) {
+                        // create new edge
+                        // same other properties but sum loop depth
+                        DataDependenceEdge* edge = 
+                            new DataDependenceEdge(
+                                iEdge.edgeReason(),
+                                iEdge.dependenceType(),
+                                iEdge.data(),
+                                iEdge.guardUse(), 
+                                false, 
+                                iEdge.tailPseudo(),
+                                oEdge.headPseudo(),
+                                iEdge.loopDepth() + oEdge.loopDepth());
+                        
+                        connectOrDeleteEdge(tail, head, edge);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void
+DataDependenceGraph::combineNodes(
+    MoveNode& node1, MoveNode& node2, MoveNode& destination) {
+
+    DataDependenceGraph::NodeDescriptor nd1 = descriptor(node1);
+    DataDependenceGraph::NodeDescriptor nd2 = descriptor(node2);
+
+    moveOutEdges(node2, destination);
+    moveInEdges(node1, destination);
+
+    EdgeSet oEdges1 = outEdges(node1);
+    EdgeSet iEdges2 = inEdges(node2);
+
+    // copy WARs over.
+    for (EdgeSet::iterator i = oEdges1.begin(); i != oEdges1.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
+
+        if ((oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
+            oEdge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+
+            MoveNode& head = headNode(oEdge,nd1);
+            if (&head == &node2) {
+                continue;
+            }
+            moveOutEdge(node1, destination, oEdge);
+        }
+    }
+
+    for (EdgeSet::iterator i = iEdges2.begin(); i != iEdges2.end(); i++) {
+        DataDependenceEdge& iEdge = **i;
+        
+        if ((iEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
+             || iEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
+            (iEdge.dependenceType() == DataDependenceEdge::DEP_WAR 
+             || iEdge.dependenceType() == DataDependenceEdge::DEP_WAW)) {
+
+            MoveNode& tail = tailNode(iEdge,nd2);
+            if (&tail == &node1) {
+                continue;
+            }
+            moveInEdge(node2, destination, iEdge);
+        }
+    }
+}
+
+
+
+
+
 /**
  * Removes MoveNode from graph and ProgramOperations.
  *

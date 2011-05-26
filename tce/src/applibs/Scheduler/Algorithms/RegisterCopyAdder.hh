@@ -106,6 +106,9 @@ public:
         MoveNode& moveNode, 
         DataDependenceGraph* ddg);
 
+    static void findTempRegisters(
+        const TTAMachine::Machine& machine, InterPassData& ipd);
+
 private:
     AddedRegisterCopies addRegisterCopies(
         ProgramOperation& programOperation,
