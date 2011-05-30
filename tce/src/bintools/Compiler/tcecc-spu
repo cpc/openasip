@@ -1,0 +1,47 @@
+#!/bin/sh
+# -*- coding: utf-8 -*-
+# 
+# Copyright (c) 2011 Tampere University of Technology.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+#
+# @author Pekka Jääskeläinen 2011
+#
+# Compiler driver for Cell SPU that utilizes LLVM and the 
+# TCE instruction scheduling framework.
+#
+# Always outputs assembly and maximum optimizations for now.
+# Just an example of how to load the plugin etc. should not be 
+# used as the final compiler driver.
+#
+#  Usage: tcecc-spu module.c
+# Output: module.s
+
+bitcode=`mktemp`
+
+input=$1
+target=`basename ${input} .c`.s
+
+script_dir=`dirname $0`
+adf=${script_dir}/fixed-adf/cellspu.adf
+
+clang -ccc-host-triple cellspu-v0 -O3 -c -emit-llvm ${input} -o ${bitcode}
+llc -load  ${script_dir}/../../.libs/libtce.so -adf ${adf} ${bitcode} -o ${target}
