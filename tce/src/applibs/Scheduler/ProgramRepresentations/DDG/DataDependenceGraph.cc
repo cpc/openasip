@@ -1668,7 +1668,8 @@ DataDependenceGraph::copyDepsOver(MoveNode& node, bool anti, bool raw) {
 }
 
 void
-DataDependenceGraph::copyDepsOver(MoveNode& node1, MoveNode& node2) {
+DataDependenceGraph::copyDepsOver(
+    MoveNode& node1, MoveNode& node2, bool anti, bool raw) {
 
     DataDependenceGraph::NodeDescriptor nd1 = descriptor(node1);
     DataDependenceGraph::NodeDescriptor nd2 = descriptor(node2);
@@ -1683,10 +1684,13 @@ DataDependenceGraph::copyDepsOver(MoveNode& node1, MoveNode& node2) {
         DataDependenceEdge& oEdge = **i;
 
         if ((oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
-             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) && 
-            (oEdge.dependenceType() == DataDependenceEdge::DEP_WAW ||
-             oEdge.dependenceType() == DataDependenceEdge::DEP_RAW)) {
+             || oEdge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+            ((oEdge.dependenceType() ==DataDependenceEdge::DEP_WAW && anti)||
+             ((oEdge.dependenceType()==DataDependenceEdge::DEP_RAW && raw)))){
 
+            if (!raw) {
+                continue;
+            }
             MoveNode& head = headNode(oEdge, nd2);
             // Then loop all incoming edges for raw deps
             for (EdgeSet::iterator j = iEdges1.begin(); 
@@ -1721,6 +1725,10 @@ DataDependenceGraph::copyDepsOver(MoveNode& node1, MoveNode& node2) {
                         connectOrDeleteEdge(tail, head, edge);
                     }
                 }
+            }
+
+            if (anti) {
+                continue;
             }
 
             // Then loop all incoming edges for waw deps
@@ -1784,6 +1792,10 @@ DataDependenceGraph::copyDepsOver(MoveNode& node1, MoveNode& node2) {
                 }
             }
         }
+    }
+
+    if (!anti) {
+        return;
     }
 
     // copy WARs over.
@@ -3563,6 +3575,61 @@ DataDependenceGraph::destRenamed(MoveNode& mn) {
         }
     }
 }
+
+void 
+DataDependenceGraph::renamedSimpleLiveRange(
+    MoveNode& src, MoveNode& dest, MoveNode& antidepPoint,
+    DataDependenceEdge& connectingEdge,
+    const TCEString& oldReg, const TCEString& newReg) {
+    
+    // if nothing changed, retuen
+    if (oldReg == newReg) {
+        return;
+    }
+
+    // copy antideps over these two nodes
+    copyDepsOver(src, dest, true, false);
+
+    NodeDescriptor ndADP = descriptor(antidepPoint);
+    EdgeSet resultInEdges = inEdges(antidepPoint);
+
+    // move antideps coming to adeppoint into src
+    for (EdgeSet::iterator i = resultInEdges.begin(); 
+         i != resultInEdges.end(); i++) {
+        DataDependenceEdge& e = **i;
+        if (e.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !e.headPseudo() &&
+            (e.dependenceType() == DataDependenceEdge::DEP_WAW ||
+             e.dependenceType() == DataDependenceEdge::DEP_WAR)) {
+            assert(e.data() == newReg);
+            MoveNode& tail = tailNode(e, ndADP);
+            // do not create loop.
+            if (e.loopDepth() == 0 && &tail == &src) {
+                removeEdge(e);
+            } else {
+                moveInEdge(antidepPoint, src, e);
+            }
+        }
+    }
+
+    DataDependenceEdge* warEdge = new DataDependenceEdge(
+        DataDependenceEdge::EDGE_REGISTER,
+        DataDependenceEdge::DEP_WAR,
+        newReg, false, false, false, false, 0);
+
+    DataDependenceEdge* wawEdge = new DataDependenceEdge(
+        DataDependenceEdge::EDGE_REGISTER,
+        DataDependenceEdge::DEP_WAW,
+        newReg, false, false, false, false, 0);
+
+    connectNodes(src, antidepPoint, *wawEdge);
+    connectNodes(dest, antidepPoint, *warEdge);
+
+    assert(connectingEdge.data() == oldReg);
+    connectingEdge.setData(newReg);
+}
+
+
 
 MoveNode* 
 DataDependenceGraph::findLimitingAntidependenceSource(MoveNode& mn) {

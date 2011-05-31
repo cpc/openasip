@@ -75,6 +75,9 @@ PreOptimizer::handleProgram(
 bool 
 PreOptimizer::tryToOptimizeAddressReg(
     DataDependenceGraph& ddg, ProgramOperation& po) {
+ 
+    DataDependenceEdge* connectingEdge = NULL;
+
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 1) {
         return false;
     }
@@ -103,6 +106,7 @@ PreOptimizer::tryToOptimizeAddressReg(
 */
             if (src == NULL) {
                 src = &ddg.tailNode(edge);
+                connectingEdge = &edge;
             } else {
                 return false;
             }
@@ -142,8 +146,16 @@ PreOptimizer::tryToOptimizeAddressReg(
         return false;
     }
 
+    TCEString oldReg = 
+        DisassemblyRegister::registerName(address.move().source());
+    TCEString newReg = 
+        DisassemblyRegister::registerName(result.move().destination());
+
     address.move().setSource(result.move().destination().copy());
     src->move().setDestination(result.move().destination().copy());
+
+    ddg.renamedSimpleLiveRange(
+        *src, address, result, *connectingEdge, oldReg, newReg);
     return true;
 }
 
@@ -248,7 +260,7 @@ PreOptimizer::tryToRemoveXor(
 
     } else {
         // the op just gets deleted.
-        ddg.copyDepsOver(operand1, result);
+        ddg.copyDepsOver(operand1, result, true, true);
     }
     
     // delete the xor operation. (the moves and instructions.)

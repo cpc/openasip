@@ -251,7 +251,7 @@ public:
 
     void copyDepsOver(MoveNode& node, bool anti, bool raw);
 
-    void copyDepsOver(MoveNode& node1, MoveNode& node2);
+    void copyDepsOver(MoveNode& node1, MoveNode& node2, bool anti, bool raw);
 
     void combineNodes(
         MoveNode& node1, MoveNode& node2, MoveNode& destination);
@@ -268,6 +268,11 @@ public:
 
     void sourceRenamed(MoveNode& mn);
     void destRenamed(MoveNode& mn);
+
+    void renamedSimpleLiveRange(
+        MoveNode& src, MoveNode& dest, MoveNode& antidepPoint,
+        DataDependenceEdge& lrEdge,
+        const TCEString& oldReg, const TCEString& newReg);
 
     void copyExternalInEdges(MoveNode& nodeCopy, const MoveNode& source);
     void copyExternalOutEdges(MoveNode& nodeCopy, const MoveNode& source);

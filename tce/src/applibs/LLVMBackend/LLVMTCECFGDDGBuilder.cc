@@ -394,7 +394,6 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m ) {
         outputFileName = options->outputFile();
     }
 
-//    TTAProgram::Program::writeToTPEF(*prog_, "cfgddgbuilder.tpef");
     TTAProgram::Program::writeToTPEF(*prog_, outputFileName);
     exit(0);
     return false; 
