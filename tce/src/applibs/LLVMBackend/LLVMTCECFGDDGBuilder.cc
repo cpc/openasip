@@ -112,6 +112,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 */
 
     bbMapping_.clear();
+    skippedBBs_.clear();
 
     std::set<const MachineBasicBlock*> endingCallBBs;
     std::set<const MachineBasicBlock*> endingCondJumpBBs;
@@ -119,9 +120,11 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     std::map<const BasicBlockNode*,BasicBlockNode*> callSuccs;
     std::map<const BasicBlockNode*, const MachineBasicBlock*> condJumpSucc;
     std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccs;
+    std::set<const MachineBasicBlock*> emptyMBBs;
 
     BasicBlockNode* entry = new BasicBlockNode(0, 0, true);
     cfg->addNode(*entry);
+    bool firstInsOfProc = true;
 
     // 1st loop create all BB's. do not fill them yet.
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
@@ -133,36 +136,56 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         if (prog_->procedureCount() == 1 && cfg->nodeCount() == 1) {
             LLVMTCEBuilder::emitSPInitialization(*bb);
         }
-
-        // TODO: what should these contain?
-        std::set<std::string> emptyMBBs;
         
         TCEString bbName = mbbName(mbb);
         BasicBlockNode* bbn = new BasicBlockNode(*bb);
 
-
-        bbMapping_[&(mbb)] = bbn;
-        cfg->addNode(*bbn);
-        // if this was first, create edge from entry
-        if (i == mf.begin()) {
-            ControlFlowEdge* edge = new ControlFlowEdge;
-            cfg->connectNodes(*entry, *bbn, *edge);
-        }
+        bool newMBB = true;
+        bool newBB = true;
 
         // 1st loop: create all BB's. Do not fill them with instructions.
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++) {
+
+            if (!isRealInstruction(*j)) {
+                continue;
+            }
+
+            if (newBB) {
+                newBB = false;
+                cfg->addNode(*bbn);
+                if (firstInsOfProc) {
+                    ControlFlowEdge* edge = new ControlFlowEdge;
+                    cfg->connectNodes(*entry, *bbn, *edge);
+                    firstInsOfProc = false;
+                }
+
+                if (newMBB) {
+                    newMBB = false;
+                    bbMapping_[&(mbb)] = bbn;
+                    for (std::set<const MachineBasicBlock*>::iterator k = 
+                             emptyMBBs.begin(); k != emptyMBBs.end(); k++) {
+                        skippedBBs_[*k] = bbn;
+                    }
+                    emptyMBBs.clear();
+                }
+            }
+
             if (j->getDesc().isCall()) {
                 // if last ins of bb is call, no need to create new bb.
                 if (&(*j) == &(mbb.back())) {
                     endingCallBBs.insert(&(*i));
                 } else {
-                    // create a new BB for code after the call
-                    bb = new ::BasicBlock(0);
-                    BasicBlockNode* succBBN = new BasicBlockNode(*bb);
-                    callSuccs[bbn] = succBBN;
-                    bbn = succBBN;
-                    cfg->addNode(*bbn);
+                    if (!hasRealInstructions(j, mbb)) {
+                        endingCallBBs.insert(&(*i));
+                    } else {
+                        // create a new BB for code after the call
+                        bb = new ::BasicBlock(0);
+                        BasicBlockNode* succBBN = new BasicBlockNode(*bb);
+                        callSuccs[bbn] = succBBN;
+                        bbn = succBBN;
+                        newBB = true;
+                    }
                 }
             } else {
                 // also need to split BB on cond branch.
@@ -178,13 +201,18 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                         if (&(*j) == &(mbb.back())) {
                             endingCondJumpBBs.insert(&(*i));
                         } else {
-                            // create a new BB for code after the call.
-                            // this should only contain one uncond jump.
-                            bb = new ::BasicBlock(0);
-                            BasicBlockNode* succBBN = new BasicBlockNode(*bb);
-                            ftSuccs[bbn] = succBBN;
-                            bbn = succBBN;
-                            cfg->addNode(*bbn);
+                            if (!hasRealInstructions(j, mbb)) {
+                                endingCondJumpBBs.insert(&(*i));
+                            } else {
+                                // create a new BB for code after the call.
+                                // this should only contain one uncond jump.
+                                bb = new ::BasicBlock(0);
+                                BasicBlockNode* succBBN = 
+                                    new BasicBlockNode(*bb);
+                                ftSuccs[bbn] = succBBN;
+                                bbn = succBBN;
+                                newBB = true;
+                            }
                         }
                     } else {
                         // has to be uncond jump, and last ins of bb.
@@ -195,24 +223,42 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 }
             }
         }
+        if (newMBB == true) {
+            assert (newBB == true);
+            emptyMBBs.insert(&mbb);
+        }
+        if (newBB) {
+            assert (bb.instructionCount() == 0);
+            delete bb;
+            delete bbn;
+        }
     }
 
     // 2nd loop: create all instructions inside BB's.
+    // this can only come after the first loop so that BB's have
+    // already been generated.
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
         
-        TCEString bbName = mbbName(mbb);
-        BasicBlockNode* bbn = bbMapping_[&mbb];
+        BasicBlockNode* bbn = NULL;
+        std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator
+            bbMapIter = bbMapping_.find(&mbb);
+        if (bbMapIter == bbMapping_.end()) {
+            continue;
+        } else {
+            bbn = bbMapIter->second;
+        }
         ::BasicBlock* bb = &bbn->basicBlock();
-
+        
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++) {
-
+            
             TTAProgram::Instruction* instr = NULL;
             instr = emitInstruction(j, bb);
-
-            // Pseudo instructions:
-            if (instr == NULL) continue;
+            
+            if (instr == NULL) {
+                continue;
+            }
             
             // if call, switch tto next bb(in callsucc chain)
             if (instr->hasCall() && &(*j) != &(mbb.back())) {
@@ -235,16 +281,24 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     // 3rd loop: create edges?
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
-        const BasicBlockNode* bbn = bbMapping_[&mbb];
 
+        const BasicBlockNode* bbn = NULL;
+        std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator
+            bbMapIter = bbMapping_.find(&mbb);
+        if (bbMapIter == bbMapping_.end()) {
+            continue;
+        } else {
+            bbn = bbMapIter->second;
+        }
+        
         // is last ins a call?
         bool callPass = AssocTools::containsKey(endingCallBBs, &mbb);
         bool ftPass = AssocTools::containsKey(endingCondJumpBBs, &mbb);
         bool hasUncondJump = 
             AssocTools::containsKey(endingUncondJumpBBs, &mbb);
-
-        const MachineBasicBlock* jumpSucc = NULL;
-
+        
+        const MachineBasicBlock* jumpSucc = condJumpSucc[bbn];
+        
         while(true) {
             std::map<const BasicBlockNode*, BasicBlockNode*>::iterator j =
                 callSuccs.find(bbn);
@@ -263,18 +317,22 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                     ControlFlowEdge::CFLOW_EDGE_CALL);
                 cfg->connectNodes(*bbn, *callSucc, *cfe);
                 bbn = callSucc;
+                jumpSucc = condJumpSucc[bbn];                
                 continue;
             }
-
-            // BB has conditional jump..
+            
+            // BB has conditional jump which is not last ins.
             if (k != ftSuccs.end()) {
-                    jumpSucc = condJumpSucc[bbn];
                 assert(jumpSucc != NULL);
                 ControlFlowEdge* cfe = new ControlFlowEdge(
                     ControlFlowEdge::CFLOW_EDGE_TRUE,
                     ControlFlowEdge::CFLOW_EDGE_JUMP);
-                cfg->connectNodes(*bbn, *bbMapping_[jumpSucc], *cfe);
-
+                if (MapTools::containsKey(bbMapping_, jumpSucc)) {
+                    cfg->connectNodes(*bbn, *bbMapping_[jumpSucc], *cfe);
+                } else {
+                    cfg->connectNodes(*bbn, *skippedBBs_[jumpSucc], *cfe);
+                }
+                
                 const BasicBlockNode* ftSucc = k->second;
                 assert(ftSucc != NULL);
                 cfe = new ControlFlowEdge(
@@ -290,7 +348,16 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         for (MachineBasicBlock::const_succ_iterator si = mbb.succ_begin();
              si != mbb.succ_end(); si++) {
             const MachineBasicBlock* succ = *si;
-            BasicBlockNode *succBBN = bbMapping_[succ];
+            
+            BasicBlockNode* succBBN = NULL;
+            std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator 
+                bbMapIter = bbMapping_.find(succ);
+            if (bbMapIter == bbMapping_.end()) {
+                succBBN = skippedBBs_[succ];
+            } else {
+                succBBN = bbMapIter->second;
+            }
+            
             // TODO: type of the edge
             ControlFlowEdge* cfe = NULL;
             // if last ins of bb was call, cheyte call-pass edge.
@@ -301,22 +368,27 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             } else {
                 // do we have conditional jump?
                 if (jumpSucc != NULL) {
-                    if (succ != jumpSucc) {
-                        // cond jump was last ins of bb.
-                        // fall-through to next bb.
-                        if (ftPass) {
-                            // fall through. But did we create a new BB?
+                    // fall-through is a pass to next mbb.
+                    if (ftPass) {
+                        if (succ == jumpSucc) {
+                            cfe = new ControlFlowEdge(
+                                ControlFlowEdge::CFLOW_EDGE_TRUE,
+                                ControlFlowEdge::CFLOW_EDGE_JUMP);
+                        } else {
                             cfe = new ControlFlowEdge(
                                 ControlFlowEdge::CFLOW_EDGE_FALSE,
                                 ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
-                        } else {
-                            // has jump to some other BB.
-                            cfe = new ControlFlowEdge;
                         }
                     } else {
-                        // the jumps itself should already have been generated
-                        // earlier.
-                        continue;
+                        // split a bb. ft edges created earlier.
+                        // cond.jump edge also created earlier. 
+                        // just needs to add the uncond jump edge.
+                        
+                        if (succ == jumpSucc) {
+                            continue;
+                        }
+                        
+                        cfe = new ControlFlowEdge;
                     }
                 } else { // no conditional jump. ft to next bb.
                     // unconditional jump to nxt bb
@@ -342,26 +414,52 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     // add back edge properties.
     cfg->detectBackEdges();
 
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg1.dot");
+#endif
+
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
         *cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
 
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg1.dot");
+#endif
+
     PreOptimizer preOpt(*ipData_);
     preOpt.handleCFGDDG(*cfg, *ddg);
+
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg2.dot");
+#endif
 
     CycleLookBackSoftwareBypasser bypasser;
     CopyingDelaySlotFiller dsf;
     BBSchedulerController bbsc(*ipData_, &bypasser, &dsf);
     bbsc.handleCFGDDG(*cfg, *ddg, *mach_ );
 
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg2.dot");
+#endif
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg3.dot");
+#endif
     cfg->convertBBRefsToInstRefs(prog_->instructionReferenceManager());
-
-    ddg->writeToDotFile(fnName + "_ddg.dot");
-    cfg->writeToDotFile(fnName + "_cfg.dot");
 
     dsf.fillDelaySlots(*cfg, *ddg, *mach_, prog_->universalMachine(), true);
 
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg4.dot");
+#endif
+
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg3.dot");
+#endif
+
     cfg->copyToProcedure(*procedure);//, &prog_->instructionReferenceManager());
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg4.dot");
+#endif
     codeLabels_[fnName] = &procedure->firstInstruction();
 
     delete ddg;
@@ -371,14 +469,61 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
 TTAProgram::Terminal*
 LLVMTCECFGDDGBuilder::createMBBReference(const MachineOperand& mo) {
+    MachineBasicBlock* mbb = mo.getMBB();
+    std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator i = 
+        bbMapping_.find(mbb);
+    
+    if (i == bbMapping_.end()) {
+        std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator j = 
+            skippedBBs_.find(mbb);
+        return new TTAProgram::TerminalBasicBlockReference(
+            j->second->basicBlock());
+    }
+
     return new TTAProgram::TerminalBasicBlockReference(
-        bbMapping_[mo.getMBB()]->basicBlock());
+        i->second->basicBlock());
 }
 
 TTAProgram::Terminal*
 LLVMTCECFGDDGBuilder::createSymbolReference(const TCEString& symbolName) {
     return new TTAProgram::TerminalSymbolReference(symbolName);
 }
+
+bool LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
+    
+    const llvm::TargetInstrDesc* opDesc = &instr.getDesc();
+
+    if (opDesc->isReturn()) {
+        return true;
+    }
+
+    // when the -g option turn on, this will come up opc with this, therefore
+    // add this to ignore however, it is uncertain whether the debug "-g" will
+    // generate more opc, need to verify
+    if (opDesc->getOpcode() == TargetOpcode::DBG_VALUE) {
+        return false;
+    }	
+
+    std::string opName = operationName(instr);
+
+    // Pseudo instructions don't require any actual instructions.
+    if (opName == "PSEUDO") {
+        return false;
+    }
+    return true;
+}
+
+bool LLVMTCECFGDDGBuilder::hasRealInstructions(
+    MachineBasicBlock::const_iterator i, 
+    const MachineBasicBlock& mbb) {
+    for (; i != mbb.end(); i++) {
+        if (isRealInstruction(*i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 bool
 LLVMTCECFGDDGBuilder::doFinalization(Module& m ) { 
@@ -400,5 +545,3 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m ) {
 }
     
 }
-
-

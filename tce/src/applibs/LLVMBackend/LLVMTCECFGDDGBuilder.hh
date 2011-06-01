@@ -109,6 +109,13 @@ namespace llvm {
             const TCEString& symbolName);
 
     private:
+
+        bool isRealInstruction(const MachineInstr& instr);
+        bool hasRealInstructions(
+            MachineBasicBlock::const_iterator i, 
+            const MachineBasicBlock& mbb);
+
+
         InterPassData* ipData_;
         // TODO: how to get these?
         std::set<TCEString> allParamRegs_;
@@ -117,6 +124,7 @@ namespace llvm {
         DataDependenceGraphBuilder ddgBuilder_;
 
         std::map<const MachineBasicBlock*,BasicBlockNode*> bbMapping_;
+        std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
     };
 }
 
