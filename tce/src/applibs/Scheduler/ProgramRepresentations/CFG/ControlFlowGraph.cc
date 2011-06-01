@@ -1521,7 +1521,7 @@ ControlFlowGraph::copyToProcedure(
             // futher nodes. try to select some unreached node.
             if (nextNode == NULL && ftPred) {
                 for (NodeSet::iterator i = unreachableNodes.begin();
-                     i != queuedNodes.end(); i++) {
+                     i != unreachableNodes.end(); i++) {
                     if (fallThruSuccessor(**i) != NULL) {
                         nextNode = *i;
                         unreachableNodes.erase(*i);
