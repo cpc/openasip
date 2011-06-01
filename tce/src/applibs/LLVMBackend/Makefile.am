@@ -49,8 +49,8 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 # -Wno-unused-parameter in that case. So to keep correct ordering
 # we move CXXFLAGS to AM_CXXFLAGS with additional -Wno switch 
 # and clean old CXXFLAGS variable
-AM_CXXFLAGS = ${CXXFLAGS}
-CXXFLAGS="-Wno-unused-parameter"
+AM_CXXFLAGS = -g ${CXXFLAGS}
+CXXFLAGS=-Wno-unused-parameter
 
 # Static sources for target machine plugins.
 include_HEADERS = \

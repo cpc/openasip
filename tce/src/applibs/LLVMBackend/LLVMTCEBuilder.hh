@@ -50,6 +50,7 @@
 #include "TCEString.hh"
 #include "passes/MachineDCE.hh"
 #include "TCETargetMachine.hh"
+#include "UniversalMachine.hh"
 
 namespace TTAProgram {
     class Program;
@@ -91,7 +92,7 @@ namespace llvm {
         LLVMTCEBuilder(char& ID);
 
         LLVMTCEBuilder(
-            TargetMachine& tm,
+            const TargetMachine& tm,
             TTAMachine::Machine* mach,
             char& ID);
 
@@ -190,6 +191,13 @@ namespace llvm {
 
         /// Current program being built.
         TTAProgram::Program* prog_;
+
+        /// Univeral machine for building the program.
+        UniversalMachine* umach_;
+
+        /// The operations supported by the current target machine.
+        std::set<std::string> opset_;
+
     private:
 
         struct DataDef {
@@ -279,9 +287,6 @@ namespace llvm {
 
         llvm::Module* mod_;
 
-        /// Univeral machine for building the program.
-        UniversalMachine* umach_;
-
         TTAMachine::AddressSpace* instrAddressSpace_;
         TTAMachine::AddressSpace* dataAddressSpace_;
 
@@ -316,8 +321,6 @@ namespace llvm {
         std::vector<TTAProgram::Move*> endReferences_;
         
         std::map<unsigned, unsigned> currentFnCP_;
-
-        std::set<std::string> opset_;
 
         unsigned end_;
 

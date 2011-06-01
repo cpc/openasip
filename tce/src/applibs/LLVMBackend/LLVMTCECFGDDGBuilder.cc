@@ -49,10 +49,14 @@
 #include "RegisterCopyAdder.hh"
 #include "LLVMTCECmdLineOptions.hh"
 
+#include "FunctionUnit.hh"
+#include "HWOperation.hh"
+
 #if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
 #include <llvm/ADT/SmallString.h>
 #endif
 
+#include <llvm/MC/MCContext.h>
 
 
 namespace llvm {
@@ -61,37 +65,49 @@ char LLVMTCECFGDDGBuilder::ID = -1;
 
 
 LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
-    llvm::TargetMachine& tm, TTAMachine::Machine* mach, InterPassData& ipd) :
-    LLVMTCEBuilder(tm, mach, ID), ipData_(&ipd), ddgBuilder_(ipd) {
+    const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
+    InterPassData& ipd, bool functionAtATime) :
+    LLVMTCEBuilder(tm, mach, ID), ipData_(&ipd), ddgBuilder_(ipd),
+    functionAtATime_(functionAtATime) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
+
+    if (functionAtATime_) {
+        umach_ = new UniversalMachine();        
+        const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+            mach->functionUnitNavigator();
+
+        // the supported operation set
+        for (int i = 0;i < fuNav.count(); i++) {
+            const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+            for (int o = 0; o < fu.operationCount(); o++) {
+                opset_.insert(
+                    StringTools::stringToLower(fu.operation(o)->name()));
+            }
+        }
+
+    } // otherwise the umach_ will be used from the Program instance
 }
 
-/**
- * Writes machine function to POM.
- *
- * Actually does things to MachineFunction which was supposed to be done
- * in runOnMachineFunction, but which cannot be done during that, because
- * MachineDCE is not ready yet at that time...
- */
 bool
 LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     if (tm_ == NULL)
         tm_ = &mf.getTarget();
-    // ensure data sections have been initialized
-    initDataSections();
 
+    if (!functionAtATime_) {
+        // ensure data sections have been initialized
+        initDataSections();
+    } else {
+        MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
+        mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
+    }
 
     // omit empty functions..
-    if (mf.begin() == mf.end()) return true;
+    if (mf.begin() == mf.end()) return true;   
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    TCEString fnName = mang_->getNameWithPrefix(mf.getFunction());
-#else
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
     TCEString fnName(Buffer.c_str());
-#endif
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -100,8 +116,9 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     TTAProgram::Procedure* procedure = 
         new TTAProgram::Procedure(fnName, *as);
 
-    prog_->addProcedure(procedure);
-
+    if (!functionAtATime_) {
+        prog_->addProcedure(procedure);
+    } 
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
     
 /*
@@ -133,7 +150,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         ::BasicBlock* bb = new ::BasicBlock(0);
 
         // first BB of the program
-        if (prog_->procedureCount() == 1 && cfg->nodeCount() == 1) {
+        if (!functionAtATime_ && prog_->procedureCount() == 1 && 
+            cfg->nodeCount() == 1) {
             LLVMTCEBuilder::emitSPInitialization(*bb);
         }
         
@@ -543,5 +561,18 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m ) {
     exit(0);
     return false; 
 }
+
+
+TCEString 
+LLVMTCECFGDDGBuilder::operationName(const MachineInstr& mi) const {
+    if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) 
+        != NULL) {
+        return dynamic_cast<const TCETargetMachine&>(targetMachine())
+            .operationName(mi.getDesc().getOpcode());
+    } else {
+        return mi.getDesc().getName();
+    }
+}
+
     
 }

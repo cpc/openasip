@@ -40,6 +40,9 @@ class OperationBehaviorProxy;
 class OperationIndex;
 class Operation;
 class OperationPoolPimpl;
+namespace llvm {
+    class TargetInstrInfo;
+}
 
 /**
  * OperationPool provides interface for obtaining operations of the target
@@ -54,6 +57,8 @@ public:
     OperationIndex& index();
 
     static void cleanupCache();
+
+    static void setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid);
   
 private:
     /// Copying not allowed.

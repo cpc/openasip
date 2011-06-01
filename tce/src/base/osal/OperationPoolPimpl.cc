@@ -51,6 +51,9 @@
 #include "OperationSerializer.hh"
 #include "TCEString.hh"
 
+#include <llvm/Target/TargetInstrDesc.h>
+#include <llvm/Target/TargetInstrInfo.h>
+
 using std::vector;
 using std::string;
 
@@ -58,13 +61,12 @@ OperationPoolPimpl::OperationTable OperationPoolPimpl::operationCache_;
 std::vector<OperationBehaviorProxy*> OperationPoolPimpl::proxies_;
 OperationIndex* OperationPoolPimpl::index_(NULL);
 OperationBehaviorLoader* OperationPoolPimpl::loader_(NULL);
-
+const llvm::TargetInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
 
 /**
  * The constructor
  */
-OperationPoolPimpl::OperationPoolPimpl() 
-{
+OperationPoolPimpl::OperationPoolPimpl() {
     // if this is a first created instance of OperationPool,
     // initialize the OperationIndex instance with the search paths
     if (index_ == NULL) {
@@ -117,6 +119,24 @@ OperationPoolPimpl::operation(const char* name) {
         return *((*it).second);
     }
     
+    // If llvmTargetInstrInfo_ is set, the scheduler is called
+    // directly from LLVM code gen. Use the TargetInstrDesc as
+    // the source for operation info instead.
+    if (llvmTargetInstrInfo_ != NULL) {
+        for (unsigned opc = 0; opc < llvmTargetInstrInfo_->getNumOpcodes();
+             ++opc) {
+            const llvm::TargetInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
+            TCEString operName = TCEString(tid.getName()).lower();
+            if (operName == TCEString(name).lower()) {
+                Operation* llvmOperation = loadFromLLVM(tid);
+                operationCache_[operName] = llvmOperation;
+                return *llvmOperation;
+            } 
+        }
+        abortWithError(
+            TCEString("Did not find info for LLVM operation ") + name);
+    }
+
     OperationModule& module = index_->moduleOf(name);
     if (&module == &NullOperationModule::instance()) {
         return NullOperation::instance();
@@ -166,6 +186,19 @@ OperationPoolPimpl::operation(const char* name) {
     } else {
         return NullOperation::instance();            
     }
+}
+
+/**
+ * Loads an OSAL Operation from LLVM TargetInstrDesc.
+ *
+ * Used for avoiding the need for .xml OSAL databases when TCE scheduler
+ * is called directly for non-TTA LLVM targets.
+ */
+Operation*
+OperationPoolPimpl::loadFromLLVM(const llvm::TargetInstrDesc& tid) {
+    TCEString opName = TCEString(tid.getName());
+    Operation* op = new Operation(opName, NullOperationBehavior::instance());
+    return op;
 }
 
 /**

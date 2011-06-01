@@ -28,13 +28,16 @@
  * Wrapper for TCE scheduler to be called from LLVM codegen.
  *
  * @author Pekka Jääskeläinen 2011
- * @note reting: red
+ * @note rating: red
  */
 
 #ifndef LLVM_TCE_SCHEDULER_H
 #define LLVM_TCE_SCHEDULER_H
 
 #include <llvm/CodeGen/MachineFunctionPass.h>
+
+#include "Machine.hh"
+#include "LLVMTCECFGDDGBuilder.hh"
 
 namespace llvm {
 
@@ -43,9 +46,12 @@ namespace llvm {
     class LLVMTCEScheduler : public MachineFunctionPass {
     public:
         static char ID;
-        LLVMTCEScheduler() : MachineFunctionPass(ID) {}
+        LLVMTCEScheduler();
         virtual ~LLVMTCEScheduler() {}
         virtual bool runOnMachineFunction(MachineFunction &MF);
+    private:
+        TTAMachine::Machine* tceMachine_;
+        LLVMTCECFGDDGBuilder* tceIRBuilder_;
     };
 }
 

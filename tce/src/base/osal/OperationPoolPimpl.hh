@@ -41,6 +41,9 @@ class OperationBehaviorLoader;
 class OperationBehaviorProxy;
 class OperationIndex;
 class Operation;
+namespace llvm {
+    class TargetInstrDesc;
+}
 
 /**
  * A private implementation class for OperationPool
@@ -55,6 +58,10 @@ public:
 
     static void cleanupCache();
 
+    static void setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid) {
+        llvmTargetInstrInfo_ = tid;
+    }
+
 private:
     OperationPoolPimpl();
     
@@ -65,6 +72,8 @@ private:
     OperationPoolPimpl(const OperationPoolPimpl&);
     /// Assignment not allowed.
     OperationPoolPimpl& operator=(const OperationPoolPimpl&);
+
+    Operation* loadFromLLVM(const llvm::TargetInstrDesc& tid);
 
     /// Operation pool uses this to load behavior models of the operations.
     static OperationBehaviorLoader* loader_;
@@ -78,6 +87,10 @@ private:
     static OperationTable operationCache_;
     /// Contains all operation behavior proxies.
     static std::vector<OperationBehaviorProxy*> proxies_; 
+    /// If this is set, OSAL data is loaded from the TargetInstrInfo
+    /// instead of .opp XML files. Used when calling the TCE scheduler from
+    /// non-TTA LLVM targets.
+    static const llvm::TargetInstrInfo* llvmTargetInstrInfo_;
 };
 
 #endif

@@ -15,7 +15,8 @@ DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools \
               -I$(PROJECT_ROOT)/src/base/memory \
               -I../../applibs/Simulator \
-              -I$(PROJECT_ROOT)/src/base/Graph
+              -I$(PROJECT_ROOT)/src/base/Graph ${LLVM_CPPFLAGS}
+
 AM_CXXFLAGS = -UNDEBUG
 
 include_HEADERS = OSAL.hh OperationContext.hh OperationBehavior.hh \

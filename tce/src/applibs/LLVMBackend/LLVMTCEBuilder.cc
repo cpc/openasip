@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,7 +29,7 @@
  * @author Veli-Pekka Jääskeläinen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Esa Määttä 2009 (esa.maatta-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2007-2010
+ * @author Pekka Jääskeläinen 2007-2011
  * @note reting: red
  */
 
@@ -114,7 +114,7 @@ char LLVMTCEBuilder::ID = 0;
 // #define DEBUG_LLVMPOMBUILDER
 
 LLVMTCEBuilder::LLVMTCEBuilder(
-    TargetMachine& tm,
+    const TargetMachine& tm,
     TTAMachine::Machine* mach,
 #ifdef LLVM_2_7
     char&) :
@@ -181,7 +181,6 @@ LLVMTCEBuilder::initDataSections() {
         delete prog_;
         prog_ = NULL;
     }
-
 
     // List of supported operations.
     opset_.insert("jump");
@@ -268,9 +267,9 @@ LLVMTCEBuilder::initDataSections() {
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
         TCEString name = mang_->getNameWithPrefix(i);
 #else
-	SmallString<256> Buffer;
-	mang_->getNameWithPrefix(Buffer, i, false);
-	TCEString name(Buffer.c_str());
+        SmallString<256> Buffer;
+        mang_->getNameWithPrefix(Buffer, i, false);
+        TCEString name(Buffer.c_str());
 #endif
         
         const llvm::GlobalValue& gv = *i;
@@ -1000,10 +999,6 @@ LLVMTCEBuilder::emitInstruction(
 
     const llvm::TargetInstrDesc* opDesc = &mi->getDesc();
 
-    if (opDesc->isReturn()) {
-        return emitReturn(mi, proc);
-    }
-
     unsigned opc = mi->getDesc().getOpcode();
 
     // when the -g option turn on, this will come up opc with this, therefore
@@ -1012,6 +1007,14 @@ LLVMTCEBuilder::emitInstruction(
     if (opc == TargetOpcode::DBG_VALUE) {
         return NULL;
     }	
+
+    if (opDesc->isReturn()) {
+        // in case of TTA targets, the return node needs to be
+        // converted to ra -> jump here as it does not map 1:1
+        // with the DAG names. Note: this is the wrong way to do this:
+        // should LowerReturn to RA -> JUMP.1 instead!
+        return emitReturn(mi, proc);
+    } 
 
     std::string opName = operationName(*mi);
 
@@ -1049,19 +1052,14 @@ LLVMTCEBuilder::emitInstruction(
     Bus& bus = umach_->universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
-    if (opDesc->isCall() || opDesc->isBranch()) {
-        // Control flow operations.
+    if (umach_->controlUnit()->hasOperation(opName)) {
         fu = umach_->controlUnit();
-    } else {
-        // Other operations.
+    } else if (umach_->universalFunctionUnit().hasOperation(opName)) {
         fu = &umach_->universalFunctionUnit();
-    }
-
-    if (!fu->hasOperation(opName)) {
-        std::cerr << "ERROR: Operation '" << opName << "' not found!"
-                  << std::endl;
-
-        assert(false && "Operation not found.");
+    } else {
+        abortWithError(
+            TCEString("ERROR: Operation '") + opName +
+            "' not found in the machine.");
     }
 
     // Check that the target machine supports this instruction.
@@ -1069,8 +1067,7 @@ LLVMTCEBuilder::emitInstruction(
         std::cerr << "ERROR: Operation '" << opName
                   << "' is required by the program but not found "
                   << "in the machine." << std::endl;
-
-        assert(false);
+        abortWithError("Cannot proceed.");
     }
 
     OperationPool pool;

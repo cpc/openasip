@@ -54,7 +54,8 @@ namespace llvm {
         static char ID;
 
         LLVMTCECFGDDGBuilder(
-            TargetMachine& tm, TTAMachine::Machine* mach, InterPassData& ipd);
+            const TargetMachine& tm, TTAMachine::Machine* mach, 
+            InterPassData& ipd, bool functionAtATime=false);
 
         bool writeMachineFunction(MachineFunction& mf);
 
@@ -90,11 +91,8 @@ namespace llvm {
                 targetMachine()).registerIndex(llvmRegNum); 
         }
 
-        // OSAL operation name from a LLVM MachineInstr
-        virtual TCEString operationName(const MachineInstr& mi) const {
-            return dynamic_cast<const TCETargetMachine&>(
-                targetMachine()).operationName(mi.getDesc().getOpcode());
-        }
+        // operation name from a LLVM MachineInstr or OSAL Operation
+        virtual TCEString operationName(const MachineInstr& mi) const; 
 
         virtual TTAProgram::Terminal* createFUTerminal(
             const MachineOperand&) const {
@@ -115,7 +113,6 @@ namespace llvm {
             MachineBasicBlock::const_iterator i, 
             const MachineBasicBlock& mbb);
 
-
         InterPassData* ipData_;
         // TODO: how to get these?
         std::set<TCEString> allParamRegs_;
@@ -124,6 +121,11 @@ namespace llvm {
         DataDependenceGraphBuilder ddgBuilder_;
 
         std::map<const MachineBasicBlock*,BasicBlockNode*> bbMapping_;
+
+        // set to true in case the builder is used to schedule one
+        // function at a time (the default processes the whole module)
+        bool functionAtATime_;
+
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
     };
 }

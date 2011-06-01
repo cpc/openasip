@@ -27,15 +27,17 @@
  * Wrapper for TCE scheduler to be called from LLVM codegen.
  *
  * @author Pekka Jääskeläinen 2011
- * @note reting: red
+ * @note rating: red
  */
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Function.h>
 #include <llvm/Support/CommandLine.h>
+
 #include <iostream>
 
 #include "LLVMTCEScheduler.hh"
 #include "Application.hh"
+#include "InterPassData.hh"
 
 namespace llvm {
 
@@ -47,13 +49,34 @@ ADFLocation(
 
 char LLVMTCEScheduler::ID = 0;
 
+LLVMTCEScheduler::LLVMTCEScheduler() : 
+    MachineFunctionPass(ID), tceIRBuilder_(NULL) {
+    try {
+        tceMachine_ = TTAMachine::Machine::loadFromADF(ADFLocation);
+    } catch (const Exception& e) {
+        Application::logStream()
+            << "TCE: unable to load the ADF:" << std::endl
+            << e.errorMessage() << std::endl;
+    }
+}
+
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
     Application::logStream()
         << "TCE: processing " << MF.getFunction()->getNameStr() 
         << std::endl;
+
+    OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
+
+    if (tceIRBuilder_ == NULL) {
+        InterPassData ipData;
+        tceIRBuilder_ =  new LLVMTCECFGDDGBuilder(
+            MF.getTarget(), tceMachine_, ipData, true);
+    }
+    tceIRBuilder_->writeMachineFunction(MF);
     return false;
 }
+
 FunctionPass*
 createTCESchedulerPass(const char* target) {
     Application::logStream()
