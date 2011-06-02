@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistˆ 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009-2010
+ * @author Pekka J‰‰skel‰inen 2009-2011
  * @note rating: red
  */
 
@@ -531,6 +531,8 @@ LLVMBackend::compile(
 
 #ifndef USE_CFGDDG_BUILDER
     return prog;
+#else
+    return NULL; /* warning fix */
 #endif
 }
 
