@@ -638,6 +638,18 @@ OperationPimpl::input(int index) const {
     return *inputOperands_.at(index);
 }
 
+void
+OperationPimpl::addInput(Operand* operand) {
+    inputOperands_.push_back(operand);
+    inputs_ = inputOperands_.size();
+}
+
+void
+OperationPimpl::addOutput(Operand* operand) {
+    outputOperands_.push_back(operand);
+    outputs_ = outputOperands_.size();
+}
+
 /**
  * Returns the output Operand with the given index.
  *

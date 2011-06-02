@@ -30,6 +30,10 @@
  * @note reting: red
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "LLVMTCECFGDDGBuilder.hh"
 #include "ControlFlowGraph.hh"
 #include "Procedure.hh"
@@ -58,6 +62,8 @@
 
 #include <llvm/MC/MCContext.h>
 
+//#define WRITE_DDG_DOTS
+//#define WRITE_CFG_DOTS
 
 namespace llvm {
 
@@ -209,7 +215,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 // also need to split BB on cond branch.
                 // LLVM BB may contain 2 branches.
                 if (j->getDesc().isBranch()) {
-		    // TODO: correctly detect conditional branches
+                    // TODO: correctly detect conditional branches
                     if (operationName(*j) == "?jump") {
                         assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
@@ -246,7 +252,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             emptyMBBs.insert(&mbb);
         }
         if (newBB) {
-            assert (bb.instructionCount() == 0);
+            assert (bb->instructionCount() == 0);
             delete bb;
             delete bbn;
         }
@@ -276,7 +282,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             
             if (instr == NULL) {
                 continue;
-            }
+            } 
             
             // if call, switch tto next bb(in callsucc chain)
             if (instr->hasCall() && &(*j) != &(mbb.back())) {
@@ -588,5 +594,44 @@ LLVMTCECFGDDGBuilder::operationName(const MachineInstr& mi) const {
     }
 }
 
+TCEString
+LLVMTCECFGDDGBuilder::registerFileName(unsigned llvmRegNum) const { 
+    if (isTTATarget()) {
+        return dynamic_cast<const TCETargetMachine&>(
+            targetMachine()).rfName(llvmRegNum); 
+    } else {
+        // LLVM does not support explicit register file info
+        // at the moment, so we assume there's only one reg file
+        // in the machine. Pick the first one that is not
+        // a 1-bit reg file.
+        const TTAMachine::Machine::RegisterFileNavigator rfNav =
+            mach_->registerFileNavigator();
+
+        for (int i = 0; i < rfNav.count(); i++) {
+            const TTAMachine::RegisterFile& rf = *rfNav.item(i);
+            if (rf.width() > 1) 
+                return rf.name();
+        }
+        abortWithError(
+            TCEString("Unable to figure the RF for llvm reg num ") <<
+            llvmRegNum);
+        
+    }
+}
+
+int
+LLVMTCECFGDDGBuilder::registerIndex(unsigned llvmRegNum) const {
+    if (isTTATarget()) {
+        return dynamic_cast<const TCETargetMachine&>(
+            targetMachine()).registerIndex(llvmRegNum); 
+    } else {
+        /* Assume for non-TTA targets the register index
+           is the final and correct one and that there's only
+           one register file. With TTA we have to do conversion 
+           due to the multiple register files option which LLVM 
+           does not support. */
+        return llvmRegNum;
+    }
+}
     
 }

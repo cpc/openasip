@@ -117,7 +117,9 @@ public:
     virtual bool canSwap(int id1, int id2) const;
 
     virtual Operand& input(int index) const;
+    virtual void addInput(Operand* operand);
     virtual Operand& output(int index) const;
+    virtual void addOutput(Operand* operand);
     virtual Operand& operand(int id) const;
 
     virtual void setBehavior(OperationBehavior& behavior);

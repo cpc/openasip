@@ -385,6 +385,16 @@ Operation::input(int index) const {
     return pimpl_->input(index);
 }
 
+void
+Operation::addInput(Operand* operand) {
+    pimpl_->addInput(operand);
+}
+
+void
+Operation::addOutput(Operand* operand) {
+    pimpl_->addOutput(operand);
+}
+
 /**
  * Returns the output Operand with the given index.
  *

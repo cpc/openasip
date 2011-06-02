@@ -65,6 +65,11 @@ namespace llvm {
 
         virtual void emitSPInitialization() {}
 
+        virtual bool isTTATarget() const {
+            return (dynamic_cast<const TCETargetMachine*>(
+                        &targetMachine()) != NULL);
+        }
+
     protected:
 
         // TODO: copy-paste from LLVMPomBuilder.hh
@@ -75,21 +80,19 @@ namespace llvm {
 
         // the return address register's llvm reg number
         virtual unsigned raPortDRegNum() const { 
-            return dynamic_cast<const TCETargetMachine&>(
-                targetMachine()).raPortDRegNum(); 
+            if (isTTATarget()) {
+                return dynamic_cast<const TCETargetMachine&>(
+                    targetMachine()).raPortDRegNum(); 
+            } else {
+                return targetMachine().getRegisterInfo()->getRARegister();
+            }
         }
 
         // the ADF register file name of the llvm reg number
-        virtual TCEString registerFileName(unsigned llvmRegNum) const { 
-            return dynamic_cast<const TCETargetMachine&>(
-                targetMachine()).rfName(llvmRegNum); 
-        }
+        virtual TCEString registerFileName(unsigned llvmRegNum) const;
 
         // the ADF register index of the llvm reg number
-        virtual int registerIndex(unsigned llvmRegNum) const {
-            return dynamic_cast<const TCETargetMachine&>(
-                targetMachine()).registerIndex(llvmRegNum); 
-        }
+        virtual int registerIndex(unsigned llvmRegNum) const;
 
         // operation name from a LLVM MachineInstr or OSAL Operation
         virtual TCEString operationName(const MachineInstr& mi) const; 

@@ -88,7 +88,9 @@ private:
     bool canSwap(int id1, int id2) const;
 
     Operand& input(int index) const;
+    void addInput(Operand* operand);
     Operand& output(int index) const;
+    void addOutput(Operand* operand);
     Operand& operand(int id) const;
 
     void setBehavior(OperationBehavior& behavior);

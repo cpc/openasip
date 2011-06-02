@@ -32,6 +32,9 @@
  * @author Pekka Jääskeläinen 2007-2011
  * @note reting: red
  */
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 
 #include <list>
 
@@ -111,7 +114,7 @@ unsigned LLVMTCEBuilder::POINTER_SIZE = 4; // Pointer size in maus.
 
 char LLVMTCEBuilder::ID = 0;
 
-// #define DEBUG_LLVMPOMBUILDER
+//#define DEBUG_LLVMTCEBUILDER
 
 LLVMTCEBuilder::LLVMTCEBuilder(
     const TargetMachine& tm,
@@ -808,7 +811,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
              j != i->end(); j++) {
 
             TTAProgram::Instruction* instr = NULL;
-#ifdef DEBUG_LLVMPOMBUILDER
+#ifdef DEBUG_LLVMTCEBUILDER
             std::cerr << "### converting: ";
             j->dump();
             std::cerr << std::endl;
@@ -1008,49 +1011,52 @@ LLVMTCEBuilder::emitInstruction(
         return NULL;
     }	
 
-    if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) != NULL && 
-        opDesc->isReturn()) {
-        // in case of TTA targets, the return node needs to be
-        // converted to ra -> jump here as it does not map 1:1
-        // with the DAG names and we map LLVM DAG names to OSAL
-        // operations
-        // FIXME: this is the wrong way to do this:
-        // should LowerReturn to RA -> JUMP.1 instead and process just
-        // like any other operation here.
-        return emitReturn(mi, proc);
-    } 
-
-    std::string opName = operationName(*mi);
-
-    // Pseudo instructions don't require any actual instructions.
-    if (opName == "PSEUDO") {
-        return NULL;
-    }
-
-    if (opName == "MOVE") {
-        return emitMove(mi, proc);
-    }
-
+    std::string opName = "";
     bool hasGuard = false;
     bool trueGuard = true;
+    if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) != NULL) {
 
-    if (opName[0] == '?') {
-        hasGuard = true;
-        opName = opName.substr(1);
-    }
+        if (opDesc->isReturn()) {
+            // in case of TTA targets, the return node needs to be
+            // converted to ra -> jump here as it does not map 1:1
+            // with the DAG names and we map LLVM DAG names to OSAL
+            // operations
+            // FIXME: this is the wrong way to do this:
+            // should LowerReturn to RA -> JUMP.1 instead and process just
+            // like any other operation here.
+            return emitReturn(mi, proc);
+        }
+        opName = operationName(*mi);
 
-    if (opName[0] == '!') {
-        hasGuard = true;
-        trueGuard = false;
-        opName = opName.substr(1);
-    }
+        // Pseudo instructions don't require any actual instructions.
+        if (opName == "PSEUDO") {
+            return NULL;
+        }
+        
+        if (opName == "MOVE") {
+            return emitMove(mi, proc);
+        }
 
-    if (opName == "INLINEASM") {
-        return emitInlineAsm(mi, proc);
-    }
+        if (opName[0] == '?') {
+            hasGuard = true;
+            opName = opName.substr(1);
+        }
 
-    if (opName == "SELECT") {
-        return emitSelect(mi, proc);
+        if (opName[0] == '!') {
+            hasGuard = true;
+            trueGuard = false;
+            opName = opName.substr(1);
+        }
+
+        if (opName == "INLINEASM") {
+            return emitInlineAsm(mi, proc);
+        }
+
+        if (opName == "SELECT") {
+            return emitSelect(mi, proc);
+        }       
+    } else {
+        opName = operationName(*mi);
     }
 
     Bus& bus = umach_->universalBus();
@@ -1083,6 +1089,11 @@ LLVMTCEBuilder::emitInstruction(
 
     int inputOperand = 0;
     int outputOperand = operation.numberOfInputs();
+#ifdef DEBUG_LLVMTCEBUILDER
+    mi->dump();
+    PRINT_VAR(operation.numberOfInputs());
+    PRINT_VAR(operation.numberOfOutputs());
+#endif
     TTAProgram::MoveGuard* guard = NULL;
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
 
@@ -1103,7 +1114,7 @@ LLVMTCEBuilder::emitInstruction(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
-        if (!mo.isReg() || mo.isUse()) {
+        if (!mo.isReg() || mo.isUse() || operation.numberOfOutputs() == 0) {
             ++inputOperand;
             if (inputOperand > operation.numberOfInputs())
                 continue;
@@ -1161,6 +1172,10 @@ LLVMTCEBuilder::emitInstruction(
                 TTAProgram::Move* move = createMove(src, dst, bus, guard);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
+#ifdef DEBUG_LLVMTCEBUILDER
+                Application::logStream()
+                    << "adding " << move->toString() << std::endl;
+#endif
                 operandMoves.push_back(instr);
                 debugDataToAnnotations(mi, move);
             }
@@ -1179,6 +1194,10 @@ LLVMTCEBuilder::emitInstruction(
             TTAProgram::Move* move = createMove(src, dst, bus, guard);
             TTAProgram::Instruction* instr = new TTAProgram::Instruction();
             instr->addMove(move);
+#ifdef DEBUG_LLVMTCEBUILDER
+            Application::logStream()
+                << "adding " << move->toString() << std::endl;
+#endif
             resultMoves.push_back(instr);
             debugDataToAnnotations(mi, move);
         }

@@ -690,7 +690,7 @@
         </writes>
       </pipeline>
     </operation>
-    <address-space>data</address-space>
+    <address-space>local_data</address-space>
   </function-unit>
 
   <function-unit name="ODD">
@@ -807,7 +807,7 @@
         </reads>
       </pipeline>
     </operation>
-    <address-space/>
+    <address-space>local_data</address-space>
   </function-unit>
 
   <register-file name="RF">
@@ -838,10 +838,10 @@
     </port>
   </register-file>
 
-  <address-space name="data">
+  <address-space name="local_data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>16777215</max-address>
+    <max-address>262143</max-address>
   </address-space>
 
   <address-space name="instructions">

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of OperationPoolPimpl (private implementation) class.
  *
  * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -36,6 +37,7 @@
 #include "OperationPool.hh"
 #include "OperationModule.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 #include "OperationBehaviorProxy.hh"
 #include "OperationDAGBehavior.hh"
 #include "OperationBehaviorLoader.hh"
@@ -198,6 +200,28 @@ Operation*
 OperationPoolPimpl::loadFromLLVM(const llvm::TargetInstrDesc& tid) {
     TCEString opName = TCEString(tid.getName());
     Operation* op = new Operation(opName, NullOperationBehavior::instance());
+   
+    unsigned outputs = tid.getNumDefs();
+    unsigned inputs = tid.getNumOperands() - outputs;
+
+    // at least a minimal implicit trigger input
+    // RET of SPU does not include the implicit link register
+    // operand even though it will be generated in the final 
+    // assembly to just an absolute jump to it 
+    if (inputs == 0) 
+        inputs = 1; 
+
+    for (unsigned opr = 0; opr < outputs; ++opr) {
+        Operand* operand = 
+            new Operand(false, inputs + opr + 1, Operand::UINT_WORD);
+        op->addOutput(operand);
+    }
+
+    for (unsigned opr = 0; opr < inputs; ++opr) {
+        Operand* operand = new Operand(true, opr + 1, Operand::UINT_WORD);
+        op->addInput(operand);
+    }
+
     return op;
 }
 
