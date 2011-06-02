@@ -462,9 +462,20 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg3.dot");
 #endif
-    cfg->convertBBRefsToInstRefs(prog_->instructionReferenceManager());
 
-    dsf.fillDelaySlots(*cfg, *ddg, *mach_, prog_->universalMachine(), true);
+    TTAProgram::InstructionReferenceManager* irm = NULL;
+    if (functionAtATime_) {
+        irm = new TTAProgram::InstructionReferenceManager();
+    } else {        
+        irm = &prog_->instructionReferenceManager();
+    }
+
+    cfg->convertBBRefsToInstRefs(*irm);
+
+    if (!functionAtATime_) {
+        // TODO: make DS filler work with FAAT
+        dsf.fillDelaySlots(*cfg, *ddg, *mach_, *umach_, true);
+    }
 
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg4.dot");
@@ -474,14 +485,17 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     cfg->writeToDotFile(fnName + "_cfg3.dot");
 #endif
 
-    cfg->copyToProcedure(*procedure);//, &prog_->instructionReferenceManager());
+    cfg->copyToProcedure(*procedure, irm);
 #ifdef WRITE_CFG_DOTS
     cfg->writeToDotFile(fnName + "_cfg4.dot");
 #endif
-    codeLabels_[fnName] = &procedure->firstInstruction();
+    if (procedure->instructionCount() > 0) {
+        codeLabels_[fnName] = &procedure->firstInstruction();
+    }
 
     delete ddg;
     delete cfg;
+    if (functionAtATime_) delete irm;
     return false;
 }
 

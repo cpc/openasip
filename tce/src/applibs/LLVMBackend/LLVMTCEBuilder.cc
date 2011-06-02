@@ -1008,11 +1008,15 @@ LLVMTCEBuilder::emitInstruction(
         return NULL;
     }	
 
-    if (opDesc->isReturn()) {
+    if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) != NULL && 
+        opDesc->isReturn()) {
         // in case of TTA targets, the return node needs to be
         // converted to ra -> jump here as it does not map 1:1
-        // with the DAG names. Note: this is the wrong way to do this:
-        // should LowerReturn to RA -> JUMP.1 instead!
+        // with the DAG names and we map LLVM DAG names to OSAL
+        // operations
+        // FIXME: this is the wrong way to do this:
+        // should LowerReturn to RA -> JUMP.1 instead and process just
+        // like any other operation here.
         return emitReturn(mi, proc);
     } 
 

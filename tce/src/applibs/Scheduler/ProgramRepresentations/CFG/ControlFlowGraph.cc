@@ -1360,9 +1360,10 @@ ControlFlowGraph::findReachableNodes() {
 }
 
 /**
- * Copies the CFG into a procedure. Clears the procedure and
- * replaces all instructions in it with ones in CFG.
- * Tries to get rid of some unnecessary jumps.
+ * Copies the CFG into a procedure. 
+ *
+ * Clears the procedure and replaces all instructions in it with ones 
+ * in CFG. Tries to get rid of some unnecessary jumps.
  *
  * @param proc procedure where the copy the cfg.
  */
@@ -1764,18 +1765,23 @@ ControlFlowGraph::detectBackEdges() {
 
 void ControlFlowGraph::convertBBRefsToInstRefs(
     TTAProgram::InstructionReferenceManager& irm) {
+
     for (int i = 0; i < nodeCount(); i++) {
         BasicBlockNode& bbn = node(i);
+
         if (bbn.isNormalBB()) {
             BasicBlock& bb = bbn.basicBlock();
+
             for (int j = 0; j < bb.instructionCount(); j++) {
                 TTAProgram::Instruction& ins = bb.instructionAtIndex(j);
+
                 for (int k = 0; k < ins.moveCount(); k++) {
                     TTAProgram::Move& move = ins.move(k);
                     TTAProgram::Terminal& src = move.source();
+
                     if (src.isBasicBlockReference()) {
                         const BasicBlock& target = src.basicBlock();
-                        assert(target.instructionCount() >0);
+                        assert(target.instructionCount() > 0);
                         move.setSource(
                             new TTAProgram::TerminalInstructionAddress(
                                 irm.createReference(
@@ -1786,9 +1792,10 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                 for (int k = 0; k < ins.immediateCount(); k++) {
                     TTAProgram::Immediate& imm = ins.immediate(k);
                     TTAProgram::Terminal& immVal = imm.value();
+
                     if (immVal.isBasicBlockReference()) {
                         const BasicBlock& target = immVal.basicBlock();
-                        assert(target.instructionCount() >0);
+                        assert(target.instructionCount() > 0);
                         imm.setValue(
                             new TTAProgram::TerminalInstructionAddress(
                                 irm.createReference(
