@@ -54,6 +54,8 @@ private:
 
     void addBusInterfaces(IPXactModel* model);
 
+    void addAddressSpaces(IPXactModel* model);
+
     TCEString outputFileName() const;
 
     IPXactSerializer* ipXactWriter_;

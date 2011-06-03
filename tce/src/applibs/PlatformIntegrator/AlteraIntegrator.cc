@@ -41,9 +41,11 @@ AlteraIntegrator::AlteraIntegrator(): PlatformIntegrator() {
 
 
 AlteraIntegrator::AlteraIntegrator(
+    const TTAMachine::Machine* machine,
+    const IDF::MachineImplementation* idf,
     ProGe::HDL hdl,
     TCEString progeOutputDir,
-    TCEString entityName,
+    TCEString coreEntityName,
     TCEString outputDir,
     TCEString programName,
     int targetClockFreq,
@@ -51,8 +53,8 @@ AlteraIntegrator::AlteraIntegrator(
     std::ostream& errorStream,
     const MemInfo& imem,
     const MemInfo& dmem):
-    PlatformIntegrator(hdl, progeOutputDir, entityName, outputDir,
-                       programName, targetClockFreq, warningStream,
+    PlatformIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
+                       outputDir, programName, targetClockFreq, warningStream,
                        errorStream, imem, dmem) {
 }
 

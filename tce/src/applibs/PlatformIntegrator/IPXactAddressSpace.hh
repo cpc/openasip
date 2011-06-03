@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,50 +22,49 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file AlteraIntegrator.hh
+ * @file IPXactAddressSpace.hh
  *
- * Declaration of AlteraIntegrator class.
+ * Declaration of IPXactAddressSpace class.
  *
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
+#ifndef TTA_IP_XACT_ADDRESS_SPACE_HH
+#define TTA_IP_XACT_ADDRESS_SPACE_HH
 
-#ifndef TTA_ALTERA_INTEGRATOR_HH
-#define TTA_ALTERA_INTEGRATOR_HH
-
-#include "PlatformIntegrator.hh"
 #include "TCEString.hh"
+#include "MemoryGenerator.hh"
 
-class AlteraIntegrator : public PlatformIntegrator {
+class IPXactAddressSpace {
 public:
 
-    AlteraIntegrator();
+    IPXactAddressSpace(
+        const TCEString& name,
+        int range,
+        int memLocationWidth,
+        int mauWidth);
 
-    AlteraIntegrator(
-        const TTAMachine::Machine* machine,
-        const IDF::MachineImplementation* idf,
-        ProGe::HDL hdl,
-        TCEString progeOutputDir,
-        TCEString entityName,
-        TCEString outputDir,
-        TCEString programName,
-        int targetClockFreq,
-        std::ostream& warningStream,
-        std::ostream& errorStream,
-        const MemInfo& imem,
-        const MemInfo& dmem);
+    IPXactAddressSpace(const MemInfo& memory);
 
-    virtual ~AlteraIntegrator();
+    TCEString name() const;
+    
+    int memRange() const;
 
-    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
+    int memLocationWidth() const;
 
-protected:
+    int mauWidth() const;
 
-    virtual MemoryGenerator* imemInstance();
+    
+    
 
-    virtual MemoryGenerator* dmemInstance();
+private:
 
-    virtual bool isDataMemorySignal(const TCEString& signalName) const;
+    IPXactAddressSpace();
+
+    TCEString name_;
+    int range_;
+    int memLocationWidth_;
+    int mauWidth_;
 };
 
 #endif

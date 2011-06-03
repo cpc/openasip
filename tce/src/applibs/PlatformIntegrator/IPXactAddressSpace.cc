@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,50 +22,51 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file AlteraIntegrator.hh
+ * @file IPXactAddressSpace.cc
  *
- * Declaration of AlteraIntegrator class.
+ * Implementation of IPXactAddressSpace class.
  *
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
+#include "IPXactAddressSpace.hh"
 
-#ifndef TTA_ALTERA_INTEGRATOR_HH
-#define TTA_ALTERA_INTEGRATOR_HH
+IPXactAddressSpace::IPXactAddressSpace(
+    const TCEString& name,
+    int range,
+    int memLocationWidth,
+    int mauWidth):
+    name_(name), range_(range), memLocationWidth_(memLocationWidth),
+    mauWidth_(mauWidth) {
+}
 
-#include "PlatformIntegrator.hh"
-#include "TCEString.hh"
+IPXactAddressSpace::IPXactAddressSpace(const MemInfo& memory):
+    name_(memory.asName), range_(1 << memory.asAddrw),
+    memLocationWidth_(memory.mauWidth*memory.widthInMaus),
+    mauWidth_(memory.mauWidth) {
+}
 
-class AlteraIntegrator : public PlatformIntegrator {
-public:
 
-    AlteraIntegrator();
+TCEString
+IPXactAddressSpace::name() const{
 
-    AlteraIntegrator(
-        const TTAMachine::Machine* machine,
-        const IDF::MachineImplementation* idf,
-        ProGe::HDL hdl,
-        TCEString progeOutputDir,
-        TCEString entityName,
-        TCEString outputDir,
-        TCEString programName,
-        int targetClockFreq,
-        std::ostream& warningStream,
-        std::ostream& errorStream,
-        const MemInfo& imem,
-        const MemInfo& dmem);
+    return name_;
+}
+    
+int
+IPXactAddressSpace::memRange() const {
 
-    virtual ~AlteraIntegrator();
+    return range_;
+}
 
-    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
+int
+IPXactAddressSpace::memLocationWidth() const {
+    
+    return memLocationWidth_;
+}
 
-protected:
+int
+IPXactAddressSpace::mauWidth() const {
 
-    virtual MemoryGenerator* imemInstance();
-
-    virtual MemoryGenerator* dmemInstance();
-
-    virtual bool isDataMemorySignal(const TCEString& signalName) const;
-};
-
-#endif
+    return mauWidth_;
+}

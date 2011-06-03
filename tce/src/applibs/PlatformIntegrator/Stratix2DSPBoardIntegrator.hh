@@ -54,6 +54,8 @@ public:
     Stratix2DSPBoardIntegrator();
 
     Stratix2DSPBoardIntegrator(
+        const TTAMachine::Machine* machine,
+        const IDF::MachineImplementation* idf,
         ProGe::HDL hdl,
         TCEString progeOutputDir,
         TCEString entityName,

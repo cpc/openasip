@@ -1,19 +1,25 @@
 #!/bin/bash
 PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
+TCECC=../../../../../tce/src/bintools/Compiler/tcecc
+PIG=../../../../../tce/src/bintools/PIG/generatebits
 ADF=data/koski_hibi_pe_dma.adf
 IDF=$(echo $ADF | sed 's/.adf/.idf/g')
+SRC=data/main.c
 TPEF=prog.tpef
 PO_DIR=proge-out-koski
 ENT=koskenlaskija
 IPXACT=spirit_comp_def_${ENT}_toplevel.xml
 INTEG=KoskiIntegrator
-LOG=koski_integrator.runlog
+
+$TCECC -a $ADF -o $TPEF $SRC >& /dev/null
 
 # run integrator
 rm -f $IPXACT
 rm -rf $PO_DIR
-$PROGE -i $IDF -f vhdl_array -d onchip -e $ENT -o $PO_DIR -p $TPEF \
+$PROGE -i $IDF -f onchip -d onchip -e $ENT -o $PO_DIR -p $TPEF \
 -g $INTEG $ADF || exit 1
+
+$PIG -d -w4 -f mif -o mif -p $TPEF -x PO_DIR -e $ENT -x $PO_DIR $ADF >& /dev/null
 
 # reset env params to make sure sort is deterministic
 export LANG=C

@@ -42,9 +42,11 @@ public:
     KoskiIntegrator();
 
     KoskiIntegrator(
+        const TTAMachine::Machine* machine,
+        const IDF::MachineImplementation* idf,
         ProGe::HDL hdl,
         TCEString progeOutputDir,
-        TCEString entityName,
+        TCEString coreEntityName,
         TCEString outputDir,
         TCEString programName,
         int targetClockFreq,

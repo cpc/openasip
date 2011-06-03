@@ -448,16 +448,19 @@ ProGeUI::integrateProcessor(
     // TODO: append new integrators here
     if (platformIntegrator == "Stratix2DSP") {
         integrator = new Stratix2DSPBoardIntegrator(
-            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
-            warningStream, errorStream, imemInfo, dmemInfo);
+            machine_, idf_, language, progeOutDir, coreEntityName,
+            platformDir, programName, fmax, warningStream, errorStream,
+            imemInfo, dmemInfo);
     } else if (platformIntegrator == "KoskiIntegrator") {
         integrator = new KoskiIntegrator(
-            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
-            warningStream, errorStream, imemInfo, dmemInfo);
+            machine_, idf_, language, progeOutDir, coreEntityName,
+            platformDir, programName, fmax, warningStream, errorStream,
+            imemInfo, dmemInfo);
     } else if (platformIntegrator == "AvalonIntegrator") {
         integrator = new AvalonIntegrator(
-            language, progeOutDir, coreEntityName, platformDir, programName, fmax,
-            warningStream, errorStream, imemInfo, dmemInfo);
+            machine_, idf_, language, progeOutDir, coreEntityName,
+            platformDir, programName, fmax, warningStream, errorStream,
+            imemInfo, dmemInfo);
     } else {
         string errorMsg = "Unknown platform integrator: "
             + platformIntegrator;

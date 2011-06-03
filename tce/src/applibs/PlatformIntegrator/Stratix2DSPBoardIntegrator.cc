@@ -63,6 +63,8 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator():
 }
 
 Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
+    const TTAMachine::Machine* machine,
+    const IDF::MachineImplementation* idf,
     ProGe::HDL hdl,
     TCEString progeOutputDir,
     TCEString coreEntityName,
@@ -73,8 +75,8 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
     std::ostream& errorStream,
     const MemInfo& imem,
     const MemInfo& dmem):
-    AlteraIntegrator(hdl, progeOutputDir, coreEntityName, outputDir,
-                     programName, targetClockFreq, warningStream,
+    AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
+                     outputDir, programName, targetClockFreq, warningStream,
                      errorStream, imem, dmem),
     quartusGen_(new QuartusProjectGenerator(coreEntityName, this)) {
 }

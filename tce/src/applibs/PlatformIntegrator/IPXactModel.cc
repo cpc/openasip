@@ -36,6 +36,7 @@
 #include "IPXactClkInterface.hh"
 #include "IPXactResetInterface.hh"
 #include "IPXactHibiInterface.hh"
+#include "IPXactAddressSpace.hh"
 #include "ObjectState.hh"
 #include "HDLPort.hh"
 #include "Conversion.hh"
@@ -81,6 +82,11 @@ const TCEString IPXactModel::OSNAME_FILESET = "spirit:fileSet";
 const TCEString IPXactModel::OSNAME_FILE = "spirit:file";
 const TCEString IPXactModel::OSNAME_FILE_NAME = "spirit:name";
 const TCEString IPXactModel::OSNAME_FILE_TYPE = "spirit:fileType";
+const std::string IPXactModel::OSNAME_ADDRESS_SPACES = "spirit:addressSpaces";
+const std::string IPXactModel::OSNAME_ADDRESS_SPACE = "spirit:addressSpace";
+const std::string IPXactModel::OSNAME_AS_RANGE = "spirit:range";
+const std::string IPXactModel::OSNAME_AS_WIDTH = "spirit:width";
+const std::string IPXactModel::OSNAME_AS_MAU = "spirit:addressUnitBits";
 const TCEString IPXactModel::OSNAME_MODEL_PARAMS = "spirit:modelParameters";
 const TCEString IPXactModel::OSNAME_MODEL_PARAM = "spirit:modelParameter";
 const TCEString IPXactModel::OSNAME_DISPLAY_NAME = "spirit:displayName";
@@ -101,14 +107,14 @@ const TCEString IPXactModel::DEV_FAMILY_GENERIC = "dev_family_g";
 
 IPXactModel::IPXactModel(): 
     vlnv_("","","",""), signals_(), parameters_(), busInterfaces_(),
-    hdlFiles_(), otherFiles_() {
+    addressSpaces_(),  hdlFiles_(), otherFiles_() {
 }
 
 
 IPXactModel::IPXactModel(const ObjectState* state)
     throw (ObjectStateLoadingException): 
-    vlnv_("","","",""), signals_(),
-    busInterfaces_(), hdlFiles_(), otherFiles_() {
+    vlnv_("","","",""), signals_(), parameters_(), busInterfaces_(), 
+    addressSpaces_(), hdlFiles_(), otherFiles_() {
 
     loadState(state);
 }
@@ -124,6 +130,11 @@ IPXactModel::~IPXactModel() {
             delete busInterfaces_.at(i);
         }
     }
+    for (unsigned int i = 0; i < addressSpaces_.size(); i++) {
+        if (addressSpaces_.at(i) != NULL) {
+            delete addressSpaces_.at(i);
+        }
+    }
 }
 
 
@@ -134,6 +145,10 @@ IPXactModel::loadState(const ObjectState* state) {
 
     if (state->hasChild(OSNAME_BUS_INTERFACES)) {
         extractBusInterfaces(state->childByName(OSNAME_BUS_INTERFACES));
+    }
+    
+    if (state->hasChild(OSNAME_ADDRESS_SPACES)) {
+        extractAddressSpaces(state->childByName(OSNAME_ADDRESS_SPACES));
     }
 
     if (state->hasChild(OSNAME_MODEL)) {
@@ -182,6 +197,15 @@ IPXactModel::saveState() const {
         ObjectState* busInterface = new ObjectState(OSNAME_BUS_INTERFACE);
         addBusInterfaceObject(busInterfaces_.at(i), busInterface);
         busInterfaces->addChild(busInterface);
+    }
+
+    // add address spaces
+    ObjectState* addressSpaces = new ObjectState(OSNAME_ADDRESS_SPACES);
+    root->addChild(addressSpaces);
+    for (unsigned int i = 0; i < addressSpaces_.size(); i++) {
+        ObjectState* addressSpace = new ObjectState(OSNAME_ADDRESS_SPACE);
+        addAddressSpaceObject(addressSpaces_.at(i), addressSpace);
+        addressSpaces->addChild(addressSpace);
     }
     
     // create model and add signals
@@ -279,6 +303,12 @@ IPXactModel::addBusInterface(IPXactInterface* interface) {
     busInterfaces_.push_back(interface);
 }
 
+void
+IPXactModel::addAddressSpace(IPXactAddressSpace* addrSpace) {
+
+    addressSpaces_.push_back(addrSpace);
+}
+
 
 void
 IPXactModel::addBusInterfaceObject(
@@ -345,6 +375,32 @@ IPXactModel::addBusInterfaceObject(
         portMapping->addChild(compPort);
     }
 }
+
+
+void
+IPXactModel::addAddressSpaceObject(
+    const IPXactAddressSpace* as,
+    ObjectState* parent) const {
+    
+    ObjectState* name = new ObjectState(OSNAME_NAME);
+    name->setValue(as->name());
+    parent->addChild(name);
+    
+    ObjectState* range = new ObjectState(OSNAME_AS_RANGE);
+    range->setValue(as->memRange());
+    parent->addChild(range);
+    
+    ObjectState* width = new ObjectState(OSNAME_AS_WIDTH);
+    width->setValue(as->memLocationWidth());
+    parent->addChild(width);
+    
+    if (as->mauWidth() > 0) {
+        ObjectState* mau = new ObjectState(OSNAME_AS_MAU);
+        mau->setValue(as->mauWidth());
+        parent->addChild(mau);
+    }
+}
+
 
 void
 IPXactModel::addSignalObject(
@@ -511,10 +567,9 @@ IPXactModel::extractBusInterfaces(const ObjectState* busInterfaces) {
     }
     for (int i = 0; i < busInterfaces->childCount(); i++) {
         const ObjectState* bus = busInterfaces->child(i);
-        if (bus->name() != OSNAME_BUS_INTERFACE) {
-            continue;
+         if (bus->name() == OSNAME_BUS_INTERFACE) {
+            extractBusInterface(bus);
         }
-        extractBusInterface(busInterfaces->child(i));
     }
 }
 
@@ -572,6 +627,60 @@ IPXactModel::extractBusInterface(const ObjectState* busInterface) {
     }
     busInterfaces_.push_back(interface);
 }
+
+
+void
+IPXactModel::extractAddressSpaces(const ObjectState* addressSpaces) {
+    
+    assert(addressSpaces->name() == OSNAME_ADDRESS_SPACES);
+    if (!addressSpaces->hasChild(OSNAME_ADDRESS_SPACE)) {
+        return;
+    }
+    for (int i = 0; i < addressSpaces->childCount(); i++) {
+        const ObjectState* as = addressSpaces->child(i);
+        if (as->name() == OSNAME_ADDRESS_SPACE) {
+            extractAddressSpace(as);
+        }
+    }
+}
+
+
+void
+IPXactModel::extractAddressSpace(const ObjectState* as) {
+
+    assert(as->name() == OSNAME_ADDRESS_SPACE);
+    TCEString errorMsg = "Address space has no ";
+    if (!as->hasChild(OSNAME_NAME)) {
+        errorMsg << "name.";
+        ObjectStateLoadingException* exc = 
+            new ObjectStateLoadingException(
+                __FILE__, __LINE__, "IPXactModel", errorMsg);
+       throw exc;
+    } else if (!as->hasChild(OSNAME_AS_RANGE)) {
+        errorMsg << "range.";
+        ObjectStateLoadingException* exc = 
+            new ObjectStateLoadingException(
+                __FILE__, __LINE__, "IPXactModel", errorMsg);
+        throw exc;
+    } else if (!as->hasChild(OSNAME_AS_WIDTH)) {
+        errorMsg << "width.";
+        ObjectStateLoadingException* exc = 
+            new ObjectStateLoadingException(
+                __FILE__, __LINE__, "IPXactModel", errorMsg);
+        throw exc;
+    }
+    TCEString name = as->childByName(OSNAME_NAME)->stringValue();
+    int range = as->childByName(OSNAME_AS_RANGE)->intValue();
+    int width = as->childByName(OSNAME_AS_WIDTH)->intValue();
+    int mau = 0;
+    if (as->hasChild(OSNAME_AS_MAU)) {
+        mau = as->childByName(OSNAME_AS_WIDTH)->intValue();
+    }
+    IPXactAddressSpace* ipXactAs = 
+        new IPXactAddressSpace(name, range, width, mau);
+    addressSpaces_.push_back(ipXactAs);
+}
+
 
 IPXactModel::BusMode 
 IPXactModel::extractBusMode(const ObjectState* busInterface) const {

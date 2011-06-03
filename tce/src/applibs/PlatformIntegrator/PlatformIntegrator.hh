@@ -44,6 +44,16 @@ namespace ProGe {
     class NetlistBlock;
 }
 
+namespace TTAMachine {
+    class Machine;
+    class FunctionUnit;
+}
+
+namespace IDF {
+    class MachineImplementation;
+}
+
+
 class ProjectFileGenerator;
 
 class PlatformIntegrator {
@@ -52,6 +62,8 @@ public:
     PlatformIntegrator();
 
     PlatformIntegrator(
+        const TTAMachine::Machine* machine,
+        const IDF::MachineImplementation* idf,
         ProGe::HDL hdl,
         TCEString progeOutputDir,
         TCEString coreEntityName,
@@ -134,6 +146,14 @@ public:
      */
     TCEString coreEntityName() const;
 
+    const TTAMachine::Machine* machine() const;
+
+    const IDF::MachineImplementation* idf() const;
+    
+    const MemInfo& imemInfo() const;
+    
+    const MemInfo& dmemInfo() const;
+
 protected:
 
     ProGe::Netlist* netlist();
@@ -155,10 +175,6 @@ protected:
     virtual bool isDataMemorySignal(const TCEString& signalName) const = 0;
 
     void copyTTACoreToNetlist(const ProGe::NetlistBlock* original);
-
-    const MemInfo& imemInfo() const;
-    
-    const MemInfo& dmemInfo() const;
 
     virtual bool createMemories();
 
@@ -223,6 +239,10 @@ protected:
 private:
 
     void createOutputDir();
+
+    const TTAMachine::Machine* machine_;
+
+    const IDF::MachineImplementation* idf_;
 
     ProGe::Netlist* netlist_;
     

@@ -43,20 +43,23 @@
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
 #include "ProjectFileGenerator.hh"
+#include "Machine.hh"
+#include "MachineImplementation.hh"
 using std::vector;
 using std::endl;
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
+using TTAMachine::FunctionUnit;
 
 const TCEString PlatformIntegrator::TTA_CORE_CLK = "clk";
 const TCEString PlatformIntegrator::TTA_CORE_RSTX = "rstx";
 
 
 PlatformIntegrator::PlatformIntegrator():
-    netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), coreEntityName_(""),
-    outputDir_(""), programName_(""), targetFrequency_(0),
-    warningStream_(std::cout), errorStream_(std::cerr), ttaCore_(NULL),
-    imem_(), dmem_() {
+    machine_(NULL), idf_(NULL), netlist_(NULL),  hdl_(ProGe::VHDL),
+    progeOutputDir_(""), coreEntityName_(""), outputDir_(""), 
+    programName_(""), targetFrequency_(0), warningStream_(std::cout),
+    errorStream_(std::cerr), ttaCore_(NULL), imem_(), dmem_() {
     
     imem_.type = UNKNOWN;
     dmem_.type = UNKNOWN;
@@ -68,6 +71,8 @@ PlatformIntegrator::PlatformIntegrator():
 
 
 PlatformIntegrator::PlatformIntegrator(
+    const TTAMachine::Machine* machine,
+    const IDF::MachineImplementation* idf,
     ProGe::HDL hdl,
     TCEString progeOutputDir,
     TCEString coreEntityName,
@@ -78,7 +83,7 @@ PlatformIntegrator::PlatformIntegrator(
     std::ostream& errorStream,
     const MemInfo& imem,
     const MemInfo& dmem): 
-    netlist_(new ProGe::Netlist()), hdl_(hdl),
+    machine_(machine), idf_(idf), netlist_(new ProGe::Netlist()), hdl_(hdl),
     progeOutputDir_(progeOutputDir), coreEntityName_(coreEntityName),
     outputDir_(outputDir), programName_(programName),
     targetFrequency_(targetClockFreq), warningStream_(warningStream),
@@ -248,6 +253,21 @@ PlatformIntegrator::netlist() {
     assert(netlist_ != NULL);
     return netlist_;
 }
+
+
+const TTAMachine::Machine*
+PlatformIntegrator::machine() const {
+
+    return machine_;
+}
+
+
+const IDF::MachineImplementation*
+PlatformIntegrator::idf() const {
+
+    return idf_;
+}
+
 
 TCEString
 PlatformIntegrator::platformEntityName() const {

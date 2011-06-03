@@ -42,6 +42,10 @@
 #include "IPXactHibiInterface.hh"
 #include "IPXactClkInterface.hh"
 #include "IPXactResetInterface.hh"
+#include "IPXactAddressSpace.hh"
+#include "AddressSpace.hh"
+
+#include "Machine.hh"
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 using std::pair;
@@ -83,6 +87,8 @@ IPXactFileGenerator::writeProjectFiles() {
 
     addBusInterfaces(ip);
 
+    addAddressSpaces(ip);
+
     ip->setHdlFiles(hdlFileList());
     for (unsigned int i = 0; i < memInitFileList().size(); i++) {
         ip->setFile(memInitFileList().at(i));
@@ -112,6 +118,18 @@ IPXactFileGenerator::addBusInterfaces(IPXactModel* model) {
             interfaces.at(i) = NULL;
         }
     }
+}
+
+
+void
+IPXactFileGenerator::addAddressSpaces(IPXactModel* model) {
+    
+    IPXactAddressSpace* imemAs =
+        new IPXactAddressSpace(integrator()->imemInfo());
+    IPXactAddressSpace* dmemAs =
+        new IPXactAddressSpace(integrator()->dmemInfo());
+    model->addAddressSpace(imemAs);
+    model->addAddressSpace(dmemAs);
 }
 
 

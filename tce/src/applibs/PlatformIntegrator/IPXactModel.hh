@@ -42,6 +42,7 @@
 
 class IPXactInterface;
 
+class IPXactAddressSpace;
 
 class IPXactModel : public Serializable {
 public:
@@ -86,6 +87,8 @@ public:
 
     void addBusInterface(IPXactInterface* interface);
 
+    void addAddressSpace(IPXactAddressSpace* addrSpace);
+
     static const TCEString OSNAME_IPXACT_MODEL;
     static const TCEString OSNAME_VENDOR;
     static const TCEString OSNAME_LIBRARY;
@@ -120,6 +123,11 @@ public:
     static const TCEString OSNAME_FILE;
     static const TCEString OSNAME_FILE_NAME;
     static const TCEString OSNAME_FILE_TYPE;
+    static const std::string OSNAME_ADDRESS_SPACES;
+    static const std::string OSNAME_ADDRESS_SPACE;
+    static const std::string OSNAME_AS_RANGE;
+    static const std::string OSNAME_AS_WIDTH;
+    static const std::string OSNAME_AS_MAU;
     static const TCEString OSNAME_MODEL_PARAMS;
     static const TCEString OSNAME_MODEL_PARAM;
     static const TCEString OSNAME_DISPLAY_NAME;
@@ -135,6 +143,10 @@ private:
 
     void addBusInterfaceObject(
         const IPXactInterface* bus,
+        ObjectState* parent) const;
+
+    void addAddressSpaceObject(
+        const IPXactAddressSpace* as,
         ObjectState* parent) const;
 
     void addSignalObject(const HDLPort* port, ObjectState* parent) const;
@@ -153,6 +165,10 @@ private:
     void extractBusInterfaces(const ObjectState* busInterfaces);
 
     void extractBusInterface(const ObjectState* busInterface);
+
+    void extractAddressSpaces(const ObjectState* addressSpaces);
+
+    void extractAddressSpace(const ObjectState* as);
     
     BusMode extractBusMode(const ObjectState* busInterface) const;
 
@@ -186,6 +202,8 @@ private:
     std::vector<ProGe::Netlist::Parameter> parameters_;
 
     std::vector<IPXactInterface*> busInterfaces_;
+
+    std::vector<IPXactAddressSpace*> addressSpaces_;
 
     std::vector<TCEString> hdlFiles_;
     std::vector<TCEString> otherFiles_;

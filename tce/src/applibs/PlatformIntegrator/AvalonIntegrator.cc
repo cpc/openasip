@@ -42,9 +42,11 @@ AvalonIntegrator::AvalonIntegrator():
 }
 
 AvalonIntegrator::AvalonIntegrator(
+    const TTAMachine::Machine* machine,
+    const IDF::MachineImplementation* idf,
     ProGe::HDL hdl,
     TCEString progeOutputDir,
-    TCEString entityName,
+    TCEString coreEntityName,
     TCEString outputDir,
     TCEString programName,
     int targetClockFreq,
@@ -52,10 +54,10 @@ AvalonIntegrator::AvalonIntegrator(
     std::ostream& errorStream,
     const MemInfo& imem,
     const MemInfo& dmem):
-    AlteraIntegrator(hdl, progeOutputDir, entityName, outputDir,
-                     programName, targetClockFreq, warningStream,
+    AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
+                     outputDir, programName, targetClockFreq, warningStream,
                      errorStream, imem, dmem),
-    sopcGenerator_(new SOPCBuilderFileGenerator(entityName, this)),
+    sopcGenerator_(new SOPCBuilderFileGenerator(coreEntityName, this)),
     deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
 }
 
