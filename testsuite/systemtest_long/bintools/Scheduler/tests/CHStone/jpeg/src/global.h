@@ -44,6 +44,8 @@
 
 int main_result;
 
+#include <stdlib.h>
+
 #define EXIT                exit(0)
 
 /*

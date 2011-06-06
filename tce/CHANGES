@@ -10,6 +10,10 @@ Bugfixes
   model in an otherwise valid .opb.
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
   was power of 2.
+- tcecc: standard libcalls are now converted to cheaper ones again using
+  the llvm -simplify-libcalls (e.g. printf("foo\n") -> puts("foo").
+  This was broken due to adding -fno-libcall switch as default. Now it's
+  added only while building Newlib.
 
 Smaller features
 ----------------

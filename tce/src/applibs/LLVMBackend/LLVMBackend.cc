@@ -103,7 +103,7 @@
 
 //#define DEBUG_TDGEN
 
-#define USE_CFGDDG_BUILDER
+//#define USE_CFGDDG_BUILDER
 
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 namespace llvm {

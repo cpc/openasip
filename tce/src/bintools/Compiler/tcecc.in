@@ -191,14 +191,12 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # is implemented as a instruction in llvm assembler,
                 # it won't be linked to final binary from libc.a
                 # (ld knows how to select only needed parts from libc.a,
-                # even thoug it does it very bad, it shorten optimizetime)
+                # even thoug it does it very badly, it shortens optimize time)
 
-                # -fno-builtin prevents running LoopIdiomRecognizer which converts
-                # memcpy-doing loops into memcpy calls (which are slower on TCE)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
-                        command =  ("clang -fno-builtin -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
+                        command =  ("clang -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;" ) % \
@@ -311,8 +309,11 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # optimization set for overall performance... since when separately
     # adding own set we just end up tuning denbench / fft optimed switches
     # (its practically impossible to know how switches effect on any other case)
-    # disable-simplify-libcalls needed to prevent memset/memset loop detection
-    # LoopIdiomRecognize pass, which breaks things
+
+    # disable-simplify-libcalls needed to prevent memset/memset loop detection in
+    # LoopIdiomRecognize pass, which breaks things due to memset contents being
+    # converted to memset calls which causes infinite recursion. This has to be done 
+    # because we always do full program linkage and optimization for TTA targets.
     default_opts = " -O3 --disable-simplify-libcalls "
 
     # no inline 

@@ -75,7 +75,7 @@
  */
 
 void
-memcpy (BF_LONG * s1, const BF_LONG * s2, int n)
+memcpy_long (BF_LONG * s1, const BF_LONG * s2, int n)
 {
   BF_LONG *p1;
   const BF_LONG *p2;
@@ -98,8 +98,8 @@ BF_set_key (int len, unsigned char *data)
   BF_LONG *p, ri, in[2];
   unsigned char *d, *end;
 
-  memcpy (key_P, bf_init_P, BF_ROUNDS + 2);
-  memcpy (key_S, bf_init_S, 4 * 256);
+  memcpy_long (key_P, bf_init_P, BF_ROUNDS + 2);
+  memcpy_long (key_S, bf_init_S, 4 * 256);
   p = key_P;
 
   if (len > ((BF_ROUNDS + 2) * 4))
