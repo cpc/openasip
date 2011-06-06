@@ -59,7 +59,9 @@
 #include <vector>
 
 #if defined(_DEBUG)
-#define BOOST_SPIRIT_DEBUG
+// LLVM svn builds want to define _DEBUG which causes massive
+// debug spam
+//#define BOOST_SPIRIT_DEBUG
 #endif // defined(_DEBUG)
 
 #include <boost/version.hpp>

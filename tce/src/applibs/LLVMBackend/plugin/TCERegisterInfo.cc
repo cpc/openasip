@@ -41,7 +41,6 @@
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
-#include "Application.hh"
 #include "tce_config.h"
 
 #include <iostream> // DEBUG
