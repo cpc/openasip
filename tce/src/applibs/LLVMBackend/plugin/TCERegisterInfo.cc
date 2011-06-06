@@ -41,6 +41,7 @@
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
+#include "Application.hh"
 #include "tce_config.h"
 
 #include <iostream> // DEBUG
@@ -234,9 +235,17 @@ TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
 }
 
 int
-TCERegisterInfo::getDwarfRegNum(unsigned RegNum, bool isEH) const {
-    assert(0 && "Not implemented!");
+TCERegisterInfo::getDwarfRegNum(unsigned RegNum, bool /*isEH*/) const {
+    return TCEGenRegisterInfo::getDwarfRegNumFull(RegNum, 0); 
+}
+
+int
+TCERegisterInfo::getLLVMRegNum(unsigned RegNum, bool /*isEH */) const {
+#ifdef LLVM_2_9
     return -1;
+#else
+    return TCEGenRegisterInfo::getLLVMRegNumFull(RegNum, 0);
+#endif
 }
 
 

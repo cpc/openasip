@@ -83,6 +83,7 @@ namespace llvm {
         unsigned getFrameRegister(const MachineFunction& mf) const;
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
+        int getLLVMRegNum(unsigned int, bool) const;
 
     private:
         const TargetInstrInfo& tii_;

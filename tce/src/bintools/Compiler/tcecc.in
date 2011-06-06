@@ -817,6 +817,9 @@ if options.adf_file != "":
 
     if not options.default_regalloc:
         command += " --experimental-ra"
+
+    if options.leave_dirty:
+        command += " -d"
         
     if options.dump_ddgs:
         command += " --dump-ddgs-dot --dump-ddgs-xml"

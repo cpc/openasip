@@ -609,7 +609,7 @@ void
 TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "class Rra<string n> : TCEReg<n, []>;" << std::endl;
     o << "def RA : Rra<\"return-address\">, ";
-    o << "DwarfRegNum<[513]>;";
+    o << "DwarfRegNum<[" << dregNum_++ << "]>;";
     o << std::endl;
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
 }
