@@ -20,6 +20,12 @@ Bugfixes
   This was broken due to adding -fno-libcall switch as default. Now it's
   added only while building Newlib.
 
+Code generator improvements
+---------------------------
+- Introduced jump with negative guard to llvm. This makes llvm's
+  BranchFolding pass to generate more sane CFGs, and should result
+  in slightly better code being generated.
+
 Smaller features
 ----------------
 - ProGe: switch -s that can be used to define a separate directory for
