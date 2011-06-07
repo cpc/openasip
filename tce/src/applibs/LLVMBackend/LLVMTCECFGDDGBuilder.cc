@@ -527,7 +527,8 @@ LLVMTCECFGDDGBuilder::createSymbolReference(const TCEString& symbolName) {
     return new TTAProgram::TerminalSymbolReference(symbolName);
 }
 
-bool LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
+bool 
+LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
     
     const llvm::TargetInstrDesc* opDesc = &instr.getDesc();
 
@@ -551,7 +552,8 @@ bool LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
     return true;
 }
 
-bool LLVMTCECFGDDGBuilder::hasRealInstructions(
+bool 
+LLVMTCECFGDDGBuilder::hasRealInstructions(
     MachineBasicBlock::const_iterator i, 
     const MachineBasicBlock& mbb) {
     for (; i != mbb.end(); i++) {
@@ -564,7 +566,7 @@ bool LLVMTCECFGDDGBuilder::hasRealInstructions(
 
 
 bool
-LLVMTCECFGDDGBuilder::doFinalization(Module& m ) { 
+LLVMTCECFGDDGBuilder::doFinalization(Module& m) { 
 
     LLVMTCEBuilder::doFinalization(m);
     prog_->convertSymbolRefsToInsRefs();

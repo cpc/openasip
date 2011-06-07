@@ -115,8 +115,6 @@ using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
 
-extern const PassInfo* LowerMissingInstructionsID;
-
 // From passes/RegAllocLinearScanILP.cc:
 FunctionPass* createILPLinearScanRegisterAllocator();
 
@@ -468,7 +466,7 @@ LLVMBackend::compile(
     Passes.add(new TargetData(*TD));
 
     targetMachine->addPassesToEmitFile(
-	Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
+        Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
 //    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
 // TODO: should the above be on===
 

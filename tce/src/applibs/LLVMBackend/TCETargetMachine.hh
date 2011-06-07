@@ -39,11 +39,7 @@
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-#include "llvm/Target/TargetFrameInfo.h"
-#else
 #include "llvm/Target/TargetFrameLowering.h"
-#endif
 #include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
@@ -104,60 +100,17 @@ namespace llvm {
             return &DataLayout;
         }
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-        virtual const TargetFrameInfo* getFrameInfo() const {
-            return plugin_->getFrameInfo();
-        }
-#else        
         virtual const TargetFrameLowering* getFrameLowering() const {
             return plugin_->getFrameLowering();
         }
-#endif
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }
-#ifndef LLVM_2_7
-	virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {
-	    return &tsInfo;
-	}
-#endif
-        /// llvm-2.6 does not have hook for adding target dependent
-        // preisel llvm level passes so we override the whole methods
-        // we had to actually override also addPassesToEmitFile
-        // because addCommonCodeGenPasses was not virtual...
-
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-        // for LLVM 2.8 and later, use the default one
-        virtual bool addPassesToEmitFile(PassManagerBase &,
-					 formatted_raw_ostream &,
-					 CodeGenFileType,
-					 CodeGenOpt::Level);
-#endif
-
-	// This method is overridden and modified to comment out
-	// LICM optimization pass after regalloc, because it breaks things. 
-	// The reason to this breakage might be TII::isStoreToStackSlot,
-	// TII::isLoadFromStackSlot not being implemented correctly.
-	// This overridden method can be removed and the llvm default used
-	// when these methods have been fixed and LICM after regalloc
-	// is tested to work
-
-#if defined(LLVM_2_7)
-        bool addCommonCodeGenPasses(PassManagerBase &PM,
-                                    CodeGenOpt::Level OptLevel);
-#elif defined(LLVM_2_8)
-        bool addCommonCodeGenPasses(PassManagerBase &PM,
-                                    CodeGenOpt::Level OptLevel,
-                                    bool DisableVerify,
-                                    MCContext *&OutContext);
-#endif
         
-        // ------------- end of duplicated methods ------------
+        virtual bool addPreISel(PassManagerBase& PM, 
+                                CodeGenOpt::Level OptLevel);
 
-       virtual bool addPreISel(PassManagerBase& PM, 
-                               CodeGenOpt::Level OptLevel);
-
-       virtual bool addInstSelector(PassManagerBase& pm, 
+        virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
         
         // we do not want branch folder pass
@@ -199,9 +152,6 @@ namespace llvm {
         TCESubtarget        Subtarget;
         const TargetData    DataLayout; // Calculates type size & alignment
 
-#ifndef LLVM_2_7
-	TCESelectionDAGInfo tsInfo;
-#endif
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.

@@ -1,6 +1,11 @@
 1.5 not yet released
 ====================
 
+Notable new features
+--------------------
+- Support for LLVM 3.0svn. Dropped support for LLVM 2.8 and older. 
+  LLVM 2.9 still works.
+
 Bugfixes
 --------
 - HDB: Hardware bug fix for load-store units in hibi_adapter.hdb and stratixII.hdb.
