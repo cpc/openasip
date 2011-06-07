@@ -57,24 +57,13 @@ namespace llvm {
             return ri_; 
         }
 
-#ifdef LLVM_2_7        
-        virtual bool isMoveInstr (
-            const MachineInstr &MI, unsigned &SrcReg, unsigned &DstReg, 
-            unsigned &SrcSubIdx, unsigned &DstSubIdx) const;
-#endif
-
-#ifdef LLVM_2_7
-        virtual unsigned InsertBranch(
-            MachineBasicBlock &MBB, MachineBasicBlock *TBB,
-            MachineBasicBlock *FBB,
-            const SmallVectorImpl<MachineOperand> &Cond) const;
-#else
         virtual unsigned InsertBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,
             MachineBasicBlock *FBB,
             const SmallVectorImpl<MachineOperand> &Cond,
 	    DebugLoc DL) const;
-#endif
+
+        unsigned RemoveBranch(MachineBasicBlock &mbb) const;
 
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
@@ -85,7 +74,6 @@ namespace llvm {
             unsigned srcReg, bool isKill, int frameIndex,
             const TargetRegisterClass* rc) const;
 
-#ifndef LLVM_2_7
         // changed in LLVM 2.8:
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
@@ -94,14 +82,15 @@ namespace llvm {
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
         }
-#endif
+
+        // TODO: this is in the form of the llvm 2.7 version of this method.
+        // this is however called by the newer version of the function.
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
             const TargetRegisterClass* rc) const;
 
-#ifndef LLVM_2_7
         // changed in LLVM 2.8:
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
@@ -110,22 +99,22 @@ namespace llvm {
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
         }
-#endif
 
-#ifdef LLVM_2_7
-        virtual bool copyRegToReg(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned destReg, unsigned srcReg,
-            const TargetRegisterClass* dstRC,
-            const TargetRegisterClass* srcRC) const;
-#else
 	virtual void copyPhysReg(
 	    MachineBasicBlock& mbb,
 	    MachineBasicBlock::iterator mbbi, DebugLoc DL,
 	    unsigned destReg, unsigned srcReg,
 	    bool KillSrc) const;
-#endif
+
+        virtual bool ReverseBranchCondition(
+            llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const;
+
+        virtual bool AnalyzeBranch(
+            MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
+            MachineBasicBlock *&FBB, 
+            llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
+	    bool allowModify = false)
+            const;
 
     private:
         const TCERegisterInfo ri_;

@@ -120,35 +120,103 @@ TCEInstrInfo::isMoveInstr(
 #endif
 
 /**
- * Inserts a branch instruction.
+ * Inserts a branch instruction or brach instructions into llvm MBB.
+ *
+ * If the MBB already has an unconditional branch at end, does nothing.
+ * 
+ * @param mbb where to inser the branch instructions.
+ * @param tbb jump target basic block
+ * @param fbb false condition jump target, if insertin 2 branches
+ *
+ * @return number of branch instructions inserted
  */
-#ifdef LLVM_2_7
 unsigned 
 TCEInstrInfo::InsertBranch(
-    MachineBasicBlock &MBB,
-    MachineBasicBlock *TBB,
-    MachineBasicBlock *FBB,
-    const SmallVectorImpl<llvm::MachineOperand> &Cond) const {
-#else
-unsigned 
-TCEInstrInfo::InsertBranch(
-    MachineBasicBlock &MBB,
-    MachineBasicBlock *TBB,
-    MachineBasicBlock *FBB,
-    const SmallVectorImpl<llvm::MachineOperand> &Cond,
+    MachineBasicBlock& mbb,
+    MachineBasicBlock* tbb,
+    MachineBasicBlock* fbb,
+    const llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
     DebugLoc dl) const {
-#endif
 
-    // Can only insert uncond branches so far.
-    assert(Cond.empty() && !FBB && TBB && 
-           "Can only handle uncond branches!");
+    if (mbb.size() != 0) {
+        // already has a uncond branch, no need for another.
+        // asserts to make sure it's to same BB in order to not create
+        // broken code.
+        if (mbb.back().getOpcode() == TCE::TCEBR) {
+            assert(cond.size() == 0);
+            assert(mbb.back().getOperand(0).getMBB() == tbb);
+            return 0;
+        }
+        if (cond.size() != 0) {
+            assert (mbb.back().getOpcode() != TCE::TCEBRCOND && "c branch!");
+            assert (mbb.back().getOpcode() != TCE::TCEBRICOND && "ic branch!");
+            assert (mbb.back().getOpcode() != TCE::TCEBR && "has branch!(1)");
+        } else {
+            assert (mbb.back().getOpcode() != TCE::TCEBR && "has branch(2)!");
+        }
 
-#ifdef LLVM_2_7    
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-#endif
+    }
 
-    BuildMI(&MBB, dl, get(TCE::TCEBR)).addMBB(TBB);
-    return 1;
+    if (fbb == 0) {
+        if (cond.empty()) {
+            // Can only insert uncond branches so far.
+            BuildMI(&mbb, dl, get(TCE::TCEBR)).addMBB(tbb);
+            return 1;
+        } else {
+            if (cond.size() == 2 && cond[1].getImm() == false) {
+                // false jump
+		BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
+                    addReg(cond[0].getReg()).addMBB(tbb);
+                return 1;
+            }
+            BuildMI(&mbb, dl, get(TCE::TCEBRCOND)).addReg(cond[0].getReg())
+                .addMBB(tbb);
+            return 1;
+        }
+    }
+    assert(!cond.empty() && "Two jumps need a condition");
+
+    if (cond.size() == 2 && cond[1].getImm() == false) {
+        BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
+            addReg(cond[0].getReg()).addMBB(tbb);
+    } else {
+        BuildMI(&mbb, dl, get(TCE::TCEBRCOND)).
+            addReg(cond[0].getReg()).addMBB(tbb);
+    }
+    BuildMI(&mbb, dl, get(TCE::TCEBR)).addMBB(fbb);
+    return 2;
+}
+
+/**
+ * Removes branch or branches form end of llvm MachineBasicBlock
+ *
+ * @param mbb where to remove the branches from
+ * @return number of braches removed
+ */
+unsigned
+TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
+    MachineBasicBlock::iterator i = mbb.end();
+    if (i == mbb.begin()) return 0;
+    i--;
+    int opc = i->getOpcode();
+    if (opc == TCE::TCEBRCOND || opc == TCE::TCEBRICOND ||
+        opc == TCE::TCEBR) {
+        i->eraseFromParent();
+    } else {
+        return 0;
+    }
+
+    i = mbb.end(); 
+    if (i == mbb.begin()) return 1;
+    i--;
+    if (i->getOpcode() == TCE::TCEBRCOND || 
+        i->getOpcode() == TCE::TCEBRICOND) {
+        i->eraseFromParent();
+        return 2;
+    } else {
+        assert(i->getOpcode() != TCE::TCEBR);
+        return 1;
+    }
 }
 
 /**
@@ -171,11 +239,8 @@ void TCEInstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
                     const TargetRegisterClass *RC) const {
-#ifdef LLVM_2_7
-  DebugLoc DL = DebugLoc::getUnknownLoc();
-#else
   DebugLoc DL;
-#endif
+
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
@@ -199,11 +264,8 @@ void TCEInstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
                      const TargetRegisterClass *RC) const {
-#ifdef LLVM_2_7
-  DebugLoc DL = DebugLoc::getUnknownLoc();
-#else
   DebugLoc DL;
-#endif
+
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   if (RC == TCE::I32RegsRegisterClass)
@@ -227,44 +289,6 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
  * @param destReg Register where the value is copied to.
  * @param rc Class of the register to copy.
  */
-#ifdef LLVM_2_7
-bool
-TCEInstrInfo::copyRegToReg(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi,
-    unsigned destReg, unsigned srcReg,
-    const TargetRegisterClass* dstRC,
-    const TargetRegisterClass* srcRC) const 
-{
-    assert(srcRC == dstRC && "not yet implemented");
-
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-
-    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
-
-    if (srcRC == TCE::I1RegsRegisterClass) {        
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::I8RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI8rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::I16RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI16rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::I32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::I64RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI64rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::F32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF32rr), destReg).addReg(srcReg);
-    } else if (srcRC == TCE::F64RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg).addReg(srcReg);
-    } else {
-        assert(
-            false && "TCERegisterInfo::copyRegToReg(): Can't copy register");
-    }
-    return true;
-}
-
-#else
-
 void TCEInstrInfo::copyPhysReg(
     MachineBasicBlock& mbb,
     MachineBasicBlock::iterator mbbi, DebugLoc DL,
@@ -301,4 +325,102 @@ void TCEInstrInfo::copyPhysReg(
     }
 }
 
-#endif
+/*
+ * Reverses a condition.
+ * 
+ * @param cond condition to reverse. This is modified.
+ *
+ * @return false if did reverse condition, true if could not.
+ */
+bool 
+TCEInstrInfo::ReverseBranchCondition(
+    llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
+
+    assert(cond.size() != 0);
+
+    // from true to false
+    if (cond.size() == 1) {
+        cond.push_back(MachineOperand::CreateImm(false));
+    } else {
+        // from false to true
+        if (cond[1].getImm() == false) {
+            cond[1].setImm(true);
+        } else {
+            // from true to false
+            assert(cond[1].getImm() == true);
+            cond[1].setImm(false);
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Analyzes branches of MBB.
+ * 
+ * @param mbb MBB to analyze
+ * @param tbb Puts the jump target or condition true target MBB here
+ * @param fbb Puts the condition false target here, if not fall-thru
+ * @param cond puts the condition data (predcate reg and T/F) here
+ * @return false if could analyze, true if could not analyze
+ */
+bool 
+TCEInstrInfo::AnalyzeBranch(
+    MachineBasicBlock &mbb, MachineBasicBlock *&tbb,
+    MachineBasicBlock *&fbb, 
+    llvm::SmallVectorImpl<llvm::MachineOperand>& cond, bool allowModify)
+    const {
+
+    if (mbb.empty()) {
+        return false;
+    }
+
+    MachineBasicBlock::iterator i = mbb.end(); i--;
+
+    MachineInstr& lastIns = *i;
+    switch (lastIns.getOpcode()) {
+    case TCE::TCEBRCOND:
+        tbb = lastIns.getOperand(1).getMBB();
+        cond.push_back(i->getOperand(0));
+        return false;
+    case TCE::TCEBRICOND:
+        tbb = lastIns.getOperand(1).getMBB();
+        cond.push_back(i->getOperand(0));
+        cond.push_back(MachineOperand::CreateImm(false));
+        return false;
+    case TCE::TCEBR: {
+        // indirect jump cannot be analyzed
+        if (!lastIns.getOperand(0).isMBB()) {
+            return true;
+        }
+
+        if ( i == mbb.begin()) {
+            tbb = lastIns.getOperand(0).getMBB();
+            return false; // uncond jump only ins in mbb.
+        }
+        i--;
+        if (i->getOpcode() == TCE::TCEBRCOND) {
+            tbb = i->getOperand(1).getMBB();
+            fbb = lastIns.getOperand(0).getMBB();
+            cond.push_back(i->getOperand(0));
+            return false;
+        }
+        if (i->getOpcode() == TCE::TCEBRICOND) {
+            tbb = i->getOperand(1).getMBB(); 
+            fbb = lastIns.getOperand(0).getMBB();
+            cond.push_back(i->getOperand(0));
+            cond.push_back(MachineOperand::CreateImm(false));
+            return false;
+        }
+        // two uncond branches not allowed
+        assert(i->getOpcode() != TCE::TCEBR);
+
+        tbb = lastIns.getOperand(0).getMBB();
+        return false; // uncond jump.
+    }
+    default: 
+        return false; // only fall-thru
+    }
+    // should never be here
+    return true;
+}

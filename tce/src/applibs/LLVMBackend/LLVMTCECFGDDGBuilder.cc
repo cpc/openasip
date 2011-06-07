@@ -144,6 +144,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     std::map<const BasicBlockNode*, const MachineBasicBlock*> condJumpSucc;
     std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccs;
     std::set<const MachineBasicBlock*> emptyMBBs;
+    std::map<const BasicBlockNode*, bool> bbPredicates;
 
     BasicBlockNode* entry = new BasicBlockNode(0, 0, true);
     cfg->addNode(*entry);
@@ -215,8 +216,14 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 // also need to split BB on cond branch.
                 // LLVM BB may contain 2 branches.
                 if (j->getDesc().isBranch()) {
+                    TCEString opName = operationName(*j);
+                    bool pred = false;
                     // TODO: correctly detect conditional branches
-                    if (operationName(*j) == "?jump") {
+                    // nasty hack to set pred true
+                    if ((opName == "?jump" && (pred = true)) ||
+                        (opName == "!jump")) {
+                        
+                        bbPredicates[bbn] = pred;
                         assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
                         assert(mo.isMBB());
@@ -348,8 +355,11 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             // BB has conditional jump which is not last ins.
             if (k != ftSuccs.end()) {
                 assert(jumpSucc != NULL);
+                assert(MapTools::containsKey(bbPredicates,bbn));
                 ControlFlowEdge* cfe = new ControlFlowEdge(
-                    ControlFlowEdge::CFLOW_EDGE_TRUE,
+                    bbPredicates[bbn] == true ?
+                    ControlFlowEdge::CFLOW_EDGE_TRUE:
+                    ControlFlowEdge::CFLOW_EDGE_FALSE,
                     ControlFlowEdge::CFLOW_EDGE_JUMP);
                 if (MapTools::containsKey(bbMapping_, jumpSucc)) {
                     cfg->connectNodes(*bbn, *bbMapping_[jumpSucc], *cfe);
@@ -360,7 +370,9 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 const BasicBlockNode* ftSucc = k->second;
                 assert(ftSucc != NULL);
                 cfe = new ControlFlowEdge(
-                    ControlFlowEdge::CFLOW_EDGE_FALSE,
+                    bbPredicates[bbn] == true ?
+                    ControlFlowEdge::CFLOW_EDGE_FALSE:
+                    ControlFlowEdge::CFLOW_EDGE_TRUE,
                     ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
                 cfg->connectNodes(*bbn, *ftSucc, *cfe);
                 bbn = ftSucc;
@@ -394,13 +406,18 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 if (jumpSucc != NULL) {
                     // fall-through is a pass to next mbb.
                     if (ftPass) {
+                        assert(MapTools::containsKey(bbPredicates,bbn));
                         if (succ == jumpSucc) {
                             cfe = new ControlFlowEdge(
-                                ControlFlowEdge::CFLOW_EDGE_TRUE,
+                                bbPredicates[bbn] == true ?
+                                ControlFlowEdge::CFLOW_EDGE_TRUE:
+                                ControlFlowEdge::CFLOW_EDGE_FALSE,
                                 ControlFlowEdge::CFLOW_EDGE_JUMP);
                         } else {
                             cfe = new ControlFlowEdge(
-                                ControlFlowEdge::CFLOW_EDGE_FALSE,
+                                bbPredicates[bbn] == true ?
+                                ControlFlowEdge::CFLOW_EDGE_FALSE:
+                                ControlFlowEdge::CFLOW_EDGE_TRUE,
                                 ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
                         }
                     } else {

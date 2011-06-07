@@ -257,6 +257,9 @@ let isTerminator = 1, isBranch = 1 in {
     def TCEBRCOND : InstTCE<(outs), (ins I1Regs:$gr, i32imm:$dst),
         "? $gr $dst -> jump.1;", []>;
 
+    def TCEBRICOND : InstTCE<(outs), (ins I1Regs:$gr, i32imm:$dst),
+        "! $gr $dst -> jump.1;", []>;
+
     def TCEBR : InstTCE<(outs), (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
 
