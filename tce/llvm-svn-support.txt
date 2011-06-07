@@ -1,4 +1,8 @@
-Devel branch:
-tce-devel r999: llvm-trunk r128620 only topresult fails?
+tce-devel r1056:
+llvm-trunk r132676: 
+only longlong topresult fails
+
+Notes:
+
 Performance worsening at around r123400: No longer optimizes away "constant" parameters in qsort test. 
--------
+
