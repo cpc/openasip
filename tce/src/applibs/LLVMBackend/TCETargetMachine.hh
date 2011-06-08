@@ -106,7 +106,8 @@ namespace llvm {
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }
-        
+
+        virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {                                                                                                                                                                     return &tsInfo;                                                                                                                                                                                                            }                                                                                                                                                                                                                            
         virtual bool addPreISel(PassManagerBase& PM, 
                                 CodeGenOpt::Level OptLevel);
 
@@ -151,7 +152,8 @@ namespace llvm {
         /* more or less llvm naming convention to make it easier to track llvm changes */
         TCESubtarget        Subtarget;
         const TargetData    DataLayout; // Calculates type size & alignment
-
+        
+        TCESelectionDAGInfo tsInfo;
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.

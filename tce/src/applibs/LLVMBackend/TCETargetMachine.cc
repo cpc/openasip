@@ -88,6 +88,7 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
         "-i64:32:32"
         "-f32:32:32"
         "-f64:32:32"),
+      tsInfo(*this),
       plugin_(NULL), pluginTool_(NULL) {
 }
 
