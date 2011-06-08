@@ -84,11 +84,7 @@ namespace {
  * Constructor
  */
 LowerIntrinsics::LowerIntrinsics() :
-#ifdef LLVM_2_7
-    BasicBlockPass((intptr_t)&ID), 
-#else
     BasicBlockPass(ID), 
-#endif
     iLowering_(NULL), td_(NULL) {
 }
 

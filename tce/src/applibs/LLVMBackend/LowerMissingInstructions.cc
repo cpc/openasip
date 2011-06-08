@@ -512,11 +512,13 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 
         if (replaceFunc != replaceFunctions.end()) {
             if (replaceFunc->second == NULL) {
-                abortWithError(
+                // this should leak down to llvm-tce
+                throw Exception(
+                    __FILE__, __LINE__, __func__,
                     (boost::format("ERROR: emulation function "
                                    "'%s' wasn't found. Floating point"
-                                   " emulation required but --no-fp-emu"
-                                   "parameter given?") % footPrint).str());
+                                   " emulation required but --swfp was not given?") % 
+                     footPrint).str());          
             }
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {

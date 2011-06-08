@@ -13,7 +13,7 @@ RUNCYCLES=3000
 RUNTIME=${RUNCYCLES}0
 
 # Compile program
-$TCECC --no-fp-emu -O1 -a $ADF -o $TPEF -k result data/test_code.c || exit 1
+$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.c || exit 1
 
 # Check that there are no emulation functions
 $DISASM -o temp.txt $ADF $TPEF || exit 1

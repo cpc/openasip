@@ -1,10 +1,13 @@
 1.5 not yet released
 ====================
 
-Notable new features
---------------------
+Notable changes
+---------------
 - Support for LLVM 3.0svn. Dropped support for LLVM 2.8 and older. 
   LLVM 2.9 still works.
+- tcecc: Floating point emulation code is not included by default anymore,
+  use --swfp in case you use floating points and your machine does
+  not support them.
 
 Bugfixes
 --------
