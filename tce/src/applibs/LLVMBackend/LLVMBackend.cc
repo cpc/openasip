@@ -103,7 +103,6 @@
 
 //#define DEBUG_TDGEN
 
-//#define USE_CFGDDG_BUILDER
 
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 namespace llvm {
@@ -494,44 +493,27 @@ LLVMBackend::compile(
         ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
     }
 
-#ifdef USE_CFGDDG_BUILDER
-    LLVMTCECFGDDGBuilder* cfgddgbuilder = new LLVMTCECFGDDGBuilder(
-        *targetMachine, &target, *ipData);
-
-    Passes.add(cfgddgbuilder);
-
-#else
-    // TODO: This should be moved to emit file pass maybe
-    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    Passes.add(pomBuilder);
-
-#endif
-
-    Passes.run(module);
-
-#ifndef USE_CFGDDG_BUILDER
-    // get and write out pom
-    TTAProgram::Program* prog = pomBuilder->result();
-    assert(prog != NULL);
-#endif
-
-    if (ipData_ != NULL) {
-        
-#ifndef USE_CFGDDG_BUILDER
-        if (pomBuilder->isProgramUsingRestrictedPointers()) {
-            ipData_->setDatum("RESTRICTED_POINTERS_FOUND", NULL);
-        }
-        if (pomBuilder->isProgramUsingAddressSpaces()) {
-            ipData_->setDatum("MULTIPLE_ADDRESS_SPACES_FOUND", NULL);
-        }
-#endif
+    LLVMTCEBuilder* builder = NULL;
+    if (!options->usePOMBuilder()) {
+        builder = new LLVMTCECFGDDGBuilder(*targetMachine, &target, *ipData);
+    } else {
+        builder = new LLVMPOMBuilder(*targetMachine, &target);
     }
 
-#ifndef USE_CFGDDG_BUILDER
+    Passes.add(builder);
+    Passes.run(module);
+    // get and write out pom
+    TTAProgram::Program* prog = builder->result();
+    assert(prog != NULL);
+    if (ipData_ != NULL) {
+        if (builder->isProgramUsingRestrictedPointers()) {
+            ipData_->setDatum("RESTRICTED_POINTERS_FOUND", NULL);
+        }
+        if (builder->isProgramUsingAddressSpaces()) {
+            ipData_->setDatum("MULTIPLE_ADDRESS_SPACES_FOUND", NULL);
+        }
+    }
     return prog;
-#else
-    return NULL; /* warning fix */
-#endif
 }
 
 /**

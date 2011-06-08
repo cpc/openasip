@@ -74,11 +74,13 @@ public:
 
     bool conservativePreRAScheduler() const;
 
+    bool usePOMBuilder() const;
+
     virtual bool dumpDDGsDot() const;
     virtual bool dumpDDGsXML() const;
 
     virtual void printVersion() const {
-        std::cout << "llvmtce - TCE LLVM compiler " << VERSION
+        std::cout << "llvm-tce - TCE LLVM code generator " << VERSION
                   << std::endl;
     }
 
@@ -102,6 +104,7 @@ private:
     static const std::string CONSERVATIVE_PRE_RA_SCHEDULER;
     static const std::string SWL_DUMP_DDGS_DOT;
     static const std::string SWL_DUMP_DDGS_XML;
+    static const std::string SWL_POM_BUILDER;
 
     static const std::string USAGE;
 

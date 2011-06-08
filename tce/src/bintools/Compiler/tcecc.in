@@ -615,6 +615,10 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
 
+p.add_option('--new-builder', action='store_false', dest='pom_builder', default=True,
+             help=\
+"Use the new builder to get code to TCE scheduler.")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -833,8 +837,11 @@ if options.adf_file != "":
         if options.dump_ddgs_xml:
             command += " --dump-ddgs-xml"
 
-    if options.no_schedule is False:
+    if not options.no_schedule:
         command += " -c " + options.scheduler_config
+
+    if options.pom_builder:
+        command += " --pom-builder"
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 

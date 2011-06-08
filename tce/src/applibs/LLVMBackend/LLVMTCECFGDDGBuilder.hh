@@ -65,6 +65,10 @@ namespace llvm {
 
         virtual void emitSPInitialization() {}
 
+        virtual const char *getPassName() const {
+            return "TCE: build TCE scheduler IR from MachineFunctions";
+        }
+
         virtual bool isTTATarget() const {
             return (dynamic_cast<const TCETargetMachine*>(
                         &targetMachine()) != NULL);

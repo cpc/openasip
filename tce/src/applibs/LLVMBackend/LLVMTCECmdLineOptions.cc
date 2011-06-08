@@ -51,6 +51,7 @@ const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER=
 
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_DOT = "dump-ddgs-dot";
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_XML = "dump-ddgs-xml";
+const std::string LLVMTCECmdLineOptions::SWL_POM_BUILDER = "pom-builder";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -117,6 +118,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             SWL_DUMP_DDGS_XML, 
             "Dump DDGs in XML format before and after scheduling."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_POM_BUILDER, 
+            "Use the old POM builder for converting LLVM MIs to POM."));
 }
 
 /**
@@ -273,4 +279,9 @@ LLVMTCECmdLineOptions::dumpDDGsDot() const {
 bool
 LLVMTCECmdLineOptions::dumpDDGsXML() const {
     return findOption(SWL_DUMP_DDGS_XML)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::usePOMBuilder() const {
+    return findOption(SWL_POM_BUILDER)->isDefined();
 }
