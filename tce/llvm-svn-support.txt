@@ -1,6 +1,5 @@
-tce-devel r1056:
-llvm-trunk r132676: 
-only longlong topresult fails
+tce-devel r1070:
+llvm-trunk r132774
 
 Notes:
 

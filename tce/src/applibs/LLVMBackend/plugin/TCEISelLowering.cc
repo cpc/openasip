@@ -80,17 +80,20 @@ SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
-#ifndef LLVM_2_7
-                                 const SmallVectorImpl<SDValue> &OutVals,
-#endif
+                               const SmallVectorImpl<SDValue> &OutVals,
                                DebugLoc dl, SelectionDAG &DAG) LR_CONST {
 
   // CCValAssign - represent the assignment of the return value to locations.
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
+#ifdef LLVM_2_9
   CCState CCInfo(CallConv, isVarArg, DAG.getTarget(),
                  RVLocs, *DAG.getContext());
+#else
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 DAG.getTarget(), RVLocs, *DAG.getContext());
+#endif
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
@@ -142,8 +145,13 @@ TCETargetLowering::LowerFormalArguments(
 
     // Assign locations to all of the incoming arguments.
     SmallVector<CCValAssign, 16> ArgLocs;
+#ifdef LLVM_2_9
     CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
                    ArgLocs, *DAG.getContext());
+#else
+    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                   getTargetMachine(), ArgLocs, *DAG.getContext());
+#endif
 
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
   
@@ -342,9 +350,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
                              bool &isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
-#ifndef LLVM_2_7
                              const SmallVectorImpl<SDValue> &OutVals,
-#endif
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) LC_CONST {
@@ -360,15 +366,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     // Count the size of the outgoing arguments.
     unsigned ArgsSize = 0;
     for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
-#ifdef LLVM_2_7
-        switch (Outs[i].Val.getValueType().getSimpleVT().SimpleTy) {
-#else
-#ifdef LLVM_2_8
-        switch (Outs[i].VT.getSimpleVT().SimpleTy) {
-#else
         switch (Outs[i].VT.SimpleTy) {
-#endif
-#endif
         default: assert(false && "Unknown value type!");
         case MVT::i1:
         case MVT::i8:
@@ -401,11 +399,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     unsigned ArgOffset = 0;
 
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
-#ifdef LLVM_2_7
-      SDValue Val = Outs[i].Val;
-#else
     SDValue Val = OutVals[i];
-#endif
     EVT ObjectVT = Val.getValueType();
     SDValue ValToStore(0, 0);
     unsigned ObjSize = 0;
@@ -451,15 +445,9 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       SDValue StackPtr = DAG.getRegister(TCE::SP, MVT::i32);
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
-#if defined(LLVM_2_7) || defined(LLVM_2_8)
-      MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
-                                         PtrOff, NULL, 0,
-                                       false, false, 0));
-#else // LLVM_29-svn
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
                                          PtrOff, MachinePointerInfo(),
                                          false, false, 0));
-#endif
     }
     ArgOffset += ObjSize;
   }
@@ -486,21 +474,13 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   // turn it into a TargetGlobalAddress node so that legalize doesn't hack it.
   // Likewise ExternalSymbol -> TargetExternalSymbol.
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
-#ifdef LLVM_2_7
-      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), MVT::i32);
-#else
       Callee = DAG.getTargetGlobalAddress(G->getGlobal(), dl, MVT::i32);
-#endif
   else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
     Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
 
   std::vector<EVT> NodeTys;
   NodeTys.push_back(MVT::Other);   // Returns a chain
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-  NodeTys.push_back(MVT::Flag);    // Returns a flag for retval copy to use.
-#else
   NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
-#endif
   SDValue Ops[] = { Chain, Callee, InFlag };
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
   InFlag = Chain.getValue(1);
@@ -511,8 +491,14 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-  CCState RVInfo(CallConv, isVarArg, DAG.getTarget(),
-                 RVLocs, *DAG.getContext());
+#ifdef LLVM_2_9
+  CCState RVInfo(CallConv, isVarArg, DAG.getTarget(), RVLocs, 
+                 *DAG.getContext());
+#else
+  CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 DAG.getTarget(), RVLocs, *DAG.getContext());
+#endif
+
 
   RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
 
