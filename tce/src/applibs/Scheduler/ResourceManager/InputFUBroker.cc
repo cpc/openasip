@@ -49,6 +49,8 @@
 #include "AssocTools.hh"
 #include "TCEString.hh"
 #include "StringTools.hh"
+#include "ResourceManager.hh"
+#include "SchedulingResource.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -120,6 +122,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         // In such case it is enough to find ANY fu that supports it
         ProgramOperation& PO = node.destinationOperation();
         if (PO.isComplete()) {
+            debugLogRM("PO.isComplete() == true");
             for (int i = 1; PO.hasInputNode(i); i++) {
                 MoveNodeSet nodeSet = PO.inputNode(i);
                 for (int j = 0; j < nodeSet.count(); j++) {
@@ -132,8 +135,9 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                                 __FILE__, __LINE__, __func__, 
                                 "Input move does not have FU destination!");
                         }
-                        const FunctionUnit& fu = dst.functionUnit();
+                        const FunctionUnit& fu = dst.functionUnit();                        
                         if (hasResourceOf(fu)) {
+                            debugLogRM(fu.name());
                             InputFUResource& fuRes =
                                 dynamic_cast<InputFUResource&>(
                                     resourceOf(fu));
@@ -248,9 +252,12 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
 
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it
-
+        debugLogRM(TCEString("checking ") << unit->name());
         if (candidateFUs.size() > 0 &&
             !AssocTools::containsKey(candidateFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was not "
+                " in the candidate set.");
             ++resIter;
             continue;
         }
@@ -289,11 +296,19 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                 }                                                            
                 if (fuRes.canAssign(cycle, node, *pSocket, triggering)) {
                     resourceSet.insert(*(*resIter).second);
+                } else {
+                    debugLogRM("could not assign the fuRes to it.");
                 }
+            } else {
+                debugLogRM(TCEString("does not have operation ") + opName);
             }
         }
         resIter++;
     }
+    if (resourceSet.count() == 0) {
+        debugLogRM("InputFUBroker returned an empty resource set.");
+    }
+
     return resourceSet;
 }
 

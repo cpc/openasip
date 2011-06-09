@@ -37,6 +37,7 @@
 #include "Exception.hh"
 #include "MoveNode.hh"
 #include "ExecutionPipelineResource.hh"
+#include "ResourceManager.hh"
 
 using TTAMachine::BaseFUPort;
 using TTAMachine::FUPort;
@@ -156,6 +157,7 @@ InputFUResource::canAssign(
     }
 
     if (!pSocket.canAssign(cycle, node)) {
+        debugLogRM("cannot assign pSocket");
         return false;
     }
 
@@ -166,6 +168,7 @@ InputFUResource::canAssign(
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
                 if (!(epRes->canAssign(cycle, node, pSocket, triggers))) {
+                    debugLogRM("cannot assign execution pipeline resource");
                     return false;
                 } else {
                     return true;
@@ -173,6 +176,7 @@ InputFUResource::canAssign(
             }
         }
     }
+    debugLogRM("could not find a depedent resource I could assign");
     return false;
 }
 

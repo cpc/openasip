@@ -55,7 +55,8 @@ using std::string;
 OperationPimpl::OperationPimpl(
     const TCEString& name, 
     OperationBehavior& behavior) : 
-    behavior_(&behavior), name_(name), description_(""),
+    behavior_(&behavior), name_(StringTools::stringToUpper(name)), 
+    description_(""),
     inputs_(0), outputs_(0), readsMemory_(false), writesMemory_(false), 
     canTrap_(false), hasSideEffects_(false), isClocked_(false),
     controlFlowOperation_(false) {

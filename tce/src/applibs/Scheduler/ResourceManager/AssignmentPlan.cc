@@ -38,6 +38,7 @@
 #include "AssocTools.hh"
 #include "ResourceBroker.hh"
 #include "MoveNode.hh"
+#include "ResourceManager.hh"
 
 using std::string;
 

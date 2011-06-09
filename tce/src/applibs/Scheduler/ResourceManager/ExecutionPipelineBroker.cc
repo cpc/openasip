@@ -46,6 +46,7 @@
 #include "StringTools.hh"
 #include "PSocketResource.hh"
 #include "TCEString.hh"
+#include "ResourceManager.hh"
 
 using namespace TTAMachine;
 using std::pair;
@@ -116,6 +117,7 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
     int efs = earliestFromSource(cycle, node);
     int efd = earliestFromDestination(cycle, node);
     if (efs == -1 || efd == -1) {
+        debugLogRM("returning -1");
         return -1;
     }
     return std::max(efs, efd);
@@ -427,6 +429,7 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     }
     if (minCycle > cycle) {
         // Some operand is already later then where we started to backtrack
+        debugLogRM("returning -1");
         return -1;
     }
     if (triggerNode != NULL) {
@@ -438,6 +441,7 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
         }
         if (node.earliestResultReadCycle() > cycle) {
             // Result is available later then where we started to backtrack
+            debugLogRM("returning -1");
             return -1;
         } else {
             minCycle = node.earliestResultReadCycle();
@@ -603,6 +607,7 @@ ExecutionPipelineBroker::earliestFromDestination(
                 int triggerCycle = tempNode->cycle();
                 if (triggerCycle < cycle) {
                 // trying to schedule operand after trigger
+                    debugLogRM("returning -1");
                     return -1;
                 }
                 return cycle;

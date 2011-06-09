@@ -65,4 +65,13 @@ private:
     const TTAMachine::Machine* machine_;
 };
 
+//#define DEBUG_RM
+
+#ifdef DEBUG_RM
+#include "Application.hh"
+#define debugLogRM(__X) debugLog(__X)
+#else
+#define debugLogRM(__X)
+#endif
+
 #endif

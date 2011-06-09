@@ -49,6 +49,7 @@
 #include "HWOperation.hh"
 #include "FUPort.hh"
 #include "TCEString.hh"
+#include "ResourceManager.hh"
 
 /**
  * Constructor.
@@ -64,7 +65,7 @@ ExecutionPipelineResource::ExecutionPipelineResource(
     const TTAMachine::FunctionUnit& fu,
     const unsigned int maxLatency,
     const unsigned int resNum) :
-    SchedulingResource(name), fu_(fu), numberOfResources_(resNum),
+    SchedulingResource(name), numberOfResources_(resNum), fu_(fu),
     maximalLatency_(maxLatency), cachedSize_(INT_MIN) {}
 
 
@@ -563,6 +564,7 @@ ExecutionPipelineResource::canAssign(
     TTAMachine::FUPort& port =
         *hwop.port(newNode->move().destination().operationIndex());                   
     if (!port.hasRegister() && firstCycle != cycle) {
+        debugLogRM("!port.hasRegister() && firstCycle != cycle");
         return false;
     }
 
@@ -578,12 +580,13 @@ ExecutionPipelineResource::canAssign(
 
     // triggering move may be different on a target machine then on
     // universal machine, test triggering using data from FUBrokers
-    if (!(triggers)) {
+    if (!triggers) {
         return true;
     }
     std::string opName = "";
     if (newNode->move().destination().isOpcodeSetting()) {
         opName = newNode->move().destination().operation().name();
+        debugLogRM(opName);
     } else {
         // If target architecture has different opcode setting port
         // as universal machine, pick  a name of operation from a hint
@@ -599,6 +602,7 @@ ExecutionPipelineResource::canAssign(
 
     if (!MapTools::containsKey(operationSupported_, opName)) {
         // Operation no supported by FU
+        debugLogRM(opName + " not supported by the FU!");
         return false;
     }
     int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);

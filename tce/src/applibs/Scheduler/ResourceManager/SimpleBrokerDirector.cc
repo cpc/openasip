@@ -51,6 +51,11 @@
 #include "MapTools.hh"
 #include "AssocTools.hh"
 #include "POMDisassembler.hh"
+#include "ResourceManager.hh"
+
+#ifdef DEBUG_RM
+#include <typeinfo>
+#endif
 
 using std::string;
 using namespace TTAProgram;
@@ -96,6 +101,7 @@ bool
 SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
 
     if (node.isScheduled()) {
+        debugLogRM("isScheduled == true");
         return false;
     }
 
@@ -103,6 +109,7 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
     // for bus-limited machines.
     std::map<int,int>::const_iterator i = moveCounts_.find(cycle);
     if (i != moveCounts_.end() && i->second >= busCount_) {
+        debugLogRM("instruction full!");
         return false;
     }
 
@@ -127,12 +134,20 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
     
     bool success = false;
     while (!success) {
+#ifdef DEBUG_RM
+            Application::logStream()
+                << "current broker: "
+                << typeid(plan_->currentBroker()).name()
+                << std::endl;
+#endif
         if (!plan_->isTestedAssignmentPossible()) {
             if (&plan_->currentBroker() == &plan_->firstBroker()) {
                 plan_->resetAssignments();
+                debugLogRM("no assignment found");
                 success = false; // no assignment found
                 break;
             } else {
+                debugLogRM("backtracking");
                 plan_->backtrack();
             }
         } else if (&plan_->currentBroker() == &plan_->lastBroker()) {
@@ -343,6 +358,7 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
 
     if (minCycle == -1) {
         // No assignment possible
+        debugLogRM("returning -1");
         return -1;
     }
 
@@ -353,6 +369,7 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
     while (!canAssign(minCycle, node)) {
         if (minCycle > lastCycleToTest + 1) { 
             // Even on empty instruction it is not possible to assign
+            debugLogRM("returning -1");
             return -1;
         }
         minCycle++;

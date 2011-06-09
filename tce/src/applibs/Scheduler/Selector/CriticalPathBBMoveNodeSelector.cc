@@ -78,8 +78,7 @@ CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
     try {
         ddg_ = bigDDG.createSubgraph(bb);
         ddg_->setMachine(machine);
-    }
-    catch (InstanceNotFound& inf) {
+    } catch (InstanceNotFound& inf) {
         ModuleRunTimeError e(
             __FILE__,__LINE__,__func__,"Creation of subgraph failed");
         e.setCause(inf);

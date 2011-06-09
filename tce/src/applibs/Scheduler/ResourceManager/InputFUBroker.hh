@@ -34,6 +34,7 @@
 #define TTA_INPUT_FU_BROKER_HH
 
 #include "ResourceBroker.hh"
+#include "SchedulingResource.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -47,7 +48,6 @@ namespace TTAProgram {
 
 class MoveNode;
 class ResourceMapper;
-class SchedulingResource;
 
 /**
  * Input function unit broker.
