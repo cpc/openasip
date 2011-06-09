@@ -50,7 +50,8 @@ public:
         int width,
         FunctionUnit& parent,
         bool triggers,
-        bool setsOpcode)
+        bool setsOpcode,
+        bool hasRegister=true)
         throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
                InvalidName);
     FUPort(const ObjectState* state, Unit& parent)
@@ -70,6 +71,9 @@ public:
     void updateBindingString() const;
 
     bool isArchitectureEqual(FUPort* port);
+   
+    bool hasRegister() const;
+    void setHasRegister(bool hasRegister);
 
     /// ObjectState name for FUPort.
     static const std::string OSNAME_FUPORT;
@@ -86,6 +90,7 @@ protected:
         FunctionUnit& parent,
         bool triggers,
         bool setsOpcode,
+        bool hasRegister,
         bool dummy)
         throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
                InvalidName);
@@ -103,6 +108,8 @@ private:
     /// Binding string describes the operation bindings of 
     /// of the port to allow fast binding comparison.
     mutable std::string bindingString_;
+    // Indicated that port has internal register for storing value.
+    bool hasRegister_;
 };
 }
 

@@ -51,6 +51,7 @@ class ExecutionPipelineResource : public SchedulingResource {
 public:
     ExecutionPipelineResource(
         const std::string& name,
+        const TTAMachine::FunctionUnit& fu,                                                            
         const unsigned int maxLatency,
         const unsigned int resNum);
     virtual ~ExecutionPipelineResource();
@@ -138,6 +139,7 @@ private:
     std::vector<std::map<int,int> > operationLatencies_;
 
     mutable int cachedSize_;
+    const TTAMachine::FunctionUnit& fu_;    
 };
 
 #endif

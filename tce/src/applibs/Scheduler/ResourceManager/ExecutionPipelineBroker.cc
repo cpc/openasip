@@ -198,6 +198,7 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
         ExecutionPipelineResource* epResource =
             new ExecutionPipelineResource(
                 "ep_" + fu->name(),
+                *fu,
                 fu->maxLatency(),
                 resourceNumber);
         for (int j = 0; j < fu->operationCount(); j++) {
@@ -245,6 +246,7 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
     ExecutionPipelineResource* epResource =
         new ExecutionPipelineResource(
             "ep_" + gcu->name(),
+            *gcu,
             gcu->maxLatency(),
             resNumber);
 

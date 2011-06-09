@@ -61,7 +61,7 @@ UniversalFUPort::UniversalFUPort(
     bool setsOpcode)
     throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
            InvalidName) :
-    FUPort(name, width, parent, isTriggering, setsOpcode, true) {
+    FUPort(name, width, parent, isTriggering, setsOpcode, true, true) {
 }
 
 

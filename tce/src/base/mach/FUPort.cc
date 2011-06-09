@@ -52,7 +52,6 @@ const string FUPort::OSNAME_FUPORT = "fu_port";
 const string FUPort::OSKEY_TRIGGERING = "triggering";
 const string FUPort::OSKEY_OPCODE_SETTING = "oc_setting";
 
-
 /**
  * Constructor.
  *
@@ -64,6 +63,7 @@ const string FUPort::OSKEY_OPCODE_SETTING = "oc_setting";
  * @param setsOpcode If true, writing (or reading) this port selects the
  *                   operation to be executed. Opcode-setting ports must
  *                   be triggering.
+ * @param hasRegister If true, the port has internal register.
  * @exception ComponentAlreadyExists If the function unit already has another
  *                                   port by the same name or another port
  *                                   that sets operation code.
@@ -77,11 +77,12 @@ FUPort::FUPort(
     int width,
     FunctionUnit& parent,
     bool triggers,
-    bool setsOpcode)
+    bool setsOpcode,
+    bool hasRegister)
     throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
            InvalidName) :
     BaseFUPort(name, width, parent), triggers_(triggers),
-    setsOpcode_(setsOpcode) {
+    setsOpcode_(setsOpcode), hasRegister_(hasRegister) {
 
     const std::string procName = "FUPort::FUPort";
 
@@ -118,6 +119,7 @@ FUPort::FUPort(
  * @param setsOpcode If true, writing (or reading) this port selects the
  *                   operation to be executed. Opcode-setting ports must
  *                   be triggering.
+ * @param hasRegister If true, the port has internal register.
  * @param dummy This parameter is not used and exists only to make some
  *              difference to the other constructor.
  * @exception ComponentAlreadyExists If the function unit already has another
@@ -132,12 +134,13 @@ FUPort::FUPort(
     int width,
     FunctionUnit& parent,
     bool triggers,
-    bool setsOpcode,
+    bool setsOpcode,               
+    bool hasRegister,               
     bool /*dummy*/)
     throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
            InvalidName) :
     BaseFUPort(name, width, parent), triggers_(triggers),
-    setsOpcode_(setsOpcode) {
+    setsOpcode_(setsOpcode), hasRegister_(hasRegister) {
 
     if (setsOpcode != triggers) {
         const std::string procName = "FUPort::FUPort";
@@ -475,4 +478,24 @@ FUPort::loadStateWithoutReferences(const ObjectState* state)
     updateBindingString();
 }
 
+/*
+ * Returns true if FU port has register and can store operand or result value.
+ *
+ *
+ */
+bool
+FUPort::hasRegister() const {
+    return hasRegister_;
+}
+    
+/*
+ * Defines whether or not FUPort has internal register.
+ *
+ *
+ */
+void
+FUPort::setHasRegister(bool hasRegister) {
+    hasRegister_ = hasRegister;
+}
+    
 }

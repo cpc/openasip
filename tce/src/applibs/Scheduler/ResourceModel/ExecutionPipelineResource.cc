@@ -46,6 +46,8 @@
 #include "OutputPSocketResource.hh"
 #include "InputPSocketResource.hh"
 #include "FunctionUnit.hh"
+#include "HWOperation.hh"
+#include "FUPort.hh"
 #include "TCEString.hh"
 
 /**
@@ -59,9 +61,10 @@
  */
 ExecutionPipelineResource::ExecutionPipelineResource(
     const std::string& name,
+    const TTAMachine::FunctionUnit& fu,
     const unsigned int maxLatency,
     const unsigned int resNum) :
-    SchedulingResource(name), numberOfResources_(resNum),
+    SchedulingResource(name), fu_(fu), numberOfResources_(resNum),
     maximalLatency_(maxLatency), cachedSize_(INT_MIN) {}
 
 
@@ -522,6 +525,16 @@ ExecutionPipelineResource::canAssign(
                 }
             }
         }
+        /// Check if the port has a register. If not result read must be
+        /// in same cycle as result ready.
+        const TTAMachine::HWOperation& hwop = 
+            *fu_.operation(pOp->operation().name());                
+        const TTAMachine::FUPort& port = 
+            *hwop.port(node.move().source().operationIndex());            
+        if (!port.hasRegister() && resultReady != cycle) {
+            return false;
+        }        
+        
     }
 
     if (!node.isDestinationOperation() || pSocket.isOutputPSocketResource()) {
@@ -542,6 +555,16 @@ ExecutionPipelineResource::canAssign(
     int lastCycle = 0;
     int triggering = -1;
     findRange(cycle, node, firstCycle, lastCycle, triggering);
+
+    /// Check if operand port has register. If not all operands must be 
+    /// written in same cycle!
+    const TTAMachine::HWOperation& hwop = 
+        *fu_.operation(pOp->operation().name());
+    TTAMachine::FUPort& port =
+        *hwop.port(newNode->move().destination().operationIndex());                   
+    if (!port.hasRegister() && firstCycle != cycle) {
+        return false;
+    }
 
     for (int i = firstCycle; i <= lastCycle; i++) {
         if (i >= progOpCount) {
@@ -770,6 +793,20 @@ ExecutionPipelineResource::findRange(
     for (int k = 0; k < pOp->inputMoveCount(); k++) {
         // find closest cycle from PO to given node, before and after
         if (pOp->inputMove(k).isScheduled()) {
+            if (node.toString() != pOp->inputMove(k).toString()) {
+                /// Check if the current port has register.
+                /// If not all the operands must be written in same cycle.
+                const TTAMachine::HWOperation& hwop = 
+                    *fu_.operation(pOp->operation().name());
+                TTAMachine::FUPort& port =
+                    *hwop.port(node.move().destination().operationIndex());
+                if (!port.hasRegister()) {
+                    triggering = pOp->inputMove(k).cycle();
+                    last = triggering;
+                    first = triggering;
+                    return;
+                }
+            }
             if (pOp->inputMove(k).move().isTriggering()) {
                 triggering = pOp->inputMove(k).cycle();
             }
