@@ -110,6 +110,8 @@ private:
         int& last,
         int& triggering) const;
 
+    //
+    const TTAMachine::FunctionUnit& fu_;     
     // Resource and ports vector width, depends on particular FU
     int numberOfResources_;
     // Maximal latency of operation in FU
@@ -139,7 +141,7 @@ private:
     std::vector<std::map<int,int> > operationLatencies_;
 
     mutable int cachedSize_;
-    const TTAMachine::FunctionUnit& fu_;    
+   
 };
 
 #endif

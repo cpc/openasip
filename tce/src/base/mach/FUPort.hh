@@ -81,6 +81,8 @@ public:
     static const std::string OSKEY_TRIGGERING;
     /// ObjectState attribute key for operand code setting feature.
     static const std::string OSKEY_OPCODE_SETTING;
+    /// ObjectState attribute key for hasRegister setting feature.
+    static const std::string OSKEY_HASREGISTER_SETTING;
 
 protected:
     // this is for UniversalFUPort class

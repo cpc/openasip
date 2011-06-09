@@ -159,6 +159,7 @@
         <xs:element name="width" type="xs:positiveInteger"/>
         <xs:element name="triggers" type="empty-type" minOccurs="0"/>
         <xs:element name="sets-opcode" type="empty-type" minOccurs="0"/>
+        <xs:element name="missing-register" type="empty-type" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute name="name" type="attribute-type" use="required"/>
 </xs:complexType>

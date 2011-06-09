@@ -167,6 +167,7 @@ const string PORT_CONNECTS_TO = "connects-to";
 const string FU_PORT_WIDTH = "width";
 const string FU_PORT_TRIGGERS = "triggers";
 const string FU_PORT_SETS_OPCODE = "sets-opcode";
+const string FU_PORT_MISSING_REGISTER = "missing-register";
 
 const string IMMEDIATE_SLOT = "immediate-slot";
 const string IMMEDIATE_SLOT_NAME = "name";
@@ -1763,6 +1764,9 @@ ADFSerializer::machineFUPort(const ObjectState* mdfFUPortState) {
     fuPort->setAttribute(
         FUPort::OSKEY_OPCODE_SETTING, mdfFUPortState->hasChild(
             FU_PORT_SETS_OPCODE));
+    fuPort->setAttribute(
+        FUPort::OSKEY_HASREGISTER_SETTING, !mdfFUPortState->hasChild(
+            FU_PORT_MISSING_REGISTER));
 
     return fuPort;
 }
@@ -1795,6 +1799,11 @@ ADFSerializer::mdfFUPort(const ObjectState* machineFUPortState) {
     if (machineFUPortState->intAttribute(FUPort::OSKEY_OPCODE_SETTING)) {
         mdfFUPort->addChild(new ObjectState(FU_PORT_SETS_OPCODE));
     }
+
+    if (!machineFUPortState->intAttribute(FUPort::OSKEY_HASREGISTER_SETTING)) {
+        mdfFUPort->addChild(new ObjectState(FU_PORT_MISSING_REGISTER));        
+    } 
+
     return mdfFUPort;
 }
 

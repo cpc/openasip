@@ -530,7 +530,7 @@ ExecutionPipelineResource::canAssign(
         const TTAMachine::HWOperation& hwop = 
             *fu_.operation(pOp->operation().name());                
         const TTAMachine::FUPort& port = 
-            *hwop.port(node.move().source().operationIndex());            
+            *hwop.port(node.move().source().operationIndex());         
         if (!port.hasRegister() && resultReady != cycle) {
             return false;
         }        
