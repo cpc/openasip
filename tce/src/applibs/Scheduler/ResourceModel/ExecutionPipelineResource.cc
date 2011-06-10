@@ -65,7 +65,7 @@ ExecutionPipelineResource::ExecutionPipelineResource(
     const TTAMachine::FunctionUnit& fu,
     const unsigned int maxLatency,
     const unsigned int resNum) :
-    SchedulingResource(name), numberOfResources_(resNum), fu_(fu),
+    SchedulingResource(name), fu_(fu), numberOfResources_(resNum), 
     maximalLatency_(maxLatency), cachedSize_(INT_MIN) {}
 
 
