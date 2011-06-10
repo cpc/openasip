@@ -298,7 +298,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             }
 
             // conditional jump that is not last ins splits a bb.
-            if (j->getDesc().isBranch() && operationName(*j) == "?jump"
+            if (j->getDesc().isBranch() && 
+                (operationName(*j) == "?jump" || operationName(*j) == "!jump")
                 && &(*j) != &(mbb.back())) {
                 bbn = ftSuccs[bbn];
                 bb = &bbn->basicBlock();
