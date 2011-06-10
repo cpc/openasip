@@ -71,7 +71,7 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
     if (tceIRBuilder_ == NULL) {
         InterPassData ipData;
         tceIRBuilder_ =  new LLVMTCECFGDDGBuilder(
-            MF.getTarget(), tceMachine_, ipData, true);
+            MF.getTarget(), tceMachine_, ipData, true, true);
     }
     tceIRBuilder_->writeMachineFunction(MF);
     return false;

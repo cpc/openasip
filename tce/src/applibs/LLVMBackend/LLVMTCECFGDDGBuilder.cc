@@ -72,9 +72,9 @@ char LLVMTCECFGDDGBuilder::ID = -1;
 
 LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
-    InterPassData& ipd, bool functionAtATime) :
+    InterPassData& ipd, bool functionAtATime, bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID), ipData_(&ipd), ddgBuilder_(ipd),
-    functionAtATime_(functionAtATime) {
+    functionAtATime_(functionAtATime), modifyMF_(modifyMF) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
@@ -518,6 +518,12 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     delete ddg;
     delete cfg;
+
+    if (modifyMF_) {
+        convertProcedureToMachineFunction(*procedure, mf);
+        return true;
+    }
+
     if (functionAtATime_) delete irm;
     return false;
 }
@@ -654,5 +660,14 @@ LLVMTCECFGDDGBuilder::registerIndex(unsigned llvmRegNum) const {
         return llvmRegNum;
     }
 }
-    
+
+void
+LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
+    const TTAProgram::Procedure& proc,
+    llvm::MachineFunction& mf) {
+#if 0
+    PRINT_VAR(proc.toString());
+#endif
+}
+
 }

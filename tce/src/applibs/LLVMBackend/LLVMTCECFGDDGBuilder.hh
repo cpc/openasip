@@ -55,7 +55,8 @@ namespace llvm {
 
         LLVMTCECFGDDGBuilder(
             const TargetMachine& tm, TTAMachine::Machine* mach, 
-            InterPassData& ipd, bool functionAtATime=false);
+            InterPassData& ipd, bool functionAtATime=false, 
+            bool modifyMF=false);
 
         bool writeMachineFunction(MachineFunction& mf);
 
@@ -120,6 +121,10 @@ namespace llvm {
             MachineBasicBlock::const_iterator i, 
             const MachineBasicBlock& mbb);
 
+        void convertProcedureToMachineFunction(
+            const TTAProgram::Procedure& proc,
+            llvm::MachineFunction& mf);
+
         InterPassData* ipData_;
         // TODO: how to get these?
         std::set<TCEString> allParamRegs_;
@@ -132,6 +137,10 @@ namespace llvm {
         // set to true in case the builder is used to schedule one
         // function at a time (the default processes the whole module)
         bool functionAtATime_;
+
+        // write back the scheduled instructions to the machine function?
+        bool modifyMF_;
+
 
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
     };

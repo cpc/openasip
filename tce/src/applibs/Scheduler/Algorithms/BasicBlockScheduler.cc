@@ -376,12 +376,12 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     // This fails if there is "timeout" on retry count.
     // Should not be needed in final version.
     
-    if (operandsFailed == true) {
+    if (operandsFailed) {
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Operands scheduling failed for \'" + moves.toString());
     }
-    if (resultsFailed == true) {
+    if (resultsFailed) {
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Results scheduling failed for \'" + moves.toString());

@@ -139,6 +139,144 @@
     </short-immediate>
   </bus>
 
+  <bus name="B1_2_1">
+    <width>128</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
+  <bus name="B1_2_2">
+    <width>128</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
+  <bus name="B1_2_3">
+    <width>128</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
   <socket name="lsu_i1">
     <reads-from>
       <bus>B1</bus>
@@ -150,6 +288,18 @@
     </reads-from>
     <reads-from>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -167,6 +317,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="lsu_i2">
@@ -180,6 +342,18 @@
     </reads-from>
     <reads-from>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -197,6 +371,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="RF_o1">
@@ -210,6 +396,18 @@
     </writes-to>
     <writes-to>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -227,6 +425,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="bool_o1">
@@ -240,6 +450,18 @@
     </writes-to>
     <writes-to>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -257,6 +479,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="gcu_i2">
@@ -270,6 +504,18 @@
     </reads-from>
     <reads-from>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -287,6 +533,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="ALU_i1">
@@ -300,6 +558,18 @@
     </reads-from>
     <reads-from>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -317,6 +587,18 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="ALU_o1">
@@ -330,6 +612,18 @@
     </writes-to>
     <writes-to>
       <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -347,6 +641,153 @@
       <bus>B1_2</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="RF_o2">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_o3">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_i2">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_o4">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_i3">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <function-unit name="EVEN">
@@ -355,14 +796,17 @@
       <width>128</width>
       <triggers/>
       <sets-opcode/>
+      <missing-register/>
     </port>
     <port name="out1">
       <connects-to>lsu_o1</connects-to>
       <width>128</width>
+      <missing-register/>
     </port>
     <port name="in2">
       <connects-to>lsu_i2</connects-to>
       <width>128</width>
+      <missing-register/>
     </port>
     <operation>
       <name>air32</name>
@@ -379,7 +823,37 @@
           <cycles>1</cycles>
         </reads>
         <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ilalsa</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
           <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ilr32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
@@ -393,18 +867,22 @@
       <width>128</width>
       <triggers/>
       <sets-opcode/>
+      <missing-register/>
     </port>
     <port name="in2">
       <connects-to>ALU_i2</connects-to>
       <width>128</width>
+      <missing-register/>
     </port>
     <port name="out1">
       <connects-to>ALU_o1</connects-to>
       <width>128</width>
+      <missing-register/>
     </port>
     <port name="in3">
       <connects-to>ODD_i1</connects-to>
       <width>128</width>
+      <missing-register/>
     </port>
     <operation>
       <name>stqdr32</name>
@@ -427,37 +905,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>ilalsa</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
       <name>brasl</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>ilr32</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
@@ -486,7 +934,7 @@
           <cycles>1</cycles>
         </reads>
         <writes name="3">
-          <start-cycle>0</start-cycle>
+          <start-cycle>7</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
@@ -508,13 +956,28 @@
     <type>normal</type>
     <size>128</size>
     <width>128</width>
-    <max-reads>1</max-reads>
-    <max-writes>1</max-writes>
-    <port name="wr">
+    <max-reads>5</max-reads>
+    <max-writes>2</max-writes>
+    <port name="wr1">
       <connects-to>RF_i1</connects-to>
     </port>
-    <port name="rd">
+    <port name="rd1">
       <connects-to>RF_o1</connects-to>
+    </port>
+    <port name="rd2">
+      <connects-to>RF_o2</connects-to>
+    </port>
+    <port name="rd3">
+      <connects-to>RF_o3</connects-to>
+    </port>
+    <port name="rd4">
+      <connects-to>RF_i2</connects-to>
+    </port>
+    <port name="rd5">
+      <connects-to>RF_o4</connects-to>
+    </port>
+    <port name="wr2">
+      <connects-to>RF_i3</connects-to>
     </port>
   </register-file>
 

@@ -123,6 +123,7 @@ public:
     bool hasReturn() const;
 
     virtual std::string disassembly() const;
+    virtual std::string toString() const { return disassembly(); }
 
 protected:
     /// List of instructions.

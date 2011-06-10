@@ -69,11 +69,9 @@
 
 #include "tce_config.h" // to get llvm version
 
-#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
 // cheat llvm's multi-include-protection
 #define CONFIG_H
 #include "llvm/Support/system_error.h"
-#endif
 
 #include <cstdlib> // system()
 #include <fstream>
@@ -104,11 +102,9 @@
 //#define DEBUG_TDGEN
 
 
-#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 namespace llvm {
     void initializeRALinScanILPPass(llvm::PassRegistry&);
 }
-#endif
 
 using namespace llvm;
 
@@ -216,7 +212,6 @@ LLVMBackend::LLVMBackend(
     removeTmp_(removeTempFiles) {
     cachePath_ = Environment::llvmtceCachePath();
 
-#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
     PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
     initializeCore(Registry);
     initializeScalarOpts(Registry);
@@ -228,7 +223,6 @@ LLVMBackend::LLVMBackend(
     initializeTarget(Registry);
 
     initializeRALinScanILPPass(Registry);
-#endif
 }
 
 /**
@@ -278,18 +272,6 @@ LLVMBackend::compile(
     LLVMContext &context = getGlobalContext();
 
     std::auto_ptr<Module> m;
-#if (defined(LLVM_2_8) || defined(LLVM_2_7))
-    std::string errorMessage;
-
-    // TODO: refactor
-    std::auto_ptr<MemoryBuffer> buffer(        
-	MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
-    if (!buffer.get()) {
-	std::string msg = "Error reading bytecode file: " + bytecodeFile +
-	    "\n" + errorMessage;
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    } 
-#else
     OwningPtr<MemoryBuffer> buffer;
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(
 	    bytecodeFile.c_str(), buffer)) {
@@ -297,7 +279,6 @@ LLVMBackend::compile(
 	    "\n" + ec.message();
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
-#endif
     else {
         m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
     }
@@ -309,17 +290,6 @@ LLVMBackend::compile(
 
     std::auto_ptr<Module> emuM;
     if (!emulationBytecodeFile.empty()) {
-#if (defined(LLVM_2_8) || defined(LLVM_2_7))
-        std::auto_ptr<MemoryBuffer> emuBuffer(
-            MemoryBuffer::getFileOrSTDIN(
-		emulationBytecodeFile, &errorMessage));
-        if (!emuBuffer.get()) {
-	    std::string msg = "Error reading bytecode file: " + 
-		emulationBytecodeFile +
-		" of emulation library:\n" + errorMessage;
-	    throw CompileError(__FILE__, __LINE__, __func__, msg);
-	}
-#else
 	OwningPtr<MemoryBuffer> emuBuffer;
 	if (error_code ec = MemoryBuffer::getFileOrSTDIN(
 		emulationBytecodeFile.c_str(), emuBuffer)) {
@@ -328,7 +298,6 @@ LLVMBackend::compile(
 		" of emulation library:\n" + ec.message();
 	    throw CompileError(__FILE__, __LINE__, __func__, msg);
 	}
-#endif
 	else {
             emuM.reset(
 		ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
