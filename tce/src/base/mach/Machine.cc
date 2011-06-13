@@ -72,8 +72,8 @@ Machine::Machine() :
     controlUnit_(NULL), doValidityChecks_(true), 
     machineTester_(new MachineTester(*this)), 
     dummyMachineTester_(new DummyMachineTester(*this)),
-    EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResult_(false), 
-    triggerInvalidateResult_(false) {
+    EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResults_(false), 
+    triggerInvalidatesResults_(false) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
@@ -724,9 +724,9 @@ Machine::saveState() const {
         rootState->addChild(controlUnit_->saveState());
     }
     rootState->setAttribute(
-        OSKEY_ALWAYS_WRITE_BACK_RESULTS, alwaysWriteResult_);
+        OSKEY_ALWAYS_WRITE_BACK_RESULTS, alwaysWriteResults_);
     rootState->setAttribute(
-        OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, triggerInvalidateResult_);
+        OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, triggerInvalidatesResults_);
     
     return rootState;
 }
@@ -767,8 +767,8 @@ Machine::loadState(const ObjectState* state)
 
     Component* toAdd = NULL;
 
-    setAlwaysWriteResult(state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
-    setTriggerInvalidateResult(
+    setAlwaysWriteResults(state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
+    setTriggerInvalidatesResults(
         state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
 
     try {
@@ -955,34 +955,35 @@ Machine::hash() const {
  *
  */
 bool 
-Machine::alwaysWriteResult() const {
-    return alwaysWriteResult_;
+Machine::alwaysWriteResults() const {
+    return alwaysWriteResults_;
 }
     
 /*
- * Returns true if triggering make result of previous computation invalid.
+ * Returns true if triggering make content of the register where result will
+ * be stored invalid.
  *
  */    
 bool 
-Machine::triggerInvalidateResult() const {
-    return triggerInvalidateResult_;
+Machine::triggerInvalidatesResults() const {
+    return triggerInvalidatesResults_;
 }
 
 /* 
  * Sets whether or not result must always be written to register.
  */
 void 
-Machine::setAlwaysWriteResult(bool result){
-    alwaysWriteResult_ = result;
+Machine::setAlwaysWriteResults(bool result){
+    alwaysWriteResults_ = result;
 }
     
 /* 
- * Sets whether triggering invalidates result register.
+ * Sets whether triggering invalidates register where result will be stored.
  */
     
 void 
-Machine::setTriggerInvalidateResult(bool trigger) {
-    triggerInvalidateResult_ = trigger;
+Machine::setTriggerInvalidatesResults(bool trigger) {
+    triggerInvalidatesResults_ = trigger;
 }
 
 }

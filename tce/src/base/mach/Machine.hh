@@ -141,10 +141,10 @@ public:
 
     MachineTester& machineTester() const;
 
-    bool alwaysWriteResult() const;
-    bool triggerInvalidateResult() const;
-    void setAlwaysWriteResult(bool);
-    void setTriggerInvalidateResult(bool);
+    bool alwaysWriteResults() const;
+    bool triggerInvalidatesResults() const;
+    void setAlwaysWriteResults(bool);
+    void setTriggerInvalidatesResults(bool);
     
 
     // functions inherited from Serializable interface
@@ -313,11 +313,11 @@ private:
     const std::string EMPTY_ITEMP_NAME_;
     
     // Result move have to be always written to register. Effectively
-    // disable dead result elimination.
-    bool alwaysWriteResult_;
-    // Triggering invalidates content of result register. Previous value can
-    // not be read any more.
-    bool triggerInvalidateResult_;
+    // disable dead result read elimination.
+    bool alwaysWriteResults_;
+    // Triggering invalidates content of register where value of result will be
+    // written. Previous value can not be read any more.
+    bool triggerInvalidatesResults_;
 };
 }
 
