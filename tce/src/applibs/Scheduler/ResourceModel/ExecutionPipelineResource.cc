@@ -45,6 +45,7 @@
 #include "POMDisassembler.hh"
 #include "OutputPSocketResource.hh"
 #include "InputPSocketResource.hh"
+#include "Machine.hh"
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
 #include "FUPort.hh"
@@ -531,11 +532,68 @@ ExecutionPipelineResource::canAssign(
         const TTAMachine::HWOperation& hwop = 
             *fu_.operation(pOp->operation().name());                
         const TTAMachine::FUPort& port = 
-            *hwop.port(node.move().source().operationIndex());         
+            *hwop.port(node.move().source().operationIndex());    
         if (port.noRegister() && resultReady != cycle) {
             return false;
         }        
-        
+        const TTAMachine::Machine& mainMachine = *fu_.machine();        
+        if (mainMachine.triggerInvalidatesResults() && 
+            node.isDestinationVariable()) {        
+            // Trigger invalidates the destination move register, so no result 
+            // ready or result read between trigger and trigger plus latency
+            // if the destination register is identical.
+            MoveNode* tMove = pOp->triggeringMove();
+            int triggerCycle = INT_MAX;
+            if (tMove != NULL && tMove->isScheduled()) {
+                triggerCycle = tMove->cycle();
+            }
+            int stopCycle = std::min(resultReady+1, maxResultRead);
+            int maxResultWrite = resultWriten_.size();
+            stopCycle = std::min(stopCycle, maxResultWrite);
+
+            for (int i = triggerCycle; i < stopCycle; i++) {
+                if (resultRead_.at(i).second > 0 &&
+                    resultRead_.at(i).first != pOp) {
+                    // Some other operation on same FU is reading result
+                    // after trigger but before result written
+                    ProgramOperation* tmpOp = resultRead_.at(i).first;
+                    for (int k = 0; k < tmpOp->outputMoveCount(); k++) {
+                        // Check output moves of that other operation to find
+                        // which particular move was reading, and if it has
+                        // same destination register file & register as move 
+                        // we are scheduling.
+                        MoveNode& otherMove = tmpOp->outputMove(k);
+                        if (otherMove.isScheduled() && 
+                            otherMove.cycle() == i &&
+                            otherMove.isDestinationVariable() &&
+                            node.move().destination() ==
+                            otherMove.move().destination()) {
+                            return false;
+                        }
+                    }
+                }
+                if (resultWriten_.at(i).second > 0 &&
+                    resultWriten_.at(i).first != pOp) {
+                    // Some other operation on same FU is writing result
+                    // after trigger but before result written                    
+                    ProgramOperation* tmpOp = resultWriten_.at(i).first;
+                    for (int k = 0; k < tmpOp->outputMoveCount(); k++) {
+                        // Check output moves of that other operation to find
+                        // which particular move was writing, and if it has
+                        // same destination register file & register as move 
+                        // we are scheduling.                        
+                        MoveNode& otherMove = tmpOp->outputMove(k);
+                        if (otherMove.isScheduled() && 
+                            otherMove.cycle() == i &&
+                            otherMove.isDestinationVariable() &&
+                            node.move().destination() ==
+                            otherMove.move().destination()) {
+                            return false;
+                        }
+                    }
+                }                
+            }
+        }
     }
 
     if (!node.isDestinationOperation() || pSocket.isOutputPSocketResource()) {
@@ -564,7 +622,7 @@ ExecutionPipelineResource::canAssign(
     TTAMachine::FUPort& port =
         *hwop.port(newNode->move().destination().operationIndex());                   
     if (port.noRegister() && firstCycle != cycle) {
-        debugLogRM("port.noRegister() && firstCycle != cycle");
+        debugLogRM("port.noRegister() && firstCycle != cycle for: " + node.toString());
         return false;
     }
 
@@ -633,10 +691,10 @@ ExecutionPipelineResource::canAssign(
 
         int nextResCycle = nextResultCycle(resultReady,resReadMove);
         int maxResultRead = resultRead_.size();
-        for (int i = resultReady; i < maxResultRead; i++) {
-            if (resultRead_.at(i).second > 0) {
-                if (i < nextResCycle &&
-                    resultRead_.at(i).first != pOp) {
+        for (int j = resultReady; j < maxResultRead; j++) {
+            if (resultRead_.at(j).second > 0) {
+                if (j < nextResCycle &&
+                    resultRead_.at(j).first != pOp) {
                     // Other result was written earlier and is read
                     // after this one would be written in cycle
                     // we can not overwrite it!
@@ -649,6 +707,55 @@ ExecutionPipelineResource::canAssign(
                 }
             }
         }
+        
+        const TTAMachine::Machine& mainMachine = *fu_.machine();
+        if (mainMachine.triggerInvalidatesResults() && 
+            resReadMove.isDestinationVariable()) {
+            // Trigger invalidates result destination register, so no result 
+            // ready or result read between trigger and trigger plus latency
+            // in case destination register & register file are identical
+            int stopCycle = std::min(resultReady+1, maxResultRead);
+            int maxResultWrite = resultWriten_.size();
+            stopCycle = std::min(stopCycle, maxResultWrite);
+            for (int j = cycle; j < stopCycle; j++) {
+                if (resultRead_.at(j).second > 0 &&
+                    resultRead_.at(j).first != pOp) {
+                    // Check output moves of that other operation to find
+                    // which particular move was reading, and if it has
+                    // same destination register file & register as move 
+                    // we are scheduling.                    
+                    ProgramOperation* tmpOp = resultRead_.at(j).first;
+                    for (int k = 0; k < tmpOp->outputMoveCount(); k++) {
+                        MoveNode& otherMove = tmpOp->outputMove(k);
+                        if (otherMove.isScheduled() && 
+                            otherMove.cycle() == j &&
+                            otherMove.isDestinationVariable() &&
+                            newNode->move().destination() ==
+                                otherMove.move().destination()) {
+                            return false;
+                        }
+                    }
+                }
+                if (resultWriten_.at(j).second > 0 &&
+                    resultWriten_.at(j).first != pOp) {
+                    // Check output moves of that other operation to find
+                    // which particular move was writing, and if it has
+                    // same destination register file & register as move 
+                    // we are scheduling.                                        
+                    ProgramOperation* tmpOp = resultWriten_.at(j).first;
+                    for (int k = 0; k < tmpOp->outputMoveCount(); k++) {
+                        MoveNode& otherMove = tmpOp->outputMove(k);
+                        if (otherMove.isScheduled() && 
+                            otherMove.cycle() == j &&
+                            otherMove.isDestinationVariable() &&
+                            newNode->move().destination() ==
+                            otherMove.move().destination()) {
+                            return false;
+                        }
+                    }
+                }                
+            }
+        }        
     }
     return true;
 }
