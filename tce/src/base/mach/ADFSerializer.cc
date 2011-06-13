@@ -287,10 +287,13 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
     root->setAttribute(MDF_VERSION, MDF_VERSION_NUMBER);
 
     // Test for global attributes.
-    if (machineState->intAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
+    if (machineState->hasAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
+        machineState->intAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
         root->addChild(new ObjectState(ALWAYS_WRITE_BACK_RESULTS));              
     }
-    if (machineState->intAttribute(
+    if (machineState->hasAttribute(
+        Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
+        machineState->intAttribute(
             Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS)) {
             root->addChild(new ObjectState(TRIGGER_INVALIDATES_OLD_RESULTS));  
     }        
