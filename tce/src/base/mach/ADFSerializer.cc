@@ -287,16 +287,16 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
     root->setAttribute(MDF_VERSION, MDF_VERSION_NUMBER);
 
     // Test for global attributes.
-    if (machineState->hasAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
-        machineState->intAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
-        root->addChild(new ObjectState(ALWAYS_WRITE_BACK_RESULTS));              
-    }
     if (machineState->hasAttribute(
         Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
         machineState->intAttribute(
             Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS)) {
             root->addChild(new ObjectState(TRIGGER_INVALIDATES_OLD_RESULTS));  
     }        
+    if (machineState->hasAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
+        machineState->intAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
+        root->addChild(new ObjectState(ALWAYS_WRITE_BACK_RESULTS));              
+    }
     
     // add buses
     for (int i = 0; i < machineState->childCount(); i++) {
@@ -948,12 +948,12 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
     try {
         for (int i = 0; i < mdfState->childCount(); i++) {
             ObjectState* child = mdfState->child(i);
-            if (child->name() == ALWAYS_WRITE_BACK_RESULTS) {
+	    if (child->name() == TRIGGER_INVALIDATES_OLD_RESULTS) {
                 machine->setAttribute(
-                    Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);
-            } else if (child->name() == TRIGGER_INVALIDATES_OLD_RESULTS) {
+                    Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, true);            
+            } else if (child->name() == ALWAYS_WRITE_BACK_RESULTS) {
                 machine->setAttribute(
-                    Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, true);                
+                    Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);                
             } else if (child->name() == BUS) {
                 machine->addChild(busToMachine(child));
             } else if (child->name() == SOCKET) {
