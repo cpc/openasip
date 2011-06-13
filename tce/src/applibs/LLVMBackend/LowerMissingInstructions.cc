@@ -523,10 +523,10 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                             "'%s' wasn't found. Floating point"
                             " emulation required but --swfp was not given?") % 
                         footPrint).str() << std::endl;
-                /* TODO: we have to abort here as the Exception does not
+                /* TODO: we have to exit() here as the Exception does not
                    propagate down to the llvm-tce with all distributions.
                    Should fail more gracefully as this is library code. */
-                abort();            
+                exit(1);            
             }
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {
