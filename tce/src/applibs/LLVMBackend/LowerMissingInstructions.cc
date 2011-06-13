@@ -87,6 +87,10 @@ namespace {
         bool doFinalization (Module &M);
         bool runOnBasicBlock(BasicBlock &BB);
 
+        virtual const char *getPassName() const {
+            return "TCE: LowerMissingInstructions";
+        }
+
         void addFunctionForFootprints(
             Module& M, FunctionType* fType, Operation& op, 
             std::string suffix);
@@ -513,12 +517,16 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         if (replaceFunc != replaceFunctions.end()) {
             if (replaceFunc->second == NULL) {
                 // this should leak down to llvm-tce
-                throw Exception(
-                    __FILE__, __LINE__, __func__,
-                    (boost::format("ERROR: emulation function "
-                                   "'%s' wasn't found. Floating point"
-                                   " emulation required but --swfp was not given?") % 
-                     footPrint).str());          
+                std::cerr
+                    << (boost::format(
+                            "ERROR: emulation function "
+                            "'%s' wasn't found. Floating point"
+                            " emulation required but --swfp was not given?") % 
+                        footPrint).str() << std::endl;
+                /* TODO: we have to abort here as the Exception does not
+                   propagate down to the llvm-tce with all distributions.
+                   Should fail more gracefully as this is library code. */
+                abort();            
             }
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {
