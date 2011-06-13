@@ -72,8 +72,8 @@ public:
 
     bool isArchitectureEqual(FUPort* port);
    
-    bool hasRegister() const;
-    void setHasRegister(bool hasRegister);
+    bool noRegister() const;
+    void setNoRegister(bool noRegister);
 
     /// ObjectState name for FUPort.
     static const std::string OSNAME_FUPORT;
@@ -82,7 +82,7 @@ public:
     /// ObjectState attribute key for operand code setting feature.
     static const std::string OSKEY_OPCODE_SETTING;
     /// ObjectState attribute key for hasRegister setting feature.
-    static const std::string OSKEY_HASREGISTER_SETTING;
+    static const std::string OSKEY_NO_REGISTER;
 
 protected:
     // this is for UniversalFUPort class
@@ -110,8 +110,8 @@ private:
     /// Binding string describes the operation bindings of 
     /// of the port to allow fast binding comparison.
     mutable std::string bindingString_;
-    // Indicated that port has internal register for storing value.
-    bool hasRegister_;
+    // Indicated that port do not have internal register for storing value.
+    bool noRegister_;
 };
 }
 

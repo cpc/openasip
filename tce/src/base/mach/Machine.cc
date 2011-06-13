@@ -62,6 +62,8 @@ namespace TTAMachine {
 
 // initialization of static data members
 const string Machine::OSNAME_MACHINE = "machine";
+const std::string Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS = "always-write-back";
+const std::string Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates";
 
 /**
  * Constructor.
@@ -70,7 +72,8 @@ Machine::Machine() :
     controlUnit_(NULL), doValidityChecks_(true), 
     machineTester_(new MachineTester(*this)), 
     dummyMachineTester_(new DummyMachineTester(*this)),
-    EMPTY_ITEMP_NAME_("no_limm") {
+    EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResult_(false), 
+    triggerInvalidateResult_(false) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
@@ -720,7 +723,11 @@ Machine::saveState() const {
     if (controlUnit_ != NULL) {
         rootState->addChild(controlUnit_->saveState());
     }
-
+    rootState->setAttribute(
+        OSKEY_ALWAYS_WRITE_BACK_RESULTS, alwaysWriteResult_);
+    rootState->setAttribute(
+        OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, triggerInvalidateResult_);
+    
     return rootState;
 }
 
@@ -759,6 +766,10 @@ Machine::loadState(const ObjectState* state)
     }
 
     Component* toAdd = NULL;
+
+    setAlwaysWriteResult(state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
+    setTriggerInvalidateResult(
+        state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
 
     try {
         // create skeletons
@@ -937,6 +948,41 @@ Machine::hash() const {
     hash += "_";
     hash += (Conversion::toHexString(h)).substr(2);
     return hash;
+}
+
+/*
+ * Returns true if result value always needs to be written to GPR.
+ *
+ */
+bool 
+Machine::alwaysWriteResult() const {
+    return alwaysWriteResult_;
+}
+    
+/*
+ * Returns true if triggering make result of previous computation invalid.
+ *
+ */    
+bool 
+Machine::triggerInvalidateResult() const {
+    return triggerInvalidateResult_;
+}
+
+/* 
+ * Sets whether or not result must always be written to register.
+ */
+void 
+Machine::setAlwaysWriteResult(bool result){
+    alwaysWriteResult_ = result;
+}
+    
+/* 
+ * Sets whether triggering invalidates result register.
+ */
+    
+void 
+Machine::setTriggerInvalidateResult(bool trigger) {
+    triggerInvalidateResult_ = trigger;
 }
 
 }

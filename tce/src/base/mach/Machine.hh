@@ -141,6 +141,12 @@ public:
 
     MachineTester& machineTester() const;
 
+    bool alwaysWriteResult() const;
+    bool triggerInvalidateResult() const;
+    void setAlwaysWriteResult(bool);
+    void setTriggerInvalidateResult(bool);
+    
+
     // functions inherited from Serializable interface
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
@@ -242,6 +248,10 @@ public:
 
     /// ObjectState name for Machine.
     static const std::string OSNAME_MACHINE;
+    /// ObjectState attribute key for always-write-back-results.
+    static const std::string OSKEY_ALWAYS_WRITE_BACK_RESULTS;
+    /// ObjectState attribute key for trigger-invalidates-old-results
+    static const std::string OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS;
 
 private:
     /// Assignment not allowed.
@@ -301,6 +311,13 @@ private:
 
     // Name of the empty instruction template created by default.
     const std::string EMPTY_ITEMP_NAME_;
+    
+    // Result move have to be always written to register. Effectively
+    // disable dead result elimination.
+    bool alwaysWriteResult_;
+    // Triggering invalidates content of result register. Previous value can
+    // not be read any more.
+    bool triggerInvalidateResult_;
 };
 }
 

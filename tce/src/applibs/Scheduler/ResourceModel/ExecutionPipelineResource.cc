@@ -532,7 +532,7 @@ ExecutionPipelineResource::canAssign(
             *fu_.operation(pOp->operation().name());                
         const TTAMachine::FUPort& port = 
             *hwop.port(node.move().source().operationIndex());         
-        if (!port.hasRegister() && resultReady != cycle) {
+        if (port.noRegister() && resultReady != cycle) {
             return false;
         }        
         
@@ -563,8 +563,8 @@ ExecutionPipelineResource::canAssign(
         *fu_.operation(pOp->operation().name());
     TTAMachine::FUPort& port =
         *hwop.port(newNode->move().destination().operationIndex());                   
-    if (!port.hasRegister() && firstCycle != cycle) {
-        debugLogRM("!port.hasRegister() && firstCycle != cycle");
+    if (port.noRegister() && firstCycle != cycle) {
+        debugLogRM("port.noRegister() && firstCycle != cycle");
         return false;
     }
 
@@ -804,7 +804,7 @@ ExecutionPipelineResource::findRange(
                     *fu_.operation(pOp->operation().name());
                 TTAMachine::FUPort& port =
                     *hwop.port(node.move().destination().operationIndex());
-                if (!port.hasRegister()) {
+                if (port.noRegister()) {
                     triggering = pOp->inputMove(k).cycle();
                     last = triggering;
                     first = triggering;

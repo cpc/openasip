@@ -159,7 +159,7 @@
         <xs:element name="width" type="xs:positiveInteger"/>
         <xs:element name="triggers" type="empty-type" minOccurs="0"/>
         <xs:element name="sets-opcode" type="empty-type" minOccurs="0"/>
-        <xs:element name="missing-register" type="empty-type" minOccurs="0"/>
+        <xs:element name="no-register" type="empty-type" minOccurs="0"/>
     </xs:sequence>
     <xs:attribute name="name" type="attribute-type" use="required"/>
 </xs:complexType>
@@ -346,6 +346,8 @@
 <xs:element name="adf">
     <xs:complexType>
         <xs:sequence>
+            <xs:element name="trigger-invalidates-old-results" type="empty-type" minOccurs="0"/>
+            <xs:element name="always-write-back-results" type="empty-type" minOccurs="0"/>
             <xs:element name="bus" type="bus-type"
                         minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="socket" type="socket-type"
