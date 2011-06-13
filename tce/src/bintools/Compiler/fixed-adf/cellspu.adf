@@ -796,17 +796,17 @@
       <width>128</width>
       <triggers/>
       <sets-opcode/>
-      <missing-register/>
+      <no-register/>
     </port>
     <port name="out1">
       <connects-to>lsu_o1</connects-to>
       <width>128</width>
-      <missing-register/>
+      <no-register/>
     </port>
     <port name="in2">
       <connects-to>lsu_i2</connects-to>
       <width>128</width>
-      <missing-register/>
+      <no-register/>
     </port>
     <operation>
       <name>air32</name>
@@ -867,22 +867,22 @@
       <width>128</width>
       <triggers/>
       <sets-opcode/>
-      <missing-register/>
+      <no-register/>
     </port>
     <port name="in2">
       <connects-to>ALU_i2</connects-to>
       <width>128</width>
-      <missing-register/>
+      <no-register/>
     </port>
     <port name="out1">
       <connects-to>ALU_o1</connects-to>
       <width>128</width>
-      <missing-register/>
+      <no-register/>
     </port>
     <port name="in3">
       <connects-to>ODD_i1</connects-to>
       <width>128</width>
-      <missing-register/>
+      <no-register/>
     </port>
     <operation>
       <name>stqdr32</name>
