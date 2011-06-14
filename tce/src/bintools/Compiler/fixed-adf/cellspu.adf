@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <adf version="1.7">
 
+  <trigger-invalidates-old-results/>
+
+  <always-write-back-results/>
+
   <bus name="B1">
     <width>128</width>
     <guard>
