@@ -51,7 +51,7 @@ public:
         FunctionUnit& parent,
         bool triggers,
         bool setsOpcode,
-        bool hasRegister=true)
+        bool noRegister=false)
         throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
                InvalidName);
     FUPort(const ObjectState* state, Unit& parent)
@@ -81,7 +81,7 @@ public:
     static const std::string OSKEY_TRIGGERING;
     /// ObjectState attribute key for operand code setting feature.
     static const std::string OSKEY_OPCODE_SETTING;
-    /// ObjectState attribute key for hasRegister setting feature.
+    /// ObjectState attribute key for noRegister setting feature.
     static const std::string OSKEY_NO_REGISTER;
 
 protected:
@@ -92,7 +92,7 @@ protected:
         FunctionUnit& parent,
         bool triggers,
         bool setsOpcode,
-        bool hasRegister,
+        bool noRegister,
         bool dummy)
         throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
                InvalidName);
