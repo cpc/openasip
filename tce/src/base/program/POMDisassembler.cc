@@ -309,7 +309,7 @@ POMDisassembler::createFUPort(const Terminal& terminal)
             throw InstanceNotFound(__FILE__, __LINE__, __func__,
             (boost::format(
                 "Osal operation for operation code name '%s' was not found.") 
-                % fuTerm.HWOperationName()).str());
+             % fuTerm.hwOperation()->name()).str());
         }
         // The terminal is an opcode setting port of an operation or.
         // has additional info about opcode that terminal is bound.

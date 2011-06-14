@@ -70,11 +70,6 @@ namespace llvm {
             return "TCE: build TCE scheduler IR from MachineFunctions";
         }
 
-        virtual bool isTTATarget() const {
-            return (dynamic_cast<const TCETargetMachine*>(
-                        &targetMachine()) != NULL);
-        }
-
     protected:
 
         // TODO: copy-paste from LLVMPomBuilder.hh

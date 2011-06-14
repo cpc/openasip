@@ -1451,7 +1451,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         unsigned dRegNum = mo.getReg();
 
         // is it the RA register?
-        if (dRegNum == raPortDRegNum()) {
+        if (isTTATarget() && dRegNum == raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
                 *umach_->controlUnit()->returnAddressPort());
         }

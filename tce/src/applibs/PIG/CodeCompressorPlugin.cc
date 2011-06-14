@@ -62,6 +62,7 @@
 #include "ControlUnit.hh"
 #include "Guard.hh"
 #include "FUPort.hh"
+#include "HWOperation.hh"
 
 #include "CodeSection.hh"
 #include "RelocSection.hh"
@@ -1521,7 +1522,7 @@ CodeCompressorPlugin::encodeFUTerminal(
                 PIGTextGenerator textGenerator;
                 format text = textGenerator.text(
                     PIGTextGenerator::TXT_OSAL_OC_MISSING);
-                text % (fuTerm != NULL ? fuTerm->HWOperationName() : "") % fuName;
+                text % (fuTerm != NULL ? fuTerm->hwOperation()->name() : "") % fuName;
                 throw InvalidData(__FILE__, __LINE__, procName, text.str());
             }
             string opName = terminal.operation().name();

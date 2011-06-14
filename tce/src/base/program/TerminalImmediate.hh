@@ -52,6 +52,8 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 
+    virtual TCEString toString() const;
+
 private:
     /// Assignment not allowed.
     TerminalImmediate& operator=(const TerminalImmediate&);

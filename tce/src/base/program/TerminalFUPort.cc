@@ -207,21 +207,6 @@ TerminalFUPort::functionUnit() const
     return *port_.parentUnit();
 }
 
-
-/** 
- * Returns name of the operation code transported to the port.
- * 
- * @return Name of the operation code.
- */
-std::string 
-TerminalFUPort::HWOperationName() const {
-    if (operation_ != NULL) {
-        return operation_->name();
-    }
-    return "";
-}
-
-
 /**
  * Return the operation code transported into the function unit port.
  *

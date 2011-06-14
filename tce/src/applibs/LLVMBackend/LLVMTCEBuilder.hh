@@ -116,6 +116,11 @@ namespace llvm {
             MachineFunctionPass::getAnalysisUsage(AU);
         }
 
+        virtual bool isTTATarget() const {
+            return (dynamic_cast<const TCETargetMachine*>(
+                        &targetMachine()) != NULL);
+        }
+
     protected:
 
         bool doInitialization(Module &M);

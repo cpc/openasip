@@ -75,7 +75,6 @@ public:
 
     virtual const TTAMachine::FunctionUnit& functionUnit() const
         throw (WrongSubclass);
-    virtual std::string HWOperationName() const;
     virtual Operation& operation() const 
         throw (WrongSubclass, InvalidData);
     virtual Operation& hintOperation() const

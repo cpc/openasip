@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,11 +27,13 @@
  * Implementation of TerminalRegister class.
  *
  * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
 #include "TerminalRegister.hh"
 #include "ImmediateUnit.hh"
+#include "DisassemblyRegister.hh"
 
 using namespace TTAMachine;
 
@@ -178,5 +180,10 @@ TerminalRegister::equals(const Terminal& other) const {
     }
 }
 
+TCEString
+TerminalRegister::toString() const {
+    DisassemblyRegister disasm(registerFile().name(), index());
+    return disasm.toString();
+}
 
 }

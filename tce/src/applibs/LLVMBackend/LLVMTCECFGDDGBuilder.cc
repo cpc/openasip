@@ -55,11 +55,9 @@
 
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
+#include "FUPort.hh"
 
-#if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
 #include <llvm/ADT/SmallString.h>
-#endif
-
 #include <llvm/MC/MCContext.h>
 
 //#define WRITE_DDG_DOTS
@@ -521,7 +519,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     delete cfg;
 
     if (modifyMF_) {
-        convertProcedureToMachineFunction(*procedure, mf);
+        //convertProcedureToMachineFunction(*procedure, mf);
         return true;
     }
 
@@ -588,7 +586,6 @@ LLVMTCECFGDDGBuilder::hasRealInstructions(
     return false;
 }
 
-
 bool
 LLVMTCECFGDDGBuilder::doFinalization(Module& m) { 
 
@@ -607,7 +604,6 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m) {
     exit(0);
     return false; 
 }
-
 
 TCEString 
 LLVMTCECFGDDGBuilder::operationName(const MachineInstr& mi) const {
@@ -662,13 +658,176 @@ LLVMTCECFGDDGBuilder::registerIndex(unsigned llvmRegNum) const {
     }
 }
 
+#define DEBUG_POM_TO_MI
+
 void
 LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
     const TTAProgram::Procedure& proc,
     llvm::MachineFunction& mf) {
-#if 0
-    PRINT_VAR(proc.toString());
+
+#ifdef DEBUG_POM_TO_MI
+    Application::logStream()
+        << "TTA instructions:" << std::endl 
+        << proc.toString() << std::endl << std::endl
+        << "OTA instructions:" << std::endl;
+#endif
+
+    const int operationSlots = mach_->functionUnitNavigator().count();
+    // the order of function unit operations in the instruction bundle
+    typedef std::vector<const TTAMachine::FunctionUnit*> BundleOrderIndex;
+    BundleOrderIndex bundleOrder;
+
+    // Currently the bundle order is hard coded to the order of appearance
+    // in the ADF file.
+    for (int fuc = 0; fuc < mach_->functionUnitNavigator().count(); ++fuc) {
+        TTAMachine::FunctionUnit* fu = mach_->functionUnitNavigator().item(fuc);
+        bundleOrder.push_back(fu);
+    }
+
+    for (int i = 0; i < proc.instructionCount(); ++i) {
+        const TTAProgram::Instruction& instr = 
+            proc.instructionAtIndex(i);
+        // First collect all started operations at this cycle
+        // on each FU. 
+        typedef std::map<const TTAMachine::FunctionUnit*, 
+                         const TTAMachine::HWOperation*> OpsMap;
+        OpsMap startedOps;
+        for (int m = 0; m < instr.moveCount(); ++m) {
+            const TTAProgram::Move& move = instr.move(m);
+            if (move.isTriggering()) {
+                startedOps[&move.destination().functionUnit()] =
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        move.destination()).hwOperation();
+            }
+        }
+
+        // in OTAs with data hazard detection, we do not need to emit
+        // completely empty instruction bundles at all
+        if (startedOps.size() == 0)
+            continue; 
+        
+        typedef std::map<const TTAMachine::HWOperation*,
+                         std::vector<TTAProgram::Terminal*> > OperandMap;
+        OperandMap operands;
+        // On a second pass through the moves we now should know the operand 
+        // numbers of all the moves. The result moves should be at an 
+        // instruction at the operation latency.
+        OperationPool operations;
+
+        for (OpsMap::const_iterator opsi = startedOps.begin(); 
+             opsi != startedOps.end(); ++opsi) {
+            const TTAMachine::FunctionUnit* fu = (*opsi).first;
+            const TTAMachine::HWOperation* hwOp = (*opsi).second;
+            const Operation& operation = 
+                operations.operation(hwOp->name().c_str());
+            // first find the outputs
+            for (int out = 0; out < operation.numberOfOutputs(); ++out) {
+                const TTAProgram::Instruction& resultInstr = 
+                    proc.instructionAtIndex(i + hwOp->latency());
+                for (int m = 0; m < resultInstr.moveCount(); ++m) {
+                    const TTAProgram::Move& move = resultInstr.move(m);
+                    // assume it's a register write, the potential (pseudo) 
+                    // bypass move is ignored
+                    if (move.source().isFUPort() && 
+                        &move.source().functionUnit() ==
+                        hwOp->parentUnit() &&
+                        (move.destination().isGPR() ||
+                         move.destination().isRA())) {
+                        operands[hwOp].push_back(&move.destination());
+                    }
+                }
+            }
+            if (operation.numberOfOutputs() != operands[hwOp].size()) {
+                PRINT_VAR(operation.name());
+                PRINT_VAR(operands[hwOp].size());
+                PRINT_VAR(operation.numberOfOutputs());
+                assert(operation.numberOfOutputs() == operands[hwOp].size());
+                abort();
+            }
+
+            // then the inputs
+            for (int input = 0; input < operation.numberOfInputs();
+                 ++input) {
+                for (int m = 0; m < instr.moveCount(); ++m) {
+                    const TTAProgram::Move& move = instr.move(m);
+                    if (move.destination().isFUPort() &&
+                        &move.destination().functionUnit() ==
+                        hwOp->parentUnit() &&
+                        dynamic_cast<const TTAMachine::Port*>(
+                            hwOp->port(input + 1)) == 
+                        &move.destination().port()) {
+                        // if the result is forwarded (bypass), find the
+                        // result move 
+                        if (move.source().isFUPort()) {
+                            for (int mm = 0; mm < instr.moveCount(); ++mm) {
+                                const TTAProgram::Move& move2 = 
+                                    instr.move(mm);
+                                if (move2.destination().isGPR() &&
+                                    move2.source().isFUPort() && 
+                                    &move2.source().port() ==
+                                    &move.source().port()) {
+                                    operands[hwOp].push_back(&move2.destination());
+                                }
+                            }
+                        } else {
+                            // otherwise assume it's not bypassed but
+                            // read from the RF
+                            operands[hwOp].push_back(&move.source());
+                        }
+                    }
+                }
+            }
+
+            if (operation.numberOfInputs() + operation.numberOfOutputs() !=
+                operands[hwOp].size()) {
+                PRINT_VAR(operation.name());
+                PRINT_VAR(operands[hwOp].size());
+                PRINT_VAR(operation.numberOfInputs());
+                PRINT_VAR(operation.numberOfOutputs());
+                assert(
+                    operation.numberOfInputs() + operation.numberOfOutputs() ==
+                    operands[hwOp].size());
+            }
+        }
+
+        for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
+             boi != bundleOrder.end(); ++boi) {
+            if (startedOps.find(*boi) == startedOps.end()) {
+#ifdef DEBUG_POM_TO_MI
+                Application::logStream() << "nop";
+#endif
+            } else {
+                const TTAMachine::HWOperation* hwop = 
+                    (*startedOps.find(*boi)).second;
+#ifdef DEBUG_POM_TO_MI
+                Application::logStream() << hwop->name() << " ";
+#endif
+                std::vector<TTAProgram::Terminal*>& opr = operands[hwop];
+                
+                int counter = 0;
+                for (std::vector<TTAProgram::Terminal*>::const_iterator opri =
+                         opr.begin(); opri != opr.end(); ++opri, ++counter) {
+                    TTAProgram::Terminal* terminal = *opri;
+#ifdef DEBUG_POM_TO_MI
+                    if (counter > 0)
+                        Application::logStream() << ", ";
+                    Application::logStream() << terminal->toString();
+#endif                    
+                }
+            }
+#ifdef DEBUG_POM_TO_MI
+            Application::logStream() << "\t# " << (*boi)->name() << std::endl;
+#endif
+        }
+#ifdef DEBUG_POM_TO_MI
+        Application::logStream() << std::endl;
+#endif
+    }
+
+#ifdef DEBUG_POM_TO_MI
+    Application::logStream() << std::endl << std::endl;
 #endif
 }
+    
 
 }

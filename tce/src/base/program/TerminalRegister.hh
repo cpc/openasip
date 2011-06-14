@@ -76,6 +76,8 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 
+    virtual TCEString toString() const;
+
 private:
     /// Assignment not allowed.
     TerminalRegister& operator=(const TerminalRegister&);

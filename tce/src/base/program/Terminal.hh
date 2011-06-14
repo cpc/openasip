@@ -114,8 +114,7 @@ public:
 
     virtual bool equals(const Terminal& other) const = 0;
 
-    virtual TCEString toString() const { 
-        abortWithError("unimplemented"); return ""; }
+    virtual TCEString toString() const = 0;
 };
 
 }
