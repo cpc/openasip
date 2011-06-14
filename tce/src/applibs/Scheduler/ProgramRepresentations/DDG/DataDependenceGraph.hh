@@ -120,7 +120,8 @@ public:
         const MoveNode& moveNode, unsigned int ii = UINT_MAX, 
         bool ignoreRegWaRs = false, 
         bool ignoreRegWaWs = false, bool ignoreGuards = false,
-        bool ignoreFUDeps = false) const;
+        bool ignoreFUDeps = false,
+        bool ignoreOperationEdges = false) const;
 
     int latestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX,

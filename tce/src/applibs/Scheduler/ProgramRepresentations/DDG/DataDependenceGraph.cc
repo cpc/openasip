@@ -297,8 +297,13 @@ DataDependenceGraph::addProgramOperation(ProgramOperation* po) {
 int
 DataDependenceGraph::earliestCycle(
     const MoveNode& moveNode, unsigned int ii, bool ignoreRegWaRs,
-    bool ignoreRegWaWs, bool ignoreGuards, bool ignoreFuDeps) const {
+    bool ignoreRegWaWs, bool ignoreGuards, bool ignoreFuDeps,
+    bool ignoreOperationEdges) const {
 
+    if (machine_ == NULL) {
+        throw InvalidData(__FILE__,__LINE__,__func__,
+                          " setMachine() must be called before this");
+    }
     const EdgeSet edges = inEdges(moveNode);
     int minCycle = 0;
     for (EdgeSet::const_iterator i = edges.begin(); i != edges.end(); ++i) {
@@ -311,6 +316,11 @@ DataDependenceGraph::earliestCycle(
         if (ignoreFuDeps && 
             (edge.edgeReason() == DataDependenceEdge::EDGE_FUSTATE ||
              edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
+            continue;
+        }
+        
+        if (ignoreOperationEdges && 
+            edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION) {
             continue;
         }
 
@@ -373,6 +383,24 @@ DataDependenceGraph::earliestCycle(
             minCycle = std::max(effTailCycle, minCycle);
         } 
     }
+
+    // on architectures with hw data hazard detection this is needed.
+    // TODO: now does this for all input moves, not just trigger
+    if (machine_->triggerInvalidatesResults() &&
+        moveNode.isDestinationOperation()) {
+        ProgramOperation& po = moveNode.destinationOperation();
+        for (int i = 0; i < po.outputMoveCount(); i++) {
+            MoveNode& outMove = po.outputMove(i);
+            minCycle = 
+                std::max(minCycle, 
+                         earliestCycle(outMove, ii, 
+                                       ignoreRegWaRs,
+                                       ignoreRegWaWs, 
+                                       ignoreGuards,
+                                       true, // ignoreFuDeps
+                                       true)); // operation edges ignored
+        }
+    }
     return minCycle;
 }
 
@@ -393,6 +421,10 @@ int
 DataDependenceGraph::latestCycle(
     const MoveNode& moveNode, unsigned int ii, bool ignoreRegAntideps) const {
 
+    if (machine_ == NULL) {
+        throw InvalidData(__FILE__,__LINE__,__func__,
+                          " setMachine() must be called before this");
+    }
     
     const EdgeSet edges = outEdges(moveNode);
     int maxCycle = INT_MAX;
@@ -458,7 +490,32 @@ DataDependenceGraph::latestCycle(
 
             maxCycle = std::min(effHeadCycle, maxCycle);
         }
+
+        // TODO: now does this for all input moves, not just trigger
+        if (machine_->triggerInvalidatesResults() &&
+            head.isSourceOperation()) {
+            ProgramOperation& headPO = head.sourceOperation();
+            for (int i = 0; i < headPO.inputMoveCount(); i++) {
+                MoveNode& inputMove = headPO.inputMove(i);
+                if (!inputMove.isScheduled()) {
+                    continue;
+                }
+
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                    (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     edge.edgeReason() == DataDependenceEdge::EDGE_RA)) {
+                    maxCycle = std::min(maxCycle, inputMove.cycle());
+                }
+
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                    (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
+                     edge.edgeReason() == DataDependenceEdge::EDGE_RA)) {
+                    maxCycle = std::min(maxCycle, inputMove.cycle()-1);
+                }
+            }
+        }
     }
+
     return maxCycle;
 }
 
@@ -2049,6 +2106,11 @@ DataDependenceGraph::edgeWeight(
  */
 void
 DataDependenceGraph::setMachine(const TTAMachine::Machine& machine) {
+
+    if (machine_ == &machine) {
+        return;
+    }
+
     machine_ = &machine;
     delaySlots_ = machine.controlUnit()->delaySlots();
 
@@ -2215,6 +2277,11 @@ DataDependenceGraph::createSubgraph(
         new DataDependenceGraph(
             allParamRegs_, "", registerAntidependenceLevel_, NULL, false,
             !includeLoops);
+
+    if (machine_ != NULL) {
+        subGraph->setMachine(*machine_);
+    }
+
     constructSubGraph(*subGraph, nodes);
 
     typedef std::set<ProgramOperation*, ProgramOperation::Comparator> POSet;
