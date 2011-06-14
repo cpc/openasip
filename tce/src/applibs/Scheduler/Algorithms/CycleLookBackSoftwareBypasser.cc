@@ -236,6 +236,12 @@ CycleLookBackSoftwareBypasser::bypassNode(
         // remove dead results now?
         int sourceCycle = source.cycle();
         bool sourceRemoved = false;
+        // Check if machine is forcing disabling DRE,
+        // if so disable when first move is bypassed.
+        if (killDeadResults_ && 
+            source.move().bus().machine()->alwaysWriteResults()) {
+            killDeadResults_ = false;
+        }
         // disable DRE if ii != 0
         // only kill if dest is op
         if (killDeadResults_ && !ddg.resultUsed(source)) {
