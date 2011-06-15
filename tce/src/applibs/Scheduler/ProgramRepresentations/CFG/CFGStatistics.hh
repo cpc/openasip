@@ -41,7 +41,7 @@
  * largest basic block and immediates, instructions and bypassed in it.
  */
 
-class CFGStatistics : public BasicBlockStatistics {
+class CFGStatistics : public TTAProgram::BasicBlockStatistics {
 public:
     CFGStatistics();
     virtual ~CFGStatistics();

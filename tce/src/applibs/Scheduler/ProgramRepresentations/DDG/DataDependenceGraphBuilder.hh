@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of data dependence graph builder class
  *
  * @author Heikki Kultala 2006-2009 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -46,6 +47,7 @@ namespace TTAProgram {
     class TerminalRegister;
     class CodeSnippet;
     class Instruction;
+    class BasicBlock;
 }
 
 namespace TTAMachine {
@@ -76,7 +78,7 @@ public:
         bool createMemAndFUDeps = true, 
         bool createDeathInformation = true);
     virtual DataDependenceGraph* build(
-        BasicBlock& bb,
+        TTAProgram::BasicBlock& bb,
         DataDependenceGraph::AntidependenceLevel antidependenceLevel,
         const TCEString& ddgname = "small bb",
         const UniversalMachine* um = NULL, 
@@ -145,7 +147,7 @@ protected:
     
     void clearUnneededBookkeeping();
     void clearUnneededBookkeeping(
-        BasicBlock& bb,
+        TTAProgram::BasicBlock& bb,
         bool aliveInformationNeeded = true);
     
     void iterateBBs(
@@ -162,7 +164,7 @@ protected:
         MoveNodeUseMapSet& dstMap,
         bool addLoopProperty);
     void setSucceedingPredepsForBB(
-        BasicBlock& processedBB, 
+        TTAProgram::BasicBlock& processedBB, 
         BasicBlockNode& successor, 
         bool queueAll,
         bool loop, 

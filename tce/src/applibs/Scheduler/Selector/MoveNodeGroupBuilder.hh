@@ -37,7 +37,10 @@
 
 class ProgramOperation;
 class MoveNodeGroup;
-class BasicBlock;
+
+namespace TTAProgram {
+    class BasicBlock;
+}
 
 /**
  * Builds a list of MoveNodeGroups (MNG) from the input basic block.
@@ -53,7 +56,7 @@ public:
     MoveNodeGroupBuilder() {}
     virtual ~MoveNodeGroupBuilder() {}    
 
-    MoveNodeGroupList* build(BasicBlock& bb);    
+    MoveNodeGroupList* build(TTAProgram::BasicBlock& bb);    
     
 private:
 

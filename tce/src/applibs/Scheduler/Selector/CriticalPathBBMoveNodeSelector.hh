@@ -64,9 +64,9 @@ class DataDependenceGraph;
 class CriticalPathBBMoveNodeSelector : public MoveNodeSelector {
 public:
     CriticalPathBBMoveNodeSelector(
-        BasicBlock& bb, const TTAMachine::Machine& machine);
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine);
     CriticalPathBBMoveNodeSelector(
-        DataDependenceGraph& bigDDG, BasicBlock& bb,
+        DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine &machine)
         throw (ModuleRunTimeError);
     CriticalPathBBMoveNodeSelector(

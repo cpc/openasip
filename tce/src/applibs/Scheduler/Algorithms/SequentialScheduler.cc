@@ -95,7 +95,7 @@ SequentialScheduler::~SequentialScheduler() {
  */
 void
 SequentialScheduler::handleBasicBlock(
-    BasicBlock& bb, 
+    TTAProgram::BasicBlock& bb, 
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
@@ -618,7 +618,7 @@ SequentialScheduler::handleProcedure(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
-    std::vector<BasicBlock*> basicBlocks;
+    std::vector<TTAProgram::BasicBlock*> basicBlocks;
     std::vector<int> bbAddresses;
     createBasicBlocks(procedure, basicBlocks, bbAddresses);
 
@@ -665,11 +665,11 @@ SequentialScheduler::longDescription() const {
 void
 SequentialScheduler::createBasicBlocks(
     TTAProgram::Procedure& proc,
-    std::vector<BasicBlock*> &basicBlocks,
+    std::vector<TTAProgram::BasicBlock*> &basicBlocks,
     std::vector<int>& bbAddresses) {
     TTAProgram::InstructionReferenceManager& irm =
         proc.parent().instructionReferenceManager();
-    BasicBlock* currentBB = NULL;
+    TTAProgram::BasicBlock* currentBB = NULL;
     int lastStartAddress = 0;
     // loop thru all instructions in the given BB.
     for (int i = 0; i < proc.instructionCount(); i++) {
@@ -688,7 +688,7 @@ SequentialScheduler::createBasicBlocks(
                 }
             }
             lastStartAddress = ins.address().location();
-            currentBB = new BasicBlock(lastStartAddress);
+            currentBB = new TTAProgram::BasicBlock(lastStartAddress);
             // update instruction references.
 //            irm.replace(ins, *insCopy);
         }
@@ -700,7 +700,7 @@ SequentialScheduler::createBasicBlocks(
             basicBlocks.push_back(currentBB);
             bbAddresses.push_back(lastStartAddress);
             lastStartAddress = ins.address().location() + 1;
-            currentBB = new BasicBlock(lastStartAddress);
+            currentBB = new TTAProgram::BasicBlock(lastStartAddress);
         }
     }
 
@@ -716,13 +716,13 @@ SequentialScheduler::createBasicBlocks(
 void
 SequentialScheduler::copyBasicBlocksToProcedure(
     TTAProgram::Procedure& proc,
-    std::vector<BasicBlock*>& basicBlocks,
+    std::vector<TTAProgram::BasicBlock*>& basicBlocks,
     std::vector<int>& bbAddresses) {
     TTAProgram::InstructionReferenceManager& irm =
         proc.parent().instructionReferenceManager();
 
     for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-        BasicBlock& bb = *basicBlocks.at(i);
+        TTAProgram::BasicBlock& bb = *basicBlocks.at(i);
         TTAProgram::Instruction& bbIns = bb.instructionAtIndex(0);
         TTAProgram::Instruction& oldProcIns = proc.instructionAt(
             bbAddresses[i]);
@@ -733,7 +733,7 @@ SequentialScheduler::copyBasicBlocksToProcedure(
 
     proc.clear();
     for (unsigned int i = 0; i < basicBlocks.size(); i++) {
-        BasicBlock& bb = *basicBlocks.at(i);
+        TTAProgram::BasicBlock& bb = *basicBlocks.at(i);
 
         // first one is a special case. can contain ref which need to
         // be update

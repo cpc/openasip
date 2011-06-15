@@ -41,7 +41,10 @@
 class DDGPass;
 class SimpleResourceManager;
 
-class BasicBlock;
+namespace TTAProgram {
+    class BasicBlock;
+}
+
 namespace TTAMachine {
     class Machine;
 }
@@ -55,12 +58,12 @@ public:
     virtual ~BasicBlockPass();
 
     virtual void handleBasicBlock(
-        BasicBlock& basicBlock,
+        TTAProgram::BasicBlock& basicBlock,
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
     void executeDDGPass(
-        BasicBlock& bb,
+        TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
         DDGPass& ddgPass)
         throw (Exception);
@@ -69,9 +72,9 @@ public:
 
 protected:
 
-    virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
+    virtual DataDependenceGraph* createDDGFromBB(TTAProgram::BasicBlock& bb);
     virtual void copyRMToBB(
-        SimpleResourceManager& rm, BasicBlock& bb, 
+        SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
         const TTAMachine::Machine& targetMachine);
 
 private:

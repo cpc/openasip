@@ -109,7 +109,7 @@ BBSchedulerController::~BBSchedulerController() {
  */
 void
 BBSchedulerController::handleBasicBlock(
-    BasicBlock& bb,
+    TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
@@ -305,7 +305,7 @@ BBSchedulerController::longDescription() const {
  * @param bb BasicBlock where DDG is to be created from
  */
 DataDependenceGraph*
-BBSchedulerController::createDDGFromBB(BasicBlock& bb) {
+BBSchedulerController::createDDGFromBB(TTAProgram::BasicBlock& bb) {
     if (bigDDG_ != NULL) {
         return bigDDG_->createSubgraph(bb);
     } else {
@@ -319,7 +319,7 @@ BBSchedulerController::createDDGFromBB(BasicBlock& bb) {
  */
 void
 BBSchedulerController::executeDDGPass(
-    BasicBlock& bb,
+    TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine, 
     DDGPass& ddgPass)
     throw (Exception) {

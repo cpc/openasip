@@ -72,7 +72,7 @@ public:
     virtual ~BBSchedulerController();
 
     virtual void handleBasicBlock(
-        BasicBlock& bb, const TTAMachine::Machine& targetMachine)
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
     virtual void handleProcedure(
@@ -87,7 +87,7 @@ public:
         throw (Exception);
 
     void executeDDGPass(
-        BasicBlock& bb,
+        TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
         DDGPass& ddgPass)
         throw (Exception);
@@ -101,7 +101,7 @@ public:
     virtual std::string longDescription() const;
 
 protected:
-    virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
+    virtual DataDependenceGraph* createDDGFromBB(TTAProgram::BasicBlock& bb);
 
 private:
     

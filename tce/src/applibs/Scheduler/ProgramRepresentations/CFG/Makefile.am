@@ -22,7 +22,7 @@ PDG_DIR = ${PR_DIR}/PDG/
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
--I${DDG_DIR} -I${PDG_DIR} -I${SCHED_ALGO_DIR}
+-I${DDG_DIR} -I${PDG_DIR} -I${SCHED_ALGO_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

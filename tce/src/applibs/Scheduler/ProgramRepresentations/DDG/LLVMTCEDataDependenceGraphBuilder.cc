@@ -50,7 +50,7 @@ LLVMTCEDataDependenceGraphBuilder::build(
 
 DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::build(
-    BasicBlock& bb, const UniversalMachine*) 
+    TTAProgram::BasicBlock& bb, const UniversalMachine*) 
     throw (IllegalProgram) {
     currentDDG_ = new DataDependenceGraph(allParamRegs_);
     buildLocalDDG(bb);
@@ -58,7 +58,7 @@ LLVMTCEDataDependenceGraphBuilder::build(
 }
 
 void
-LLVMTCEDataDependenceGraphBuilder::buildLocalDDG(BasicBlock& bb) {
+LLVMTCEDataDependenceGraphBuilder::buildLocalDDG(TTAProgram::BasicBlock& bb) {
     MoveNodeGroupBuilder mngb;
     MoveNodeGroupBuilder::MoveNodeGroupList* mngs =
         mngb.build(bb);

@@ -72,7 +72,7 @@ CriticalPathBBMoveNodeSelector::initializeReadylist() {
  * @param bb basic block for this selector.
  */
 CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
-    DataDependenceGraph& bigDDG, BasicBlock& bb, 
+    DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb, 
     const TTAMachine::Machine& machine)
     throw (ModuleRunTimeError) : ddgOwned_(true) {
     try {
@@ -93,7 +93,8 @@ CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
  * @param bb The basic block from which to select moves.
  */
 CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
-    BasicBlock& bb, const TTAMachine::Machine& machine) : ddgOwned_(true) {
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) : 
+    ddgOwned_(true) {
     
     DataDependenceGraphBuilder ddgBuilder;
     ddg_ = ddgBuilder.build(bb,DataDependenceGraph::INTRA_BB_ANTIDEPS);

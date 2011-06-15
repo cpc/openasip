@@ -35,6 +35,10 @@
 
 #include "DataDependenceGraphBuilder.hh"
 
+namespace TTAProgram {
+    class BasicBlock;
+}
+
 /**
  * LLVMTCEDataDependenceGraphBuilder class is repsonsible for building data 
  * dependence graphs with assistance from LLVM internal representation data.
@@ -53,10 +57,10 @@ public:
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
     virtual DataDependenceGraph* build(
-        BasicBlock& bb, const UniversalMachine* um = NULL) 
+        TTAProgram::BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);
 private:
-    void buildLocalDDG(BasicBlock& bb);
+    void buildLocalDDG(TTAProgram::BasicBlock& bb);
 };
 
 #endif

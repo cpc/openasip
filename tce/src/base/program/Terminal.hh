@@ -49,10 +49,9 @@ namespace TTAMachine {
     class Port;
 }
 
-class BasicBlock;
-
 namespace TTAProgram {
 
+class BasicBlock;
 class InstructionReference;
 
 /**

@@ -88,7 +88,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
     int jumpIndex = -1;
     Move* jumpMove = NULL;
 
-    BasicBlock& thisBB = jumpingBB.basicBlock();
+    TTAProgram::BasicBlock& thisBB = jumpingBB.basicBlock();
     for (int i = thisBB.instructionCount()-1; i >= 0; i--) {
         Instruction& ins = thisBB.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++ ) {

@@ -49,7 +49,6 @@ typedef std::vector<class ProgramOperation*> POList;
 typedef POList::iterator POLIter;
 
 class BasicBlockNode;
-class BasicBlock;
 class DataGraphBuilder;
 class ControlFlowGraph;
 class MoveNodeUse;
@@ -61,6 +60,7 @@ namespace TTAMachine {
 
 namespace TTAProgram {
     class CodeSnippet;
+    class BasicBlock;
 }
 
 class DataDependenceGraph : 
@@ -279,10 +279,12 @@ public:
     void copyExternalOutEdges(MoveNode& nodeCopy, const MoveNode& source);
 
     void updateRegWrite(
-        const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb);
+        const MoveNodeUse& mnd, const TCEString& reg, 
+        TTAProgram::BasicBlock& bb);
 
     void updateRegUse(
-        const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb);
+        const MoveNodeUse& mnd, const TCEString& reg, 
+        TTAProgram::BasicBlock& bb);
 
     void removeIncomingGuardEdges(MoveNode& node);
     void removeOutgoingGuardWarEdges(MoveNode& node);

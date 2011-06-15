@@ -67,7 +67,7 @@ BasicBlockPass::~BasicBlockPass() {
  */
 void 
 BasicBlockPass::handleBasicBlock(
-    BasicBlock& basicBlock,
+    TTAProgram::BasicBlock& basicBlock,
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
@@ -88,7 +88,7 @@ BasicBlockPass::handleBasicBlock(
  */
 void
 BasicBlockPass::executeDDGPass(
-    BasicBlock& bb,
+    TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine, 
     DDGPass& ddgPass)
     throw (Exception) {
@@ -128,7 +128,7 @@ BasicBlockPass::executeDDGPass(
  * @param targetMachine machine we are scheduling for.
  */
 void BasicBlockPass::copyRMToBB(
-    SimpleResourceManager& rm, BasicBlock& bb, 
+    SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
     const TTAMachine::Machine& targetMachine) {
     // find the largest cycle any of a pipelines is still used
     const int rmLastCycle = rm.largestCycle();
@@ -172,6 +172,6 @@ void BasicBlockPass::copyRMToBB(
  * @param bb BasicBlock where DDG is to be created from
  */
 DataDependenceGraph*
-BasicBlockPass::createDDGFromBB(BasicBlock& bb) {
+BasicBlockPass::createDDGFromBB(TTAProgram::BasicBlock& bb) {
     return ddgBuilder().build(bb, DataDependenceGraph::INTRA_BB_ANTIDEPS);
 }

@@ -43,7 +43,7 @@
  */
 class SequentialMoveNodeSelector : public MoveNodeSelector {
 public:
-    SequentialMoveNodeSelector(BasicBlock& bb);
+    SequentialMoveNodeSelector(TTAProgram::BasicBlock& bb);
 
     virtual ~SequentialMoveNodeSelector();
 
@@ -52,7 +52,7 @@ public:
 
     void mightBeReady(MoveNode& node);
 private:
-    void createMoveNodes(BasicBlock& bb);
+    void createMoveNodes(TTAProgram::BasicBlock& bb);
 
     typedef std::list<ProgramOperation*> ProgramOperationList;
     typedef std::list<MoveNodeGroup*> MNGList;

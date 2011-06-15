@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,6 +29,7 @@
  *
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -37,6 +38,11 @@
 #include <functional>
 
 #include <boost/graph/depth_first_search.hpp>
+#include <llvm/CodeGen/MachineFunction.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetInstrInfo.h>
+#include <llvm/Function.h>
+#include <llvm/Module.h>
 
 #include "ControlFlowGraph.hh"
 
@@ -75,6 +81,9 @@
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
+#include "TerminalFUPort.hh"
+#include "HWOperation.hh"
+#include "FUPort.hh"
 
 using TTAProgram::Program;
 using TTAProgram::Procedure;
@@ -630,8 +639,8 @@ ControlFlowGraph::createControlFlowEdge(
     theEdge = new ControlFlowEdge(edgePredicate, edgeType);
 
     if (edgeType == ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH) {
-	assert(blockSource.originalEndAddress() +1 ==
-	       blockTarget.originalStartAddress());
+        assert(blockSource.originalEndAddress() +1 ==
+               blockTarget.originalStartAddress());
     }
 
     connectNodes(blockSource, blockTarget, *theEdge);
@@ -775,7 +784,6 @@ ControlFlowGraph::indirectJump(
         }
         return;
     }
-
 
     ControlFlowEdge::CFGEdgePredicate edgePredicate =
         ControlFlowEdge::CFLOW_EDGE_NORMAL;
@@ -1265,7 +1273,8 @@ ControlFlowGraph::statistics() {
     int bypassCountInMax = 0;
     for (int i = 0; i < nodeCount(); i++) {
         if (node(i).isNormalBB()) {
-            const BasicBlockStatistics& stats = node(i).statistics();
+            const TTAProgram::BasicBlockStatistics& stats = 
+                node(i).statistics();
             moveCount += stats.moveCount();
             immediateCount += stats.immediateCount();
             instructionCount += stats.instructionCount();
@@ -1417,7 +1426,7 @@ ControlFlowGraph::copyToProcedure(
     // the procedure.
     while (currentBBN != NULL) {
         BasicBlockNode* nextNode = NULL;
-        BasicBlock& bb = currentBBN->basicBlock();
+        TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
         // todo: if refs to skipped instructions, breaks?
 
         for (int i = 0; i < bb.skippedFirstInstructions(); i++) {
@@ -1463,7 +1472,7 @@ ControlFlowGraph::copyToProcedure(
             continue;
         }
 
-        // Select some node, preferably successrs without ft-preds
+        // Select some node, preferably successors without ft-preds
         // The jump can then be removed.
         EdgeSet oEdges = outEdges(*currentBBN);
         for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
@@ -1582,6 +1591,424 @@ ControlFlowGraph::copyToProcedure(
     }
 */
 }
+
+
+/**
+ * Copies the CFG into an LLVM MachineFunction.
+ *
+ * Assumes an operation triggered target and that all scheduler restrictions
+ * to produce valid code for such an target have been enabled in ADF while
+ * producing the schedule.
+ *
+ * @param mf The MachineFunction where to copy the cfg.
+ * @param irm InstructionReferenceManager for resolving instruction refs.
+ */
+
+void 
+ControlFlowGraph::copyToLLVMMachineFunction(
+    llvm::MachineFunction& mf,
+    TTAProgram::InstructionReferenceManager* irm) {
+
+    // todo: make sure not indeterministic.
+    // two-way maps between copied and in cfg instructions.
+    typedef std::map<TTAProgram::Instruction*,TTAProgram::Instruction*>
+        InsMap;
+    InsMap copiedInsFromCFG;
+
+    std::vector<Instruction*> oldInstructions;
+
+    ControlFlowGraph::NodeSet firstBBs = successors(entryNode());
+    assert(firstBBs.size() == 1);
+    BasicBlockNode* firstBBN = *firstBBs.begin();
+    BasicBlockNode* currentBBN = firstBBN;
+
+    // fix refs to old first to point to first in cfg - later fixed to
+    // first in program
+    if (irm == NULL) {
+        irm = &program_->instructionReferenceManager();
+        assert(irm != NULL);
+    }
+    assert(firstBBN->isNormalBB());
+
+#if 0
+    // procedure should not have any references.
+    for (int i = 0; i < proc.instructionCount(); i++) {
+        assert(!irm->hasReference(proc.instructionAtIndex(i)));
+    }
+#endif
+
+    while (!mf.empty())
+        mf.erase(mf.begin());
+
+    // find and queue reachable nodes
+    NodeSet queuedNodes = findReachableNodes();
+    NodeSet unreachableNodes;
+
+    // find dead nodes
+    for (int i = 0; i < nodeCount(); i++) {
+        BasicBlockNode& n = node(i);
+        if (!AssocTools::containsKey(queuedNodes,&n) &&
+            n.isNormalBB()) {
+            unreachableNodes.insert(&n);
+        }
+    }
+
+    // then loop as long as we have BBs which have not been written to
+    // the procedure.
+    while (currentBBN != NULL) {
+        BasicBlockNode* nextNode = NULL;
+        TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
+
+        llvm::MachineBasicBlock* mbb = mf.CreateMachineBasicBlock();
+        mf.push_back(mbb);
+
+        buildMBBFromBB(*mbb, bb);
+
+        queuedNodes.erase(currentBBN);
+
+        // then start searching for the next node.
+
+        // if has fall-turu-successor, select it so no need to add
+        // extra jump
+        BasicBlockNode* ftNode = fallThruSuccessor(*currentBBN);
+        if (ftNode != NULL && ftNode->isNormalBB()) {
+
+            if (queuedNodes.find(ftNode) == queuedNodes.end()) {
+                std::cerr << "not-queued fall-thru: " << ftNode->toString()
+                          << " current: " << currentBBN->toString() << 
+                    std::endl;
+                writeToDotFile("copyToProcedureFallThruBBNotQueued.dot");
+            }
+            // must not be already processed.
+            assert(queuedNodes.find(ftNode) != queuedNodes.end());
+            currentBBN = ftNode;
+            continue;
+        }
+
+        // Select some node, preferably successors without ft-preds
+        // The jump can then be removed.
+        EdgeSet oEdges = outEdges(*currentBBN);
+
+        // need to select SOME node as successor.
+        // first without ft-predecessor usually is a good candidate.
+        // smarter heuristic does not seem to help at all.
+        // try to select
+        if (nextNode == NULL) {
+            bool ftPred = false;
+            for (NodeSet::iterator i = queuedNodes.begin();
+                 i != queuedNodes.end(); i++) {
+                if (!hasFallThruPredecessor(**i)) {
+                    nextNode = *i;
+                    break;
+                } else {
+                    ftPred = true;
+                }
+            }
+            
+            // unreachable node having ft may have prevented us from
+            // managing some node whose fall-thru succs prevent
+            // futher nodes. try to select some unreached node.
+            if (nextNode == NULL && ftPred) {
+                for (NodeSet::iterator i = unreachableNodes.begin();
+                     i != unreachableNodes.end(); i++) {
+                    if (fallThruSuccessor(**i) != NULL) {
+                        nextNode = *i;
+                        unreachableNodes.erase(*i);
+                        break;
+                    }
+                }
+            }
+
+            // did not help. we cannot select node which has
+            // fall-thru predecessor.
+            if (nextNode == NULL && ftPred) {
+                writeToDotFile(
+                    "CopyToProcedure_multiple_fall_thorough_nodes.dot");
+                assert(0 && "CFG may have multiple fall-thorough nodes!");
+            }
+        }
+        currentBBN = nextNode;
+    }
+
+    // now all instructions are copied.
+
+    // this can happen in indeterministic order.
+    // but it should not cause any indeterministicity
+    // effects on the schedule.
+
+    // Update refs from cfg into final program
+    // only works for refs
+    for (InsMap::iterator i = copiedInsFromCFG.begin();
+         i != copiedInsFromCFG.end(); i++) {
+        std::pair<Instruction*,Instruction*> insPair = *i;
+        if (irm->hasReference(*insPair.first)) {
+            irm->replace(*insPair.first, *insPair.second);
+        }
+    }
+
+#if 0
+    // move the following procedures to correct place
+    if (proc.instructionCount() != 0 && proc.isInProgram()) {
+        if (!(&proc == &proc.parent().lastProcedure())) {
+            proc.parent().moveProcedure(
+                proc.parent().nextProcedure(proc),
+                proc.instructionCount());
+        }
+    }
+#endif
+
+}
+
+//#define DEBUG_POM_TO_MI
+
+/**
+ * Finds the TargetInstrDesc for the given LLVM instruction name.
+ */
+const llvm::TargetInstrDesc& 
+ControlFlowGraph::findLLVMTargetInstrDesc(
+    TCEString name, const llvm::TargetInstrInfo& tii) const {
+    for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
+        const llvm::TargetInstrDesc& tid = tii.get(opc);
+        if (name.ciEqual(tid.getName()))
+            return tid;
+    }
+    abortWithError(TCEString("Could not find ") << name << " in the TII.");
+}
+
+void
+ControlFlowGraph::buildMBBFromBB(
+    llvm::MachineBasicBlock& mbb,
+    const TTAProgram::BasicBlock& bb) const {
+
+#ifdef DEBUG_POM_TO_MI
+    Application::logStream()
+        << "TTA instructions:" << std::endl 
+        << bb.toString() << std::endl << std::endl
+        << "OTA instructions:" << std::endl;
+#endif
+
+    /* Find the target machine from an instruction link. Ugly,
+       should probably pass it as a parameter instead. */
+    const TTAMachine::Machine* mach = NULL;
+    for (int i = bb.skippedFirstInstructions(); i < bb.instructionCount(); 
+         ++i) {
+        const TTAProgram::Instruction& instr = 
+            bb.instructionAtIndex(i);
+        if (!instr.isNOP()) {
+            mach = instr.move(0).bus().machine();
+            break;
+        }
+    }
+    if (mach == NULL)
+        return; // The BB has only NOPs. Empty MBB is correct already.
+
+    // the order of function unit operations in the instruction bundle
+    typedef std::vector<const TTAMachine::FunctionUnit*> BundleOrderIndex;
+    BundleOrderIndex bundleOrder;
+
+    // Currently the bundle order is hard coded to the order of appearance
+    // in the ADF file.
+    for (int fuc = 0; fuc < mach->functionUnitNavigator().count(); ++fuc) {
+        TTAMachine::FunctionUnit* fu = mach->functionUnitNavigator().item(fuc);
+        bundleOrder.push_back(fu);
+    }
+
+    for (int i =  bb.skippedFirstInstructions(); i < bb.instructionCount(); 
+         ++i) {
+        const TTAProgram::Instruction& instr = 
+            bb.instructionAtIndex(i);
+        // First collect all started operations at this cycle
+        // on each FU. 
+        typedef std::map<const TTAMachine::FunctionUnit*, 
+                         const TTAMachine::HWOperation*> OpsMap;
+        OpsMap startedOps;
+        for (int m = 0; m < instr.moveCount(); ++m) {
+            const TTAProgram::Move& move = instr.move(m);
+            if (move.isTriggering()) {
+                startedOps[&move.destination().functionUnit()] =
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        move.destination()).hwOperation();
+            }
+        }
+
+        // in OTAs with data hazard detection, we do not need to emit
+        // completely empty instruction bundles at all
+        if (startedOps.size() == 0)
+            continue; 
+        
+        typedef std::map<const TTAMachine::HWOperation*,
+                         std::vector<TTAProgram::Terminal*> > OperandMap;
+        OperandMap operands;
+        // On a second pass through the moves we now should know the operand 
+        // numbers of all the moves. The result moves should be at an 
+        // instruction at the operation latency.
+        OperationPool operations;
+
+        for (OpsMap::const_iterator opsi = startedOps.begin(); 
+             opsi != startedOps.end(); ++opsi) {
+            const TTAMachine::HWOperation* hwOp = (*opsi).second;
+            const Operation& operation = 
+                operations.operation(hwOp->name().c_str());
+            // first find the outputs
+            for (int out = 0; out < operation.numberOfOutputs(); ++out) {
+                const TTAProgram::Instruction& resultInstr = 
+                    bb.instructionAtIndex(i + hwOp->latency());
+                for (int m = 0; m < resultInstr.moveCount(); ++m) {
+                    const TTAProgram::Move& move = resultInstr.move(m);
+                    // assume it's a register write, the potential (implicit) 
+                    // bypass move is ignored
+                    if (move.source().isFUPort() && 
+                        &move.source().functionUnit() ==
+                        hwOp->parentUnit() &&
+                        (move.destination().isGPR() ||
+                         move.destination().isRA())) {
+                        operands[hwOp].push_back(&move.destination());
+                    }
+                }
+            }
+            if ((std::size_t)operation.numberOfOutputs() != 
+                operands[hwOp].size()) {
+                PRINT_VAR(operation.name());
+                PRINT_VAR(operands[hwOp].size());
+                PRINT_VAR(operation.numberOfOutputs());
+                assert((std::size_t)operation.numberOfOutputs() == 
+                       operands[hwOp].size());
+                abort();
+            }
+
+            // then the inputs
+            for (int input = 0; input < operation.numberOfInputs();
+                 ++input) {
+                for (int m = 0; m < instr.moveCount(); ++m) {
+                    const TTAProgram::Move& move = instr.move(m);
+                    if (move.destination().isFUPort() &&
+                        &move.destination().functionUnit() ==
+                        hwOp->parentUnit() &&
+                        dynamic_cast<const TTAMachine::Port*>(
+                            hwOp->port(input + 1)) == 
+                        &move.destination().port()) {
+                        // if the result is forwarded (bypass), find the
+                        // result move 
+                        if (move.source().isFUPort()) {
+                            for (int mm = 0; mm < instr.moveCount(); ++mm) {
+                                const TTAProgram::Move& move2 = 
+                                    instr.move(mm);
+                                if (move2.destination().isGPR() &&
+                                    move2.source().isFUPort() && 
+                                    &move2.source().port() ==
+                                    &move.source().port()) {
+                                    operands[hwOp].push_back(&move2.destination());
+                                }
+                            }
+                        } else {
+                            // otherwise assume it's not bypassed but
+                            // read from the RF
+                            operands[hwOp].push_back(&move.source());
+                        }
+                    }
+                }
+            }
+
+            if ((std::size_t)operation.numberOfInputs() + 
+                operation.numberOfOutputs() !=
+                operands[hwOp].size()) {
+                PRINT_VAR(operation.name());
+                PRINT_VAR(operands[hwOp].size());
+                PRINT_VAR(operation.numberOfInputs());
+                PRINT_VAR(operation.numberOfOutputs());
+                assert(
+                    operation.numberOfInputs() + operation.numberOfOutputs() ==
+                    (int)operands[hwOp].size());
+            }
+        }
+
+        for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
+             boi != bundleOrder.end(); ++boi) {
+            llvm::MachineInstr* mi = NULL;
+            assert(mbb.getParent()->getTarget().getInstrInfo() != NULL);
+            const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getInstrInfo();
+            if (startedOps.find(*boi) == startedOps.end()) {
+#if 0
+                // TODO: figure out a generic way to find the NOP opcode for 
+                // the current "lane", it's SPU::ENOP and SPU::LNOP for SPU.                
+                // Could call the TargetInstrInfo::insertNoop() if it was 
+                // implemented for SPU.
+                // Just omit NOP instructions for now and assume the NOP inserter
+                // pass takes care of it.
+                mi = mbb.getParent()->CreateMachineInstr(
+                    findLLVMTargetInstrDesc("nop", tii),
+                    llvm::DebugLoc());
+#endif
+
+#ifdef DEBUG_POM_TO_MI
+                Application::logStream() << "nop";
+#endif
+            } else {
+                const TTAMachine::HWOperation* hwop = 
+                    (*startedOps.find(*boi)).second;
+#ifdef DEBUG_POM_TO_MI
+                Application::logStream() << hwop->name() << " ";
+#endif
+
+                const llvm::TargetInstrDesc& tid =
+                    findLLVMTargetInstrDesc(hwop->name(), tii);
+                mi = mbb.getParent()->CreateMachineInstr(
+                    tid, llvm::DebugLoc());
+                
+                std::vector<TTAProgram::Terminal*>& opr = operands[hwop];
+                
+                unsigned counter = 0;
+                // add the MachineOperands to the instruction via
+                // POM Terminal --> MachineOperand conversion
+                for (std::vector<TTAProgram::Terminal*>::const_iterator opri =
+                         opr.begin(); opri != opr.end() && counter < tid.getNumOperands(); 
+                     ++opri, ++counter) {
+                    TTAProgram::Terminal* terminal = *opri;
+                    if (terminal->isCodeSymbolReference()) {
+                        // has to be a global variable at this point?
+#if 0
+                        llvm::GlobalValue* gv =
+                            mbb.getParent()->getFunction()->getParent()->
+                            getGlobalVariable("L.str", true);
+                        PRINT_VAR(terminal->toString());
+                        assert(gv != NULL);
+#endif
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateES(terminal->toString().c_str()));
+                    } else if (terminal->isImmediate()) {
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateImm(terminal->value().intValue()));
+                    } else if (terminal->isGPR()) {
+                        bool isDef = false;  // TODO: in case it's an output, it's a def
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateReg(terminal->index(), isDef));
+                    } else {
+                        abortWithError(
+                            "Unsupported Terminal -> MachineOperand conversion attempted.");
+                    }
+#ifdef DEBUG_POM_TO_MI
+                    if (counter > 0)
+                        Application::logStream() << ", ";
+                    Application::logStream() << terminal->toString();
+#endif
+                }
+            }
+            if (mi != NULL)
+                mbb.push_back(mi);
+#ifdef DEBUG_POM_TO_MI
+            Application::logStream() << "\t# " << (*boi)->name() << std::endl;
+#endif
+        }
+#ifdef DEBUG_POM_TO_MI
+        Application::logStream() << std::endl;
+#endif
+    }
+
+#ifdef DEBUG_POM_TO_MI
+    Application::logStream() << std::endl << std::endl;
+#endif
+}
+
 
 /**
  * Updates instruction references from procedure to cfg
@@ -1770,7 +2197,7 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
         BasicBlockNode& bbn = node(i);
 
         if (bbn.isNormalBB()) {
-            BasicBlock& bb = bbn.basicBlock();
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
 
             for (int j = 0; j < bb.instructionCount(); j++) {
                 TTAProgram::Instruction& ins = bb.instructionAtIndex(j);
@@ -1780,7 +2207,8 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                     TTAProgram::Terminal& src = move.source();
 
                     if (src.isBasicBlockReference()) {
-                        const BasicBlock& target = src.basicBlock();
+                        const TTAProgram::BasicBlock& target = 
+                            src.basicBlock();
                         assert(target.instructionCount() > 0);
                         move.setSource(
                             new TTAProgram::TerminalInstructionAddress(
@@ -1794,7 +2222,8 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                     TTAProgram::Terminal& immVal = imm.value();
 
                     if (immVal.isBasicBlockReference()) {
-                        const BasicBlock& target = immVal.basicBlock();
+                        const TTAProgram::BasicBlock& target = 
+                            immVal.basicBlock();
                         assert(target.instructionCount() > 0);
                         imm.setValue(
                             new TTAProgram::TerminalInstructionAddress(
@@ -1827,3 +2256,4 @@ ControlFlowGraph::reverseGuardOnOutEdges(const BasicBlockNode& bbn) {
         }
     }
 }
+

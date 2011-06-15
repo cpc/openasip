@@ -54,7 +54,8 @@ namespace TTAMachine {
  * 
  * @param bb Basic block containing moves to be selected.
  */
-SequentialMoveNodeSelector::SequentialMoveNodeSelector(BasicBlock& bb) {
+SequentialMoveNodeSelector::SequentialMoveNodeSelector(
+    TTAProgram::BasicBlock& bb) {
     MoveNodeGroupBuilder builder;
     mngs_ = builder.build(bb);
     mngIter_ = mngs_->begin();

@@ -42,12 +42,12 @@
 #include "Exception.hh"
 #include "CodeSnippet.hh"
 
-namespace TTAProgram {
-    class Instruction;
-    class CodeSnippet;
-}
-
 class LiveRangeData;
+
+namespace TTAProgram {
+
+class Instruction;
+class CodeSnippet;
 
 /**
  * Represents statistics about single basic block.
@@ -116,6 +116,8 @@ private:
     bool innerLoop_;
     unsigned tripCount_;
 };
+
+}
 
 #endif
 

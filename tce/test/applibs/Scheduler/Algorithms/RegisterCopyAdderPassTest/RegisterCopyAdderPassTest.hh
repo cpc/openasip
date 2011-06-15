@@ -135,7 +135,7 @@ RegisterCopyAdderPassTest::testPass() {
         ControlFlowGraph cfg(procedure);
 
         for (int i = 0; i < cfg.nodeCount(); ++i) {
-            BasicBlock& bb0 = 
+            TTAProgram::BasicBlock& bb0 = 
                 (dynamic_cast<BasicBlockNode&>(cfg.node(i))).basicBlock();
         
             try {

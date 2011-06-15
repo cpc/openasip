@@ -42,12 +42,12 @@
 
 class ProgramOperation;
 class MoveNode;
-class BasicBlock;
 class DataDependenceGraph;
 class InterPassData;
 
 namespace TTAProgram {
     class Move;
+    class BasicBlock;
 }
 
 /**

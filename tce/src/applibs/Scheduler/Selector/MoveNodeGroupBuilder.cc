@@ -51,7 +51,7 @@
  * This supports also input that is already bypassed. 
  */
 MoveNodeGroupBuilder::MoveNodeGroupList*
-MoveNodeGroupBuilder::build(BasicBlock& bb) {
+MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
 
     /*
       Process each input move from the sequential unscheduled stream. 

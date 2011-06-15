@@ -44,6 +44,8 @@
 namespace TTAProgram {
     class Instruction;
     class CodeSnippet;
+    class BasicBlock;
+    class BasicBlockStatistics;
 }
 
 
@@ -66,7 +68,8 @@ public:
         bool entry = false,
         bool exit = false);
     explicit BasicBlockNode(
-        BasicBlock& bb, bool scheduled = false, bool refsUpdated = false,
+        TTAProgram::BasicBlock& bb, bool scheduled = false, 
+        bool refsUpdated = false,
         int originalStartAddress = 0, bool loopScheduled = false);
     virtual ~BasicBlockNode();
 
@@ -77,14 +80,14 @@ public:
 
     std::string toString() const;
 
-    BasicBlock& basicBlock();
-    const BasicBlock& basicBlock() const;
+    TTAProgram::BasicBlock& basicBlock();
+    const TTAProgram::BasicBlock& basicBlock() const;
 
     bool hasOriginalAddress() const;
     InstructionAddress originalStartAddress() const;
     InstructionAddress originalEndAddress() const;
 
-    const BasicBlockStatistics& statistics();
+    const TTAProgram::BasicBlockStatistics& statistics();
     
     bool isScheduled() const { return scheduled_; }
     void setScheduled(bool state=true) { scheduled_ = state;}
@@ -106,7 +109,7 @@ private:
     /// basic blocks, etc.), this flag is true in case it does
     bool hasOriginalAddress_;
     /// the actual payload data of the graph node (the basic block)
-    BasicBlock* basicBlock_;
+    TTAProgram::BasicBlock* basicBlock_;
     /// true if the BasicBlock is owned by the BasicBlockNode
     bool bbOwned_;
     /// true if this is an entry basic block (not real one)

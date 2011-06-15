@@ -76,7 +76,7 @@ public:
     virtual std::string longDescription() const;
 
     virtual MoveNodeSelector* createSelector( 
-        BasicBlock& bb, const TTAMachine::Machine& machine) {
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) {
         return new CriticalPathBBMoveNodeSelector(bb, machine);
     }
 

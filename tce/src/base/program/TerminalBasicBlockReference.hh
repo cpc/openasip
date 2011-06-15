@@ -35,9 +35,9 @@
 
 #include "TerminalImmediate.hh"
 
-class BasicBlock;
-
 namespace TTAProgram {
+
+class BasicBlock;
 
 class TerminalBasicBlockReference : public TerminalImmediate {
 public:

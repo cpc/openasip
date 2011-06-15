@@ -2577,8 +2577,8 @@ DataDependenceGraph::fixInterBBAntiEdges(
     std::map<TCEString, TTAProgram::Move*> lastWrites1;
     std::map<TCEString, TTAProgram::Move*> lastGuards1;
 
-    BasicBlock& bb1 = bbn1.basicBlock();
-    BasicBlock& bb2 = bbn2.basicBlock();
+    TTAProgram::BasicBlock& bb1 = bbn1.basicBlock();
+    TTAProgram::BasicBlock& bb2 = bbn2.basicBlock();
 
     // find the first writes in the next BB.
     for (int i2 = 0; i2 < bb2.instructionCount(); i2++) {
@@ -3823,7 +3823,7 @@ DataDependenceGraph::copyExternalOutEdges(
  */
 void 
 DataDependenceGraph::updateRegUse(
-    const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb) {
+    const MoveNodeUse& mnd, const TCEString& reg, TTAProgram::BasicBlock& bb) {
 
     // create RAW's from definitions in previous BBs.
     std::set<MoveNodeUse>& defReaches = 
@@ -3857,7 +3857,7 @@ DataDependenceGraph::updateRegUse(
  */
 void
 DataDependenceGraph::updateRegWrite(
-    const MoveNodeUse& mnd, const TCEString& reg, BasicBlock& bb) {
+    const MoveNodeUse& mnd, const TCEString& reg, TTAProgram::BasicBlock& bb) {
     // WaWs
     std::set<MoveNodeUse>& defReaches = 
         bb.liveRangeData_->regDefReaches_[reg];

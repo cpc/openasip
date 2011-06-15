@@ -45,12 +45,14 @@
 #include "Exception.hh"
 #include "BoostGraph.hh"
 #include "BasicBlockNode.hh"
+#include "BasicBlock.hh"
 #include "ControlFlowEdge.hh"
 #include "Program.hh"
 #include "Address.hh"
 #include "NullAddress.hh"
 #include "CFGStatistics.hh"
 #include "hash_map.hh"
+
 
 namespace TTAProgram {
     class Program;
@@ -62,6 +64,14 @@ namespace TTAProgram {
     class Address;
     class NullAddress;
 }
+
+namespace llvm {
+    class MachineFunction;
+    class MachineBasicBlock;
+    class TargetInstrDesc;
+    class TargetInstrInfo;
+}
+
 using boost::reverse_graph;
 
 class InterPassData;
@@ -96,6 +106,10 @@ public:
 
     void copyToProcedure(
         TTAProgram::Procedure& proc, 
+        TTAProgram::InstructionReferenceManager* irm = NULL);
+
+    void copyToLLVMMachineFunction(
+        llvm::MachineFunction& mf,
         TTAProgram::InstructionReferenceManager* irm = NULL);
 
     void updateReferencesFromProcToCfg();
@@ -217,6 +231,14 @@ private:
     RemovedJumpData removeJumpToTarget(
         TTAProgram::CodeSnippet& cs, const TTAProgram::Instruction& target,
         int idx);
+
+    const llvm::TargetInstrDesc& 
+    findLLVMTargetInstrDesc(TCEString name, const llvm::TargetInstrInfo& tii) 
+        const;
+
+    void buildMBBFromBB(
+        llvm::MachineBasicBlock& mbb,
+        const TTAProgram::BasicBlock& bb) const;
 
     // Data saved from original procedure object
     TCEString procedureName_;

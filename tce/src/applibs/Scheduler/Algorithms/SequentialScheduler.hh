@@ -80,7 +80,7 @@ public:
     virtual ~SequentialScheduler();
 
     virtual void handleBasicBlock(
-        BasicBlock& bb, const TTAMachine::Machine& targetMachine)
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine)
         throw (Exception);
 #ifndef USE_CFG
     virtual void handleProcedure(
@@ -132,12 +132,12 @@ private:
         
     void createBasicBlocks(
         TTAProgram::Procedure& cs, 
-        std::vector<BasicBlock*>& basicBlocks,
+        std::vector<TTAProgram::BasicBlock*>& basicBlocks,
         std::vector<int>& bbAddresses);
 
     void copyBasicBlocksToProcedure(
         TTAProgram::Procedure& cs, 
-        std::vector<BasicBlock*>& basicBlocks,
+        std::vector<TTAProgram::BasicBlock*>& basicBlocks,
         std::vector<int>& bbAddresses);
 
     void unschedule(MoveNode& moveNode);

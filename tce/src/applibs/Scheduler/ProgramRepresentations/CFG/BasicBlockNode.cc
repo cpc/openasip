@@ -57,7 +57,8 @@ BasicBlockNode::BasicBlockNode(
     originalStartAddress_(originalStartAddress),
     originalEndAddress_(originalEndAddress),
     hasOriginalAddress_(true), 
-    basicBlock_(new BasicBlock(originalStartAddress)), bbOwned_(true),
+    basicBlock_(new TTAProgram::BasicBlock(originalStartAddress)), 
+    bbOwned_(true),
     entry_(entry), exit_(exit),
     scheduled_(false), refsUpdated_(false), loopScheduled_(false) {
 
@@ -79,7 +80,7 @@ BasicBlockNode::BasicBlockNode(
  * will not be deleted in the destructor.
  */
 BasicBlockNode::BasicBlockNode(
-    BasicBlock& bb, bool scheduled, bool refsUpdated, 
+    TTAProgram::BasicBlock& bb, bool scheduled, bool refsUpdated, 
     int originalStartAddress, bool loopScheduled) :
     originalStartAddress_(originalStartAddress), originalEndAddress_(0), 
     hasOriginalAddress_(false), basicBlock_(&bb), bbOwned_(false), 
@@ -102,7 +103,7 @@ BasicBlockNode::~BasicBlockNode() {
  *
  * @return The basic block object (can be modified).
  */
-BasicBlock&
+TTAProgram::BasicBlock&
 BasicBlockNode::basicBlock() {
     return *basicBlock_;
 }
@@ -112,7 +113,7 @@ BasicBlockNode::basicBlock() {
  *
  * @return The basic block object (can be modified).
  */
-const BasicBlock&
+const TTAProgram::BasicBlock&
 BasicBlockNode::basicBlock() const {
     return *basicBlock_;
 }
@@ -218,12 +219,13 @@ BasicBlockNode::isExitBB() const {
  * 
  * @return refrence to structure with information about basic block
  */
-const BasicBlockStatistics&
+const TTAProgram::BasicBlockStatistics&
 BasicBlockNode::statistics() {
     if (isNormalBB()) {
         return basicBlock_->statistics();
     }
-    BasicBlockStatistics* bbs = new BasicBlockStatistics();    
+    TTAProgram::BasicBlockStatistics* bbs = 
+        new TTAProgram::BasicBlockStatistics();    
     return *bbs;
 }
 

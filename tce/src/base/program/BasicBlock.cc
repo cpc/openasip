@@ -80,7 +80,7 @@ BasicBlock::copy() const {
  * Returns the count of instructions in the beginning of this BB that 
  * should not be copied out from this BB, ie. logically don't belong here
  * but are here because they cannot have been removed without messing
- * some data structures ( like RM bookkeeping ) 
+ * some data structures (like RM bookkeeping) 
  *
  * @return count of first instructions to skip
  */
