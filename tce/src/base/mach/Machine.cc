@@ -767,9 +767,12 @@ Machine::loadState(const ObjectState* state)
 
     Component* toAdd = NULL;
 
-    setAlwaysWriteResults(state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
+    setAlwaysWriteResults(
+        state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
+        state->intAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
     setTriggerInvalidatesResults(
-        state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
+        state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
+        state->intAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
 
     try {
         // create skeletons
