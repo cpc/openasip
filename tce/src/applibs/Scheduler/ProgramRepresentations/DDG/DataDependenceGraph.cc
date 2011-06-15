@@ -298,7 +298,7 @@ int
 DataDependenceGraph::earliestCycle(
     const MoveNode& moveNode, unsigned int ii, bool ignoreRegWaRs,
     bool ignoreRegWaWs, bool ignoreGuards, bool ignoreFuDeps,
-    bool ignoreOperationEdges) const {
+    bool ignoreSameOperationEdges) const {
 
     if (machine_ == NULL) {
         throw InvalidData(__FILE__,__LINE__,__func__,
@@ -319,12 +319,19 @@ DataDependenceGraph::earliestCycle(
             continue;
         }
         
-        if (ignoreOperationEdges && 
+        if (ignoreSameOperationEdges && 
             edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION) {
             continue;
         }
 
         MoveNode& tail = tailNode(edge);
+        if (ignoreSameOperationEdges && !edge.isBackEdge() &&
+            moveNode.isSourceOperation() &&
+            tail.isDestinationOperation() &&
+            &moveNode.sourceOperation() == &tail.destinationOperation()) {
+            continue;
+        }
+            
 
         /// @todo Consider the latency for result read move!
         if (tail.isScheduled()) {
@@ -363,6 +370,12 @@ DataDependenceGraph::earliestCycle(
                         if (edge.guardUse()) {
                             latency = tail.guardLatency();
                         } 
+
+                        // TODO: generate some hasAutomaticBundling()
+                        // property to ADF
+                        if (machine_->triggerInvalidatesResults()) {
+                            latency = 0;
+                        }
                         effTailCycle = effTailCycle - latency + 1;
                     } else {
                         // RAW
@@ -471,6 +484,11 @@ DataDependenceGraph::latestCycle(
                         if (edge.guardUse()) {
                             latency = moveNode.guardLatency();
                         } 
+                        // TODO: generate some hasAutomaticBundling()
+                        // property to ADF
+                        if (machine_->triggerInvalidatesResults()) {
+                            latency = 0;
+                        }
                         effHeadCycle = effHeadCycle + latency - 1;
                     } else {
                         // RAW
@@ -504,7 +522,17 @@ DataDependenceGraph::latestCycle(
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
                     (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER ||
                      edge.edgeReason() == DataDependenceEdge::EDGE_RA)) {
-                    maxCycle = std::min(maxCycle, inputMove.cycle());
+
+                    // same operation. 0 cycle war.
+                    // TODO: also this if bundle ordering correct.
+                    if (moveNode.isDestinationOperation() &&
+                        &moveNode.destinationOperation() ==
+                        &headPO && !edge.isBackEdge()) {
+                        maxCycle = std::min(maxCycle, inputMove.cycle());
+                    } else {
+                        // different operation.1 cycle war,to be sure,for now
+                        maxCycle = std::min(maxCycle, inputMove.cycle()-1);
+                    }
                 }
 
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAW &&

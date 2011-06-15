@@ -121,7 +121,7 @@ public:
         bool ignoreRegWaRs = false, 
         bool ignoreRegWaWs = false, bool ignoreGuards = false,
         bool ignoreFUDeps = false,
-        bool ignoreOperationEdges = false) const;
+        bool ignoreSameOperationEdges = false) const;
 
     int latestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX,
