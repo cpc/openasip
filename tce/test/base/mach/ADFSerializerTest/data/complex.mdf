@@ -2,6 +2,8 @@
 
 <adf version="1.5">
 
+<always-write-back-results/>
+
 <bus name="B1">
     <width>32</width>
     <guard>
@@ -496,6 +498,7 @@
         <connects-to>S6</connects-to>
         <connects-to>S7</connects-to>
         <width>32</width>
+        <no-register/>
     </port>
     <port name="P9">
         <connects-to>S8</connects-to>

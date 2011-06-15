@@ -317,6 +317,8 @@ MachineTest::testSaveAndLoadState() {
     const string rfPort1 = "rfPort1";
     const string fuName = "fu";
     const string fuPortName = "fuPort";
+    const string fuPortNoRegName = "fuPortNoReg";
+    const string fuPortNoRegName2 = "fuPortNoReg2";    
     const string iuName = "iu";
     const string cuName = "cu";
     const string iTempName = "itemp";
@@ -362,9 +364,21 @@ MachineTest::testSaveAndLoadState() {
     // create function unit
     FunctionUnit* fu = new FunctionUnit(fuName);
     FUPort* fuPort = new FUPort(fuPortName, 32, *fu, false, false);
-    mach_->addUnit(*fu);
+    FUPort* fuPortNoReg = 
+        new FUPort(fuPortNoRegName, 32, *fu, false, false, true);
+    FUPort* fuPortNoReg2 = new FUPort(fuPortNoRegName2, 32, *fu, false, false);    
+    mach_->addUnit(*fu);    
     fuPort->attachSocket(*socket1);
-
+    fuPortNoReg->attachSocket(*socket1);
+    fuPortNoReg2->attachSocket(*socket1);    
+    // check default and given values for noRegister property
+    TS_ASSERT(fuPort->noRegister() == false);    
+    TS_ASSERT(fuPortNoReg->noRegister() == true);
+    TS_ASSERT(fuPortNoReg2->noRegister() == false);    
+    
+    fuPortNoReg2->setNoRegister(true);
+    TS_ASSERT(fuPortNoReg2->noRegister() == true);        
+    
     // create immediate unit
     ImmediateUnit* iu = new ImmediateUnit(iuName, 30, 32, 1, 0, Machine::ZERO);
     mach_->addUnit(*iu);
@@ -377,12 +391,34 @@ MachineTest::testSaveAndLoadState() {
     InstructionTemplate* iTemp = new InstructionTemplate(iTempName, *mach_);
     iTemp->addSlot(bus1->name(), 16, *iu);
 
+    // test default values for always-write-result and trigger-invalidates
+    // are false
+    TS_ASSERT(mach_->triggerInvalidatesResults() == false);
+    TS_ASSERT(mach_->alwaysWriteResults() == false);    
     // save state
     ObjectState* machState = mach_->saveState();
 
     // load state
     Machine* loadedMach = new Machine();
     loadedMach->loadState(machState);
+
+    // test default values for always-write-result and trigger-invalidates
+    // are false after loading state
+    TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
+    TS_ASSERT(loadedMach->alwaysWriteResults() == false);    
+    
+    // change on of global attributes before saving second time
+    loadedMach->setAlwaysWriteResults(true);
+    
+    // try saving and reloading again
+    delete machState;
+    
+    machState = loadedMach->saveState();
+    loadedMach->loadState(machState);
+
+    // test default and changed value after another save/load pair
+    TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
+    TS_ASSERT(loadedMach->alwaysWriteResults() == true);    
 
     // check busses
     Machine::BusNavigator busNav = loadedMach->busNavigator();
@@ -432,7 +468,14 @@ MachineTest::testSaveAndLoadState() {
         loadedMach->functionUnitNavigator();
     FunctionUnit* lFU = fuNav.item(fuName);
     fuPort = lFU->operationPort(fuPortName);
+    fuPortNoReg = lFU->operationPort(fuPortNoRegName);
+    fuPortNoReg2 = lFU->operationPort(fuPortNoRegName2);    
     TS_ASSERT(fuPort->inputSocket() == lSocket1);
+    TS_ASSERT(fuPortNoReg->inputSocket() == lSocket1);    
+    TS_ASSERT(fuPortNoReg2->inputSocket() == lSocket1);
+    TS_ASSERT(fuPort->noRegister() == false);
+    TS_ASSERT(fuPortNoReg->noRegister() == true);
+    TS_ASSERT(fuPortNoReg2->noRegister() == true);
 
     // check immediate unit
     Machine::ImmediateUnitNavigator iuNav =

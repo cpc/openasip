@@ -69,6 +69,8 @@ const string br1Name = "br1";
 const string socket1Name = "socket1";
 const string fu1Name = "fu1";
 const string port1Name = "port1";
+const string port2Name = "port2";
+const string port3Name = "port3";
 const string rf1Name = "rf1";
 const string iu1Name = "iu1";
 const string iu2Name = "iu2";
@@ -125,6 +127,11 @@ ADFSerializerTest::testWriteState() {
 
     Machine* mach = new Machine();
 
+    TS_ASSERT(!mach->triggerInvalidatesResults());
+    TS_ASSERT(!mach->alwaysWriteResults());
+    mach->setTriggerInvalidatesResults(true);
+    TS_ASSERT(mach->triggerInvalidatesResults());    
+    
     Bus* bus1 = new Bus(bus1Name, 16, 16, Machine::SIGN);
     Bus* bus2 = new Bus(bus2Name, 32, 32, Machine::ZERO);
     new Segment(seg1Name, *bus1);
@@ -146,6 +153,8 @@ ADFSerializerTest::testWriteState() {
 
     FunctionUnit* fu1 = new FunctionUnit(fu1Name);
     FUPort* fuPort1 = new FUPort(port1Name, 16, *fu1, true, true);
+    FUPort* fuPort2 = new FUPort(port2Name, 16, *fu1, false, false, true);    
+    FUPort* fuPort3 = new FUPort(port3Name, 16, *fu1, false, false, true);        
     mach->addUnit(*fu1);
     HWOperation* op1 = new HWOperation(op1Name, *fu1);
     op1->bindPort(1, *fuPort1);
@@ -154,6 +163,9 @@ ADFSerializerTest::testWriteState() {
     pLine->addPortRead(1, 0, 2);
 
     fuPort1->attachSocket(*socket1);
+    fuPort2->attachSocket(*socket1);
+    fuPort3->attachSocket(*socket1);    
+    fuPort3->setNoRegister(false);
 
     RegisterFile* rf1 = new RegisterFile(
         rf1Name, 15, 32, 1, 1, 0, RegisterFile::NORMAL);
@@ -209,6 +221,9 @@ ADFSerializerTest::testReadState() {
 
     Machine* mach = serializer->readMachine();
 
+    TS_ASSERT(mach->triggerInvalidatesResults());
+    TS_ASSERT(!mach->alwaysWriteResults());
+
     Machine::BusNavigator busNav = mach->busNavigator();
     Bus* bus1 = busNav.item(bus1Name);
     Bus* bus2 = busNav.item(bus2Name);
@@ -236,6 +251,18 @@ ADFSerializerTest::testReadState() {
     TS_ASSERT(fuPort1->width() == 16);
     TS_ASSERT(fuPort1->isTriggering());
     TS_ASSERT(fuPort1->isOpcodeSetting());
+    TS_ASSERT(!fuPort1->noRegister());
+    FUPort* fuPort2 = fu1->operationPort(port2Name);   
+    TS_ASSERT(fuPort2->width() == 16);
+    TS_ASSERT(!fuPort2->isTriggering());
+    TS_ASSERT(!fuPort2->isOpcodeSetting());
+    TS_ASSERT(fuPort2->noRegister());    
+    FUPort* fuPort3 = fu1->operationPort(port3Name);   
+    TS_ASSERT(fuPort3->width() == 16);
+    TS_ASSERT(!fuPort3->isTriggering());
+    TS_ASSERT(!fuPort3->isOpcodeSetting());
+    TS_ASSERT(!fuPort3->noRegister());    
+    
     TS_ASSERT(fu1->hasOperation(op1Name));
     HWOperation* op1 = fu1->operation(op1Name);
     TS_ASSERT(op1->port(1) == fuPort1);
@@ -304,6 +331,9 @@ ADFSerializerTest::testReadState() {
     serializer->setSourceFile(complexFile);
     mach = serializer->readMachine();
 
+    TS_ASSERT(!mach->triggerInvalidatesResults());
+    TS_ASSERT(mach->alwaysWriteResults());
+
     // check bus "B1"
     Bus* b1 = mach->busNavigator().item("B1");
     TS_ASSERT(b1->width() == 32);
@@ -348,6 +378,16 @@ ADFSerializerTest::testReadState() {
     TS_ASSERT(p8->socketCount() == 2);
     TS_ASSERT(p8->inputSocket()->name() == "S6");
     TS_ASSERT(p8->outputSocket()->name() == "S7");
+    FUPort* fp8 = dynamic_cast<FUPort*>(p8);
+    TS_ASSERT(fp8->noRegister());
+    BaseFUPort* p5 = acFU->port("P5");    
+    TS_ASSERT(p5->isTriggering());
+    TS_ASSERT(p5->isOpcodeSetting());
+    TS_ASSERT(p5->width() == 32);
+    TS_ASSERT(p5->socketCount() == 1);
+    TS_ASSERT(p5->inputSocket()->name() == "S5");
+    FUPort* fp5 = dynamic_cast<FUPort*>(p5);    
+    TS_ASSERT(!fp5->noRegister());
 
     // check immediate unit "imm"
     ImmediateUnit* iuImm = mach->immediateUnitNavigator().item("imm");
