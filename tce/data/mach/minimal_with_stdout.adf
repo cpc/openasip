@@ -554,7 +554,7 @@
   <function-unit name="IO">
     <port name="T">
       <connects-to>IO_i1</connects-to>
-      <width>32</width>
+      <width>8</width>
       <triggers/>
       <sets-opcode/>
     </port>

@@ -231,7 +231,7 @@ TPEFDumper::sectionHeaders() {
 void
 TPEFDumper::memoryInfo() {
     
-    out_ << "Minumum sizes for address spaces:" << std::endl << std::endl;
+    out_ << "Minimum sizes for address spaces:" << std::endl << std::endl;
 
     // map of used address spaces
     std::map<ASpaceElement*, std::pair<int, int> > neededMAUsOfASpace;
