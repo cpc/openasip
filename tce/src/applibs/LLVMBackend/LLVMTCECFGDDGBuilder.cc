@@ -672,7 +672,6 @@ LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
         << "OTA instructions:" << std::endl;
 #endif
 
-    const int operationSlots = mach_->functionUnitNavigator().count();
     // the order of function unit operations in the instruction bundle
     typedef std::vector<const TTAMachine::FunctionUnit*> BundleOrderIndex;
     BundleOrderIndex bundleOrder;
@@ -716,7 +715,6 @@ LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
 
         for (OpsMap::const_iterator opsi = startedOps.begin(); 
              opsi != startedOps.end(); ++opsi) {
-            const TTAMachine::FunctionUnit* fu = (*opsi).first;
             const TTAMachine::HWOperation* hwOp = (*opsi).second;
             const Operation& operation = 
                 operations.operation(hwOp->name().c_str());
@@ -737,11 +735,13 @@ LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
                     }
                 }
             }
-            if (operation.numberOfOutputs() != operands[hwOp].size()) {
+            if ((std::size_t)operation.numberOfOutputs() != 
+                operands[hwOp].size()) {
                 PRINT_VAR(operation.name());
                 PRINT_VAR(operands[hwOp].size());
                 PRINT_VAR(operation.numberOfOutputs());
-                assert(operation.numberOfOutputs() == operands[hwOp].size());
+                assert((std::size_t)operation.numberOfOutputs() == 
+                       operands[hwOp].size());
                 abort();
             }
 
@@ -778,7 +778,8 @@ LLVMTCECFGDDGBuilder::convertProcedureToMachineFunction(
                 }
             }
 
-            if (operation.numberOfInputs() + operation.numberOfOutputs() !=
+            if ((std::size_t)operation.numberOfInputs() + 
+                operation.numberOfOutputs() !=
                 operands[hwOp].size()) {
                 PRINT_VAR(operation.name());
                 PRINT_VAR(operands[hwOp].size());
