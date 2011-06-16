@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.8">
+<adf version="1.7">
 
   <bus name="B1">
     <width>32</width>
@@ -153,10 +153,6 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
   </socket>
 
   <socket name="bool_o1">
@@ -175,19 +171,11 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </reads-from>
   </socket>
 
   <socket name="gcu_i2">
     <reads-from>
       <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -197,17 +185,9 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
-    <writes-to>
-      <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </writes-to>
   </socket>
 
   <socket name="ALU_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
     <reads-from>
       <bus>B1_1</bus>
       <segment>seg1</segment>
@@ -216,20 +196,12 @@
 
   <socket name="ALU_i2">
     <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
       <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
   <socket name="ALU_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
     <writes-to>
       <bus>B1_1</bus>
       <segment>seg1</segment>
@@ -239,10 +211,6 @@
   <socket name="IO_i1">
     <reads-from>
       <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
