@@ -27,7 +27,7 @@
 -- Author     : Otto Esko <otto.esko-no.spam-tut.fi>
 -- Company    : 
 -- Created    : 2009-02-04
--- Last update: 2011-05-24
+-- Last update: 2011-06-16
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Timer unit with 32-bit rtimer and rtc operations
@@ -114,7 +114,7 @@ begin  -- rtl
       tick_counter <= tick_counter + to_unsigned(1, tick_counter'length);
       -- if one usec has passed
       if tick_counter = ticks_per_usec then
-        tick_counter <= to_unsigned(1, tick_counter'length);
+        tick_counter <= (others => '0');
         if not(rtimer_counter = 0) then
           rtimer_counter <=
             rtimer_counter - to_unsigned(1, rtimer_counter'length);
@@ -133,12 +133,13 @@ begin  -- rtl
                 rtimer_counter <= unsigned(t1data);
                 -- reset the tick counter
                 -- (this is the last assignment, thus it's valid)
-                tick_counter   <= to_unsigned(1, tick_counter'length);
+                tick_counter   <= (others => '0');
               end if;
             when OPC_RTC =>
               -- zero resets the counter, others read the current value
               if t1data = all_zeroes then
-                rtc_counter <= (others => '0');
+                rtc_counter  <= (others => '0');
+                tick_counter <= (others => '0');
               else
                 r1reg <= std_logic_vector(rtc_counter(busw-1 downto 0));
               end if;
