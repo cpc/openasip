@@ -106,7 +106,7 @@ EditLineReader::initialize(
     // define prompt printing function
     el_set(editLine_, EL_PROMPT, wrapperToCallPrompt);
     // bind all keys to the standard GNU emacs-like bindings.
-    //el_set(editLine_, EL_BIND, "-e");
+    el_set(editLine_, EL_BIND, "-e");
 
     lineReaders_.insert(ValType(editLine_, this));
     
