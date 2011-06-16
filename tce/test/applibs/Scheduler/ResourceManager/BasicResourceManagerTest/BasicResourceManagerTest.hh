@@ -82,6 +82,7 @@ public:
     void testWAWEarliestLatestCycle();
     void testMULConflict();
     void testLIMMPSocketReads();
+    void testNoRegisterTriggerInvalidates();
 
     void wholeProgramAssignment(
         const std::string& adf,
@@ -1063,5 +1064,158 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
     delete targetMachine;
 }
 
+void
+BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
 
+    /// The tested input program with registers allocated.
+    TTAProgram::Program* srcProgram = NULL;
+    /// Target machine to schedule the program for.
+    TTAMachine::Machine* targetMachine = NULL;
+    
+    CATCH_ANY(
+        targetMachine =
+        TTAMachine::Machine::loadFromADF(
+            "data/machineNoRegister.adf"));
+   
+    CATCH_ANY(
+        srcProgram =
+        TTAProgram::Program::loadFromUnscheduledTPEF(
+            "data/arrmul_reg_allocated_10_bus.tpef",
+             *targetMachine));
+    
+    TTAProgram::Procedure& procedure = srcProgram->procedure(0);
+    ControlFlowGraph cfg(procedure);
+    SimpleResourceManager* rm =
+        SimpleResourceManager::createRM(*targetMachine);
+    //std::cerr << POMDisassembler::disassemble(procedure,1);
+    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
+    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
+    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
+    ProgramOperation *po1 = new ProgramOperation(node2->move().destination().operation());
+    po1->addNode(*node1);
+    po1->addNode(*node2);
+    po1->addNode(*node3);
+    node1->setDestinationOperation(*po1);
+    node2->setDestinationOperation(*po1);
+    node3->setSourceOperation(*po1);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 0);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 0);
+
+    TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node1));
+    // no-register property allows node2
+    // only in same cycle as node1
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 0);
+    TS_ASSERT(rm->canAssign(1,*node2) == false);
+    TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node2));
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node3), 2);
+    // no-register do not allow result to be later then
+    // cycle when it is written
+    TS_ASSERT_EQUALS(rm->canAssign(5, *node3), false);
+    TS_ASSERT_THROWS_NOTHING(
+	rm->assign(rm->earliestCycle(*node3), *node3));
+
+    // second operation add on second added in same cycles
+    MoveNode* node4 = new MoveNode(procedure.instructionAt(5).move(0));
+    MoveNode* node5 = new MoveNode(procedure.instructionAt(6).move(0));
+    MoveNode* node6 = new MoveNode(procedure.instructionAt(7).move(0));
+    ProgramOperation *po2 = new ProgramOperation(node5->move().destination().operation());
+    po2->addNode(*node4);
+    po2->addNode(*node5);
+    po2->addNode(*node6);
+    node4->setDestinationOperation(*po2);
+    node5->setDestinationOperation(*po2);
+    node6->setSourceOperation(*po2);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node4), 0);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node5), 0);
+    TS_ASSERT_THROWS_NOTHING(rm->assign(1,*node4));
+    TS_ASSERT_EQUALS(rm->canAssign(2,*node5), false);
+    TS_ASSERT_THROWS_NOTHING(rm->assign(1,*node5));
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node6), 3);
+    // no-register do not allow result to be later then
+    // cycle when it is written
+    TS_ASSERT_EQUALS(rm->canAssign(5, *node6), false);
+    TS_ASSERT_THROWS_NOTHING(
+	rm->assign(rm->earliestCycle(*node6), *node6));
+
+
+    // Both adders are busy and write same result register.
+    // in different cycles. Lets try to squeze 3rd add with same
+    // result register and check trigger-invalidates-results
+    MoveNode* node7 = new MoveNode(procedure.instructionAt(9).move(0));
+    MoveNode* node8 = new MoveNode(procedure.instructionAt(10).move(0));
+    MoveNode* node9 = new MoveNode(procedure.instructionAt(11).move(0));
+    ProgramOperation *po3 = new ProgramOperation(node8->move().destination().operation());
+    po3->addNode(*node7);
+    po3->addNode(*node8);
+    po3->addNode(*node9);
+    node7->setDestinationOperation(*po3);
+    node8->setDestinationOperation(*po3);
+    node9->setSourceOperation(*po3);
+    // in cycle 0 this add will fit onto alu2
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node7), 0);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node8), 0);
+
+    targetMachine->setTriggerInvalidatesResults(true);
+    // trigger-invalidates-results is now true
+    // schedule in cycle 1 should be imposible.
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node7), 0);
+    // in cycle 1, add could be allocated on alu1
+    // but will conflict with another add on alu1
+    // starting in cycle 0
+    TS_ASSERT_EQUALS(rm->canAssign(0,*node8), false);
+    TS_ASSERT_EQUALS(rm->canAssign(1,*node8), false);
+    TS_ASSERT_EQUALS(rm->canAssign(2,*node8), false);
+    // non triggering operand can be still scheduled
+    // anywhere
+    TS_ASSERT_EQUALS(rm->canAssign(0,*node7), true);
+    TS_ASSERT_EQUALS(rm->canAssign(1,*node7), true);
+    TS_ASSERT_EQUALS(rm->canAssign(2,*node7), true);    
+    TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node7));
+    // trigger is impossible to schedule, no-register
+    // forces it into cycle 0, but trigger-invalidates-results
+    // do not allow it there
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node8), -1);
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node9), -1);
+    // Unschedule non-triggering operand
+    TS_ASSERT_THROWS_NOTHING(rm->unassign(*node7));
+
+    // Try to schedule earliest cycle possible
+    TS_ASSERT_THROWS_NOTHING(rm->assign(
+		rm->earliestCycle(*node8),*node8));
+    TS_ASSERT_THROWS_NOTHING(rm->assign(
+		rm->earliestCycle(*node7),*node7));
+    TS_ASSERT_THROWS_NOTHING(rm->assign(
+		rm->earliestCycle(*node9),*node9));
+    // Should get scheduled on alu1 after first add finished
+    TS_ASSERT_EQUALS(node7->cycle(), 3);
+    TS_ASSERT_EQUALS(node8->cycle(), 3);
+    TS_ASSERT_EQUALS(node9->cycle(), 5);
+    targetMachine->setTriggerInvalidatesResults(false);
+    // unassign third add and try without trigger-invalidate-results
+    // now trigger can go to cycle 0 and result to cycle 2
+    TS_ASSERT_THROWS_NOTHING(rm->unassign(*node7));
+    TS_ASSERT_THROWS_NOTHING(rm->unassign(*node8));
+    TS_ASSERT_THROWS_NOTHING(rm->unassign(*node9));
+
+    TS_ASSERT_EQUALS(rm->canAssign(0,*node8), true);
+    TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node8));
+    TS_ASSERT_EQUALS(rm->canAssign(0,*node7), true);
+    TS_ASSERT_EQUALS(rm->canAssign(1,*node7), false);
+    TS_ASSERT_THROWS_NOTHING(rm->assign(0, *node7));
+    TS_ASSERT_EQUALS(rm->earliestCycle(*node9), 2);
+    TS_ASSERT_THROWS_NOTHING(
+	rm->assign(rm->earliestCycle(*node9), *node9));
+#if 0    
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(0)) << std::endl;
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(1)) << std::endl;
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(2)) << std::endl;
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(3)) << std::endl;
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(4)) << std::endl;
+    std::cerr << POMDisassembler::disassemble(*rm->instruction(5)) << std::endl;
+#endif
+    SimpleResourceManager::disposeRM(rm);
+    delete srcProgram;
+    delete targetMachine;
+
+}
 #endif
