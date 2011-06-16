@@ -644,8 +644,6 @@ LLVMTCECFGDDGBuilder::registerFileName(unsigned llvmRegNum) const {
             llvmRegNum);
         
     }
-    TCEString justAnotherWarningFix;
-    return justAnotherWarningFix;
 }
 
 int

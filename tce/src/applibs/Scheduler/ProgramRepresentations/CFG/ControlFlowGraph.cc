@@ -1766,8 +1766,6 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
             return tid;
     }
     abortWithError(TCEString("Could not find ") << name << " in the TII.");
-    llvm::TargetInstrDesc warningFixKludge;
-    return warningFixKludge;
 }
 
 void

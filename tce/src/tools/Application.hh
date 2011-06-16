@@ -146,7 +146,7 @@ public:
         const int neededVerbosity = 0);
 
     static void exitProgram(const int status = EXIT_SUCCESS);
-    static void abortProgram();
+    static void abortProgram() __attribute__((noreturn));
 
     static void unexpectedExceptionHandler();
 
