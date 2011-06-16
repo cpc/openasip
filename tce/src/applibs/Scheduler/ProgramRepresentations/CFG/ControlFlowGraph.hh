@@ -75,6 +75,7 @@ namespace llvm {
 using boost::reverse_graph;
 
 class InterPassData;
+class DataDependenceGraph;
 
 /**
  * Control Flow Graph.
@@ -129,6 +130,11 @@ public:
     void detectBackEdges();
 
     void reverseGuardOnOutEdges(const BasicBlockNode& bbn);
+    void optimizeBBOrdering(
+        bool removeDeadCode, 
+        TTAProgram::InstructionReferenceManager& irm,
+        DataDependenceGraph* ddg);
+
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>
@@ -221,6 +227,14 @@ private:
     bool hasFallThruPredecessor(BasicBlockNode& bbn);
 
     NodeSet findReachableNodes();
+    NodeSet findUnreachableNodes(const NodeSet& reachableNodes);
+
+    void removeUnreachableNodes(
+        const NodeSet& unreachableNodes, DataDependenceGraph* ddg);
+    void mergeNodes(
+        BasicBlockNode& node1,
+        BasicBlockNode& node2,
+        DataDependenceGraph* ddg);
 
     enum RemovedJumpData {
         JUMP_NOT_REMOVED = 0, /// nothing removed
@@ -229,8 +243,10 @@ private:
     };
 
     RemovedJumpData removeJumpToTarget(
-        TTAProgram::CodeSnippet& cs, const TTAProgram::Instruction& target,
-        int idx);
+        TTAProgram::CodeSnippet& cs,
+        const TTAProgram::Instruction& target,
+        int idx,
+        DataDependenceGraph* ddg = NULL);
 
     const llvm::TargetInstrDesc& 
     findLLVMTargetInstrDesc(TCEString name, const llvm::TargetInstrInfo& tii) 

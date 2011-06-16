@@ -695,6 +695,8 @@ CodeSnippet::insertBefore(
  * This function moves the ownership of instructions from the old code snippet
  * into the new one, and deletes the given code snippet.
  *
+ * @TODO: This routine is O(n^2). Optimize!
+ *
  * @param cs CodeSnippet containing the instructions being inserted.
  */
 void 
@@ -727,6 +729,8 @@ CodeSnippet::prepend( const CodeSnippet& cs) {
  *
  * This function moves the ownership of instructions from the old code snippet
  * into the new one, and deletes the given code snippet.
+ *
+ * @TODO: This routine is O(n^2). Optimize!
  *
  * @param cs CodeSnippet containing the instructions being inserted.
  */

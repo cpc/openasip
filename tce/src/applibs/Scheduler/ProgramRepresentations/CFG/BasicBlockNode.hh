@@ -98,6 +98,14 @@ public:
 
     bool isLoopScheduled() const { return loopScheduled_; }
     void setLoopScheduled() { loopScheduled_ = true; }
+    void setBBOwnership(bool ownership = true) { bbOwned_ = ownership; }
+
+    // Ordering of basic blocks in a procedure.
+    // These are NULL if not set/decided.
+    BasicBlockNode* successor() { return successor_; }
+    BasicBlockNode* predecessor() { return predecessor_; }
+
+    void link(BasicBlockNode* succ);
 private:
     /// start address of the original basic block, used for reconstructing
     /// the original program after modifying the CFG and its nodes
@@ -121,6 +129,10 @@ private:
     bool refsUpdated_;
     // if this bb was scheduled with loop scheduler
     bool loopScheduled_; 
+
+    BasicBlockNode* successor_;
+    BasicBlockNode* predecessor_;
+
 };
 
 #endif

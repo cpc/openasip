@@ -60,7 +60,8 @@ BasicBlockNode::BasicBlockNode(
     basicBlock_(new TTAProgram::BasicBlock(originalStartAddress)), 
     bbOwned_(true),
     entry_(entry), exit_(exit),
-    scheduled_(false), refsUpdated_(false), loopScheduled_(false) {
+    scheduled_(false), refsUpdated_(false), loopScheduled_(false),
+    successor_(NULL), predecessor_(NULL) {
 
     if (entry || exit) {
         hasOriginalAddress_ = false;
@@ -86,7 +87,8 @@ BasicBlockNode::BasicBlockNode(
     hasOriginalAddress_(false), basicBlock_(&bb), bbOwned_(false), 
     entry_(false), exit_(false),
     scheduled_(scheduled), refsUpdated_(refsUpdated), 
-    loopScheduled_(loopScheduled) {
+    loopScheduled_(loopScheduled),
+    successor_(NULL), predecessor_(NULL) {
 }
 
 /**
@@ -281,4 +283,15 @@ BasicBlockNode::updateReferencesFromProcToCfg(TTAProgram::Program& prog) {
         }
     }
     refsUpdated_ = true;
+}
+
+void BasicBlockNode::link(BasicBlockNode* successor) {
+    if (successor != NULL) {
+        // make sure no inconsistent links.
+        if (successor->predecessor_ != NULL) {
+            successor->predecessor_->successor_ = NULL;
+        }
+        successor->predecessor_ = this;
+    }
+    successor_ = successor;
 }

@@ -97,9 +97,15 @@ public:
 
     /* Gets the BB in which this move belongs. This should be moved to
        a better place: DDG API should not deal with basic blocks. Correct
-       place BasicBlockNode? */
+       place BasicBlockNode? 
+
+       This information is needed for PDG construction, and putting it to
+       BBN does not work. I know this is ugly, but currently these is no
+       better place for this.
+    */
     const BasicBlockNode& getBasicBlockNode(const MoveNode& mn) const;
     BasicBlockNode& getBasicBlockNode(MoveNode& mn);
+    void setBasicBlockNode(const MoveNode& mn, BasicBlockNode& bbn);
 
     int programOperationCount();
     ProgramOperation& programOperation(int index);

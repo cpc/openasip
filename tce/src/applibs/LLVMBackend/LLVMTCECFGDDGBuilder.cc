@@ -161,6 +161,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         
         TCEString bbName = mbbName(mbb);
         BasicBlockNode* bbn = new BasicBlockNode(*bb);
+        bbn->setBBOwnership(true);
 
         bool newMBB = true;
         bool newBB = true;
@@ -204,6 +205,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                         // create a new BB for code after the call
                         bb = new TTAProgram::BasicBlock(0);
                         BasicBlockNode* succBBN = new BasicBlockNode(*bb);
+                        succBBN->setBBOwnership(true);
                         callSuccs[bbn] = succBBN;
                         bbn = succBBN;
                         newBB = true;
@@ -237,6 +239,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                                 bb = new TTAProgram::BasicBlock(0);
                                 BasicBlockNode* succBBN = 
                                     new BasicBlockNode(*bb);
+                                succBBN->setBBOwnership(true);
                                 ftSuccs[bbn] = succBBN;
                                 bbn = succBBN;
                                 newBB = true;
@@ -289,7 +292,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             } 
             
             // if call, switch tto next bb(in callsucc chain)
-            if (instr->hasCall() && &(*j) != &(mbb.back())) {
+            if (j->getDesc().isCall() && &(*j) != &(mbb.back())) {
                 bbn = callSuccs[bbn];
                 bb = &bbn->basicBlock();
             }
@@ -450,6 +453,13 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     cfg->addNode(*exit);
     cfg->addExitFromSinkNodes(exit);
 
+    TTAProgram::InstructionReferenceManager* irm = NULL;
+    if (functionAtATime_) {
+        irm = new TTAProgram::InstructionReferenceManager();
+    } else {        
+        irm = &prog_->instructionReferenceManager();
+    }
+
     // add back edge properties.
     cfg->detectBackEdges();
 
@@ -468,6 +478,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     PreOptimizer preOpt(*ipData_);
     preOpt.handleCFGDDG(*cfg, *ddg);
 
+    cfg->optimizeBBOrdering(true, *irm, ddg);
+
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg2.dot");
 #endif
@@ -483,13 +495,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg3.dot");
 #endif
-
-    TTAProgram::InstructionReferenceManager* irm = NULL;
-    if (functionAtATime_) {
-        irm = new TTAProgram::InstructionReferenceManager();
-    } else {        
-        irm = &prog_->instructionReferenceManager();
-    }
 
     cfg->convertBBRefsToInstRefs(*irm);
 

@@ -29,6 +29,7 @@
  *
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
@@ -81,6 +82,7 @@
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
+#include "DataDependenceGraph.hh"
 #include "TerminalFUPort.hh"
 #include "HWOperation.hh"
 #include "FUPort.hh"
@@ -1411,16 +1413,7 @@ ControlFlowGraph::copyToProcedure(
 
     // find and queue reachable nodes
     NodeSet queuedNodes = findReachableNodes();
-    NodeSet unreachableNodes;
-
-    // find dead nodes
-    for (int i = 0; i < nodeCount(); i++) {
-        BasicBlockNode& n = node(i);
-        if (!AssocTools::containsKey(queuedNodes,&n) &&
-            n.isNormalBB()) {
-            unreachableNodes.insert(&n);
-        }
-    }
+    NodeSet unreachableNodes = findUnreachableNodes(queuedNodes);
 
     // then loop as long as we have BBs which have not been written to
     // the procedure.
@@ -1759,7 +1752,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 
 }
 
-//#define DEBUG_POM_TO_MI
+#define DEBUG_POM_TO_MI
 
 /**
  * Finds the TargetInstrDesc for the given LLVM instruction name.
@@ -2024,12 +2017,13 @@ ControlFlowGraph::updateReferencesFromProcToCfg() {
         bbn.updateReferencesFromProcToCfg(*program_);
     }
 
+#if 0 // TODO: why does this irm claim to be unuser variable??
     InstructionReferenceManager& irm = program_->instructionReferenceManager();
     // procedure should not have any references.
     for (int i = 0; i < procedure_->instructionCount(); i++) {
         assert(!irm.hasReference(procedure_->instructionAtIndex(i)));
     }
-
+#endif
 }
 
 
@@ -2067,7 +2061,8 @@ ControlFlowGraph::hasIncomingFallThru(const BasicBlockNode& bbn) const {
  */
 ControlFlowGraph::RemovedJumpData
 ControlFlowGraph::removeJumpToTarget(
-    CodeSnippet& cs, const Instruction& target, int idx) {
+    CodeSnippet& cs, const Instruction& target, int idx,
+    DataDependenceGraph* ddg) {
     int index = cs.instructionCount() -1; // - delaySlots;
 
     Move* lastJump = NULL;
@@ -2114,6 +2109,15 @@ ControlFlowGraph::removeJumpToTarget(
                                 }
                                 lastJump->setGuard(invG);
                             }
+                            
+                            if (ddg != NULL) {
+                                std::cerr << "removing jump node from ddg."
+                                          << std::endl;
+                                MoveNode* mn = &ddg->nodeOfMove(move);
+                                ddg->removeNode(*mn);
+                                delete mn;
+                            }
+
                             ins.removeMove(move);
                             delete &move;
                             return JUMP_REMOVED;
@@ -2122,6 +2126,14 @@ ControlFlowGraph::removeJumpToTarget(
                             return JUMP_NOT_REMOVED;
                         }
                     } else {
+                        if (ddg != NULL) {
+                            std::cerr << "removing jump node from ddg(2)."
+                                      << std::endl;
+                            MoveNode* mn = &ddg->nodeOfMove(move);
+                            ddg->removeNode(*mn);
+                            delete mn;
+                        }
+
                         ins.removeMove(move);
                         delete &move;
                         // check if there are moves/immeds left.
@@ -2257,3 +2269,240 @@ ControlFlowGraph::reverseGuardOnOutEdges(const BasicBlockNode& bbn) {
     }
 }
 
+ControlFlowGraph::NodeSet
+ControlFlowGraph::findUnreachableNodes(
+    const ControlFlowGraph::NodeSet& reachableNodes) {
+    NodeSet unreachableNodes;
+    // find dead nodes
+    for (int i = 0; i < nodeCount(); i++) {
+        BasicBlockNode& n = node(i);
+        if (!AssocTools::containsKey(reachableNodes,&n) &&
+            n.isNormalBB()) {
+            unreachableNodes.insert(&n);
+        }
+    }
+    return unreachableNodes;
+}
+
+/** 
+ * The algorithm is same as in CopyToProcedure, but without the copying.
+ * Still removes jump, and also does BB mergeing.
+ */
+void 
+ControlFlowGraph::optimizeBBOrdering(
+    bool removeDeadCode, InstructionReferenceManager& irm,
+    DataDependenceGraph* ddg) {
+
+    ControlFlowGraph::NodeSet firstBBs = successors(entryNode());
+    assert(firstBBs.size() == 1);
+    BasicBlockNode* firstBBN = *firstBBs.begin();
+    BasicBlockNode* currentBBN = firstBBN;
+    entryNode().link(firstBBN);
+
+    // find and queue reachable nodes
+    NodeSet queuedNodes = findReachableNodes();
+    NodeSet unreachableNodes = findUnreachableNodes(queuedNodes);
+
+    if (removeDeadCode) {
+        removeUnreachableNodes(unreachableNodes, ddg);
+    }
+
+    // then loop as long as we have BBs which have not been written to
+    // the procedure.
+    while (currentBBN != NULL) {
+        BasicBlockNode* nextNode = NULL;
+        TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
+        queuedNodes.erase(currentBBN);
+
+        // if has a fall-through node, it has to be the next node
+        BasicBlockNode* ftNode = fallThruSuccessor(*currentBBN);
+        if (ftNode != NULL && ftNode->isNormalBB()) {
+            if (queuedNodes.find(ftNode) == queuedNodes.end()) {
+                std::cerr << "not-queued fall-thru: " << ftNode->toString()
+                          << " current: " << currentBBN->toString() << 
+                    std::endl;
+                writeToDotFile("optimizeCFGFallThruBBNotQueued.dot");
+            }
+            // must not be already processed.
+            assert(queuedNodes.find(ftNode) != queuedNodes.end());
+
+            // if fall-through node has no other predecessors, merge.
+            if (inDegree(*ftNode) == 1 &&
+                outDegree(*currentBBN) == 1 &&
+                !(*connectingEdges(*currentBBN, *ftNode).begin())->
+                  isCallPassEdge()) {
+                writeToDotFile("before_merge.dot");
+                mergeNodes(*currentBBN, *ftNode, ddg);
+                writeToDotFile("after_merge.dot");
+                std::cerr << "Merged with ft node." << std::endl;
+            } else {
+                currentBBN->link(ftNode);
+                currentBBN = ftNode;
+            }
+            continue;
+        }
+
+        // Select some node, preferably successrs without ft-preds
+        // The jump can then be removed.
+        EdgeSet oEdges = outEdges(*currentBBN);
+        for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+            ControlFlowEdge& e = **i;
+            BasicBlockNode& head = headNode(e);
+            if (!hasFallThruPredecessor(head) && head.isNormalBB() &&
+                queuedNodes.find(&head) != queuedNodes.end()) {
+                // try to remove the jump as it's jump to the next BB.
+                RemovedJumpData rjd = removeJumpToTarget(
+                    bb, head.basicBlock().firstInstruction(), 0, ddg);
+                if (rjd != JUMP_NOT_REMOVED) {
+                    // if BB got empty,
+                    // move refs to beginning of the next BB.
+                    if (rjd == LAST_ELEMENT_REMOVED) {
+                        Instruction& ins = bb.instructionAtIndex(0);
+                        if (irm.hasReference(ins)) {
+                            irm.replace(
+                                ins, head.basicBlock().instructionAtIndex(
+                                    head.basicBlock().
+                                    skippedFirstInstructions()));
+                        }
+                        mergeNodes(*currentBBN, head, ddg);
+                        std::cerr << "Merged with after jump removal(1)" <<
+                            std::endl;
+                        nextNode = currentBBN;
+                        break;
+                    }
+                    // we removed a jump so convert the jump edge into
+                    // fall-through edge, OR merge BBs.
+
+                    if (inDegree(head) == 1) {
+                        mergeNodes(*currentBBN, head, ddg);
+                        nextNode = currentBBN;
+                        std::cerr << "Merged with after jump removal(2)" <<
+                            std::endl;
+
+                    } else {
+                        ControlFlowEdge* ftEdge = new ControlFlowEdge(
+                            e.edgePredicate(), 
+                            ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                        removeEdge(e);
+                        connectNodes(*currentBBN, head, *ftEdge);
+                        nextNode = &head;
+                    }
+                    // if we did remove a back edge, we need to scan the cfg
+                    // again for back edges.
+                    if (e.isBackEdge()) {
+                        detectBackEdges();
+                    }
+                    break; // continue outer;
+                }
+            }
+        }
+        if (nextNode != NULL) {
+            continue;
+        }
+
+        // need to select SOME node as successor.
+        // first without ft-predecessor usually is a good candidate.
+        // smarter heuristic does not seem to help at all.
+        // try to select
+        bool ftPred = false;
+        for (NodeSet::iterator i = queuedNodes.begin();
+             i != queuedNodes.end(); i++) {
+            if (!hasFallThruPredecessor(**i)) {
+                nextNode = *i;
+                break;
+            } else {
+                ftPred = true;
+            }
+        }
+
+        if (!removeDeadCode) {
+            // unreachable node having ft may have prevented us from
+            // managing some node whose fall-thru succs prevent
+            // futher nodes. try to select some unreached node.
+            if (nextNode == NULL && ftPred) {
+                for (NodeSet::iterator i = unreachableNodes.begin();
+                     i != unreachableNodes.end(); i++) {
+                    if (fallThruSuccessor(**i) != NULL) {
+                        nextNode = *i;
+                        unreachableNodes.erase(*i);
+                        break;
+                    }
+                }
+            }
+        }
+        if (nextNode == NULL) {
+            currentBBN->link(&exitNode());
+            break;
+        }
+        else {
+            currentBBN->link(nextNode);
+            currentBBN = nextNode;
+        }
+    }
+}
+
+/**
+ * TODO: what to do with exit node?
+ */
+void
+ControlFlowGraph::removeUnreachableNodes(
+    const NodeSet& nodes, DataDependenceGraph* ddg) {
+    for (NodeSet::iterator i = nodes.begin(); i != nodes.end(); i++) {
+        BasicBlockNode* bbn = *i;
+        removeNode(*bbn);
+        if (ddg != NULL) {
+            TTAProgram::BasicBlock& bb = bbn->basicBlock();
+            for (int j = 0; j < bb.instructionCount(); j++) {
+                Instruction& ins = bb.instructionAtIndex(j);
+                for (int k = 0; k < ins.moveCount(); k++) {
+                    Move& move = ins.move(k);
+                    MoveNode* mn = &ddg->nodeOfMove(move);
+                    ddg->removeNode(*mn);
+                    delete mn;
+                }
+            }
+            delete bbn;
+        }
+    }
+}
+
+void
+ControlFlowGraph::mergeNodes(
+    BasicBlockNode& node1, BasicBlockNode& node2, DataDependenceGraph* ddg) {
+    assert(node1.isNormalBB());
+    assert(node2.isNormalBB());
+    TTAProgram::BasicBlock& bb1 = node1.basicBlock();
+    TTAProgram::BasicBlock& bb2 = node2.basicBlock();
+    assert(&bb2 != NULL);
+    for (int i = bb2.instructionCount() -1; i >= 0; i--) {
+        Instruction& ins = bb2.instructionAtIndex(i);
+        if (ddg != NULL) {
+            for (int k = 0; k < ins.moveCount(); k++) {
+                Move& move = ins.move(k);
+                MoveNode* mn = &ddg->nodeOfMove(move);
+                ddg->setBasicBlockNode(*mn, node1);
+            }
+        }
+    }
+    node2.setBBOwnership(false); // append deletes bb2.
+    bb1.append(&bb2);
+
+    EdgeSet n2in = inEdges(node2);
+    for (EdgeSet::iterator i = n2in.begin(); i != n2in.end(); i++) {
+        ControlFlowEdge* e = *i;
+        const BasicBlockNode& tail = tailNode(*e);
+        if (&tail != &node1) {
+            moveInEdge(node2, node1, *e);
+        }
+    }
+
+    EdgeSet n2out = outEdges(node2);
+    for (EdgeSet::iterator i = n2out.begin(); i != n2out.end(); i++) {
+        ControlFlowEdge* e = *i;
+        moveOutEdge(node2, node1, *e);
+    }
+
+    removeNode(node2);
+    delete &node2;
+    // TODO: CFG edges
+}

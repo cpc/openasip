@@ -206,6 +206,12 @@ DataDependenceGraph::getBasicBlockNode(MoveNode& mn)  {
     return *iter->second;
 }
 
+void
+DataDependenceGraph::setBasicBlockNode(
+    const MoveNode& mn, BasicBlockNode& bbn) {
+    moveNodeBlocks_[&mn] = &bbn;
+}
+
 /** 
  * Returs programoperation which is in this graph.
  * 
