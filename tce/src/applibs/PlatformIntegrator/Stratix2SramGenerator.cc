@@ -57,7 +57,7 @@ Stratix2SramGenerator::Stratix2SramGenerator(
                     integrator, warningStream, errorStream) {
 
     ProGe::Netlist::Parameter dataw = {"sram_dataw", "integer", "32"};
-    ProGe::Netlist::Parameter addrw = {"sram_addrw", "integer", "20"};
+    ProGe::Netlist::Parameter addrw = {"sram_addrw", "integer", "18"};
     addParameter(dataw);
     addParameter(addrw);
     addPort("STRATIXII_SRAM_DQ",
@@ -65,7 +65,7 @@ Stratix2SramGenerator::Stratix2SramGenerator(
                         HDB::BIDIR, false, 32));
     addPort("STRATIXII_SRAM_ADDR",
             new HDLPort("STRATIXII_SRAM_ADDR", "sram_addrw",
-                        ProGe::BIT_VECTOR, HDB::OUT, false, 20));
+                        ProGe::BIT_VECTOR, HDB::OUT, false, 18));
     addPort("STRATIXII_SRAM_WE_N",
             new HDLPort("STRATIXII_SRAM_WE_N", "1", ProGe::BIT_VECTOR,
                         HDB::OUT, false, 1));

@@ -27,7 +27,7 @@
 -- Author     : Otto Esko
 -- Company    : 
 -- Created    : 2009-07-16
--- Last update: 2010-05-27
+-- Last update: 2011-06-17
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -66,9 +66,9 @@ use work.ldw_ldq_ldh_stw_stq_sth_ldqu_ldhu_opcodes.all;
 entity fu_lsu_sram_static is
   generic (
     dataw      : integer := 32;
-    addrw      : integer := 22;
+    addrw      : integer := 20;
     sram_dataw : integer := 32;
-    sram_addrw : integer := 20);
+    sram_addrw : integer := 18);
   port(
     -- socket interfaces:
     t1data   : in  std_logic_vector(addrw-1 downto 0);
@@ -120,9 +120,8 @@ architecture rtl of fu_lsu_sram_static is
   -----------------------------------------------------------------------------
   signal cmd_reg : std_logic_vector(7 downto 0);
 
-  constant ZEROES   : std_logic_vector(7 downto 0)  := (others => '0');
-  constant ZEROADDR : std_logic_vector(17 downto 0) := (others => '0');
-  constant ZEROHW   : std_logic_vector(15 downto 0) := (others => '0');
+  constant ZEROES : std_logic_vector(7 downto 0)  := (others => '0');
+  constant ZEROHW : std_logic_vector(15 downto 0) := (others => '0');
 
   constant NOP    : std_logic_vector(0 downto 0) := "0";
   constant ACT_OP : std_logic_vector(0 downto 0) := "1";
@@ -380,9 +379,9 @@ begin  -- rtl
 
           when OPC_LDHU =>
             if cmd_reg(7 downto 4) = "0011" then
-              r1data_r <= ZEROES&ZEROES&STRATIXII_SRAM_DQ(31 downto 16);
+              r1data_r <= ZEROHW&STRATIXII_SRAM_DQ(31 downto 16);
             else
-              r1data_r <= ZEROES&ZEROES&STRATIXII_SRAM_DQ(15 downto 0);
+              r1data_r <= ZEROHW&STRATIXII_SRAM_DQ(15 downto 0);
             end if;
             if t1load = '0' then
               cs_n_r <= '1';
@@ -437,7 +436,7 @@ begin  -- rtl
 
   r1data <= r1data_r;
 
-  STRATIXII_SRAM_DQ <= data_to_sram when we_n_r = '0' else (others => 'Z');
+  STRATIXII_SRAM_DQ       <= data_to_sram when we_n_r = '0' else (others => 'Z');
   STRATIXII_SRAM_ADDR     <= addr_to_sram;
   STRATIXII_SRAM_CS_N(0)  <= cs_n_r;
   STRATIXII_SRAM_WE_N(0)  <= we_n_r;

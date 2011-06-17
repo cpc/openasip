@@ -365,45 +365,41 @@ Stratix2DSPBoardIntegrator::generatePinMap() {
      // sram address signals
     MappingList* sramAddr = new MappingList;
     sramAddr->push_back(
-        new SignalMapping("PIN_AD8","STRATIXII_SRAM_ADDR[0]"));
+        new SignalMapping("PIN_AM28","STRATIXII_SRAM_ADDR[0]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AM27","STRATIXII_SRAM_ADDR[1]"));
+        new SignalMapping("PIN_AJ27","STRATIXII_SRAM_ADDR[1]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AM28","STRATIXII_SRAM_ADDR[2]"));
+        new SignalMapping("PIN_AK27","STRATIXII_SRAM_ADDR[2]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AJ27","STRATIXII_SRAM_ADDR[3]"));
+        new SignalMapping("PIN_AL29","STRATIXII_SRAM_ADDR[3]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AK27","STRATIXII_SRAM_ADDR[4]"));
+        new SignalMapping("PIN_AM29","STRATIXII_SRAM_ADDR[4]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AL29","STRATIXII_SRAM_ADDR[5]"));
+        new SignalMapping("PIN_AJ28","STRATIXII_SRAM_ADDR[5]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AM29","STRATIXII_SRAM_ADDR[6]"));
+        new SignalMapping("PIN_AH28","STRATIXII_SRAM_ADDR[6]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AJ28","STRATIXII_SRAM_ADDR[7]"));
+        new SignalMapping("PIN_AK20","STRATIXII_SRAM_ADDR[7]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AH28","STRATIXII_SRAM_ADDR[8]"));
+        new SignalMapping("PIN_AJ20","STRATIXII_SRAM_ADDR[8]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AK20","STRATIXII_SRAM_ADDR[9]"));
+        new SignalMapping("PIN_AL21","STRATIXII_SRAM_ADDR[9]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AJ20","STRATIXII_SRAM_ADDR[10]"));
+        new SignalMapping("PIN_AL22","STRATIXII_SRAM_ADDR[10]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AL21","STRATIXII_SRAM_ADDR[11]"));
+        new SignalMapping("PIN_AJ22","STRATIXII_SRAM_ADDR[11]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AL22","STRATIXII_SRAM_ADDR[12]"));
+        new SignalMapping("PIN_AH22","STRATIXII_SRAM_ADDR[12]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AJ22","STRATIXII_SRAM_ADDR[13]"));
+        new SignalMapping("PIN_AL23","STRATIXII_SRAM_ADDR[13]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AH22","STRATIXII_SRAM_ADDR[14]"));
+        new SignalMapping("PIN_AL24","STRATIXII_SRAM_ADDR[14]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AL23","STRATIXII_SRAM_ADDR[15]"));
+        new SignalMapping("PIN_AJ25","STRATIXII_SRAM_ADDR[15]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AL24","STRATIXII_SRAM_ADDR[16]"));
+        new SignalMapping("PIN_AH25","STRATIXII_SRAM_ADDR[16]"));
     sramAddr->push_back(
-        new SignalMapping("PIN_AJ25","STRATIXII_SRAM_ADDR[17]"));
-    sramAddr->push_back(
-        new SignalMapping("PIN_AH25","STRATIXII_SRAM_ADDR[18]"));
-    sramAddr->push_back(
-        new SignalMapping("PIN_AL25","STRATIXII_SRAM_ADDR[19]"));
+        new SignalMapping("PIN_AL25","STRATIXII_SRAM_ADDR[17]"));
     stratixPins_["STRATIXII_SRAM_ADDR"] = sramAddr;
 
     // sram control signals
