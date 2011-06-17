@@ -1087,7 +1087,8 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     ControlFlowGraph cfg(procedure);
     SimpleResourceManager* rm =
         SimpleResourceManager::createRM(*targetMachine);
-    //std::cerr << POMDisassembler::disassemble(procedure,1);
+    //Application::logStream() << 
+    //    POMDisassembler::disassemble(procedure,1);
     MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
     MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
     MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
@@ -1206,12 +1207,18 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     TS_ASSERT_THROWS_NOTHING(
 	rm->assign(rm->earliestCycle(*node9), *node9));
 #if 0    
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(0)) << std::endl;
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(1)) << std::endl;
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(2)) << std::endl;
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(3)) << std::endl;
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(4)) << std::endl;
-    std::cerr << POMDisassembler::disassemble(*rm->instruction(5)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(0)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(1)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(2)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(3)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(4)) << std::endl;
+    Application::logStream() << 
+	POMDisassembler::disassemble(*rm->instruction(5)) << std::endl;
 #endif
     SimpleResourceManager::disposeRM(rm);
     delete srcProgram;
