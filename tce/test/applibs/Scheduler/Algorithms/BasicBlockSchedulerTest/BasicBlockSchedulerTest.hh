@@ -35,6 +35,7 @@
 
 #include <TestSuite.h>
 #include "BBSchedulerController.hh"
+#include "CycleLookBackSoftwareBypasser.hh"
 #include "OperationPool.hh"
 #include "UniversalMachine.hh"
 #include "BinaryStream.hh"
@@ -57,6 +58,7 @@ public:
     void testScheduleShortImm();
     void testSchedule();
     void testScheduleShortImmAndReducedConnectivity();
+    void testScheduleWithDisabledDRE();
 
 private:
     int countOfGuardedMoves(const TTAProgram::Program& prog);
@@ -258,13 +260,22 @@ BasicBlockSchedulerTest::countOfGuardedMoves(
 void
 BasicBlockSchedulerTest::testSchedule() {
     //return;
-    /// The tested input program with registers allocated.
+    /// The tested input program with always-write-back-results.
     TTAProgram::Program* srcProgram = NULL;
-    /// Target machine to schedule the program for.
+    /// Compare with always-write-back-results disabled.
+    TTAProgram::Program* srcProgram2 = NULL;
+    /// Target machine to schedule the program for with
+    /// always-write-back-results set.
     TTAMachine::Machine* targetMachine = NULL;
+    /// Same target machine without the always-write-back-results set.
+    TTAMachine::Machine* targetMachine2 = NULL;
 
     CATCH_ANY(
         targetMachine =
+        TTAMachine::Machine::loadFromADF(
+            "data/10_bus_full_connectivityNoDRE.adf"));
+    CATCH_ANY(
+        targetMachine2 =
         TTAMachine::Machine::loadFromADF(
             "data/10_bus_full_connectivity.adf"));
 
@@ -273,11 +284,11 @@ BasicBlockSchedulerTest::testSchedule() {
         TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
             *targetMachine));
-
-    const int ORIGINAL_PROCEDURE_COUNT = srcProgram->procedureCount();
-    const int ORIGINAL_LABEL_COUNT =
-        srcProgram->globalScopeConst().globalCodeLabelCount();
-    const int ORIGINAL_GUARD_COUNT = countOfGuardedMoves(*srcProgram);
+    CATCH_ANY(
+        srcProgram2 =
+        TTAProgram::Program::loadFromUnscheduledTPEF(
+            "data/arrmul_reg_allocated_10_bus.tpef",
+            *targetMachine2));
 
     InterPassData interPassData;
 
@@ -287,28 +298,58 @@ BasicBlockSchedulerTest::testSchedule() {
         SimpleGuardAllocatorCore::allocateGuards(
             procedure, *targetMachine, interPassData);
     }
+    for (int j = 0; j < srcProgram2->procedureCount(); j++) {
+        TTAProgram::Procedure& procedure = srcProgram2->procedure(j);
+        SimpleGuardAllocatorCore::allocateGuards(
+            procedure, *targetMachine2, interPassData);
+    }
 
-    TS_ASSERT_EQUALS(ORIGINAL_GUARD_COUNT, countOfGuardedMoves(*srcProgram));
-
-    BBSchedulerController scheduler(interPassData);
-
+    CycleLookBackSoftwareBypasser bypasser;
+    BBSchedulerController scheduler(interPassData, &bypasser);
     CATCH_ANY(
         scheduler.handleProgram(*srcProgram, *targetMachine));
+    TS_ASSERT(targetMachine->alwaysWriteResults());
+    TTAProgram::Procedure& procedure = srcProgram->procedure(0);
+    // targetMachine has always-write-back-results enabled
+    // so there should be 3 writes to GPR in this procedure
+    int resultWrites = 0;
+    TTAProgram::Instruction* ins = NULL;
+    for (int j = 0; j < procedure.instructionCount(); j++) {
+        ins = &procedure.instructionAt(j);
+        for (int i = 0; i < ins->moveCount(); i++) {
+            if (ins->move(i).destination().isGPR())
+                resultWrites++;
+        }
+    }
 
-    // delay slots filled with 7 guarded moves
-    TS_ASSERT_EQUALS(ORIGINAL_GUARD_COUNT, countOfGuardedMoves(*srcProgram));
-
-    TS_ASSERT_EQUALS(
-        srcProgram->procedureCount(), ORIGINAL_PROCEDURE_COUNT);
-
-    TS_ASSERT_EQUALS(
-        srcProgram->globalScopeConst().globalCodeLabelCount(),
-        ORIGINAL_LABEL_COUNT);
-
+    // test same program on same machine without the 
+    // always-write-back-results set
+    CycleLookBackSoftwareBypasser bypasser2;
+    BBSchedulerController scheduler2(interPassData, &bypasser2);
+    CATCH_ANY(
+        scheduler2.handleProgram(*srcProgram2, *targetMachine2));
+    TS_ASSERT(!targetMachine2->alwaysWriteResults());
+    TTAProgram::Procedure& procedure2 = srcProgram2->procedure(0);
+    // DRE should remove the result writes found in previous case
+    // Only one should remain
+    int resultWrites2 = 0;
+    for (int j = 0; j < procedure2.instructionCount(); j++) {
+        ins = &procedure2.instructionAt(j);
+        for (int i = 0; i < ins->moveCount(); i++) {
+            if (ins->move(i).destination().isGPR())
+                resultWrites2++;
+        }
+    }
+    // Without the always-write-back-results there DRE should
+    // remove number of register writes (2 to be exact).
+    TS_ASSERT(resultWrites > resultWrites2);
 #if 0
     Application::logStream()
         << std::endl << "after:" << std::endl
-        << POMDisassembler::disassemble(*srcProgram, true) << std::endl;
+        << POMDisassembler::disassemble(procedure, true) << std::endl;
+    Application::logStream()
+        << std::endl << "after:" << std::endl
+        << POMDisassembler::disassemble(procedure2, true) << std::endl;
 #endif
 
     TTAProgram::Program::writeToTPEF(
@@ -322,6 +363,13 @@ BasicBlockSchedulerTest::testSchedule() {
         delete TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.par.tpef",
             *targetMachine));
+}
+
+/**
+ * Tests scheduling the simple test case.
+ */
+void
+BasicBlockSchedulerTest::testScheduleWithDisabledDRE() {
 }
 
 
