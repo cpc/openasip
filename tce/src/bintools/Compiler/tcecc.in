@@ -108,7 +108,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
     cotaining all the files to link together.
     """
 
-    compileFlags=newlib_includes
+    compileFlags = newlib_includes + " " + bclib_includes + " "
 
     if options.compile_only and not options.use_clang:
         compileFlags += "-c "
@@ -691,6 +691,8 @@ if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
     newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
     newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
+    bclib_includes = "" # same as newlib_includes
+    bclib_libdirs = "" # all libs should be in the same newlib_libdir
     #srcRoot = None
 else:
     #srcRoot = scriptDir.split('bintools/Compiler')[0]
@@ -699,6 +701,9 @@ else:
     newlib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
                        " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
                        " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
+    bclib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@", "bclib/include"))
+    lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
+    bclib_libdirs = [lwpr_libdir]
 
 if options.verbose:
     if runningInstalled:
@@ -755,8 +760,23 @@ else:
         sys.exit(0)
 
     # convert -l switches to static library link commands.
+    library_search_paths = [newlib_libdir]
+    library_search_paths += bclib_libdirs
+
+    for i in options.lib_dirs:
+        library_search_paths.append(i)
+         
     for i in options.libs:
-        linkList.append(newlib_libdir + "/lib%s.a" % i)
+        lib_found = False
+        for p in library_search_paths:
+            lib_path = os.path.join(p, "lib%s.a" % i)
+            if os.path.exists(lib_path):
+                linkList.append(lib_path)
+                lib_found = True
+                break 
+        if not lib_found:
+            exitWithError(1, "Could not find lib%s.a in library search paths %s" % \
+                              (i, library_search_paths))
     
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 

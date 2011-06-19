@@ -1,0 +1,5 @@
+This directory contains bitcode libraries that can be used
+via tcecc with the -l switch. This dir must be compiled
+after both TCE and Newlib has been compiled as the libraries
+are compiled using tcecc and they might use Newlib.
+

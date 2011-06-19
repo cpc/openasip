@@ -408,6 +408,12 @@ CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
 #                       headers.
 # LLVM_LDFLAGS          Libraries needed to link against LLVM components.
 #
+# LLVM_LIBDIR           The directory where LLVM libraries are located.
+#
+# LLVM_BINDIR           The location of LLVM binaries.
+#
+####################################################################
+
 ####################################################################
 
 LLVM_VERSION=
@@ -434,6 +440,7 @@ AC_CHECK_FILE($llvmConf,
 [
 LLVM_VERSION=$($llvmConf --version)
 LLVM_LIBDIR=$($llvmConf --libdir)
+LLVM_BINDIR=$($llvmConf --bindir)
 LLVM_SHARED_LIB=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -513,6 +520,7 @@ AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
 AC_SUBST([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"])
 AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
 AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
+AC_SUBST([LLVM_BINDIR], ["$LLVM_BINDIR"])
 AC_SUBST([LLVM_CONFIG], ["$llvmConf"])
 
 AC_DEFINE_UNQUOTED([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"],
@@ -1335,6 +1343,9 @@ AC_CONFIG_FILES([
   src/applibs/PlatformIntegrator/Makefile
   scheduler/testbench/Makefile
   scheduler/testbench/Operations/Makefile
+  bclib/Makefile
+  bclib/lwpr/Makefile
+  bclib/include/Makefile
 ])
 
 # Generate test makefiles if we have the 'test' dir.

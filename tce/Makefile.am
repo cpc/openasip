@@ -1,7 +1,7 @@
 SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer doc 
 
 if COMPILER_FOUND
-SUBDIRS += newlib-1.17.0
+SUBDIRS += newlib-1.17.0 bclib
 endif
 
 AUTOMAKE_OPTIONS = foreign
