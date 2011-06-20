@@ -48,4 +48,9 @@ void lwpr_print_int(int n);
  */
 void lwpr_print_hex(int n);
 
+/**
+ * Prints newline
+ */
+#define lwpr_newline() _TCE_STDOUT('\n');
+
 #endif
