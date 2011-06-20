@@ -10,7 +10,7 @@ set_global_assignment -name FMAX_REQUIREMENT "100 MHz"
 vhdl files
 24
 pin assignments
-69
+67
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
@@ -23,7 +23,7 @@ entity stratix_test_array_sram_toplevel is
 
   generic (
     sram_dataw : integer := 32;
-    sram_addrw : integer := 20);
+    sram_addrw : integer := 18);
 
   port (
     clk : in std_logic;
