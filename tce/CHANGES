@@ -10,6 +10,9 @@ Bugfixes
   model in an otherwise valid .opb.
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
   was power of 2.
+- Build system: Fixed build when --as-needed is used as link flag by some of the
+  libraries.
+
 
 Usability features
 ------------------
