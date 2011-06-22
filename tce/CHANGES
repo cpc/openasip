@@ -37,6 +37,8 @@ Smaller features
 - ProGe and PIG: the string given with --entity-name is now used to make
   the generated VHDL entity etc. names unique to allow easier
   instantiation of multiple TTA cores in designs.
+- tcecc: support for LLVM assembly files (.ll) as input. 
+  Thanks to Hervé Yviquel for the patch.
 
 Usability features
 ------------------

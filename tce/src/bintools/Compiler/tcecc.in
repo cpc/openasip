@@ -153,7 +153,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
         compileFlags += "-isystem" + i + " "
 
     # list of valid suffixes
-    knownSuffices = [".cpp", ".cc", ".c", ".bc", ".o", ".a"]
+    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
 
     linkList = []
 
@@ -216,6 +216,11 @@ def processInputFiles(inFiles, tmpDir, verbose):
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
                               outFileName + ".tobelowered;") % options.frontend_optlevel
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                    
+                elif suffix == ".ll":
+                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
