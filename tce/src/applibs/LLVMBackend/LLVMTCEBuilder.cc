@@ -536,7 +536,7 @@ LLVMTCEBuilder::createIntDataDefinition(
 
     std::vector<MinimumAddressableUnit> maus;
 
-    unsigned sz = (ci->getBitWidth() / MAU_BITS);
+    unsigned sz = ((ci->getBitWidth() + MAU_BITS-1) / MAU_BITS);
 
     if (isPointer) {
         sz = POINTER_SIZE;
