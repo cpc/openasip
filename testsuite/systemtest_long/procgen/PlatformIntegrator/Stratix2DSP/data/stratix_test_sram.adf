@@ -604,7 +604,7 @@
   <function-unit name="LSU">
     <port name="in1t">
       <connects-to>LSU_i1</connects-to>
-      <width>22</width>
+      <width>20</width>
       <triggers/>
       <sets-opcode/>
     </port>
@@ -770,7 +770,7 @@
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>16777215</max-address>
+    <max-address>1048575</max-address>
   </address-space>
 
   <address-space name="instructions">
