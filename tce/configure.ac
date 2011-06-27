@@ -441,7 +441,8 @@ AC_CHECK_FILE($llvmConf,
 LLVM_VERSION=$($llvmConf --version)
 LLVM_LIBDIR=$($llvmConf --libdir)
 LLVM_BINDIR=$($llvmConf --bindir)
-LLVM_SHARED_LIB=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
@@ -499,10 +500,10 @@ AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
 
-if test ! -e $LLVM_SHARED_LIB;
+if test ! -e $LLVM_SHARED_LIB_FILE;
 then
         AC_MSG_ERROR([
-$LLVM_SHARED_LIB not found. 
+$LLVM_SHARED_LIB_FILE not found. 
 Either recompile and install LLVM after ./configure --enable-shared
 or use ./gen_llvm_shared_lib.sh to generate it.])
 

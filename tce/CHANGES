@@ -22,6 +22,10 @@ Bugfixes
   the llvm -simplify-libcalls (e.g. printf("foo\n") -> puts("foo").
   This was broken due to adding -fno-libcall switch as default. Now it's
   added only while building Newlib.
+- Build system: Fixed build when --as-needed is used as link flag by some of the
+  libraries.
+- 1-bit global constants had invalid size calculation. This could cause
+  compiler to fail to write program.
 
 Code generator improvements
 ---------------------------
