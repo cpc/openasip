@@ -28,6 +28,7 @@ export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno
 # export PATH to include llvm and llvm-frontend
 # (those ENVs are defined in buildbot master.cfg)
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
+export LD_LIBRARY_PATH=$LLVM_DIR/lib:$LD_LIBRARY_PATH
 
 make clean >& /dev/null
 

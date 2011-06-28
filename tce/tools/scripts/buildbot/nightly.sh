@@ -83,6 +83,7 @@ function start_compiletest {
 
 # supercomplex main program
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
+export LD_LIBRARY_PATH=$LLVM_DIR/lib:$LD_LIBRARY_PATH
 #check_llvm_gcc_sources
 #install_llvm-frontend
 start_compiletest
