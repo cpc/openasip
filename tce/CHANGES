@@ -8,6 +8,8 @@ Notable changes
 - tcecc: Floating point emulation code is not included by default anymore,
   use --swfp in case you use floating points and your machine does
   not support them.
+- bclib: added a Light Weight PRinting library. Small functions useful
+  for debug printouts.
 
 Bugfixes
 --------
