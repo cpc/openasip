@@ -1,6 +1,6 @@
 #!/bin/sh
-test_sc_src=`mktemp XXXX`.cc
-test_sc_out=`mktemp XXXX`
+test_sc_src=`mktemp`.cc
+test_sc_out=`mktemp`
 
 cat > $test_sc_src <<EOF
 #include <systemc>
