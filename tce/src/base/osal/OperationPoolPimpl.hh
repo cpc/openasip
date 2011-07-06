@@ -35,6 +35,7 @@
 
 #include <string>
 #include <map>
+#include "tce_config.h"
 
 class OperationPool;
 class OperationBehaviorLoader;
