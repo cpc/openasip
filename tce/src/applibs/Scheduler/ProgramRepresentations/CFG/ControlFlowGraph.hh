@@ -68,8 +68,13 @@ namespace TTAProgram {
 namespace llvm {
     class MachineFunction;
     class MachineBasicBlock;
+#ifdef LLVM_2_9
     class TargetInstrDesc;
     class TargetInstrInfo;
+#else
+    class MCInstrDesc;
+    class MCInstrInfo;
+#endif
 }
 
 using boost::reverse_graph;
@@ -248,9 +253,15 @@ private:
         int idx,
         DataDependenceGraph* ddg = NULL);
 
+#ifdef LLVM_2_9
     const llvm::TargetInstrDesc& 
     findLLVMTargetInstrDesc(TCEString name, const llvm::TargetInstrInfo& tii) 
         const;
+#else
+    const llvm::MCInstrDesc& 
+    findLLVMTargetInstrDesc(TCEString name, const llvm::MCInstrInfo& tii) 
+        const;
+#endif
 
     void buildMBBFromBB(
         llvm::MachineBasicBlock& mbb,

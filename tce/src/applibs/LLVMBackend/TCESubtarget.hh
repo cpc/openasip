@@ -33,8 +33,11 @@
 #define TTA_TCE_SUBTARGET_H
 
 #include <string>
+#ifdef LLVM_2_9
 #include "llvm/Target/TargetSubtarget.h"
-
+#else
+#include "llvm/Target/TargetSubtargetInfo.h"
+#endif
 namespace llvm {
 
     class Module;
@@ -43,7 +46,11 @@ namespace llvm {
      * Currently there is only one generic universal machine target,
      * so this class doesn't cotain any relevant information.
      */
+#ifdef LLVM_2_9
     class TCESubtarget : public TargetSubtarget {
+#else
+    class TCESubtarget : public TargetSubtargetInfo {
+#endif
     public:
         TCESubtarget(const std::string &TT, const std::string &FS);
         std::string pluginFileName();

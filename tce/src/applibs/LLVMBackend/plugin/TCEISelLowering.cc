@@ -29,6 +29,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 #include <assert.h>
@@ -81,7 +82,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
                                const SmallVectorImpl<SDValue> &OutVals,
-                               DebugLoc dl, SelectionDAG &DAG) LR_CONST {
+                               DebugLoc dl, SelectionDAG &DAG) const {
 
   // CCValAssign - represent the assignment of the return value to locations.
   SmallVector<CCValAssign, 16> RVLocs;
@@ -114,11 +115,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
     assert(VA.isRegLoc() && "Can only return in registers!");
 
     Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), 
-#ifdef LLVM_2_7
-                             Outs[i].Val, Flag);
-#else
                              OutVals[i], Flag);
-#endif
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
@@ -138,7 +135,7 @@ TCETargetLowering::LowerFormalArguments(
     CallingConv::ID CallConv, bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
     DebugLoc dl, SelectionDAG &DAG,
-    SmallVectorImpl<SDValue> &InVals) LFA_CONST {
+    SmallVectorImpl<SDValue> &InVals) const {
 
     MachineFunction &MF = DAG.getMachineFunction();
     MachineRegisterInfo &RegInfo = MF.getRegInfo();
@@ -192,23 +189,14 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(Arg);
 
             } else {
-#ifdef LLVM_2_7
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
-                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
-#else
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
-#endif		
+
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
                 if (ObjectVT == MVT::i32) {
-#if defined(LLVM_2_7) || defined(LLVM_2_8)
-                    Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
-                                       false, false, 0);
-#else // LLVM-29-svn
                     Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
                                        MachinePointerInfo(), false, false, 0);
-#endif
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
@@ -216,19 +204,9 @@ TCETargetLowering::LowerFormalArguments(
                     unsigned Offset = 4-std::max(1U, ObjectVT.getSizeInBits()/8);
                     FIPtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIPtr,
                                         DAG.getConstant(Offset, MVT::i32));
-#ifdef LLVM_2_7
-                    Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
-                                          NULL, 0, ObjectVT, false, false, 0);
-#else
-#ifdef LLVM_2_8
-                    Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
-                                          NULL, 0, ObjectVT, false, false, 0);
-#else // LLVM_29_svn
                     Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
                                           MachinePointerInfo(), ObjectVT, 
                                           false, false,0);
-#endif
-#endif
                     Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
                 }
                 InVals.push_back(Load);
@@ -242,22 +220,12 @@ TCETargetLowering::LowerFormalArguments(
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
-#ifdef LLVM_2_7
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
-                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
-#else
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
-#endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#if defined(LLVM_2_7) || defined(LLVM_2_8)
-                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0,
-                             false, false, 0);
-#else // LLVM_29-svn
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
                                            MachinePointerInfo(),
                                            false, false, 0);
-#endif
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -270,54 +238,27 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 SDValue HiVal;
-#ifdef LLVM_2_7
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
-                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
-#else
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
-#endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#if defined(LLVM_2_7) || defined(LLVM_2_8) 
-                HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
-                             false, false, 0);
-#else // LLVM_29-svn
 		HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
 				    false, false, 0);
-#endif
                 SDValue LoVal;
-#ifdef LLVM_2_7
-                FrameIdx = MF.getFrameInfo()->CreateFixedObject(
-                    4, ArgOffset+4, /*immutable=*/true, /*isSpillSlot=*/false);
-#else
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true);
-#endif
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#if defined(LLVM_2_7) || defined(LLVM_2_8) 
-
-                LoVal = DAG.getLoad(
-                    MVT::i32, dl, Chain, FIPtr, NULL, 0, false, false, 0);
-#else // LLVM_29-svn
                 LoVal = DAG.getLoad(
                     MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
 				    false, false, 0);
-#endif
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
                 
                 // If we want a double, do a bit convert.
                 if (ObjectVT == MVT::f64) {
-#if defined(LLVM_2_7) || defined(LLVM_2_8)
-                    WholeValue = 
-			DAG.getNode(
-			    ISD::BIT_CONVERT, dl, MVT::f64, WholeValue);
-#else                    
 		    WholeValue = 
 			DAG.getNode(
 			    ISD::BITCAST, dl, MVT::f64, WholeValue);
-#endif
 		}
                 InVals.push_back(WholeValue);
             }
@@ -332,14 +273,8 @@ TCETargetLowering::LowerFormalArguments(
     if (isVarArg) {        
         // This will point to the next argument passed via stack.
 
-#ifdef LLVM_2_7
-        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
-            4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
-#else
         VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
             4, ArgOffset, /*immutable=*/true);
-#endif
-
     }
     
     return Chain;
@@ -353,7 +288,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              const SmallVectorImpl<SDValue> &OutVals,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) LC_CONST {
+                             SmallVectorImpl<SDValue> &InVals) const {
 
 
     // we do not yet support tail call optimization.
@@ -528,11 +463,7 @@ TCETargetLowering::TCETargetLowering(
         Application::cmdLineOptions());
 
     if (opts != NULL && opts->conservativePreRAScheduler()) {
-#ifdef LLVM_2_7
-	setSchedulingPreference(SchedulingForRegPressure);
-#else
 	setSchedulingPreference(llvm::Sched::RegPressure);
-#endif
     }
 
     addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
@@ -742,13 +673,9 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
 
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
-#ifdef LLVM_2_7
-    SDValue ga = DAG.getTargetGlobalAddress(gv, MVT::i32);
-#else
   // FIXME there isn't really any debug info here
     DebugLoc dl = Op.getDebugLoc();
     SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
-#endif
     return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
 }
 
@@ -780,14 +707,9 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
     SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-#if defined(LLVM_2_7) || defined(LLVM_2_8)
-    return DAG.getStore(
-        Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0, false, false, 0);
-#else // LLVM_29-svn
     return DAG.getStore(
         Op.getOperand(0), dl, FR, Op.getOperand(1), MachinePointerInfo(SV), 
 	false, false, 0);
-#endif
 }
 
 
@@ -803,7 +725,7 @@ TCETargetLowering::getSetCCResultType(llvm::EVT VT) const {
  * Handles custom operation lowerings.
  */
 SDValue
-TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) LO_CONST {
+TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     switch(op.getOpcode()) {
     case ISD::TRAP: return LowerTRAP(op, dag);
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);

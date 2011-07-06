@@ -75,6 +75,9 @@ extern "C" void LLVMInitializeTCETargetInfo() {
 // etc.
 // 
 TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
+#ifndef LLVM_2_9
+			 const std::string& CPU,
+#endif
                                    const std::string &FS)
     : LLVMTargetMachine(T,TT),
       Subtarget(TT,FS),

@@ -27,6 +27,7 @@
  * Declaration of TCERegisterInfo class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 #ifndef TCE_REGISTER_INFO_H
@@ -36,7 +37,12 @@
 
 #include "TCESubtarget.hh"
 
+#ifdef LLVM_2_9
 #include "TCEGenRegisterInfo.h.inc"
+#else
+#define GET_REGINFO_HEADER
+#include "TCEGenRegisterInfo.inc"
+#endif
 #include "tce_config.h"
 
 namespace llvm {
@@ -50,9 +56,6 @@ namespace llvm {
     public:
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-        bool hasFP(const MachineFunction& mf) const;
-#endif
 
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
@@ -69,14 +72,8 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const;
 
-#ifdef LLVM_2_7
-        unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                     int SPAdj, int *Value,
-                                     RegScavenger *RS = NULL) const;
-#else
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
                                      int SPAdj, RegScavenger *RS = NULL) const;
-#endif
 
         unsigned getRARegister() const;
 

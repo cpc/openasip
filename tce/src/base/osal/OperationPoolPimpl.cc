@@ -53,8 +53,13 @@
 #include "OperationSerializer.hh"
 #include "TCEString.hh"
 
+// disable warnings from LLVm headers
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <llvm/Target/TargetInstrDesc.h>
 #include <llvm/Target/TargetInstrInfo.h>
+
+#pragma GCC diagnostic warning "-Wunused-parameter"
 
 using std::vector;
 using std::string;
@@ -127,7 +132,11 @@ OperationPoolPimpl::operation(const char* name) {
     if (llvmTargetInstrInfo_ != NULL) {
         for (unsigned opc = 0; opc < llvmTargetInstrInfo_->getNumOpcodes();
              ++opc) {
+#ifdef LLVM_2_9
             const llvm::TargetInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
+#else
+            const llvm::MCInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
+#endif
             TCEString operName = TCEString(tid.getName()).lower();
             if (operName == TCEString(name).lower()) {
                 Operation* llvmOperation = loadFromLLVM(tid);
@@ -197,7 +206,13 @@ OperationPoolPimpl::operation(const char* name) {
  * is called directly for non-TTA LLVM targets.
  */
 Operation*
-OperationPoolPimpl::loadFromLLVM(const llvm::TargetInstrDesc& tid) {
+OperationPoolPimpl::loadFromLLVM(
+#ifdef LLVM_2_9
+const llvm::TargetInstrDesc& tid
+#else
+const llvm::MCInstrDesc& tid
+#endif
+) {
     TCEString opName = TCEString(tid.getName());
     Operation* op = new Operation(opName, NullOperationBehavior::instance());
    

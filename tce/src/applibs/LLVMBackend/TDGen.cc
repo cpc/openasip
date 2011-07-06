@@ -383,12 +383,19 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
       << i1regs << "]>;" << std::endl;
 
 */
-
+#ifdef LLVM_2_9
     o << std::endl
       << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, ["
       << i1regs << "]> {" << std::endl
       << " let Size=8;" << std::endl
       << "}" << std::endl;
+#else
+    o << std::endl
+      << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, (add "
+      << i1regs << ")> {" << std::endl
+      << " let Size=8;" << std::endl
+      << "}" << std::endl;
+#endif
 }
 
 
@@ -413,10 +420,17 @@ TDGen::write8bitRegisterInfo(std::ostream& o) {
         }
     }
 
+#ifdef LLVM_2_9
     o << std::endl
        << "def I8Regs : RegisterClass<\"TCE\", [i8], 8, ["
        << i8regs << "]>;" << std::endl
        << std::endl << std::endl << std::endl;
+#else
+    o << std::endl
+       << "def I8Regs : RegisterClass<\"TCE\", [i8], 8, (add "
+       << i8regs << ")>;" << std::endl
+       << std::endl << std::endl << std::endl;
+#endif
 }
 
 
@@ -441,10 +455,17 @@ TDGen::write16bitRegisterInfo(std::ostream& o) {
         }
     }
 
+#ifdef LLVM_2_9
     o << std::endl
        << "def I16Regs : RegisterClass<\"TCE\", [i16], 16, ["
        << i16regs << "]>;" << std::endl
        << std::endl;
+#else
+    o << std::endl
+       << "def I16Regs : RegisterClass<\"TCE\", [i16], 16, (add "
+       << i16regs << ")>;" << std::endl
+       << std::endl;
+#endif
 }
 
 
@@ -469,6 +490,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         writeRegisterDef(o, regs32bit_[i], regName, "Ri32", "", GPR);
     }
 
+#ifdef LLVM_2_9
     o << std::endl
       << "def I32Regs : RegisterClass<\"TCE\", [i32], 32, ["
       << i32regs << std::endl
@@ -487,6 +509,14 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
       << "  }" << std::endl
       << " }];" << std::endl
       << "}" << std::endl;
+
+#else    
+    o << std::endl
+      << "def I32Regs : RegisterClass<\"TCE\", [i32], 32, (add "
+      << i32regs << std::endl
+      << "SP, IRES0, KLUDGE_REGISTER)> ;"
+      << std::endl;
+#endif
     
     // --- Hardcoded reserved registers. ---
     writeRegisterDef(o, regs32bit_[0], "FSP", "Rf32", "SP", RESERVED);
@@ -502,6 +532,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         writeRegisterDef(o, regs32bit_[i], regName, "Rf32", aliasName, GPR);
     }
 
+#ifdef LLVM_2_9
     o << std::endl
       << "def F32Regs : RegisterClass<\"TCE\", [f32], 32, ["
       << f32regs << std::endl
@@ -519,6 +550,14 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
       << "  }"<< std::endl
       << " }];" << std::endl
       << "}" << std::endl;
+
+#else
+    o << std::endl
+      << "def F32Regs : RegisterClass<\"TCE\", [f32], 32, (add "
+      << f32regs << std::endl
+      << "FSP, FRES0, FKLUDGE)> ;" << std::endl;
+#endif
+
 }
 
 
@@ -547,6 +586,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
         i64regs += "DIRES0";
     }
 
+#ifdef LLVM_2_9
     o << std::endl
       << "def I64Regs : RegisterClass<\"TCE\", [i64], 32, [" // DIRES
       << i64regs << "]> {"
@@ -564,7 +604,12 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << "  }"<< std::endl
       << " }];" << std::endl
       << "}" << std::endl;
-
+#else // LLVM-3.x
+    o << std::endl
+      << "def I64Regs : RegisterClass<\"TCE\", [i64], 32, (add " // DIRES
+      << i64regs << ")> ;"
+      << std::endl;
+#endif
     std::string f64regs;
 
     if (regs64bit_.size() < 1) {
@@ -582,6 +627,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
         }
         f64regs += "DRES0";
     }
+#ifdef LLVM_2_9
     o << std::endl
       << "def F64Regs : RegisterClass<\"TCE\", [f64], 32, [" // DRES
       << f64regs << "]>{" << std::endl;
@@ -598,6 +644,11 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << "  }"<< std::endl
       << " }];" << std::endl
       << "}" << std::endl;
+#else
+    o << std::endl
+      << "def F64Regs : RegisterClass<\"TCE\", [f64], 32, (add " // DRES
+      << f64regs << ")>;" << std::endl;
+#endif
 }
 
 
@@ -611,7 +662,12 @@ TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "def RA : Rra<\"return-address\">, ";
     o << "DwarfRegNum<[" << dregNum_++ << "]>;";
     o << std::endl;
+#ifdef LLVM_2_9
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
+#else
+    o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, (add RA)>;" << 
+	std::endl;
+#endif
 }
 
 

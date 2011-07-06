@@ -42,7 +42,11 @@ class OperationBehaviorProxy;
 class OperationIndex;
 class Operation;
 namespace llvm {
+#ifdef LLVM_2_9
     class TargetInstrDesc;
+#else
+    class MCInstrDesc;
+#endif
 }
 
 /**
@@ -72,9 +76,11 @@ private:
     OperationPoolPimpl(const OperationPoolPimpl&);
     /// Assignment not allowed.
     OperationPoolPimpl& operator=(const OperationPoolPimpl&);
-
+#ifdef LLVM_2_9
     Operation* loadFromLLVM(const llvm::TargetInstrDesc& tid);
-
+#else
+    Operation* loadFromLLVM(const llvm::MCInstrDesc& tid);
+#endif
     /// Operation pool uses this to load behavior models of the operations.
     static OperationBehaviorLoader* loader_;
     /// Indexed table used to find out which operation module contains the

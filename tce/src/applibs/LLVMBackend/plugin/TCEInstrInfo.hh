@@ -27,6 +27,7 @@
  * Declaration of TCEInstrInfo class.
  *
  * @author Veli-Pekka Jaaskelainen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 #ifndef TCE_INSTR_INFO_H
@@ -36,7 +37,14 @@
 #include <llvm/Target/TargetInstrInfo.h>
 #include "TCERegisterInfo.hh"
 
+#ifndef LLVM_2_9
+#define GET_INSTRINFO_HEADER
+#include "TCEGenInstrInfo.inc"
+#endif
+
 namespace llvm {
+
+    class TCETargetMachine;
 
     /** !! Important !! *************
      * ON EVERY LLVM UPDATE CHECK THESE INTERFACES VERY CAREFULLY
@@ -47,8 +55,11 @@ namespace llvm {
      * very good job.
      */
 
+#ifdef LLVM_2_9
     class TCEInstrInfo : public TargetInstrInfoImpl {
-
+#else
+    class TCEInstrInfo : public TCEGenInstrInfo {
+#endif
     public:
         TCEInstrInfo();
         virtual ~TCEInstrInfo();

@@ -28,6 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 #include <assert.h>
@@ -47,6 +48,11 @@
 
 using namespace llvm;
 
+#ifndef LLVM_2_9
+#define GET_REGINFO_MC_DESC
+#define GET_REGINFO_TARGET_DESC
+#endif
+
 #include "TCEGenRegisterInfo.inc"
 
 /**
@@ -56,7 +62,11 @@ using namespace llvm;
  * @param tii Target architecture instruction info.
  */
 TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
+#ifdef LLVM_2_9
     TCEGenRegisterInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
+#else
+    TCEGenRegisterInfo(),
+#endif
     tii_(tii) {
 }
 

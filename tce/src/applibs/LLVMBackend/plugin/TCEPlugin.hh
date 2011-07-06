@@ -27,6 +27,7 @@
  * TCE Target plugin declaration.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 #ifndef TCE_PLUGIN_H
@@ -47,7 +48,20 @@ namespace llvm  {
     FunctionPass* createTCECodePrinterPass(std::ostream& os, TargetMachine& tm);
 }
 
+#ifdef LLVM_2_9
+
 #include "TCEGenRegisterNames.inc"
 #include "TCEGenInstrNames.inc"
+
+#else
+
+#define GET_REGINFO_ENUM
+#include "TCEGenRegisterInfo.inc"
+
+#define GET_INSTRINFO_ENUM
+#include "TCEGenInstrInfo.inc"
+
+
+#endif
 
 #endif

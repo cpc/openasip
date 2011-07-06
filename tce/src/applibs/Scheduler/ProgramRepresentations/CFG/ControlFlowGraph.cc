@@ -1757,11 +1757,25 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 /**
  * Finds the TargetInstrDesc for the given LLVM instruction name.
  */
+#ifdef LLVM_2_9
 const llvm::TargetInstrDesc& 
+#else
+const llvm::MCInstrDesc& 
+#endif
 ControlFlowGraph::findLLVMTargetInstrDesc(
-    TCEString name, const llvm::TargetInstrInfo& tii) const {
+    TCEString name, 
+#ifdef LLVM_2_9
+    const llvm::TargetInstrInfo& tii
+#else
+    const llvm::MCInstrInfo& tii
+#endif
+    ) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
+#ifdef LLVM_2_9
         const llvm::TargetInstrDesc& tid = tii.get(opc);
+#else
+        const llvm::MCInstrDesc& tid = tii.get(opc);
+#endif
         if (name.ciEqual(tid.getName()))
             return tid;
     }
@@ -1943,8 +1957,13 @@ ControlFlowGraph::buildMBBFromBB(
                 Application::logStream() << hwop->name() << " ";
 #endif
 
+#ifdef LLVM_2_9
                 const llvm::TargetInstrDesc& tid =
                     findLLVMTargetInstrDesc(hwop->name(), tii);
+#else
+                const llvm::MCInstrDesc& tid =
+                    findLLVMTargetInstrDesc(hwop->name(), tii);
+#endif
                 mi = mbb.getParent()->CreateMachineInstr(
                     tid, llvm::DebugLoc());
                 

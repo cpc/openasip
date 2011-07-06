@@ -556,9 +556,11 @@ LLVMTCECFGDDGBuilder::createSymbolReference(const TCEString& symbolName) {
 
 bool 
 LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
-    
+#ifdef LLVM_2_9    
     const llvm::TargetInstrDesc* opDesc = &instr.getDesc();
-
+#else
+    const llvm::MCInstrDesc* opDesc = &instr.getDesc();
+#endif
     if (opDesc->isReturn()) {
         return true;
     }

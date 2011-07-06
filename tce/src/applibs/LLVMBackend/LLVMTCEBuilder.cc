@@ -1000,8 +1000,11 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitInstruction(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
+#ifdef LLVM_2_9
     const llvm::TargetInstrDesc* opDesc = &mi->getDesc();
-
+#else
+    const llvm::MCInstrDesc* opDesc = &mi->getDesc();
+#endif
     unsigned opc = mi->getDesc().getOpcode();
 
     // when the -g option turn on, this will come up opc with this, therefore
@@ -2284,7 +2287,8 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
         if (gv->getName() == globalName && gv->use_empty()) {
             // The initializer should be an array of '{ int, void ()* }' structs.  
             // The first value is the init priority, which we ignore.
-            ConstantArray* initList = cast<ConstantArray>(gv->getInitializer());
+            const ConstantArray* initList = cast<const ConstantArray>
+		(gv->getInitializer());
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {

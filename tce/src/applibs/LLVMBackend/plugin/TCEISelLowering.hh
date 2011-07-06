@@ -60,20 +60,6 @@ namespace TCEISD {
    };
 }
 
-// some const function qualifiers were added after LLVM 2.7
-#ifdef LLVM_2_7
-#define LFA_CONST
-#define LC_CONST
-#define LO_CONST
-#define LR_CONST
-#else
-#define LFA_CONST const
-#define LC_CONST const
-#define LO_CONST const
-#define LR_CONST const
-#endif
-
-
 namespace llvm {
 
     class TCETargetMachine;
@@ -85,7 +71,7 @@ namespace llvm {
         mutable int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
         TCETargetLowering(TargetMachine& TM);
-        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) LO_CONST;
+        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
 
         int getVarArgsFrameOffset() const { return VarArgsFrameOffset; }
 
@@ -109,7 +95,7 @@ namespace llvm {
                              bool isVarArg,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) LFA_CONST;
+                             SmallVectorImpl<SDValue> &InVals) const;
         
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
 
@@ -118,21 +104,17 @@ namespace llvm {
                   CallingConv::ID CallConv, bool isVarArg,
                   bool& isTailCall,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
-#ifndef LLVM_2_7
                   const SmallVectorImpl<SDValue> &OutVals,
-#endif
                   const SmallVectorImpl<ISD::InputArg> &Ins,
                   DebugLoc dl, SelectionDAG &DAG,
-                  SmallVectorImpl<SDValue> &InVals) LC_CONST;
+                  SmallVectorImpl<SDValue> &InVals) const;
         
         virtual SDValue
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
-#ifndef LLVM_2_7
                     const SmallVectorImpl<SDValue> &OutVals,
-#endif
-                    DebugLoc dl, SelectionDAG &DAG) LR_CONST;
+                    DebugLoc dl, SelectionDAG &DAG) const;
 
         // ----------------------------------------------------
         //

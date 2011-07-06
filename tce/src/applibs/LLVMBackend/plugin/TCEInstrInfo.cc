@@ -32,6 +32,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
 
@@ -50,6 +51,11 @@
 #include "tce_config.h"
 
 // Include code generated with tceplugingen:
+
+#ifndef LLVM_2_9
+#define GET_INSTRINFO_CTOR
+#define GET_INSTRINFO_MC_DESC
+#endif
 #include "TCEGenInstrInfo.inc"
 
 
@@ -58,10 +64,17 @@ using namespace llvm;
 /**
  * Constructor.
  */
+#ifdef LLVM_2_9
 TCEInstrInfo::TCEInstrInfo() :
     TargetInstrInfoImpl(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
     ri_(*this) {
-
+}
+#else
+TCEInstrInfo::TCEInstrInfo() :
+    TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
+    ri_(*this) 
+#endif
+{
 }
 
 /**

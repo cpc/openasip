@@ -65,6 +65,9 @@ namespace llvm {
 
     public:
         TCETargetMachine(const Target &T, const std::string &TT,
+#ifndef LLVM_2_9
+			 const std::string& CPU,
+#endif
                          const std::string &FS);
 
         virtual ~TCETargetMachine();
@@ -85,9 +88,13 @@ namespace llvm {
             ttaMach_ = mach;
         }
 
+#ifdef LLVM_2_9
         virtual const TargetSubtarget* getSubtargetImpl() const {
             return &Subtarget; }
-
+#else
+        virtual const TargetSubtargetInfo* getSubtargetImpl() const {
+            return &Subtarget; }
+#endif
         virtual const TargetInstrInfo* getInstrInfo() const {
             return plugin_->getInstrInfo();
         }
