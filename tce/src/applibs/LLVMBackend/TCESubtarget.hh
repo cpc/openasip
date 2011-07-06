@@ -33,6 +33,8 @@
 #define TTA_TCE_SUBTARGET_H
 
 #include <string>
+#include "tce_config.h"
+
 #ifdef LLVM_2_9
 #include "llvm/Target/TargetSubtarget.h"
 #else

@@ -628,8 +628,9 @@ bool RALinScanILP::runOnMachineFunction(MachineFunction &fn) {
   reservedRegs_ = tri_->getReservedRegs(fn);
   li_ = &getAnalysis<LiveIntervals>();
   loopInfo = &getAnalysis<MachineLoopInfo>();
+#ifndef LLVM_2_9
   RegClassInfo.runOnMachineFunction(fn);
-
+#endif
   // We don't run the coalescer here because we have no reason to
   // interact with it.  If the coalescer requires interaction, it
   // won't do anything.  If it doesn't require interaction, we assume
