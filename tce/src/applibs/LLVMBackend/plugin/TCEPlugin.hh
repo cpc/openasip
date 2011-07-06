@@ -37,6 +37,8 @@
 
 #include <llvm/Target/TargetInstrInfo.h>
 
+#include "tce_config.h"
+
 /**
  * Instruction selector and code printer creator declarations.
  */

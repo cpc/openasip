@@ -72,10 +72,9 @@ TCEInstrInfo::TCEInstrInfo() :
 #else
 TCEInstrInfo::TCEInstrInfo() :
     TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-    ri_(*this) 
-#endif
-{
+    ri_(*this) {
 }
+#endif
 
 /**
  * Destructor.
