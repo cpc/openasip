@@ -85,11 +85,11 @@ $TTASIM < $SIM_IN2 || eexit "Failed to simulate"
 $CREATEBEM $ADF1 || eexit "Failed to create bem"
 $CREATEBEM $ADF2 || eexit "Failed to create bem"
 
-$PROGE -b $BEM1 -o $P_DIR1 -i $IDF1 $ADF1 2>&1 || eexit "ProGe failed"
+$PROGE -t -b $BEM1 -o $P_DIR1 -i $IDF1 $ADF1 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR1 $P_DIR1_ID
 cp -r $P_DIR1 $P_DIR1_MS
 
-$PROGE -b $BEM2 -o $P_DIR2 -i $IDF2 $ADF2 2>&1 || eexit "ProGe failed"
+$PROGE -t -b $BEM2 -o $P_DIR2 -i $IDF2 $ADF2 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR2 $P_DIR2_ID
 cp -r $P_DIR2 $P_DIR2_MS
 
