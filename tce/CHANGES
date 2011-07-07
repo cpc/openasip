@@ -45,6 +45,9 @@ Smaller features
   instantiation of multiple TTA cores in designs.
 - tcecc: support for LLVM assembly files (.ll) as input. 
   Thanks to Hervé Yviquel for the patch.
+- ProGe: test bench generation is now disabled by default, use '-t'
+  to generate the test bench.
+  Thanks to Hervé Yviquel for the patch.
 
 Usability features
 ------------------

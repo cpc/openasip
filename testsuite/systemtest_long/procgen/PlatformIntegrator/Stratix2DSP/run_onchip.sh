@@ -18,7 +18,7 @@ $TCECC -a $ADF -o $TPEF $SRC
 # run integrator
 rm -f run_onchip.log
 rm -rf $PO_DIR
-$PROGE -i $IDF -g $INTEG -e $ENT -d onchip -f onchip -o $PO_DIR \
+$PROGE -t -i $IDF -g $INTEG -e $ENT -d onchip -f onchip -o $PO_DIR \
 -p $TPEF $ADF >& run_onchip.log
 # generate images
 $PIG -d -w4 -x $PO_DIR -e $ENT -o mif -f mif -p $TPEF $ADF >& /dev/null

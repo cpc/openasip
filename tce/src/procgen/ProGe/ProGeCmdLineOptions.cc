@@ -55,6 +55,7 @@ const string ENTITY_NAME = "entity-name";
 const string USE_ABSOLUTE_PATHS = "absolute-paths";
 const string LIST_INTEGRATORS = "list-integrators";
 const string DEVICE_FAMILY = "device-family";
+const string GENERATE_TESTBENCH = "generate-testbench";
 
 
 /**
@@ -137,6 +138,11 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             USE_ABSOLUTE_PATHS, "Use absolute paths in generated platform "
             "integrator files.", "a");
     addOption(useAbsolutePaths);
+    
+    BoolCmdLineOptionParser* generateTestbench = 
+        new BoolCmdLineOptionParser(
+            GENERATE_TESTBENCH, "Generate testbench.", "t");
+    addOption(generateTestbench);
 
     BoolCmdLineOptionParser* listIntegrators = 
         new BoolCmdLineOptionParser(
@@ -282,6 +288,10 @@ ProGeCmdLineOptions::useAbsolutePaths() const {
     return findOption(USE_ABSOLUTE_PATHS)->isFlagOn();
 }
 
+bool
+ProGeCmdLineOptions::generateTestbench() const {
+    return findOption(GENERATE_TESTBENCH)->isFlagOn();
+}
 
 bool
 ProGeCmdLineOptions::listAvailableIntegrators() const {

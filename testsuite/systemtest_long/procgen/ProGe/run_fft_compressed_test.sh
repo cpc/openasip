@@ -20,7 +20,7 @@ function eexit {
 
 rm -f *.img
 rm -rf $PROGE_OUT
-$PROGE -b $BEM -i $IDF -o $PROGE_OUT $ADF || eexit "Proge failed with $ADF"
+$PROGE -t -b $BEM -i $IDF -o $PROGE_OUT $ADF || eexit "Proge failed with $ADF"
 
 $PIG -b $BEM -p $TPEF -d -w 4 -x $PROGE_OUT -g -c $COMP $ADF || eexit "PIG failed with $ADF"
 

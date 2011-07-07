@@ -29,7 +29,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka Jaaskelainen 2011
  * @note rating: red
  */
 
@@ -190,24 +190,28 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         return false;
     }
 
-    string testBenchDir = outputDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        "tb";
-    try {
-        ProGeUI::generateTestBench(testBenchDir, outputDirectory, entity);
-    } catch (const Exception& e) {
-        std::cerr << "Warning: Processor Generator failed to "
-                  << "generate testbench." << std::endl;
-        std::cerr << e.errorMessage() << std::endl;
-    }
+    if (options.generateTestbench()) {
+        string testBenchDir = outputDirectory
+                + FileSystem::DIRECTORY_SEPARATOR +
+                "tb";
+        try {
+            ProGeUI::generateTestBench(testBenchDir, outputDirectory, entity);
+        } catch (const Exception& e) {
+            std::cerr << "Warning: Processor Generator failed to "
+                    << "generate testbench." << std::endl;
+            std::cerr << e.errorMessage() << std::endl;
+        }
 
-    try {
-        ProGeUI::generateScripts(
-            outputDirectory, outputDirectory, sharedOutputDir, testBenchDir);
-    } catch (const Exception& e) {
-        std::cerr << "Warning: Processor Generator failed to "
-                  << "generate simulation/compilation scripts."
-                  << std::endl;
-        std::cerr << e.errorMessage() << std::endl;
+        try {
+            ProGeUI::generateScripts(
+                    outputDirectory, outputDirectory, sharedOutputDir,
+                    testBenchDir);
+        } catch (const Exception& e) {
+            std::cerr << "Warning: Processor Generator failed to "
+                    << "generate simulation/compilation scripts."
+                    << std::endl;
+            std::cerr << e.errorMessage() << std::endl;
+        }
     }
     
     string integrator = options.integratorName();

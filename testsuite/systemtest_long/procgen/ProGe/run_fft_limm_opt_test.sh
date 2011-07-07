@@ -21,7 +21,7 @@ function eexit {
 
 rm -f *.img
 rm -rf $PROGE_OUT
-$PROGE --entity-name ${ENTITY_NAME} -b $BEM -i $IDF -o $PROGE_OUT -s shared-vhdl $ADF || eexit "Proge failed with $ADF"
+$PROGE -t --entity-name ${ENTITY_NAME} -b $BEM -i $IDF -o $PROGE_OUT -s shared-vhdl $ADF || eexit "Proge failed with $ADF"
 
 $PIG --entity-name ${ENTITY_NAME} -b $BEM -p $TPEF -d -w 4 -x $PROGE_OUT $ADF || eexit "PIG failed with $ADF"
 

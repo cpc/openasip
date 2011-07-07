@@ -16,7 +16,7 @@ $TCECC -a $ADF -o $TPEF $SRC >& /dev/null
 # run integrator
 rm -f $IPXACT
 rm -rf $PO_DIR
-$PROGE -i $IDF -f onchip -d onchip -e $ENT -o $PO_DIR -p $TPEF \
+$PROGE -t -i $IDF -f onchip -d onchip -e $ENT -o $PO_DIR -p $TPEF \
 -g $INTEG $ADF || exit 1
 
 $PIG -d -w4 -f mif -o mif -p $TPEF -x PO_DIR -e $ENT -x $PO_DIR $ADF >& /dev/null

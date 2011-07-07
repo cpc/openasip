@@ -13,7 +13,7 @@ LOG=run_avalon_lsu_sfu.log
 # run integrator
 rm -f ${ENT}_toplevel_hw.tcl $LOG
 rm -rf $PO_DIR
-$PROGE -i $IDF -f onchip -d none -e $ENT -o $PO_DIR -p $TPEF \
+$PROGE -t -i $IDF -f onchip -d none -e $ENT -o $PO_DIR -p $TPEF \
 -g $INTEG $ADF >& $LOG || exit 1
 
 # check sopc builder component file

@@ -63,7 +63,7 @@ test_success "Failed to create bem"
 
 # use processor generator
 rm -rf $PROGE_OUT
-$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2
+$PROGE -t -i $IDF -b $BEM -o $PROGE_OUT $MACH2
 test_success "Failed to generate processor"
 
 # generate bit images

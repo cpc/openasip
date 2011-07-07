@@ -21,7 +21,7 @@ grep emulate temp.txt
 rm temp.txt
 
 # Generate processor
-$PROGE -i $IDF -o $PDIR $ADF
+$PROGE -t -i $IDF -o $PDIR $ADF
 # Generate program image
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF >& /dev/null
 

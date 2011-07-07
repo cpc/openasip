@@ -53,6 +53,7 @@ public:
     std::string outputDirectory() const;
     std::string sharedOutputDirectory() const;
     std::string pluginParametersQuery() const;
+    bool generateTestbench() const;
 
     // platform integrator params
     std::string integratorName() const;

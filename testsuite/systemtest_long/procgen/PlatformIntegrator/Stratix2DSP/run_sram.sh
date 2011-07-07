@@ -17,7 +17,7 @@ $TCECC -a $ADF -o $TPEF $SRC
 # run integrator
 rm -f run_sram.log
 rm -rf $PO_DIR
-$PROGE -i $IDF -g $INTEG -e $ENT -d sram -f vhdl_array -o $PO_DIR \
+$PROGE -t -i $IDF -g $INTEG -e $ENT -d sram -f vhdl_array -o $PO_DIR \
 -p $TPEF $ADF >& run_sram.log
 # generate images (TODO: add -e option after merge)
 $PIG -d -w4 -x $PO_DIR -e $ENT -o ascii -f vhdl -p $TPEF $ADF >& /dev/null
