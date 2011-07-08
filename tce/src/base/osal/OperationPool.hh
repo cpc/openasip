@@ -41,7 +41,11 @@ class OperationIndex;
 class Operation;
 class OperationPoolPimpl;
 namespace llvm {
+#ifdef LLVM_2_9
     class TargetInstrInfo;
+#else
+    class MCInstrInfo;
+#endif
 }
 
 /**
@@ -58,8 +62,11 @@ public:
 
     static void cleanupCache();
 
+#ifdef LLVM_2_9
     static void setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid);
-  
+#else
+    static void setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid);
+#endif
 private:
     /// Copying not allowed.
     OperationPool(const OperationPool&);

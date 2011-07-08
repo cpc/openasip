@@ -1,5 +1,5 @@
-tce-devel r1114:
-llvm-trunk r134483 only result worsenings.
+tce-devel r1122:
+llvm-trunk r134691 only result worsenings.
 
 Notes:
 

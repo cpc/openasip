@@ -47,6 +47,7 @@ namespace llvm {
     class TargetInstrDesc;
 #else
     class MCInstrDesc;
+    class MCInstrInfo;
 #endif
 }
 
@@ -63,10 +64,15 @@ public:
 
     static void cleanupCache();
 
+#ifdef LLVM_2_9
     static void setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid) {
         llvmTargetInstrInfo_ = tid;
     }
-
+#else
+    static void setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid) {
+        llvmTargetInstrInfo_ = tid;
+    }
+#endif
 private:
     OperationPoolPimpl();
     
@@ -97,7 +103,11 @@ private:
     /// If this is set, OSAL data is loaded from the TargetInstrInfo
     /// instead of .opp XML files. Used when calling the TCE scheduler from
     /// non-TTA LLVM targets.
+#ifdef LLVM_2_9
     static const llvm::TargetInstrInfo* llvmTargetInstrInfo_;
+#else
+    static const llvm::MCInstrInfo* llvmTargetInstrInfo_;
+#endif
 };
 
 #endif

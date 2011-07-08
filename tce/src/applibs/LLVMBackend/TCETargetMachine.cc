@@ -79,7 +79,11 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
 			 const std::string& CPU,
 #endif
                                    const std::string &FS)
+#ifdef LLVM_2_9
     : LLVMTargetMachine(T,TT),
+#else
+      : LLVMTargetMachine(T,TT, CPU, FS),
+#endif
       Subtarget(TT,FS),
       DataLayout(
         "E-p:32:32:32"

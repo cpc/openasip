@@ -85,7 +85,6 @@
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
-#include <llvm/Target/TargetInstrDesc.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/DebugInfo.h>
 #include <llvm/MC/MCContext.h>
@@ -98,6 +97,12 @@
 #include "TCETargetMachine.hh"
 
 #include "tce_config.h"
+
+#ifdef LLVM_2_9
+#include <llvm/Target/TargetInstrDesc.h>
+#else
+#include <llvm/MC/MCInstrDesc.h>
+#endif
 
 #if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
 #include <llvm/ADT/SmallString.h>

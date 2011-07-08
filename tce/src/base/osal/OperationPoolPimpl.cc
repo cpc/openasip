@@ -56,8 +56,13 @@
 // disable warnings from LLVm headers
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#ifdef LLVM_2_9
 #include <llvm/Target/TargetInstrDesc.h>
 #include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/MC/MCInstrDesc.h>
+#include <llvm/MC/MCInstrInfo.h>
+#endif
 
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
@@ -68,7 +73,11 @@ OperationPoolPimpl::OperationTable OperationPoolPimpl::operationCache_;
 std::vector<OperationBehaviorProxy*> OperationPoolPimpl::proxies_;
 OperationIndex* OperationPoolPimpl::index_(NULL);
 OperationBehaviorLoader* OperationPoolPimpl::loader_(NULL);
+#ifdef LLVM_2_9
 const llvm::TargetInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
+#else
+const llvm::MCInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
+#endif
 
 /**
  * The constructor
