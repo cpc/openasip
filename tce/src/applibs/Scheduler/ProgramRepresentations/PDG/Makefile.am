@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libprogramdependencegraph.la
-libprogramdependencegraph_la_SOURCES = MoveNode.cc ProgramOperation.cc ProgramGraph.cc MoveNodeSet.cc ProgramDependenceEdge.cc ProgramDependenceNode.cc ProgramDependenceGraph.cc
+libprogramdependencegraph_la_SOURCES = ProgramGraph.cc ProgramDependenceEdge.cc ProgramDependenceNode.cc ProgramDependenceGraph.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -30,8 +30,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libprogramdependencegraph_la_SOURCES += \
-	MoveNodeSet.hh MoveNode.hh \
-	ProgramGraph.hh ProgramOperation.hh \
+	ProgramGraph.hh \
 	ProgramDependenceGraph.hh ProgramDependenceNode.hh \
-	ProgramDependenceEdge.hh MoveNode.icc 
+	ProgramDependenceEdge.hh
 ## headers end

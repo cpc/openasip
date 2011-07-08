@@ -3,6 +3,7 @@ PROJECT_ROOT = $(top_srcdir)
 LIB_MACH_DIR = ${PROJECT_ROOT}/src/base/mach
 LIB_OSAL_DIR = ${PROJECT_ROOT}/src/base/osal
 LIB_TPEF_DIR = ${PROJECT_ROOT}/src/base/tpef
+LIB_GRAPH_DIR = ${PROJECT_ROOT}/src/base/Graph
 LIB_MEMORY_DIR = ${PROJECT_ROOT}/src/base/memory
 LIB_UNIVERSAL_MACHINE_DIR = ${PROJECT_ROOT}/src/base/umach
 
@@ -30,13 +31,14 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	DisassemblyInstructionSlot.cc DisassemblyImmediateAssignment.cc \
 	DisassemblyLabel.cc DisassemblyNOP.cc DisassemblyFUOperand.cc \
 	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc CodeGenerator.cc \
-    TerminalBasicBlockReference.cc BasicBlock.cc TerminalSymbolReference.cc
+    TerminalBasicBlockReference.cc BasicBlock.cc TerminalSymbolReference.cc \
+	MoveNode.cc MoveNodeSet.cc ProgramOperation.cc
 
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${LIB_TOOLS_DIR} -I${LIB_MACH_DIR} -I${LIB_OSAL_DIR} \
 	-I../ -I${LIB_TPEF_DIR} -I${LIB_UNIVERSAL_MACHINE_DIR} \
-	-I${LIB_MEMORY_DIR} -I${LIB_DISASM_DIR}
+	-I${LIB_MEMORY_DIR} -I${LIB_GRAPH_DIR}
 AM_CXXFLAGS = -UNDEBUG
 
 dist-hook:
@@ -82,5 +84,6 @@ libprogram_la_SOURCES += \
 	InstructionReferenceManager.icc TerminalRegister.icc \
 	Address.icc Procedure.icc \
 	InstructionReferenceImpl.icc \
-    TerminalSymbolReference.hh TerminalBasicBlockReference.hh BasicBlock.hh
+    TerminalSymbolReference.hh TerminalBasicBlockReference.hh BasicBlock.hh \
+	MoveNode.hh MoveNode.icc ProgramOperation.hh
 ## headers end
