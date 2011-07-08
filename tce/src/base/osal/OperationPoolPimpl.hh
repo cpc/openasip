@@ -45,6 +45,7 @@ class Operation;
 namespace llvm {
 #ifdef LLVM_2_9
     class TargetInstrDesc;
+    class TargetInstrInfo;
 #else
     class MCInstrDesc;
     class MCInstrInfo;

@@ -40,6 +40,8 @@ class OperationBehaviorProxy;
 class OperationIndex;
 class Operation;
 class OperationPoolPimpl;
+
+#include "tce_config.h"
 namespace llvm {
 #ifdef LLVM_2_9
     class TargetInstrInfo;
