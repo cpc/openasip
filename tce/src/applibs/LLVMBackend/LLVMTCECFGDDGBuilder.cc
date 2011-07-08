@@ -247,7 +247,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                         }
                     } else {
                         // has to be uncond jump, and last ins of bb.
-                        assert(operationName(*j) == "jump");
                         assert(&(*j) == &(mbb.back()));
                         endingUncondJumpBBs.insert(&(*i));
                     }
