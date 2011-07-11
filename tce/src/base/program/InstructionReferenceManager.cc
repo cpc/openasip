@@ -83,6 +83,7 @@ InstructionReferenceManager::createReference(Instruction& ins) {
 
 /**
  * Replaces a referred instruction with another.
+ * This replaces ALL references that point into the same instruction.
  *
  * @param insA Instruction to be replaced.
  * @param insB The new referred instruction.

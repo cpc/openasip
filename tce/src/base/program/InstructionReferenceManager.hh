@@ -26,6 +26,33 @@
  *
  * Declaration of InstructionReferenceManager class.
  *
+ * The instruction reference handles references to instructions.
+ * 
+ * The design consists of 3 classes:
+ * InstructionReferenceManager: a single high-level object. Contains the
+ * external interface, and maps to locate a reference to an instruction
+ * based on instruction, and ways to iterate over all instruction references.
+ *
+ * InstructionReference. The class which is shown to a client. Encapsulates
+ * a reference into a single instruction. Multiple InstructionReferences
+ * may point to single instructions, and these can be freely copied etc.
+ * You should not use pointers to these classes, but always copy your 
+ * existing objects. (with copy constructor/assignment) into the new one when
+ * returning from functions etc.
+ *
+ * InstructionReferenceImpl. This is internal intermediate implementation 
+ * class. It is not shown to the user. There is always exactly one
+ * InstructionReferenceImpl per target instruction. 
+ * If two instruction references that originally pointed to different 
+ * instructions (and so had different InstructionReferenceImpl objects), 
+ * these objects are automatically merged and all the internal pointers 
+ * and bookkeeping updated accordingly. 
+ *
+ * Multiple instructionreferences typically point to InstructionReferenceImpl,
+ * and instructionReferenceImpl contains pointers to all of these, so it
+ * can notify them in case the instructionReferenceImpl is merged with
+ * another.
+ *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
