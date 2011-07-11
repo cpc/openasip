@@ -1,4 +1,4 @@
-- Copyright (c) 2002-2011 Tampere University of Technology.
+-- Copyright (c) 2002-2011 Tampere University of Technology.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
 -- 
@@ -27,7 +27,7 @@
 -- Author     : Otto Esko <otto.esko@tut.fi>
 -- Company    : 
 -- Created    : 2008-07-10
--- Last update: 2011-07-08
+-- Last update: 2011-07-11
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Revisions  :

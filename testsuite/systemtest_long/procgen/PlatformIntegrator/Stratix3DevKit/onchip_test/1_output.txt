@@ -1,5 +1,3 @@
-Warning: Processor Generator failed to generate testbench.
-External port name didn't match any: dmem_data_in
 set_global_assignment -name FAMILY "Stratix III"
 set_global_assignment -name DEVICE EP3SL150F1152C2
 set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_onchip_onchip_toplevel
