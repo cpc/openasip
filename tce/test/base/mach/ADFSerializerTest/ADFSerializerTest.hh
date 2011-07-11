@@ -129,9 +129,11 @@ ADFSerializerTest::testWriteState() {
 
     TS_ASSERT(!mach->triggerInvalidatesResults());
     TS_ASSERT(!mach->alwaysWriteResults());
+    TS_ASSERT(!mach->fuOrdered());
     mach->setTriggerInvalidatesResults(true);
     TS_ASSERT(mach->triggerInvalidatesResults());    
-    
+    mach->setFuOrdered(true);
+        
     Bus* bus1 = new Bus(bus1Name, 16, 16, Machine::SIGN);
     Bus* bus2 = new Bus(bus2Name, 32, 32, Machine::ZERO);
     new Segment(seg1Name, *bus1);
@@ -152,6 +154,7 @@ ADFSerializerTest::testWriteState() {
     socket1->setDirection(Socket::OUTPUT);
 
     FunctionUnit* fu1 = new FunctionUnit(fu1Name);
+    TS_ASSERT(fu1->orderNo() == 0);
     FUPort* fuPort1 = new FUPort(port1Name, 16, *fu1, true, true);
     FUPort* fuPort2 = new FUPort(port2Name, 16, *fu1, false, false, true);    
     FUPort* fuPort3 = new FUPort(port3Name, 16, *fu1, false, false, true);        
@@ -223,6 +226,7 @@ ADFSerializerTest::testReadState() {
 
     TS_ASSERT(mach->triggerInvalidatesResults());
     TS_ASSERT(!mach->alwaysWriteResults());
+    TS_ASSERT(mach->fuOrdered());
 
     Machine::BusNavigator busNav = mach->busNavigator();
     Bus* bus1 = busNav.item(bus1Name);
@@ -247,6 +251,8 @@ ADFSerializerTest::testReadState() {
     TS_ASSERT(bridge1->destinationBus() == bus2);
     
     FunctionUnit* fu1 = mach->functionUnitNavigator().item(fu1Name);
+    // When reading FU from file, it always gets unique order ID
+    TS_ASSERT(fu1->orderNo() != 0);
     FUPort* fuPort1 = fu1->operationPort(port1Name);
     TS_ASSERT(fuPort1->width() == 16);
     TS_ASSERT(fuPort1->isTriggering());
@@ -333,6 +339,7 @@ ADFSerializerTest::testReadState() {
 
     TS_ASSERT(!mach->triggerInvalidatesResults());
     TS_ASSERT(mach->alwaysWriteResults());
+    TS_ASSERT(!mach->fuOrdered());
 
     // check bus "B1"
     Bus* b1 = mach->busNavigator().item("B1");
@@ -388,6 +395,10 @@ ADFSerializerTest::testReadState() {
     TS_ASSERT(p5->inputSocket()->name() == "S5");
     FUPort* fp5 = dynamic_cast<FUPort*>(p5);    
     TS_ASSERT(!fp5->noRegister());
+
+	// FU add defintion is in ADF file before the add_complex, check the order
+    FunctionUnit* addFU = mach->functionUnitNavigator().item("add");
+    TS_ASSERT(addFU->orderNo() < acFU->orderNo());
 
     // check immediate unit "imm"
     ImmediateUnit* iuImm = mach->immediateUnitNavigator().item("imm");

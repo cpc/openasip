@@ -143,8 +143,10 @@ public:
 
     bool alwaysWriteResults() const;
     bool triggerInvalidatesResults() const;
+    bool fuOrdered() const;
     void setAlwaysWriteResults(bool);
     void setTriggerInvalidatesResults(bool);
+    void setFuOrdered(bool);
     
 
     // functions inherited from Serializable interface
@@ -252,6 +254,9 @@ public:
     static const std::string OSKEY_ALWAYS_WRITE_BACK_RESULTS;
     /// ObjectState attribute key for trigger-invalidates-old-results
     static const std::string OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS;
+    /// ObjectState attribute key for function units ordered in order
+    /// of their sequential presence in ADF
+    static const std::string OSKEY_FUNCTION_UNITS_ORDERED;
 
 private:
     /// Assignment not allowed.
@@ -318,6 +323,11 @@ private:
     // Triggering invalidates content of register where value of result will be
     // written. Previous value can not be read any more.
     bool triggerInvalidatesResults_;
+    // Function units relative order can be important (SPU).
+    // If set to 1, each FU will be given order id based on their sequential
+    // ordering in the ADF.
+    bool fuOrdered_;
+
 };
 }
 

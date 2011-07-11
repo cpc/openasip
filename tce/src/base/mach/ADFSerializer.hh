@@ -123,6 +123,9 @@ private:
         const std::string& busName);
     static bool hasEmptyInstructionTemplate(
         const ObjectState* momMachineState);
+        
+    // Counter to give each FU unique order ID when loading ADF, starting from 1
+    static int orderNumber_;
 };
 
 

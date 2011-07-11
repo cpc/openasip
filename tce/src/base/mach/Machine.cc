@@ -62,8 +62,11 @@ namespace TTAMachine {
 
 // initialization of static data members
 const string Machine::OSNAME_MACHINE = "machine";
-const std::string Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS = "always-write-back";
-const std::string Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates";
+const string Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS 
+	= "always-write-back";
+const string Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS 
+	= "trigger-invalidates";
+const string Machine::OSKEY_FUNCTION_UNITS_ORDERED = "fu-ordered";
 
 /**
  * Constructor.
@@ -73,7 +76,7 @@ Machine::Machine() :
     machineTester_(new MachineTester(*this)), 
     dummyMachineTester_(new DummyMachineTester(*this)),
     EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResults_(false), 
-    triggerInvalidatesResults_(false) {
+    triggerInvalidatesResults_(false), fuOrdered_(false) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
@@ -727,6 +730,8 @@ Machine::saveState() const {
         OSKEY_ALWAYS_WRITE_BACK_RESULTS, alwaysWriteResults_);
     rootState->setAttribute(
         OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, triggerInvalidatesResults_);
+    rootState->setAttribute(
+        OSKEY_FUNCTION_UNITS_ORDERED, fuOrdered_);
     
     return rootState;
 }
@@ -769,10 +774,13 @@ Machine::loadState(const ObjectState* state)
 
     setAlwaysWriteResults(
         state->hasAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
-        state->intAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
+        state->boolAttribute(OSKEY_ALWAYS_WRITE_BACK_RESULTS));        
     setTriggerInvalidatesResults(
         state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
-        state->intAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
+        state->boolAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
+    setFuOrdered(
+        state->hasAttribute(OSKEY_FUNCTION_UNITS_ORDERED) &&
+        state->boolAttribute(OSKEY_FUNCTION_UNITS_ORDERED));
 
     try {
         // create skeletons
@@ -972,6 +980,15 @@ Machine::triggerInvalidatesResults() const {
     return triggerInvalidatesResults_;
 }
 
+/*
+ * Returns true if sequential order of FUs in ADF file is significant.
+ *
+ */    
+bool 
+Machine::fuOrdered() const {
+    return fuOrdered_;
+}
+
 /* 
  * Sets whether or not result must always be written to register.
  */
@@ -987,6 +1004,13 @@ Machine::setAlwaysWriteResults(bool result){
 void 
 Machine::setTriggerInvalidatesResults(bool trigger) {
     triggerInvalidatesResults_ = trigger;
+}
+/* 
+ * Sets whether or not order of FUs in ADF file is significant.
+ */
+void 
+Machine::setFuOrdered(bool order){
+    fuOrdered_ = order;
 }
 
 }

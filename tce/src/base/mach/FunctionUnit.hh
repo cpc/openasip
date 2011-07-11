@@ -123,11 +123,16 @@ public:
         const FunctionUnit* fu, const bool checkPortWidths = true) const;
 
     bool needsConflictDetection() const;
+    
+    virtual int orderNo() const;
+    virtual void setOrderNo(int);
 
     /// ObjectState name for function unit.
     static const std::string OSNAME_FU;
     /// ObjectState attribute key for name of the address space.
     static const std::string OSKEY_AS;
+    /// ObjectState attribute key for FU order number name.
+    static const std::string OSKEY_ORDERNO;
 
 protected:
     void unsetMachineDerived();
@@ -153,6 +158,10 @@ private:
 
     /// Address space used by the function unit.
     AddressSpace* addressSpace_;
+    
+    /// Number indicating possition of the FU in the ADF file. Alows
+    /// putting the FU into the order in the instruction.
+    int orderNo_;
 };
 }
 

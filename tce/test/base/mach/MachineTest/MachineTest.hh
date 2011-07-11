@@ -391,10 +391,11 @@ MachineTest::testSaveAndLoadState() {
     InstructionTemplate* iTemp = new InstructionTemplate(iTempName, *mach_);
     iTemp->addSlot(bus1->name(), 16, *iu);
 
-    // test default values for always-write-result and trigger-invalidates
-    // are false
+    // test default values for always-write-result, trigger-invalidates
+    // and FU ordering are false
     TS_ASSERT(mach_->triggerInvalidatesResults() == false);
-    TS_ASSERT(mach_->alwaysWriteResults() == false);    
+    TS_ASSERT(mach_->alwaysWriteResults() == false); 
+    TS_ASSERT(mach_->fuOrdered() == false);        
     // save state
     ObjectState* machState = mach_->saveState();
 
@@ -406,9 +407,11 @@ MachineTest::testSaveAndLoadState() {
     // are false after loading state
     TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
     TS_ASSERT(loadedMach->alwaysWriteResults() == false);    
-    
-    // change on of global attributes before saving second time
+    TS_ASSERT(loadedMach->fuOrdered() == false);        
+        
+    // change two of global attributes before saving second time
     loadedMach->setAlwaysWriteResults(true);
+    loadedMach->setFuOrdered(true);    
     
     // try saving and reloading again
     delete machState;
@@ -419,7 +422,7 @@ MachineTest::testSaveAndLoadState() {
     // test default and changed value after another save/load pair
     TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
     TS_ASSERT(loadedMach->alwaysWriteResults() == true);    
-
+    TS_ASSERT(loadedMach->fuOrdered() == true);        
     // check busses
     Machine::BusNavigator busNav = loadedMach->busNavigator();
     Bus* lBus1 = busNav.item(bus1Name);

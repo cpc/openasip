@@ -53,6 +53,7 @@ namespace TTAMachine {
 // initialization of static data members
 const string FunctionUnit::OSNAME_FU = "fu";
 const string FunctionUnit::OSKEY_AS = "as";
+const string FunctionUnit::OSKEY_ORDERNO = "order_no";
 
 /**
  * Constructor.
@@ -62,7 +63,7 @@ const string FunctionUnit::OSKEY_AS = "as";
  */
 FunctionUnit::FunctionUnit(const string& name)
     throw (InvalidName) :
-    Unit(name), addressSpace_(NULL) {
+    Unit(name), addressSpace_(NULL), orderNo_(0) {
 }
 
 
@@ -78,7 +79,7 @@ FunctionUnit::FunctionUnit(const string& name)
  */
 FunctionUnit::FunctionUnit(const ObjectState* state)
     throw (ObjectStateLoadingException) :
-    Unit(state), addressSpace_(NULL) {
+    Unit(state), addressSpace_(NULL), orderNo_(0) {
 
     loadStateWithoutReferences(state);
 }
@@ -703,7 +704,7 @@ FunctionUnit::saveState() const {
 
     ObjectState* fuState = Unit::saveState();
     fuState->setName(OSNAME_FU);
-
+    fuState->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNo());
     // set address space
     if (addressSpace_ != NULL) {
         fuState->setAttribute(OSKEY_AS, addressSpace_->name());
@@ -903,6 +904,10 @@ FunctionUnit::loadStateWithoutReferences(const ObjectState* fuState)
     deleteAllOperations();
     addressSpace_ = NULL;
 
+    if (fuState->hasAttribute(FunctionUnit::OSKEY_ORDERNO)) {
+	    setOrderNo(fuState->intAttribute(FunctionUnit::OSKEY_ORDERNO));
+    }
+    
     try {
         // load operations
         for (int i = 0; i < fuState->childCount(); i++) {
@@ -929,4 +934,19 @@ FunctionUnit::deleteAllOperations() {
     }
 }
 
+/**
+ * Returns the order number of the FU.
+ */
+int 
+FunctionUnit::orderNo() const {
+    return orderNo_;
+}
+
+/**
+ * Sets order number of the FU.
+ */
+void
+FunctionUnit::setOrderNo(int number) {
+    orderNo_ = number;
+}
 }

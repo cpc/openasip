@@ -63,6 +63,7 @@ const string MDF_VERSION = "version";
 const string MDF_VERSION_NUMBER = "1.7";
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
 const string ALWAYS_WRITE_BACK_RESULTS = "always-write-back-results";
+const string FUNCTION_UNITS_ORDERED = "fu-ordered";
 
 const string BUS = "bus";
 const string BUS_NAME = "name";
@@ -177,7 +178,7 @@ const string IMMEDIATE_SLOT_NAME = "name";
 
 const string ADF_SCHEMA_FILE = "mach/ADF_Schema.xsd";
 
-
+int ADFSerializer::orderNumber_ = 0;
 /**
  * Constructor.
  */
@@ -289,13 +290,17 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
     // Test for global attributes.
     if (machineState->hasAttribute(
         Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
-        machineState->intAttribute(
+        machineState->boolAttribute(
             Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS)) {
             root->addChild(new ObjectState(TRIGGER_INVALIDATES_OLD_RESULTS));  
     }        
     if (machineState->hasAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS) &&
-        machineState->intAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
+        machineState->boolAttribute(Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS)) {                    
         root->addChild(new ObjectState(ALWAYS_WRITE_BACK_RESULTS));              
+    }
+    if (machineState->hasAttribute(Machine::OSKEY_FUNCTION_UNITS_ORDERED) &&
+        machineState->boolAttribute(Machine::OSKEY_FUNCTION_UNITS_ORDERED)) { 
+        root->addChild(new ObjectState(FUNCTION_UNITS_ORDERED));              
     }
     
     // add buses
@@ -954,6 +959,9 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
             } else if (child->name() == ALWAYS_WRITE_BACK_RESULTS) {
                 machine->setAttribute(
                     Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);                
+            } else if (child->name() == FUNCTION_UNITS_ORDERED) {
+                machine->setAttribute(
+                    Machine::OSKEY_FUNCTION_UNITS_ORDERED, true);                
             } else if (child->name() == BUS) {
                 machine->addChild(busToMachine(child));
             } else if (child->name() == SOCKET) {
@@ -1193,7 +1201,9 @@ ADFSerializer::functionUnitToMachine(const ObjectState* fuState) {
     // set name
     fu->setAttribute(
         Component::OSKEY_NAME, fuState->stringAttribute(FU_NAME));
-
+    // increase before assigning, so each FU has own value
+    orderNumber_++;
+    fu->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNumber_);
     // set address space
     ObjectState* as = fuState->childByName(FU_ADDRESS_SPACE);
     string asName = as->stringValue();
@@ -1353,6 +1363,9 @@ ADFSerializer::controlUnitToMachine(const ObjectState* cuState) {
     // set name
     cu->setAttribute(
         Component::OSKEY_NAME, cuState->stringAttribute(CU_NAME));
+    // increase before assigning, so each FU has own value
+    orderNumber_++;
+    cu->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNumber_);
 
     // set address space
     ObjectState* as = cuState->childByName(CU_ADDRESS_SPACE);
