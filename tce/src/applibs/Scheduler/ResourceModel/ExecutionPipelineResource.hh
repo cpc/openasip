@@ -42,6 +42,11 @@
 #include "ProgramOperation.hh"
 
 class PSocketResource;
+
+namespace TTAMachine {
+    class FunctionUnit;
+}
+
 /**
  * ExecutionPipelineResource keeps book of pipeline resource reservation
  * status. It uses rather simple resource reservation table approach.
@@ -51,7 +56,7 @@ class ExecutionPipelineResource : public SchedulingResource {
 public:
     ExecutionPipelineResource(
         const std::string& name,
-        const TTAMachine::FunctionUnit& fu,                                                   
+        const TTAMachine::FunctionUnit& fu,
         const unsigned int maxLatency,
         const unsigned int resNum);
     virtual ~ExecutionPipelineResource();

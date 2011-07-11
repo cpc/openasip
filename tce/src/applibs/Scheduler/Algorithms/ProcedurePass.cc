@@ -41,6 +41,7 @@
 #include "ControlFlowGraphPass.hh"
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
+#include "TerminalFUPort.hh"
 
 /**
  * Constructor.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -25,7 +25,7 @@
 /**
  * @file MoveNodeGroupBuilder.cc
  *
- * @author Pekka Jääskeläinen 2010 (pjaaskel)
+ * @author Pekka Jääskeläinen 2010-2011 (pjaaskel)
  */
 #include <map>
 
@@ -38,6 +38,7 @@
 #include "FunctionUnit.hh"
 #include "TCEString.hh"
 #include "SpecialRegisterPort.hh"
+#include "Terminal.hh"
 
 //#define DEBUG_MNGBUILDER
 

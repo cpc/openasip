@@ -47,6 +47,7 @@
 #include "PSocketResource.hh"
 #include "TCEString.hh"
 #include "ResourceManager.hh"
+#include "Terminal.hh"
 
 using namespace TTAMachine;
 using std::pair;

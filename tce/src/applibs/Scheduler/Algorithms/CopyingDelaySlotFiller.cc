@@ -60,6 +60,7 @@
 #include "InterPassDatum.hh"
 #include "InterPassData.hh"
 #include "TCEString.hh"
+#include "TerminalFUPort.hh"
 
 //using std::set;
 using std::list;
@@ -803,7 +804,7 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 fuName);
             newMove->setAnnotation(srcUnit);
 
-            Operation &srcOp = oldMN.sourceOperation().operation();
+            const Operation &srcOp = oldMN.sourceOperation().operation();
             HWOperation& hwop = *um_->universalFunctionUnit().operation(
                 srcOp.name());
             newMove->setSource(new TerminalFUPort(
@@ -826,7 +827,7 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 fuName);
             newMove->setAnnotation(dstUnit);
 
-            Operation &dstOp = oldMN.destinationOperation().operation();
+            const Operation &dstOp = oldMN.destinationOperation().operation();
             HWOperation& hwop = *um_->universalFunctionUnit().operation(
                 dstOp.name());
             newMove->setDestination(new TerminalFUPort(

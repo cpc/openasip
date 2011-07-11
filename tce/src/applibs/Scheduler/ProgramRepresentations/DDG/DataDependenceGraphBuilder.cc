@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,6 +63,9 @@
 #include "DataDependenceGraphBuilder.hh"
 #include "DataDependenceEdge.hh"
 #include "MemoryAliasAnalyzer.hh"
+
+#include "TerminalRegister.hh"
+#include "TerminalFUPort.hh"
 
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
@@ -890,7 +893,7 @@ void
 DataDependenceGraphBuilder::createOperationEdges(
     ProgramOperation& po) {
 
-    Operation& op = po.operation();
+    const Operation& op = po.operation();
 
     // loop over all input nodes
     for (int i = 0; i < po.inputMoveCount(); i++) {
@@ -1317,7 +1320,8 @@ DataDependenceGraphBuilder::createTriggerDependencies(
                      currentBB_->basicBlock().liveRangeData_->fuDeps_.begin();
                  iter != currentBB_->basicBlock().liveRangeData_->fuDeps_.end(); iter++) {
 
-                Operation& o = iter->mn()->destinationOperation().operation();
+                const Operation& o = 
+                    iter->mn()->destinationOperation().operation();
                 if (&o == &dop) {
                     currentBB_->basicBlock().liveRangeData_->fuDeps_.erase(iter);
                     break;
@@ -1348,7 +1352,7 @@ DataDependenceGraphBuilder::createSideEffectEdges(
     if (affectCount != 0 || dop.hasSideEffects()) {
         for (MoveNodeUseSet::iterator i = prevMoves.begin();
              i != prevMoves.end(); i++) {
-            Operation& o = i->mn()->destinationOperation().operation();
+            const Operation& o = i->mn()->destinationOperation().operation();
 
             // mem writes are handled by memory deps so exclude here
             if ((&dop == &o && o.hasSideEffects()) ||

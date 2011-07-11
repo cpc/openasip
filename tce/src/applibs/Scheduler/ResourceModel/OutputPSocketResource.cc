@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of OutputPSocketResource class.
  *
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 #include <iostream>
@@ -34,6 +35,7 @@
 #include "MapTools.hh"
 #include "Move.hh"
 #include "MoveNode.hh"
+#include "Terminal.hh"
 
 /**
  * Constructor.

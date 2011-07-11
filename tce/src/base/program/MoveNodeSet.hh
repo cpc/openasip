@@ -40,7 +40,6 @@
 
 class MoveNodeSet{
 public:
-
     MoveNodeSet();
 
     int count() const;

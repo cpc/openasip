@@ -38,6 +38,8 @@
 #include "Conversion.hh"
 #include "MoveNode.hh"
 #include "Port.hh"
+#include "Terminal.hh"
+
 /**
  * Constructor
  * Creates new resource with defined name

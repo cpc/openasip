@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -59,7 +59,7 @@ namespace TTAProgram{
  * Creates a ProgramOperation from operation
  * @param operation Operation
  */
-ProgramOperation::ProgramOperation(Operation &operation) :
+ProgramOperation::ProgramOperation(const Operation &operation) :
     operation_(operation), poId_(idCounter++) {
 }
 
@@ -135,7 +135,7 @@ ProgramOperation::addInputNode(MoveNode& node)
     int inputIndex = node.move().destination().operationIndex();
     if (MapTools::containsKey(inputMoves_, inputIndex)) {
         MoveNodeSet* nodeSet =
-            MapTools::valueForKey<MoveNodeSet*>(inputMoves_,inputIndex);
+            MapTools::valueForKey<MoveNodeSet*>(inputMoves_, inputIndex);
         nodeSet->addMoveNode(node);
         allInputMoves_.push_back(&node);
     } else {
@@ -438,7 +438,7 @@ ProgramOperation::hasOutputNode(int index) const {
  *
  * @return Return the operation object handle from OSAL
  */
-Operation&
+const Operation&
 ProgramOperation::operation() const {
     return operation_;
 }
@@ -555,7 +555,7 @@ ProgramOperation::Comparator::operator()(
 void
 ProgramOperation::switchInputs() {
 
-    Operation& op = operation();
+    const Operation& op = operation();
     assert (op.numberOfInputs() == 2 && op.canSwap(1,2));
     
     // switch input nodes.

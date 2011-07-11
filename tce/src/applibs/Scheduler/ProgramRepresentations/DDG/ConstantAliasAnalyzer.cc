@@ -38,6 +38,7 @@
 #include "MoveNode.hh"
 #include "Move.hh"
 #include "DataDependenceGraph.hh"
+#include "Terminal.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

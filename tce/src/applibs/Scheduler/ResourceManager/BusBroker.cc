@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,6 +49,7 @@
 #include "MachineConnectivityCheck.hh"
 #include "SequenceTools.hh"
 #include "TemplateSlot.hh"
+#include "TerminalImmediate.hh"
 
 using std::string;
 using std::set;

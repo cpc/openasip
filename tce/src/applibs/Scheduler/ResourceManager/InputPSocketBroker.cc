@@ -44,6 +44,7 @@
 #include "MapTools.hh"
 #include "Move.hh"
 #include "MoveNode.hh"
+#include "TerminalRegister.hh"
 
 using std::string;
 

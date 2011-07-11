@@ -38,6 +38,7 @@
 #include "SequenceTools.hh"
 #include "MoveNode.hh"
 #include "MathTools.hh"
+#include "TerminalImmediate.hh"
 
 /**
  * Constructor defining resource name, register count and register width

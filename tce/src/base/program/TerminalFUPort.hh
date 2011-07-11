@@ -34,8 +34,11 @@
 #ifndef TTA_TERMINAL_FU_PORT_HH
 #define TTA_TERMINAL_FU_PORT_HH
 
+#include <boost/shared_ptr.hpp>
 #include "Exception.hh"
 #include "Terminal.hh"
+
+class ProgramOperation;
 
 namespace TTAMachine {
     class HWOperation;
@@ -91,6 +94,14 @@ public:
     
     virtual TTAMachine::HWOperation* hwOperation() const;
 
+    /// these methods are used to group terminals belonging to a single
+    /// program operation invocation
+    bool hasProgramOperation() const { return po_ != NULL; }
+    void setProgramOperation(boost::shared_ptr<ProgramOperation> po) { 
+        po_ = po; 
+    }
+    ProgramOperation& programOperation() const { return *po_.get(); }
+
     virtual TCEString toString() const;
 
 
@@ -110,6 +121,10 @@ private:
     Operation* opcode_;
     /// Operation index.
     int opIndex_;
+    /// The ProgramOperation this terminal belongs to, if applicable.
+    /// The instance is shared by all the TerminalFUs belonging to 
+    /// the operation.
+    boost::shared_ptr<ProgramOperation> po_;
 };
 
 }

@@ -42,6 +42,8 @@
 #include "OutputPSocketResource.hh"
 #include "MoveNode.hh"
 #include "TCEString.hh"
+#include "TerminalRegister.hh"
+#include "TerminalImmediate.hh"
 
 using std::string;
 using namespace TTAMachine;

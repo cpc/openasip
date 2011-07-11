@@ -74,6 +74,7 @@
 #include "CodeGenerator.hh"
 #include "ProgramAnnotation.hh"
 #include "TCEString.hh"
+#include "ProgramOperation.hh"
 
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>
@@ -105,9 +106,7 @@
 #include <llvm/MC/MCInstrDesc.h>
 #endif
 
-#if (!(defined(LLVM_2_8) || defined(LLVM_2_7)))
 #include <llvm/ADT/SmallString.h>
-#endif
 
 #define END_SYMBOL_NAME "_end"
 
@@ -125,14 +124,8 @@ char LLVMTCEBuilder::ID = 0;
 LLVMTCEBuilder::LLVMTCEBuilder(
     const TargetMachine& tm,
     TTAMachine::Machine* mach,
-#ifdef LLVM_2_7
-    char&) :
-    MachineFunctionPass(this)
-#else
     char& ID) :
-    MachineFunctionPass(ID)
-#endif
-{
+    MachineFunctionPass(ID) {
     initMembers();
     tm_ = &tm;
     mach_ = mach;
@@ -240,18 +233,10 @@ LLVMTCEBuilder::initDataSections() {
     }
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
-#ifdef LLVM_2_7
-    mang_ = new Mangler(*tm_->getMCAsmInfo()); // Use prefix _ for all value names.
-#else
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
-#ifdef LLVM_2_8
-    MCContext* ctx = new MCContext(*tm_->getMCAsmInfo());
-#else
     MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
-#endif
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
-#endif
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
     umach_ = &prog_->universalMachine();
@@ -273,13 +258,9 @@ LLVMTCEBuilder::initDataSections() {
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-        TCEString name = mang_->getNameWithPrefix(i);
-#else
         SmallString<256> Buffer;
         mang_->getNameWithPrefix(Buffer, i, false);
         TCEString name(Buffer.c_str());
-#endif
         
         const llvm::GlobalValue& gv = *i;
 
@@ -421,15 +402,10 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
         for (Module::const_global_iterator i = mod_->global_begin();
              i != mod_->global_end(); i++) {
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-            if (def.name == mang_->getNameWithPrefix(i))
-#else
-		SmallString<256> Buffer;
-	    mang_->getNameWithPrefix(Buffer, i, false);
-	    if (def.name == Buffer.c_str())
-#endif
-	    {
-		var = i;
+            SmallString<256> Buffer;
+            mang_->getNameWithPrefix(Buffer, i, false);
+            if (def.name == Buffer.c_str()) {
+                var = i;
                 break;
             }
         }
@@ -879,13 +855,6 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
         
         codeLabels_[fnName] = dummyIns;
     }
-#if 0
-    if (Application::verboseLevel() > 0) {
-        Application::logStream() 
-            << "spill moves in " << mf.getFunction()->getNameStr() << ": " 
-            << spillMoveCount_ << std::endl;
-    }
-#endif
     return false;
 }
 
@@ -996,7 +965,9 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
 }
 
 /**
- * Creates POM instructions for a llvm instruction.
+ * Creates POM instructions from a LLVM MachineInstruction.
+ *
+ * One POM instruction per Move are created.
  *
  * @param mi Machine instruction to emit to the POM.
  * @param proc POM procedure to append the instruction to.
@@ -1222,11 +1193,30 @@ LLVMTCEBuilder::emitInstruction(
         assert(false && "No moves?");
     }
 
+    // Create the ProgramOperation and attach it to the TerminalFUs.
+    boost::shared_ptr<ProgramOperation> posp(new ProgramOperation(operation));
+
+    ProgramOperation* po = posp.get();
+
     for (unsigned i = 0; i < operandMoves.size(); i++) {
-        proc->add(operandMoves[i]);
+        TTAProgram::Instruction* instr = operandMoves[i];
+        TTAProgram::Move& m = instr->move(0);
+        proc->add(instr);
+        /// TODO: memory leak, someone should delete the MoveNodes?
+        po->addInputNode(*(new MoveNode(m)));
+        TTAProgram::TerminalFUPort& term = 
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
+        term.setProgramOperation(posp);
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
-        proc->add(resultMoves[i]);
+        TTAProgram::Instruction* instr = resultMoves[i];
+        TTAProgram::Move& m = instr->move(0);
+        proc->add(instr);
+        /// TODO: memory leak, someone should delete the MoveNodes?
+        po->addOutputNode(*(new MoveNode(m)));
+        TTAProgram::TerminalFUPort& term = 
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
+        term.setProgramOperation(posp);
     }
     return first;
 }

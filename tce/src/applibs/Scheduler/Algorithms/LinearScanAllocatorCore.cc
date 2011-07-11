@@ -866,7 +866,7 @@ void LinearScanAllocatorCore::updateMoves() {
                 if( mn.isSourceOperation()) {
                     
                     ProgramOperation& po = mn.sourceOperation();
-                    Operation& op = po.operation();
+                    const Operation& op = po.operation();
                     if( op.hasSideEffects()) {
                         throw Exception(
                             __FILE__,__LINE__,__func__,

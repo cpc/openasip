@@ -64,7 +64,6 @@ using namespace TTAMachine;
  *
  * @param newmove the Move this node refers to.
  */
-
 MoveNode::MoveNode(TTAProgram::Move& newmove) :
     move_(&newmove), srcOp_(NULL), dstOp_(NULL),
     cycle_(0), moveOwned_(false), placed_(false) {

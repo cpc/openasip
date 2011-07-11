@@ -183,6 +183,7 @@ WARNINGS="\
 .*warning[[:space:]]#.*|\
 .*[eE]rror[[:space:]].*|\
 .*error:.*|\
+.*warning:.ignoring.#pragma.GCC.diagnostic.*|\
 .*no[[:space:]]matching[[:space:]]function.*|\
 .*cannot[[:space:]]convert.*|\
 .*no[[:space:]]matching[[:space:]]function.*|\

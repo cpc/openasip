@@ -45,6 +45,7 @@
 #include "AssocTools.hh"
 #include "ProgramAnnotation.hh"
 #include "TCEString.hh"
+#include "TerminalFUPort.hh"
 
 using std::string;
 using namespace TTAMachine;

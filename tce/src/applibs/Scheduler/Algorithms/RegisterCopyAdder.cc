@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,6 +55,8 @@
 #include "BusBroker.hh"
 #include "TCEString.hh"
 #include "Guard.hh"
+#include "TerminalRegister.hh"
+#include "TerminalImmediate.hh"
 
 //#define DEBUG_REG_COPY_ADDER
 

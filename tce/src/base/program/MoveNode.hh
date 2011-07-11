@@ -42,9 +42,6 @@
 #include <string>
 #include "Exception.hh"
 #include "Move.hh"
-#include "TerminalRegister.hh"
-#include "TerminalFUPort.hh"
-#include "TerminalImmediate.hh"
 #include "GraphNode.hh"
 
 // dummy classes until real implementations are written

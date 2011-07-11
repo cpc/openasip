@@ -51,6 +51,7 @@
 #include "StringTools.hh"
 #include "ResourceManager.hh"
 #include "SchedulingResource.hh"
+#include "TerminalFUPort.hh"
 
 using std::string;
 using namespace TTAMachine;

@@ -47,7 +47,7 @@
  */
 class ProgramOperation {
 public:
-    ProgramOperation(Operation &operation);
+    ProgramOperation(const Operation &operation);
     ProgramOperation();
     ~ProgramOperation();
 
@@ -71,7 +71,7 @@ public:
     bool hasOutputNode(int out) const;
     bool hasInputNode(int in) const;
 
-    Operation& operation() const;
+    const Operation& operation() const;
 
     int inputMoveCount() const;
     int outputMoveCount() const;
@@ -101,7 +101,7 @@ private:
     // assignment forbidden
     ProgramOperation& operator=(const ProgramOperation&);
     // OSAL Operation this program operation is executing.
-    Operation& operation_;
+    const Operation& operation_;
     // map from operand index to MoveNodeSet
     std::map<int,MoveNodeSet*> inputMoves_;
     // map from operand index to MoveNodeSet

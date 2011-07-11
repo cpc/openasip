@@ -141,7 +141,7 @@ MemoryAliasAnalyzer::mausOfOperation(const Operation& op) {
 const MoveNode*
 MemoryAliasAnalyzer::addressOperandMove(
     const ProgramOperation& po) {
-    Operation& op = po.operation();
+    const Operation& op = po.operation();
 
     // no mem address if does not use memory
     if (!op.usesMemory()) {
@@ -173,7 +173,7 @@ MemoryAliasAnalyzer::findTwoPartAddressOperands(
     TwoPartAddressOperandDetection result;
     //   std::set<int> operandIndeces;
     
-    Operation& op = po.operation();
+    const Operation& op = po.operation();
     // TODO: assumes only one operation of dag uses memory.
     // like base + offset stores/loads.        
     for (int i = 0; i < op.dagCount(); i++) {
