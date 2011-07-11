@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -42,7 +42,7 @@
 #include "Guard.hh"
 #include "UniversalFunctionUnit.hh"
 
-#include "TerminalInstructionAddress.hh"
+#include "TerminalInstructionReference.hh"
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
 #include "TerminalRegister.hh"
@@ -222,7 +222,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                     if (jumpImm == NULL) {
                         jumpMove->source().setInstructionReference(ir);
                     } else {
-                        jumpImm->setValue(new TerminalInstructionAddress(ir));
+                        jumpImm->setValue(
+                            new TerminalInstructionReference(ir));
                     }
                 } else {
                     InstructionReference ir = irm.createReference(
@@ -231,7 +232,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                     if (jumpImm == NULL) {
                         jumpMove->source().setInstructionReference(ir);
                     } else {
-                        jumpImm->setValue(new TerminalInstructionAddress(ir));
+                        jumpImm->setValue(
+                            new TerminalInstructionReference(ir));
                     }
                 }
             } else { // fall-thru, skip first instructions of next BB.

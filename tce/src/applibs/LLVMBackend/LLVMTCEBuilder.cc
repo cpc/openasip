@@ -54,7 +54,8 @@
 #include "MoveGuard.hh"
 #include "Guard.hh"
 #include "Terminal.hh"
-#include "TerminalInstructionAddress.hh"
+#include "TerminalInstructionReference.hh"
+#include "TerminalAddress.hh"
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
 #include "TerminalFUPort.hh"
@@ -1549,8 +1550,8 @@ TTAProgram::Terminal*
 LLVMTCEBuilder::createMBBReference(const MachineOperand& mo) {
     TTAProgram::InstructionReference dummy(NULL);
     
-    TTAProgram::TerminalInstructionAddress* ref =
-        new TTAProgram::TerminalInstructionAddress(dummy);
+    TTAProgram::TerminalInstructionReference* ref =
+        new TTAProgram::TerminalInstructionReference(dummy);
     
     mbbReferences_[ref] = mbbName(*mo.getMBB());
     return ref;
@@ -1581,8 +1582,8 @@ LLVMTCEBuilder::createSymbolReference(const TCEString& name) {
         new TTAProgram::InstructionReference(NULL);
     
     
-    TTAProgram::TerminalInstructionAddress* ref =
-        new TTAProgram::TerminalInstructionAddress(
+    TTAProgram::TerminalInstructionReference* ref =
+        new TTAProgram::TerminalInstructionReference(
             *dummy);
     
     codeLabelReferences_[ref] = name;
@@ -2293,7 +2294,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
             // The initializer should be an array of '{ int, void ()* }' structs.  
             // The first value is the init priority, which we ignore.
             const ConstantArray* initList = cast<const ConstantArray>
-		(gv->getInitializer());
+                (gv->getInitializer());
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {
@@ -2309,21 +2310,17 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     TTAProgram::InstructionReference* dummy =
                         new TTAProgram::InstructionReference(NULL);
 
-                    TTAProgram::TerminalInstructionAddress* xtorRef =
-                        new TTAProgram::TerminalInstructionAddress(
+                    TTAProgram::TerminalInstructionReference* xtorRef =
+                        new TTAProgram::TerminalInstructionReference(
                             *dummy);
 
-		    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
-			cs->getOperand(1));
-		    assert(gv != NULL&&"global constructor name not constv");
+                    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
+                        cs->getOperand(1));
+                    assert(gv != NULL&&"global constructor name not constv");
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-		    TCEString name = mang_->getNameWithPrefix(gv);
-#else
-		    SmallString<256> Buffer;
-		    mang_->getNameWithPrefix(Buffer, gv, false);
-		    TCEString name(Buffer.c_str());
-#endif
+                    SmallString<256> Buffer;
+                    mang_->getNameWithPrefix(Buffer, gv, false);
+                    TCEString name(Buffer.c_str());
                     // who deletes xtorRef?
                     codeLabelReferences_[xtorRef] = name; 
 

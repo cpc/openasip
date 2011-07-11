@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of TPEFProgramFactory class.
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: yellow
  */
 
@@ -65,7 +66,8 @@
 #include "RelocElement.hh"
 #include "AddressSpace.hh"
 #include "InstructionReferenceManager.hh"
-#include "TerminalInstructionAddress.hh"
+#include "TerminalInstructionReference.hh"
+#include "TerminalAddress.hh"
 #include "InstructionReference.hh"
 #include "RelocSection.hh"
 #include "ProcedSymElement.hh"
@@ -299,8 +301,8 @@ TPEFProgramFactory::build()
             newProgram->instructionReferenceManager().createReference(
                 referencedInstruction);
 
-        TerminalInstructionAddress* instrTerm =
-            new TerminalInstructionAddress(instructionReference);
+        TerminalInstructionReference* instrTerm =
+            new TerminalInstructionReference(instructionReference);
 
         move->setSource(instrTerm);
     }
@@ -321,8 +323,8 @@ TPEFProgramFactory::build()
             newProgram->instructionReferenceManager().createReference(
                 referencedInstruction);
 
-        TerminalInstructionAddress* instrTerm =
-            new TerminalInstructionAddress(instructionReference);
+        TerminalInstructionReference* instrTerm =
+            new TerminalInstructionReference(instructionReference);
 
         immediate->setValue(instrTerm);
     }

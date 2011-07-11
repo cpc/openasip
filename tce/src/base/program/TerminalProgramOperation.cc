@@ -22,17 +22,17 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TerminalInstructionAddress.cc
+ * @file TerminalProgramOperation.cc
  *
- * Implementation of TerminalInstructionAddress class.
+ * Implementation of the TerminalProgramOperation class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
-#include "TerminalInstructionAddress.hh"
+#include "TerminalProgramOperation.hh"
 #include "Instruction.hh"
+#include "ProgramOperation.hh"
 
 using namespace TTAMachine;
 
@@ -41,19 +41,48 @@ namespace TTAProgram {
 /**
  * The constructor.
  *
- * @param value The value of the inline immediate (the address).
- * @param space The address space of the address the immediate refers to.
- * @param ref The instruction this address refers to.
+ * @param po The ProgramOperation to track.
  */
-TerminalInstructionAddress::TerminalInstructionAddress() :
-    TerminalImmediate(SimValue(0, WORD_BITWIDTH)) {
+TerminalProgramOperation::TerminalProgramOperation(
+    const ProgramOperation& po) :
+    TerminalInstructionAddress(), po_(po) {
 }
 
 /**
  * The destructor.
  */
-TerminalInstructionAddress::~TerminalInstructionAddress() {
+TerminalProgramOperation::~TerminalProgramOperation() {
 }
 
+/**
+ * Returns the instruction address of the trigger move in the tracked
+ * ProgramOperation.
+ */
+Address
+TerminalProgramOperation::address() const 
+    throw (WrongSubclass) {
+    return po_.triggeringMove()->move().parent().address();
+}
+
+/**
+ * Creates an exact copy of the terminal and returns it.
+ */
+Terminal*
+TerminalProgramOperation::copy() const {
+    return new TerminalProgramOperation(po_);
+}
+
+/**
+ * Checks if terminals are equal.
+ */
+bool 
+TerminalProgramOperation::equals(const Terminal& other) const {
+
+    if (!other.isInstructionAddress()) {
+        return false;
+    }
+    return &dynamic_cast<const TerminalProgramOperation&>(other).po_ == 
+        &this->po_;
+}
 
 }

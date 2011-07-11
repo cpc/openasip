@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,18 +29,19 @@
  * The instruction reference handles references to instructions.
  * 
  * The design consists of 3 classes:
+ *
  * InstructionReferenceManager: a single high-level object. Contains the
- * external interface, and maps to locate a reference to an instruction
+ * external interface, maps to locate a reference to an instruction
  * based on instruction, and ways to iterate over all instruction references.
  *
- * InstructionReference. The class which is shown to a client. Encapsulates
+ * InstructionReference: The class which is shown to a client. Encapsulates
  * a reference into a single instruction. Multiple InstructionReferences
- * may point to single instructions, and these can be freely copied etc.
+ * may point to a single instruction and these can be freely copied etc.
  * You should not use pointers to these classes, but always copy your 
- * existing objects. (with copy constructor/assignment) into the new one when
+ * existing objects with copy constructor/assignment into the new one when
  * returning from functions etc.
  *
- * InstructionReferenceImpl. This is internal intermediate implementation 
+ * InstructionReferenceImpl: This is internal intermediate implementation 
  * class. It is not shown to the user. There is always exactly one
  * InstructionReferenceImpl per target instruction. 
  * If two instruction references that originally pointed to different 

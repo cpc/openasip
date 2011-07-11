@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,43 +27,39 @@
  * Declaration of TerminalInstructionAddress class.
  *
  * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
 #ifndef TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
 #define TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
 
-#include "TerminalAddress.hh"
-#include "InstructionReference.hh"
+#include "TerminalImmediate.hh"
 
 namespace TTAProgram {
 
-class InstructionReference;
-
 /**
- * Represents an inline immediate that refers to an instruction address.
+ * An interface for Terminals that represent inline immediates that refer 
+ * to (absolute) instruction addresses.
  */
 class TerminalInstructionAddress : public TerminalImmediate {
 public:
-    TerminalInstructionAddress(InstructionReference ref);
+    TerminalInstructionAddress();
     virtual ~TerminalInstructionAddress();
 
-    virtual bool isInstructionAddress() const;
-    virtual SimValue value() const;
-    virtual const InstructionReference& instructionReference() const
-        throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() 
-        throw (WrongSubclass);
-    virtual void setInstructionReference(InstructionReference ref) 
-        throw (WrongSubclass);
-    virtual Terminal* copy() const;
-    virtual bool equals(const Terminal& other) const;
+    bool isInstructionAddress() const { return true; }
+    // the value as an instructionAddress()
+    virtual Address address() const 
+        throw (WrongSubclass) = 0;
+    SimValue value() const { 
+        return SimValue(address().location(), WORD_BITWIDTH); 
+    }
+    virtual Terminal* copy() const = 0;
+    virtual bool equals(const Terminal& other) const = 0;
 
 private:
     /// Assignment not allowed.
     TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
-    /// Referred instruction.
-    InstructionReference ref_;
 };
 
 }

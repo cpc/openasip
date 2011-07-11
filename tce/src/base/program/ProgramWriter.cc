@@ -683,7 +683,7 @@ ProgramWriter::IMMEDIATE_ADDRESS_WIDTH = WORD_BITWIDTH;
  * @param prog Program that from TPEF is created.
  */
 ProgramWriter::ProgramWriter(
-    const Program &prog):
+    const Program& prog):
     prog_(prog), tpef_(NullBinary::instance()) {
 }
 
@@ -1033,16 +1033,18 @@ ProgramWriter::createCodeSection(
                         int requiredBits = 0;
                         int fieldWidth = progMove.bus().immediateWidth();
 
-			if (progMove.bus().signExtends()) {
-                            requiredBits = MathTools::requiredBitsSigned(uvalue);
+                        if (progMove.bus().signExtends()) {
+                            requiredBits = 
+                                MathTools::requiredBitsSigned(uvalue);
                         } else {
-                            requiredBits = MathTools::requiredBits(uvalue);
+                            requiredBits = 
+                                MathTools::requiredBits(uvalue);
                         }
-                        
+                      
                         if (requiredBits <= fieldWidth) {
                             wordToStore = 
-                                MathTools::zeroExtendTo(wordToStore, fieldWidth);
-                            
+                                MathTools::zeroExtendTo(
+                                    wordToStore, fieldWidth);
                         } else {
                             int location =  
                                 progMove.parent().address().location();
@@ -1080,8 +1082,7 @@ ProgramWriter::createCodeSection(
                             // TODO: check size of inline immediate field
                             RelocInfo newReloc(
                                 code, newImmediate, 
-                                progMove.source().instructionReference().
-                                instruction().address(),
+                                progMove.source().address(),
                                 IMMEDIATE_ADDRESS_WIDTH);
                             
                             relocInfos_.push_back(newReloc);
@@ -1221,8 +1222,7 @@ ProgramWriter::createCodeSection(
                     // TODO: check size of long immediate field
                     RelocInfo newReloc(
                         code, tpefImm, 
-                        imm.value().instructionReference().
-                        instruction().address(),
+                        imm.value().address(),
                         IMMEDIATE_ADDRESS_WIDTH);
                     
                     relocInfos_.push_back(newReloc);

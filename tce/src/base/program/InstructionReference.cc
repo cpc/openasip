@@ -75,7 +75,8 @@ InstructionReference::InstructionReference(const InstructionReference& ref):
  * Changes this reference to point to another instruction. Only changes
  * this reference, not other references pointing to same instruction.
  */
-InstructionReference& InstructionReference::operator=(
+InstructionReference& 
+InstructionReference::operator=(
     const InstructionReference& ref) {
     // if both point to same instruction, no need to do anything.
     if (ref.impl_ != impl_) {
@@ -94,7 +95,9 @@ InstructionReference& InstructionReference::operator=(
 
 
 /**
- * Destructor. Tells the impl that we are no longer pointing to it.
+ * Destructor. 
+ *
+ * Tells the impl that we are no longer pointing to it.
  * It may get also deleted if this was the last reference to it.
  */
 InstructionReference::~InstructionReference() {
@@ -106,7 +109,10 @@ InstructionReference::~InstructionReference() {
 /**
  * Sets a new referred instruction.
  *
- * @param ins New referred instruction.
+ * The InstructionReferenceImpl is a "proxy object" that counts and 
+ * keeps book of references
+ *
+ * @param newImpl New referred instruction.
  * @return true if old impl stays alive, false if it is deleted.
  */
 bool

@@ -118,9 +118,10 @@ InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
 }
 
 /**
- * Clears all instruction references. The result is a totally empty
- * instruction reference manager. This nullifies all instructionreferences
- * handled by this reference manager.
+ * Clears all instruction references. 
+ *
+ * The result is a totally empty instruction reference manager. This 
+ * nullifies all instructionreferences handled by this reference manager.
  */ 
 void
 InstructionReferenceManager::clearReferences() {
@@ -159,8 +160,8 @@ InstructionReferenceManager::referenceCount(Instruction& ins) const {
 
 /**
  * Notifies instructionreferencemanager that a reference has completely died.
- * This causes the reference manager to remove the 
- * reference impl object.
+ *
+ * This causes the reference manager to remove the reference impl object.
  */
 void 
 InstructionReferenceManager::referenceDied(Instruction* ins) {

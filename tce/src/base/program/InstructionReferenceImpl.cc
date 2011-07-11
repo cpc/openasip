@@ -50,7 +50,9 @@ class InstructionReference;
 
 
 /**
- * Constructor. Stores the instruction and reference manager.
+ * Constructor. 
+ *
+ * Stores the instruction and reference manager.
  *
  * @param ins Instruction whose references this will handle
  * @param irm the InstructionReferenceManager owning this object.
@@ -62,6 +64,7 @@ InstructionReferenceImpl::InstructionReferenceImpl(
 
 /** 
  * Destructor. 
+ *
  * Just asserts no refs point into this.
  */
 InstructionReferenceImpl::~InstructionReferenceImpl() {
@@ -70,6 +73,7 @@ InstructionReferenceImpl::~InstructionReferenceImpl() {
     
 /**
  * Nullifies all references pointing to this.
+ *
  * This should only be called by instructionreferenec manager when removing
  * zombie refs.
  */
@@ -99,6 +103,7 @@ InstructionReferenceImpl::addRef(InstructionReference& ref) {
 
 /**
  * A reference no longer points to instruction handled by this object.
+ *
  * Removes it from the list. If it was last, ask InstructionReferenceManager
  * to delete this object.
  * 
@@ -117,10 +122,11 @@ InstructionReferenceImpl::removeRef(InstructionReference& ref) {
 }
 
 /** 
- * Merges another irimpl to this object. Makes all of it's references to
- * point into this instead. This will also indirectly lead to the
- * deletion of the other.
- * This is used for irm.update() when the new target ins already has a ref.
+ * Merges another irimpl to this object. 
+ *
+ * Makes all of it's references to point into this instead. This will also 
+ * indirectly lead to the deletion of the other. This is used for irm.update() 
+ * when the new target ins already has a ref.
  *
  * @param other InstructionRefererenceImpl which to merge into this.
  */
@@ -135,7 +141,7 @@ InstructionReferenceImpl::merge(InstructionReferenceImpl& other) {
 }
 
 /**
- * Sets this object to point into another instruction
+ * Sets this object to point into another instruction.
  * 
  * This method should be only called by InstructionReferenceManager.
  *

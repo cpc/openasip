@@ -22,38 +22,51 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TerminalInstructionAddress.cc
+ * @file TerminalProgramOperation.hh
  *
- * Implementation of TerminalInstructionAddress class.
+ * Declaration of TerminalProgramOperation class.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
-#include "TerminalInstructionAddress.hh"
-#include "Instruction.hh"
+#ifndef TTA_TERMINAL_PROGRAM_OPERATION_HH
+#define TTA_TERMINAL_PROGRAM_OPERATION_HH
 
-using namespace TTAMachine;
+#include "TerminalInstructionAddress.hh"
+
+class ProgramOperation;
 
 namespace TTAProgram {
 
 /**
- * The constructor.
+ * Represents an inline immediate that refers to a program operation (a
+ * set of moves constituting a single execution of an operation in the
+ * program).
  *
- * @param value The value of the inline immediate (the address).
- * @param space The address space of the address the immediate refers to.
- * @param ref The instruction this address refers to.
+ * The returned instruction address is the one of the trigger move of the
+ * tracked ProgramOperation. This class is used to refer to the location of
+ * an another ProgramOperation strictly (not wanting to refer to the 
+ * beginning of a BB).
  */
-TerminalInstructionAddress::TerminalInstructionAddress() :
-    TerminalImmediate(SimValue(0, WORD_BITWIDTH)) {
+class TerminalProgramOperation : public TerminalInstructionAddress {
+public:
+    TerminalProgramOperation(const ProgramOperation& po);
+    virtual ~TerminalProgramOperation();
+
+    virtual Address address() const 
+        throw (WrongSubclass);
+
+    virtual Terminal* copy() const;
+    virtual bool equals(const Terminal& other) const;
+
+private:
+    /// Assignment not allowed.
+    TerminalProgramOperation& operator=(const TerminalProgramOperation&);
+    /// The referred PO.
+    const ProgramOperation& po_;
+};
+
 }
 
-/**
- * The destructor.
- */
-TerminalInstructionAddress::~TerminalInstructionAddress() {
-}
-
-
-}
+#endif

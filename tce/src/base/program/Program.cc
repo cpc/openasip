@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of Program class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2006,2011 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -63,8 +63,8 @@
 #include "TPEFWriter.hh"
 #include "Immediate.hh"
 #include "MathTools.hh"
+#include "TerminalInstructionReference.hh"
 
-#include "TerminalInstructionAddress.hh"
 using std::string;
 
 using namespace TTAMachine;
@@ -1232,7 +1232,7 @@ Program::convertSymbolRef(Terminal& tsr) {
     }
     const Procedure& target = procedure(procName);
     assert(target.instructionCount() >0);
-    return new TTAProgram::TerminalInstructionAddress(
+    return new TTAProgram::TerminalInstructionReference(
         refManager_->createReference(
             target.firstInstruction()));
 }

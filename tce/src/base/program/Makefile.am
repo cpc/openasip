@@ -32,7 +32,8 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	DisassemblyLabel.cc DisassemblyNOP.cc DisassemblyFUOperand.cc \
 	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc CodeGenerator.cc \
     TerminalBasicBlockReference.cc BasicBlock.cc TerminalSymbolReference.cc \
-	MoveNode.cc MoveNodeSet.cc ProgramOperation.cc
+	MoveNode.cc MoveNodeSet.cc ProgramOperation.cc TerminalProgramOperation.cc \
+	TerminalInstructionReference.cc
 
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
@@ -85,5 +86,6 @@ libprogram_la_SOURCES += \
 	Address.icc Procedure.icc \
 	InstructionReferenceImpl.icc \
     TerminalSymbolReference.hh TerminalBasicBlockReference.hh BasicBlock.hh \
-	MoveNode.hh MoveNode.icc ProgramOperation.hh
+	MoveNode.hh MoveNode.icc ProgramOperation.hh TerminalProgramOperation.hh \
+	TerminalInstructionReference.hh
 ## headers end

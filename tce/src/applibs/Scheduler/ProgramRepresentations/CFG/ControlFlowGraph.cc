@@ -38,12 +38,14 @@
 #include <algorithm>
 #include <functional>
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <boost/graph/depth_first_search.hpp>
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/Function.h>
 #include <llvm/Module.h>
+#pragma GCC diagnostic warning "-Wunused-parameter"
 
 #include "ControlFlowGraph.hh"
 
@@ -78,7 +80,7 @@
 #include "Conversion.hh"
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
-#include "TerminalInstructionAddress.hh"
+#include "TerminalInstructionReference.hh"
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
@@ -268,8 +270,8 @@ ControlFlowGraph::createBBEdges(
                     /// Do not create fall through edge after call to __exit
                     if (hasExit &&
                         instruction->move(i).source().isInstructionAddress()) {
-                        TTAProgram::TerminalInstructionAddress* address =
-                        dynamic_cast<TTAProgram::TerminalInstructionAddress*>
+                        TTAProgram::TerminalInstructionReference* address =
+                        dynamic_cast<TTAProgram::TerminalInstructionReference*>
                             (&instruction->move(i).source());
                         Instruction& destination =
                             address->instructionReference().instruction();
@@ -2095,8 +2097,8 @@ ControlFlowGraph::removeJumpToTarget(
 
             TTAProgram::Terminal& term = move.source();
             if (term.isInstructionAddress()) {
-                TTAProgram::TerminalInstructionAddress& tia =
-                    dynamic_cast<TTAProgram::TerminalInstructionAddress&>(
+                TTAProgram::TerminalInstructionReference& tia =
+                    dynamic_cast<TTAProgram::TerminalInstructionReference&>(
                         term);
                 TTAProgram::InstructionReference& ir =
                     tia.instructionReference();
@@ -2242,7 +2244,7 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                             src.basicBlock();
                         assert(target.instructionCount() > 0);
                         move.setSource(
-                            new TTAProgram::TerminalInstructionAddress(
+                            new TTAProgram::TerminalInstructionReference(
                                 irm.createReference(
                                     target.firstInstruction())));
                     }
@@ -2257,7 +2259,7 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                             immVal.basicBlock();
                         assert(target.instructionCount() > 0);
                         imm.setValue(
-                            new TTAProgram::TerminalInstructionAddress(
+                            new TTAProgram::TerminalInstructionReference(
                                 irm.createReference(
                                     target.firstInstruction())));
                     }

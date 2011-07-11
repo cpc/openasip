@@ -18,7 +18,7 @@
 #include "TerminalFUPort.hh"
 #include "Move.hh"
 #include "TerminalImmediate.hh"
-#include "TerminalInstructionAddress.hh"
+#include "TerminalInstructionReference.hh"
 #include "RFPort.hh"
 #include "HWOperation.hh"
 #include "UniversalFunctionUnit.hh"
@@ -505,8 +505,8 @@ CodeGenerator::pushInstructionReferenceToStack(
     TTAProgram::InstructionReference& srcAddr) {
 
     // create terminal references
-    TTAProgram::TerminalInstructionAddress* srcTerminal =
-        new TTAProgram::TerminalInstructionAddress(srcAddr);
+    TTAProgram::TerminalInstructionReference* srcTerminal =
+        new TTAProgram::TerminalInstructionReference(srcAddr);
 
     pushToStack(dstProcedure, stackRegister, srcTerminal);
 }
@@ -518,8 +518,8 @@ CodeGenerator::pushInstructionReferenceToBuffer(
     TTAProgram::InstructionReference& srcAddr) {
 
     // create terminal references
-    TTAProgram::TerminalInstructionAddress* srcTerminal =
-        new TTAProgram::TerminalInstructionAddress(srcAddr);
+    TTAProgram::TerminalInstructionReference* srcTerminal =
+        new TTAProgram::TerminalInstructionReference(srcAddr);
 
     pushToBuffer(dstProcedure, indexRegister, srcTerminal);
 }
@@ -562,7 +562,7 @@ CodeGenerator::createJump(TTAProgram::InstructionReference& dst) {
         createTerminalFUPort("jump", 1);
 
     TTAProgram::Terminal* jump0Terminal =
-        new TTAProgram::TerminalInstructionAddress(dst);
+        new TTAProgram::TerminalInstructionReference(dst);
 
     return new TTAProgram::Move(jump0Terminal, jump1Terminal,
                                 uMach_->universalBus());
@@ -574,8 +574,8 @@ CodeGenerator::createJump(TTAProgram::InstructionReference& dst) {
  */
 TTAProgram::Move*
 CodeGenerator::createCall(TTAProgram::InstructionReference& callDst) {
-    TTAProgram::TerminalInstructionAddress* srcTerminal =
-        new TTAProgram::TerminalInstructionAddress(callDst);
+    TTAProgram::TerminalInstructionReference* srcTerminal =
+        new TTAProgram::TerminalInstructionReference(callDst);
 
     TTAProgram::TerminalFUPort* dstTerminal =
         createTerminalFUPort("call", 1);
@@ -591,8 +591,8 @@ CodeGenerator::createCall(
     TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::InstructionReference& callDst) {
 
-    TTAProgram::TerminalInstructionAddress* srcTerminal =
-        new TTAProgram::TerminalInstructionAddress(callDst);
+    TTAProgram::TerminalInstructionReference* srcTerminal =
+        new TTAProgram::TerminalInstructionReference(callDst);
 
     TTAProgram::TerminalFUPort* dstTerminal =
         createTerminalFUPort("call", 1);
