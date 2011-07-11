@@ -36,6 +36,7 @@
 #include "IPXactModel.hh"
 #include "NetlistBlock.hh"
 #include "Vlnv.hh"
+#include "PlatformIntegratorTypes.hh"
 
 class IPXactInterface {
 public:
@@ -54,7 +55,7 @@ public:
 
     virtual IPXactModel::BusMode busMode() const;
 
-    virtual const SignalMappingList& interfaceMapping() const;
+    virtual const PlatInt::SignalMappingList& interfaceMapping() const;
 
     virtual void addSignalMapping(
         const TCEString& actualSignal,
@@ -89,7 +90,7 @@ private:
     /// Vendor,Library,Name,Version of the bus abstraction type
     IPXact::Vlnv busAbstractionType_;
     /// Mapping of actual port names and interface port names
-    SignalMappingList interfaceMap_;
+    PlatInt::SignalMappingList interfaceMap_;
 };
 
 #endif

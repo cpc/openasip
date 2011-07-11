@@ -38,8 +38,10 @@
 #include "QuartusProjectGenerator.hh"
 #include "PlatformIntegrator.hh"
 #include "StringTools.hh"
+#include "PlatformIntegratorTypes.hh"
 using std::ofstream;
 using std::endl;
+using PlatInt::SignalMapping;
 
 QuartusProjectGenerator::QuartusProjectGenerator(
     TCEString coreEntity,

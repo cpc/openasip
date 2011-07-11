@@ -30,6 +30,7 @@
  * @note rating: red
  */
 #include "IPXactInterface.hh"
+using PlatInt::SignalMapping;
 using std::pair;
 
 IPXactInterface::IPXactInterface():
@@ -38,6 +39,10 @@ IPXactInterface::IPXactInterface():
 }
 
 IPXactInterface::~IPXactInterface() {
+
+    for (unsigned int i = 0; i < interfaceMap_.size(); i++) {
+        delete interfaceMap_.at(i);
+    }
 }
 
 TCEString
@@ -64,7 +69,7 @@ IPXactInterface::busMode() const {
     return busMode_;
 }
 
-const SignalMappingList&
+const PlatInt::SignalMappingList&
 IPXactInterface::interfaceMapping() const {
 
     return interfaceMap_;
@@ -75,8 +80,9 @@ IPXactInterface::addSignalMapping(
     const TCEString& actualSignal,
     const TCEString& busSignal) {
 
-    interfaceMap_.push_back(
+    SignalMapping* signalMap = new SignalMapping(
         pair<TCEString,TCEString>(actualSignal, busSignal));
+    interfaceMap_.push_back(signalMap);
 }
 
 void

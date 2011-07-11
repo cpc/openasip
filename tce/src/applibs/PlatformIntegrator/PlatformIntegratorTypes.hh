@@ -22,47 +22,29 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file IPXactHibiInterface.hh
+ * @file PlatformIntegratorTypes.hh
  *
- * Declaration of IPXactHibiInterface class.
+ * Declaration of data types used in Platform Integration
  *
  * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_IP_XACT_HIBI_INTERFACE_HH
-#define TTA_IP_XACT_HIBI_INTERFACE_HH
 
-#include "IPXactInterface.hh"
+#ifndef TTA_PLATFORM_INTEGRATOR_TYPES_HH
+#define TTA_PLATFORM_INTEGRATOR_TYPES_HH
+
+#include <map>
+#include <vector>
 #include "TCEString.hh"
 
-class IPXactHibiInterface : public IPXactInterface {
-public:
+namespace PlatInt {
 
-    IPXactHibiInterface();
+typedef std::pair<TCEString, TCEString> SignalMapping;
 
-    virtual ~IPXactHibiInterface();
+typedef std::vector<SignalMapping*> SignalMappingList;
 
-    virtual bool mapPortsToInterface(const ProGe::NetlistBlock& toplevel);
+typedef std::map<TCEString, SignalMappingList*> PinMap;
 
-private:
-    void createInstanceName(
-        const TCEString& fullName,
-        const TCEString& portName);
-
-    /// Mapping of known port names and interface port names
-    PlatInt::SignalMappingList interfaceSearch_;
-
-    static const TCEString DEFAULT_INSTANCE_NAME;
-    static const TCEString VENDOR;
-    static const TCEString LIBRARY;
-    static const TCEString NAME;
-    static const TCEString BUS_VERSION;
-    static const TCEString ABS_VENDOR;
-    static const TCEString ABS_LIBRARY;
-    static const TCEString ABS_NAME;
-    static const TCEString ABS_VERSION;
-
-    static const IPXactModel::BusMode DEFAULT_BUS_MODE;
-};
+}
 
 #endif

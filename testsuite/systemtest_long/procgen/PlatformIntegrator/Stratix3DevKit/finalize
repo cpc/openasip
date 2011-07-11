@@ -1,0 +1,10 @@
+#!/bin/bash
+rm -f quartus_program_fpga.sh quartus_synthesize.sh
+rm -f program.tpef program.mif program_data.mif *.qip
+rm -f program_data.img program_imem_pkg.vhdl
+rm -rf incremental_db db greybox_tmp
+
+rm -rf proge-out-onchip
+rm -f stratix_test_onchip_onchip*
+rm -f run_onchip.log
+

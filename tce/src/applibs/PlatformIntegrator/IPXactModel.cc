@@ -40,8 +40,10 @@
 #include "ObjectState.hh"
 #include "HDLPort.hh"
 #include "Conversion.hh"
-using std::vector;
+#include "PlatformIntegratorTypes.hh"
+using PlatInt::SignalMappingList;
 using IPXact::Vlnv;
+using std::vector;
 
 const TCEString IPXactModel::OSNAME_IPXACT_MODEL = "spirit:component";
 const TCEString IPXactModel::OSNAME_VENDOR = "spirit:vendor";
@@ -362,12 +364,12 @@ IPXactModel::addBusInterfaceObject(
 
         ObjectState* compPort = new ObjectState(OSNAME_BUS_PORT_MAP_COMP);
         ObjectState* compPortName = new ObjectState(OSNAME_BUS_PORT_MAP_NAME);
-        compPortName->setValue(signalMap.at(i).first);
+        compPortName->setValue(signalMap.at(i)->first);
         compPort->addChild(compPortName);
 
         ObjectState* busPort = new ObjectState(OSNAME_BUS_PORT_MAP_BUS);
         ObjectState* busPortName = new ObjectState(OSNAME_BUS_PORT_MAP_NAME);
-        busPortName->setValue(signalMap.at(i).second);
+        busPortName->setValue(signalMap.at(i)->second);
         busPort->addChild(busPortName);
 
         // in IP-XACT 1.5 bus logical port comes before physical port

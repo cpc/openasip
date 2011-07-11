@@ -35,7 +35,6 @@
 #include <string>
 #include <vector>
 #include "Serializable.hh"
-#include "ProjectFileGenerator.hh" // for SignalMappingList
 #include "HDLPort.hh"
 #include "Vlnv.hh"
 #include "Netlist.hh"

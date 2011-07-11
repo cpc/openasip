@@ -1,0 +1,37 @@
+/**
+ * OSAL behavior definition file.
+ */
+
+#include "OSAL.hh"
+
+OPERATION(READ_SWITCH_STATE)
+TRIGGER
+unsigned int state = UINT(1);
+state = 1;
+IO(2) = state;
+END_TRIGGER
+END_OPERATION(READ_SWITCH_STATE)
+
+OPERATION(READ_SWITCH_STATE_ALL)
+TRIGGER
+unsigned int state = UINT(1);
+state = 0xFFFFFFFF;
+IO(2) = state;
+END_TRIGGER
+END_OPERATION(READ_SWITCH_STATE_ALL)
+
+OPERATION(READ_BUTTON_STATE)
+TRIGGER
+unsigned int state = UINT(1);
+state = 1;
+IO(2) = state;
+END_TRIGGER
+END_OPERATION(READ_BUTTON_STATE)
+
+OPERATION(READ_BUTTON_STATE_ALL)
+TRIGGER
+unsigned int state = UINT(1);
+state = 0xFFFFFFFF;
+IO(2) = state;
+END_TRIGGER
+END_OPERATION(READ_BUTTON_STATE_ALL)

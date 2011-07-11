@@ -17,6 +17,12 @@ nobase_base_DATA = $(srcdir)/asic_130nm_1.5V.hdb \
                    $(srcdir)/fpu_embedded.hdb \
                    $(srcdir)/fpu_embedded_vhdl/* \
                    $(srcdir)/altera_jtag_uart.hdb \
-                   $(srcdir)/altera_jtag_uart_vhdl/*
+                   $(srcdir)/altera_jtag_uart_vhdl/* \
+                   $(srcdir)/stratixIII.hdb \
+                   $(srcdir)/stratixIII_vhdl/fpga_lsu/* \
+                   $(srcdir)/stratixIII_vhdl/led_io/* \
+                   $(srcdir)/stratixIII_vhdl/pushbutton/* \
+                   $(srcdir)/stratixIII_vhdl/rtc/* \
+                   $(srcdir)/stratixIII_vhdl/switch/*
 
 EXTRA_DIST = ${nobase_base_DATA}

@@ -45,6 +45,7 @@
 #include "Machine.hh"
 #include "BinaryEncoding.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
+#include "Stratix3DevKitIntegrator.hh"
 #include "KoskiIntegrator.hh"
 #include "AvalonIntegrator.hh"
 #include "MemoryGenerator.hh"
@@ -360,6 +361,7 @@ GenerateProcessor::listIntegrators() const {
     std::vector<PlatformIntegrator*> integrators;
     // append new integrators here
     integrators.push_back(new Stratix2DSPBoardIntegrator());
+    integrators.push_back(new Stratix3DevKitIntegrator());
     integrators.push_back(new KoskiIntegrator());
     integrators.push_back(new AvalonIntegrator());
 

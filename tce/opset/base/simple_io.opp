@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>READ_SWITCH_STATE</name>
+    <description>Read the state of a switch. Input operand defines the index of the switch. Simulation behavior always returns '1'.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>READ_SWITCH_STATE_ALL</name>
+    <description>Read the states of all available switches. Output bit pattern index refers to the switch index i.e. LSB is switch index 0.
+
+Simulation behavior returns '1' for all swtiches</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>READ_BUTTON_STATE</name>
+    <description>Read the state of a push button. Return value '1' means the button has been pressed. Input operand defines the index of the button to be read. Reading the state resets it to '0'.
+
+Simulation behavior always returns '1'.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>READ_BUTTON_STATE_ALL</name>
+    <description>Read the states of all available push buttons. Return value '1' means the button has been pressed. Button states are reset to '0' after reading.
+
+Simulation behavior returns '1' for all buttons.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+</osal>

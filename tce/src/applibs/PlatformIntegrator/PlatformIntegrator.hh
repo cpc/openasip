@@ -53,7 +53,6 @@ namespace IDF {
     class MachineImplementation;
 }
 
-
 class ProjectFileGenerator;
 
 class PlatformIntegrator {

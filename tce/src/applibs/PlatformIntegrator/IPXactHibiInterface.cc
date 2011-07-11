@@ -62,28 +62,32 @@ IPXactHibiInterface::IPXactHibiInterface():
     setBusMode(DEFAULT_BUS_MODE);
 
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_comm_out", "COMM_FROM_IP"));
+        new pair<TCEString,TCEString>("hibi_comm_out", "COMM_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_data_out", "DATA_FROM_IP"));
+        new pair<TCEString,TCEString>("hibi_data_out", "DATA_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_av_out", "AV_FROM_IP"));
+        new pair<TCEString,TCEString>("hibi_av_out", "AV_FROM_IP"));
     interfaceSearch_. push_back(
-        pair<TCEString,TCEString>("hibi_we_out", "WE_FROM_IP"));
+        new pair<TCEString,TCEString>("hibi_we_out", "WE_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_re_out", "RE_FROM_IP"));
+        new pair<TCEString,TCEString>("hibi_re_out", "RE_FROM_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_comm_in", "COMM_TO_IP"));
+        new pair<TCEString,TCEString>("hibi_comm_in", "COMM_TO_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_data_in", "DATA_TO_IP"));
+        new pair<TCEString,TCEString>("hibi_data_in", "DATA_TO_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_av_in", "AV_TO_IP"));
+        new pair<TCEString,TCEString>("hibi_av_in", "AV_TO_IP"));
     interfaceSearch_. push_back(
-        pair<TCEString,TCEString>("hibi_full_in", "FULL_TO_IP"));
+        new pair<TCEString,TCEString>("hibi_full_in", "FULL_TO_IP"));
     interfaceSearch_.push_back(
-        pair<TCEString,TCEString>("hibi_empty_in", "EMPTY_TO_IP"));
+        new pair<TCEString,TCEString>("hibi_empty_in", "EMPTY_TO_IP"));
 }
 
 IPXactHibiInterface::~IPXactHibiInterface() {
+
+    for (unsigned int i = 0; i < interfaceSearch_.size(); i++) {
+        delete interfaceSearch_.at(i);
+    }
 }
 
 bool
@@ -93,10 +97,10 @@ IPXactHibiInterface::mapPortsToInterface(
     bool instanceNameSet = false;
     for (unsigned int i = 0; i < interfaceSearch_.size(); i++) {
         for (int j = 0; j < toplevel.portCount(); j++) {           
-            TCEString interfacePort = interfaceSearch_.at(i).first;
+            TCEString interfacePort = interfaceSearch_.at(i)->first;
             NetlistPort& port = toplevel.port(j);
             if (port.name().find(interfacePort) != TCEString::npos) {
-                TCEString abstractPort = interfaceSearch_.at(i).second;
+                TCEString abstractPort = interfaceSearch_.at(i)->second;
                 addSignalMapping(port.name(), abstractPort);
                 if (!instanceNameSet) {
                     createInstanceName(port.name(), interfacePort);

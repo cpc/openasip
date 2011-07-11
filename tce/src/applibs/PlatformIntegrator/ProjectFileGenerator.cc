@@ -35,6 +35,7 @@
 #include "ProjectFileGenerator.hh"
 #include "PlatformIntegrator.hh"
 #include "StringTools.hh"
+using PlatInt::SignalMapping;
 
 ProjectFileGenerator::ProjectFileGenerator(
     TCEString coreEntity,
@@ -44,6 +45,10 @@ ProjectFileGenerator::ProjectFileGenerator(
 
 
 ProjectFileGenerator::~ProjectFileGenerator() {
+
+    for (unsigned int i = 0; i < signalMap_.size(); i++) {
+        delete signalMap_.at(i);
+    }
 }
 
 
@@ -73,7 +78,8 @@ ProjectFileGenerator::addMemInitFile(const TCEString& memInit) {
 void
 ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
     
-    signalMap_.push_back(mapping);
+    SignalMapping* signalMap = new SignalMapping(mapping);
+    signalMap_.push_back(signalMap);
 }
 
 
@@ -106,7 +112,7 @@ ProjectFileGenerator::signalMappingCount() const {
 const SignalMapping*
 ProjectFileGenerator::signalMapping(int index) const {
 
-    return &signalMap_.at(index);
+    return signalMap_.at(index);
 }
 
 

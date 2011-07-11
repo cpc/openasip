@@ -34,11 +34,9 @@
 
 #include <vector>
 #include "TCEString.hh"
+#include "PlatformIntegratorTypes.hh"
 
 class PlatformIntegrator;
-
-typedef std::pair<TCEString, TCEString> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
 
 class ProjectFileGenerator {
 public:
@@ -54,7 +52,7 @@ public:
 
     void addMemInitFile(const TCEString& memInit);
 
-    void addSignalMapping(const SignalMapping& mapping);
+    void addSignalMapping(const PlatInt::SignalMapping& mapping);
 
 protected:
 
@@ -71,7 +69,7 @@ protected:
 
     int signalMappingCount() const;
 
-    const SignalMapping* signalMapping(int index) const;
+    const PlatInt::SignalMapping* signalMapping(int index) const;
 
     TCEString extractFUName(
         const TCEString& port,
@@ -84,7 +82,7 @@ private:
     
     std::vector<TCEString> hdlFiles_;
     std::vector<TCEString> memInitFiles_;
-    SignalMappingList signalMap_;
+    PlatInt::SignalMappingList signalMap_;
 };
 
 #endif

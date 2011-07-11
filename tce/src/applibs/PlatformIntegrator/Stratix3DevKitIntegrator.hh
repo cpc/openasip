@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,39 +22,31 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file Stratix2DSPBoardIntegrator.hh
+ * @file Stratix3DevKitIntegrator.hh
  *
- * Declaration of Stratix2DSPBoardIntegrator class.
+ * Declaration of Stratix3DevKitIntegrator class.
  *
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2011 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_STRATIX2_DSP_BOARD_INTEGRATOR_HH
-#define TTA_STRATIX2_DSP_BOARD_INTEGRATOR_HH
+#ifndef TTA_STRATIX3_DEV_KIT_INTEGRATOR_HH
+#define TTA_STRATIX3_DEV_KIT_INTEGRATOR_HH
 
 #include <iostream>
-#include <sstream>
-#include <map>
 #include <vector>
-#include <string>
+#include <map>
+#include "TCEString.hh"
 #include "AlteraIntegrator.hh"
 #include "QuartusProjectGenerator.hh"
-#include "ProGeTypes.hh"
 #include "PlatformIntegratorTypes.hh"
 
-namespace ProGe {
-    class Netlist;
-    class NetlistBlock;
-    class NetlistPort;
-}
-
-class Stratix2DSPBoardIntegrator : public AlteraIntegrator {
+class Stratix3DevKitIntegrator : public AlteraIntegrator {
 public:
 
-    Stratix2DSPBoardIntegrator();
+    Stratix3DevKitIntegrator();
 
-    Stratix2DSPBoardIntegrator(
+    Stratix3DevKitIntegrator(
         const TTAMachine::Machine* machine,
         const IDF::MachineImplementation* idf,
         ProGe::HDL hdl,
@@ -67,11 +59,11 @@ public:
         std::ostream& errorStream,
         const MemInfo& imem,
         const MemInfo& dmem);
-    
-    virtual ~Stratix2DSPBoardIntegrator();
+
+    virtual ~Stratix3DevKitIntegrator();
 
     virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
-
+    
     virtual TCEString deviceFamily() const;
 
     virtual void setDeviceFamily(TCEString devFamily);
@@ -87,14 +79,10 @@ public:
     virtual void printInfo(std::ostream& stream) const;
 
 protected:
-    
-    virtual MemoryGenerator* dmemInstance();
 
     virtual TCEString pinTag() const;
 
     virtual bool chopTaggedSignals() const;
-
-    virtual bool isDataMemorySignal(const TCEString& signalName) const;
 
     virtual ProjectFileGenerator* projectFileGenerator() const;
 
@@ -108,7 +96,7 @@ private:
 
     QuartusProjectGenerator* quartusGen_;
 
-    PlatInt::PinMap stratix2Pins_;
+    PlatInt::PinMap stratix3Pins_;
 
     static const TCEString DEVICE_FAMILY_;
 
@@ -121,6 +109,7 @@ private:
     static const TCEString PIN_TAG_;
 
     static const int DEFAULT_FREQ_;
+
 };
 
 #endif

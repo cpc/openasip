@@ -68,6 +68,7 @@
 #include "NetlistBlock.hh"
 #include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
+#include "Stratix3DevKitIntegrator.hh"
 #include "KoskiIntegrator.hh"
 #include "AvalonIntegrator.hh"
 
@@ -458,6 +459,11 @@ ProGeUI::integrateProcessor(
             imemInfo, dmemInfo);
     } else if (platformIntegrator == "AvalonIntegrator") {
         integrator = new AvalonIntegrator(
+            machine_, idf_, language, progeOutDir, coreEntityName,
+            platformDir, programName, fmax, warningStream, errorStream,
+            imemInfo, dmemInfo);
+    } else if (platformIntegrator == "Stratix3DevKit") {
+        integrator = new Stratix3DevKitIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
             imemInfo, dmemInfo);

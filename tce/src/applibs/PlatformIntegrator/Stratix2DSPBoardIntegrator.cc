@@ -47,6 +47,8 @@ using ProGe::Netlist;
 using ProGe::NetlistBlock;
 using ProGe::VirtualNetlistBlock;
 using ProGe::NetlistPort;
+using PlatInt::SignalMapping;
+using PlatInt::SignalMappingList;
 
 const TCEString Stratix2DSPBoardIntegrator::DEVICE_FAMILY_ = "Stratix II";
 const TCEString Stratix2DSPBoardIntegrator::DEVICE_NAME_ =
@@ -84,8 +86,8 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
 
 Stratix2DSPBoardIntegrator::~Stratix2DSPBoardIntegrator() {
 
-    for (PinMap::iterator iter = stratixPins_.begin();
-         iter != stratixPins_.end(); iter++) {
+    for (PlatInt::PinMap::iterator iter = stratix2Pins_.begin();
+         iter != stratix2Pins_.end(); iter++) {
         if (iter->second != NULL) {
             for (unsigned int i = 0; i < iter->second->size(); i++) {
                 delete iter->second->at(i);
@@ -102,7 +104,7 @@ void
 Stratix2DSPBoardIntegrator::integrateProcessor(
     const ProGe::NetlistBlock* ttaCore) {
 
-     generatePinMap();
+    generatePinMap();
 
     if(!createPorts(ttaCore)) {
         return;
@@ -159,13 +161,13 @@ Stratix2DSPBoardIntegrator::mapToplevelPorts() {
 void
 Stratix2DSPBoardIntegrator::addSignalMapping(const TCEString& signal) {
     
-    if (stratixPins_.find(signal) == stratixPins_.end()) {
+    if (stratix2Pins_.find(signal) == stratix2Pins_.end()) {
         warningStream() << "Warning: didn't find mapping for signal name "
                         << signal << endl;
         return;
     }
 
-    MappingList* mappings = stratixPins_.find(signal)->second;
+    SignalMappingList* mappings = stratix2Pins_.find(signal)->second;
     for (unsigned int i = 0; i < mappings->size(); i++) {
         quartusGen_->addSignalMapping(*mappings->at(i));
     }
@@ -283,17 +285,17 @@ void
 Stratix2DSPBoardIntegrator::generatePinMap() {
 
     // clk
-    MappingList* clk = new MappingList;
+    SignalMappingList* clk = new SignalMappingList;
     clk->push_back(new SignalMapping("PIN_AM17","clk"));
-    stratixPins_["clk"] = clk;
+    stratix2Pins_["clk"] = clk;
 
     // reset to push button CPU_RESET
-    MappingList* rstx = new MappingList;
+    SignalMappingList* rstx = new SignalMappingList;
     rstx->push_back(new SignalMapping("PIN_AG19","rstx"));
-    stratixPins_["rstx"] = rstx;
+    stratix2Pins_["rstx"] = rstx;
     
     // leds
-    MappingList* ledMapping = new MappingList;
+    SignalMappingList* ledMapping = new SignalMappingList;
     ledMapping->push_back(new SignalMapping("PIN_B4","STRATIXII_LED[0]"));
     ledMapping->push_back(new SignalMapping("PIN_D5","STRATIXII_LED[1]"));
     ledMapping->push_back(new SignalMapping("PIN_E5","STRATIXII_LED[2]"));
@@ -302,10 +304,10 @@ Stratix2DSPBoardIntegrator::generatePinMap() {
     ledMapping->push_back(new SignalMapping("PIN_D6","STRATIXII_LED[5]"));
     ledMapping->push_back(new SignalMapping("PIN_C6","STRATIXII_LED[6]"));
     ledMapping->push_back(new SignalMapping("PIN_A6","STRATIXII_LED[7]"));
-    stratixPins_["STRATIXII_LED"] = ledMapping;
+    stratix2Pins_["STRATIXII_LED"] = ledMapping;
 
     // sram data signals
-    MappingList* sramData = new MappingList;
+    SignalMappingList* sramData = new SignalMappingList;
     sramData->push_back(new SignalMapping("PIN_AD18","STRATIXII_SRAM_DQ[0]"));
     sramData->push_back(new SignalMapping("PIN_AB18","STRATIXII_SRAM_DQ[1]"));
     sramData->push_back(new SignalMapping("PIN_AB19","STRATIXII_SRAM_DQ[2]"));
@@ -360,10 +362,10 @@ Stratix2DSPBoardIntegrator::generatePinMap() {
         new SignalMapping("PIN_AC11","STRATIXII_SRAM_DQ[30]"));
     sramData->push_back(
         new SignalMapping("PIN_AE11","STRATIXII_SRAM_DQ[31]"));
-    stratixPins_["STRATIXII_SRAM_DQ"] = sramData;
+    stratix2Pins_["STRATIXII_SRAM_DQ"] = sramData;
 
      // sram address signals
-    MappingList* sramAddr = new MappingList;
+    SignalMappingList* sramAddr = new SignalMappingList;
     sramAddr->push_back(
         new SignalMapping("PIN_AM28","STRATIXII_SRAM_ADDR[0]"));
     sramAddr->push_back(
@@ -400,31 +402,31 @@ Stratix2DSPBoardIntegrator::generatePinMap() {
         new SignalMapping("PIN_AH25","STRATIXII_SRAM_ADDR[16]"));
     sramAddr->push_back(
         new SignalMapping("PIN_AL25","STRATIXII_SRAM_ADDR[17]"));
-    stratixPins_["STRATIXII_SRAM_ADDR"] = sramAddr;
+    stratix2Pins_["STRATIXII_SRAM_ADDR"] = sramAddr;
 
     // sram control signals
-    MappingList* sramWe = new MappingList;
+    SignalMappingList* sramWe = new SignalMappingList;
     sramWe->push_back(new SignalMapping("PIN_AH14","STRATIXII_SRAM_WE_N"));
-    stratixPins_["STRATIXII_SRAM_WE_N"] = sramWe;
+    stratix2Pins_["STRATIXII_SRAM_WE_N"] = sramWe;
 
-    MappingList* sramOe = new MappingList;
+    SignalMappingList* sramOe = new SignalMappingList;
     sramOe->push_back(new SignalMapping("PIN_AG14","STRATIXII_SRAM_OE_N"));
-    stratixPins_["STRATIXII_SRAM_OE_N"] = sramOe;
+    stratix2Pins_["STRATIXII_SRAM_OE_N"] = sramOe;
 
-    MappingList* sramCs = new MappingList;
+    SignalMappingList* sramCs = new SignalMappingList;
     sramCs->push_back(new SignalMapping("PIN_AL12","STRATIXII_SRAM_CS_N"));
-    stratixPins_["STRATIXII_SRAM_CS_N"] = sramCs;
+    stratix2Pins_["STRATIXII_SRAM_CS_N"] = sramCs;
 
-    MappingList* sramB0 = new MappingList;
-    MappingList* sramB1 = new MappingList;
-    MappingList* sramB2 = new MappingList;
-    MappingList* sramB3 = new MappingList;
+    SignalMappingList* sramB0 = new SignalMappingList;
+    SignalMappingList* sramB1 = new SignalMappingList;
+    SignalMappingList* sramB2 = new SignalMappingList;
+    SignalMappingList* sramB3 = new SignalMappingList;
     sramB0->push_back(new SignalMapping("PIN_AG11","STRATIXII_SRAM_BE_N0"));
     sramB1->push_back(new SignalMapping("PIN_AK10","STRATIXII_SRAM_BE_N1"));
     sramB2->push_back(new SignalMapping("PIN_AK11","STRATIXII_SRAM_BE_N2"));
     sramB3->push_back(new SignalMapping("PIN_AL11","STRATIXII_SRAM_BE_N3"));
-    stratixPins_["STRATIXII_SRAM_BE_N0"] = sramB0;
-    stratixPins_["STRATIXII_SRAM_BE_N1"] = sramB1;
-    stratixPins_["STRATIXII_SRAM_BE_N2"] = sramB2;
-    stratixPins_["STRATIXII_SRAM_BE_N3"] = sramB3;
+    stratix2Pins_["STRATIXII_SRAM_BE_N0"] = sramB0;
+    stratix2Pins_["STRATIXII_SRAM_BE_N1"] = sramB1;
+    stratix2Pins_["STRATIXII_SRAM_BE_N2"] = sramB2;
+    stratix2Pins_["STRATIXII_SRAM_BE_N3"] = sramB3;
 }

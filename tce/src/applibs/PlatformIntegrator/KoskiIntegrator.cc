@@ -133,8 +133,6 @@ KoskiIntegrator::printInfo(std::ostream& stream) const {
         << "Processor must have a HIBIs-LSU. " << endl
         << "Creates an IP-XACT description of the created IP." << endl
         << "This integrator works with Altera tools and FPGAs." << endl
-        << "Requires Altera's 'qmegawiz' program to be found from PATH." 
-        << endl
         << "Supported instruction memory types are 'onchip' and 'vhdl_array."
         << endl << "Supported data memory type is 'onchip'." << endl
         << "FPGA device family can be changed. Default device family is "
