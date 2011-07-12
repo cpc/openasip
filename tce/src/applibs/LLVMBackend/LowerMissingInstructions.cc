@@ -73,6 +73,12 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 
 #include <iostream>
 
+#ifdef LLVM_2_9
+#define ARGLIST_CONST const
+#else
+#define ARGLIST_CONST
+#endif
+
 namespace {
     class LowerMissingInstructions : public BasicBlockPass {
         std::map< std::string, Constant*> replaceFunctions;        
@@ -111,11 +117,7 @@ Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
 
 LowerMissingInstructions::LowerMissingInstructions(
     const TTAMachine::Machine& mach) : 
-#ifdef LLVM_2_7
-    BasicBlockPass((intptr_t)&ID), 
-#else
     BasicBlockPass(ID), 
-#endif
     mach_(&mach) {
 }
 
@@ -145,8 +147,8 @@ std::string stringType(const Type* type) {
     }
 }
 
-const Type* getLLVMType(
-    Operand::OperandType type, const Type* llvmIntegerType) {
+ARGLIST_CONST Type* getLLVMType(
+    Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType) {
     switch (type) {
     case Operand::SINT_WORD:
         return llvmIntegerType;
@@ -404,23 +406,23 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             // 
             // If there is also 
             // IntWord or UIntWord parameters all vectors are filled.
-            std::vector<const Type*> argList_i32;
+            std::vector<ARGLIST_CONST Type*> argList_i32;
             const Type* retVal_i32 = NULL;
 
-            std::vector<const Type*> argList_i16;
+            std::vector<ARGLIST_CONST Type*> argList_i16;
             const Type* retVal_i16 = NULL;
 
-            std::vector<const Type*> argList_i8;
+            std::vector<ARGLIST_CONST Type*> argList_i8;
             const Type* retVal_i8 = NULL;
 
-            std::vector<const Type*> argList_i1;
+            std::vector<ARGLIST_CONST Type*> argList_i1;
             const Type* retVal_i1 = NULL;
             
             bool useInt = false;
             for (int j = 1; j <= op.numberOfInputs(); j++) { 
                 Operand& operand = op.operand(j);                
-                const Type* llvmOp = getLLVMType(operand.type(), 
-                                                 Type::getInt32Ty(getGlobalContext()));
+                ARGLIST_CONST Type* llvmOp = getLLVMType(
+		    operand.type(), Type::getInt32Ty(getGlobalContext()));
                 argList_i32.push_back(llvmOp);
                 if (llvmOp == Type::getInt32Ty(getGlobalContext())) {
                     useInt = true;
@@ -452,7 +454,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
                 }
 
                 for (unsigned int j = 0; j < argList_i32.size(); j++) {
-                    const Type* currArg = argList_i32[j];
+                    ARGLIST_CONST Type* currArg = argList_i32[j];
                     if (currArg == Type::getInt32Ty(getGlobalContext())) {
                         argList_i16.push_back(Type::getInt16Ty(getGlobalContext()));
                         argList_i8.push_back(Type::getInt8Ty(getGlobalContext()));
