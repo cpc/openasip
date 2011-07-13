@@ -35,6 +35,7 @@ INSTALL_DIRECTORY=$TEST_DIRECTORY/llvm-install
 echo "Installing llvm and llvm-gcc to $INSTALL_DIRECTORY"
 
 export PATH=$INSTALL_DIRECTORY/bin:$PATH
+export LD_LIBRARY_PATH=$INSTALL_DIRECTORY/lib:$LD_LIBRARY_PATH
 
 # remove old installation and update tce branch
 rm -fr $INSTALL_DIRECTORY
