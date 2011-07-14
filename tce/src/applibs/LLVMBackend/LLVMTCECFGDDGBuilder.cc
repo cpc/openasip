@@ -658,7 +658,9 @@ LLVMTCECFGDDGBuilder::registerIndex(unsigned llvmRegNum) const {
            one register file. With TTA we have to do conversion 
            due to the multiple register files option which LLVM 
            does not support. */
-        return llvmRegNum;
+        // LLVM index registers starting from 1, we start ours from 0
+        // decrease index to avoid out of range error.
+        return llvmRegNum - 1;
     }
 }
 

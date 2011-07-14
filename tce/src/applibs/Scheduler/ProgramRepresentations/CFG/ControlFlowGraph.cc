@@ -1994,8 +1994,10 @@ ControlFlowGraph::buildMBBFromBB(
                             llvm::MachineOperand::CreateImm(terminal->value().intValue()));
                     } else if (terminal->isGPR()) {
                         bool isDef = false;  // TODO: in case it's an output, it's a def
+                        // LLVM register index starts from 1, we count register from 0
+                        // thus add 1 to get correct data to the LLVM
                         mi->addOperand(
-                            llvm::MachineOperand::CreateReg(terminal->index(), isDef));
+                            llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
                     } else {
                         abortWithError(
                             "Unsupported Terminal -> MachineOperand conversion attempted.");
