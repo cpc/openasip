@@ -4,6 +4,8 @@
   <trigger-invalidates-old-results/>
 
   <always-write-back-results/>
+ 
+ <fu-ordered/>
 
   <bus name="B1">
     <width>128</width>

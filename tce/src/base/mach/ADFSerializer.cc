@@ -178,7 +178,6 @@ const string IMMEDIATE_SLOT_NAME = "name";
 
 const string ADF_SCHEMA_FILE = "mach/ADF_Schema.xsd";
 
-int ADFSerializer::orderNumber_ = 0;
 /**
  * Constructor.
  */
@@ -949,7 +948,11 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
     throw (SerializerException) {
 
     ObjectState* machine = new ObjectState(Machine::OSNAME_MACHINE);
-
+    
+    // Will count the number of function units and give sequential number
+    // to each of them.
+    int orderNumber = 0;
+    
     try {
         for (int i = 0; i < mdfState->childCount(); i++) {
             ObjectState* child = mdfState->child(i);
@@ -969,7 +972,8 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
             } else if (child->name() == BRIDGE) {
                 machine->addChild(bridgeToMachine(child));
             } else if (child->name() == FUNCTION_UNIT) {
-                machine->addChild(functionUnitToMachine(child));
+            	orderNumber++;
+                machine->addChild(functionUnitToMachine(child, orderNumber));
             } else if (child->name() == REGISTER_FILE) {
                 machine->addChild(registerFileToMachine(child));
             } else if (child->name() == ADDRESS_SPACE) {
@@ -1191,19 +1195,22 @@ ADFSerializer::bridgeToMachine(const ObjectState* bridgeState) {
  *
  * @param fuState The ObjectState tree which matches with the syntax of
  *                    function unit declaration in MDF file.
+ * @param orderNumber The number indicating sequential position of the FU
+ *                    in the ADF.
  * @return The newly created ObjectState tree.
  */
 ObjectState*
-ADFSerializer::functionUnitToMachine(const ObjectState* fuState) {
+ADFSerializer::functionUnitToMachine(
+	const ObjectState* fuState, 
+    const int orderNumber) {
 
     ObjectState* fu = new ObjectState(FunctionUnit::OSNAME_FU);
 
     // set name
     fu->setAttribute(
         Component::OSKEY_NAME, fuState->stringAttribute(FU_NAME));
-    // increase before assigning, so each FU has own value
-    orderNumber_++;
-    fu->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNumber_);
+    // each FU has own value of ordering
+    fu->setAttribute(FunctionUnit::OSKEY_ORDER_NUMBER, orderNumber);
     // set address space
     ObjectState* as = fuState->childByName(FU_ADDRESS_SPACE);
     string asName = as->stringValue();
@@ -1363,9 +1370,6 @@ ADFSerializer::controlUnitToMachine(const ObjectState* cuState) {
     // set name
     cu->setAttribute(
         Component::OSKEY_NAME, cuState->stringAttribute(CU_NAME));
-    // increase before assigning, so each FU has own value
-    orderNumber_++;
-    cu->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNumber_);
 
     // set address space
     ObjectState* as = cuState->childByName(CU_ADDRESS_SPACE);

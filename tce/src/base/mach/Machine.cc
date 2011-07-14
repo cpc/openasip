@@ -778,7 +778,7 @@ Machine::loadState(const ObjectState* state)
     setTriggerInvalidatesResults(
         state->hasAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS) &&
         state->boolAttribute(OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS));
-    setFuOrdered(
+    setFUOrdered(
         state->hasAttribute(OSKEY_FUNCTION_UNITS_ORDERED) &&
         state->boolAttribute(OSKEY_FUNCTION_UNITS_ORDERED));
 
@@ -983,9 +983,13 @@ Machine::triggerInvalidatesResults() const {
 /*
  * Returns true if sequential order of FUs in ADF file is significant.
  *
+ * In certain architectures (Cell SPU) the "relative order" of the function 
+ * units matters when it comes to accessing same register by multiple operations
+ * in the same cycle. 
+ *
  */    
 bool 
-Machine::fuOrdered() const {
+Machine::isFUOrdered() const {
     return fuOrdered_;
 }
 
@@ -1007,9 +1011,13 @@ Machine::setTriggerInvalidatesResults(bool trigger) {
 }
 /* 
  * Sets whether or not order of FUs in ADF file is significant.
+ *
+ * In certain architectures (Cell SPU) the "relative order" of the function 
+ * units matters when it comes to accessing same register by multiple operations
+ * in the same cycle. 
  */
 void 
-Machine::setFuOrdered(bool order){
+Machine::setFUOrdered(bool order){
     fuOrdered_ = order;
 }
 

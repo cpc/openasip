@@ -395,7 +395,7 @@ MachineTest::testSaveAndLoadState() {
     // and FU ordering are false
     TS_ASSERT(mach_->triggerInvalidatesResults() == false);
     TS_ASSERT(mach_->alwaysWriteResults() == false); 
-    TS_ASSERT(mach_->fuOrdered() == false);        
+    TS_ASSERT(mach_->isFUOrdered() == false);        
     // save state
     ObjectState* machState = mach_->saveState();
 
@@ -407,11 +407,11 @@ MachineTest::testSaveAndLoadState() {
     // are false after loading state
     TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
     TS_ASSERT(loadedMach->alwaysWriteResults() == false);    
-    TS_ASSERT(loadedMach->fuOrdered() == false);        
+    TS_ASSERT(loadedMach->isFUOrdered() == false);        
         
     // change two of global attributes before saving second time
     loadedMach->setAlwaysWriteResults(true);
-    loadedMach->setFuOrdered(true);    
+    loadedMach->setFUOrdered(true);    
     
     // try saving and reloading again
     delete machState;
@@ -422,7 +422,7 @@ MachineTest::testSaveAndLoadState() {
     // test default and changed value after another save/load pair
     TS_ASSERT(loadedMach->triggerInvalidatesResults() == false);
     TS_ASSERT(loadedMach->alwaysWriteResults() == true);    
-    TS_ASSERT(loadedMach->fuOrdered() == true);        
+    TS_ASSERT(loadedMach->isFUOrdered() == true);        
     // check busses
     Machine::BusNavigator busNav = loadedMach->busNavigator();
     Bus* lBus1 = busNav.item(bus1Name);

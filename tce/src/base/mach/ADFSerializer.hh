@@ -84,7 +84,9 @@ private:
     static ObjectState* busToMachine(const ObjectState* busState);
     static ObjectState* socketToMachine(const ObjectState* socketState);
     static ObjectState* bridgeToMachine(const ObjectState* bridgeState);
-    static ObjectState* functionUnitToMachine(const ObjectState* fuState);
+    static ObjectState* functionUnitToMachine(
+    	const ObjectState* fuState,
+        const int orderNumber);
     static ObjectState* registerFileToMachine(const ObjectState* rfState);
     static ObjectState* addressSpaceToMachine(const ObjectState* asState);
     static ObjectState* controlUnitToMachine(const ObjectState* cuState);
@@ -124,8 +126,6 @@ private:
     static bool hasEmptyInstructionTemplate(
         const ObjectState* momMachineState);
         
-    // Counter to give each FU unique order ID when loading ADF, starting from 1
-    static int orderNumber_;
 };
 
 

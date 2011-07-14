@@ -143,10 +143,10 @@ public:
 
     bool alwaysWriteResults() const;
     bool triggerInvalidatesResults() const;
-    bool fuOrdered() const;
+    bool isFUOrdered() const;
     void setAlwaysWriteResults(bool);
     void setTriggerInvalidatesResults(bool);
-    void setFuOrdered(bool);
+    void setFUOrdered(bool);
     
 
     // functions inherited from Serializable interface

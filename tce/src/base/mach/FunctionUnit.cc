@@ -53,7 +53,7 @@ namespace TTAMachine {
 // initialization of static data members
 const string FunctionUnit::OSNAME_FU = "fu";
 const string FunctionUnit::OSKEY_AS = "as";
-const string FunctionUnit::OSKEY_ORDERNO = "order_no";
+const string FunctionUnit::OSKEY_ORDER_NUMBER = "order_no";
 
 /**
  * Constructor.
@@ -63,7 +63,7 @@ const string FunctionUnit::OSKEY_ORDERNO = "order_no";
  */
 FunctionUnit::FunctionUnit(const string& name)
     throw (InvalidName) :
-    Unit(name), addressSpace_(NULL), orderNo_(0) {
+    Unit(name), addressSpace_(NULL), orderNumber_(0) {
 }
 
 
@@ -79,7 +79,7 @@ FunctionUnit::FunctionUnit(const string& name)
  */
 FunctionUnit::FunctionUnit(const ObjectState* state)
     throw (ObjectStateLoadingException) :
-    Unit(state), addressSpace_(NULL), orderNo_(0) {
+    Unit(state), addressSpace_(NULL), orderNumber_(0) {
 
     loadStateWithoutReferences(state);
 }
@@ -704,7 +704,7 @@ FunctionUnit::saveState() const {
 
     ObjectState* fuState = Unit::saveState();
     fuState->setName(OSNAME_FU);
-    fuState->setAttribute(FunctionUnit::OSKEY_ORDERNO, orderNo());
+    fuState->setAttribute(FunctionUnit::OSKEY_ORDER_NUMBER, orderNumber());
     // set address space
     if (addressSpace_ != NULL) {
         fuState->setAttribute(OSKEY_AS, addressSpace_->name());
@@ -904,8 +904,8 @@ FunctionUnit::loadStateWithoutReferences(const ObjectState* fuState)
     deleteAllOperations();
     addressSpace_ = NULL;
 
-    if (fuState->hasAttribute(FunctionUnit::OSKEY_ORDERNO)) {
-	    setOrderNo(fuState->intAttribute(FunctionUnit::OSKEY_ORDERNO));
+    if (fuState->hasAttribute(FunctionUnit::OSKEY_ORDER_NUMBER)) {
+	    setOrderNumber(fuState->intAttribute(FunctionUnit::OSKEY_ORDER_NUMBER));
     }
     
     try {
@@ -936,17 +936,28 @@ FunctionUnit::deleteAllOperations() {
 
 /**
  * Returns the order number of the FU.
+ * 
+ * In certain architectures (Cell SPU) the "relative order" of the function 
+ * units matters when it comes to accessing same register by multiple operations
+ * in the same cycle.   
+ * This method returns number indicating possition of the FU in the ADF file. 
+ * Alows putting the FU into the order in the instruction.
  */
 int 
-FunctionUnit::orderNo() const {
-    return orderNo_;
+FunctionUnit::orderNumber() const {
+    return orderNumber_;
 }
 
 /**
  * Sets order number of the FU.
+ *
+ * In certain architectures (Cell SPU) the "relative order" of the function 
+ * units matters when it comes to accessing same register by multiple operations
+ * in the same cycle.   
+ * This method sets number indicating possition of the FU in the ADF file. 
  */
 void
-FunctionUnit::setOrderNo(int number) {
-    orderNo_ = number;
+FunctionUnit::setOrderNumber(int number) {
+    orderNumber_ = number;
 }
 }
