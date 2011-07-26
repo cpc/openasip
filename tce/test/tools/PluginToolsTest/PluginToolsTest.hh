@@ -45,6 +45,7 @@
 
 using std::string;
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 
 /**
  * A class that tests PluginTools.

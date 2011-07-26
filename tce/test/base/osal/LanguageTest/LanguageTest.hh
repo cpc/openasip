@@ -58,6 +58,8 @@ using std::vector;
 #include "BaseType.hh"
 #include "TCEString.hh"
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
 /**
  * Class for testing the OSAL language.
  */
