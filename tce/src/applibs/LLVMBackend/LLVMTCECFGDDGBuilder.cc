@@ -283,6 +283,13 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++) {
             
+            if (operationName(*j) == "HBR_LABEL" ||
+                operationName(*j) == "HBRA") {
+                std::cerr << "\tignoring branch hint-related: ";
+                j->dump();
+                continue;
+            }
+
             TTAProgram::Instruction* instr = NULL;
             instr = emitInstruction(j, bb);
             
