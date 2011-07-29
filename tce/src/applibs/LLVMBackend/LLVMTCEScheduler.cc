@@ -50,7 +50,7 @@ ADFLocation(
 char LLVMTCEScheduler::ID = 0;
 
 LLVMTCEScheduler::LLVMTCEScheduler() : 
-    MachineFunctionPass(ID), tceIRBuilder_(NULL) {
+    MachineFunctionPass(ID), tceIRBuilder_(NULL), interPassData_(NULL) {
     try {
         tceMachine_ = TTAMachine::Machine::loadFromADF(ADFLocation);
     } catch (const Exception& e) {
@@ -69,9 +69,9 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
 
     if (tceIRBuilder_ == NULL) {
-        InterPassData ipData;
+        interPassData_ = new InterPassData();
         tceIRBuilder_ =  new LLVMTCECFGDDGBuilder(
-            MF.getTarget(), tceMachine_, ipData, true, true);
+            MF.getTarget(), tceMachine_, *interPassData_, true, true);
     }
     tceIRBuilder_->writeMachineFunction(MF);
     return false;

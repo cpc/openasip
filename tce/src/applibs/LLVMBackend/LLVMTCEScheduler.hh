@@ -38,6 +38,7 @@
 
 #include "Machine.hh"
 #include "LLVMTCECFGDDGBuilder.hh"
+#include "InterPassData.hh"
 
 namespace llvm {
 
@@ -52,6 +53,7 @@ namespace llvm {
     private:
         TTAMachine::Machine* tceMachine_;
         LLVMTCECFGDDGBuilder* tceIRBuilder_;
+        InterPassData* interPassData_;
     };
 }
 

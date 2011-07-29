@@ -1057,6 +1057,7 @@ LLVMTCEBuilder::emitInstruction(
         std::cerr << "ERROR: Operation '" << opName
                   << "' is required by the program but not found "
                   << "in the machine." << std::endl;
+        mi->dump();
         abortWithError("Cannot proceed.");
     }
 
@@ -1073,6 +1074,8 @@ LLVMTCEBuilder::emitInstruction(
     mi->dump();
     PRINT_VAR(operation.numberOfInputs());
     PRINT_VAR(operation.numberOfOutputs());
+    Application::logStream() << " mi->getNumOperands() = " 
+    	<< mi->getNumOperands() << std::endl;
 #endif
     TTAProgram::MoveGuard* guard = NULL;
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
@@ -1189,6 +1192,26 @@ LLVMTCEBuilder::emitInstruction(
         first = operandMoves[0];
     } else if (!resultMoves.empty()) {
         first = resultMoves[0];
+    } else if (opDesc->isReturn() && mi->getNumOperands() == 0) {
+        // LLVM allows RET without any paramters and with defined return value. 
+        // RET with return value is converted above but not the other one.
+        // To convert it to move, we just write 0 as source terminal. 
+        // LLVM already  generated code to put return address on a top of the stack, 
+        // so no point explicitely writing ra -> ret.1.
+        std::cerr << " adding RET " << std::endl;
+        TTAMachine::HWOperation* jump = fu->operation(opName);        
+        TTAProgram::TerminalFUPort* dst = 
+        	new TTAProgram::TerminalFUPort(*jump, 1);
+        int width = 32; // FIXME
+        SimValue val(0, width);
+                    
+        TTAProgram::Move* move = createMove(
+        	new TTAProgram::TerminalImmediate(val), dst, bus);
+        TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+        instr->addMove(move);
+        operandMoves.push_back(instr);
+        first = instr;
+        debugDataToAnnotations(mi, move);
     } else {
         assert(false && "No moves?");
     }
