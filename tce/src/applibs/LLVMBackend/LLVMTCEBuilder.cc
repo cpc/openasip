@@ -1198,7 +1198,6 @@ LLVMTCEBuilder::emitInstruction(
         // To convert it to move, we just write 0 as source terminal. 
         // LLVM already  generated code to put return address on a top of the stack, 
         // so no point explicitely writing ra -> ret.1.
-        std::cerr << " adding RET " << std::endl;
         TTAMachine::HWOperation* jump = fu->operation(opName);        
         TTAProgram::TerminalFUPort* dst = 
         	new TTAProgram::TerminalFUPort(*jump, 1);
