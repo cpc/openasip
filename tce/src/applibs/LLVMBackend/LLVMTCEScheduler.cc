@@ -61,6 +61,11 @@ LLVMTCEScheduler::LLVMTCEScheduler() :
 }
 
 bool
+LLVMTCEScheduler::doInitialization(Module& m) {
+    mod_ = &m;
+    return false;
+}
+bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
     Application::logStream()
         << "TCE: processing " << MF.getFunction()->getNameStr() 
@@ -72,6 +77,7 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
         interPassData_ = new InterPassData();
         tceIRBuilder_ =  new LLVMTCECFGDDGBuilder(
             MF.getTarget(), tceMachine_, *interPassData_, true, true);
+        tceIRBuilder_->doInitialization(*mod_);
     }
     tceIRBuilder_->writeMachineFunction(MF);
     return false;

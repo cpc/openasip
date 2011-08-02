@@ -51,9 +51,11 @@ namespace llvm {
         virtual ~LLVMTCEScheduler() {}
         virtual bool runOnMachineFunction(MachineFunction &MF);
     private:
+        virtual bool doInitialization(Module& m);
         TTAMachine::Machine* tceMachine_;
         LLVMTCECFGDDGBuilder* tceIRBuilder_;
         InterPassData* interPassData_;
+        llvm::Module* mod_;
     };
 }
 

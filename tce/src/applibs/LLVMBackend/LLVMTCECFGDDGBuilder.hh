@@ -62,6 +62,7 @@ namespace llvm {
 
         virtual ~LLVMTCECFGDDGBuilder() {}
 
+        virtual bool doInitialization(Module& m );
         virtual bool doFinalization(Module& m );
 
         virtual void emitSPInitialization() {}

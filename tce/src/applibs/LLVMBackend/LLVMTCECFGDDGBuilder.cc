@@ -103,6 +103,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     } else {
         MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
+        // Apparently we do need to initialize data sections at least once.
+        initDataSections();
     }
 
     // omit empty functions..
@@ -596,6 +598,12 @@ LLVMTCECFGDDGBuilder::hasRealInstructions(
             return true;
         }
     }
+    return false;
+}
+
+bool
+LLVMTCECFGDDGBuilder::doInitialization(Module& m) {
+    LLVMTCEBuilder::doInitialization(m);
     return false;
 }
 
