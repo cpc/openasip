@@ -1,0 +1,5 @@
+rm -fr data/decoder_texture_idct2d_from_c.tpef data/decoder_texture_idct2d.tceasm \
+data/decoder_texture_idct2d_from_asm.mif data/decoder_texture_idct2d_from_asm.tpef \
+data/decoder_texture_idct2d_from_asm_data.mif data/decoder_texture_idct2d_from_c.mif \
+data/decoder_texture_idct2d_from_c_data.mif data/imem_mau_pkg.vhdl \
+data/processor_default.bem

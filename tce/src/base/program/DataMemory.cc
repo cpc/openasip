@@ -83,7 +83,8 @@ DataMemory::dataDefinition(Address address) const {
         iter--;
         DataDefinition* dataDef = (*iter).second;
         // this data definition should contain the requested address
-        if (address.location() < dataDef->startAddress().location() + dataDef->size()) {
+        if (address.location() < dataDef->startAddress().location() + 
+            dataDef->size()) {
             return *dataDef;
         }
     }

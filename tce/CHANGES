@@ -14,7 +14,9 @@ Bugfixes
   libraries.
 - 1-bit global constants had invalid size calculation. This could cause
   compiler to fail to write program.
-
+- tcedisasm: the starting address of data section initialization
+  output was computed wrongly.
+  
 Usability features
 ------------------
 - ProGe: Reasonable error message when implementation for some FU is invalid.
