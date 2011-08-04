@@ -28,6 +28,8 @@ Bugfixes
   libraries.
 - 1-bit global constants had invalid size calculation. This could cause
   compiler to fail to write program.
+- tcedisasm: the starting address of data section initialization
+  output was computed wrongly.
 
 Code generator improvements
 ---------------------------
@@ -48,7 +50,7 @@ Smaller features
 - ProGe: test bench generation is now disabled by default, use '-t'
   to generate the test bench.
   Thanks to Hervé Yviquel for the patch.
-
+  
 Usability features
 ------------------
 - ProGe: Reasonable error message when implementation for some FU is invalid.

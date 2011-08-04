@@ -1,0 +1,4 @@
+<?php
+$test_description="data image generation with various tools (regression test for Bug 187)";
+$test_bin="./run_data_image_test.sh";
+?>

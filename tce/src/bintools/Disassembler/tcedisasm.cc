@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * TCE parallel disassembler.
  *
  * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2009,2011 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -229,10 +229,17 @@ int main(int argc, char *argv[]) {
             const TTAProgram::DataMemory& mem = program->dataMemory(i);
             const TTAMachine::AddressSpace& aSpace = mem.addressSpace();
 
+            if (mem.dataDefinitionCount() == 0) continue;
+
             *output << "DATA " << aSpace.name() << " "
-                    << aSpace.start() << " ;" << endl;
+                    << mem.dataDefinition(0).startAddress().location()
+                    << " ;" << endl;
 
             // Definitions are put in a map to order them.
+            // TODO: the indexing API of DataMemory could be used for this?
+            // TODO: does this handle "holes" correctly or assume fully
+            // "connected regions" always?
+            // TODO: this does not handle UDATA at all!
             std::map<Word, const TTAProgram::DataDefinition*> definitions;
             for (int d = 0; d < mem.dataDefinitionCount(); d++) {
                 const TTAProgram::DataDefinition& def = mem.dataDefinition(d);
