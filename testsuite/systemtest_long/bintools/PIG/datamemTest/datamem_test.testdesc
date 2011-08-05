@@ -1,0 +1,4 @@
+<?php
+$test_description="data image MIF generation with PIG (regression test for Bug 188)";
+$test_bin="./run_datamem_test.sh";
+?>

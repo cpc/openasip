@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>STREAM_IN_V1</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V1"/>
+      <operation name="STREAM_IN_PEEK_V1"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_STATUS_V1</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V1"/>
+      <operation name="STREAM_IN_PEEK_V1"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V1</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V1"/>
+      <operation name="STREAM_IN_STATUS_V1"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_V2</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V2"/>
+      <operation name="STREAM_IN_PEEK_V2"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>STREAM_IN_STATUS_V2</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V2"/>
+      <operation name="STREAM_IN_PEEK_V2"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V2</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V2"/>
+      <operation name="STREAM_IN_STATUS_V2"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_V3</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V3"/>
+      <operation name="STREAM_IN_PEEK_V3"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>STREAM_IN_STATUS_V3</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V3"/>
+      <operation name="STREAM_IN_PEEK_V3"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V3</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V3"/>
+      <operation name="STREAM_IN_STATUS_V3"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_V4</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V4"/>
+      <operation name="STREAM_IN_PEEK_V4"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>STREAM_IN_STATUS_V4</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V4"/>
+      <operation name="STREAM_IN_PEEK_V4"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V4</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V4"/>
+      <operation name="STREAM_IN_STATUS_V4"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_V5</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V5"/>
+      <operation name="STREAM_IN_PEEK_V5"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>STREAM_IN_STATUS_V5</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V5"/>
+      <operation name="STREAM_IN_PEEK_V5"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V5</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V5"/>
+      <operation name="STREAM_IN_STATUS_V5"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_V6</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS_V6"/>
+      <operation name="STREAM_IN_PEEK_V6"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>STREAM_IN_STATUS_V6</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V6"/>
+      <operation name="STREAM_IN_PEEK_V6"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_PEEK_V6</name>
+    <description>
+</description>    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN_V6"/>
+      <operation name="STREAM_IN_STATUS_V6"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+
+
+  <operation>
+    <name>STREAM_OUT_V1</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V1"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V1</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V1"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V2</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V2"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V2</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V2"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V3</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V3"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V3</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V3"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V4</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V4"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V4</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V4"/>
+    </affected-by>
+
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V5</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V5"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V5</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V5"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V6</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V6"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V6</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V6"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V7</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V7"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V7</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V7"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_V8</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS_V8"/>
+    </affects>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS_V8</name>
+    <description></description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT_V8"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+  </operation>
+
+</osal>
