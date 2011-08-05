@@ -130,10 +130,6 @@ namespace llvm {
 
         std::map<const MachineBasicBlock*,BasicBlockNode*> bbMapping_;
 
-        // set to true in case the builder is used to schedule one
-        // function at a time (the default processes the whole module)
-        bool functionAtATime_;
-
         // write back the scheduled instructions to the machine function?
         bool modifyMF_;
 

@@ -124,11 +124,13 @@ char LLVMTCEBuilder::ID = 0;
 LLVMTCEBuilder::LLVMTCEBuilder(
     const TargetMachine& tm,
     TTAMachine::Machine* mach,
-    char& ID) :
+    char& ID,
+    bool functionAtATime) :
     MachineFunctionPass(ID) {
     initMembers();
     tm_ = &tm;
     mach_ = mach;
+    functionAtATime_ = functionAtATime;
 }
 
 LLVMTCEBuilder::LLVMTCEBuilder(char& ID) : MachineFunctionPass(ID) {
@@ -1517,15 +1519,22 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
                   << std::endl;
         assert(false);
     } else if (mo.isCPI()) {
-        int width = 32; // FIXME
-        unsigned idx = mo.getIndex();
-        assert(currentFnCP_.find(idx) != currentFnCP_.end() &&
+        if (!functionAtATime_) {
+            int width = 32; // FIXME
+            unsigned idx = mo.getIndex();
+            assert(currentFnCP_.find(idx) != currentFnCP_.end() &&
                "CPE not found!");
-
-        unsigned addr = currentFnCP_[idx];
-        SimValue cpeAddr(addr, width);
-
-        return new TTAProgram::TerminalImmediate(cpeAddr);
+            unsigned addr = currentFnCP_[idx];
+            SimValue cpeAddr(addr, width);
+            return new TTAProgram::TerminalImmediate(cpeAddr);
+        } else {          
+            // Constant Pool index is converted to dummy
+            // symbol reference. Will be converted back
+            // when doing POM->LLVM transfer.
+            TCEString ref(".CP_");
+            ref <<  mo.getIndex(); 
+            return createSymbolReference(ref);
+      }
     } else if (mo.isGlobal()) {
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
         TCEString name = mang_->getNameWithPrefix(mo.getGlobal());

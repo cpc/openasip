@@ -70,8 +70,8 @@ char LLVMTCECFGDDGBuilder::ID = -1;
 LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
     InterPassData& ipd, bool functionAtATime, bool modifyMF) :
-    LLVMTCEBuilder(tm, mach, ID), ipData_(&ipd), ddgBuilder_(ipd),
-    functionAtATime_(functionAtATime), modifyMF_(modifyMF) {
+    LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
+    ddgBuilder_(ipd), modifyMF_(modifyMF) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
@@ -100,11 +100,12 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     if (!functionAtATime_) {
         // ensure data sections have been initialized
         initDataSections();
+        emitConstantPool(*mf.getConstantPool());	
     } else {
         MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
         // Apparently we do need to initialize data sections at least once.
-        initDataSections();
+        //initDataSections();
     }
 
     // omit empty functions..
@@ -114,7 +115,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
     TCEString fnName(Buffer.c_str());
 
-    emitConstantPool(*mf.getConstantPool());
+
 
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     

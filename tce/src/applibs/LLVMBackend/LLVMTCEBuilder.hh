@@ -94,7 +94,8 @@ namespace llvm {
         LLVMTCEBuilder(
             const TargetMachine& tm,
             TTAMachine::Machine* mach,
-            char& ID);
+            char& ID,
+            bool functionAtATime=false);
 
         virtual ~LLVMTCEBuilder();
 
@@ -203,6 +204,10 @@ namespace llvm {
         /// The operations supported by the current target machine.
         std::set<std::string> opset_;
 
+        // set to true in case the builder is used to schedule one
+        // function at a time (the default processes the whole module)
+        bool functionAtATime_;
+	
     private:
 
         struct DataDef {
@@ -342,6 +347,7 @@ namespace llvm {
         int spillMoveCount_;
 
         bool dataInitialized_;
+	
     };
 }
 #endif

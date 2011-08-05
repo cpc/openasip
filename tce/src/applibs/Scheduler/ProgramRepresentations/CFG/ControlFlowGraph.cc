@@ -1975,7 +1975,8 @@ ControlFlowGraph::buildMBBFromBB(
                 // add the MachineOperands to the instruction via
                 // POM Terminal --> MachineOperand conversion
                 for (std::vector<TTAProgram::Terminal*>::const_iterator opri =
-                         opr.begin(); opri != opr.end() && counter < tid.getNumOperands(); 
+                         opr.begin(); opri != opr.end() && 
+                         (counter < tid.getNumOperands() || mi->getDesc().isReturn()); 
                      ++opri, ++counter) {
                     TTAProgram::Terminal* terminal = *opri;
                     if (terminal->isCodeSymbolReference()) {
@@ -1987,8 +1988,18 @@ ControlFlowGraph::buildMBBFromBB(
                         PRINT_VAR(terminal->toString());
                         assert(gv != NULL);
 #endif
-                        mi->addOperand(
-                            llvm::MachineOperand::CreateES(terminal->toString().c_str()));
+                        // Constant pool indeces are converted to
+                        // dummy references when LLVM->POM conversion.
+                        if (terminal->toString().startsWith(".CP_")) {
+                            TCEString ref = terminal->toString().substr(4);
+                            unsigned index = Conversion::toInt(ref);
+                            mi->addOperand(
+                                llvm::MachineOperand::CreateCPI(index, 0));                                
+                        } else {
+                            mi->addOperand(
+                                llvm::MachineOperand::CreateES(
+                                    terminal->toString().c_str()));
+                        }
                     } else if (terminal->isImmediate()) {
                         mi->addOperand(
                             llvm::MachineOperand::CreateImm(terminal->value().intValue()));
