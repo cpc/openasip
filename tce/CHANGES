@@ -30,6 +30,9 @@ Bugfixes
   compiler to fail to write program.
 - tcedisasm: the starting address of data section initialization
   output was computed wrongly.
+- generatebits: MIF data image output had a rounding error which led to
+  missing data words at the end of image in case the number of words was
+  not divisible with the row width.
 
 Code generator improvements
 ---------------------------

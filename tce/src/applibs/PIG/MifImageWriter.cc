@@ -51,7 +51,8 @@ MifImageWriter::~MifImageWriter() {
  * @param stream The output stream.
  */
 void MifImageWriter::writeImage(std::ostream& stream) const {
-    int wordCount = static_cast<int>(ceil(bits().size() / rowLength()));
+    int wordCount = 
+        static_cast<int>(ceil((float)bits().size() / rowLength()));
     writeHeader(stream);
 
     int address = 0;

@@ -1,0 +1,5 @@
+rm -f data/decoder_parser_blkexp.mif \
+data/decoder_parser_blkexp.tpef \
+data/decoder_parser_blkexp_data.mif \
+data/imem_mau_pkg.vhdl \
+data/processor_default.bem
