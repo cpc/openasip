@@ -6,6 +6,7 @@
   <always-write-back-results/>
 
   <fu-ordered/>
+
   <bus name="B1">
     <width>128</width>
     <guard>
@@ -2230,7 +2231,7 @@
     </special-port>
     <return-address>ra</return-address>
     <address-space>instructions</address-space>
-    <delay-slots>3</delay-slots>
+    <delay-slots>0</delay-slots>
     <guard-latency>1</guard-latency>
   </global-control-unit>
 
