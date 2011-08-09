@@ -104,8 +104,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     } else {
         MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
-        // Apparently we do need to initialize data sections at least once.
-        //initDataSections();
     }
 
     // omit empty functions..
@@ -224,7 +222,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                     // nasty hack to set pred true
                     if ((opName == "?jump" && (pred = true)) ||
                         (opName == "!jump")) {
-                        
                         bbPredicates[bbn] = pred;
                         assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
@@ -287,7 +284,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
              j != mbb.end(); j++) {
             
             if (operationName(*j) == "HBR_LABEL" ||
-                operationName(*j) == "HBRA") {
+                operationName(*j) == "HBRA" ||
+	        operationName(*j) == "PROLOG_LABEL") {
                 std::cerr << "\tignoring branch hint-related: ";
                 j->dump();
                 continue;
@@ -505,10 +503,13 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     ddg->writeToDotFile(fnName + "_ddg3.dot");
 #endif
 
-    cfg->convertBBRefsToInstRefs(*irm);
+
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
+        // BBReferences converted to Inst references
+        // break LLVM->POM ->LLVM chain.
+        cfg->convertBBRefsToInstRefs(*irm);        
         dsf.fillDelaySlots(*cfg, *ddg, *mach_, *umach_, true);
     }
 

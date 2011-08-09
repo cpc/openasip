@@ -240,7 +240,11 @@ private:
         BasicBlockNode& node1,
         BasicBlockNode& node2,
         DataDependenceGraph* ddg);
-
+    
+    llvm::MachineBasicBlock& getMBB(
+        llvm::MachineFunction& mf,
+        const TTAProgram::BasicBlock& bb) const;
+    
     enum RemovedJumpData {
         JUMP_NOT_REMOVED = 0, /// nothing removed
         JUMP_REMOVED, /// jump removed, other things remain in BB
@@ -291,5 +295,8 @@ private:
 
     // Optional interpass data to aid in the construction of the CFG.
     InterPassData* passData_;
+    
+    // Maps BasicBlockNode onto it's MachineBasicBlock equivalent
+    mutable std::map<const TTAProgram::BasicBlock*, llvm::MachineBasicBlock*> bbMap_;
 };
 #endif

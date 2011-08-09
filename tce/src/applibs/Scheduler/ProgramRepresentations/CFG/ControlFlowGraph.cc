@@ -1654,8 +1654,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         BasicBlockNode* nextNode = NULL;
         TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
 
-        llvm::MachineBasicBlock* mbb = mf.CreateMachineBasicBlock();
-        mf.push_back(mbb);
+        llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
 
         buildMBBFromBB(*mbb, bb);
 
@@ -1740,7 +1739,17 @@ ControlFlowGraph::copyToLLVMMachineFunction(
             irm->replace(*insPair.first, *insPair.second);
         }
     }
-
+    unsigned int eCount = edgeCount();
+    for (unsigned int i = 0; i < eCount; i++) {
+        ControlFlowEdge& testEdge = edge(i);
+        if (!headNode(testEdge).isNormalBB() || !tailNode(testEdge).isNormalBB())
+	    continue;
+        llvm::MachineBasicBlock& hNode = getMBB(mf, headNode(testEdge).basicBlock());
+        llvm::MachineBasicBlock& tNode = getMBB(mf, tailNode(testEdge).basicBlock());
+        if (hNode.isSuccessor(&tNode))
+	    continue;
+        tNode.addSuccessor(&hNode);
+    }
 #if 0
     // move the following procedures to correct place
     if (proc.instructionCount() != 0 && proc.isInProgram()) {
@@ -2000,6 +2009,11 @@ ControlFlowGraph::buildMBBFromBB(
                                 llvm::MachineOperand::CreateES(
                                     terminal->toString().c_str()));
                         }
+		    } else if (terminal->isBasicBlockReference()) {
+		        llvm::MachineBasicBlock& mbb2 = getMBB(*mbb.getParent(), terminal->basicBlock());
+			mi->addOperand(
+			    llvm::MachineOperand::CreateMBB(&mbb2)); 
+			mbb.addSuccessor(&mbb2);
                     } else if (terminal->isImmediate()) {
                         mi->addOperand(
                             llvm::MachineOperand::CreateImm(terminal->value().intValue()));
@@ -2539,4 +2553,19 @@ ControlFlowGraph::mergeNodes(
     removeNode(node2);
     delete &node2;
     // TODO: CFG edges
+}
+
+llvm::MachineBasicBlock& 
+ControlFlowGraph::getMBB(
+    llvm::MachineFunction& mf,
+    const TTAProgram::BasicBlock& bb) const {
+  
+    if (MapTools::containsKey(bbMap_, &bb)) {
+        return *bbMap_[&bb];
+    } else {        
+        llvm::MachineBasicBlock* mbb = mf.CreateMachineBasicBlock();
+        mf.push_back(mbb);    
+	bbMap_[&bb] = mbb;
+	return *mbb;
+    }  
 }
