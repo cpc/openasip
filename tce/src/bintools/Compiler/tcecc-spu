@@ -1,5 +1,5 @@
-#!/bin/sh
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
 # 
 # Copyright (c) 2011 Tampere University of Technology.
 #
@@ -25,23 +25,126 @@
 #
 # @author Pekka Jääskeläinen 2011
 #
-# Compiler driver for Cell SPU that utilizes LLVM and the 
+# Compiler driver for the Cell SPU that utilizes LLVM and the 
 # TCE instruction scheduling framework.
 #
-# Always outputs assembly and maximum optimizations for now.
-# Just an example of how to load the plugin etc. should not be 
-# used as the final compiler driver.
+#  Usage: tcecc-spu module1.c module2.c -o module
 #
-#  Usage: tcecc-spu module.c
-# Output: module.s
+# Supports only compiling + linking to the final binary at the moment.
+#
+# Note from Pekka: 
+#
+# we might want to extend this in the future to become 
+# a "cleaner" TCE compilation chain. tcecc is a mess these days, and so 
+# is LLVMBackend. 
+#
+# It would require we use llc for parallel TTA
+# assembly output similarly as with the SPU code gen now, 
+# use tceasm to assemble to an unlinked .tpef (unsupported at
+# the moment) and finally a simple .tpef linker that links the .tpefs to 
+# the final fully linked .tpef program. Another option would be to
+# drop the TPEF format altogether and solely use asm as the intermediate
+# format before the final binary output (by PIG). In that case the linker
+# would input asm and output a fully linked asm file which all TCE tools
+# would support.
+import sys
+import os.path
+import tempfile
+from optparse import OptionParser
 
-bitcode=`mktemp`
+script_dir = os.path.dirname(sys.argv[0])
+fixed_adf_dir = script_dir + "/fixed-adf"
+lib_tce = script_dir + "/../../.libs/libtce.so"
 
-input=$1
-target=`basename ${input} .c`.s
+def run_command(command, echoStderr=True, echoCmd=True, stdoutFD=None):
+    """Runs the given shell command and returns its exit code.
 
-script_dir=`dirname $0`
-adf=${script_dir}/fixed-adf/cellspu.adf
+    If echoOutput is False, stdout and stderr are redirected to /dev/null."""
+    
+    from subprocess import Popen, PIPE
+   
+    if echoCmd:
+        print command
 
-clang -ccc-host-triple cellspu-v0 -O3 -c -emit-llvm ${input} -o ${bitcode}
-llc -load  ${script_dir}/../../.libs/libtce.so -adf ${adf} ${bitcode} -o ${target}
+    if stdoutFD is None:
+        stdoutRedir = open('/dev/null', 'w')
+        stdoutFD = stdoutRedir.fileno()
+    if not echoStderr:
+        stderrRedir = open('/dev/null', 'w')
+        stderrFD = stderrRedir.fileno()
+    else:
+        stderrFD = None
+
+    process = \
+       Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD,
+             stderr=stderrFD, close_fds=False)
+    return process.wait()
+
+tempfiles = []
+
+def create_temp_file(suffix=""):
+    tf = tempfile.mkstemp(suffix=suffix)[1]
+    tempfiles.append(tf)
+    return tf
+
+def cleanup_and_exit(retval=0):
+    for tf in tempfiles:
+        os.unlink(tf)
+    sys.exit(retval)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-o", "--output", dest="output",
+                      help="The output binary file.", metavar="FILE",
+                      default="a.out")
+
+    parser.add_option("-a", "--adf", dest="adf",
+                      help="The TCE architecture description format file used for configuring the scheduler.", 
+                      metavar="FILE", default=fixed_adf_dir + "/cellspu.adf")
+    (options, args) = parser.parse_args()
+    return (options, args)
+
+def compile_to_bitcode(input_files):    
+    bc_files = []
+    for input_file in input_files:
+        bc_file = create_temp_file(input_file + ".bc")
+        retval = \
+            run_command("clang -ccc-host-triple cellspu-v0 -O3 -c -emit-llvm %s -o %s" % \
+                        (input_file, bc_file)) 
+        if retval != 0: cleanup_and_exit(retval)
+        bc_files.append(bc_file)
+
+    bc_file = create_temp_file(".whole-program.bc")
+
+    retval = run_command("llvm-link %s -o %s" % (" ".join(bc_files), bc_file))
+    if retval != 0: cleanup_and_exit(retval)
+
+    return bc_file
+
+def generate_code(bc_file, adf):
+    asm_file = create_temp_file(".S")
+    retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file))
+    if retval != 0: cleanup_and_exit(retval)
+    return asm_file
+
+def assemble(asm_file):
+    obj_file = create_temp_file(".o")
+    # Here the tool (assembler) varies per target. Currently only SPU supported,
+    # later we could call tceasm for TCE here etc.
+    retval = run_command("spu-as %s -o %s" % (asm_file, obj_file))
+    if retval != 0: cleanup_and_exit(retval)
+    return obj_file
+
+
+def link(obj_files, output):
+    retval = run_command("spu-gcc %s -o %s" % (" ".join(obj_files), output))
+    if retval != 0: cleanup_and_exit(retval)
+    return output
+
+if __name__ == "__main__":
+    options, args = parse_options()
+    bc_file = compile_to_bitcode(args)
+    asm_file = generate_code(bc_file, options.adf)
+    obj_file = assemble(asm_file)
+    link([obj_file], options.output)
+    cleanup_and_exit(0)
