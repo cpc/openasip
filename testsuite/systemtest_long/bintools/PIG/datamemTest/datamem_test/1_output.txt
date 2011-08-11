@@ -1,6 +1,6 @@
 -- Memory initialization file
 WIDTH = 32;
-DEPTH = 1;
+DEPTH = 2;
 ADDRESS_RADIX = DEC;
 DATA_RADIX = BIN;
 
