@@ -1,0 +1,20 @@
+spu_gcc=`which spu-gcc`
+
+if test -z "$spu_gcc" -o -z "$PS3_IP_ADDR";
+then
+    touch tcecc-spu.testdesc.disabled
+#    exit
+    if test -z "$spu_gcc";
+    then
+        echo spu-gcc not in PATH!
+    fi
+
+    if test -z "$PS3_IP_ADDR";
+    then
+        echo PS3_IP_ADDR not set to the ip address of the PS3.
+        echo Remember to setup ssh key authorization without a password
+        echo to execute SPU programs automatically.
+    fi
+else
+    rm -f tcecc-spu.testdesc.disabled
+fi

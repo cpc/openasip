@@ -1,0 +1,5 @@
+<?php
+// short test description
+$test_description="Compiling SPU scheduling tests";
+$test_bin = "./test-tcecc-spu.py spu-tests";
+?>

@@ -107,7 +107,7 @@ def parse_options():
 def compile_to_bitcode(input_files):    
     bc_files = []
     for input_file in input_files:
-        bc_file = create_temp_file(input_file + ".bc")
+        bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
         retval = \
             run_command("clang -ccc-host-triple cellspu-v0 -O3 -c -emit-llvm %s -o %s" % \
                         (input_file, bc_file)) 
