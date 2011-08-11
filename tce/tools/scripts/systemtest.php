@@ -780,6 +780,8 @@ function createTestFilesArrayFromFile($filename) {
 // MAIN PART
 //
 
+echo "systemtest.php is deprecated. Use (and improve) systemtest.py instead.\n";
+
 // tempfile for test output
 $user = getenv("USER");
 exec("mktemp /tmp/systemtest.".$user.".XXXXXXX", $TEMPFILE, $var);

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2002-2009 Tampere University of Technology.
+# Copyright (c) 2002-2011 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -35,7 +35,6 @@ skipConfigure=no
 kdialogNotifications=no
 skipSystemTests=no
 useMutt=no
-findBreakingRev=no
 skipUnitTests=no
 installAfterCompile=no
 tagIfSuccess=no
@@ -58,7 +57,7 @@ lastOkRevisionFile="${HOME}/tce_last_ok_revision_${BRANCH_NAME}"
 touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
-while getopts "vhngqckmbsuit" Option
+while getopts "vhngqckmsuit" Option
 do
     case $Option in
         v     ) 
@@ -80,10 +79,6 @@ do
         m     )
 
         useMutt=yes;;      
-
-        b     )
-
-        findBreakingRev=yes;;      
 
         q     ) 
 
@@ -572,15 +567,11 @@ function run_unit_tests {
 function run_system_tests {
     push_dir
 
-    if [ "x${findBreakingRev}" == "xyes" ]; then
-        STPARAM="-bo"
-    else
-        STPARAM="-o"
-    fi
+    STPARAM="-o"
 
     cd $SYSTEMTEST_DIR
     {
-        ../../tce/tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../tce/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure system_testing
@@ -596,15 +587,11 @@ function run_system_tests {
 function run_long_system_tests {
     push_dir
 
-    if [ "x${findBreakingRev}" == "xyes" ]; then
-        STPARAM="-bo"
-    else
-        STPARAM="-o"
-    fi
+    STPARAM="-o"
 
     cd $SYSTEMTEST_LONG_DIR
     {
-        ../../tce/tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../tce/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure long_testing
@@ -620,15 +607,11 @@ function run_long_system_tests {
 function run_longlong_system_tests {
     push_dir
 
-    if [ "x${findBreakingRev}" == "xyes" ]; then
-        STPARAM="-bo"
-    else
-        STPARAM="-o"
-    fi
+    STPARAM="-o"
 
     cd $SYSTEMTEST_LONGLONG_DIR
     {
-        ../../tce/tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../tce/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure longlong_testing
@@ -791,19 +774,7 @@ function compile_test {
 
         fi
 
-        # loop test
-        if [[ "x${findBreakingRev}" == "xyes" && \
-            ( "x${unit_tests_failed}" == "xyes" || \
-              "x${system_tests_failed}" == "xyes" || \
-              "x${long_system_tests_failed}" == "xyes" ) ]]; then
-
-            echo "DEBUG LOOP TEST: ${findBreakingRev}, ${unit_tests_failed}, ${system_tests_failed}, ${long_system_tests_failed}" >> ${LOG_FILE}
-            SKIP_ERROR_LOGGING="no"
-            update_tce_to_last_changed_rev
-            continue;
-        else
-            break;
-        fi
+        break;
     done
 
     pop_dir
