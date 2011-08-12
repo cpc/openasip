@@ -86,14 +86,20 @@ OperationPoolTest::testOperation() {
     Operation& call = pool.operation("call");
     TS_ASSERT(StringTools::ciEqual(call.name(), "call"));
     TS_ASSERT(call.isControlFlowOperation());
+    TS_ASSERT(call.isCall());    
+    TS_ASSERT_EQUALS(call.isBranch(), false);    
 
     Operation& jump = pool.operation("jump");
     TS_ASSERT(StringTools::ciEqual(jump.name(), "jump"));
     TS_ASSERT(jump.isControlFlowOperation());
+    TS_ASSERT(jump.isBranch());    
+    TS_ASSERT_EQUALS(jump.isCall(), false);    
 
     Operation& oper = pool.operation("oper1");
     TS_ASSERT_DIFFERS(&oper, &NullOperation::instance());
-
+    TS_ASSERT_EQUALS(oper.isCall(), false);   
+    TS_ASSERT_EQUALS(oper.isBranch(), false);   
+        
     Operation& oper2 = pool.operation("foobariehbfa");
     TS_ASSERT_EQUALS(&oper2, &NullOperation::instance());
     TS_ASSERT_EQUALS(oper.numberOfInputs(), 1);

@@ -7,6 +7,7 @@
         <inputs>2</inputs>
         <outputs>1</outputs>
         <reads-memory/>
+        <is-branch/>
 
     	<in id="1" type="SIntWord">
             <mem-address/>
@@ -34,6 +35,7 @@
         <trap/>
         <side-effects/>
         <clocked/>
+        <is-call/>
  
         <affected-by>
             <operation name="oper1"/>

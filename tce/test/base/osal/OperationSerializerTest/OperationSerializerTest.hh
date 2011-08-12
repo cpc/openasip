@@ -109,7 +109,9 @@ OperationSerializerTest::testReadAndWriteState() {
         TS_ASSERT_EQUALS(operation1.numberOfInputs(), 2);
         TS_ASSERT_EQUALS(operation1.numberOfOutputs(), 1);
         TS_ASSERT_EQUALS(operation1.readsMemory(), true);
-    
+        TS_ASSERT_EQUALS(operation1.isBranch(), true);
+        TS_ASSERT_EQUALS(operation1.isCall(), false);    
+        
         ObjectState* child2 = root->child(1);
         Operation operation2("daa", NullOperationBehavior::instance());
         TS_ASSERT_THROWS_NOTHING(operation2.loadState(child2));
@@ -121,6 +123,8 @@ OperationSerializerTest::testReadAndWriteState() {
         TS_ASSERT_EQUALS(operation2.canTrap(), true);
         TS_ASSERT_EQUALS(operation2.hasSideEffects(), true);
         TS_ASSERT_EQUALS(operation2.isClocked(), true);
+        TS_ASSERT_EQUALS(operation2.isCall(), true);        
+        TS_ASSERT_EQUALS(operation2.isBranch(), false);        
         TS_ASSERT_EQUALS(operation2.dependsOn(operation1), true);
 
         Operand& op1 = operation2.operand(1);
