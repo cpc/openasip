@@ -166,13 +166,14 @@ Move::isJump() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (StringTools::stringToLower(tfup->operation().name())=="jump"){
-                return true;
-            }
             if (tfup->operation().isBranch()) {
                 return true;
             }            
-        }
+        } else {
+            if (tfup->hintOperation().isBranch()) {
+                return true;
+            }            	  
+	}
     }
     return false;
 }
@@ -188,13 +189,14 @@ Move::isCall() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (StringTools::ciEqual(tfup->operation().name(), "CALL")) {
-                return true;
-            }
             if (tfup->operation().isCall()) {
                 return true;
             }            
-        }
+        } else {
+            if (tfup->hintOperation().isCall()) {
+                return true;
+            }            	  
+	}
     }
     return false;
 }
@@ -211,10 +213,18 @@ Move::isControlFlowMove() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (tfup->operation().isControlFlowOperation()) {
+            if (tfup->operation().isControlFlowOperation() ||
+                isCall() ||
+                isJump()) {
                 return true;
             }
-        }
+        } else {
+            if (tfup->hintOperation().isControlFlowOperation() ||
+                isCall() ||
+                isJump()) {
+                return true;
+            }	  
+	}
     }
     return false;
 }

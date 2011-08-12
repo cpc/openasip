@@ -885,6 +885,15 @@ OperationPimpl::emulationFunctionName() const {
 }
 
 /**
+ * Sets property of operation indicating that the operation is changing 
+ * control flow.
+ */
+void
+OperationPimpl::setIsControlFlowOperation(bool setting) {
+    controlFlowOperation_ = setting;
+}
+
+/**
  * Sets property of operation indicating that the operation is function call.
  */
 void

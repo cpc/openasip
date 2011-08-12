@@ -781,14 +781,25 @@ BasicBlockScheduler::scheduleMove(
     if (moveNode.move().isControlFlowMove()) {
 
         // the branch should get scheduled last, so the DDG should have
-        // only the branch move at hand unscheduled
-        if (ddg_->nodeCount() != ddg_->scheduledNodeCount() + 1) {
-            std::string msg =
-                "Control Flow Move is not last of the unscheduled moves! ";
-            msg += "Scheduled count=" + 
-                Conversion::toString(ddg_->scheduledNodeCount());
-            msg += " Node count=" + Conversion::toString(ddg_->nodeCount());
-            throw InvalidData(__FILE__, __LINE__, __func__, msg);            
+        // only the branch move(s) at hand unscheduled
+        if (ddg_->nodeCount() != ddg_->scheduledNodeCount() + 1) {    
+        // in rare case the branch moves can have 2 parameters (SPU)
+        // and therefore 2 nodes unscheduled. Check if the unscheduled
+        // moves are all control flow moves.
+            DataDependenceGraph::NodeSet unscheduledMoves =
+                ddg_->unscheduledMoves();	  
+            for (DataDependenceGraph::NodeSet::iterator i = unscheduledMoves.begin(); 
+                i != unscheduledMoves.end(); ++i) {	
+                if (!(*i)->move().isControlFlowMove()) {
+                    std::string msg =
+                    "Control Flow Move is not last of the unscheduled moves! ";
+                    msg += "Scheduled count=" + 
+                        Conversion::toString(ddg_->scheduledNodeCount());
+                    msg += " Node count=" +
+                        Conversion::toString(ddg_->nodeCount());		  
+                    throw InvalidData(__FILE__, __LINE__, __func__, msg);            
+                }
+            }
         }
 
         // try to fill the delay slots with moves within the same basic

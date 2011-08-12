@@ -293,6 +293,14 @@ Operation::isCall() const {
 }
 
 /**
+ * Sets the property of operation indicating the operation is control flow.
+ */
+void
+Operation::setIsControlFlowOperation(bool setting) {
+    pimpl_->setIsControlFlowOperation(setting);
+}
+
+/**
  * Sets the property of operation indicating the operation is function call.
  */
 void

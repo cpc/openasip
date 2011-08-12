@@ -245,7 +245,6 @@ CriticalPathBBMoveNodeSelector::mightBeReady(MoveNode& node) {
         ProgramOperation& operation = 
             (node.isDestinationOperation()?
              (node.destinationOperation()) : node.sourceOperation());
-
         bool allReady = true;
         MoveNodeGroup moves(*ddg_);
         for (int inputIndex = 0; inputIndex < operation.inputMoveCount();
@@ -260,7 +259,6 @@ CriticalPathBBMoveNodeSelector::mightBeReady(MoveNode& node) {
             if (!m.isScheduled())
                 moves.addNode(m);
         }
-
         if (allReady) {
             // let's add also the output move(s) to the MoveNodeGroup
             for (int outputIndex = 0; 
@@ -324,12 +322,18 @@ bool
 CriticalPathBBMoveNodeSelector::isReadyToBeScheduled(MoveNode& node) 
     const {
 
-    // the control flow move is ready only if all other moves have been
-    // scheduled
+    // the control flow move(s) are ready only if all other moves have been
+    // scheduled. In rare case of conditional branching with SPU operation set
+    // branch operation can have 2 moves, condition register and destination.
     if (node.move().isControlFlowMove() && 
         ddg_->nodeCount() - ddg_->scheduledNodeCount() > 1) {
-        return false;
+        DataDependenceGraph::NodeSet unscheduledMoves = ddg_->unscheduledMoves();	  
+        for (DataDependenceGraph::NodeSet::iterator i = unscheduledMoves.begin(); 
+            i != unscheduledMoves.end(); ++i) {	
+            if ((*i)->move().isControlFlowMove() == false) {
+                return false;
+            }
+        }
     }
-
     return ddg_->predecessorsReady(node);
 }

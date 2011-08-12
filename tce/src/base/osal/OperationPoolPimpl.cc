@@ -246,10 +246,12 @@ const llvm::MCInstrDesc& tid
         op->addInput(operand);
     }
     if (tid.isCall()) {
-    	op->setIsCall(true);
+        op->setIsCall(true);
+        op->setIsControlFlowOperation(true);
     }
-    if (tid.isBranch()) {
-    	op->setIsBranch(true);
+    if (tid.isBranch() || tid.isReturn()) {
+        op->setIsBranch(true);
+        op->setIsControlFlowOperation(true);        
     }
     return op;
 }

@@ -53,6 +53,7 @@ public:
     TCEString name() const;
     void setIsCall(bool setting);
     void setIsBranch(bool setting);
+    void setIsControlFlowOperation(bool setting);
     
 private:
     OperationPimpl(
