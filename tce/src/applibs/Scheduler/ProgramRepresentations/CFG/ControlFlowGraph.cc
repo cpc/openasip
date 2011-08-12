@@ -1656,7 +1656,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 
         llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
 
-        buildMBBFromBB(*mbb, bb);
+        //buildMBBFromBB(*mbb, bb);
 
         queuedNodes.erase(currentBBN);
 
@@ -1739,17 +1739,29 @@ ControlFlowGraph::copyToLLVMMachineFunction(
             irm->replace(*insPair.first, *insPair.second);
         }
     }
+
+    unsigned int nCount = nodeCount();
+    for (unsigned int j = 0; j < nCount; j++) {
+        TTAProgram::BasicBlock& bb = node(j).basicBlock();
+        llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
+        buildMBBFromBB(*mbb, bb);
+    }
     unsigned int eCount = edgeCount();
     for (unsigned int i = 0; i < eCount; i++) {
         ControlFlowEdge& testEdge = edge(i);
-        if (!headNode(testEdge).isNormalBB() || !tailNode(testEdge).isNormalBB())
-	    continue;
-        llvm::MachineBasicBlock& hNode = getMBB(mf, headNode(testEdge).basicBlock());
-        llvm::MachineBasicBlock& tNode = getMBB(mf, tailNode(testEdge).basicBlock());
+        if (!headNode(testEdge).isNormalBB() ||
+            !tailNode(testEdge).isNormalBB())
+            continue;
+        
+        llvm::MachineBasicBlock& hNode =
+            getMBB(mf, headNode(testEdge).basicBlock());
+        llvm::MachineBasicBlock& tNode =
+            getMBB(mf, tailNode(testEdge).basicBlock());
         if (hNode.isSuccessor(&tNode))
-	    continue;
+            continue;
         tNode.addSuccessor(&hNode);
     }
+    
 #if 0
     // move the following procedures to correct place
     if (proc.instructionCount() != 0 && proc.isInProgram()) {
@@ -2009,23 +2021,23 @@ ControlFlowGraph::buildMBBFromBB(
                                 llvm::MachineOperand::CreateES(
                                     terminal->toString().c_str()));
                         }
-		    } else if (terminal->isBasicBlockReference()) {
-		        llvm::MachineBasicBlock& mbb2 = getMBB(*mbb.getParent(), terminal->basicBlock());
-			mi->addOperand(
-			    llvm::MachineOperand::CreateMBB(&mbb2)); 
-			mbb.addSuccessor(&mbb2);
-                    } else if (terminal->isImmediate()) {
-                        mi->addOperand(
-                            llvm::MachineOperand::CreateImm(terminal->value().intValue()));
-                    } else if (terminal->isGPR()) {
-                        bool isDef = false;  // TODO: in case it's an output, it's a def
-                        // LLVM register index starts from 1, we count register from 0
-                        // thus add 1 to get correct data to the LLVM
-                        mi->addOperand(
-                            llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
-                    } else {
-                        abortWithError(
-                            "Unsupported Terminal -> MachineOperand conversion attempted.");
+            } else if (terminal->isBasicBlockReference()) {
+                llvm::MachineBasicBlock& mbb2 = getMBB(*mbb.getParent(), terminal->basicBlock());
+                mi->addOperand(
+                    llvm::MachineOperand::CreateMBB(&mbb2)); 
+                mbb.addSuccessor(&mbb2);
+            } else if (terminal->isImmediate()) {
+                mi->addOperand(
+                     llvm::MachineOperand::CreateImm(terminal->value().intValue()));
+            } else if (terminal->isGPR()) {
+                bool isDef = false;  // TODO: in case it's an output, it's a def
+                // LLVM register index starts from 1, we count register from 0
+                // thus add 1 to get correct data to the LLVM
+                mi->addOperand(
+                     llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
+             } else {
+                 abortWithError(
+                     "Unsupported Terminal -> MachineOperand conversion attempted.");
                     }
 #ifdef DEBUG_POM_TO_MI
                     if (counter > 0)

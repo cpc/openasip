@@ -221,7 +221,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                     // TODO: correctly detect conditional branches
                     // nasty hack to set pred true
                     if ((opName == "?jump" && (pred = true)) ||
-                        (opName == "!jump")) {
+                        (opName == "!jump") ||
+                        j->getDesc().isConditionalBranch()) {
                         bbPredicates[bbn] = pred;
                         assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
@@ -285,7 +286,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             
             if (operationName(*j) == "HBR_LABEL" ||
                 operationName(*j) == "HBRA" ||
-	        operationName(*j) == "PROLOG_LABEL") {
+                operationName(*j) == "PROLOG_LABEL") {
                 std::cerr << "\tignoring branch hint-related: ";
                 j->dump();
                 continue;
@@ -305,8 +306,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             }
 
             // conditional jump that is not last ins splits a bb.
-            if (j->getDesc().isBranch() && 
-                (operationName(*j) == "?jump" || operationName(*j) == "!jump")
+            if (j->getDesc().isConditionalBranch()
                 && &(*j) != &(mbb.back())) {
                 bbn = ftSuccs[bbn];
                 bb = &bbn->basicBlock();
@@ -532,7 +532,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     delete ddg;
 
     if (modifyMF_) {
-        cfg->copyToLLVMMachineFunction(mf, irm);
+        cfg->copyToLLVMMachineFunction(mf, irm);        
         delete cfg;
         return true;
     }
