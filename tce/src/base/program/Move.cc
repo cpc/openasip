@@ -170,10 +170,12 @@ Move::isJump() const {
                 return true;
             }            
         } else {
-            if (tfup->hintOperation().isBranch()) {
+            Operation* tmpOp = &tfup->hintOperation();
+            if (tmpOp != &NullOperation::instance() &&
+                tfup->hintOperation().isBranch()) {
                 return true;
             }            	  
-	}
+		}
     }
     return false;
 }
@@ -193,10 +195,12 @@ Move::isCall() const {
                 return true;
             }            
         } else {
-            if (tfup->hintOperation().isCall()) {
+            Operation* tmpOp = &tfup->hintOperation();
+            if (tmpOp != &NullOperation::instance() &&
+                tfup->hintOperation().isCall()) {
                 return true;
             }            	  
-	}
+        }
     }
     return false;
 }
@@ -213,18 +217,16 @@ Move::isControlFlowMove() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (tfup->operation().isControlFlowOperation() ||
-                isCall() ||
-                isJump()) {
+            if (tfup->operation().isControlFlowOperation()) {
                 return true;
             }
         } else {
-            if (tfup->hintOperation().isControlFlowOperation() ||
-                isCall() ||
-                isJump()) {
+            Operation* tmpOp = &tfup->hintOperation();
+            if (tmpOp != &NullOperation::instance() &&
+                tfup->hintOperation().isControlFlowOperation()) {
                 return true;
-            }	  
-	}
+            }            	  
+		}
     }
     return false;
 }
