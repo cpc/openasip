@@ -172,6 +172,11 @@ class IntegrationTestCase(object):
 
     def execute(self):
         """Assumes CWD is in the test directory when this is called."""
+
+        if os.path.exists(self._file_name + ".disabled"):
+            # The test case might have been disabled in ./initialize
+            return True
+
         if options.print_successful:
             sys.stdout.write(self._file_name + ": " + self.description + "...")
             sys.stdout.flush()
