@@ -55,6 +55,8 @@ const char* Operation::OPRN_AFFECTED_BY = "affected-by";
 const char* Operation::OPRN_IN = "in";
 const char* Operation::OPRN_OUT = "out";
 const char* Operation::OPRN_TRIGGER = "trigger-semantics";
+const char* Operation::OPRN_ISCALL = "is-call";
+const char* Operation::OPRN_ISBRANCH = "is-branch";
 
 /**
  * Constructor.
@@ -264,6 +266,47 @@ Operation::isClocked() const {
 bool
 Operation::isControlFlowOperation() const {
     return pimpl_->isControlFlowOperation();
+}
+
+/**
+ * Return true if the operation is branch.
+ *
+ * Branches of different type have this property set.
+ *
+ * @return True if Operation is a branch operation.
+ */
+bool
+Operation::isBranch() const {
+    return pimpl_->isBranch();
+}
+
+/**
+ * Return true if the operation is call.
+ *
+ * Calls of different type have this property set.
+ *
+ * @return True if Operation is a call operation.
+ */
+bool
+Operation::isCall() const {
+    return pimpl_->isCall();
+}
+
+/**
+ * Sets the property of operation indicating the operation is function call.
+ */
+void
+Operation::setIsCall(bool setting) {
+    pimpl_->setIsCall(setting);
+}
+
+/**
+ * Sets the property of operation indicating the operation is branch changing 
+ * control flow.
+ */
+void
+Operation::setIsBranch(bool setting) {
+    pimpl_->setIsBranch(setting);
 }
 
 /**
@@ -743,6 +786,26 @@ NullOperation::isClocked() const {
  */
 bool
 NullOperation::isControlFlowOperation() const {
+    abortWithError(__func__);
+    return false;
+}
+/**
+ * Aborts program with error log message.
+ *
+ * @return False.
+ */
+bool
+NullOperation::isCall() const {
+    abortWithError(__func__);
+    return false;
+}
+/**
+ * Aborts program with error log message.
+ *
+ * @return False.
+ */
+bool
+NullOperation::isBranch() const {
     abortWithError(__func__);
     return false;
 }

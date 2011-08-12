@@ -67,6 +67,8 @@
         <xs:element name="clocked" type="empty-type" minOccurs="0"/>
 	<!-- True in case the operation is a control flow operation -->
 	<xs:element name="control-flow" type="empty-type" minOccurs="0"/>
+	<xs:element name="is-call" type="empty-type" minOccurs="0"/>
+	<xs:element name="is-branch" type="empty-type" minOccurs="0"/>
         <xs:element name="affected-by" type="affect-type" minOccurs="0"/>
         <xs:element name="affects" type="affect-type" minOccurs="0"/>
         <xs:element name="in" type="in-type"

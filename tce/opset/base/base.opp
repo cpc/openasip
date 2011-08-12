@@ -375,6 +375,7 @@
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
+    <is-branch/>
     <in id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(jump, IO(1));
@@ -387,6 +388,7 @@
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
+    <is-call/>
     <in id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(call, IO(1));

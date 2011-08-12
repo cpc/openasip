@@ -82,6 +82,10 @@ public:
     static const char* OPRN_OUT;
     /// Object state name for trigger semantics.
     static const char* OPRN_TRIGGER;
+    /// Object state name for call property.
+    static const char* OPRN_ISCALL;
+    /// Object state name for branch property.
+    static const char* OPRN_ISBRANCH;
 
     Operation(const TCEString& name, OperationBehavior& behavior);
     virtual ~Operation();
@@ -115,7 +119,11 @@ public:
     virtual TCEString affects(unsigned int i) const;
     virtual TCEString affectedBy(unsigned int i) const;
     virtual bool canSwap(int id1, int id2) const;
-
+    virtual bool isCall() const;
+    virtual bool isBranch() const;
+	virtual void setIsCall(bool setting);
+    virtual void setIsBranch(bool setting);
+    
     virtual Operand& input(int index) const;
     virtual void addInput(Operand* operand);
     virtual Operand& output(int index) const;
@@ -174,6 +182,8 @@ public:
     virtual bool hasSideEffects() const;
     virtual bool isClocked() const;
     virtual bool isControlFlowOperation() const;
+    virtual bool isCall() const;
+    virtual bool isBranch() const;    
     virtual bool dependsOn(const Operation& op) const;
     virtual int affectsCount() const;
     virtual int affectedByCount() const;

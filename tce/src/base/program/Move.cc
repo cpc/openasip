@@ -169,6 +169,9 @@ Move::isJump() const {
             if (StringTools::stringToLower(tfup->operation().name())=="jump"){
                 return true;
             }
+            if (tfup->operation().isBranch()) {
+                return true;
+            }            
         }
     }
     return false;
@@ -188,6 +191,9 @@ Move::isCall() const {
             if (StringTools::ciEqual(tfup->operation().name(), "CALL")) {
                 return true;
             }
+            if (tfup->operation().isCall()) {
+                return true;
+            }            
         }
     }
     return false;

@@ -59,7 +59,7 @@ OperationPimpl::OperationPimpl(
     description_(""),
     inputs_(0), outputs_(0), readsMemory_(false), writesMemory_(false), 
     canTrap_(false), hasSideEffects_(false), isClocked_(false),
-    controlFlowOperation_(false) {
+    controlFlowOperation_(false), isCall_(false), isBranch_(false) {
 }
 
 /**
@@ -97,6 +97,9 @@ OperationPimpl::clear() {
     writesMemory_ = false;
     canTrap_ = false;
     hasSideEffects_ = false;
+    controlFlowOperation_ = false;
+    isBranch_ = false;
+    isCall_ = false;
 }
 
 /**
@@ -329,6 +332,29 @@ OperationPimpl::isControlFlowOperation() const {
 }
 
 /**
+ * Return true if the operation is call.
+ *
+ * Calls of different type have this property set.
+ *
+ * @return True if Operation is a call operation.
+ */
+bool
+OperationPimpl::isCall() const {
+    return isCall_;
+}
+/**
+ * Return true if the operation is branch.
+ *
+ * Branches of different type have this property set.
+ *
+ * @return True if Operation is a branch operation.
+ */
+bool
+OperationPimpl::isBranch() const {
+    return isBranch_;
+}
+
+/**
  * Sets the behavior for operation.
  *
  * @param behavior Behavior for an operation.
@@ -483,9 +509,11 @@ OperationPimpl::loadState(const ObjectState* state) {
         hasSideEffects_ = state->boolAttribute(Operation::OPRN_SIDE_EFFECTS);
         isClocked_ = state->boolAttribute(Operation::OPRN_CLOCKED);
         controlFlowOperation_ = state->boolAttribute(Operation::OPRN_CONTROL_FLOW);
+        isCall_ = state->boolAttribute(Operation::OPRN_ISCALL);
+        isBranch_ = state->boolAttribute(Operation::OPRN_ISBRANCH);
         readsMemory_ = state->boolAttribute(Operation::OPRN_READS_MEMORY);
         writesMemory_ = state->boolAttribute(Operation::OPRN_WRITES_MEMORY);
-
+                
         for (int i = 0; i < state->childCount(); i++) {
             ObjectState* child = state->child(i);
            
@@ -578,9 +606,11 @@ OperationPimpl::saveState() const {
     root->setAttribute(Operation::OPRN_SIDE_EFFECTS, hasSideEffects_);
     root->setAttribute(Operation::OPRN_CLOCKED, isClocked_);
     root->setAttribute(Operation::OPRN_CONTROL_FLOW, controlFlowOperation_);
+    root->setAttribute(Operation::OPRN_ISCALL, isCall_);
+    root->setAttribute(Operation::OPRN_ISBRANCH, isBranch_);
     root->setAttribute(Operation::OPRN_READS_MEMORY, readsMemory_);
     root->setAttribute(Operation::OPRN_WRITES_MEMORY, writesMemory_);
-
+        
     if (affectedBy_.size() > 0) {
             ObjectState* affectedBy = new ObjectState(Operation::OPRN_AFFECTED_BY);
             set<string>::const_iterator it = affectedBy_.begin();
@@ -852,4 +882,21 @@ OperationPimpl::emulationFunctionName() const {
     }    
     
     return functionName;
+}
+
+/**
+ * Sets property of operation indicating that the operation is function call.
+ */
+void
+OperationPimpl::setIsCall(bool setting) {
+    isCall_ = setting;
+}
+
+/**
+ * Sets property of operation indicating that the operation is branch changing
+ * control flow.
+ */
+void
+OperationPimpl::setIsBranch(bool setting) {
+    isBranch_ = setting;
 }

@@ -245,7 +245,12 @@ const llvm::MCInstrDesc& tid
         Operand* operand = new Operand(true, opr + 1, Operand::UINT_WORD);
         op->addInput(operand);
     }
-
+    if (tid.isCall()) {
+    	op->setIsCall(true);
+    }
+    if (tid.isBranch()) {
+    	op->setIsBranch(true);
+    }
     return op;
 }
 

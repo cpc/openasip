@@ -51,7 +51,9 @@ public:
     int numberOfInputs() const;
     int numberOfOutputs() const;
     TCEString name() const;
-
+    void setIsCall(bool setting);
+    void setIsBranch(bool setting);
+    
 private:
     OperationPimpl(
         const TCEString& name, 
@@ -80,6 +82,8 @@ private:
     bool hasSideEffects() const;
     bool isClocked() const;
     bool isControlFlowOperation() const;
+    bool isCall() const;
+    bool isBranch() const;    
     bool dependsOn(const Operation& op) const;
     int affectsCount() const;
     int affectedByCount() const;
@@ -169,6 +173,10 @@ private:
     std::vector<Operand*> inputOperands_;
     /// Output Operands of the Operation.
     std::vector<Operand*> outputOperands_;
+    /// Flag indicating if Operation is call.
+    bool isCall_;
+    /// Flag indicating if Operation is branch changing control flow.
+    bool isBranch_;
 
 };
 

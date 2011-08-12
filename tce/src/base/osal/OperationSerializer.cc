@@ -211,6 +211,14 @@ OperationSerializer::toXMLFormat(const ObjectState* state)
         if (state->boolAttribute(Operation::OPRN_CONTROL_FLOW)) {
             oper->addChild(new ObjectState(Operation::OPRN_CONTROL_FLOW));
         }
+
+        if (state->boolAttribute(Operation::OPRN_ISCALL)) {
+            oper->addChild(new ObjectState(Operation::OPRN_ISCALL));
+        }
+
+        if (state->boolAttribute(Operation::OPRN_ISBRANCH)) {
+            oper->addChild(new ObjectState(Operation::OPRN_ISBRANCH));
+        }
         
         for (int i = 0; i < state->childCount(); i++) {
             
@@ -344,6 +352,10 @@ OperationSerializer::toOperation(const ObjectState* state)
                 root->setAttribute(Operation::OPRN_CLOCKED, true);
             } else if (child->name() == Operation::OPRN_CONTROL_FLOW) {
                 root->setAttribute(Operation::OPRN_CONTROL_FLOW, true);
+            } else if (child->name() == Operation::OPRN_ISCALL) {
+                root->setAttribute(Operation::OPRN_ISCALL, true);
+            } else if (child->name() == Operation::OPRN_ISBRANCH) {
+                root->setAttribute(Operation::OPRN_ISBRANCH, true);
 
 //            } else if (child->name() == Operation::OPRN_AFFECTED_BY) {
 //                ObjectState* affectedBy = new ObjectState(*child);
@@ -434,6 +446,12 @@ OperationSerializer::toOperation(const ObjectState* state)
 
         if (!root->hasAttribute(Operation::OPRN_CONTROL_FLOW)) {
             root->setAttribute(Operation::OPRN_CONTROL_FLOW, false);
+        }
+        if (!root->hasAttribute(Operation::OPRN_ISCALL)) {
+            root->setAttribute(Operation::OPRN_ISCALL, false);
+        }
+        if (!root->hasAttribute(Operation::OPRN_ISBRANCH)) {
+            root->setAttribute(Operation::OPRN_ISBRANCH, false);
         }
 
     } catch (const Exception& e) {
