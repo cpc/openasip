@@ -4,9 +4,11 @@
 Integration/systemtest script for the TCE tools.
 
 To do:
-1) Support the "legacy" .testdesc files of systemtest.php.
-2) Support executing run_*.sh files directly. Read metadata
-   from the script's comments.
+* Support executing run_*.sh files directly. 
+  * Read metadata from the script's comments. 
+  * Setup PATH so one does not need relative paths to the src-tree 
+    binaries, thus enable testing of build tree builds and even
+    installations.
 
 @author Pekka Jääskeläinen 2011
 """
@@ -92,9 +94,6 @@ class IntegrationTestCase(object):
         self.test_dir = os.path.dirname(test_case_file)
         self.valid = False
         if test_case_file.endswith(".testdesc"): 
-            if os.path.exists(test_case_file + ".disabled"):
-                self.valid = False
-                return
             self._load_legacy_testdesc()
 
         # list of tuples of test data:
@@ -173,7 +172,7 @@ class IntegrationTestCase(object):
     def execute(self):
         """Assumes CWD is in the test directory when this is called."""
 
-        if os.path.exists(self._file_name + ".disabled"):
+        if os.path.exists(os.path.basename(self._file_name) + ".disabled"):
             # The test case might have been disabled in ./initialize
             return True
 
