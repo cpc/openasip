@@ -1648,13 +1648,16 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         }
     }
 
-    // then loop as long as we have BBs which have not been written to
-    // the procedure.
+    /// This loop now only creates empty basic blocks in same order as they were
+    /// transfered from LLVM to POM previously.
+    /// Actuall copying of the content is done afterwords.
     while (currentBBN != NULL) {
         BasicBlockNode* nextNode = NULL;
         TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
 
-        llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
+        /// This will create MachineBasicblock corresponding to BB if it does
+        /// not exists already.
+        getMBB(mf, bb);
 
         //buildMBBFromBB(*mbb, bb);
 
@@ -1732,6 +1735,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 
     // Update refs from cfg into final program
     // only works for refs
+    // TODO: Is this really necessary or usefull here?
     for (InsMap::iterator i = copiedInsFromCFG.begin();
          i != copiedInsFromCFG.end(); i++) {
         std::pair<Instruction*,Instruction*> insPair = *i;
@@ -1740,12 +1744,16 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         }
     }
 
+    /// Fill in created machine basic blocks with machine instructions
+    /// based on corresponding basic blocks.
     unsigned int nCount = nodeCount();
     for (unsigned int j = 0; j < nCount; j++) {
         TTAProgram::BasicBlock& bb = node(j).basicBlock();
         llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
         buildMBBFromBB(*mbb, bb);
     }
+    /// Based on CFG edges, add successor information to the generated
+    /// machine function.
     unsigned int eCount = edgeCount();
     for (unsigned int i = 0; i < eCount; i++) {
         ControlFlowEdge& testEdge = edge(i);
@@ -2022,7 +2030,8 @@ ControlFlowGraph::buildMBBFromBB(
                                     terminal->toString().c_str()));
                         }
             } else if (terminal->isBasicBlockReference()) {
-                llvm::MachineBasicBlock& mbb2 = getMBB(*mbb.getParent(), terminal->basicBlock());
+                llvm::MachineBasicBlock& mbb2 =
+                    getMBB(*mbb.getParent(), terminal->basicBlock());
                 mi->addOperand(
                     llvm::MachineOperand::CreateMBB(&mbb2)); 
                 mbb.addSuccessor(&mbb2);
@@ -2567,7 +2576,11 @@ ControlFlowGraph::mergeNodes(
     // TODO: CFG edges
 }
 
-llvm::MachineBasicBlock& 
+/**
+ * Fetch machine basic block corresponding to the BasicBlock passed, if
+ * it does not exist create empty one.
+ */
+llvm::MachineBasicBlock&
 ControlFlowGraph::getMBB(
     llvm::MachineFunction& mf,
     const TTAProgram::BasicBlock& bb) const {
@@ -2577,7 +2590,7 @@ ControlFlowGraph::getMBB(
     } else {        
         llvm::MachineBasicBlock* mbb = mf.CreateMachineBasicBlock();
         mf.push_back(mbb);    
-	bbMap_[&bb] = mbb;
-	return *mbb;
+        bbMap_[&bb] = mbb;
+        return *mbb;
     }  
 }
