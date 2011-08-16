@@ -1768,22 +1768,10 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         if (hNode.isSuccessor(&tNode))
             continue;
         tNode.addSuccessor(&hNode);
-    }
-    
-#if 0
-    // move the following procedures to correct place
-    if (proc.instructionCount() != 0 && proc.isInProgram()) {
-        if (!(&proc == &proc.parent().lastProcedure())) {
-            proc.parent().moveProcedure(
-                proc.parent().nextProcedure(proc),
-                proc.instructionCount());
-        }
-    }
-#endif
-
+    }    
 }
 
-#define DEBUG_POM_TO_MI
+//#define DEBUG_POM_TO_MI
 
 /**
  * Finds the TargetInstrDesc for the given LLVM instruction name.

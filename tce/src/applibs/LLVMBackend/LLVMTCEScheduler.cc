@@ -67,10 +67,6 @@ LLVMTCEScheduler::doInitialization(Module& m) {
 }
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
-    Application::logStream()
-        << "TCE: processing " << MF.getFunction()->getNameStr() 
-        << std::endl;
-
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
 
     if (tceIRBuilder_ == NULL) {
@@ -85,10 +81,6 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
 
 FunctionPass*
 createTCESchedulerPass(const char* target) {
-    Application::logStream()
-        << "TCE: creating a scheduler for " << target << " with ADF "
-        << ADFLocation << std::endl;
-
     if (ADFLocation == "") {
         Application::logStream()
             << "TCE: you need to provide the ADF location via llc -adf switch!"

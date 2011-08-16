@@ -113,8 +113,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
     TCEString fnName(Buffer.c_str());
 
-
-
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     
     TTAProgram::Procedure* procedure = 
@@ -255,7 +253,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             }
         }
         if (newMBB == true) {
-            assert (newBB == true);
+            assert(newBB);
             emptyMBBs.insert(&mbb);
         }
         if (newBB) {
@@ -502,8 +500,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg3.dot");
 #endif
-
-
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
