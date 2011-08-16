@@ -16,7 +16,7 @@ from optparse import OptionParser
 from difflib import unified_diff
 
 compiler = "../../../../tce/src/bintools/Compiler/tcecc-spu"
-tempfiles = []
+tempfiles = set()
 options = None
 args = None
 
@@ -45,7 +45,7 @@ def run_command(command, echoStdout=False, echoStderr=False, echoCmd=False, stdo
 
 def create_temp_file(suffix=""):
     tf = tempfile.mkstemp(suffix=suffix)
-    tempfiles.append(tf[1])
+    tempfiles.add(tf[1])
     return tf
 
 def cleanup_and_exit(retval=0):
@@ -88,7 +88,7 @@ class TestCase(object):
             print >> sys.stderr, "!!! %s: compilation failed" % self.root_dir
             return False
         else:
-            tempfiles.append(self.program_bin)
+            tempfiles.add(self.program_bin)
             return True
         
 
