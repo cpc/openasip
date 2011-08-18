@@ -64,11 +64,16 @@ namespace llvm {
     class TCETargetMachine : public LLVMTargetMachine {
 
     public:
-        TCETargetMachine(const Target &T, const std::string &TT,
 #ifndef LLVM_2_9
-			 const std::string& CPU,
+        TCETargetMachine(
+	    const Target &T, const std::string &TT,
+	    const std::string& CPU, const std::string &FS, 
+	    Reloc::Model RM, CodeModel::Model CM);
+#else
+        TCETargetMachine(
+	    const Target &T, const std::string &TT, const std::string &FS);
 #endif
-                         const std::string &FS);
+
 
         virtual ~TCETargetMachine();
 

@@ -1,5 +1,5 @@
-tce-devel r1133:
-llvm-trunk r135034
+tce-devel r1171:
+llvm-trunk rr137933: some explorer tests fail because of incompatible .bc file
 
 Notes:
 

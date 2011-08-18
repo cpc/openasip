@@ -473,6 +473,7 @@ DesignSpaceExplorer::simulate(
 */
 }
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 /**
  * Loads the given explorer plugin from the default search pathes of the
  * explorer plugins.
@@ -516,6 +517,7 @@ DesignSpaceExplorer::loadExplorerPlugin(
     return plugin;
 }
 
+#pragma GCC diagnostic warning "-Wstrict-aliasing"
 
 /**
  * 

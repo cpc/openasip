@@ -102,7 +102,12 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         initDataSections();
         emitConstantPool(*mf.getConstantPool());	
     } else {
+#ifdef LLVM_2_9
         MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
+#else // LLVM-3.x
+        MCContext* ctx = new MCContext(
+	    *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
+#endif
         mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
     }
 

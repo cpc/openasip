@@ -60,7 +60,23 @@ Pass* createLinkBitcodePass(Module& inputCode);
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
+#ifdef LLVM_2_9
     RegisterAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+#else // LLVM-3.x
+
+// TODO:
+// this to MVTargetDesc.cpp - where is it?
+
+    RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+
+
+/*
+extern "C" void LLVMInitializeSparcMCAsmInfo() {
+    RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+}
+*/
+
+#endif
 }
 
 //
@@ -74,15 +90,16 @@ extern "C" void LLVMInitializeTCETargetInfo() {
 // a0:0:32 = struct alignment (abi packed?), preferred 32 bits.
 // etc.
 // 
-TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
-#ifndef LLVM_2_9
-			 const std::string& CPU,
-#endif
-                                   const std::string &FS)
+
 #ifdef LLVM_2_9
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const std::string &TT, const std::string &FS)
     : LLVMTargetMachine(T,TT),
 #else
-      : LLVMTargetMachine(T,TT, CPU, FS),
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const std::string &TT, const std::string& CPU,
+    const std::string &FS, Reloc::Model RM, CodeModel::Model CM)
+    : LLVMTargetMachine(T,TT, CPU, FS, RM, CM),
 #endif
       Subtarget(TT,FS),
       DataLayout(

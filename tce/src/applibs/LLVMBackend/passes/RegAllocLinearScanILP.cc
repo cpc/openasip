@@ -25,7 +25,7 @@
 #include "VirtRegRewriter.h"
 
 #ifndef LLVM_2_9
-#include "RegisterCoalescer.h"
+//#include "RegisterCoalescer.h"
 #include "RegisterClassInfo.h"
 #endif
 
@@ -280,7 +280,11 @@ namespace {
         AU.addRequiredID(StrongPHIEliminationID);
       // Make sure PassManager knows which analyses to make available
       // to coalescing and which analyses coalescing invalidates.
+#ifdef LLVM_2_9
       AU.addRequiredTransitive<RegisterCoalescer>();
+#else
+      AU.addRequiredTransitiveID(RegisterCoalescerPassID);
+#endif
       AU.addRequired<CalculateSpillWeights>();
 #ifdef LLVM_2_9
       if (PreSplitIntervals)

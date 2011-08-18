@@ -102,7 +102,9 @@
 
 #ifdef LLVM_2_9
 #include <llvm/Target/TargetInstrDesc.h>
+#define TYPE_CONST const
 #else
+#define TYPE_CONST
 #include <llvm/MC/MCInstrDesc.h>
 #endif
 
@@ -237,7 +239,13 @@ LLVMTCEBuilder::initDataSections() {
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
-    MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
+#ifdef LLVM_2_9
+    MCContext* ctx = 
+	new MCContext(*tm_->getMCAsmInfo(), NULL);
+#else
+    MCContext* ctx = 
+	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
+#endif
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
@@ -282,7 +290,7 @@ LLVMTCEBuilder::initDataSections() {
         }
 
         const Constant* initializer = i->getInitializer();
-        const Type* type = initializer->getType();
+        TYPE_CONST Type* type = initializer->getType();
 
         DataDef def;
         def.name = name;
@@ -568,7 +576,7 @@ LLVMTCEBuilder::createFPDataDefinition(
     TTAProgram::Address start(addr, *dataAddressSpace_);
     std::vector<MinimumAddressableUnit> maus;
 
-    const Type* type = cfp->getType();
+    TYPE_CONST Type* type = cfp->getType();
     unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
     TTAProgram::DataDefinition* def = NULL;
 
@@ -621,7 +629,7 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
     assert(addr % POINTER_SIZE == 0 &&
            "Invalid alignment for gv reference!");
 
-    const Type* type = gv->getType();
+    TYPE_CONST Type* type = gv->getType();
 
     unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
 
@@ -681,9 +689,13 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
+#ifdef LLVM_2_9
         int64_t ptrOffset = offset + td->getIndexedOffset(
             ptr->getType(), &idxVec[0], idxVec.size());
-
+#else
+        int64_t ptrOffset = offset + td->getIndexedOffset(
+            ptr->getType(), idxVec);
+#endif
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(addr, gv, ptrOffset);
         } else if (const ConstantExpr* ce =

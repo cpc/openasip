@@ -65,7 +65,7 @@ TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
 #ifdef LLVM_2_9
     TCEGenRegisterInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
 #else
-    TCEGenRegisterInfo(),
+    TCEGenRegisterInfo(TCE::RA),
 #endif
     tii_(tii) {
 }
@@ -246,6 +246,7 @@ TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
     return 0;
 }
 
+#ifdef LLVM_2_9
 int
 TCERegisterInfo::getDwarfRegNum(unsigned RegNum, bool /*isEH*/) const {
     return TCEGenRegisterInfo::getDwarfRegNumFull(RegNum, 0); 
@@ -261,3 +262,4 @@ TCERegisterInfo::getLLVMRegNum(unsigned RegNum, bool /*isEH */) const {
 }
 
 
+#endif

@@ -75,8 +75,11 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 
 #ifdef LLVM_2_9
 #define ARGLIST_CONST const
+#define TYPE_CONST const
+
 #else
 #define ARGLIST_CONST
+#define TYPE_CONST
 #endif
 
 namespace {
@@ -407,16 +410,16 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             // If there is also 
             // IntWord or UIntWord parameters all vectors are filled.
             std::vector<ARGLIST_CONST Type*> argList_i32;
-            const Type* retVal_i32 = NULL;
+            TYPE_CONST Type* retVal_i32 = NULL;
 
             std::vector<ARGLIST_CONST Type*> argList_i16;
-            const Type* retVal_i16 = NULL;
+            TYPE_CONST Type* retVal_i16 = NULL;
 
             std::vector<ARGLIST_CONST Type*> argList_i8;
-            const Type* retVal_i8 = NULL;
+            TYPE_CONST Type* retVal_i8 = NULL;
 
             std::vector<ARGLIST_CONST Type*> argList_i1;
-            const Type* retVal_i1 = NULL;
+            TYPE_CONST Type* retVal_i1 = NULL;
             
             bool useInt = false;
             for (int j = 1; j <= op.numberOfInputs(); j++) { 
@@ -578,11 +581,16 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                     args.push_back(I->getOperand(j));
                 }
             }
-
+#ifdef LLVM_2_9
             CallInst *NewCall = 
                 CallInst::Create(
                     replaceFunc->second, args.begin(), args.end(), "", I);
-            
+#else // LLVM-3.x            
+            CallInst *NewCall = 
+                CallInst::Create(
+                    replaceFunc->second, args, "", I);
+#endif
+
             NewCall->setTailCall();    
 
             // Replace all uses of the instruction with call instruction
