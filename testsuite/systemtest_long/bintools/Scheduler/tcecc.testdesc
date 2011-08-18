@@ -2,6 +2,6 @@
 // short test description
 $test_description="Compiling long test cases with tcecc";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py ";
-$bin_args = "-vxrq -w 0.5 -g \"-O3 --swfp -k_Output\" ".
+$bin_args = "-e tests -vxrq -w 0.5 -g \"-O3 --swfp -k_Output\" ".
     "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf";
 ?>
