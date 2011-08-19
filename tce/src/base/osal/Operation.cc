@@ -535,6 +535,21 @@ Operation::emulationFunctionName() const {
     return pimpl_->emulationFunctionName();
 }
     
+/**
+ * Specifies if operation reads memory.
+ */    
+void
+Operation::setReadsMemory(bool setting){
+    pimpl_->setReadsMemory(setting);
+}
+
+/**
+ * Specifies if operation writes memory.
+ */    
+void
+Operation::setWritesMemory(bool setting){
+    pimpl_->setWritesMemory(setting);
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // NullOperation

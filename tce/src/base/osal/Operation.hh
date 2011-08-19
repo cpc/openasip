@@ -114,6 +114,8 @@ public:
     virtual bool isClocked() const;
     virtual bool isControlFlowOperation() const;
     virtual bool dependsOn(const Operation& op) const;
+    virtual void setReadsMemory(bool setting);
+    virtual void setWritesMemory(bool setting);
     virtual int affectsCount() const;
     virtual int affectedByCount() const;
     virtual TCEString affects(unsigned int i) const;

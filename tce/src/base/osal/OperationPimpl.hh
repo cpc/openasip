@@ -86,6 +86,8 @@ private:
     bool isCall() const;
     bool isBranch() const;    
     bool dependsOn(const Operation& op) const;
+    void setReadsMemory(bool setting);
+    void setWritesMemory(bool setting);
     int affectsCount() const;
     int affectedByCount() const;
     TCEString affects(unsigned int i) const;

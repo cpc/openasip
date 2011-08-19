@@ -253,6 +253,12 @@ const llvm::MCInstrDesc& tid
         op->setIsBranch(true);
         op->setIsControlFlowOperation(true);        
     }
+    if (tid.mayLoad()) {
+        op->setReadsMemory(true);
+    }
+    if (tid.mayStore()) {
+        op->setWritesMemory(true);
+    }    
     return op;
 }
 

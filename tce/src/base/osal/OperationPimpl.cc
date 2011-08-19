@@ -909,3 +909,19 @@ void
 OperationPimpl::setIsBranch(bool setting) {
     isBranch_ = setting;
 }
+
+/**
+ * Specifies if operation reads memory.
+ */    
+void
+OperationPimpl::setReadsMemory(bool setting){
+    readsMemory_ = setting;
+}
+
+/**
+ * Specifies if operation writes memory.
+ */    
+void
+OperationPimpl::setWritesMemory(bool setting){
+    writesMemory_ = setting;
+}
