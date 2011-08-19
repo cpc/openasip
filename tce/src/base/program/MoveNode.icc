@@ -45,7 +45,7 @@ MoveNode::isDestinationOperation() const {
     if (move_ == NULL) {
         return false;
     }
-    return dstOp_ != NULL;
+    return dstOp_.get() != NULL;
 }
 
 /**
@@ -94,12 +94,20 @@ MoveNode::isMove() const {
  */
 inline ProgramOperation&
 MoveNode::destinationOperation() const
-    throw(InvalidData){
+    throw(InvalidData) {
+
+    return *destinationOperationPtr().get();
+}
+
+inline ProgramOperationPtr
+MoveNode::destinationOperationPtr() const
+    throw(InvalidData) {
 
     if (!isDestinationOperation()){
         std::string msg = "MoveNode destination is not Operation.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
-        return *dstOp_;
+        return dstOp_;
     }
 }
+

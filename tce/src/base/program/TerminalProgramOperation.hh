@@ -33,9 +33,9 @@
 #ifndef TTA_TERMINAL_PROGRAM_OPERATION_HH
 #define TTA_TERMINAL_PROGRAM_OPERATION_HH
 
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include "TerminalInstructionAddress.hh"
-
-class ProgramOperation;
+#include "ProgramOperation.hh"
 
 namespace TTAProgram {
 
@@ -51,8 +51,24 @@ namespace TTAProgram {
  */
 class TerminalProgramOperation : public TerminalInstructionAddress {
 public:
-    TerminalProgramOperation(const ProgramOperation& po);
+    TerminalProgramOperation(TCEString instructionLabel);
+    TerminalProgramOperation(ProgramOperationPtr po);
     virtual ~TerminalProgramOperation();
+
+    ProgramOperationPtr programOperation() const {
+        return po_;
+    }
+
+    void setProgramOperation(ProgramOperationPtr po) {
+        po_ = po;
+    }
+
+    bool isProgramOperationKnown() const {
+        return po_.get() != NULL;
+    }
+
+    bool isProgramOperationReference() const { return true; }
+    bool isAddressKnown() const;
 
     virtual Address address() const 
         throw (WrongSubclass);
@@ -60,11 +76,14 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 
+    TCEString label() const { return label_; }
+    
 private:
     /// Assignment not allowed.
     TerminalProgramOperation& operator=(const TerminalProgramOperation&);
-    /// The referred PO.
-    const ProgramOperation& po_;
+    /// The referred PO. The pointer can be copied, e.g. to DDG.
+    ProgramOperationPtr po_;
+    TCEString label_;
 };
 
 }

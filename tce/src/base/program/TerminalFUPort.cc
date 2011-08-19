@@ -141,7 +141,8 @@ TerminalFUPort::TerminalFUPort(HWOperation &operation, int opIndex)
  */
 TerminalFUPort::TerminalFUPort(const TerminalFUPort& tfup) :
     Terminal(), port_(tfup.port_), operation_(tfup.operation_),
-    opcode_(tfup.opcode_), opIndex_(tfup.opIndex_) {}
+    opcode_(tfup.opcode_), opIndex_(tfup.opIndex_), po_(tfup.po_) {
+}
                                    
 /**
  * The destructor.

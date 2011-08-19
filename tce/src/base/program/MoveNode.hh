@@ -33,6 +33,7 @@
  *
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @author Ari Mets‰halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010, 2011
  * @note rating: red
  */
 
@@ -40,6 +41,7 @@
 #define TTA_MOVE_NODE_HH
 
 #include <string>
+#include <boost/smart_ptr/shared_ptr.hpp>
 #include "Exception.hh"
 #include "Move.hh"
 #include "GraphNode.hh"
@@ -48,6 +50,7 @@
 class Scope{} ;
 // Implementation in header file that includes this header file
 class ProgramOperation;
+typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
 
 namespace TTAProgram{
     class Move;
@@ -93,11 +96,14 @@ public:
     Scope& scope();
     ProgramOperation& sourceOperation() const throw (InvalidData);
     ProgramOperation& destinationOperation() const throw (InvalidData);
+    ProgramOperationPtr sourceOperationPtr() const throw (InvalidData);
+    ProgramOperationPtr destinationOperationPtr() const throw (InvalidData);
+
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;
 
-    void setDestinationOperation(ProgramOperation &po);
-    void setSourceOperation(ProgramOperation &po);
+    void setDestinationOperationPtr(ProgramOperationPtr po);
+    void setSourceOperationPtr(ProgramOperationPtr po);
     void setMoveOwned();
 
     void unsetDestinationOperation();
@@ -125,8 +131,8 @@ private:
     /// Pointer to Move this node represents, Node itself do not change move
     const TTAProgram::Move* move_;
 
-    ProgramOperation *srcOp_;
-    ProgramOperation *dstOp_;
+    ProgramOperationPtr srcOp_;
+    ProgramOperationPtr dstOp_;
 
     /// Cycle in which the node is placed. Each cycle uniquely identifies an
     /// instruction slot within the current scheduling scope.

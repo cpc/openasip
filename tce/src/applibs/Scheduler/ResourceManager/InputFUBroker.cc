@@ -52,6 +52,7 @@
 #include "ResourceManager.hh"
 #include "SchedulingResource.hh"
 #include "TerminalFUPort.hh"
+#include "MoveNodeSet.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -449,6 +450,7 @@ InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         dynamic_cast<const FunctionUnit&>(machinePartOf(fuRes));
     HWOperation* hwOp = unit.operation(op.name());
     TerminalFUPort* newDst = new TerminalFUPort(*hwOp, opIndex);
+    newDst->setProgramOperation(dst.programOperation());
     move.setDestination(newDst);
     fuRes.assign(cycle, node);
     assignedResources_.insert(

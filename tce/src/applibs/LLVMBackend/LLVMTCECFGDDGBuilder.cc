@@ -42,6 +42,7 @@
 #include "DataDependenceGraph.hh"
 #include "TerminalBasicBlockReference.hh"
 #include "TerminalSymbolReference.hh"
+#include "TerminalFUPort.hh"
 
 #include "PreOptimizer.hh"
 #include "BBSchedulerController.hh"
@@ -59,6 +60,7 @@
 
 #include <llvm/ADT/SmallString.h>
 #include <llvm/MC/MCContext.h>
+#include <llvm/MC/MCSymbol.h>
 
 //#define WRITE_DDG_DOTS
 //#define WRITE_CFG_DOTS
@@ -96,6 +98,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 
     if (tm_ == NULL)
         tm_ = &mf.getTarget();
+
+    clearFunctionBookkeeping();
 
     if (!functionAtATime_) {
         // ensure data sections have been initialized
@@ -141,7 +145,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     std::set<const MachineBasicBlock*> endingCallBBs;
     std::set<const MachineBasicBlock*> endingCondJumpBBs;
     std::set<const MachineBasicBlock*> endingUncondJumpBBs;
-    std::map<const BasicBlockNode*,BasicBlockNode*> callSuccs;
+    std::map<const BasicBlockNode*, BasicBlockNode*> callSuccs;
     std::map<const BasicBlockNode*, const MachineBasicBlock*> condJumpSucc;
     std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccs;
     std::set<const MachineBasicBlock*> emptyMBBs;
@@ -275,7 +279,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         const MachineBasicBlock& mbb = *i;
         
         BasicBlockNode* bbn = NULL;
-        std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator
+        std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator
             bbMapIter = bbMapping_.find(&mbb);
         if (bbMapIter == bbMapping_.end()) {
             continue;
@@ -283,26 +287,47 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             bbn = bbMapIter->second;
         }
         TTAProgram::BasicBlock* bb = &bbn->basicBlock();
-        
+
+        /* If this is non-empty, the ProgramOperation of the next 
+           instruction should be indexed with the given label. */
+        TCEString nextLabel = "";
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++) {
             
             if (operationName(*j) == "HBR_LABEL" ||
-                operationName(*j) == "HBRA" ||
                 operationName(*j) == "PROLOG_LABEL") {
-                std::cerr << "\tignoring branch hint-related: ";
+
+                /*
+                  FIXME: this code fails when there are multiple labels
+                  pointing to the same instruction. Only the last label
+                  will be indexed. */
+                assert(nextLabel == "");
+                
+                nextLabel = j->getOperand(0).getMCSymbol()->getName().str();
+#if 0
+                std::cerr << "\ta label placeholder instruction found\n";
+                PRINT_VAR(nextLabel);
                 j->dump();
+#endif
                 continue;
             }
 
             TTAProgram::Instruction* instr = NULL;
-            instr = emitInstruction(j, bb);
-            
+            instr = emitInstruction(j, bb);                        
+
             if (instr == NULL) {
                 continue;
             } 
+
+            if (nextLabel != "") {
+                TTAProgram::TerminalFUPort& tpo =
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        instr->move(0).destination());
+                addLabelForProgramOperation(nextLabel, tpo.programOperation());
+                nextLabel = "";
+            }
             
-            // if call, switch tto next bb(in callsucc chain)
+            // if call, switch to next bb(in callsucc chain)
             if (j->getDesc().isCall() && &(*j) != &(mbb.back())) {
                 bbn = callSuccs[bbn];
                 bb = &bbn->basicBlock();
@@ -315,10 +340,11 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 bb = &bbn->basicBlock();
             }
         }
-
 //        ddgBuilder_->constructIndividualBB(REGISTERS_AND_PROGRAM_OPERATIONS);
 
     }
+
+    
 
     // 3rd loop: create edges?
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
@@ -341,7 +367,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         
         const MachineBasicBlock* jumpSucc = condJumpSucc[bbn];
         
-        while(true) {
+        while (true) {
             std::map<const BasicBlockNode*, BasicBlockNode*>::iterator j =
                 callSuccs.find(bbn);
             
@@ -438,8 +464,7 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                         
                         if (succ == jumpSucc) {
                             continue;
-                        }
-                        
+                        }                        
                         cfe = new ControlFlowEdge;
                     }
                 } else { // no conditional jump. ft to next bb.
@@ -458,6 +483,9 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
             cfg->connectNodes(*bbn, *succBBN, *cfe);
         }
     }
+
+    fixProgramOperationReferences();
+
     // create jumps to exit node
     BasicBlockNode* exit = new BasicBlockNode(0, 0, false, true);
     cfg->addNode(*exit);

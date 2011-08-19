@@ -40,9 +40,9 @@
 #include "Move.hh"
 #include "SpecialRegisterPort.hh"
 #include "ControlUnit.hh"
-
 #include "InstructionReferenceManager.hh"
 #include "MoveNode.hh"
+#include "MoveNodeSet.hh"
 #include "ProgramOperation.hh"
 
 #include "StackFrameCodeCreator.hh"

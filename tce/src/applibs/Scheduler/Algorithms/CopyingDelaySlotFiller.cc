@@ -675,39 +675,6 @@ CopyingDelaySlotFiller::tryToFillSlots(
         }
     }
 
-    // then PO's.
-    for (std::map<ProgramOperation*,bool,ProgramOperation::Comparator>::
-             iterator iter = poOwned_.begin();
-         iter != poOwned_.end(); iter++) {
-        ProgramOperation* po = iter->first;
-        if (poMoved(*po, moves)) {
-            // will be owned by ddg
-            iter->second = false; 
-            ddg_->addProgramOperation(po);
-	    
-	    // then remove linking to nodes which are going to be deleted.
-	    // input moves
-	    for (int i = 0; i < po->inputMoveCount(); i++) {
-		MoveNode& mn = po->inputMove(i);
-		// owned means going to be deleted, not fillit itself
-		if (mnOwned_[&mn]) {
-		    po->removeInputNode(mn);
-		    mn.unsetDestinationOperation();
-		}
-            }
-            
-	    // output moves
-            for (int i = 0; i < po->outputMoveCount(); i++) {
-                MoveNode& mn = po->outputMove(i);
-                // owned means going to be deleted, not fillit itself
-                if (mnOwned_[&mn]) {
-                    po->removeOutputNode(mn);
-                    mn.unsetSourceOperation();
-                 }
-             }
-        }
-    }
-
     loseCopies();
     return true;
 }
@@ -733,13 +700,13 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
         oldMoveNodes_[newMN] = &old;
         mnOwned_[newMN] = true;
         if (old.isSourceOperation()) {
-            newMN->setSourceOperation(
-                getProgramOperation(old.sourceOperation()));
+            newMN->setSourceOperationPtr(
+                getProgramOperationPtr(old.sourceOperationPtr()));
             assert(newMN->isSourceOperation());
         }
         if (old.isDestinationOperation()) {
-            newMN->setDestinationOperation(
-                getProgramOperation(old.destinationOperation()));
+            newMN->setDestinationOperationPtr(
+                getProgramOperationPtr(old.destinationOperationPtr()));
             assert(newMN->isDestinationOperation());
         }
         return *newMN;
@@ -754,26 +721,26 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
  * @param old ProgramOperation in jump target BB.
  * @return new ProgramOperation for this BB.
  */
-ProgramOperation& 
-CopyingDelaySlotFiller::getProgramOperation(ProgramOperation& old) {
-    if (AssocTools::containsKey(programOperations_,&old)) {
-        return *programOperations_[&old];
+ProgramOperationPtr 
+CopyingDelaySlotFiller::getProgramOperationPtr(ProgramOperationPtr old) {
+    if (AssocTools::containsKey(programOperations_, old.get())) {
+        return programOperations_[old.get()];
     } else {
-        ProgramOperation* po = new ProgramOperation(old.operation());
-        poOwned_[po] = true;
-        programOperations_[&old] = po;
-        oldProgramOperations_[po] = &old;
-        for (int i = 0; i < old.inputMoveCount();i++) {
-            MoveNode& mn = old.inputMove(i);
+        ProgramOperationPtr po = 
+            ProgramOperationPtr(new ProgramOperation(old->operation()));
+        programOperations_[old.get()] = po;
+        oldProgramOperations_[po.get()] = old;
+        for (int i = 0; i < old->inputMoveCount();i++) {
+            MoveNode& mn = old->inputMove(i);
             assert(mn.isDestinationOperation());
             po->addInputNode(getMoveNode(mn));
         }
-        for (int j = 0; j < old.outputMoveCount();j++) {
-            MoveNode& mn = old.outputMove(j);
+        for (int j = 0; j < old->outputMoveCount();j++) {
+            MoveNode& mn = old->outputMove(j);
             assert(mn.isSourceOperation());
             po->addOutputNode(getMoveNode(mn));
         }
-        return *po;
+        return po;
     }
 }
 
@@ -883,29 +850,8 @@ void CopyingDelaySlotFiller::loseCopies() {
     
     moves_.clear();
     
-    std::list<ProgramOperation*> toDeletePOs;    
-    for (std::map<ProgramOperation*,ProgramOperation*,
-             ProgramOperation::Comparator>::iterator poIter =
-             programOperations_.begin(); poIter != programOperations_.end();
-         poIter++ ) {
-        ProgramOperation* second = poIter->second;
-        // may also crash on this
-        if (poOwned_[poIter->second] == true) {
-            poOwned_.erase(second);
-
-            // queue to be deleted
-            toDeletePOs.push_back(second);
-        }
-    }
     programOperations_.clear();
     oldProgramOperations_.clear();
-    poOwned_.clear();    
-
-    // actually delete the programoperations
-    for (std::list<ProgramOperation*>::iterator i = toDeletePOs.begin();
-         i != toDeletePOs.end(); i++) {
-        delete *i;
-    }
 }
 
 /**
@@ -913,7 +859,6 @@ void CopyingDelaySlotFiller::loseCopies() {
  */
 CopyingDelaySlotFiller::~CopyingDelaySlotFiller() {
     assert(programOperations_.size() == 0);
-    assert(poOwned_.size() == 0);
     assert(moveNodes_.size() == 0);
     assert(mnOwned_.size() == 0);
     assert(moves_.size() == 0);

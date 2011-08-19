@@ -38,7 +38,7 @@
 #include "Exception.hh"
 #include <vector>
 
-class MoveNodeSet{
+class MoveNodeSet {
 public:
     MoveNodeSet();
 

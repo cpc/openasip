@@ -33,9 +33,6 @@
 #ifndef TTA_DATA_DEPENDENCE_GRAPH_HH
 #define TTA_DATA_DEPENDENCE_GRAPH_HH
 
-#include "BoostGraph.hh"
-#include "DataDependenceEdge.hh"
-
 #include <map>
 #include <set>
 #include <list>
@@ -43,9 +40,12 @@
 #include <vector>
 #include <utility>
 
+#include "BoostGraph.hh"
+#include "DataDependenceEdge.hh"
 #include "MoveNode.hh"
+#include "ProgramOperation.hh"
 
-typedef std::vector<class ProgramOperation*> POList;
+typedef std::vector<ProgramOperationPtr> POList;
 typedef POList::iterator POLIter;
 
 class BasicBlockNode;
@@ -118,7 +118,7 @@ public:
         throw (ObjectAlreadyExists);
     void addNode(MoveNode& moveNode, MoveNode& relatedNode);
     void addNode(MoveNode& moveNode, BasicBlockNode& bblock);
-    void addProgramOperation(ProgramOperation* po);
+    void addProgramOperation(ProgramOperationPtr po);
 
     using BoostGraph<MoveNode, DataDependenceEdge>::addNode;
 

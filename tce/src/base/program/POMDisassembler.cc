@@ -45,6 +45,7 @@
 #include "FUPort.hh"
 #include "TerminalFUPort.hh"
 #include "TerminalImmediate.hh"
+#include "TerminalProgramOperation.hh"
 #include "Procedure.hh"
 #include "Operation.hh"
 #include "GlobalScope.hh"
@@ -262,6 +263,11 @@ POMDisassembler::createTerminal(const Terminal& terminal)
  */
 DisassemblyImmediate*
 POMDisassembler::createInlineImmediate(const Terminal& terminal) {
+    if (const TTAProgram::TerminalProgramOperation* tpo = 
+        dynamic_cast<const TTAProgram::TerminalProgramOperation*>(&terminal)) {
+        if (!tpo->isAddressKnown())
+            return new DisassemblyImmediate(NullSimValue::instance());
+    }
     try {
         return new DisassemblyImmediate(terminal.value());
     } catch (Exception& e) {

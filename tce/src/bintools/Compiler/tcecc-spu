@@ -71,8 +71,9 @@ def create_temp_file(suffix=""):
     return tf
 
 def cleanup_and_exit(retval=0):
-    for tf in tempfiles:
-        os.unlink(tf)
+    if not options.leave_tempfiles:
+        for tf in tempfiles:
+            os.unlink(tf)
     sys.exit(retval)
 
 def parse_options():
@@ -89,6 +90,9 @@ def parse_options():
     parser.add_option("", "--no-tce-scheduler", dest="use_tce_scheduler",
                       action="store_false", default=True,
                       help="Do not use the TCE instruction scheduler.")
+    parser.add_option("", "--leave-tempfiles", dest="leave_tempfiles",
+                      action="store_true", default=False,
+                      help="Do not delete the temporary files.")
     (options, args) = parser.parse_args()
     return (options, args)
 

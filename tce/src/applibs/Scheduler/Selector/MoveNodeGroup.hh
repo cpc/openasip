@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of MoveNodeGroup class 
  * 
  * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -68,9 +69,9 @@ public:
 
     /// in case this MNG contains strictly the nodes of a single operation,
     /// it can be set and queried with these methods
-    void setProgramOperation(ProgramOperation& op) { operation_ = &op; }
+    void setProgramOperationPtr(ProgramOperationPtr op) { operation_ = op; }
     bool isOperation() const { return operation_ != NULL; }
-    ProgramOperation& programOperation() const { return *operation_; }
+    ProgramOperationPtr programOperationPtr() const { return operation_; }
 
 private:
     std::vector<MoveNode*> nodes_;
@@ -79,7 +80,7 @@ private:
     const DataDependenceGraph* ddg_;
     /// in case this MNG contains strictly the nodes of a single operation
     /// this can be set to point to it (optional)
-    ProgramOperation* operation_;
+    ProgramOperationPtr operation_;
 };
 
 #endif

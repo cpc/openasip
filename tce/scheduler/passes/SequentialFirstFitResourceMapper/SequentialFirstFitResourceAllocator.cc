@@ -66,6 +66,7 @@ using std::endl;
 #include "POMDisassembler.hh"
 #include "TCEString.hh"
 #include "InstructionReferenceManager.hh"
+#include "MoveNodeSet.hh"
                  
 using std::vector;
 using std::list;
@@ -395,7 +396,7 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
     while (proc != &NullProcedure::instance()) {
         Instruction* ins = &proc->firstInstruction();
 
-        typedef std::list<ProgramOperation*> POList;
+        typedef std::list<ProgramOperationPtr> POList;
         typedef POList::iterator POLIter;
 
         POList destPending; // operations lacking operands
@@ -420,10 +421,10 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
 
                     for (POLIter poli = readPending.begin();
                          poli != readPending.end(); poli++ ) {
-                        ProgramOperation* po = *poli;
+                        ProgramOperationPtr po = *poli;
                         if( sop == &po->operation()) {
                             po->addOutputNode( *moveNode );
-                            moveNode->setSourceOperation(*po);
+                            moveNode->setSourceOperationPtr(po);
 
                             if(po->isComplete())   {
                                 readPending.erase(poli);
@@ -451,11 +452,11 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
                         for( POLIter poli = destPending.begin();
                              poli != destPending.end();
                              poli++ ) {
-                            ProgramOperation* po = *poli;
+                            ProgramOperationPtr po = *poli;
 
-                            if( dop == &po->operation()) {
+                            if (dop == &po->operation()) {
                                 po->addInputNode(*moveNode);
-                                moveNode->setDestinationOperation( *po );
+                                moveNode->setDestinationOperationPtr(po);
                                 if( po->isReady()) {
 //                                    cout << "po ready" << endl;
                                     destPending.erase(poli);
@@ -470,8 +471,9 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
                         }
                         // only one triggering input?
                         if (dop->numberOfInputs() == 1 ) {
-                            ProgramOperation *po = new ProgramOperation(*dop);
-                            moveNode->setDestinationOperation( *po );
+                            ProgramOperationPtr po = 
+                                ProgramOperationPtr(new ProgramOperation(*dop));
+                            moveNode->setDestinationOperationPtr(po);
                             po->addInputNode(*moveNode);
                             if (dop->numberOfOutputs()) {
                                 readPending.push_back(po);
@@ -484,12 +486,12 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
 
                     } else {
                         dop = &tfpd.hintOperation();
-                        for( POLIter poli = destPending.begin();
+                        for (POLIter poli = destPending.begin();
                              poli != destPending.end();
                              poli++ ) {
-                            ProgramOperation& po = **poli;
+                            ProgramOperationPtr po = *poli;
 
-                            if( dop == &po.operation()) {
+                            if (dop == &po->operation()) {
                                 // add current move to operation
 
                                 // check that no other move has same input num
@@ -498,26 +500,26 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
                                 // does not yet exist
 
                                 // TBD: check for inconsistent input code
-                                po.addInputNode(*moveNode);
-                                moveNode->setDestinationOperation( po );
+                                po->addInputNode(*moveNode);
+                                moveNode->setDestinationOperationPtr(po);
                                 goto dstHandled;
                             }
                         }
                         // create new ProgramOperation
-                        ProgramOperation *po = new ProgramOperation(*dop);
-                        moveNode->setDestinationOperation( *po );
+                        ProgramOperationPtr po = 
+                            ProgramOperationPtr(new ProgramOperation(*dop));
+                        moveNode->setDestinationOperationPtr(po);
                         po->addInputNode(*moveNode);
                         destPending.push_back(po);
                     }
                 }
             dstHandled:
-                moveNodes.push_back( moveNode );
+                moveNodes.push_back(moveNode);
             }
             ins = &proc->nextInstruction(*ins);
         }
 
         if (destPending.size() > 0 || readPending.size() > 0) {
-
             std::cerr
                 << "ERROR: unready program operations's at procedure "
                 << proc->name() <<" : " << destPending.size() << " "

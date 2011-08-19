@@ -80,6 +80,9 @@ public:
         const TTAProgram::Program& program, bool indices=false)
         throw (Exception);
 
+    static DisassemblyImmediate* createInlineImmediate(
+        const TTAProgram::Terminal& terminal);
+
 private:
     static int labelCount(const TTAProgram::Program& program, Word address);
     static std::string label(
@@ -101,8 +104,6 @@ private:
         const TTAProgram::Terminal& terminal) throw(InstanceNotFound);
     static DisassemblyElement* createRegister(
         const TTAProgram::Terminal& terminal) throw(WrongSubclass);
-    static DisassemblyImmediate* createInlineImmediate(
-        const TTAProgram::Terminal& terminal);
     static DisassemblyImmediateRegister* createImmediateRegister(
         const TTAProgram::Terminal& terminal);
 

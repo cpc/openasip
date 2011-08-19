@@ -34,6 +34,11 @@
  * @note rating: red
  */
 
+// LLVM_CPPFLAGS might disable debugging
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -45,6 +50,7 @@
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/Function.h>
 #include <llvm/Module.h>
+#include <llvm/MC/MCContext.h>
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
 #include "ControlFlowGraph.hh"
@@ -81,6 +87,7 @@
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
 #include "TerminalInstructionReference.hh"
+#include "TerminalProgramOperation.hh"
 #include "CodeGenerator.hh"
 #include "UniversalMachine.hh"
 #include "Guard.hh"
@@ -106,7 +113,6 @@ using TTAMachine::SpecialRegisterPort;
 using TTAMachine::Port;
 using TTAMachine::FunctionUnit;
 using TTAMachine::ControlUnit;
-
 
 /**
  * Removes nodes and edge from the graph.
@@ -1659,8 +1665,6 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         /// not exists already.
         getMBB(mf, bb);
 
-        //buildMBBFromBB(*mbb, bb);
-
         queuedNodes.erase(currentBBN);
 
         // then start searching for the next node.
@@ -1752,6 +1756,36 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
         buildMBBFromBB(*mbb, bb);
     }
+
+    /// Add the dummy instructions denoting labels to instructions
+    /// that are not basic block starts. This is only for the SPU's 
+    /// branch hint instructions at the moment. It instantiates
+    /// an LLVM/SPU-backend-specific dummy instruction HBR_LABEL at 
+    /// the moment.
+    for (std::set<std::pair<ProgramOperationPtr, llvm::MCSymbol*> >::const_iterator i = 
+             tpos_.begin(); i != tpos_.end(); ++i) {
+        ProgramOperationPtr po = (*i).first;
+        llvm::MCSymbol* symbol = (*i).second;
+        assert(programOperationToMIMap_.find(po.get()) != programOperationToMIMap_.end());
+        llvm::MachineInstr* mi = programOperationToMIMap_[po.get()];
+        assert(mi != NULL);
+        const llvm::TargetInstrInfo& tii = *mf.getTarget().getInstrInfo();
+#ifdef LLVM_2_9
+        const llvm::TargetInstrDesc& tid =
+            findLLVMTargetInstrDesc("HBR_LABEL", tii);
+#else
+        const llvm::MCInstrDesc& tid =
+            findLLVMTargetInstrDesc("HBR_LABEL", tii);
+#endif
+        llvm::MachineInstr* labelInstruction = 
+            mf.CreateMachineInstr(tid, llvm::DebugLoc());
+        labelInstruction->addOperand(
+            llvm::MachineOperand::CreateMCSymbol(symbol));
+        mi->getParent()->insert(mi, labelInstruction);
+    }
+    tpos_.clear();
+    programOperationToMIMap_.clear();
+
     /// Based on CFG edges, add successor information to the generated
     /// machine function.
     unsigned int eCount = edgeCount();
@@ -1778,17 +1812,15 @@ ControlFlowGraph::copyToLLVMMachineFunction(
  */
 #ifdef LLVM_2_9
 const llvm::TargetInstrDesc& 
-#else
-const llvm::MCInstrDesc& 
-#endif
 ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
-#ifdef LLVM_2_9
-    const llvm::TargetInstrInfo& tii
+    const llvm::TargetInstrInfo& tii) const {
 #else
-    const llvm::MCInstrInfo& tii
+const llvm::MCInstrDesc& 
+ControlFlowGraph::findLLVMTargetInstrDesc(
+    TCEString name, 
+    const llvm::MCInstrInfo& tii) const {
 #endif
-    ) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
 #ifdef LLVM_2_9
         const llvm::TargetInstrDesc& tid = tii.get(opc);
@@ -1798,6 +1830,7 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
         if (name.ciEqual(tid.getName()))
             return tid;
     }
+    abort();
     abortWithError(TCEString("Could not find ") << name << " in the TII.");
 }
 
@@ -1848,12 +1881,19 @@ ControlFlowGraph::buildMBBFromBB(
         typedef std::map<const TTAMachine::FunctionUnit*, 
                          const TTAMachine::HWOperation*> OpsMap;
         OpsMap startedOps;
+        typedef std::map<const TTAMachine::FunctionUnit*, 
+                         ProgramOperationPtr> POMap;
+        POMap startedPOs;
         for (int m = 0; m < instr.moveCount(); ++m) {
             const TTAProgram::Move& move = instr.move(m);
             if (move.isTriggering()) {
-                startedOps[&move.destination().functionUnit()] =
+                TTAProgram::TerminalFUPort& tfup =
                     dynamic_cast<TTAProgram::TerminalFUPort&>(
-                        move.destination()).hwOperation();
+                        move.destination());
+                startedOps[&move.destination().functionUnit()] =
+                    tfup.hwOperation();
+                startedPOs[&move.destination().functionUnit()] =
+                    tfup.programOperation();
             }
         }
 
@@ -1951,7 +1991,6 @@ ControlFlowGraph::buildMBBFromBB(
         for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
              boi != bundleOrder.end(); ++boi) {
             llvm::MachineInstr* mi = NULL;
-            assert(mbb.getParent()->getTarget().getInstrInfo() != NULL);
             const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getInstrInfo();
             if (startedOps.find(*boi) == startedOps.end()) {
 #if 0
@@ -1998,13 +2037,6 @@ ControlFlowGraph::buildMBBFromBB(
                     TTAProgram::Terminal* terminal = *opri;
                     if (terminal->isCodeSymbolReference()) {
                         // has to be a global variable at this point?
-#if 0
-                        llvm::GlobalValue* gv =
-                            mbb.getParent()->getFunction()->getParent()->
-                            getGlobalVariable("L.str", true);
-                        PRINT_VAR(terminal->toString());
-                        assert(gv != NULL);
-#endif
                         // Constant pool indeces are converted to
                         // dummy references when LLVM->POM conversion.
                         if (terminal->toString().startsWith(".CP_")) {
@@ -2017,24 +2049,36 @@ ControlFlowGraph::buildMBBFromBB(
                                 llvm::MachineOperand::CreateES(
                                     terminal->toString().c_str()));
                         }
-            } else if (terminal->isBasicBlockReference()) {
-                llvm::MachineBasicBlock& mbb2 =
-                    getMBB(*mbb.getParent(), terminal->basicBlock());
-                mi->addOperand(
-                    llvm::MachineOperand::CreateMBB(&mbb2)); 
-                mbb.addSuccessor(&mbb2);
-            } else if (terminal->isImmediate()) {
-                mi->addOperand(
-                     llvm::MachineOperand::CreateImm(terminal->value().intValue()));
-            } else if (terminal->isGPR()) {
-                bool isDef = false;  // TODO: in case it's an output, it's a def
-                // LLVM register index starts from 1, we count register from 0
-                // thus add 1 to get correct data to the LLVM
-                mi->addOperand(
-                     llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
-             } else {
-                 abortWithError(
-                     "Unsupported Terminal -> MachineOperand conversion attempted.");
+                    } else if (terminal->isBasicBlockReference()) {
+                        llvm::MachineBasicBlock& mbb2 =
+                            getMBB(*mbb.getParent(), terminal->basicBlock());
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateMBB(&mbb2)); 
+                        mbb.addSuccessor(&mbb2);
+                    } else if (terminal->isProgramOperationReference()) {
+                        const TTAProgram::TerminalProgramOperation& tpo =
+                            dynamic_cast<
+                            const TTAProgram::TerminalProgramOperation&>(
+                                *terminal);
+                        llvm::MCSymbol* symbol = 
+                            mbb.getParent()->getContext().GetOrCreateSymbol(
+                                llvm::StringRef(tpo.label()));
+                        mi->addOperand(llvm::MachineOperand::CreateMCSymbol(symbol));
+                        // need to keep book of the TPOs in order to recreate the
+                        // label instructions
+                        tpos_.insert(std::make_pair(tpo.programOperation(), symbol));
+                    } else if (terminal->isImmediate()) {
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateImm(terminal->value().intValue()));
+                    } else if (terminal->isGPR()) {
+                        bool isDef = false;  // TODO: in case it's an output, it's a def
+                        // LLVM register index starts from 1, we count register from 0
+                        // thus add 1 to get correct data to the LLVM
+                        mi->addOperand(
+                            llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
+                    } else {
+                        abortWithError(
+                            "Unsupported Terminal -> MachineOperand conversion attempted.");
                     }
 #ifdef DEBUG_POM_TO_MI
                     if (counter > 0)
@@ -2043,8 +2087,17 @@ ControlFlowGraph::buildMBBFromBB(
 #endif
                 }
             }
-            if (mi != NULL)
+            if (mi != NULL) {
                 mbb.push_back(mi);
+                assert(startedPOs.find(*boi) != startedPOs.end());
+                ProgramOperationPtr po = (*startedPOs.find(*boi)).second;
+                assert(po.get() != NULL);
+                if (po.get() != NULL) {
+                    programOperationToMIMap_[po.get()] = mi;
+                } else {                    
+                    //assert(po.get() != NULL);
+                }
+            }
 #ifdef DEBUG_POM_TO_MI
             Application::logStream() << "\t# " << (*boi)->name() << std::endl;
 #endif

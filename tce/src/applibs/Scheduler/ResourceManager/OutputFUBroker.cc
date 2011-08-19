@@ -46,6 +46,7 @@
 #include "ProgramAnnotation.hh"
 #include "TCEString.hh"
 #include "TerminalFUPort.hh"
+#include "MoveNodeSet.hh"
 
 using std::string;
 using namespace TTAMachine;

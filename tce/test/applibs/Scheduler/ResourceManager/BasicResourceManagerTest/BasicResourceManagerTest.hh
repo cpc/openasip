@@ -60,6 +60,7 @@
 #include "ProgramAnnotation.hh"
 #include "InterPassData.hh"
 #include "SequenceTools.hh"
+#include "MoveNodeSet.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT
@@ -697,14 +698,16 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
             new MoveNode(cfg->node(0).basicBlock().instructionAt(1).move(0));
         MoveNode* node3 =
             new MoveNode(cfg->node(0).basicBlock().instructionAt(2).move(0));
-        ProgramOperation* po1 = new
-            ProgramOperation(node1->move().destination().hintOperation());
+        ProgramOperationPtr po1 = 
+            ProgramOperationPtr(
+                new ProgramOperation(
+                    node1->move().destination().hintOperation()));
         po1->addInputNode(*node1);
-        node1->setDestinationOperation(*po1);
+        node1->setDestinationOperationPtr(po1);
         po1->addInputNode(*node2);
-        node2->setDestinationOperation(*po1);
+        node2->setDestinationOperationPtr(po1);
         po1->addOutputNode(*node3);
-        node3->setSourceOperation(*po1);
+        node3->setSourceOperationPtr(po1);
         TS_ASSERT_EQUALS(node1->isMoveOwned(), false);
         TS_ASSERT_EQUALS(node2->isMoveOwned(), false);
         TS_ASSERT_EQUALS(node3->isMoveOwned(), false);
@@ -715,14 +718,16 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
             new MoveNode(cfg->node(0).basicBlock().instructionAt(6).move(0));
         MoveNode* node7 =
             new MoveNode(cfg->node(0).basicBlock().instructionAt(7).move(0));
-        ProgramOperation* po2 = new
-            ProgramOperation(node5->move().destination().hintOperation());
+        ProgramOperationPtr po2 = 
+            ProgramOperationPtr(
+                new ProgramOperation(
+                    node5->move().destination().hintOperation()));
         po2->addInputNode(*node5);
-        node5->setDestinationOperation(*po2);
+        node5->setDestinationOperationPtr(po2);
         po2->addInputNode(*node6);
-        node6->setDestinationOperation(*po2);
+        node6->setDestinationOperationPtr(po2);
         po2->addOutputNode(*node7);
-        node7->setSourceOperation(*po2);
+        node7->setSourceOperationPtr(po2);
         TTAProgram::Move* newMove = new TTAProgram::Move(
             node3->move().source().copy(),
             node6->move().destination().copy(),
@@ -742,8 +747,8 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_EQUALS(duplicate->isMoveOwned(), true);
         TS_ASSERT_EQUALS(otherTarget->isMoveOwned(), true);
 
-        bypassed->setSourceOperation(*po1);
-        bypassed->setDestinationOperation(*po2);
+        bypassed->setSourceOperationPtr(po1);
+        bypassed->setDestinationOperationPtr(po2);
         po1->addOutputNode(*bypassed);
         po2->addInputNode(*bypassed);
         // bypass is now triggering, we remove original triggering move
@@ -752,9 +757,9 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         //TS_ASSERT_EQUALS(node6->isSourceOperation(), false);
         //TS_ASSERT_EQUALS(node6->isDestinationOperation(), false);
 
-        duplicate->setSourceOperation(*po1);
+        duplicate->setSourceOperationPtr(po1);
         po1->addOutputNode(*duplicate);
-        otherTarget->setSourceOperation(*po1);
+        otherTarget->setSourceOperationPtr(po1);
         po1->addOutputNode(*otherTarget);
 
         // fu selection logic changed. use annotation to force original
@@ -928,8 +933,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete cfg;
         delete srcProgram;
         delete targetMachine;
-        delete po1;
-        delete po2;        
 
         SimpleResourceManager::disposeRM(rm);
 
@@ -968,13 +971,16 @@ BasicResourceManagerTest::testMULConflict() {
     MoveNode* node1 = new MoveNode(procedure.instructionAt(44).move(0));
     MoveNode* node2 = new MoveNode(procedure.instructionAt(45).move(0));
     MoveNode* node3 = new MoveNode(procedure.instructionAt(46).move(0));
-    ProgramOperation *po1 = new ProgramOperation(node2->move().destination().operation());
+    ProgramOperationPtr po1 = 
+        ProgramOperationPtr(
+            new ProgramOperation(
+                node2->move().destination().operation()));
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperation(*po1);
-    node2->setDestinationOperation(*po1);
-    node3->setSourceOperation(*po1);
+    node1->setDestinationOperationPtr(po1);
+    node2->setDestinationOperationPtr(po1);
+    node3->setSourceOperationPtr(po1);
 
     MoveNode* node4 = node1->copy();
     MoveNode* node5 = node2->copy();
@@ -982,14 +988,17 @@ BasicResourceManagerTest::testMULConflict() {
     po1->removeInputNode(*node4);
     po1->removeInputNode(*node5);
     po1->removeOutputNode(*node6);
-    ProgramOperation *po2 = new ProgramOperation(node5->move().destination().operation());
+    ProgramOperationPtr po2 = 
+        ProgramOperationPtr(
+            new ProgramOperation(
+                node5->move().destination().operation()));
     
     po2->addNode(*node4);
     po2->addNode(*node5);
     po2->addNode(*node6);
-    node4->setDestinationOperation(*po2);
-    node5->setDestinationOperation(*po2);
-    node6->setSourceOperation(*po2);
+    node4->setDestinationOperationPtr(po2);
+    node5->setDestinationOperationPtr(po2);
+    node6->setSourceOperationPtr(po2);
     
     TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node1));
     TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node2));
@@ -1045,13 +1054,16 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
     MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
     MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
     MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
-    ProgramOperation *po1 = new ProgramOperation(node2->move().destination().operation());
+    ProgramOperationPtr po1 = 
+        ProgramOperationPtr(
+            new ProgramOperation(
+                node2->move().destination().operation()));
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperation(*po1);
-    node2->setDestinationOperation(*po1);
-    node3->setSourceOperation(*po1);
+    node1->setDestinationOperationPtr(po1);
+    node2->setDestinationOperationPtr(po1);
+    node3->setSourceOperationPtr(po1);
 
     TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 1);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 1);
@@ -1092,13 +1104,15 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
     MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
     MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
-    ProgramOperation *po1 = new ProgramOperation(node2->move().destination().operation());
+    ProgramOperationPtr po1 = 
+        ProgramOperationPtr(
+            new ProgramOperation(node2->move().destination().operation()));
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperation(*po1);
-    node2->setDestinationOperation(*po1);
-    node3->setSourceOperation(*po1);
+    node1->setDestinationOperationPtr(po1);
+    node2->setDestinationOperationPtr(po1);
+    node3->setSourceOperationPtr(po1);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 0);
 
@@ -1119,13 +1133,14 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     MoveNode* node4 = new MoveNode(procedure.instructionAt(5).move(0));
     MoveNode* node5 = new MoveNode(procedure.instructionAt(6).move(0));
     MoveNode* node6 = new MoveNode(procedure.instructionAt(7).move(0));
-    ProgramOperation *po2 = new ProgramOperation(node5->move().destination().operation());
+    ProgramOperationPtr po2 = 
+        ProgramOperationPtr(new ProgramOperation(node5->move().destination().operation()));
     po2->addNode(*node4);
     po2->addNode(*node5);
     po2->addNode(*node6);
-    node4->setDestinationOperation(*po2);
-    node5->setDestinationOperation(*po2);
-    node6->setSourceOperation(*po2);
+    node4->setDestinationOperationPtr(po2);
+    node5->setDestinationOperationPtr(po2);
+    node6->setSourceOperationPtr(po2);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node4), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node5), 0);
     TS_ASSERT_THROWS_NOTHING(rm->assign(1,*node4));
@@ -1145,13 +1160,15 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     MoveNode* node7 = new MoveNode(procedure.instructionAt(9).move(0));
     MoveNode* node8 = new MoveNode(procedure.instructionAt(10).move(0));
     MoveNode* node9 = new MoveNode(procedure.instructionAt(11).move(0));
-    ProgramOperation *po3 = new ProgramOperation(node8->move().destination().operation());
+    ProgramOperationPtr po3 = 
+        ProgramOperationPtr(
+            new ProgramOperation(node8->move().destination().operation()));
     po3->addNode(*node7);
     po3->addNode(*node8);
     po3->addNode(*node9);
-    node7->setDestinationOperation(*po3);
-    node8->setDestinationOperation(*po3);
-    node9->setSourceOperation(*po3);
+    node7->setDestinationOperationPtr(po3);
+    node8->setDestinationOperationPtr(po3);
+    node9->setSourceOperationPtr(po3);
     // in cycle 0 this add will fit onto alu2
     TS_ASSERT_EQUALS(rm->earliestCycle(*node7), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node8), 0);

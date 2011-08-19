@@ -57,6 +57,7 @@
 #include "CycleLookBackSoftwareBypasser.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "InterPassData.hh"
+#include "MoveNodeSet.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER

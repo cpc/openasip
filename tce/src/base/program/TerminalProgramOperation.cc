@@ -33,6 +33,7 @@
 #include "TerminalProgramOperation.hh"
 #include "Instruction.hh"
 #include "ProgramOperation.hh"
+#include "MoveNode.hh"
 
 using namespace TTAMachine;
 
@@ -44,9 +45,24 @@ namespace TTAProgram {
  * @param po The ProgramOperation to track.
  */
 TerminalProgramOperation::TerminalProgramOperation(
-    const ProgramOperation& po) :
+    boost::shared_ptr<ProgramOperation> po) :
     TerminalInstructionAddress(), po_(po) {
 }
+
+/**
+ * Constructs an incomplete TerminalProgramOperation.
+ *
+ * This can be used when a TerminalProgramOperation might point to
+ * an non-existing PO during builing of the program.
+ *
+ * @param label A textual label of the target PO. Should be used later
+ * to find the correct PO.
+ */
+TerminalProgramOperation::TerminalProgramOperation(
+    TCEString label) : 
+    TerminalInstructionAddress(), label_(label) {
+}
+
 
 /**
  * The destructor.
@@ -57,11 +73,23 @@ TerminalProgramOperation::~TerminalProgramOperation() {
 /**
  * Returns the instruction address of the trigger move in the tracked
  * ProgramOperation.
+ *
+ * Returns 0 in case the target PO is not in a program, thus its address
+ * is not known.
  */
 Address
 TerminalProgramOperation::address() const 
     throw (WrongSubclass) {
-    return po_.triggeringMove()->move().parent().address();
+    assert(isAddressKnown());
+    return po_->triggeringMove()->move().parent().address();
+}
+
+bool
+TerminalProgramOperation::isAddressKnown() const {
+    return isProgramOperationKnown() && 
+        po_->triggeringMove() != NULL &&
+        po_->triggeringMove()->move().isInInstruction() &&
+        po_->triggeringMove()->move().parent().isInProcedure();
 }
 
 /**
@@ -69,7 +97,9 @@ TerminalProgramOperation::address() const
  */
 Terminal*
 TerminalProgramOperation::copy() const {
-    return new TerminalProgramOperation(po_);
+    TerminalProgramOperation* newObj = new TerminalProgramOperation(po_);
+    newObj->label_ = this->label_;
+    return newObj;
 }
 
 /**

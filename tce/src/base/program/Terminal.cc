@@ -140,6 +140,11 @@ Terminal::isBasicBlockReference() const {
     return false;
 }
 
+bool
+Terminal::isProgramOperationReference() const {
+    return false;
+}
+
 /**
  * Tells whether the terminal is reference to a code symbol
  *

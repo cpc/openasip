@@ -55,7 +55,7 @@
 #include "SchedulerPass.hh"
 #include "Guard.hh"
 #include "MoveGuard.hh"
-
+#include "MoveNodeSet.hh"
 #include "SequentialScheduler.hh"
 
 //#define DEBUG_OUTPUT

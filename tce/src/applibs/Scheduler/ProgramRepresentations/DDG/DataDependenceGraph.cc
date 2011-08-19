@@ -53,7 +53,7 @@
 #include "DisassemblyRegister.hh"
 #include "ObjectState.hh"
 #include "XMLSerializer.hh"
-
+#include "MoveNodeSet.hh"
 #include "LiveRangeData.hh"
 
 
@@ -93,12 +93,7 @@ DataDependenceGraph::~DataDependenceGraph() {
         for (int i = 0; i < nc; i++) {
             delete &node(i, false);
         }
-
-        // delete program operations.
-        for (POLIter i = programOperations_.begin();
-             i != programOperations_.end(); i++) {
-            delete *i;
-        }
+        programOperations_.clear();
     }
     if (ownedBBN_ != NULL) {
         delete ownedBBN_;
@@ -280,7 +275,7 @@ DataDependenceGraph::onlyRegisterEdgeOut(MoveNode& mn) const {
  * @param po ProgramOperation being added.
  */
 void 
-DataDependenceGraph::addProgramOperation(ProgramOperation* po) {
+DataDependenceGraph::addProgramOperation(ProgramOperationPtr po) {
     programOperations_.push_back(po);
     if (parentGraph_ != NULL) {
         dynamic_cast<DataDependenceGraph*>(parentGraph_)
@@ -1409,9 +1404,9 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
     bool sourceIsRegToItselfCopy = false;
     // If source is an operation, set programOperation
     if (sourceNode.isSourceOperation()) {
-        ProgramOperation& srcOp = sourceNode.sourceOperation();
-        srcOp.addOutputNode(userNode);
-        userNode.setSourceOperation(srcOp);
+        ProgramOperationPtr srcOp = sourceNode.sourceOperationPtr();
+        srcOp->addOutputNode(userNode);
+        userNode.setSourceOperationPtr(srcOp);
     } else {
         // bypassing from stupid reg-to-itself needs extra handling.
         if (sourceNode.move().source().equals(
@@ -2256,7 +2251,7 @@ DataDependenceGraph::hasEqualEdge(
     const MoveNode& tailNode, const MoveNode& headNode, 
     const DataDependenceEdge& edge) 
     const {
-    
+
     typedef GraphTraits::out_edge_iterator outEdgeIter;
     std::pair<outEdgeIter, outEdgeIter> edges = boost::out_edges(
         descriptor(tailNode), graph_);
@@ -2318,7 +2313,7 @@ DataDependenceGraph::createSubgraph(
 
     constructSubGraph(*subGraph, nodes);
 
-    typedef std::set<ProgramOperation*, ProgramOperation::Comparator> POSet;
+    typedef std::set<ProgramOperationPtr, ProgramOperationPtrComparator> POSet;
     POSet subgraphPOs;
 
     // copy the node -> bbn mapping.
@@ -2328,11 +2323,11 @@ DataDependenceGraph::createSubgraph(
         BasicBlockNode* bbn = moveNodeBlocks_[&mn];
         subGraph->moveNodeBlocks_[&mn] = bbn;
         if (mn.isSourceOperation()) {
-            subgraphPOs.insert(&mn.sourceOperation());
+            subgraphPOs.insert(mn.sourceOperationPtr());
         }
         
         if (mn.isDestinationOperation()) {
-            subgraphPOs.insert(&mn.destinationOperation());
+            subgraphPOs.insert(mn.destinationOperationPtr());
         }
     }
     for (POSet::iterator i = subgraphPOs.begin(); 

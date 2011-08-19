@@ -34,14 +34,16 @@
 #ifndef TTA_EXECUTIONPIPELINERESOURCE_HH
 #define TTA_EXECUTIONPIPELINERESOURCE_HH
 
-#include<string>
-#include<vector>
-#include<map>
+#include <string>
+#include <vector>
+#include <map>
 
 #include "SchedulingResource.hh"
 #include "ProgramOperation.hh"
+#include "MoveNode.hh"
 
 class PSocketResource;
+
 
 namespace TTAMachine {
     class FunctionUnit;

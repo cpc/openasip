@@ -51,6 +51,8 @@
 #include "passes/MachineDCE.hh"
 #include "TCETargetMachine.hh"
 #include "UniversalMachine.hh"
+#include "ProgramOperation.hh"
+#include "TerminalProgramOperation.hh"
 
 namespace TTAProgram {
     class Program;
@@ -171,6 +173,9 @@ namespace llvm {
         virtual TTAProgram::Terminal* createSymbolReference(
             const MachineOperand& mo);
 
+        virtual TTAProgram::Terminal* createProgramOperationReference(
+            const MachineOperand& mo);
+
         virtual TTAProgram::Terminal* createSymbolReference(
             const TCEString& symbolName);
 
@@ -180,9 +185,21 @@ namespace llvm {
         virtual TTAProgram::Instruction* emitMove(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
+        void fixProgramOperationReferences();
+
+        void addLabelForProgramOperation(
+            TCEString label, ProgramOperationPtr po) {
+            labeledPOs_[label] = po;
+        }
+
         virtual void emitSPInitialization();
         
         void emitSPInitialization(TTAProgram::CodeSnippet& target);
+
+        void clearFunctionBookkeeping() {
+            labeledPOs_.clear();
+            symbolicPORefs_.clear();            
+        }
 
         /// Code labels.
         std::map<std::string, TTAProgram::Instruction*> codeLabels_;
@@ -347,7 +364,11 @@ namespace llvm {
         int spillMoveCount_;
 
         bool dataInitialized_;
-	
+
+        std::set<TTAProgram::TerminalProgramOperation*> symbolicPORefs_;
+
+        std::map<TCEString, ProgramOperationPtr >
+        labeledPOs_;
     };
 }
 #endif

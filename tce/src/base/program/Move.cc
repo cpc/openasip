@@ -112,7 +112,8 @@ Move::~Move() {
  * @exception IllegalRegistration if the move is independent.
  */
 Instruction&
-Move::parent() const throw (IllegalRegistration) {
+Move::parent() const 
+    throw (IllegalRegistration) {
     if (parent_ != NULL && parent_ != &NullInstruction::instance()) {
         return *parent_;
     } else {

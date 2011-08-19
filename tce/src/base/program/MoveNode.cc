@@ -65,8 +65,7 @@ using namespace TTAMachine;
  * @param newmove the Move this node refers to.
  */
 MoveNode::MoveNode(TTAProgram::Move& newmove) :
-    move_(&newmove), srcOp_(NULL), dstOp_(NULL),
-    cycle_(0), moveOwned_(false), placed_(false) {
+    move_(&newmove), cycle_(0), moveOwned_(false), placed_(false) {
 }
 
 /**
@@ -78,8 +77,7 @@ MoveNode::MoveNode(TTAProgram::Move& newmove) :
  * @param newmove the Move this node contains.
  */
 MoveNode::MoveNode(TTAProgram::Move* newmove) :
-    move_(newmove), srcOp_(NULL), dstOp_(NULL), cycle_(0),
-    moveOwned_(true), placed_(false) {
+    move_(newmove), cycle_(0), moveOwned_(true), placed_(false) {
 }
 
 
@@ -91,8 +89,7 @@ MoveNode::MoveNode(TTAProgram::Move* newmove) :
  */
 
 MoveNode::MoveNode() :
-    move_(NULL), srcOp_(NULL), dstOp_(NULL), cycle_(0),
-    moveOwned_(false), placed_(false) {
+    move_(NULL), cycle_(0), moveOwned_(false), placed_(false) {
 }
 
 /**
@@ -136,12 +133,12 @@ MoveNode::copy() {
 
     if (isSourceOperation()) {
         sourceOperation().addOutputNode(*newNode);
-        newNode->setSourceOperation(sourceOperation());
+        newNode->setSourceOperationPtr(sourceOperationPtr());
     }
 
     if (isDestinationOperation()) {
         destinationOperation().addInputNode(*newNode);
-        newNode->setDestinationOperation(destinationOperation());
+        newNode->setDestinationOperationPtr(destinationOperationPtr());
     }
     return newNode;
 }
@@ -156,7 +153,7 @@ MoveNode::isSourceOperation() const {
     if (move_ == NULL) {
         return false;
     }
-    return srcOp_ != NULL;
+    return srcOp_.get() != NULL;
 }
 
 
@@ -402,6 +399,12 @@ MoveNode::scope(){
 ProgramOperation&
 MoveNode::sourceOperation() const
     throw(InvalidData){
+    return *sourceOperationPtr().get();
+}
+
+ProgramOperationPtr
+MoveNode::sourceOperationPtr() const
+    throw(InvalidData){
     if (!isSourceOperation()){
         std::string msg =
             (boost::format(
@@ -409,9 +412,10 @@ MoveNode::sourceOperation() const
             str();
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
-        return *srcOp_;
+        return srcOp_;
     }
 }
+
 
 /**
  * Set cycle for a node, also sets placed_
@@ -454,16 +458,16 @@ MoveNode::unsetCycle()
  *
  * @param po Program operation that is destination of MoveNode
  */
-void MoveNode::setDestinationOperation(ProgramOperation &po) {
-    dstOp_ = &po;
+void MoveNode::setDestinationOperationPtr(ProgramOperationPtr po) {
+    dstOp_ = po;
 }
 /**
  * Set a source of MoveNode to ProgramOperation
  *
  * @param po Program operation that is source of MoveNode
  */
-void MoveNode::setSourceOperation(ProgramOperation &po) {
-    srcOp_ = &po;
+void MoveNode::setSourceOperationPtr(ProgramOperationPtr po) {
+    srcOp_ = po;
 }
 
 /**
@@ -589,7 +593,7 @@ MoveNode::earliestResultReadCycle() const {
  */
 void
 MoveNode::unsetDestinationOperation() {
-    dstOp_ = NULL;
+    dstOp_ = ProgramOperationPtr();
 }
 
 /**
@@ -600,7 +604,7 @@ MoveNode::unsetDestinationOperation() {
  */
 void
 MoveNode::unsetSourceOperation() {
-    srcOp_ = NULL;
+    srcOp_ = ProgramOperationPtr();
 }
 
 /**

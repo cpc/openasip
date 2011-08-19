@@ -27,6 +27,7 @@
  * This builder builds a CFG and DDG from the new LLVM TTA backend format.
  *
  * @author Heikki Kultala 2011
+ * @author Pekka Jääskeläinen 2011
  * @note reting: red
  */
 

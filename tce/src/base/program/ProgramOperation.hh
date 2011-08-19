@@ -36,11 +36,18 @@
 
 #include <string>
 #include <map>
+#include <vector>
+#include <boost/smart_ptr/shared_ptr.hpp>
+
 #include "Exception.hh"
 #include "Operation.hh"
-#include "MoveNode.hh"
-#include "MoveNodeSet.hh"
 
+class MoveNode;
+class MoveNodeSet;
+
+namespace TTAProgram {
+    class Move;
+}
 
 /**
  * Represents a single execution of an operation in a program.
@@ -76,6 +83,8 @@ public:
     int inputMoveCount() const;
     int outputMoveCount() const;
 
+    bool hasMoveNodeForMove(const TTAProgram::Move& move) const;
+    MoveNode& moveNode(const TTAProgram::Move& move) const;
     MoveNode& inputMove(int index) const;
     MoveNode& outputMove(int index) const;
 
@@ -94,6 +103,7 @@ public:
         bool operator()(
             const ProgramOperation* po1, const ProgramOperation* po2) const;
     };
+
 private:
     typedef std::vector<MoveNode*> MoveVector;
     // copying forbidden
@@ -112,6 +122,18 @@ private:
     MoveVector allOutputMoves_;
     unsigned int poId_;
     static unsigned int idCounter;
+};
+
+// use this smart_ptr type to point to POs to allow more safe sharing of
+// POs between POM and DDG, etc.
+typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
+
+class ProgramOperationPtrComparator {
+public:
+    bool operator() (
+        const ProgramOperationPtr po1, const ProgramOperationPtr po2) const {
+        return ProgramOperation::Comparator()(po1.get(), po2.get());
+    }
 };
 
 #endif

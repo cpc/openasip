@@ -59,6 +59,7 @@
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
 #include "TerminalFUPort.hh"
+#include "TerminalProgramOperation.hh"
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
 #include "UniversalMachine.hh"
@@ -90,11 +91,13 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/DebugInfo.h>
 #include <llvm/MC/MCContext.h>
+#include <llvm/MC/MCSymbol.h>
 
 #include "MapTools.hh"
 #include "StringTools.hh"
 #include "Operation.hh"
 #include "OperationPool.hh"
+#include "MoveNode.hh"
 
 #include "TCETargetMachine.hh"
 
@@ -1229,30 +1232,43 @@ LLVMTCEBuilder::emitInstruction(
         assert(false && "No moves?");
     }
 
-    // Create the ProgramOperation and attach it to the TerminalFUs.
-    boost::shared_ptr<ProgramOperation> posp(new ProgramOperation(operation));
-
-    ProgramOperation* po = posp.get();
+    boost::shared_ptr<ProgramOperation> po(new ProgramOperation(operation));
 
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         TTAProgram::Instruction* instr = operandMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-        /// TODO: memory leak, someone should delete the MoveNodes?
-        po->addInputNode(*(new MoveNode(m)));
-        TTAProgram::TerminalFUPort& term = 
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
-        term.setProgramOperation(posp);
+
+        if (functionAtATime_) {
+        // Create the ProgramOperation and attach it to the TerminalFUs.
+
+        // The MoveNode will be owned by DDG
+            MoveNode* mn = new MoveNode(m);
+            po->addInputNode(*mn);
+            mn->setDestinationOperationPtr(po);
+            TTAProgram::TerminalFUPort& term = 
+                dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
+            term.setProgramOperation(po);
+        }
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-        /// TODO: memory leak, someone should delete the MoveNodes?
-        po->addOutputNode(*(new MoveNode(m)));
-        TTAProgram::TerminalFUPort& term = 
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
-        term.setProgramOperation(posp);
+
+        if (functionAtATime_) {
+        // Create the ProgramOperation and attach it to the TerminalFUs.
+
+        // The MoveNode will be owned by DDG
+            
+            MoveNode* mn = new MoveNode(m);
+            po->addOutputNode(*mn);
+            mn->setSourceOperationPtr(po);
+            
+            TTAProgram::TerminalFUPort& term = 
+                dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
+            term.setProgramOperation(po);
+        }
     }
     return first;
 }
@@ -1451,7 +1467,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
                 
                 // inspired from lib/codegen/MachineInstr.cpp
                 const LLVMContext &Ctx = 
-	           mi->getParent()->getParent()->getFunction()->getContext();
+                    mi->getParent()->getParent()->getFunction()->getContext();
                 DIScope scope(dl.getScope(Ctx));
                 sourceLineNumber = dl.getLine();
                 sourceFileName = static_cast<TCEString>(scope.getFilename());
@@ -1465,7 +1481,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_PATH, 
                         sourceFileName);
-	            move->addAnnotation(progAnnotation); 
+                    move->addAnnotation(progAnnotation); 
                 }
             }
 #endif
@@ -1571,12 +1587,43 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         assert(false);
     } else if (mo.isSymbol()) {
         return createSymbolReference(mo);
+    } else if (mo.isMCSymbol()) {
+        return createProgramOperationReference(mo);
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
+        mo.getParent()->dump();
         assert(false);
     }
     abortWithError("Should not get here!");
     return NULL;
+}
+
+TTAProgram::Terminal* 
+LLVMTCEBuilder::createProgramOperationReference(
+    const MachineOperand& mo) {
+    llvm::MCSymbol* symbol = mo.getMCSymbol();
+    TTAProgram::TerminalProgramOperation* term = 
+        new TTAProgram::TerminalProgramOperation(symbol->getName().str());
+    symbolicPORefs_.insert(term);
+    return term;
+}
+
+/**
+ * Fixes the symbolic ProgramOperation references to point to the
+ * now created real ProgramOperations.
+ *
+ * Assumes the POs are found in the label index.
+ */
+void
+LLVMTCEBuilder::fixProgramOperationReferences() {
+    for (std::set<TTAProgram::TerminalProgramOperation*>::const_iterator i = 
+             symbolicPORefs_.begin(); i != symbolicPORefs_.end(); ++i) {
+        TTAProgram::TerminalProgramOperation* term = *i;
+        if (term->isProgramOperationKnown()) continue;
+        ProgramOperationPtr po = labeledPOs_[term->label()];
+        assert(po.get() != NULL);
+        term->setProgramOperation(po);
+    }
 }
 
 TTAProgram::Terminal*

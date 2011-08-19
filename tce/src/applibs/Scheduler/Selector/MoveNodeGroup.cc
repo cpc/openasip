@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of MoveNodeGroup class
  *
  * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -41,7 +42,7 @@
 /**
  * Constructor.
  */
-MoveNodeGroup::MoveNodeGroup() : ddg_(NULL), operation_(NULL) {
+MoveNodeGroup::MoveNodeGroup() : ddg_(NULL) {
 }
 
 /**
@@ -50,7 +51,7 @@ MoveNodeGroup::MoveNodeGroup() : ddg_(NULL), operation_(NULL) {
  * @param ddg The data dependence graph the moves in the group belong to.
  */
 MoveNodeGroup::MoveNodeGroup(const DataDependenceGraph& ddg) : 
-    ddg_(&ddg), operation_(NULL){
+    ddg_(&ddg) {
 }
 
 
@@ -234,7 +235,7 @@ MoveNodeGroup::toString() const {
     }
 
     if (isOperation()) {
-        result += "[PO: " + programOperation().toString() + "] ";
+        result += "[PO: " + programOperationPtr()->toString() + "] ";
     }
     return result;
 }

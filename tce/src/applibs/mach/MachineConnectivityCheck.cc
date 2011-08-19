@@ -52,6 +52,7 @@
 #include "ProgramOperation.hh"
 #include "AssocTools.hh"
 #include "StringTools.hh"
+#include "MoveNode.hh"
 
 using namespace TTAMachine;
 /**
@@ -731,14 +732,6 @@ MachineConnectivityCheck::requiredImmediateWidth(
     const TTAProgram::TerminalImmediate& source,
     const TTAMachine::Machine& mach) {
 
-    int bits = -1;
-    if (signExtension) {
-        bits =
-            MathTools::requiredBitsSigned(source.value().unsignedValue());
-    } else if (!signExtension) {
-        bits =
-            MathTools::requiredBits(source.value().unsignedValue());
-    } 
 
     if (source.isCodeSymbolReference()) {
         const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
@@ -759,6 +752,16 @@ MachineConnectivityCheck::requiredImmediateWidth(
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
         return MathTools::requiredBits(as.end());
     }
+
+    int bits = -1;
+    if (signExtension) {
+        bits =
+            MathTools::requiredBitsSigned(source.value().unsignedValue());
+    } else if (!signExtension) {
+        bits =
+            MathTools::requiredBits(source.value().unsignedValue());
+    } 
+
     return bits;
 }
 

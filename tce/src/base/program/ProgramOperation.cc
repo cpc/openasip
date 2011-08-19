@@ -114,7 +114,7 @@ ProgramOperation::addNode(MoveNode& node)
         if (node.move().destination().isFUPort()) {
             if (node.move().destination().hintOperation().name() ==
                 operation().name()) {
-                    addInputNode(node);
+                addInputNode(node);
             }
         }
     }
@@ -506,6 +506,41 @@ ProgramOperation::triggeringMove() const {
     }
     return NULL;
 }
+
+MoveNode&
+ProgramOperation::moveNode(const TTAProgram::Move& move) const {
+
+    for (std::size_t i = 0; i < allInputMoves_.size(); ++i) {
+        MoveNode& moveNode = *allInputMoves_.at(i);
+        if (&moveNode.move() == &move)
+            return moveNode;
+    }
+    for (std::size_t i = 0; i < allOutputMoves_.size(); ++i) {
+        MoveNode& moveNode = *allOutputMoves_.at(i);
+        if (&moveNode.move() == &move)
+            return moveNode;
+    }
+    throw KeyNotFound(__FILE__, __LINE__, __func__, 
+                      "No MoveNode for the Move found in the ProgramOperation.");
+}
+
+bool
+ProgramOperation::hasMoveNodeForMove(const TTAProgram::Move& move) 
+    const {
+
+    for (std::size_t i = 0; i < allInputMoves_.size(); ++i) {
+        MoveNode& moveNode = *allInputMoves_.at(i);
+        if (&moveNode.move() == &move)
+            return true;
+    }
+    for (std::size_t i = 0; i < allOutputMoves_.size(); ++i) {
+        MoveNode& moveNode = *allOutputMoves_.at(i);
+        if (&moveNode.move() == &move)
+            return true;
+    }
+    return false;
+}
+
 
 /**
  * The moves of the program operation in human readable format.

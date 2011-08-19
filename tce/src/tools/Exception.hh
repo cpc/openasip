@@ -49,10 +49,10 @@
 class Exception {
 public:
     Exception(
-	std::string filename, int linenum,
-	std::string procname = unknownProcMsg_,
-	std::string errorMessage = "");
-
+        std::string filename, int linenum,
+        std::string procname = unknownProcMsg_,
+        std::string errorMessage = "");
+    
     virtual ~Exception();
 
     std::string fileName() const;

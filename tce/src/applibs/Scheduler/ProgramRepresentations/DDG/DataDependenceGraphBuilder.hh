@@ -118,9 +118,9 @@ protected:
         BBData(BasicBlockNode& bb);
         virtual ~BBData();
         /// ProgramOperations lacking operands
-        ProgramOperation* destPending_;
+        ProgramOperationPtr destPending_;
         /// ProgramOperations lacking result read
-        ProgramOperation* readPending_;
+        ProgramOperationPtr readPending_;
         /// State of the BB.
         BBState state_;
         /// Whether the BB has been constructed or not.
@@ -179,7 +179,7 @@ protected:
         ConstructionPhase);    
     void constructBB(BasicBlockNodeSet& inputBlocks);
     
-    void createOperationEdges(ProgramOperation& po);
+    void createOperationEdges(ProgramOperationPtr po);
     void processGuard(MoveNode& moveNode);
     void processSource(MoveNode& moveNode);
     void processResultRead(MoveNode& moveNode);

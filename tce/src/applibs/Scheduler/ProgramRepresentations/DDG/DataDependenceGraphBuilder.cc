@@ -493,10 +493,41 @@ DataDependenceGraphBuilder::constructIndividualBB(
 
             // if phase is 0, create the movenode, and handle guard.
             if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
-                moveNode = new MoveNode(move);
+                /* In case using the new LLVMTCEBuilder, the POs have been built already
+                   and set to corresponding TerminalFUPorts. Use those MoveNodes and
+                   ProgramOperations instead of creating new ones here. NOTE: the
+                   ownership of the MoveNodes is transferred to the DDG.
+                */
+                if (move.destination().isFUPort() && 
+                    dynamic_cast<TerminalFUPort&>(move.destination()).
+                    hasProgramOperation()) {
+                    ProgramOperationPtr po = 
+                        dynamic_cast<TerminalFUPort&>(move.destination()).
+                        programOperation();
+                    if (po->hasMoveNodeForMove(move)) {
+                        moveNode = &po->moveNode(move);
+                    } else {
+                        // the po might be corrupted and point to an old POM's Moves
+                        moveNode = new MoveNode(move);
+                    }
+                } else if (move.source().isFUPort() && 
+                           dynamic_cast<TerminalFUPort&>(move.source()).
+                           hasProgramOperation()) {
+                    ProgramOperationPtr po = 
+                        dynamic_cast<TerminalFUPort&>(move.source()).
+                        programOperation();
+                    if (po->hasMoveNodeForMove(move)) {
+                        moveNode = &po->moveNode(move);
+                    } else {
+                        // the po might be corrupted and point to an old POM's Moves
+                        moveNode = new MoveNode(move);
+                    }
+                } else {
+                    moveNode = new MoveNode(move);
+                }
                 currentDDG_->addNode(*moveNode, *currentBB_);
 
-                if (!(move.isUnconditional())) {
+                if (!move.isUnconditional()) {
                     processGuard(*moveNode);
                 }
 
@@ -594,9 +625,8 @@ DataDependenceGraphBuilder::processSource(MoveNode& moveNode) {
             processResultRead(moveNode);
         } else {
             // handle read from RA.
-            processRegUse(MoveNodeUse(moveNode,false,true), RA_NAME);
+            processRegUse(MoveNodeUse(moveNode, false, true), RA_NAME);
 
-            // if ra -> jump, it's a return.
             if (moveNode.move().isReturn()) {
                 processReturn(moveNode);
             }
@@ -725,21 +755,24 @@ DataDependenceGraphBuilder::clearUnneededBookkeeping(
  */
 void
 DataDependenceGraphBuilder::processTriggerPO(
-    MoveNode& moveNode, Operation &dop) throw (IllegalProgram) {
+    MoveNode& moveNode, Operation &dop) 
+    throw (IllegalProgram) {
 
     if (currentData_->destPending_ != NULL) {
-        ProgramOperation* po = currentData_->destPending_;
+        ProgramOperationPtr po = currentData_->destPending_;
         
         assert(&dop == &po->operation());
-        po->addInputNode(moveNode);
-        moveNode.setDestinationOperation(*po);
+        if (!po->isComplete()) {
+            po->addInputNode(moveNode);
+            moveNode.setDestinationOperationPtr(po);
+        }
         if (po->isReady()) {
-            currentData_->destPending_ = NULL;
-            if (dop.numberOfOutputs()) {
+            currentData_->destPending_ = ProgramOperationPtr();
+            if (dop.numberOfOutputs() > 0) {
                 assert(currentData_->readPending_ == NULL);
                 currentData_->readPending_ = po;
             } else {
-                    currentDDG_->addProgramOperation(po);
+                currentDDG_->addProgramOperation(po);
             }
         } else {
             throw IllegalProgram(
@@ -750,9 +783,16 @@ DataDependenceGraphBuilder::processTriggerPO(
     }
     // only one triggering input?
     if (dop.numberOfInputs() == 1) {
-        ProgramOperation* po = new ProgramOperation(dop);
-        moveNode.setDestinationOperation(*po);
-        po->addInputNode(moveNode);
+        TerminalFUPort& tfpd = 
+            dynamic_cast<TerminalFUPort&>(moveNode.move().destination());
+        ProgramOperationPtr po;
+        if (tfpd.hasProgramOperation()) {
+            po = tfpd.programOperation();
+        } else {
+            po = ProgramOperationPtr(new ProgramOperation(dop));
+            moveNode.setDestinationOperationPtr(po);
+            po->addInputNode(moveNode);
+        }
         if (dop.numberOfOutputs()) {
             assert(currentData_->readPending_ == NULL);
             currentData_->readPending_ = po;
@@ -827,21 +867,34 @@ void
 DataDependenceGraphBuilder::processOperand(
     MoveNode& moveNode, Operation &dop) {
 
-    // first operands already analyed for PO? 
+    // first operands already analyzed for PO? 
     // then update existing.
     if (currentData_->destPending_ != NULL) {
-        ProgramOperation* po = currentData_->destPending_;
+        ProgramOperationPtr po = currentData_->destPending_;
 
         assert(&dop == &po->operation());
 
-        po->addInputNode(moveNode);
-        moveNode.setDestinationOperation(*po);
+        if (!po->isComplete()) {
+            po->addInputNode(moveNode);
+            moveNode.setDestinationOperationPtr(po);
+        } else {
+            // The MoveNode and the PO has been created before entering DDG
+            // building (in LLVMTCEBuilder.cc).
+        }
         return;
     }
+
     // create a new ProgramOperation
-    ProgramOperation* po = new ProgramOperation(dop);
-    moveNode.setDestinationOperation(*po);
-    po->addInputNode(moveNode);
+    TerminalFUPort& tfpd = 
+        dynamic_cast<TerminalFUPort&>(moveNode.move().destination());
+    ProgramOperationPtr po;
+    if (tfpd.hasProgramOperation()) {
+        po = tfpd.programOperation();
+    } else {
+        po = ProgramOperationPtr(new ProgramOperation(dop));
+        moveNode.setDestinationOperationPtr(po);
+        po->addInputNode(moveNode);
+    }
     currentData_->destPending_ = po;
 }
 
@@ -863,16 +916,18 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
     // There should be only one if well-behaving
     // universalmachine code.
     if (currentData_->readPending_ != NULL) {
-        ProgramOperation* po = currentData_->readPending_;
+        ProgramOperationPtr po = currentData_->readPending_;
         assert(sop == &po->operation());
         
-        po->addOutputNode(moveNode);
-        moveNode.setSourceOperation(*po);
+        if (!po->isComplete()) {
+            po->addOutputNode(moveNode);
+            moveNode.setSourceOperationPtr(po);
+        }
 
         // if this PO is ready, remove from list of incomplete ones
         if (po->isComplete())   {
-            createOperationEdges(*po);
-            currentData_->readPending_ = NULL;
+            createOperationEdges(po);
+            currentData_->readPending_ = ProgramOperationPtr();
             currentDDG_->addProgramOperation(po);
         }
         return;
@@ -891,16 +946,16 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
  */
 void
 DataDependenceGraphBuilder::createOperationEdges(
-    ProgramOperation& po) {
+    ProgramOperationPtr po) {
 
-    const Operation& op = po.operation();
+    const Operation& op = po->operation();
 
     // loop over all input nodes
-    for (int i = 0; i < po.inputMoveCount(); i++) {
-        MoveNode& inputNode = po.inputMove(i);
+    for (int i = 0; i < po->inputMoveCount(); i++) {
+        MoveNode& inputNode = po->inputMove(i);
         // loop over all output nodes.
-        for (int j = 0; j < po.outputMoveCount(); j++) {
-            MoveNode& outputNode = po.outputMove(j);
+        for (int j = 0; j < po->outputMoveCount(); j++) {
+            MoveNode& outputNode = po->outputMove(j);
 
             // and create operation edges
             // from all input nodes to all
@@ -1803,6 +1858,12 @@ DataDependenceGraphBuilder::build(
 
         // clear bookkeeping which is not needed anymore.
         clearUnneededBookkeeping();
+    } catch (const Exception& e) {
+        Application::logStream()
+            << e.fileName() << ": " << e.lineNum() << ": " << e.errorMessageStack()
+            << std::endl;
+        delete ddg;
+        throw;
     } catch (...) {
         delete ddg;
         throw;
@@ -2652,8 +2713,7 @@ const TCEString DataDependenceGraphBuilder::RA_NAME = "RA";
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
-    destPending_(NULL), readPending_(NULL), state_(BB_UNREACHED), 
-    constructed_(false), bblock_(&bb) {
+    state_(BB_UNREACHED),  constructed_(false), bblock_(&bb) {
 }
 
 /**

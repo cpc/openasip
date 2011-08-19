@@ -51,6 +51,7 @@
 #include "FUPort.hh"
 #include "TCEString.hh"
 #include "ResourceManager.hh"
+#include "MoveNode.hh"
 
 /**
  * Constructor.

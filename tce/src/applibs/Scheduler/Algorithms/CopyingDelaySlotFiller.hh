@@ -38,6 +38,7 @@
 #include <list>
 #include "Exception.hh"
 #include "ProgramOperation.hh"
+#include "MoveNode.hh"
 
 class BasicBlockNode;
 class ControlFlowGraph;
@@ -46,7 +47,6 @@ class DataDependenceGraph;
 class SimpleResourceManager;
 class UniversalMachine;
 class InterPassData;
-class MoveNode;
 
 namespace TTAMachine {
     class Machine;
@@ -97,7 +97,7 @@ private:
     void loseCopies();
 
     MoveNode& getMoveNode(MoveNode& old);
-    ProgramOperation& getProgramOperation(ProgramOperation& old);
+    ProgramOperationPtr getProgramOperationPtr(ProgramOperationPtr old);
     TTAProgram::Move& getMove(TTAProgram::Move& old);
 
     bool poMoved(ProgramOperation& po,  MoveNodeListVector& movesToCopy);
@@ -109,16 +109,15 @@ private:
     UniversalMachine* um_;
 
     // indexed by the original PO's
-    std::map<ProgramOperation*,ProgramOperation*,ProgramOperation::Comparator>
+    std::map<ProgramOperation*, ProgramOperationPtr, ProgramOperation::Comparator>
     programOperations_;
-    std::map<ProgramOperation*,ProgramOperation*,ProgramOperation::Comparator>
+    std::map<ProgramOperation*, ProgramOperationPtr, ProgramOperation::Comparator>
     oldProgramOperations_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
     std::map<TTAProgram::Move*,TTAProgram::Move*> moves_;
     
     // garbage collection would be SOOOO nice!
-    std::map<ProgramOperation*,bool,ProgramOperation::Comparator> poOwned_;
     std::map<MoveNode*,bool,MoveNode::Comparator> mnOwned_;
 };
 

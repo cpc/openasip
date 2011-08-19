@@ -1,6 +1,7 @@
 // ------- target independent data printing macros for verifying ----
 
 #ifndef __TCE__
+//#include <stdio.h>
 #define OUTPUT_CHAR(x) putchar(x)
 #else
 #include "tceops.h"

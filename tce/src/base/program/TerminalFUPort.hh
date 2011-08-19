@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,19 +26,17 @@
  *
  * Declaration of TerminalFUPort class.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2008 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Ari Mets‰halme 2005
+ * @author Pekka J‰‰skel‰inen 2008,2011
  * @note rating: red
  */
 
 #ifndef TTA_TERMINAL_FU_PORT_HH
 #define TTA_TERMINAL_FU_PORT_HH
 
-#include <boost/shared_ptr.hpp>
 #include "Exception.hh"
 #include "Terminal.hh"
-
-class ProgramOperation;
+#include "ProgramOperation.hh"
 
 namespace TTAMachine {
     class HWOperation;
@@ -96,11 +94,15 @@ public:
 
     /// these methods are used to group terminals belonging to a single
     /// program operation invocation
-    bool hasProgramOperation() const { return po_ != NULL; }
-    void setProgramOperation(boost::shared_ptr<ProgramOperation> po) { 
+    bool hasProgramOperation() const { 
+        return po_ != NULL && po_.get() != NULL; 
+    }
+    void setProgramOperation(ProgramOperationPtr po) { 
         po_ = po; 
     }
-    ProgramOperation& programOperation() const { return *po_.get(); }
+    ProgramOperationPtr programOperation() const { 
+        return po_; 
+    }
 
     virtual TCEString toString() const;
 
@@ -124,7 +126,7 @@ private:
     /// The ProgramOperation this terminal belongs to, if applicable.
     /// The instance is shared by all the TerminalFUs belonging to 
     /// the operation.
-    boost::shared_ptr<ProgramOperation> po_;
+    ProgramOperationPtr po_;
 };
 
 }

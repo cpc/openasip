@@ -68,8 +68,6 @@ SequentialMoveNodeSelector::~SequentialMoveNodeSelector() {
         for (int i = 0; i < mng->nodeCount(); i++) {
             delete &mng->node(i);
         }
-        if (mng->isOperation())
-            delete &mng->programOperation();
         delete mng;
         mngs_->erase(iter);
     }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -42,6 +42,11 @@
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
+namespace llvm {
+    class MCSymbol;
+    class MachineInstr;
+}
+
 #include "Exception.hh"
 #include "BoostGraph.hh"
 #include "BasicBlockNode.hh"
@@ -52,7 +57,7 @@
 #include "NullAddress.hh"
 #include "CFGStatistics.hh"
 #include "hash_map.hh"
-
+#include "ProgramOperation.hh"
 
 namespace TTAProgram {
     class Program;
@@ -298,5 +303,12 @@ private:
     
     // Maps BasicBlockNode onto it's MachineBasicBlock equivalent
     mutable std::map<const TTAProgram::BasicBlock*, llvm::MachineBasicBlock*> bbMap_;
+
+    /// For LLVM conversion: the dummy label instructions for SPU should be
+    /// created for with the given MCSymbol as argument after building.
+    mutable std::set<std::pair<ProgramOperationPtr, llvm::MCSymbol*> > tpos_;
+    /// For LLVM conversion: mapping of created MachineInstructions to TCE 
+    /// ProgramOperations.
+    mutable std::map<ProgramOperation*, llvm::MachineInstr*> programOperationToMIMap_;
 };
 #endif

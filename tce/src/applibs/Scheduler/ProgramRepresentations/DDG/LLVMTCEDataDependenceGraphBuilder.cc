@@ -77,7 +77,7 @@ LLVMTCEDataDependenceGraphBuilder::buildLocalDDG(TTAProgram::BasicBlock& bb) {
         MoveNodeGroup& mng = **i;
 //        PRINT_VAR(mng.toString());
         if (mng.isOperation()) {
-            currentDDG_->addProgramOperation(&mng.programOperation());
+            currentDDG_->addProgramOperation(mng.programOperationPtr());
         }
         MoveNode* newLastMN = &mng.node(0);
         for (int mni = 0; mni < mng.nodeCount(); ++mni) {
@@ -100,7 +100,7 @@ LLVMTCEDataDependenceGraphBuilder::buildLocalDDG(TTAProgram::BasicBlock& bb) {
              mngs->begin(); i != mngs->end(); ++i) {
         MoveNodeGroup& mng = **i;
         if (mng.isOperation()) {
-            createOperationEdges(mng.programOperation());
+            createOperationEdges(mng.programOperationPtr());
         }
     }   
 }

@@ -96,7 +96,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
 
      */
 
-    typedef std::map<TCEString, ProgramOperation*> 
+    typedef std::map<TCEString, ProgramOperationPtr> 
         FUProgramOperationIndex;
 
     FUProgramOperationIndex untriggered, triggered;
@@ -105,7 +105,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
     MoveNodeGroupList* mngs = new MoveNodeGroupList();
     MoveNodeGroup* mng = NULL;
     // PO which is being constructed.
-    ProgramOperation* po = NULL;
+    ProgramOperationPtr po;
     for (int i = 0; i < bb.instructionCount(); i++) {
         TTAProgram::Instruction& ins = bb.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++) {
@@ -142,7 +142,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                     } else {
                         op = &dest.hintOperation();
                     }
-                    po = new ProgramOperation(*op);
+                    po = ProgramOperationPtr(new ProgramOperation(*op));
                     untriggered[dest.functionUnit().name()] = po;
 
                     if (mng->nodeCount() > 0) {
@@ -152,13 +152,13 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                         mngs->push_back(mng);
                         mng = new MoveNodeGroup();
                     }
-                    mng->setProgramOperation(*po);
+                    mng->setProgramOperationPtr(po);
                 }
                 po->addInputNode(*moveNode);
-                moveNode->setDestinationOperation(*po);
+                moveNode->setDestinationOperationPtr(po);
                 mng->addNode(*moveNode);
                 if (dest.isTriggering()) {
-                    untriggered[dest.functionUnit().name()] = NULL;
+                    untriggered[dest.functionUnit().name()] = ProgramOperationPtr();
                     triggered[dest.functionUnit().name()] = po;
                 } 
             } else if (sourceIsFU && !destIsFU) {
@@ -168,7 +168,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                     "Encountered an FU read without a triggered operation.");
 
                 po->addOutputNode(*moveNode);
-                moveNode->setSourceOperation(*po);
+                moveNode->setSourceOperationPtr(po);
                 mng->addNode(*moveNode);
             } else if (sourceIsFU && destIsFU) {
                 po = triggered[source.functionUnit().name()];
@@ -176,7 +176,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                     po != NULL &&
                     "Encountered an FU read without a triggered operation.");
                 po->addOutputNode(*moveNode);
-                moveNode->setSourceOperation(*po);
+                moveNode->setSourceOperationPtr(po);
                 po = untriggered[dest.functionUnit().name()];
                 if (po == NULL) { /* The 1st operand move? */
                     Operation* op;
@@ -185,19 +185,19 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                     } else {
                         op = &dest.hintOperation();
                     }
-                    po = new ProgramOperation(*op);
+                    po = ProgramOperationPtr(new ProgramOperation(*op));
                     untriggered[dest.functionUnit().name()] = po;
                     // define the first operand move to start an operation 
                     // always, thus split MNG at this point
                     mngs->push_back(mng);
                     mng = new MoveNodeGroup();
-                    mng->setProgramOperation(*po);
+                    mng->setProgramOperationPtr(po);
                 }
                 mng->addNode(*moveNode);
                 po->addInputNode(*moveNode);
-                moveNode->setDestinationOperation(*po);
+                moveNode->setDestinationOperationPtr(po);
                 if (dest.isTriggering()) {
-                    untriggered[dest.functionUnit().name()] = NULL;
+                    untriggered[dest.functionUnit().name()] = ProgramOperationPtr();
                     triggered[dest.functionUnit().name()] = po;
                 }
             } else if (!sourceIsFU && !destIsFU) {
@@ -224,7 +224,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
     // BB-crossing operations are supported in the sequential code
     for (FUProgramOperationIndex::const_iterator i = untriggered.begin();
          i != untriggered.end(); ++i) {
-        ProgramOperation* po = (*i).second;
+        ProgramOperationPtr po = (*i).second;
         if (po != NULL && po->inputMoveCount() > 0) {
             abortWithError(
                 TCEString(

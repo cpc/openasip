@@ -70,6 +70,7 @@ public:
     virtual bool isFUPort() const;
     virtual bool isRA() const;
     virtual bool isBasicBlockReference() const;
+    virtual bool isProgramOperationReference() const;
     virtual bool isCodeSymbolReference() const;
     virtual SimValue value() const;
     virtual Address address() const throw (WrongSubclass);

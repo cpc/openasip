@@ -33,6 +33,7 @@
 
 #include "TerminalImmediate.hh"
 #include "DisassemblyImmediate.hh"
+#include "POMDisassembler.hh"
 
 using namespace TTAMachine;
 
@@ -101,8 +102,10 @@ TerminalImmediate::equals(const Terminal& other) const {
 
 TCEString
 TerminalImmediate::toString() const {
-    DisassemblyImmediate disasm(value());
-    return disasm.toString();
+    DisassemblyImmediate* disasm = POMDisassembler::createInlineImmediate(*this);
+    TCEString dis = disasm->toString();
+    delete disasm;
+    return dis;
 }
 
 
