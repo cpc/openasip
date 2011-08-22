@@ -237,6 +237,7 @@ class IntegrationTestCase(object):
                     output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + "\n")
                     for line in stdoutDiff:
                         output_diff_file.write(line)
+                    output_diff_file.flush()
                 all_ok = False
 
             if options.print_successful:

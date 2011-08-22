@@ -41,7 +41,7 @@
 #define TTA_MOVE_NODE_HH
 
 #include <string>
-#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 #include "Exception.hh"
 #include "Move.hh"
 #include "GraphNode.hh"

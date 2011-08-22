@@ -37,7 +37,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "Exception.hh"
 #include "Operation.hh"
