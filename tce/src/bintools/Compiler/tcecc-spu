@@ -39,7 +39,7 @@ script_dir = os.path.dirname(sys.argv[0])
 fixed_adf_dir = script_dir + "/fixed-adf"
 lib_tce = script_dir + "/../../.libs/libtce.so"
 
-def run_command(command, echoStderr=True, echoCmd=False, stdoutFD=None):
+def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
     """Runs the given shell command and returns its exit code.
 
     If echoOutput is False, stdout and stderr are redirected to /dev/null."""
@@ -49,9 +49,12 @@ def run_command(command, echoStderr=True, echoCmd=False, stdoutFD=None):
     if echoCmd:
         print command
 
-    if stdoutFD is None:
+    if not echoStdout:
         stdoutRedir = open('/dev/null', 'w')
         stdoutFD = stdoutRedir.fileno()
+    else:
+        stdoutFD = None
+
     if not echoStderr:
         stderrRedir = open('/dev/null', 'w')
         stderrFD = stderrRedir.fileno()
@@ -119,9 +122,9 @@ def generate_code(bc_file, adf, output=None):
     else:
         asm_file = output
     if options.use_tce_scheduler:
-        retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file))
+        retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file), echoStdout=True)
     else:
-        retval = run_command("llc %s -o %s" % (bc_file, asm_file))
+        retval = run_command("llc %s -o %s" % (bc_file, asm_file), echoStdout=True)
     if retval != 0: cleanup_and_exit(retval)
     return asm_file
 
