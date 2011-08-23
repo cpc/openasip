@@ -622,7 +622,7 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 
 p.add_option('--new-builder', action='store_false', dest='pom_builder', default=True,
              help=\
-"Use the new builder to get code to TCE scheduler.")
+"Use the new LLVM-TCE conversion code to get code to TCE scheduler.")
 
 # Commandline argument parsing
 
@@ -862,7 +862,10 @@ if options.adf_file != "":
         if options.dump_ddgs_xml:
             command += " --dump-ddgs-xml"
 
-    if not options.no_schedule:
+    if not options.no_schedule and options.pom_builder:
+        # The new builder does not use scheduler configs,
+        # it calls the scheduler directly after getting
+        # the input from LLVM.
         command += " -c " + options.scheduler_config
 
     if options.pom_builder:

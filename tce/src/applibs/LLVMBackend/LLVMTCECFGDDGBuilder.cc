@@ -225,13 +225,12 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 if (j->getDesc().isBranch()) {
                     TCEString opName = operationName(*j);
                     bool pred = false;
-                    // TODO: correctly detect conditional branches
-                    // nasty hack to set pred true
-                    if ((opName == "?jump" && (pred = true)) ||
-                        (opName == "!jump") ||
-                        j->getDesc().isConditionalBranch()) {
+                    if (j->getDesc().isConditionalBranch() &&
+                        j->getNumOperands() == 2) {
+
+                        if (opName == "?jump") pred = true;
+
                         bbPredicates[bbn] = pred;
-                        assert(j->getNumOperands() == 2);
                         const MachineOperand& mo = j->getOperand(1);
                         assert(mo.isMBB());
                         condJumpSucc[bbn] = mo.getMBB();
@@ -293,9 +292,10 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         TCEString nextLabel = "";
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++) {
-            
-            if (operationName(*j) == "HBR_LABEL" ||
-                operationName(*j) == "PROLOG_LABEL") {
+
+            if (!isTTATarget() && 
+                (operationName(*j) == "HBR_LABEL" ||
+                 operationName(*j) == "PROLOG_LABEL")) {
 
                 /*
                   FIXME: this code fails when there are multiple labels
@@ -304,11 +304,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
                 assert(nextLabel == "");
                 
                 nextLabel = j->getOperand(0).getMCSymbol()->getName().str();
-#if 0
-                std::cerr << "\ta label placeholder instruction found\n";
-                PRINT_VAR(nextLabel);
-                j->dump();
-#endif
                 continue;
             }
 
@@ -643,17 +638,6 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
     prog_->convertSymbolRefsToInsRefs();
-
-    LLVMTCECmdLineOptions* options =
-        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
-
-    std::string outputFileName = "cfgddgbuilder.tpef";
-    if (options->isOutputFileDefined()) {
-        outputFileName = options->outputFile();
-    }
-
-    TTAProgram::Program::writeToTPEF(*prog_, outputFileName);
-    exit(0);
     return false; 
 }
 

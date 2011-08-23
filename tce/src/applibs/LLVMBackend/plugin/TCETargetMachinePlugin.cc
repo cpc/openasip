@@ -289,7 +289,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
         std::cerr << "ERROR: Couldn't find operation with opc: " << opc
                   << std::endl;
         std::cerr << "Total ops: " << opNames_.size() << std::endl;
-        assert(false);
+        abort();
     }
 
     return opNames_[opc];
