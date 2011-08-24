@@ -114,6 +114,8 @@ using TTAMachine::Port;
 using TTAMachine::FunctionUnit;
 using TTAMachine::ControlUnit;
 
+//#define DEBUG_BB_OPTIMIZER
+
 /**
  * Removes nodes and edge from the graph.
  *
@@ -2431,6 +2433,11 @@ ControlFlowGraph::optimizeBBOrdering(
     // then loop as long as we have BBs which have not been written to
     // the procedure.
     while (currentBBN != NULL) {
+
+#ifdef DEBUG_BB_OPTIMIZER
+            std::cerr << "current node: " << currentBBN->toString() << 
+                std::endl;
+#endif
         BasicBlockNode* nextNode = NULL;
         TTAProgram::BasicBlock& bb = currentBBN->basicBlock();
         queuedNodes.erase(currentBBN);
@@ -2447,17 +2454,30 @@ ControlFlowGraph::optimizeBBOrdering(
             // must not be already processed.
             assert(queuedNodes.find(ftNode) != queuedNodes.end());
 
+#ifdef DEBUG_BB_OPTIMIZER
+            std::cerr << "\tfound FT node: " << ftNode->toString() << std::endl;
+#endif
             // if fall-through node has no other predecessors, merge.
             if (inDegree(*ftNode) == 1 &&
                 outDegree(*currentBBN) == 1 &&
                 !(*connectingEdges(*currentBBN, *ftNode).begin())->
                   isCallPassEdge()) {
+#ifdef DEBUG_BB_OPTIMIZER
+                std::cerr << "Merging: " << currentBBN->toString()
+                          << " with: " << ftNode->toString() << std::endl;
                 writeToDotFile("before_merge.dot");
+#endif
+                queuedNodes.erase(ftNode);
                 mergeNodes(*currentBBN, *ftNode, ddg);
+#ifdef DEBUG_BB_OPTIMIZER
                 writeToDotFile("after_merge.dot");
                 std::cerr << "Merged with ft node." << std::endl;
+#endif
             } else {
                 currentBBN->link(ftNode);
+#ifdef DEBUG_BB_OPTIMIZER
+                writeToDotFile("linked.dot");
+#endif
                 currentBBN = ftNode;
             }
             continue;
@@ -2486,8 +2506,10 @@ ControlFlowGraph::optimizeBBOrdering(
                                     skippedFirstInstructions()));
                         }
                         mergeNodes(*currentBBN, head, ddg);
+#ifdef DEBUG_BB_OPTIMIZER
                         std::cerr << "Merged with after jump removal(1)" <<
                             std::endl;
+#endif
                         nextNode = currentBBN;
                         break;
                     }
@@ -2497,9 +2519,10 @@ ControlFlowGraph::optimizeBBOrdering(
                     if (inDegree(head) == 1) {
                         mergeNodes(*currentBBN, head, ddg);
                         nextNode = currentBBN;
+#ifdef DEBUG_BB_OPTIMIZER
                         std::cerr << "Merged with after jump removal(2)" <<
                             std::endl;
-
+#endif
                     } else {
                         ControlFlowEdge* ftEdge = new ControlFlowEdge(
                             e.edgePredicate(), 

@@ -266,7 +266,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
         }
         if (newBB) {
             assert (bb->instructionCount() == 0);
-            delete bb;
             delete bbn;
         }
     }
