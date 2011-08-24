@@ -19,22 +19,19 @@ Manuals and specification documents are not built
 
 Make sure you have installed the transfig package and latex2html.
 
-TCE on 64-bit distributions
----------------------------
-
-If you compile LLVM from sources you should give --enable-pic option for
-the LLVM's configure script. Otherwise compilation of TCE might fail.
-
 
 A stack size error in Proxim's console
 --------------------------------------
 
-Tcl 8.5 has a bug with stack size detection which causes Proxim's interpreter
-to not work at all with it, therefore it's not supported by TCE at the moment.
+Tcl 8.5 has a bug with stack size detection which causes Proxim's
+interpreter to not work at all with it, therefore it's not officially
+supported by TCE at the moment. Although, it is possible to circumvent
+this issue by changing the stack size in shell with:
+  ulimit -s unlimited
 
 See the TCE Bug report for more info.
-
   http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
+
 
 Red Hat Enterprise Linux 4.x (or CentOS 4.x)
 --------------------------------------------
