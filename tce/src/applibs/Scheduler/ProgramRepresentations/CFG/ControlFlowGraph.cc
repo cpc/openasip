@@ -2026,7 +2026,7 @@ ControlFlowGraph::buildMBBFromBB(
                     tid, llvm::DebugLoc());
                 
                 std::vector<TTAProgram::Terminal*>& opr = operands[hwop];
-                
+
                 unsigned counter = 0;
                 // add the MachineOperands to the instruction via
                 // POM Terminal --> MachineOperand conversion
@@ -2072,10 +2072,21 @@ ControlFlowGraph::buildMBBFromBB(
                             llvm::MachineOperand::CreateImm(terminal->value().intValue()));
                     } else if (terminal->isGPR()) {
                         bool isDef = false;  // TODO: in case it's an output, it's a def
-                        // LLVM register index starts from 1, we count register from 0
+			bool isImp = false;
+			// RET on spu seems to have implicit operand.
+			// TODO: implement real implicit property to OSAL
+			// operands.
+			if (mi->getDesc().isReturn()) {
+			    isImp = true;
+			}
+
+                        // LLVM register index starts from 1, 
+			// we count register from 0
                         // thus add 1 to get correct data to the LLVM
+
                         mi->addOperand(
-                            llvm::MachineOperand::CreateReg(terminal->index() + 1, isDef));
+                            llvm::MachineOperand::CreateReg(
+				terminal->index() + 1, isDef, isImp));
                     } else {
                         abortWithError(
                             "Unsupported Terminal -> MachineOperand conversion attempted.");
