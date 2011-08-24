@@ -575,6 +575,10 @@ LLVMTCECFGDDGBuilder::createMBBReference(const MachineOperand& mo) {
     if (i == bbMapping_.end()) {
         std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator j = 
             skippedBBs_.find(mbb);
+        if (j == skippedBBs_.end()) {
+            mo.getParent()->dump();
+            assert(j != skippedBBs_.end());
+        }        
         return new TTAProgram::TerminalBasicBlockReference(
             j->second->basicBlock());
     }
