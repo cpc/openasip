@@ -1,6 +1,0 @@
-<?php
-// short test description
-$test_description="Scheduling long test cases with experimental_scheduler.conf";
-$test_bin="../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args="../../../../tce/scheduler/passes/experimental_scheduler.conf -vr";
-?>

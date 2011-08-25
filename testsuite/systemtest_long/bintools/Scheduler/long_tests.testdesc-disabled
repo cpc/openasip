@@ -1,8 +1,0 @@
-<?php
-// short test description
-$test_description="Scheduling long test cases with the old gcc";
-$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args = 
-    "-c ../../../../tce/scheduler/passes/old_gcc.conf -vrq ".
-    "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf";
-?>

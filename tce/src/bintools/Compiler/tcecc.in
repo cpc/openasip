@@ -810,7 +810,7 @@ if options.adf_file != "":
     runCommand(lowerMemIntrinsicCommand(emulationLinkedFileName, toCodeGenFname),
                options.verbose, True)
 
-    if options.sequential_schedule or options.optimization_level == 0:
+    if options.pom_builder and (options.sequential_schedule or options.optimization_level == 0):
         scheduler_config_file_name = "sequential_tcecc_scheduler.conf"
         if options.dump_ddgs or options.dump_ddgs_dot or options.dump_ddgs_xml:
             exitWithError(1, 
