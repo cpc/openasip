@@ -2457,15 +2457,20 @@ ControlFlowGraph::optimizeBBOrdering(
 #ifdef DEBUG_BB_OPTIMIZER
             std::cerr << "\tfound FT node: " << ftNode->toString() << std::endl;
 #endif
+            const ControlFlowEdge& cfe = 
+                **connectingEdges(*currentBBN, *ftNode).begin();
+
             // if fall-through node has no other predecessors, merge.
-            if (inDegree(*ftNode) == 1 &&
-                outDegree(*currentBBN) == 1 &&
-                !(*connectingEdges(*currentBBN, *ftNode).begin())->
-                  isCallPassEdge()) {
+            if (inDegree(*ftNode) == 1 && outDegree(*currentBBN) == 1 &&
+                !cfe.isCallPassEdge()) {
 #ifdef DEBUG_BB_OPTIMIZER
                 std::cerr << "Merging: " << currentBBN->toString()
                           << " with: " << ftNode->toString() << std::endl;
                 writeToDotFile("before_merge.dot");
+                if (cfe.isBackEdge()) {
+                    std::cerr << "Warning: merging over back edge." << 
+                        std::endl;
+                }
 #endif
                 queuedNodes.erase(ftNode);
                 mergeNodes(*currentBBN, *ftNode, ddg);
@@ -2613,6 +2618,12 @@ ControlFlowGraph::removeUnreachableNodes(
 void
 ControlFlowGraph::mergeNodes(
     BasicBlockNode& node1, BasicBlockNode& node2, DataDependenceGraph* ddg) {
+
+    if (ddg != NULL && 
+        (!ddg->hasAllRegisterAntidependencies() &&
+         ddg->hasIntraBBRegisterAntidependencies())) {
+        ddg->fixInterBBAntiEdges(node1, node2, false);
+    }
     assert(node1.isNormalBB());
     assert(node2.isNormalBB());
     TTAProgram::BasicBlock& bb1 = node1.basicBlock();
