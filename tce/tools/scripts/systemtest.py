@@ -226,8 +226,8 @@ class IntegrationTestCase(object):
             gotOut = open(outputTemp[1]).readlines()
             correctOut = open(os.path.join(self.verification_data_dir, stdout_fn)).readlines()
 
-            stdoutDiff = list(unified_diff(gotOut, correctOut,
-                              fromfile="produced.stdout", tofile="expected.stdout"))
+            stdoutDiff = list(unified_diff(correctOut, gotOut, 
+                              fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
                 sys.stdout.write(open(outputTemp[1]).read())
                 continue           
