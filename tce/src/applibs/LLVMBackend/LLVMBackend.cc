@@ -49,7 +49,6 @@
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
-#include <llvm/Target/TargetRegistry.h>
 
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
@@ -68,6 +67,12 @@
 #include <llvm/CodeGen/ObjectCodeEmitter.h>
 
 #include "tce_config.h" // to get llvm version
+
+#ifdef LLVM_2_9
+#include <llvm/Target/TargetRegistry.h>
+#else
+#include <llvm/Support/TargetRegistry.h>
+#endif
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H

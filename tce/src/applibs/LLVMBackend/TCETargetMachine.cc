@@ -33,7 +33,11 @@
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
+#ifdef LLVM_2_9
 #include "llvm/Target/TargetRegistry.h"
+#else
+#include "llvm/Support/TargetRegistry.h"
+#endif
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
