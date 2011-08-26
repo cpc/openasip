@@ -47,6 +47,7 @@
 #include "Memory.hh"
 #include "OperationPool.hh"
 #include "OperationState.hh"
+#include "OperationGlobals.hh"
 
 #include "SimulateTriggerWrappers.icc"
 
@@ -91,7 +92,7 @@ public:                                              \
     typedef NullOperationState StateType; \
 private: \
     StateType* fetchState(const OperationContext&) const { \
-	return NullOperationState::instance(); \
+        return NullOperationState::instance();             \
     }; \
 OPERATION_COMMON(OPNAME) \
 public:

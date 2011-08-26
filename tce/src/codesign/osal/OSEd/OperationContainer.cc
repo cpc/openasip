@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of OperationContainer class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -189,8 +190,10 @@ OperationContainer::operation(
                     new Operation(oper, NullOperationBehavior::instance());
                 op->loadState(root->child(i));
 
-                OperationBehaviorLoader* behaviorLoader = new OperationBehaviorLoader(*index);
-                OperationBehaviorProxy* behaviorProxy = new OperationBehaviorProxy(*op, *behaviorLoader);
+                OperationBehaviorLoader* behaviorLoader = 
+                    new OperationBehaviorLoader(*index);
+                OperationBehaviorProxy* behaviorProxy = 
+                    new OperationBehaviorProxy(*op, *behaviorLoader, true);
 
                 op->setBehavior(*behaviorProxy);
 
@@ -264,29 +267,6 @@ OperationContainer::isEffective(
     // never should come here
     assert(false);
     return false;
-}
-
-/**
- * Frees the behavior of the operation.
- *
- * @param op Operation of which behavior is freed.
- * @param module Module in which operation belongs to.
- */
-void
-OperationContainer::freeBehavior(
-    Operation& op, 
-    OperationModule& module) {
-
-    try {
-        string mod = module.behaviorModule();
-        string func_name = DELETE_FUNCTION + 
-            StringTools::stringToUpper(op.name());
-        void (*function)(OperationBehavior*);
-        tools_.importSymbol(func_name, function, mod);
-        function(&op.behavior());
-    } catch (const Exception& d) {
-        return;
-    }
 }
 
 /**

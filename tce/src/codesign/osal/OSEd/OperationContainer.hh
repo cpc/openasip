@@ -74,9 +74,7 @@ public:
     static bool operationExists(const std::string& name);
 
     static bool isEffective(OperationModule& module, const std::string& name);
-    
-    static void freeBehavior(Operation& op, OperationModule& module);
-    
+   
     static Word memoryStart();
     static Word memoryEnd();
      

@@ -60,6 +60,8 @@ public:
         throw (DynamicLibraryException, InstanceNotFound, FileNotFound,
                SymbolNotFound);
 
+    void freeBehavior();
+
 private:
     /// Contains operation behavior models indexed by operation names.
     typedef std::map<std::string, OperationBehavior*> BehaviorMap;
@@ -71,8 +73,6 @@ private:
     OperationBehaviorLoader(const OperationBehaviorLoader&);
     /// Assignment not allowed.
     OperationBehaviorLoader& operator=(const OperationBehaviorLoader&);
-
-    void freeBehavior();
 
     /// The name of the creation function in dynamic module.
     static const std::string CREATE_FUNC;

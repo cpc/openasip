@@ -158,8 +158,6 @@ SimulateDialog::~SimulateDialog() {
     wxPoint point(x, y);
     DialogPosition::setPosition(DialogPosition::DIALOG_SIMULATE, point);
 
-    OperationModule& module = OperationContainer::module(pathName_, modName_);
-    OperationContainer::freeBehavior(*operation_, module);
     delete operation_;
 }
 

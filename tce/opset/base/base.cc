@@ -36,7 +36,6 @@
 #include <math.h> // isnan()
 
 #include "OSAL.hh"
-#include "OperationGlobals.hh"
 #include "Application.hh"
 #include "Conversion.hh"
 
