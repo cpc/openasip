@@ -9,8 +9,10 @@ ADF_PATH="./data/minimal2bus.adf"
 ${EXPLORE_BIN} $1 -e ConnectionSweeper -s 1 -u cc_worsening_threshold=5 testi.dsdb 1>/dev/null
 ROWS="$(${EXPLORE_BIN} --pareto_set C testi.dsdb | wc -l)"
 
-# With LLVM 2.8 one gets 7, with LLVM 2.9 one gets 11 rows.
-MIN_ROWS=5
+# With LLVM 2.8 one gets 7
+# with LLVM 2.9 and --old-builder one gets 5 rows
+# with LLVM 2.9 and --new-builder one gets 4 rows
+MIN_ROWS=4
 
 if [ "${ROWS}" -lt "${MIN_ROWS}" ]; then
    echo "Not enough rows in the pareto set result!"
