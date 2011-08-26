@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,8 @@
  * Declaration of OperationBehaviorProxy class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2011 (pjaaskel-no.spam-cs.tut.fi)
+ *
  * @note rating: yellow
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */
@@ -58,7 +59,8 @@ class OperationBehaviorProxy : public OperationBehavior {
 public:
     OperationBehaviorProxy(
         Operation& targetOperation, 
-        OperationBehaviorLoader& loader);
+        OperationBehaviorLoader& loader,
+        bool alwaysReloadBehavior=false);
     
     virtual ~OperationBehaviorProxy();
 
@@ -78,6 +80,7 @@ private:
     OperationBehaviorProxy& operator=(const OperationBehaviorProxy&);
 
     void initializeBehavior() const;
+    void uninitializeBehavior() const;
    
     /// Operation that owns this proxy;
     Operation* target_;
@@ -85,9 +88,12 @@ private:
     OperationBehaviorLoader* loader_;
     /// Flag indicating whether proxy is initialized or not.
     mutable bool initialized_;
-
     /// Clean up list for created OperationDAGBehaviors
     mutable std::set<OperationDAGBehavior*> cleanUs_;
+    /// If this is true, the behavior is always (re)loaded from the
+    /// dynamic library or the DAG instead of loading it once and
+    /// reusing in the future calls.
+    bool alwaysReloadBehavior_;
 };
 
 #endif

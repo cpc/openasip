@@ -18,6 +18,8 @@ Bugfixes
 - tcecc: Scheduler could sometimes fail to schedule on sparsely connected machines.
 - OSEd: OSEd crashed when selecting an operation for which there was no simulation
   model in an otherwise valid .opb.
+- OSEd: Reload modified simulation functions from a rebuilt simulation
+  function module (.opb) (Bug 179).
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
   was power of 2.
 - tcecc: standard libcalls are now converted to cheaper ones again using

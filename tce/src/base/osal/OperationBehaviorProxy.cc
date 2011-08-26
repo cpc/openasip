@@ -55,9 +55,10 @@ using std::string;
  */
 OperationBehaviorProxy::OperationBehaviorProxy(
     Operation& targetOperation,
-    OperationBehaviorLoader& loader) : 
+    OperationBehaviorLoader& loader,
+    bool alwaysReloadBehavior) : 
     OperationBehavior(), target_(&targetOperation), loader_(&loader),
-    initialized_(false) {
+    initialized_(false),  alwaysReloadBehavior_(alwaysReloadBehavior) {
 }
 
 /**
@@ -89,9 +90,11 @@ bool
 OperationBehaviorProxy::simulateTrigger(
     SimValue** io,
     OperationContext& context) const {
-    
+
     initializeBehavior();
-    return target_->simulateTrigger(io, context);
+    bool retVal = target_->simulateTrigger(io, context);
+    if (alwaysReloadBehavior_) uninitializeBehavior();
+    return retVal;
 }
 
 /**
@@ -107,6 +110,7 @@ void
 OperationBehaviorProxy::createState(OperationContext& context) const {
     initializeBehavior();
     target_->createState(context);
+    if (alwaysReloadBehavior_) uninitializeBehavior();
 }
 
 /**
@@ -122,6 +126,7 @@ void
 OperationBehaviorProxy::deleteState(OperationContext& context) const {
     initializeBehavior();
     target_->deleteState(context);
+    if (alwaysReloadBehavior_) uninitializeBehavior();
 }
 
 
@@ -139,13 +144,17 @@ OperationBehaviorProxy::canBeSimulated() const {
     try {
         initializeBehavior();
     } catch (Exception&) {
+        if (alwaysReloadBehavior_) uninitializeBehavior();
         return false;
     }
     // if initialization was not success
     if (&target_->behavior() == this) {
+        if (alwaysReloadBehavior_) uninitializeBehavior();
         return false;
     } else {
-        return target_->canBeSimulated();
+        bool retVal = target_->canBeSimulated();
+        if (alwaysReloadBehavior_) uninitializeBehavior();
+        return retVal;
     }
 }
 
@@ -206,3 +215,19 @@ OperationBehaviorProxy::initializeBehavior() const {
     initialized_ = true;
 }
 
+
+/**
+ * Uninitializes the behavior description from the operation so it will be
+ * reloaded again when a behavior method is called the next time.
+ */
+void
+OperationBehaviorProxy::uninitializeBehavior() const {
+    while (!cleanUs_.empty()) {
+        OperationBehavior* behavior = *cleanUs_.begin();
+        delete behavior;
+        cleanUs_.erase(cleanUs_.begin());
+    }
+    target_->setBehavior(const_cast<OperationBehaviorProxy&>(*this));
+    loader_->freeBehavior();
+    initialized_ = false;
+}

@@ -137,4 +137,7 @@ OperationBehaviorLoader::freeBehavior() {
         behaviorDestructor((*iter).first);
         iter++;
     }
+    destructors_.clear();
+    behaviors_.clear();
+    tools_.unregisterAllModules();
 }

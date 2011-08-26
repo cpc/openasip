@@ -237,11 +237,12 @@ PluginTools::unregisterAllModules()
 
     MapIter mt;
     for (mt = modules_.begin(); mt != modules_.end(); mt++) {
-	void* handle = (*mt).second;
-	dlclose (handle);
+        void* handle = (*mt).second;
+        std::string moduleName = (*mt).first;
+        dlclose(handle);
 	// Removing check. This is called on the global destructor
 	// stage and in some systems (FreeBSD) libraries are already
-	// unloaded by then.
+	// unloaded by then which would cause this to fail unneccessarily.
 //         if (dlclose(handle) != 0) {
 //             string method = "PluginTools::unregisterAllModules()";
 //             string message = dlerror();
