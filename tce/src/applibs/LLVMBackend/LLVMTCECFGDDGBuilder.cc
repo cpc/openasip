@@ -43,7 +43,7 @@
 #include "TerminalBasicBlockReference.hh"
 #include "TerminalSymbolReference.hh"
 #include "TerminalFUPort.hh"
-
+#include "SequentialScheduler.hh"
 #include "PreOptimizer.hh"
 #include "BBSchedulerController.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
@@ -82,7 +82,7 @@ LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
             mach->functionUnitNavigator();
 
         // the supported operation set
-        for (int i = 0;i < fuNav.count(); i++) {
+        for (int i = 0; i < fuNav.count(); i++) {
             const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
             for (int o = 0; o < fu.operationCount(); o++) {
                 opset_.insert(
@@ -102,7 +102,8 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     clearFunctionBookkeeping();
 
     if (!functionAtATime_) {
-        // ensure data sections have been initialized
+        // ensure data sections have been initialized when compiling
+        // the whole program at a time
         initDataSections();
         emitConstantPool(*mf.getConstantPool());	
     } else {
@@ -498,52 +499,26 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
 #ifdef WRITE_CFG_DOTS
     cfg->writeToDotFile(fnName + "_cfg1.dot");
 #endif
-
-    // TODO: on trunk single bb loop(swp), last param true(rr, threading)
-    DataDependenceGraph* ddg = ddgBuilder_.build(
-        *cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
-
-#ifdef WRITE_DDG_DOTS
-    ddg->writeToDotFile(fnName + "_ddg1.dot");
-#endif
-
-    PreOptimizer preOpt(*ipData_);
-    preOpt.handleCFGDDG(*cfg, *ddg);
-
-    cfg->optimizeBBOrdering(true, *irm, ddg);
-
-#ifdef WRITE_DDG_DOTS
-    ddg->writeToDotFile(fnName + "_ddg2.dot");
-#endif
-
-    CycleLookBackSoftwareBypasser bypasser;
-    CopyingDelaySlotFiller dsf;
-    BBSchedulerController bbsc(*ipData_, &bypasser, &dsf);
-    bbsc.handleCFGDDG(*cfg, *ddg, *mach_ );
-
-#ifdef WRITE_CFG_DOTS
-    cfg->writeToDotFile(fnName + "_cfg2.dot");
-#endif
-#ifdef WRITE_DDG_DOTS
-    ddg->writeToDotFile(fnName + "_ddg3.dot");
-#endif
-
-    if (!functionAtATime_) {
-        // TODO: make DS filler work with FAAT
-        // BBReferences converted to Inst references
-        // break LLVM->POM ->LLVM chain.
-        cfg->convertBBRefsToInstRefs(*irm);        
-        dsf.fillDelaySlots(*cfg, *ddg, *mach_, *umach_, true);
+    
+    LLVMTCECmdLineOptions* options = NULL;
+    bool fastCompilation = false;
+    if (Application::cmdLineOptions() != NULL) {
+        options = 
+            dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+        fastCompilation = options->optLevel() == 0;
     }
 
-#ifdef WRITE_DDG_DOTS
-    ddg->writeToDotFile(fnName + "_ddg4.dot");
-#endif
+    if (fastCompilation) {
+        compileFast(*cfg);
+    } else {
+        compileOptimized(*cfg, *irm);
+    }
 
-#ifdef WRITE_CFG_DOTS
-    cfg->writeToDotFile(fnName + "_cfg3.dot");
-#endif
 
+    if (!modifyMF_) {
+        cfg->convertBBRefsToInstRefs(*irm);
+    }
     cfg->copyToProcedure(*procedure, irm);
 #ifdef WRITE_CFG_DOTS
     cfg->writeToDotFile(fnName + "_cfg4.dot");
@@ -551,8 +526,6 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     if (procedure->instructionCount() > 0) {
         codeLabels_[fnName] = &procedure->firstInstruction();
     }
-
-    delete ddg;
 
     if (modifyMF_) {
         cfg->copyToLLVMMachineFunction(mf, irm);        
@@ -564,6 +537,68 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     if (functionAtATime_) delete irm;
     return false;
 }
+
+void
+LLVMTCECFGDDGBuilder::compileFast(ControlFlowGraph& cfg) {
+    SequentialScheduler sched(*ipData_);
+    sched.handleControlFlowGraph(cfg, *mach_);
+}
+
+void
+LLVMTCECFGDDGBuilder::compileOptimized(
+    ControlFlowGraph& cfg, 
+    TTAProgram::InstructionReferenceManager& irm) {
+    // TODO: on trunk single bb loop(swp), last param true(rr, threading)
+    DataDependenceGraph* ddg = ddgBuilder_.build(
+        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
+
+#ifdef WRITE_DDG_DOTS
+    ddg.writeToDotFile(fnName + "_ddg1.dot");
+#endif
+
+    PreOptimizer preOpt(*ipData_);
+    preOpt.handleCFGDDG(cfg, *ddg);
+
+    cfg.optimizeBBOrdering(true, irm, ddg);
+
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg2.dot");
+#endif
+
+    CycleLookBackSoftwareBypasser bypasser;
+    CopyingDelaySlotFiller dsf;
+    BBSchedulerController bbsc(*ipData_, &bypasser, &dsf);
+    bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
+
+#ifdef WRITE_CFG_DOTS
+    cfg.writeToDotFile(fnName + "_cfg2.dot");
+#endif
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg3.dot");
+#endif
+
+    if (!modifyMF_) {
+        // BBReferences converted to Inst references
+        // break LLVM->POM ->LLVM chain because we
+        // need the BB refs to rebuild the LLVM CFG 
+        cfg.convertBBRefsToInstRefs(irm);        
+    }
+
+    if (!functionAtATime_) {
+        // TODO: make DS filler work with FAAT
+        dsf.fillDelaySlots(cfg, *ddg, *mach_, *umach_, true);
+    }
+
+#ifdef WRITE_DDG_DOTS
+    ddg->writeToDotFile(fnName + "_ddg4.dot");
+#endif
+
+#ifdef WRITE_CFG_DOTS
+    cfg.writeToDotFile(fnName + "_cfg3.dot");
+#endif
+    delete ddg;    
+}
+
 
 TTAProgram::Terminal*
 LLVMTCECFGDDGBuilder::createMBBReference(const MachineOperand& mo) {

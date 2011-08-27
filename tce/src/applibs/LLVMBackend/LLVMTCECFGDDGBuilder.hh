@@ -122,6 +122,10 @@ namespace llvm {
             const TTAProgram::Procedure& proc,
             llvm::MachineFunction& mf);
 
+        void compileFast(ControlFlowGraph& cfg);
+        void compileOptimized(
+            ControlFlowGraph& cfg, TTAProgram::InstructionReferenceManager& irm);
+
         InterPassData* ipData_;
         // TODO: how to get these?
         std::set<TCEString> allParamRegs_;
@@ -133,7 +137,6 @@ namespace llvm {
 
         // write back the scheduled instructions to the machine function?
         bool modifyMF_;
-
 
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
     };

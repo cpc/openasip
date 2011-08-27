@@ -71,9 +71,7 @@ class SequentialSelector;
  */
 SequentialScheduler::SequentialScheduler(InterPassData& data) :
     BasicBlockPass(data), 
-#ifdef USE_CFG
     ControlFlowGraphPass(data),
-#endif
     ProcedurePass(data),
     ProgramPass(data), 
     rm_(NULL) {
@@ -598,10 +596,6 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
     }
 }
 
-
-// if uses CFG, procedure pass handles this.
-#ifndef USE_CFG
-
 /**
  * Schedules a procedure.
  *
@@ -634,7 +628,6 @@ SequentialScheduler::handleProcedure(
     }
 }
 
-#endif
 /**
  * A short description of the pass, usually the optimization name,
  * such as "basic block scheduler".

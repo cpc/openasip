@@ -620,9 +620,10 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
 
-p.add_option('--new-builder', action='store_false', dest='pom_builder', default=True,
+p.add_option('--old-builder', action='store_true', dest='pom_builder', 
+             default=False,
              help=\
-"Use the new LLVM-TCE conversion code to get code to TCE scheduler.")
+"Use the old LLVM-TCE builder code to get code to TCE scheduler (deprecated).")
 
 # Commandline argument parsing
 
