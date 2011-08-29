@@ -30,6 +30,7 @@
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam—tut.fi)
  */
 
+#include "tce_config.h"
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
