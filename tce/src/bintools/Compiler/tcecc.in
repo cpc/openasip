@@ -558,16 +558,6 @@ p.add_option('-g',
              dest="g_cc_switch", default=False,
              help="Passed to gcc.")
 
-p.add_option('--max-thread-latency',
-             type="int", action="store", metavar='usec',
-             dest='max_thread_latency',
-	     default=None,
-             help=\
-"""Emit sched_yield() calls to the program to produce given maximum thread
-switch latency (in microseconds). In case the target does not have the RTIMER
-operation, sched_yield() is called in every basic block unconditionally, 
-producing considerable additional overhead to the program exectuion.""")
-
 p.add_option('--default-regalloc',
              action='store_true', dest='default_regalloc', default=False,
              help=\
@@ -879,14 +869,7 @@ if options.adf_file != "":
                 " -O" + str(options.optimization_level) +
                 " -e" + stdEmulationLib +
                 " " + toCodeGenFname)
-    
-    if options.max_thread_latency is not None:
-	    # Temporary hack until 'schedule' supports passing cmdline
-	    # options to passes.
-	    import os
-	    os.environ['MAX_THREAD_SWITCH_LATENCY'] = \
-            str(options.max_thread_latency)
-    
+       
     exitCode = runCommand(command, options.verbose, True)
     if exitCode != 0:
         exitWithError(1, "Error while compiling " + command + "\n")
