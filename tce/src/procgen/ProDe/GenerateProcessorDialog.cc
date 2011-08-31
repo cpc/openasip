@@ -237,7 +237,8 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     // generate vhdl compilation and simulation scripts
     try {
         ProGeScriptGenerator sGen(
-            targetDir, targetDir, targetDir, testbenchDir);
+            impl_, targetDir, targetDir, targetDir, testbenchDir,
+            generator.entityName());
         sGen.generateAll();
     } 
     catch (const Exception& e) {

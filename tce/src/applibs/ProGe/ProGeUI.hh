@@ -94,8 +94,7 @@ protected:
                InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
     void generateTestBench(
         const std::string& dstDir, 
-        const std::string& progeOutDir,
-        const std::string& entityStr);
+        const std::string& progeOutDir);
     void generateScripts(
         const std::string& dstDir,
         const std::string& progeOutDir,
@@ -135,8 +134,12 @@ private:
     ICDecoderGeneratorPlugin* plugin_;
     /// The plugin file.
     std::string pluginFile_;
+    /// Name of the toplevel entity
+    std::string entityName_;
     
     ProcessorGenerator generator_;
+
+    static const std::string DEFAULT_ENTITY_STR;
 };
 }
 

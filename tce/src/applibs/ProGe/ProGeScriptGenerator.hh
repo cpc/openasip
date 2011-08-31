@@ -36,6 +36,10 @@
 #include <list>
 #include "Exception.hh"
 
+namespace IDF {
+    class MachineImplementation;
+}
+
 /**
  * Class for script generating objects.
  *
@@ -44,10 +48,12 @@
 class ProGeScriptGenerator {
 public:
     ProGeScriptGenerator(
+        const IDF::MachineImplementation& idf,
         const std::string& dstDir,
         const std::string& progeOutDir,
         const std::string& sharedOutDir,
-        const std::string& testBenchDir);
+        const std::string& testBenchDir,
+        const std::string& toplevelEntity);
 
     virtual ~ProGeScriptGenerator();
 
@@ -88,11 +94,13 @@ private:
         const std::string& fileName,
         std::list<std::string>& found);
     void getBlockOrder(
-        const std::string& idfFile,
         std::list<std::string>& order);
-    void sortFiles(
+    void sortFilesFirst(
         std::list<std::string>& toSort,
         std::list<std::string>& acSort);
+    void sortFilesLast(
+        std::list<std::string>& toSort,
+        std::list<std::string>& acSort);		
     template <typename CONT>
     void uniqueFileNames(
         CONT& files,
@@ -123,6 +131,7 @@ private:
     const std::string workDir_;
     const std::string vhdlDir_;
     const std::string gcuicDir_;
+    const std::string tbDir_;
 
     // file names for scripts to be generated
     const std::string modsimCompileScriptName_;
@@ -132,6 +141,10 @@ private:
 
     // test bench name 
     const std::string testbenchName_;
+
+    const std::string toplevelEntity_;
+
+    const IDF::MachineImplementation& idf_;
 };
 
 #include "ProGeScriptGenerator.icc"

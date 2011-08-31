@@ -81,6 +81,8 @@ using namespace HDB;
 
 namespace ProGe {
 
+const TCEString ProcessorGenerator::DEFAULT_ENTITY_STR = "tta0";
+
 /**
  * The constructor.
  */
@@ -116,7 +118,11 @@ ProcessorGenerator::generateProcessor(
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
            InstanceNotFound) {
 
-    entityStr_ = entityString;
+    if (entityString.empty()) {
+        entityStr_ = DEFAULT_ENTITY_STR;
+    } else {
+        entityStr_ = entityString;
+    }
 
     // validate the machine
     validateMachine(machine, errorStream, warningStream);
@@ -428,4 +434,10 @@ ProcessorGenerator::netlist() const {
 
     return netlist_;
 }   
+
+TCEString
+ProcessorGenerator::entityName() const {
+    
+    return entityStr_;
+}
 } // namespace ProGe

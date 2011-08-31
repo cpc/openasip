@@ -76,15 +76,18 @@ using namespace IDF;
 using std::string;
 using std::vector;
 
-static const std::string DEFAULT_ENTITY_STR = "tta0";
+
 
 namespace ProGe {
+
+const std::string ProGeUI::DEFAULT_ENTITY_STR = "tta0";
 
 /**
  * The constructor.
  */
 ProGeUI::ProGeUI() :
-    machine_(NULL), bem_(NULL), idf_(NULL), plugin_(NULL), pluginFile_("") {
+    machine_(NULL), bem_(NULL), idf_(NULL), plugin_(NULL), pluginFile_(""),
+    entityName_(DEFAULT_ENTITY_STR) {
 }
 
 
@@ -292,7 +295,7 @@ ProGeUI::generateProcessor(
     HDL language,
     TCEString dstDirectory,
     TCEString sharedDstDirectory = "",
-    TCEString entityString = DEFAULT_ENTITY_STR,
+    TCEString entityString = ProGeUI::DEFAULT_ENTITY_STR,
     std::ostream& errorStream = std::cerr,
     std::ostream& warningStream = std::cerr)
     throw (InvalidData, DynamicLibraryException, IOException,
@@ -301,8 +304,8 @@ ProGeUI::generateProcessor(
     if (sharedDstDirectory == "")
         sharedDstDirectory = dstDirectory;
 
-    if (entityString == "")
-        entityString = DEFAULT_ENTITY_STR;
+    if (!entityString.empty())
+        entityName_ = entityString;
 
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
@@ -352,7 +355,7 @@ ProGeUI::generateProcessor(
 
     generator_.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,
-        dstDirectory, sharedDstDirectory, entityString, errorStream, 
+        dstDirectory, sharedDstDirectory, entityName_, errorStream, 
         warningStream);
 }
 
@@ -368,17 +371,13 @@ ProGeUI::generateProcessor(
 void
 ProGeUI::generateTestBench(
     const std::string& dstDir, 
-    const std::string& progeOutDir,
-    const std::string& entityStr) {
+    const std::string& progeOutDir) {
 
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
 
-    TCEString entity = entityStr;
-    if (entity == "") entity = DEFAULT_ENTITY_STR;
-
     ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-    tbGen.generate(*machine_, *idf_, dstDir, progeOutDir, entity);
+    tbGen.generate(*machine_, *idf_, dstDir, progeOutDir, entityName_);
 }
 
 /** 
@@ -396,7 +395,8 @@ ProGeUI::generateScripts(
     const std::string& sharedOutDir,
     const std::string& testBenchDir) {
 
-    ProGeScriptGenerator sGen(dstDir, progeOutDir, sharedOutDir, testBenchDir);
+    ProGeScriptGenerator sGen(
+        *idf_, dstDir, progeOutDir, sharedOutDir, testBenchDir, entityName_);
     sGen.generateAll();
 }
 

@@ -85,6 +85,8 @@ public:
 
     const Netlist* netlist() const;
 
+    TCEString entityName() const;
+
 private:
     void validateMachine(
         const TTAMachine::Machine& machine,
@@ -105,6 +107,8 @@ private:
 
     Netlist* netlist_;
     TCEString entityStr_;
+
+    static const TCEString DEFAULT_ENTITY_STR;
 };
 }
 

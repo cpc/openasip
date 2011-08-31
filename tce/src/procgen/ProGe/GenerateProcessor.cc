@@ -196,7 +196,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
                 + FileSystem::DIRECTORY_SEPARATOR +
                 "tb";
         try {
-            ProGeUI::generateTestBench(testBenchDir, outputDirectory, entity);
+            ProGeUI::generateTestBench(testBenchDir, outputDirectory);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
                     << "generate testbench." << std::endl;

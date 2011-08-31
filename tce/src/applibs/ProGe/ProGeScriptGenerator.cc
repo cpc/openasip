@@ -45,12 +45,21 @@
 #include "CachedHDBManager.hh"
 #include "HDBRegistry.hh"
 #include "FileSystem.hh"
-//#include "IDFSerializer.hh"
+#include "MachineImplementation.hh"
+#include "UnitImplementationLocation.hh"
+#include "FUEntry.hh"
+#include "FUImplementation.hh"
+#include "RFEntry.hh"
+#include "RFImplementation.hh"
 
+using IDF::MachineImplementation;
+using IDF::FUImplementationLocation;
+using IDF::RFImplementationLocation;
 using std::string;
 using std::endl;
 using std::list;
 
+const string MAGICAL_RUNTIME_CONSTANT = "52390ns";
 
 /**
  * The constructor.
@@ -66,10 +75,12 @@ using std::list;
  * directory.
  */
 ProGeScriptGenerator::ProGeScriptGenerator( 
+    const IDF::MachineImplementation& idf,
     const std::string& dstDir,
     const std::string& progeOutDir,
     const std::string& sharedOutDir,
-    const std::string& testBenchDir) :
+    const std::string& testBenchDir,
+    const std::string& toplevelEntity = "tta0") :
     dstDir_(dstDir), 
     progeOutDir_(progeOutDir),
     sharedOutDir_(sharedOutDir),
@@ -77,11 +88,14 @@ ProGeScriptGenerator::ProGeScriptGenerator(
     workDir_("work"),
     vhdlDir_("vhdl"),
     gcuicDir_("gcu_ic"),
+    tbDir_("tb"),
     modsimCompileScriptName_("modsim_compile.sh"),
     ghdlCompileScriptName_("ghdl_compile.sh"),
     modsimSimulateScriptName_("modsim_simulate.sh"),
     ghdlSimulateScriptName_("ghdl_simulate.sh"),
-    testbenchName_("testbench") {
+    testbenchName_("testbench"),
+    toplevelEntity_(toplevelEntity),
+    idf_(idf) {
         
     fetchFiles();
     prepareFiles();
@@ -197,14 +211,15 @@ ProGeScriptGenerator::generateModsimSimulate()
     throw (IOException) {
 
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
-        modsimCompileScriptName_;
+        modsimSimulateScriptName_;
 
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     generateStart(stream);
 
-    stream << "vsim " << testbenchName_ << "  -c -do 'run; exit'" << endl;
+    stream << "vsim " << testbenchName_ << "  -c -do 'run " 
+           << MAGICAL_RUNTIME_CONSTANT << "; exit'" << endl;
 
     stream.close();
 }
@@ -228,7 +243,8 @@ ProGeScriptGenerator::generateGhdlSimulate()
     generateStart(stream);
 
     stream << "./" << testbenchName_ 
-           << " --assert-level=none --stop-time=52390ns"
+           << " --assert-level=none --stop-time="
+           << MAGICAL_RUNTIME_CONSTANT
            << endl;
 
     stream.close();
@@ -338,64 +354,42 @@ ProGeScriptGenerator::findText(
 /** 
  * Relative file name/path sort using a reference.
  *
- * Sorts file in one list according to other list, only relative order matters
- * (which entry comes first). Algorithm used does relative sort between two
- * lists, the other is sorted according to the other. 
+ * Sorts file in one list according to other list,placing in beginning of
+ * list, only relative order matters (which entry comes first). Algorithm
+ * used does relative sort between two lists, the other is sorted according
+ * to the other. 
  * 
  * @param toSort List to be sorted. 
  * @param acSort List where reference order is taken from.
  */
 void
-ProGeScriptGenerator::sortFiles(
+ProGeScriptGenerator::sortFilesFirst(
     std::list<std::string>& toSort,
     std::list<std::string>& acSort) {
 
     typedef std::list<std::string>::iterator listStrIt;
 
     listStrIt itAc1 = acSort.begin();
-    listStrIt itAc2;
-    listStrIt itTo;
+    listStrIt itTo  = toSort.begin();
     listStrIt itTo2;
-    listStrIt itAcTest = --acSort.end();
 
-    string temp;
-    bool comp_itTo_itAc1;
-    bool comp_itTo_itAc2;
-
-    // Ok this algorithm is quite horrible..
-    while (itAc1 != itAcTest) {
-        (itAc2 = itAc1)++;
-        while (itAc2 != acSort.end()) {
-            // now check list to be sorted
-            itTo = toSort.begin();
-            while (itTo != toSort.end()) {
-                comp_itTo_itAc1 = 
-                    FileSystem::compareFileNames(*itTo, *itAc1, dstDir_);
-                comp_itTo_itAc2 = 
-                    FileSystem::compareFileNames(*itTo, *itAc2, dstDir_);
-                if (comp_itTo_itAc1 || comp_itTo_itAc2) {
-                    if (comp_itTo_itAc1) {
-                        // order was ok!
-                        break;
-                    } else { // found itAc2 first
-                        (itTo2 = itTo)++;
-                        while (itTo2 != toSort.end()) {
-                            if (FileSystem::compareFileNames(*itTo2, *itAc1,
-                                dstDir_)) {
-                                // now change itTo2 and itTo places                            
-                                temp = *itTo;
-                                *itTo = *itTo2;
-                                *itTo2 = temp;
-                                break;
-                            }
-                            ++itTo2;
-                        }
-                        break;
-                    }
+    while (itAc1 != acSort.end()) {
+        // now check list to be sorted
+        bool swapped = false;
+        itTo2 = itTo;
+        while (itTo2 != toSort.end()) {
+            if (FileSystem::compareFileNames(*itTo2, *itAc1, dstDir_)) {
+                // now change itTo2 and itTo places                            
+                string temp = *itTo;
+                *itTo = *itTo2;
+                *itTo2 = temp;
+                swapped = true;
+                break;
                 }
-                ++itTo;
-            }
-            ++itAc2;
+            ++itTo2;
+        }
+        if (swapped) {
+            ++itTo;
         }
         ++itAc1;
     }
@@ -403,42 +397,90 @@ ProGeScriptGenerator::sortFiles(
 
 
 /** 
+ * Relative file name/path sort using a reference.
+ *
+ * Sorts file in one list according to other list, placing in end of list,
+ * only relative order matters (which entry comes first). Algorithm used
+ * does relative sort between two lists, the other is sorted according to
+ * the other. 
+ * 
+ * @param toSort List to be sorted. 
+ * @param acSort List where reference order is taken from.
+ */
+void
+ProGeScriptGenerator::sortFilesLast(
+    std::list<std::string>& toSort,
+    std::list<std::string>& acSort) {
+    typedef std::list<std::string>::iterator listStrIt;
+    typedef std::list<std::string>::reverse_iterator  rlistStrIt;
+
+    listStrIt itAc1 = acSort.begin();
+    rlistStrIt itTo    = toSort.rbegin();
+    rlistStrIt itTo2;
+
+    while (itAc1 != acSort.end()) {
+        // now check list to be sorted
+        bool swapped = false;
+        itTo2 = itTo;
+        while (itTo2 != toSort.rend()) {
+            if (FileSystem::compareFileNames(*itTo2, *itAc1,dstDir_)) {
+                // now change itTo2 and itTo places                            
+                string temp  = *itTo;
+                *itTo = *itTo2;
+                *itTo2 = temp;
+                swapped = true;
+                break;
+                }
+            ++itTo2;
+        }
+        if (swapped) {
+            ++itTo;
+        }
+        ++itAc1;
+    }
+}
+
+/** 
  * Gets compilation order for vhdl files from IDF/HDB files.
  * 
- * @param idfFile IDF file to open and search for all HDB files.
  * @param order List of file names is relative compilation order.
  */
 void
-ProGeScriptGenerator::getBlockOrder(
-    const std::string& idfFile,
-    std::list<std::string>& order) {
+ProGeScriptGenerator::getBlockOrder(std::list<std::string>& order) {
 
-    // TODO: parse IDF file using IDFSerializer class if possible.
-    // finds hdb files from IDF file
-    string regex = "(.*>)(.*\\.hdb)(<.*)";
-    list<string> hdbFiles;
-    findText(regex, 2, idfFile, hdbFiles);
+    std::set<string> uniqueFiles;    
 
-    // now remove duplicates from hdbfile list
-    uniqueFileNames(hdbFiles, dstDir_);
+    // FU implementation HDL files
+    for (int i = 0; i < idf_.fuImplementationCount(); i++) {
+        const FUImplementationLocation& fuLoc = idf_.fuImplementation(i);
+        string hdbFile = fuLoc.hdbFile();
+        HDB::CachedHDBManager& hdb =
+            HDB::HDBRegistry::instance().hdb(hdbFile);
+        HDB::FUEntry* fu = hdb.fuByEntryID(fuLoc.id());
+        const HDB::FUImplementation& fuImpl = fu->implementation();
+        for (int j = 0; j < fuImpl.implementationFileCount(); j++) {
+            string file = FileSystem::fileOfPath(fuImpl.file(j).pathToFile());
+            if (uniqueFiles.find(file) == uniqueFiles.end()) {
+                order.push_back(file);
+                uniqueFiles.insert(file);
+            }
+        }
+    }
 
-    list<string>::iterator itl = hdbFiles.begin();
-    list<string>::iterator it;
-    HDB::CachedHDBManager* hdb = NULL;
-    while (itl != hdbFiles.end())
-    {
-        try {
-            hdb = &HDB::HDBRegistry::instance().hdb(*itl++);
-        } catch (const Exception& e) {
-            // TODO: throw a meaningful exception to stop script generation
-            throw e;
-        }   
-
-        // append to order list
-        list<string> blockSourceFiles = hdb->blockSourceFile();
-        it = blockSourceFiles.begin();
-        while (it != blockSourceFiles.end()) {
-            order.push_back(*it++);
+    // RF implementation HDL files
+    for (int i = 0; i < idf_.rfImplementationCount(); i++) {
+        const RFImplementationLocation& rfLoc = idf_.rfImplementation(i);
+        string hdbFile = rfLoc.hdbFile();
+        HDB::CachedHDBManager& hdb =
+            HDB::HDBRegistry::instance().hdb(hdbFile);
+        HDB::RFEntry* rf = hdb.rfByEntryID(rfLoc.id());
+        const HDB::RFImplementation& rfImpl = rf->implementation();
+        for (int j = 0; j < rfImpl.implementationFileCount(); j++) {
+            string file = FileSystem::fileOfPath(rfImpl.file(j).pathToFile());
+            if (uniqueFiles.find(file) == uniqueFiles.end()) {
+                order.push_back(file);
+                uniqueFiles.insert(file);
+            }
         }
     }
 }
@@ -530,38 +572,46 @@ ProGeScriptGenerator::fetchFiles() {
 void
 ProGeScriptGenerator::prepareFiles() {
 
-    list<string> rightOrder;
-    rightOrder.push_back("opcodes_pkg.vhdl");
-    rightOrder.push_back("decoder.vhdl");
-    rightOrder.push_back("decompressor.vhdl");
-    rightOrder.push_back("ifetch.vhdl");
-    rightOrder.push_back("highest_pkg.vhdl");
-    rightOrder.push_back("ic.vhdl");
+    const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
-    prefixStrings(rightOrder, string(progeOutDir_ + 
-        FileSystem::DIRECTORY_SEPARATOR + gcuicDir_ + 
-        FileSystem::DIRECTORY_SEPARATOR));
+    string gcuIcDirName = progeOutDir_ + DS + gcuicDir_ + DS;
+    list<string> gcuicFirstOrder;
+    gcuicFirstOrder.push_back("gcu_opcodes_pkg.vhdl");
+    prefixStrings(gcuicFirstOrder, gcuIcDirName);
+    sortFilesFirst(gcuicFiles_, gcuicFirstOrder); 
+
+    list<string> gcuicLastOrder;
+    gcuicLastOrder.push_back("ic.vhdl");
+    prefixStrings(gcuicLastOrder, gcuIcDirName);
+    sortFilesLast(gcuicFiles_, gcuicLastOrder);
+
+    string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
+    list<string> vhdlFirstOrder;
+    vhdlFirstOrder.push_back("globals_pkg.vhdl");
+    string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
+    vhdlFirstOrder.push_back(paramsPkg);
+    vhdlFirstOrder.push_back("imem_mau_pkg.vhdl");
+    // add FU and RF files in correct order
+    getBlockOrder(vhdlFirstOrder);
+    prefixStrings(vhdlFirstOrder, vhdlDirName);
+    sortFilesFirst(vhdlFiles_, vhdlFirstOrder);
     
-    gcuicFiles_.sort(); // is this necessary?
-    sortFiles(gcuicFiles_, rightOrder); 
-
-    // TODO: read hdb files from idf and sort according to them.
-    // TODO: if not found throw exception.
-    list<string> idfFiles;
-    FileSystem::findFromDirectory(".*\\.idf$", dstDir_, idfFiles);
-
-    list<string> vhdlRightOrder;
-    vhdlRightOrder.push_back("globals_pkg.vhdl");
-    vhdlRightOrder.push_back("toplevel_params_pkg.vhdl");
-    if (!idfFiles.empty()) {
-        getBlockOrder(idfFiles.front(), vhdlRightOrder);
-        prefixStrings(vhdlRightOrder, 
-            string(progeOutDir_ + 
-                FileSystem::DIRECTORY_SEPARATOR + vhdlDir_ + 
-                FileSystem::DIRECTORY_SEPARATOR));
-        sortFiles(vhdlFiles_, vhdlRightOrder); 
-    }
-
+    list<string> vhdlLastOrder;
+    string toplevelFile = toplevelEntity_ + ".vhdl";
+    vhdlLastOrder.push_back(toplevelFile);
+    prefixStrings(vhdlLastOrder, vhdlDirName);
+    sortFilesLast(vhdlFiles_, vhdlLastOrder);
+    
+    string tbDirName = progeOutDir_ + DS + tbDir_ + DS;
+    list<string> testBenchLastOrder;
+    testBenchLastOrder.push_back("testbench_cfg.vhdl");
+    testBenchLastOrder.push_back("testbench.vhdl");
+    testBenchLastOrder.push_back("proc_arch.vhdl");
+    testBenchLastOrder.push_back("proc_ent.vhdl");
+    testBenchLastOrder.push_back("testbench_constants_pkg.vhdl");
+    prefixStrings(testBenchLastOrder, tbDirName);
+    sortFilesLast(testBenchFiles_, testBenchLastOrder);
+    
     // make dirs relative to dstDir_
     list<string>::iterator itl;
     itl = vhdlFiles_.begin();
@@ -577,5 +627,3 @@ ProGeScriptGenerator::prepareFiles() {
         FileSystem::relativeDir(dstDir_, *itl++);
     }
 }
-
-
