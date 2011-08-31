@@ -255,7 +255,7 @@ PreOptimizer::tryToRemoveXor(
         resultMove.parent().parent().insertAfter(
             resultMove.parent(), newIns);
         MoveNode* newMN = new MoveNode(*newMove);
-        ddg.addNode(*newMN);
+        ddg.addNode(*newMN, operand1);
         ddg.combineNodes(operand1, result, *newMN);
 
     } else {
