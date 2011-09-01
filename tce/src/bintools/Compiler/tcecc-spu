@@ -37,7 +37,10 @@ from optparse import OptionParser
 
 script_dir = os.path.dirname(sys.argv[0])
 fixed_adf_dir = script_dir + "/fixed-adf"
-lib_tce = script_dir + "/../../.libs/libtce.so"
+if sys.platform == "darwin":
+    lib_tce = script_dir + "/../../.libs/libtce.dylib"
+else:
+    lib_tce = script_dir + "/../../.libs/libtce.so"
 
 def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
     """Runs the given shell command and returns its exit code.
