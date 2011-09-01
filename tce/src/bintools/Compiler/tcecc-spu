@@ -69,7 +69,10 @@ def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
 tempfiles = []
 
 def create_temp_file(suffix=""):
-    tf = tempfile.mkstemp(suffix=suffix)[1]
+    if options.leave_tempfiles:
+        tf = tempfile.mkstemp(suffix=suffix, dir=os.getcwd())[1]
+    else:
+        tf = tempfile.mkstemp(suffix=suffix)[1]
     tempfiles.append(tf)
     return tf
 
