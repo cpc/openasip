@@ -1154,6 +1154,26 @@
       </pipeline>
     </operation>
     <operation>
+      <name>av4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>air32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
@@ -1175,6 +1195,66 @@
     </operation>
     <operation>
       <name>mpyur32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>7</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mpyuv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>7</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mpyhhuv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>7</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mpyhv4i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -1304,6 +1384,46 @@
       </pipeline>
     </operation>
     <operation>
+      <name>bgv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>andr64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>andii8i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
@@ -1365,6 +1485,26 @@
     </operation>
     <operation>
       <name>ceqr32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>clgtv4i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -1504,6 +1644,26 @@
       </pipeline>
     </operation>
     <operation>
+      <name>rotmar32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>rotmir32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
@@ -1524,7 +1684,47 @@
       </pipeline>
     </operation>
     <operation>
+      <name>sfxv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>sfr32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>cgtv4i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -1649,6 +1849,26 @@
       </pipeline>
     </operation>
     <operation>
+      <name>xorr8</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>xorbir8</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
@@ -1670,6 +1890,26 @@
     </operation>
     <operation>
       <name>xorr32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>xorr64</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -1819,6 +2059,46 @@
       </pipeline>
     </operation>
     <operation>
+      <name>rotmaiv2i64_i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>rotmaiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
       <name>rotmair32_i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
@@ -1834,6 +2114,21 @@
         </reads>
         <writes name="3">
           <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>xswdv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
@@ -1978,6 +2273,31 @@
           <cycles>1</cycles>
         </reads>
         <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>selbv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">in3</bind>
+      <bind name="4">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="4">
           <start-cycle>2</start-cycle>
           <cycles>1</cycles>
         </writes>
@@ -2130,6 +2450,26 @@
     </operation>
     <operation>
       <name>andbir8</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>ceqbr8</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -2368,6 +2708,26 @@
         </writes>
       </pipeline>
     </operation>
+  <operation>
+      <name>shlqbiiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
    <operation>
       <name>shlqbyr128</name>
       <bind name="1">in1t</bind>
@@ -2390,6 +2750,26 @@
     </operation>
    <operation>
       <name>shlqbyiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>shlqbyiv4i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -2590,6 +2970,46 @@
     </operation>
     <operation>
       <name>norr16</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>orv4i32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>orhir16</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -2942,6 +3362,46 @@
         </writes>
       </pipeline>
     </operation>
+  <operation>
+      <name>rotqbiiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+  <operation>
+      <name>rotqbyiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
     <operation>
       <name>rotqbyi128</name>
       <bind name="1">in1t</bind>
@@ -3047,6 +3507,16 @@
       </pipeline>
     </operation>
     <operation>
+      <name>bi</name>
+      <bind name="1">in1t</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
       <name>brsl</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
@@ -3057,6 +3527,26 @@
         </reads>
         <writes name="2">
           <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+   <operation>
+      <name>lqav2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>6</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
@@ -3184,6 +3674,26 @@
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>rotqmbyiv2i64</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
       </pipeline>
     </operation>
     <operation>
@@ -3527,6 +4037,21 @@
     </operation>
     <operation>
       <name>fsmr32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>4</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>fsm64r32</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>

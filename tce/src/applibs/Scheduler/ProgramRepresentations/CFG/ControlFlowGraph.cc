@@ -2045,7 +2045,12 @@ ControlFlowGraph::buildMBBFromBB(
                             TCEString ref = terminal->toString().substr(4);
                             unsigned index = Conversion::toInt(ref);
                             mi->addOperand(
-                                llvm::MachineOperand::CreateCPI(index, 0));                                
+                                llvm::MachineOperand::CreateCPI(index, 0));     
+                        } else if (terminal->toString().startsWith(".JTI_")) {
+                            TCEString ref = terminal->toString().substr(5);
+                            unsigned index = Conversion::toInt(ref);
+                            mi->addOperand(    
+                                llvm::MachineOperand::CreateJTI(index, 0));     
                         } else {
                             mi->addOperand(
                                 llvm::MachineOperand::CreateES(

@@ -1563,6 +1563,10 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
             ref <<  mo.getIndex(); 
             return createSymbolReference(ref);
       }
+    } else if (mo.isJTI()) {
+    	TCEString ref(".JTI_");
+        ref << mo.getIndex();
+        return createSymbolReference(ref);    
     } else if (mo.isGlobal()) {
 #if (defined(LLVM_2_7) || defined(LLVM_2_8))
         TCEString name = mang_->getNameWithPrefix(mo.getGlobal());
