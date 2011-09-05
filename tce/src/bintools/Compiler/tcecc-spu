@@ -102,6 +102,9 @@ def parse_options():
     parser.add_option("", "--leave-tempfiles", dest="leave_tempfiles",
                       action="store_true", default=False,
                       help="Do not delete the temporary files.")
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+                      help="Verbose output. Output the commands executed etc.", default=False)
+
     (options, args) = parser.parse_args()
     return (options, args)
 
@@ -111,13 +114,13 @@ def compile_to_bitcode(input_files):
         bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
         retval = \
             run_command("clang -ccc-host-triple cellspu-v0 -O3 -c -emit-llvm %s -o %s" % \
-                        (input_file, bc_file)) 
+                        (input_file, bc_file), echoCmd=options.verbose)
         if retval != 0: cleanup_and_exit(retval)
         bc_files.append(bc_file)
 
     bc_file = create_temp_file(".whole-program.bc")
 
-    retval = run_command("llvm-link %s -o %s" % (" ".join(bc_files), bc_file))
+    retval = run_command("llvm-link %s -o %s" % (" ".join(bc_files), bc_file), echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
 
     return bc_file
@@ -128,9 +131,10 @@ def generate_code(bc_file, adf, output=None):
     else:
         asm_file = output
     if options.use_tce_scheduler:
-        retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file), echoStdout=True)
+        retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file), 
+                             echoStdout=True, echoCmd=options.verbose)
     else:
-        retval = run_command("llc %s -o %s" % (bc_file, asm_file), echoStdout=True)
+        retval = run_command("llc %s -o %s" % (bc_file, asm_file), echoStdout=True, echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
     return asm_file
 
@@ -138,13 +142,13 @@ def assemble(asm_file):
     obj_file = create_temp_file(".o")
     # Here the tool (assembler) varies per target. Currently only SPU supported,
     # later we could call tceasm for TCE here etc.
-    retval = run_command("spu-as %s -o %s" % (asm_file, obj_file))
+    retval = run_command("spu-as %s -o %s" % (asm_file, obj_file), echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
     return obj_file
 
 
 def link(obj_files, output):
-    retval = run_command("spu-gcc %s -o %s" % (" ".join(obj_files), output))
+    retval = run_command("spu-gcc %s -o %s" % (" ".join(obj_files), output), echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
     return output
 

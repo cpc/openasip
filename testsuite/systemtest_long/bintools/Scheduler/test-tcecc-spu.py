@@ -83,7 +83,13 @@ class TestCase(object):
             print >> sys.stderr, "Illegal test directory. No .c files in", self.root_dir + "/src."
             return False
 
-        exitCode = run_command(compiler + " " + " ".join(c_files) + " -o " + self.program_bin)
+        if options.verbose: 
+            verbose_switch = "-v"
+        else:
+            verbose_switch = ""
+
+        exitCode = run_command(compiler + " " + verbose_switch + " " + " ".join(c_files) + " -o " + \
+                                   self.program_bin, echoStdout=True, echoCmd=options.verbose)
         if exitCode != 0:
             print >> sys.stderr, "!!! %s: compilation failed" % self.root_dir
             return False
@@ -98,7 +104,7 @@ class TestCase(object):
         stderrTemp = create_temp_file(".stderr")
         exitcode = run_command("scp -q %s %s:~/ ; ssh %s ./%s" %
                                (self.program_bin, ps3_ip, ps3_ip, self.program_bin),
-                               echoStdout=True, echoStderr=True,
+                               echoStdout=True, echoStderr=True, echoCmd=options.verbose,
                                stdoutFD=stdoutTemp[0], stderrFD=stderrTemp[0])
 
         if options.dump_output:
@@ -168,6 +174,8 @@ def parse_options():
                       "the verification run and exists. Useful for creating " + \
                           "the initial test case verification files.", default=False)                     
 
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+                      help="Verbose output. Output the commands executed etc.", default=False)
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.print_help()
