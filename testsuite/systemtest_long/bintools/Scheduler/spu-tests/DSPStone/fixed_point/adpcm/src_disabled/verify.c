@@ -16,7 +16,7 @@ U16BIT Output[] =
   0x30, 0x3c, 0x9f, 0x15, 0x90, 0x11, 0x96, 0x1d
 } ;
 
-#include "g721.c"
+#include "g721.inc"
 
 // target independent char outputting macro for verify 
 #ifndef __TCE__
