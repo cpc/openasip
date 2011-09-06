@@ -1687,7 +1687,8 @@
       <name>sfxv4i32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
+      <bind name="3">in3</bind>
+      <bind name="4">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
@@ -1697,7 +1698,11 @@
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <writes name="3">
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="4">
           <start-cycle>2</start-cycle>
           <cycles>1</cycles>
         </writes>
