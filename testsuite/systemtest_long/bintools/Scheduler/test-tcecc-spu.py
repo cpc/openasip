@@ -88,7 +88,12 @@ class TestCase(object):
         else:
             verbose_switch = ""
 
-        exitCode = run_command(compiler + " " + verbose_switch + " " + " ".join(c_files) + " -o " + \
+        if options.no_tce:
+           no_tce_switch = "--no-tce-scheduler"
+        else:
+           no_tce_switch = ""
+
+        exitCode = run_command(compiler + " " + no_tce_switch + " " + verbose_switch + " " + " ".join(c_files) + " -o " + \
                                    self.program_bin, echoStdout=True, echoCmd=options.verbose)
         if exitCode != 0:
             print >> sys.stderr, "!!! %s: compilation failed" % self.root_dir
@@ -176,6 +181,8 @@ def parse_options():
 
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                       help="Verbose output. Output the commands executed etc.", default=False)
+    parser.add_option("-n", "--no-tce-scheduler", dest="no_tce", action="store_true",
+                      help="Compile using LLVM only, skipping TCE backend. ", default=False)
     (options, args) = parser.parse_args()
     if len(args) == 0:
         parser.print_help()
