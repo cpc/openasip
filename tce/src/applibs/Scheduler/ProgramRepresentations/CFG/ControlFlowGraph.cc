@@ -1913,7 +1913,7 @@ ControlFlowGraph::buildMBBFromBB(
         OperationPool operations;
 
         for (OpsMap::const_iterator opsi = startedOps.begin(); 
-             opsi != startedOps.end(); ++opsi) {
+            opsi != startedOps.end(); ++opsi) {
             const TTAMachine::HWOperation* hwOp = (*opsi).second;
             const Operation& operation = 
                 operations.operation(hwOp->name().c_str());
@@ -2051,14 +2051,14 @@ ControlFlowGraph::buildMBBFromBB(
                             unsigned index = Conversion::toInt(ref);
                             mi->addOperand(    
                                 llvm::MachineOperand::CreateJTI(index, 0));     
-                        } else {
+                        } else {       
                             mi->addOperand(
                                 llvm::MachineOperand::CreateES(
                                     terminal->toString().c_str()));
                         }
                     } else if (terminal->isBasicBlockReference()) {
                         llvm::MachineBasicBlock& mbb2 =
-                            getMBB(*mbb.getParent(), terminal->basicBlock());
+                            getMBB(*mbb.getParent(), terminal->basicBlock());                          
                         mi->addOperand(
                             llvm::MachineOperand::CreateMBB(&mbb2)); 
                         mbb.addSuccessor(&mbb2);
@@ -2075,25 +2075,32 @@ ControlFlowGraph::buildMBBFromBB(
                         // label instructions
                         tpos_.insert(std::make_pair(tpo.programOperation(), symbol));
                     } else if (terminal->isImmediate()) {
-                        mi->addOperand(
-                            llvm::MachineOperand::CreateImm(terminal->value().intValue()));
+                        if (!mi->getDesc().isReturn() ||
+                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
+                             mi->addOperand(
+                                 llvm::MachineOperand::CreateImm(
+                                 terminal->value().intValue()));
+                        }                                                    
                     } else if (terminal->isGPR()) {
                         bool isDef = false;  // TODO: in case it's an output, it's a def
-			bool isImp = false;
-			// RET on spu seems to have implicit operand.
-			// TODO: implement real implicit property to OSAL
-			// operands.
-			if (mi->getDesc().isReturn()) {
-			    isImp = true;
-			}
+                        bool isImp = false;
+                        // RET on spu seems to have implicit operand
+                        // TODO: implement real implicit property to OSAL
+                        // operands.
+                        if (mi->getDesc().isReturn()) {
+                            isImp = true;
+                        }
 
                         // LLVM register index starts from 1, 
-			// we count register from 0
+                        // we count register from 0
                         // thus add 1 to get correct data to the LLVM
+                        if (!mi->getDesc().isReturn() ||
+                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
+                                mi->addOperand(
+                                    llvm::MachineOperand::CreateReg(
+                                    terminal->index() + 1, isDef, isImp));                            
+                        }
 
-                        mi->addOperand(
-                            llvm::MachineOperand::CreateReg(
-				terminal->index() + 1, isDef, isImp));
                     } else {
                         abortWithError(
                             "Unsupported Terminal -> MachineOperand conversion attempted.");
