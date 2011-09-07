@@ -51,9 +51,9 @@ public:
     int numberOfInputs() const;
     int numberOfOutputs() const;
     TCEString name() const;
-    void setIsCall(bool setting);
-    void setIsBranch(bool setting);
-    void setIsControlFlowOperation(bool setting);
+    void setCall(bool setting);
+    void setBranch(bool setting);
+    void setControlFlowOperation(bool setting);
     
 private:
     OperationPimpl(

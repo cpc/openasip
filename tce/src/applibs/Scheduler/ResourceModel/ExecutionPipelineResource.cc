@@ -892,7 +892,7 @@ ExecutionPipelineResource::findRange(
     for (int k = 0; k < pOp->inputMoveCount(); k++) {
         // find closest cycle from PO to given node, before and after
         if (pOp->inputMove(k).isScheduled()) {
-            if (node.toString() != pOp->inputMove(k).toString()) {
+            if (&node != &pOp->inputMove(k)) {
                 /// Check if the current port has register.
                 /// If not all the operands must be written in same cycle.
                 const TTAMachine::HWOperation& hwop = 

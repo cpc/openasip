@@ -889,7 +889,7 @@ OperationPimpl::emulationFunctionName() const {
  * control flow.
  */
 void
-OperationPimpl::setIsControlFlowOperation(bool setting) {
+OperationPimpl::setControlFlowOperation(bool setting) {
     controlFlowOperation_ = setting;
 }
 
@@ -897,7 +897,7 @@ OperationPimpl::setIsControlFlowOperation(bool setting) {
  * Sets property of operation indicating that the operation is function call.
  */
 void
-OperationPimpl::setIsCall(bool setting) {
+OperationPimpl::setCall(bool setting) {
     isCall_ = setting;
 }
 
@@ -906,7 +906,7 @@ OperationPimpl::setIsCall(bool setting) {
  * control flow.
  */
 void
-OperationPimpl::setIsBranch(bool setting) {
+OperationPimpl::setBranch(bool setting) {
     isBranch_ = setting;
 }
 

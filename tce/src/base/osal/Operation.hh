@@ -123,9 +123,9 @@ public:
     virtual bool canSwap(int id1, int id2) const;
     virtual bool isCall() const;
     virtual bool isBranch() const;
-    virtual void setIsCall(bool setting);
-    virtual void setIsBranch(bool setting);
-    virtual void setIsControlFlowOperation(bool setting);
+    virtual void setCall(bool setting);
+    virtual void setBranch(bool setting);
+    virtual void setControlFlowOperation(bool setting);
     
     virtual Operand& input(int index) const;
     virtual void addInput(Operand* operand);

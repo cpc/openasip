@@ -296,16 +296,16 @@ Operation::isCall() const {
  * Sets the property of operation indicating the operation is control flow.
  */
 void
-Operation::setIsControlFlowOperation(bool setting) {
-    pimpl_->setIsControlFlowOperation(setting);
+Operation::setControlFlowOperation(bool setting) {
+    pimpl_->setControlFlowOperation(setting);
 }
 
 /**
  * Sets the property of operation indicating the operation is function call.
  */
 void
-Operation::setIsCall(bool setting) {
-    pimpl_->setIsCall(setting);
+Operation::setCall(bool setting) {
+    pimpl_->setCall(setting);
 }
 
 /**
@@ -313,8 +313,8 @@ Operation::setIsCall(bool setting) {
  * control flow.
  */
 void
-Operation::setIsBranch(bool setting) {
-    pimpl_->setIsBranch(setting);
+Operation::setBranch(bool setting) {
+    pimpl_->setBranch(setting);
 }
 
 /**
