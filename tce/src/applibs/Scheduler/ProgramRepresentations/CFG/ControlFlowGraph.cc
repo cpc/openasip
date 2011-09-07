@@ -2075,8 +2075,14 @@ ControlFlowGraph::buildMBBFromBB(
                         // label instructions
                         tpos_.insert(std::make_pair(tpo.programOperation(), symbol));
                     } else if (terminal->isImmediate()) {
+#ifndef LLVM_2_9
                         if (!mi->getDesc().isReturn() ||
                             !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
+#else
+                        if (!mi->getDesc().isReturn() ||
+                            !(static_cast<const llvm::LLVMTargetMachine&>(mbb.getParent()->getTarget()).getTargetTriple().find("cellspu") == 0)){
+#endif
+
                              mi->addOperand(
                                  llvm::MachineOperand::CreateImm(
                                  terminal->value().intValue()));
@@ -2094,8 +2100,13 @@ ControlFlowGraph::buildMBBFromBB(
                         // LLVM register index starts from 1, 
                         // we count register from 0
                         // thus add 1 to get correct data to the LLVM
+#ifndef LLVM_2_9
                         if (!mi->getDesc().isReturn() ||
                             !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
+#else
+                        if (!mi->getDesc().isReturn() ||
+                            !(static_cast<const llvm::LLVMTargetMachine&>(mbb.getParent()->getTarget()).getTargetTriple().find("cellspu") == 0)){
+#endif
                                 mi->addOperand(
                                     llvm::MachineOperand::CreateReg(
                                     terminal->index() + 1, isDef, isImp));                            
@@ -2550,6 +2561,8 @@ ControlFlowGraph::optimizeBBOrdering(
                     }
                     // if we did remove a back edge, we need to scan the cfg
                     // again for back edges.
+                    // TODO: should we also then mark ddg edges that
+                    // do over this cfg edge?
                     if (e.isBackEdge()) {
                         detectBackEdges();
                     }
