@@ -59,6 +59,8 @@
 #include "InterPassData.hh"
 #include "MoveNodeSet.hh"
 
+#include "RegisterRenamer.hh"
+
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
 //#define CFG_SNAPSHOTS
@@ -78,9 +80,11 @@ class CopyingDelaySlotFiller;
 BasicBlockScheduler::BasicBlockScheduler(
     InterPassData& data, 
     SoftwareBypasser* bypasser, 
-    CopyingDelaySlotFiller* delaySlotFiller) :
+    CopyingDelaySlotFiller* delaySlotFiller,
+    RegisterRenamer* renamer) :
     BBSchedulerController(data, bypasser, delaySlotFiller, NULL),
     DDGPass(data), ddg_(NULL), rm_(NULL), softwareBypasser_(bypasser),
+    renamer_(renamer),
     bypassedCount_(0), deadResults_(0) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
@@ -111,6 +115,10 @@ BasicBlockScheduler::handleDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
+    if (renamer_ != NULL) {
+        renamer_->initialize(ddg);
+    }
+
     if (options_ != NULL && options_->dumpDDGsDot()) {
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, false);
@@ -134,6 +142,10 @@ BasicBlockScheduler::handleDDG(
     // register selector to bypasser for notfications.
     if (softwareBypasser_ != NULL) {
         softwareBypasser_->setSelector(&selector);
+    }
+
+    if (renamer_ != NULL) {
+        renamer_->setSelector(&selector);
     }
 
     rm_ = &rm;
@@ -818,8 +830,37 @@ BasicBlockScheduler::scheduleMove(
             std::max(
                 ddg_->earliestCycle(moveNode),
                 largest - targetMachine_->controlUnit()->delaySlots());
-    } else {
+    } else { // not a control flow move:
         ddgCycle = ddg_->earliestCycle(moveNode);
+        if (renamer_ != NULL) {
+            int minRenamedEC = std::max(
+                sourceReadyCycle, ddg_->earliestCycle(
+                    moveNode, INT_MAX, true, true)); // TODO: 0 or INT_MAX
+
+            // rename if can and may alow scheuduling earlier.
+            if (renamer_ != NULL && minRenamedEC < ddgCycle) {
+                minRenamedEC =  rm_->earliestCycle(minRenamedEC, moveNode);
+                if (minRenamedEC < ddgCycle) {
+                    
+                    if (renamer_->renameDestinationRegister(
+                            moveNode, false, minRenamedEC)) {
+                        ddgCycle = ddg_->earliestCycle(moveNode);
+                    }
+                    else {
+                        MoveNode *limitingAdep =
+                            ddg_->findLimitingAntidependenceSource(
+                                moveNode);
+                        if (limitingAdep != NULL) {
+                            if (renamer_->renameSourceRegister(
+                                    *limitingAdep, false)){
+                                ddgCycle = ddg_->earliestCycle(
+                                    moveNode);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // if it's a conditional move then we have to be sure that the guard

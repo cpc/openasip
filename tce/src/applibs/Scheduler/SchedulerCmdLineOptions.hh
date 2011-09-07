@@ -55,6 +55,7 @@ public:
     bool isVerboseSwitchDefined() const;
     virtual void printVersion() const;
     bool printResourceConstraints() const;
+    bool renameRegisters() const;
 
 private:
     /// Copying forbidden.
@@ -72,6 +73,9 @@ private:
     static const std::string USAGE;
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
+    /// Rename register duing scheduling after register allocation.
+    static const std::string SWL_RENAME_REGISTERS;
+
 };
 
 #endif

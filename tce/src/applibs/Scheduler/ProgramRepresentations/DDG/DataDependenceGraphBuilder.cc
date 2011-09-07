@@ -2098,41 +2098,6 @@ DataDependenceGraphBuilder::updatePreceedingRegistersUsedAfter(
 }
 
 /**
- * This appends the data from one MoveNodeUseMapSet to another.
- *
- * it traverses the map, and for every string, set pair it
- * finds or creates the corresponging set in the destination and appends
- * the set to that set.
- * This is used for copying alive definitions.
- *
- * @param srcMap source where to copy from
- * @param dstMap destination where to copy to.
- * @param addLoopProperty whether to add loop property to the copied
- *        bookkeeping, ie create edges with loop property.
- * @return true if destination changed (needs updating)
- */
-bool
-DataDependenceGraphBuilder::appendUseMapSets(
-    const MoveNodeUseMapSet& srcMap, MoveNodeUseMapSet& dstMap,
-    bool addLoopProperty) {
-    bool changed = false;
-    for (MoveNodeUseMapSet::const_iterator srcIter = srcMap.begin();
-         srcIter != srcMap.end(); srcIter++) {
-        TCEString reg = srcIter->first;
-        const MoveNodeUseSet& srcSet = srcIter->second;
-        MoveNodeUseSet& dstSet = dstMap[reg];
-        // dest set size before appending.
-        size_t size = dstSet.size();
-        appendMoveNodeUse(srcSet, dstSet, addLoopProperty);
-        // if size has changed, dest is changed.
-        if (dstSet.size() > size) {
-            changed = true;
-        }
-    }
-    return changed;
-}
-
-/**
  * Sets outgoing data from this BB to incoming data of successors.
  *
  * Also queues them to be reprocessed if they are changed.
@@ -2188,30 +2153,30 @@ DataDependenceGraphBuilder::setSucceedingPredepsForBB(
     bool changed = false;
 
     if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
-        changed |= appendUseMapSets(
+        changed |= LiveRangeData::appendUseMapSets(
             bb.liveRangeData_->regDefAfter_, 
             succBB.liveRangeData_->regDefReaches_, loop);
 
         if (currentDDG_->hasAllRegisterAntidependencies() || 
             (&bb == &succBB && 
              currentDDG_->hasSingleBBLoopRegisterAntidependencies())) {
-            changed |= appendUseMapSets(
+            changed |= LiveRangeData::appendUseMapSets(
                 bb.liveRangeData_->regUseAfter_, 
                 succBB.liveRangeData_->regUseReaches_, loop);
         }
     } else {
         // mem deps + fu state deps
 
-        changed |= appendUseMapSets(
+        changed |= LiveRangeData::appendUseMapSets(
             bb.liveRangeData_->memDefAfter_, 
             succBB.liveRangeData_->memDefReaches_, loop);
 
-        changed |= appendUseMapSets(
+        changed |= LiveRangeData::appendUseMapSets(
             bb.liveRangeData_->memUseAfter_, 
             succBB.liveRangeData_->memUseReaches_, loop);
 
         size_t size = succBB.liveRangeData_->fuDepReaches_.size();
-        appendMoveNodeUse(
+        LiveRangeData::appendMoveNodeUse(
             bb.liveRangeData_->fuDepAfter_, 
             succBB.liveRangeData_->fuDepReaches_, loop);
         if (succBB.liveRangeData_->fuDepReaches_.size() > size) {
@@ -2228,26 +2193,6 @@ DataDependenceGraphBuilder::setSucceedingPredepsForBB(
 ///////////////////////////////////////////////////////////////////////////////
 // Low-level of Multi-BB DDG construction
 ///////////////////////////////////////////////////////////////////////////////
-
-/**
- * Appends a MoveNodeUseSet to another. May set loop property of copied
- * moves to true.
- *
- * @param src source set
- * @param dst destination set
- * @param setLoopProperty whether to set loop property true in copied data
- */
-void DataDependenceGraphBuilder::appendMoveNodeUse(
-    const LiveRangeData::MoveNodeUseSet& src, 
-    LiveRangeData::MoveNodeUseSet& dst,
-    bool setLoopProperty) {
-
-    for (LiveRangeData::MoveNodeUseSet::const_iterator i =
-             src.begin(); i != src.end(); i++) {
-        const MoveNodeUse& mnu = *i;
-        dst.insert(MoveNodeUse(mnu, setLoopProperty));
-    }
-}
 
 /**
  * Updates live register lists after a basic block has been processed.
@@ -2287,7 +2232,9 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(
         }
     }
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.liveRangeData_->regDefines_, bb.liveRangeData_->regDefAfter_, false);
+    changed |= LiveRangeData::appendUseMapSets(
+        bb.liveRangeData_->regDefines_, 
+        bb.liveRangeData_->regDefAfter_, false);
     
     if (currentDDG_->hasAllRegisterAntidependencies()) {
         // copy uses that are alive
@@ -2312,7 +2259,9 @@ bool DataDependenceGraphBuilder::updateRegistersAliveAfter(
     }
     
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.liveRangeData_->regLastUses_, bb.liveRangeData_->regUseAfter_, false);
+    changed |= LiveRangeData::appendUseMapSets(
+        bb.liveRangeData_->regLastUses_,
+        bb.liveRangeData_->regUseAfter_, false);
     return changed;
 }
 
@@ -2372,7 +2321,9 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
         }
     }
     // own deps. need to do only once but now does after every.
-    changed |= appendUseMapSets(bb.liveRangeData_->memDefines_, bb.liveRangeData_->memDefAfter_, false);
+    changed |= LiveRangeData::appendUseMapSets(
+        bb.liveRangeData_->memDefines_,
+        bb.liveRangeData_->memDefAfter_, false);
 
     // copy uses that are alive
     for (MoveNodeUseMapSet::iterator iter = bb.liveRangeData_->memUseReaches_.begin();

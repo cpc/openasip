@@ -550,7 +550,7 @@ LLVMTCECFGDDGBuilder::compileOptimized(
     TTAProgram::InstructionReferenceManager& irm) {
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
-        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, false);
+        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, true);
 
 #ifdef WRITE_DDG_DOTS
     ddg.writeToDotFile(fnName + "_ddg1.dot");

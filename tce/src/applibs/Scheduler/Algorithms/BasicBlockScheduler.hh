@@ -50,6 +50,7 @@ class SimpleResourceManager;
 class SoftwareBypasser;
 class CopyingDelaySlotFiller;
 class DataDependenceGraphBuilder;
+class RegisterRenamer;
 
 /**
  * A class that implements the functionality of a basic block scheduler.
@@ -63,7 +64,8 @@ class BasicBlockScheduler :
 public:
     BasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
-        CopyingDelaySlotFiller* delaySlotFiller=NULL);
+        CopyingDelaySlotFiller* delaySlotFiller=NULL,
+        RegisterRenamer* registerRenamer = NULL);
     virtual ~BasicBlockScheduler();
 
     virtual void handleDDG(
@@ -141,6 +143,8 @@ private:
     scheduledTempMoves_;
     /// The software bypasser to use to bypass registers when possible.
     SoftwareBypasser* softwareBypasser_;
+
+    RegisterRenamer* renamer_;
 
     int bypassedCount_;
     int deadResults_;

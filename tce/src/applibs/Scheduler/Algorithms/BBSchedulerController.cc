@@ -58,7 +58,7 @@
 #include "InterPassData.hh"
 #include "ResourceConstraintAnalyzer.hh"
 #include "BasicBlockScheduler.hh"
-
+#include "RegisterRenamer.hh"
 namespace TTAMachine {
     class UniversalMachine;
 }
@@ -124,8 +124,23 @@ BBSchedulerController::handleBasicBlock(
 
     bool bbScheduled = false;
 
+    RegisterRenamer* rr = NULL;
+
+    SchedulerCmdLineOptions* options =
+        dynamic_cast<SchedulerCmdLineOptions*>(
+            Application::cmdLineOptions());
+
+    // create register renamer if enabled and we know the
+    // reserved registers.
+    if (options != NULL && options->renameRegisters() && bigDDG_ != NULL
+        && BasicBlockPass::interPassData().hasDatum(SP_DATUM) &&
+        BasicBlockPass::interPassData().hasDatum(RV_DATUM) &&
+        BasicBlockPass::interPassData().hasDatum(RV_HIGH_DATUM)) {
+        rr = new RegisterRenamer(targetMachine, bb);
+    }
+
     BasicBlockScheduler bbScheduler(
-        BasicBlockPass::interPassData(), softwareBypasser_);
+        BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
 
     // if not scheduled yet (or loop scheduling failed)
     if (!bbScheduled) {
@@ -144,6 +159,19 @@ BBSchedulerController::handleBasicBlock(
 
         ++basicBlocksScheduled_;
     }
+    if (rr != NULL) {
+        delete rr;
+    }
+
+    // these are no longer needed. delete them to save memory.
+    bb.liveRangeData_->regFirstDefines_.clear();
+    bb.liveRangeData_->regDefines_.clear();
+    bb.liveRangeData_->regLastUses_.clear();
+
+    bb.liveRangeData_->regDefReaches_.clear();
+    bb.liveRangeData_->registersUsedAfter_.clear();
+    bb.liveRangeData_->regFirstUses_.clear();
+    bb.liveRangeData_->regDefines_.clear();
 }
 
 #ifdef DEBUG_REG_COPY_ADDER

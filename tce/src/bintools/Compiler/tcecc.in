@@ -599,6 +599,10 @@ p.add_option('--dump-ddgs', action='store_true', dest='dump_ddgs', default=False
              help=\
 """Equivalent to --dump-ddgs-dot --dump-ddgs-xml.""")
 
+p.add_option('--no-rename-registers', action='store_false', dest='rename_registers', default=True,
+             help=\
+"""Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
+
 p.add_option('--print-resource-constraints', action='store_true',
              dest='print_resource_constraints', default=False,
              help=\
@@ -852,6 +856,11 @@ if options.adf_file != "":
 
         if options.dump_ddgs_xml:
             command += " --dump-ddgs-xml"
+
+    if options.rename_registers:
+        command += " --rename-registers"
+    else:
+        command += " --no-rename-registers"
 
     if not options.no_schedule and options.pom_builder:
         # The new builder does not use scheduler configs,

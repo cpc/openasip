@@ -1,7 +1,8 @@
 noinst_LTLIBRARIES = libddg.la
 libddg_la_SOURCES = \
 	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc \
-	LLVMTCEDataDependenceGraphBuilder.cc MemoryAliasAnalyzer.cc
+	LLVMTCEDataDependenceGraphBuilder.cc MemoryAliasAnalyzer.cc \
+LiveRangeData.cc
 
 #MNData.cc
 #MemoryAliasAnalyzer.cc

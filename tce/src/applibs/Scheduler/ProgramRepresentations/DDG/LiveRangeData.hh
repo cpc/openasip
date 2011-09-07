@@ -37,12 +37,9 @@
 
 #include "MoveNodeUse.hh"
 #include "TCEString.hh"
+#include <set>
 
-class LiveRangeData {
-    
-    friend class DataDependenceGraphBuilder;
-    friend class DataDependenceGraph;
-
+struct LiveRangeData {
     std::set<TCEString> registersAlive(
         int cycle, int delaySlots, class DataDependenceGraph& ddg);
 
@@ -59,6 +56,18 @@ class LiveRangeData {
         return registersUsedAfter_;
     }
 
+    // merges liverangedata of successor into this.
+    void merge(LiveRangeData& succ);
+
+    static bool appendUseMapSets(
+        const MoveNodeUseMapSet& srcMap, 
+        MoveNodeUseMapSet& dstMap,
+        bool addLoopProperty);
+
+    static void appendMoveNodeUse(
+        const MoveNodeUseSet& src, 
+        MoveNodeUseSet& dst,
+        bool setLoopProperty);
 
     // dependencies out from this BB
     MoveNodeUseMapSet regDefines_;

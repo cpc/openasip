@@ -41,6 +41,7 @@ Code generator improvements
 - Introduced jump with negative guard to llvm. This makes llvm's
   BranchFolding pass to generate more sane CFGs, and should result
   in slightly better code being generated.
+- Can rename registers during scheduling
 
 Smaller features
 ----------------

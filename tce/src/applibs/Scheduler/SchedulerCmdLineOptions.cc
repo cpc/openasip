@@ -42,6 +42,7 @@ const std::string SchedulerCmdLineOptions::ADF_PARAM_NAME = "adf";
 const std::string SchedulerCmdLineOptions::CONF_PARAM_NAME = "config";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
 const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
+const std::string SchedulerCmdLineOptions::SWL_RENAME_REGISTERS = "rename-registers";
 
 const std::string SchedulerCmdLineOptions::USAGE =
     "Usage: schedule [OPTION]... SOURCE\n"
@@ -72,6 +73,11 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
             SWL_RESOURCE_CONSTRAINT_PRINTING,
             "Print out the resource constraints that potentially limit the "
             "basic block's schedule."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_RENAME_REGISTERS, 
+            "Rename already allocated registers during scheduler"));
 }
 
 /**
@@ -168,4 +174,12 @@ void
 SchedulerCmdLineOptions::printVersion() const {
     cout << "schedule - TCE Scheduler command line interface "
          <<  Application::TCEVersionString() << endl;
+}
+
+bool
+SchedulerCmdLineOptions::renameRegisters() const {
+    if (!optionGiven(SWL_RENAME_REGISTERS)) {
+        return true;
+    } 
+    return findOption(SWL_RENAME_REGISTERS)->isFlagOn();
 }

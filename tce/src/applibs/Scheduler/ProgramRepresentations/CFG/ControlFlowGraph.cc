@@ -95,6 +95,7 @@
 #include "TerminalFUPort.hh"
 #include "HWOperation.hh"
 #include "FUPort.hh"
+#include "LiveRangeData.hh"
 
 using TTAProgram::Program;
 using TTAProgram::Procedure;
@@ -2664,6 +2665,13 @@ ControlFlowGraph::mergeNodes(
             }
         }
     }
+    
+    if (node1.basicBlock().liveRangeData_ != NULL &&
+        node2.basicBlock().liveRangeData_ != NULL) {
+        node1.basicBlock().liveRangeData_->merge(
+            *node2.basicBlock().liveRangeData_);
+    }
+
     node2.setBBOwnership(false); // append deletes bb2.
     bb1.append(&bb2);
 
