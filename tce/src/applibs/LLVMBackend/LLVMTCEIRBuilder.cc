@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file LLVMTCECFGDDGBuilder.hh
+ * @file LLVMTCEIRBuilder.hh
  *
  * This builder builds a CFG and DDG from the new LLVM TTA backend format.
  *
@@ -34,7 +34,7 @@
 #undef NDEBUG
 #endif
 
-#include "LLVMTCECFGDDGBuilder.hh"
+#include "LLVMTCEIRBuilder.hh"
 #include "ControlFlowGraph.hh"
 #include "Procedure.hh"
 #include "AddressSpace.hh"
@@ -67,9 +67,9 @@
 
 namespace llvm {
 
-char LLVMTCECFGDDGBuilder::ID = -1;
+char LLVMTCEIRBuilder::ID = -1;
 
-LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
+LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
     InterPassData& ipd, bool functionAtATime, bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
@@ -94,7 +94,7 @@ LLVMTCECFGDDGBuilder::LLVMTCECFGDDGBuilder(
 }
 
 bool
-LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
+LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
 
     if (tm_ == NULL)
         tm_ = &mf.getTarget();
@@ -119,18 +119,77 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     // omit empty functions..
     if (mf.begin() == mf.end()) return true;   
 
+    TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
+    
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
     TCEString fnName(Buffer.c_str());
 
-    TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
-    
     TTAProgram::Procedure* procedure = 
         new TTAProgram::Procedure(fnName, *as);
 
     if (!functionAtATime_) {
         prog_->addProcedure(procedure);
     } 
+    
+
+    TTAProgram::InstructionReferenceManager* irm = NULL;
+    if (functionAtATime_) {
+        irm = new TTAProgram::InstructionReferenceManager();
+    } else {        
+        irm = &prog_->instructionReferenceManager();
+    }
+
+
+    ControlFlowGraph* cfg = buildTCECFG(mf);
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg1.dot");
+#endif
+    
+    LLVMTCECmdLineOptions* options = NULL;
+    bool fastCompilation = false;
+    if (Application::cmdLineOptions() != NULL) {
+        options = 
+            dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+        fastCompilation = options->optLevel() == 0;
+    }
+
+    if (fastCompilation) {
+        compileFast(*cfg);
+    } else {
+        compileOptimized(*cfg, *irm);
+    }
+
+    if (!modifyMF_) {
+        cfg->convertBBRefsToInstRefs(*irm);
+    }
+    cfg->copyToProcedure(*procedure, irm);
+#ifdef WRITE_CFG_DOTS
+    cfg->writeToDotFile(fnName + "_cfg4.dot");
+#endif
+    if (procedure->instructionCount() > 0) {
+        codeLabels_[fnName] = &procedure->firstInstruction();
+    }
+
+    if (modifyMF_) {
+        cfg->copyToLLVMMachineFunction(mf, irm);        
+        delete cfg;
+        return true;
+    }
+
+    delete cfg;
+    if (functionAtATime_) delete irm;
+    return false;
+}
+
+ControlFlowGraph*
+LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
+
+    SmallString<256> Buffer;
+    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+    TCEString fnName(Buffer.c_str());
+
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
     
 /*
@@ -485,67 +544,20 @@ LLVMTCECFGDDGBuilder::writeMachineFunction(MachineFunction& mf) {
     BasicBlockNode* exit = new BasicBlockNode(0, 0, false, true);
     cfg->addNode(*exit);
     cfg->addExitFromSinkNodes(exit);
-
-    TTAProgram::InstructionReferenceManager* irm = NULL;
-    if (functionAtATime_) {
-        irm = new TTAProgram::InstructionReferenceManager();
-    } else {        
-        irm = &prog_->instructionReferenceManager();
-    }
-
     // add back edge properties.
     cfg->detectBackEdges();
 
-#ifdef WRITE_CFG_DOTS
-    cfg->writeToDotFile(fnName + "_cfg1.dot");
-#endif
-    
-    LLVMTCECmdLineOptions* options = NULL;
-    bool fastCompilation = false;
-    if (Application::cmdLineOptions() != NULL) {
-        options = 
-            dynamic_cast<LLVMTCECmdLineOptions*>(
-                Application::cmdLineOptions());
-        fastCompilation = options->optLevel() == 0;
-    }
-
-    if (fastCompilation) {
-        compileFast(*cfg);
-    } else {
-        compileOptimized(*cfg, *irm);
-    }
-
-
-    if (!modifyMF_) {
-        cfg->convertBBRefsToInstRefs(*irm);
-    }
-    cfg->copyToProcedure(*procedure, irm);
-#ifdef WRITE_CFG_DOTS
-    cfg->writeToDotFile(fnName + "_cfg4.dot");
-#endif
-    if (procedure->instructionCount() > 0) {
-        codeLabels_[fnName] = &procedure->firstInstruction();
-    }
-
-    if (modifyMF_) {
-        cfg->copyToLLVMMachineFunction(mf, irm);        
-        delete cfg;
-        return true;
-    }
-
-    delete cfg;
-    if (functionAtATime_) delete irm;
-    return false;
+    return cfg;
 }
 
 void
-LLVMTCECFGDDGBuilder::compileFast(ControlFlowGraph& cfg) {
+LLVMTCEIRBuilder::compileFast(ControlFlowGraph& cfg) {
     SequentialScheduler sched(*ipData_);
     sched.handleControlFlowGraph(cfg, *mach_);
 }
 
 void
-LLVMTCECFGDDGBuilder::compileOptimized(
+LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
     TTAProgram::InstructionReferenceManager& irm) {
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
@@ -601,7 +613,7 @@ LLVMTCECFGDDGBuilder::compileOptimized(
 
 
 TTAProgram::Terminal*
-LLVMTCECFGDDGBuilder::createMBBReference(const MachineOperand& mo) {
+LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
     MachineBasicBlock* mbb = mo.getMBB();
     std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator i = 
         bbMapping_.find(mbb);
@@ -622,12 +634,12 @@ LLVMTCECFGDDGBuilder::createMBBReference(const MachineOperand& mo) {
 }
 
 TTAProgram::Terminal*
-LLVMTCECFGDDGBuilder::createSymbolReference(const TCEString& symbolName) {
+LLVMTCEIRBuilder::createSymbolReference(const TCEString& symbolName) {
     return new TTAProgram::TerminalSymbolReference(symbolName);
 }
 
 bool 
-LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
+LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
 #ifdef LLVM_2_9    
     const llvm::TargetInstrDesc* opDesc = &instr.getDesc();
 #else
@@ -654,7 +666,7 @@ LLVMTCECFGDDGBuilder::isRealInstruction(const MachineInstr& instr) {
 }
 
 bool 
-LLVMTCECFGDDGBuilder::hasRealInstructions(
+LLVMTCEIRBuilder::hasRealInstructions(
     MachineBasicBlock::const_iterator i, 
     const MachineBasicBlock& mbb) {
     for (; i != mbb.end(); i++) {
@@ -666,13 +678,13 @@ LLVMTCECFGDDGBuilder::hasRealInstructions(
 }
 
 bool
-LLVMTCECFGDDGBuilder::doInitialization(Module& m) {
+LLVMTCEIRBuilder::doInitialization(Module& m) {
     LLVMTCEBuilder::doInitialization(m);
     return false;
 }
 
 bool
-LLVMTCECFGDDGBuilder::doFinalization(Module& m) { 
+LLVMTCEIRBuilder::doFinalization(Module& m) { 
 
     LLVMTCEBuilder::doFinalization(m);
     prog_->convertSymbolRefsToInsRefs();
@@ -680,7 +692,7 @@ LLVMTCECFGDDGBuilder::doFinalization(Module& m) {
 }
 
 TCEString 
-LLVMTCECFGDDGBuilder::operationName(const MachineInstr& mi) const {
+LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
     if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) 
         != NULL) {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
@@ -691,7 +703,7 @@ LLVMTCECFGDDGBuilder::operationName(const MachineInstr& mi) const {
 }
 
 TCEString
-LLVMTCECFGDDGBuilder::registerFileName(unsigned llvmRegNum) const { 
+LLVMTCEIRBuilder::registerFileName(unsigned llvmRegNum) const { 
     if (isTTATarget()) {
         return dynamic_cast<const TCETargetMachine&>(
             targetMachine()).rfName(llvmRegNum); 
@@ -716,7 +728,7 @@ LLVMTCECFGDDGBuilder::registerFileName(unsigned llvmRegNum) const {
 }
 
 int
-LLVMTCECFGDDGBuilder::registerIndex(unsigned llvmRegNum) const {
+LLVMTCEIRBuilder::registerIndex(unsigned llvmRegNum) const {
     if (isTTATarget()) {
         return dynamic_cast<const TCETargetMachine&>(
             targetMachine()).registerIndex(llvmRegNum); 

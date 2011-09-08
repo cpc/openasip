@@ -9,7 +9,7 @@ libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc TransportTDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	passes/RegAllocLinearScanILP.cc LLVMTCECFGDDGBuilder.cc LLVMTCEScheduler.cc
+	passes/RegAllocLinearScanILP.cc LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 
@@ -86,6 +86,6 @@ libtcellvmbackend_la_SOURCES += \
 	TCEMCAsmInfo.hh TCESubtarget.hh \
 	LLVMPOMBuilder.hh TransportTDGen.hh \
 	TDGen.hh TCETargetMachinePlugin.hh \
-	LLVMTCEPOMBuilder.hh LLVMTCECmdLineOptions.hh LLVMTCECFGDDGBuilder.hh \
+	LLVMTCEPOMBuilder.hh LLVMTCECmdLineOptions.hh LLVMTCEIRBuilder.hh \
     LLVMTCEScheduler.hh
 ## headers end

@@ -102,7 +102,7 @@
 #include "TCEString.hh"
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
-#include "LLVMTCECFGDDGBuilder.hh"
+#include "LLVMTCEIRBuilder.hh"
 
 //#define DEBUG_TDGEN
 
@@ -477,7 +477,7 @@ LLVMBackend::compile(
 
     LLVMTCEBuilder* builder = NULL;
     if (!options->usePOMBuilder()) {
-        builder = new LLVMTCECFGDDGBuilder(*targetMachine, &target, *ipData);
+        builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData);
     } else {
         builder = new LLVMPOMBuilder(*targetMachine, &target);
     }

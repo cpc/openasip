@@ -31,8 +31,8 @@
  * @note reting: red
  */
 
-#ifndef LLVM_TCE_CFG_DDG_BUILDER_H
-#define LLVM_TCE_CFG_DDG_BUILDER_H
+#ifndef LLVM_TCE_IR_BUILDER_H
+#define LLVM_TCE_IR_BUILDER_H
 
 #include <llvm/CodeGen/MachineFunctionPass.h>
 
@@ -46,22 +46,22 @@ namespace TTAMachine {
 
 namespace llvm {
 
-//    extern "C" MachineFunctionPass* createLLVMTCECFGDDGBuilderPass();
+//    extern "C" MachineFunctionPass* createLLVMTCEIRBuilderPass();
     FunctionPass* createLLVMTCECFGBuilderPass(
         TCETargetMachine& tm, TTAMachine::Machine* mach, InterPassData& ipd);
 
-    class LLVMTCECFGDDGBuilder : public LLVMTCEBuilder {
+    class LLVMTCEIRBuilder : public LLVMTCEBuilder {
     public:
         static char ID;
 
-        LLVMTCECFGDDGBuilder(
+        LLVMTCEIRBuilder(
             const TargetMachine& tm, TTAMachine::Machine* mach, 
             InterPassData& ipd, bool functionAtATime=false, 
             bool modifyMF=false);
 
         bool writeMachineFunction(MachineFunction& mf);
 
-        virtual ~LLVMTCECFGDDGBuilder() {}
+        virtual ~LLVMTCEIRBuilder() {}
 
         virtual bool doInitialization(Module& m );
         virtual bool doFinalization(Module& m );
@@ -125,6 +125,8 @@ namespace llvm {
         void compileFast(ControlFlowGraph& cfg);
         void compileOptimized(
             ControlFlowGraph& cfg, TTAProgram::InstructionReferenceManager& irm);
+
+        ControlFlowGraph* buildTCECFG(llvm::MachineFunction& mf);
 
         InterPassData* ipData_;
         // TODO: how to get these?

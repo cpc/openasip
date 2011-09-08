@@ -37,7 +37,7 @@
 #include <llvm/CodeGen/MachineFunctionPass.h>
 
 #include "Machine.hh"
-#include "LLVMTCECFGDDGBuilder.hh"
+#include "LLVMTCEIRBuilder.hh"
 #include "InterPassData.hh"
 
 namespace llvm {
@@ -53,7 +53,7 @@ namespace llvm {
     private:
         virtual bool doInitialization(Module& m);
         TTAMachine::Machine* tceMachine_;
-        LLVMTCECFGDDGBuilder* tceIRBuilder_;
+        LLVMTCEIRBuilder* tceIRBuilder_;
         InterPassData* interPassData_;
         llvm::Module* mod_;
     };

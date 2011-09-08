@@ -71,7 +71,7 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
 
     if (tceIRBuilder_ == NULL) {
         interPassData_ = new InterPassData();
-        tceIRBuilder_ =  new LLVMTCECFGDDGBuilder(
+        tceIRBuilder_ =  new LLVMTCEIRBuilder(
             MF.getTarget(), tceMachine_, *interPassData_, true, true);
         tceIRBuilder_->doInitialization(*mod_);
     }
