@@ -716,11 +716,17 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
 /**
  * Returns the preferred comparison result type.
  */
+#ifdef LLVM_2_9
 MVT::SimpleValueType 
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
     return llvm::MVT::i1;
 }
-
+#else
+EVT
+TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+    return llvm::MVT::i1;
+}
+#endif
 /**
  * Handles custom operation lowerings.
  */
