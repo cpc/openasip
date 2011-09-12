@@ -81,6 +81,8 @@ public:
         NetlistPort& port1,
         NetlistPort& port2);
 
+    bool isPortConnected(const NetlistPort& port) const;
+
     bool isEmpty() const;
     NetlistBlock& topLevelBlock() const
         throw (InstanceNotFound);

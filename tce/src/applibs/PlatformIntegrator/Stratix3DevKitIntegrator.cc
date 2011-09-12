@@ -73,10 +73,10 @@ Stratix3DevKitIntegrator::Stratix3DevKitIntegrator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     const MemInfo& imem,
-    const MemInfo& dmem):
+    MemType dmemType):
     AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
                      outputDir, programName, targetClockFreq, warningStream,
-                     errorStream, imem, dmem),
+                     errorStream, imem, dmemType),
     quartusGen_(new QuartusProjectGenerator(coreEntityName, this)) {
 }
 
@@ -104,11 +104,10 @@ Stratix3DevKitIntegrator::integrateProcessor(
 
     generatePinMap();
 
-    if(!createPorts(ttaCore)) {
-        return;
-    }
- 
-    if (!createMemories()) {
+    initPlatformNetlist(ttaCore);
+
+    const NetlistBlock& core = progeBlock();
+    if (!integrateCore(core)) {
         return;
     }
 
@@ -118,7 +117,7 @@ Stratix3DevKitIntegrator::integrateProcessor(
 
     addProGeFiles();
 
-    quartusGen_->writeProjectFiles();
+    projectFileGenerator()->writeProjectFiles();
 }
 
     

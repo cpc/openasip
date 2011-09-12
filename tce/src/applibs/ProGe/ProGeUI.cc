@@ -439,34 +439,28 @@ ProGeUI::integrateProcessor(
     imemInfo.type = imem;
     readImemParameters(imemInfo);
 
-    MemInfo dmemInfo;
-    dmemInfo.type = dmem;
-    if (dmemInfo.type != NONE) {
-        readLSUParameters(dmemInfo);
-    }
-
     PlatformIntegrator* integrator = NULL;
     // TODO: append new integrators here
     if (platformIntegrator == "Stratix2DSP") {
         integrator = new Stratix2DSPBoardIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
-            imemInfo, dmemInfo);
+            imemInfo, dmem);
     } else if (platformIntegrator == "KoskiIntegrator") {
         integrator = new KoskiIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
-            imemInfo, dmemInfo);
+            imemInfo, dmem);
     } else if (platformIntegrator == "AvalonIntegrator") {
         integrator = new AvalonIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
-            imemInfo, dmemInfo);
+            imemInfo, dmem);
     } else if (platformIntegrator == "Stratix3DevKit") {
         integrator = new Stratix3DevKitIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
-            imemInfo, dmemInfo);
+            imemInfo, dmem);
     } else {
         string errorMsg = "Unknown platform integrator: "
             + platformIntegrator;
@@ -501,60 +495,5 @@ ProGeUI::readImemParameters(MemInfo& imem) const {
     imem.asAddrw = MathTools::requiredBits(lastAddr);
 }
     
-    
-
-
-
-void ProGeUI::readLSUParameters(MemInfo& dmem) const {
-    
-    TTAMachine::FunctionUnit* lsu = NULL;
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine_->functionUnitNavigator();
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        if (fu->hasAddressSpace()) {
-            if (lsu != NULL) {
-                string errorMsg = "Error: Architecture has multiple LSUs";
-                InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);          
-                throw exc;
-            } else {
-                lsu = fu;
-            }
-        }
-    }
-    
-    if (lsu == NULL) {
-        string errorMsg = "No LSU found from machine";
-        InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
-        throw exc;
-    }
-    
-    dmem.mauWidth = lsu->addressSpace()->width();
-    int internalAddrw = 0;
-    int dataWidth = 0;
-    for (int i = 0; i < lsu->operationPortCount(); i++) {
-        TTAMachine::FUPort* port = lsu->operationPort(i);
-        if (port->isInput()) {
-            if (port->isTriggering()) {
-                internalAddrw = port->width();
-            } else {
-                dataWidth = port->width();
-            }
-        }
-    }
-    dmem.widthInMaus = static_cast<int>(
-        ceil(static_cast<double>(dataWidth)/dmem.mauWidth));
-
-    int bytemaskWidth = 0;
-    if (dmem.widthInMaus > 1) {
-        unsigned int maus = static_cast<unsigned int>(dmem.widthInMaus) - 1;
-        bytemaskWidth = MathTools::requiredBits(maus);
-    }
-    dmem.portAddrw = internalAddrw - bytemaskWidth;
-    int lastAddr = lsu->addressSpace()->end();
-    dmem.asAddrw = MathTools::requiredBits(lastAddr) - bytemaskWidth;
-    dmem.asName = lsu->addressSpace()->name();
-}
-
 } // end of namespace ProGe
 

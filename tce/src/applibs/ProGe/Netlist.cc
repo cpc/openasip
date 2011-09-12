@@ -147,6 +147,21 @@ Netlist::connectPortsInverted(
     this->connectPorts(output, *inverterOutput, 0, 0 ,1);
 }
 
+/**
+ * Tells whether the netlist port is connected in this netlist instance
+ *
+ * @param port The netlist port
+ * @return True if port is connected
+ */
+bool
+Netlist::isPortConnected(const NetlistPort& port) const {
+    
+    size_t vertDesc = descriptor(port);
+    boost::graph_traits<Netlist>::degree_size_type edges = 
+        boost::out_degree(vertDesc, *this);
+    return edges != 0;
+}
+
 
 /**
  * Tells whether the netlist is empty.

@@ -95,30 +95,29 @@ Stratix2SramGenerator::~Stratix2SramGenerator() {
 
 
 void
-Stratix2SramGenerator::addMemory(ProGe::Netlist& netlist, int /*index*/) {
+Stratix2SramGenerator::addMemory(
+    const ProGe::NetlistBlock& ttaCore,
+    ProGe::Netlist& netlist,
+    int /*memIndex*/) {
     
-    const NetlistBlock& core = platformIntegrator()->ttaCoreBlock();
     NetlistBlock& toplevel = netlist.topLevelBlock();
-
-    for (int i = 0; i < portCount(); i++) {
-        const HDLPort* hdlPort = port(i);
-        NetlistPort* memPort = hdlPort->convertToNetlistPort(toplevel);
-        TCEString corePortName = portKeyName(hdlPort);
-
-        NetlistPort* corePort = core.portByName(corePortName);
-        // clock and reset must be connected to new toplevel ports
-        assert(corePort != NULL);
-        if (memPort->dataType() == corePort->dataType()) {
-            netlist.connectPorts(*memPort, *corePort);
-        } else {
-            // bit to bit vector connection, connect lowest bits
-            netlist.connectPorts(*memPort, *corePort, 0, 0, 1);
-        }
-    }
     for (int i = 0; i < parameterCount(); i++) {
         toplevel.setParameter(parameter(i).name, parameter(i).type,
                               parameter(i).value);
     }
+
+    for (int i = 0; i < portCount(); i++) {
+        const HDLPort* hdlPort = port(i);
+        NetlistPort* memPort = hdlPort->convertToNetlistPort(toplevel);
+
+        TCEString corePortName = portKeyName(hdlPort);
+        NetlistPort* corePort = ttaCore.portByName(corePortName);
+        assert(corePort != NULL);
+
+        MemoryGenerator::connectPorts(
+            netlist, *memPort, *corePort, hdlPort->needsInversion());
+    }
+
 }
 
 bool
@@ -145,8 +144,8 @@ Stratix2SramGenerator::moduleName() const {
     
 
 TCEString
-Stratix2SramGenerator::instanceName(int index) const {
+Stratix2SramGenerator::instanceName(int memIndex) const {
     
     TCEString iname("stratixII_sram_");
-    return iname << index;
+    return iname << memoryIndexString(memIndex);
 }

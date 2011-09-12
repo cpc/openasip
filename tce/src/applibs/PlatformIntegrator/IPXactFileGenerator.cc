@@ -126,10 +126,13 @@ IPXactFileGenerator::addAddressSpaces(IPXactModel* model) {
     
     IPXactAddressSpace* imemAs =
         new IPXactAddressSpace(integrator()->imemInfo());
-    IPXactAddressSpace* dmemAs =
-        new IPXactAddressSpace(integrator()->dmemInfo());
     model->addAddressSpace(imemAs);
-    model->addAddressSpace(dmemAs);
+
+    for (int i = 0; i < integrator()->dmemCount(); i++) {
+        IPXactAddressSpace* dmemAs =
+            new IPXactAddressSpace(integrator()->dmemInfo(i));
+        model->addAddressSpace(dmemAs);
+    }
 }
 
 

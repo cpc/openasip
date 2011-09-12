@@ -35,6 +35,11 @@
 #include "AlteraOnchipRomGenerator.hh"
 #include "VhdlRomGenerator.hh"
 #include "ProjectFileGenerator.hh"
+#include "Machine.hh"
+#include "NetlistPort.hh"
+#include "NetlistBlock.hh"
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
 
 AlteraIntegrator::AlteraIntegrator(): PlatformIntegrator() {
 }
@@ -52,25 +57,38 @@ AlteraIntegrator::AlteraIntegrator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     const MemInfo& imem,
-    const MemInfo& dmem):
+    MemType dmemType):
     PlatformIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
                        outputDir, programName, targetClockFreq, warningStream,
-                       errorStream, imem, dmem) {
+                       errorStream, imem, dmemType),
+    imemGen_(NULL), dmemGen_() {
 }
 
 
 AlteraIntegrator::~AlteraIntegrator() {
+
+    if (imemGen_ != NULL) {
+        delete imemGen_;
+    }
+    if (!dmemGen_.empty()) {
+        std::map<TCEString, MemoryGenerator*>::iterator iter =
+            dmemGen_.begin();
+        while (iter != dmemGen_.end()) {
+            delete iter->second;
+            iter++;
+        }
+    }
 }
 
 
 void
-AlteraIntegrator::integrateProcessor(const ProGe::NetlistBlock* ttaCore) {
+AlteraIntegrator::integrateProcessor(
+    const ProGe::NetlistBlock* progeBlockInOldNetlist) {
 
-    if (!createPorts(ttaCore)) {
-        return;
-    }
+    initPlatformNetlist(progeBlockInOldNetlist);
 
-    if (!createMemories()) {
+    const NetlistBlock& core = progeBlock();
+    if (!integrateCore(core)) {
         return;
     }
 
@@ -82,68 +100,58 @@ AlteraIntegrator::integrateProcessor(const ProGe::NetlistBlock* ttaCore) {
 }
 
 
-MemoryGenerator*
-AlteraIntegrator::imemInstance() {
+MemoryGenerator&
+AlteraIntegrator::imemInstance(MemInfo imem) {
 
-    assert(imemInfo().type != UNKNOWN && "Imem type not set!");
+    assert(imem.type != UNKNOWN && "Imem type not set!");
     
-    const MemInfo& imem = imemInfo();
-    MemoryGenerator* imemGen = NULL;
-    if (imem.type == ONCHIP) {
-        TCEString initFile = programName() + ".mif";
-        imemGen = 
-            new AlteraOnchipRomGenerator(
-                imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-                warningStream(), errorStream());
-        projectFileGenerator()->addMemInitFile(initFile);
-    } else if (imem.type == VHDL_ARRAY) {
-        TCEString initFile = programName() + "_imem_pkg.vhdl";
-        imemGen = new VhdlRomGenerator(
-            imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-            warningStream(), errorStream());
-    } else {
-        TCEString msg = "Unsupported instruction memory type";
-        InvalidData exc(__FILE__, __LINE__, "AlteraIntegrator",
-                        msg);
-        throw exc;
-    }
-    return imemGen;
-}
-
-
-MemoryGenerator*
-AlteraIntegrator::dmemInstance() {
-
-    const MemInfo& dmem = dmemInfo();
-    MemoryGenerator* dmemGen = NULL;
-    if (dmem.type == ONCHIP) {
-        TCEString initFile = programName() + "_" + dmem.asName + ".mif";
-        // onchip mem size is scalable, use value from adf's Address Space
-        int addrw = dmem.asAddrw;
-        dmemGen =
-            new AlteraOnchipRamGenerator(
-                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+    if (imemGen_ == NULL) {
+        if (imem.type == ONCHIP) {
+            TCEString initFile = programName() + ".mif";
+            imemGen_ = 
+                new AlteraOnchipRomGenerator(
+                    imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile,
+                    this, warningStream(), errorStream());
+            projectFileGenerator()->addMemInitFile(initFile);
+        } else if (imem.type == VHDL_ARRAY) {
+            TCEString initFile = programName() + "_imem_pkg.vhdl";
+            imemGen_ = new VhdlRomGenerator(
+                imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile,
                 this, warningStream(), errorStream());
-        projectFileGenerator()->addMemInitFile(initFile); 
-    } else {
-        TCEString msg = "Unsupported data memory type";
-        InvalidData exc(__FILE__, __LINE__, "AlteraIntegrator",
-                        msg);
-        throw exc;
+        } else {
+            TCEString msg = "Unsupported instruction memory type";
+            throw InvalidData(__FILE__, __LINE__, "AlteraIntegrator", msg);
+        }
     }
-    return dmemGen;
+    return *imemGen_;
 }
 
-bool
-AlteraIntegrator::isDataMemorySignal(const TCEString& signalName) const {
 
-    bool isDmemSignal = false;
-    if (dmemInfo().type == NONE) {
-        isDmemSignal = false;
-    } else if (dmemInfo().type == ONCHIP) {
-        isDmemSignal = signalName.find("dmem") != TCEString::npos;
+MemoryGenerator&
+AlteraIntegrator::dmemInstance(
+    MemInfo dmem,
+    TTAMachine::FunctionUnit& lsuArch,
+    HDB::FUImplementation& lsuImplementation) {
+
+    MemoryGenerator* memGen = NULL;
+    if (dmemGen_.find(dmem.asName) != dmemGen_.end()) {
+        memGen = dmemGen_.find(dmem.asName)->second;
     } else {
-        isDmemSignal = false;
+        if (dmem.type == ONCHIP) {
+            TCEString initFile = programName() + "_" + dmem.asName + ".mif";
+            // onchip mem size is scalable, use value from adf's Address Space
+            int addrw = dmem.asAddrw;
+            memGen =
+                new AlteraOnchipRamGenerator(
+                    dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+                    this, warningStream(), errorStream());
+            projectFileGenerator()->addMemInitFile(initFile); 
+        } else {
+            TCEString msg = "Unsupported data memory type";
+            throw InvalidData(__FILE__, __LINE__, "AlteraIntegrator", msg);
+        }
+        memGen->addLsu(lsuArch, lsuImplementation);
+        dmemGen_[dmem.asName] = memGen;
     }
-    return isDmemSignal;
+    return *memGen;
 }

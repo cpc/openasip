@@ -53,7 +53,7 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        const MemInfo& dmem);
+        MemType dmemType);
 
     virtual ~AvalonIntegrator();
 
@@ -73,8 +73,6 @@ public:
 
 protected:
     
-    virtual MemoryGenerator* dmemInstance();
-
     virtual TCEString pinTag() const;
 
     virtual bool chopTaggedSignals() const;

@@ -41,6 +41,7 @@
 #include "VirtualNetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "FileSystem.hh"
+#include "Machine.hh"
 using std::vector;
 using std::endl;
 using ProGe::Netlist;
@@ -76,11 +77,12 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     const MemInfo& imem,
-    const MemInfo& dmem):
+    MemType dmemType):
     AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
                      outputDir, programName, targetClockFreq, warningStream,
-                     errorStream, imem, dmem),
-    quartusGen_(new QuartusProjectGenerator(coreEntityName, this)) {
+                     errorStream, imem, dmemType),
+    quartusGen_(new QuartusProjectGenerator(coreEntityName, this)),
+    dmemGen_(NULL) {
 }
 
 
@@ -98,6 +100,10 @@ Stratix2DSPBoardIntegrator::~Stratix2DSPBoardIntegrator() {
     if (quartusGen_ != NULL) {
         delete quartusGen_;
     }
+
+    if (dmemGen_ != NULL) {
+        delete dmemGen_;
+    }
 }
 
 void
@@ -106,47 +112,51 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
 
     generatePinMap();
 
-    if(!createPorts(ttaCore)) {
-        return;
-    }
- 
-    if (!createMemories()) {
+    initPlatformNetlist(ttaCore);
+    
+    const NetlistBlock& core = progeBlock();
+    if (!integrateCore(core)) {
         return;
     }
 
     mapToplevelPorts();
 
     writeNewToplevel();
-
+    
     addProGeFiles();
 
-    quartusGen_->writeProjectFiles();
+    projectFileGenerator()->writeProjectFiles();
 }   
 
-MemoryGenerator*
-Stratix2DSPBoardIntegrator::dmemInstance() {
 
-    const MemInfo& dmem = dmemInfo();
-    MemoryGenerator* dmemGen = NULL;
+MemoryGenerator&
+Stratix2DSPBoardIntegrator::dmemInstance(
+    MemInfo dmem,
+    TTAMachine::FunctionUnit& lsuArch,
+    HDB::FUImplementation& lsuImplementation) {
+
     if (dmem.type == ONCHIP) {
-        dmemGen = AlteraIntegrator::dmemInstance();
-    } else if (dmemInfo().type == SRAM) {
-        TCEString initFile = programName() + "_" + dmem.asName + ".img";
-        // SRAM component has a fixed size, thus use the addr width from hdb
-        int addrw = dmem.portAddrw;
-        dmemGen =
-            new Stratix2SramGenerator(
-                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
-                this, warningStream(), errorStream());
-        warningStream() << "Warning: Data memory is not initialized during "
-                        << "FPGA programming." << endl;
+        return AlteraIntegrator::dmemInstance(dmem, lsuArch,
+                                              lsuImplementation);
+    } else if (dmem.type == SRAM) {
+        if (dmemGen_ == NULL) {
+            TCEString initFile = programName() + "_" + dmem.asName + ".img";
+            // SRAM component has fixed size, thus use the addr width from hdb
+            int addrw = dmem.portAddrw;
+            dmemGen_ =
+                new Stratix2SramGenerator(
+                    dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+                    this, warningStream(), errorStream());
+            warningStream() << "Warning: Data memory is not initialized "
+                            << "during FPGA programming." << endl;
+            dmemGen_->addLsu(lsuArch, lsuImplementation);
+        }
     } else {
         TCEString msg = "Unsupported data memory type";
-        InvalidData exc(__FILE__, __LINE__, "Stratix2DSPBoardIntegrator",
-                        msg);
-        throw exc;
+        throw InvalidData(__FILE__, __LINE__, "Stratix2DSPBoardIntegrator",
+                          msg);
     }
-    return dmemGen;
+    return *dmemGen_;
 }
 
 void
@@ -185,22 +195,6 @@ bool
 Stratix2DSPBoardIntegrator::chopTaggedSignals() const {
 
     return true;
-}
-
-
-bool
-Stratix2DSPBoardIntegrator::isDataMemorySignal(
-    const TCEString& signalName) const {
-
-    bool isDmemSignal = false;
-    if (dmemInfo().type == ONCHIP) {
-        isDmemSignal = AlteraIntegrator::isDataMemorySignal(signalName);
-    } else if (dmemInfo().type == SRAM) {
-        isDmemSignal = signalName.find("SRAM") != TCEString::npos;
-    } else {
-        isDmemSignal = false;
-    }
-    return isDmemSignal;
 }
 
 

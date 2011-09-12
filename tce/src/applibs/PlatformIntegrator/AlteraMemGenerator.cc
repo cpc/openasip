@@ -51,7 +51,7 @@ AlteraMemGenerator::AlteraMemGenerator(
     std::ostream& warningStream,
     std::ostream& errorStream): 
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                              integrator, warningStream, errorStream) {
+                    integrator, warningStream, errorStream) {
 }
 
 AlteraMemGenerator::~AlteraMemGenerator() {
@@ -78,14 +78,17 @@ AlteraMemGenerator::instantiateAlteraTemplate(
 
 
 void
-AlteraMemGenerator::addMemory(ProGe::Netlist& netlist, int index) {
+AlteraMemGenerator::addMemory(
+    const ProGe::NetlistBlock& ttaCore,
+    ProGe::Netlist& netlist,
+    int memIndex) {
 
     ProGe::NetlistBlock& topBlock = netlist.topLevelBlock();
     TCEString addrwGeneric = Conversion::toString(memoryAddrWidth());
     TCEString datawGeneric = Conversion::toString(memoryTotalWidth());
-    addGenerics(topBlock, addrwGeneric, datawGeneric, index);
+    addGenerics(topBlock, addrwGeneric, datawGeneric, memIndex);
 
-    MemoryGenerator::addMemory(netlist, index);
+    MemoryGenerator::addMemory(ttaCore, netlist, memIndex);
 }
 
 
@@ -94,7 +97,7 @@ AlteraMemGenerator::addGenerics(
     ProGe::NetlistBlock& topBlock, 
     const TCEString& addrWidth,
     const TCEString& dataWidth,
-    int index) {
+    int memIndex) {
     
     if (!topBlock.hasParameter(DEV_FAMILY_G)) {
         ProGe::Netlist::Parameter devFamilyTop = 
@@ -106,7 +109,7 @@ AlteraMemGenerator::addGenerics(
     addParameter(devFamilyComp);
 
     TCEString initFileGenericTop;
-    initFileGenericTop << instanceName(index) << "_" << INIT_FILE_G;
+    initFileGenericTop << instanceName(memIndex) << "_" << INIT_FILE_G;
     ProGe::Netlist::Parameter initFileParamTop = 
         {initFileGenericTop, "string", initializationFile()};
     topBlock.setParameter(initFileParamTop);

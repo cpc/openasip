@@ -95,15 +95,18 @@ AlteraOnchipRomGenerator::generateComponentFile(TCEString outputPath) {
 }
 
 void
-AlteraOnchipRomGenerator::addMemory(ProGe::Netlist& netlist, int index) {
+AlteraOnchipRomGenerator::addMemory(
+    const ProGe::NetlistBlock& ttaCore,
+    ProGe::Netlist& netlist,
+    int memIndex) {
 
     ProGe::NetlistBlock& topBlock = netlist.topLevelBlock();
     // Add generics as string constants!
     TCEString addrwGeneric = "IMEMADDRWIDTH";
     TCEString datawGeneric = "IMEMWIDTHINMAUS*IMEMMAUWIDTH";
-    addGenerics(topBlock, addrwGeneric, datawGeneric, index);
+    addGenerics(topBlock, addrwGeneric, datawGeneric, memIndex);
 
-    MemoryGenerator::addMemory(netlist, index);
+    MemoryGenerator::addMemory(ttaCore, netlist, memIndex);
 }
 
 TCEString
@@ -114,8 +117,8 @@ AlteraOnchipRomGenerator::moduleName() const {
     
 
 TCEString
-AlteraOnchipRomGenerator::instanceName(int index) const {
+AlteraOnchipRomGenerator::instanceName(int memIndex) const {
 
     TCEString iname("onchip_imem_");
-    return iname << index;
+    return iname << memoryIndexString(memIndex);
 }

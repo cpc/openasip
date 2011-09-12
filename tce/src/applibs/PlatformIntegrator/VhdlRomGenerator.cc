@@ -57,13 +57,14 @@ VhdlRomGenerator::VhdlRomGenerator(
     std::ostream& errorStream): 
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                     integrator, warningStream, errorStream) {
-
+    
     addPort("clk", new HDLPort("clock", "1", ProGe::BIT, HDB::IN, false, 1));
     addPort("imem_addr", new HDLPort("addr", "addrw", ProGe::BIT_VECTOR,
                                      HDB::IN, false, memoryAddrWidth()));
 
-    // imem_en_x signal is left unconnected on purpose
-
+    addPort("imem_en_x", new HDLPort("en_x", "1", ProGe::BIT,
+                                     HDB::IN, false, 1));
+    
     addPort("imem_data", new HDLPort("dataout", "instrw", ProGe::BIT_VECTOR,
                                      HDB::OUT, false, memoryTotalWidth()));
 
@@ -109,6 +110,8 @@ VhdlRomGenerator::generateComponentFile(TCEString outputPath) {
         throw exc;
     }
     
+    TCEString indentL1 = StringTools::indent(1);
+    TCEString indentL2 = StringTools::indent(2);
     std::ostringstream stream;
     stream
         << "library ieee;" << endl
@@ -116,35 +119,35 @@ VhdlRomGenerator::generateComponentFile(TCEString outputPath) {
         << "use ieee.std_logic_arith.all;" << endl
         << "use work." << imagePackageName() << ".all;" << endl << endl
         << "entity " << moduleName() << " is" << endl << endl
-        << StringTools::indent(1) << "generic (" << endl
-        << StringTools::indent(2) << "addrw  : integer := 10;" << endl
-        << StringTools::indent(2) << "instrw : integer := 100);" << endl
-        << StringTools::indent(1) << "port (" << endl
-        << StringTools::indent(2) << "clock   : in  std_logic;" << endl
-        << StringTools::indent(2) 
-        << "addr    : in  std_logic_vector(addrw-1 downto 0);" << endl
-        << StringTools::indent(2)
+        << indentL1 << "generic (" << endl
+        << indentL2 << "addrw  : integer := 10;" << endl
+        << indentL2 << "instrw : integer := 100);" << endl
+        << indentL1 << "port (" << endl
+        << indentL2 << "clock   : in  std_logic;" << endl
+        << indentL2 << "en_x    : in std_logic; -- not used" << endl
+        << indentL2 << "addr    : in  std_logic_vector(addrw-1 downto 0);"
+        << endl << indentL2
         << "dataout : out std_logic_vector(instrw-1 downto 0));" << endl
         << "end " << moduleName() << ";" << endl << endl;
 
     stream
         << "architecture rtl of " << moduleName() << " is" << endl << endl
-        << StringTools::indent(1)
+        << indentL1
         << "subtype imem_index is integer range 0 to imem_array'length-1;"
         << endl 
-        << StringTools::indent(1) << "constant imem : std_logic_imem_matrix"
-        << "(0 to imem_array'length-1) := imem_array;" << endl << endl
+        << indentL1 << "constant imem : std_logic_imem_matrix"
+        << "(0 to imem_array'length-1) := imem_array;" << endl
+        << indentL1 << "signal en_x_dummy : std_logic;" << endl << endl
         << "begin --rtl" << endl << endl
-        << StringTools::indent(1) << "process" << endl
-        << StringTools::indent(2)
-        << "variable imem_line : imem_index;" << endl
-        << StringTools::indent(1) << "begin -- process" << endl
-        << StringTools::indent(2) << "wait until clock'event and clock='1';"
-        << endl << StringTools::indent(2) 
-        << "imem_line := conv_integer(unsigned(addr));" << endl
-        << StringTools::indent(2) << "dataout <= imem(imem_line);" << endl
-        << StringTools::indent(1) << "end process;" << endl
-        << "end rtl;" << endl;
+        << indentL1 << "process" << endl
+        << indentL2 << "variable imem_line : imem_index;" << endl
+        << indentL1 << "begin -- process" << endl
+        << indentL2 << "wait until clock'event and clock='1';" << endl
+        << indentL2 << "imem_line := conv_integer(unsigned(addr));" << endl
+        << indentL2 << "dataout <= imem(imem_line);" << endl
+        << indentL1 << "end process;" << endl << endl
+        << indentL1 << "en_x_dummy <= en_x; -- dummy connection" << endl
+        << endl << "end rtl;" << endl;
 
     file << stream.str();
     file.close();
@@ -164,10 +167,10 @@ VhdlRomGenerator::moduleName() const {
 
     
 TCEString
-VhdlRomGenerator::instanceName(int index) const {
+VhdlRomGenerator::instanceName(int memIndex) const {
 
     TCEString iname("imem_array_instance_");
-    return iname << index;
+    return iname << memoryIndexString(memIndex);
 }
 
 TCEString

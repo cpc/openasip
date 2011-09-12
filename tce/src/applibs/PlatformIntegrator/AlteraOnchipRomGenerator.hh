@@ -59,7 +59,10 @@ public:
     virtual std::vector<TCEString>
     generateComponentFile(TCEString outputPath);
 
-    virtual void addMemory(ProGe::Netlist& netlist, int index);
+    virtual void addMemory(
+        const ProGe::NetlistBlock& ttaCore,
+        ProGe::Netlist& netlist,
+        int memIndex);
 
 protected:
 

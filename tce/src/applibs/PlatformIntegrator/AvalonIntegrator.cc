@@ -53,10 +53,10 @@ AvalonIntegrator::AvalonIntegrator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     const MemInfo& imem,
-    const MemInfo& dmem):
+    MemType dmemType):
     AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
                      outputDir, programName, targetClockFreq, warningStream,
-                     errorStream, imem, dmem),
+                     errorStream, imem, dmemType),
     sopcGenerator_(new SOPCBuilderFileGenerator(coreEntityName, this)),
     deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
 }
@@ -85,24 +85,6 @@ AvalonIntegrator::printInfo(std::ostream& stream) const {
         << "If avalon_lsu is used, data memory type must be 'none'." << endl
         << "FPGA device family can be changed. Default device family is "
         << DEFAULT_DEVICE_FAMILY_ << endl << endl;
-}
-    
-
-MemoryGenerator*
-AvalonIntegrator::dmemInstance() {
-
-    assert(dmemInfo().type != NONE);
-
-    MemoryGenerator* dmemGen = NULL;
-    if (dmemInfo().type == ONCHIP) {
-        dmemGen = AlteraIntegrator::dmemInstance();
-    } else {
-        TCEString msg = "Unsupported data memory type";
-        InvalidData exc(__FILE__, __LINE__, "AvalonIntegrator",
-                        msg);
-        throw exc;
-    }
-    return dmemGen;
 }
 
 

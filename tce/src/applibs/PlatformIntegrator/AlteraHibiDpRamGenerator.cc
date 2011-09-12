@@ -40,6 +40,7 @@
 #include "HDLPort.hh"
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
+#include "FUExternalPort.hh"
 #include "Conversion.hh"
 using std::endl;
 using ProGe::NetlistBlock;
@@ -49,15 +50,15 @@ const TCEString AlteraHibiDpRamGenerator::COMPONENT_FILE =
     "altera_onchip_dp_ram_comp.vhd";
 
 AlteraHibiDpRamGenerator::AlteraHibiDpRamGenerator(
-        int memMauWidth,
-        int widthInMaus,
-        int addrWidth,
-        TCEString initFile,
-        const PlatformIntegrator* integrator,
-        std::ostream& warningStream,
-        std::ostream& errorStream):
+    int memMauWidth,
+    int widthInMaus,
+    int addrWidth,
+    TCEString initFile,
+    const PlatformIntegrator* integrator,
+    std::ostream& warningStream,
+    std::ostream& errorStream):
     AlteraMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                              integrator, warningStream, errorStream) {
+                       integrator, warningStream, errorStream) {
 
     bool noInvert = false;
     TCEString byteEnableWidth;
@@ -108,49 +109,34 @@ AlteraHibiDpRamGenerator::~AlteraHibiDpRamGenerator() {
 }
 
 
-void
-AlteraHibiDpRamGenerator::addMemory(ProGe::Netlist& netlist, int index) {
-
-    TCEString addrwGeneric = Conversion::toString(memoryAddrWidth());
-    TCEString datawGeneric = Conversion::toString(memoryTotalWidth());
-    addGenerics(netlist.topLevelBlock(), addrwGeneric, datawGeneric, index);
+bool
+AlteraHibiDpRamGenerator::checkFuPort(
+    const HDB::FUExternalPort& fuPort,
+    std::vector<TCEString>& reasons) const {
     
-    const NetlistBlock& core = platformIntegrator()->ttaCoreBlock();
-    NetlistBlock* mem =
-        new NetlistBlock(moduleName(), instanceName(index), netlist);
-    netlist.topLevelBlock().addSubBlock(mem);
-
-    for (int i = 0; i < parameterCount(); i++) {
-        mem->setParameter(parameter(i));
+    // skip the hibi ports
+    TCEString hibiSignal = "hibi_";
+    TCEString portName = fuPort.name();
+    if (portName.find(hibiSignal) != TCEString::npos) {
+        return true;
     }
+    return MemoryGenerator::checkFuPort(fuPort, reasons);
+}
 
-    for (int i = 0; i < portCount(); i++) {
-        const HDLPort* hdlPort = port(i);
-        NetlistPort* memPort = hdlPort->convertToNetlistPort(*mem);
-        
-        TCEString corePortName = portKeyName(hdlPort);
-        NetlistPort* corePort = NULL;
-        // clock and reset must be connected to new toplevel ports
-        if (corePortName == "clk") {
-            corePort = netlist.topLevelBlock().portByName("clk");
-        } else if (corePortName == "rstx") {
-            corePort = netlist.topLevelBlock().portByName("rstx");
-        } else {
-            corePort = core.portByName(corePortName);
-        }
 
-        // address ports need special connection
-        if (memPort->name().find("address_") != TCEString::npos) {
-            netlist.connectPorts(*memPort, *corePort, 0, 0,
-                                 memoryAddrWidth());
-        } else {
-            if (memPort->dataType() == corePort->dataType()) {
-                netlist.connectPorts(*memPort, *corePort);
-            } else {
-                // bit to bit vector connection, connect lowest bits
-                netlist.connectPorts(*memPort, *corePort, 0, 0, 1);
-            }
-        }
+void
+AlteraHibiDpRamGenerator::connectPorts(
+    ProGe::Netlist& netlist,
+    ProGe::NetlistPort& memPort,
+    ProGe::NetlistPort& corePort,
+    bool inverted) {
+    
+    // address ports need special connection
+    if (memPort.name().find("address_") != TCEString::npos) {
+        netlist.connectPorts(memPort, corePort, 0, 0, memoryAddrWidth());
+    } else {
+        MemoryGenerator::connectPorts(
+            netlist, memPort, corePort, inverted);
     }
 }
 
@@ -175,8 +161,8 @@ AlteraHibiDpRamGenerator::moduleName() const {
 
     
 TCEString
-AlteraHibiDpRamGenerator::instanceName(int index) const {
+AlteraHibiDpRamGenerator::instanceName(int memIndex) const {
 
     TCEString iname("onchip_dp_dmem_");
-    return iname << index;
+    return iname << memoryIndexString(memIndex);
 }

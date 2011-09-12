@@ -66,7 +66,7 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        const MemInfo& dmem);
+        MemType dmemType);
     
     virtual ~Stratix2DSPBoardIntegrator();
 
@@ -88,13 +88,14 @@ public:
 
 protected:
     
-    virtual MemoryGenerator* dmemInstance();
+    virtual MemoryGenerator& dmemInstance(
+        MemInfo dmem,
+        TTAMachine::FunctionUnit& lsuArch,
+        HDB::FUImplementation& lsuImplementation);
 
     virtual TCEString pinTag() const;
 
     virtual bool chopTaggedSignals() const;
-
-    virtual bool isDataMemorySignal(const TCEString& signalName) const;
 
     virtual ProjectFileGenerator* projectFileGenerator() const;
 
@@ -107,6 +108,8 @@ private:
     void addSignalMapping(const TCEString& signal);
 
     QuartusProjectGenerator* quartusGen_;
+
+    MemoryGenerator* dmemGen_;
 
     PlatInt::PinMap stratix2Pins_;
 

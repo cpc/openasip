@@ -58,7 +58,7 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        const MemInfo& dmem);
+        MemType dmemType);
 
     virtual ~Stratix3DevKitIntegrator();
 

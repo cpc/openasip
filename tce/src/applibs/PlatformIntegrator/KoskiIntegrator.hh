@@ -53,7 +53,7 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        const MemInfo& dmem);
+        MemType dmemType);
 
     virtual ~KoskiIntegrator();
 
@@ -79,13 +79,18 @@ protected:
     
     virtual ProjectFileGenerator* projectFileGenerator() const;
 
-    virtual MemoryGenerator* dmemInstance();
+    virtual MemoryGenerator& dmemInstance(
+        MemInfo dmem,
+        TTAMachine::FunctionUnit& lsuArch,
+        HDB::FUImplementation& lsuImplementation);
 
 private:
 
     ProjectFileGenerator* ipXactGen_;
 
     TCEString deviceFamily_;
+
+    MemoryGenerator* dmemGen_;
 
     static const TCEString PIN_TAG_;
     static const TCEString DEFAULT_DEVICE_FAMILY_;

@@ -62,7 +62,7 @@ protected:
 
     virtual TCEString moduleName() const;
     
-    virtual TCEString instanceName(int index) const;
+    virtual TCEString instanceName(int memIndex) const;
 
 private:
 

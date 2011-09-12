@@ -53,7 +53,10 @@ public:
 
     virtual ~Stratix2SramGenerator();
 
-    virtual void addMemory(ProGe::Netlist& netlist, int index);
+    virtual void addMemory(
+        const ProGe::NetlistBlock& ttaCore,
+        ProGe::Netlist& netlist,
+        int memIndex);
 
     virtual bool generatesComponentHdlFile() const;
 
@@ -64,7 +67,7 @@ protected:
     
     virtual TCEString moduleName() const;
     
-    virtual TCEString instanceName(int index) const;
+    virtual TCEString instanceName(int memIndex) const;
     
 };
 

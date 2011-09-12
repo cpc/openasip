@@ -49,7 +49,7 @@ AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     std::ostream& warningStream,
     std::ostream& errorStream): 
     AlteraMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                              integrator, warningStream, errorStream) {
+                       integrator, warningStream, errorStream) {
     
     bool inverted = true;
     bool noInvert = false;
@@ -93,6 +93,7 @@ AlteraOnchipRamGenerator::generateComponentFile(TCEString outputPath) {
     return instantiateAlteraTemplate(COMPONENT_FILE, outputPath);
 }
 
+
 TCEString
 AlteraOnchipRamGenerator::moduleName() const {
 
@@ -101,9 +102,9 @@ AlteraOnchipRamGenerator::moduleName() const {
     
 
 TCEString
-AlteraOnchipRamGenerator::instanceName(int index) const {
+AlteraOnchipRamGenerator::instanceName(int memIndex) const {
     
     TCEString iname("onchip_dmem_");
-    return iname << index;
+    return iname << memoryIndexString(memIndex);
 }
 

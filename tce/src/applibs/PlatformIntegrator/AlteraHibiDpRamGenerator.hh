@@ -54,8 +54,6 @@ public:
 
     virtual ~AlteraHibiDpRamGenerator();
 
-    virtual void addMemory(ProGe::Netlist& netlist, int index);
-
     virtual bool generatesComponentHdlFile() const;
 
     virtual std::vector<TCEString>
@@ -63,9 +61,19 @@ public:
 
 protected:
 
+    virtual bool checkFuPort(
+        const HDB::FUExternalPort& fuPort,
+        std::vector<TCEString>& reasons) const;
+
+    virtual void connectPorts(
+        ProGe::Netlist& netlist,
+        ProGe::NetlistPort& memPort,
+        ProGe::NetlistPort& corePort,
+        bool inverted);
+
     virtual TCEString moduleName() const;
     
-    virtual TCEString instanceName(int index) const;
+    virtual TCEString instanceName(int memIndex) const;
 
 private:
 

@@ -53,19 +53,25 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        const MemInfo& dmem);
+        MemType dmemType);
 
     virtual ~AlteraIntegrator();
 
-    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
+    virtual void integrateProcessor(const ProGe::NetlistBlock* progeBlock);
 
 protected:
 
-    virtual MemoryGenerator* imemInstance();
+    virtual MemoryGenerator& imemInstance(MemInfo imem);
 
-    virtual MemoryGenerator* dmemInstance();
+    virtual MemoryGenerator& dmemInstance(
+        MemInfo dmem,
+        TTAMachine::FunctionUnit& lsuArch,
+        HDB::FUImplementation& lsuImplementation);
 
-    virtual bool isDataMemorySignal(const TCEString& signalName) const;
+private:
+
+    MemoryGenerator* imemGen_;
+    std::map<TCEString, MemoryGenerator*> dmemGen_;
 };
 
 #endif

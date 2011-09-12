@@ -46,7 +46,7 @@ const TCEString KoskiIntegrator::DEFAULT_DEVICE_FAMILY_ = "Stratix II";
 
 KoskiIntegrator::KoskiIntegrator():
     AlteraIntegrator(), ipXactGen_(NULL),
-    deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
+    deviceFamily_(DEFAULT_DEVICE_FAMILY_), dmemGen_(NULL) {
 }
 
 
@@ -62,12 +62,12 @@ KoskiIntegrator::KoskiIntegrator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     const MemInfo& imem,
-    const MemInfo& dmem):
+    MemType dmemType):
     AlteraIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
                      outputDir, programName, targetClockFreq, warningStream,
-                     errorStream, imem, dmem),
+                     errorStream, imem, dmemType),
     ipXactGen_(new IPXactFileGenerator(coreEntityName, this)),
-    deviceFamily_(DEFAULT_DEVICE_FAMILY_) {
+    deviceFamily_(DEFAULT_DEVICE_FAMILY_), dmemGen_(NULL) {
 }
 
 
@@ -75,6 +75,9 @@ KoskiIntegrator::~KoskiIntegrator() {
 
     if (ipXactGen_ != NULL) {
         delete ipXactGen_;
+    }
+    if (dmemGen_ != NULL) {
+        delete dmemGen_;
     }
 }
 
@@ -99,27 +102,32 @@ KoskiIntegrator::projectFileGenerator() const {
 }
 
 
-MemoryGenerator*
-KoskiIntegrator::dmemInstance() {
+MemoryGenerator&
+KoskiIntegrator::dmemInstance(
+    MemInfo dmem,
+    TTAMachine::FunctionUnit& lsuArch,
+    HDB::FUImplementation& lsuImplementation) {
 
-    const MemInfo& dmem = dmemInfo();
-    MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
-        TCEString initFile = programName() + "_" + dmem.asName + ".mif";
-        // onchip mem size is scalable, use value from adf's Address Space
-        int addrw = dmem.asAddrw;
-        dmemGen =
-            new AlteraHibiDpRamGenerator(
-                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
-                this, warningStream(), errorStream());
-        ipXactGen_->addMemInitFile(initFile);
+        if (dmemGen_ == NULL) {
+            TCEString initFile = programName() + "_" + dmem.asName + ".mif";
+            // onchip mem size is scalable, use value from adf's Address Space
+            int addrw = dmem.asAddrw;
+            dmemGen_ =
+                new AlteraHibiDpRamGenerator(
+                    dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+                    this, warningStream(), errorStream());
+            ipXactGen_->addMemInitFile(initFile);
+            dmemGen_->addLsu(lsuArch, lsuImplementation);
+        }
     } else {
         TCEString msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "KoskiIntegrator",
                         msg);
         throw exc;
     }
-    return dmemGen;
+    
+    return *dmemGen_;
 }
 
 

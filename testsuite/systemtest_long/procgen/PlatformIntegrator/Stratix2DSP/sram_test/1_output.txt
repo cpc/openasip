@@ -28,7 +28,6 @@ entity stratix_test_array_sram_toplevel is
   port (
     clk : in std_logic;
     rstx : in std_logic;
-    STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
     STRATIXII_SRAM_ADDR : out std_logic_vector(sram_addrw-1 downto 0);
     STRATIXII_SRAM_BE_N0 : out std_logic_vector(0 downto 0);
     STRATIXII_SRAM_BE_N1 : out std_logic_vector(0 downto 0);
@@ -37,7 +36,8 @@ entity stratix_test_array_sram_toplevel is
     STRATIXII_SRAM_CS_N : out std_logic_vector(0 downto 0);
     STRATIXII_SRAM_DQ : inout std_logic_vector(sram_dataw-1 downto 0);
     STRATIXII_SRAM_OE_N : out std_logic_vector(0 downto 0);
-    STRATIXII_SRAM_WE_N : out std_logic_vector(0 downto 0));
+    STRATIXII_SRAM_WE_N : out std_logic_vector(0 downto 0);
+    STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0));
 
 end stratix_test_array_sram_toplevel;
 
@@ -72,17 +72,18 @@ architecture structural of stratix_test_array_sram_toplevel is
     port (
       clock : in std_logic;
       addr : in std_logic_vector(addrw-1 downto 0);
-      dataout : out std_logic_vector(instrw-1 downto 0));
+      dataout : out std_logic_vector(instrw-1 downto 0);
+      en_x : in std_logic);
   end component;
 
 
 begin
 
   core_busy_wire <= '0';
+  imem_array_instance_0_en_x_wire <= core_imem_en_x_wire;
   imem_array_instance_0_addr_wire <= core_imem_addr_wire;
   core_imem_data_wire <= imem_array_instance_0_dataout_wire;
   core_pc_init_wire <= (others => '0');
-  ground_signal <= (others => '0');
 
   core : stratix_test_array_sram
     port map (
@@ -111,6 +112,7 @@ begin
     port map (
       clock => clk,
       addr => imem_array_instance_0_addr_wire,
-      dataout => imem_array_instance_0_dataout_wire);
+      dataout => imem_array_instance_0_dataout_wire,
+      en_x => imem_array_instance_0_en_x_wire);
 
 end structural;

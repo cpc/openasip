@@ -238,6 +238,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
                 program, devFamily, imem, dmem, language, fmax);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
+                      << e.procedureName() << ": "
                       << e.errorMessage() << endl;
             return false;
         }

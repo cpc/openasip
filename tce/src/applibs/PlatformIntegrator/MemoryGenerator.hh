@@ -42,6 +42,17 @@
 class HDLPort;
 class PlatformIntegrator;
 
+namespace HDB {
+    class FUEntry;
+    class FUArchitecture;
+    class FUImplementation;
+    class FUExternalPort;
+}
+
+namespace TTAMachine {
+    class FunctionUnit;
+}
+
 enum MemType {
     UNKNOWN,
     NONE,
@@ -63,9 +74,9 @@ struct MemInfo {
 
 namespace ProGe {
     class NetlistBlock;
+    class VirtualNetlistBlock;
     class NetlistPort;
 }
-
 
 class MemoryGenerator {
 public:
@@ -93,7 +104,10 @@ public:
         const ProGe::NetlistBlock& ttaCore,
         std::vector<TCEString>& reasons) const;
 
-    virtual void addMemory(ProGe::Netlist& netlist, int index);
+    virtual void addMemory(
+        const ProGe::NetlistBlock& ttaCore,
+        ProGe::Netlist& netlist,
+        int memIndex);
 
     virtual bool generatesComponentHdlFile() const = 0;
 
@@ -110,12 +124,37 @@ public:
 
     TCEString initializationFile() const;
 
-protected:
+    /**
+     * For data memories
+     */
+    void addLsu(
+        TTAMachine::FunctionUnit& lsuArch,
+        HDB::FUImplementation& lsuImplementation);
+
+ protected:
 
     // Key: LSU port name
     // Value: pointer to corresponding memory component/controller port
     typedef std::multimap<TCEString, HDLPort*> PortMap;
 
+    typedef std::pair<ProGe::NetlistBlock*, ProGe::VirtualNetlistBlock*>
+    BlockPair;
+
+    virtual bool checkFuPort(
+        const HDB::FUExternalPort& fuPort,
+        std::vector<TCEString>& reasons) const;
+
+    virtual void connectPorts(
+        ProGe::Netlist& netlist,
+        ProGe::NetlistPort& memPort,
+        ProGe::NetlistPort& corePort,
+        bool inverted);
+
+    virtual MemoryGenerator::BlockPair
+    createMemoryNetlistBlock(
+        ProGe::Netlist& netlist,
+        int memIndex);
+    
     const PlatformIntegrator* platformIntegrator() const;
 
     std::ostream& warningStream();
@@ -142,7 +181,9 @@ protected:
 
     virtual TCEString moduleName() const = 0;
     
-    virtual TCEString instanceName(int index) const = 0;
+    virtual TCEString instanceName(int memIndex) const = 0;
+
+    TCEString memoryIndexString(int memIndex) const;
 
     /**
      * Returns base path to template files.
@@ -153,6 +194,12 @@ protected:
         const TCEString& inFile,
         const TCEString& outFile,
         const TCEString& entity) const;
+
+    const TTAMachine::FunctionUnit& lsuArchitecture() const;
+
+    const HDB::FUImplementation& lsuImplementation() const;
+
+    TCEString corePortName(const TCEString& portBaseName) const;
 
 private:
     
@@ -171,6 +218,9 @@ private:
 
     PortMap memPorts_;
     ParameterList params_;
+
+    TTAMachine::FunctionUnit* lsuArch_;
+    HDB::FUImplementation* lsuImplementation_;
 
     static const TCEString CLOCK_PORT;
     static const TCEString RESET_PORT;

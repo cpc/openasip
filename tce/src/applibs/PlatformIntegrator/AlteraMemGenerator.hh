@@ -54,7 +54,10 @@ public:
     
     virtual ~AlteraMemGenerator();
 
-    virtual void addMemory(ProGe::Netlist& netlist, int index);
+    virtual void addMemory(
+        const ProGe::NetlistBlock& ttaCore,
+        ProGe::Netlist& netlist,
+        int memIndex);
     
 protected:
 
@@ -62,11 +65,11 @@ protected:
         const TCEString& templateFile,
         const TCEString& outputPath) const;
 
-    void addGenerics(
+    virtual void addGenerics(
         ProGe::NetlistBlock& topBlock,
         const TCEString& addrWidth,
         const TCEString& dataWidth,
-        int index);
+        int memIndex);
 
     static const TCEString INIT_FILE_G;
     static const TCEString DEV_FAMILY_G;
