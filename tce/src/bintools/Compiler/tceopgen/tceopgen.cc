@@ -64,13 +64,133 @@ operandTypeCString(const Operand& operand) {
     }
     return "unsigned"; // a good guess ;)
 }
+
 /**
- * Produces the _tce_customop_OPNAME macros that can be written to the
- * tceops.h header file.
+ * Produces the _TCE_OPNAME or _TCEFU_OPNAME macro that can be written to the
+ * tceops.h header file from the given operation.
+ */
+void
+writeCustomOpMacro(std::ostream& os, std::string& opName, const Operation& op,
+        bool addressable) {
+
+    os << "#define _TCE";
+
+    if (addressable) {
+        os << "FU";
+    }
+
+    os << "_" << opName << "(";
+
+    if (addressable) {
+        os << "FU, ";
+    }
+
+    int seenInputs = 0;
+    int seenOutputs = 0;
+    for (int i = 1; 
+         i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
+         i++) {
+
+        const Operand& operand = op.operand(i);
+        if (i > 1)
+            os << ", ";
+        if (operand.isInput()) {
+            seenInputs++;
+            os << "i" << seenInputs;
+        } else {
+            seenOutputs++;
+            os << "o" << seenOutputs;
+        }
+    }
+
+    os << ") do { ";
+
+    /* Generate temporary variables to ensure casting to
+     a correct value from the inline assembly statement.
+
+     Without this, LLVM inline assembly used i8 for the
+     output register type in case a char was used to
+     read the value. This produced strange errors due
+     to the value produced by the inline asm not being
+     masked to the char size (in case the output is really
+     larger than i8 in this case).
+
+     In this bug (#35), after the char was written to
+     a larger variable, the upper bits (produced by the custom op)
+     were visible which is not expected behavior (writing int
+     to char should zero out the upper bits). Forcing
+     writing to int ensures the inline asm has 32 bit
+     reg for the register thus LLVM produced correct
+     masking/cast operations when writing the value to a smaller
+     variable.
+
+     Use do {} while(0) block instead of {} to allow using the
+     custom ops as statements which end with ; etc.
+
+     NOTE: we cannot add "memory" to the clobber list with
+     operations that write to memory because it seems to crash
+     (some versions of) gcc. Thus, they are marked 'volatile'.
+     */
+
+    for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+        const Operand& operand = op.output(out - 1);
+        os << operandTypeCString(operand) << " __tce_op_output_" << out
+                << " = (" << operandTypeCString(operand) << ")0; ";
+    }
+
+    std::string volatileKeyword = "";
+    if (op.writesMemory() || op.hasSideEffects() ||
+            op.affectsCount() > 0 || op.affectedByCount() > 0) {
+        volatileKeyword = "volatile ";
+    }
+
+    os << "asm " << volatileKeyword << "(";
+
+    if (addressable) {
+        os << "FU";
+    }
+
+    os << "\"";
+
+    if (addressable) {
+        os << ".";
+    }
+
+    os << opName << "\":";
+
+    for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+        if (out > 1)
+            os << ", ";
+        os << "\"=r\"(" << " __tce_op_output_" << out << ")";
+    }
+    os << ":";
+
+    for (int in = 1; in < op.numberOfInputs() + 1; in++) {
+        const Operand& operand = op.input(in - 1);
+
+        if (in > 1)
+            os << ", ";
+        os << "\"ir\"((" << operandTypeCString(operand)
+                << ")(i" << in << "))";
+    }
+
+    os << "); ";
+
+    // write the results from the temps to the output variables
+    for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+        os << "o" << out << " = __tce_op_output_" << out << ";";
+    }
+
+    os << "} while(0) " << std::endl;
+}
+
+/**
+ * Produces the _TCE_OPNAME and _TCEFU_OPNAME macros that can be
+ * written to the tceops.h header file.
  */
 void
 writeCustomOpMacros(std::ostream& os) {
-    
+
     OperationPool pool;
     OperationIndex& index = pool.index();
     std::set<std::string> operations;
@@ -91,96 +211,13 @@ writeCustomOpMacros(std::ostream& os) {
             if (operations.count(opName) > 0) {
                 continue;
             }
-            operations.insert(opName);            
+            operations.insert(opName);
 
-            os << "#define _TCE_" << opName << "(";
-
-            int seenInputs = 0;
-            int seenOutputs = 0;
-            for (int i = 1; 
-                 i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
-                 i++) {
-
-                const Operand& operand = op.operand(i);
-                if (i > 1) os << ", ";
-                if (operand.isInput()) {
-                    seenInputs++;
-                    os << "i" << seenInputs;
-                } else {
-                    seenOutputs++;
-                    os << "o" << seenOutputs;
-                }
-            }
-
-            os << ") do { ";
-
-            /* Generate temporary variables to ensure casting to
-               a correct value from the inline assembly statement.
-
-               Without this, LLVM inline assembly used i8 for the
-               output register type in case a char was used to
-               read the value. This produced strange errors due 
-               to the value produced by the inline asm not being 
-               masked to the char size (in case the output is really
-               larger than i8 in this case). 
-
-               In this bug (#35), after the char was written to 
-               a larger variable, the upper bits (produced by the custom op) 
-               were visible which is not expected behavior (writing int
-               to char should zero out the upper bits). Forcing
-               writing to int ensures the inline asm has 32 bit
-               reg for the register thus LLVM produced correct
-               masking/cast operations when writing the value to a smaller
-               variable. 
-
-               Use do {} while(0) block instead of {} to allow using the
-               custom ops as statements which end with ; etc.
-
-               NOTE: we cannot add "memory" to the clobber list with
-               operations that write to memory because it seems to crash
-               (some versions of) gcc. Thus, they are marked 'volatile'.
-            */
-
-            for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-                const Operand& operand = op.output(out - 1);
-                os << operandTypeCString(operand) << " __tce_op_output_" << out
-                   << " = (" << operandTypeCString(operand) << ")0; ";
-            }
-
-            std::string volatileKeyword = "";
-            if (op.writesMemory() || op.hasSideEffects() || 
-                op.affectsCount() > 0 || op.affectedByCount() > 0) {
-                volatileKeyword = "volatile ";
-            }
-               
-            os << "asm " << volatileKeyword << "(\"" << opName << "\":";
-
-            for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-                if (out > 1) os << ", ";
-                os << "\"=r\"(" << " __tce_op_output_" << out << ")";
-            }
-            os << ":";
-
-            for (int in = 1; in < op.numberOfInputs() + 1; in++) {
-                const Operand& operand = op.input(in - 1);
-
-                if (in > 1) os << ", ";
-                os << "\"ir\"((" << operandTypeCString(operand) 
-                   << ")(i" << in << "))";
-            }
-
-            os << "); ";
-
-            // write the results from the temps to the output variables
-            for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-                os << "o" << out << " = __tce_op_output_" << out << ";";
-            }
-
-            os << "} while(0) " << std::endl;
+            writeCustomOpMacro(os, opName, op, false);
+            writeCustomOpMacro(os, opName, op, true);
         }
     }
 }
-
 
 /**
  * tceopgen main function.
@@ -188,7 +225,7 @@ writeCustomOpMacros(std::ostream& os) {
  * Generates plugin sourcecode files using TDGen.
  */
 int main(int argc, char* argv[]) {
-    
+
     if (!(argc == 1 || argc == 3) ||
         (argc == 3 && Conversion::toString(argv[1]) != std::string("-o"))) {
 
@@ -196,7 +233,7 @@ int main(int argc, char* argv[]) {
                   << "   -o Output File." << std::endl;
         return EXIT_FAILURE;
     }
-   
+
     if (argc == 1) {
         writeCustomOpMacros(std::cout);
     } else if (argc == 3) {

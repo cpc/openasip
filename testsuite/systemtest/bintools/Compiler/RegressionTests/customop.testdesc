@@ -1,0 +1,5 @@
+<?php
+$test_description="addressable custom operation should be executed on the right FU";
+$test_bin = "./test_customop.sh";
+$bin_args = "";
+?>

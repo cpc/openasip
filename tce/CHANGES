@@ -56,6 +56,9 @@ Smaller features
 - ProGe: test bench generation is now disabled by default, use '-t'
   to generate the test bench.
   Thanks to Hervé Yviquel for the patch.
+- Support for calling custom operations to be executed in specified 
+  function unit.
+  Thanks to Hervé Yviquel for the patch.
 - ProGe: HDL-file compilation order in Modelsim compilation script is
   now fixed. Thanks to Vinogradov Vyacheslav for the patch
   

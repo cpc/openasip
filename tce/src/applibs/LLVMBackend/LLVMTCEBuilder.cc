@@ -1980,14 +1980,31 @@ LLVMTCEBuilder::emitInlineAsm(
         return emitSpecialInlineAsm(opName, mi, proc);
     }
 
+    std::string addressedFU;
+
+    // test this is an addressable instruction
+    bool addressedOp = StringTools::containsChar(opName, '.');
+
+    if (addressedOp) {
+        // Split the string to get the FU and the operation
+        std::istringstream iss(opName);
+        std::getline(iss, addressedFU, '.');
+        std::getline(iss, opName, '.');
+        if (!mach_->functionUnitNavigator().hasItem(addressedFU)) {
+            std::cerr << "ERROR: Fonction Unit '" << addressedFU
+                    << "' not found."
+                    << std::endl;
+            assert(false);
+        }
+    }
+
     assert(numDefs != numOperands-1 && "No asm string?");
     assert(mi->getOperand(numDefs).isSymbol() && "No asm string?");
 
-
     if (StringTools::containsChar(opName, ' ') ||
-        StringTools::containsChar(opName, ';') ||
-        StringTools::containsChar(opName, '>') ||
-        StringTools::containsChar(opName, '<')) {
+            StringTools::containsChar(opName, ';') ||
+            StringTools::containsChar(opName, '>') ||
+            StringTools::containsChar(opName, '<')) {
 
         std::cerr << "ERROR: Inline assembly not supported!" << std::endl;
         assert(false);
@@ -2086,9 +2103,25 @@ LLVMTCEBuilder::emitInlineAsm(
 
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         proc->add(operandMoves[i]);
+        if (addressedOp) {
+            for (int j = 0; j < operandMoves[i]->moveCount(); j++) {
+                TTAProgram::ProgramAnnotation dstCandidate(
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST,
+                        addressedFU);
+                operandMoves[i]->move(0).addAnnotation(dstCandidate);
+            }
+        }
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         proc->add(resultMoves[i]);
+        if (addressedOp) {
+            for (int j = 0; j < resultMoves[i]->moveCount(); j++) {
+                TTAProgram::ProgramAnnotation srcCandidate(
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC,
+                        addressedFU);
+                resultMoves[i]->move(0).addAnnotation(srcCandidate);
+            }
+        }
     }
     return first;
 }

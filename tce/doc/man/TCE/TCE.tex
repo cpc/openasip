@@ -1438,12 +1438,24 @@ inline assembly.
 Usage of these macros is as follows:
 
 \begin{verbatim}
- _TCE_<name>(input1, ... , inputN, output1, ... , outputN);
+ _TCE_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 
-where <name> is the name of the operation in OSAL. Number of input and output
-operands depends on the operation. Input operands are given first and they are
-followed by output operands if any. 
+where <opName> is the name of the operation in OSAL. Number of input and 
+output operands depends on the operation. Input operands are given first 
+and they are followed by output operands if any. 
+
+An addressable version of the custom operation is available too. This 
+version permits to choose a specific function unit to execute the given 
+operation.
+
+Usage of these macros is as follows:
+
+\begin{verbatim}
+ _TCE_<opName>(<fuName>, input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+where <fuName> is the name of the target function unit in ProDe.
 
 In our case we need to write operands into the reflecter and read the
 result from it. We named the operations ``REFLECT8'' and ``REFLECT32'', thus

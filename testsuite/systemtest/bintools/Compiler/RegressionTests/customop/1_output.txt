@@ -1,0 +1,4 @@
+_TCE_ADD(i1, i2, o1)
+_TCEFU_ADD(FU, i1, i2, o1)
+ALU8.S2.add
+ALU6.S2.sub
