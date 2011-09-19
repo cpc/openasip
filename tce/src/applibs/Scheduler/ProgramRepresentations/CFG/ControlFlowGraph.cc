@@ -1640,7 +1640,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         assert(!irm->hasReference(proc.instructionAtIndex(i)));
     }
 #endif
-
+        
     while (!mf.empty())
         mf.erase(mf.begin());
 
@@ -1672,7 +1672,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 
         // then start searching for the next node.
 
-        // if has fall-turu-successor, select it so no need to add
+        // if has fall-thru-successor, select it so no need to add
         // extra jump
         BasicBlockNode* ftNode = fallThruSuccessor(*currentBBN);
         if (ftNode != NULL && ftNode->isNormalBB()) {
@@ -1757,7 +1757,7 @@ ControlFlowGraph::copyToLLVMMachineFunction(
     for (unsigned int j = 0; j < nCount; j++) {
         TTAProgram::BasicBlock& bb = node(j).basicBlock();
         llvm::MachineBasicBlock* mbb = &getMBB(mf, bb);
-        buildMBBFromBB(*mbb, bb);
+        buildMBBFromBB(*mbb, bb);  
     }
 
     /// Add the dummy instructions denoting labels to instructions
@@ -1788,7 +1788,6 @@ ControlFlowGraph::copyToLLVMMachineFunction(
     }
     tpos_.clear();
     programOperationToMIMap_.clear();
-
     /// Based on CFG edges, add successor information to the generated
     /// machine function.
     unsigned int eCount = edgeCount();
@@ -1805,7 +1804,8 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         if (hNode.isSuccessor(&tNode))
             continue;
         tNode.addSuccessor(&hNode);
-    }    
+    }
+
 }
 
 //#define DEBUG_POM_TO_MI
@@ -2041,12 +2041,15 @@ ControlFlowGraph::buildMBBFromBB(
                     if (terminal->isCodeSymbolReference()) {
                         // has to be a global variable at this point?
                         // Constant pool indeces are converted to
-                        // dummy references when LLVM->POM conversion.
+                        // dummy references when LLVM->POM conversion
+                        // in the form of ".CP_INDEX_OFFSET"
                         if (terminal->toString().startsWith(".CP_")) {
-                            TCEString ref = terminal->toString().substr(4);
-                            unsigned index = Conversion::toInt(ref);
+                            std::vector<TCEString> refs = 
+                                terminal->toString().split("_");
+                            unsigned index = Conversion::toInt(refs.at(1));
+                            unsigned offset = Conversion::toInt(refs.at(2));
                             mi->addOperand(
-                                llvm::MachineOperand::CreateCPI(index, 0));     
+                                llvm::MachineOperand::CreateCPI(index, offset));     
                         } else if (terminal->toString().startsWith(".JTI_")) {
                             TCEString ref = terminal->toString().substr(5);
                             unsigned index = Conversion::toInt(ref);

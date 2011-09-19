@@ -61,6 +61,7 @@
 #include <llvm/ADT/SmallString.h>
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
+#include <llvm/CodeGen/MachineJumpTableInfo.h>
 
 //#define WRITE_DDG_DOTS
 //#define WRITE_CFG_DOTS
@@ -154,7 +155,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
                 Application::cmdLineOptions());
         fastCompilation = options->optLevel() == 0;
     }
-
+    markJumpTableDestinations(mf, *cfg);
     if (fastCompilation) {
         compileFast(*cfg);
     } else {
@@ -173,7 +174,8 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     }
 
     if (modifyMF_) {
-        cfg->copyToLLVMMachineFunction(mf, irm);        
+        cfg->copyToLLVMMachineFunction(mf, irm); 
+        fixJumpTableDestinations(mf, *cfg);               
         delete cfg;
         return true;
     }
@@ -539,14 +541,14 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     }
 
     fixProgramOperationReferences();
-
+    
     // create jumps to exit node
     BasicBlockNode* exit = new BasicBlockNode(0, 0, false, true);
     cfg->addNode(*exit);
     cfg->addExitFromSinkNodes(exit);
     // add back edge properties.
     cfg->detectBackEdges();
-
+    
     return cfg;
 }
 
@@ -564,6 +566,7 @@ LLVMTCEIRBuilder::compileOptimized(
     DataDependenceGraph* ddg = ddgBuilder_.build(
         cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, true);
 
+    TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS
     ddg.writeToDotFile(fnName + "_ddg1.dot");
 #endif
@@ -744,6 +747,60 @@ LLVMTCEIRBuilder::registerIndex(unsigned llvmRegNum) const {
     }
 }
 
+void
+LLVMTCEIRBuilder::markJumpTableDestinations(
+    llvm::MachineFunction& mf,
+    ControlFlowGraph& cfg) {
+    llvm::MachineJumpTableInfo* jtInfo = mf.getJumpTableInfo();
+    if (jtInfo == NULL || jtInfo->isEmpty()) {
+        return;
+    } 
+
+    std::vector<llvm::MachineJumpTableEntry> entries = jtInfo->getJumpTables();
+    jumpTableRecord_.clear();
+    for (unsigned int i = 0; i < entries.size(); i++) {
+        std::vector<BasicBlockNode*> nodes;
+        jumpTableRecord_.push_back(nodes);
+        std::vector<MachineBasicBlock*> blocks =
+            entries.at(i).MBBs;
+        for (unsigned j = 0; j < blocks.size(); j++) {
+            MachineBasicBlock* mbb = blocks.at(j);
+            BasicBlockNode* bbn = NULL;
+            std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator
+                bbMapIter = bbMapping_.find(mbb);
+            assert(bbMapIter != bbMapping_.end() && 
+                "The Basic Block Node for Machine Basic Block is missing!");
+            bbn = bbMapIter->second;
+            jumpTableRecord_.at(i).push_back(bbn);
+        }
+    }
+   
+}   
+
+void
+LLVMTCEIRBuilder::fixJumpTableDestinations(
+    llvm::MachineFunction& mf,
+    ControlFlowGraph& cfg) {
     
+    llvm::MachineJumpTableInfo* jtInfo = mf.getJumpTableInfo();
+    if (jtInfo == NULL) {
+        return;
+    }     
+    for (int i = 0; i < jumpTableRecord_.size(); i++) {
+        std::vector<BasicBlockNode*> nodes = jumpTableRecord_.at(i);
+        std::vector<MachineBasicBlock*> oldTable = 
+            jtInfo->getJumpTables().at(i).MBBs;
+        for (int j = 0; j < nodes.size(); j++) {
+            const BasicBlockNode* bbn = nodes.at(j);
+            MachineBasicBlock* newMBB = &cfg.getMBB(mf, bbn->basicBlock());
+            MachineBasicBlock* oldMBB = oldTable.at(j);
+            jtInfo->ReplaceMBBInJumpTable(i, oldMBB, newMBB);
+            // Slight cheating to force LLVM to emit machine basic block label
+            // to avoid missing references from Jump Table Records to basic
+            // blocks. TODO: Proper fix is needed.
+            newMBB->setIsLandingPad();                        
+        }
+    }
+}
 
 }

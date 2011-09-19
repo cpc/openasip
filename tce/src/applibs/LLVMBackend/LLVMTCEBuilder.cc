@@ -1556,11 +1556,12 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
             SimValue cpeAddr(addr, width);
             return new TTAProgram::TerminalImmediate(cpeAddr);
         } else {          
-            // Constant Pool index is converted to dummy
+            // Constant Pool Index is converted to dummy
             // symbol reference. Will be converted back
             // when doing POM->LLVM transfer.
+            // Format of reference is ".CP_INDEX_OFFSET".
             TCEString ref(".CP_");
-            ref <<  mo.getIndex(); 
+            ref <<  mo.getIndex() << "_" << mo.getOffset();
             return createSymbolReference(ref);
       }
     } else if (mo.isJTI()) {
@@ -1902,7 +1903,7 @@ LLVMTCEBuilder::emitSPInitialization() {
 }
 
 void
-    LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
+LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
 
     unsigned spDRN = spDRegNum();
     std::string rfName = registerFileName(spDRN);

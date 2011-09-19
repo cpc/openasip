@@ -114,7 +114,7 @@ public:
     const CFGStatistics& statistics();
     friend class ControlDependenceGraph;
     friend class ProgramDependenceGraph;
-
+    
     void copyToProcedure(
         TTAProgram::Procedure& proc, 
         TTAProgram::InstructionReferenceManager* irm = NULL);
@@ -144,6 +144,9 @@ public:
         bool removeDeadCode, 
         TTAProgram::InstructionReferenceManager& irm,
         DataDependenceGraph* ddg);
+    llvm::MachineBasicBlock& getMBB(
+        llvm::MachineFunction& mf,
+        const TTAProgram::BasicBlock& bb) const;
 
 private:
     // For temporary storage
@@ -245,11 +248,7 @@ private:
         BasicBlockNode& node1,
         BasicBlockNode& node2,
         DataDependenceGraph* ddg);
-    
-    llvm::MachineBasicBlock& getMBB(
-        llvm::MachineFunction& mf,
-        const TTAProgram::BasicBlock& bb) const;
-    
+        
     enum RemovedJumpData {
         JUMP_NOT_REMOVED = 0, /// nothing removed
         JUMP_REMOVED, /// jump removed, other things remain in BB

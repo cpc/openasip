@@ -127,7 +127,13 @@ namespace llvm {
             ControlFlowGraph& cfg, TTAProgram::InstructionReferenceManager& irm);
 
         ControlFlowGraph* buildTCECFG(llvm::MachineFunction& mf);
-
+        void markJumpTableDestinations(
+            llvm::MachineFunction& mf, 
+            ControlFlowGraph& cfg);
+        void fixJumpTableDestinations(
+            llvm::MachineFunction& mf, 
+            ControlFlowGraph& cfg);
+        
         InterPassData* ipData_;
         // TODO: how to get these?
         std::set<TCEString> allParamRegs_;
@@ -137,6 +143,8 @@ namespace llvm {
 
         std::map<const MachineBasicBlock*,BasicBlockNode*> bbMapping_;
 
+        std::vector<std::vector<BasicBlockNode*> > jumpTableRecord_;
+        
         // write back the scheduled instructions to the machine function?
         bool modifyMF_;
 
