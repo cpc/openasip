@@ -786,11 +786,11 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
     if (jtInfo == NULL) {
         return;
     }     
-    for (int i = 0; i < jumpTableRecord_.size(); i++) {
+    for (unsigned int i = 0; i < jumpTableRecord_.size(); i++) {
         std::vector<BasicBlockNode*> nodes = jumpTableRecord_.at(i);
         std::vector<MachineBasicBlock*> oldTable = 
             jtInfo->getJumpTables().at(i).MBBs;
-        for (int j = 0; j < nodes.size(); j++) {
+        for (unsigned int j = 0; j < nodes.size(); j++) {
             const BasicBlockNode* bbn = nodes.at(j);
             MachineBasicBlock* newMBB = &cfg.getMBB(mf, bbn->basicBlock());
             MachineBasicBlock* oldMBB = oldTable.at(j);
