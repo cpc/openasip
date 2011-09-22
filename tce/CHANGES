@@ -1,8 +1,8 @@
 1.5 not yet released
 ====================
 
-Notable changes
----------------
+Notable changes and features
+----------------------------
 - Support for LLVM 3.0svn. Dropped support for LLVM 2.8 and older. 
   LLVM 2.9 still works.
 - tcecc: Floating point emulation code is not included by default anymore,
@@ -10,6 +10,9 @@ Notable changes
   not support them.
 - bclib: added a Light Weight PRinting library. Small functions useful
   for debug printouts.
+- Support for calling custom operations to be executed in specified 
+  function unit (e.g. _TCEFU_ADD("ALU8", A1_Cb, A1_Cr, result2)).
+  Thanks to Hervé Yviquel for the patch.
 
 Bugfixes
 --------
@@ -55,9 +58,6 @@ Smaller features
   Thanks to Hervé Yviquel for the patch.
 - ProGe: test bench generation is now disabled by default, use '-t'
   to generate the test bench.
-  Thanks to Hervé Yviquel for the patch.
-- Support for calling custom operations to be executed in specified 
-  function unit.
   Thanks to Hervé Yviquel for the patch.
 - ProGe: HDL-file compilation order in Modelsim compilation script is
   now fixed. Thanks to Vinogradov Vyacheslav for the patch
