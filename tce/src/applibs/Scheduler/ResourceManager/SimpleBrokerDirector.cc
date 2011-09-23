@@ -282,10 +282,20 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     OriginalResources* oldRes = MapTools::valueForKey<OriginalResources*>(
         origResMap_, &node);
     
-    node.move().setSource(oldRes->src_);
+    // restore original resources of node
+    if (!node.move().source().isGPR()) {
+        node.move().setSource(oldRes->src_);
+    } else {
+        delete oldRes->src_;
+    }
     oldRes->src_ = NULL;
-    node.move().setDestination(oldRes->dst_);
+    if (!node.move().destination().isGPR()) {
+        node.move().setDestination(oldRes->dst_);
+    } else {
+        delete oldRes->dst_;
+    }
     oldRes->dst_ = NULL;
+
     node.move().setBus(*oldRes->bus_);
     if (oldRes->isGuarded_) {
         node.move().setGuard(oldRes->guard_);
