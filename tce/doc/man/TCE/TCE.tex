@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.5-pre}
-\ver{22}
+\ver{23}
 \firstday{2006-10-25}
-\lastday{2011-04-04}
+\lastday{2011-09-26}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -1444,18 +1444,6 @@ Usage of these macros is as follows:
 where <opName> is the name of the operation in OSAL. Number of input and 
 output operands depends on the operation. Input operands are given first 
 and they are followed by output operands if any. 
-
-An addressable version of the custom operation is available too. This 
-version permits to choose a specific function unit to execute the given 
-operation.
-
-Usage of these macros is as follows:
-
-\begin{verbatim}
- _TCE_<opName>(<fuName>, input1, ... , inputN, output1, ... , outputN);
-\end{verbatim}
-
-where <fuName> is the name of the target function unit in ProDe.
 
 In our case we need to write operands into the reflecter and read the
 result from it. We named the operations ``REFLECT8'' and ``REFLECT32'', thus
@@ -3195,11 +3183,12 @@ same operation state.
 
 When started, the OSAL Tester enters interactive mode and prompts the user
 for operations. Any nonempty line entered by the user is interpreted as one
-operation, unless the character `!' is given at the beginning of the string.
-This character (which is not allowed in operation names) introduces
+operation (e.g. ``ADD 1 2``), unless the character `!' is given at the beginning of 
+the string. This character (which is not allowed in operation names) introduces
 \emph{meta-commands} that are recognized by the interpreter and are not
 treated as potential operations in the architecture repertoire. For example, the
-OSAL Tester can be quit with the meta-command \textit{!quit}.
+OSAL Tester can be quit with the meta-command \textit{!quit}. See \textit{!help}
+for a list of meta commands and \textit{!help <cmdname>} for their usage.
 
 Single operands of operations may only be constants and are separated by
 blanks.
@@ -4148,19 +4137,37 @@ Symbols are given in a comma seperated list.
 \label{sec:tceccCustOp}
 
 Tcecc compiler automatically defines macros for operations found from
-operation definition files in OSAL search paths (see section 
-~\ref{sec:osalpaths} for more details). You can use these macros in C code
-by defining:
-\begin{verbatim}
-#include "tceops.h"
-\end{verbatim}
+operation definition files in OSAL search paths and includes them
+when compiling your program.
 
-Macros use the following format:
+The macros use the following format:
+
 \begin{verbatim}
-_TCE_<name>(input1, ... , inputN, output1, ... , outputN);
+_TCE_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 where <name> is the operation name defined in OSAL. Number of input and
 output operands depends on the operation.
+
+There are also versions of the custom operation macros which can be used
+to explicitly target an function unit (FU). 
+
+Usage of the ``explicit-FU`` macros is as follows:
+
+\begin{verbatim}
+ _TCEFU_<opName>(<fuName>, input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+where <fuName> is the name of the target function unit in ProDe. 
+
+Examples of usage:
+
+\begin{verbatim}
+ 
+ _TCE_MAC(a, b, c);
+ _TCEFU_MAC("MAC1", a, b, c);
+
+\end{verbatim}
+
 
 
 \subsection{Known issues}
