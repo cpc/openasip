@@ -73,6 +73,9 @@ public:
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
 
+    virtual void setAlwaysReloadBehavior(bool f) { alwaysReloadBehavior_ = f; }
+    void uninitializeBehavior() const;
+
 private:
     /// Copying not allowed.
     OperationBehaviorProxy(const OperationBehaviorProxy&);
@@ -80,7 +83,6 @@ private:
     OperationBehaviorProxy& operator=(const OperationBehaviorProxy&);
 
     void initializeBehavior() const;
-    void uninitializeBehavior() const;
    
     /// Operation that owns this proxy;
     Operation* target_;

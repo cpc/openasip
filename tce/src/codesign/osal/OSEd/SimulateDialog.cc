@@ -57,6 +57,7 @@
 #include "OSEd.hh"
 #include "OSEdInformer.hh"
 #include "TCEString.hh"
+#include "OperationBehaviorProxy.hh"
 
 using boost::format;
 using std::string;
@@ -143,6 +144,16 @@ SimulateDialog::SimulateDialog(
     OSEdInformer* informer = wxGetApp().mainFrame()->informer();
     informer->registerListener(OSEdInformer::EVENT_REGISTER, infoDialog_);
     informer->registerListener(OSEdInformer::EVENT_RESET, infoDialog_);
+
+    /* Ensure we won't refresh the behavior from the plugin file again
+       during the simulation. This leads to crashes due to using a state
+       instance created by a behavior definition created by a previously
+       loaded behavior instance. This effectively "freezes" the behavior
+       to the one loaded in the next behavior function call. */
+    behaviorProxy_ = 
+        dynamic_cast<OperationBehaviorProxy*>(&operation->behavior());
+    assert(behaviorProxy_ != NULL);
+    behaviorProxy_->setAlwaysReloadBehavior(false);
 }
 
 /**
@@ -158,7 +169,17 @@ SimulateDialog::~SimulateDialog() {
     wxPoint point(x, y);
     DialogPosition::setPosition(DialogPosition::DIALOG_SIMULATE, point);
 
-    delete operation_;
+    /* Ensure we won't use the old state object the next time because
+       the behavior will be reloaded from the dynlib. It would crash. */
+    OperationBehavior& behavior = operation_->behavior();
+    behavior.deleteState(OperationContainer::operationContext());
+
+    /* "Unfreeze" the OperationBehavior. Now it will be reloaded always
+       when accessing the methods to enable the dynamic menu items in 
+       the operation list. */
+    behaviorProxy_->setAlwaysReloadBehavior(true);
+    behaviorProxy_->uninitializeBehavior();
+
 }
 
 /**

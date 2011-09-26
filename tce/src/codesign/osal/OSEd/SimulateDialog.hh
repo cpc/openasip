@@ -45,6 +45,7 @@ class SimulationInfoDialog;
 class Operation;
 class DataObject;
 class NumberControl;
+class OperationBehaviorProxy;
 
 /**
  * Class for simulating operation behavior.
@@ -155,6 +156,9 @@ private:
     unsigned int clock_;
     /// Dialog for showing additional information.
     SimulationInfoDialog* infoDialog_;
+    /// The behavior proxy that loads the behavior. 
+    /// Used to "freeze" the behavior loading for the duration of the simulation.
+    OperationBehaviorProxy* behaviorProxy_;
     
     DECLARE_EVENT_TABLE()
 };
