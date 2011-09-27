@@ -97,7 +97,7 @@ OSEdSimulateCmd::Do() {
 
     SimulateDialog* dialog = 
         new SimulateDialog(parentWindow(), op, pathName, modName);
-    dialog->Show();
+    dialog->ShowModal();
     return true;
 }
 

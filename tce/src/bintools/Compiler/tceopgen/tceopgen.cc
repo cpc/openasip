@@ -70,8 +70,12 @@ operandTypeCString(const Operand& operand) {
  * tceops.h header file from the given operation.
  */
 void
-writeCustomOpMacro(std::ostream& os, std::string& opName, const Operation& op,
-        bool addressable) {
+writeCustomOpMacro(
+    std::ostream& os, std::string& opName, const Operation& op, 
+    bool addressable) {
+
+    if (op.numberOfInputs() + op.numberOfOutputs() == 0)
+        return;
 
     os << "#define _TCE";
 
