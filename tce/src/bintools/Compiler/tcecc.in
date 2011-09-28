@@ -558,12 +558,22 @@ p.add_option('-g',
              dest="g_cc_switch", default=False,
              help="Passed to gcc.")
 
-p.add_option('--default-regalloc',
-             action='store_true', dest='default_regalloc', default=False,
-             help=\
-"""Use the default register allocator of LLVM instead of the register allocator
+# Use the default greedy allocator only with LLVM 3.0.
+if "@LLVM_VERSION@" == "2.9":
+    p.add_option('--default-regalloc',
+                 action='store_true', dest='default_regalloc', default=False,
+                 help=\
+                     """Use the default register allocator of LLVM instead of the register allocator
 that aims to maximize the instruction level parallelism available for
 the post-pass scheduler.""")
+else:
+    p.add_option('--experimental-regalloc',
+                 action='store_false', dest='default_regalloc', default=True,
+                 help=\
+                     """Use the customized experimental register allocator of TCE
+that aims to maximize the instruction level parallelism available for
+the post-pass scheduler instead of the default LLVM register allocator (deprecated).
+""")
 
 p.add_option('--extra-llvm-opts',
              type="string", action="store",

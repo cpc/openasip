@@ -501,7 +501,7 @@ class TestCase:
         self.description = ""
         self.architectures = []
         self.directory = directory
-        self.title = directory[2:] # Strip the leading "./"
+        self.title = directory[2:] if directory.startswith('./') else directory
 
         descriptionFile = __builtin__.open(directory + '/description.txt', 'r')
         self.description = descriptionFile.read().strip()

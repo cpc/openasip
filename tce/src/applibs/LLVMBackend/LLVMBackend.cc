@@ -425,8 +425,13 @@ LLVMBackend::compile(
     LLVMTCECmdLineOptions* options =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options->useExperimentalRegAllocator()) {
+#ifdef LLVM_2_9
         llvm::RegisterRegAlloc::setDefault(
             createILPLinearScanRegisterAllocator);
+#else
+        // LLVM 3.0's greedy allocator is better than the ILP-modified
+        // linear scan allocator of ours, thus let's use the default.
+#endif
     }
 
     /**
