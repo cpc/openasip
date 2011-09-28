@@ -84,6 +84,7 @@ namespace llvm {
 
     private:
         const TargetInstrInfo& tii_;
+        bool containsCall(MachineFunction& mf) const;
     };
 }
 

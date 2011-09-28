@@ -106,18 +106,6 @@ TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
     return calleeSavedRegClasses;
 }
 
-
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-/**
- * Return true if the specified function should have a dedicated frame 
- * pointer register.
- */
-bool
-TCERegisterInfo::hasFP(const MachineFunction& mf) const {
-    return false;
-}
-#endif
-
 /**
  * Eliminates call frame pseudo instructions. 
  *
@@ -130,14 +118,8 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
     MBB.erase(I);
 }
 
-#ifdef LLVM_2_7
-unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                              int SPAdj, int *Value,
-                                              RegScavenger *RS) const {
-#else
 void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, RegScavenger *RS) const {
-#endif
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
     unsigned i = 0;
@@ -163,9 +145,6 @@ void TCERegisterInfo::eliminateFrameIndex(
     } else {
         MI.getOperand(i).ChangeToRegister(TCE::SP, false);
     }
-#ifdef LLVM_2_7
-    return 0;
-#endif
 }
 
 /**
@@ -178,31 +157,50 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     MachineFrameInfo* mfi = mf.getFrameInfo();
     int numBytes = (int)mfi->getStackSize();
 
+    // this unfortunately return true for inline asm.
+    bool hasCalls = mfi->hasCalls();
+    if (hasCalls) {
+        // so then check again. Return false if only inline asm, no calls.
+        hasCalls = containsCall(mf);
+    }
+
     numBytes = (numBytes + 3) & ~3; // stack size alignment
 
     MachineBasicBlock::iterator ii = mbb.begin();
-#ifdef LLVM_2_7
-    DebugLoc dl = (ii != mbb.end() ?
-                   ii->getDebugLoc() : DebugLoc::getUnknownLoc());
-#else
+
     DebugLoc dl = (ii != mbb.end() ?
                    ii->getDebugLoc() : DebugLoc());
-#endif
 
-    BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
-        TCE::SP).addImm(4);
+    if (hasCalls) {
+        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+            .addReg(TCE::SP)
+            .addImm(4);
 
-    // Save RA to stack.
-    BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr)).addReg(
-        TCE::SP).addImm(0).addReg(TCE::RA);
+        // Save RA to stack.
+        BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
+            .addReg(TCE::SP)
+            .addImm(0)
+            .addReg(TCE::RA)
+            .setMIFlag(MachineInstr::FrameSetup);
 
-    // Adjust stack pointer
-   if (numBytes != 0) {
-        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
-            TCE::SP).addImm(numBytes);
-   }
+        mfi->setStackSize(numBytes + 4);
 
-    mfi->setStackSize(numBytes + 4);
+        // Adjust stack pointer
+        if (numBytes != 0) {
+            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+                .addReg(TCE::SP)
+                .addImm(numBytes);
+        }
+    } else { // leaf function
+        mfi->setStackSize(numBytes);
+
+        // Adjust stack pointer
+        if (numBytes != 0) {
+            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+                .addReg(TCE::SP)
+                .addImm(numBytes);
+        }
+    }
 }
 
 /**
@@ -222,17 +220,38 @@ TCERegisterInfo::emitEpilogue(
     
     unsigned numBytes = mfi->getStackSize();
 
-    if (numBytes != 4) {
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
-            TCE::SP).addImm(numBytes - 4);
+    // this unfortunately return true for inline asm.
+    bool hasCalls = mfi->hasCalls();
+    if (hasCalls) {
+        // so then check again. Return false if only inline asm, no calls.
+        hasCalls = containsCall(mf);
     }
 
-    // Restore RA from stack.
-    BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA).addReg(
-        TCE::SP).addImm(0);
+    if (hasCalls) {
+        if (numBytes != 4) {
+            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+                .addReg(TCE::SP)
+                .addImm(numBytes - 4);
+        }
 
-    BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
-        TCE::SP).addImm(4);
+        // Restore RA from stack.
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA)
+            .addReg(TCE::SP)
+            .addImm(0)
+            .setMIFlag(MachineInstr::FrameSetup);
+        
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+            .addReg(TCE::SP)
+            .addImm(4);
+    } else { // leaf function
+        
+        // adjust by stack size
+        if (numBytes != 0) {
+            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+                .addReg(TCE::SP)
+                .addImm(numBytes);
+        }
+    }
 }
 
 unsigned
@@ -263,3 +282,20 @@ TCERegisterInfo::getLLVMRegNum(unsigned RegNum, bool /*isEH */) const {
 
 
 #endif
+
+bool
+TCERegisterInfo::containsCall(MachineFunction& mf) const {
+    for (MachineFunction::iterator i = mf.begin(); i != mf.end(); i++) {
+        const MachineBasicBlock& mbb = *i;
+        for (MachineBasicBlock::const_iterator j = mbb.begin();
+             j != mbb.end(); j++){
+            const MachineInstr& ins = *j;
+            if (ins.getOpcode() == TCE::CALL || 
+                ins.getOpcode() == TCE::CALL_MEMrr || 
+                ins.getOpcode() == TCE::CALL_MEMri) {
+                return true;
+            }
+        }
+    }
+    return false;
+}

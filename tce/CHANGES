@@ -45,6 +45,7 @@ Code generator improvements
   BranchFolding pass to generate more sane CFGs, and should result
   in slightly better code being generated.
 - Can rename registers during scheduling
+- Does not save return address to stack in leaf functions.
 
 Smaller features
 ----------------

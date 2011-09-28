@@ -1434,31 +1434,21 @@ LLVMTCEBuilder::debugDataToAnnotations(
 
     DebugLoc dl = mi->getDebugLoc();
 
+    // annotate the moves generated from known ra saves.
+    if (mi->getFlag(MachineInstr::FrameSetup)) {
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
+            move->setAnnotation(progAnnotation); 
+    }
+
     // annotate the moves generated from known spill instructions
-#ifdef LLVM_2_7
-    if (dl.getIndex() == 0xFFFFFFF0) {
-#else
     if (dl.getLine() == 0xFFFFFFF0) {
-#endif
         TTAProgram::ProgramAnnotation progAnnotation(
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL);
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
-        // annotate the moves generated from known ra save.
-#ifdef LLVM_2_7
-        if (dl.getIndex() == 0xFFFFFFF1) {
-#else
-        if (dl.getLine() == 0xFFFFFFF1) {
-#endif
-            TTAProgram::ProgramAnnotation progAnnotation(
-                TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
-            move->setAnnotation(progAnnotation); 
-        } else {
 
-// these interfaces are different in llvm 2.7.
-// not going to backport this to llvm 2.7 so disabled with that
-#ifndef LLVM_2_7
             // handle file+line number debug info
             if (!dl.isUnknown()) {
 		
@@ -1484,9 +1474,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
                     move->addAnnotation(progAnnotation); 
                 }
             }
-#endif
         }
-    }
 }
 
 /**
