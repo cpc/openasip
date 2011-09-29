@@ -49,44 +49,6 @@ way for storing the interface texts, or just use the strings directly in
 the code and remove the awful TextGenerator altogether. It's unlikely TCE 
 will be ever required to support multilanguage user interfaces anyways.
 
-IntWord/UIntWord/SIntWord
--------------------------
-It's pretty confusing that IntWord is UIntWord (unsigned int). This is due
-to some mysterious idea to use INT() to mean unsigned int in OSAL and that
-way also IntWord would mean unsigned int. Now we have UINT() to mean
-unsigned int, so it would be much more intuitive if IntWord was changed to
-signed int so we don't need SIntWord.
-
-Machine Validation
-------------------
-There are some tests for machine validity from different aspects at 
-'applibs/mach'. There are no sensible class hierarchy for the tests,
-but they are executed as adhoc method calls. It would be better to have 
-a common class hierarchy for the tests. For example, each test could implement
-'MachineValidatorTest' interface which would provide the following methods:
-
-    void setMachine(Machine&);
-
-Sets the machine to be tested.
-
-    std::string title() const;
-
-Provides the title string for the test, e.g., "Check for global connection 
-register".
-
-    std::string description() const;
-
-Provides a longer description of the test.
-
-    bool runTest(std::vector<std::string>& errorMessages);
-
-Runs the tests, returns false if test failed, true if passed. The errorMessages
-container can be used to provide error message strings to the user.
-
-    void fixMachine();
-
-Modifies the machine in such a way that it passes the test.
-
 OSAL
 ----
 
@@ -99,7 +61,6 @@ and 4 MAUs at once. Anyways, TCE v1.0 supports only byte-addressed data
 memory in scheduler with 32 bit words (LDW). This can change in future
 release, but for now one has to ensure this kind of data memory addressing 
 is provided when scheduling sequential code against a real target. 
-
 
 HDB
 ---
@@ -122,10 +83,3 @@ HDB::fuImplementationByID(FUImplementationID id)
 FUEntryID FUEntry::id()
 
 where FUImplementation is a type defined as RowID.
-
-GraphNodes
-----------
-
-Move idnumber generation to GraphNode base class, since all the node types 
-implements same functionality.
-

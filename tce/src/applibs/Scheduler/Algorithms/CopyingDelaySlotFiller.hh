@@ -68,8 +68,8 @@ public:
     ~CopyingDelaySlotFiller();
     void fillDelaySlots(
         ControlFlowGraph& cfg, DataDependenceGraph& ddg, 
-        const TTAMachine::Machine& machine, UniversalMachine& um,
-        bool deleteRMs = true) throw (Exception);
+        const TTAMachine::Machine& machine, bool deleteRMs = true) 
+        throw (Exception);
     void addResourceManager(
         TTAProgram::BasicBlock& bbn, SimpleResourceManager& rm);
 protected:

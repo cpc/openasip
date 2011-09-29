@@ -65,20 +65,18 @@ class Immediate;
  * address spaces).
  */
 class TPEFProgramFactory {
-
 public:
     TPEFProgramFactory(
         const TPEF::Binary& aBinary,
-        const TTAMachine::Machine& aMachine,
-        UniversalMachine* aUniversalMachine);
+        const TTAMachine::Machine& aMachine);
     
     TPEFProgramFactory(
         const TPEF::Binary &aBinary,
-        const TTAMachine::Machine& aMachine);
+        const TTAMachine::Machine& aMachine,
+        UniversalMachine* aUniversalMachine);
 
     TPEFProgramFactory(
-        const TPEF::Binary &aBinary,
-        UniversalMachine* aMachine);
+        const TPEF::Binary &aBinary, UniversalMachine* aMachine);
     
     virtual ~TPEFProgramFactory();
 

@@ -54,8 +54,6 @@ public:
     void testGetters();
     
 private:
-    OperationPool* opPool_;
-    UniversalMachine* machine_;
     RegisterFile* uRF_;
 };
 
@@ -65,9 +63,7 @@ private:
  */
 void
 UnboundedRegisterFileTest::setUp() {
-    opPool_ = new OperationPool();
-    machine_ = new UniversalMachine(*opPool_);
-    uRF_ = machine_->registerFileNavigator().item(
+    uRF_ = UniversalMachine::instance().registerFileNavigator().item(
         UM_INTEGER_URF_NAME);
 }
 
@@ -77,8 +73,6 @@ UnboundedRegisterFileTest::setUp() {
  */
 void
 UnboundedRegisterFileTest::tearDown() {
-    delete machine_;
-    delete opPool_;
 }
 
 

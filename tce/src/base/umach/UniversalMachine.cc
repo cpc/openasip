@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of UniversalMachine class.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2011 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: yellow
  */
 
@@ -50,30 +50,27 @@ using std::string;
 using namespace TTAMachine;
 
 const unsigned int DATA_MEM_SIZE_UINT = DATA_MEMORY_SIZE;
+UniversalMachine* UniversalMachine::instance_ = NULL;
 
 /**
  * Constructor.
  *
  * Creates a complete universal machine with all the required components.
+ * Only called by instance().
  */
 UniversalMachine::UniversalMachine() :
     Machine(), isBuilt_(false) {
     construct();
 }
 
-
 /**
- * Deprecated constructor.
- *
- * Creates a complete universal machine with all the required components.
- *
- * @param opPool The operation pool used by universal function unit.
- * @deprecated Use the one without opPool as argument, as OperationPool is
- * going to be singleton anyways.
+ * Use this to get access to an UM.
  */
-UniversalMachine::UniversalMachine(OperationPool&) :
-    Machine(), isBuilt_(false) {
-    construct();
+UniversalMachine&
+UniversalMachine::instance() {
+    if (instance_ == NULL)
+        instance_ = new UniversalMachine();
+    return *instance_;
 }
 
 /**

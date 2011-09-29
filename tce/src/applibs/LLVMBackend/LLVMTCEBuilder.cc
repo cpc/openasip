@@ -148,7 +148,6 @@ LLVMTCEBuilder::initMembers() {
     tm_ = NULL; 
     prog_ = NULL;
     mach_ = NULL; 
-    umach_ = NULL; 
     mang_ = NULL; 
     dmem_ = NULL; 
     end_ = 0;
@@ -252,7 +251,6 @@ LLVMTCEBuilder::initDataSections() {
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
-    umach_ = &prog_->universalMachine();
 
     // Avoid placing data to address 0, it may break some null pointer
     // tests.
@@ -1056,13 +1054,14 @@ LLVMTCEBuilder::emitInstruction(
         opName = operationName(*mi);
     }
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
-    if (umach_->controlUnit()->hasOperation(opName)) {
-        fu = umach_->controlUnit();
-    } else if (umach_->universalFunctionUnit().hasOperation(opName)) {
-        fu = &umach_->universalFunctionUnit();
+    if (UniversalMachine::instance().controlUnit()->hasOperation(opName)) {
+        fu = UniversalMachine::instance().controlUnit();
+    } else if (UniversalMachine::instance().universalFunctionUnit().
+               hasOperation(opName)) {
+        fu = &UniversalMachine::instance().universalFunctionUnit();
     } else {
         abortWithError(
             TCEString("ERROR: Operation '") + opName +
@@ -1492,7 +1491,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         // is it the RA register?
         if (isTTATarget() && dRegNum == raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
-                *umach_->controlUnit()->returnAddressPort());
+                *UniversalMachine::instance().controlUnit()->returnAddressPort());
         }
 
         // an FU port register?
@@ -1706,7 +1705,7 @@ LLVMTCEBuilder::createMove(
         return NULL;
     }
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Move* move = createMove(
         createTerminal(src), createTerminal(dst), bus);
 
@@ -1748,12 +1747,12 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitReturn(
     const MachineInstr* /* mi */, TTAProgram::CodeSnippet* proc) {
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::TerminalFUPort* src = new TTAProgram::TerminalFUPort(
-        *umach_->controlUnit()->returnAddressPort());
+        *UniversalMachine::instance().controlUnit()->returnAddressPort());
 
     TTAMachine::HWOperation& jump =
-        *umach_->controlUnit()->operation("jump");
+        *UniversalMachine::instance().controlUnit()->operation("jump");
 
     TTAProgram::TerminalFUPort* dst = new TTAProgram::TerminalFUPort(jump, 1);
     TTAProgram::Move* move = createMove(src, dst, bus);
@@ -1787,7 +1786,7 @@ LLVMTCEBuilder::emitSelect(
     TTAProgram::Terminal* srcT = createTerminal(mi->getOperand(2));
     TTAProgram::Terminal* srcF = createTerminal(mi->getOperand(3));
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Instruction *firstIns = NULL;
 
     // do no create X -> X moves.
@@ -1915,7 +1914,7 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Move* move = createMove(src, dst, bus);
     TTAProgram::Instruction* spInit = new TTAProgram::Instruction();
     spInit->addMove(move);
@@ -1999,7 +1998,7 @@ LLVMTCEBuilder::emitInlineAsm(
         assert(false);
     }
 
-    const UniversalFunctionUnit& fu = umach_->universalFunctionUnit();
+    const UniversalFunctionUnit& fu = UniversalMachine::instance().universalFunctionUnit();
     if (!fu.hasOperation(opName)) {
         std::cerr << "ERROR: Custom operation '" << opName << "' not found."
                   << std::endl;        
@@ -2008,18 +2007,14 @@ LLVMTCEBuilder::emitInlineAsm(
 
     HWOperation* op = fu.operation(opName);
 
-    Bus& bus = umach_->universalBus();
+    Bus& bus = UniversalMachine::instance().universalBus();
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
     ExecutionPipeline::OperandSet useOps = op->pipeline()->readOperands();
     ExecutionPipeline::OperandSet defOps = op->pipeline()->writtenOperands();
 
     // go through the operands (0 is the chain, 1 is the asm string)
-#ifdef LLVM_2_7
-    for (unsigned o = 2; o < mi->getNumOperands(); o++) {
-#else
     for (unsigned o = 3; o < mi->getNumOperands(); o++) {
-#endif
         const MachineOperand& mo = mi->getOperand(o);
         if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
             // All operands should be in registers. Everything else is ignored.
@@ -2185,7 +2180,7 @@ LLVMTCEBuilder::emitReadSP(
     TTAProgram::Instruction& lastInstruction =
         proc->lastInstruction();
 
-    CodeGenerator codeGenerator(*mach_, *umach_);
+    CodeGenerator codeGenerator(*mach_);
 
     TTAProgram::Terminal* srcTerminal =
         codeGenerator.createTerminalRegister(sp, false);
@@ -2219,7 +2214,7 @@ LLVMTCEBuilder::handleMemoryCategoryInfo(
     TTAProgram::Instruction& lastInstruction =
         proc->lastInstruction();
 
-    CodeGenerator codeGenerator(*mach_, *umach_);
+    CodeGenerator codeGenerator(*mach_);
 
     TTAProgram::Terminal* srcTerminal = 
         createTerminal(mi->getOperand(4));
@@ -2288,7 +2283,7 @@ LLVMTCEBuilder::emitSetjmp(
     TTAProgram::Instruction& last_instruction =
         proc->lastInstruction();
 
-    CodeGenerator codeGenerator(*mach_, *umach_);
+    CodeGenerator codeGenerator(*mach_);
 
     // Save SP at the first position in the buffer.
     TTAProgram::Terminal* buffer = createTerminal(env);
@@ -2430,7 +2425,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     // who deletes xtorRef?
                     codeLabelReferences_[xtorRef] = name; 
 
-                    CodeGenerator codeGenerator(*mach_, *umach_); 
+                    CodeGenerator codeGenerator(*mach_); 
                     codeGenerator.addMoveToProcedure(
                         *proc, xtorRef, 
                         codeGenerator.createTerminalFUPort("call", 1));
@@ -2478,7 +2473,7 @@ LLVMTCEBuilder::emitLongjmp(
     TTAProgram::Instruction& last_instruction =
         proc->lastInstruction();
 
-    CodeGenerator codeGenerator(*mach_, *umach_);
+    CodeGenerator codeGenerator(*mach_);
 
     // First thing we need is to load buffer address in SP.
     TTAProgram::Terminal* buffer = createTerminal(env);

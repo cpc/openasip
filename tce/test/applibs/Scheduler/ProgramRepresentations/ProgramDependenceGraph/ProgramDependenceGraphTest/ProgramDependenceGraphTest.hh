@@ -78,8 +78,7 @@ ProgramGraphTest::tearDown() {
 void
 ProgramGraphTest::testProcedureGraph() {
 
-    OperationPool opool;
-    UniversalMachine* umach = new UniversalMachine(opool);
+    UniversalMachine* umach = &UniversalMachine::instance();
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -111,7 +110,8 @@ ProgramGraphTest::testProcedureGraph() {
 
 void
 ProgramGraphTest::testRallocatedGraph() {
-    UniversalMachine* umach = new UniversalMachine();
+
+    UniversalMachine* umach = &UniversalMachine::instance();
     TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
     ADFSerializer adfSerializer;
     adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
@@ -143,8 +143,9 @@ ProgramGraphTest::testRallocatedGraph() {
 
 void
 ProgramGraphTest::testImmediatesGraph() {
+
     try {
-        UniversalMachine* umach = new UniversalMachine();
+        UniversalMachine* umach = &UniversalMachine::instance();
         TPEF::BinaryStream
             binaryStream("data/3_bus_reduced_connectivity_shortimms.tpef");
         ADFSerializer adfSerializer;
@@ -169,8 +170,7 @@ ProgramGraphTest::testImmediatesGraph() {
     } catch (const Exception& e) {
         throw InvalidData(
             __FILE__, __LINE__, __func__, e.errorMessageStack());
-    }
-    
+    }    
 }
 
 #endif

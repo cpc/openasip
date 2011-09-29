@@ -57,7 +57,6 @@ public:
     void setUp();
     void tearDown();
  
-    void testSequentialFromAOut();
     void testPortAllocation();
     void checkProgramVsTPEF(Binary *bin, Program *prog);
 
@@ -83,36 +82,6 @@ TPEFProgramFactoryTest::setUp() {
  */
 void
 TPEFProgramFactoryTest::tearDown() {
-}
-
-/**
- * Tests creating POM out of a.out file.
- */
-void
-TPEFProgramFactoryTest::testSequentialFromAOut() {
-
-    // read a.out
-    BinaryStream aOutFile(LINKED_A_OUT);
-    
-    try {
-	Binary *tpefBin = BinaryReader::readBinary(aOutFile);
-	
-	OperationPool opPool;
-	UniversalMachine universalMach(opPool);
-	
-	TPEFProgramFactory progFactory(*tpefBin, universalMach);
-	Program *prog = progFactory.build();
-
-	checkProgramVsTPEF(tpefBin, prog);
-	
-	delete tpefBin;
-	tpefBin = NULL;
-	delete prog;
-	prog = NULL;
-
-    } catch ( ... ) {
-	
-    }
 }
 
 /**

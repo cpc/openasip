@@ -79,7 +79,7 @@ void
 ControlDependenceGraphTest::testProcedureCDG() {
 
     OperationPool opool;
-    UniversalMachine* umach = new UniversalMachine(opool);
+    UniversalMachine* umach = &UniversalMachine::instance();
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -112,7 +112,8 @@ ControlDependenceGraphTest::testProcedureCDG() {
 
 void
 ControlDependenceGraphTest::testRallocatedCDG() {
-    UniversalMachine* umach = new UniversalMachine();
+
+    UniversalMachine* umach = &UniversalMachine::instance();
     TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
     ADFSerializer adfSerializer;
     adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
@@ -149,7 +150,8 @@ ControlDependenceGraphTest::testRallocatedCDG() {
 
 void
 ControlDependenceGraphTest::testImmediatesCDG() {
-    UniversalMachine* umach = new UniversalMachine();
+
+    UniversalMachine* umach = &UniversalMachine::instance();
     TPEF::BinaryStream
         binaryStream("data/3_bus_reduced_connectivity_shortimms.tpef");
     ADFSerializer adfSerializer;

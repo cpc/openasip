@@ -231,8 +231,6 @@ BBSchedulerController::handleProcedure(
              bigDDG_->name()).str());
     }
 
-    UniversalMachine& um = procedure.parent().universalMachine();
-
     scheduledProcedure_ = &procedure;
 
     handleControlFlowGraph(cfg, targetMachine);
@@ -242,7 +240,7 @@ BBSchedulerController::handleProcedure(
 
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
         delaySlotFiller_->fillDelaySlots(
-            cfg, *bigDDG_, targetMachine, um, true);
+            cfg, *bigDDG_, targetMachine, true);
     }
 
     // now all basic blocks are scheduled, let's put them back to the

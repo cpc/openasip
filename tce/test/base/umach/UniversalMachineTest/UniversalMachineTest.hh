@@ -47,36 +47,8 @@ using namespace TTAMachine;
  */
 class UniversalMachineTest : public CxxTest::TestSuite {
 public:
-    void setUp();
-    void tearDown();
-
     void testAllComponents();
-    
-private:
-    OperationPool* opPool_;
-    UniversalMachine* machine_;
 };
-
-
-/**
- * Called before each test.
- */
-void
-UniversalMachineTest::setUp() {
-    opPool_ = new OperationPool();
-    machine_ = new UniversalMachine(*opPool_);
-}
-
-
-/**
- * Called after each test.
- */
-void
-UniversalMachineTest::tearDown() {
-    delete machine_;
-    delete opPool_;
-}
-
 
 /**
  * Checks that there are all the components in the universal machine.
@@ -85,7 +57,7 @@ void
 UniversalMachineTest::testAllComponents() {
     
     // test the existence of the bus
-    Machine::BusNavigator busNav = machine_->busNavigator();
+    Machine::BusNavigator busNav = UniversalMachine::instance().busNavigator();
     TS_ASSERT(busNav.count() == 1);
     TS_ASSERT(busNav.hasItem(UM_BUS_NAME));
     Bus* bus = busNav.item(UM_BUS_NAME);
@@ -94,7 +66,8 @@ UniversalMachineTest::testAllComponents() {
     TS_ASSERT(bus->guardCount() == 2);
 
     // test the existence of sockets
-    Machine::SocketNavigator socketNav = machine_->socketNavigator();
+    Machine::SocketNavigator socketNav = 
+        UniversalMachine::instance().socketNavigator();
     TS_ASSERT(socketNav.count() == 2);
     TS_ASSERT(socketNav.hasItem(UM_INPUT_SOCKET_NAME));
     TS_ASSERT(socketNav.hasItem(UM_OUTPUT_SOCKET_NAME));
@@ -108,12 +81,14 @@ UniversalMachineTest::testAllComponents() {
     TS_ASSERT(outputSocket->direction() == Socket::OUTPUT);
     
     // test the existence of universal function unit
-    Machine::FunctionUnitNavigator fuNav = machine_->functionUnitNavigator();
+    Machine::FunctionUnitNavigator fuNav = 
+        UniversalMachine::instance().functionUnitNavigator();
     TS_ASSERT(fuNav.count() == 1);
     TS_ASSERT(fuNav.hasItem(UM_UNIVERSAL_FU_NAME));
     
     // test the existence of register files
-    Machine::RegisterFileNavigator rfNav = machine_->registerFileNavigator();
+    Machine::RegisterFileNavigator rfNav = 
+        UniversalMachine::instance().registerFileNavigator();
     TS_ASSERT(rfNav.count() == 4);
     TS_ASSERT(rfNav.hasItem(UM_BOOLEAN_RF_NAME));
     TS_ASSERT(rfNav.hasItem(UM_INTEGER_URF_NAME));

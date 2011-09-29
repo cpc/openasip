@@ -99,7 +99,6 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     const TPEF::Binary* tpefBin = NULL;
     const TTAProgram::Program* source = NULL;
     const SchedulingPlan* schedulingPlan = NULL;
-    UniversalMachine universalMachine;
     string sourceProgram = options.argument(1);
     string targetADF = "";
 
@@ -139,7 +138,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
             tpefBin->type() == Binary::FT_LIBSEQ) {
             progFactory = 
                 new TPEFProgramFactory(
-                    *tpefBin, new UniversalMachine());
+                    *tpefBin, &UniversalMachine::instance());
         } else if (tpefBin->type() == Binary::FT_MIXED) {
             if (target == NULL) {
                 string msg = "ADF file required to open source program that "
@@ -147,7 +146,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
                 throw IOException(__FILE__, __LINE__, __func__, msg);
             } else {
                 progFactory = new TPEFProgramFactory(
-                    *tpefBin, *target, new UniversalMachine());
+                    *tpefBin, *target, &UniversalMachine::instance());
             }
 
         } else if (tpefBin->type() == Binary::FT_PARALLEL) {

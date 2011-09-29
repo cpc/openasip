@@ -81,10 +81,8 @@ void
 POMDisassemblerTest::testSequentialDisassembly() {
 
     OperationPool pool;
-    UniversalMachine machine(pool);
-
     // Create a sequential program using POMGenMacros.
-    CREATE_PROGRAM(sequential1, machine);
+    CREATE_PROGRAM(sequential1, UniversalMachine::instance());
     CREATE_PROCEDURE(main);
 
     INSTRUCTION(MOVE(IMM32(0), BOOL()));

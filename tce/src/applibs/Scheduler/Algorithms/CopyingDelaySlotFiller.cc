@@ -260,10 +260,10 @@ CopyingDelaySlotFiller::CopyingDelaySlotFiller() : slotsFilled_(0) {
 void 
 CopyingDelaySlotFiller::fillDelaySlots(
     ControlFlowGraph& cfg, DataDependenceGraph& ddg,
-    const TTAMachine::Machine& machine, UniversalMachine& um, 
-    bool deleteRMs) throw (Exception) {
+    const TTAMachine::Machine& machine, bool deleteRMs) 
+    throw (Exception) {
 
-    um_ = &um;
+    um_ = &UniversalMachine::instance();
     int delaySlots = machine.controlUnit()->delaySlots();
 
     cfg_ = &cfg;

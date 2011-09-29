@@ -105,7 +105,6 @@ void
 DataDependenceGraphTest::testProcedureDDG() {
 
     OperationPool opool;
-    UniversalMachine* umach = new UniversalMachine(opool);
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -114,7 +113,8 @@ DataDependenceGraphTest::testProcedureDDG() {
     assert(tpef_ != NULL);
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+    TTAProgram::TPEFProgramFactory factory(
+        *tpef_, &UniversalMachine::instance());
     TTAProgram::Program* currentProgram = factory.build();
     
     ControlFlowGraph cfg(currentProgram->procedure(1));
@@ -123,7 +123,9 @@ DataDependenceGraphTest::testProcedureDDG() {
 
     DataDependenceGraphBuilder builder;
 
-    ddg = builder.build(cfg, DataDependenceGraph::ALL_ANTIDEPS, umach);
+    ddg = builder.build(
+        cfg, DataDependenceGraph::ALL_ANTIDEPS, 
+        &UniversalMachine::instance());
 
     TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
     TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
@@ -247,7 +249,6 @@ DataDependenceGraphTest::testBBDDG() {
 
     try {
         OperationPool opool;
-        UniversalMachine* umach = new UniversalMachine(opool);
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
         // read to TPEF Handler Module
@@ -256,7 +257,9 @@ DataDependenceGraphTest::testBBDDG() {
         assert(tpef_ != NULL);
     
         // convert the loaded TPEF to POM
-        TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+        TTAProgram::TPEFProgramFactory factory(
+            *tpef_, 
+            &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
 
         ControlFlowGraph cfg0(currentProgram->procedure(0));
@@ -275,7 +278,7 @@ DataDependenceGraphTest::testBBDDG() {
             if (bb.isNormalBB()) {
                 ddg0 = builder.build(
                     bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
-                    umach);
+                    &UniversalMachine::instance());
 
                 // check for edges to itself, should not be
                 for( int j = 0; j < ddg0->nodeCount(); j++ ) {
@@ -292,8 +295,8 @@ DataDependenceGraphTest::testBBDDG() {
             BasicBlockNode& bb = cfg1.node(i);
             if (bb.isNormalBB()) {
                 ddg1 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "", 
-                    umach);
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    &UniversalMachine::instance());
                                      
 
                 // check for edges to itself, should not be
@@ -316,7 +319,7 @@ DataDependenceGraphTest::testBBDDG() {
             if (bb.isNormalBB()) {
                 ddg2 = builder.build(
                     bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
-                    umach);
+                    &UniversalMachine::instance());
 
                 // check for edges to itself, should not be
                 for( int j = 0; j < ddg2->nodeCount(); j++ ) {
@@ -357,7 +360,6 @@ DataDependenceGraphTest::testBBDDG() {
 void
 DataDependenceGraphTest::testRallocatedDDG() {
     try {
-        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
         
         ADFSerializer adfSerializer;
@@ -372,7 +374,8 @@ DataDependenceGraphTest::testRallocatedDDG() {
     
 
         // convert the loaded TPEF to POM
-        TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+        TTAProgram::TPEFProgramFactory factory(
+            *tpef_, *machine, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
 
         ControlFlowGraph cfg(currentProgram->procedure(1));
@@ -456,7 +459,6 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
     
     try {
         
-        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
         
         ADFSerializer adfSerializer;
@@ -470,7 +472,8 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
         assert(tpef_ != NULL);
     
         // convert the loaded TPEF to POM
-        TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+        TTAProgram::TPEFProgramFactory factory(
+            *tpef_, *machine, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
 
         ControlFlowGraph cfg0(currentProgram->procedure(0));
@@ -498,7 +501,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             BasicBlockNode& bb = cfg1.node(i);
             if( bb.isNormalBB()) {
                 ddg1 = builder.build(
-                    bb.basicBlock(),DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
                 if(cfg1.hasEdge(bb,bb)) { // looping bb
                     ddg1l = ddg1;
                 } else {
@@ -552,7 +555,6 @@ DataDependenceGraphTest::testPathCalculation() {
     int longestPathLengths2[] = { 5, -1,3};
     int longestPathLengths2M[] = { 5, -1,4};
     try {
-        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
         // read to TPEF Handler Module
@@ -566,7 +568,8 @@ DataDependenceGraphTest::testPathCalculation() {
         assert(tpef_ != NULL);
     
         // convert the loaded TPEF to POM
-        TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+        TTAProgram::TPEFProgramFactory factory(
+            *tpef_, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
 
         ControlFlowGraph cfg0(currentProgram->procedure(0));
@@ -588,8 +591,8 @@ DataDependenceGraphTest::testPathCalculation() {
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 ddg = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "", 
-                    umach);
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    &UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths0[i]);
 
                 // test adding a new node into graph which forces a 
@@ -827,7 +830,6 @@ DataDependenceGraphTest::testPathCalculation() {
 void
 DataDependenceGraphTest::testSWBypassing() {
 
-    UniversalMachine* umach = new UniversalMachine();
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -836,7 +838,8 @@ DataDependenceGraphTest::testSWBypassing() {
     assert(tpef_ != NULL);
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+    TTAProgram::TPEFProgramFactory factory(
+        *tpef_, &UniversalMachine::instance());
     TTAProgram::Program* currentProgram = factory.build();
     
     ControlFlowGraph cfg(currentProgram->procedure(2));
@@ -845,7 +848,9 @@ DataDependenceGraphTest::testSWBypassing() {
 
     DataDependenceGraphBuilder builder;
 
-    ddg = builder.build(cfg, DataDependenceGraph::ALL_ANTIDEPS, umach);
+    ddg = builder.build(
+        cfg, DataDependenceGraph::ALL_ANTIDEPS,
+        &UniversalMachine::instance());
 
     // these do not exist at the beginning..
     TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(27)));

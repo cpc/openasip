@@ -78,7 +78,6 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
-        umach_ = new UniversalMachine();        
         const TTAMachine::Machine::FunctionUnitNavigator fuNav =
             mach->functionUnitNavigator();
 
@@ -91,7 +90,7 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
             }
         }
 
-    } // otherwise the umach_ will be used from the Program instance
+    } 
 }
 
 bool
@@ -601,7 +600,7 @@ LLVMTCEIRBuilder::compileOptimized(
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
-        dsf.fillDelaySlots(cfg, *ddg, *mach_, *umach_, true);
+        dsf.fillDelaySlots(cfg, *ddg, *mach_, true);
     }
 
 #ifdef WRITE_DDG_DOTS

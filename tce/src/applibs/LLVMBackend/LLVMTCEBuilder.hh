@@ -215,9 +215,6 @@ namespace llvm {
         /// Current program being built.
         TTAProgram::Program* prog_;
 
-        /// Univeral machine for building the program.
-        UniversalMachine* umach_;
-
         /// The operations supported by the current target machine.
         std::set<std::string> opset_;
 

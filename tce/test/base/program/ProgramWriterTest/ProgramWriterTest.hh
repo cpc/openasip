@@ -106,7 +106,7 @@ ProgramWriterTest::testSequentialFromAOut() {
 
     Binary* origBin = BinaryReader::readBinary(aOutFile);
     
-    TPEFProgramFactory progFactory(*origBin, new UniversalMachine());
+    TPEFProgramFactory progFactory(*origBin, &UniversalMachine::instance());
     
     Program* prog = progFactory.build();
     
@@ -182,7 +182,7 @@ ProgramWriterTest::testParallelFromTPEF() {
 void
 ProgramWriterTest::testCreateSequential() {
     
-    UniversalMachine* uMach = new UniversalMachine();
+    UniversalMachine* uMach = &UniversalMachine::instance();
     
     DataMemory* dataMemory = 
         new DataMemory(uMach->dataAddressSpace());
@@ -260,7 +260,7 @@ void
 ProgramWriterTest::testCreateSequential2() {
 
     OperationPool operationPool;    
-    UniversalMachine universalMachine(operationPool);
+    UniversalMachine& universalMachine = UniversalMachine::instance();
 
     TTAMachine::AddressSpace& dataAddressSpace =
         universalMachine.dataAddressSpace();
@@ -323,7 +323,7 @@ void
 ProgramWriterTest::testAnnotationReadingAndWriting() {
 
     typedef TTAProgram::ProgramAnnotation::Id annotationId;
-    UniversalMachine* universalMachine = new UniversalMachine();
+    UniversalMachine* universalMachine = &UniversalMachine::instance();
 
     TTAMachine::AddressSpace& dataAddressSpace =
         universalMachine->dataAddressSpace();

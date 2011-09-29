@@ -131,8 +131,6 @@ Program::~Program() {
     globalScope_ = NULL;
     delete refManager_;
     refManager_ = NULL;
-    delete umach_;
-    umach_ = NULL;
 }
 
 /**
@@ -1053,8 +1051,7 @@ Program::loadFromUnscheduledTPEF(
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(
-        *tpef, theMachine, new UniversalMachine());
+    TTAProgram::TPEFProgramFactory factory(*tpef, theMachine);
     Program* prog = factory.build();
     delete tpef;
     tpef = NULL;
@@ -1118,7 +1115,7 @@ Program::loadFromUnscheduledTPEF(const std::string& tpefFileName)
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef, new UniversalMachine());
+    TTAProgram::TPEFProgramFactory factory(*tpef, UniversalMachine::instance());
     Program* prog = factory.build();
     delete tpef;
     tpef = NULL;
@@ -1150,23 +1147,6 @@ Program::writeToTPEF(
 
     delete tpefBin;
     tpefBin = NULL;
-}
-
-
-/**
- * Returns the UniversalMachine instance used to refer in 
- * unscheduled/unassigned parts of the program.
- *
- * The program owns the UniversalMachine instance. In case there was
- * no UniversalMachine associated with the program yet, it is created
- * and returned.
- */
-UniversalMachine& 
-Program::universalMachine() const {
-    if (umach_ == NULL) {
-        umach_ = new UniversalMachine();
-    }
-    return *umach_;
 }
 
 /**

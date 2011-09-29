@@ -55,8 +55,6 @@ public:
     void testOperation();
     
 private:
-    OperationPool* opPool_;
-    UniversalMachine* machine_;
     FunctionUnit* uFU_;
 };
 
@@ -66,9 +64,7 @@ private:
  */
 void
 UniversalFunctionUnitTest::setUp() {
-    opPool_ = new OperationPool();
-    machine_ = new UniversalMachine(*opPool_);
-    uFU_ = machine_->functionUnitNavigator().item(0);
+    uFU_ = UniversalMachine::instance().functionUnitNavigator().item(0);
 }
 
 
@@ -77,8 +73,6 @@ UniversalFunctionUnitTest::setUp() {
  */
 void
 UniversalFunctionUnitTest::tearDown() {
-    delete machine_;
-    delete opPool_;
 }
 
 

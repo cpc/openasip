@@ -117,9 +117,9 @@ private:
 TPEFProgramFactory::TPEFProgramFactory(
     const Binary& aBinary,
     const Machine& aMachine,
-    UniversalMachine* aUniversalMachine):
+    UniversalMachine*):
     binary_(&aBinary), machine_(&aMachine),
-    universalMachine_(aUniversalMachine),
+    universalMachine_(&UniversalMachine::instance()),
     tpefTools_(aBinary),
     adfInstrASpace_(NULL),
     tpefInstrASpace_(NULL) {
@@ -135,7 +135,7 @@ TPEFProgramFactory::TPEFProgramFactory(
 TPEFProgramFactory::TPEFProgramFactory(
     const Binary& aBinary, const Machine& aMachine):
     binary_(&aBinary), machine_(&aMachine),
-    universalMachine_(NULL),
+    universalMachine_(&UniversalMachine::instance()),
     tpefTools_(aBinary),
     adfInstrASpace_(NULL),
     tpefInstrASpace_(NULL) {
@@ -149,9 +149,9 @@ TPEFProgramFactory::TPEFProgramFactory(
  * @param relocs Managed collection of relocation points in the program.
  */
 TPEFProgramFactory::TPEFProgramFactory(
-    const Binary &aBinary, UniversalMachine* aMachine):
+    const Binary &aBinary, UniversalMachine*):
     binary_(&aBinary), machine_(NULL),
-    universalMachine_(aMachine),
+    universalMachine_(&UniversalMachine::instance()),
     tpefTools_(aBinary),
     adfInstrASpace_(NULL),
     tpefInstrASpace_(NULL) {

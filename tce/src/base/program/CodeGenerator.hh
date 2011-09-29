@@ -52,8 +52,7 @@ public:
 
     /// @todo This should probably take only Program
     CodeGenerator(
-        const TTAMachine::Machine& mach,
-        const UniversalMachine& uMach);
+        const TTAMachine::Machine& mach);
 
     virtual ~CodeGenerator();
 

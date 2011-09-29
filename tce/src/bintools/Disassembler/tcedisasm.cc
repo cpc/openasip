@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
         // Try if mixed code
         try {
             TTAProgram::TPEFProgramFactory factory(
-                *tpef, *machine, new UniversalMachine());
+                *tpef, *machine, &UniversalMachine::instance());
             program = factory.build();
         } catch (Exception& e1) {
             cerr << "Error: " << e.errorMessage() << " and " 

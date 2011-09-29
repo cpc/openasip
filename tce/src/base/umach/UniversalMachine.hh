@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of UniversalMachine class.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2011 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: yellow
  */
 
@@ -44,17 +44,17 @@ class UnboundedRegisterFile;
 #define DATA_MEMORY_SIZE (static_cast<unsigned int>(4096)*1024*1024)
 
 /**
- * UniversalMachine represents a TTA processor which can execute any kind of
- * sequential code.
+ * UniversalMachine is used to mark unassigned/unscheduled resources.
  *
- * One universal machine should be created per sequential program. This is 
- * because some of the resources are created on-demand, thus depend on the 
- * sequential program used.
+ * In the old versions of TCE, UniversalMachine represented a TTA processor 
+ * which used to model an imaginary target for the old "sequential code", 
+ * an intermediate format from the old gcc frontend. Previously, one UM 
+ * instance per Program was created but from now one, the singleton object 
+ * should be used everywhere because UM resources are just used to mark 
+ * unscheduled parts of the program.
  */
 class UniversalMachine : public TTAMachine::Machine {
 public:
-    UniversalMachine();
-    UniversalMachine(OperationPool&);
     virtual ~UniversalMachine();
 
     virtual bool isUniversalMachine() const;
@@ -102,14 +102,20 @@ public:
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
 
+    static UniversalMachine& instance();
+
 private:
+    UniversalMachine();
+
     void construct();
 
     /// Indicates whether the UniversalMachine is built completely.
     bool isBuilt_;
-
     /// The operation pool instance to use for finding operations.
     OperationPool opPool;
+    /// The singleton instance. Use this instance everywhere. Creating
+    /// multiple instances of UM is deprecated.
+    static UniversalMachine* instance_;
 };
 
 /// Machine component names reserved for the universal machine.

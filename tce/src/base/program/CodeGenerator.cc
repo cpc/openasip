@@ -34,9 +34,8 @@
 namespace TTAProgram {
 
 CodeGenerator::CodeGenerator(
-    const TTAMachine::Machine& mach,
-    const UniversalMachine& uMach):
-    mach_(&mach), uMach_(&uMach) {}
+    const TTAMachine::Machine& mach):
+    mach_(&mach), uMach_(&UniversalMachine::instance()) {}
 
 CodeGenerator::~CodeGenerator() {}
 
