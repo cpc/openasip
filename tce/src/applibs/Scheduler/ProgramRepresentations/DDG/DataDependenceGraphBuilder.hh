@@ -34,6 +34,8 @@
 #ifndef TTA_DDG_BUILDER_HH
 #define TTA_DDG_BUILDER_HH
 
+#include <llvm/Analysis/AliasAnalysis.h>
+
 #include "DataDependenceGraph.hh"
 #include "ControlFlowGraph.hh"
 #include "MemoryAliasAnalyzer.hh"
@@ -76,13 +78,15 @@ public:
         DataDependenceGraph::AntidependenceLevel antidependenceLevel,
         const UniversalMachine* um = NULL,
         bool createMemAndFUDeps = true, 
-        bool createDeathInformation = true);
+        bool createDeathInformation = true,
+        llvm::AliasAnalysis* AA = NULL);
     virtual DataDependenceGraph* build(
         TTAProgram::BasicBlock& bb,
         DataDependenceGraph::AntidependenceLevel antidependenceLevel,
         const TCEString& ddgname = "small bb",
         const UniversalMachine* um = NULL, 
-        bool createMemAndFUDeps = true);
+        bool createMemAndFUDeps = true,
+        llvm::AliasAnalysis* AA = NULL);
 
 protected:
 

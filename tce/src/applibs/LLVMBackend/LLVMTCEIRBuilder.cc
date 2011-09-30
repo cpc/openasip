@@ -62,6 +62,9 @@
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 #include <llvm/CodeGen/MachineJumpTableInfo.h>
+#include <llvm/Value.h>
+#include <llvm/CodeGen/MachineMemOperand.h>
+#include "llvm/Analysis/AliasAnalysis.h"
 
 //#define WRITE_DDG_DOTS
 //#define WRITE_CFG_DOTS
@@ -72,9 +75,9 @@ char LLVMTCEIRBuilder::ID = -1;
 
 LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
-    InterPassData& ipd, bool functionAtATime, bool modifyMF) :
+    InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
-    ddgBuilder_(ipd), modifyMF_(modifyMF) {
+    ddgBuilder_(ipd), AA_(AA), modifyMF_(modifyMF) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
@@ -158,7 +161,19 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     if (fastCompilation) {
         compileFast(*cfg);
     } else {
-        compileOptimized(*cfg, *irm);
+        AliasAnalysis* AA = NULL;
+        if (!AA_) {
+            // Called through LLVMBackend. We are actual module and 
+            // can get previous pass analysis!
+            AA = &getAnalysis<AliasAnalysis>(); 
+        } else {
+            // Called through LLVMTCEScheduler. We are not registered
+            // module in pass manager, so we do not have previous
+            // pass analysis data, but LLVMTCEScheduler kindly
+            // got them for us and passed through.        
+            AA = AA_;
+        }
+        compileOptimized(*cfg, *irm, AA);
     }
 
     if (!modifyMF_) {
@@ -242,7 +257,6 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             if (!isRealInstruction(*j)) {
                 continue;
             }
-
             if (newBB) {
                 newBB = false;
                 cfg->addNode(*bbn);
@@ -560,10 +574,11 @@ LLVMTCEIRBuilder::compileFast(ControlFlowGraph& cfg) {
 void
 LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
-    TTAProgram::InstructionReferenceManager& irm) {
+    TTAProgram::InstructionReferenceManager& irm,
+    llvm::AliasAnalysis* llvmAA) {
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
-        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, true);
+        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, true, llvmAA);
 
     TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS

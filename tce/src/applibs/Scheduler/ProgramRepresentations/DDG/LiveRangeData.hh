@@ -28,7 +28,7 @@
  * Declaration of LiveRangeData class.
  *
  * Contains live range-related data for one basic block.
- * This is geenrated and used by ddg builder.
+ * This is generated and used by ddg builder.
  * This may also be used by later parts of the scheduler.
  *
  * @author Heikki Kultala 2011 (hkultala@cs.tut.fi)

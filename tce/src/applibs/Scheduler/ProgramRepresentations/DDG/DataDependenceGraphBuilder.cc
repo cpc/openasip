@@ -69,6 +69,7 @@
 
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
+#include "LLVMAliasAnalyzer.hh"
 //#include "StackAliasAnalyzer.hh"
 //#include "OffsetAliasAnalyzer.hh"
 //#include "TrivialAliasAnalyzer.hh"
@@ -101,12 +102,13 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
 
     /// constant alias AA check aa between global variables.
     addAliasAnalyzer(new ConstantAliasAnalyzer);
-
+    
 #ifdef USE_FALSE_AA
     /// defining USE_FALSE_AA results in faster but
     /// broken code. just for testing theoretical benefits.
     addAliasAnalyzer(new FalseAliasAnalyzer);
 #endif
+	addAliasAnalyzer(new LLVMAliasAnalyzer);
 }
 
 /**
@@ -216,7 +218,7 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
 
     // constant alias AA check aa between global variables.
     addAliasAnalyzer(new ConstantAliasAnalyzer);
-
+	addAliasAnalyzer(new LLVMAliasAnalyzer);
 #ifdef USE_FALSE_AA
     /// defining USE_FALSE_AA results in faster but
     /// broken code. just for testing theoretical benefits.
@@ -398,8 +400,18 @@ DataDependenceGraphBuilder::build(
     DataDependenceGraph::AntidependenceLevel registerAntidependenceLevel,
     const TCEString& ddgName, 
     const UniversalMachine* um, 
-    bool createMemAndFUDeps) {
+    bool createMemAndFUDeps,
+    llvm::AliasAnalysis* AA) {
 
+	if (AA) {
+    	for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+            LLVMAliasAnalyzer* llvmaa = 
+            	dynamic_cast<LLVMAliasAnalyzer*>(aliasAnalyzers_[i]);
+            if (llvmaa != NULL) {
+                llvmaa->setLLVMAA(AA);
+            }
+        }
+    }
     if (bb.liveRangeData_ == NULL) {
         bb.liveRangeData_ = new LiveRangeData;
     }
@@ -1823,7 +1835,18 @@ DataDependenceGraphBuilder::build(
     ControlFlowGraph& cfg, 
     DataDependenceGraph::AntidependenceLevel antidependenceLevel,
     const UniversalMachine* um, 
-    bool createMemAndFUDeps, bool createDeathInformation) {
+    bool createMemAndFUDeps, bool createDeathInformation,
+    llvm::AliasAnalysis* AA) {
+
+	if (AA) {
+    	for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+            LLVMAliasAnalyzer* llvmaa = 
+            dynamic_cast<LLVMAliasAnalyzer*>(aliasAnalyzers_[i]);
+            if (llvmaa != NULL) {
+                llvmaa->setLLVMAA(AA);
+            }
+        }
+    }
 
     cfg_ = &cfg;
 

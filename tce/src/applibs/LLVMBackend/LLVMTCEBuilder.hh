@@ -114,6 +114,7 @@ namespace llvm {
         }
 
         void getAnalysisUsage(AnalysisUsage &AU) const {
+            AU.addRequired<AliasAnalysis>();
             AU.addRequired<MachineDCE>();
             AU.addPreserved<MachineDCE>();
             MachineFunctionPass::getAnalysisUsage(AU);

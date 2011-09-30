@@ -89,7 +89,7 @@ MemoryAliasAnalyzer::compareIndeces(
     }
 }
 /**
- * Returns the size of memory oepration memory access in mau's.
+ * Returns the size of memory operation memory access in mau's.
  * if unknown, returns 0.
  */
 unsigned int

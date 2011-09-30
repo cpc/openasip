@@ -38,6 +38,7 @@
 #include <map>
 #include <vector>
 #include <boost/shared_ptr.hpp>
+#include <llvm/CodeGen/MachineInstr.h>
 
 #include "Exception.hh"
 #include "Operation.hh"
@@ -54,7 +55,9 @@ namespace TTAProgram {
  */
 class ProgramOperation {
 public:
-    ProgramOperation(const Operation &operation);
+    ProgramOperation(
+        const Operation &operation, 
+        const llvm::MachineInstr* instr=NULL);
     ProgramOperation();
     ~ProgramOperation();
 
@@ -89,6 +92,8 @@ public:
     MoveNode& outputMove(int index) const;
 
     MoveNode* triggeringMove() const;
+    
+    const llvm::MachineInstr* machineInstr() const { return mInstr_; }
 
     void switchInputs();
 
@@ -122,6 +127,8 @@ private:
     MoveVector allOutputMoves_;
     unsigned int poId_;
     static unsigned int idCounter;
+    // Reference to original LLVM MachineInstruction
+    const llvm::MachineInstr* mInstr_;
 };
 
 // use this smart_ptr type to point to POs to allow more safe sharing of

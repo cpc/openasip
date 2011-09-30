@@ -22,7 +22,8 @@ AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/applibs/FSA \
 	-I${PROJECT_ROOT}/src/applibs/Scheduler/ResourceManager \
 	-I${PROJECT_ROOT}/src/applibs/Scheduler/ResourceModel \
-	-I${PROJECT_ROOT}/src/applibs/Scheduler/ProgramRepresentations/PDG
+	-I${PROJECT_ROOT}/src/applibs/Scheduler/ProgramRepresentations/PDG \
+        ${LLVM_CPPFLAGS}
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 

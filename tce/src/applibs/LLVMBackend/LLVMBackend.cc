@@ -36,6 +36,7 @@
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
 #include <llvm/Analysis/Dominators.h>
+#include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/PassManager.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Pass.h>
@@ -482,7 +483,12 @@ LLVMBackend::compile(
 
     LLVMTCEBuilder* builder = NULL;
     if (!options->usePOMBuilder()) {
-        builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData);
+        // This is not actuall LLVM pass so we can not get actual AA.
+        // It will be picked later, for now just passing NULL.
+        // When LLVMTCEIRBuilder is called from TCEScheduler it will require
+        // AA parameter.
+    	AliasAnalysis* AA = NULL;
+        builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
     } else {
         builder = new LLVMPOMBuilder(*targetMachine, &target);
     }

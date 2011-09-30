@@ -32,6 +32,7 @@
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Function.h>
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Analysis/AliasAnalysis.h>
 
 #include <iostream>
 
@@ -68,11 +69,12 @@ LLVMTCEScheduler::doInitialization(Module& m) {
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
-
+	
+    AliasAnalysis* AA = getAnalysisIfAvailable<AliasAnalysis>();
     if (tceIRBuilder_ == NULL) {
         interPassData_ = new InterPassData();
         tceIRBuilder_ =  new LLVMTCEIRBuilder(
-            MF.getTarget(), tceMachine_, *interPassData_, true, true);
+            MF.getTarget(), tceMachine_, *interPassData_, AA, true, true);
         tceIRBuilder_->doInitialization(*mod_);
     }
     tceIRBuilder_->writeMachineFunction(MF);

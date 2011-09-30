@@ -18,7 +18,7 @@ DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
-	-I${CDG_DIR} -I${DDG_DIR} -I${CFG_DIR}
+	-I${CDG_DIR} -I${DDG_DIR} -I${CFG_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

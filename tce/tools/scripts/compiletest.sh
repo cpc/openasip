@@ -235,6 +235,8 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*recipe.for.target.*.lib_a-mbtowc_r.o.*|\
 .*boost/graph/topological_sort.hpp:.*unused.parameter.*|\
 .*cxxtest/Root.cpp:16:0.*|\
+.*<command-line>:.warning.*|\
+.*DataDependenceGraphBuilder.hh:38,|\
 .*ignoring.\#pragma.GCC.diagnostic.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\

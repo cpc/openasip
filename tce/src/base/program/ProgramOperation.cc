@@ -59,8 +59,10 @@ namespace TTAProgram{
  * Creates a ProgramOperation from operation
  * @param operation Operation
  */
-ProgramOperation::ProgramOperation(const Operation &operation) :
-    operation_(operation), poId_(idCounter++) {
+ProgramOperation::ProgramOperation(
+	const Operation &operation,
+    const llvm::MachineInstr* instr) :
+    operation_(operation), poId_(idCounter++), mInstr_(instr) {
 }
 
 /**
@@ -70,7 +72,7 @@ ProgramOperation::ProgramOperation(const Operation &operation) :
  */
  ///TODO: this better go, just for testing with empty operation...
 ProgramOperation::ProgramOperation() :
-    operation_(NullOperation::instance()) , poId_(idCounter++) {
+    operation_(NullOperation::instance()), poId_(idCounter++) {
     inputMoves_.clear();
     outputMoves_.clear();
 }

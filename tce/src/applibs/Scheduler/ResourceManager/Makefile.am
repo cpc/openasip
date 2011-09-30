@@ -23,7 +23,7 @@ GRAPH_DIR = ${BASE_DIR}/Graph
 
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${PDG_DIR} -I${TOOLS_DIR} \
 	-I${POM_DIR} -I${OSAL_DIR} -I${MACH_DIR} -I${UMACH_DIR} -I${GRAPH_DIR} \
-	-I${DISASM_DIR} -I${APPLIBS_DIR}/mach
+	-I${DISASM_DIR} -I${APPLIBS_DIR}/mach ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

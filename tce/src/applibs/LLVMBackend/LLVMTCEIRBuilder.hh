@@ -35,6 +35,7 @@
 #define LLVM_TCE_IR_BUILDER_H
 
 #include <llvm/CodeGen/MachineFunctionPass.h>
+#include <llvm/Analysis/AliasAnalysis.h>
 
 #include "LLVMTCEBuilder.hh"
 #include "DataDependenceGraphBuilder.hh"
@@ -56,8 +57,8 @@ namespace llvm {
 
         LLVMTCEIRBuilder(
             const TargetMachine& tm, TTAMachine::Machine* mach, 
-            InterPassData& ipd, bool functionAtATime=false, 
-            bool modifyMF=false);
+            InterPassData& ipd, AliasAnalysis* AA,
+            bool functionAtATime=false, bool modifyMF=false);
 
         bool writeMachineFunction(MachineFunction& mf);
 
@@ -124,7 +125,9 @@ namespace llvm {
 
         void compileFast(ControlFlowGraph& cfg);
         void compileOptimized(
-            ControlFlowGraph& cfg, TTAProgram::InstructionReferenceManager& irm);
+            ControlFlowGraph& cfg, 
+            TTAProgram::InstructionReferenceManager& irm,
+            llvm::AliasAnalysis* llvmAA);
 
         ControlFlowGraph* buildTCECFG(llvm::MachineFunction& mf);
         void markJumpTableDestinations(
@@ -148,6 +151,7 @@ namespace llvm {
         // write back the scheduled instructions to the machine function?
         bool modifyMF_;
 
+        AliasAnalysis* AA_;
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
     };
 }
