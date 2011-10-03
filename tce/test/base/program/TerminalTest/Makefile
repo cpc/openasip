@@ -11,7 +11,6 @@ TOP_SRCDIR = ../../../..
 
 EXTRA_LINKER_FLAGS = ${XERCES_LDFLAGS} ${BOOST_LDFLAGS} ${SQLITE_LD_FLAGS} \
                      -ldl
-
 include ${TOP_SRCDIR}/test/Makefile_configure_settings
-
+EXTRA_COMPILER_FLAGS=${LLVM_CPPFLAGS}
 include ${TOP_SRCDIR}/test/Makefile_test.defs

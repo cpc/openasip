@@ -27,4 +27,5 @@ TOP_SRCDIR = ../../../..
 include ${TOP_SRCDIR}/test/Makefile_configure_settings
 
 EXTRA_LINKER_FLAGS = 
+EXTRA_COMPILER_FLAGS = ${LLVM_CPPFLAGS}
 include ${TOP_SRCDIR}/test/Makefile_test.defs
