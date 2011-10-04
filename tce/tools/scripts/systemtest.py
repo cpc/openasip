@@ -43,10 +43,115 @@ import re
 import glob
 import time
 import math
+import signal
+import StringIO
 
 from difflib import unified_diff
 from optparse import OptionParser
 from subprocess import Popen, PIPE
+
+
+def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True):
+    """
+    Runs the given process until it exits or the given time out is reached.
+
+    Returns a tuple: (bool:timeout, str:stdout, str:stderr, int:exitcode)
+    """
+    timePassed = 0.0
+    increment = 0.01
+
+    stderrFD, errFile = tempfile.mkstemp()
+    if combinedOutput:
+        stdoutFD, outFile = stderrFD, errFile
+    else:
+        stdoutFD, outFile = tempfile.mkstemp()
+
+    process =  Popen(command, shell=True, stdin=PIPE, 
+                     stdout=stdoutFD, stderr=stderrFD, close_fds=False)
+
+    if process == None:
+        print "Could not create process"
+        sys.exit(1)
+    try:
+        if inputStream != "":
+            for line in inputStream:
+                process.stdin.write(line.strip() + '\n')
+                process.stdin.flush()
+            process.stdin.close()
+
+        while True:
+            status = process.poll()
+            if status != None:
+                # Process terminated succesfully.
+                stdoutSize = os.lseek(stdoutFD, 0, 2)
+                stderrSize = os.lseek(stderrFD, 0, 2)
+
+                os.lseek(stdoutFD, 0, 0)
+                os.lseek(stderrFD, 0, 0)
+
+                stdoutContents = os.read(stdoutFD, stdoutSize)
+                os.close(stdoutFD)
+                os.remove(outFile)
+
+                if not combinedOutput:
+                    stderrContents = os.read(stderrFD, stderrSize)
+                    os.close(stderrFD)
+                    os.remove(errFile)
+                else:
+                    stderrContents = stdoutContents
+
+                return (False, stdoutContents, stderrContents, process.returncode)
+
+            if timePassed < timeoutSecs:
+                time.sleep(increment)
+                timePassed = timePassed + increment
+            else:
+                # time out, kill the process.
+                stdoutSize = os.lseek(stdoutFD, 0, 2)
+                stderrSize = os.lseek(stderrFD, 0, 2)
+
+                os.lseek(stdoutFD, 0, 0)
+                stdoutContents = os.read(stdoutFD, stdoutSize)
+                os.close(stdoutFD)
+                os.remove(outFile)
+
+                if not combinedOutput:
+                    os.lseek(stderrFD, 0, 0)
+                    stderrContents = os.read(stderrFD, stderrSize)
+                    os.close(stderrFD)
+                    os.remove(errFile)
+                else:
+                    stderrContents = stdoutContents
+                os.kill(process.pid, signal.SIGTSTP)
+                return (True, stdoutContents, stderrContents, process.returncode)
+    except Exception, e:
+        # if something threw exception (e.g. ctrl-c)
+        os.kill(process.pid, signal.SIGTSTP)
+        try:
+            # time out, kill the process.
+            # time out, kill the process.
+            stdoutSize = os.lseek(stdoutFD, 0, 2)
+            stderrSize = os.lseek(stderrFD, 0, 2)
+
+            os.lseek(stdoutFD, 0, 0)
+            stdoutContents = os.read(stdoutFD, stdoutSize)
+            os.close(stdoutFD)
+            os.remove(outFile)
+
+            if not combinedOutput:
+                os.lseek(stderrFD, 0, 0)
+                stderrContents = os.read(stderrFD, stderrSize)
+            else:
+                os.close(stderrFD)
+                os.remove(errFile)
+                stderrContents = stdoutContents
+
+            os.kill(process.pid, signal.SIGTSTP)                
+        except:
+            pass
+
+        return (False, stdoutContents, stderrContents, process.returncode)
+
 
 def run_command(command, echoStdout=False, echoStderr=False, echoCmd=False, 
                 stdoutFD=None, stderrFD=None, stdinFile=None):
@@ -97,7 +202,11 @@ def parse_options():
     parser.add_option("-d", "--dump-output", dest="dump_output", action="store_true",
                       help="Executes the test case(s) and dumps the stdout and stderr. " + \
                       "Useful for creating the initial test case verification files.", 
-                      default=False)                     
+                      default=False)      
+    parser.add_option("-w", "--watchdog-time", dest="timeout", type="int",
+                      help="The number of seconds to wait before assuming a single test got " +\
+                          "stuck and should be killed.",
+                      default=2*60*60)
     parser.add_option("-t", "--test-case", dest="test_cases", action="append", type="string",
                       default=[],
                       help="Execute only the given test case files. " + \
@@ -214,22 +323,29 @@ class IntegrationTestCase(object):
             stdin_fn = test_data[0]
             if stdin_fn is not None:
                 stdin_fn = os.path.join(self.verification_data_dir, stdin_fn)
+                stdinStimulus = open(stdin_fn, 'r').readlines()
             else:
-                stdin_f = PIPE
+                stdinStimulus = ""
             stdout_fn = test_data[1]
             outputTemp = create_temp_file(".out")
-            exit_code = run_command(self.bin + " " + self.args, 
-                                echoStdout=True, echoStderr=True,
-                                stdinFile=stdin_fn,
-                                stdoutFD=outputTemp[0], stderrFD=outputTemp[0])
+            (timeout, stdoutStr, stderrStr, exitcode) = \
+                run_with_timeout(self.bin + " " + self.args, options.timeout, inputStream=stdinStimulus)
 
-            gotOut = open(outputTemp[1]).readlines()
+            if timeout:
+                if options.output_diff:
+                    output_diff_file.write("FAIL (timeout %ss): " % options.timeout + \
+                                           self._file_name + ": " + self.description + "\n")
+                all_ok = False
+                continue
+
+            stdout = StringIO.StringIO(stdoutStr)
+            gotOut = stdout.readlines()
             correctOut = open(os.path.join(self.verification_data_dir, stdout_fn)).readlines()
 
             stdoutDiff = list(unified_diff(correctOut, gotOut, 
                               fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
-                sys.stdout.write(open(outputTemp[1]).read())
+                sys.stdout.write(stdoutStr)
                 continue           
 
             if len(stdoutDiff) > 0:
