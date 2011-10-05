@@ -44,6 +44,8 @@
 #include "TCEString.hh"
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
+#include "Immediate.hh"
+#include "SimpleResourceManager.hh"
 
 using std::string;
 using namespace TTAMachine;

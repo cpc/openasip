@@ -34,16 +34,11 @@
 #ifndef TTA_BB_SCHEDULER_HH
 #define TTA_BB_SCHEDULER_HH
 
-#include "Program.hh"
-#include "MoveNode.hh"
-#include "MoveNodeGroup.hh"
 #include "CriticalPathBBMoveNodeSelector.hh"
-#include "FunctionUnit.hh"
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
 #include "BBSchedulerController.hh"
 #include "DataDependenceGraph.hh"
-#include "LLVMTCECmdLineOptions.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
@@ -51,6 +46,9 @@ class SoftwareBypasser;
 class CopyingDelaySlotFiller;
 class DataDependenceGraphBuilder;
 class RegisterRenamer;
+class MoveNode;
+class MoveNodeGroup;
+class LLVMTCECmdLineOptions;
 
 /**
  * A class that implements the functionality of a basic block scheduler.

@@ -29,7 +29,7 @@
  * This optimizer removes unneeded predicate arithmetic by using
  * opposite guard instead where the guard is used.
  *
- * Also optimizes reister usage, changes registers of address calculations.
+ * Also optimizes register usage, changes registers of address calculations.
  *
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
@@ -42,6 +42,7 @@
 #include "ProgramPass.hh"
 #include "ControlFlowGraphPass.hh"
 namespace TTAProgram {
+    class CodeSnippet;
     class Procedure;
     class Program;
     class InstructionReferenceManager;

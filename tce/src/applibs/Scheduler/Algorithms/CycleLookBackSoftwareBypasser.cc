@@ -43,6 +43,7 @@
 #include "MoveNodeSelector.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
+#include "Bus.hh"
 #include "SimpleResourceManager.hh"
 
 #include "ProgramOperation.hh"

@@ -38,7 +38,6 @@
 #include <map>
 #include <vector>
 #include <boost/shared_ptr.hpp>
-#include <llvm/CodeGen/MachineInstr.h>
 
 #include "Exception.hh"
 #include "Operation.hh"
@@ -46,6 +45,9 @@
 class MoveNode;
 class MoveNodeSet;
 
+namespace llvm {
+    class MachineInstr;
+}
 namespace TTAProgram {
     class Move;
 }

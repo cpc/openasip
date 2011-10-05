@@ -37,8 +37,6 @@ class InterPassData;
 
 #include <string>
 
-#include "DataDependenceGraphBuilder.hh"
-
 /**
  * Interface for scheduler passes with different scopes.
  */

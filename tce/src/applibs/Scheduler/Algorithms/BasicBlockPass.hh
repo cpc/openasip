@@ -33,10 +33,9 @@
 #ifndef TTA_BB_PASS_HH
 #define TTA_BB_PASS_HH
 
-#include "NullMachine.hh"
 #include "Exception.hh"
 #include "SchedulerPass.hh"
-#include "DataDependenceGraph.hh"
+#include "DataDependenceGraphBuilder.hh"
 
 class DDGPass;
 class SimpleResourceManager;

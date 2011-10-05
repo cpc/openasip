@@ -39,11 +39,10 @@
 #include <map>
 
 #include "SchedulingResource.hh"
-#include "ProgramOperation.hh"
 #include "MoveNode.hh"
 
 class PSocketResource;
-
+class ProgramOperation;
 
 namespace TTAMachine {
     class FunctionUnit;

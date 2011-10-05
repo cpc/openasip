@@ -37,13 +37,13 @@
 
 #include <map>
 
-#include "SimpleResourceManager.hh"
 #include "DataDependenceGraph.hh"
 
 class ProgramOperation;
 class MoveNode;
 class DataDependenceGraph;
 class InterPassData;
+class SimpleResourceManager;
 
 namespace TTAProgram {
     class Move;

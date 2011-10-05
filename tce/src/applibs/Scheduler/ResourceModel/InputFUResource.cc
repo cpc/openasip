@@ -38,6 +38,7 @@
 #include "MoveNode.hh"
 #include "ExecutionPipelineResource.hh"
 #include "ResourceManager.hh"
+#include "InputPSocketResource.hh"
 
 using TTAMachine::BaseFUPort;
 using TTAMachine::FUPort;

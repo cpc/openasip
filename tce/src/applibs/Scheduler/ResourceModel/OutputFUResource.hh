@@ -38,7 +38,8 @@
 
 #include "SchedulingResource.hh"
 #include "FUResource.hh"
-#include "OutputPSocketResource.hh"
+
+class OutputPSocketResource;
 
 /**
  * An interface for scheduling resources of Resource Model

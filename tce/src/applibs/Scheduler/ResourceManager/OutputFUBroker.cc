@@ -47,6 +47,7 @@
 #include "TCEString.hh"
 #include "TerminalFUPort.hh"
 #include "MoveNodeSet.hh"
+#include "OutputPSocketResource.hh"
 
 using std::string;
 using namespace TTAMachine;

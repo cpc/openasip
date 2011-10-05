@@ -48,6 +48,7 @@
 #include "TCEString.hh"
 #include "ResourceManager.hh"
 #include "Terminal.hh"
+#include "ProgramOperation.hh"
 
 using namespace TTAMachine;
 using std::pair;

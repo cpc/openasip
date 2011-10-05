@@ -37,6 +37,7 @@
 #include "Exception.hh"
 #include "MoveNode.hh"
 #include "ExecutionPipelineResource.hh"
+#include "OutputPSocketResource.hh"
 
 using TTAMachine::FUPort;
 using TTAMachine::Port;

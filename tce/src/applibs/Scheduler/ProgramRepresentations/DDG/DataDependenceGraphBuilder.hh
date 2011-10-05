@@ -34,15 +34,16 @@
 #ifndef TTA_DDG_BUILDER_HH
 #define TTA_DDG_BUILDER_HH
 
-#include <llvm/Analysis/AliasAnalysis.h>
-
 #include "DataDependenceGraph.hh"
 #include "ControlFlowGraph.hh"
 #include "MemoryAliasAnalyzer.hh"
 #include "TCEString.hh"
 #include "MoveNodeUse.hh"
-#include "DisassemblyRegister.hh"
 #include "LiveRangeData.hh"
+
+namespace llvm {
+    class AliasAnalysis;
+}
 
 namespace TTAProgram {
     class Program;

@@ -57,6 +57,8 @@
 #include "Guard.hh"
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
+#include "DisassemblyRegister.hh"
+#include "SimpleResourceManager.hh"
 
 //#define DEBUG_REG_COPY_ADDER
 

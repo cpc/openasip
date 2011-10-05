@@ -34,10 +34,20 @@
 #ifndef TTA_SIMPLE_RESOURCE_MANAGER_HH
 #define TTA_SIMPLE_RESOURCE_MANAGER_HH
 
+#include <list>
+#include <map>
+
 #include "ResourceManager.hh"
-#include "SimpleBrokerDirector.hh"
 #include "AssignmentPlan.hh"
 #include "ResourceBuildDirector.hh"
+
+class SimpleBrokerDirector;
+
+namespace TTAProgram {
+    class Instruction;
+    class Immediate;
+    class Terminal;
+}
 
 /**
  * A simple resource manager.

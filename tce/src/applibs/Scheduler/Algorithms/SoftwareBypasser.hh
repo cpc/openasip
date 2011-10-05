@@ -33,11 +33,6 @@
 #ifndef TTA_SOFTWARE_BYPASSER_HH
 #define TTA_SOFTWARE_BYPASSER_HH
 
-#include <set>
-
-#include "HelperSchedulerModule.hh"
-#include "Move.hh"
-
 class MoveNodeGroup;
 class DataDependenceGraph;
 class ResourceManager;

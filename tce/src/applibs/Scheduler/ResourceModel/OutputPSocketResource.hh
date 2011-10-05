@@ -34,11 +34,15 @@
 #ifndef TTA_OUTPUTPSOCKETRESOURCE_HH
 #define TTA_OUTPUTPSOCKETRESOURCE_HH
 
+#include <map>
 #include <string>
 
 #include "SchedulingResource.hh"
 #include "PSocketResource.hh"
-#include "Port.hh"
+
+namespace TTAMachine {
+    class Port;
+}
 
 /**
  * An interface for scheduling resources of Resource Model

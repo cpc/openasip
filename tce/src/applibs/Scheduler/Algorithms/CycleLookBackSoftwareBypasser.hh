@@ -38,7 +38,6 @@
 
 #include "SoftwareBypasser.hh"
 #include "DataDependenceGraph.hh"
-#include "Move.hh"
 
 class MoveNodeSelector;
 class MoveNode;

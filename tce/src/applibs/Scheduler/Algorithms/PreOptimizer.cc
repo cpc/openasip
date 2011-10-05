@@ -45,6 +45,7 @@
 #include "CodeGenerator.hh"
 #include "InstructionReferenceManager.hh"
 #include "RegisterFile.hh"
+#include "DisassemblyRegister.hh"
 
 static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
 

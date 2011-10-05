@@ -33,15 +33,12 @@
 #ifndef TTA_BB_SCHEDULER_CONTROLLER_HH
 #define TTA_BB_SCHEDULER_CONTROLLER_HH
 
-#include <boost/timer.hpp>
 #include <boost/progress.hpp>
 
-#include "Program.hh"
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraphPass.hh"
 #include "ProcedurePass.hh"
 #include "ProgramPass.hh"
-#include "DataDependenceGraph.hh"
 
 class BasicBlockNode;
 class SoftwareBypasser;
@@ -49,6 +46,7 @@ class CopyingDelaySlotFiller;
 class SchedYieldEmitter;
 class LLVMTCECmdLineOptions;
 class DDGPass;
+class DataDependenceGraph;
 
 namespace TTAProgram {
     class Program;

@@ -35,7 +35,6 @@
 #define TTA_IU_BROKER_HH
 
 #include "ResourceBroker.hh"
-#include "SimpleResourceManager.hh"
 #include "IUResource.hh"
 
 namespace TTAMachine {
@@ -50,6 +49,7 @@ namespace TTAProgram {
 class MoveNode;
 class ResourceMapper;
 class SchedulingResource;
+class SimpleResourceManager;
 
 /**
  * Immediate unit broker.

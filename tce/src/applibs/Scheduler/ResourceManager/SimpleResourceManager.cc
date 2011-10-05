@@ -43,6 +43,7 @@
 #include "ITemplateBroker.hh"
 #include "Instruction.hh"
 #include "SequenceTools.hh"
+#include "SimpleBrokerDirector.hh"
 
 using namespace TTAProgram;
 

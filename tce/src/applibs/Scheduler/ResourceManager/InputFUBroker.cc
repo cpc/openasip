@@ -53,6 +53,7 @@
 #include "SchedulingResource.hh"
 #include "TerminalFUPort.hh"
 #include "MoveNodeSet.hh"
+#include "InputPSocketResource.hh"
 
 using std::string;
 using namespace TTAMachine;
