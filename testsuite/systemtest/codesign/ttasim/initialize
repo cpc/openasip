@@ -6,3 +6,4 @@ CURDIR=${PWD}
 chmod +x run_*.sh
 rm -f data/*.bustrace
 rm -f data/*.trace.*
+rm -f .ttasim-init
