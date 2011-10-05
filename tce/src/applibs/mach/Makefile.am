@@ -23,7 +23,7 @@ AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/applibs/Scheduler/ResourceManager \
 	-I${PROJECT_ROOT}/src/applibs/Scheduler/ResourceModel \
 	-I${PROJECT_ROOT}/src/applibs/Scheduler/ProgramRepresentations/PDG \
-        ${LLVM_CPPFLAGS}
+        -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
