@@ -38,6 +38,7 @@
 #include <map>
 
 #include "DataDependenceGraph.hh"
+#include "FunctionUnit.hh"
 
 class ProgramOperation;
 class MoveNode;
