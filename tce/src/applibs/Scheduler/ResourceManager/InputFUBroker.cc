@@ -251,7 +251,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
     // find units that support operation and are available
     while (resIter != resMap_.end()) {
         const FunctionUnit* unit =
-            dynamic_cast<const FunctionUnit*>((*resIter).first);
+            static_cast<const FunctionUnit*>((*resIter).first);
 
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it

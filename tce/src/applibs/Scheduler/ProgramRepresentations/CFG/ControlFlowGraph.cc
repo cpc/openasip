@@ -2261,8 +2261,10 @@ ControlFlowGraph::removeJumpToTarget(
                             }
                             
                             if (ddg != NULL) {
+#ifdef DEBUG_BB_OPTIMIZER
                                 std::cerr << "removing jump node from ddg."
                                           << std::endl;
+#endif
                                 MoveNode* mn = &ddg->nodeOfMove(move);
                                 ddg->removeNode(*mn);
                                 delete mn;
@@ -2277,8 +2279,10 @@ ControlFlowGraph::removeJumpToTarget(
                         }
                     } else {
                         if (ddg != NULL) {
+#ifdef DEBUG_BB_OPTIMIZER
                             std::cerr << "removing jump node from ddg(2)."
                                       << std::endl;
+#endif
                             MoveNode* mn = &ddg->nodeOfMove(move);
                             ddg->removeNode(*mn);
                             delete mn;
