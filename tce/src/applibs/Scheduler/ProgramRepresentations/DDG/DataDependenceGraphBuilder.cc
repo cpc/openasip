@@ -929,7 +929,6 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
     // universalmachine code.
     if (currentData_->readPending_ != NULL) {
         ProgramOperationPtr po = currentData_->readPending_;
-        assert(sop == &po->operation());
         
         if (!po->isComplete()) {
             po->addOutputNode(moveNode);

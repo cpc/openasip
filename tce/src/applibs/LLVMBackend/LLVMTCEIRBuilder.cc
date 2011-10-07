@@ -237,9 +237,14 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         //TODO: what does the parameter do? start address?
         TTAProgram::BasicBlock* bb = new TTAProgram::BasicBlock(0);
 
+        // this doesn't seem robust: it assumes _start is added to
+        // the program first and the BBs added in their program
+        // order
+        bool firstBBofTheProgram = 
+            !functionAtATime_ && prog_->procedureCount() == 1 && 
+            cfg->nodeCount() == 1;
         // first BB of the program
-        if (!functionAtATime_ && prog_->procedureCount() == 1 && 
-            cfg->nodeCount() == 1) {
+        if (firstBBofTheProgram) {
             LLVMTCEBuilder::emitSPInitialization(*bb);
         }
         
@@ -335,12 +340,12 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 }
             }
         }
-        if (newMBB == true) {
+        if (newMBB) {
             assert(newBB);
             emptyMBBs.insert(&mbb);
         }
         if (newBB) {
-            assert (bb->instructionCount() == 0);
+            assert(firstBBofTheProgram || bb->instructionCount() == 0);
             delete bbn;
         }
     }
