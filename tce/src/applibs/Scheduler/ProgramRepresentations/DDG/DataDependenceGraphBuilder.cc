@@ -911,6 +911,7 @@ DataDependenceGraphBuilder::processOperand(
     currentData_->destPending_ = po;
 }
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
 /**
  * Analyzes a source of a result read. 
  *
@@ -923,6 +924,7 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
 
     Terminal& source = moveNode.move().source();
     TerminalFUPort& tfps = dynamic_cast<TerminalFUPort&>(source);
+    Operation* sop = &tfps.hintOperation();
 
     // Goes thru all programoperations lacking result read.
     // There should be only one if well-behaving
@@ -948,6 +950,8 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
         (boost::format("Result move '%s' without operands") %
          moveNode.move().toString()).str());
 }
+
+#pragma GCC diagnostic warning "-Wunused-variable"
 
 /**
  * Creates operand edges between input and output moves of a
