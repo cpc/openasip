@@ -744,9 +744,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         ne.setCause(e);
         throw ne;
     }
-    
-    // since llvm-2.6 tblgen is installed
+
+#ifdef LLVM_2_9    
     std::string tblgenbin = "tblgen";
+#else
+    std::string tblgenbin = "llvm-tblgen";
+#endif
        
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd;
