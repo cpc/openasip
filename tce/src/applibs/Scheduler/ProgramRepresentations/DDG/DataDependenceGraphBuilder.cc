@@ -923,7 +923,6 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
 
     Terminal& source = moveNode.move().source();
     TerminalFUPort& tfps = dynamic_cast<TerminalFUPort&>(source);
-    Operation* sop = &tfps.hintOperation();
 
     // Goes thru all programoperations lacking result read.
     // There should be only one if well-behaving

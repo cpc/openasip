@@ -59,6 +59,7 @@ MoveNodeSelector::candidates() {
     return MoveNodeGroup();
 }
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 /**
  * This should be called by the client as soon as a MoveNode is scheduled
  * in order to update the internal state of the selector.
@@ -69,6 +70,7 @@ void
 MoveNodeSelector::notifyScheduled(MoveNode& node) {
     assert(&node && "Should never be called. Here just to avoid warning.");
 }
+#pragma GCC diagnostic warning "-Wunused-parameter"
 
 /** 
  * This should be called by the client when some incoming dependence to
