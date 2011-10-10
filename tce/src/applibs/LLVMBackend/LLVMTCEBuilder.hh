@@ -304,6 +304,12 @@ namespace llvm {
         
         bool isBaseOffsetMemOperation(const Operation& operation) const;
 
+         // Create MoveNodes before calling DDGBuilder.
+         virtual void createMoveNode(
+         	ProgramOperationPtr& po,
+             TTAProgram::Move& m,
+             bool isDestination) {}
+
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
 

@@ -112,6 +112,11 @@ namespace llvm {
         virtual TTAProgram::Terminal* createSymbolReference(
             const TCEString& symbolName);
 
+        virtual void createMoveNode(
+            ProgramOperationPtr& po,
+            TTAProgram::Move& m,
+            bool isDestination);
+
     private:
 
         bool isRealInstruction(const MachineInstr& instr);

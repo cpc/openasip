@@ -821,5 +821,31 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
         }
     }
 }
+/**
+ * Create MoveNode and attach it to TerminalFUs.
+ * The MoveNode will be owned by DDG.
+ */
+void
+LLVMTCEIRBuilder::createMoveNode(
+    ProgramOperationPtr& po,
+    TTAProgram::Move& m,
+    bool isDestination) {
+
+    MoveNode* mn = new MoveNode(m);
+
+    if (isDestination) {
+        po->addInputNode(*mn);
+        mn->setDestinationOperationPtr(po);
+        TTAProgram::TerminalFUPort& term =
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
+        term.setProgramOperation(po);
+    } else {
+        po->addOutputNode(*mn);
+        mn->setSourceOperationPtr(po);
+        TTAProgram::TerminalFUPort& term =
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
+        term.setProgramOperation(po);
+    }
+}
 
 }

@@ -1237,28 +1237,13 @@ LLVMTCEBuilder::emitInstruction(
         TTAProgram::Instruction* instr = operandMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-        // Create the ProgramOperation and attach it to the TerminalFUs.
-        // The MoveNode will be owned by DDG
-        MoveNode* mn = new MoveNode(m);
-        po->addInputNode(*mn);
-        mn->setDestinationOperationPtr(po);
-        TTAProgram::TerminalFUPort& term = 
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
-        term.setProgramOperation(po);
+        createMoveNode(po, m, true);
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-
-        // Create the ProgramOperation and attach it to the TerminalFUs.
-        // The MoveNode will be owned by DDG            
-        MoveNode* mn = new MoveNode(m);
-        po->addOutputNode(*mn);
-        mn->setSourceOperationPtr(po);            
-        TTAProgram::TerminalFUPort& term = 
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
-        term.setProgramOperation(po);
+        createMoveNode(po, m, false);
     }
     return first;
 }
@@ -1757,13 +1742,7 @@ LLVMTCEBuilder::emitReturn(
     // to do that.
     boost::shared_ptr<ProgramOperation> po(
         new ProgramOperation(operation, mi));    
-    MoveNode* mn = new MoveNode(move);
-    po->addInputNode(*mn);
-    mn->setDestinationOperationPtr(po);
-    TTAProgram::TerminalFUPort& term = 
-        dynamic_cast<TTAProgram::TerminalFUPort&>(move->destination());
-    term.setProgramOperation(po);  
-    
+    createMoveNode(po, *move, true);
     return instr;
 }
 
