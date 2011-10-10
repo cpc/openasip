@@ -1,0 +1,144 @@
+AT_SETUP([warp generation])
+
+AT_DATA([main.c], [
+#include <stdlib.h>
+
+void f(void *);
+
+int main(int argc, char *argv[[]]) {
+    int i[[32]];
+
+    f(i);
+
+    return 0;
+}
+])
+
+AT_DATA([context.c], [
+#include <stdio.h>
+
+void f(void) {
+    puts("OK");
+}
+])
+
+$LLVMCC $LLVMCFLAGS -c --emit-llvm main.c
+$LLVMCC $LLVMCFLAGS -c --emit-llvm context.c
+AT_CHECK([opt -load=$abs_top_builddir/lib/.libs/llvmopencl.so \
+          -add-context  -external-functions=puts \
+          -generate-warps -warp-width=4 1 1 \
+          -f -o opencl_context.o context.o])
+AT_CHECK([llvm-link -o test.o main.o opencl_context.o])
+AT_CHECK([lli test.o], 0, [OK
+OK
+OK
+OK
+])
+
+AT_CLEANUP
+
+#-------------------------------------------------------------------------------
+
+AT_SETUP([kernel function selection parameter])
+
+AT_DATA([main.c], [
+#include <stdlib.h>
+
+void f(void *);
+
+int main(int argc, char *argv[[]]) {
+    int i[[32]];
+
+    f(i);
+
+    return 0;
+}
+])
+
+AT_DATA([context.c], [
+#include <stdio.h>
+
+void g(void) {
+    puts("OK");
+}
+
+void f(void) {
+    g();
+}
+])
+
+$LLVMCC $LLVMCFLAGS -c --emit-llvm main.c
+$LLVMCC $LLVMCFLAGS -c --emit-llvm context.c
+AT_CHECK([opt -load=$abs_top_builddir/lib/.libs/llvmopencl.so \
+          -add-context -external-functions=puts \
+          -generate-warps -warp-width=4 1 1 \
+          -kernel-functions=f -f -o opencl_context.o context.o])
+AT_CHECK([llvm-link -o test.o main.o opencl_context.o])
+AT_CHECK([lli test.o], 0, [OK
+OK
+OK
+OK
+])
+
+AT_CLEANUP
+
+#-------------------------------------------------------------------------------
+
+AT_SETUP([context updating per work-item])
+
+AT_DATA([main.c], [
+#include <stdio.h>
+#include <string.h>
+
+struct _thread_context {
+    unsigned work_dim;
+    unsigned global_size[[3]];
+    unsigned global_id[[3]];
+    unsigned local_size[[3]];
+    unsigned local_id[[3]];
+    unsigned num_groups[[3]];
+    unsigned group_id[[3]];
+};
+
+void f(struct _thread_context *tc);
+
+void g(struct _thread_context *tc);
+
+int main(int argc, char *argv[[]]) {
+    struct _thread_context tc;
+    memset(&tc, 0, sizeof(tc));
+
+    f(&tc);
+
+    return 0;
+}
+
+void g(struct _thread_context *tc) {
+    printf("OK %d\n", tc->local_id[[0]]);
+}
+])
+
+AT_DATA([context.c], [
+#include <stdio.h>
+
+void g(void);
+
+void f(void) {
+    g();
+}
+])
+
+$LLVMCC $LLVMCFLAGS -c --emit-llvm main.c
+$LLVMCC $LLVMCFLAGS -c --emit-llvm context.c
+AT_CHECK([opt -load=$abs_top_builddir/lib/.libs/llvmopencl.so \
+          -add-context -external-functions=puts \
+          -generate-warps -warp-width=4 1 1 \
+          -f -o opencl_context.o context.o])
+AT_CHECK([llvm-link -o test.o main.o opencl_context.o])
+AT_CHECK([lli test.o], 0, [OK 0
+OK 1
+OK 2
+OK 3
+])
+
+AT_CLEANUP

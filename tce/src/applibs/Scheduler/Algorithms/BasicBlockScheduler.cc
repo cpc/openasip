@@ -211,8 +211,6 @@ BasicBlockScheduler::handleDDG(
     if (ddg.nodeCount() !=
         ddg.scheduledNodeCount()) {
         debugLog("All moves in the DDG didn't get scheduled.");
-//        debugLog("Disassembly of the situation:");
-//        Application::logStream() << bb.disassemble() << std::endl;
         ddg.writeToDotFile("failed_bb.dot");
         abortWithError("Should not happen!");
     }

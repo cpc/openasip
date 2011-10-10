@@ -1,0 +1,6 @@
+<?php
+// short test description
+$test_description = "OpenCL host+kernel code compilation";
+$test_bin = "./test_opencl.sh";
+$bin_args = "";
+?>

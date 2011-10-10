@@ -148,6 +148,8 @@ public:
         llvm::MachineFunction& mf,
         const TTAProgram::BasicBlock& bb) const;
 
+    void splitBasicBlocksWithCalls();
+
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>

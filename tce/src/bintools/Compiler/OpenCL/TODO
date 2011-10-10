@@ -1,0 +1,17 @@
+- openCL: line number fix so error and warning messages point
+  to the correct .cl line
+  # 12 "Foobar.cl" seems to be the standard way to insert line
+  numbers to the processed source
+  
+  cpp inserts its own which we should also take in account and
+  fix
+  
+  especially insertion of trampoline code breaks the line numbers
+  
+- change SplitRegions pass so instead of looking for barriers while
+  splitting it first looks for all "splitting points" and then does
+  the splitting. This helps also adding artificial aplitting points,
+  like the one needed on every block with a predeceddor in a region
+  different to current one (otherwise I will go through loop exit
+  without passing through loop entry before => does not dominate
+  all instructions error).

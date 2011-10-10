@@ -33,7 +33,7 @@
 import os, sys, commands, optparse, shutil, glob, signal
 import os.path
 
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
 from optparse import OptionParser
 from shutil import rmtree
 from subprocess import Popen, PIPE
@@ -153,7 +153,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
         compileFlags += "-isystem" + i + " "
 
     # list of valid suffixes
-    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
+    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a", ".cl"]
 
     linkList = []
 
@@ -167,6 +167,10 @@ def processInputFiles(inFiles, tmpDir, verbose):
             # check file type based on knownSuffices
             baseName = ""
             suffix = ""
+            temp_file = None
+            # The OpenCL C device specific header file that is
+            # generated from the ADF.
+            device_header = None
             for i in range(len(knownSuffices)):
                 testSuffix = knownSuffices[i]
                 suffixStart = fName.rfind(testSuffix)
@@ -186,6 +190,10 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # be compiled first
                 command = ""
                 
+                extra_opts = ""
+                if options.language != "":
+                    extra_opts += "-x %s " % options.language
+
                 # After compilation all malloc instructions are lowered
                 # to function calls... if malloc function
                 # is implemented as a instruction in llvm assembler,
@@ -210,15 +218,147 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
                     
-                   
-                elif suffix == ".cpp" or suffix == ".cc":
-                    command = ("tce-llvm-g++ --emit-llvm -O%d -ffreestanding "\
-                              "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
-                              " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName + ".tobelowered;") % options.frontend_optlevel
+                elif suffix == ".cl":
+
+                    if options.adf_file == "":
+                        exitWithError(1, "ADF file required when compiling OpenCL kernels.")
+
+                    input_file = baseName + suffix
+                    oclextgen = os.path.join(tceOclExtGenDir, "tceoclextgen") + " "  + options.adf_file
+
+                    # Generate the ADF specific header file with extension 
+                    # functions for (custom) operations etc.
+                    device_header = mkstemp("_oclext.h", dir=tempDir)
+
+                    exitCode = runCommand(oclextgen, verbose, echoStderr=True, stdoutFD=device_header[0]) 
+
+                    if exitCode != 0:
+                        os.unlink(device_header[1])
+                        exitWithError(
+                            1, 
+                            "Error while generating the OpenCL C device header.\n")
+
+                    # Run the standard C preprocessor  before passing to opencl-tce
+                    # because, for example, the work group size attribute might use macros                        
+                    includes = "-I" + tceOpenCLIncludeDir + \
+                        " -include " + device_header[1]
+                    
+                    preprocessed_fn = mkstemp(".preprocessed", dir=tempDir)[1]
+                    if options.use_clang:
+                        cpp_command = ("clang -E %s "\
+                                       "-I" + tmpDir + " " + input_file + " -o " +\
+                                       preprocessed_fn) % (includes)
+                    else:
+                        cpp_command = ("tce-llvm-gcc -x c++ -E %s "\
+                                       "-I" + tmpDir + " " + input_file + " -o " +\
+                                       preprocessed_fn) % (includes)
+
+                    exitCode = runCommand(cpp_command, verbose, echoStderr=True) 
+                    if exitCode != 0:
+                        add_garbage(preprocessed_fn)
+                        exitWithError(
+                            1, 
+                            "Error while preprocessing OpenCL C file " +\
+                            input_file + "\n")
+
+                    # Generate the C++ version of the kernel + a trampoline.
+                    cpp_kernel = mkstemp("_kernel.cpp", dir=tempDir)[1]
+                    cpp_trampoline = mkstemp("_trampoline.cpp", dir=tempDir)[1]
+
+                    opencl_tce_command = tceOpenCLBinDir + "/opencl-tce %s %s %s" % \
+                        (preprocessed_fn, cpp_kernel, cpp_trampoline)
+
+                    exitCode = runCommand(opencl_tce_command, verbose, echoStderr=True) 
+                    if exitCode != 0:
+                        add_garbage(cpp_kernel)
+                        add_garbage(cpp_trampoline)
+                        exitWithError(
+                            1, 
+                            "Error while converting OpenCL C file %s to C++\n" % input_file)
+
+                    kernel_bc = cpp_kernel + ".o"
+                    trampoline_bc = cpp_trampoline + ".o"
+
+
+                    def compile(input, output):
+                        if options.use_clang:
+                            command = ("clang -ccc-host-triple tce-tut-llvm %s " + \
+                                           "-emit-llvm -O%d "\
+                                           "-fno-inline -c -I" + tmpDir +\
+                                           " " + compileFlags + " " + input + " -o " + output) % \
+                                           ("-I" + tceOpenCLIncludeDir, options.frontend_optlevel)
+                        else:
+                            command = ("tce-llvm-g++ -x c++ %s --emit-llvm -O%d "\
+                                           "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
+                                           " " + compileFlags + " " + input + " -o " + output) % \
+                                           ("-I" + tceOpenCLIncludeDir, options.frontend_optlevel)
+                        exitCode = runCommand(command, verbose, echoStderr=True) 
+                        if exitCode != 0:
+                            exitWithError(1, "Error while compiling %s." % input)
+
+                    # Compile the kernel.
+                    compile(cpp_kernel, kernel_bc)
+                    # run ThreadizeKernel for the kernel
+                    # -max-warp-width=8
+
+                    kernel_context_bc = cpp_kernel + ".context.o"
+                    command = "opt -load=%s -independent-pointers -add-context -flatten-kernels -o %s %s" % \
+                        (openclPassFile, kernel_context_bc, kernel_bc)
+                    exitCode = runCommand(command, verbose, echoStderr=True) 
+                    if exitCode != 0:
+                        exitWithError(1, "Error while processing OpenCL file %s." % fName)
+
+                    kernel_linked = cpp_kernel + ".linked"
+                    kernel_linked_bc = kernel_linked + ".bc"
+                    command = "llvm-ld -L%s %s -loclkernel -o %s" % \
+                        (tceOclBitcodeLibDir, kernel_context_bc, kernel_linked)
+                    exitCode = runCommand(command, verbose, echoStderr=True) 
+                    if exitCode != 0:
+                        exitWithError(1, "Error while processing OpenCL file %s." % fName)
+
+                    kernel_threadized_bc = cpp_kernel + ".threadized.o"
+                    command = "opt -std-compile-opts -load=%s -opencl %s -max-warp-width=%d -o %s" % \
+                        (openclPassFile, kernel_linked_bc, 
+                         options.opencl_max_parallel_wi_count, kernel_threadized_bc)
+                    exitCode = runCommand(command, verbose, echoStderr=True) 
+                    if exitCode != 0:
+                        exitWithError(1, "Error while processing OpenCL kernel %s." % input)
+                    
+                    compile(cpp_trampoline, trampoline_bc)
+
+                    # Link the two files together.
+                    command = "llvm-link %s %s -o %s.tobelowered;" % \
+                               (kernel_threadized_bc, trampoline_bc, outFileName)
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                   
+                elif suffix == ".cpp" or suffix == ".cc":
+                    input_file = baseName + suffix
                     
+                    if options.use_clang:
+                        command = ("clang -ccc-host-triple tce-tut-llvm %s -emit-llvm " +\
+                                    "-O%d "\
+                                    "-fno-inline -c -I" + tmpDir +\
+                                    " -I" + tceOpenCLIncludeDir +\
+                                    " " + compileFlags + " " + input_file + " -o " +\
+                                    outFileName + ".tobelowered1;") % \
+                                    (extra_opts, options.frontend_optlevel)
+                    else:
+                        command = ("tce-llvm-g++ %s --emit-llvm -O%d "\
+                                    "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
+                                    " -I" + tceOpenCLIncludeDir +\
+                                    " " + compileFlags + " " + input_file + " -o " +\
+                                    outFileName + ".tobelowered1;") % \
+                                    (extra_opts, options.frontend_optlevel)
+
+                    # For some reason C++ code does not get mallocs lowered to
+                    # calls by the frontend, do it manually here with the -lowerallocs
+                    # pass.
+                    # lowerallocs removed in 2.7?
+                    #command += "opt -lowerallocs %s -o %s;" % \
+#                        (outFileName + ".tobelowered1", outFileName + ".tobelowered")
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered1", outFileName)
                 elif suffix == ".ll":
                     command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
 
@@ -597,6 +737,10 @@ else:
                  help=\
 "Use Clang for C compilation instead of llvm-gcc.")
 
+p.add_option('-x', type='string', action='store', metavar='language',
+             dest="language", default='', help=\
+"""Bypass language detection and use the given language for compilation.""")             
+
 p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
              help=\
 """Dumps DDGs in dot format before and after scheduling.""")
@@ -623,6 +767,13 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
              help=\
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
+
+p.add_option('--opencl-max-parallel-wi-count',
+             type="int", action="store",
+             dest='opencl_max_parallel_wi_count', default=8,
+             help=\
+"""The maximum number of work items that are compiled (unrolled) to 
+be executed in parallel.""")
 
 p.add_option('--old-builder', action='store_true', dest='pom_builder', 
              default=False,
@@ -703,9 +854,16 @@ if runningInstalled:
     newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
     bclib_includes = "" # same as newlib_includes
     bclib_libdirs = "" # all libs should be in the same newlib_libdir
-    #srcRoot = None
+    opencl_includes = "" # same as newlib_includes
+    srcRoot = None
+    tceOpenCLIncludeDir = tceprefix + "/include"
+    tceOpenCLBinDir = tceprefix + "/bin"
+    tceOclExtGenDir = os.path.join(tceprefix, "bin")
+    openclPassFile = os.path.join(tceprefix, "lib/llvmopencl", "llvmopencl.so")    
+    tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
+
 else:
-    #srcRoot = scriptDir.split('bintools/Compiler')[0]
+    srcRoot = "@abs_top_srcdir@"
     lowerintrinsicsplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
     newlib_libdir = os.path.join("@abs_top_builddir@","newlib-1.17.0/tce-llvm/newlib")
     newlib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
@@ -714,6 +872,14 @@ else:
     bclib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@", "bclib/include"))
     lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
     bclib_libdirs = [lwpr_libdir]
+    tceOpenCLDir = os.path.join(srcRoot, "src/bintools/Compiler/OpenCL")
+    tceOpenCLIncludeDir = os.path.join(tceOpenCLDir, "include")
+    tceOpenCLBinDir = os.path.join(tceOpenCLDir, "scripts")
+    tceOclExtGenDir = os.path.join("@abs_top_builddir@", "src/bintools/Compiler/tceopgen")
+    openclPassFile = os.path.join("@abs_top_builddir@",
+                                  "src/bintools/Compiler/OpenCL/lib/.libs/llvmopencl.so")
+    tceOclBitcodeLibDir = os.path.join("@abs_top_builddir@",
+                                       "src/bintools/Compiler/OpenCL/lib/CL")
 
 if options.verbose:
     if runningInstalled:
@@ -752,7 +918,6 @@ else:
     
     linkList = processInputFiles(inFiles, tempDir, options.verbose)
 
-    # if only compiling
     if options.compile_only:
         if options.output_name != "":
             (exitCode, output) = runCommandBuffered(
@@ -769,8 +934,8 @@ else:
         cleanup(tempDir)
         sys.exit(0)
 
-    # convert -l switches to static library link commands.
-    library_search_paths = [newlib_libdir]
+    # convert -l switches to direct references to static library files
+    library_search_paths = [newlib_libdir, tceOclBitcodeLibDir]
     library_search_paths += bclib_libdirs
 
     for i in options.lib_dirs:
@@ -797,6 +962,8 @@ else:
         (exitCode, output) = runCommandBuffered(
             "mv " +  optimizedFileName + " " + outputName,
             options.verbose)
+        cleanup(tempDir)
+        sys.exit(0)
         
 #### Schedule compiled sequential code for machines
 if options.adf_file != "":

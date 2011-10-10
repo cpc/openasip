@@ -61,6 +61,9 @@ case $host_os in
          ;;
 esac
 
+ac_configure_args="$ac_configure_args LLVMCC=`pwd`/src/bintools/Compiler/tcecc"
+AC_CONFIG_SUBDIRS([src/bintools/Compiler/OpenCL])
+
 #######################
 # CHECKS FOR PROGRAMS #
 #######################

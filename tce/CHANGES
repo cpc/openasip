@@ -13,6 +13,14 @@ Notable changes and features
 - Support for calling custom operations to be executed in specified 
   function unit (e.g. _TCEFU_ADD("ALU8", A1_Cb, A1_Cr, result2)).
   Thanks to Hervé Yviquel for the patch.
+- Generalizations to the architecture description format to allow
+  using the scheduler for operation triggered arhictectures. The
+  Cell SPU is the proof of the concept architecture which can be
+  scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).
+- Preliminary C++ support:
+  - Support for global constructors / destructors
+  - At least exceptions are still unsupported, and in general the C++
+    support has received very little testing so far.
 
 Bugfixes
 --------
@@ -46,6 +54,8 @@ Code generator improvements
   in slightly better code being generated.
 - Can rename registers during scheduling
 - Does not save return address to stack in leaf functions.
+- Alias analysis of LLVM is now exploited in DDG building to improve 
+  parallelization.
 
 Smaller features
 ----------------
@@ -62,6 +72,9 @@ Smaller features
   Thanks to Hervé Yviquel for the patch.
 - ProGe: HDL-file compilation order in Modelsim compilation script is
   now fixed. Thanks to Vinogradov Vyacheslav for the patch
+- tcedisasm now outputs to filename.tpef.S by default.
+- generate_cachegrind now uses line numbering and counts NOPs per
+  instruction in case an assembly file is present as foobar.tpef.S.
   
 Usability features
 ------------------

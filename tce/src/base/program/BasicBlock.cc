@@ -60,8 +60,6 @@ BasicBlock::~BasicBlock() {
 
 /**
  * Creates a deep copy of the basic block.
- *
- * @return A deep copy of the basic block.
  */
 BasicBlock*
 BasicBlock::copy() const {

@@ -16,11 +16,25 @@
 void _start(void) __attribute__((noinline));
 void _exit(int) __attribute__((noinline,noreturn));
 
+/* Clang C++ support needs this. -fno-cxa-atexit 
+   does not work in 2.7. */
+void*   __dso_handle = (void*) &__dso_handle;
+
 void _start(void)
 {
+    asm volatile (".call_global_ctors");
     // for initing signal table...
     //__init_signal();
-    _exit(main());
+
+    int retval = main();
+
+    // note: atexit() not called as our targets are not supposed to exit,
+    // destructors called just for completeness for simulations
+    // this does not work with Clang 2.7 as it registers the destructors
+    // to atexit() instead.
+    asm volatile (".call_global_dtors");
+
+    _exit(retval);
 }
 
 volatile char __dummy__;

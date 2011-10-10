@@ -1,0 +1,1 @@
+Gladman implementation of AES that uses two custom ops through the OpenCL "vendor extensions" API.

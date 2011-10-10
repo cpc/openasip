@@ -85,7 +85,7 @@ private:
 class BasicBlock : public TTAProgram::CodeSnippet {
 public:
 
-    BasicBlock(int startAddress);
+    BasicBlock(int startAddress=0);
     virtual ~BasicBlock();
 
     BasicBlock* copy() const;

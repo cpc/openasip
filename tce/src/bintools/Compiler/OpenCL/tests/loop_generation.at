@@ -1,0 +1,80 @@
+AT_SETUP([loop generation])
+
+AT_DATA([main.c], [
+#include <stdlib.h>
+
+void f(void *);
+
+int main(int argc, char *argv[[]]) {
+    int i[[32]];
+
+    f(i);
+
+    return 0;
+}
+])
+
+AT_DATA([context.c], [
+#include <stdio.h>
+
+void f(void) {
+    puts("OK");
+}
+])
+
+$LLVMCC $LLVMCFLAGS -c --emit-llvm main.c
+$LLVMCC $LLVMCFLAGS -c --emit-llvm context.c
+AT_CHECK([opt -load=$abs_top_builddir/lib/.libs/llvmopencl.so \
+          -loop-regions -loop-count=4 1 1 -external-functions=puts \
+          -f -o opencl_context.o context.o])
+AT_CHECK([llvm-link -o test.o main.o opencl_context.o])
+AT_CHECK([lli test.o], 0, [OK
+OK
+OK
+OK
+])
+
+AT_CLEANUP
+
+#-------------------------------------------------------------------------------
+
+AT_SETUP([duplication of inter-region variables])
+
+AT_DATA([main.c], [
+#include <stdlib.h>
+
+void f(void *);
+
+int main(int argc, char *argv[[]]) {
+    int i[[32]];
+
+    f(i);
+
+    return 0;
+}
+])
+
+AT_DATA([context.c], [
+#include <stdio.h>
+
+void f(void) {
+    int i = 0;
+
+    printf ("%d\n", i++);
+}
+])
+
+$LLVMCC $LLVMCFLAGS -c --emit-llvm main.c
+$LLVMCC $LLVMCFLAGS -c --emit-llvm context.c
+AT_CHECK([opt -load=$abs_top_builddir/lib/.libs/llvmopencl.so \
+          -loop-regions -loop-count=4 1 1 -external-functions=printf \
+          -f -o opencl_context.o context.o])
+AT_CHECK([llvm-link -o test.o main.o opencl_context.o])
+AT_CHECK([lli test.o], 0, [0
+0
+0
+0
+])
+
+AT_CLEANUP
+

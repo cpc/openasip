@@ -1,0 +1,44 @@
+LLVMOPENCL_SO=@top_builddir@/lib/.libs/llvmopencl.so
+
+CC=@LLVMCC@
+CXX=@LLVMCC@
+CPPFLAGS=-I@top_srcdir@/include
+CFLAGS=@LLVMCFLAGS@ --emit-llvm
+CXXFLAGS=@LLVMCFLAGS@ --emit-llvm
+OPENCL_TCE=@top_srcdir@/scripts/opencl-tce
+
+vpath % @srcdir@
+
+.PHONY: clean
+
+ADDF8x8: oclADDF8x8.o opencl_kernel.o _trampoline_kernel.o
+	llvm-ld -L@top_builddir@/lib/CL -o $@ $^ -loclhost
+
+kernel.cpp: ADDF8x8.cl
+	$(OPENCL_TCE) $< $@ _trampoline_$@
+
+_trampoline_kernel.cpp: ADDF8x8.cl
+	$(OPENCL_TCE) $< kernel.cpp $@
+
+context_kernel.o: kernel.o
+	opt -load=$(LLVMOPENCL_SO) \
+	-add-context -flatten-kernels \
+	-f -o $@ $<
+
+full_kernel.bc: context_kernel.o
+	llvm-ld -L@top_builddir@/lib/CL -o $(@:.bc=) $^ -loclkernel
+
+opencl_kernel.o: full_kernel.bc
+	opt -load=$(LLVMOPENCL_SO) \
+	-std-compile-opts \
+	-opencl -max-warp-width=8 \
+	-f -o $@ $<
+
+kernel.o: kernel.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -include opencl_c_tce.hh -c -o $@ $<
+
+clean:
+	rm -f ADDF8x8 ADDF8x8.bc
+	rm -f full_kernel full_kernel.bc
+	rm -f kernel.cpp _trampoline_kernel.cpp
+	rm -f *.o

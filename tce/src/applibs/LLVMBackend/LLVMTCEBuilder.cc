@@ -55,6 +55,7 @@
 #include "Guard.hh"
 #include "Terminal.hh"
 #include "TerminalInstructionReference.hh"
+#include "TerminalSymbolReference.hh"
 #include "TerminalAddress.hh"
 #include "TerminalRegister.hh"
 #include "TerminalImmediate.hh"
@@ -2177,7 +2178,6 @@ LLVMTCEBuilder::emitReadSP(
     codeGenerator.addMoveToProcedure(*proc, srcTerminal, destTerminal);
     return &(proc->nextInstruction(lastInstruction));
 }
-
 /** 
  * Handles the .pointer_category pseudo assembler instruction.
  * 
@@ -2188,7 +2188,7 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::handleMemoryCategoryInfo(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-    if (mi->getNumOperands() != 5) {
+    if (mi->getNumOperands() != 6) {
         Application::logStream() 
             << "got " << mi->getNumOperands() << " operands" << std::endl;
         mi->dump();
@@ -2202,11 +2202,10 @@ LLVMTCEBuilder::handleMemoryCategoryInfo(
     CodeGenerator codeGenerator(*mach_);
 
     TTAProgram::Terminal* srcTerminal = 
-        createTerminal(mi->getOperand(4));
+        createTerminal(mi->getOperand(5));
 
     TTAProgram::Terminal* dstTerminal = 
-        createTerminal(mi->getOperand(2));
-
+        createTerminal(mi->getOperand(3));
     codeGenerator.addMoveToProcedure(*proc, srcTerminal, dstTerminal);
     return &(proc->nextInstruction(lastInstruction));
 }
@@ -2393,13 +2392,6 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                         return firstInstruction;  
                     // Emit the call.
 
-                    TTAProgram::InstructionReference* dummy =
-                        new TTAProgram::InstructionReference(NULL);
-
-                    TTAProgram::TerminalInstructionReference* xtorRef =
-                        new TTAProgram::TerminalInstructionReference(
-                            *dummy);
-
                     GlobalValue* gv =  dynamic_cast<GlobalValue*>(
                         cs->getOperand(1));
                     assert(gv != NULL&&"global constructor name not constv");
@@ -2407,14 +2399,45 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     SmallString<256> Buffer;
                     mang_->getNameWithPrefix(Buffer, gv, false);
                     TCEString name(Buffer.c_str());
-                    // who deletes xtorRef?
+
+
+#if 0
+                    TTAProgram::InstructionReference* dummy =
+                        new TTAProgram::InstructionReference(NULL);
+                    TTAProgram::TerminalInstructionReference* xtorRef =
+                        new TTAProgram::TerminalInstructionReference(
+                            *dummy);
                     codeLabelReferences_[xtorRef] = name; 
+#else
+                    // cannot use instr. refs in the new builder as the
+                    // instructions won't belong in a procedure before
+                    // they have been fully scheduled.
+                    TTAProgram::TerminalSymbolReference* xtorRef =
+                        new TTAProgram::TerminalSymbolReference(name);
+#endif
 
                     CodeGenerator codeGenerator(*mach_); 
-                    codeGenerator.addMoveToProcedure(
-                        *proc, xtorRef, 
-                        codeGenerator.createTerminalFUPort("call", 1));
 
+                    TTAProgram::Move* ctrCall =
+                        new TTAProgram::Move(
+                            xtorRef, codeGenerator.createTerminalFUPort("call", 1),
+                            UniversalMachine::instance().universalBus());
+
+                    OperationPool opPool;
+                    
+                    // Create ProgramOperation also for return so DDGBuilder does not have
+                    // to do that.
+                    boost::shared_ptr<ProgramOperation> po(
+                        new ProgramOperation(opPool.operation("call")));
+                    createMoveNode(po, *ctrCall, true);
+
+                    TTAProgram::Instruction* newInstr =
+                        new TTAProgram::Instruction(
+                            TTAMachine::NullInstructionTemplate::instance());
+
+                    newInstr->addMove(ctrCall);
+                    proc->add(newInstr);
+                    
                     if (firstInstruction == NULL)
                         firstInstruction = &proc->lastInstruction();
                 }

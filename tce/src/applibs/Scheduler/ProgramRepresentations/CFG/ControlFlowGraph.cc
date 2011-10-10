@@ -2720,3 +2720,71 @@ ControlFlowGraph::getMBB(
         return *mbb;
     }  
 }
+
+/**
+ * Checks if the basic blocks have calls in the middle of them and splits
+ * them to multiple basic blocks with call edge chains.
+ *
+ * TCE scheduler assumes there cannot be calls in the middle of basic block.
+ */
+void
+ControlFlowGraph::splitBasicBlocksWithCalls() {
+    std::set<BasicBlockNode*> bbsToHandle;
+    for (int i = 0; i < nodeCount(); ++i) {
+        BasicBlockNode& bb = node(i);
+        bbsToHandle.insert(&bb);
+    }
+
+    bool split = false;
+    while (bbsToHandle.size() > 0) {
+        BasicBlockNode& bbn = **bbsToHandle.begin();
+        TTAProgram::BasicBlock& bb = bbn.basicBlock();
+
+        for (int ii = 0; ii < bb.instructionCount(); ++ii) {
+            TTAProgram::Instruction& instr = bb.instructionAt(ii);
+            if (instr.hasCall() && &instr != &bb.lastInstruction()) {
+#if 0
+                if (!split)
+                    writeToDotFile("notsplit.cfg");
+#endif
+                split = true;
+
+
+                TTAProgram::BasicBlock* newbb = new TTAProgram::BasicBlock();
+                BasicBlockNode* newbbn = new BasicBlockNode(*newbb);
+                addNode(*newbbn);
+
+                // the BB can contain multiple calls, handle them
+                // in the new BB
+                bbsToHandle.insert(newbbn);
+                moveOutEdges(bbn, *newbbn);                
+
+                // move the instructions after the call in the old BB to
+                // the new one
+                while (&instr != &bb.lastInstruction()) {
+                    TTAProgram::Instruction& next = bb.nextInstruction(instr);
+                    bb.remove(next);
+                    newbb->add(&next);
+                }
+
+                ControlFlowEdge* cfe = new ControlFlowEdge(
+                    ControlFlowEdge::CFLOW_EDGE_NORMAL, 
+                    ControlFlowEdge::CFLOW_EDGE_CALL);
+                connectNodes(bbn, *newbbn, *cfe);
+
+#if 0
+                debugLog("split to");
+                PRINT_VAR(bb.toString());
+                debugLog("and");
+                PRINT_VAR(newbb->basicBlock().toString());
+#endif
+                break;
+            }
+        }
+        bbsToHandle.erase(bbsToHandle.begin());
+    }
+#if 0
+    if (split) 
+        writeToDotFile("split.cfg");
+#endif
+}

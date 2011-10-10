@@ -136,7 +136,8 @@ TerminalFUPort::TerminalFUPort(HWOperation &operation, int opIndex)
 }
 
 /**
- * Copy Constructor. private, only called itnernally by copy();
+ * Copy Constructor. private, only called internally by copy().
+ *
  * @param tfup object to copy from.
  */
 TerminalFUPort::TerminalFUPort(const TerminalFUPort& tfup) :
@@ -300,6 +301,10 @@ TerminalFUPort::port() const
 
 /**
  * Creates an exact copy of the terminal and returns it.
+ *
+ * @note The returned copy is a deep cope *but* the copied ProgramOperation,
+ * if contained, will *not* be updated to refer to the new moves. This should
+ * be done in the caller.
  *
  * @return A copy of the terminal.
  */

@@ -1,0 +1,6 @@
+../../../../tce/src/codesign/osal/OSALBuilder/buildopset ../../../../tce/scheduler/testbench/Operations/ShiftRows
+ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opp data/ShiftRows.opp
+ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opb data/ShiftRows.opb
+ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/example1/data
+ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/oclAESGladman/data
+

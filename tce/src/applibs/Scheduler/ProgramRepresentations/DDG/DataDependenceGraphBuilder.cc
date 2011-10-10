@@ -506,7 +506,7 @@ DataDependenceGraphBuilder::constructIndividualBB(
 
             // if phase is 0, create the movenode, and handle guard.
             if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
-                /* In case using the new LLVMTCEBuilder, the POs have been built already
+                /* In case using the LLVMTCEIRBuilder, the POs have been built already
                    and set to corresponding TerminalFUPorts. Use those MoveNodes and
                    ProgramOperations instead of creating new ones here. NOTE: the
                    ownership of the MoveNodes is transferred to the DDG.
@@ -1741,7 +1741,10 @@ DataDependenceGraphBuilder::memoryCategory(const MoveNodeUse& mnd) {
             return "_RA";
         }
     }
-    
+    if (!mnd.mn()->isDestinationOperation()) {
+        PRINT_VAR(mnd.mn()->toString());
+        abortWithError("Not destination operation!");
+    }
     ProgramOperation& po = mnd.mn()->destinationOperation();
 
     // address space

@@ -418,8 +418,6 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
 
     }
 
-    
-
     // 3rd loop: create edges?
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
@@ -558,6 +556,11 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         }
     }
 
+    /* Split BBs with calls inside. These can be produced 
+       from expanding  the pseudo asm blocks. Currently at least 
+       the call_global_[cd]tors expands to multiple calls to the
+       global object constructors and destructors. */
+    cfg->splitBasicBlocksWithCalls();
     fixProgramOperationReferences();
     
     // create jumps to exit node

@@ -1,0 +1,715 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+    Copyright (c) 2002-2010 Tampere University of Technology.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+"""
+#
+# Compiler for OpenCL sources.
+#
+# Converts the input to C++ that can be compiled with tce-llvm-g++.
+# This is used to just experiment with OpenCL C compilation and should
+# not be considered as a true OpenCL C compiler frontend due to its
+# fragile nature and bad error reporting. For example, __attribute__
+# definitions spanning multiple lines are not detected.
+#
+# TODO:
+# - Sould be converted to a tokenizer-based parser if this will
+# be maintained
+#
+# @author Pekka Jääskeläinen 2009-2010
+#
+# -*- mode: python-mode -*-
+#
+import optparse, sys, re
+
+debug = False
+
+class OpenCLKernel(object):
+    """Represents a single OpenCL C kernel.
+
+    Implements a fragile and stupid parser for reading in the
+    kernels from source code lines."""
+
+    class KernelArgument(object):
+        """Represents an argument to a single OpenCl C kernel."""
+
+        def __init__(self, var_str):
+            m2 = re.match(r"(__)?(local|global|constant)?\s*(.*)", var_str.strip())
+            if m2 is None: return None
+
+            self.address_space = m2.group(2)
+            self.variable_decl = m2.group(3)
+
+        def cpp_variable_type(self):
+            "Converts the OpenCL C argument to a C++ variable type."
+            if '*' in self.variable_decl: 
+                return " ".join(self.variable_decl.split('*')[0:-1]) + '*'
+            else: 
+                return " ".join(self.variable_decl.split(' ')[0:-1])
+
+        def cpp_variable_name(self):
+            if '*' in self.variable_decl: 
+                return self.variable_decl.split('*')[-1]
+            else: 
+                return self.variable_decl.split(' ')[-1]
+
+        def cpp_variable(self):
+            "Converts the OpenCL C argument to a C++ variable type."
+            return self.variable_decl
+
+        def cpp_restricted_function_argument(self):
+            "Converts the OpenCL C argument to a C++ restricted function argument."
+
+            # Inject the g++ __restrict__ qualifier before the variable name
+            # TODO: this is actually not safe when there are more than 1
+            # global data as the global data can alias with each other
+            if '*' not in self.variable_decl:
+                return self.variable_decl
+
+            tokens = self.variable_decl.split("*")
+
+            return tokens[0].strip() + "* __restrict__ " + tokens[1]
+
+        def cpp_function_argument(self):
+            "Converts the OpenCL C argument to a C++ function argument."
+            return self.variable_decl
+
+    def __init__(self):
+        """Initializes an empty OpenCL kernel object."""
+        self.kernel_found = False
+        self.void_found = False
+        self.completed = False
+        self.kernel_name = None
+        self.kernel_arguments = None
+        self.all_arguments_read = False
+        self.kernel_body_found = False
+        self.kernel_body_read = False
+        self.kernel_body = []
+        self.local_variables = []
+
+        # Construct the function while reading so we might be able to
+        # place the newlines at such positions they were in the original
+        # OpenCL C file to get informative error messages during C++
+        # compilation.
+        self.cpp_function = []
+
+        # How many more opening curly braces have been read from the kernel
+        # than closing.
+        self.brace_balance = 0
+        self.dimensions = 1
+        self.wg_dim_x, self.wg_dim_y, self.wg_dim_z = 1, None, None
+        self.dimensions_found = False
+    
+    def add_source_line(self, line):
+        """Adds source code line to the kernel object, if applicable.
+
+        Returns true in case the source line was detected to be part of
+        a kernel definition (and should not be printed out as is),
+        False otherwise. In case the line is considered part of a kernel
+        definition, it's used to construct this object."""
+
+        # line = line.strip()
+
+        if len(line) == 0:
+            return False
+
+        # Construct the C++ line while processing.
+        self.converted_line = ""
+        
+        chars_read = 1
+        detected = False
+        while chars_read > 0 and len(line) > 0:
+            chars_read = self._process_attribute(line) or self._process_kernel_keyword(line) or \
+                  self._process_void_return_value(line) or self._process_kernel_name(line) or \
+                  self._process_kernel_argument(line) or self._process_kernel_body_start(line) or \
+                  self._process_kernel_body(line) or self._process_kernel_body_end(line)
+            if chars_read > 0:
+                detected = True
+                line = line[chars_read:]
+
+        if not detected:
+            return False
+        elif len(line) > 0:
+            raise Exception("Unknown tokens: '%s'" % line)
+        else:
+            self.cpp_function.append(self.converted_line)
+            return True
+
+    def is_complete(self):
+        """Returns true in case the object has been fed enough lines,
+        that is, the kernel object is fully built."""
+        return self.completed
+
+    def kernel_to_cpp(self):
+        """Returns a string that represents the kernel as a C function."""
+        kernel_func = 'extern "C" ' + "".join(self.cpp_function)
+        return kernel_func
+
+    def trampoline_to_cpp(self):
+        # Append a trampoline function for calling the kernel
+        # through OpenCL API .
+        trampoline_func = \
+"""
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
+#include "cl_tce.h"
+
+#ifdef __TCE__
+
+extern "C" int _get_core_count();
+
+/* The maximum number of work groups to execute in parallel threads. */
+#define _MAX_WG_THREADS _get_core_count()
+
+#else
+
+#define _MAX_WG_THREADS 2
+
+#endif
+
+#define USE_MT 0
+//#define DEBUG_MT
+
+extern "C" void %(converted_name)s(
+   %(arg_decl_list)s,
+   unsigned x, unsigned y, unsigned z, _thread_context *tc);
+
+static void __opencl_trampoline_%(kernel_name)s(
+    void** args, 
+    int work_dim, 
+    const size_t* local_work_size, 
+    const size_t* global_work_size,
+    int first_gidx, int last_gidx) {
+
+    _thread_context tc;
+
+    const int local_size_x = %(local_size_x)s;
+    const int local_size_y = %(local_size_y)s;
+    const int local_size_z = %(local_size_z)s;
+
+    const int global_size_x = global_work_size[0];
+    const int global_size_y = (work_dim >= 2) ? global_work_size[1] : 1;
+    const int global_size_z = (work_dim == 3) ? global_work_size[2] : 1;
+
+    const int num_groups_x = global_size_x / %(local_size_x)d;
+    const int num_groups_y = (work_dim >= 2) ? (global_size_y / %(local_size_y)d) : 1;
+    const int num_groups_z = (work_dim == 3) ? (global_size_z / %(local_size_z)d) : 1;
+
+    %(copy_argument_data)s
+
+#if 0
+    for (unsigned lz = 0; lz < %(local_size_z)s; ++lz) {
+        for (unsigned ly = 0; ly < %(local_size_y)s; ++ly) {
+            for (unsigned lx = 0; lx < %(local_size_x)s; ++lx) {
+                tc[lz][ly][lx].work_dim = work_dim;
+                tc[lz][ly][lx].global_size[0] = 1;
+                tc[lz][ly][lx].global_size[1] = 1;
+                tc[lz][ly][lx].global_size[2] = 1;
+                tc[lz][ly][lx].local_size[0] = %(local_size_x)s;
+    		tc[lz][ly][lx].local_size[1] = %(local_size_y)s;
+    		tc[lz][ly][lx].local_size[2] = %(local_size_z)s;
+    		tc[lz][ly][lx].num_groups[0] = 1;
+    		tc[lz][ly][lx].num_groups[1] = 1;
+    		tc[lz][ly][lx].num_groups[2] = 1;
+
+                for (int i = 0; i < work_dim; ++i) {
+                    tc[lz][ly][lx].global_size[i] = global_work_size[i];
+                    tc[lz][ly][lx].num_groups[i] = global_work_size[i] / local_work_size[i];
+                }
+            }
+        }
+    }
+#endif
+
+    tc.work_dim = work_dim;
+    tc.local_size[0] = %(local_size_x)s;
+    tc.local_size[1] = %(local_size_y)s;
+    tc.local_size[2] = %(local_size_z)s;
+    tc.global_size[0] = global_size_x;
+    tc.num_groups[0] = num_groups_x;
+    tc.global_size[1] = global_size_y;
+    tc.num_groups[1] = num_groups_y;
+    tc.global_size[2] = global_size_z;
+    tc.num_groups[2] = num_groups_z;
+
+    for (unsigned x = first_gidx * local_size_x, gid_x = first_gidx; 
+         x < global_size_x && gid_x <= last_gidx;
+         x += local_size_x, gid_x++) { 
+        for (unsigned y = 0, gid_y = 0; y < global_size_y; 
+             y += local_size_y, gid_y++) { 
+            for (unsigned z = 0, gid_z = 0; z < global_size_z; 
+                z += local_size_z, gid_z++) {
+
+                tc.global_id[0] = x;
+               	tc.global_id[1] = y;
+               	tc.global_id[2] = z;
+               	tc.group_id[0] = gid_x;
+               	tc.group_id[1] = gid_y;
+               	tc.group_id[2] = gid_z;
+
+                %(converted_name)s(%(arg_list)s,
+                                   0, 0, 0, (_thread_context *) &tc);
+
+            } 
+        }
+    }
+}
+
+struct _ocl_args {
+    void** args;
+    int work_dim;
+    const size_t* local_work_size;
+    const size_t* global_work_size;
+    int first_gid_x;
+    int last_gid_x;
+};
+
+static void* __opencl_wg_thread(void* arg_struct) {
+    _ocl_args* args = (_ocl_args*)arg_struct;
+    __opencl_trampoline_%(kernel_name)s(
+        args->args, args->work_dim, 
+        args->local_work_size, args->global_work_size, 
+        args->first_gid_x, args->last_gid_x);
+    return 0;
+}
+
+void __opencl_trampoline_mt_%(kernel_name)s(
+    void** args, 
+    int work_dim, 
+    const size_t* local_work_size, 
+    const size_t* global_work_size) {
+    int num_groups_x = global_work_size[0] / local_work_size[0];
+    int i, first_gid_x, last_gid_x;
+
+    if (USE_MT && _MAX_WG_THREADS > 1) {
+
+        int num_threads = min(_MAX_WG_THREADS, num_groups_x);
+        int wgs_per_thread = num_groups_x / num_threads;
+        /* In case the work group count is not divisible by the
+           number of threads, we have to execute some additional
+           workgroups in the last thread. */
+        int leftover_wgs = num_groups_x - (num_threads*wgs_per_thread);
+        pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t)*num_threads);
+        _ocl_args* arguments = (_ocl_args*)malloc(sizeof(_ocl_args)*num_threads);
+
+#ifdef DEBUG_MT    
+    iprintf("### global_work_size[0]==%%d local_work_size[0]==%%d\\n", 
+             global_work_size[0], local_work_size[0]);
+    iprintf("### creating %%d work group threads\\n", num_threads);
+    iprintf("### wgs per thread==%%d leftover wgs==%%d\\n", wgs_per_thread, leftover_wgs);
+#endif
+    
+        for (i = 0, first_gid_x = 0, last_gid_x = wgs_per_thread - 1; 
+             i < num_threads; 
+             ++i, first_gid_x += wgs_per_thread, last_gid_x += wgs_per_thread) {
+           arguments[i].args = args;
+           arguments[i].work_dim = work_dim;
+           arguments[i].local_work_size = local_work_size;
+           arguments[i].global_work_size = global_work_size;
+           arguments[i].first_gid_x = first_gid_x;
+           if (i + 1 == num_threads) last_gid_x += leftover_wgs;
+           arguments[i].last_gid_x = last_gid_x;
+
+
+#ifdef DEBUG_MT       
+       iprintf("### creating wg thread: first_gid_x==%%d, last_gid_x==%%d\\n",
+                first_gid_x, last_gid_x);
+#endif
+       
+           pthread_attr_t attr;
+           pthread_attr_init(&attr);
+          /* TODO: set stack size according to WG size so we don't waste space nor
+             allocate too small stack  */
+           pthread_attr_setstacksize(&attr, 32*1024); 
+           pthread_create(&threads[i], &attr, &__opencl_wg_thread, &arguments[i]);
+        }
+
+        for (i = 0; i < num_threads; ++i) {
+            pthread_join(threads[i], NULL);
+        /*
+        iprintf("### thread %%x finished\\n", (unsigned)threads[i]);
+        */
+        }
+        free(arguments);
+        free(threads);
+   } else {
+        /* single thread version: execute all work groups in
+           a single trampoline call as fast as possible. 
+
+           Do not create any pthreads. */
+        __opencl_trampoline_%(kernel_name)s(
+           args, work_dim, local_work_size, global_work_size,
+           0, num_groups_x - 1);
+   }
+}
+
+"""
+        """
+        Generate something like the following for copying
+        the generic argument data to typed ones:
+
+        const float4* a = *(const float4**)args[0];
+        const float4* b = *(const float4**)args[1];
+        float* c = *(float**)args[2];
+        """
+
+        copy_argument_data = ""
+        arg_list = []
+        arg_decl_list = []
+        count = 0
+        for arg in self.kernel_arguments:
+            copy_argument_data += \
+                "%s = *(%s*)args[%d];\n" % \
+                (arg.cpp_variable(),
+                 arg.cpp_variable_type(),
+                 count)
+            count += 1
+            arg_list.append(arg.cpp_variable_name())
+            arg_decl_list.append(arg.cpp_restricted_function_argument())
+        
+        # Add a class that registers the kernel to kernel 
+        # registry in case this is a standalone OpenCL implementation.
+        initializer_object = \
+"""
+class %(kernel_name)s_kernel {
+public:    
+    %(kernel_name)s_kernel() {
+        kernel.name = "%(kernel_name)s";
+        kernel.call = __opencl_trampoline_mt_%(kernel_name)s;
+        _register_opencl_kernel(&kernel);
+    }
+private:
+    _OpenCLKernel kernel;
+} _kernel_initializer_obj_%(kernel_name)s;
+
+void init_kernel() {
+   %(kernel_name)s_kernel initializer;
+}
+
+""" % {'kernel_name' : self.kernel_name}
+
+        return trampoline_func % {'copy_argument_data' : copy_argument_data,
+                                  'kernel_name' : self.kernel_name,
+                                  'converted_name' : self.converted_name,
+                                  'arg_list' : ", ".join(arg_list),
+                                  'arg_decl_list' : ", ".join(arg_decl_list),
+                                  'local_size_x' : self.wg_dim_x,
+                                  'local_size_y' : self.wg_dim_y,
+                                  'local_size_z' : self.wg_dim_z} + \
+                                  initializer_object
+
+    def _process_attribute(self, line):
+        """Processes an attribute definition in case found at the beginning
+        of the string.
+
+        Returns the position in the string to which it was processed,
+        thus zero in case attribute definition was not found."""
+        
+        # look for the reqd_work_group_size attribute
+        m = re.match(r"\s*__attribute__\s*\(\s*\(\s*reqd_work_group_size\s*\((.+),(.+),(.+)\)\)\)\s*", line)
+        if m is not None:
+            # The dimensions can be defined as a constant expression
+            # after prepocessor has expanded the macros (e.g. DIM_X / FOO_X -> 32 / 16).
+            # Try to evaluate the expression with python in case it's not
+            # a direct integer.
+
+            def evaluate_dim(val):
+                try:
+                    return int(val)
+                except:
+                    return int(eval(val))
+
+            self.wg_dim_x, self.wg_dim_y, self.wg_dim_z = \
+                 evaluate_dim(m.group(1)), evaluate_dim(m.group(2)), \
+                 evaluate_dim(m.group(3))            
+
+            self.dimensions = 1            
+
+            if int(self.wg_dim_y) > 1:
+                self.dimensions += 1
+
+            if int(self.wg_dim_z) > 1:
+                self.dimensions += 1
+
+            self.dimensions_found = True
+
+            if debug: print "process_attr"
+
+            return m.end(0)
+        else:
+            return 0
+
+    def _process_kernel_keyword(self, line):
+        """Processes a kernel keyword in case found at the beginning
+        of the string.
+
+        Returns the position in the string to which it was processed,
+        thus zero in case attribute definition was not found."""
+
+        # look for the reqd_work_group_size attribute
+        m = re.match(r"\s*(__)?kernel\s+", line)
+        if m is not None:
+            self.kernel_found = True
+
+            if debug: print "process_kernel_keyword"
+
+            return m.end(0)
+        else:
+            return 0
+        
+    def _process_void_return_value(self, line):
+        """Processes 'void' keyword in case found at the beginning
+        of the string.
+
+        Returns the position in the string to which it was processed,
+        thus zero in case attribute definition was not found."""
+
+        if not self.kernel_found:
+            return 0
+
+        m = re.match(r"\s*void\s*", line)
+        if m is not None:
+            self.void_found = True
+            # Add noinline so it's easier to find it in disassembly
+            # and simulations etc.
+            self.converted_line += "void "
+            if debug: print "kernel_rv"
+            return m.end(0)
+        else:
+            return 0
+
+    def _process_kernel_name(self, line):
+        """Processes the kernel name and the following parenthesis
+        in case found at the beginning of the string and the
+        'kernel void' has been read.
+
+        The name of the kernel function is converted to
+        __KERNEL_X_Y_Z_original_name() where X, Y, Z are the
+        work group dimensions given with the require attribute.
+
+        Returns the position in the string to which it was processed,
+        thus zero in case attribute definition was not found."""
+
+        if not self.kernel_found or not self.void_found or \
+                self.kernel_name is not None:
+            # Should not read a kernel name at this point
+            if self.kernel_name:
+                if debug: print "existing kernel name", self.kernel_name
+            return 0
+
+        m = re.match(r"\s*(\w+)\s*\(", line)
+        if m is not None:
+            self.kernel_name = m.group(1).strip()
+            if not self.dimensions_found:
+                raise Exception(\
+                    "Work group dimensions for kernel '%s' not set." % \
+                        self.kernel_name)
+
+            prefix = \
+                "__KERNEL_%d_%d_%d_" % (self.wg_dim_x, self.wg_dim_y, self.wg_dim_z)
+            self.converted_name = prefix + self.kernel_name 
+            self.kernel_finger_print = self.converted_name + \
+                "("
+            self.converted_line += self.kernel_finger_print
+
+            if debug: print "kernel_name"
+            return m.end(0)
+        else:
+            if debug: print "no kernel name"
+            return 0
+
+    def _process_kernel_argument(self, orig_line):
+        """Processes a kernel argument and the following parenthesis or a comma
+        in case found at the beginning of the string and the context is correct.
+
+        Returns the position in the string to which it was processed,
+        thus zero in case attribute definition was not found."""
+
+        if self.kernel_name is None or self.all_arguments_read:
+            return 0
+        
+        line = orig_line
+
+        end_token = line[0]
+        if end_token == ')':
+            self.converted_line += ")"
+            self.kernel_finger_print += ")"
+            self.all_arguments_read = True
+            if debug: print "done parsing kernel args"
+            return 1
+        elif end_token.strip() ==',':
+            self.converted_line += end_token
+            self.kernel_finger_print += end_token
+            self.all_arguments_read = False # more to come  
+            return 1
+
+        var_str = re.split(r"[,\)]", line)[0]
+
+        line = line[len(var_str):]
+
+        if len(var_str) > 0:
+
+            if var_str.strip() == "":
+                self.converted_line += var_str
+                return len(var_str) # skip white space at end of line
+
+            if self.kernel_arguments is None:
+                self.kernel_arguments = []
+
+            arg = self.KernelArgument(var_str)
+            self.kernel_arguments.append(arg)
+
+            self.converted_line += arg.cpp_restricted_function_argument()
+            self.kernel_finger_print += arg.cpp_restricted_function_argument()
+
+            if debug: print "got kernel_arg", arg.cpp_variable()
+
+            return len(var_str)
+        else:
+            if debug: print "not kernel_arg", line
+            return 0
+
+    def _process_kernel_body_start(self, line):
+
+        if self.kernel_name is None or not self.all_arguments_read or self.kernel_body_found:
+            return 0
+
+        m = re.match(r"\s*{\s*", line)
+        
+        if m is not None:
+            self.kernel_body_found = True
+            self.brace_balance = 1
+            self.converted_line += " { "
+
+            if debug: print "kernel_body_start"                            
+            return m.end(0)
+        else:
+            return 0
+
+    def _process_kernel_body(self, line):
+
+        if not self.kernel_body_found or self.kernel_body_read:
+            return 0
+
+        self.brace_balance += line.count("{") - line.count("}")
+        
+        if self.brace_balance == 0: # the last line of the kernel
+            kernel_line = line[0:line.rfind("}")]
+            self.kernel_body_read = True
+        else:
+            kernel_line = line
+
+        orig_line_len = len(kernel_line)
+            
+        # Private pointers to local variables are treated
+        # as private variables. Remove the __local qualifier.
+        kernel_line = re.sub(r'(__)?local\s+([a-zA-Z_][a-zA-Z_0-9]*)\s?\*\s?([a-zA-Z_][a-zA-Z_0-9]*)\s*',
+               r'\2 *\3 ', kernel_line)
+               
+        regexp = r'(__)?local\s+([a-zA-Z_][a-zA-Z_0-9]*)\s+([a-zA-Z_][a-zA-Z_0-9]*)\s*'
+
+        m = re.search(regexp, kernel_line)
+        if m is not None:
+            local_var = m.group(3)
+            self.local_variables.append(local_var)
+            # Convert __local variables to variables with name prefix __local_
+            kernel_line = re.sub(regexp, r'\2 __local_\3', kernel_line)
+
+        # Replace all references of local variables with the __local_ prefixed
+        # ones.
+            
+        for var in self.local_variables:
+            operands = r'&\*\?\+-/\%=:'
+            regexp = r'([\s%(operands)s]+)(%(var)s)([\s%(operands)s\[\(]+)' % \
+                                     {'operands' : operands, 'var' : var}
+            kernel_line = re.sub(regexp, r'\1__local_\2\3', kernel_line)
+
+        self.converted_line += kernel_line
+        self.kernel_body.append(kernel_line)
+
+        if debug: print "kernel_body"
+
+        return orig_line_len
+
+    def _process_kernel_body_end(self, line):
+
+        if not self.kernel_body_read:
+            return 0
+
+        m = re.match(r"\s*}\s*", line)
+        
+        if m is not None:
+            self.completed = True
+
+#            self.converted_line += "}"*self.dimensions
+           
+            self.converted_line += "} "
+            if debug: print "kernel_body_end"
+            return m.end(0)
+        else:
+            return 0
+
+
+def process_opencl_c_file(file_name, output, trampoline_output):
+    """Converts the given OpenCL C file to C++ and prints it to the given
+    output stream."""
+    lines = open(file_name, 'r').readlines()
+    kernel = OpenCLKernel()
+    lineno = 1
+    output.write('#include "oclkernel.hh"\n')
+    for line in lines:
+        if debug:
+            if not kernel.add_source_line(line):
+                output.write(line)
+        else:
+            try:
+                if not kernel.add_source_line(line):
+                    output.write(line)
+            except Exception, e:
+                sys.stderr.write("error: %s:%d: %s\n" % (file_name, lineno, e)) 
+                sys.stderr.write("error: the line was %s\n" % line)
+                sys.exit(1)
+
+        if kernel.is_complete():
+            output.write(kernel.kernel_to_cpp() + "\n")
+            trampoline_output.write(kernel.trampoline_to_cpp() + "\n")
+            kernel = OpenCLKernel()
+
+        lineno += 1
+
+def main():
+    usage = "usage: %prog input_kernel.cl file_for_kernel.cpp file_for_trampoline.cpp"
+    p = optparse.OptionParser(usage)
+    options, inFiles = p.parse_args()
+    if len(inFiles) != 3:
+        sys.stderr.write(usage + "\n")
+        sys.exit(1)
+    kernel_file = open(inFiles[1], 'w')
+    trampoline_file = open(inFiles[2], 'w')
+    process_opencl_c_file(inFiles[0], kernel_file, trampoline_file)
+
+if __name__ == "__main__":
+    main()
