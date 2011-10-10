@@ -28,7 +28,7 @@ SELECTOR_DIR = ${SCHED_DIR}/Selector
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${PDG_DIR} -I${CFG_DIR} \
 	-I${DISASSEMBLER_DIR} -I${ALGO_DIR} -I${SELECTOR_DIR} \
-	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS ${LLVM_CPPFLAGS}
+	${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
