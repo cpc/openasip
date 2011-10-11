@@ -39,6 +39,8 @@
 #include "LLVMTCEScheduler.hh"
 #include "Application.hh"
 #include "InterPassData.hh"
+#include "LLVMTCECmdLineOptions.hh"
+
 
 namespace llvm {
 
@@ -47,7 +49,19 @@ ADFLocation(
     "adf",
     cl::desc("The TCE architecture definition file."),
     cl::init(""), cl::Hidden);
-
+static cl::opt<bool>
+DumpDDG(
+    "dump-ddgs",
+    cl::desc("Equivalent to --dump-ddgs-dot --dump-ddgs-xml"));
+static cl::opt<bool>
+DumpDDGDot(
+    "dump-ddgs-dot",
+    cl::desc("Write out Data Dependence Graph of processed procedures in dot format."));
+static cl::opt<bool>
+DumpDDGXML(
+    "dump-ddgs-xml",
+    cl::desc("Write out Data Dependence Graph of processed procedures in XML format."));
+    
 char LLVMTCEScheduler::ID = 0;
 
 LLVMTCEScheduler::LLVMTCEScheduler() : 
@@ -58,6 +72,40 @@ LLVMTCEScheduler::LLVMTCEScheduler() :
         Application::logStream()
             << "TCE: unable to load the ADF:" << std::endl
             << e.errorMessage() << std::endl;
+    }
+    // By default Application::cmdLineOptions returns NULL.
+    // If we want to pass dump-ddg options we need to create new one.
+    // Add also -O3 flag, otherwise the -O0 is used and Sequential Scheduler
+    // called.
+    if (DumpDDG || DumpDDGDot || DumpDDGXML) {
+        LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions;     
+        if (DumpDDG) {
+            std::string args[] = {"llc", "-O3", "--dump-ddgs-dot","--dump-ddgs-xml"};
+            try {
+                options->parse(args,4);
+            } catch (const IllegalCommandLine& e) {
+                std::cerr << e.errorMessageStack() << std::endl;
+            }
+        } else if (DumpDDGDot) {
+            std::string args[] = {"llc", "-O3", "--dump-ddgs-dot"};
+            try {
+                options->parse(args,3);
+            } catch (const IllegalCommandLine& e) {
+                std::cerr << e.errorMessageStack() << std::endl;
+            }
+        } else if (DumpDDGXML) {
+            std::string args[] = {"llc", "-O3", "--dump-ddgs-xml"};
+            try {
+                options->parse(args,3);
+            } catch (const IllegalCommandLine& e) {
+                std::cerr << e.errorMessageStack() << std::endl;
+            }
+        }
+        try {
+            Application::setCmdLineOptions(options);
+        }catch (const Exception& e) {
+            std::cerr << e.errorMessageStack() << std::endl;
+        }          
     }
 }
 

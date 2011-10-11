@@ -104,6 +104,15 @@ def parse_options():
                       help="Do not delete the temporary files.")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                       help="Verbose output. Output the commands executed etc.", default=False)
+    parser.add_option("", "--dump-ddgs", dest="dump_ddgs",
+                      action="store_true", default=False,
+                      help="Write out Data Dependence Graphs for processed functions.")
+    parser.add_option("", "--dump-ddgs-dot", dest="dump_ddgs_dot",
+                      action="store_true", default=False,
+                      help="Write out Data Dependence Graphs for processed functions.")
+    parser.add_option("", "--dump-ddgs-xml", dest="dump_ddgs_xml",
+                      action="store_true", default=False,
+                      help="Write out Data Dependence Graphs for processed functions.")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -130,8 +139,15 @@ def generate_code(bc_file, adf, output=None):
         asm_file = create_temp_file(".S")
     else:
         asm_file = output
+    dump_options = ""
+    if options.dump_ddgs:
+        dump_options = "--dump-ddgs"
+    if options.dump_ddgs_dot:
+        dump_options = "--dump-ddgs-dot"
+    if options.dump_ddgs_xml:
+        dump_options = "--dump-ddgs-xml"
     if options.use_tce_scheduler:
-        retval = run_command("llc -load %s -adf %s %s -o %s" % (lib_tce, adf, bc_file, asm_file), 
+        retval = run_command("llc -load %s -adf %s %s -o %s %s" % (lib_tce, adf,  bc_file, asm_file, dump_options), 
                              echoStdout=True, echoCmd=options.verbose)
     else:
         retval = run_command("llc %s -o %s" % (bc_file, asm_file), echoStdout=True, echoCmd=options.verbose)
