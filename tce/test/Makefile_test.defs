@@ -107,8 +107,8 @@ all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2}
         ${EDITLINE_INCLUDES} ${BOOST_INCLUDES} -I ${CXXDIR} -I ${CXXDIR}/.. \
         ${EXTRA_COMPILER_FLAGS} \
 	    -g -c runner.cpp || exit 1; \
-	${CXX} ${TCE_LIB_FLAGS} ${TCE_LIBS} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} \
-        ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} runner.o -g -o runner || exit 1; \
+	${CXX} runner.o ${TCE_LIB_FLAGS} ${TCE_LIBS} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} \
+        ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} -g -o runner || exit 1; \
 	${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./runner")
 
 
