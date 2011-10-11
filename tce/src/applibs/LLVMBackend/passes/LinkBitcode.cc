@@ -98,7 +98,13 @@ LinkBitcode::doFinalization(Module& /*M*/) {
 bool
 LinkBitcode::doInitialization(Module& M) {
     std::string errors;
-    if (Linker::LinkModules(&M, &inputModule_, &errors)) {
+#ifndef LLVM_2_9
+    if (Linker::LinkModules(&M, &inputModule_, Linker::DestroySource, &errors)) 
+#else
+    if (Linker::LinkModules(&M, &inputModule_, &errors)) 
+#endif
+    {
+
         errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
     } 
     return true;
