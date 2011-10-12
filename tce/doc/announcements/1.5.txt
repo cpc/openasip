@@ -10,6 +10,10 @@ the Platform Integrator. This made the Altera FPGA support more robust.
 Many thanks to Hervé Yviquel and Vinogradov Vyacheslav who submitted their
 first TCE patches to this release. Keep them coming!
 
+Also we'd like to thank the Radio Implementation Research Team from Nokia
+Research Center which funded a large part of the work that went developing 
+this release. Much appreciated!
+
 Links
 -----
 
