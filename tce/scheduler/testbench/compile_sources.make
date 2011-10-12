@@ -1,6 +1,6 @@
 # generate lsit of source files to compile if necessary
 ifeq ($(SOURCE_FILES),)
-SOURCE_FILES=$(wildcard *.c)
+SOURCE_FILES=$(wildcard *.c) $(wildcard *.cpp)
 endif
 
 # generate object file list if necessary

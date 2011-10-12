@@ -1,0 +1,1 @@
+Tests C++ global constructor and destructor calling.
