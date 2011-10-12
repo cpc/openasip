@@ -77,36 +77,41 @@ LLVMTCEScheduler::LLVMTCEScheduler() :
     // If we want to pass dump-ddg options we need to create new one.
     // Add also -O3 flag, otherwise the -O0 is used and Sequential Scheduler
     // called.
-    if (DumpDDG || DumpDDGDot || DumpDDGXML) {
-        LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions;     
-        if (DumpDDG) {
-            std::string args[] = {"llc", "-O3", "--dump-ddgs-dot","--dump-ddgs-xml"};
-            try {
-                options->parse(args,4);
-            } catch (const IllegalCommandLine& e) {
-                std::cerr << e.errorMessageStack() << std::endl;
-            }
-        } else if (DumpDDGDot) {
-            std::string args[] = {"llc", "-O3", "--dump-ddgs-dot"};
-            try {
-                options->parse(args,3);
-            } catch (const IllegalCommandLine& e) {
-                std::cerr << e.errorMessageStack() << std::endl;
-            }
-        } else if (DumpDDGXML) {
-            std::string args[] = {"llc", "-O3", "--dump-ddgs-xml"};
-            try {
-                options->parse(args,3);
-            } catch (const IllegalCommandLine& e) {
-                std::cerr << e.errorMessageStack() << std::endl;
-            }
-        }
+    LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions;     
+    if (DumpDDG) {
+        std::string args[] = {"llc", "-O3", "--dump-ddgs-dot","--dump-ddgs-xml"};
         try {
-            Application::setCmdLineOptions(options);
-        }catch (const Exception& e) {
+            options->parse(args,4);
+        } catch (const IllegalCommandLine& e) {
             std::cerr << e.errorMessageStack() << std::endl;
-        }          
+        }
+    } else if (DumpDDGDot) {
+        std::string args[] = {"llc", "-O3", "--dump-ddgs-dot"};
+        try {
+            options->parse(args,3);
+        } catch (const IllegalCommandLine& e) {
+            std::cerr << e.errorMessageStack() << std::endl;
+        }
+    } else if (DumpDDGXML) {
+        std::string args[] = {"llc", "-O3", "--dump-ddgs-xml"};
+        try {
+            options->parse(args,3);
+        } catch (const IllegalCommandLine& e) {
+            std::cerr << e.errorMessageStack() << std::endl;
+        }
+    } else {
+        std::string args[] = {"llc", "-O3"};
+        try {
+            options->parse(args,2);
+        } catch (const IllegalCommandLine& e) {
+            std::cerr << e.errorMessageStack() << std::endl;
+        }
     }
+    try {
+        Application::setCmdLineOptions(options);
+    }catch (const Exception& e) {
+        std::cerr << e.errorMessageStack() << std::endl;
+    }          
 }
 
 bool
