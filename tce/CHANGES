@@ -18,9 +18,10 @@ Notable changes and features
   Cell SPU is the proof of the concept architecture which can be
   scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).
 - Preliminary C++ support:
-  - Support for global constructors / destructors
+  - Added support for global object constructors / destructors
   - At least exceptions are still unsupported, and in general the C++
-    support has received very little testing so far.
+    support has received very little testing so far, but should work
+    for the  basic use cases such as operator overloading.
 
 Bugfixes
 --------
@@ -61,7 +62,7 @@ Smaller features
 ----------------
 - ProGe: switch -s that can be used to define a separate directory for
   files that are potentially shared between multiple TTA processors in
-  the same heterogeneous TTA multicore design.
+  the same (heterogeneous) TTA multicore design.
 - ProGe and PIG: the string given with --entity-name is now used to make
   the generated VHDL entity etc. names unique to allow easier
   instantiation of multiple TTA cores in designs.
