@@ -129,7 +129,8 @@ BinaryStreamTest::tearDown() {
     }
     if (writeTest_) {
         string clean = "rm -f "+writeTestFile_;
-        system(clean.c_str());
+        if (system(clean.c_str()) == -1)
+            abort();
     }
 }
 

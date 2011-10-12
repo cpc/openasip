@@ -2735,7 +2735,6 @@ ControlFlowGraph::splitBasicBlocksWithCalls() {
         bbsToHandle.insert(&bb);
     }
 
-    bool split = false;
     while (bbsToHandle.size() > 0) {
         BasicBlockNode& bbn = **bbsToHandle.begin();
         TTAProgram::BasicBlock& bb = bbn.basicBlock();
@@ -2743,13 +2742,6 @@ ControlFlowGraph::splitBasicBlocksWithCalls() {
         for (int ii = 0; ii < bb.instructionCount(); ++ii) {
             TTAProgram::Instruction& instr = bb.instructionAt(ii);
             if (instr.hasCall() && &instr != &bb.lastInstruction()) {
-#if 0
-                if (!split)
-                    writeToDotFile("notsplit.cfg");
-#endif
-                split = true;
-
-
                 TTAProgram::BasicBlock* newbb = new TTAProgram::BasicBlock();
                 BasicBlockNode* newbbn = new BasicBlockNode(*newbb);
                 addNode(*newbbn);
@@ -2772,19 +2764,9 @@ ControlFlowGraph::splitBasicBlocksWithCalls() {
                     ControlFlowEdge::CFLOW_EDGE_CALL);
                 connectNodes(bbn, *newbbn, *cfe);
 
-#if 0
-                debugLog("split to");
-                PRINT_VAR(bb.toString());
-                debugLog("and");
-                PRINT_VAR(newbb->basicBlock().toString());
-#endif
                 break;
             }
         }
         bbsToHandle.erase(bbsToHandle.begin());
     }
-#if 0
-    if (split) 
-        writeToDotFile("split.cfg");
-#endif
 }

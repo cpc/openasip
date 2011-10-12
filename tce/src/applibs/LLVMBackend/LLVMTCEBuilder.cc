@@ -77,6 +77,7 @@
 #include "ProgramAnnotation.hh"
 #include "TCEString.hh"
 #include "ProgramOperation.hh"
+#include "LLVMTCECmdLineOptions.hh"
 
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>
@@ -2347,6 +2348,7 @@ LLVMTCEBuilder::emitSetjmp(
     return &(proc->nextInstruction(last_instruction));
 }
 
+
 /**
  * Constructs moves for calling all global constructors or
  * destructors, if any.
@@ -2399,22 +2401,28 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     SmallString<256> Buffer;
                     mang_->getNameWithPrefix(Buffer, gv, false);
                     TCEString name(Buffer.c_str());
+                    
+                    bool oldBuilder =
+                        (dynamic_cast<LLVMTCECmdLineOptions*>(
+                            Application::cmdLineOptions()) != NULL &&
+                         dynamic_cast<LLVMTCECmdLineOptions*>(
+                             Application::cmdLineOptions())->usePOMBuilder());
 
-
-#if 0
-                    TTAProgram::InstructionReference* dummy =
-                        new TTAProgram::InstructionReference(NULL);
-                    TTAProgram::TerminalInstructionReference* xtorRef =
-                        new TTAProgram::TerminalInstructionReference(
-                            *dummy);
-                    codeLabelReferences_[xtorRef] = name; 
-#else
-                    // cannot use instr. refs in the new builder as the
-                    // instructions won't belong in a procedure before
-                    // they have been fully scheduled.
-                    TTAProgram::TerminalSymbolReference* xtorRef =
-                        new TTAProgram::TerminalSymbolReference(name);
-#endif
+                    TTAProgram::Terminal* xtorRef = NULL;
+                    if (oldBuilder) {
+                        TTAProgram::InstructionReference* dummy =
+                            new TTAProgram::InstructionReference(NULL);
+                        TTAProgram::TerminalInstructionReference* ref =
+                            new TTAProgram::TerminalInstructionReference(
+                                *dummy);
+                        xtorRef = ref;
+                        codeLabelReferences_[ref] = name; 
+                    } else {
+                        // cannot use instr. refs in the new builder as the
+                        // instructions won't belong in a procedure before
+                        // they have been fully scheduled.
+                        xtorRef = new TTAProgram::TerminalSymbolReference(name);
+                    }
 
                     CodeGenerator codeGenerator(*mach_); 
 

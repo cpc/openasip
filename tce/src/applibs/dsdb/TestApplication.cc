@@ -67,7 +67,8 @@ TestApplication::TestApplication(const string& testApplicationPath)
     if (FileSystem::fileExists(maxRuntimeFile)) {
         char line[MAX_LINE_LENGTH_];
         FILE* file = fopen(maxRuntimeFile.c_str(), "r");
-        fgets(line, MAX_LINE_LENGTH_, file);
+        if (fgets(line, MAX_LINE_LENGTH_, file) == NULL)
+            abort();
         try {
             maxRuntime_ = Conversion::toDouble(line);
         } catch (const NumberFormatException& exception) {

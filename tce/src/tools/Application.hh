@@ -151,9 +151,9 @@ public:
     static void unexpectedExceptionHandler();
 
     static int runShellCommandAndGetOutput(
-	const std::string& command,
-	std::vector<std::string>& outputLines,
-	std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES);
+        const std::string& command,
+        std::vector<std::string>& outputLines,
+        std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES);
 
     static std::ostream& logStream();
 

@@ -887,7 +887,9 @@ FileSystem::appendReplaceFile(
             fs.write(writeToFile.c_str(), writeToFile.length());
             fs.write(endFile.c_str(), endFile.length());
 
-            truncate(targetFile.c_str(), fs.tellp());
+            if (truncate(targetFile.c_str(), fs.tellp()) != NULL) {
+                abortWithError("truncate failed!");
+            }
 
             break;
         }
