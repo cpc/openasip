@@ -153,7 +153,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
         compileFlags += "-isystem" + i + " "
 
     # list of valid suffixes
-    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a", ".cl"]
+    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
+    if "@LLVM_VERSION@" != "2.9":
+        knownSuffices.append(".cl")
 
     linkList = []
 

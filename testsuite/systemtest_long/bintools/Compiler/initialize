@@ -4,3 +4,8 @@ ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opb data/Shif
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/example1/data
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/oclAESGladman/data
 
+if test "x${llvm_version}" = "x2.9";
+then
+    touch OpenCL.testdesc.disabled
+fi
+

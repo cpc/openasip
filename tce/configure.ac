@@ -61,8 +61,13 @@ case $host_os in
          ;;
 esac
 
+if ! test x"$LLVM_VERSION" = x2.9
+then
+
 ac_configure_args="$ac_configure_args LLVMCC=`pwd`/src/bintools/Compiler/tcecc"
 AC_CONFIG_SUBDIRS([src/bintools/Compiler/OpenCL])
+
+fi
 
 #######################
 # CHECKS FOR PROGRAMS #
