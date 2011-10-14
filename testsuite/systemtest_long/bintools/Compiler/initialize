@@ -1,3 +1,4 @@
+#!/bin/bash
 ../../../../tce/src/codesign/osal/OSALBuilder/buildopset ../../../../tce/scheduler/testbench/Operations/ShiftRows
 ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opp data/ShiftRows.opp
 ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opb data/ShiftRows.opb
@@ -6,8 +7,11 @@ ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/oclAESGladman/data
 
 llvm_version=`llvm-config --version`
 
-if test "x${llvm_version}" = "x2.9";
+if test "x${llvm_version}" != "x2.9" -a -a "../../../../tce/src/bintools/Compiler/pocl"
 then
+    echo yeye
+    rm -f OpenCL.testdesc.disabled
+else
     touch OpenCL.testdesc.disabled
 fi
 

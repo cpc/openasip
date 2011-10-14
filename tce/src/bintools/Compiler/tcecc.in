@@ -154,7 +154,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     # list of valid suffixes
     knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
-    if "@LLVM_VERSION@" != "2.9":
+    if "@OPENCL_ENABLED@":
         knownSuffices.append(".cl")
 
     linkList = []
@@ -787,7 +787,7 @@ p.add_option('--old-builder', action='store_true', dest='pom_builder',
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
 args = []
 for opt in sys.argv[1:]:
-    if opt.startswith("-isystem"): opt = "-" + opt
+    if opt.startswith("-isystem") or opt.startswith("-emit-llvm"): opt = "-" + opt
     args.append(opt)
 
 # parse valid args

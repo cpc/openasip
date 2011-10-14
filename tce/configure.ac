@@ -512,12 +512,16 @@ fi
 # test if $llvmConf is empty string
 fi
 
-
-if ! test x"$LLVM_VERSION" = x2.9
+if test x"$LLVM_VERSION" != x2.9 -a -a $srcdir/src/bintools/Compiler/pocl
 then
 
-ac_configure_args="$ac_configure_args LLVMCC=`pwd`/src/bintools/Compiler/tcecc"
-AC_CONFIG_SUBDIRS([src/bintools/Compiler/OpenCL])
+ac_configure_args="$ac_configure_args CLANGFLAGS=\"-ccc-host-triple tce-tut-llvm\""
+AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
+AC_SUBST([OPENCL_ENABLED], ["1"])
+
+else
+
+AC_SUBST([OPENCL_ENABLED], ["0"])
 
 fi
 
