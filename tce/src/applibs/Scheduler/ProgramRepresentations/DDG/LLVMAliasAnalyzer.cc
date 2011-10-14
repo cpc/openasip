@@ -88,34 +88,44 @@ LLVMAliasAnalyzer::analyze(
 
 	const llvm::MachineInstr* instr1 = pop1.machineInstr();
 	const llvm::MachineInstr* instr2 = pop2.machineInstr();    
-    
+
     llvm::MachineInstr::mmo_iterator begin1 =
 	    instr1->memoperands_begin();
     // Machine instruction could in theory have several memory operands.
     // In practice it is usually just one.
+    MemoryAliasAnalyzer::AliasingResult result = ALIAS_UNKNOWN;
     while (begin1 != instr1->memoperands_end()) {
         const llvm::Value* val1 = (*begin1)->getValue();        
+        uint64_t size1 = (*begin1)->getSize();
         llvm::MachineInstr::mmo_iterator begin2 =
 		    instr2->memoperands_begin();        
+            
         while (begin2 != instr2->memoperands_end()) {
             const llvm::Value* val2 = (*begin2)->getValue();
+            uint64_t size2 = (*begin2)->getSize();
             if (val1 && val2) {
-                llvm::AliasAnalysis::AliasResult res = AA_->alias(val1, val2);
+            
+                llvm::AliasAnalysis::AliasResult res = 
+                    AA_->alias(val1, size1, val2, size2);
+                    
                 if (res == llvm::AliasAnalysis::MayAlias ||
                     res == llvm::AliasAnalysis::PartialAlias) {
-                    return ALIAS_UNKNOWN;
+                    result = ALIAS_UNKNOWN;
                 }
                 if (res == llvm::AliasAnalysis::MustAlias) {
-                    return ALIAS_TRUE;
+                    result = ALIAS_TRUE;
+                }
+                if (res == llvm::AliasAnalysis::NoAlias) {
+                    result = ALIAS_FALSE;
                 }
             } else {
-                return ALIAS_UNKNOWN;
+                result = ALIAS_UNKNOWN;
             }
             begin2++;
         }
         begin1++;
     }
-    return ALIAS_FALSE;
+    return result;
 }
 
 /**
