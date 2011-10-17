@@ -47,6 +47,7 @@
 #include "Assembler.hh"
 #include "Exception.hh"
 
+#include "Bus.hh"
 
 using namespace TPEF;
 using namespace TTAMachine;

@@ -58,7 +58,7 @@
 #include "LLVMTCECmdLineOptions.hh"
 #include "InterPassData.hh"
 #include "MoveNodeSet.hh"
-
+#include "Terminal.hh"
 #include "RegisterRenamer.hh"
 
 //#define DEBUG_OUTPUT

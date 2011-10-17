@@ -31,6 +31,7 @@
  */
 
 #include "FullyConnectedCheck.hh"
+#include "Machine.hh"
 #include "MachineTester.hh"
 #include "FunctionUnit.hh"
 #include "FUPort.hh"

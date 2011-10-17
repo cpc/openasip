@@ -41,6 +41,7 @@ using std::endl;
 
 #include "SequentialFirstFitResourceAllocator.hh"
 #include "CodeSnippet.hh"
+#include "Machine.hh"
 #include "Program.hh"
 #include "NullProcedure.hh"
 #include "NullInstruction.hh"

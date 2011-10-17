@@ -52,6 +52,7 @@
 #include "TCEString.hh"
 #include "ResourceManager.hh"
 #include "MoveNode.hh"
+#include "Terminal.hh"
 
 /**
  * Constructor.

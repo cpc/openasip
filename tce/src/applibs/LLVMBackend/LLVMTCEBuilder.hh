@@ -52,7 +52,6 @@
 #include "TCETargetMachine.hh"
 #include "UniversalMachine.hh"
 #include "ProgramOperation.hh"
-#include "TerminalProgramOperation.hh"
 
 namespace TTAProgram {
     class Program;
@@ -61,6 +60,7 @@ namespace TTAProgram {
     class Terminal;
     class TerminalRegister;
     class TerminalInstructionAddress;
+    class TerminalProgramOperation;
     class Instruction;
     class DataMemory;
     class DataDefinition;

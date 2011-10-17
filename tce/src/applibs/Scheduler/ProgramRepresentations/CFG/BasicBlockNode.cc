@@ -38,6 +38,8 @@
 #include "Conversion.hh"
 #include "POMDisassembler.hh"
 #include "InstructionReferenceManager.hh"
+#include "Move.hh"
+#include "Program.hh"
 
 /**
  * Constructor.

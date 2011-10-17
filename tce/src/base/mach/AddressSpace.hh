@@ -37,10 +37,11 @@
 #include <string>
 
 #include "MachinePart.hh"
-#include "Machine.hh"
 #include "ObjectState.hh"
 
 namespace TTAMachine {
+
+class Machine;
 
 /**
  * Represents an address space in the machine.

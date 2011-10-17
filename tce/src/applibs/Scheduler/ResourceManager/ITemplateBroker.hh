@@ -37,7 +37,6 @@
 #include <vector>
 
 #include "ResourceBroker.hh"
-#include "SimpleResourceManager.hh"
 #include "ImmediateUnit.hh"
 
 namespace TTAMachine {
@@ -56,6 +55,7 @@ namespace TTAProgram {
 class MoveNode;
 class ResourceMapper;
 class SchedulingResource;
+class SimpleResourceManager;
 
 /**
  * ITemplate broker.

@@ -48,6 +48,8 @@
 #include "TerminalInstructionAddress.hh"
 #include "MathTools.hh"
 #include "TerminalRegister.hh"
+#include "Immediate.hh"
+#include "SimpleResourceManager.hh"
 
 using std::string;
 using namespace TTAMachine;

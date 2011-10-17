@@ -31,6 +31,7 @@
  */
 
 #include "NullAddressSpace.hh"
+#include "Machine.hh"
 
 namespace TTAMachine {
 

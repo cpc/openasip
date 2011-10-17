@@ -38,6 +38,8 @@
 #include "Instruction.hh"
 #include "POMDisassembler.hh"
 #include "NullAddressSpace.hh"
+#include "Move.hh"
+#include "Terminal.hh"
 
 using namespace TTAProgram;
 

@@ -49,6 +49,7 @@
 #include "VHDLNetlistWriter.hh"
 #include "BlockSourceCopier.hh"
 
+#include "Machine.hh"
 #include "ControlUnit.hh"
 #include "AddressSpace.hh"
 #include "SpecialRegisterPort.hh"

@@ -53,6 +53,8 @@
 #include "TCEString.hh"
 #include "Guard.hh"
 #include "ControlUnit.hh"
+#include "Terminal.hh"
+#include "MoveGuard.hh"
 
 using namespace TTAMachine;
 

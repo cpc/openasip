@@ -36,7 +36,6 @@
 #include <string>
 #include "Exception.hh"
 #include "PluginTools.hh"
-#include "SchedulingPlan.hh"
 #include "OperationDAGSelector.hh"
 
 namespace TTAProgram {
@@ -53,7 +52,7 @@ namespace llvm {
 }
 
 class InterPassData;
-
+class SchedulingPlan;
 
 /**
  * LLVM compiler backend and compiler interface for TCE.

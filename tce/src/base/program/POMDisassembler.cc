@@ -58,6 +58,12 @@
 #include "Machine.hh"
 #include "TCEString.hh"
 #include "InstructionReference.hh"
+#include "Move.hh"
+#include "Instruction.hh"
+#include "Program.hh"
+#include "Procedure.hh"
+#include "Immediate.hh"
+#include "MoveGuard.hh"
 
 #include "DisassemblyMove.hh"
 #include "DisassemblyRegister.hh"

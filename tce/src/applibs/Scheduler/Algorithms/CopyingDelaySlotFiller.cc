@@ -47,6 +47,7 @@
 #include "InstructionReferenceManager.hh"
 #include "TerminalRegister.hh"
 #include "SpecialRegisterPort.hh"
+#include "MoveGuard.hh"
 
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"

@@ -41,6 +41,7 @@
 #include "Conversion.hh"
 #include "WxConversion.hh"
 #include "WarningDialog.hh"
+#include "Machine.hh"
 #include "AddressSpace.hh"
 #include "ModelConstants.hh"
 #include "NumberControl.hh"

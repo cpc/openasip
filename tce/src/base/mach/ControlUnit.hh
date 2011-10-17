@@ -37,7 +37,8 @@
 
 #include "FunctionUnit.hh"
 #include "AddressSpace.hh"
-#include "ObjectState.hh"
+
+class ObjectState;
 
 namespace TTAMachine {
 

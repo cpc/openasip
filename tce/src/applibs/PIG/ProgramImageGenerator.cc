@@ -57,6 +57,7 @@
 #include "Binary.hh"
 #include "InstructionElement.hh"
 #include "Program.hh"
+#include "Machine.hh"
 
 #include "PluginTools.hh"
 #include "Environment.hh"

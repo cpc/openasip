@@ -46,6 +46,7 @@
 #include "SpecialRegisterPort.hh"
 #include "TCEString.hh"
 #include "POMDisassembler.hh"
+#include "MoveGuard.hh"
 
 using namespace TTAMachine;
 

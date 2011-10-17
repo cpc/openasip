@@ -36,9 +36,10 @@
 #include <vector>
 
 #include "Unit.hh"
-#include "ObjectState.hh"
 #include "BaseFUPort.hh"
 #include "CIStringSet.hh"
+
+class ObjectState;
 
 namespace TTAMachine {
 

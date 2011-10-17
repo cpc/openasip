@@ -38,6 +38,7 @@
 #include "Procedure.hh"
 #include "BasicBlock.hh"
 #include "SpecialRegisterPort.hh"
+#include "Terminal.hh"
 
 //#define DEBUG_OUTPUT__
 //#define WRITE_DOT_SNAPSHOTS

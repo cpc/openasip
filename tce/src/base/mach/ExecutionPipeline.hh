@@ -39,7 +39,6 @@
 
 #include "MachinePart.hh"
 #include "Exception.hh"
-#include "Serializable.hh"
 #include "PipelineElement.hh"
 
 class Operand;

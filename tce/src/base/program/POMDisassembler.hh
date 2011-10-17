@@ -34,13 +34,8 @@
 #define TTA_POM_DISASSEMBLER_HH
 
 #include "Disassembler.hh"
-#include "Program.hh"
 #include "BaseType.hh"
-#include "Terminal.hh"
-#include "MoveGuard.hh"
-#include "Move.hh"
 #include "Exception.hh"
-#include "Immediate.hh"
 
 class DisassemblyInstruction;
 class DisassemblyMove;
@@ -50,6 +45,15 @@ class DisassemblyImmediate;
 class DisassemblyImmediateRegister;
 class DisassemblyImmediateAssignment;
 
+namespace TTAProgram {
+    class Move;
+    class Immediate;
+    class Instruction;
+    class Program;
+    class MoveGuard;
+    class Procedure;
+    class Terminal;
+}
 /**
  * Program object model disassembler.
  */

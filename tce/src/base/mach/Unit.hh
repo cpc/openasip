@@ -40,9 +40,11 @@
 
 #include "MachinePart.hh"
 #include "Exception.hh"
-#include "Port.hh"
+//#include "Port.hh"
 
 namespace TTAMachine {
+
+class Port;
 
 /**
  * An Abstract base class for the different units in the machine.

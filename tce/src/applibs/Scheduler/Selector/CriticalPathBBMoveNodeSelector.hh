@@ -52,10 +52,13 @@
 
 #include "HelperSchedulerModule.hh"
 #include "MoveNodeSelector.hh"
-#include "BasicBlock.hh"
 #include "ReadyMoveNodeGroupList.hh"
 
 class DataDependenceGraph;
+
+namespace TTAProgram {
+    class BasicBlock;
+}
 
 /**
  * Selects move nodes from a basic block and prioritizes move nodes on

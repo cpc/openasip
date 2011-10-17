@@ -15,3 +15,5 @@ $tcecc -O1 -a $adf -o $tpef $program 2>/dev/null
 $tcedisasm -s $adf $tpef | grep -o "ALU8.S2.add"
 $tcedisasm -s $adf $tpef | grep -o "ALU6.S2.sub"
 
+rm $tpef
+
