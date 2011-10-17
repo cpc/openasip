@@ -1487,7 +1487,8 @@ ControlFlowGraph::copyToProcedure(
                 // try to remove the jump as it's jump to the next BB.
                 RemovedJumpData rjd = removeJumpToTarget(
                     proc, head.basicBlock().firstInstruction(),
-                    proc.instructionCount() - bb.instructionCount());
+                    proc.instructionCount() - 
+                    (bb.instructionCount() - bb.skippedFirstInstructions()));
                 if (rjd != JUMP_NOT_REMOVED) {
                     jumpsRemoved++;
                     // if BB got empty,
