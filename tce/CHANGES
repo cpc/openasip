@@ -76,7 +76,9 @@ Smaller features
 - tcedisasm now outputs to filename.tpef.S by default.
 - generate_cachegrind now uses line numbering and counts NOPs per
   instruction in case an assembly file is present as foobar.tpef.S.
-  
+- Generatebits prints out info about the imem usage and instruction compression
+  with the verbose flag (-v)
+
 Usability features
 ------------------
 - ProGe: Reasonable error message when implementation for some FU is invalid.
