@@ -27,29 +27,30 @@
  * Implementation of the main function of generatebits application.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2009 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
  */
 
 #include <iostream>
+#include <cmath>
+
+#include <boost/format.hpp>
 
 #include "PIGCmdLineOptions.hh"
 #include "ProgramImageGenerator.hh"
 #include "PIGCLITextGenerator.hh"
-
 #include "ADFSerializer.hh"
 #include "Machine.hh"
 #include "ControlUnit.hh"
-
 #include "BinaryEncoding.hh"
 #include "BEMSerializer.hh"
 #include "BEMGenerator.hh"
-
 #include "Binary.hh"
 #include "BinaryStream.hh"
 #include "BinaryReader.hh"
-
 #include "FileSystem.hh"
 
 using std::cerr;
@@ -299,43 +300,44 @@ copyImageToTb(
  */
 int main(int argc, char* argv[]) {
 
-    PIGCmdLineOptions options;
+    PIGCmdLineOptions* options = new PIGCmdLineOptions;
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& exception) {
         cerr << exception.errorMessage() << endl;
         return EXIT_FAILURE;
     }
+
+    Application::setCmdLineOptions(options);
     
     string adfFile = "";
-    if (options.numberOfArguments() < 1) {
+    if (options->numberOfArguments() < 1) {
         PIGCLITextGenerator textGen;
         cerr << textGen.text(PIGCLITextGenerator::TXT_ADF_REQUIRED) << endl;
         return EXIT_FAILURE;
-    }
-    else if (options.numberOfArguments() > 1) {
+    } else if (options->numberOfArguments() > 1) {
         PIGCLITextGenerator textGen;
         cerr << textGen.text(PIGCLITextGenerator::TXT_ILLEGAL_ARGS) << endl;
         return EXIT_FAILURE;
-    }
-    else {
-        adfFile = options.argument(1);
+    } else {
+        adfFile = options->argument(1);
     }
     
-    string bemFile = options.bemFile();
-    string piFormat = options.programImageOutputFormat();
-    string diFormat = options.dataImageOutputFormat();
-    int dmemMAUsPerLine = options.dataMemoryWidthInMAUs();
-    string compressor = options.compressorPlugin();
-    bool generateDataImages = options.generateDataImages();
-    bool generateDecompressor = options.generateDecompressor();
-    bool showCompressors = options.showCompressors();
+    string bemFile = options->bemFile();
+    string piFormat = options->programImageOutputFormat();
+    string diFormat = options->dataImageOutputFormat();
+    int dmemMAUsPerLine = options->dataMemoryWidthInMAUs();
+    string compressor = options->compressorPlugin();
+    const bool useCompression = compressor != "";
+    bool generateDataImages = options->generateDataImages();
+    bool generateDecompressor = options->generateDecompressor();
+    bool showCompressors = options->showCompressors();
     int imemMAUsPerLine = DEFAULT_IMEMWIDTH_IN_MAUS;
-    string progeOutputDir = options.progeOutputDirectory();
+    string progeOutputDir = options->progeOutputDirectory();
 
-    TCEString entityStr = options.entityName();
+    TCEString entityStr = options->entityName();
     if (entityStr == "")
         entityStr = "tta0";
 
@@ -361,8 +363,8 @@ int main(int argc, char* argv[]) {
     }       
 
     CodeCompressorPlugin::ParameterTable compressorParams;
-    for (int i = 0; i < options.compressorParameterCount(); i++) {
-        string param = options.compressorParameter(i);
+    for (int i = 0; i < options->compressorParameterCount(); i++) {
+        string param = options->compressorParameter(i);
         string paramName;
         string paramValue;
         try {
@@ -382,7 +384,7 @@ int main(int argc, char* argv[]) {
         (diFormat != "" && diFormat != "binary" &&
          diFormat != "ascii" && diFormat != "array" && diFormat != "mif" &&
          diFormat != "vhdl" && diFormat != "coe")) {
-        options.printHelp();
+        options->printHelp();
         return EXIT_FAILURE;
     }
 
@@ -391,8 +393,8 @@ int main(int argc, char* argv[]) {
     try {
         Machine* mach = loadMachine(adfFile);
 
-        for (int i = 0; i < options.tpefFileCount(); i++) {
-            string tpefFile = options.tpefFile(i);
+        for (int i = 0; i < options->tpefFileCount(); i++) {
+            string tpefFile = options->tpefFile(i);
             Binary* tpef = loadTPEF(tpefFile);
             tpefTable.push_back(tpef);
             tpefMap[FileSystem::fileOfPath(tpefFile)] = tpef;
@@ -416,7 +418,7 @@ int main(int argc, char* argv[]) {
         }
 
         ProgramImageGenerator imageGenerator;
-        if (compressor != "") {
+        if (useCompression) {
             imageGenerator.loadCompressorPlugin(compressor);
         }
         imageGenerator.loadCompressorParameters(compressorParams);
@@ -425,10 +427,17 @@ int main(int argc, char* argv[]) {
         imageGenerator.loadPrograms(tpefMap);
         imageGenerator.setEntityName(entityStr);
 
+        if (Application::verboseLevel() > 0) {
+            Application::logStream()
+                << (boost::format(
+                        "uncompressed instruction width: %d bits (%d bytes)\n" )
+                    % bem->width() % std::ceil(bem->width() / 8.0)).str();
+        }
+
         for (size_t i = 0; i < tpefTable.size(); i++) {
 
             Binary* program = tpefTable[i];
-            string tpefFile = FileSystem::fileOfPath(options.tpefFile(i));
+            string tpefFile = FileSystem::fileOfPath(options->tpefFile(i));
             string imageFile = programImemImageFile(tpefFile, piFormat);
             ofstream piStream(imageFile.c_str());
             if (piFormat == "binary") {
