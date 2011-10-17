@@ -482,6 +482,9 @@ Please refer to INSTALL for instructions on how to do this correctly.
      2.9*)
      AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
    ;;
+     3.0*)
+     AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
+   ;;
      *svn)
      AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.0)")     
    ;;   
