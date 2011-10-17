@@ -43,6 +43,7 @@ using std::endl;
 #include "Instruction.hh"
 #include "NullInstruction.hh"
 #include "AddressSpace.hh"
+#include "Machine.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

@@ -59,6 +59,7 @@
 #include "ProgramAnnotation.hh"
 #include "CodeSection.hh"
 #include "InstructionElement.hh"
+#include "Move.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

@@ -37,6 +37,7 @@
 #include "Address.hh"
 #include "AddressSpace.hh"
 #include "BaseType.hh"
+#include "Machine.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

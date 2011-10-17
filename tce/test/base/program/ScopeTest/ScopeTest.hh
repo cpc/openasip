@@ -42,6 +42,7 @@
 #include "Instruction.hh"
 #include "NullAddressSpace.hh"
 #include "InstructionReference.hh"
+#include "Machine.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

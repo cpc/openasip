@@ -47,6 +47,7 @@
 #include "Procedure.hh"
 #include "Instruction.hh"
 #include "InterPassData.hh"
+#include "Terminal.hh"
 
 class BasicBlockSchedulerTest : public CxxTest::TestSuite {
 public:
