@@ -67,8 +67,8 @@ MoveNodeSelector::candidates() {
  * @param node The scheduled MoveNode.
  */
 void
-MoveNodeSelector::notifyScheduled(MoveNode& node) {
-    assert(&node && "Should never be called. Here just to avoid warning.");
+MoveNodeSelector::notifyScheduled(MoveNode& /*node*/) {
+    assert(false && "Should never be called. Here just to avoid warning.");
 }
 
 
@@ -79,6 +79,6 @@ MoveNodeSelector::notifyScheduled(MoveNode& node) {
  * @param node Node which has lost some incoming dependence
  */
 void
-MoveNodeSelector::mightBeReady(MoveNode& node) {
-    assert(&node && "Should never be called. Here just to avoid warning.");
+MoveNodeSelector::mightBeReady(MoveNode& /*node*/) {
+    assert(false && "Should never be called. Here just to avoid warning.");
 }
