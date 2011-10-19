@@ -130,11 +130,15 @@ for the most important tools in the TCE installation by running the command
 computer's speed.
 
 OpenCL support
---------------
-The (experimental and incomplete) OpenCL support uses the pocl project. 
-In order to build TCE with OpenCL support, check out the pocl project's
-trunk branch under the 'src/bintools/Compiler/pocl' and reconfigure TCE
-as follows:
+==============
+There is an experimental and incomplete support for OpenCL. It's currently 
+not usable for day-to-day OpenCL programming but is a work in progress. 
+If you want to compile the support, for example, to help in implementing 
+the missing features, read on.
+
+The OpenCL support uses the pocl project. In order to build TCE with the 
+OpenCL support, check out the pocl project's trunk branch under the 
+'src/bintools/Compiler/pocl' and reconfigure TCE as follows:
 
 cd src/bintools/Compiler
 bzr co lp:pocl pocl

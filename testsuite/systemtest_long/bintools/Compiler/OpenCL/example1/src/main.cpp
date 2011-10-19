@@ -178,8 +178,9 @@ volatile cl_float results[TEST_SET_SIZE];
    in case main is inlined as the context is not 
    saved before calling it at the moment and inlining
    brings in live variables. FIXME by doing the calls
-   as LLVM Instruction level after which proper
+   at LLVM Instruction level after which proper
    context saving code will be generated automatically. */
+__attribute__((noinline))
 int main() {  
 
     for (int i = 0; i < TEST_SET_SIZE; ++i) {

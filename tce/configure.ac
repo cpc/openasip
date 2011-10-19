@@ -1362,6 +1362,7 @@ AC_CONFIG_FILES([
   scheduler/testbench/Operations/Makefile
   bclib/Makefile
   bclib/lwpr/Makefile
+  bclib/saocl/Makefile 
   bclib/include/Makefile
 ])
 

@@ -16,12 +16,7 @@ Notable changes and features
 - Generalizations to the architecture description format to allow
   using the scheduler for operation triggered arhictectures. The
   Cell SPU is the proof of the concept architecture which can be
-  scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).
-- Preliminary C++ support:
-  - Added support for global object constructors / destructors
-  - At least exceptions are still unsupported, and in general the C++
-    support has received very little testing so far, but should work
-    for the  basic use cases such as operator overloading.
+  scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).    
 
 Bugfixes
 --------

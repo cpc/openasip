@@ -1,4 +1,5 @@
-SUBDIRS = include lwpr
+SUBDIRS = include lwpr saocl
+
 
 
 

@@ -17,7 +17,7 @@ function compile_opencl {
     output=$1
     shift
     $tcecc --swfp -a $mach_dir/$mach --opencl-max-parallel-wi-count=$parallel_wi \
-        -loclkernel -loclhost $* -o $output $verbose
+        -loclhost-sa $* -o $output $verbose
 }
 
 function simulate {

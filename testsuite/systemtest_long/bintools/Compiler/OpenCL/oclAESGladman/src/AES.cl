@@ -118,7 +118,7 @@ __constant unsigned char Sde[] = {
 23, 43, 4, 126, 186, 119, 214, 38, 225, 105, 20, 99, 85, 33, 12, 125,
 };
 
-static void switchblockInt(unsigned int *block)
+void switchblockInt(unsigned int *block)
 {
 	unsigned int block_aux[4];
 	
@@ -233,7 +233,7 @@ void MixColumInt(unsigned int *state,__global unsigned int *Alogtable,__global u
 }
 /*----------------------------------------------------------------------------*/
 
-static void
+void
 AddRoundKey2Int(unsigned int *state, unsigned int *key, unsigned int round)
 {
     state[0] ^= key[4*round];
@@ -289,7 +289,7 @@ SubBytesInt(unsigned int *state)
 }
 */
 
-void SubShiftInt(unsigned int *state, __global unsigned int *Sen)
+void SubShiftInt(global unsigned int *state, __global unsigned int *Sen)
 {
 	unsigned int aux;
 	//unsigned int b0, b1, b2, b3;
@@ -303,7 +303,7 @@ void SubShiftInt(unsigned int *state, __global unsigned int *Sen)
 /*----------------------------------------------------------------------------*/
  
 
-void round_encInt(unsigned int *block, unsigned int *key, unsigned int round,__global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
+void round_encInt(__global unsigned int *block, __global unsigned int *key, unsigned int round, global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
 {
 #ifdef cl_TCE_SUBSHIFT
 	clSUBSHIFTTCE(block[0],block[1],block[2],block[3],block[0],block[1],block[2],block[3]);
@@ -319,7 +319,7 @@ void round_encInt(unsigned int *block, unsigned int *key, unsigned int round,__g
 
 /*----------------------------------------------------------------------------*/
 
-void lround_encInt(unsigned int *block, unsigned int *key,__global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
+void lround_encInt(__global unsigned int *block, __global unsigned int *key ,__global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
 {
 #ifdef cl_TCE_SUBSHIFT
 	clSUBSHIFTTCE(block[0],block[1],block[2],block[3],block[0],block[1],block[2],block[3]);
@@ -335,7 +335,7 @@ void lround_encInt(unsigned int *block, unsigned int *key,__global unsigned int 
 /*----------------------------------------------------------------------------*/
 
 void
-encrypt_aes2Int(unsigned int *block, unsigned int *expandedkey, __global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
+encrypt_aes2Int(unsigned int *block, __global unsigned int *expandedkey, __global unsigned int *Alogtable, __global unsigned int *Logtable, __global unsigned int *Sen, __global unsigned int *Sde)
 {
 int i = 0;
  

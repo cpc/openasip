@@ -211,3 +211,12 @@ Thereafter, make && make install should work fine. Remeber also to set
 the LD_LIBRARY_PATH and PATH variables after the installation when you
 try to run the tce for the first time in a new shell.
 
+
+C++ global object constructors
+------------------------------
+
+In case your program uses C++ global objects with constructors, your
+main() definition must be defined with __attribute__((noinline)). 
+Otherwise your program might get corrupted stack pointer in the
+beginning. This is a known issue yet to be fixed.
+

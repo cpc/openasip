@@ -22,7 +22,7 @@ void*   __dso_handle = (void*) &__dso_handle;
 
 void _start(void)
 {
-    asm volatile (".call_global_ctors");
+    asm __volatile__ (".call_global_ctors");
     // for initing signal table...
     //__init_signal();
 
@@ -32,7 +32,7 @@ void _start(void)
     // destructors called just for completeness for simulations
     // this does not work with Clang 2.7 as it registers the destructors
     // to atexit() instead.
-    asm volatile (".call_global_dtors");
+    asm __volatile__ (".call_global_dtors");
 
     _exit(retval);
 }

@@ -1,0 +1,3 @@
+Library for executing OpenCL host+kernel code in a "standalone" setting
+where all the kernels are statically linked to the main host program and
+register themselves to the host API's kernel registry.
