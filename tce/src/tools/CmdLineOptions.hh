@@ -60,6 +60,8 @@ public:
         throw (IllegalCommandLine, ParserStopRequest);
     void parse(std::string argv[], int argc)
         throw (IllegalCommandLine, ParserStopRequest);
+    void parse(std::vector<std::string> argv)
+        throw (IllegalCommandLine, ParserStopRequest);        
     virtual void printHelp() const;
     virtual void printVersion() const = 0;
     

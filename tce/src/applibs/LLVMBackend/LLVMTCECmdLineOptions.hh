@@ -78,6 +78,7 @@ public:
 
     virtual bool dumpDDGsDot() const;
     virtual bool dumpDDGsXML() const;
+    virtual bool disableLLVMAA() const;
 
     virtual void printVersion() const {
         std::cout << "llvm-tce - TCE LLVM code generator " << VERSION
@@ -101,6 +102,7 @@ private:
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
     static const std::string LEAVE_DIRTY;
+    static const std::string DISABLE_LLVMAA;
     static const std::string CONSERVATIVE_PRE_RA_SCHEDULER;
     static const std::string SWL_DUMP_DDGS_DOT;
     static const std::string SWL_DUMP_DDGS_XML;

@@ -50,9 +50,13 @@ ADFLocation(
     cl::desc("The TCE architecture definition file."),
     cl::init(""), cl::Hidden);
 static cl::opt<bool>
+DisableLLVMAA(
+    "disable-llvmaa",
+    cl::desc("Disables use of LLVM Alias Analysis information."));    
+static cl::opt<bool>
 DumpDDG(
     "dump-ddgs",
-    cl::desc("Equivalent to --dump-ddgs-dot --dump-ddgs-xml"));
+    cl::desc("Equivalent to --dump-ddgs-dot --dump-ddgs-xml."));
 static cl::opt<bool>
 DumpDDGDot(
     "dump-ddgs-dot",
@@ -77,41 +81,27 @@ LLVMTCEScheduler::LLVMTCEScheduler() :
     // If we want to pass dump-ddg options we need to create new one.
     // Add also -O3 flag, otherwise the -O0 is used and Sequential Scheduler
     // called.
-    LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions;     
+    LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions; 
+    std::vector<std::string> args;
+    args.push_back("llc");
+    args.push_back("-O3");    
     if (DumpDDG) {
-        std::string args[] = {"llc", "-O3", "--dump-ddgs-dot","--dump-ddgs-xml"};
-        try {
-            options->parse(args,4);
-        } catch (const IllegalCommandLine& e) {
-            std::cerr << e.errorMessageStack() << std::endl;
-        }
+        args.push_back("--dump-ddgs-dot");
+        args.push_back("--dump-ddgs-xml");        
     } else if (DumpDDGDot) {
-        std::string args[] = {"llc", "-O3", "--dump-ddgs-dot"};
-        try {
-            options->parse(args,3);
-        } catch (const IllegalCommandLine& e) {
-            std::cerr << e.errorMessageStack() << std::endl;
-        }
+        args.push_back("--dump-ddgs-dot");    
     } else if (DumpDDGXML) {
-        std::string args[] = {"llc", "-O3", "--dump-ddgs-xml"};
-        try {
-            options->parse(args,3);
-        } catch (const IllegalCommandLine& e) {
-            std::cerr << e.errorMessageStack() << std::endl;
-        }
-    } else {
-        std::string args[] = {"llc", "-O3"};
-        try {
-            options->parse(args,2);
-        } catch (const IllegalCommandLine& e) {
-            std::cerr << e.errorMessageStack() << std::endl;
-        }
+        args.push_back("--dump-ddgs-xml");        
+    }       
+    if (DisableLLVMAA) {
+        args.push_back("--disable-llvmaa");
     }
     try {
-        Application::setCmdLineOptions(options);
-    }catch (const Exception& e) {
+        options->parse(args);
+        Application::setCmdLineOptions(options);        
+    } catch (const IllegalCommandLine& e) {
         std::cerr << e.errorMessageStack() << std::endl;
-    }          
+    }
 }
 
 bool

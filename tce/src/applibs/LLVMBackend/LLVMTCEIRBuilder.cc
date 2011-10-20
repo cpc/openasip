@@ -165,7 +165,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         if (!AA_) {
             // Called through LLVMBackend. We are actual module and 
             // can get previous pass analysis!
-            AA = &getAnalysis<AliasAnalysis>(); 
+            AA = getAnalysisIfAvailable<AliasAnalysis>(); 
         } else {
             // Called through LLVMTCEScheduler. We are not registered
             // module in pass manager, so we do not have previous

@@ -71,6 +71,7 @@
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
 #include "LLVMAliasAnalyzer.hh"
+#include "LLVMTCECmdLineOptions.hh"
 //#include "StackAliasAnalyzer.hh"
 //#include "OffsetAliasAnalyzer.hh"
 //#include "TrivialAliasAnalyzer.hh"
@@ -109,7 +110,12 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
     /// broken code. just for testing theoretical benefits.
     addAliasAnalyzer(new FalseAliasAnalyzer);
 #endif
-	addAliasAnalyzer(new LLVMAliasAnalyzer);
+    LLVMTCECmdLineOptions* llvmOptions =
+        dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());    
+    if (llvmOptions != NULL && llvmOptions->disableLLVMAA() == false) {
+        addAliasAnalyzer(new LLVMAliasAnalyzer);
+    }
 }
 
 /**
@@ -219,7 +225,13 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
 
     // constant alias AA check aa between global variables.
     addAliasAnalyzer(new ConstantAliasAnalyzer);
-	addAliasAnalyzer(new LLVMAliasAnalyzer);
+
+    LLVMTCECmdLineOptions* llvmOptions =
+        dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());    
+    if (llvmOptions != NULL && llvmOptions->disableLLVMAA() == false) {
+        addAliasAnalyzer(new LLVMAliasAnalyzer);
+    }
 #ifdef USE_FALSE_AA
     /// defining USE_FALSE_AA results in faster but
     /// broken code. just for testing theoretical benefits.

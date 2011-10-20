@@ -133,7 +133,27 @@ CmdLineOptions::parse(string argv[], int argc)
 
     parseAll();
 }
+/**
+ * Loads all command line arguments and parses them.
+ *
+ * @param options Command line options pre-parsed in string vector.
+ * @exception IllegalCommandLine If parsing is not succesfull.
+ * @exception ParserStopRequest If help or version option is found.
+ */
+void
+CmdLineOptions::parse(std::vector<string> argv)
+    throw (IllegalCommandLine, ParserStopRequest) {
 
+    // command line is emptied
+    commandLine_.clear();
+    progName_ = argv.at(0);
+
+    for (int i = 1; i < argv.size(); i++) {
+        commandLine_.push_back(argv[i]);
+    }
+
+    parseAll();
+}
 /**
  * Parses all command line options.
  *

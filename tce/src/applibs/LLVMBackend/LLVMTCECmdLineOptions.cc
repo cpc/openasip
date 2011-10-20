@@ -46,6 +46,7 @@ const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 const std::string LLVMTCECmdLineOptions::SWL_EXPERIMENTAL_REGALLOC = "experimental-ra";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string LLVMTCECmdLineOptions::LEAVE_DIRTY = "d";
+const std::string LLVMTCECmdLineOptions::DISABLE_LLVMAA = "disable-llvmaa";
 const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
     "conservative-pre-ra-scheduler";
 
@@ -102,6 +103,10 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
     addOption(
         new BoolCmdLineOptionParser(
             LEAVE_DIRTY, "Do not remove temp files", LEAVE_DIRTY));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            DISABLE_LLVMAA, "Disable use of LLVM Alias Analysis", DISABLE_LLVMAA));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -252,6 +257,10 @@ LLVMTCECmdLineOptions::leaveDirty() const {
     return findOption(LEAVE_DIRTY)->isDefined();
 }
 
+bool
+LLVMTCECmdLineOptions::disableLLVMAA() const {
+    return findOption(DISABLE_LLVMAA)->isDefined();
+}
 /**
  * Return true if the verbose switch was defined in the command line.
  *
