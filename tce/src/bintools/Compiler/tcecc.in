@@ -794,6 +794,10 @@ p.add_option('--no-schedule', action="store_true",
              dest="no_schedule", default=False,
              help="Do not call scheduler.")
 
+p.add_option('--disable-llvmaa', action="store_true",
+             dest="disable_llvmaa", default=False,
+             help="Disable use of LLVM Alias Analysis.")
+
 p.add_option('--clear-plugin-cache', action="store_true",
              dest="clear_cache", default=False,
              help="Clear plugin cache completely.")
@@ -1184,6 +1188,9 @@ if options.adf_file != "":
 
     if options.leave_dirty:
         command += " -d"
+
+    if options.disable_llvmaa:
+        command += " --disable-llvmaa"
         
     if options.dump_ddgs:
         command += " --dump-ddgs-dot --dump-ddgs-xml"
