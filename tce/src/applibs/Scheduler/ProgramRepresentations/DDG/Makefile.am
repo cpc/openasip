@@ -29,7 +29,7 @@ LLVMTCE_DIR = ${APPLIBS_DIR}/LLVMBackend
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${PDG_DIR} -I${CFG_DIR} \
 	-I${DISASSEMBLER_DIR} -I${ALGO_DIR} -I${SELECTOR_DIR} -I${LLVMTCE_DIR}\
-	${LLVM_CPPFLAGS}
+	-I${SCHED_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
