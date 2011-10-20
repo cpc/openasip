@@ -148,7 +148,7 @@ CmdLineOptions::parse(std::vector<string> argv)
     commandLine_.clear();
     progName_ = argv.at(0);
 
-    for (int i = 1; i < argv.size(); i++) {
+    for (unsigned int i = 1; i < argv.size(); i++) {
         commandLine_.push_back(argv[i]);
     }
 
