@@ -47,6 +47,12 @@ int main(int argc, char* argv[]) {
         new SchedulerCmdLineOptions();
     SchedulerFrontend frontend;
 
+    std::cerr 
+        << "Deprecation warning: The old scheduler client and "
+        << "the configuration file system is going to be removed from TCE "
+        << "soon. Please use the default builder and report the possible "
+        << "bugs found in it." << std::endl;
+
     try {
         options->parse(argv, argc);
     } catch (ParserStopRequest) {

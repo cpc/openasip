@@ -1154,7 +1154,7 @@ if options.adf_file != "":
     else:
         scheduler_config_file_name = "default_scheduler.conf"        
         
-    if not options.no_schedule and options.scheduler_config is None:
+    if not options.no_schedule and options.pom_builder and options.scheduler_config is None:
         if runningInstalled:
             options.scheduler_config = (tceprefix +
                                         "/share/tce/scheduler/passes/" +
@@ -1214,6 +1214,9 @@ if options.adf_file != "":
 
     if options.pom_builder:
         command += " --pom-builder"
+
+    if options.pom_builder or options.scheduler_config is not None:
+        print >> sys.stderr, "Deprecation warning: The old builder is going to be removed from TCE soon. Please use the default builder and report the possible bugs found in it."
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 
