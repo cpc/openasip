@@ -1802,7 +1802,7 @@ DataDependenceGraph::copyDepsOver(
                                 iEdge.edgeReason(),
                                 iEdge.dependenceType(),
                                 iEdge.data(),
-                                iEdge.guardUse(), 
+                                iEdge.guardUse() || oEdge.guardUse(),
                                 false, 
                                 iEdge.tailPseudo(),
                                 oEdge.headPseudo(),
