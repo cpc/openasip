@@ -9,7 +9,6 @@ llvm_version=`llvm-config --version`
 
 if test "x${llvm_version}" != "x2.9" -a -a "../../../../tce/src/bintools/Compiler/pocl"
 then
-    echo yeye
     rm -f OpenCL.testdesc.disabled
 else
     touch OpenCL.testdesc.disabled
