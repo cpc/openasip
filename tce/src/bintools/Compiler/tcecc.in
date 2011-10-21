@@ -259,7 +259,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                        "-emit-llvm -O%d "\
                                        "-fno-inline -c -I" + tmpDir +\
                                        " " + compileFlags + " " + input + " -o " + output) % \
-                                       ("-I" + tceSAOpenCLIncludeDir, options.frontend_optlevel)
+                                       ("-I" + tceSAOpenCLIncludeDir + " -I" + poclDir + "/lib" + \
+                                            " -I" + poclDir,
+                                        options.frontend_optlevel)
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
                             exitWithError(1, "Error while compiling %s." % input)
@@ -293,6 +295,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 #include <stdlib.h>
 #include <stdio.h>
 #include "cl_tce.h"
+#include "CL/pocl_cl.h"
 
 #ifdef __TCE__
 
@@ -332,9 +335,7 @@ extern "C" void _register_opencl_kernel(struct _OpenCLKernel* kernel);
 
                     trampoline_func_template = \
 """
-extern "C" void %(converted_name)s(
-   void** args,
-   unsigned x, unsigned y, unsigned z);
+extern "C" void %(converted_name)s(void** args, pocl_context*);
 
 static void __opencl_trampoline_%(kernel_name)s(
     void** args, 
@@ -358,7 +359,18 @@ static void __opencl_trampoline_%(kernel_name)s(
     for (unsigned gid_x = first_gidx; gid_x <= last_gidx; gid_x++) { 
         for (unsigned gid_y = 0; gid_y < num_groups_y; gid_y++) { 
             for (unsigned gid_z = 0; gid_z < num_groups_z; gid_z++) {
-                %(converted_name)s(args, gid_x, gid_y, gid_z);
+                pocl_context context;
+                context.work_dim = work_dim;
+                context.num_groups[0] = num_groups_x;
+                context.num_groups[1] = num_groups_y;
+                context.num_groups[2] = num_groups_z;
+                context.group_id[0] = gid_x;
+                context.group_id[1] = gid_y;
+                context.group_id[2] = gid_z;
+                context.global_offset[0] = 0;
+                context.global_offset[1] = 0;
+                context.global_offset[2] = 0;
+                %(converted_name)s(args, &context);
             } 
         }
     }
