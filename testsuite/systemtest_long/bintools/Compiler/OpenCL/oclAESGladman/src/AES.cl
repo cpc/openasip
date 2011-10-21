@@ -1,11 +1,3 @@
-//#include "tceops.h"
-
-/*
-#define USE_MUL_GAL_COP
-//#define USE_SUBSHIFT_COP
-//#define USE_PACK_COP
-*/
-
  /*----------------------------------------------------------------------------*/
 
 #define byte0(a)	a >> 24

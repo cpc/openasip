@@ -521,11 +521,11 @@ then
 ac_configure_args="$ac_configure_args CLANGFLAGS=\"-ccc-host-triple tce-tut-llvm\""
 AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
 AC_SUBST([OPENCL_ENABLED], ["1"])
-
+OPENCL=true
 else
 
 AC_SUBST([OPENCL_ENABLED], ["0"])
-
+OPENCL=false
 fi
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
@@ -1487,6 +1487,13 @@ then
 else
   echo "libedit not found. BaseLineReader will be used as LineReader."
   echo "NOTE: libedit might require 'libtermcap' in some systems."
+fi
+
+if test x"$OPENCL" = xtrue;
+then
+  echo "Found pocl. Standalone OpenCL C compilation enabled."
+else
+  echo "Pocl not found. Standalone OpenCL C compilation disabled."
 fi
 
 if test x"$LLVM_VERSION" = x
