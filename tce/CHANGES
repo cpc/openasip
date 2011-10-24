@@ -17,6 +17,11 @@ Notable changes and features
   using the scheduler for operation triggered arhictectures. The
   Cell SPU is the proof of the concept architecture which can be
   scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).    
+- CFG generation directly from LLVM CFG and major reordering of phases of the compiler backend.
+  Scheduler configuration file system deprecated. (not used with default options).
+  Memory consumption of the compiler should now be smaller, 
+  compile time for small programs longer. Old mode can still be used with
+  --old-builder parameter, but this disables also some other new features.
 
 Bugfixes
 --------
@@ -42,6 +47,9 @@ Bugfixes
 - generatebits: MIF data image output had a rounding error which led to
   missing data words at the end of image in case the number of words was
   not divisible with the row width.
+- OSAL DAG language had broken illegal recursive dag detection, which
+  resulted some legal DAG's not to be used. This happened in cases
+  where same operation was used multiple times inside a dag.
 
 Code generator improvements
 ---------------------------
