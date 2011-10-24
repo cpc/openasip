@@ -203,6 +203,10 @@ private:
     bool clocked_;
     /// Can operation can change program flow.
     bool controlFlow_;
+    /// Operation performs function call.
+    bool isCall_;
+    /// Operation is branch.
+    bool isBranch_;
 
     // Text box for editing operation description
     wxTextCtrl* editDescription_;

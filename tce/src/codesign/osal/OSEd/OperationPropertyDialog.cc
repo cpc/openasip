@@ -392,7 +392,9 @@ OperationPropertyDialog::TransferDataToWindow() {
         canTrap_ = operation_->canTrap();
         hasSideEffects_ = operation_->hasSideEffects();
         clocked_ = operation_->isClocked();
-        controlFlow_ = operation_->isControlFlowOperation();	
+        controlFlow_ = operation_->isControlFlowOperation();
+        isCall_ = operation_->isCall();
+        isBranch_ = operation_->isBranch();	
         updateOperands();
         updateAffected();	
     } else {
@@ -402,6 +404,8 @@ OperationPropertyDialog::TransferDataToWindow() {
         hasSideEffects_ = false;
         clocked_ = false;
         controlFlow_ = false;
+        isCall_ = false;
+        isBranch_ = false;
     }
 
     return wxWindow::TransferDataToWindow();
@@ -1074,6 +1078,8 @@ OperationPropertyDialog::saveOperation() {
     root->setAttribute(Operation::OPRN_READS_MEMORY, readMemory_);
     root->setAttribute(Operation::OPRN_WRITES_MEMORY, writeMemory_);
     root->setAttribute(Operation::OPRN_CONTROL_FLOW, controlFlow_);
+    root->setAttribute(Operation::OPRN_ISCALL, isCall_);    
+    root->setAttribute(Operation::OPRN_ISBRANCH, isBranch_);    
 
     if (affectedBy_.size() > 0) {
         ObjectState* affectedBy = new ObjectState(Operation::OPRN_AFFECTED_BY);
