@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.5-pre}
-\ver{23}
+\ver{24}
 \firstday{2006-10-25}
-\lastday{2011-09-26}
+\lastday{2011-10-24}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -940,6 +940,57 @@ bits than the shifted data operand.
 % The main purpose of existence. The main use cases.
 % ALL features and how to use them in case of command line tools.
 % In GUIs, describe only the most unclear parts (esp. in ProDe).
+
+
+\subsection{Datapath Connectivity Levels}
+
+The datapath interconnection network of TTAs is visible to the programmer.
+This enables full customization of the connectivity, making it possible to
+remove connections that are rarely, if at all, used by the programs the
+processor at hand is designed to run. However, less connections the machine
+has, more challenging it becomes to automatically produce efficient code
+for it. This section describes the different TTA ``connectivity levels'' and
+their support in the TCE design flow.
+
+The currently identified and supported connectivity levels are, in the order of 
+descending level of connectivity, as follows:
+\begin{enumerate}
+
+\item Fully Connected. Completely connected interconnection network ``matrix''.
+All bus-socket and socket-port connections are there. There is a shortcut for
+creating this type of connectivity in the ProDe tool.
+
+The easy target for the high-level language compiler tcecc. However, not
+a realistic design usually due to its high implementation costs.
+
+\item Directly Reachable. The connectivity has been reduced. However, there is
+still at least one direct connection from each function unit (FU) or register file 
+(RF) output to all inputs.
+
+An easy target for tcecc.
+
+\item Fully RF connected. All FUs are connected to all RFs. That is, you can 
+read and write any general purpose register (GPR) from any FU with a single
+move. However, some or all bypass connections between FUs might be missing.
+
+An easy target for tcecc. However, reduction of bypass connections means
+that less software bypassing can be done.
+
+\item Reachable. All FUs are connected to at least one RF and all RFs (and thus
+other FUs) can be reached via one or more additional register copy moves. 
+
+Compilation is fully supported starting from HLL. The Number of copies not 
+limited by tcecc. However, this often results in suboptimal code due to the
+additional register copies which introduce additional moves, consume registers, and
+produce dependencies to the code which hinder parallelism.
+
+\item RF disconnected. Some FUs are not connected to any RF or there are 
+``separated islands'' without connectivity to other ``islands''.
+
+Not supported by tcecc. However, any connectivity type is supported by the
+assembler. Thus, one can resort to manual TTA assembly programming.
+
+\end{enumerate}
 
 
 \chapter{TUTORIALS AND HOW-TOS}

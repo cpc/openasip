@@ -83,6 +83,11 @@ External interface changes
 - OSAL.hh: removed RUNTIME_ERROR_WITH_DATA as it's a too specific helper
   for OSAL API. Let's keep it minimal and clean.
 
+Documentation
+-------------
+- Documented the different "datapath connectivity levels" and their
+  support in TCE.
+
 1.4       April 2011
 ====================
 
