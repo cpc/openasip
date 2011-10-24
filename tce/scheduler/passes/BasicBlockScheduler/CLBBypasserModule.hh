@@ -57,12 +57,19 @@ public:
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
+    bool needsTarget() const { return true; }
 private:
     static const std::string LOOKBACK_DISTANCE_OPTION;
+    static const std::string NO_DRE_LOOKBACK_DISTANCE_OPTION;
     static const std::string KILL_DEAD_RESULTS_OPTION;
+    static const std::string BYPASS_FROM_REGS_OPTION;
+    static const std::string BYPASS_TO_REGS_OPTION;
 
     int bypassDistance_;
+    int noDreBypassDistance_;
     bool killDeadResults_;
+    bool bypassFromRegs_;
+    bool bypassToRegs_;
     CycleLookBackSoftwareBypasser* clbs_;
 };
 

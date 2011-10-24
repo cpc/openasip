@@ -23,11 +23,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-# @author 2006-2010 Pekka Jääskeläinen
+# @author 2006-2011 Pekka Jääskeläinen
 # @author 2006-2009 Veli-Pekka Jääskeläinen
 #
-#
-# Compiler driver for tce-llvm-gcc toolset
+# High-level language compiler driver for TCE.
 #
 
 import os, sys, commands, optparse, shutil, glob, signal
@@ -842,6 +841,17 @@ p.add_option('--inline-threshold',
              dest='inline_threshold', default=200,
              help="Control the amount of inlining.")
 
+p.add_option('--bypass-distance',
+             type="int", action="store", dest='bypass_distance', default=-1,
+             help="From how far to bypass results, if dead result elimination "\
+                 "can be applied.");
+
+p.add_option('--bypass-distance-nodre',
+             type="int", action="store", dest='bypass_distance_nodre',
+             default=-1,
+             help="From how far to bypass results, if the results cannot be "\
+                 "eliminated.")
+
 p.add_option('--sequential-schedule', action="store_true",
              dest="sequential_schedule", default=False,
              help="Runs sequential scheduler for compiled code.")
@@ -924,6 +934,10 @@ p.add_option('--dump-ddgs-xml', action='store_true', dest='dump_ddgs_xml', defau
 p.add_option('--dump-ddgs', action='store_true', dest='dump_ddgs', default=False,
              help=\
 """Equivalent to --dump-ddgs-dot --dump-ddgs-xml.""")
+
+p.add_option('--no-kill-dead-results', action='store_false',
+             dest='kill_dead_results', default=True, help=\
+"""Disable dead result elimination during bypassing.""");
 
 p.add_option('--no-rename-registers', action='store_false', dest='rename_registers', default=True,
              help=\
@@ -1218,6 +1232,11 @@ if options.adf_file != "":
     else:
         command += " --no-rename-registers"
 
+    if options.kill_dead_results:
+        command += " --kill-dead-results"
+    else:
+        command += " --no-kill-dead-results"
+
     if not options.no_schedule and options.pom_builder:
         # The new builder does not use scheduler configs,
         # it calls the scheduler directly after getting
@@ -1231,6 +1250,9 @@ if options.adf_file != "":
         print >> sys.stderr, "Deprecation warning: The old builder is going to be removed from TCE soon. Please use the default builder and report the possible bugs found in it."
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
+
+    command += " --bypass-distance=%d" % options.bypass_distance
+    command += " --bypass-distance-nodre=%d" % options.bypass_distance_nodre
 
     command += (" -a " + options.adf_file +
                 " -o " + outFile +

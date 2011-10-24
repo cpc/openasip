@@ -45,7 +45,7 @@
 #include "Guard.hh"
 #include "Bus.hh"
 #include "SimpleResourceManager.hh"
-
+#include "SchedulerCmdLineOptions.hh"
 #include "ProgramOperation.hh"
 
 // DEBUG:
@@ -57,19 +57,23 @@
 /**
  * Constructor.
  *
- * @param cyclesToLookBack How many cycles to look back for the producer of
- *        result when bypassing the operand writes.
- * @param killDeadResults Whether dead results should be killed.
  */
-CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser(
-    int cyclesToLookBack, int cyclesToLookBackNoDRE,
-    bool killDeadResults, bool bypassFromRegs,
-    bool bypassToRegs) :
-    cyclesToLookBack_(cyclesToLookBack), 
-    cyclesToLookBackNoDRE_(cyclesToLookBackNoDRE),
-    killDeadResults_(killDeadResults),
-    bypassFromRegs_(bypassFromRegs), bypassToRegs_(bypassToRegs), 
+CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser() :
+    cyclesToLookBack_(5), cyclesToLookBackNoDRE_(1),
+    killDeadResults_(true), bypassFromRegs_(true), bypassToRegs_(true), 
     selector_(NULL), bypassCount_(0), deadResultCount_(0) {
+
+    SchedulerCmdLineOptions* opts = 
+        dynamic_cast<SchedulerCmdLineOptions*>(Application::cmdLineOptions());
+    if (opts != NULL) {
+        if (opts->bypassDistance() > -1) {
+            cyclesToLookBack_ = opts->bypassDistance();
+        }
+        if (opts->noDreBypassDistance() > -1) {
+            cyclesToLookBackNoDRE_ = opts->noDreBypassDistance();
+        }
+        killDeadResults_ = opts->killDeadResults();
+    }
 }
 
 /**

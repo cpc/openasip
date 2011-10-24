@@ -57,6 +57,9 @@ public:
     bool printResourceConstraints() const;
     bool renameRegisters() const;
 
+    virtual int bypassDistance() const;
+    virtual int noDreBypassDistance() const;
+    virtual bool killDeadResults() const;
 private:
     /// Copying forbidden.
     SchedulerCmdLineOptions(const SchedulerCmdLineOptions&);
@@ -75,7 +78,9 @@ private:
     static const std::string VERBOSE_SWITCH;
     /// Rename register duing scheduling after register allocation.
     static const std::string SWL_RENAME_REGISTERS;
-
+    static const std::string SWL_KILL_DEAD_RESULTS;
+    static const std::string SWL_NO_DRE_BYPASS_DISTANCE;
+    static const std::string SWL_BYPASS_DISTANCE;
 };
 
 #endif

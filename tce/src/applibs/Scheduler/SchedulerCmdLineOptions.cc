@@ -43,6 +43,10 @@ const std::string SchedulerCmdLineOptions::CONF_PARAM_NAME = "config";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
 const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string SchedulerCmdLineOptions::SWL_RENAME_REGISTERS = "rename-registers";
+const std::string SchedulerCmdLineOptions::SWL_KILL_DEAD_RESULTS = "kill-dead-results";
+const std::string SchedulerCmdLineOptions::SWL_BYPASS_DISTANCE = "bypass-distance";
+const std::string SchedulerCmdLineOptions::SWL_NO_DRE_BYPASS_DISTANCE = "bypass-distance-nodre";
+
 
 const std::string SchedulerCmdLineOptions::USAGE =
     "Usage: schedule [OPTION]... SOURCE\n"
@@ -78,6 +82,21 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
         new BoolCmdLineOptionParser(
             SWL_RENAME_REGISTERS, 
             "Rename already allocated registers during scheduler"));
+   
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_KILL_DEAD_RESULTS,
+            "Kill dead results after bypass. On by default."));
+
+    addOption(
+        new IntegerCmdLineOptionParser(
+            SWL_BYPASS_DISTANCE,
+            "Bypass distance when dead result elimination can be used"));
+
+    addOption(
+        new IntegerCmdLineOptionParser(
+            SWL_NO_DRE_BYPASS_DISTANCE,
+            "Bypass distance when dead result elimination cannot be used"));
 }
 
 /**
@@ -182,4 +201,45 @@ SchedulerCmdLineOptions::renameRegisters() const {
         return true;
     } 
     return findOption(SWL_RENAME_REGISTERS)->isFlagOn();
+}
+
+
+
+/**
+ * Returns the bypass limit when dead result elimination can be used.
+ *
+ * By default returns -1 which results in using heuristics to define the
+ * maximum values.
+ */
+int
+SchedulerCmdLineOptions::bypassDistance() const {
+    if (!findOption(SWL_BYPASS_DISTANCE)->isDefined()) {
+        return -1;
+    } else {
+        return findOption(SWL_BYPASS_DISTANCE)->integer();
+    }
+}
+
+
+/**
+ * Returns the bypass limit when dead result elimination cannot be used.
+ *
+ * By default returns -1 which results in using heuristics to define the
+ * maximum values.
+ */
+int
+SchedulerCmdLineOptions::noDreBypassDistance() const {
+    if (!findOption(SWL_NO_DRE_BYPASS_DISTANCE)->isDefined()) {
+        return -1;
+    } else {
+        return findOption(SWL_NO_DRE_BYPASS_DISTANCE)->integer();
+    }
+}
+
+bool
+SchedulerCmdLineOptions::killDeadResults() const {
+    if (!optionGiven(SWL_KILL_DEAD_RESULTS)) {
+        return true;
+    } 
+    return findOption(SWL_KILL_DEAD_RESULTS)->isFlagOn();
 }

@@ -40,13 +40,25 @@
 #include "CLBBypasserModule.hh"
 #include "Conversion.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
+#include "MachineAnalysis.hh"
+#include "SchedulerCmdLineOptions.hh"
 
+// TODO: should also select values between them on machines with properties
+// somewhere between these.
 // default value when nothing given as parameter or environment variable.
-#define BYPASS_DISTANCE 1
+#define BYPASS_DISTANCE 4
+#define BUS_LIMITED_BYPASS_DISTANCE 9
+#define RF_LIMITED_BYPASS_DISTANCE 8
+#define FU_LIMITED_BYPASS_DISTANCE 3
+#define NO_DRE_BYPASS_DISTANCE 2
+#define BUS_LIMITED_NO_DRE_BYPASS_DISTANCE 2
+#define RF_LIMITED_NO_DRE_BYPASS_DISTANCE 3
+#define FU_LIMITED_NO_DRE_BYPASS_DISTANCE 2
 
-CLBBypasserModule::CLBBypasserModule() : bypassDistance_(BYPASS_DISTANCE), 
-                                         killDeadResults_(true),
-                                         clbs_(NULL) {
+
+CLBBypasserModule::CLBBypasserModule() : 
+    bypassDistance_(-1), noDreBypassDistance_(-1), killDeadResults_(true), 
+    bypassFromRegs_(false), bypassToRegs_(false), clbs_(NULL) {
 }
 
 CLBBypasserModule::~CLBBypasserModule() {
@@ -72,6 +84,12 @@ void CLBBypasserModule::setOptions(
             bypassDistance_ = (*iter)->intValue();
         }
         if ((*iter)->hasAttribute("name") && 
+            (*iter)->stringAttribute("name") == 
+            NO_DRE_LOOKBACK_DISTANCE_OPTION) {
+            noDreBypassDistance_ = (*iter)->intValue();
+        }
+
+        if ((*iter)->hasAttribute("name") && 
             (*iter)->stringAttribute("name") == KILL_DEAD_RESULTS_OPTION) {
             if ( (*iter)->stringValue() == "true" ) {
                 killDeadResults_ = true;
@@ -86,34 +104,53 @@ void CLBBypasserModule::setOptions(
                 "only true or false value allowed for " +
                 KILL_DEAD_RESULTS_OPTION);
         }
+
+        if ((*iter)->hasAttribute("name") && 
+            (*iter)->stringAttribute("name") == BYPASS_FROM_REGS_OPTION) {
+            if ( (*iter)->stringValue() == "true" ) {
+                bypassFromRegs_ = true;
+                continue;
+            }
+            if ( (*iter)->stringValue() == "false" ) {
+                bypassFromRegs_ = false;
+                continue;
+            }
+            throw IllegalParameters(
+                __FILE__,__LINE__,__func__, 
+                "only true or false value allowed for " +
+                BYPASS_FROM_REGS_OPTION);
+        }
+
+        if ((*iter)->hasAttribute("name") && 
+            (*iter)->stringAttribute("name") == BYPASS_TO_REGS_OPTION) {
+            if ( (*iter)->stringValue() == "true" ) {
+                bypassToRegs_ = true;
+                continue;
+            }
+            if ( (*iter)->stringValue() == "false" ) {
+                bypassToRegs_ = false;
+                continue;
+            }
+            throw IllegalParameters(
+                __FILE__,__LINE__,__func__, 
+                "only true or false value allowed for " +
+                BYPASS_TO_REGS_OPTION);
+        }
     }
 }
 
 SoftwareBypasser& 
 CLBBypasserModule::bypasser() {
 
-    const char* ENVIRONMENT_LBD = getenv("TCE_BYPASS_LBD");
-    const char* ENVIRONMENT_KDR = getenv("TCE_BYPASS_DRE");
+    // allow overriding the options using a scheduler command line switch
     
     if (clbs_ == NULL) {
-        if (ENVIRONMENT_LBD != NULL && *ENVIRONMENT_LBD != 0) {
-            bypassDistance_ = Conversion::toInt(ENVIRONMENT_LBD); 
-        }
-        if (ENVIRONMENT_KDR != NULL && *ENVIRONMENT_KDR != 0) {
-            if (!strcmp(ENVIRONMENT_KDR,"true")) {
-                killDeadResults_ = true;
-            } else if (!strcmp(ENVIRONMENT_KDR,"false")) {
-                killDeadResults_ = false;
-            } else {
-                throw IllegalParameters(
-                    __FILE__,__LINE__,__func__,"Illegal value in "
-                    "TCE_BYPASS_DRE environment variable. "
-                    "Only true/false allowed");
-            }
-        }
+        clbs_ = new CycleLookBackSoftwareBypasser();
+    }
 
-        clbs_ = new CycleLookBackSoftwareBypasser(
-            bypassDistance_,bypassDistance_,killDeadResults_);
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() 
+            << "bypasser: max distance: " << bypassDistance_ << std::endl;
     }
     return *clbs_;
 }
@@ -145,7 +182,8 @@ CLBBypasserModule::longDescription() const {
 }
 
 const std::string CLBBypasserModule::LOOKBACK_DISTANCE_OPTION = "swb-lookback-distance";
+const std::string CLBBypasserModule::NO_DRE_LOOKBACK_DISTANCE_OPTION = "no-dre-swb-lookback-distance";
 const std::string CLBBypasserModule::KILL_DEAD_RESULTS_OPTION = "kill-dead-results";
-
-
+const std::string CLBBypasserModule::BYPASS_FROM_REGS_OPTION = "bypass-from-regs";
+const std::string CLBBypasserModule::BYPASS_TO_REGS_OPTION = "bypass-to-regs";
 SCHEDULER_PASS(CLBBypasserModule)
