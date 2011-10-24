@@ -1513,16 +1513,12 @@ TDGen::operationCanBeMatched(
         return true;
     }
 
-    // just to avoid new delete, always init set and select if we use 
-    // local or the one which was given as parameter
-    std::set<std::string> checkSet;
-    std::set<std::string>* useSet;
-    if (recursionCycleCheck == NULL) {
-        useSet = &checkSet;
-    } else {
-        useSet = recursionCycleCheck;
+    std::set<std::string> useSet;
+    if (recursionCycleCheck != NULL) {
+        useSet = *recursionCycleCheck;
     }    
-    
+    useSet.insert(op.name());
+
     // check if one of dags of operation is ok
     for (int i = 0; i < op.dagCount(); i++) {
         OperationDAG& dag = op.dag(i);
@@ -1540,16 +1536,14 @@ TDGen::operationCanBeMatched(
                 Operation& refOp = opNode->referencedOperation();
 
                 // check that the same operation is not used recursively
-                if (useSet->count(refOp.name()) != 0) {
+                if (useSet.count(refOp.name()) != 0) {
                     dagIsGood = false;
                     break;
                 }
-                    
+
                 // check if referenced op can be matched
-                useSet->insert(refOp.name());                
-                if (!operationCanBeMatched(refOp, useSet)) {
+                if (!operationCanBeMatched(refOp, &useSet)) {
                     dagIsGood =  false;
-                    useSet->erase(refOp.name());
                     break;
                 }
             }
