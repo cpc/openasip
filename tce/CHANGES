@@ -48,6 +48,9 @@ Bugfixes
 - OSAL DAG language had broken illegal recursive dag detection, which
   resulted some legal DAG's not to be used. This happened in cases
   where same operation was used multiple times inside a dag.
+- tcecc: fail with an error in case the compiled program uses dynamic
+  stack objects (not yet supported by tcecc) instead of silently 
+  producing invalid code.
 
 Code generator improvements
 ---------------------------

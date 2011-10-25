@@ -33,8 +33,6 @@
 
 using namespace llvm;
 
-#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
-
 /**
  * Emits machine function prologue to machine functions.
  */
@@ -52,4 +50,3 @@ TCEFrameInfo::emitEpilogue(
     tri_->emitEpilogue(mf, mbb);
 }
 
-#endif

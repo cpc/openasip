@@ -39,9 +39,12 @@
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/CodeGen/RegisterScavenging.h>
+#include <llvm/Function.h>
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
+#include "TCEString.hh"
+#include "Application.hh"
 #include "tce_config.h"
 
 #include <iostream> // DEBUG
@@ -157,7 +160,14 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     MachineBasicBlock& mbb = mf.front();
     MachineFrameInfo* mfi = mf.getFrameInfo();
     int numBytes = (int)mfi->getStackSize();
-
+    if (mfi->hasVarSizedObjects()) {
+        TCEString errMsg;
+        errMsg << "ERROR: function '" << mf.getFunction()->getNameStr() 
+               << "' contains dynamic stack objects which are not supported by tcecc yet.\n"
+               << "See the user manual section Unsupported C Language Constructs for more info.\n";
+        std::cerr << errMsg;
+        exit(1);
+    }
     // this unfortunately return true for inline asm.
     bool hasCalls = mfi->hasCalls();
     if (hasCalls) {
