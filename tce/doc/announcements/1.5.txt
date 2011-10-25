@@ -11,7 +11,7 @@ Many thanks to Hervé Yviquel and Vinogradov Vyacheslav who submitted their
 first TCE patches to this release. Keep them coming!
 
 Also we'd like to thank the Radio Implementation Research Team from Nokia
-Research Center which funded a large part of the work for developing 
+Research Center which funded a significant part of the work for developing 
 this release. Much appreciated!
 
 Links

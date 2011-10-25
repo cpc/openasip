@@ -43,19 +43,19 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libplatformintegrator_la_SOURCES += \
-	IPXactFileGenerator.hh IPXactInterface.hh \
-	SOPCBuilderFileGenerator.hh SOPCInterface.hh \
-	PlatformIntegrator.hh AvalonIntegrator.hh \
-	HDLPort.hh \
-	Vlnv.hh DefaultProjectFileGenerator.hh \
-	IPXactClkInterface.hh QuartusProjectGenerator.hh \
-	IPXactModel.hh MemoryGenerator.hh \
-	AlteraIntegrator.hh IPXactHibiInterface.hh \
-	AlteraOnchipRomGenerator.hh AlteraOnchipRamGenerator.hh \
+	AlteraMemGenerator.hh IPXactFileGenerator.hh \
+	IPXactInterface.hh SOPCBuilderFileGenerator.hh \
+	SOPCInterface.hh PlatformIntegrator.hh \
+	AvalonIntegrator.hh PlatformIntegratorTypes.hh \
+	HDLPort.hh Vlnv.hh \
+	DefaultProjectFileGenerator.hh IPXactClkInterface.hh \
+	QuartusProjectGenerator.hh IPXactModel.hh \
+	MemoryGenerator.hh AlteraIntegrator.hh \
+	IPXactHibiInterface.hh AlteraOnchipRomGenerator.hh \
+	IPXactAddressSpace.hh AlteraOnchipRamGenerator.hh \
 	Stratix2SramGenerator.hh KoskiIntegrator.hh \
 	Stratix2DSPBoardIntegrator.hh AvalonMMMasterInterface.hh \
 	AlteraHibiDpRamGenerator.hh IPXactSerializer.hh \
-	ProjectFileGenerator.hh IPXactResetInterface.hh \
-	VhdlRomGenerator.hh AlteraMemGenerator.hh IPXactAddressSpace.hh \
-	Stratix3DevKitIntegrator.hh PlatformIntegratorTypes.hh
+	Stratix3DevKitIntegrator.hh ProjectFileGenerator.hh \
+	IPXactResetInterface.hh VhdlRomGenerator.hh 
 ## headers end

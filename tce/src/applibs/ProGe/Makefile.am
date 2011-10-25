@@ -38,8 +38,9 @@ libproge_la_SOURCES += \
 	ProGeTestBenchGenerator.hh NetlistWriter.hh \
 	PortConnectionProperty.hh ProGeTypes.hh \
 	NetlistGenerator.hh ProGeScriptGenerator.hh \
-	NetlistPort.hh ProcessorGenerator.hh \
-	BlockSourceCopier.hh NetlistBlock.hh \
-	Netlist.hh VHDLNetlistWriter.hh \
-	VirtualNetlistBlock.hh ProGeScriptGenerator.icc 
+	HDLTemplateInstantiator.hh NetlistPort.hh \
+	ProcessorGenerator.hh BlockSourceCopier.hh \
+	NetlistBlock.hh Netlist.hh \
+	VHDLNetlistWriter.hh VirtualNetlistBlock.hh \
+	ProGeScriptGenerator.icc 
 ## headers end

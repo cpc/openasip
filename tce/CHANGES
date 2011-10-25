@@ -1,10 +1,11 @@
-1.5 not yet released
+1.5    November 2011
 ====================
 
 Notable changes and features
 ----------------------------
-- Support for LLVM 3.0svn. Dropped support for LLVM 2.8 and older. 
-  LLVM 2.9 still works.
+- Support for LLVM 3.0. 
+  LLVM 2.9 might still work but is unsupported.
+  Dropped support for LLVM 2.8 and older. 
 - tcecc: Floating point emulation code is not included by default anymore,
   use --swfp in case you use floating points and your machine does
   not support them.
@@ -14,22 +15,19 @@ Notable changes and features
   function unit (e.g. _TCEFU_ADD("ALU8", A1_Cb, A1_Cr, result2)).
   Thanks to Hervé Yviquel for the patch.
 - Generalizations to the architecture description format to allow
-  using the scheduler for operation triggered arhictectures. The
-  Cell SPU is the proof of the concept architecture which can be
+  using the instruction scheduler for operation triggered arhictectures. 
+  The Cell SPU is the proof of the concept architecture which can be
   scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).    
-- CFG generation directly from LLVM CFG and major reordering of phases of the compiler backend.
-  Scheduler configuration file system deprecated. (not used with default options).
-  Memory consumption of the compiler should now be smaller, 
-  compile time for small programs longer. Old mode can still be used with
-  --old-builder parameter, but this disables also some other new features.
 
 Bugfixes
 --------
-- HDB: Hardware bug fix for load-store units in hibi_adapter.hdb and stratixII.hdb.
+- HDB: Hardware bug fix for load-store units in hibi_adapter.hdb and 
+  stratixII.hdb.
   Global lock signal might cause pipelined load result to be ignored.
-- tcecc: Scheduler could sometimes fail to schedule on sparsely connected machines.
-- OSEd: OSEd crashed when selecting an operation for which there was no simulation
-  model in an otherwise valid .opb.
+- tcecc: Scheduler could sometimes fail to schedule on sparsely connected 
+  machines.
+- OSEd: OSEd crashed when selecting an operation for which there was no 
+  simulation model in an otherwise valid .opb.
 - OSEd: Reload modified simulation functions from a rebuilt simulation
   function module (.opb) (Bug 179).
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
@@ -38,8 +36,8 @@ Bugfixes
   the llvm -simplify-libcalls (e.g. printf("foo\n") -> puts("foo").
   This was broken due to adding -fno-libcall switch as default. Now it's
   added only while building Newlib.
-- Build system: Fixed build when --as-needed is used as link flag by some of the
-  libraries.
+- Build system: Fixed build when --as-needed is used as link flag by some of 
+  the libraries.
 - 1-bit global constants had invalid size calculation. This could cause
   compiler to fail to write program.
 - tcedisasm: the starting address of data section initialization
@@ -60,6 +58,16 @@ Code generator improvements
 - Does not save return address to stack in leaf functions.
 - Alias analysis of LLVM is now exploited in DDG building to improve 
   parallelization.
+- TCE instruction scheduler CFG is now generated directly from the LLVM CFG.
+  The old "builder" that builds the TCE CFG from a "flat" program 
+  representation can still be used with --old-builder parameter, but this 
+  disables also some other new features and will be removed in the next 
+  TCE release.
+- A major reorganization of the phases in the compiler backend. The memory 
+  consumption of the compiler should be now smaller, but compile time for 
+  small programs longer. NOTE: The old scheduler configuration system is now
+  deprecated (not used with the default tcecc options) and will be removed in
+  the next release. 
 
 Smaller features
 ----------------
@@ -82,7 +90,7 @@ Smaller features
 - Generatebits prints out info about the imem usage and instruction compression
   with the verbose flag (-v).
 - tcecc: added switches --bypass-distance, --bypass-distance-nodre and
-  --no-kill-dead-results to controll the software bypassing aggressiveness and
+  --no-kill-dead-results to control the software bypassing agressiveness and
   the dead result elimination.
 
 Usability features
@@ -96,8 +104,8 @@ External interface changes
 
 Documentation
 -------------
-- Documented the different "datapath connectivity levels" and their
-  support in TCE.
+- TCE user manual: Documented the different "datapath connectivity levels" and 
+  their support in TCE.
 
 1.4       April 2011
 ====================

@@ -62,13 +62,15 @@ libprogram_la_SOURCES += \
 	DisassemblyInstruction.hh DisassemblyMove.hh \
 	MoveGuard.hh DisassemblyNOP.hh \
 	DisassemblyFPRegister.hh Move.hh \
-	InstructionReferenceManager.hh AnnotatedInstructionElement.hh \
-	DisassemblyRegister.hh Procedure.hh \
-	NullProcedure.hh DisassemblyImmediate.hh \
-	NullGlobalScope.hh DisassemblyIntRegister.hh \
-	DisassemblyElement.hh DisassemblyFUPort.hh \
-	DisassemblyInstructionSlot.hh ProgramWriter.hh \
-	TerminalAddress.hh DisassemblyAnnotation.hh \
+	MoveNodeSet.hh InstructionReferenceManager.hh \
+	AnnotatedInstructionElement.hh DisassemblyRegister.hh \
+	Procedure.hh NullProcedure.hh \
+	DisassemblyImmediate.hh MoveNode.hh \
+	NullGlobalScope.hh BasicBlock.hh \
+	DisassemblyIntRegister.hh DisassemblyElement.hh \
+	DisassemblyFUPort.hh DisassemblyInstructionSlot.hh \
+	ProgramWriter.hh TerminalAddress.hh \
+	DisassemblyAnnotation.hh ProgramOperation.hh \
 	CodeLabel.hh TPEFDisassembler.hh \
 	Terminal.hh TerminalRegister.hh \
 	DisassemblyFUOpcodePort.hh DataAddressDef.hh \
@@ -76,16 +78,15 @@ libprogram_la_SOURCES += \
 	NullProgram.hh DisassemblyOperand.hh \
 	TerminalImmediate.hh DataInstructionAddressDef.hh \
 	TerminalInstructionAddress.hh NullAddress.hh \
-	CodeSnippet.hh DataMemory.hh \
-	NullInstructionReferenceManager.hh ProgramAnnotation.hh \
+	TerminalProgramOperation.hh CodeSnippet.hh \
+	DataMemory.hh NullInstructionReferenceManager.hh \
+	TerminalSymbolReference.hh ProgramAnnotation.hh \
 	InstructionReference.hh Instruction.hh \
-	NullInstruction.hh DisassemblyReturnAddressRegister.hh \
-	DisassemblyLabel.hh DisassemblyImmediateAssignment.hh \
+	TerminalBasicBlockReference.hh NullInstruction.hh \
+	DisassemblyReturnAddressRegister.hh DisassemblyLabel.hh \
+	DisassemblyImmediateAssignment.hh TerminalInstructionReference.hh \
 	TerminalFUPort.hh GlobalScope.hh \
-	InstructionReferenceManager.icc TerminalRegister.icc \
-	Address.icc Procedure.icc \
-	InstructionReferenceImpl.icc \
-    TerminalSymbolReference.hh TerminalBasicBlockReference.hh BasicBlock.hh \
-	MoveNode.hh MoveNode.icc ProgramOperation.hh TerminalProgramOperation.hh \
-	TerminalInstructionReference.hh
+	MoveNode.icc InstructionReferenceManager.icc \
+	TerminalRegister.icc Address.icc \
+	Procedure.icc InstructionReferenceImpl.icc 
 ## headers end

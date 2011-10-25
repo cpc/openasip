@@ -18,3 +18,11 @@ llvmopencl_la_LDFLAGS = -module -export-dynamic $(LDFLAGS) `@LO_LLVM_CONFIG@ --l
 PROJECT_ROOT = $(top_srcdir)
 
 llvmopencl_la_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
+
+## headers start
+llvmopencl_la_SOURCES += \
+	KernelFunctions.hh SplitRegions.hh \
+	LoopRegions.hh Rematerialize.hh \
+	AddContext.hh OpenCL.hh \
+	GenerateWarps.hh ThreadContext.hh 
+## headers end

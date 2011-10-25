@@ -66,6 +66,7 @@ libscheduleralgorithms_la_SOURCES += \
 	RegisterMap.hh AddressSpaceMapper.hh \
 	PreBypassBasicBlockScheduler.hh SoftwareBypasser.hh \
 	ControlFlowGraphPass.hh SimpleGuardAllocatorCore.hh \
-	ProgramPass.hh BBSchedulerController.hh \
-	BasicBlockScheduler.hh InterPassDatum.hh 
+	ProgramPass.hh RegisterRenamer.hh \
+	BBSchedulerController.hh BasicBlockScheduler.hh \
+	InterPassDatum.hh 
 ## headers end
