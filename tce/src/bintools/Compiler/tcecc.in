@@ -1039,7 +1039,7 @@ if runningInstalled:
     newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
     newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
     bclib_includes = "" # same as newlib_includes
-    bclib_libdirs = "" # all libs should be in the same newlib_libdir
+    bclib_libdirs = [newlib_libdir] # all libs should be in the same newlib_libdir
     opencl_includes = "" # same as newlib_includes
     srcRoot = None
     tceSAOpenCLIncludeDir = tceprefix + "/include"
