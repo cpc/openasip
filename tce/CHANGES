@@ -104,8 +104,9 @@ External interface changes
 
 Documentation
 -------------
-- TCE user manual: Documented the different "datapath connectivity levels" and 
+- Documented the different "datapath connectivity levels" and 
   their support in TCE.
+- Added an "Unsupported C Language Features"-section.
 
 1.4       April 2011
 ====================

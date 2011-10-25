@@ -4220,6 +4220,28 @@ Examples of usage:
 \end{verbatim}
 
 
+\subsection{Unsupported C Language Features}
+
+Currently the compiler supports the ISO C99 standard and its standard library 
+almost perfectly. Therefore, it is easier to list the features which are 
+known \textit{not} to be supported. They are as follows:
+
+\begin{enumerate}
+ \item Variable sized local arrays.
+
+Sizes of the arrays that reside in stack must be compile time known. This is
+due to the lack of frame pointer (fp) in the default ABI of TTA which makes dynamic
+stack allocation hard to implement. We have considered adding an fp as a customizable
+feature but it hasn't been seen as an important enough feature just yet.
+
+\item alloca().
+
+While strictly not a standard function, some legacy code uses this to allocate
+memory dynamically on the stack. See the previous item for an explanation.
+
+\end{enumerate}
+
+
 
 \subsection{Known issues}
 \label{sec:tceccIssues}
