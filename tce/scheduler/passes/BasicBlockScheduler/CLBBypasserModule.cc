@@ -40,7 +40,6 @@
 #include "CLBBypasserModule.hh"
 #include "Conversion.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
-#include "MachineAnalysis.hh"
 #include "SchedulerCmdLineOptions.hh"
 
 // TODO: should also select values between them on machines with properties
