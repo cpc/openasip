@@ -2722,14 +2722,14 @@ command is then:
 
 \section{Designing Floating-point Processors with TCE}
 
-TCE supports hardware floating-point calculations. They can be performed by using the 
+TCE supports single precision floating-point calculations. They can be performed by using the 
 \emph{float} datatype in C code, or by using macros from \emph{tceops.h}, such 
 as \emph{\_TCE\_FADD}.
 If the compilation target architecture does not support these operations, 
-they are emulated using integer arithmetic in software. Passing the switch \emph{--no-fp-emu} 
-to tcecc disables the software emulation library linkage.
+they can be emulated using integer arithmetic in software. Passing the switch \emph{--swfp} 
+to tcecc enables the software emulation library linkage.
 
-A set of floating-point FUs is included with TCE, in a HDB file named 
+A set of floating-point FU implementations is included with TCE, in a HDB file named 
 \emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/tce/hdb/fpu\_embedded.hdb}. 
 The FUs operate with 32-bit, single-precision floating point numbers. 
 Supported operations include addition, subtraction, negation, absolute value, 
@@ -2886,6 +2886,15 @@ Use of these parameters has the following caveats:
     \item Mantissa width affects the latency of the divider and square root FUs. The divider FU's latency is $(mw/2)+3$, and the square root FU's latency is $mw+3$.
     \item Bit widths other than single-precision have not been exhaustively tested. Half-precision floats appear to work in a simple test case.
 \end{itemize}
+
+\subsection{Processor Simulator and Floating Point Operations}
+
+Designers of floating point TTAs should note that ttasim uses the simulator 
+host's floating point (FP) hardware to simulate floating point operations (for 
+speed reasons). Thus, it might or might not match the FP implementation of 
+the actual implemented TTA as it depends on the standard compliance, the
+default rounding modes, and other differences between floating point 
+implementations.
 
 \section{Multi-TTA Designs}
 

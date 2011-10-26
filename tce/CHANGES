@@ -110,6 +110,7 @@ Documentation
 - Documented the different "datapath connectivity levels" and 
   their support in TCE.
 - Added an "Unsupported C Language Features"-section.
+- Added and fixed documentation on the floating point TTA designs.
 
 1.4       April 2011
 ====================
