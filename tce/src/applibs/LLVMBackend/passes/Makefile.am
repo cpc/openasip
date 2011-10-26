@@ -24,7 +24,7 @@ CXXFLAGS=-Wno-unused-parameter -g
 
 ## headers start
 LowerIntrinsics_la_SOURCES += \
-	MachineDCEModulePass.hh MachineDCE.hh \
+	MachineDCE.hh \
 	RegisterClassInfo.h Spiller.h \
 	LiveDebugVariables.h VirtRegRewriter.h \
 	VirtRegMap.h LiveRangeEdit.h 
