@@ -7,7 +7,8 @@ lib_LTLIBRARIES = libtce.la
 # TCE 1.3 = 3:0:0 (some API changes at least in the simulator)
 # TCE 1.4 = 4:0:0
 # TCE 1.5 = 5:0:0
-libtce_la_LDFLAGS = ${TCE_LDFLAGS} -version-info 5:0:0
+# TCE 1.6 = 6:0:0
+libtce_la_LDFLAGS = ${TCE_LDFLAGS} -version-info 6:0:0
 
 # http://www.gnu.org/software/hello/manual/automake/Libtool-Convenience-Libraries.html
 # Dummy C++ source to cause C++ linking.
