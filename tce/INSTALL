@@ -145,6 +145,10 @@ bzr co lp:pocl pocl
 cd ../../..
 ./configure && make
 
+Note: the OpenCL support most likely does not work with the released
+version as the pocl is being under major development. Thus, in case you
+want to use the OpenCL support, you should check out the 'devel' branch of 
+the TCE. See: http://tce.cs.tut.fi/cgi-bin/moin.cgi/branches
 
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
