@@ -195,7 +195,6 @@ begin
     variable fractl, fractr   : UNSIGNED (fraction_width downto 0);  -- fractions
     variable rfract           : UNSIGNED ((2*(fraction_width))+1 downto 0);  -- result fraction
     variable sfract           : UNSIGNED (fraction_width+1+multguard downto 0);  -- result fraction
-    variable shifty           : INTEGER;      -- denormal shift
     variable exponl, exponr   : SIGNED (exponent_width-1 downto 0);  -- exponents
     variable rexpon           : SIGNED (exponent_width+1 downto 0);  -- result exponent
     variable fp_sign          : STD_ULOGIC;   -- sign of result
@@ -238,7 +237,7 @@ begin
     end if;
     
     -- add the exponents
-    rexpon := resize (exponl, rexpon'length) + exponr - shifty + 1;
+    rexpon := resize (exponl, rexpon'length) + exponr + 1;
     
 		rexpon_reg_1_in <= rexpon;
     fractl_reg_1_in <= fractl;
@@ -344,7 +343,6 @@ begin
     variable fractl, fractr   : UNSIGNED (fraction_width downto 0);  -- fractions
     variable rfract           : UNSIGNED ((2*(fraction_width))+1 downto 0);  -- result fraction
     variable sfract           : UNSIGNED (fraction_width+1+multguard downto 0);  -- result fraction
-    variable shifty           : INTEGER;      -- denormal shift
     variable exponl, exponr   : SIGNED (exponent_width-1 downto 0);  -- exponents
     variable rexpon           : SIGNED (exponent_width+1 downto 0);  -- result exponent
     variable fp_sign          : STD_ULOGIC;   -- sign of result
