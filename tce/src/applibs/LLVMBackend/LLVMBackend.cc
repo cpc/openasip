@@ -558,7 +558,7 @@ LLVMBackend::compileAndSchedule(
     std::string tceccPath = Environment::tceCompiler();
     std::string tceccCommand = tceccPath + " " + debugParams 
         + "-O " + Conversion::toString(optLevel) + " -a " + adf + " -o " 
-        + tpef + " " + bytecodeFile + " 2>&1";
+        + tpef + " " + bytecodeFile + " --no-plugin-cache 2>&1";
 
     Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
 
