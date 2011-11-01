@@ -1589,7 +1589,39 @@ TDGen::operationPattern(
     }
     return retVal;
 }
+/**
+ * Return operation pattern is llvm .td format without outputs.
+ *
+ * This pattern can be used as sub-pattern of bigger pattern.
+ * The operation must have only one output.
+ *
+ * @param op Operation to return pattern for.
+ * @param dag Operation pattern's DAG.
+ * @return Pattern string.
+ */
+std::string
+TDGen::subPattern(
+    const Operation& op,
+    const OperationDAG& dag) {
 
+    if (dag.endNodes().size() != 1) {
+	throw InvalidData(
+	    __FILE__,__LINE__,__func__,
+	    "Cannot create subpattern: not exactly 1 end node!");
+    }
+
+    OperationDAG::NodeSet::iterator i = dag.endNodes().begin(); 
+    const OperationDAGNode& res = **(i);
+    OperationDAG::NodeSet preds = dag.predecessors(res);
+    if (preds.size() != 1) {
+	throw InvalidData(
+	    __FILE__,__LINE__,__func__,
+	    "Cannot create subpattern: not single data source for end node.");
+    }
+    
+    // TODO: what about immediate operands?
+    return dagNodeToString(op, dag, **(preds.begin()), /* immOp */false, false, false);
+}
 /**
  * Converts single OperationDAG node to llvm pattern fragment string.
  *
@@ -1634,9 +1666,8 @@ TDGen::dagNodeToString(
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(operand, false, imm, intToBool == 2);
+	    return operandToString(operand, false, imm, intToBool == 2);
         } else {
-
             // Output operand for the whole operation.
             assert(dag.inDegree(*tNode) == 1);
             assert(op.operand(tNode->operandIndex()).isOutput());
@@ -1774,7 +1805,11 @@ TDGen::operationNodeToString(
         // generate pattern for operation if not llvmOperation (can match 
         // custom op patterns)
         if (operationPat == "") {
-            operationPat = tceOperationPattern(operation);
+	    if (operationCanBeMatched(operation)) {
+                return subPattern(operation, operation.dag(0));
+	    } else {
+		operationPat = tceOperationPattern(operation);
+	    }
         }
     }
 
@@ -1801,8 +1836,15 @@ TDGen::operationNodeToString(
             int dst = edge.dstOperand();
             if (dst == i) {
                 const OperationDAGNode& in = dag.tailNode(edge);
-                pattern % dagNodeToString(
+		std::string dagNodeString =  dagNodeToString(
                     op, dag, in, immOp, emulationPattern, intToBool==2?2:0);
+		try {
+		    pattern % dagNodeString;
+		} catch(...) {
+		    TCEString msg = "Boost format threw exception! ";
+		    msg << "Input format: " << operationPat;
+		    throw InvalidData(__FILE__, __LINE__, __func__, msg);
+		}
             }
         }
     }
