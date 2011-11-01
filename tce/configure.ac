@@ -146,7 +146,6 @@ fi
 # Do not create manuals if latex or latex2html are not available
 AM_CONDITIONAL([MANUALS], test x$MAKEMANUALS = xtrue)
 
-
 AX_PTHREAD()
 
 # Checks whether compiler supports vector at() operation. It is a known
@@ -513,19 +512,6 @@ or use ./gen_llvm_shared_lib.sh to generate it.])
 fi
 
 # test if $llvmConf is empty string
-fi
-
-if test x"$LLVM_VERSION" != x2.9 -a -a $srcdir/src/bintools/Compiler/pocl
-then
-
-ac_configure_args="$ac_configure_args CLANGFLAGS=\"-ccc-host-triple tce-tut-llvm\""
-AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
-AC_SUBST([OPENCL_ENABLED], ["1"])
-OPENCL=true
-else
-
-AC_SUBST([OPENCL_ENABLED], ["0"])
-OPENCL=false
 fi
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
@@ -1202,9 +1188,24 @@ AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])
 # Add all include paths to CPPFLAGS to make sure, that headerfiles are found
 CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_INCLUDES \
 $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
+LDFLAGS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
 $BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
+
+if test x"$LLVM_VERSION" != x2.9 -a -a $srcdir/src/bintools/Compiler/pocl
+then
+
+ac_configure_args="$ac_configure_args CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
+AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
+AC_SUBST([OPENCL_ENABLED], ["1"])
+OPENCL=true
+else
+
+AC_SUBST([OPENCL_ENABLED], ["0"])
+OPENCL=false
+fi
 
 if test -d test
 then

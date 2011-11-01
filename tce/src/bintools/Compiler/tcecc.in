@@ -246,7 +246,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
 
                     runCommand(('CLANGFLAGS="-ccc-host-triple tce-tut-llvm -fasm -include %s" ' % device_header[1]) + \
-                               poclScriptDir + "/pocl-standalone -h %s -o %s %s" % \
+                               poclScriptDir + "/pocl-standalone -t tce -h %s -o %s %s" % \
                                (cpp_trampoline, kernel_bc, input_file), verbose, 
                                echoStderr=True)
                     if exitCode != 0:
