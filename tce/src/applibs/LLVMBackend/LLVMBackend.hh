@@ -84,13 +84,6 @@ public:
         InterPassData* ipData = NULL)
         throw (Exception);
 
-    TTAProgram::Program* compileAndSchedule(
-        const std::string& bytecodeFile,
-        const TTAMachine::Machine& target,
-        int optLevel = 2,
-        const unsigned int debug = 0)
-        throw (Exception);
-
     TTAProgram::Program* schedule(
         const std::string& bytecodeFile,
         const std::string& emulationBytecodeFile,

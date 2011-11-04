@@ -41,7 +41,8 @@
 #include <string>
 
 #include "DesignSpaceExplorer.hh"
-#include "LLVMBackend.hh"
+#include "ADFSerializer.hh"
+#include "ExplorerCmdLineOptions.hh"
 #include "DesignSpaceExplorerPlugin.hh"
 #include "CostEstimates.hh"
 #include "ExecutionTrace.hh"
@@ -303,32 +304,78 @@ DesignSpaceExplorer::db() {
 /**
  * Compiles the given application bytecode file on the given target machine.
  *
- * @param applicationFile Bytecode filename with path.
- * @param machine The machine to compile the sequential program against.
+ * @param bytecodeFile Bytecode filename with path.
+ * @param target The machine to compile the sequential program against.
  * @return Scheduled parallel program or NULL if scheduler produced exeption.
  */
 TTAProgram::Program*
 DesignSpaceExplorer::schedule(
-    const std::string applicationFile,
-    TTAMachine::Machine& machine) {
+    const std::string bytecodeFile,
+    TTAMachine::Machine& target) {
 
-    // optimization level
-    const int optLevel = 3;
-
-    // Run compiler and scheduler for current machine
-    try {
-        LLVMBackend compiler;
-        return compiler.compileAndSchedule(
-            applicationFile, machine, 
-            optLevel, 0);
-    } catch (Exception& e) {
-        std::cerr << "Error compiling and scheduling '" 
-            << applicationFile << "':" << std::endl
-            << e.errorMessageStack() << std::endl;
-        return NULL;
+    TCEString compilerOptions;
+    
+    ExplorerCmdLineOptions* options = 
+        dynamic_cast<ExplorerCmdLineOptions*>(Application::cmdLineOptions());
+    if (options != NULL) {
+        if (options->compilerOptions()) {
+            compilerOptions = options->compilerOptionsString();
+        } 
     }
-}
+    // If compiler options did not provide optimization, we use default.
+    if (compilerOptions.find("-O") == std::string::npos) {
+        compilerOptions += " -O3";        
+    }
+    static const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+    
+    // create temp directory for the target machine
+    std::string tmpDir = FileSystem::createTempDirectory();
 
+    // write machine to a file for tcecc
+    std::string adf = tmpDir + DS + "mach.adf";
+    std::string tpef = tmpDir + DS + "program.tpef";
+    ADFSerializer serializer;
+    serializer.setDestinationFile(adf);
+    try {
+        serializer.writeMachine(target);
+    } catch (const SerializerException& exception) {
+        FileSystem::removeFileOrDirectory(tmpDir);
+        throw IOException(
+            __FILE__, __LINE__, __func__, exception.errorMessage());
+    }     
+    // call tcecc to compile, link and schedule the program
+    std::vector<std::string> tceccOutputLines;
+    std::string tceccPath = Environment::tceCompiler();
+    std::string tceccCommand = tceccPath + " "  
+        + compilerOptions + " -a " + adf + " -o " 
+        + tpef + " " + bytecodeFile + " --no-plugin-cache 2>&1";
+    
+    Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
+    
+    if (tceccOutputLines.size() > 0) {
+        for (unsigned int i = 0; i < tceccOutputLines.size(); ++i) {
+            std::cout << tceccOutputLines.at(i) << std::endl;
+        }
+    }
+    
+    // check if tcecc produced any tpef output
+    if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
+        FileSystem::removeFileOrDirectory(tmpDir);            
+        return NULL;    
+    } 
+    
+    TTAProgram::Program* prog = NULL;
+    try {
+        prog = TTAProgram::Program::loadFromTPEF(tpef, target);
+    } catch (const Exception& e) {
+        FileSystem::removeFileOrDirectory(tmpDir);
+        IOException error(__FILE__, __LINE__,__func__, e.errorMessage());
+        error.setCause(e);
+        throw error;
+    }
+    FileSystem::removeFileOrDirectory(tmpDir);    
+    return prog;        
+}
 
 /**
  * Simulates the parallel program.

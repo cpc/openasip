@@ -53,7 +53,7 @@ bin_SCRIPTS = buildexplorerplugin pareto_vis
 
 EXTRA_DIST = ${bin_SCRIPTS}
 
-explore_SOURCES = Explorer.cc ExplorerCmdLineOptions.cc
+explore_SOURCES = Explorer.cc 
 
 explore_LDADD = ../../libtce.la
 
@@ -78,6 +78,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 ## headers start
-explore_SOURCES += \
-	ExplorerCmdLineOptions.hh 
+explore_SOURCES += 
 ## headers end

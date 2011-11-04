@@ -82,6 +82,9 @@ public:
     std::string idfFileName() const;
 
     std::string paretoSetValues() const;
+    
+    bool compilerOptions() const;    
+    std::string compilerOptionsString() const;
 
 private:
     /// Copying not allowed.
