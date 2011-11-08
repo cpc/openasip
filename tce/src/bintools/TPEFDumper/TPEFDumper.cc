@@ -260,14 +260,14 @@ TPEFDumper::memoryInfo() {
                 
                 currMax += dynamic_cast<const CodeSection*>
                     (&currSect)->instructionCount();
-                currentMemtypes.first=true;
+                currentMemtypes.first = true;
                                                               
             } else if (currSect.type() == Section::ST_DATA ||
                        currSect.type() == Section::ST_UDATA) {
 
                 currMax += dynamic_cast<const UDataSection*>(
                     &currSect)->lengthInMAUs();
-                currentMemtypes.second=true;
+                currentMemtypes.second = true;
                 
             } else {
                 assert(false && "Unknown program section type");
@@ -300,9 +300,9 @@ TPEFDumper::memoryInfo() {
                 neededMAUsOfASpace[aSpace].first;
 
             out_ << "ASpace " << i << ", used by ";
-            if ( typeOfMemNeeded[aSpace].first ) out_ << "CODE ";
-            if ( typeOfMemNeeded[aSpace].second ) out_ << "DATA ";
-            out_ << "have to be at least: " 
+            if (typeOfMemNeeded[aSpace].first) out_ << "CODE ";
+            if (typeOfMemNeeded[aSpace].second) out_ << "DATA ";
+            out_ << "has to be at least: " 
                  <<  aSpaceSize << " MAU(s)" << std::endl;
 
         } else {
