@@ -235,6 +235,8 @@ TPEFDumper::memoryInfo() {
 
     // map of used address spaces
     std::map<ASpaceElement*, std::pair<int, int> > neededMAUsOfASpace;
+    // map telling if CODE and/or DATA memory is used in this aspace
+    std::map<ASpaceElement*, std::pair<bool, bool> > typeOfMemNeeded;
     
     for (Word i = 0; i < tpef_.sectionCount(); i++) {
         Section& currSect = *tpef_.section(actualIndex(i));
@@ -246,22 +248,26 @@ TPEFDumper::memoryInfo() {
                 neededMAUsOfASpace.end()) {
                 
                 neededMAUsOfASpace[currSect.aSpace()] = std::pair<int,int>(0,0);
+                typeOfMemNeeded[currSect.aSpace()] = std::pair<bool,bool>(false,false);
             }
             
             std::pair<int,int> currentLimits = neededMAUsOfASpace[currSect.aSpace()];
             int currMin = currSect.startingAddress();
             int currMax = currMin;
+            std::pair<bool,bool> currentMemtypes = typeOfMemNeeded[currSect.aSpace()];
             
             if (currSect.type() == Section::ST_CODE) {
                 
                 currMax += dynamic_cast<const CodeSection*>
                     (&currSect)->instructionCount();
+                currentMemtypes.first = true;
                                                               
             } else if (currSect.type() == Section::ST_DATA ||
                        currSect.type() == Section::ST_UDATA) {
 
                 currMax += dynamic_cast<const UDataSection*>(
                     &currSect)->lengthInMAUs();
+                currentMemtypes.second = true;
                 
             } else {
                 assert(false && "Unknown program section type");
@@ -277,6 +283,7 @@ TPEFDumper::memoryInfo() {
             }
 
             neededMAUsOfASpace[currSect.aSpace()] = currentLimits;
+            typeOfMemNeeded[currSect.aSpace()] = currentMemtypes;
         }
     }
     
@@ -292,11 +299,13 @@ TPEFDumper::memoryInfo() {
                 neededMAUsOfASpace[aSpace].second - 
                 neededMAUsOfASpace[aSpace].first;
 
-            out_ << "Address space index: " << i << " have to be at least: " 
-                 <<  aSpaceSize << " MAU(s)" << std::endl;
+            out_ <<  i << ":";
+            if (typeOfMemNeeded[aSpace].first) out_ << " CODE";
+            if (typeOfMemNeeded[aSpace].second) out_ << " DATA";
+            out_ << ": " <<  aSpaceSize << " MAU(s)" << std::endl;
 
         } else {
-            out_ << "Address space index: " << i << " not used for data nor instructions." 
+            out_ << i << ": not used for data nor instructions." 
                  << std::endl;
         }
     }

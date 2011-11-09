@@ -1,3 +1,11 @@
+1.6       unreleased
+====================
+
+Usability features
+------------------
+- dumptpef -m has now more user friendly output. 
+  Thanks to Kalle Raiskila for the patch!
+
 1.5    November 2011
 ====================
 
