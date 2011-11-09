@@ -15,8 +15,9 @@ MACH_DIR = ${BASE_DIR}/mach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
+RM_DIR = ${APPLIBS_DIR}/Scheduler/ResourceManager
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${PDG_DIR} -I${POM_DIR} -I${OSAL_DIR} \
--I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I../ResourceManager \
+-I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I${RM_DIR} \
 ${LLVM_CPPFLAGS}
 
 dist-hook:
