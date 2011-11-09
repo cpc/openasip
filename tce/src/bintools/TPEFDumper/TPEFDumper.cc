@@ -299,14 +299,13 @@ TPEFDumper::memoryInfo() {
                 neededMAUsOfASpace[aSpace].second - 
                 neededMAUsOfASpace[aSpace].first;
 
-            out_ << "ASpace " << i << ", used by ";
-            if (typeOfMemNeeded[aSpace].first) out_ << "CODE ";
-            if (typeOfMemNeeded[aSpace].second) out_ << "DATA ";
-            out_ << "has to be at least: " 
-                 <<  aSpaceSize << " MAU(s)" << std::endl;
+            out_ <<  i << ":";
+            if (typeOfMemNeeded[aSpace].first) out_ << " CODE";
+            if (typeOfMemNeeded[aSpace].second) out_ << " DATA";
+            out_ << ": " <<  aSpaceSize << " MAU(s)" << std::endl;
 
         } else {
-            out_ << "Address space index: " << i << " not used for data nor instructions." 
+            out_ << i << ": not used for data nor instructions." 
                  << std::endl;
         }
     }
