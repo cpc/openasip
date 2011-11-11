@@ -53,6 +53,7 @@ namespace llvm {
 
 class InterPassData;
 class SchedulingPlan;
+class LLVMTCECmdLineOptions;
 
 /**
  * LLVM compiler backend and compiler interface for TCE.
@@ -112,6 +113,8 @@ private:
     PluginTools pluginTool_;
     /// Path to the cache where precompiled plugins are stored.
     std::string cachePath_;
+
+    LLVMTCECmdLineOptions* options_;
 
     bool useCache_;
     bool useInstalledVersion_;

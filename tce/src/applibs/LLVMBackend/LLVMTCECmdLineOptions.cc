@@ -53,6 +53,8 @@ const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER=
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_DOT = "dump-ddgs-dot";
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_XML = "dump-ddgs-xml";
 const std::string LLVMTCECmdLineOptions::SWL_POM_BUILDER = "pom-builder";
+const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN = 
+    "save-backend-plugin";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -128,6 +130,13 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             SWL_POM_BUILDER, 
             "Use the old POM builder for converting LLVM MIs to POM."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_SAVE_BACKEND_PLUGIN,
+            "Save the generated backend plugin for the architecture. "
+            "This avoid the regeneration of the backend plugin when calling "
+            "tcecc for the same architecture."));
 }
 
 /**
@@ -293,4 +302,10 @@ LLVMTCECmdLineOptions::dumpDDGsXML() const {
 bool
 LLVMTCECmdLineOptions::usePOMBuilder() const {
     return findOption(SWL_POM_BUILDER)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::saveBackendPlugin() const {
+    return !(findOption(SWL_SAVE_BACKEND_PLUGIN)->isDefined() &&
+             !findOption(SWL_SAVE_BACKEND_PLUGIN)->isFlagOn());
 }
