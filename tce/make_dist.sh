@@ -13,9 +13,12 @@ fi
 # it's packaged as-is.
 rm -r newlib-1.17.0 && bzr revert newlib-1.17.0
 
-# Similarly test. Its subidrs do not have the EXTRA_DIST 
-# variables set so we'll just include the whole dir recursively 
-# using the root Makefile.am's EXTRA_DIST.
+# Similarly for the unit test directory. Its subidrs do not have 
+# the EXTRA_DIST variables set so we'll just include the whole dir 
+# recursively using the root Makefile.am's EXTRA_DIST.
 rm -r test && bzr revert test
+
+echo "A dummy file that marks this a root of a distributed TCE release." > distro
 ./configure
 make dist
+rm -f distro

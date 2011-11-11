@@ -1156,14 +1156,13 @@ fi
 #
 ################################
 
-# The tarball releases of TCE do not include the 'test' dir which
-# should indicate we are building a release tree. This is a bit
-# hackish way to detect it but should do for now.
-if test -d $srcdir/test
+# In case 'distro' file exists, this is a packaged tar ball
+# release. Apply "distributed version" modifications.
+if test -e $srcdir/distro
 then
-DISTRIBUTED_VERSION_DEFAULT=false
-else
 DISTRIBUTED_VERSION_DEFAULT=true
+else
+DISTRIBUTED_VERSION_DEFAULT=false
 fi
 
 # Enable DISTRIBUTED_VERSION
