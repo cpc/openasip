@@ -67,7 +67,7 @@ SaveOptionsCmd::Do() {
 
     ProDeOptions* options = wxGetApp().options();
     ProDeOptionsSerializer writer;
-    writer.setDestinationFile(Environment::confDirPath("") + "ProDe.conf");
+    writer.setDestinationFile(Environment::userConfPath("ProDe.conf"));
 
     try {
         writer.writeOptions(*options);

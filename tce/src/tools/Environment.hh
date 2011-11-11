@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
  */
@@ -37,6 +38,7 @@
 
 #include <string>
 #include <vector>
+#include "TCEString.hh"
 
 /**
  * A class to get the environmental variable values as well as to find files
@@ -51,7 +53,9 @@ public:
     static std::string dataDirPath(const std::string& prog);
     static std::string bitmapsDirPath(const std::string& prog);
     static std::string manDirPath(const std::string& prog);
-    static std::string confDirPath(const std::string& fileName);
+    static TCEString confPath(const std::string& fileName);
+    static TCEString userConfPath(const std::string& fileName);
+
     static std::string errorLogFilePath();
     static std::string iconDirPath();
     static std::vector<std::string> includeDirPaths();
@@ -61,7 +65,6 @@ public:
     static void setNewDataFileDir(const std::string& path);
     static void setNewBitmapsFileDir(const std::string& path);
     static void setNewManFileDir(const std::string& path);
-    static void setNewConfFile(const std::string& file);
     static void setNewErrorLogFileDir(const std::string& path);
 
     static std::string environmentVariable(const std::string& variable);
@@ -120,8 +123,6 @@ private:
     static std::vector<std::string> bitmapsPaths_;
     /// Man directory search paths.
     static std::vector<std::string> manPaths_;
-    /// Configure file search paths.
-    static std::vector<std::string> confPaths_;
     /// Toolbar icon search paths.
     static std::vector<std::string> iconPaths_;
     /// Error file search paths.

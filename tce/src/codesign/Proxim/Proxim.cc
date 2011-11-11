@@ -223,8 +223,7 @@ Proxim::loadOptions() {
 
     bool optionsOK = false;
 
-    string configFile = Environment::confDirPath("") +
-        FileSystem::DIRECTORY_SEPARATOR + CONFIG_FILE_NAME;
+    string configFile = Environment::confPath(CONFIG_FILE_NAME);
 
     string schemaFile = Environment::dataDirPath("Proxim") +
         FileSystem::DIRECTORY_SEPARATOR + SCHEMA_FILE_NAME;
@@ -303,8 +302,7 @@ Proxim::createDefaultOptions() {
         ProximConstants::COMMAND_NAME_RESUME, 9, false, false, 0);
 
     options_ = new GUIOptions(ProximConstants::CONFIGURATION_NAME);
-    string fileName = Environment::confDirPath("") +
-        FileSystem::DIRECTORY_SEPARATOR + CONFIG_FILE_NAME;
+    string fileName = Environment::userConfPath(CONFIG_FILE_NAME);
 
     options_->setFileName(fileName);
 

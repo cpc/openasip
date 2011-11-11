@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -42,8 +42,8 @@
  *
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007,2010,2011
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
@@ -58,6 +58,7 @@
 #include "StringTools.hh"
 #include "VectorTools.hh"
 #include "MapTools.hh"
+#include "TCEString.hh"
 
 using std::vector;
 using std::string;
@@ -75,7 +76,6 @@ vector<string> Environment::schemaPaths_;
 vector<string> Environment::dataPaths_;
 vector<string> Environment::bitmapsPaths_;
 vector<string> Environment::manPaths_;
-vector<string> Environment::confPaths_;
 vector<string> Environment::iconPaths_;
 vector<string> Environment::errorPaths_;
 vector<string> Environment::pathsToUse_;
@@ -95,6 +95,7 @@ const string Environment::MINIMAL_ADF_SRC = "data/mach/minimal.adf";
 
 // macro definitions (maybe relocated later to config.h)
 #define INSTALLATION_DIR "/share/tce/"
+#define DS TCEString(FileSystem::DIRECTORY_SEPARATOR)
 
 
 /**
@@ -121,7 +122,6 @@ Environment::initialize() {
         manPaths_.push_back(
             string(TCE_SRC_ROOT) +
             FileSystem::DIRECTORY_SEPARATOR + string("doc"));
-        confPaths_.push_back(string(TCE_SRC_ROOT));
     }
 
     string instDir = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR);
@@ -130,7 +130,7 @@ Environment::initialize() {
     dataPaths_.push_back(instDir);
     bitmapsPaths_.push_back(instDir);
     manPaths_.push_back(instDir);
-    confPaths_.push_back(instDir);
+
     initialized_ = true;
 }
 
@@ -260,41 +260,54 @@ Environment::manDirPath(const std::string& prog) {
 
 
 /**
- * Tries to locate the application configuration file's directory.
+ * Tries to locate the application's configuration file for
+ * reading.
  *
- * Returns the absolute path of the first found directory. If the
- * directory is not found and new directory for configuration is given,
- * it is created. If creation fails, an empty string is returned.
+ * First tries to find one in the user's homedir, if not found,
+ * uses the installed one (with defaults). Note: when writing
+ * (overriding) configuration files, one should call userConfDirPath() 
+ * instead!
  *
  * @param fileName The name of the configuration file.
  * @return The path of the configuration file.
  */
-string
-Environment::confDirPath(const std::string& fileName) {
+TCEString
+Environment::confPath(const std::string& fileName) {
     initialize();
-    string path = CONF_DIR_NAME_ + FileSystem::DIRECTORY_SEPARATOR + fileName;
-    pathsToUse_.assign(confPaths_.begin(), confPaths_.end());
-    string confPath = pathTo(path);
-    if (confPath == "" && newConfFile_ != "") {
-        string toCreate = "";
-        if (!DISTRIBUTED_VERSION) {
-            toCreate = 
-                string(TCE_SRC_ROOT) + 
-                FileSystem::DIRECTORY_SEPARATOR + CONF_DIR_NAME_ +
-                FileSystem::DIRECTORY_SEPARATOR + newConfFile_;
-        } else {
-            toCreate = 
-                string(TCE_INSTALLATION_ROOT) +
-                string(INSTALLATION_DIR) + FileSystem::DIRECTORY_SEPARATOR +
-                newConfFile_;
-        }
-		if (FileSystem::createFile(toCreate)) {
-            return toCreate;
-        }
+
+    TCEString userConf = 
+        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;   
+    TCEString srcDirConf = 
+        TCEString(TCE_SRC_ROOT) + DS + CONF_DIR_NAME_ + DS + fileName;
+
+    TCEString installedConf = 
+        TCEString(TCE_INSTALLATION_ROOT) + TCEString(INSTALLATION_DIR) +
+        DS + CONF_DIR_NAME_ + DS + fileName;
+    if (FileSystem::fileExists(userConf)) {
+        return userConf;
+    } 
+
+    if (!DISTRIBUTED_VERSION && FileSystem::fileExists(srcDirConf)) {
+        return srcDirConf;
+    } 
+
+    if (DISTRIBUTED_VERSION && FileSystem::fileExists(installedConf)) {
+        return installedConf;
     }
-    return confPath;
+
+    FileSystem::createFile(userConf);
+    return userConf;
 }
 
+TCEString
+Environment::userConfPath(const std::string& fileName) {
+    TCEString userConf = 
+        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;   
+    if (!FileSystem::fileExists(userConf)) {
+        FileSystem::createFile(userConf);
+    }
+    return userConf;
+}
 
 /**
  * Tries to locate the error log file on system.
@@ -334,7 +347,6 @@ Environment::errorLogFilePath() {
 std::vector<std::string>
 Environment::includeDirPaths() {
     vector<string> includes;
-    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     const std::string ROOT = string(TCE_SRC_ROOT);
     const std::string BASE = ROOT + DS + "src" + DS + "base";
     const std::string APPLIBS = ROOT + DS + "src" + DS + "applibs";
@@ -369,7 +381,6 @@ Environment::includeDirPaths() {
  */
 vector<string>
 Environment::opsetIncludeDir() {
-    string DS = FileSystem::DIRECTORY_SEPARATOR;
     string BASE = TCE_SRC_ROOT + DS + "src" + DS + "base";
     
     vector<string> includePaths;   
@@ -423,6 +434,8 @@ Environment::~Environment() {
  * is found. In case the directory/file is not found in any of the search
  * paths, returns an empty string.
  *
+ * @fixme this is not thread safe due to the use of pathsToUse_ member
+ *        variable for data passing!
  * @param name The name of the searched directory/file.
  * @return The path of the directory/file.
  */
@@ -483,16 +496,6 @@ Environment::setNewManFileDir(const std::string& path) {
 }
 
 /**
- * Sets the new configure file.
- *
- * @param file The new configure file.
- */
-void
-Environment::setNewConfFile(const std::string& file) {
-    newConfFile_ = file;
-}
-
-/**
  * Sets the path for new error log file directory.
  *
  * @param path The path of new error log file directory.
@@ -511,8 +514,6 @@ vector<string>
 Environment::osalPaths() {
 
 	vector<string> paths;
-
-	string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     // ./data
     string data = FileSystem::currentWorkingDir() + DS + "data";
@@ -556,7 +557,6 @@ vector<string>
 Environment::codeCompressorPaths() {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         "codecompressors" + DS + "base";
     string custom = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR)+
@@ -587,7 +587,6 @@ vector<string>
 Environment::schedulerPluginPaths() {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         "scheduler" + DS + "passes";
@@ -622,7 +621,6 @@ vector<string>
 Environment::icDecoderPluginPaths() {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         "icdecoder_plugins" + DS + "base";
@@ -669,7 +667,6 @@ std::vector<std::string>
 Environment::hdbPaths() {
 
     vector<string> paths;
-    string DS = FileSystem::DIRECTORY_SEPARATOR;
     if (!DISTRIBUTED_VERSION) {
         string srcBase = string(TCE_SRC_ROOT) + DS + "hdb";
         paths.push_back(srcBase);
@@ -696,7 +693,6 @@ std::vector<std::string>
 Environment::vhdlPaths(const std::string& hdbPath) {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     // Drop the name of hdb file from hdb path
     string hdbDir = FileSystem::directoryOfPath(hdbPath);
@@ -744,7 +740,6 @@ vector<string>
 Environment::explorerPluginPaths() {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     if (!DISTRIBUTED_VERSION) {
         string srcBase = string(TCE_SRC_ROOT) + DS + "explorer";
@@ -785,7 +780,6 @@ vector<string>
 Environment::estimatorPluginPaths() {
 
     vector<string> paths;
-    const string DS = FileSystem::DIRECTORY_SEPARATOR;
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         "cost_estimator_plugins";
     string baseRF = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
@@ -994,7 +988,6 @@ Environment::defaultTextEditorPath() {
         // if none of above editors were found try to find from PATH env
         // variable
         editors.clear();
-        std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         editors.push_back("nano");
         editors.push_back("emacs");
         editors.push_back("vim");
@@ -1021,7 +1014,6 @@ Environment::defaultTextEditorPath() {
 
     // EDITOR and VISUAL doesn't have to contain full path
     // so let's search PATH enviroment variable to get the full path
-    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     std::string testEditor = "";
     vector<std::string> paths;
     parsePathEnvVariable(paths);
@@ -1073,7 +1065,6 @@ Environment::llvmtceCachePath() {
  */
 std::vector<std::string> Environment::implementationTesterTemplatePaths() {
     std::vector<std::string> paths;
-    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     if (!DISTRIBUTED_VERSION) {
         string path = string(TCE_SRC_ROOT) + DS + "data" + DS + "hdb";
         paths.push_back(path);

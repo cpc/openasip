@@ -136,7 +136,7 @@ ProDe::OnInit() {
     wxImage::AddHandler(new wxPNGHandler);
 
     // set configurations
-    string configFile = Environment::confDirPath("") + "ProDe.conf";
+    string configFile = Environment::confPath("ProDe.conf");
 
     // Name of the CML Schema for options file.
     string schemaFile =
