@@ -943,8 +943,9 @@ ProximMainFrame::updateSimulationStatus() {
  */
 void 
 ProximMainFrame::updateMemoryWindowMenuItem() {
-    if (!wxGetApp().simulation()->frontend() ||
-        !wxGetApp().simulation() ||
+    if (!wxGetApp().simulation() ||
+        !wxGetApp().simulation()->frontend() ||        
+        !wxGetApp().simulation()->frontend()->isSimulationInitialized() ||
         wxGetApp().simulation()->frontend()->memorySystem().
         memoryCount() == 0) {
         GetMenuBar()->Enable(ProximConstants::COMMAND_TOGGLE_MEMORY_WIN, false);

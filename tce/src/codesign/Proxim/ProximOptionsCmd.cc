@@ -68,9 +68,9 @@ ProximOptionsCmd::Do() {
         parentWindow(), wxGetApp().options(), wxGetApp().commandRegistry());
 
     if (dialog.ShowModal() == wxID_OK) {
-	if (wxGetApp().options().toolbarVisibility()) {
+        if (wxGetApp().options().toolbarVisibility()) {
             ProximToolbox::mainFrame()->createToolbar();
-	}
+        }
         ProximToolbox::mainFrame()->createMenubar();
     }
     return true;

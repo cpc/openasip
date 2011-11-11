@@ -51,9 +51,8 @@ Bugfixes
 - tcecc: fail with an error in case the compiled program uses dynamic
   stack objects (not yet supported by tcecc) instead of silently 
   producing invalid code.
-- Do not save the backend plugins to disk while running the design space
-  exploration. This caused disk space fillup with long explorations and 
-  small hard disks.
+- Proxim: clicking OK on the options dialog crashed Proxim in case a simulation
+  was not initialized.
 
 Code generator improvements
 ---------------------------
