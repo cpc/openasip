@@ -1,14 +1,13 @@
 #!/bin/sh
+# Builds a .tar.gz out of the current tree, suitable
+# for a release.
+
 if ! bzr diff > /dev/null; 
 then
     echo "Your TCE checkout must be clean to proceed."
     exit 1
 fi
 
-#
-# Builds a .tar.gz out of the current tree, suitable
-# for a release.
-./autogen.sh
 # A hack to ensure newlib dir is fresh and clean because
 # it's packaged as-is.
 rm -r newlib-1.17.0 && bzr revert newlib-1.17.0
@@ -19,6 +18,7 @@ rm -r newlib-1.17.0 && bzr revert newlib-1.17.0
 rm -r test && bzr revert test
 
 echo "A dummy file that marks this a root of a distributed TCE release." > distro
+./autogen.sh
 ./configure
 make dist
 rm -f distro
