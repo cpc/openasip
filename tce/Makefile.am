@@ -20,6 +20,7 @@ bin_SCRIPTS = tce-config
 # Note: as newlib makefiles do not support 'dist' have to include
 # the whole newlib-1.17.0 dir here.
 EXTRA_DIST = README-AUTOTOOLS INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
+		test \
 		tools/Doxygen/doxygen.config \
 		tools/patches \
 		tce-llvm-gcc/INSTALL \

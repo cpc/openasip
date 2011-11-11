@@ -90,17 +90,6 @@ Building and installing TCE
 Finally, after the required libraries have been installed,
 the following steps show how to build and install the TCE toolset.
 
-optional: Running autoreconf
-----------------------------
-If you have downloaded a TCE release package, you can omit this step.
-However, if you checkout TCE from the version control, you noticed that
-the development version does not ship with a pregenerated 'configure' script.
-
-In order to build the development version, one needs to generate the
-configure script by running 'autoreconf -i --force' in the TCE root directory.
-For this to work you need to install packages 'libtool', 'automake' and 
-'autoconf'.
-
 Setting compiler options
 ------------------------
 Be sure to set CXXFLAGS environment variable to include aggressive 
@@ -128,6 +117,17 @@ After installing TCE to somewhere in PATH, you can run a "smoke test" suite
 for the most important tools in the TCE installation by running the command
 'tce-selftest -v'. This might take a couple of hours, depending on your
 computer's speed.
+
+optional: Creating the build scripts
+------------------------------------
+If you have downloaded a TCE release package, you should omit this step.
+However, if you checkout TCE from the version control, you noticed that
+the development version does not ship with a pregenerated 'configure' script.
+
+In order to build the development version, you need to generate the
+build scripts by running './autogen.sh' in the TCE root directory.
+For this to work you need to install packages 'libtool', 'automake' and 
+'autoconf'.
 
 OpenCL support
 ==============
