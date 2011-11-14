@@ -17,8 +17,13 @@ rm -r newlib-1.17.0 && bzr revert newlib-1.17.0
 # recursively using the root Makefile.am's EXTRA_DIST.
 rm -r test && bzr revert test
 
+# Remove the test Makefiles from the configure.ac
+sed -i '/## REMOVE FROM DIST START/,/## REMOVE FROM DIST END/d' configure.ac
+
 echo "A dummy file that marks this a root of a distributed TCE release." > distro
 ./autogen.sh
 ./configure
 make dist
 rm -f distro
+
+bzr revert configure.ac

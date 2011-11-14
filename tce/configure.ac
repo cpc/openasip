@@ -1366,6 +1366,7 @@ AC_CONFIG_FILES([
   bclib/include/Makefile
 ])
 
+## REMOVE FROM DIST START
 AC_CONFIG_FILES([
   test/Makefile
   test/base/Makefile
@@ -1375,6 +1376,7 @@ AC_CONFIG_FILES([
   test/applibs/Scheduler/Makefile
   test/applibs/Scheduler/ProgramRepresentations/Makefile
 ])
+## REMOVE FROM DIST END
 
 # scripts which need to be filled with BOOST_INCLUDES and other variables...
 AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin], 
