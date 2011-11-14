@@ -38,7 +38,8 @@ AH_BOTTOM([
 
 # This macro does several things that are necessary for the 
 # proper automake functioning.
-AM_INIT_AUTOMAKE
+# See http://noisebleed.blogetery.com/2010/02/27/tar-file-name-is-too-long-max-99/#howtofixit
+AM_INIT_AUTOMAKE([1.9 tar-ustar])
 #
 # Platform specific setup
 #
