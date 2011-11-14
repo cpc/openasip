@@ -40,7 +40,9 @@
 
 /**
  * This class stores the keyboard buttons used in a keyboard
- * shortcut. It contains also the name of the action performed by the
+ * shortcut. 
+ *
+ * It contains also the name of the action performed by the
  * key combination. This class implements the Serializable interface
  * because keyboard shortcuts are serialized into the configuration
  * file.

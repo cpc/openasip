@@ -60,7 +60,7 @@ private:
    
     /// enumerated IDs for dialog widgets
     enum {
-	ID_SHORTCUT = 10000
+        ID_SHORTCUT = 10000
     };
 
     /// The event table for the controls of the dialog.
