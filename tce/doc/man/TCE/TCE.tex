@@ -27,7 +27,7 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.5}
-\ver{24}
+\ver{25}
 \firstday{2006-10-25}
 \lastday{2011-10-24}
 % id number in P- sequence
@@ -2945,12 +2945,60 @@ The main difficulty in using the tool is to understand what is being
 designed, that is, the limitations placed by the processor template. 
 Details of the processor template are described in \cite{ADF-specs}.
 
-\subsubsection{Usage}
+\subsection{Usage}
+
+\subsubsection{Starting ProDe}
 
 Processor Desinger can simply be executed from command line with:
 
 \shellcmd{prode}
 
+\subsubsection{Operation dialog of a function unit}
+
+The most unintuitive part of ProDe is the operation property dialog which pops
+up when editing a function unit and existing operation is edited or new
+operation is added to the function unit.
+
+% TODO: insert screen capture here
+
+The upper right side contains the function unit resources table.
+These are used to describe limitations to pipelining inside the function unit.
+When the function unit is fully pipelined, there are no limitations about
+executing of successive instructions, this should be empty.
+
+If there is some limitation, for example component, which is used in multiple
+clock cycles of an operation, so that it limits the execution of successive
+operations, a pipeline resource should made to model this component,
+and usage marked for the clock cycles it is used for each operation.
+
+For example, in a multiplication function unit, which has 4 cycle latency,
+and is not pipelined at all; resource ``multiplier'' should be created,
+by pressing the add button, and all operations which use this multiplier
+should have the first 4 clock cycles marked to use this resource in the
+resource usage table. Pressing the ``add'' button adds row to the
+resource usage table.
+
+The lower right side contains the operand timings dialogs.
+This describes, when the operands are used by the function unit,
+and when the results become ready. R letter here means reading an
+input operand, W means writing a result to an output operand.
+
+The instruction scheduler cannot yet take advantage of scheduling input
+operands after the triggering operand, so all input operands should be read
+at cycle 0
+
+% TODO: should we force these to 0? gray out the possibility to give them
+% later? Or is there some Teemu-Assembly around which used this?
+
+The writes of the results effectively mark the latency of the operation.
+\textbf{Important:\ }
+The cycles from this table for the result writes start one cycle after the
+trigger of the operand. So write in cycle 0 means that the result is ready
+on the cycle \textbf{following\ } the triggering of the operation, 
+not the same cycle as the trigger is executed.
+
+If an operation produces multiple results, they can be written at different
+clock cycles.
 
 \section{Operation Set Abstraction Layer (OSAL) Tools}
 \label{sec:osalTools}
