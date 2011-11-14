@@ -209,13 +209,22 @@ OperationDAGBuilder::connectOperandToNode(
 void 
 OperationDAGBuilder::finalize() {        
     // find IO(x) references, which doesn't has yet terminal
+    unsigned int inputCount = operation_.numberOfInputs();
+    unsigned int outputCount = operation_.numberOfOutputs();
+
+    std::set<unsigned int> unwrittenOutputs;
+    for (unsigned int i = 1; i <= outputCount; i++) {
+        unwrittenOutputs.insert(i + inputCount);
+    }
+
     for (std::map<std::string,TerminalBinding>::iterator iter = 
              ioVariables_.begin(); iter != ioVariables_.end(); iter++) {
+
+        unwrittenOutputs.erase(iter->second.second);
         
         if (iter->second.first == NULL) {                
             VariableBinding& ioVar = getBinding(iter->second.second);
-            if (iter->second.second > operation_.numberOfInputs() + 
-                operation_.numberOfOutputs()) {
+            if (iter->second.second > inputCount + outputCount) {
                 throw IllegalParameters(
                     __FILE__, __LINE__, __func__,
                     TCEString("Operation ") +  operation_.name() + 
@@ -230,7 +239,15 @@ OperationDAGBuilder::finalize() {
                 *(ioVar.first), *(iter->second.first), *newEdge);
         }
     }
-    
+    if (!unwrittenOutputs.empty()) {
+        TCEString message = TCEString("DAG of operation: ") + 
+            operation_.name() + " Does not write to output operand(s): ";
+        while (!unwrittenOutputs.empty()) {
+            message << Conversion::toString(*unwrittenOutputs.begin()) <<" ";
+            unwrittenOutputs.erase(unwrittenOutputs.begin());
+        }
+        throw IllegalParameters(__FILE__,__LINE__,__func__, message);
+    }
     // TODO: verify IO variable information of operation description
 }
 
