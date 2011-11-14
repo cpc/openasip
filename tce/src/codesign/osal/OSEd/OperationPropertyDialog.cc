@@ -891,6 +891,11 @@ OperationPropertyDialog::onOpen(wxCommandEvent&) {
  */
 void
 OperationPropertyDialog::onOpenDAG(wxCommandEvent&) {
+
+    if (operationWasCreatedHere_) {
+        updateOperation(true);
+    }
+    // TODO: here set the number of operands of new operation.
     OperationDAGDialog dialog(this, operation_);
     dialog.ShowModal();
 }
@@ -975,25 +980,35 @@ OperationPropertyDialog::getSelectedItems(wxListCtrl* listCtrl) {
  */
 void
 OperationPropertyDialog::onOk(wxCommandEvent&) {
+    updateOperation(false);
+}
+
+void 
+OperationPropertyDialog::updateOperation(bool newOpDag) {
     TransferDataFromWindow();
     string opName = 
         StringTools::stringToUpper(WxConversion::toString(name_));
 
+    if (newOpDag && opName == "") {
+        opName = "__UnnamedNewOperation";
+    }
+
     OSEdTextGenerator& texts = OSEdTextGenerator::instance();
-    
-    if (name_ == _T("") && operation_->name() == "") {
+
+    if (opName == "" && operation_->name() == "") {
         format fmt = texts.text(OSEdTextGenerator::TXT_ERROR_NO_NAME);
         fmt % "operation";
         WarningDialog dialog(this, WxConversion::toWxString(fmt.str()));
         dialog.ShowModal();
     } else {
-                      
+
         // let's check there isn't already an operation by the same name
-        if (operation_ != NULL and operation_->name() != opName) {
+        // TODO: this check is broken!!!!
+        if (operation_ != NULL) {
             Operation* op = 
                 OperationContainer::operation(path_, module_.name(), opName);
 
-            if (op != NULL) {
+            if (op != NULL && op != operation_) {
                 format fmt = 
                     texts.text(OSEdTextGenerator::TXT_ERROR_OPERATION_EXISTS);
                 fmt % WxConversion::toString(name_);
@@ -1006,31 +1021,35 @@ OperationPropertyDialog::onOk(wxCommandEvent&) {
         ObjectState* mod = saveOperation(); // load modified operation's settings from gui
         ObjectState* orig = orig_;
 
-        if (*orig != *mod) {
-            format fmt = texts.text(
-                OSEdTextGenerator::TXT_QUESTION_SAVE_PROPERTIES);
-            ConfirmDialog dialog(this, WxConversion::toWxString(fmt.str()));
-            int ans = dialog.ShowModal();
-            if (ans == wxID_YES) {
-                try {
-                    operation_->loadState(mod);
-                } catch (ObjectStateLoadingException& e) {
-                    std::cerr << "Exception caught: " << e.errorMessage() << std::endl; 
-                    assert(false);
-                }
-            }
-            delete orig;
-            delete mod;
-            if (ans == wxID_YES) {
-                EndModal(wxID_OK);
-            } else if (ans == wxID_NO) {
-                EndModal(wxID_CANCEL);
-            }
-            
+        if (newOpDag) {
+            operation_->loadState(mod);
         } else {
-            delete orig;
-            delete mod;
-            EndModal(wxID_OK);
+            if (*orig != *mod) {
+                format fmt = texts.text(
+                    OSEdTextGenerator::TXT_QUESTION_SAVE_PROPERTIES);
+                ConfirmDialog dialog(this, WxConversion::toWxString(fmt.str()));
+                int ans = dialog.ShowModal();
+                if (ans == wxID_YES) {
+                    try {
+                        operation_->loadState(mod);
+                    } catch (ObjectStateLoadingException& e) {
+                        std::cerr << "Exception caught: " << e.errorMessage()
+                                  << std::endl; 
+                        assert(false);
+                    }
+                }
+                delete orig;
+                delete mod;
+                if (ans == wxID_YES) {
+                    EndModal(wxID_OK);
+                } else if (ans == wxID_NO) {
+                    EndModal(wxID_CANCEL);
+                }
+            } else {
+                delete orig;
+                delete mod;
+                EndModal(wxID_OK);
+            }
         }
     }
 }

@@ -31,6 +31,9 @@ Bugfixes
 - OSEd: Reload modified simulation functions from a rebuilt simulation
   function module (.opb) (Bug 179).
 - OSEd: Renaming an operation might cause osed to crash.
+- OSEd: Checking of operation with same name already exists was broken.
+- OSEd: When new operation is created, the DAG can now be edited immediately
+  without false error messages about missing outputs.
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
   was power of 2.
 - tcecc: standard libcalls are now converted to cheaper ones again using

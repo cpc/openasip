@@ -96,7 +96,6 @@ END_EVENT_TABLE()
          DialogPosition::getPosition(DialogPosition::DIALOG_PROPERTIES), 
          wxDefaultSize, wxRESIZE_BORDER),
      operation_(op), 
-     operationWasCreatedHere_(false),
      dotInstalled_(false) {
     
     createContents(this, true, true);
@@ -139,11 +138,6 @@ OperationDAGDialog::~OperationDAGDialog() {
     GetPosition(&x, &y);
     wxPoint point(x, y);
     DialogPosition::setPosition(DialogPosition::DIALOG_PROPERTIES, point);
-
-    if (operationWasCreatedHere_) {
-        delete operation_;
-        operation_ = NULL;
-    }
 }
 
 /**
