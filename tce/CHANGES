@@ -58,6 +58,8 @@ Bugfixes
   and small hard disks.
 - Proxim: clicking OK on the options dialog crashed Proxim in case a simulation
   was not initialized.
+- ProDe: fixed a crash when checking programmability on a machine with more 
+  than 1 boolean registers/no boolean register files.
 
 Code generator improvements
 ---------------------------

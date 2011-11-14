@@ -373,8 +373,8 @@ ProgrammabilityValidator::checkBooleanRegister(
     bool found = false;
     for (int i = 0; i < nav.count(); i++) {
         RegisterFile* rf = nav.item(i);
-        if ((rf->numberOfRegisters() == 1) && (rf->width() == 1)) {
-            if (found == false) {
+        if (rf->width() == 1) {
+            if (!found) {
                 found = true;
                 booleanRegister_ = rf;
             } else {
@@ -1012,7 +1012,8 @@ ProgrammabilityValidator::searchMissingRFConnections(
         if (inputIntersection.size() == 0) {
 
             // Connection to the boolean register file is not needed
-            if ((*i).first != booleanRegister_->name()) {
+            if (booleanRegister_ != NULL && 
+                (*i).first != booleanRegister_->name()) {
                 fromConnections.push_back(
                     pair<string, string>((*i).first, "-"));
             }
