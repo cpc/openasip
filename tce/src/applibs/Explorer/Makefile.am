@@ -1,7 +1,8 @@
 noinst_LTLIBRARIES = libexplorer.la
 libexplorer_la_SOURCES = ComponentImplementationSelector.cc CostEstimates.cc \
 			DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
-			FrequencySweep.cc ExplorerPluginParameter.cc
+			FrequencySweep.cc ExplorerPluginParameter.cc \
+                        ExplorerCmdLineOptions.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -43,5 +44,5 @@ libexplorer_la_SOURCES += \
 	DesignSpaceExplorer.hh CostEstimates.hh \
 	ExplorerPluginParameter.hh ComponentImplementationSelector.hh \
 	FrequencySweep.hh DesignSpaceExplorerPlugin.hh \
-	DesignSpaceExplorerPlugin.icc 
+	DesignSpaceExplorerPlugin.icc ExplorerCmdLineOptions.hh 
 ## headers end

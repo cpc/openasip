@@ -15,7 +15,7 @@ Notable changes and features
   function unit (e.g. _TCEFU_ADD("ALU8", A1_Cb, A1_Cr, result2)).
   Thanks to Hervé Yviquel for the patch.
 - Generalizations to the architecture description format to allow
-  using the instruction scheduler for operation triggered arhictectures. 
+  using the instruction scheduler for operation triggered architectures. 
   The Cell SPU is the proof of the concept architecture which can be
   scheduled for out-of-the-box with LLVM 3.0 (see tcecc-spu).    
 
@@ -50,6 +50,8 @@ Bugfixes
   where same operation was used multiple times inside a dag.
 - OSAL: Added check of operation DAGs which do not write to some output
   operand. Refuse to load this kind of broken DAGs.
+- OSAL DAG language could not recursively use smaller patterns as
+  part of bigger patterns in instruction selection.
 - tcecc: fail with an error in case the compiled program uses dynamic
   stack objects (not yet supported by tcecc) instead of silently 
   producing invalid code.
@@ -102,8 +104,10 @@ Smaller features
 - Generatebits prints out info about the imem usage and instruction compression
   with the verbose flag (-v).
 - tcecc: added switches --bypass-distance, --bypass-distance-nodre and
-  --no-kill-dead-results to control the software bypassing agressiveness and
+  --no-kill-dead-results to control the software bypassing aggressiveness and
   the dead result elimination.
+- explorer: added switch --compiler_options="XYZ" to pass XYZ to tcecc when 
+  calling it from during exploration.
 
 Usability features
 ------------------
@@ -208,7 +212,7 @@ Bugfixes
 - Missing operation behaviour file could cause simulator or osal tester to 
   fail. Now warning message is given and the .opp without corresponding .opb
   is ignored, if behaviour source file is found. If source file not found,
-  the module is still loaded(assumes all operation xecuted via dag code)
+  the module is still loaded(assumes all operation executed via dag code)
 - Trying to load machine which used same socket as source for multiple 
   register reads (either reads same register, or moves are guarded and
   always exclusive moves) might cause the simulation to hang.
@@ -452,7 +456,7 @@ Code optimizations
 
 Code generator improvements
 ----------------------------
-- Creates slightly faster emulation code for comparion operations 
+- Creates slightly faster emulation code for comparison operations 
   which are missing from the machine.
 - Improved schedule for reduced connectivity machines.
 
