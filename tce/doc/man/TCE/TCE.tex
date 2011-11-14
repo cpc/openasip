@@ -29,7 +29,7 @@
 \title{TTA-based Co-design Environment v1.5}
 \ver{25}
 \firstday{2006-10-25}
-\lastday{2011-10-24}
+\lastday{2011-11-14}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -2945,47 +2945,48 @@ The main difficulty in using the tool is to understand what is being
 designed, that is, the limitations placed by the processor template. 
 Details of the processor template are described in \cite{ADF-specs}.
 
-\subsection{Usage}
 
-\subsubsection{Starting ProDe}
+\subsection{Starting ProDe}
 
 Processor Desinger can simply be executed from command line with:
 
 \shellcmd{prode}
 
-\subsubsection{Operation dialog of a function unit}
+\subsection{Function Unit Operation Dialog}
 
-The most unintuitive part of ProDe is the operation property dialog which pops
-up when editing a function unit and existing operation is edited or new
-operation is added to the function unit.
+The most complex part of ProDe is the operation property dialog which pops
+up when editing the operations inside a function unit.
 
 % TODO: insert screen capture here
 
-The upper right side contains the function unit resources table.
-These are used to describe limitations to pipelining inside the function unit.
-When the function unit is fully pipelined, there are no limitations about
-executing of successive instructions, this should be empty.
+The upper right side of the dialog contains the function unit resource table.
+The resource table is used to describe the pipeline resource usage of the
+operation inside the function unit.
+When the function unit is fully pipelined, there are no limitations on
+executing of successive instructions, thus it should be empty in that case.
 
-If there is some limitation, for example component, which is used in multiple
-clock cycles of an operation, so that it limits the execution of successive
-operations, a pipeline resource should made to model this component,
-and usage marked for the clock cycles it is used for each operation.
+If there is some limitation, for example pipeline component, which is used in 
+some clock cycles of the operation execution, so that it limits the execution of 
+successive operations, one ore more pipeline resources should be added to model 
+this component. Each operation that uses the resources (that can be arbitrarily
+named), should include timing information by marking the clock cycles the resource
+is used from the start of the operation.
 
-For example, in a multiplication function unit, which has 4 cycle latency,
-and is not pipelined at all; resource ``multiplier'' should be created,
-by pressing the add button, and all operations which use this multiplier
-should have the first 4 clock cycles marked to use this resource in the
-resource usage table. Pressing the ``add'' button adds row to the
-resource usage table.
+For example, in a multiplication function unit, which has a 4-cycle latency,
+and is not pipelined at all; the resource called, for example, ``multiplier'' 
+should be created, by pressing the add button. All the operations which use the 
+multiplier component should have the first 4 clock cycles marked to use this 
+resource in the resource usage table. Pressing the ``add'' button adds row to 
+the resource usage table.
 
-The lower right side contains the operand timings dialogs.
-This describes, when the operands are used by the function unit,
-and when the results become ready. R letter here means reading an
-input operand, W means writing a result to an output operand.
+The lower right side of the dialog contains the operand I/O timing information.
+This describes when the operands are read or written from/to the function unit
+ports. R letter here means reading an input operand and W means writing a result to 
+an output operand.
 
-The instruction scheduler cannot yet take advantage of scheduling input
-operands after the triggering operand, so all input operands should be read
-at cycle 0
+Note: the instruction scheduler of TCE cannot yet take advantage of scheduling 
+input operands after the triggering operand, so all the input operands should be 
+read at cycle 0.
 
 % TODO: should we force these to 0? gray out the possibility to give them
 % later? Or is there some Teemu-Assembly around which used this?
