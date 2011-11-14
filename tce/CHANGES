@@ -30,6 +30,7 @@ Bugfixes
   simulation model in an otherwise valid .opb.
 - OSEd: Reload modified simulation functions from a rebuilt simulation
   function module (.opb) (Bug 179).
+- OSEd: Renaming an operation might cause osed to crash.
 - ProDe: Bit width calculation of address spaces was incorrect if max-address
   was power of 2.
 - tcecc: standard libcalls are now converted to cheaper ones again using
