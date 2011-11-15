@@ -38,7 +38,8 @@ AH_BOTTOM([
 
 # This macro does several things that are necessary for the 
 # proper automake functioning.
-AM_INIT_AUTOMAKE
+# See http://noisebleed.blogetery.com/2010/02/27/tar-file-name-is-too-long-max-99/#howtofixit
+AM_INIT_AUTOMAKE([1.9 tar-ustar])
 #
 # Platform specific setup
 #
@@ -1142,14 +1143,13 @@ fi
 #
 ################################
 
-# The tarball releases of TCE do not include the 'test' dir which
-# should indicate we are building a release tree. This is a bit
-# hackish way to detect it but should do for now.
-if test -d $srcdir/test
+# In case 'distro' file exists, this is a packaged tar ball
+# release. Apply "distributed version" modifications.
+if test -e $srcdir/distro
 then
-DISTRIBUTED_VERSION_DEFAULT=false
-else
 DISTRIBUTED_VERSION_DEFAULT=true
+else
+DISTRIBUTED_VERSION_DEFAULT=false
 fi
 
 # Enable DISTRIBUTED_VERSION
@@ -1367,10 +1367,7 @@ AC_CONFIG_FILES([
   bclib/include/Makefile
 ])
 
-# Generate test makefiles if we have the 'test' dir.
-if test -d test
-then
-
+## REMOVE FROM DIST START
 AC_CONFIG_FILES([
   test/Makefile
   test/base/Makefile
@@ -1380,8 +1377,7 @@ AC_CONFIG_FILES([
   test/applibs/Scheduler/Makefile
   test/applibs/Scheduler/ProgramRepresentations/Makefile
 ])
-
-fi
+## REMOVE FROM DIST END
 
 # scripts which need to be filled with BOOST_INCLUDES and other variables...
 AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin], 

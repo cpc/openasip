@@ -76,6 +76,8 @@ public:
 
     bool usePOMBuilder() const;
 
+    bool saveBackendPlugin() const;
+
     virtual bool dumpDDGsDot() const;
     virtual bool dumpDDGsXML() const;
     virtual bool disableLLVMAA() const;
@@ -107,7 +109,7 @@ private:
     static const std::string SWL_DUMP_DDGS_DOT;
     static const std::string SWL_DUMP_DDGS_XML;
     static const std::string SWL_POM_BUILDER;
-
+    static const std::string SWL_SAVE_BACKEND_PLUGIN;
     static const std::string USAGE;
 
 };

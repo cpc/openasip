@@ -187,13 +187,13 @@ void
 MainFrame::onToggleToolbar() {
     ProDeOptions* options = wxGetApp().options();
     if (toolbar_ != NULL) {
-	options->setToolbarVisibility(false);
-	SetToolBar(NULL);
-	delete toolbar_;
-	toolbar_ = NULL;
+        options->setToolbarVisibility(false);
+        SetToolBar(NULL);
+        delete toolbar_;
+        toolbar_ = NULL;
     } else {
-	options->setToolbarVisibility(true);
-	createToolbar();
+        options->setToolbarVisibility(true);
+        createToolbar();
     }
     Layout();
 }
@@ -206,11 +206,11 @@ void
 MainFrame::onToggleStatusbar() {
     wxStatusBar* statusbar = GetStatusBar();
     if (statusbar != NULL) {
-	SetStatusBar(NULL);
-	delete statusbar;
-	statusbar = NULL;
+        SetStatusBar(NULL);
+        delete statusbar;
+        statusbar = NULL;
     } else {
-	CreateStatusBar();
+        CreateStatusBar();
     }
     Layout();
     Fit();
@@ -724,10 +724,9 @@ MainFrame::createToolbar() {
     ProDeOptions* options = wxGetApp().options();
     wxString iconPath = WxConversion::toWxString(Environment::iconDirPath());
 
-    toolbar_  = options->createToolbar(this, *registry, iconPath);
+    toolbar_ = options->createToolbar(this, *registry, iconPath);
 
     // set new toolbar as the MainFrame toolbar
     SetToolBar(toolbar_);
     toolbar_->Show(true);
 }
-

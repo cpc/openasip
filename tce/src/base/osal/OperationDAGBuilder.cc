@@ -158,7 +158,7 @@ OperationDAGBuilder::createOperationNode(const std::string& operation) {
  */
 void 
 OperationDAGBuilder::connectOperandToNode(
-    const TokenizerData::TokenTreeNode* var, int operandIndex) {
+    const TokenizerData::TokenTreeNode* var, unsigned int operandIndex) {
     
     // check if input or output
     Operation& currOp = currentOperation_->referencedOperation();        
@@ -209,13 +209,22 @@ OperationDAGBuilder::connectOperandToNode(
 void 
 OperationDAGBuilder::finalize() {        
     // find IO(x) references, which doesn't has yet terminal
+    unsigned int inputCount = operation_.numberOfInputs();
+    unsigned int outputCount = operation_.numberOfOutputs();
+
+    std::set<unsigned int> unwrittenOutputs;
+    for (unsigned int i = 1; i <= outputCount; i++) {
+        unwrittenOutputs.insert(i + inputCount);
+    }
+
     for (std::map<std::string,TerminalBinding>::iterator iter = 
              ioVariables_.begin(); iter != ioVariables_.end(); iter++) {
+
+        unwrittenOutputs.erase(iter->second.second);
         
         if (iter->second.first == NULL) {                
             VariableBinding& ioVar = getBinding(iter->second.second);
-            if (iter->second.second > operation_.numberOfInputs() + 
-                operation_.numberOfOutputs()) {
+            if (iter->second.second > inputCount + outputCount) {
                 throw IllegalParameters(
                     __FILE__, __LINE__, __func__,
                     TCEString("Operation ") +  operation_.name() + 
@@ -230,7 +239,15 @@ OperationDAGBuilder::finalize() {
                 *(ioVar.first), *(iter->second.first), *newEdge);
         }
     }
-    
+    if (!unwrittenOutputs.empty()) {
+        TCEString message = TCEString("DAG of operation: ") + 
+            operation_.name() + " Does not write to output operand(s): ";
+        while (!unwrittenOutputs.empty()) {
+            message << Conversion::toString(*unwrittenOutputs.begin()) <<" ";
+            unwrittenOutputs.erase(unwrittenOutputs.begin());
+        }
+        throw IllegalParameters(__FILE__,__LINE__,__func__, message);
+    }
     // TODO: verify IO variable information of operation description
 }
 
@@ -303,7 +320,7 @@ OperationDAGBuilder::getVariableName(
     const TokenizerData::TokenTreeNode* var) {
     // check if variable is function IO(2) or normal var
     if (var->isFunctionCall()) {
-        int srcOperand = getIOOperand(var);
+        unsigned int srcOperand = getIOOperand(var);
         
         std::string retVal = 
             "IO(" + Conversion::toString(srcOperand) + ")";
@@ -339,7 +356,7 @@ OperationDAGBuilder::getBinding(const TokenizerData::TokenTreeNode* var) {
     
     // check if variable is function IO(2) or normal var
     if (var->isFunctionCall()) {
-        int srcOperand = getIOOperand(var);
+        unsigned int srcOperand = getIOOperand(var);
         return getBinding(srcOperand);
         
     } else if (var->token().isIdentifier()) {
@@ -402,7 +419,7 @@ OperationDAGBuilder::getConstantBinding(int value) {
  * @return Node and operand index where IO() is currently assigned. 
  */
 OperationDAGBuilder::VariableBinding& 
-OperationDAGBuilder::getBinding(int operandIndex) {        
+OperationDAGBuilder::getBinding(unsigned int operandIndex) {        
     
     // if first reference, and its never set before, 
     // create startnode for variable and set 
@@ -433,7 +450,7 @@ OperationDAGBuilder::getBinding(int operandIndex) {
  * @return Operand number of IO(x) type of token tree node. 
  * @exception IllegalParameters If var isn't parsed IO() call.
  */
-int 
+unsigned int 
 OperationDAGBuilder::getIOOperand(const TokenizerData::TokenTreeNode* var) {
     if (var->leafCount() != 2 || 
         var->leaf(0).token().stringValue() != "IO" ||  

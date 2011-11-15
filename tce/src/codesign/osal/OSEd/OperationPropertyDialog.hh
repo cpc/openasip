@@ -110,6 +110,8 @@ private:
     void launchEditor(const std::string& cmd);
     void updateSwapLists(std::vector<std::string> deletedOperands);
 
+    void updateOperation(bool newOpDag);
+
     /**
      * Component ids.
      */

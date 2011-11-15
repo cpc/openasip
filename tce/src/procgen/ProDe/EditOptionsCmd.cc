@@ -65,12 +65,11 @@ EditOptionsCmd::Do() {
 
     ProDeOptionsDialog dialog(
         parentWindow(), *wxGetApp().options(), *wxGetApp().commandRegistry());
-
     if (dialog.ShowModal() == wxID_OK) {
-	if (wxGetApp().options()->toolbarVisibility()) {
-	    wxGetApp().mainFrame()->createToolbar();
-	    wxGetApp().mainFrame()->createMenubar();
-	}
+        if (wxGetApp().options()->toolbarVisibility()) {
+            wxGetApp().mainFrame()->createToolbar();
+            wxGetApp().mainFrame()->createMenubar();
+        }
     }
     return true;
 }

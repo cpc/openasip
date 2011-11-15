@@ -23,8 +23,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-# @author 2006-2011 Pekka Jääskeläinen
 # @author 2006-2009 Veli-Pekka Jääskeläinen
+# @author 2006-2011 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -797,8 +797,8 @@ p.add_option('--plugin-cache-dir',
              default=os.path.expanduser("~/.tce/tcecc/cache"),
              help="Directory for cached llvm target plugins.")
 
-p.add_option('--no-plugin-cache', action="store_true",
-             dest="no_cache", default=False,
+p.add_option('--no-plugin-cache', action="store_false",
+             dest="cache_backend_plugin", default=True,
              help="Do not cache generated llvm target plugins.")
 
 p.add_option('--no-schedule', action="store_true",
@@ -1204,7 +1204,6 @@ if options.adf_file != "":
 
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
-
      
     if options.print_resource_constraints:
         command += " --print-resource-constraints"
@@ -1217,6 +1216,9 @@ if options.adf_file != "":
 
     if options.disable_llvmaa:
         command += " --disable-llvmaa"
+
+    if not options.cache_backend_plugin:
+        command += " --no-save-backend-plugin "
         
     if options.dump_ddgs:
         command += " --dump-ddgs-dot --dump-ddgs-xml"

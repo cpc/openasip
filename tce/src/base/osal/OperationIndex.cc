@@ -306,8 +306,8 @@ OperationIndex::refreshModule(
     if (it == opDefinitions_.end()) {
         return;
     } else {
-        opDefinitions_.erase(it);
         delete (*it).second;
+        opDefinitions_.erase(it);
     }
 }
 

@@ -112,9 +112,12 @@ EnvironmentTest::testFindDirs() {
     correctPath = string(TCE_SRC_ROOT) + DS + "data" + DS + "icons";
     TS_ASSERT_EQUALS(path, correctPath);
 
-    path = Environment::confDirPath("ProDe.conf");
-    correctPath = string(TCE_SRC_ROOT) + DS + "conf" + DS + "ProDe.conf";
-    TS_ASSERT_EQUALS(path, correctPath);
+    TCEString userConf = 
+        FileSystem::homeDirectory() + DS + ".tce" + DS + "ProDe.conf";
+
+    path = Environment::confPath("ProDe.conf");
+    TCEString srcConf = string(TCE_SRC_ROOT) + DS + "conf" + DS + "ProDe.conf";
+    TS_ASSERT(path == userConf || path == srcConf);
 
     path = Environment::schemaDirPath(APPLICATION_NAME);
     correctPath = string(TCE_SRC_ROOT) + DS + "data" + DS + "ProDe";
@@ -139,10 +142,7 @@ EnvironmentTest::testNotFinding() {
 
     returnedString = Environment::manDirPath(INVALID_NAME);
     TS_ASSERT_EQUALS(returnedString, EMPTY_STRING);
-
-    returnedString = Environment::confDirPath(INVALID_NAME);
-    TS_ASSERT_EQUALS(returnedString, EMPTY_STRING);
-    
+   
     // error log file is not currently found
     returnedString = Environment::errorLogFilePath();
     TS_ASSERT_EQUALS(returnedString, EMPTY_STRING);

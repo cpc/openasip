@@ -36,6 +36,7 @@
 #include "KeyboardShortcut.hh"
 #include "WxConversion.hh"
 #include "Conversion.hh"
+#include "Application.hh"
 
 using std::string;
 
@@ -89,26 +90,26 @@ KeyboardShortcutDialog::TransferDataToWindow() {
     
     // set the name of the key
     if (shortcut_->key() > 32 && shortcut_->key() < 127) {
-	// character key
-	keyName = Conversion::toString(shortcut_->key());
+        // character key
+        keyName = Conversion::toString(shortcut_->key());
     } else if (shortcut_->key() == 127) {
-	// delete key
-	keyName = "DEL";
+        // delete key
+        keyName = "DEL";
     } else if (shortcut_->fKey() != 0) {
-	// function key
-	keyName = "F"+Conversion::toString(shortcut_->fKey());
+        // function key
+        keyName = "F"+Conversion::toString(shortcut_->fKey());
     }
     
     wxString key = WxConversion::toWxString(keyName);
     
     // prepend key modifiers
     if (shortcut_->alt()) {
-	key.Prepend(_T("ALT - "));
+        key.Prepend(_T("ALT - "));
     }
     if (shortcut_->ctrl()) {
-	key.Prepend(_T("CTRL - "));
+        key.Prepend(_T("CTRL - "));
     }
-
+    
     shortcutField_->SetLabel(key);
 
     return true;
@@ -125,36 +126,38 @@ void
 KeyboardShortcutDialog::onCharEvent(wxKeyEvent& event) {
     
     int keycode = event.GetKeyCode();
+
+    PRINT_VAR(keycode);
     // check that key code is valid
     if (!((keycode >= int('0') && keycode <= int('9')) ||
-	  (keycode >= int('A') && keycode <= int('Z')) ||
-	  (keycode == 127) ||
-	  (keycode >= WXK_F1 && keycode <= WXK_F12))) {
-	
-	return;
+          (keycode >= int('A') && keycode <= int('Z')) ||
+          (keycode == 127) ||
+          (keycode >= WXK_F1 && keycode <= WXK_F12))) {
+        
+        return;
     }
     
     // Check that character key shortcut has at least control
     // or alt modifier.
     if (keycode < 256 &&
-	!(event.AltDown() || event.ControlDown())) {
-	return;
+        !(event.AltDown() || event.ControlDown())) {
+        return;
     }
-
+    
     shortcut_->setAlt(event.AltDown());
     shortcut_->setCtrl(event.ControlDown());
-
+    
     if (keycode < 256) {
-	// character key shortcut
-	shortcut_->setFKey(0);
+        // character key shortcut
+        shortcut_->setFKey(0);
         shortcut_->setKey(keycode);
     } else if(keycode >= WXK_F1 && keycode <= WXK_F12) {
-	// function key shortcut
-	shortcut_->setKey(0);
+        // function key shortcut
+        shortcut_->setKey(0);
         shortcut_->setFKey(keycode - WXK_F1 + 1);
     } else {
-	// invalid shortcut
-	assert(false);
+        // invalid shortcut
+        assert(false);
     }
     
     FindWindow(wxID_OK)->Enable(true);

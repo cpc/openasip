@@ -105,12 +105,14 @@ GUIOptions::GUIOptions(const GUIOptions& old): Serializable() {
     toolbarSeparators_ = old.toolbarSeparators_;
     modified_ = old.modified_;
 
+#ifdef KB_SC_EDITING
     // deep copy keyboard shortcuts
     for (KSTable::const_iterator iter = old.keyboardShortcuts_.begin();
          iter != old.keyboardShortcuts_.end(); iter++) {
 
         keyboardShortcuts_.push_back(new KeyboardShortcut(**iter));
     }
+#endif
 
     // deep copy toolbar buttons
     for (TBTable::const_iterator iter = old.toolbarButtons_.begin();
@@ -811,8 +813,8 @@ GUIOptions::createToolbar(
                 found = true;
 
                 wxString iconPath = iconsPath;
-	        iconPath.Append(WxConversion::toWxString(
-		    FileSystem::DIRECTORY_SEPARATOR));
+                iconPath.Append(WxConversion::toWxString(
+                                    FileSystem::DIRECTORY_SEPARATOR));
                 iconPath.Append(
                     WxConversion::toWxString(
                         registry.commandIcon(tool->action())));

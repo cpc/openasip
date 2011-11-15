@@ -67,7 +67,7 @@ PluginTools::importSymbol(
        http://www.trilithium.com/johan/2004/12/problem-with-dlsym/
        http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#573       
     */
-    *reinterpret_cast<void**>(&target) = loadSym(symbolName, module);
+    target = (T*)(intptr_t)loadSym(symbolName, module);
 }
 
 
@@ -92,5 +92,5 @@ PluginTools::importSymbol(const std::string& symbolName, T*& target)
     throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
            SymbolNotFound) {
 
-    *reinterpret_cast<void**>(&target) = loadSym(symbolName);
+    target = (T*)(intptr_t)loadSym(symbolName);
 }

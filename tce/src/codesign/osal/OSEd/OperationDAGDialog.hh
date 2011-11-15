@@ -124,7 +124,6 @@ private:
     // Scrolled window for DAG
     wxScrolledWindow *dagWindow_;
 
-    bool operationWasCreatedHere_;
     bool dotInstalled_;
 
     DECLARE_EVENT_TABLE()

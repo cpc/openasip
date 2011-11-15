@@ -53,6 +53,7 @@ namespace llvm {
 
 class InterPassData;
 class SchedulingPlan;
+class LLVMTCECmdLineOptions;
 
 /**
  * LLVM compiler backend and compiler interface for TCE.
@@ -84,13 +85,6 @@ public:
         InterPassData* ipData = NULL)
         throw (Exception);
 
-    TTAProgram::Program* compileAndSchedule(
-        const std::string& bytecodeFile,
-        const TTAMachine::Machine& target,
-        int optLevel = 2,
-        const unsigned int debug = 0)
-        throw (Exception);
-
     TTAProgram::Program* schedule(
         const std::string& bytecodeFile,
         const std::string& emulationBytecodeFile,
@@ -112,6 +106,8 @@ private:
     PluginTools pluginTool_;
     /// Path to the cache where precompiled plugins are stored.
     std::string cachePath_;
+
+    LLVMTCECmdLineOptions* options_;
 
     bool useCache_;
     bool useInstalledVersion_;

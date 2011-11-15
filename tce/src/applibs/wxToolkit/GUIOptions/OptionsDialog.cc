@@ -64,9 +64,19 @@ const wxString OptionsDialog::CONTENTS_TEXT = _T("Text");
 const wxString OptionsDialog::EDIT_BUTTON_LABEL = _T("Edit...");
 const wxString OptionsDialog::DELETE_BUTTON_LABEL = _T("Delete");
 
+// See http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=96
+// Keyboard shortcut editing hasn't been working probably since
+// the wxWidgets 2.4/2.6 times (2004 or so). It just does not get
+// the keyboard events. Might be due to the modality somehow. There
+// are some bug reports on MacOS/Cocoa wx2.8 of not getting the events 
+// on modal subwindows. Disabling it until it gets fixed/rewritten.
+//#define KB_SC_EDITING
+
 BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
     EVT_BUTTON(ID_DELETE_KB_SC, OptionsDialog::onDeleteShortcut)
+#ifdef KB_SC_EDITING
     EVT_BUTTON(ID_EDIT_KB_SC, OptionsDialog::onEditShortcut)
+#endif
     EVT_BUTTON(ID_TOOL_INSERT, OptionsDialog::onInsertTool)
     EVT_BUTTON(ID_TOOL_REMOVE, OptionsDialog::onRemoveTool)
     EVT_BUTTON(ID_TOOL_UP, OptionsDialog::onMoveTool)
@@ -74,6 +84,7 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
     EVT_BUTTON(wxID_OK, OptionsDialog::onOK)
     EVT_BUTTON(ID_HELP, OptionsDialog::onHelp)
 
+#ifdef KB_SC_EDITING
     EVT_LIST_ITEM_FOCUSED(ID_KB_SC_LIST, OptionsDialog::onShortcutSelection)
     EVT_LIST_DELETE_ITEM(ID_KB_SC_LIST, OptionsDialog::onShortcutSelection)
     EVT_LIST_ITEM_SELECTED(ID_KB_SC_LIST, OptionsDialog::onShortcutSelection)
@@ -82,6 +93,7 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
     EVT_MENU(ID_EDIT_KB_SC, OptionsDialog::onEditShortcut)
     EVT_MENU(ID_DELETE_KB_SC, OptionsDialog::onDeleteShortcut)
     EVT_LIST_ITEM_RIGHT_CLICK(ID_KB_SC_LIST, OptionsDialog::onShortcutRightClick)
+#endif
 
     EVT_LIST_ITEM_FOCUSED(ID_TOOLBAR_LIST, OptionsDialog::onToolbarSelection)
     EVT_LIST_DELETE_ITEM(ID_TOOLBAR_LIST, OptionsDialog::onToolbarSelection)
@@ -126,12 +138,14 @@ OptionsDialog::OptionsDialog(
  * The Destructor.
  */
 OptionsDialog::~OptionsDialog() {
+#ifdef KB_SC_EDITING
     // delete shortcut list
     vector<Shortcut*>::iterator i = shortcuts_.begin();
     for (; i != shortcuts_.end(); i++) {
-	delete (*i);
+        delete (*i);
     }
     shortcuts_.clear();
+#endif
 }
 
 
@@ -147,6 +161,7 @@ OptionsDialog::initialize() {
     commandList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_COMMAND_LIST));
     shortcutList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_KB_SC_LIST));
 
+#ifdef KB_SC_EDITING
     // Create keyboard shortcut list columns.
     wxListCtrl* shortcutList =
         dynamic_cast<wxListCtrl*>(FindWindow(ID_KB_SC_LIST));
@@ -154,7 +169,7 @@ OptionsDialog::initialize() {
         0, COMMAND_COLUMN_TITLE, wxLIST_FORMAT_LEFT, 190);
     shortcutList_->InsertColumn(
         1, SHORTCUT_COLUMN_TITLE, wxLIST_FORMAT_LEFT, 150);
-    
+#endif    
     // Create toolbar buttons list column.
     wxListCtrl* toolbarList =
         dynamic_cast<wxListCtrl*>(FindWindow(ID_TOOLBAR_LIST));
@@ -171,8 +186,10 @@ OptionsDialog::initialize() {
     FindWindow(ID_TOOL_UP)->Disable();
     FindWindow(ID_TOOL_INSERT)->Disable();
     FindWindow(ID_TOOL_REMOVE)->Disable();
+#ifdef KB_SC_EDITING
     FindWindow(ID_EDIT_KB_SC)->Disable();
     FindWindow(ID_DELETE_KB_SC)->Disable();
+#endif
 
     wxChoice* contentsChoicer =
         dynamic_cast<wxChoice*>(FindWindow(ID_TOOLBAR_CONTENTS));
@@ -204,6 +221,7 @@ OptionsDialog::readOptions() {
         assert(false);
     }    
 
+#ifdef KB_SC_EDITING
     // read keyboard shortcuts
     KeyboardShortcut* shortcut = options_.firstShortcut();
     while (shortcut != NULL) {
@@ -226,40 +244,40 @@ OptionsDialog::readOptions() {
         }
         shortcut = options_.nextShortcut();
     }    
+#endif
     
     bool found = true;
     int slot = 0;
 
     // read toolbar buttons and separators
     while (found) {
-	
-	found = false;
-
-	// check if a toolbar button exists for the slot
-	ToolbarButton* tool = options_.firstToolbarButton();
-	while (tool != NULL) {
-	    if (tool->slot() == slot) {
+        
+        found = false;
+    
+        // check if a toolbar button exists for the slot
+        ToolbarButton* tool = options_.firstToolbarButton();
+        while (tool != NULL) {
+            if (tool->slot() == slot) {
                 // button found for the slot, add it
                 toolbar_.push_back(tool->action());
                 found = true;
-	    }
-	    tool = options_.nextToolbarButton();
-	}	
+            }
+            tool = options_.nextToolbarButton();
+        }	
 
-	// check if a separator exists for the slot
-	int separator = options_.firstSeparator();
-	while (separator != -1) {
-	    if (separator == slot) {
+        // check if a separator exists for the slot
+        int separator = options_.firstSeparator();
+        while (separator != -1) {
+            if (separator == slot) {
                 // separator found for the slot, add it
                 toolbar_.push_back(GUIOptions::TOOLBAR_SEPARATOR);
                 found = true;
-	    }
-	    separator = options_.nextSeparator();
-	}	
-	slot++;
+            }
+            separator = options_.nextSeparator();
+        }	
+        slot++;
     }
 }
-
 
 /**
  * Writes the options from dialog attributes to the current options object.
@@ -280,11 +298,13 @@ OptionsDialog::writeOptions() {
     } else {
         assert(false);
     }
-    
+
+#ifdef KB_SC_EDITING    
     // delete all old shortcuts
     while (options_.firstShortcut() != NULL) {
         options_.deleteKeyboardShortcut(options_.firstShortcut());
     }
+#endif
 
     // delete all old toolbar buttons
     while (options_.firstToolbarButton() != NULL) {
@@ -296,6 +316,7 @@ OptionsDialog::writeOptions() {
         options_.deleteSeparator(options_.firstSeparator());
     }
 
+#ifdef KB_SC_EDITING    
     // add all keyboard shortcuts and toolbar buttons
     vector<Shortcut*>::iterator i = shortcuts_.begin();
     for (; i != shortcuts_.end(); i++) {
@@ -303,7 +324,8 @@ OptionsDialog::writeOptions() {
             options_.addKeyboardShortcut((*i)->shortcut);
         }
     }
-    
+#endif
+
     // add all toolbar buttons and separators
     int slot = 0;
     vector<string>::iterator iter = toolbar_.begin();
@@ -329,12 +351,12 @@ void
 OptionsDialog::readCommands() {
     GUICommand* command = commandRegistry_.firstCommand();
     while (command != NULL) {
-	Shortcut* shortcut = new Shortcut;
-	shortcut->id = command->id();
-	shortcut->name = command->name();
-	shortcut->shortcut = NULL;
-	shortcuts_.push_back(shortcut);
-	command = commandRegistry_.nextCommand();
+        Shortcut* shortcut = new Shortcut;
+        shortcut->id = command->id();
+        shortcut->name = command->name();
+        shortcut->shortcut = NULL;
+        shortcuts_.push_back(shortcut);
+        command = commandRegistry_.nextCommand();
     }    
 }
 
@@ -346,77 +368,81 @@ OptionsDialog::readCommands() {
  */
 bool
 OptionsDialog::TransferDataToWindow() {
-    
-    shortcutList_->DeleteAllItems();
+
     toolbarList_->DeleteAllItems();
     commandList_->DeleteAllItems();
-    
+
+#ifdef KB_SC_EDITING
+    shortcutList_->DeleteAllItems();    
     // Update keyboard shortcut list.
     vector<Shortcut*>::iterator i = shortcuts_.begin();
     for (; i != shortcuts_.end(); i++) {
-	shortcutList_->InsertItem(shortcutList_->GetItemCount(),
-	    WxConversion::toWxString((*i)->name));
-	// add shortcut to the second column if one exists
-	if ((*i)->shortcut != NULL) {
+        shortcutList_->InsertItem(
+            shortcutList_->GetItemCount(),
+            WxConversion::toWxString((*i)->name));
+        // add shortcut to the second column if one exists
+        if ((*i)->shortcut != NULL) {
     
-	    string keyName = "";
-    
-	    // set the name of the key
-	    if ((*i)->shortcut->key() > 32 && (*i)->shortcut->key() < 127) {
-		// character key
-		keyName = Conversion::toString((*i)->shortcut->key());
-	    } else if ((*i)->shortcut->key() == 127) {
-		// delete key
-		keyName = "DEL";
-	    } else if ((*i)->shortcut->fKey() != 0) {
-		// function key
-		keyName = "F"+Conversion::toString((*i)->shortcut->fKey());
-	    }
+            string keyName = "";
+            
+            // set the name of the key
+            if ((*i)->shortcut->key() > 32 && (*i)->shortcut->key() < 127) {
+                // character key
+                keyName = Conversion::toString((*i)->shortcut->key());
+            } else if ((*i)->shortcut->key() == 127) {
+                // delete key
+                keyName = "DEL";
+            } else if ((*i)->shortcut->fKey() != 0) {
+                // function key
+                keyName = "F"+Conversion::toString((*i)->shortcut->fKey());
+            }
 	    
-	    wxString key = WxConversion::toWxString(keyName);
-	    
-	    if ((*i)->shortcut->alt()) {
-		key.Prepend(_T("ALT - "));
-	    }
-	    if ((*i)->shortcut->ctrl()) {
-		key.Prepend(_T("CTRL - "));
-	    }
-	    shortcutList_->SetItem(shortcutList_->GetItemCount()-1,
-				       1, key);
-	}
+            wxString key = WxConversion::toWxString(keyName);
+            
+            if ((*i)->shortcut->alt()) {
+                key.Prepend(_T("ALT - "));
+            }
+            if ((*i)->shortcut->ctrl()) {
+                key.Prepend(_T("CTRL - "));
+            }
+            shortcutList_->SetItem(shortcutList_->GetItemCount()-1,
+                                   1, key);
+        }
     }
-    
+        
+    bool inToolbar;
+    i = shortcuts_.begin();
+    for (; i != shortcuts_.end(); i++) {
+        
+        inToolbar = false;
+        
+        // check if command is already in the toolbar
+        iter = toolbar_.begin();
+        for (; iter != toolbar_.end(); iter++) {
+            if ((*i)->name == (*iter)) {
+                inToolbar = true;
+            }
+        }
+        
+        // add command to the list if it wasn't in the toolbar
+        if (!inToolbar) {
+            commandList_->InsertItem(commandList_->GetItemCount(),
+                                     WxConversion::toWxString((*i)->name));
+        }
+    }
+#endif
+
     // Update toolbar button lists.
     vector<string>::iterator iter = toolbar_.begin();
     for (; iter != toolbar_.end(); iter++) {
-	toolbarList_->InsertItem(toolbarList_->GetItemCount(),
-				 WxConversion::toWxString((*iter)));
+        toolbarList_->InsertItem(toolbarList_->GetItemCount(),
+                                 WxConversion::toWxString((*iter)));
     }
-
+    
     // update commands list
     commandList_->InsertItem(
         0, WxConversion::toWxString(GUIOptions::TOOLBAR_SEPARATOR));
 
-    bool inToolbar;
-    i = shortcuts_.begin();
-    for (; i != shortcuts_.end(); i++) {
-	
-	inToolbar = false;
-	
-	// check if command is already in the toolbar
-	iter = toolbar_.begin();
-	for (; iter != toolbar_.end(); iter++) {
-	    if ((*i)->name == (*iter)) {
-		inToolbar = true;
-	    }
-	}
-
-	// add command to the list if it wasn't in the toolbar
-	if (!inToolbar) {
-	    commandList_->InsertItem(commandList_->GetItemCount(),
-		WxConversion::toWxString((*i)->name));
-	}
-    }
     
     return true;
 }
@@ -492,7 +518,6 @@ OptionsDialog::onEditShortcut(wxCommandEvent&) {
     }
 
     KeyboardShortcutDialog dialog(this, shortcut);
-
     if (dialog.ShowModal() == wxID_OK) {
 
         vector<Shortcut*>::iterator di = shortcuts_.begin();
@@ -759,9 +784,11 @@ OptionsDialog::createContents(
     wxWindow *item1 = item2;
 #endif
 
+#ifdef KB_SC_EDITING
     wxPanel *item4 = new wxPanel( item2, -1 );
     OptionsDialog::createKBShortcutPage( item4, true, true );
     item2->AddPage( item4, wxT("Keyboard Shortcuts") );
+#endif
 
     wxPanel *item5 = new wxPanel( item2, -1 );
     OptionsDialog::createToolbarPage( item5, true, true );
@@ -827,8 +854,7 @@ OptionsDialog::createKBShortcutPage(
 
     item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer( item0 );
         if (call_fit)
             item0->SetSizeHints( parent );

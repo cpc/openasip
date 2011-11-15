@@ -132,7 +132,7 @@ OSEdOptionsDialog::onSave(wxCommandEvent&) {
     TransferDataFromWindow();
     wxGetApp().options()->setEditor(WxConversion::toString(editor_));
     OSEdOptionsSerializer serializer;
-    string confFile = Environment::confDirPath(OSEdConstants::CONF_FILE_NAME);
+    string confFile = Environment::userConfPath(OSEdConstants::CONF_FILE_NAME);
     serializer.setDestinationFile(confFile);
     try {
         serializer.writeState(wxGetApp().options()->saveState());

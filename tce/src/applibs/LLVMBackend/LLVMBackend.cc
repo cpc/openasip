@@ -107,6 +107,8 @@
 
 //#define DEBUG_TDGEN
 
+#define DS TCEString(FileSystem::DIRECTORY_SEPARATOR)
+
 
 namespace llvm {
     void initializeRALinScanILPPass(llvm::PassRegistry&);
@@ -213,10 +215,14 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
  * Constructor.
  */
 LLVMBackend::LLVMBackend(
-    bool useCache, bool useInstalledVersion, bool removeTempFiles):
+    bool useCache, bool useInstalledVersion, bool removeTempFiles) : 
     useCache_(useCache), useInstalledVersion_(useInstalledVersion), 
     removeTmp_(removeTempFiles) {
+
     cachePath_ = Environment::llvmtceCachePath();
+
+    options_ =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
 
     PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
     initializeCore(Registry);
@@ -252,7 +258,8 @@ LLVMBackend::compile(
     TTAMachine::Machine& target,
     int optLevel,
     bool debug,
-    InterPassData* ipData) throw (Exception){
+    InterPassData* ipData) 
+    throw (Exception) {
 
     // Check target machine
     MachineValidator validator(target);
@@ -296,37 +303,63 @@ LLVMBackend::compile(
 
     std::auto_ptr<Module> emuM;
     if (!emulationBytecodeFile.empty()) {
-	OwningPtr<MemoryBuffer> emuBuffer;
-	if (error_code ec = MemoryBuffer::getFileOrSTDIN(
-		emulationBytecodeFile.c_str(), emuBuffer)) {
-	    std::string msg = "Error reading bytecode file: " + 
-		emulationBytecodeFile +
-		" of emulation library:\n" + ec.message();
-	    throw CompileError(__FILE__, __LINE__, __func__, msg);
-	}
-	else {
+        OwningPtr<MemoryBuffer> emuBuffer;
+        if (error_code ec = MemoryBuffer::getFileOrSTDIN(
+                emulationBytecodeFile.c_str(), emuBuffer)) {
+            std::string msg = "Error reading bytecode file: " + 
+                emulationBytecodeFile +
+                " of emulation library:\n" + ec.message();
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+        else {
             emuM.reset(
-		ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
-	}
+                ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
+        }
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
-		emulationBytecodeFile + " of emulation library \n" 
-		+ errMsgParse;
+                emulationBytecodeFile + " of emulation library \n" 
+                + errMsgParse;
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
-
+   
     // Create target machine plugin.
     TCETargetMachinePlugin* plugin = createPlugin(target);
 
-    // Compile.
-    TTAProgram::Program* result =
-        compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
-                ipData);
+    TTAProgram::Program* result = NULL;
+    try {
+        // Compile.
+        result =
+            compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
+                    ipData);
+    } catch (...) {
+        delete plugin;
+        plugin = NULL;
+
+        // delete the backend plugin if we don't want to save it
+        // Let's hope this doesn't crash as the plugin is loaded to the
+        // current process. TCETargetMachinePlugin dtor should unload it.
+        if (!options_->saveBackendPlugin()) {
+            TCEString pluginPath = 
+                cachePath_ + DS + pluginFilename(target);
+            FileSystem::removeFileOrDirectory(pluginPath);
+        }
+        delete res; res = NULL;
+        
+        throw;
+    }
 
     delete plugin;
     plugin = NULL;
 
+    // delete the backend plugin if we don't want to save it
+    // Let's hope this doesn't crash as the plugin is loaded to the
+    // current process. TCETargetMachinePlugin dtor should unload it.
+    if (!options_->saveBackendPlugin()) {
+        TCEString pluginPath = 
+            cachePath_ + DS + pluginFilename(target);
+        FileSystem::removeFileOrDirectory(pluginPath);
+    }
     delete res; res = NULL;
 
     return result;
@@ -423,9 +456,7 @@ LLVMBackend::compile(
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
 
-    LLVMTCECmdLineOptions* options =
-        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
-    if (options->useExperimentalRegAllocator()) {
+    if (options_->useExperimentalRegAllocator()) {
 #ifdef LLVM_2_9
         llvm::RegisterRegAlloc::setDefault(
             createILPLinearScanRegisterAllocator);
@@ -482,7 +513,7 @@ LLVMBackend::compile(
     }
 
     LLVMTCEBuilder* builder = NULL;
-    if (!options->usePOMBuilder()) {
+    if (!options_->usePOMBuilder()) {
         // This is not actuall LLVM pass so we can not get actual AA.
         // It will be picked later, for now just passing NULL.
         // When LLVMTCEIRBuilder is called from TCEScheduler it will require
@@ -508,93 +539,6 @@ LLVMBackend::compile(
     }
     return prog;
 }
-
-/**
- * Compiles bytecode for the given target machine and calls scheduler.
- *
- * @param bytecodeFile Full path to the llvm bytecode file to compile.
- * @param target Target machine to compile the bytecode for.
- * @param optLevel Optimization level.
- * @param debug Debug level as integer.
- * @return Scheduled program or NULL if no plan given.
- */
-TTAProgram::Program* 
-LLVMBackend::compileAndSchedule(
-    const std::string& bytecodeFile,
-    const TTAMachine::Machine& target,
-    int optLevel,
-    const unsigned int debug)
-    throw (Exception) {
-
-    static const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
-
-    // create temp directory for the target machine
-    std::string tmpDir = FileSystem::createTempDirectory();
-   
-    // write machine to a file for tcecc
-    std::string adf = tmpDir + DS + "mach.adf";
-    std::string tpef = tmpDir + DS + "program.tpef";
-    ADFSerializer serializer;
-    serializer.setDestinationFile(adf);
-    try {
-        serializer.writeMachine(target);
-    } catch (const SerializerException& exception) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        throw IOException(
-            __FILE__, __LINE__, __func__, exception.errorMessage());
-    } 
-
-    // call tcecc to compile, link and schedule the program
-    std::vector<std::string> tceccOutputLines;
-    std::string debugParams = "";
-    if (debug > 3) {
-        debugParams = "-v ";
-        if (debug > 4) {
-            debugParams.append("--debug ");
-        }
-    }
-    std::string tceccPath = Environment::tceCompiler();
-    std::string tceccCommand = tceccPath + " " + debugParams 
-        + "-O " + Conversion::toString(optLevel) + " -a " + adf + " -o " 
-        + tpef + " " + bytecodeFile + " --no-plugin-cache 2>&1";
-
-    Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
-
-    if (debug && tceccOutputLines.size() > 0) {
-        for (unsigned int i = 0; i < tceccOutputLines.size(); ++i) {
-            std::cout << tceccOutputLines.at(i) << std::endl;
-        }
-    }
-
-    // check if tcecc produced any tpef output
-    if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        return NULL;    
-    } 
-
-    TTAProgram::Program* prog = NULL;
-    try {
-        prog = TTAProgram::Program::loadFromTPEF(tpef, target);
-    } catch (const Exception& e) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        IOException error(__FILE__, __LINE__,__func__, e.errorMessage());
-        error.setCause(e);
-        throw error;
-    }
-
-    if (removeTmp_) {
-        FileSystem::removeFileOrDirectory(tmpDir);
-    }
-
-    return prog;
-}
-
 
 /**
  * Compiles bytecode for the given target machine and calls scheduler.
@@ -657,11 +601,13 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     std::string pluginFile = pluginFilename(target);
     std::string pluginFileName = "";
-    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     // Create temp directory for building the target machine plugin.
     std::string tmpDir = FileSystem::createTempDirectory();
 
+    // useCache_ has bitrotted: it has to be true for compilation
+    // to work
+    // FIXME: remove it
     if (useCache_) {
         // Create cache directory if it doesn't exist.
         if (!FileSystem::fileIsDirectory(cachePath_)) {

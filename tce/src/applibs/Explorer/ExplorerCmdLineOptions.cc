@@ -99,6 +99,10 @@ const std::string SWL_ADF_FILE = "adf";
 const std::string SWS_IDF_FILE = "i";
 /// Long switch string for idf file. 
 const std::string SWL_IDF_FILE = "idf";
+/// Short switch string of options to pass to compiler
+const std::string SWS_COMPILER_OPTIONS = "f";
+/// Long switch string of options to pass to compiler
+const std::string SWL_COMPILER_OPTIONS = "compiler_options";
 
 /**
  * Constructor.
@@ -192,6 +196,12 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             SWL_IDF_FILE,
             "IDF to add into the DSDB, needs also ADF.",
             SWS_IDF_FILE));
+    addOption(
+        new StringListCmdLineOptionParser(
+            SWL_COMPILER_OPTIONS,
+            "Options to pass to the compiler.",
+            SWS_COMPILER_OPTIONS));
+            
 }
 
 /**
@@ -557,6 +567,32 @@ std::string
 ExplorerCmdLineOptions::idfFileName() const {
     if (idfFile()) {
         return findOption(SWL_IDF_FILE)->String(1);
+    } else {
+        return "";
+    }
+}
+
+/**
+ * Returns true if a compiler options are given as an option.
+ *
+ * @return True if a compiler options are given as an option.
+ */
+bool
+ExplorerCmdLineOptions::compilerOptions() const {
+    return findOption(SWL_COMPILER_OPTIONS)->isDefined();
+}
+
+/**
+ * Returns the string of compiler options given as an option.
+ * 
+ * Returns an empty string if no compiler options were given.
+ *
+ * @return compiler options as a string.
+ */
+std::string
+ExplorerCmdLineOptions::compilerOptionsString() const {
+    if (compilerOptions()) {
+        return findOption(SWL_COMPILER_OPTIONS)->String(1);
     } else {
         return "";
     }

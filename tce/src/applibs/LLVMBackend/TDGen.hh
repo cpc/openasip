@@ -167,6 +167,10 @@ protected:
         const OperationDAG& dag,
         int immOp, int intToBool);
 
+    std::string subPattern(
+	const Operation& op,
+	const OperationDAG& dag);
+
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
 

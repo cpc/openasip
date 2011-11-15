@@ -1481,10 +1481,9 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         std::string rfName = registerFileName(dRegNum);
         int idx = registerIndex(dRegNum);
         if (!mach_->registerFileNavigator().hasItem(rfName)) {
-            std::cerr << "regfile: " << rfName << " not found!" << "\n";
+            TCEString msg = "regfile ";
+            msg << rfName << " not found.";
         }
-
-        assert(mach_->registerFileNavigator().hasItem(rfName));
         const RegisterFile* rf = 
             mach_->registerFileNavigator().item(rfName);
         assert(idx >= 0 && idx < rf->size());

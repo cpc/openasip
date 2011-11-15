@@ -30,7 +30,7 @@ EXTRA_DIST = README-AUTOTOOLS INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
 		tce-llvm-gcc/llvm-gcc-4.2 \
 		tce-llvm-gcc/Makefile.am \
 		tce-llvm-gcc/missing newlib-1.17.0 \
-		TROUBLESHOOTING
+		TROUBLESHOOTING distro autogen.sh
 
 dist-hook:
 	@(sed '/INPUT[[:space:]]*=/ s,\(.*\)=\(.*\) test\($$\| .*\),\1=\2\3,g' \

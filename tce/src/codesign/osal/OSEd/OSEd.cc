@@ -45,6 +45,7 @@
 #include "Environment.hh"
 #include "OSEdTreeView.hh"
 #include "FileSystem.hh"
+#include "Application.hh"
 
 using std::cerr;
 using std::endl;
@@ -84,8 +85,7 @@ OSEd::OnInit() {
     options_ = new OSEdOptions();
     OSEdOptionsSerializer serializer;
     
-    string confFile = Environment::confDirPath(OSEdConstants::CONF_FILE_NAME);
-    
+    string confFile = Environment::confPath(OSEdConstants::CONF_FILE_NAME);
     serializer.setSourceFile(confFile);
     
     try {
@@ -157,9 +157,8 @@ void
 OSEd::createDefaultOptions() {
     options_->setEditor(OSEdConstants::DEFAULT_EDITOR);
     OSEdOptionsSerializer serializer;
-    Environment::setNewConfFile(OSEdConstants::CONF_FILE_NAME);
     string confFile = 
-        Environment::confDirPath(OSEdConstants::CONF_FILE_NAME);
+        Environment::userConfPath(OSEdConstants::CONF_FILE_NAME);
     serializer.setDestinationFile(confFile);
     try {
         serializer.writeState(options_->saveState());

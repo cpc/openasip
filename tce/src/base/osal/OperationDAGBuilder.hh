@@ -55,13 +55,13 @@ private:
     typedef std::pair<OperationDAGNode*, int> VariableBinding;
 
     /// Information of object and index of operand of a variable.
-    typedef std::pair<TerminalNode*, int> TerminalBinding;
+    typedef std::pair<TerminalNode*, unsigned int> TerminalBinding;
     
     void parseNode(const TokenizerData::TokenTreeNode* node);
     void createOperationNode(const std::string& operation);
 
     void connectOperandToNode(
-        const TokenizerData::TokenTreeNode* var, int operandIndex);
+        const TokenizerData::TokenTreeNode* var, unsigned int operandIndex);
 
     void finalize();
 
@@ -77,10 +77,10 @@ private:
 
     VariableBinding& getBinding(const TokenizerData::TokenTreeNode* var);
     VariableBinding& getBinding(std::string varName);
-    VariableBinding& getBinding(int operandIndex);
+    VariableBinding& getBinding(unsigned int operandIndex);
     VariableBinding& getConstantBinding(int value);
 
-    int getIOOperand(const TokenizerData::TokenTreeNode* var);
+    unsigned int getIOOperand(const TokenizerData::TokenTreeNode* var);
 
     /// DAG where all nodes and edges are added.
     OperationDAG* dag_;
