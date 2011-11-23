@@ -24,7 +24,8 @@
 /**
  * @file oclhost.cc
  *
- * Implementation of the host-side library of the TCE OpenCL support.
+ * Implementation of the host-side library of the TCE OpenCL support for
+ * the "standalone" static linkage mode.
  *
  * @author Pekka Jääskeläinen 2009-2011 (pjaaskel-no.spam-cs.tut.fi)
  */
@@ -56,6 +57,7 @@ extern "C" {
 struct _cl_kernel {
     char* name;
     void* args[_TCE_CL_DEVICE_MAX_PARAMETERS];
+    size_t sizes[_TCE_CL_DEVICE_MAX_PARAMETERS];
 };
 
 /* An array of callable OpenCL kernel functions. */
@@ -273,7 +275,7 @@ clEnqueueNDRangeKernel(
 //         (struct _thread_context *)malloc(sizeof(struct _thread_context));
 
     kernel_impl->call(
-        kernel->args, work_dim, local_work_size, global_work_size);
+        kernel->args, kernel->sizes, work_dim, local_work_size, global_work_size);
     return CL_SUCCESS;
 }
 
@@ -295,24 +297,21 @@ clSetKernelArg(
     size_t       arg_size,
     const void *  arg_value) {
 
+    kernel->sizes[arg_index] = arg_size;
     if (arg_value != NULL) {
         if (kernel->args[arg_index] == NULL)
             kernel->args[arg_index] = malloc(arg_size);
         
         if (kernel->args[arg_index] == NULL)
-            return CL_INVALID_ARG_SIZE;
+            return CL_OUT_OF_RESOURCES;
 
         memcpy(kernel->args[arg_index], arg_value, arg_size);   
     } else {
-        if (kernel->args[arg_index] == NULL)
-            kernel->args[arg_index] = malloc(sizeof(void *)); /* cl_mem? */
-
-#if 0
-        assert(kernel->args[arg_index] != NULL);
-#endif
-        *((void **) (kernel->args[arg_index])) = malloc(arg_size);
+        /* A __local argument. Just store the size, the launcher
+           will allocate the local buffer. Assume there's enough
+           local memory for now. */
+        kernel->args[arg_index] = NULL;
     }
-        
     return CL_SUCCESS;
 }
 
