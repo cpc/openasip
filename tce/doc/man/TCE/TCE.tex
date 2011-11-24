@@ -943,7 +943,7 @@ bits than the shifted data operand.
 
 
 \subsection{Datapath Connectivity Levels}
-
+\label{ConnectivityLevels}
 The datapath interconnection network of TTAs is visible to the programmer.
 This enables full customization of the connectivity, making it possible to
 remove connections that are rarely, if at all, used by the programs the
@@ -6780,7 +6780,7 @@ And their parameters with a command:
 These commands can help if, for some reason, this documentation is not up-to-date.
 
 \subsection{Explorer Plugin: ConnectionSweeper}
-
+\label{ConnectionSweeper}
 ConnectionSweeper reduces the interconnection network gradually until a
 given cycle count worsening threshold is reached. The algorithm tries to
 reduce register file connections first as they tend to be more expensive.
@@ -7104,6 +7104,78 @@ the fact that context saving is an expensive operation on TTA because the
 processor context can be huge. In general, TTA might not be the best
 architecture choice for control-oriented or reactive system.
 
+\section{Guides for good designs}
+
+Here is listed some tips how to avoid the most common bottlenecks that
+often arise in in processor designs and how to get good performance 
+for your architecture.
+
+\subsection{Registers}
+
+Make sure you have enough registers and register read ports.
+Using more than two read ports in one register file may make it big, slow and
+power-hungry, so consider using multiple register files.
+
+\subsection{Connectivity}
+
+See ~\ref{ConnectivityLevels} for meanings of the connectivity classes.
+
+\begin{itemize}
+\item
+'Fully connected' on achitectures that are not very small lead to very slow
+achievable clocks speeds.
+
+\item
+Having only 'Reachable' connectivity leads to adding of extra
+register-to-register transfers created by the compiler and may cause
+considerable slowdowns.
+
+\end{itemize}
+
+Best compromize between IPC and clock speed is usually 'Fully RF connected'
+with many extra connections for common bypasses.
+
+This might however not always be true; If the clock speed is limited byt some
+other component than the interconnect, directly reachable might give
+slightly better performance, and sometimes some architecture with only 
+'Reachable' connectivity might give so big clocks speed improvement that
+ig might outweight the IPC penalty.
+
+With some future improvements to the compiler the performance of 'Reachable'
+architectures may get a definite improvement, 
+which will also lead updating this guide.
+
+There is a tool called ConnectionSweeper which can be used to optimize the
+interconnect. ConnectionSweeper is ducumented in chapter 
+~\ref{ConnectionSweeper}.
+
+\subsection{Negative short immediates}
+
+Make sure you have buses with signed short immediate fields.
+Small negative numbers such as -1, and -4 are very common in generated code,
+and long immediates often cause bottlenecks on the machine code.
+
+\subsection{Instruction set}
+
+Optimize your instruction set for your code,
+make sure you support the performance-critical instructions on hardware,
+as software-emulation of some operations is usually 50-100 times slower than
+hardware execution.
+
+If you do a lot of floating point calculations, use hardware floating point units.
+If your inner loop contains multiplications, put a multiplier in your
+architecture.
+
+But if you do not need floating point unit, multiplier or divider, 
+do not put them to your achitecture ``just for sure'',
+as they increase the size of the processor,
+power consumption, and also the size of the instruction and make the 
+interconnect bigger which often also reduces clock speed and therefore
+performance.
+
+After your selection of basic operations is good for your program,
+and you still want more performance or lower power consumption,
+consider using custom operations.
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}

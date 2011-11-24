@@ -130,6 +130,7 @@ Documentation
 - Added and fixed documentation on the floating point TTA designs.
 - Added some documentation about the dialog used to define operation operand
   bindings and timings to a function unit in ProDe.
+- Added hints about avoiding most common bottlenecks on tta designs.
 
 1.4       April 2011
 ====================
