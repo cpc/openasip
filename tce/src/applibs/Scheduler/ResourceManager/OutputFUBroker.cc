@@ -48,6 +48,7 @@
 #include "TerminalFUPort.hh"
 #include "MoveNodeSet.hh"
 #include "OutputPSocketResource.hh"
+#include "ResourceManager.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -124,8 +125,11 @@ OutputFUBroker::allAvailableResources(
                     }                    
                     const FunctionUnit& fu = dst.functionUnit();
                     if (hasResourceOf(fu)) {
+                        
                         OutputFUResource& fuRes =
                             dynamic_cast<OutputFUResource&>(resourceOf(fu));
+                        debugLogRM(TCEString(" has resource of ") + fuRes.name());
+                            
                     // Find what is the port on a new FU for given
                     // operation index. Find a socket for testing.
                         HWOperation* hwOp = fu.operation(op.name());
@@ -216,6 +220,7 @@ OutputFUBroker::allAvailableResources(
             dynamic_cast<const FunctionUnit*>((*resIter).first);
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it
+        debugLogRM(TCEString("checking ") << unit->name());        
         if (candidateFUs.size() > 0 &&
             !AssocTools::containsKey(candidateFUs, unit->name())) {
             ++resIter;
@@ -240,10 +245,14 @@ OutputFUBroker::allAvailableResources(
                 throw KeyNotFound(
                     __FILE__, __LINE__, __func__, msg);
             }
-            
+            debugLogRM("testing " + op.name());
             if (fuRes.canAssign(cycle, node,*pSocket)) {                
                 resourceSet.insert(*(*resIter).second);
+            } else {
+                debugLogRM("could not assign the fuRes to it.");
             }
+        } else {
+            debugLogRM(TCEString("does not have operation ") + op.name());
         }
         resIter++;
     }
