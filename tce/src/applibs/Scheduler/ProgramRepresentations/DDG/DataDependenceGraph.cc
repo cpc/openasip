@@ -2216,6 +2216,54 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
 }
 
 /**
+ * Checks whether the given node has all its successors scheduled.
+ *
+ * Ignores intra operation edges, thus if the successor belongs to the
+ * same operation, it need not be scheduled for the node to be considered
+ * ready.
+ *
+ * @return True in case all successors are scheduled.
+ */
+bool
+DataDependenceGraph::successorsReady(MoveNode& node) const {
+    
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    NodeDescriptor nd = descriptor(node);
+    std::pair<OutEdgeIter, OutEdgeIter> edges =
+    boost::out_edges(nd, graph_);
+    
+    for (OutEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge& edge = *graph_[ed];
+        if (edge.isBackEdge()) {
+            continue;
+        }
+        const MoveNode& m = *graph_[boost::target(ed, graph_)];
+        
+        const bool operandMoveOfSameOperation =
+        (node.isDestinationOperation() && m.isSourceOperation() && 
+         &node.destinationOperation() == &m.sourceOperation());
+        const bool resultMoveOfSameOperation = 
+        (node.isSourceOperation() && m.isSourceOperation() &&
+         &node.sourceOperation() == &m.sourceOperation());
+        const bool operandsOfSameOperation =
+        (node.isDestinationOperation() && m.isDestinationOperation() &&
+         &node.destinationOperation() == &m.destinationOperation());
+        if (operandMoveOfSameOperation || resultMoveOfSameOperation ||
+            operandsOfSameOperation) {
+            continue;
+        } 
+        if (!m.isScheduled()) {
+            return false;
+        }
+    }
+    return true;
+    
+}
+
+/**
  * Gets the lowest instruction latency for given operation.
  *
  * If latency is not known (no machine is given) does some simple

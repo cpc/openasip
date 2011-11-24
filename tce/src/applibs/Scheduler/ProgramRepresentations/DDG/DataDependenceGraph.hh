@@ -197,6 +197,7 @@ public:
 
     int edgeWeight(DataDependenceEdge& e, const MoveNode& hNode) const;
     bool predecessorsReady(MoveNode& node) const;
+    bool successorsReady(MoveNode& node) const;    
     void setMachine(const TTAMachine::Machine& machine);
     const TTAMachine::Machine& machine() const { return *machine_; } 
 
