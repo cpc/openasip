@@ -55,7 +55,7 @@ public:
 private:
     // Alias analyzer of LLVM will be set from DDGBuilder, since it is known
     // only when DDGBuilder's method build(...) is called.
-	llvm::AliasAnalysis* AA_;
+    llvm::AliasAnalysis* AA_;
 };
 
 #endif

@@ -328,9 +328,9 @@ CriticalPathBBMoveNodeSelector::isReadyToBeScheduled(MoveNode& node)
     // branch operation can have 2 moves, condition register and destination.
     if (node.move().isControlFlowMove() && 
         ddg_->nodeCount() - ddg_->scheduledNodeCount() > 1) {
-        DataDependenceGraph::NodeSet unscheduledMoves = ddg_->unscheduledMoves();	  
+        DataDependenceGraph::NodeSet unscheduledMoves = ddg_->unscheduledMoves();
         for (DataDependenceGraph::NodeSet::iterator i = unscheduledMoves.begin(); 
-            i != unscheduledMoves.end(); ++i) {	
+            i != unscheduledMoves.end(); ++i) {
             if ((*i)->move().isControlFlowMove() == false) {
                 return false;
             }

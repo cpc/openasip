@@ -78,7 +78,7 @@ ControlDependenceNode::toString() const {
         return result;
     }
     if (isBBNode()) {
-	return code_->toString();
+        return code_->toString();
     }
     return result;
 }

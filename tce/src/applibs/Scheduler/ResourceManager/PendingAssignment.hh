@@ -46,7 +46,7 @@ public:
     virtual ~PendingAssignment();
 
     ResourceBroker& broker();
-	void setRequest(int cycle, MoveNode& node);
+    void setRequest(int cycle, MoveNode& node);
     bool isAssignmentPossible();
     void tryNext() throw (ModuleRunTimeError);
     void undoAssignment();
@@ -55,8 +55,8 @@ public:
 private:
     /// Corresponding resource broker.
     ResourceBroker& broker_;
-	int cycle_;
-	MoveNode* node_;
+    int cycle_;
+    MoveNode* node_;
     bool assignmentTried_;
     SchedulingResourceSet availableResources_;
     int lastTriedAssignment_;

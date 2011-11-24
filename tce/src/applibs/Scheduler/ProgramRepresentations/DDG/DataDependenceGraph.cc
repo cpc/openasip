@@ -1035,7 +1035,7 @@ DataDependenceGraph::sanityCheck() const
                 headDestination.hintOperation().writesMemory())
                 break;
             
-	    // memory WAR between memory op and call
+            // memory WAR between memory op and call
             if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
                 tailDestination.isFUPort() && 
                 tailDestination.hintOperation().readsMemory() &&
@@ -1043,7 +1043,7 @@ DataDependenceGraph::sanityCheck() const
                 head.move().isCall())
                 break;
             
-	    // call parameter register
+            // call parameter register
             if (tailDestination.isFUPort() &&
                 tailSource.isGPR() &&
                 head.move().isCall())
@@ -1080,7 +1080,7 @@ DataDependenceGraph::sanityCheck() const
                   head.move().isCall()))))
                 break;
 
-	    // memory WAW between memory op and call
+            // memory WAW between memory op and call
             if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
                 tailDestination.isFUPort() && 
                 tailDestination.hintOperation().writesMemory() &&
@@ -1197,14 +1197,14 @@ DataDependenceGraph::dotString() const {
         Node& n = node(i);
         if (n.isMove() && n.move().isTriggering() &&
             n.isDestinationOperation()) {
-	    ProgramOperation &dst = n.destinationOperation();
-	    for (int j = 0; j < dst.inputMoveCount(); ++j) {
-            if (dst.inputMove(j).nodeID() != n.nodeID()) {
-                s << "\tn" << dst.inputMove(j).nodeID()
-                  << " -> n" << n.nodeID() << "["
-                  << "label=\"T\"" << "];" << std::endl;
+            ProgramOperation &dst = n.destinationOperation();
+            for (int j = 0; j < dst.inputMoveCount(); ++j) {
+                if (dst.inputMove(j).nodeID() != n.nodeID()) {
+                    s << "\tn" << dst.inputMove(j).nodeID()
+                    << " -> n" << n.nodeID() << "["
+                    << "label=\"T\"" << "];" << std::endl;
+                }
             }
-	    }
         }
     }
     s << "}" << std::endl;   
@@ -1240,22 +1240,22 @@ DataDependenceGraph::writeToXMLFile(std::string fileName) const {
 
     // Populate the nodes element
     for (int i = 0; i < nodeCount(); ++i) {
-	ObjectState* nodeOS = new ObjectState("node", nodesOS);
-	ObjectState* idOS = new ObjectState("id", nodeOS);
-	ObjectState* labelOS = new ObjectState("label", nodeOS);
+        ObjectState* nodeOS = new ObjectState("node", nodesOS);
+        ObjectState* idOS = new ObjectState("id", nodeOS);
+        ObjectState* labelOS = new ObjectState("label", nodeOS);
 
         Node& n = node(i);
 
-	idOS->setValue(n.nodeID());
-	labelOS->setValue(n.toString());
+        idOS->setValue(n.nodeID());
+        labelOS->setValue(n.toString());
 
-	if (n.isPlaced()) {
-	    ObjectState* cycleOS = new ObjectState("cycle", nodeOS);
-	    ObjectState* busOS = new ObjectState("slot", nodeOS);
+        if (n.isPlaced()) {
+            ObjectState* cycleOS = new ObjectState("cycle", nodeOS);
+            ObjectState* busOS = new ObjectState("slot", nodeOS);
 
-	    cycleOS->setValue(Conversion::toString(n.cycle()));
-	    busOS->setValue(n.move().bus().name());
-	}
+            cycleOS->setValue(Conversion::toString(n.cycle()));
+            busOS->setValue(n.move().bus().name());
+        }
     }
 
     // Populate the edges element
@@ -1576,7 +1576,7 @@ DataDependenceGraph::unMerge(MoveNode &sourceNode, MoveNode& mergedNode) {
             if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
                 edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
                 edge.data() != regName && !edge.tailPseudo() &&
-		!edge.guardUse()) {
+                !edge.guardUse()) {
                 removeEdge(edge, &mergedNode, NULL);
                 i--; // do not skip next edge which now has same index
             }

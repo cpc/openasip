@@ -123,8 +123,8 @@ private:
     // Test if other program operation writes into same register
     // in given cycle
     bool sameRegisterWrite(
-	const MoveNode& node,
-	ProgramOperation* operation)const;
+        const MoveNode& node,
+        ProgramOperation* operation)const;
     //
     const TTAMachine::FunctionUnit& fu_;     
     // Resource and ports vector width, depends on particular FU

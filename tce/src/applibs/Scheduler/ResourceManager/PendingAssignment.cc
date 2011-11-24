@@ -71,8 +71,8 @@ PendingAssignment::broker() {
  */
 void
 PendingAssignment::setRequest(int cycle, MoveNode& node) {
-	cycle_ = cycle;
-	node_ = &node;
+    cycle_ = cycle;
+    node_ = &node;
     lastTriedAssignment_ = -1;
 }
 
@@ -113,7 +113,7 @@ PendingAssignment::tryNext()
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
 
-	broker_.assign(
+    broker_.assign(
         cycle_, *node_, availableResources_.resource(lastTriedAssignment_));
     assignmentTried_ = true;
 }

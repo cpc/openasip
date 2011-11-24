@@ -92,7 +92,7 @@ AssignmentPlan::setRequest(int cycle, MoveNode& node) {
     applicableAssignments_.clear();
     for (unsigned int i = 0; i < assignments_.size(); i++) {
         if (assignments_[i]->broker().isApplicable(node)) {
-			assignments_[i]->setRequest(cycle, node);
+            assignments_[i]->setRequest(cycle, node);
             applicableAssignments_.push_back(assignments_[i]);
         }
     }

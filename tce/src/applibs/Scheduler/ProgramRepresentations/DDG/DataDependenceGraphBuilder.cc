@@ -416,10 +416,10 @@ DataDependenceGraphBuilder::build(
     bool createMemAndFUDeps,
     llvm::AliasAnalysis* AA) {
 
-	if (AA) {
-    	for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+    if (AA) {
+        for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
             LLVMAliasAnalyzer* llvmaa = 
-            	dynamic_cast<LLVMAliasAnalyzer*>(aliasAnalyzers_[i]);
+                dynamic_cast<LLVMAliasAnalyzer*>(aliasAnalyzers_[i]);
             if (llvmaa != NULL) {
                 llvmaa->setLLVMAA(AA);
             }
@@ -1849,8 +1849,8 @@ DataDependenceGraphBuilder::build(
     bool createMemAndFUDeps, bool createDeathInformation,
     llvm::AliasAnalysis* AA) {
 
-	if (AA) {
-    	for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+    if (AA) {
+        for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
             LLVMAliasAnalyzer* llvmaa = 
             dynamic_cast<LLVMAliasAnalyzer*>(aliasAnalyzers_[i]);
             if (llvmaa != NULL) {
@@ -2425,10 +2425,11 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
     }
 
     if (rvIsParamReg_) {
-	TCEString rv = specialRegisters_[REG_RV];
-	if (rv != "") {
-	    currentBB_->basicBlock().liveRangeData_->regDefReaches_[rv].insert(mnd2);
-	}
+        TCEString rv = specialRegisters_[REG_RV];
+        if (rv != "") {
+            currentBB_->basicBlock().liveRangeData_->regDefReaches_[rv].insert(
+                mnd2);
+        }
     }
 
     // params
@@ -2540,15 +2541,15 @@ DataDependenceGraphBuilder::updateMemWrite(
 
     // create waw edges from all alive writes to this node.
     for (MoveNodeUseSet::iterator iter =
-	     currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].begin();
-         iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();) {
+        currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].begin();
+        iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();) {
         checkAndCreateMemDep(*iter++, mnd, DataDependenceEdge::DEP_WAW);
     }
 
     // create war edges from all alive reads to this node.
     for (MoveNodeUseSet::iterator iter = currentBB_->basicBlock().liveRangeData_->
-	     memUseReaches_[category].begin();
-         iter != currentBB_->basicBlock().liveRangeData_->memUseReaches_[category].end();) {
+            memUseReaches_[category].begin();
+        iter != currentBB_->basicBlock().liveRangeData_->memUseReaches_[category].end();) {
         checkAndCreateMemDep(*iter++, mnd, DataDependenceEdge::DEP_WAR);
     }
 }
@@ -2566,8 +2567,8 @@ void DataDependenceGraphBuilder::updateMemUse(
 
     for (MoveNodeUseSet::iterator iter =
              currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].begin();
-         iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();
-	 iter++) {
+        iter != currentBB_->basicBlock().liveRangeData_->memDefReaches_[category].end();
+        iter++) {
         checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
     }
 }

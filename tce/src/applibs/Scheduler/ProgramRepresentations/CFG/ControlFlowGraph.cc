@@ -888,8 +888,8 @@ ControlFlowGraph::findNextIndex(
     int nextIndex = jumpInsIndex + delaySlots + 1;
     if (nextIndex > proc.instructionCount()) {
         throw InvalidData(
-			__FILE__, __LINE__, __func__,
-			"Procedure ends before all delay slot instructions");
+            __FILE__, __LINE__, __func__,
+            "Procedure ends before all delay slot instructions");
     }
     // Then check for control flow instructions inside delay slots.
     for (int i = jumpInsIndex + 1; i < nextIndex; i++) {

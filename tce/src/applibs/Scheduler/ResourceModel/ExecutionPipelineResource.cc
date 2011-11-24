@@ -580,30 +580,29 @@ ExecutionPipelineResource::canAssign(
                     // Some other operation on same FU is reading result
                     // after trigger but before result written
                     ProgramOperation* tmpOp = resultRead_.at(i).first;
-		    if (sameRegisterWrite(node, tmpOp))
-		        return false;
+                    if (sameRegisterWrite(node, tmpOp))
+                        return false;
                 }
                 if (resultWriten_.at(i).second > 0 &&
                     resultWriten_.at(i).first != pOp) {
                     // Some other operation on same FU is writing result
                     // after trigger but before result written                    
                     ProgramOperation* tmpOp = resultWriten_.at(i).first;
-		    if (sameRegisterWrite(node, tmpOp))
-		        return false;
+                    if (sameRegisterWrite(node, tmpOp))
+                        return false;
                 }
-		if (i < maxOperandWrite &&
-		    operandsWriten_.at(i) != NULL &&
-		    operandsWriten_.at(i) != pOp) {
+                if (i < maxOperandWrite &&
+                    operandsWriten_.at(i) != NULL &&
+                    operandsWriten_.at(i) != pOp) {
                     // Some other operation on same FU is triggered
                     // before the result of this pOp is stored
-		    // check if it does not write same register so
-	            // our won't get invalidated
+                    // check if it does not write same register so
+                    // our won't get invalidated
                     ProgramOperation* tmpOp = operandsWriten_.at(i);
-		    if (tmpOp->triggeringMove()->cycle() == i &&
-			sameRegisterWrite(node, tmpOp))
-		        return false;
-		}                
-
+                    if (tmpOp->triggeringMove()->cycle() == i &&
+                        sameRegisterWrite(node, tmpOp))
+                        return false;
+                }                
             }
         }
     }
@@ -741,8 +740,8 @@ ExecutionPipelineResource::canAssign(
                     // same destination register file & register as move 
                     // we are scheduling.                    
                     ProgramOperation* tmpOp = resultRead_.at(j).first;
-		    if (sameRegisterWrite(resReadMove, tmpOp))
-		        return false;
+                    if (sameRegisterWrite(resReadMove, tmpOp))
+                        return false;
                 }
                 if (resultWriten_.at(j).second > 0 &&
                     resultWriten_.at(j).first != pOp) {
@@ -751,22 +750,21 @@ ExecutionPipelineResource::canAssign(
                     // same destination register file & register as move 
                     // we are scheduling.                                        
                     ProgramOperation* tmpOp = resultWriten_.at(j).first;
-		    if (sameRegisterWrite(resReadMove, tmpOp))
-		        return false;
+                    if (sameRegisterWrite(resReadMove, tmpOp))
+                        return false;
                 }     
-		if (j < maxOperandWrite &&
-		    operandsWriten_.at(j) != NULL &&
-		    operandsWriten_.at(j) != pOp) {
+                if (j < maxOperandWrite &&
+                    operandsWriten_.at(j) != NULL &&
+                    operandsWriten_.at(j) != pOp) {
                     // Some other operation on same FU is triggered
                     // before the result of this pOp is stored
-		    // check if it does not write same register so
-	            // our won't get invalidated
+                    // check if it does not write same register so
+                    // our won't get invalidated
                     ProgramOperation* tmpOp = operandsWriten_.at(j);
-		    if (tmpOp->triggeringMove()->cycle() == j &&
-			sameRegisterWrite(resReadMove, tmpOp))
-		        return false;
-		}           
-
+                    if (tmpOp->triggeringMove()->cycle() == j &&
+                        sameRegisterWrite(resReadMove, tmpOp))
+                        return false;
+                }           
             }
         }        
     }
@@ -1110,10 +1108,10 @@ ExecutionPipelineResource::sameRegisterWrite(
         // as move we are scheduling.
         MoveNode& otherMove = op->outputMove(k);
         if (otherMove.isScheduled() && 
-    	    otherMove.isDestinationVariable() &&
-    	    node.move().destination() ==
-    	    otherMove.move().destination()) {
-    	    return true;
+            otherMove.isDestinationVariable() &&
+            node.move().destination() ==
+            otherMove.move().destination()) {
+            return true;
         }
     }
     return false;
