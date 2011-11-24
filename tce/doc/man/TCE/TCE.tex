@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.6-pre}
-\ver{25}
+\ver{26}
 \firstday{2006-10-25}
-\lastday{2011-11-14}
+\lastday{2011-11-24}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -943,7 +943,7 @@ bits than the shifted data operand.
 
 
 \subsection{Datapath Connectivity Levels}
-
+\label{ConnectivityLevels}
 The datapath interconnection network of TTAs is visible to the programmer.
 This enables full customization of the connectivity, making it possible to
 remove connections that are rarely, if at all, used by the programs the
@@ -6780,7 +6780,7 @@ And their parameters with a command:
 These commands can help if, for some reason, this documentation is not up-to-date.
 
 \subsection{Explorer Plugin: ConnectionSweeper}
-
+\label{ConnectionSweeper}
 ConnectionSweeper reduces the interconnection network gradually until a
 given cycle count worsening threshold is reached. The algorithm tries to
 reduce register file connections first as they tend to be more expensive.
@@ -7104,6 +7104,97 @@ the fact that context saving is an expensive operation on TTA because the
 processor context can be huge. In general, TTA might not be the best
 architecture choice for control-oriented or reactive system.
 
+\chapter{PRODUCING EFFICIENT TTA DESIGNS WITH TCE}
+
+This chapter gives some tips on how to avoid the most common bottlenecks that
+often arise in the TTA designs produced using TCE and how to get good 
+performance for your architecture.
+
+\section{Registers and Register Files}
+
+Make sure you have enough general purpose registers and register file 
+read ports. Using more than two read ports in one register file may make it 
+big, slow and power-hungry, so consider splitting the RF to multiple register files.
+
+However, it should be noted that the current compiler does not perform
+intelligent distribution of variables to the register files, so if the machine
+is not equally connected to all the function units that consume each variable,
+you might end up with ``connectivity register copies'' (see below). The current 
+register distribution method is \textit{round robin} which balances the RF load somewhat,
+but not perfectly, as it doesn't take in account the computation that uses each 
+variable. 
+
+To produce better register distribution, the compiler should balance the RF load at 
+the granularity of ``computation trees'', not at the granularity of a single register
+to produce more parallelizable code and to reduce register copies. Improving this 
+part of the code generation is being worked on with high priority.
+
+\section{Interconnection Network}
+
+See Section~\ref{ConnectivityLevels} for the definitions of the different
+connectivity classes of the TTAs designed with TCE.
+
+Some additional points worth considering:
+
+\begin{itemize}
+\item
+'Fully connected' on architectures that are not very small usually lead to 
+low maximum clock frequencies.
+
+\item
+Having only the 'Reachable' connectivity leads to the need to add extra
+register-to-register transfers created by the compiler and may cause
+considerable slowdowns due to the difficulties to parallelize such code.
+
+\end{itemize}
+
+The best compromize between \textit{instructions-per-cycle (IPC)} and clock speed 
+is usually 'Fully RF connected' with additional FU to FU connections for commonly 
+used bypasses.
+
+This, of course, doesn't always hold. For example, if the clock speed is limited by some
+other component than the interconnect, Directly Reachable might give
+slightly better performance. Sometimes some architecture with only 
+'Reachable' connectivity might give so big clocks speed improvement that
+it might outweight the IPC penalty. So, it needs some experimenting from
+the designer as it depends on the parallelism of the program among other things.
+
+With some future improvements to the compiler the performance of 'Reachable'
+architectures may get a definite improvement, at which point we'll update these
+hints.
+
+There is a tool called ConnectionSweeper which can be used to optimize the
+interconnection network automatically. ConnectionSweeper is documented in 
+Section~\ref{ConnectionSweeper}.
+
+\subsection{Negative short immediates}
+
+Make sure you have one or more buses (actually ``move slots``) with signed short 
+immediate fields. Small negative numbers such as -1, and -4 are very common in 
+the generated code, and long immediates often cause bottlenecks on the machine code.
+
+\section{Operation Set}
+
+Optimize your operation set for your code. Make sure you support the 
+performance-critical instructions with hardware operations. Software-emulation of 
+some operations is usually 50-100 times slower than hardware execution and
+might prevent parallelization of multiple iterations of the core kernel loop.
+
+For example, if you do a lot of floating point calculations, use hardware floating 
+point units. If your inner loop contains integer multiplications, put a multiplier in 
+your architecture.
+
+On the other hand, if you do not need a floating point unit, integer multiplier or 
+a divider, do not put them to your achitecture ``just in case'', as they increase 
+the size of the processor, power consumption, and also the size of the instruction 
+word. It also makes the interconnection network more complex which often also 
+reduces the clock speed and therefore performance. Unless, of course, you need
+the ``general purposity`` and you predict that some of the future programs that 
+are going to run in your processor might be able to exploit such hardware units.
+
+After your selection of basic operations is good for your program, and you still 
+need more performance or lower power consumption, then consider using custom 
+operations. 
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}

@@ -52,7 +52,7 @@ struct _OpenCLKernel {
     const char* name;
     /* kernel "trampoline" function that converts the raw argument data to
        the kernel's function arguments and calls the kernel */
-    void (*call) (void** /*arguments*/, int, const size_t*, const size_t*);
+    void (*call) (void** /*arguments*/, size_t*, int, const size_t*, const size_t*);
 };
 
 void _register_opencl_kernel(struct _OpenCLKernel* kernel);

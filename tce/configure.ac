@@ -1197,7 +1197,7 @@ $BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
 if test x"$LLVM_VERSION" != x2.9 -a -a $srcdir/src/bintools/Compiler/pocl
 then
 
-ac_configure_args="$ac_configure_args CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
+ac_configure_args="$ac_configure_args HOST_ARCH=tce CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
 AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
 AC_SUBST([OPENCL_ENABLED], ["1"])
 OPENCL=true

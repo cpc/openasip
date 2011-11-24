@@ -138,6 +138,8 @@ Documentation
 - Added and fixed documentation on the floating point TTA designs.
 - Added some documentation about the dialog used to define operation operand
   bindings and timings to a function unit in ProDe.
+- Added hints about avoiding the most common bottlenecks on TTA designs with
+  the current TCE compiler.
 
 1.4       April 2011
 ====================

@@ -8,7 +8,7 @@ mach_mc=clustered_mul4-1mul_gal-1SS-mc.adf
 #mach=debug2.adf
 #verbose=-v
 # Use qttasim if set to -q, otherwise empty
-quick=-q
+#quick=-q
 tester="../../../../tce/scheduler/testbench/scheduler_tester.py"
 tester_args="-e OpenCL -vrx -w 0.0 -a $mach -a $mach_mc" #  crashes with AES, disabled for now
 parallel_wi=2
@@ -27,17 +27,25 @@ function simulate {
 # First run verify the result correctness.
 program=$(mktemp tmpXXXXXX)
 
+# OpenCL specs: example1
+compile_opencl $program -DVERIFICATION -O3 OpenCL/local_memories/src/*.{cpp,cl} || exit
+simulate $program || exit
+#&& \
+#compile_opencl OpenCL/example1/program.bc -O3 OpenCL/example1/src/*.{cpp,cl} --emit-llvm
+
 # clAESGladman with two custom ops
 compile_opencl $program -DVERIFICATION -O3 -IOpenCL/oclAESGladman/src/ \
 OpenCL/oclAESGladman/src/*.{cpp,cl} && \
-simulate $program && \
-compile_opencl OpenCL/oclAESGladman/program.bc -O3 -IOpenCL/oclAESGladman/src/ \
-OpenCL/oclAESGladman/src/*.{cpp,cl} --emit-llvm
+simulate $program 
+#&& \
+#compile_opencl OpenCL/oclAESGladman/program.bc -O3 -IOpenCL/oclAESGladman/src/ \
+#OpenCL/oclAESGladman/src/*.{cpp,cl} --emit-llvm
 
 # OpenCL specs: example1
 compile_opencl $program -DVERIFICATION -O3 OpenCL/example1/src/*.{cpp,cl} && \
-simulate $program && \
-compile_opencl OpenCL/example1/program.bc -O3 OpenCL/example1/src/*.{cpp,cl} --emit-llvm
+simulate $program 
+#&& \
+#compile_opencl OpenCL/example1/program.bc -O3 OpenCL/example1/src/*.{cpp,cl} --emit-llvm
 
 
 # Run the benchmarks with cycle counts to avoid performance regressions.
