@@ -75,9 +75,53 @@ public:
     }
 };
 
+/**
+ * A function object for prioritizing the ready list according to the move's
+ * distance from farthest source node. Futher away from source the better.
+ *
+ */
+class RLBUPriorityCriticalPath:
+public std::binary_function<MoveNode*, MoveNode*, bool> {
+public:
+    /**
+     * Compares two nodes according to their priority in the ready list.
+     *
+     * @param a Node a.
+     * @param b Node b.
+     * @return True if b should be scheduled before a (b greater than a).
+     */
+    bool operator()(MoveNodeGroup& a, MoveNodeGroup& b) {
+        
+        if (b.isScheduled()) {
+            // keep scheduled MoveNodeSets on a top of a queue
+            // so they will be poped out
+            return true;
+        }
+        if (a.isScheduled()) {
+            // keep scheduled MoveNodeSets on a top of a queue
+            // so they will be poped out
+            return false;
+        }
+        // Compute distances only once, it is expensive operation on graph
+        int aSourceDistance = a.maxSourceDistance();
+        int bSourceDistance = b.maxSourceDistance();
+        
+        if (bSourceDistance == aSourceDistance) {
+            return b.node(0).nodeID() < a.node(0).nodeID();
+        }
+        // the higher the source distance, the higher the priority
+        return bSourceDistance > aSourceDistance;
+    }
+};
+
 /// A prioritized list for the ready-to-be-scheduled move node groups.
 typedef std::priority_queue<
     MoveNodeGroup, std::vector<MoveNodeGroup>,
     RLPriorityCriticalPath> ReadyMoveNodeGroupList;
+
+/// A prioritized list for the ready-to-be-scheduled move node groups.
+typedef std::priority_queue<
+    MoveNodeGroup, std::vector<MoveNodeGroup>,
+    RLBUPriorityCriticalPath> ReadyMoveNodeGroupListBU;
 
 #endif
