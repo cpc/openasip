@@ -111,11 +111,8 @@ ExecutionPipelineResource::isInUse(const int cycle) const
     if (cycle >= size()) {
         return false;
     }
-    if (numberOfResources_ !=
-        static_cast<int>(fuExecutionPipeline_[cycle].size())) {
-        std::string msg = "Execution pipeline is missing resources!";
-        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-    }
+    if (fuExecutionPipeline_[cycle].size() == 0)
+        return false;
     for (int i = 0; i < numberOfResources_; i++) {
         if (fuExecutionPipeline_[cycle][i]) {
             return true;
@@ -158,9 +155,12 @@ ExecutionPipelineResource::isAvailable(const int cycle) const {
                     return true;
                 }
             }
+            if (fuExecutionPipeline_[cycle + i].size() == 0) {
+                continue;
+            }            
             for (int j = 0 ; j < numberOfResources_; j++) {
-                if (operationPipelines_[pI][i][j] &&
-                    fuExecutionPipeline_[cycle+i][j]) {
+                if (operationPipelines_[pI][i][j] && 
+                    fuExecutionPipeline_[cycle + i][j]) {
                     foundConflict = true;
                     // One of supported operations is conflicting, still
                     // needs to test other operations.
@@ -303,25 +303,31 @@ ExecutionPipelineResource::assign(
         throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
     }
 
+
     int fuEpSize = fuExecutionPipeline_.size();
-    // add empty lines until one BEFORE cycle we want to assign
     if (cycle >= fuEpSize) {
-        for (int k = 0; k < cycle - fuEpSize; k++) {
-            ResourceVector newEmptyLine(numberOfResources_, false);
-            fuExecutionPipeline_.push_back(newEmptyLine);
-        }
+        fuExecutionPipeline_.resize(cycle);
+        fuEpSize = cycle;
     }
-    fuEpSize = fuExecutionPipeline_.size();
     for (int i = 0; i < maximalLatency_; i++) {
         if ((cycle + i) >= fuEpSize) {
             // cycle is beyond size() so we add line from operationPipeline
-            fuExecutionPipeline_.push_back(operationPipelines_[pIndex][i]);
+            int fuSize = fuExecutionPipeline_.size() + 1;
+            fuExecutionPipeline_.resize(fuSize);
+            fuExecutionPipeline_.insert_element(
+                fuSize - 1, operationPipelines_[pIndex][i]);            
         } else {
-            for (int j = 0 ; j < numberOfResources_; j++) {
-                fuExecutionPipeline_[cycle + i][j] =
-                    fuExecutionPipeline_[cycle + i][j] ||
-                    operationPipelines_[pIndex][i][j];
+            ResourceVector res = fuExecutionPipeline_[cycle + i];
+            if (res.size() == 0) {
+            // No pipeline record was specified before
+                res = operationPipelines_[pIndex][i];
+            } else {
+                for (int j = 0 ; j < numberOfResources_; j++) {
+                    res[j] = 
+                        res[j] || operationPipelines_[pIndex][i][j];
+                }
             }
+            fuExecutionPipeline_[cycle + i] = res;                    
         }
     }
 }
@@ -472,12 +478,12 @@ ExecutionPipelineResource::unassign(
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
     for (int i = 0; i < maximalLatency_; i++) {
+        ResourceVector res = fuExecutionPipeline_[cycle + i];
         for (int j = 0 ; j < numberOfResources_; j++) {
-            fuExecutionPipeline_[cycle + i][j] =
-                fuExecutionPipeline_[cycle + i][j] &&
-                (!operationPipelines_[pIndex][i][j]);
+            res[j] = res[j] && (!operationPipelines_[pIndex][i][j]);
         }
-    }
+        fuExecutionPipeline_[cycle + i] = res;
+    }    
 }
 
 /**
@@ -503,32 +509,47 @@ ExecutionPipelineResource::canAssign(
             // register
             return false;
         }
-
+        const ProgramOperation* pOp = &node.sourceOperation();
+        int maxResultRead = resultRead_.size();        
         // next result cycle returns where the other
         // result is written
-        int otherResult = nextResultCycle(resultReady, node);
-        if (otherResult <= cycle) {
-            return false;
-        }
+        int otherResult = 0;
+        if (resultReady != INT_MAX) {
+            otherResult = nextResultCycle(resultReady, node);
+            if (otherResult <= cycle) {
+                return false;
+            }
 
-        const ProgramOperation* pOp = &node.sourceOperation();
-        int maxResultRead = resultRead_.size();
-        for (int i = resultReady; i < maxResultRead; i++) {
-            if (resultRead_.at(i).second > 0) {
-                if (i < otherResult &&
-                    resultRead_.at(i).first != pOp) {
-                    // Other result was written earlier and is read
-                    // after this one would be written in cycle
-                    // we can not overwrite it!
-                    return false;
-                } else {
-                    // there is result read, but there is also result
-                    // write before it so we are not overwriting
-                    // anything
-                    break;
+            for (int i = resultReady; i < maxResultRead; i++) {
+                if (resultRead_.at(i).second > 0) {
+                    if (i < otherResult &&
+                        resultRead_.at(i).first != pOp) {
+                        // Other result was written earlier and is read
+                        // after this one would be written in cycle
+                        // we can not overwrite it!
+                        return false;
+                    } else {
+                        // there is result read, but there is also result
+                        // write before it so we are not overwriting
+                        // anything
+                        break;
+                    }
                 }
             }
-        }
+        } else {
+            // We are in 'bottom-up' mode, test the previous
+            // result instead of the next one.
+            otherResult = previousResultCycle(cycle, node);
+            int startingCycle = std::min(cycle, maxResultRead - 1);
+            if (startingCycle >= 0) {
+                for (int i = startingCycle; i >= otherResult; i--) {
+                    if (resultRead_.at(i).second > 0 && 
+                        resultRead_.at(i).first != pOp) {
+                        return false;                    
+                    } 
+                }
+            }            
+        }     
         /// Check if the port has a register. If not result read must be
         /// in same cycle as result ready.
         const TTAMachine::HWOperation& hwop = 
@@ -659,8 +680,11 @@ ExecutionPipelineResource::canAssign(
         if ((cycle + i) >= size()) {
             break;
         }
-        for (int j = 0 ; j < numberOfResources_; j++) {
-            if (operationPipelines_[pIndex][i][j] &&
+
+        if (fuExecutionPipeline_[cycle + i].size() == 0)
+            continue;
+        for (int j = 0 ; j < numberOfResources_; j++) {            
+            if (operationPipelines_[pIndex][i][j] && 
                 fuExecutionPipeline_[cycle + i][j]) {
                 return false;
             }
@@ -808,8 +832,10 @@ ExecutionPipelineResource::size() const {
         return 0;
     }
     for (int i = length; i >= 0; i--) {
+        if (fuExecutionPipeline_(i).size() == 0)
+            continue;    
         for (int j = 0; j < numberOfResources_; j++) {
-            if (fuExecutionPipeline_.at(i).at(j) == true) {
+            if (fuExecutionPipeline_[i][j] == true) {
                 cachedSize_ = i + 1;
                 return i + 1;
             }
@@ -845,7 +871,8 @@ ExecutionPipelineResource::setResourceUse(
     }
 
     if (!MapTools::containsKey(operationSupported_, opName)) {
-        ResourceTable newOp(maximalLatency_, std::vector<bool>(numberOfResources_, false));
+        ResourceTable newOp(
+            maximalLatency_, boost::dynamic_bitset<>(numberOfResources_, false));
         operationPipelines_.push_back(newOp);
         operationSupported_[opName] = operationPipelines_.size() - 1;
     }
@@ -989,6 +1016,39 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
         }
     }
     return INT_MAX;
+}
+
+/**
+ * Returns a cycle in which result of prvious program operation will be
+ * writen to result.
+ *
+ * @param cycle Cycle from which to start testing.
+ * @return Cycle in which next result is writen.
+ */
+int
+ExecutionPipelineResource::previousResultCycle(int cycle, const MoveNode& node)
+const {
+    
+    if (!node.isSourceOperation()) {
+        throw InvalidData(__FILE__, __LINE__, __func__,
+                          "Trying to get next result for move that is not "
+                          "in ProgramOperation");
+    }
+    ProgramOperation* sourcePo = NULL;
+    if (node.isSourceOperation()) {
+        sourcePo = &node.sourceOperation();
+    }
+    int startingCycle = std::min(cycle, (int)resultWriten_.size() -1);
+    if (startingCycle >= 0) {     
+        for (unsigned int i = startingCycle; i > 0; i--) {
+            if (resultWriten_.at(i).second > 0 ) {
+                if (resultWriten_.at(i).first != sourcePo) {
+                    return i;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 /**

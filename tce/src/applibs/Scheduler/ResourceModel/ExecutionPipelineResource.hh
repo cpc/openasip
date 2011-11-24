@@ -38,6 +38,10 @@
 #include <vector>
 #include <map>
 
+#include <boost/numeric/ublas/vector_sparse.hpp>
+#include <boost/dynamic_bitset.hpp>
+
+
 #include "SchedulingResource.hh"
 #include "MoveNode.hh"
 
@@ -91,6 +95,7 @@ public:
         const int latency);
     int highestKnownCycle() const;
     int nextResultCycle(int cycle, const MoveNode& node) const;
+    int previousResultCycle(int cycle, const MoveNode& node) const;
     
     void clear();
 protected:
@@ -100,7 +105,7 @@ protected:
 
 private:
     // Type for resource vector
-    typedef std::vector<bool> ResourceVector ;
+    typedef boost::dynamic_bitset<> ResourceVector ;
     // Type for resource reservation table
     typedef std::vector<ResourceVector> ResourceTable;
     //Copying forbidden
@@ -127,7 +132,7 @@ private:
     // Maximal latency of operation in FU
     int maximalLatency_;
     // Stores one resource vector per cycle of scope
-    ResourceTable fuExecutionPipeline_;
+    boost::numeric::ublas::mapped_vector<ResourceVector> fuExecutionPipeline_;
     // Operations supported, name - index to operation pipeline vector
     std::map<std::string, int> operationSupported_;
     // Pipelines for operations
