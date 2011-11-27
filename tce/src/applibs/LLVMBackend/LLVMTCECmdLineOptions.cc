@@ -55,6 +55,8 @@ const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_XML = "dump-ddgs-xml";
 const std::string LLVMTCECmdLineOptions::SWL_POM_BUILDER = "pom-builder";
 const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN = 
     "save-backend-plugin";
+const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER = 
+    "bottom-up-scheduler";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -137,6 +139,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             "Save the generated backend plugin for the architecture. "
             "This avoid the regeneration of the backend plugin when calling "
             "tcecc for the same architecture."));
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_BU_SCHEDULER, 
+            "Use an experiment Bottom Up scheduler."));
+            
 }
 
 /**
@@ -308,4 +315,8 @@ bool
 LLVMTCECmdLineOptions::saveBackendPlugin() const {
     return !(findOption(SWL_SAVE_BACKEND_PLUGIN)->isDefined() &&
              !findOption(SWL_SAVE_BACKEND_PLUGIN)->isFlagOn());
+}
+bool
+LLVMTCECmdLineOptions::useBUScheduler() const {
+    return findOption(SWL_BU_SCHEDULER)->isDefined();
 }

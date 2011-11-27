@@ -987,6 +987,11 @@ p.add_option('--old-builder', action='store_true', dest='pom_builder',
              help=\
 "Use the old LLVM-TCE builder code to get code to TCE scheduler (deprecated).")
 
+p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler', 
+             default=False,
+             help=\
+"Use an experiment Bottom Up scheduler.")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -1269,6 +1274,9 @@ if options.adf_file != "":
     if options.pom_builder:
         command += " --pom-builder"
 
+    if options.bu_scheduler:
+        command += " --bottom-up-scheduler"
+        
     if options.pom_builder or options.scheduler_config is not None:
         print >> sys.stderr, "Deprecation warning: The old builder is going to be removed from TCE soon. Please use the default builder and report the possible bugs found in it."
 

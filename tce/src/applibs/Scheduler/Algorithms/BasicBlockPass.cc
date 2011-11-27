@@ -142,15 +142,26 @@ void BasicBlockPass::copyRMToBB(
 
     // update the BB with the new instructions
     bb.clear();
-    for (int cycle = 0; cycle <= lastCycle; ++cycle) {
+    // Find first nonempty cycle.
+    int cycle = 0;
+    for (; cycle <= lastCycle; ++cycle) {
+        if (rm.instruction(cycle)->moveCount() != 0 ||
+            rm.instruction(cycle)->immediateCount() != 0) {
+            break;
+        }
+        rm.loseInstructionOwnership(cycle);        
+    }
+    for (; cycle <= lastCycle; ++cycle) {
 
         TTAProgram::Instruction* newInstruction = rm.instruction(cycle);
 
         if (newInstruction->hasControlFlowMove()) {
             assert(jumpCycle == -1 && "Multiple jumps in BB!");
 
-            // add delay slots to loop end count
-            lastCycle = cycle + targetMachine.controlUnit()->delaySlots();
+            // add delay slots to loop end count if control flow move
+            // scheduled less then #delay slots from end of BB.
+            lastCycle = std::max(lastCycle,
+                cycle + targetMachine.controlUnit()->delaySlots());
             assert(lastCycle >= rmLastCycle);
         }
 
