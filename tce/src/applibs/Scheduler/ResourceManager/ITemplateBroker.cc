@@ -58,8 +58,8 @@ using namespace TTAProgram;
 /**
  * Constructor.
  */
-ITemplateBroker::ITemplateBroker(std::string name) :
-    ResourceBroker(name),
+ITemplateBroker::ITemplateBroker(std::string name, unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval),
     rm_(NULL) {
 }
 
@@ -68,8 +68,9 @@ ITemplateBroker::ITemplateBroker(std::string name) :
  */
 ITemplateBroker::ITemplateBroker(
     std::string name,
-    SimpleResourceManager* rm) :
-    ResourceBroker(name),
+    SimpleResourceManager* rm,
+    unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval),
     rm_(rm) {
 }
 
@@ -84,6 +85,7 @@ ITemplateBroker::~ITemplateBroker(){
             delete i->second;
         }
     }
+
 }
 
 /**
@@ -103,6 +105,7 @@ bool
 ITemplateBroker::isAnyResourceAvailable(
     int cycle,
     const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     int resultCount = allAvailableResources(cycle, node).count();
     return resultCount > 0;
 }
@@ -123,6 +126,7 @@ SchedulingResourceSet
 ITemplateBroker::allAvailableResources(
     int cycle,
     const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     Moves moves;
     Immediates immediates;
     MoveNode& testedNode = const_cast<MoveNode&>(node);
@@ -148,13 +152,14 @@ ITemplateBroker::allAvailableResources(
 void
 ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
+    cycle = instructionIndex(cycle);
 
     if (node.isSourceImmediateRegister()) {
         // Gets data from Immediate Unit broker, indirectly
         TerminalImmediate* tempImm =
             dynamic_cast<TerminalImmediate*>(
                 rm_->immediateValue(node)->copy());
-        int defCycle = rm_->immediateWriteCycle(node);
+        int defCycle = instructionIndex(rm_->immediateWriteCycle(node));
         TerminalRegister* tmpReg =
             dynamic_cast<TerminalRegister*>(node.move().source().copy());
         Immediate* imm = new Immediate(tempImm, tmpReg);
@@ -197,7 +202,7 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         // In case template was already assigned and it changes
         if (ins->instructionTemplate().name() != iTemplate.name()) {
             SchedulingResource& oldRes =
-                resourceOf(ins->instructionTemplate());
+                *resourceOf(ins->instructionTemplate());
             ITemplateResource& oldTemplateRes =
                 dynamic_cast<ITemplateResource&>(oldRes);
             oldTemplateRes.unassign(cycle);
@@ -235,6 +240,7 @@ ITemplateBroker::assignImmediate(
     int cycle,
     Immediate& immediate)
     throw (Exception) {
+    cycle = instructionIndex(cycle);
 
     try {
         // Find a template for definition cycle
@@ -255,7 +261,7 @@ ITemplateBroker::assignImmediate(
                     instructions_, cycle);
             // Remove old template assignment
             SchedulingResource& oldRes =
-                resourceOf(ins->instructionTemplate());
+                *resourceOf(ins->instructionTemplate());
             ITemplateResource& oldTemplateRes =
                 dynamic_cast<ITemplateResource&>(oldRes);
             oldTemplateRes.unassign(cycle);
@@ -359,6 +365,7 @@ void
 ITemplateBroker::unassignImmediate(
     int cycle,
     const ImmediateUnit& immediateUnit) {
+    cycle = instructionIndex(cycle);
 
     if (!MapTools::containsKey(instructions_, cycle)) {
         return;
@@ -366,7 +373,7 @@ ITemplateBroker::unassignImmediate(
     Instruction* ins =
         MapTools::valueForKey<Instruction*>(instructions_, cycle);
     const InstructionTemplate& iTemplate = ins->instructionTemplate();
-    SchedulingResource& res = resourceOf(iTemplate);
+    SchedulingResource& res = *resourceOf(iTemplate);
     ITemplateResource& templateRes = dynamic_cast<ITemplateResource&>(res);
 
     templateRes.unassign(cycle);
@@ -443,20 +450,25 @@ bool
 ITemplateBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
     Move& move = const_cast<MoveNode&>(node).move();
 
+    cycle = instructionIndex(cycle);
     if (!move.isInInstruction()) {
         return false;
     }
     const InstructionTemplate& iTemplate =
         move.parent().instructionTemplate();
-    bool alreadyAssigned = false;
-    // When node is assigned, it's old parent is stored, thus if the
-    // old parent is stored, node was assigned
-    if (MapTools::containsKey(oldParentInstruction_, &node)) {
-        alreadyAssigned = true;
+
+    // Cannot be already assigned if template is null.
+    if (&iTemplate != &NullInstructionTemplate::instance()) {
+        // When node is assigned, it's old parent is stored, thus if the
+        // old parent is stored, node was assigned
+        if (MapTools::containsKey(oldParentInstruction_, &node)) {
+            SchedulingResource* res = resourceOf(iTemplate);
+            if ( res != NULL && res->isInUse(cycle)) {
+                return true;
+            }
+        }
     }
-    return (&iTemplate != &NullInstructionTemplate::instance())
-        && hasResourceOf(iTemplate) && resourceOf(iTemplate).isInUse(cycle)
-        && alreadyAssigned;
+    return false;
 }
 
 /**
@@ -491,7 +503,7 @@ ITemplateBroker::buildResources(const TTAMachine::Machine& target) {
     for (int i = 0; i < templateNavi.count(); i++) {
         InstructionTemplate* itemplate = templateNavi.item(i);
         ITemplateResource* itemplateResource =
-            new ITemplateResource(itemplate->name());
+            new ITemplateResource(itemplate->name(), initiationInterval_);
         ResourceBroker::addResource(*itemplate, itemplateResource);
     }
 
@@ -581,6 +593,7 @@ ITemplateBroker::isITemplateBroker() const {
  */
 TTAProgram::Instruction*
 ITemplateBroker::instruction(int cycle) {
+    cycle = instructionIndex(cycle);
     if (!MapTools::containsKey(instructions_, cycle)) {
         Moves moves;
         Immediates immediates;
@@ -629,6 +642,7 @@ ITemplateBroker::findITemplates(
     Moves moves,
     Immediates immediates) const {
 
+    cycle = instructionIndex(cycle);
     SchedulingResourceSet result;
     Instruction* ins = NULL;
     // Read in content of instruction if there is something already
@@ -804,6 +818,11 @@ ITemplateBroker::clearOldResources() {
     oldParentInstruction_.clear();
 }
 
+/**
+ * Clears all bookkeeping for the broker.
+ *
+ * the RM can then be reused for another basic block.
+ */
 void
 ITemplateBroker::clear() {
     ResourceBroker::clear();

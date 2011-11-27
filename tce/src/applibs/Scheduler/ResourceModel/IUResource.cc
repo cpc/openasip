@@ -54,8 +54,10 @@ IUResource::IUResource(
     const int registers,
     const int width,
     const int latency,
-    const bool signExtension)
-    : SchedulingResource(name) , registerCount_(registers), width_(width),
+    const bool signExtension,
+    unsigned int initiationInterval)
+    : SchedulingResource(name, initiationInterval),
+    registerCount_(registers), width_(width),
     latency_(latency) , signExtension_(signExtension){
     for (int i = 0; i < registerCount(); i++) {
         ResourceRecordVectorType vt;
@@ -79,13 +81,27 @@ IUResource::~IUResource() {
  */
 bool
 IUResource::isInUse(const int cycle) const {
+    int modCycle = instructionIndex(cycle);
     for (int i = 0; i < registerCount(); i++) {
         for (int j = 0;
             j < static_cast<int>(resourceRecord_.at(i).size());
             j++) {
-            if (cycle > resourceRecord_.at(i).at(j)->definition_ &&
-                cycle < resourceRecord_.at(i).at(j)->use_) {
-                return true;
+            int otherDef = resourceRecord_.at(i).at(j)->definition_;
+            int modOtherDef = instructionIndex(otherDef);
+            int otherUse = resourceRecord_.at(i).at(j)->use_;
+            int modOtherUse = instructionIndex(otherUse);
+            
+            // no overlap in old.
+            if (modOtherUse > modOtherDef) {
+                // ordinary comparison, use between old def and use?
+                if (modCycle > modOtherDef && modCycle < modOtherUse) {
+                    return true;
+                }
+            } else { 
+                // before use before use, or after def of other
+                if (modCycle > modOtherDef || modCycle <= modOtherUse) {
+                    return true;
+                }
             }
         }
     }
@@ -99,15 +115,30 @@ IUResource::isInUse(const int cycle) const {
  */
 bool
 IUResource::isAvailable(const int cycle) const {
+    int modCycle = instructionIndex(cycle);
     for (int i = 0; i < registerCount(); i++) {
         bool marker = false;
         for (int j = 0 ;
             j < static_cast<int>(resourceRecord_.at(i).size());
             j++) {
-            if (cycle > resourceRecord_.at(i).at(j)->definition_ &&
-                cycle < resourceRecord_.at(i).at(j)->use_) {
-                marker = true;
-                break;
+            int otherDef = resourceRecord_.at(i).at(j)->definition_;
+            int modOtherDef = instructionIndex(otherDef);
+            int otherUse = resourceRecord_.at(i).at(j)->use_;
+            int modOtherUse = instructionIndex(otherUse);
+
+            // no overlap in old.
+            if (modOtherUse > modOtherDef) {
+                // ordinary comparison, use between old def and use?
+                if (modCycle > modOtherDef && modCycle < modOtherUse) {
+                    marker = true;
+                    break;
+                }
+            } else { 
+                // before use before use, or after def of other
+                if (modCycle > modOtherDef || modCycle <= modOtherUse) {
+                    marker = true;
+                    break;
+                }
             }
         }
         // None of the intervals for registers overlapped cycle, register
@@ -277,9 +308,12 @@ IUResource::canAssign(
         }
         for (int i = 0; i < relatedResourceGroupCount(); i++) {
             for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
-                if (relatedResource(i,j).isOutputPSocketResource() &&
-                    !relatedResource(i,j).isInUse(useCycle)) {
-                    return true;
+                SchedulingResource& relRes = relatedResource(i,j);
+                // related res is  counted as modcycles.
+                if (relRes.isOutputPSocketResource()) {
+                    if (!relRes.isInUse(instructionIndex(useCycle))) {
+                        return true;
+                    } 
                 }
             }
         }
@@ -417,34 +451,63 @@ IUResource::validateRelatedGroups() {
  */
 int
 IUResource::findAvailable(const int defCycle, const int useCycle) const {
+    int modDef = instructionIndex(defCycle);
+    int modUse = instructionIndex(useCycle);
     for (int i = 0; i < registerCount(); i++) {
         bool marker = false;
         for (int j = 0;
             j < static_cast<int>(resourceRecord_.at(i).size());
             j++) {
-            if ((useCycle > resourceRecord_.at(i).at(j)->definition_) &&
-                (useCycle <= resourceRecord_.at(i).at(j)->use_)) {
-                // Test if useCycle is already within any assigned interval
-                // for register, if it is we can not use it
-                // Allows write in same cycle as reading previous
-                marker = true;
-                break;
+
+            int otherDef = resourceRecord_.at(i).at(j)->definition_;
+            int modOtherDef = instructionIndex(otherDef);
+            int otherUse = resourceRecord_.at(i).at(j)->use_;
+            int modOtherUse = instructionIndex(otherUse);
+            
+            // no overlap in old.
+            if (modOtherUse > modOtherDef) {
+                // ordinary comparison, use between old def and use?
+                if (modUse > modOtherDef && modUse <= modOtherUse) {
+                    marker = true;
+                    break;
+                }
+                
+                if (modDef >= modOtherDef && modDef < modOtherUse) {
+                    marker = true;
+                    break;
+                }
+
+            } else { 
+                // before use before use, or after def of other
+                if (modUse > modOtherDef || modUse <= modOtherUse) {
+                    marker = true;
+                    break;
+                }
+                
+                if (modDef >= modOtherDef || modDef < modOtherUse) {
+                    marker = true;
+                    break;
+                }
             }
-            if ((defCycle >= resourceRecord_.at(i).at(j)->definition_) &&
-                (defCycle < resourceRecord_.at(i).at(j)->use_)) {
-                // Test if defCycle is already within any assigned interval
-                // for register, if it is we can not use it
-                marker = true;
-                break;
-            }
-            if ((defCycle <= resourceRecord_.at(i).at(j)->definition_) &&
-                (useCycle >= resourceRecord_.at(i).at(j)->use_)) {
-                // Test if defCycle is before definition of register
-                // and useCycle is after the use of register (means the
-                // already defined value would be inside interval we want to
-                // use.
-                marker = true;
-                break;
+
+            // other def between these. case when other completely
+            // iside this range. can be detected be either other
+            // use or other def. checks above handle cases where
+            // tries to def, def, use, use
+
+            if (modDef < modUse) {
+                // no overlap in this. ordinary check.
+                if (modOtherDef >= modDef && modOtherDef < modUse) {
+                    marker = true;
+                    break;
+                }
+            } else {
+                // we have overlap.
+
+                if (modOtherDef >= modDef || modOtherDef < modUse) {
+                    marker = true;
+                    break;
+                }
             }
         }
         if (marker == false) {
@@ -465,6 +528,8 @@ IUResource::clearOldResources() {
         }
     }
 }
+
+
 
 /**
  * Destructor for internal storage for assignment records.

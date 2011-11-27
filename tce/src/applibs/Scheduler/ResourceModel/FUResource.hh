@@ -45,7 +45,8 @@
 
 class FUResource : public SchedulingResource {
 public:
-    FUResource(const std::string& name, int operationCount);
+    FUResource(const std::string& name, int operationCount,
+            unsigned int initiationInterval = 0);
     virtual ~FUResource();
 
     virtual bool isInUse(const int cycle) const;
@@ -57,6 +58,7 @@ public:
         throw (Exception);
 
     virtual bool operator < (const SchedulingResource& other) const;
+
 private:
     // Copying forbidden
     FUResource(const FUResource&);

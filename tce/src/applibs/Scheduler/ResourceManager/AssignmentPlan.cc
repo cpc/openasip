@@ -46,7 +46,8 @@ using std::string;
  * Constructor.
  */
 AssignmentPlan::AssignmentPlan():
-    node_(NULL), cycle_(0), currentBroker_(0), resourceFound_(false) {
+    node_(NULL), cycle_(0), currentBroker_(0), resourceFound_(false),
+    lastTriedNode_(NULL), lastTriedCycle_(-1) {
 }
 
 /**
@@ -233,12 +234,114 @@ AssignmentPlan::tryNextAssignment() {
  * current broker: because all pending assignments have been tried, or
  * because no valid assignment at all is possible.
  *
+ * If the assignment being tested was last of the assignments in the plan
+ * (which means move can be assigned completely) stores the information
+ * about used resources into the last working assignment cache.
+ *
  * @return True if at least one tentative assignment is possible with
  * the current broker
  */
 bool
 AssignmentPlan::isTestedAssignmentPossible() {
-    return applicableAssignments_[currentBroker_]->isAssignmentPossible();
+    bool possible = 
+        applicableAssignments_[currentBroker_]->isAssignmentPossible();
+    if (possible) {
+        // is this the last broker?
+        if (currentBroker_ == (int)(applicableAssignments_.size())-1) {
+            // add this to the cache. 
+            // first clear the cache.
+            lastTestedWorkingAssignment_.clear();
+            // then set the cache for this assignment.
+            lastTriedNode_ = node_;
+            lastTriedCycle_ = cycle_;
+            for (unsigned int i = 0; i < applicableAssignments_.size()-1; 
+                 i++) {
+                PendingAssignment& pa = *applicableAssignments_[i];
+                lastTestedWorkingAssignment_.push_back(
+                    std::pair<ResourceBroker*, SchedulingResource*>(
+                        &pa.broker(),
+                        &pa.resource(pa.lastTriedAssignment())));
+            }
+            // Last one need to be handled separately because
+            // tryNext has not increased lastTriedAssignment.
+            if (!applicableAssignments_.empty()) {
+                PendingAssignment& pa = *applicableAssignments_[
+                    applicableAssignments_.size()-1];
+                lastTestedWorkingAssignment_.push_back(
+                    std::pair<ResourceBroker*, SchedulingResource*>(
+                        &pa.broker(),
+                        &pa.resource(pa.lastTriedAssignment()+1)));
+            }
+        }
+    } else {
+        debugLogRM("No applicable assignments at all:");
+        debugLogRM(currentBroker().brokerName());
+    }
+    return possible;
+}
+
+/**
+ * Tries to assign with same resources that which previous canassign
+ * succeeded.
+ *
+ * If cannot assign with these resources, clear the information of previous
+ * successfull canassign and return false.
+ * If succeeds, the node is assigned.
+ */
+bool
+AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle) {
+    // is the cache valid for this node?
+    if (lastTriedNode_ != &node || 
+        lastTriedCycle_ != cycle ||
+        lastTestedWorkingAssignment_.empty()) {
+        clearCache();
+        return false;
+    }
+
+    // test that same brokers are applicable for both cached and current.
+    // may change in case of bypassing.
+    for (size_t j = 0, i = 0; j < brokers_.size(); j++) {
+        ResourceBroker* broker = brokers_[j];
+        if (broker->isApplicable(node)) {
+            if (i >= lastTestedWorkingAssignment_.size() || 
+                lastTestedWorkingAssignment_[i].first != broker) {
+                clearCache();
+                return false;
+            }
+            i++;
+        } else {
+            // if not applicable, must not found in the cached brokers.
+            if (i < lastTestedWorkingAssignment_.size() &&
+                lastTestedWorkingAssignment_[i].first == broker) {
+                clearCache();
+                return false;
+            }
+        }
+    }
+    node.setCycle(cycle);
+
+    for (int i = 0; i < (int)lastTestedWorkingAssignment_.size(); i++) {
+        std::pair<ResourceBroker*, SchedulingResource*>& ca =
+            lastTestedWorkingAssignment_[i];
+        if (!ca.first->isAvailable(*ca.second, node, cycle)) {
+            // failed. backtrack all previous brokers.
+            // unassign, clear cache and return false.
+            for (i--; i >= 0; i--) {
+                std::pair<ResourceBroker*, SchedulingResource*>& ca =
+                    lastTestedWorkingAssignment_[i];
+                ca.first->unassign(node);
+            }
+            node.unsetCycle();
+            clearCache();
+            return false;
+        } else {
+            // can assign. do the assign.
+            ca.first->assign(cycle, node, *ca.second);
+        }
+    }
+    // everything succeeded. clear cache(state of rm changed) and return true.
+    clearCache();
+    return true;
 }
 
 /**
@@ -314,5 +417,13 @@ AssignmentPlan::clear() {
     for (size_t i = 0; i < assignments_.size(); i++) {
         assignments_[i]->clear();
     }
+    clearCache();
     applicableAssignments_.clear();
+    
+}
+
+void AssignmentPlan::clearCache() {
+    lastTestedWorkingAssignment_.clear();
+    lastTriedCycle_ = -1;
+    lastTriedNode_ = NULL;
 }

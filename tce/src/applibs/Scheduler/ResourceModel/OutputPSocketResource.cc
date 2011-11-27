@@ -35,6 +35,8 @@
 #include "MapTools.hh"
 #include "Move.hh"
 #include "MoveNode.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 #include "Terminal.hh"
 
 /**
@@ -42,8 +44,8 @@
  *
  * @param name Name of resource.
  */
-OutputPSocketResource::OutputPSocketResource(const std::string& name) :
-    PSocketResource(name) {}
+OutputPSocketResource::OutputPSocketResource(const std::string& name, unsigned int initiationInterval) :
+    PSocketResource(name, initiationInterval) {}
 
 /**
  * Destructor.
@@ -80,13 +82,10 @@ void
 OutputPSocketResource::assign(const int cycle, MoveNode& node)
     throw (Exception) {
     PSocketResource::assign(cycle, node);
-    if (node.move().source().isFUPort() ||
-        node.move().source().isImmediateRegister()) {
-        if (!MapTools::containsKey(storedPorts_, cycle)) {
-            const TTAMachine::Port* newPort = &node.move().source().port();
-            storedPorts_.insert(std::pair<int, const TTAMachine::Port*>(
-                cycle, newPort));
-        }
+    if (!MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+        const TTAMachine::Port* newPort = &node.move().source().port();
+        storedPorts_.insert(std::pair<int, const TTAMachine::Port*>(
+                                instructionIndex(cycle), newPort));
     }
 }
 
@@ -100,8 +99,8 @@ void
 OutputPSocketResource::unassign(const int cycle, MoveNode& node)
     throw (Exception) {
     PSocketResource::unassign(cycle, node);
-    if (MapTools::containsKey(storedPorts_, cycle)) {
-        storedPorts_.erase(cycle);
+    if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+        storedPorts_.erase(instructionIndex(cycle));
     }
 }
 
@@ -116,21 +115,63 @@ bool
 OutputPSocketResource::canAssign(const int cycle, const MoveNode& node)
     const {
     MoveNode& mNode = const_cast<MoveNode&>(node);
+
     if (mNode.move().source().isFUPort()) {
-        if (MapTools::containsKey(storedPorts_, cycle)) {
+        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
             const TTAMachine::Port* storedP =
                 MapTools::valueForKey<const TTAMachine::Port*>(
-                    storedPorts_, cycle);
+                    storedPorts_, instructionIndex(cycle));
             if (&mNode.move().source().port() != storedP) {
                 return false;
             }
         }
     }
     if (mNode.move().source().isImmediateRegister()) {
-        if (MapTools::containsKey(storedPorts_, cycle)) {
+        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
             return false;
         }
     }
+    if (node.move().source().isGPR()) {
+        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+            const TTAMachine::Port* storedP =
+                MapTools::valueForKey<const TTAMachine::Port*>(
+                    storedPorts_, instructionIndex(cycle));
+            if (&mNode.move().source().port() != storedP) {
+                return false;
+            }
+        }
+
+        ResourceRecordType::const_iterator iter = resourceRecord_.find(cycle);
+        if (iter != resourceRecord_.end()) {
+            std::set<MoveNode*> movesInCycle = iter->second;
+            for (std::set<MoveNode*>::iterator it = movesInCycle.begin();
+                 it != movesInCycle.end(); it++) {
+#ifdef NO_OVERCOMMIT
+                return false;
+#else
+                MoveNode* mn = *it;
+                if (node.move().isUnconditional() || 
+                    mn->move().isUnconditional()) {
+                    if (!node.move().source().equals(
+                            mn->move().source())) {
+                        return false;
+                    } else {
+                        continue;
+                    }
+                    
+                }
+                if (!node.move().guard().guard().isOpposite(
+                        mn->move().guard().guard())) {
+                    if (!node.move().source().equals(
+                            mn->move().source())) {
+                        return false;
+                    }
+                }
+#endif
+            }
+        }
+    }
+
     return true;
 }
 

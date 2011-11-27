@@ -34,12 +34,15 @@
 #include "PSocketResource.hh"
 #include "MapTools.hh"
 #include "Conversion.hh"
+#include "MoveNode.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 /**
  * Constructor defining name of resource
  * @param name Name of resource
  */
-PSocketResource::PSocketResource(const std::string& name) :
-    SchedulingResource(name) {}
+PSocketResource::PSocketResource(const std::string& name, unsigned int initiationInterval) :
+    SchedulingResource(name, initiationInterval) {}
 
 /**
  * Empty constructor
@@ -57,10 +60,10 @@ PSocketResource::~PSocketResource() {}
  */
 bool
 PSocketResource::isInUse(const int cycle) const {
-    if (MapTools::containsKey(resourceRecord_, cycle)) {
-        if (MapTools::valueForKey<int>(resourceRecord_, cycle) > 0) {
-            return true;
-        }
+    ResourceRecordType::const_iterator iter =
+        resourceRecord_.find(instructionIndex(cycle));
+    if (iter != resourceRecord_.end() && iter->second.size() > 0) {
+        return true;
     }
     return false;
 }
@@ -73,7 +76,18 @@ PSocketResource::isInUse(const int cycle) const {
  */
 bool
 PSocketResource::isAvailable(const int cycle) const {
-    return !isInUse(cycle);
+    ResourceRecordType::const_iterator iter =
+        resourceRecord_.find(instructionIndex(cycle));
+    if (iter != resourceRecord_.end() && iter->second.size() > 0) {
+        const std::set<MoveNode*>& movesInCycle = iter->second;
+        for (std::set<MoveNode*>::const_iterator i = movesInCycle.begin();
+             i != movesInCycle.end(); i++) {
+            if ((*i)->move().isUnconditional()) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 /**
@@ -86,13 +100,9 @@ PSocketResource::isAvailable(const int cycle) const {
  * with canAssign() before assign() is called.
  */
 void
-PSocketResource::assign(const int cycle, MoveNode&)
+PSocketResource::assign(const int cycle, MoveNode& mn)
     throw (Exception) {
-    if (MapTools::containsKey(resourceRecord_, cycle)) {
-        resourceRecord_[cycle]++;
-    } else {
-        resourceRecord_[cycle] = 1;
-    }
+    resourceRecord_[instructionIndex(cycle)].insert(&mn);
     increaseUseCount();
     return;
 }
@@ -105,10 +115,10 @@ PSocketResource::assign(const int cycle, MoveNode&)
  * @throw In case the PSocket was not assigned before.
  */
 void
-PSocketResource::unassign(const int cycle, MoveNode&)
+PSocketResource::unassign(const int cycle, MoveNode& mn)
     throw (Exception) {
     if (isInUse(cycle)) {
-        resourceRecord_[cycle]--;
+        resourceRecord_[instructionIndex(cycle)].erase(&mn);
         decreaseUseCount();
         return;
     }
@@ -124,12 +134,29 @@ PSocketResource::unassign(const int cycle, MoveNode&)
  * @return true if node can be assigned to cycle
  */
 bool
-PSocketResource::canAssign(const int cycle, const MoveNode&) const {
-    if (isAvailable(cycle)) {
-        return true;
-    } else {
-        return false;
+PSocketResource::canAssign(const int cycle, const MoveNode& node) const {
+
+    ResourceRecordType::const_iterator iter = resourceRecord_.find(cycle);
+    if (iter != resourceRecord_.end()) {
+        const std::set<MoveNode*>& movesInCycle = iter->second;
+        for (std::set<MoveNode*>::const_iterator i = movesInCycle.begin();
+             i != movesInCycle.end(); i++) {
+            MoveNode* mn = *i;
+#ifdef NO_OVERCOMMIT
+            return false;
+#else
+            if (node.move().isUnconditional() || 
+                mn->move().isUnconditional()) {
+                return false;
+            }
+            if (!node.move().guard().guard().isOpposite(
+                    mn->move().guard().guard())) {
+                return false;
+            }
+#endif
+        }
     }
+    return true;
 }
 
 /**

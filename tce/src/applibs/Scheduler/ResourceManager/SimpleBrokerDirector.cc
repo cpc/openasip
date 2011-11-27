@@ -33,6 +33,7 @@
 
 #include <string>
 #include <climits>
+#include <typeinfo>
 
 #include "Application.hh"
 #include "SimpleBrokerDirector.hh"
@@ -49,6 +50,7 @@
 #include "IUResource.hh"
 #include "Immediate.hh"
 #include "MapTools.hh"
+#include "SchedulerCmdLineOptions.hh"
 #include "AssocTools.hh"
 #include "POMDisassembler.hh"
 #include "ResourceManager.hh"
@@ -60,19 +62,31 @@
 using std::string;
 using namespace TTAProgram;
 
-#define SCHEDULING_WINDOW_SIZE 140
-
 /**
  * Constructor.
  *
  * @param machine Target machine.
  * @param plan Resource assignment plan.
+ * @param ii Initiation interval.
  */
 SimpleBrokerDirector::SimpleBrokerDirector(
     const TTAMachine::Machine& machine,
-    AssignmentPlan& plan) :
-    BrokerDirector(machine, plan), busCount_(machine.busNavigator().count()) {
+    AssignmentPlan& plan,
+    unsigned int ii):
+    BrokerDirector(machine, plan),
+    initiationInterval_(ii), schedulingWindow_(140),
+    busCount_(machine.busNavigator().count()) {
     knownMaxCycle_ = -1;
+
+#if 0
+   // Scheduling window is not supported in the devel branch at the moment.
+    if (Application::cmdLineOptions() != NULL) {
+        SchedulerCmdLineOptions* options =
+            dynamic_cast<SchedulerCmdLineOptions*>(
+                Application::cmdLineOptions());
+        schedulingWindow_ = options->schedulingWindowSize();
+    }
+#endif
 }
 
 /**
@@ -131,7 +145,7 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
         placedInCycle = node.cycle();
     }
     plan_->setRequest(cycle, node);
-    
+
     bool success = false;
     while (!success) {
 #ifdef DEBUG_RM
@@ -153,7 +167,6 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
         } else if (&plan_->currentBroker() == &plan_->lastBroker()) {
             plan_->resetAssignments();
             success = true;
-
         } else {
             plan_->tryNextAssignment();
             plan_->advance();
@@ -162,6 +175,7 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
     // restore original resources of node
     node.move().setSource(oldRes.src_);
     oldRes.src_ = NULL;
+
     node.move().setDestination(oldRes.dst_);
     oldRes.dst_ = NULL;
     node.move().setBus(*oldRes.bus_);
@@ -172,11 +186,7 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
     if (placedInCycle != -1) {
         node.setCycle(placedInCycle);
     }
-    if (success) {
-        return true;
-    } else {
-        return false;
-    }
+    return success;
 }
 
 /**
@@ -197,12 +207,20 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
 void
 SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     throw (Exception) {
+    if (cycle < 0) {
+        throw InvalidData(__FILE__, __LINE__, __func__, 
+                          "Negative cycles not supported by RM");
+    }
+    if (cycle == INT_MAX) {
+        throw InvalidData(__FILE__, __LINE__, __func__, 
+                          "INT_MAX cycle not supported by RM");
+    }
+
     if (node.isPlaced() && node.cycle() != cycle) {
         string msg =
             "Node is already placed in a cycle different from given cycle.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
-
     OriginalResources* oldRes = new OriginalResources(
         node.move().source().copy(),
         node.move().destination().copy(),
@@ -219,17 +237,20 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     origResMap_.insert(
         std::pair<const MoveNode*, OriginalResources*>(&node, oldRes));
 
-    plan_->setRequest(cycle, node);
+    bool success = plan_->tryCachedAssignment(node, cycle);
 
-    bool success = false;
+    plan_->setRequest(cycle, node);
+    assert( cycle != -1 );
+
     while (!success) {
         if (!plan_->isTestedAssignmentPossible()) {
             if (&plan_->currentBroker() == &plan_->firstBroker()) {
                 string msg = "No resource assignment found for ";
-                msg += node.toString() + " in cycle ";
-                msg += Conversion::toString(cycle) + "!";
+                msg += node.toString() + "!\n" ;
+                msg += "Instruction at cycle " + Conversion::toString(cycle);
+                msg += " is: ";
+                msg += POMDisassembler::disassemble(*instruction(cycle));
                 throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-
             } else {
                 plan_->backtrack();
             }
@@ -246,7 +267,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     if (knownMaxCycle_ < cycle) {
         knownMaxCycle_ = cycle;
     }
-    moveCounts_[cycle]++;
+    moveCounts_[instructionIndex(cycle)]++;
 }
 
 /**
@@ -272,8 +293,9 @@ SimpleBrokerDirector::unassign(MoveNode& node)
 
     int nodeCycle = node.cycle();
 
-    moveCounts_[nodeCycle]--;
+    moveCounts_[instructionIndex(nodeCycle)]--;
 
+    plan_->clearCache();
     plan_->resetAssignments(node);
 
     if (!MapTools::containsKey(origResMap_, &node)) {
@@ -309,7 +331,7 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // immediates
     if (nodeCycle == knownMaxCycle_) {
         while(nodeCycle >= 0) {
-            // this may memory leak 
+            // this may memory leak
             Instruction* tempIns = instruction(nodeCycle);
             if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
                 knownMaxCycle_--;
@@ -358,31 +380,43 @@ int
 SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
     throw (Exception) {
 
-    // limit the scheduling window. 
+    // limit the scheduling window.
     // makes code for minimal.adf schedule in reasonable time
-    if (cycle < knownMaxCycle_ - SCHEDULING_WINDOW_SIZE) {
-        cycle = knownMaxCycle_ - SCHEDULING_WINDOW_SIZE;
+    if (cycle < knownMaxCycle_ - schedulingWindow_) {
+        cycle = knownMaxCycle_ - schedulingWindow_;
     }
 
     int minCycle = executionPipelineBroker().earliestCycle(cycle, node);
 
     if (minCycle == -1) {
         // No assignment possible
-        debugLogRM("returning -1");
+        debugLogRM("No assignment possible from executionPipelineBroker");
         return -1;
     }
 
     minCycle = std::max(minCycle, cycle);
-    int lastCycleToTest = -1;
-    lastCycleToTest = largestCycle();
+    int lastCycleToTest;
+    if (initiationInterval_ != 0) {
+        lastCycleToTest = cycle + initiationInterval_ - 2;
+    } else {
+        lastCycleToTest = largestCycle();
+    }
 
     while (!canAssign(minCycle, node)) {
-        if (minCycle > lastCycleToTest + 1) { 
+        if (minCycle > lastCycleToTest + 1) {
             // Even on empty instruction it is not possible to assign
-            debugLogRM("returning -1");
+            debugLogRM(
+                "A problem with ADF, cannot schedule even on "
+                "an empty instruction.");
             return -1;
         }
-        minCycle++;
+        // find next cycle where exec pipeline could be free,
+        // do not test every cycle with canassign.
+        minCycle = executionPipelineBroker().earliestCycle(minCycle + 1, node);
+        if (minCycle == -1) {
+            debugLogRM("No assignment possible due to executionPipelineBroker.");
+            return -1;
+        }
     }
     return minCycle;
 }
@@ -693,14 +727,14 @@ SimpleBrokerDirector::largestCycle() const{
  * If this method is called, resource manager does not delete it's
  * instructions when it it destroyed.
  */
-void 
+void
 SimpleBrokerDirector::loseInstructionOwnership(int cycle) {
     instructionTemplateBroker().loseInstructionOwnership(cycle);
 }
 
 /**
  * Finds the original terminal with value of immediate.
- * 
+ *
  * @param node node with immediate register source
  * @return terminal with immediate value
  */
@@ -711,7 +745,7 @@ SimpleBrokerDirector::immediateValue(const MoveNode& node) {
 
 /**
  * Finds cycle in which the immediate that is read by node is written.
- * 
+ *
  * @param node with source immediate register
  * @return cycle in which immediate is written to register
  */
@@ -722,9 +756,9 @@ SimpleBrokerDirector::immediateWriteCycle(const MoveNode& node) const {
 
 bool
 SimpleBrokerDirector::isTemplateAvailable(
-    int defCycle, 
+    int defCycle,
     TTAProgram::Immediate* immediate) const {
-    
+
     return instructionTemplateBroker().isTemplateAvailable(
         defCycle, immediate);
 }
@@ -734,11 +768,30 @@ SimpleBrokerDirector::isTemplateAvailable(
  * moves. After this call these cannot be unassigned, but new moves which
  * are assigned after this call can still be unassigned.
  */
-void 
+void
 SimpleBrokerDirector::clearOldResources() {
     AssocTools::deleteAllValues(origResMap_);
     immediateUnitBroker().clearOldResources();
     instructionTemplateBroker().clearOldResources();
+}
+
+/**
+ * Return the instruction index corresponding to cycle.
+ *
+ * If modulo scheduling is not used (ie. initiation interval is 0), then
+ * index is equal to cycle.
+ *
+ * @param cycle Cycle to get instruction index.
+ * @return Return the instruction index for cycle.
+ */
+unsigned int
+SimpleBrokerDirector::instructionIndex(unsigned int cycle) const {
+
+    if (initiationInterval_ != 0) {
+        return cycle % initiationInterval_;
+    } else {
+        return cycle;
+    }
 }
 
 /**
@@ -751,4 +804,9 @@ SimpleBrokerDirector::clear() {
     knownMaxCycle_ = -1;
     moveCounts_.clear();
     plan_->clear();
+}
+
+void
+SimpleBrokerDirector::setDDG(const DataDependenceGraph* ddg) {
+    executionPipelineBroker().setDDG(ddg);
 }

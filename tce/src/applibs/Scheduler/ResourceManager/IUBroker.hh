@@ -57,7 +57,7 @@ class SimpleResourceManager;
 class IUBroker : public ResourceBroker {
 public:
     IUBroker(std::string);
-    IUBroker(std::string, SimpleResourceManager*);
+    IUBroker(std::string, SimpleResourceManager*, unsigned int initiationInterval = 0);
     virtual ~IUBroker();
 
     bool isAnyResourceAvailable(int useCycle, const MoveNode& node) const;
@@ -82,7 +82,7 @@ public:
     virtual bool isIUBroker() const;
     virtual TTAProgram::Terminal* immediateValue(const MoveNode& node) const;
     virtual int immediateWriteCycle(const MoveNode& node) const;
-
+    
     void clearOldResources();
 private:
     /// Target machine.

@@ -47,7 +47,7 @@ class BusResource : public SchedulingResource {
 public:
     BusResource(
         const std::string& name, int width, int limmSlotCount, int guardCount,
-        int immSize, int socketCount);
+        int immSize, int socketCount, unsigned int initiationInterval = 0);
     virtual ~BusResource();
 
     virtual bool isInUse(const int cycle) const;

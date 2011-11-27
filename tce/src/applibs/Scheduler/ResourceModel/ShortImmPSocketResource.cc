@@ -39,9 +39,10 @@
  */
 ShortImmPSocketResource::ShortImmPSocketResource(
     const std::string& name,
-    int immediateWidth, bool signExtends):
-        OutputPSocketResource(name), immediateWidth_(immediateWidth),
-        signExtends_(signExtends) {}
+    int immediateWidth, bool signExtends,
+    unsigned int initiationInterval):
+        OutputPSocketResource(name, initiationInterval),
+        immediateWidth_(immediateWidth), signExtends_(signExtends) {}
 
 /**
  * Destructor.

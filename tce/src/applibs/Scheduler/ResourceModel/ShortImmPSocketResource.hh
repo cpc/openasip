@@ -46,7 +46,8 @@ public:
     ShortImmPSocketResource(
         const std::string& name,
         int immediateWidth,
-        bool signExtends);
+        bool signExtends,
+        unsigned int initiationInterval = 0);
 
     virtual bool isShortImmPSocketResource() const;
 

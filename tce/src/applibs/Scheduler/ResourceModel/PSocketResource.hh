@@ -48,7 +48,7 @@
 class PSocketResource : public SchedulingResource {
 public:
     virtual ~PSocketResource();
-    PSocketResource(const std::string& name);
+    PSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
     virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;
@@ -60,16 +60,16 @@ public:
 
     void clear();
 protected:
-
-private:
     // Recording PSocket usage - cycle = value map
-    typedef std::map<int, int> ResourceRecordType;
+    typedef std::map<int, std::set<MoveNode*> > ResourceRecordType;
+
+    ResourceRecordType resourceRecord_;
+private:
     // Copying forbidden
     PSocketResource(const PSocketResource&);
     // Assignment forbidden
     PSocketResource& operator=(const PSocketResource&);
 
-    ResourceRecordType resourceRecord_;
 };
 
 #endif

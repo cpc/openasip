@@ -41,6 +41,10 @@
 
 class OutputPSocketResource;
 
+namespace TTAMachine {
+    class Port;
+}
+
 /**
  * An interface for scheduling resources of Resource Model
  * The derived class OutputFUResource
@@ -55,7 +59,7 @@ public:
     virtual bool canAssign(
         const int cycle,
         const MoveNode& node,
-        const OutputPSocketResource& pSocket) const;
+        const TTAMachine::Port& resultPort) const;
     virtual void assign(const int cycle, MoveNode& node)
         throw (Exception);
     virtual void unassign(const int cycle, MoveNode& node)

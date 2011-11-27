@@ -49,7 +49,11 @@ class SchedulingResource;
  */
 class SegmentBroker : public ResourceBroker {
 public:
-    SegmentBroker(std::string);
+    SegmentBroker(
+        std::string, 
+        ResourceBroker& ipsb,
+        ResourceBroker& opsb,
+        unsigned int initiationInterval = 0);
     virtual ~SegmentBroker();
 
     virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
@@ -62,6 +66,9 @@ public:
     virtual bool isApplicable(const MoveNode& node) const;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
+private:
+    ResourceBroker& inputPSocketBroker_;
+    ResourceBroker& outputPSocketBroker_;
 };
 
 #endif

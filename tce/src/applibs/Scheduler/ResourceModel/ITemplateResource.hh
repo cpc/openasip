@@ -47,7 +47,7 @@
 class ITemplateResource : public SchedulingResource {
 public:
     virtual ~ITemplateResource();
-    ITemplateResource(const std::string& name);
+    ITemplateResource(const std::string& name, unsigned int initiationInterval = 0);
 
     virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;
@@ -63,6 +63,7 @@ public:
         throw (Exception);
     virtual bool isITemplateResource() const;
     void clear();
+
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

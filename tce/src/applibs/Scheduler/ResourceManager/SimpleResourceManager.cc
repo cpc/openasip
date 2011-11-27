@@ -50,36 +50,13 @@ using namespace TTAProgram;
 /**
  * Constructor.
  *
- * @param machine Target machine.
+ * @param machine Target machine, ii Initiation interval.
  */
 SimpleResourceManager::SimpleResourceManager(
-    const TTAMachine::Machine& machine):
-    ResourceManager(machine), director_(NULL) {
+    const TTAMachine::Machine& machine, unsigned int ii):
+    ResourceManager(machine), director_(NULL),  initiationInterval_(ii) {
 
-    // instantiate brokers
-
-    std::vector<ResourceBroker*> brokers;
-
-    brokers.push_back(new InputFUBroker("InputFUBroker"));
-    brokers.push_back(new OutputFUBroker("OutputFUBroker"));
-    brokers.push_back(new ExecutionPipelineBroker("ExecutionPipelineBroker"));
-    brokers.push_back(new InputPSocketBroker("InputPSocketBroker"));
-    brokers.push_back(new IUBroker("IUBroker", this));
-    brokers.push_back(new OutputPSocketBroker("OutputPSocketBroker", this));
-    brokers.push_back(new BusBroker("BusBroker", machine));
-    brokers.push_back(new SegmentBroker("SegmentBroker"));
-    brokers.push_back(new ITemplateBroker("ITemplateBroker", this));
-
-    // build resource model and assignment plan
-
-    for (unsigned int i = 0; i < brokers.size(); i++) {
-        buildDirector_.addBroker(*brokers[i]);
-        plan_.insertBroker(*brokers[i]);    
-    }
-    
-    buildDirector_.build(machine);
-
-    director_ = new SimpleBrokerDirector(machine, plan_);
+    buildResourceModel(machine);
 }
 
 /**
@@ -90,16 +67,16 @@ SimpleResourceManager::SimpleResourceManager(
  */
 SimpleResourceManager* 
 SimpleResourceManager::createRM(
-    const TTAMachine::Machine& machine) {
-
-    std::list< SimpleResourceManager* >& pool = rmPool_[&machine];
-
-    if (pool.empty()) {
-        return new SimpleResourceManager(machine);
+    const TTAMachine::Machine& machine, unsigned int ii) {
+    std::map<int, std::list< SimpleResourceManager*> >& pool =
+        rmPool_[&machine];
+    std::list<SimpleResourceManager*>& iipool = pool[ii];
+    if (iipool.empty()) {
+        return new SimpleResourceManager(machine, ii);
     } else {
-        SimpleResourceManager* rm = pool.back();
-        pool.pop_back();
-        return rm; 
+        SimpleResourceManager* rm = iipool.back();
+        iipool.pop_back();
+        return rm;
     }
 }
 
@@ -109,11 +86,65 @@ SimpleResourceManager::createRM(
  * This puts the RM into a pool of resource managers which can be recycled.
  */
 void SimpleResourceManager::disposeRM(SimpleResourceManager* rm) {
-    std::list< SimpleResourceManager* >& pool = rmPool_[&rm->machine()];
-    pool.push_back(rm);
+    std::map<int, std::list< SimpleResourceManager*> >& pool =
+        rmPool_[&rm->machine()];
+    pool[rm->initiationInterval()].push_back(rm);
     rm->clear();
 }
 
+
+/**
+ * Creates brokers and builds resource model.
+ *
+ */
+void SimpleResourceManager::buildResourceModel(
+    const TTAMachine::Machine& machine) {
+    
+    // instantiate brokers
+
+    std::vector<ResourceBroker*> brokers;
+
+    InputFUBroker* ifb = 
+        new InputFUBroker("InputFUBroker", initiationInterval_);
+    OutputFUBroker* ofb = 
+        new OutputFUBroker("OutputFUBroker", initiationInterval_);
+    brokers.push_back(ifb);
+    brokers.push_back(ofb);
+    brokers.push_back(new ExecutionPipelineBroker(
+                          "ExecutionPipelineBroker", initiationInterval_));
+    InputPSocketBroker* ipsb = new InputPSocketBroker(
+        "InputPSocketBroker", *ifb, initiationInterval_);
+    brokers.push_back(ipsb);
+    brokers.push_back(new IUBroker("IUBroker", this, initiationInterval_));
+    OutputPSocketBroker* opsb = new OutputPSocketBroker(
+        "OutputPSocketBroker", *ofb, this, initiationInterval_);
+    brokers.push_back(opsb);
+    brokers.push_back(new BusBroker(
+                          "BusBroker", *ipsb, *opsb, machine, 
+                          initiationInterval_));
+    SegmentBroker* sb = new SegmentBroker(
+        "SegmentBroker", *ipsb, *opsb, initiationInterval_);
+    brokers.push_back(sb);
+    brokers.push_back(
+        new ITemplateBroker(
+            "ITemplateBroker", this, initiationInterval_));
+
+    ipsb->setSegmentBroker(*sb);
+    opsb->setSegmentBroker(*sb);
+    // build resource model and assignment plan
+
+    for (unsigned int i = 0; i < brokers.size(); i++) {
+        brokers[i]->setInitiationInterval(initiationInterval_);
+        buildDirector_.addBroker(*brokers[i]);
+        plan_.insertBroker(*brokers[i]);    
+    }
+
+    resources = brokers.size();
+    
+    buildDirector_.build(machine);
+
+    director_ = new SimpleBrokerDirector(machine, plan_, initiationInterval_);
+}
 
 /**
  * Destructor.
@@ -139,6 +170,10 @@ SimpleResourceManager::~SimpleResourceManager(){
  */
 bool
 SimpleResourceManager::canAssign(int cycle, MoveNode& node) const {
+#ifdef DEBUG_RM
+    Application::logStream() << "\tCanAssign: " << cycle << " " << 
+        node.toString() << std::endl;
+#endif
     return director_->canAssign(cycle, node);
 }
 
@@ -160,7 +195,15 @@ SimpleResourceManager::canAssign(int cycle, MoveNode& node) const {
 void
 SimpleResourceManager::assign(int cycle, MoveNode& node)
     throw (Exception) {
+#ifdef DEBUG_RM
+    Application::logStream() << "\tAssign: " << cycle << " " << 
+        node.toString() << std::endl;
+#endif
     director_->assign(cycle, node);
+#ifdef DEBUG_RM
+    Application::logStream() << "\tAssign: " << cycle << " " << 
+        node.toString() << " OK!" << std::endl;
+#endif
 }
 
 /**
@@ -177,6 +220,9 @@ SimpleResourceManager::assign(int cycle, MoveNode& node)
 void
 SimpleResourceManager::unassign(MoveNode& node)
     throw (Exception) {
+#ifdef DEBUG_RM
+    Application::logStream() << "\tUnAssign: " << node.toString() << std::endl;
+#endif
     director_->unassign(node);
 }
 
@@ -196,7 +242,12 @@ SimpleResourceManager::unassign(MoveNode& node)
 int
 SimpleResourceManager::earliestCycle(MoveNode& node) const
     throw (Exception) {
-    return director_->earliestCycle(node);
+    int ec =  director_->earliestCycle(node);
+#ifdef DEBUG_RM
+    Application::logStream() << "\tEC:" << node.toString() << std::endl;
+    Application::logStream() << "\t\tEC result is: " << ec << std::endl;
+#endif
+    return ec;
 }
 
 /**
@@ -216,7 +267,13 @@ SimpleResourceManager::earliestCycle(MoveNode& node) const
 int
 SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const
     throw (Exception) {
-    return director_->earliestCycle(cycle, node);
+    int ec = director_->earliestCycle(cycle, node);   
+#ifdef DEBUG_RM
+    Application::logStream() << "\tEC: " << cycle << " " << node.toString()
+                             << std::endl;
+    Application::logStream() << "\t\tEC result is: " << ec << std::endl;
+#endif
+    return ec;
 }
 
 /**
@@ -234,6 +291,10 @@ SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const
  */
 int
 SimpleResourceManager::latestCycle(MoveNode& node) const {
+#ifdef DEBUG_RM
+    Application::logStream() << "\tLC: " << node.toString()
+                             << std::endl;
+#endif
     return director_->latestCycle(node);
 }
 
@@ -253,6 +314,10 @@ SimpleResourceManager::latestCycle(MoveNode& node) const {
  */
 int
 SimpleResourceManager::latestCycle(int cycle, MoveNode& node) const {
+#ifdef DEBUG_RM
+    Application::logStream() << "\tLC: " << cycle << " " << node.toString()
+                             << std::endl;
+#endif
     return director_->latestCycle(cycle, node);
 }
 
@@ -332,7 +397,14 @@ SimpleResourceManager::supportsExternalAssignments() const {
  */
 int
 SimpleResourceManager::largestCycle() const{
+#ifdef DEBUG_RM
+    Application::logStream() << "\tLC." << std::endl;
+    int lc = director_->largestCycle();
+    Application::logStream() << "\tLC got: " << lc << std::endl;
+    return lc;
+#else
     return director_->largestCycle();
+#endif
 }
 
 /**
@@ -368,12 +440,84 @@ SimpleResourceManager::immediateWriteCycle(const MoveNode& node) const {
     return director_->immediateWriteCycle(node);
 }
 
+/**
+ * Return the instruction index corresponding to cycle.
+ *
+ * If modulo scheduling is not used (ie. initiation interval is 0), then
+ * index is equal to cycle.
+ *
+ * @param cycle Cycle to get instruction index.
+ * @return Return the instruction index for cycle.
+ */
+unsigned int
+SimpleResourceManager::instructionIndex(unsigned int cycle) const {
+    if (initiationInterval_ != 0) {
+        return cycle % initiationInterval_;
+    } else {
+        return cycle;
+    }
+}
+
 bool 
 SimpleResourceManager::isTemplateAvailable(
     int defCycle, 
     TTAProgram::Immediate* immediate) const {
     
     return director_->isTemplateAvailable(defCycle, immediate);
+}
+
+/**
+ * Return the total number of resources.
+ *
+ * @return Return the total number of resources.
+ */
+unsigned int 
+SimpleResourceManager::resourceCount() const {
+    return resources;
+}
+
+/**
+ * Print the contents of resource manager.
+ *
+ * @param stream target stream where to print
+ */
+void
+SimpleResourceManager::print(std::ostream& target) const {
+    if (initiationInterval_ == 0) {
+        buildDirector_.print(target, 10);
+    } else {
+        buildDirector_.print(target, initiationInterval_);
+    }
+
+}
+
+/**
+ *
+ * Print the contents of resource manager.
+ *
+ * @return Return string containing the resource table.
+ */
+std::string
+SimpleResourceManager::toString() const {
+
+    std::stringstream temp;
+
+    if (initiationInterval_ == 0) {
+        buildDirector_.print(temp, 10);
+    } else {
+        buildDirector_.print(temp, initiationInterval_);
+    }
+
+    std::string target = "";
+    std::string result = "";
+
+    while (getline(temp, target)) {
+        // read temp to target
+        target += "\n";
+        result += target;
+    };
+
+    return result;
 }
 
 /**
@@ -386,9 +530,9 @@ SimpleResourceManager::clearOldResources() {
     director_->clearOldResources();
 }
 
-/*
+/**
  * Clears a resource manager so that it can be reused for different BB.
- *
+ * 
  * After this call the state of the RM should be identical to a new RM.
  */
 void SimpleResourceManager::clear() {
@@ -397,5 +541,11 @@ void SimpleResourceManager::clear() {
     director_->clear();
 }
 
-std::map<const TTAMachine::Machine*, std::list<SimpleResourceManager*> > 
+void
+SimpleResourceManager::setDDG(const DataDependenceGraph* ddg) {
+    director_->setDDG(ddg);
+}
+
+std::map<const TTAMachine::Machine*, 
+         std::map<int, std::list< SimpleResourceManager*> > >
 SimpleResourceManager::rmPool_;

@@ -3,7 +3,8 @@ libresourcemodel_la_SOURCES = BusResource.cc ExecutionPipelineResource.cc \
 	FUResource.cc InputFUResource.cc InputPSocketResource.cc \
 	ITemplateResource.cc IUResource.cc OutputFUResource.cc \
 	OutputPSocketResource.cc PSocketResource.cc SchedulingResource.cc \
-	SegmentResource.cc ShortImmPSocketResource.cc
+	SegmentResource.cc ShortImmPSocketResource.cc \
+	ExecutionPipelineResourceTable.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -15,9 +16,10 @@ MACH_DIR = ${BASE_DIR}/mach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
+DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 RM_DIR = ${APPLIBS_DIR}/Scheduler/ResourceManager
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${PDG_DIR} -I${POM_DIR} -I${OSAL_DIR} \
--I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I${RM_DIR} \
+-I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I${DDG_DIR} -I${RM_DIR} \
 ${LLVM_CPPFLAGS}
 
 dist-hook:

@@ -53,6 +53,7 @@ class IUBroker;
 class ITemplateBroker;
 class BusBroker;
 class ExecutionPipelineBroker;
+class DataDependenceGraph;
 
 /**
  * A simple broker director.
@@ -61,7 +62,9 @@ class SimpleBrokerDirector : public BrokerDirector {
 public:
     SimpleBrokerDirector(
         const TTAMachine::Machine& machine,
-        AssignmentPlan& plan);
+        AssignmentPlan& plan,
+        unsigned int initiationInterval_);
+
     virtual ~SimpleBrokerDirector();
 
     virtual bool canAssign(int cycle, MoveNode& node) const;
@@ -89,6 +92,8 @@ public:
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
     void clearOldResources();
     void clear();
+    void setDDG(const DataDependenceGraph* ddg);
+
 private:
     struct OriginalResources {
         OriginalResources(
@@ -117,9 +122,17 @@ private:
     std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
     origResMap_;
     int knownMaxCycle_;
+    unsigned int initiationInterval_;
+
+    /// the number of instructions to look back in the schedule
+    /// for a free slot
+    int schedulingWindow_;
+
     // how many moves in each cycle, for quick bus check fail.
     std::map<int,int> moveCounts_;
     int busCount_;
+
+    unsigned int instructionIndex(unsigned int cycle) const;
 };
 
 #endif

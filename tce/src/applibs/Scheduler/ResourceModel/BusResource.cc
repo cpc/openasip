@@ -49,8 +49,8 @@
  */
 BusResource::BusResource(
     const std::string& name, int width, int limmSlotCount, int guardCount,
-    int immSize, int socketCount) : 
-    SchedulingResource(name), busWidth_(width), 
+    int immSize, int socketCount, unsigned int initiationInterval) : 
+    SchedulingResource(name, initiationInterval), busWidth_(width), 
     limmSlotCount_(limmSlotCount), guardCount_(guardCount), 
     immSize_(immSize), socketCount_(socketCount) {
 }
@@ -412,6 +412,8 @@ BusResource::unassign(
         msg += " can not be unassigned in cycle ";
         msg += Conversion::toString(cycle);
         msg += ", it was not in use!";
+        msg += " - ii:";
+        msg += Conversion::toString(initiationInterval_);
         throw ModuleRunTimeError(__FILE__, __LINE__,__func__, msg);
     }
 
@@ -567,16 +569,8 @@ BusResource::validateRelatedGroups() {
  */
 bool 
 BusResource::operator< (const SchedulingResource& other) const {
-    const BusResource *busr = dynamic_cast<const BusResource*>(&other);
+    const BusResource *busr = static_cast<const BusResource*>(&other);
     if (busr == NULL) {
-        return false;
-    }
-
-    // first priority are limm slots.
-    if (limmSlotCount_ < busr->limmSlotCount_) {
-        return true;
-    } 
-    if (limmSlotCount_ > busr->limmSlotCount_) {
         return false;
     }
 
@@ -593,6 +587,14 @@ BusResource::operator< (const SchedulingResource& other) const {
         return true;
     }
     if (socketCount_ > busr->socketCount_) {
+        return false;
+    }
+
+    // first priority are limm slots.
+    if (limmSlotCount_ < busr->limmSlotCount_) {
+        return true;
+    } 
+    if (limmSlotCount_ > busr->limmSlotCount_) {
         return false;
     }
 

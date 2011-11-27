@@ -39,8 +39,8 @@
  *
  * @param name Name of template.
  */
-ITemplateResource::ITemplateResource(const std::string& name):
-    SchedulingResource(name) {
+ITemplateResource::ITemplateResource(const std::string& name, unsigned int initiationInterval):
+    SchedulingResource(name, initiationInterval) {
 }
 
 /**
@@ -57,8 +57,8 @@ ITemplateResource::~ITemplateResource() {
  */
 bool
 ITemplateResource::isInUse(const int cycle) const {
-    if (MapTools::containsKey(resourceRecord_, cycle)) {
-        if (MapTools::valueForKey<int>(resourceRecord_, cycle) != 0) {
+    if (MapTools::containsKey(resourceRecord_, instructionIndex(cycle))) {
+        if (MapTools::valueForKey<int>(resourceRecord_, instructionIndex(cycle)) != 0) {
             return true;
         }
     }
@@ -95,9 +95,9 @@ ITemplateResource::assign(const int cycle)
     throw (Exception) {
     if (canAssign(cycle)) {
         if (MapTools::containsKey(resourceRecord_, cycle)){
-            resourceRecord_[cycle]++;
+            resourceRecord_[instructionIndex(cycle)]++;
         } else {
-            resourceRecord_[cycle] = 1;
+            resourceRecord_[instructionIndex(cycle)] = 1;
         }
     }
 }
@@ -120,7 +120,7 @@ void
 ITemplateResource::unassign(const int cycle)
     throw (Exception) {
     if (isInUse(cycle)) {
-        resourceRecord_[cycle]--;
+        resourceRecord_[instructionIndex(cycle)]--;
     }
 }
 
@@ -189,6 +189,7 @@ ITemplateResource::validateRelatedGroups() {
     }
     return true;
 }
+
 
 /**
  * Clears bookkeeping of the scheduling resource. 

@@ -155,7 +155,7 @@ PendingAssignment::forget() {
 }
 
 /**
- * Clears the pending assignmen. 
+ * Clears the pending assignment. 
  *
  * Does not unassign anything.
  */

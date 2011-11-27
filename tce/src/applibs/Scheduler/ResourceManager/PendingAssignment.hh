@@ -52,6 +52,9 @@ public:
     void undoAssignment();
     void forget();
     void clear();
+    SchedulingResource& resource(int index) {
+        return availableResources_.resource(index); }
+    int lastTriedAssignment() const { return lastTriedAssignment_; }
 private:
     /// Corresponding resource broker.
     ResourceBroker& broker_;

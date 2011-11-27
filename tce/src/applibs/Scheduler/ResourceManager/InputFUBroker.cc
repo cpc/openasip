@@ -49,6 +49,7 @@
 #include "AssocTools.hh"
 #include "TCEString.hh"
 #include "StringTools.hh"
+#include "UniversalFunctionUnit.hh"
 #include "ResourceManager.hh"
 #include "SchedulingResource.hh"
 #include "TerminalFUPort.hh"
@@ -62,7 +63,9 @@ using namespace TTAProgram;
 /**
  * Constructor.
  */
-InputFUBroker::InputFUBroker(std::string name): ResourceBroker(name) {
+InputFUBroker::InputFUBroker(std::string name,
+        unsigned int initiationInterval):
+    ResourceBroker(name, initiationInterval) {
 }
 
 /**
@@ -88,11 +91,10 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
     }
 
     Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& dst = dynamic_cast<TerminalFUPort&>(move.destination());
+    TerminalFUPort& dst = static_cast<TerminalFUPort&>(move.destination());
 
     SchedulingResourceSet resourceSet;
     ResourceMap::const_iterator resIter = resMap_.begin();
-
 
     if (dynamic_cast<const SpecialRegisterPort*>(&dst.port()) != NULL) {
         // only gcu applies
@@ -101,7 +103,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                 dynamic_cast<const ControlUnit*>((*resIter).first);
             if (gcu != NULL) {
                 InputFUResource* fuRes =
-                    dynamic_cast<InputFUResource*>((*resIter).second);
+                    static_cast<InputFUResource*>((*resIter).second);
                 if (fuRes->isAvailable(cycle)) {
                     resourceSet.insert(*fuRes);
                 }
@@ -142,27 +144,28 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                         if (hasResourceOf(fu)) {
                             debugLogRM(fu.name());
                             InputFUResource& fuRes =
-                                dynamic_cast<InputFUResource&>(
-                                    resourceOf(fu));
+                                static_cast<InputFUResource&>(
+                                    *resourceOf(fu));
                             // Find what is the port on a new FU for given
                             // operation index. Find a socket for testing.
                             HWOperation* hwOp = fu.operationLowercase(opName);
                             Socket* soc = hwOp->port(opIndex)->inputSocket();
 
-                            FUPort* tempPort =
-                                dynamic_cast<FUPort*>(hwOp->port(opIndex));                                
+                            Port* tempPort =
+                                hwOp->port(opIndex);                                
                             if (tempPort == NULL){
                                 throw InvalidData(
                                     __FILE__, __LINE__, __func__, 
                                     "Target is missing necessary FUPort!");                               
                             }
                             bool triggering = false;
-                            if (tempPort->isTriggering()) {
+                            if ((static_cast<FUPort*>(tempPort))
+                                ->isTriggering()) {
                                 triggering = true;
                             }
 
                             InputPSocketResource* pSocket = NULL;
-                            pSocket = &dynamic_cast<InputPSocketResource&>(
+                            pSocket = &static_cast<InputPSocketResource&>(
                                 resourceMapper().resourceOf(*soc));
                             if (fuRes.canAssign(
                                     cycle, node, *pSocket, triggering)) {
@@ -188,7 +191,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                     const FunctionUnit& fu = src.functionUnit();
                     if (hasResourceOf(fu)) {
                         InputFUResource& fuRes =
-                            dynamic_cast<InputFUResource&>(resourceOf(fu));
+                            static_cast<InputFUResource&>(*resourceOf(fu));
                         // Find what is the port on a new FU for given
                         // operation index. Find a socket for testing.
                         HWOperation* hwOp = fu.operationLowercase(opName);
@@ -208,7 +211,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
 
                         InputPSocketResource* pSocket = NULL;
                         try {
-                            pSocket = &dynamic_cast<InputPSocketResource&>(
+                            pSocket = &static_cast<InputPSocketResource&>(
                                 resourceMapper().resourceOf(*soc));
                         } catch (const KeyNotFound& e) {
                             std::string msg = "InputFUBroker: finding ";
@@ -230,22 +233,46 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         }
     }
 
-    // check if the move has a candidate FU set which limits the
-    // choice of FU for the node
-    std::set<std::string> candidateFUs;
-    if (node.move().hasAnnotations(
-            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
-
-        const int annotationCount =
-            node.move().annotationCount(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
-        for (int i = 0; i < annotationCount; ++i) {
-            std::string candidateFU =
-                node.move().annotation(
-                    i, TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST).
-                stringValue();
-            candidateFUs.insert(candidateFU);
+    std::set<std::string> candidateFUs;        
+    // not all nodes have dest operation info set as the RM can be called
+    // for single moves 
+    if (node.isDestinationOperation()) {
+        // check if the move or other moves in the same program operation have 
+        // candidate FUs set which limits the choice of FU for the node
+        ProgramOperation& destOp = node.destinationOperation();
+        for (int in = 0; in < destOp.inputMoveCount(); ++in) {
+            MoveNode& n = destOp.inputMove(in);
+            if (n.move().hasAnnotations(
+                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
+                
+                const int annotationCount =
+                    n.move().annotationCount(
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
+                for (int i = 0; i < annotationCount; ++i) {
+                    std::string candidateFU =
+                        n.move().annotation(
+                            i, 
+                            TTAProgram::ProgramAnnotation::
+                            ANN_CANDIDATE_UNIT_DST).
+                        stringValue();
+                    debugLogRM(TCEString("Added candidate FU ") + candidateFU);
+                    candidateFUs.insert(candidateFU);
+                }
+            } 
         }
+    }
+    
+    // if the move has already the FU assigned, force it to be chosen
+    // kludge implementation that use the candidate set code
+    const TTAMachine::FunctionUnit& targetFU = 
+        node.move().destination().functionUnit();
+    if (dynamic_cast<const UniversalFunctionUnit*>(&targetFU) == NULL &&
+        dynamic_cast<const TTAMachine::ControlUnit*>(&targetFU) == NULL)  {
+        candidateFUs.clear();
+        candidateFUs.insert(node.move().destination().functionUnit().name());
+        debugLogRM(
+            TCEString("Added candidate FU ") + 
+            node.move().destination().functionUnit().name());
     }
 
     // find units that support operation and are available
@@ -253,6 +280,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         const FunctionUnit* unit =
             static_cast<const FunctionUnit*>((*resIter).first);
 
+        assert(unit != NULL);
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it
         debugLogRM(TCEString("checking ") << unit->name());
@@ -265,12 +293,16 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
             continue;
         }
 
-        const SchedulingResource& res = resourceOf(*unit);
+        debugLogRM(TCEString("Found ") + unit->name());
+
+        const SchedulingResource& res = *resourceOf(*unit);
         if (res.isInputFUResource()) {
             const InputFUResource& fuRes =
-                dynamic_cast<InputFUResource&>(resourceOf(*unit));
+                static_cast<InputFUResource&>(*resourceOf(*unit));
             if (unit->hasOperationLowercase(opName)) {
+                debugLogRM(TCEString("found FU with the op ") + opName);
                 HWOperation* hwOp = unit->operationLowercase(opName);
+                assert(hwOp != NULL);                
                 Socket* soc = hwOp->port(opIndex)->inputSocket();
 
                 FUPort* tempPort =
@@ -287,7 +319,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
 
                 InputPSocketResource* pSocket = NULL;
                 try {
-                    pSocket = &dynamic_cast<InputPSocketResource&>(
+                    pSocket = &static_cast<InputPSocketResource&>(
                         resourceMapper().resourceOf(*soc));
                 } catch (const KeyNotFound& e) {
                     std::string msg = "InputFUBroker: finding ";
@@ -365,6 +397,7 @@ InputFUBroker::latestCycle(int, const MoveNode&) const {
  */
 bool
 InputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     Terminal& dst = const_cast<MoveNode&>(node).move().destination();
     if (dst.isFUPort()) {
         const FunctionUnit& fu = dst.functionUnit();
@@ -374,7 +407,6 @@ InputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
             }
         }
     }
-    cycle = cycle; // to avoid unused variable
     return false;
 }
 
@@ -410,6 +442,7 @@ InputFUBroker::isApplicable(const MoveNode& node) const {
 void
 InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
+//    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
@@ -420,10 +453,10 @@ InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
 
-    InputFUResource& fuRes = dynamic_cast<InputFUResource&>(res);
+    InputFUResource& fuRes = static_cast<InputFUResource&>(res);
 
     Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& dst = dynamic_cast<TerminalFUPort&>(move.destination());
+    TerminalFUPort& dst = static_cast<TerminalFUPort&>(move.destination());
 
     if (dynamic_cast<const SpecialRegisterPort*>(&dst.port()) != NULL) {
 
@@ -448,7 +481,7 @@ InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     Operation& op = dst.hintOperation();
 
     const FunctionUnit& unit =
-        dynamic_cast<const FunctionUnit&>(machinePartOf(fuRes));
+        static_cast<const FunctionUnit&>(machinePartOf(fuRes));
     HWOperation* hwOp = unit.operation(op.name());
     TerminalFUPort* newDst = new TerminalFUPort(*hwOp, opIndex);
     newDst->setProgramOperation(dst.programOperation());
@@ -477,9 +510,9 @@ InputFUBroker::unassign(MoveNode& node) {
     } else {
         Move& move = const_cast<MoveNode&>(node).move();
         TerminalFUPort& dst =
-            dynamic_cast<TerminalFUPort&>(move.destination());
+            static_cast<TerminalFUPort&>(move.destination());
         InputFUResource& res =
-            dynamic_cast<InputFUResource&>(resourceOf(dst.functionUnit()));
+            static_cast<InputFUResource&>(*resourceOf(dst.functionUnit()));
         res.unassign(node.cycle(), node);
         assignedResources_.erase(&node);
         return;
@@ -503,13 +536,13 @@ InputFUBroker::buildResources(const TTAMachine::Machine& target) {
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
         InputFUResource* fuResource = new InputFUResource(
-            fu->name(), fu->operationCount());
+            fu->name(), fu->operationCount(), initiationInterval_);
         ResourceBroker::addResource(*fu, fuResource);
     }
 
     ControlUnit* gcu = target.controlUnit();
     InputFUResource* fuResource = new InputFUResource(
-        gcu->name(), gcu->operationCount());
+        gcu->name(), gcu->operationCount(), initiationInterval_);
     ResourceBroker::addResource(*gcu, fuResource);
 }
 

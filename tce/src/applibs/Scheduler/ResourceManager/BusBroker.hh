@@ -57,7 +57,12 @@ class ShortImmPSocketResource;
  */
 class BusBroker : public ResourceBroker {
 public:
-    BusBroker(std::string name, const TTAMachine::Machine& mach);
+    BusBroker(
+        std::string name,
+        ResourceBroker& ipBroker,
+        ResourceBroker& opBroker,
+        const TTAMachine::Machine& mach,
+        unsigned int initiationInterval = 0);
     virtual ~BusBroker();
 
     virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
@@ -67,6 +72,8 @@ public:
         const MoveNode& node) const throw (InstanceNotFound);
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
+    virtual bool isAvailable(
+        SchedulingResource& des, const MoveNode& node, int cycle) const;
     virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
         throw (Exception);
     virtual void unassign(MoveNode& node);
@@ -83,7 +90,6 @@ public:
     virtual bool canTransportImmediate(const MoveNode& node) const;
     virtual bool isInUse(int cycle, const MoveNode& node) const;
     virtual bool hasGuard(const MoveNode& node) const;
-
     void clear();
 private:
     virtual bool canTransportImmediate(
@@ -92,6 +98,8 @@ private:
     virtual ShortImmPSocketResource& findImmResource(
         BusResource& busRes) const;
     std::list<SchedulingResource*> shortImmPSocketResources_;
+    ResourceBroker& inputPSocketBroker_;
+    ResourceBroker& outputPSocketBroker_;
     bool hasLimm_;
     const TTAMachine::Machine* mach_;
 };

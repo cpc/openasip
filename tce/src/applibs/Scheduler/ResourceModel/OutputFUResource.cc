@@ -74,17 +74,16 @@ OutputFUResource::canAssign(const int, const MoveNode&) const {
  * @param node MoveNode assigned
  */
 void
-OutputFUResource::assign(
-    const int cycle,
-    MoveNode& node)
+OutputFUResource::assign(const int cycle, MoveNode& node)
     throw (Exception) {
+
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
                 SchedulingResource* res = &dependentResource(i, j);
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
-                epRes->assign(cycle, node, true);
+                epRes->assignSource(cycle, node);
                 return;
             }
         }
@@ -110,7 +109,7 @@ OutputFUResource::unassign(
                 SchedulingResource* res = &dependentResource(i, j);
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
-                epRes->unassign(cycle, node, true);
+                epRes->unassignSource(cycle, node);
                 return;
             }
         }
@@ -127,24 +126,15 @@ bool
 OutputFUResource::canAssign(
     const int cycle,
     const MoveNode& node,
-    const OutputPSocketResource& pSocket) const {
+    const TTAMachine::Port& resultPort) const {
 
-    if (!hasDependentResource(pSocket)) {
-        std::string msg = "OutputPSocket ";
-        msg += pSocket.name();
-        msg += " is not connected to ";
-        msg += name();
-        msg += "!";
-        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-        return false;
-    }
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
                 SchedulingResource* res = &dependentResource(i, j);
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
-                if (!epRes->canAssign(cycle, node, pSocket)){
+                if (!epRes->canAssignSource(cycle, node, resultPort)){
                     return false;
                 }
             }

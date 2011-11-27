@@ -34,6 +34,7 @@
 #define TTA_RESOURCE_BROKER_HH
 
 #include <map>
+#include <set>
 #include <string>
 
 #include "Exception.hh"
@@ -56,9 +57,10 @@ class ResourceMapper;
  */
 class ResourceBroker {
 public:
-    ResourceBroker(std::string);
+    ResourceBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~ResourceBroker();
 
+    typedef std::set<SchedulingResource*> ResourceSet;
     virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
         const;
     virtual SchedulingResource& availableResource(
@@ -66,6 +68,8 @@ public:
         const MoveNode& node) const throw (InstanceNotFound);
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
+    virtual bool isAvailable(
+        SchedulingResource& des, const MoveNode& node, int cycle) const;
     virtual int earliestCycle(int cycle, const MoveNode& node) const = 0;
 //     virtual ResourceCyclePairList earliestCyclesOfAllResources(
 //         int cycle, const MoveNode& node) const = 0;
@@ -81,8 +85,8 @@ public:
 
     virtual void buildResources(const TTAMachine::Machine& target) = 0;
     virtual void setupResourceLinks(const ResourceMapper& mapper) = 0;
-    virtual SchedulingResource& resourceOf(const TTAMachine::MachinePart& mp)
-        const throw (WrongSubclass, KeyNotFound);
+    virtual SchedulingResource* resourceOf(const TTAMachine::MachinePart& mp)
+        const;
     virtual const TTAMachine::MachinePart& machinePartOf(
         const SchedulingResource& r)
         const throw (WrongSubclass, KeyNotFound);
@@ -96,6 +100,8 @@ public:
     virtual bool isExecutionPipelineBroker() const;
     void validateResources() const;
     virtual std::string brokerName() const;
+    void resources(ResourceSet& contents);
+    virtual void setInitiationInterval(unsigned int cycles);
     virtual void clear();
 protected:
     typedef std::map<
@@ -107,6 +113,9 @@ protected:
     void setResourceMapper(const ResourceMapper& mapper);
     const ResourceMapper& resourceMapper() const;
 
+    unsigned int initiationInterval_;
+    unsigned int instructionIndex(unsigned int) const;
+    
     void addResource(
         const TTAMachine::MachinePart& mp,
         SchedulingResource* res);

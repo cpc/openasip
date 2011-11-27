@@ -53,7 +53,8 @@ public:
         const int registers,
         const int width,
         const int latency,
-        const bool signExtension);
+        const bool signExtension,
+        unsigned int initiationInterval = 0);
 
     virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;
@@ -83,6 +84,7 @@ public:
 
     void clearOldResources();
     void clear();
+    
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

@@ -49,7 +49,7 @@ class SchedulingResource;
  */
 class OutputFUBroker : public ResourceBroker {
 public:
-    OutputFUBroker(std::string);
+    OutputFUBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~OutputFUBroker();
 
     virtual SchedulingResourceSet allAvailableResources(

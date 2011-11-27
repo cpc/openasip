@@ -56,8 +56,15 @@ using std::pair;
 /**
  * Constructor.
  */
-ExecutionPipelineBroker::ExecutionPipelineBroker(std::string name): 
-    ResourceBroker(name) {
+ExecutionPipelineBroker::ExecutionPipelineBroker(std::string name,
+        unsigned int initiationInterval): 
+    ResourceBroker(name, initiationInterval) {
+        
+    // change ii for broker's resources also
+    for (FUPipelineMap::iterator i = fuPipelineMap_.begin();
+            i != fuPipelineMap_.end(); ++i) {
+        i->first->setInitiationInterval(initiationInterval);
+    }
 }
 
 /**
@@ -117,12 +124,34 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
     const {
     
     int efs = earliestFromSource(cycle, node);
-    int efd = earliestFromDestination(cycle, node);
-    if (efs == -1 || efd == -1) {
+    if (efs == -1 || efs == INT_MAX) {
         debugLogRM("returning -1");
         return -1;
     }
-    return std::max(efs, efd);
+    int efd = earliestFromDestination(efs, node);
+    if (efd == -1 || efd == INT_MAX) {
+        debugLogRM("returning -1");
+        return -1;
+    }
+    
+    // Loop as long as we find cycle which work for both source and 
+    // destination.
+    while (efd != efs) {
+        efs = earliestFromSource(efd, node);
+        if (efs == -1 || efs == INT_MAX) {
+            debugLogRM("returning -1");
+            return -1;
+        }
+        if (efs == efd) {
+            return efd;
+        }
+        efd = earliestFromDestination(efs, node);
+        if (efd == -1 || efd == INT_MAX) {
+            debugLogRM("returning -1");
+            return -1;
+        }
+    }
+    return efd;
 }
 
 /**
@@ -139,8 +168,12 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
  */
 int
 ExecutionPipelineBroker::latestCycle(int cycle, const MoveNode& node) const {
-    return std::min(
-        latestFromSource(cycle, node), latestFromDestination(cycle, node));
+    int src = latestFromSource(cycle,node);
+    if (src == -1) {
+        return -1;
+    }
+    int dst = latestFromDestination(src, node);
+    return dst;
 }
 
 /**
@@ -193,101 +226,19 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
     Machine::FunctionUnitNavigator navi = target.functionUnitNavigator();
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
-
-        int resourceNumber =
-            fu->pipelineElementCount() + fu->operationPortCount();
-
-        // there is one execution pipeline object per FU, so it has same name
-        // with a prefix
         ExecutionPipelineResource* epResource =
             new ExecutionPipelineResource(
-                "ep_" + fu->name(),
-                *fu,
-                fu->maxLatency(),
-                resourceNumber);
-        for (int j = 0; j < fu->operationCount(); j++) {
-            HWOperation& hwop = *fu->operation(j);
-            ExecutionPipeline* ep = hwop.pipeline();
-            for (int l = 0; l < ep->latency(); l++ ) {
-                for (int k = 0; k < fu->pipelineElementCount(); k++) {
-                    PipelineElement *pe = fu->pipelineElement(k);
-                    if (ep->isResourceUsed(pe->name(),l)){
-                        epResource->setResourceUse(
-                            StringTools::stringToUpper(
-                            fu->operation(j)->name()), l, k);
-                    }
-                }
-                for (int k = 0; k < fu->operationPortCount(); k++) {
-                    FUPort* fuPort = fu->operationPort(k);
-                    if (ep->isPortUsed(*fuPort,l)) {
-                        epResource->setResourceUse(
-                            StringTools::stringToUpper(
-                                fu->operation(j)->name()),
-                                l,fu->pipelineElementCount()+k);
-                    }
-                }
-            }
-
-            // set operation latencies
-            ExecutionPipeline::OperandSet writes = ep->writtenOperands();
-            for (ExecutionPipeline::OperandSet::iterator iter =
-                     writes.begin(); iter != writes.end(); iter++) {
-                int index = *iter;
-                int latency = hwop.latency(index);
-                epResource->setLatency(
-                            StringTools::stringToUpper(
-                                fu->operation(j)->name()), index, latency);
-            }
-        }
+                *fu, initiationInterval_);
+        
         ResourceBroker::addResource(*fu, epResource);
         fuPipelineMap_.insert(
             pair<SchedulingResource*, const FunctionUnit*>(epResource, fu));
     }
 
     ControlUnit* gcu = target.controlUnit();
-    int resNumber = gcu->pipelineElementCount()+
-            gcu->operationPortCount();
+
     ExecutionPipelineResource* epResource =
-        new ExecutionPipelineResource(
-            "ep_" + gcu->name(),
-            *gcu,
-            gcu->maxLatency(),
-            resNumber);
-
-    for (int i = 0; i < gcu->operationCount(); i++) {
-        HWOperation& hwop = *gcu->operation(i);
-        ExecutionPipeline* ep = hwop.pipeline();
-        for (int l = 0; l < ep->latency(); l++ ) {
-            for (int k = 0; k < gcu->pipelineElementCount(); k++) {
-                PipelineElement *pe =gcu->pipelineElement(k);
-                if (ep->isResourceUsed(pe->name(),l)){
-                    epResource->setResourceUse(
-                        StringTools::stringToUpper(
-                        gcu->operation(i)->name()), l, k);
-                }
-            }
-            for (int k = 0; k < gcu->operationPortCount(); k++) {
-                FUPort* fuPort = gcu->operationPort(k);
-                if (ep->isPortUsed(*fuPort,l)) {
-                    epResource->setResourceUse(
-                        StringTools::stringToUpper(
-                        gcu->operation(i)->name()), l,
-                        gcu->pipelineElementCount()+k);
-                }
-            }
-        }
-
-        // set operation latencies
-        ExecutionPipeline::OperandSet writes = ep->writtenOperands();
-        for (ExecutionPipeline::OperandSet::iterator iter =
-                 writes.begin(); iter != writes.end(); iter++) {
-            int index = *iter;
-            int latency = hwop.latency(index);
-            epResource->setLatency(
-                StringTools::stringToUpper(
-                    gcu->operation(i)->name()), index, latency);
-        }
-    }
+	new ExecutionPipelineResource(*gcu, initiationInterval_);
 
     ResourceBroker::addResource(*gcu, epResource);
     fuPipelineMap_.insert(pair<SchedulingResource*, const
@@ -395,6 +346,23 @@ ExecutionPipelineBroker::isExecutionPipelineBroker() const {
 }
 
 /**
+ * Set initiation interval, if ii = 0 then initiation interval is not used.
+ *
+ * @param ii initiation interval
+ */
+void
+ExecutionPipelineBroker::setInitiationInterval(unsigned int ii)
+{
+    initiationInterval_ = ii;
+
+    // change ii for broker's resources also
+    for (FUPipelineMap::iterator i = fuPipelineMap_.begin();
+            i != fuPipelineMap_.end(); ++i) {
+        i->first->setInitiationInterval(ii);
+    }
+}
+
+/**
  * Returns latest cycle, starting from given parameter and going towards
  * zero, in which the node can be scheduled. Taking into account source
  * terminal of Move (result read).
@@ -451,16 +419,23 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     }
     // minCycle has latest of operand writes or earliest result read cycle
     // find next read of same FU with different PO
-    SchedulingResource& res =
-        resourceOf(lastNode->move().destination().functionUnit());
+    const FunctionUnit& fu = lastNode->move().destination().functionUnit();
+    HWOperation& hwop = *fu.operation(sourceOp.operation().name());
+    const TTAMachine::Port& port = *hwop.port(node.move().source().operationIndex());
+    SchedulingResource& res = *resourceOf(fu);
     ExecutionPipelineResource* ep =
-        dynamic_cast<ExecutionPipelineResource*>(&res);
+        static_cast<ExecutionPipelineResource*>(&res);
+    int triggerCycle = triggerNode != NULL && triggerNode->isScheduled() ? 
+        triggerNode->cycle() : 
+        INT_MAX;
     // last available cycle is one lower then next write
-    int result = ep->nextResultCycle(minCycle, node) - 1;
-    if (cycle <= result) {
+
+    int nextResult = ep->nextResultCycle(
+        port, minCycle, node, triggerNode, triggerCycle);
+    if (cycle < nextResult || nextResult < minCycle) {
         return cycle;
     }
-    return result;
+    return nextResult-1;
 }
 /**
  * Returns latest cycle, starting from given parameter and going towards
@@ -477,6 +452,9 @@ ExecutionPipelineBroker::latestFromDestination(
     int cycle,
     const MoveNode& node) const{
 
+    // TODO: this not do full reuslt overwrite another tests.
+    // It is however handled in canassign(). 
+    // Doing it here would make scheduling faster.
     if (!node.isDestinationOperation()) {
         return cycle;
     }
@@ -531,48 +509,56 @@ ExecutionPipelineBroker::latestFromDestination(
 int
 ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
     const {
-
+    
     if (!node.isSourceOperation()) {
         return cycle;
     }
     ProgramOperation& sourceOp = node.sourceOperation();
     const MoveNode* triggerNode = NULL;
     int minCycle = -1;
+
+    const FunctionUnit* fu = NULL;
+    assert(node.move().source().isFUPort());
+
+    const HWOperation* hwop = NULL;
+    const int outputIndex =
+        node.move().source().operationIndex();
+    int latency = 1;
+    
     for (int i = 0; i < sourceOp.inputMoveCount(); i++) {
         const MoveNode* tempNode = &sourceOp.inputMove(i);
         if (tempNode->isScheduled() && tempNode != &node) {
-            minCycle = std::max(tempNode->cycle(), minCycle);
+            fu = &tempNode->move().destination().functionUnit();
+            minCycle = std::max(tempNode->cycle()+1, minCycle);
             if (tempNode->move().isTriggering()) {
                 triggerNode = tempNode;
+                hwop = fu->operation(sourceOp.operation().name());
+                latency = hwop->latency(outputIndex);
+                minCycle = std::max(triggerNode->cycle() + latency, cycle);
             }
         }
     }
     if (minCycle == -1) {
         // no operands scheduled for result of given PO
         // so earliest cycle is 0 + latency or tested cycle
-        const TTAMachine::HWOperation& hwop =
-            *node.move().source().functionUnit().operation(
-                sourceOp.operation().name());
-        const int outputIndex =
-                node.move().source().operationIndex();
-        minCycle = cycle + hwop.latency(outputIndex);
+        if (initiationInterval_ != 0 && latency >= (int)initiationInterval_) {
+            debugLogRM("returning -1");
+            return -1;
+        }
+        minCycle = std::max(cycle,1); 
     }
-    if (minCycle < cycle) {
-        // cycle gives lower bound of what we are interested in
-        minCycle = cycle;
-    }
-    if (triggerNode != NULL) {
-        // trigger was found, earliest read can be tested
-        // using earliestResultReadCycle
-        minCycle = node.earliestResultReadCycle();
 
-        SchedulingResource& res =
-            resourceOf(triggerNode->move().destination().functionUnit());
+    if (triggerNode != NULL && triggerNode->isScheduled()) {
+        int triggerCycle = triggerNode->cycle();
+
+        const TTAMachine::Port& port = *hwop->port(outputIndex);
+        SchedulingResource& res = *resourceOf(*fu);
         ExecutionPipelineResource* ep =
-                dynamic_cast<ExecutionPipelineResource*>(&res);
-        int result = ep->nextResultCycle(minCycle, node);
-        if (result <= cycle) {
-            // result of other PO is written before we try to read result
+            static_cast<ExecutionPipelineResource*>(&res);
+
+        if (!ep->resultNotOverWritten(
+                minCycle, node.earliestResultReadCycle(), node,
+                port, triggerNode, triggerCycle)) {
             return -1;
         }
     }
@@ -583,6 +569,11 @@ ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
  * Return earliest cycle, starting from given parameter and going towards
  * INT_MAX, in which the node can be scheduled. Taking into account
  * destination terminal of Move (operand write).
+ *
+ * This method may return too early for some cases but there is canassign test
+ * after this always at higher level in RM so this does not matter;
+ * having this method is just performance optimization to avoid calling
+ * slow canAssign() for too small values.
  *
  * @param cycle Starting cycle for tests
  * @param node MoveNode to find earliest cycle for
@@ -598,13 +589,20 @@ ExecutionPipelineBroker::earliestFromDestination(
     if (!node.isDestinationOperation()) {
         return cycle;
     }
+    const FunctionUnit* fu = NULL;
+    const HWOperation* hwop = NULL;
+
+    // Test other inputs to the operation.
     ProgramOperation& destOp = node.destinationOperation();
-    int minCycle = -1;
+    int minCycle = cycle;
     for (int i = 0; i < destOp.inputMoveCount(); i++) {
         const MoveNode* tempNode = &destOp.inputMove(i);
         if (tempNode->isScheduled() && tempNode != &node) {
-            minCycle = std::max(tempNode->cycle(), minCycle);
-
+            fu = &tempNode->move().destination().functionUnit();
+            hwop = fu->operation(destOp.operation().name());
+            if (node.move().isTriggering()) {
+                minCycle = std::max(tempNode->cycle(), minCycle);
+            }
             if (tempNode->move().isTriggering()) {
                 int triggerCycle = tempNode->cycle();
                 if (triggerCycle < cycle) {
@@ -616,33 +614,46 @@ ExecutionPipelineBroker::earliestFromDestination(
             }
         }
     }
+
+    // Then check the already scheduled results, do they limit the cycle
+    // where this can be scheduled.
     int minResultCycle = INT_MAX;
     for (int i = 0; i < destOp.outputMoveCount(); i++) {
         const MoveNode* tempNode = &destOp.outputMove(i);
         if (tempNode->isScheduled()) {
-            const TTAMachine::HWOperation& hwop =
-                *node.move().destination().functionUnit().operation(
-                    destOp.operation().name());
+            if (fu == NULL) {
+                fu = &tempNode->move().source().functionUnit();
+                hwop = fu->operation(destOp.operation().name());
+            }
             const int outputIndex =
                 tempNode->move().source().operationIndex();
+
+            unsigned int latency = hwop->latency(outputIndex);
+            if (initiationInterval_ != 0 && latency >= initiationInterval_) {
+                debugLogRM("returning -1");
+                return -1;
+            }
             minResultCycle =
                 std::min(
                     minResultCycle,
-                    tempNode->cycle() - hwop.latency(outputIndex));
+                    tempNode->cycle() - hwop->latency(outputIndex));
         }
     }
-    if (minResultCycle < cycle) {
+    if (minResultCycle < minCycle) {
         // tested cycle is larger then last trigger cycle for results
         // already scheduled
+        debugLogRM("returning -1");
         return -1;
-    }
-    if (node.move().isTriggering() && minCycle >= cycle) {
-        if (minCycle <= minResultCycle) {
-        // Some of the operands are already scheduled in minCycle
-            return minCycle;
-        } else {
-            return -1;
-        }
-    }
-    return cycle;
+    }  
+
+    return minCycle;
 }
+
+void
+ExecutionPipelineBroker::setDDG(const DataDependenceGraph* ddg) {
+    for (ResourceMap::iterator i = resMap_.begin(); i != resMap_.end(); i++) {
+        (static_cast<ExecutionPipelineResource*>(i->second))->setDDG(ddg);
+    }
+
+}
+

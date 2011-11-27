@@ -49,8 +49,9 @@ using TTAMachine::Port;
  *
  * @param name Name of resource
  */
-InputFUResource::InputFUResource(const std::string& name, int opCount) : 
-    FUResource(name, opCount) {
+InputFUResource::InputFUResource(
+    const std::string& name, int opCount, unsigned int initiationInterval) :
+    FUResource(name, opCount, initiationInterval) {
 }
 
 /**
@@ -92,7 +93,7 @@ InputFUResource::assign(
                 SchedulingResource* res = &dependentResource(i, j);
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
-                epRes->assign(cycle, node, false);
+                epRes->assignDestination(cycle, node);
                 increaseUseCount();
                 return;
             }
@@ -121,7 +122,7 @@ InputFUResource::unassign(
                 SchedulingResource* res = &dependentResource(i, j);
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
-                epRes->unassign(cycle, node, false);
+                epRes->unassignDestination(cycle, node);
                 decreaseUseCount();
                 return;
             }
@@ -164,11 +165,11 @@ InputFUResource::canAssign(
 
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
-            if (dependentResource(i, j).isExecutionPipelineResource()) {
-                SchedulingResource* res = &dependentResource(i, j);
+            SchedulingResource& depRes = dependentResource(i, j);
+            if (depRes.isExecutionPipelineResource()) {
                 ExecutionPipelineResource* epRes =
-                    dynamic_cast<ExecutionPipelineResource*>(res);
-                if (!(epRes->canAssign(cycle, node, pSocket, triggers))) {
+                    static_cast<ExecutionPipelineResource*>(&depRes);
+                if (!(epRes->canAssignDestination(cycle, node, triggers))) {
                     debugLogRM("cannot assign execution pipeline resource");
                     return false;
                 } else {

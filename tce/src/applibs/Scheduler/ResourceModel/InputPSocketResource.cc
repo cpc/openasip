@@ -32,13 +32,16 @@
  */
 
 #include "InputPSocketResource.hh"
+#include "MoveNode.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 
 /**
  * Constructor defining resource name
  * @param name Name of resource
  */
-InputPSocketResource::InputPSocketResource(const std::string& name) :
-    PSocketResource(name) {}
+InputPSocketResource::InputPSocketResource(const std::string& name, unsigned int initiationInterval) :
+    PSocketResource(name, initiationInterval) {}
 
 /**
  * Empty destructor
@@ -86,6 +89,40 @@ InputPSocketResource::validateRelatedGroups() {
     }
     return true;
 }
+
+/**
+ * Return true if resource can be assigned for given resource in given cycle.
+ *
+ * @param cycle Cycle to test
+ * @param node MoveNode to test
+ * @return true if node can be assigned to cycle
+ */
+bool
+InputPSocketResource::canAssign(const int cycle, const MoveNode& node)
+    const {
+
+    ResourceRecordType::const_iterator iter = resourceRecord_.find(cycle);
+    if (iter != resourceRecord_.end()) {
+        std::set<MoveNode*> movesInCycle = iter->second;
+        for (std::set<MoveNode*>::iterator it = movesInCycle.begin();
+             it != movesInCycle.end(); it++) {
+#ifdef NO_OVERCOMMIT
+            return false;
+#else
+            MoveNode* mn = *it;
+            if (node.move().isUnconditional() || 
+                mn->move().isUnconditional()) {
+                return false;
+            }
+            if (!node.move().guard().guard().isOpposite(
+                    mn->move().guard().guard())) {
+                return false;
+            }
+#endif
+        }
+    }
+    return true;
+}        
 
 /**
  * Comparison operator.

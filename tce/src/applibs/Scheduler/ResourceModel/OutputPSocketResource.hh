@@ -52,7 +52,7 @@ namespace TTAMachine {
 class OutputPSocketResource : public PSocketResource {
 public:
     virtual ~OutputPSocketResource();
-    OutputPSocketResource(const std::string& name);
+    OutputPSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
     virtual bool isAvailable(const int cycle) const;
     virtual bool isOutputPSocketResource() const;
@@ -61,6 +61,7 @@ public:
     virtual void unassign(const int cycle, MoveNode& node)
     throw(Exception);
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
+
     virtual bool operator < (const SchedulingResource& other) const;
     void clear();
 protected:

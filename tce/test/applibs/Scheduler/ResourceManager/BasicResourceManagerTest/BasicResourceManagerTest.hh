@@ -73,9 +73,9 @@ public:
     void setUp();
     void tearDown();
 
-
-    void testLongImmediates();
+    void testBuildAndDispose();
     void testBasicFunctionality();
+    void testLongImmediates();
     void testWholeProgramAssignmentFull();
     void testWholeProgramAssignmentReduced();
     void testMissingConnection();
@@ -121,6 +121,55 @@ BasicResourceManagerTest::testWholeProgramAssignmentReduced() {
         "data/arrmul_reg_allocated_10_reduced_bus.tpef");
 }
 
+void
+BasicResourceManagerTest::testBuildAndDispose() {
+    /// The tested input program with registers allocated.
+    TTAProgram::Program* srcProgram = NULL;
+    // Target machine to schedule the program for.
+    TTAMachine::Machine* targetMachine = NULL;
+    
+    CATCH_ANY(
+        targetMachine =
+        TTAMachine::Machine::loadFromADF(
+            "data/10_bus_full_connectivity.adf"));
+    
+    CATCH_ANY(
+        srcProgram =
+        TTAProgram::Program::loadFromUnscheduledTPEF(
+            "data/arrmul_reg_allocated_10_bus.tpef",
+            *targetMachine));
+    
+    std::string empty;
+    TTAProgram::Procedure& procedure = srcProgram->procedure(0);
+    {
+        ControlFlowGraph cfg(procedure);
+        
+        // pick the first basic block from the program for this test
+        CriticalPathBBMoveNodeSelector* cpSelector = 
+            new CriticalPathBBMoveNodeSelector(
+                cfg.node(0).basicBlock(), *targetMachine);
+        MoveNodeSelector& selector = *cpSelector;
+        
+        SimpleResourceManager* rm = 
+            SimpleResourceManager::createRM(*targetMachine);
+        
+        empty = rm->toString();
+        // to see what's going on, print out the DDG
+        // should get the moves of the first addition operation (ids 0..2)
+        
+        MoveNodeGroup moves;
+        moves = selector.candidates();
+        rm->assign(0, moves.node(0));
+        SimpleResourceManager::disposeRM(rm);
+        rm = SimpleResourceManager::createRM(*targetMachine);
+        TS_ASSERT_EQUALS(rm->toString(), empty);
+//        std::cerr << rm->toString() << std::endl;
+        SimpleResourceManager::disposeRM(rm);
+    }
+}
+
+
+
 /**
  * Tests the functionality by "scheduling" a moves
  * using adf which is missing connections between them.
@@ -129,7 +178,6 @@ void
 BasicResourceManagerTest::testMissingConnection() {
 
     try{
-
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -147,13 +195,14 @@ BasicResourceManagerTest::testMissingConnection() {
                 *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
+        {
         ControlFlowGraph cfg(procedure);
 
         // pick the first basic block from the program for this test
         CriticalPathBBMoveNodeSelector selector(cfg.node(0).basicBlock(),
             *targetMachine);
 
-        SimpleResourceManager *rm = 
+        SimpleResourceManager* rm = 
             SimpleResourceManager::createRM(*targetMachine);
 
         MoveNodeGroup moves;
@@ -169,6 +218,8 @@ BasicResourceManagerTest::testMissingConnection() {
         TS_ASSERT(rm->hasConnection(tempSet) == false);
         TS_ASSERT_EQUALS(rm->earliestCycle(moves.node(2)), -1);
         SimpleResourceManager::disposeRM(rm);
+        }
+        delete srcProgram;
     } catch (const Exception& e) {
         std::cerr << e.errorMessage() << std::endl;
         std::cerr << e.fileName() << " " << e.lineNum();
@@ -212,7 +263,7 @@ BasicResourceManagerTest::testBasicFunctionality() {
                 *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
-
+        {
         ControlFlowGraph cfg(procedure);
 
         // pick the first basic block from the program for this test
@@ -308,8 +359,9 @@ BasicResourceManagerTest::testBasicFunctionality() {
         TS_ASSERT(rm->instruction(4)->moveCount() == 1);
         delete cpSelector;
         SimpleResourceManager::disposeRM(rm);
-        delete targetMachine;
+        }
         delete srcProgram;
+        delete targetMachine;
     } catch (const Exception& e) {
         std::cerr << e.procedureName() << " ";
         std::cerr << e.fileName() << " ";
@@ -356,7 +408,7 @@ BasicResourceManagerTest::wholeProgramAssignment(
             SimpleGuardAllocatorCore::allocateGuards(
                 procedure, *targetMachine, interPassData);
             ControlFlowGraph cfg(procedure);
-            SimpleResourceManager * rm = 
+            SimpleResourceManager* rm =
                 SimpleResourceManager::createRM(*targetMachine);
             minCycle = maxCycle;
             std::vector<CriticalPathBBMoveNodeSelector*> selectors;
@@ -433,7 +485,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
             *targetMachine));
 
     TTAProgram::Procedure& procedure = srcProgram->procedure(0);
-
+    {
     ControlFlowGraph cfg(procedure);
 
     // pick the first basic block from the program for this test
@@ -553,10 +605,11 @@ BasicResourceManagerTest::testRestorationOfResources() {
 
     delete cpSelector; // need to be deleted first
 
-    SimpleResourceManager::disposeRM(rm);
     delete source;
     delete destination;
 
+    SimpleResourceManager::disposeRM(rm);
+    }
     delete targetMachine;
     delete srcProgram;
 
@@ -569,8 +622,8 @@ BasicResourceManagerTest::testRestorationOfResources() {
 void
 BasicResourceManagerTest::testLongImmediates() {
     
-    /// Universal Machine for the unscheduled part.
     try{
+
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -588,7 +641,7 @@ BasicResourceManagerTest::testLongImmediates() {
                 *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
-
+        {
         ControlFlowGraph cfg(procedure);
 
         // pick the first basic block from the program for this test
@@ -596,7 +649,7 @@ BasicResourceManagerTest::testLongImmediates() {
             new CriticalPathBBMoveNodeSelector(
             cfg.node(0).basicBlock(), *targetMachine);
 
-        SimpleResourceManager* rm =
+        SimpleResourceManager* rm = 
             SimpleResourceManager::createRM(*targetMachine);
         MoveNodeGroup moves;
 
@@ -653,9 +706,9 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(rm->instruction(4)->moveCount(), 1);
         delete selector;
         SimpleResourceManager::disposeRM(rm);
+        }
         delete targetMachine;
         delete srcProgram;
-
     } catch (const Exception& e) {
         std::cout << std::endl;
         std::cout << e.fileName() << " " << e.procedureName() << " ";
@@ -933,7 +986,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete cfg;
         delete srcProgram;
         delete targetMachine;
-
         SimpleResourceManager::disposeRM(rm);
 
     } catch (const Exception& e) {
@@ -962,10 +1014,10 @@ BasicResourceManagerTest::testMULConflict() {
         TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
              *targetMachine));
-    
+    {
     TTAProgram::Procedure& procedure = srcProgram->procedure(1);
     ControlFlowGraph cfg(procedure);
-    SimpleResourceManager* rm =
+    SimpleResourceManager* rm = 
         SimpleResourceManager::createRM(*targetMachine);
     //std::cerr << POMDisassembler::disassemble(procedure,1);
     MoveNode* node1 = new MoveNode(procedure.instructionAt(44).move(0));
@@ -1025,6 +1077,9 @@ BasicResourceManagerTest::testMULConflict() {
     TS_ASSERT_THROWS_NOTHING(rm->assign(1,*node4));
     TS_ASSERT_THROWS_NOTHING(rm->assign(5,*node6));
     SimpleResourceManager::disposeRM(rm);
+    }
+    delete srcProgram;
+    delete targetMachine;
 }
 
 void
@@ -1044,12 +1099,14 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
         srcProgram =
         TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-             *targetMachine));
+            *targetMachine));
     
     TTAProgram::Procedure& procedure = srcProgram->procedure(0);
     ControlFlowGraph cfg(procedure);
-    SimpleResourceManager* rm =
+
+    SimpleResourceManager* rm = 
         SimpleResourceManager::createRM(*targetMachine);
+
     //std::cerr << POMDisassembler::disassemble(procedure,1);
     MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
     MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
@@ -1154,6 +1211,7 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
 	rm->assign(rm->earliestCycle(*node6), *node6));
 
 
+#ifdef SUPPORT_TRIGGER_INVALIDATES_RESULT_IN_RM
     // Both adders are busy and write same result register.
     // in different cycles. Lets try to squeze 3rd add with same
     // result register and check trigger-invalidates-results
@@ -1172,6 +1230,8 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     // in cycle 0 this add will fit onto alu2
     TS_ASSERT_EQUALS(rm->earliestCycle(*node7), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node8), 0);
+
+#ifdef TRIGGER_INVALIDATES_IN_RM
 
     targetMachine->setTriggerInvalidatesResults(true);
     // trigger-invalidates-results is now true
@@ -1223,6 +1283,9 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     TS_ASSERT_EQUALS(rm->earliestCycle(*node9), 2);
     TS_ASSERT_THROWS_NOTHING(
 	rm->assign(rm->earliestCycle(*node9), *node9));
+
+#endif
+
 #if 0    
     Application::logStream() << 
 	POMDisassembler::disassemble(*rm->instruction(0)) << std::endl;
@@ -1236,6 +1299,7 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
 	POMDisassembler::disassemble(*rm->instruction(4)) << std::endl;
     Application::logStream() << 
 	POMDisassembler::disassemble(*rm->instruction(5)) << std::endl;
+#endif
 #endif
     SimpleResourceManager::disposeRM(rm);
     delete srcProgram;

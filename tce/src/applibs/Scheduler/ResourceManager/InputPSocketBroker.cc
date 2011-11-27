@@ -54,8 +54,10 @@ using namespace TTAProgram;
 /**
  * Constructor.
  */
-InputPSocketBroker::InputPSocketBroker(std::string name): 
-    ResourceBroker(name) {
+InputPSocketBroker::InputPSocketBroker(
+    std::string name, ResourceBroker& fub, unsigned int initiationInterval): 
+    ResourceBroker(name, initiationInterval), 
+    inputFUBroker_(fub), segmentBroker_(NULL) {
 }
 
 /**
@@ -78,6 +80,7 @@ InputPSocketBroker::allAvailableResources(
     int cycle,
     const MoveNode& node) const {
 
+    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
@@ -90,8 +93,9 @@ InputPSocketBroker::allAvailableResources(
     if (move.destination().isFUPort()) {
         // psocket already implicitly assigned by fubroker
         Socket& inputSocket = *move.destination().port().inputSocket();
-        if (resourceOf(inputSocket).canAssign(cycle, node)) {
-            resourceSet.insert(resourceOf(inputSocket));
+        SchedulingResource* res = resourceOf(inputSocket);
+        if (res->canAssign(cycle, node)) {
+            resourceSet.insert(*res);
         }
         return resourceSet;
 
@@ -104,9 +108,11 @@ InputPSocketBroker::allAvailableResources(
         for (int i = 0; i < rf.portCount(); i++) {
             Port& port = *rf.port(i);
             Socket* inputSocket = port.inputSocket();
-            if (inputSocket != NULL &&
-                resourceOf(*inputSocket).canAssign(cycle, node)) {
-                resourceSet.insert(resourceOf(*inputSocket));
+            if (inputSocket != NULL) {
+                SchedulingResource* res = resourceOf(*inputSocket);
+                if (res->canAssign(cycle, node)) {
+                    resourceSet.insert(*res);
+                }
             }
         }
         return resourceSet;
@@ -162,10 +168,11 @@ InputPSocketBroker::latestCycle(int, const MoveNode&) const {
  */
 bool
 InputPSocketBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const{
+    cycle = instructionIndex(cycle);
     Terminal& dst = const_cast<MoveNode&>(node).move().destination();
     const Port& port = dst.port();
-    if (hasResourceOf(*port.inputSocket()) &&
-        resourceOf(*port.inputSocket()).isInUse(cycle) &&
+    SchedulingResource* res = resourceOf(*port.inputSocket());
+    if (res != NULL && res->isInUse(cycle) &&
         MapTools::containsKey(assignedResources_, &node)) {
         return true;
     } else {
@@ -225,8 +232,7 @@ InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     if (move.destination().isGPR()) {
 
         Port* port = NULL;
-
-        const Socket& socket = dynamic_cast<const Socket&>(machinePartOf(res));
+        const Socket& socket = static_cast<const Socket&>(machinePartOf(res));
         for (int i = 0; i < socket.portCount(); i++) {
             if (socket.port(i)->inputSocket() == &socket) {
                 if (socket.port(i)->parentUnit() !=
@@ -247,7 +253,7 @@ InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         move.setDestination(newDst);
     }
 
-    res.assign(cycle, node);
+    res.assign(instructionIndex(cycle), node);
     assignedResources_.insert(
         std::pair<const MoveNode*, SchedulingResource*>(&node,&res));
 }
@@ -272,7 +278,7 @@ InputPSocketBroker::unassign(MoveNode& node) {
     if (MapTools::containsKey(assignedResources_, &node)) {
         Move& move = const_cast<MoveNode&>(node).move();
         Terminal& dst = move.destination();
-        SchedulingResource& res = resourceOf(*dst.port().inputSocket());
+        SchedulingResource& res = *resourceOf(*dst.port().inputSocket());
         if ((MapTools::valueForKey<SchedulingResource*>(
             assignedResources_, &node)) != &res) {
             std::string msg =
@@ -300,7 +306,7 @@ InputPSocketBroker::buildResources(const TTAMachine::Machine& target) {
         Socket* socket = navi.item(i);
         if (socket->direction() == Socket::INPUT) {
             InputPSocketResource* ipsResource =
-                new InputPSocketResource(socket->name());
+                new InputPSocketResource(socket->name(), initiationInterval_);
             ResourceBroker::addResource(*socket, ipsResource);
         }
     }
@@ -328,7 +334,7 @@ InputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
         if (socket == NULL){
             throw InvalidData(
                 __FILE__, __LINE__, __func__, 
-                "Broker does not have necessary Socket registered!");                               
+                "Broker does not have necessary Socket registered!");
         }                    
         SchedulingResource* socketResource = (*resIter).second;
 
@@ -337,20 +343,17 @@ InputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
             FunctionUnit* fu = dynamic_cast<FunctionUnit*>(port->parentUnit());
 
             if (fu != NULL) {
-                for (int j = 0; j < mapper.resourceCount(*fu); j++) {
-                    SchedulingResource& relRes = mapper.resourceOf(*fu, j);
-                    if (relRes.isInputFUResource()) {
-                        socketResource->addToRelatedGroup(0, relRes);
-                        break;
-                    }
-                }
+                SchedulingResource& relRes = 
+                    *inputFUBroker_.resourceOf(*fu);
+                socketResource->addToRelatedGroup(0, relRes);
             }
         }
 
         for (int i = 0; i < socket->segmentCount(); i++) {
             Segment* segment = socket->segment(i);
             try {
-                SchedulingResource& relRes = mapper.resourceOf(*segment);
+                SchedulingResource& relRes = 
+                    *segmentBroker_->resourceOf(*segment);
                 socketResource->addToRelatedGroup(1, relRes);
             } catch (const KeyNotFound& e) {
                 std::string msg = "InputPSocketBroker: finding ";
@@ -362,4 +365,13 @@ InputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
             }                                                        
         }
     }
+}
+
+/**
+ * Gives reference to segmentbroker to this broker.
+ *
+ * Cannot be given in constructor because SegmentBroker is created later.
+ */
+void InputPSocketBroker::setSegmentBroker(ResourceBroker& sb) {
+    segmentBroker_ = &sb;
 }

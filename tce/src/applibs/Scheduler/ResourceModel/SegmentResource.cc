@@ -35,13 +35,15 @@
 #include "MapTools.hh"
 #include "Conversion.hh"
 #include "Exception.hh"
+#include "MoveNode.hh"
 /**
  * Constructor
  * Creates new resource with defined resource name
  * @param name Name of resource
  */
 SegmentResource::SegmentResource(
-    const std::string& name) : SchedulingResource(name) {}
+    const std::string& name, unsigned int initiationInterval) :
+    SchedulingResource(name, initiationInterval) {}
 
 /**
  * Empty destructor
@@ -55,9 +57,10 @@ SegmentResource::~SegmentResource() {}
  */
 bool
 SegmentResource::isInUse(const int cycle) const {
-    ResourceRecordType::const_iterator i = resourceRecord_.find(cycle);
-    if (i != resourceRecord_.end()) {
-        return (i->second != 0);
+    ResourceRecordType::const_iterator i = 
+        resourceRecord_.find(instructionIndex(cycle));
+    if (i != resourceRecord_.end() && i->second != 0) {
+        return true;
     }
     return false;
 }
@@ -82,7 +85,7 @@ void
 SegmentResource::assign(const int cycle, MoveNode& node)
     throw (Exception) {
     if (canAssign(cycle, node)) {
-        resourceRecord_[cycle] = 1;
+        resourceRecord_[instructionIndex(cycle)] = 1;
         return;
     }
     std::string msg = "Segment ";
@@ -103,7 +106,7 @@ void
 SegmentResource::unassign(const int cycle, MoveNode&)
     throw (Exception) {
     if (isInUse(cycle)) {
-        resourceRecord_[cycle] = 0;
+        resourceRecord_[instructionIndex(cycle)] = 0;
         return;
     }
     std::string msg = "Socket ";

@@ -98,10 +98,12 @@ SchedulingResource&
 ResourceMapper::resourceOf(const TTAMachine::MachinePart& mp, int index)
     const throw (KeyNotFound) {
 
-    for (unsigned int i = 0; i < brokers_.size(); i++) {
-        if (brokers_[i]->hasResourceOf(mp)) {
+    const unsigned int brokerSize = brokers_.size();
+    for (unsigned int i = 0; i < brokerSize; i++) {
+        SchedulingResource* res = brokers_[i]->resourceOf(mp);
+        if (res != NULL) {
             if (index == 0) {
-                return brokers_[i]->resourceOf(mp);
+                return *res;
             } else {
                 index--;
                 continue;

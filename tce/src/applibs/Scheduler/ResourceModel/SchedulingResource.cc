@@ -48,8 +48,8 @@ SchedulingResource::~SchedulingResource() {
  *
  * @param name Name of resource.
  */
-SchedulingResource::SchedulingResource(const std::string& name) :
-    name_(name), useCount_(0) {
+SchedulingResource::SchedulingResource(const std::string& name, const unsigned int ii) :
+    initiationInterval_(ii), name_(name), useCount_(0) {
 }
 
 /**
@@ -73,42 +73,6 @@ SchedulingResource::dependentResourceGroupCount() const {
 }
 
 /**
- * Returns number of of related resources in group.
- *
- * @param group Group to count resources in.
- * @return Number of related resources in group.
- * @exception OutOfRange If group requested does not exist.
- */
-int
-SchedulingResource::relatedResourceCount(const int group) const
-    throw (OutOfRange) {
-    if (group < relatedResourceGroupCount()) {
-        return relatedResourceGroup_.at(group).size();
-    } else {
-        std::string msg = "Indexed related resource group does not exist.";
-        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
-    }
-}
-
-/**
- * Return number of of dependent resources in group.
- *
- * @param group Group to count dependent in.
- * @return Number of related dependent in group.
- * @exception OutOfRange If group requested does not exist.
- */
-int
-SchedulingResource::dependentResourceCount(const int group) const
-    throw (OutOfRange) {
-    if (group < dependentResourceGroupCount()) {
-        return dependentResourceGroup_.at(group).size();
-    } else {
-        std::string msg = "Indexed dependent resource group does not exists.";
-        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
-    }
-}
-
-/**
  * Add resource to group of related resources.
  *
  * @param group Group to which resource add.
@@ -122,12 +86,7 @@ SchedulingResource::addToRelatedGroup(
     relatedResourceSet_.insert(&resource);
 
     if (group >= relatedResourceGroupCount()) {
-        int presentCount = relatedResourceGroupCount();
-        while (presentCount <= group) {
-            SchedulingResourceVector newGroup;
-            relatedResourceGroup_.push_back(newGroup);
-            presentCount++;
-        }
+        relatedResourceGroup_.resize(group+1);
     }
     relatedResourceGroup_.at(group).push_back(&resource);
 }
@@ -144,12 +103,7 @@ SchedulingResource::addToDependentGroup(
     SchedulingResource& resource) {
 
     if (group >= dependentResourceGroupCount()) {
-        int presentCount = dependentResourceGroupCount();
-        while (presentCount <= group) {
-            SchedulingResourceVector newGroup;
-            dependentResourceGroup_.push_back(newGroup);
-            presentCount++;
-        }
+        dependentResourceGroup_.resize(group+1);
     }
     dependentResourceGroup_.at(group).push_back(&resource);
 }
@@ -340,6 +294,21 @@ SchedulingResourceSet::remove(SchedulingResource& resource)
 }
 
 /**
+ * Tells whether the set has the given resource.
+ */
+bool
+SchedulingResourceSet::hasResource(SchedulingResource& resource) {
+    ResourceList::iterator iter = resources_.begin();
+    while (iter != resources_.end()) {
+        if ((*iter) == &resource) {
+            return true;
+        }
+        iter++;
+    }
+    return false;
+}
+
+/**
  * Assignment operator.
  *
  * @param newSet Set to assign resources from.
@@ -397,6 +366,46 @@ SchedulingResource::increaseUseCount() {
 void
 SchedulingResource::decreaseUseCount() {
     useCount_--;
+}
+
+/**
+ * Return the instruction index corresponding to cycle.
+ *
+ * If modulo scheduling is not used (ie. initiation interval is 0), then
+ * index is equal to cycle.
+ *
+ * @param cycle Cycle to get instruction index.
+ * @return Return the instruction index for cycle.
+ */
+unsigned int
+SchedulingResource::instructionIndex(unsigned int cycle) const {
+    if (initiationInterval_ != 0) {
+        return cycle % initiationInterval_;
+    } else {
+        return cycle;
+    }
+}
+
+/**
+ * Set initiation interval, if ii = 0 then initiation interval is not used.
+ *
+ * @param ii initiation interval
+ */
+void
+SchedulingResource::setInitiationInterval(unsigned int ii)
+{
+    initiationInterval_ = ii;
+}
+
+/**
+ * Get initiation interval, if ii = 0 then initiation interval is not used.
+ *
+ * @return initiation interval
+ */
+unsigned int
+SchedulingResource::initiationInterval()
+{
+    return initiationInterval_;
 }
 
 /**

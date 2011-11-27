@@ -67,6 +67,8 @@ void
 BUMoveNodeSelectorTest::testBasicFunctionality() {
 
 #if 1
+// Disable untill EP Resource detection for conflicts of program operations
+// for the result moves is fixed also in trunk.
 
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
@@ -110,16 +112,17 @@ BUMoveNodeSelectorTest::testBasicFunctionality() {
     do {
         moves = selector.candidates();
         for (int i = 0; i < moves.nodeCount(); i++) {
+
             TS_ASSERT_THROWS_NOTHING(
                 rm->assign(rm->latestCycle(10, moves.node(i)), moves.node(i)));
-            TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(i)));
+            TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(i)));            
         }
     } while (moves.nodeCount() != 0);
-
-        
-/*    for (int i = 0; i <= 10; i++) {
+#if 0       
+    for (int i = 0; i <= 10; i++) {
         std::cerr << rm->instruction(i)->toString() << std::endl;    
-    }*/
+    }
+#endif
     delete targetMachine;
     delete srcProgram;
 #endif

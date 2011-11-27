@@ -53,24 +53,25 @@ using namespace TTAProgram;
 
 // limit distance between LIMM write and use.
 // this limit makes scheduling much faster, and cases
-// where there is some advantage in limm read and write being 
+// where there is some advantage in limm read and write being
 // far away are extremely rare
 static const int MAX_LIMM_DISTANCE = 25;
 
 /**
  * Constructor.
  */
-IUBroker::IUBroker(std::string name): 
-    ResourceBroker(name), 
-    target_(NULL), 
+IUBroker::IUBroker(std::string name):
+    ResourceBroker(name),
+    target_(NULL),
     rm_(NULL) {
 }
 
 /**
  * Constructor.
  */
-IUBroker::IUBroker(std::string name, SimpleResourceManager* rm) : 
-    ResourceBroker(name), 
+IUBroker::IUBroker(std::string name, SimpleResourceManager* rm,
+        unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval),
     target_(NULL), rm_(rm) {
 }
 
@@ -130,31 +131,30 @@ IUBroker::availableResource(int useCycle, const MoveNode& node)
  */
 SchedulingResourceSet
 IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
-     
+
     int defCycle = (useCycle > 0) ? useCycle : 1;
-    
+
     SchedulingResourceSet results;
     std::vector<IUResource*> tmpResult;
-    
     while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE &&
            tmpResult.empty()) {
         defCycle--;
         ResourceMap::const_iterator resIter = resMap_.begin();
         while (resIter != resMap_.end()) {
             IUResource* iuRes = dynamic_cast<IUResource*>((*resIter).second);
-            if (iuRes->canAssign(defCycle, useCycle, node)) {                   
-                TerminalImmediate* tempImm = 
+            if (iuRes->canAssign(defCycle, useCycle, node)) {
+                TerminalImmediate* tempImm =
                     dynamic_cast<TerminalImmediate*>(
-                        node.move().source().copy());               
-                const ImmediateUnit& iu =                    
+                        node.move().source().copy());
+                const ImmediateUnit& iu =
                     dynamic_cast<const ImmediateUnit&>(machinePartOf(*iuRes));
-                RFPort* port = iu.port(0);         
+                RFPort* port = iu.port(0);
                 TerminalRegister* newSrc = new TerminalRegister(*port, 0);
                 Immediate* imm = new Immediate(tempImm, newSrc);
                 if (rm_->isTemplateAvailable(defCycle, imm)) {
-                    tmpResult.push_back(iuRes);                    
-                } 
-                delete imm;                
+                    tmpResult.push_back(iuRes);
+                }
+                delete imm;
             }
             resIter++;
         }
@@ -164,7 +164,7 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
             results.insert(*(*tmpItr));
             tmpItr++;
         }
-    } 
+    }
     return results;
 }
 /**
@@ -184,7 +184,7 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
 
     int defCycle = (useCycle > 0) ? useCycle : 1;
-    
+
     IUResource& iuRes = dynamic_cast<IUResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
 
@@ -198,17 +198,17 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res)
         while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE) {
             defCycle--;
             if (iuRes.canAssign(defCycle, useCycle, node)) {
-                TerminalImmediate* tempImm = 
+                TerminalImmediate* tempImm =
                     dynamic_cast<TerminalImmediate*>(
-                        node.move().source().copy());               
-                const ImmediateUnit& iu =                    
+                        node.move().source().copy());
+                const ImmediateUnit& iu =
                     dynamic_cast<const ImmediateUnit&>(machinePartOf(iuRes));
-                RFPort* port = iu.port(0);         
+                RFPort* port = iu.port(0);
                 TerminalRegister* newSrc = new TerminalRegister(*port, 0);
                 Immediate* imm = new Immediate(tempImm, newSrc);
                 if (rm_->isTemplateAvailable(defCycle, imm)) {
                     delete imm;
-                    break;                    
+                    break;
                 } else {
                     delete imm;
                 }
@@ -252,7 +252,7 @@ IUBroker::unassign(MoveNode& node) {
     }
     IUResource* iuRes = dynamic_cast<IUResource*>(
         MapTools::valueForKey<SchedulingResource*>(
-            assignedResources_, &node));   
+            assignedResources_, &node));
     iuRes->unassign(node.cycle(), node);
     assignedResources_.erase(&node);
 }
@@ -332,16 +332,16 @@ IUBroker::isAlreadyAssigned(int, const MoveNode& node) const {
  * as well as by resetAssignments to remove the IU assignment
  */
 bool
-IUBroker::isApplicable(const MoveNode& node) const {     
+IUBroker::isApplicable(const MoveNode& node) const {
     if (node.isSourceImmediateRegister()) {
-        return true;        
+        return true;
     }
     // If node is annotated, it needs to be converted to LIMM,
     // detected in BB scheduler
     if (node.isSourceConstant() && node.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
-    }    
+    }
     if (node.isSourceConstant() && !rm_->canTransportImmediate(node)) {
         return true;
     }
@@ -374,7 +374,7 @@ IUBroker::buildResources(const TTAMachine::Machine& target) {
         IUResource* iuResource =
             new IUResource(
                 iu->name(), iu->numberOfRegisters(), iu->width(),
-                iu->latency(), extension);
+                iu->latency(), extension, initiationInterval_);
         ResourceBroker::addResource(*iu, iuResource);
     }
 }
@@ -413,7 +413,7 @@ IUBroker::setupResourceLinks(const ResourceMapper& mapper) {
                     msg += e.errorMessageStack();
                     throw KeyNotFound(
                         __FILE__, __LINE__, __func__, msg);
-                }                                                
+                }
             }
         }
 
@@ -434,7 +434,7 @@ IUBroker::setupResourceLinks(const ResourceMapper& mapper) {
                     msg += e.errorMessageStack();
                     throw KeyNotFound(
                         __FILE__, __LINE__, __func__, msg);
-                }                                                
+                }
             }
         }
     }
@@ -485,7 +485,7 @@ int
 IUBroker::immediateWriteCycle(const MoveNode& node) const {
     if (!node.isSourceImmediateRegister()) {
         return -1;
-    }    
+    }
     if (MapTools::containsKey(assignedResources_, &node)) {
         IUResource* iuRes = dynamic_cast<IUResource*>(
             MapTools::valueForKey<SchedulingResource*>(

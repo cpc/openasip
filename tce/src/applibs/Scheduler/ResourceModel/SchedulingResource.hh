@@ -41,6 +41,8 @@
 
 #include "Exception.hh"
 
+//#define NO_OVERCOMMIT
+
 class MoveNode;
 
 /**
@@ -50,7 +52,7 @@ class MoveNode;
 class SchedulingResource {
 public:
     virtual ~SchedulingResource();
-    SchedulingResource(const std::string& name);
+    SchedulingResource(const std::string& name, const unsigned int ii = 0);
 
     virtual bool isInUse(const int cycle) const = 0;
     virtual bool isAvailable(const int cycle) const = 0;
@@ -62,12 +64,10 @@ public:
 
     virtual int relatedResourceGroupCount() const;
     virtual int dependentResourceGroupCount() const;
-    virtual int relatedResourceCount(
-        const int group) const
-        throw (OutOfRange);
-    virtual  int dependentResourceCount(
-        const int group) const
-        throw (OutOfRange);
+    inline int relatedResourceCount(
+        const int group) const;
+    inline  int dependentResourceCount(
+        const int group) const;
     virtual void addToRelatedGroup(
         const int group,
         SchedulingResource& resource);
@@ -112,6 +112,13 @@ public:
     // Determine if resource is ITemplateResource
     virtual bool isITemplateResource() const;
     
+    // Get instruction index for resource
+    unsigned int instructionIndex(unsigned int cycle) const;
+
+    // Set initiation interval for resource
+    void setInitiationInterval(unsigned int ii);
+    unsigned int initiationInterval();
+
     friend class ResourceBroker;
 
     virtual bool operator < (const SchedulingResource& other) const;
@@ -123,6 +130,9 @@ protected:
     // Tests if all referenced resources in related groups are of correct
     // type
     virtual bool validateRelatedGroups() ;
+    
+    // initiation interval used for modulo scheduler
+    unsigned int initiationInterval_;
 
 private:
     // A vector type that stores SchedulingResource pointers
@@ -165,6 +175,7 @@ public:
     SchedulingResourceSet& operator=(const SchedulingResourceSet& newSet);
     void sort();
     void clear();
+    bool hasResource(SchedulingResource& res);
 private:
     // List for resources.
     typedef std::vector<SchedulingResource*> ResourceList;

@@ -46,7 +46,9 @@ using namespace TTAMachine;
 /**
  * Constructor.
  */
-ResourceBroker::ResourceBroker(std::string name): 
+ResourceBroker::ResourceBroker(std::string name,
+        unsigned int initiationInterval): 
+    initiationInterval_(initiationInterval),
     resourceMapper_(NULL),
     brokerName_(name){
 }
@@ -73,6 +75,7 @@ bool
 ResourceBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
     const {
 
+//    cycle = instructionIndex(cycle);
     for (ResourceMap::const_iterator resIter = resMap_.begin();
          resIter != resMap_.end(); resIter++) {
 
@@ -104,6 +107,7 @@ SchedulingResource&
 ResourceBroker::availableResource(int cycle, const MoveNode& node) const
     throw (InstanceNotFound) {
 
+//    cycle = instructionIndex(cycle);
     for (ResourceMap::const_iterator resIter = resMap_.begin();
          resIter != resMap_.end(); resIter++) {
 
@@ -134,35 +138,29 @@ ResourceBroker::allAvailableResources(int, const MoveNode&) const {
 }
 
 /**
+ * Tells whether the given resource is available for given node at
+ * given cycle.
+ */
+bool ResourceBroker::isAvailable(
+    SchedulingResource& res, const MoveNode& node, int cycle) const {
+    SchedulingResourceSet resources = allAvailableResources(cycle, node);
+    return resources.hasResource(res);
+}
+
+/**
  * Return the resource instance that models the given machine part.
  *
  * @param mp Machine part.
- * @return The resource instance that models the given machine part.
- * @exception KeyNotFound If no corresponding resource is found or mp
- * is not one of the machine parts modelled by the primary resources
- * of this broker.
+ * @return The resource instance that models the given machine part,
+ * or NULL if not found.
  */
-SchedulingResource&
-ResourceBroker::resourceOf(const TTAMachine::MachinePart& mp) const
-    throw (WrongSubclass, KeyNotFound) {
-    SchedulingResource* resource = NULL;
-    if (!MapTools::containsKey(resMap_, &mp)) {
-        std::string txt=  "ResourceOf(machine part) failed: ";
-        const Component* component = dynamic_cast<const Component*>(&mp);
-        if (component != NULL) {
-            txt += component->name();
-        }
-        abortWithError( txt);
+SchedulingResource*
+ResourceBroker::resourceOf(const TTAMachine::MachinePart& mp) const  {
+    ResourceMap::const_iterator iter = resMap_.find(&mp);
+    if (iter == resMap_.end()) {
+        return NULL;
     }
-    try {
-        resource = MapTools::valueForKey<SchedulingResource*>(resMap_, &mp);
-    } catch (const Exception& e) {
-        const Component& component = dynamic_cast<const Component&>(mp);
-        string msg = "Resource for component " + component.name() +
-            " not found.";
-        throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
-    }
-    return *resource;
+    return iter->second;
 }
 
 /**
@@ -232,6 +230,26 @@ ResourceBroker::resourceMapper() const {
     return *resourceMapper_;
 }
 
+
+/**
+ * Return the instruction index corresponding to cycle.
+ *
+ * If modulo scheduling is not used (ie. initiation interval is 0), then
+ * index is equal to cycle.
+ *
+ * @param cycle Cycle to get instruction index.
+ * @return Return the instruction index for cycle.
+ */
+unsigned int
+ResourceBroker::instructionIndex(unsigned int cycle) const {
+
+    if (initiationInterval_ != 0) {
+        return cycle % initiationInterval_;
+    } else {
+        return cycle;
+    }
+}
+
 /**
  * Add resource - machine part pair to the broker.
  *
@@ -245,6 +263,30 @@ ResourceBroker::addResource(
     
     resMap_.insert(
         pair<const TTAMachine::MachinePart*, SchedulingResource*>(&mp, res));
+}
+
+/**
+ * Get resources
+ *
+ * @param contents Set to which resources are copied to.
+ */
+void
+ResourceBroker::resources(std::set<SchedulingResource*>& contents) {
+    for (ResourceMap::iterator i = resMap_.begin(); i != resMap_.end(); ++i ) {
+        contents.insert(i->second);
+    }
+}
+
+
+/**
+ * Set initiation interval, if ii = 0 then initiation interval is not used.
+ *
+ * @param ii initiation interval
+ */
+void
+ResourceBroker::setInitiationInterval(unsigned int ii)
+{
+    initiationInterval_ = ii;
 }
 
 int

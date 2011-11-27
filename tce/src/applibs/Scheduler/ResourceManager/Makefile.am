@@ -20,10 +20,11 @@ DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 RESOURCE_MODEL_DIR = ${APPLIBS_DIR}/Scheduler/ResourceModel
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 GRAPH_DIR = ${BASE_DIR}/Graph
+SCHED_APPLIBS_DIR = ${APPLIBS_DIR}/Scheduler
 
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${PDG_DIR} -I${TOOLS_DIR} \
 	-I${POM_DIR} -I${OSAL_DIR} -I${MACH_DIR} -I${UMACH_DIR} -I${GRAPH_DIR} \
-	-I${DISASM_DIR} -I${APPLIBS_DIR}/mach ${LLVM_CPPFLAGS}
+	-I${DISASM_DIR} -I${APPLIBS_DIR}/mach -I${SCHED_APPLIBS_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

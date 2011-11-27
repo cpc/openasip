@@ -92,6 +92,87 @@ ResourceBuildDirector::build(const TTAMachine::Machine& machine) {
 }
 
 /**
+ * Print resource manager's contents.
+ *
+ * @param target_ Output stream to pring (eg. std::cout).
+ * @param cycles How many cycles to print.
+ *
+ * @machine Machine to build from.
+ */
+void
+ResourceBuildDirector::print(std::ostream& target_, unsigned int cycles) const
+{
+    std::vector<ResourceBroker::ResourceSet> contents;
+    std::vector<ResourceBroker::ResourceSet::iterator> contentIterators;
+
+    bool finished = false;
+    unsigned int k = 0;
+    unsigned int minWidth = cycles;
+
+    // determine minimum width for field, it is constrained by cycle count or broker's name
+    for (std::vector<ResourceBroker*>::const_iterator i = brokers_.begin(); i != brokers_.end(); ++i) {
+
+        std::string name =  (*i)->brokerName();
+
+        if(name.length() > minWidth) {
+            minWidth = name.length();
+        }
+    }
+    minWidth += 1;
+
+    // print broker names
+    for (std::vector<ResourceBroker*>::const_iterator i = brokers_.begin(); i != brokers_.end(); ++i) {
+        target_ << std::left << std::setw(minWidth);
+        target_ << (*i)->brokerName();
+    }
+    target_ << std::endl;
+
+    // print broker reservation tables
+    while (!finished) {
+
+        finished = true;
+        for (std::vector<ResourceBroker*>::const_iterator i = brokers_.begin(); i != brokers_.end(); ++i) {
+
+            ResourceBroker::ResourceSet c;
+            (*i)->resources(c);
+            ResourceBroker::ResourceSet::iterator j = c.begin();
+
+            if(k >= c.size()) {
+                target_ << std::left << std::setw(minWidth) << ' ';
+                //<< 
+//                    std::string(cycles, ' ');
+                continue;
+            }
+
+            std::advance(j, k);
+
+            if(j == c.end()) {
+//                target_ << std::left << std::setw(minWidth) << 
+//                    std::string(cycles, ' ');
+                continue;
+            }
+
+            finished = false;
+
+            std::string table = "";
+            for (unsigned int cycle = 0; cycle < cycles; ++cycle)
+            {
+                if((*j)->isAvailable(cycle)) {
+                    table += '-';
+                }
+                else {
+                    table += '#';
+                    std::cerr << (*j) << " " << (*j)->name() << std::endl;
+                }
+            }
+            target_ << std::left << std::setw(minWidth) << table;
+        }
+        target_ << std::endl;
+        k += 1;
+    }
+}
+
+/**
  * Clears all resources of the resouce manager so that the RM can be reused.
  */
 void 

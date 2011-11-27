@@ -58,9 +58,20 @@ using namespace TTAMachine;
 
 /**
  * Constructor.
+ *
+ * @param name name for this broker.
+ * @param ipsb reference to InputPSocketBroker of this RM.
+ * @param opsb reference to OutputPSocketBroker of this RM.
+ * @param initiationInterval initiationinterval when doing loop scheduling.
  */
-BusBroker::BusBroker(std::string name, const TTAMachine::Machine& mach) : 
-    ResourceBroker(name), hasLimm_(false), mach_(&mach) {
+BusBroker::BusBroker(
+    std::string name, 
+    ResourceBroker& ipBroker, 
+    ResourceBroker& opBroker,
+    const TTAMachine::Machine& mach,
+    unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval), inputPSocketBroker_(ipBroker),
+    outputPSocketBroker_(opBroker), hasLimm_(false), mach_(&mach) {
 }
 
 /**
@@ -83,6 +94,8 @@ BusBroker::~BusBroker(){
  */
 bool
 BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node) const {
+
+    cycle = instructionIndex(cycle);
     SchedulingResourceSet allAvailableBuses =
         allAvailableResources(cycle, node);
     return allAvailableBuses.count() > 0;
@@ -106,6 +119,7 @@ BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node) const {
 SchedulingResource&
 BusBroker::availableResource(int cycle, const MoveNode& node) const
     throw (InstanceNotFound) {
+    cycle = instructionIndex(cycle);
     SchedulingResourceSet allAvailableBuses =
         allAvailableResources(cycle, node);
     if (allAvailableBuses.count() == 0) {
@@ -130,6 +144,7 @@ BusBroker::allAvailableResources(
     int cycle,
     const MoveNode& node) const {
 
+    cycle = instructionIndex(cycle);
     SchedulingResourceSet candidates;
 
     Move& move = const_cast<MoveNode&>(node).move();
@@ -150,7 +165,7 @@ BusBroker::allAvailableResources(
     try {
         iPSocket = 
             static_cast<InputPSocketResource*>(
-            &resourceMapper().resourceOf(*inputSocket));
+                inputPSocketBroker_.resourceOf(*inputSocket));
     } catch (const KeyNotFound& e) {
         std::string msg = "BusBroker: finding ";
         msg += " resource for Socket ";
@@ -202,9 +217,9 @@ BusBroker::allAvailableResources(
 
         oPSocket = NULL;
         try {
-            oPSocket =
-                static_cast<OutputPSocketResource*>(
-                &resourceMapper().resourceOf(*outputSocket));
+            oPSocket = 
+            static_cast<OutputPSocketResource*>(
+                outputPSocketBroker_.resourceOf(*outputSocket));
         } catch (const KeyNotFound& e) {
             std::string msg = "BusBroker: finding ";
             msg += " resource for Socket ";
@@ -227,12 +242,6 @@ BusBroker::allAvailableResources(
     if (!move.isUnconditional()) {
 
         const Guard& guard = move.guard().guard();
-        if((dynamic_cast<const RegisterGuard*>(&guard) == NULL)) {
-            throw InvalidData(
-                __FILE__, __LINE__, __func__,
-                "Move guard is not register!");        
-        }
-
         for (int i = 0; i < candidates.count(); i++) {
             SchedulingResource& busResource = candidates.resource(i);
             const Bus* aBus =
@@ -262,6 +271,129 @@ BusBroker::allAvailableResources(
 }
 
 /**
+ * Tells whether the given resource is available for given node at
+ * given cycle.
+ */
+bool
+BusBroker::isAvailable(
+    SchedulingResource& res, const MoveNode& node, int cycle) const {
+
+    cycle = instructionIndex(cycle);
+
+    Move& move = const_cast<MoveNode&>(node).move();
+    const Port* dstPort = &move.destination().port();
+    Socket* inputSocket = dstPort->inputSocket();
+
+    if (inputSocket == NULL) {
+        string unit = dstPort->parentUnit()->name();
+        string port = dstPort->name();
+        string msg =
+            "Tried to find bus for a move to '" + unit + "." + port +
+            "' which has no connections to an input socket. "
+            "Check operation bindings!";
+        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
+    }
+
+    InputPSocketResource* iPSocket = NULL;
+    try {
+        iPSocket = 
+            static_cast<InputPSocketResource*>(
+                inputPSocketBroker_.resourceOf(*inputSocket));
+    } catch (const KeyNotFound& e) {
+        std::string msg = "BusBroker: finding ";
+        msg += " resource for Socket ";
+        msg += " failed with error: ";
+        msg += e.errorMessageStack();
+        throw KeyNotFound(
+            __FILE__, __LINE__, __func__, msg);
+    }                                                            
+
+    OutputPSocketResource* oPSocket = NULL;
+
+    if (move.source().isImmediate()) {
+        
+        // look for bus resources with appropriate related shortimmsocket
+        // resources
+        BusResource* busRes =
+            dynamic_cast<BusResource*>(&res);
+        if (busRes == NULL) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                "Wrong type of resource for the broker given!");
+        }
+        
+        ShortImmPSocketResource& immRes = findImmResource(*busRes);
+        if (!canTransportImmediate(node, immRes) &&
+            busRes->canAssign(cycle, node, immRes, *iPSocket)) {
+            return false;
+        }
+    } else {
+        const Port* srcPort = &move.source().port();
+        Socket* outputSocket = srcPort->outputSocket();
+        if (outputSocket == NULL) {
+            string unit = srcPort->parentUnit()->name();
+            string port = srcPort->name();
+            string msg =
+                "Tried to find bus for a move from '" + unit + "." + port +
+                "' which has no connections to an output socket! Check "
+                "operation bindings!";
+            throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
+        }
+
+        oPSocket = NULL;
+        try {
+            oPSocket = 
+            static_cast<OutputPSocketResource*>(
+                outputPSocketBroker_.resourceOf(*outputSocket));
+        } catch (const KeyNotFound& e) {
+            std::string msg = "BusBroker: finding ";
+            msg += " resource for Socket ";
+            msg += " failed with error: ";
+            msg += e.errorMessageStack();
+            throw KeyNotFound(
+                __FILE__, __LINE__, __func__, msg);
+        }                                                            
+
+        BusResource* busRes =
+            dynamic_cast<BusResource*>(&res);
+        if (busRes == NULL) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                "Wrong type of resource for the broker given!");
+        }
+        
+        if (!busRes->canAssign(cycle, node, *oPSocket, *iPSocket)) {
+            return false;
+        }
+    }
+    if (!move.isUnconditional()) {
+
+        const Guard& guard = move.guard().guard();
+        const Bus* aBus =
+            dynamic_cast<const Bus*>(&machinePartOf(res));
+        if (aBus == NULL) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                "Bus Resource is missing bus in MOM!");
+        }
+        
+        bool guardFound = false;
+        for (int j = 0; j < aBus->guardCount(); j++) {
+            Guard* busGuard = aBus->guard(j);
+            if (busGuard->isEqual(guard)) {
+                guardFound = true;
+                break;
+            }
+        }
+        
+        if (!guardFound) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Mark given resource as in use for the given node, and assign the
  * corresponding machine part (if applicable) to the node's move.
  *
@@ -280,6 +412,7 @@ void
 BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
 
+    cycle = instructionIndex(cycle);
     BusResource& busRes = static_cast<BusResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
     if (hasResource(res)) {
@@ -304,15 +437,17 @@ BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
             if (move.source().isImmediate()) {
                 oPSocket = &findImmResource(busRes);
             } else {
-                oPSocket = &static_cast<OutputPSocketResource&>
-                    (resourceMapper().resourceOf(
+                oPSocket = static_cast<OutputPSocketResource*>
+                    (outputPSocketBroker_.resourceOf(
                     *move.source().port().outputSocket()));
             }
-            iPSocket = &static_cast<InputPSocketResource&>
-                (resourceMapper().resourceOf(
-                *move.destination().port().inputSocket()));
+            iPSocket = 
+                static_cast<InputPSocketResource*>(
+                    inputPSocketBroker_.resourceOf(
+                        *move.destination().port().inputSocket()));
             busRes.assign(cycle, node, *oPSocket, *iPSocket);
         } else {
+            assert(0 && "move source is nothing!");
             busRes.assign(cycle,node);
         }
     } else {
@@ -339,8 +474,8 @@ BusBroker::unassign(MoveNode& node) {
     if (MapTools::containsKey(assignedResources_, &node)) {
         Move& move = const_cast<MoveNode&>(node).move();
         Bus& bus = move.bus();
-        SchedulingResource& res = resourceOf(bus);
-        BusResource& busRes = static_cast<BusResource&>(res);
+        SchedulingResource* res = resourceOf(bus);
+        BusResource& busRes = static_cast<BusResource&>(*res);
 
         if (move.source().isGPR() ||
             move.source().isFUPort() ||
@@ -351,13 +486,13 @@ BusBroker::unassign(MoveNode& node) {
             if (move.source().isImmediate()) {
                 oPSocket = &findImmResource(busRes);
             } else {
-                oPSocket = &static_cast<PSocketResource&>
-                    (resourceMapper().resourceOf(
-                    *move.source().port().outputSocket()));
+                oPSocket = static_cast<PSocketResource*>
+                    (outputPSocketBroker_.resourceOf(
+                        *move.source().port().outputSocket()));
             }
-            iPSocket = &static_cast<PSocketResource&>
-                (resourceMapper().resourceOf(
-                *move.destination().port().inputSocket()));
+            iPSocket = static_cast<PSocketResource*>
+                (inputPSocketBroker_.resourceOf(
+                    *move.destination().port().inputSocket()));
             busRes.unassign(node.cycle(), node, *oPSocket, *iPSocket);
         } else {
             busRes.unassign(node.cycle(),node);
@@ -418,7 +553,7 @@ BusBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
     if (!MapTools::containsKey(assignedResources_, &node)) {
         return false;
     }
-    return isInUse(cycle,node);
+    return isInUse(instructionIndex(cycle),node);
 }
 
 /**
@@ -432,14 +567,15 @@ BusBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
  */
 bool
 BusBroker::isInUse(int cycle, const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     Bus& bus = const_cast<MoveNode&>(node).move().bus();
     if (!hasResourceOf(bus)) {
         return false;
     }
 
     Move& move = const_cast<MoveNode&>(node).move();
-    SchedulingResource& res = resourceOf(bus);
-    BusResource& busRes = static_cast<BusResource&>(res);
+    SchedulingResource* res = resourceOf(bus);
+    BusResource& busRes = static_cast<BusResource&>(*res);
 
     if (move.source().isGPR() ||
         move.source().isFUPort() ||
@@ -448,9 +584,10 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
         PSocketResource* iPSocket = NULL;
         PSocketResource* oPSocket = NULL;
         try {
-            iPSocket = &static_cast<PSocketResource&>
-                (resourceMapper().resourceOf(
-                *move.destination().port().inputSocket()));
+            iPSocket = 
+                static_cast<InputPSocketResource*>(
+                    inputPSocketBroker_.resourceOf(
+                         *move.destination().port().inputSocket()));
         } catch (const KeyNotFound& e) {
             std::string msg = "BusBroker: finding ";
             msg += " resource for Socket ";
@@ -464,9 +601,9 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
             oPSocket = &findImmResource(busRes);
         } else {
             try {
-            oPSocket = &static_cast<PSocketResource&>
-                (resourceMapper().resourceOf(
-                *move.source().port().outputSocket()));
+                oPSocket = static_cast<PSocketResource*>(
+                    outputPSocketBroker_.resourceOf(
+                        *move.source().port().outputSocket()));
             } catch (const KeyNotFound& e) {
                 std::string msg = "BusBroker: finding ";
                 msg += " resource for Socket ";
@@ -530,7 +667,7 @@ BusBroker::buildResources(const TTAMachine::Machine& target) {
         int socketCount = bus->segment(0)->connectionCount();
         BusResource* busResource = new BusResource(
             bus->name(), bus->width(),limmSlotCounts[bus], bus->guardCount(),
-            bus->immediateWidth(), socketCount);
+            bus->immediateWidth(), socketCount, initiationInterval_);
         ResourceBroker::addResource(*bus, busResource);
     }
 }
@@ -564,7 +701,8 @@ BusBroker::setupResourceLinks(const ResourceMapper& mapper) {
 
         ShortImmPSocketResource* immSocketResource =
             new ShortImmPSocketResource(
-                bus->name() + "Imm", immWidth, bus->signExtends());
+                bus->name() + "Imm", immWidth, bus->signExtends(),
+                initiationInterval_);
 
         shortImmPSocketResources_.push_back(immSocketResource);
         busResource->addToRelatedGroup(0, *immSocketResource);
@@ -591,19 +729,21 @@ BusBroker::setupResourceLinks(const ResourceMapper& mapper) {
 
             for (int j = 0; j < seg->connectionCount(); j++) {
                 Socket* socket = seg->connection(j);
-                try {
-                    SchedulingResource& relRes = mapper.resourceOf(*socket);
-                    busResource->addToRelatedGroup(0, relRes);
-                } catch (const KeyNotFound& e) {
+                SchedulingResource* relRes = 
+                    inputPSocketBroker_.resourceOf(*socket);
+                if (relRes == NULL) {
+                    relRes = outputPSocketBroker_.resourceOf(*socket);
+                }
+                if (relRes != NULL) {
+                    busResource->addToRelatedGroup(0, *relRes);
+                } else {
                     std::string msg = "BusBroker: finding ";
                     msg += " resource for Socket ";
-                    msg += " failed with error: ";
-                    msg += e.errorMessageStack();
+                    msg += " failed. ";
                     throw KeyNotFound(
                         __FILE__, __LINE__, __func__, msg);
-                }                                                                            
+                }
             }
-
         }
     }
 }
@@ -733,12 +873,6 @@ bool
 BusBroker::hasGuard(const MoveNode& node) const {
     Move& move = const_cast<MoveNode&>(node).move();
     const Guard& guard = move.guard().guard();
-    if (dynamic_cast<const RegisterGuard*>(&guard) == NULL) {
-        throw InvalidData(
-            __FILE__, __LINE__, __func__,
-            "Move guard is not register!");
-    }    
-
     ResourceMap::const_iterator resIter = resMap_.begin();
     while (resIter != resMap_.end()) {
         SchedulingResource& busResource = *(*resIter).second;
@@ -765,4 +899,4 @@ BusBroker::clear() {
         (*i)->clear();
     }
 }
- 
+         

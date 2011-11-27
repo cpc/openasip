@@ -37,6 +37,10 @@ namespace TTAMachine {
     class Machine;
 }
 
+namespace TTAProgram {
+    class Instruction;
+}
+
 class MoveNode;
 class MoveNodeSet;
 
@@ -59,7 +63,7 @@ public:
     virtual bool supportsExternalAssignments() const = 0;
     virtual int largestCycle() const = 0;
     const TTAMachine::Machine& machine() const;
-
+    virtual TTAProgram::Instruction* instruction(int cycle) const =0;
 private:
     /// Target machine.
     const TTAMachine::Machine* machine_;

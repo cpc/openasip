@@ -40,8 +40,9 @@
  * Constructor defining resource name
  * @param name Name of resource
  */
-FUResource::FUResource(const std::string& name, int opCount) : 
-    SchedulingResource(name) , opCount_(opCount) {}
+FUResource::FUResource(const std::string& name, int opCount,
+        unsigned int initiationInterval) : 
+    SchedulingResource(name, initiationInterval) , opCount_(opCount) {}
 
 /**
  * Empty destructor
@@ -79,7 +80,7 @@ FUResource::isAvailable(const int cycle) const {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isInputPSocketResource() ||
                 dependentResource(i, j).isOutputPSocketResource()) {
-                if (!dependentResource(i, j).isInUse(cycle)) {
+                if (dependentResource(i, j).isAvailable(cycle)) {
                     return true;
                 }
             }
@@ -133,7 +134,7 @@ FUResource::canAssign(const int, const MoveNode&) const {
 bool 
 FUResource::operator< (const SchedulingResource& other) const {
 
-    const FUResource *fur = dynamic_cast<const FUResource*>(&other);
+    const FUResource *fur = static_cast<const FUResource*>(&other);
     if (fur == NULL) {
         return false;
     }

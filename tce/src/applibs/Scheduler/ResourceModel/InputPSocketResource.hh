@@ -47,9 +47,10 @@
 class InputPSocketResource : public PSocketResource {
 public:
     virtual ~InputPSocketResource();
-    InputPSocketResource(const std::string& name);
+    InputPSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
     virtual bool isInputPSocketResource() const;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const;
 
     virtual bool operator < (const SchedulingResource& other) const;
 protected:

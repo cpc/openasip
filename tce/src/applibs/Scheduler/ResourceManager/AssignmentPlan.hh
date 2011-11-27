@@ -40,6 +40,7 @@
 class ResourceBroker;
 class PendingAssignment;
 class MoveNode;
+class SchedulingResource;
 
 /**
  * Keeps the order in which single resource-specific brokers are
@@ -67,8 +68,10 @@ public:
 
     int brokerCount() const;
     ResourceBroker& broker(int index) const throw (OutOfRange);
-
     void clear();
+
+    bool tryCachedAssignment(MoveNode& node, int cycle);
+    void clearCache();
 private:
     /// Sequence of pending assignments.
     std::vector<PendingAssignment*> assignments_;
@@ -84,6 +87,12 @@ private:
     int currentBroker_;
     /// True if a valid resource of current broker has been assigned.
     bool resourceFound_;
+
+    ///  cache.
+    std::vector<std::pair<ResourceBroker*, SchedulingResource*> > 
+    lastTestedWorkingAssignment_;
+    MoveNode* lastTriedNode_;
+    int lastTriedCycle_;
 };
 
 #endif

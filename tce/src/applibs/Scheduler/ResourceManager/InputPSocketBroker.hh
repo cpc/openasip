@@ -50,7 +50,10 @@ class SchedulingResource;
  */
 class InputPSocketBroker : public ResourceBroker {
 public:
-    InputPSocketBroker(std::string name);
+    InputPSocketBroker(
+        std::string name,
+        ResourceBroker& fub,
+        unsigned int initiationInterval = 0);
     virtual ~InputPSocketBroker();
 
     virtual SchedulingResourceSet allAvailableResources(
@@ -65,7 +68,11 @@ public:
     virtual bool isApplicable(const MoveNode& node) const;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
-
+    
+    void setSegmentBroker(ResourceBroker& sb);
+private:
+    ResourceBroker& inputFUBroker_;
+    ResourceBroker* segmentBroker_;
 };
 
 #endif

@@ -53,7 +53,6 @@
 #include "HelperSchedulerModule.hh"
 #include "MoveNodeSelector.hh"
 #include "ReadyMoveNodeGroupList.hh"
-#include "CriticalPathBBMoveNodeSelector.hh"
 
 class DataDependenceGraph;
 

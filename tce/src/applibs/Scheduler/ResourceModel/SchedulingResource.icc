@@ -167,3 +167,27 @@ SchedulingResource::operator < (const SchedulingResource& other) const
     }
     return name() < other.name();
 }
+
+/**
+ * Returns number of of related resources in group.
+ *
+ * @param group Group to count resources in.
+ * @return Number of related resources in group.
+ * @exception OutOfRange If group requested does not exist.
+ */
+int
+SchedulingResource::relatedResourceCount(const int group) const {
+    return relatedResourceGroup_[group].size();
+}
+
+/**
+ * Return number of of dependent resources in group.
+ *
+ * @param group Group to count dependent in.
+ * @return Number of related dependent in group.
+ * @exception OutOfRange If group requested does not exist.
+ */
+int
+SchedulingResource::dependentResourceCount(const int group) const {
+    return dependentResourceGroup_[group].size();
+}

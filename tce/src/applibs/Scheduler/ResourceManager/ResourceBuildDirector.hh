@@ -34,6 +34,7 @@
 #define TTA_RESOURCE_BUILD_DIRECTOR_HH
 
 #include <vector>
+#include <iostream>
 
 #include "Exception.hh"
 #include "ResourceMapper.hh"
@@ -55,12 +56,14 @@ public:
     void addBroker(ResourceBroker& broker) throw (ObjectAlreadyExists);
     void build(const TTAMachine::Machine& machine);
 
+    void print(std::ostream& target_, unsigned int cycles) const;
     void clear();
 private:
     /// Resource brokers.
     std::vector<ResourceBroker*> brokers_;
     /// Resource mapper.
     ResourceMapper mapper_;
+
 };
 
 #endif

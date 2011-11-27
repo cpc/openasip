@@ -62,8 +62,8 @@ class SimpleResourceManager;
  */
 class ITemplateBroker : public ResourceBroker {
 public:
-    ITemplateBroker(std::string);
-    ITemplateBroker(std::string, SimpleResourceManager*);
+    ITemplateBroker(std::string, unsigned int initiationInterval = 0);
+    ITemplateBroker(std::string, SimpleResourceManager*, unsigned int initiationInterval = 0);
     virtual ~ITemplateBroker();
 
     virtual bool isAnyResourceAvailable(int, const MoveNode&) const;

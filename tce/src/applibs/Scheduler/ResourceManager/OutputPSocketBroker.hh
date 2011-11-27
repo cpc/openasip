@@ -50,10 +50,14 @@ class SchedulingResource;
  */
 class OutputPSocketBroker : public ResourceBroker {
 public:
-    OutputPSocketBroker(std::string name);
-    OutputPSocketBroker(std::string name, SimpleResourceManager*);
+    OutputPSocketBroker(std::string name,
+                        ResourceBroker& ofb,
+                        SimpleResourceManager*,
+                        unsigned int initiationInterval = 0);
+
     virtual ~OutputPSocketBroker();
 
+    bool isAnyResourceAvailable(int cycle, const MoveNode& node) const;
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
     virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
@@ -66,7 +70,10 @@ public:
     virtual bool isApplicable(const MoveNode& node) const;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
+    void setSegmentBroker(ResourceBroker& sb);
 private:
+    ResourceBroker& outputFUBroker_;
+    ResourceBroker* segmentBroker_;
     // Pointer to resource manager, needed to get information about
     // immediate from IUBroker
     SimpleResourceManager* rm_;    

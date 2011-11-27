@@ -49,7 +49,8 @@ class InputPSocketResource;
 class InputFUResource : public FUResource {
 public:
     virtual ~InputFUResource();
-    InputFUResource(const std::string& name, int opCount);
+    InputFUResource(const std::string& name, int opCount,
+            unsigned int initiationInterval = 0);
 
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual void assign(const int cycle, MoveNode& node)

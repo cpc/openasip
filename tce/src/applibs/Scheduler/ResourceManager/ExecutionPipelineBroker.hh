@@ -45,13 +45,14 @@ namespace TTAMachine {
 class MoveNode;
 class ResourceMapper;
 class SchedulingResource;
+class DataDependenceGraph;
 
 /**
  * Execution pipeline broker.
  */
 class ExecutionPipelineBroker : public ResourceBroker {
 public:
-    ExecutionPipelineBroker(std::string);
+    ExecutionPipelineBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~ExecutionPipelineBroker();
 
     virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
@@ -66,6 +67,8 @@ public:
     virtual void setupResourceLinks(const ResourceMapper& mapper);
     virtual int highestKnownCycle() const;
     virtual bool isExecutionPipelineBroker() const;
+    virtual void setInitiationInterval(unsigned int cycles);
+    void setDDG(const DataDependenceGraph* ddg);
 
 private:
     /// Map to link FU's and pipelines.

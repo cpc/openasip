@@ -54,7 +54,7 @@ class ResourceMapper;
  */
 class InputFUBroker : public ResourceBroker {
 public:
-    InputFUBroker(std::string);
+    InputFUBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~InputFUBroker();
 
     virtual SchedulingResourceSet allAvailableResources(

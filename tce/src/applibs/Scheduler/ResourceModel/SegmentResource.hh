@@ -47,7 +47,7 @@
 class SegmentResource : public SchedulingResource {
 public:
     virtual ~SegmentResource();
-    SegmentResource(const std::string& name);
+    SegmentResource(const std::string& name, unsigned int initiationInterval = 0);
 
     virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;

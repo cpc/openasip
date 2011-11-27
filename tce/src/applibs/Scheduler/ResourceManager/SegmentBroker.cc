@@ -42,8 +42,19 @@ using namespace TTAMachine;
 
 /**
  * Constructor.
+ *
+ * @param name name for this broker.
+ * @param ipsb reference to InputPSocketBroker of this RM.
+ * @param opsb reference to OutputPSocketBroker of this RM.
+ * @param initiationInterval initiationinterval when doing loop scheduling.
  */
-SegmentBroker::SegmentBroker(std::string name) : ResourceBroker(name) {
+SegmentBroker::SegmentBroker(
+    std::string name, 
+    ResourceBroker& ipsb,
+    ResourceBroker& opsb,
+    unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval), inputPSocketBroker_(ipsb),
+    outputPSocketBroker_(opsb) {
 }
 
 /**
@@ -120,10 +131,12 @@ SegmentBroker::latestCycle(int, const MoveNode&) const {
  */
 bool
 SegmentBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     Bus& bus = const_cast<MoveNode&>(node).move().bus();
     for (int i = 0; i < bus.segmentCount(); i++) {
         Segment* seg = bus.segment(i);
-        if (hasResourceOf(*seg) && resourceOf(*seg).isInUse(cycle)) {
+        SchedulingResource* res = resourceOf(*seg);
+        if (res != NULL && res->isInUse(cycle)) {
             return true;
         }
     }
@@ -159,7 +172,8 @@ SegmentBroker::buildResources(const TTAMachine::Machine& target) {
         Bus* bus = navi.item(i);
         for (int j = 0; j < bus->segmentCount(); j++) {
             Segment* seg = bus->segment(j);
-            SegmentResource* segResource = new SegmentResource(seg->name());
+            SegmentResource* segResource = new SegmentResource(seg->name(),
+                    initiationInterval_);
             ResourceBroker::addResource(*seg, segResource);
         }
     }
@@ -195,7 +209,7 @@ SegmentBroker::setupResourceLinks(const ResourceMapper& mapper) {
             Segment* sourceSeg = seg->sourceSegment();
             try {
                 SchedulingResource& depRes =
-                    mapper.resourceOf(*sourceSeg);
+                    *resourceOf(*sourceSeg);
                 /// Source segment is dependent group 0
                 segResource->addToDependentGroup(0,depRes);
             } catch (const KeyNotFound& e) {
@@ -212,7 +226,7 @@ SegmentBroker::setupResourceLinks(const ResourceMapper& mapper) {
             Segment* destinationSeg = seg->destinationSegment();
             try {
                 SchedulingResource& depRes =
-                    mapper.resourceOf(*destinationSeg);
+                    *resourceOf(*destinationSeg);
                 /// Destination segment is dependent group 1
                 segResource->addToDependentGroup(1,depRes);
             } catch (const KeyNotFound& e) {
@@ -228,12 +242,14 @@ SegmentBroker::setupResourceLinks(const ResourceMapper& mapper) {
         for(int j = 0; j < seg->connectionCount();j++) {
             Socket* soc = seg->connection(j);
             try {
-                SchedulingResource& relRes =
-                        mapper.resourceOf(*soc);
-                if(soc->direction() == Socket::INPUT){
+                if (soc->direction() == Socket::INPUT) {
+                    SchedulingResource& relRes =
+                        *inputPSocketBroker_.resourceOf(*soc);
                     /// Input sockets are related group 0
                     segResource->addToRelatedGroup(0,relRes);
                 } else {
+                    SchedulingResource& relRes =
+                        *outputPSocketBroker_.resourceOf(*soc);
                     /// Output sockets are related group 1
                     segResource->addToRelatedGroup(1,relRes);
                 }

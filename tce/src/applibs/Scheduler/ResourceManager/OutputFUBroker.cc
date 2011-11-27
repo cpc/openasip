@@ -57,7 +57,8 @@ using namespace TTAProgram;
 /**
  * Constructor.
  */
-OutputFUBroker::OutputFUBroker(std::string name) : ResourceBroker(name) {
+OutputFUBroker::OutputFUBroker(std::string name, unsigned int initiationInterval) :
+    ResourceBroker(name, initiationInterval) {
 }
 
 /**
@@ -80,13 +81,15 @@ OutputFUBroker::allAvailableResources(
     int cycle,
     const MoveNode& node) const {
 
+    int modCycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
-        string msg = "Broker not capable of assigning resources to node!";
+        string msg = "Broker not capable of assigning resources to node: "
+        + node.toString();
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
 
     Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& src = dynamic_cast<TerminalFUPort&>(move.source());
+    TerminalFUPort& src = static_cast<TerminalFUPort&>(move.source());
 
     SchedulingResourceSet resourceSet;
     ResourceMap::const_iterator resIter = resMap_.begin();
@@ -97,7 +100,7 @@ OutputFUBroker::allAvailableResources(
             const ControlUnit* gcu =
                 dynamic_cast<const ControlUnit*>((*resIter).first);
             if (gcu != NULL) {
-                if ((*resIter).second->isAvailable(cycle)) {
+                if ((*resIter).second->isAvailable(modCycle)) {
                     resourceSet.insert(*(*resIter).second);
                 }
                 return resourceSet;
@@ -127,26 +130,13 @@ OutputFUBroker::allAvailableResources(
                     if (hasResourceOf(fu)) {
                         
                         OutputFUResource& fuRes =
-                            dynamic_cast<OutputFUResource&>(resourceOf(fu));
+                            static_cast<OutputFUResource&>(*resourceOf(fu));
                         debugLogRM(TCEString(" has resource of ") + fuRes.name());
-                            
                     // Find what is the port on a new FU for given
                     // operation index. Find a socket for testing.
                         HWOperation* hwOp = fu.operation(op.name());
-                        Socket* soc = hwOp->port(opIndex)->outputSocket();
-                        OutputPSocketResource* pSocket = NULL;
-                        try {
-                            pSocket = &dynamic_cast<OutputPSocketResource&>(
-                                resourceMapper().resourceOf(*soc));
-                        } catch (const KeyNotFound& e) {
-                            std::string msg = "OutputFUBroker: finding ";
-                            msg += " resource for Socket ";
-                            msg += " failed with error: ";
-                            msg += e.errorMessageStack();
-                            throw KeyNotFound(
-                                __FILE__, __LINE__, __func__, msg);
-                        }
-                        if (fuRes.canAssign(cycle, node,*pSocket)) {
+                        Port* resultPort = hwOp->port(opIndex);
+                        if (fuRes.canAssign(cycle, node, *resultPort)) {
                             resourceSet.insert(fuRes);
                         }
                         return resourceSet;
@@ -166,25 +156,12 @@ OutputFUBroker::allAvailableResources(
                     const FunctionUnit& fu = src.functionUnit();
                     if (hasResourceOf(fu)) {
                         OutputFUResource& fuRes =
-                            dynamic_cast<OutputFUResource&>(resourceOf(fu));
+                            static_cast<OutputFUResource&>(*resourceOf(fu));
                     // Find what is the port on a new FU for given
                     // operation index. Find a socket for testing.
                         HWOperation* hwOp = fu.operation(op.name());
-                        Socket* soc = hwOp->port(opIndex)->outputSocket();
-                        OutputPSocketResource* pSocket = NULL;
-                        try {
-                            pSocket = &dynamic_cast<OutputPSocketResource&>(
-                                resourceMapper().resourceOf(*soc));
-                        } catch (const KeyNotFound& e) {
-                            std::string msg = "OutputFUBroker: finding ";
-                            msg += " resource for Socket ";
-                            msg += " failed with error: ";
-                            msg += e.errorMessageStack();
-                            throw KeyNotFound(
-                                __FILE__, __LINE__, __func__, msg);
-                        }
-                        
-                        if (fuRes.canAssign(cycle, node,*pSocket)) {
+                        Port* resultPort = hwOp->port(opIndex);
+                        if (fuRes.canAssign(cycle, node, *resultPort)) {
                             resourceSet.insert(fuRes);
                         }
                         return resourceSet;
@@ -217,7 +194,7 @@ OutputFUBroker::allAvailableResources(
     // find units that support operation and are available at given cycle
     while (resIter != resMap_.end()) {
         const FunctionUnit* unit =
-            dynamic_cast<const FunctionUnit*>((*resIter).first);
+            static_cast<const FunctionUnit*>((*resIter).first);
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it
         debugLogRM(TCEString("checking ") << unit->name());        
@@ -228,25 +205,13 @@ OutputFUBroker::allAvailableResources(
         }
         if (unit->hasOperation(op.name())) {
             OutputFUResource& fuRes =
-                dynamic_cast<OutputFUResource&>(resourceOf(*unit));
+                static_cast<OutputFUResource&>(*resourceOf(*unit));
                 // Find what is the port on a new FU for given
                 // operation index. Find a socket for testing.
             HWOperation* hwOp = unit->operation(op.name());
-            Socket* soc = hwOp->port(opIndex)->outputSocket();
-            OutputPSocketResource* pSocket = NULL;
-            try {
-                pSocket = &dynamic_cast<OutputPSocketResource&>(
-                    resourceMapper().resourceOf(*soc));
-            } catch (const KeyNotFound& e) {
-                std::string msg = "OutputFUBroker: finding ";
-                msg += " resource for Socket ";
-                msg += " failed with error: ";
-                msg += e.errorMessageStack();
-                throw KeyNotFound(
-                    __FILE__, __LINE__, __func__, msg);
-            }
-            debugLogRM("testing " + op.name());
-            if (fuRes.canAssign(cycle, node,*pSocket)) {                
+            Port* resultPort = hwOp->port(opIndex);
+            if (fuRes.canAssign(cycle, node, *resultPort)) {
+                debugLogRM("testing " + op.name());
                 resourceSet.insert(*(*resIter).second);
             } else {
                 debugLogRM("could not assign the fuRes to it.");
@@ -278,6 +243,8 @@ void
 OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
 
+    // TODO: this breaks execpipeline
+//    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
@@ -287,9 +254,9 @@ OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         string msg = "Broker does not contain given resource.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
-    OutputFUResource& fuRes = dynamic_cast<OutputFUResource&>(res);
+    OutputFUResource& fuRes = static_cast<OutputFUResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& src = dynamic_cast<TerminalFUPort&>(move.source());
+    TerminalFUPort& src = static_cast<TerminalFUPort&>(move.source());
 
     if (dynamic_cast<const SpecialRegisterPort*>(&src.port()) != NULL) {
         const ControlUnit* gcu =
@@ -319,7 +286,7 @@ OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     int opIndex = src.operationIndex();
     Operation& op = src.hintOperation();
     const FunctionUnit& unit =
-        dynamic_cast<const FunctionUnit&>(machinePartOf(res));
+        static_cast<const FunctionUnit&>(machinePartOf(res));
     HWOperation* hwOp = unit.operation(op.name());
     TerminalFUPort* newSrc = new TerminalFUPort(*hwOp, opIndex);
     move.setSource(newSrc);
@@ -347,7 +314,7 @@ OutputFUBroker::unassign(MoveNode& node) {
     if (MapTools::containsKey(assignedResources_, &node)) {
         Move& move = const_cast<MoveNode&>(node).move();
         TerminalFUPort& src = dynamic_cast<TerminalFUPort&>(move.source());
-        SchedulingResource& res = resourceOf(src.functionUnit());
+        SchedulingResource& res = *resourceOf(src.functionUnit());
         const ControlUnit* gcu =
             dynamic_cast<const ControlUnit*>(&machinePartOf(res));
 
@@ -410,6 +377,7 @@ OutputFUBroker::latestCycle(int, const MoveNode&) const {
  */
 bool
 OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
+    cycle = instructionIndex(cycle);
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort()) {
         const FunctionUnit& fu = src.functionUnit();
@@ -419,7 +387,6 @@ OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
             }
         }
     }
-    cycle = cycle; // avoid unused variable
     return false;
 }
 
