@@ -1,0 +1,64 @@
+#include "MapTools.hh"
+
+unsigned int ExecutionPipelineResourceTable::pipelineSize() const {
+    return operationPipelines_.size();
+}
+
+unsigned int ExecutionPipelineResourceTable::numberOfResources() const {
+    return numberOfResources_;
+}
+
+unsigned int ExecutionPipelineResourceTable::maximalLatency() const {
+    return maximalLatency_;
+}
+    
+/**
+ * Returns whether given pipeline resource is used for some operation
+ * 
+ * @param op OperationIndex for operation
+ * @param cycle Cycle of the operation.
+ * @param res resource which to query
+ */
+bool ExecutionPipelineResourceTable:: operationPipeline(
+    int op, int cycle, int res) const {
+    return operationPipelines_[op][cycle][res];
+}
+
+/**
+ * Returns whether the given operation is supported by this FU.
+ */
+bool ExecutionPipelineResourceTable::hasOperation(
+    const std::string& opName) const {
+    return MapTools::containsKey(operationSupported_, opName);
+}
+
+/**
+ * Gets the index of given operation in the FU.
+ * 
+ * If none found , throws Exception
+ */
+int ExecutionPipelineResourceTable::operationIndex(
+    const std::string& opName) const {
+    
+    if (MapTools::containsKey(operationSupported_, opName)) {
+        return MapTools::valueForKey<int>(operationSupported_, opName);
+    } else {
+        std::string msg = "Operation " + opName ;
+        msg += " is not implemented in " + name() + "!";
+        throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
+    }
+}
+
+/**
+ * Returns  the operation latencies for all outputs of an operation.
+ * 
+ * @param operationIndex index of the operation. 
+ */
+const std::map<int,int>& ExecutionPipelineResourceTable::operationLatency(
+    unsigned int operationIndex) const {
+    return operationLatencies_[operationIndex];
+}
+
+const std::string& ExecutionPipelineResourceTable::name() const {
+    return name_;
+}
