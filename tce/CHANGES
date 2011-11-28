@@ -66,6 +66,10 @@ Bugfixes
   was not initialized.
 - ProDe: fixed a crash when checking programmability on a machine with more 
   than 1 boolean registers/no boolean register files.
+- tcecc: On some platforms an exception thrown when a symbol (usually a
+  from a call to a function not linked in) crashes at LLVM/TCE library
+  boundaries. Moved the exception handling closer to the call position
+  to produce a graceful error message printout for this case.
 
 Code generator improvements
 ---------------------------

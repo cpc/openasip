@@ -1207,8 +1207,8 @@ Program::convertSymbolRef(Terminal& tsr) {
                                    "_end not found in program!");
         }
         throw InstanceNotFound(__FILE__,__LINE__,__func__,
-                               TCEString("procedure with  symbol: ")
-                               + procName + TCEString(" not found!"));
+                               TCEString("procedure '")
+                               + procName + TCEString("' not found!"));
     }
     const Procedure& target = procedure(procName);
     assert(target.instructionCount() >0);
