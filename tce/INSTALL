@@ -145,6 +145,11 @@ the configure script execution you are notified in case the support could
 be enabled. You can also verify it by running 'tcecc --supported-languages'
 which should then list OpenCL C.
 
+Known unsupported language features:
+
+- automatic local variables
+- probably something else we haven't bumped into yet
+
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
 
