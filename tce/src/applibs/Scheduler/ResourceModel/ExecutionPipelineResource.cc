@@ -743,7 +743,6 @@ ExecutionPipelineResource::unassignDestination(
         msg += "\' not supported on FU!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
-    int pIndex = resources->operationIndex(opName);
 
     // can not trust size() since that one ignores empty pipeline
     // and here we need to go up to the maximalLatency
@@ -764,14 +763,16 @@ ExecutionPipelineResource::unassignDestination(
             ResourceReservation& rr = 
                 fuExecutionPipeline_[instructionIndex(cycle+i)][j];
             if (rr.first == &node) {
-                assert(resources->operationPipeline(pIndex,i,j) &&
+                assert(resources->operationPipeline(
+                    resources->operationIndex(opName),i,j) &&
                        "unassigning pipeline res not used by this op");
                 
                 rr.first = rr.second;
                 rr.second = NULL;
             } else {
                 if (rr.second == &node) {
-                    assert(resources->operationPipeline(pIndex,i,j) &&
+                    assert(resources->operationPipeline(
+                        resources->operationIndex(opName),i,j) &&
                            "unassigning pipeline res not used by this op");
                     
                     rr.second = NULL;
