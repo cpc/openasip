@@ -1194,17 +1194,24 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
 $BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
 
-if test x"$LLVM_VERSION" != x2.9 -a -a $srcdir/src/bintools/Compiler/pocl
+# Check for OpenCL support.
+
+# Check that the pocl-standalone script is found in PATH.
+AC_CHECK_PROG(POCL_FOUND_IN_PATH, pocl-standalone, "1", "0")
+# Check that pkg-config finds POCL.
+PKG_CHECK_EXISTS(pocl, [POCL_PKG_CONFIG="1"], [POCL_PKG_CONFIG="0"])
+
+if test x"$LLVM_VERSION" != x2.9 -a $POCL_FOUND_IN_PATH == "1" -a $POCL_PKG_CONFIG == "1"
 then
 
-ac_configure_args="$ac_configure_args HOST_ARCH=tce CFLAGS=\"$CFLAGS\" LDFLAGS=\"$LDFLAGS\""
-AC_CONFIG_SUBDIRS([src/bintools/Compiler/pocl])
 AC_SUBST([OPENCL_ENABLED], ["1"])
 OPENCL=true
+
 else
 
 AC_SUBST([OPENCL_ENABLED], ["0"])
 OPENCL=false
+
 fi
 
 if test -d test
@@ -1367,6 +1374,8 @@ AC_CONFIG_FILES([
   bclib/include/Makefile
 ])
 
+## The test Makefile generation will be removed automatically 
+## from the released .tar.gz with 'make_dist.sh'.
 ## REMOVE FROM DIST START
 AC_CONFIG_FILES([
   test/Makefile

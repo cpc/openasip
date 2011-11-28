@@ -245,8 +245,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     cpp_trampoline = mkstemp("_ocl_launcher.cpp", dir=tempDir)[1]
                     kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
 
-                    runCommand(('EXTRA_CLANG_FLAGS="-fasm -include %s" ' % device_header[1]) + \
-                               poclScriptDir + "/pocl-standalone -h %s -o %s %s" % \
+                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ -ccc-host-triple tce-tut-llvm -fasm -include %s" ' % device_header[1]) + \
+                               "pocl-standalone -t tce -h %s -o %s %s" % \
                                (cpp_trampoline, kernel_bc, input_file), verbose, 
                                echoStderr=True)
                     if exitCode != 0:
@@ -254,13 +254,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                             1, "Error while compiling the OpenCL C file %s.\n" % input_file)
 
                     def compile(input, output):
-                        command = ("clang -ccc-host-triple tce-tut-llvm %s " + \
-                                       "-emit-llvm -O%d "\
+                        command = ("clang -ccc-host-triple tce-tut-llvm " + \
+                                       "-emit-llvm -O3 "\
                                        "-fno-inline -c -I" + tmpDir +\
-                                       " " + compileFlags + " " + input + " -o " + output) % \
-                                       ("-I" + tceSAOpenCLIncludeDir + " -I" + poclDir + "/lib" + \
-                                            " -I" + poclDir,
-                                        options.frontend_optlevel)
+                                       " " + input + \
+                                       " %s `pkg-config pocl --cflags`" + \
+                                       " -o " + output) % \
+                                       ("-I " + tceSAOpenCLIncDir)
+# + " -I" + poclDir + "/lib" + " -I" + poclDir
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
                             exitWithError(1, "Error while compiling %s." % input)
@@ -291,7 +292,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 #include <stdlib.h>
 #include <stdio.h>
 #include "cl_tce.h"
-#include "CL/pocl_cl.h"
+#include <pocl/pocl_cl.h>
 
 #ifdef __TCE__
 
@@ -526,15 +527,13 @@ private:
                     if options.use_clang:
                         command = ("clang -ccc-host-triple tce-tut-llvm %s -emit-llvm " +\
                                     "-O%d "\
-                                    "-fno-inline -c -I" + tmpDir +\
-                                    " -I" + tceSAOpenCLIncludeDir +\
+                                    "-fno-inline -c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
                                     (extra_opts, options.frontend_optlevel)
                     else:
                         command = ("tce-llvm-g++ %s --emit-llvm -O%d "\
-                                    "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
-                                    " -I" + tceSAOpenCLIncludeDir +\
+                                    "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
                                     (extra_opts, options.frontend_optlevel)
@@ -947,6 +946,14 @@ p.add_option('-x', type='string', action='store', metavar='language',
              dest="language", default='', help=\
 """Bypass language detection and use the given language for compilation.""")             
 
+p.add_option('--supported-languages', action='store_true', 
+             dest="list_langs", default=False, help=\
+"""List the supported languages and exit.""")
+
+p.add_option('--version', action='store_true',
+             dest='print_version', default=False, help=\
+"""Print the tcecc version info and exit.""")
+
 p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
              help=\
 """Dumps DDGs in dot format before and after scheduling.""")
@@ -978,11 +985,12 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
 
-p.add_option('--opencl-max-parallel-wi-count',
+if "@OPENCL_ENABLED@":
+    p.add_option('--opencl-max-parallel-wi-count',
              type="int", action="store",
              dest='opencl_max_parallel_wi_count', default=8,
              help=\
-"""The maximum number of work items that are compiled (unrolled) to 
+   """The maximum number of work items that are compiled (unrolled) to 
 be executed in parallel.""")
 
 p.add_option('--old-builder', action='store_true', dest='pom_builder', 
@@ -1026,6 +1034,17 @@ if options.clear_cache:
     cleanup(tempDir)
     sys.exit(0)
 
+if options.list_langs:
+    supported_languages = ["ISO C99 (c)", "C++ (c++)"]
+    if "@OPENCL_ENABLED@":
+        supported_languages.append("OpenCL C (cl)")
+    print "\n".join(supported_languages)
+    sys.exit(0)
+
+if options.print_version:
+    print "tcecc - TCE retargetable compiler %s" % "@PACKAGE_VERSION@"
+    sys.exit(0)
+
 if len(inFiles) == 0:
     p.print_help()
     cleanup(tempDir)
@@ -1066,10 +1085,9 @@ if runningInstalled:
     bclib_libdirs = [newlib_libdir] # all libs should be in the same newlib_libdir
     opencl_includes = "" # same as newlib_includes
     srcRoot = None
-    tceSAOpenCLIncludeDir = tceprefix + "/include"
     tceSAOpenCLBinDir = tceprefix + "/bin"
+    tceSAOpenCLIncDir = os.path.join(tceprefix, "tce-llvm", "include")
     tceOclExtGenDir = os.path.join(tceprefix, "bin")
-    openclPassFile = os.path.join(tceprefix, "lib/llvmopencl", "llvmopencl.so")    
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
 
 else:
@@ -1081,17 +1099,11 @@ else:
                        " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
     bclib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@", "bclib/include"))
     lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
-    poclDir = os.path.join(srcRoot, "src/bintools/Compiler/pocl")
-    poclScriptDir = os.path.join(poclDir, "scripts")
-    openclPassFile = os.path.join("@abs_top_builddir@",
-                                  "src/bintools/Compiler/pocl/lib/.libs/llvmopencl.so")
 
-    # The standalone OpenCL host libs.
+    # The standalone OpenCL paths.
     tceSAOpenCLDir = os.path.join(srcRoot, "bclib/saocl")
-    tceSAOpenCLIncludeDir = os.path.join(tceSAOpenCLDir, "include")
-    tceSAOpenCLBitcodeLibDir = os.path.join("@abs_top_builddir@",
-                                            "bclib/saocl")
-
+    tceSAOpenCLBitcodeLibDir = os.path.join("@abs_top_builddir@", "bclib/saocl")
+    tceSAOpenCLIncDir = os.path.join("@abs_top_srcdir@", "bclib/include")
     tceOclExtGenDir = os.path.join("@abs_top_builddir@", "src/bintools/Compiler/tceopgen")
 
     bclib_libdirs = [newlib_libdir, lwpr_libdir, tceSAOpenCLBitcodeLibDir]
