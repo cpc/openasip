@@ -202,7 +202,7 @@ private:
     /// The stream for debug logging.
     static std::ostream* logStream_;
 
-    /// The stream for user error notification logging.
+    /// The stream for user error notifications.
     static std::ostream* errorStream_;
 
     /// Signal handlers in a map associated by their signal numbers

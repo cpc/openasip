@@ -70,6 +70,8 @@ Bugfixes
   from a call to a function not linked in) crashes at LLVM/TCE library
   boundaries. Moved the exception handling closer to the call position
   to produce a graceful error message printout for this case.
+- Proxim: the configuration file was not saved to the correct location in
+  the user home dir.
 
 Code generator improvements
 ---------------------------

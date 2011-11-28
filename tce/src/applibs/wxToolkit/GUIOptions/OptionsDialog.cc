@@ -372,10 +372,10 @@ OptionsDialog::TransferDataToWindow() {
     toolbarList_->DeleteAllItems();
     commandList_->DeleteAllItems();
 
+    vector<Shortcut*>::iterator i = shortcuts_.begin();
 #ifdef KB_SC_EDITING
     shortcutList_->DeleteAllItems();    
     // Update keyboard shortcut list.
-    vector<Shortcut*>::iterator i = shortcuts_.begin();
     for (; i != shortcuts_.end(); i++) {
         shortcutList_->InsertItem(
             shortcutList_->GetItemCount(),
@@ -409,6 +409,19 @@ OptionsDialog::TransferDataToWindow() {
                                    1, key);
         }
     }
+
+#endif
+
+    // Update toolbar button lists.
+    vector<string>::iterator iter = toolbar_.begin();
+    for (; iter != toolbar_.end(); iter++) {
+        toolbarList_->InsertItem(toolbarList_->GetItemCount(),
+                                 WxConversion::toWxString((*iter)));
+    }
+
+    // update commands list
+    commandList_->InsertItem(
+        0, WxConversion::toWxString(GUIOptions::TOOLBAR_SEPARATOR));
         
     bool inToolbar;
     i = shortcuts_.begin();
@@ -429,21 +442,7 @@ OptionsDialog::TransferDataToWindow() {
             commandList_->InsertItem(commandList_->GetItemCount(),
                                      WxConversion::toWxString((*i)->name));
         }
-    }
-#endif
-
-    // Update toolbar button lists.
-    vector<string>::iterator iter = toolbar_.begin();
-    for (; iter != toolbar_.end(); iter++) {
-        toolbarList_->InsertItem(toolbarList_->GetItemCount(),
-                                 WxConversion::toWxString((*iter)));
-    }
-    
-    // update commands list
-    commandList_->InsertItem(
-        0, WxConversion::toWxString(GUIOptions::TOOLBAR_SEPARATOR));
-
-    
+    }    
     return true;
 }
 
