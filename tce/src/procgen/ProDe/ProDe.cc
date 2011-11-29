@@ -138,7 +138,7 @@ ProDe::OnInit() {
     // set configurations
     string configFile = Environment::confPath("ProDe.conf");
 
-    // Name of the CML Schema for options file.
+    // Name of the XML Schema for options file.
     string schemaFile =
         Environment::dataDirPath("ProDe")+
         FileSystem::DIRECTORY_SEPARATOR + "confschema.xsd";

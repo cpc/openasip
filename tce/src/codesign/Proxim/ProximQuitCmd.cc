@@ -42,6 +42,7 @@
 #include "WxConversion.hh"
 #include "Exception.hh"
 #include "ProximToolbox.hh"
+#include "Environment.hh"
 
 /**
  * The Constructor.
@@ -93,7 +94,8 @@ ProximQuitCmd::Do() {
 
             GUIOptionsSerializer writer(ProximConstants::CONFIGURATION_NAME);
             try {
-                writer.setDestinationFile(options.fileName());
+                writer.setDestinationFile(
+                    Environment::userConfPath("Proxim.conf"));
                 writer.writeOptions(options);
                 options.clearModified();
             } catch (Exception& e) {

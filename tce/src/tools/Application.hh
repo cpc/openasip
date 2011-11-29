@@ -156,6 +156,7 @@ public:
         std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES);
 
     static std::ostream& logStream();
+    static std::ostream& errorStream();
 
     static int verboseLevel() {return verboseLevel_;}
     static void setVerboseLevel(const int level = VERBOSE_LEVEL_DEFAULT)
@@ -198,8 +199,11 @@ private:
     /// done only once.
     static bool initialized_;
 
-    /// The stream for error logging.
+    /// The stream for debug logging.
     static std::ostream* logStream_;
+
+    /// The stream for user error notifications.
+    static std::ostream* errorStream_;
 
     /// Signal handlers in a map associated by their signal numbers
     static std::map<int, UnixSignalHandler*> signalHandlers_;

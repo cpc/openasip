@@ -6,7 +6,7 @@ Usability features
 - dumptpef -m has now more user friendly output. 
   Thanks to Kalle Raiskila for the patch!
 
-1.5    November 2011
+1.5    December 2011
 ====================
 
 Notable changes and features
@@ -14,6 +14,8 @@ Notable changes and features
 - Support for LLVM 3.0. 
   LLVM 2.9 might still work but is unsupported.
   Dropped support for LLVM 2.8 and older. 
+- Experimental OpenCL C Embedded Profile support in offline compilation 
+  mode (we call it the OpenCL "standalone mode").
 - tcecc: Floating point emulation code is not included by default anymore,
   use --swfp in case you use floating points and your machine does
   not support them.
@@ -74,6 +76,12 @@ Bugfixes
   was not initialized.
 - ProDe: fixed a crash when checking programmability on a machine with more 
   than 1 boolean registers/no boolean register files.
+- tcecc: On some platforms an exception thrown when a symbol (usually a
+  from a call to a function not linked in) crashes at LLVM/TCE library
+  boundaries. Moved the exception handling closer to the call position
+  to produce a graceful error message printout for this case.
+- Proxim: the configuration file was not saved to the correct location in
+  the user home dir.
 
 Code generator improvements
 ---------------------------

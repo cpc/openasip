@@ -80,6 +80,7 @@ using std::set_unexpected;
 // static member variable initializations
 bool Application::initialized_ = false;
 std::ostream* Application::logStream_ = NULL;
+std::ostream* Application::errorStream_ = NULL;
 std::map<int, Application::UnixSignalHandler*> Application::signalHandlers_;
 
 int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
@@ -111,6 +112,8 @@ Application::initialize() {
         }
     }
 
+    errorStream_ = &cerr;
+
     // set the unexpected exception callback
     set_unexpected(Application::unexpectedExceptionHandler);
 
@@ -136,6 +139,20 @@ std::ostream&
 Application::logStream() {
     initialize();
     return *logStream_;
+}
+
+/**
+ * Stream where error messages that should be printed immediately to the user
+ * should be written.
+ *
+ * Usage example: errorStream() << "Compilation error: "...
+ *
+ * @return A reference to the error stream.
+ */
+std::ostream&
+Application::errorStream() {
+    initialize();
+    return *errorStream_;
 }
 
 /**

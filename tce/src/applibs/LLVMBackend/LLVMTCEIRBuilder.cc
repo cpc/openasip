@@ -58,6 +58,7 @@
 #include "HWOperation.hh"
 #include "FUPort.hh"
 
+#include <stdlib.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
@@ -711,8 +712,18 @@ LLVMTCEIRBuilder::doInitialization(Module& m) {
 bool
 LLVMTCEIRBuilder::doFinalization(Module& m) { 
 
-    LLVMTCEBuilder::doFinalization(m);
-    prog_->convertSymbolRefsToInsRefs();
+    try {
+        LLVMTCEBuilder::doFinalization(m);
+        prog_->convertSymbolRefsToInsRefs();
+    } catch (const Exception& e) {
+        // Catch the exception here as throwing exceptions
+        // through library boundaries is flaky. It crashes 
+        // on x86-32 Linux at least. See:
+        // https://bugs.launchpad.net/tce/+bug/894816
+        Application::errorStream() 
+            << "Error: " << e.errorMessage() << std::endl;
+        exit(1);
+    }
     return false; 
 }
 

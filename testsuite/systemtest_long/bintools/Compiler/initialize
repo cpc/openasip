@@ -5,12 +5,9 @@ ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opb data/Shif
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/example1/data
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/oclAESGladman/data
 
-llvm_version=`llvm-config --version`
-
-if test "x${llvm_version}" != "x2.9" -a -a "../../../../tce/src/bintools/Compiler/pocl"
+if `../../../../tce/src/bintools/Compiler/tcecc --supported-languages |grep -q "OpenCL C"`
 then
     rm -f OpenCL.testdesc.disabled
 else
     touch OpenCL.testdesc.disabled
 fi
-

@@ -131,24 +131,24 @@ For this to work you need to install packages 'libtool', 'automake' and
 
 OpenCL support
 ==============
-There is an experimental and incomplete support for OpenCL. It's currently 
+There is experimental and incomplete support for OpenCL. It's currently 
 not usable for day-to-day OpenCL programming but is a work in progress. 
 If you want to compile the support, for example, to help in implementing 
 the missing features, read on.
 
 The OpenCL support uses the pocl project. In order to build TCE with the 
-OpenCL support, check out the pocl project's trunk branch under the 
-'src/bintools/Compiler/pocl' and reconfigure TCE as follows:
+OpenCL support, install pocl so it can be found in your PATH and
+PKG_CONFIG_PATH. You can get it from http://launchpad.net/pocl.
 
-cd src/bintools/Compiler
-bzr co lp:pocl pocl
-cd ../../..
-./configure && make
+After installing pocl, configure and build TCE normally. At the end of 
+the configure script execution you are notified in case the support could 
+be enabled. You can also verify it by running 'tcecc --supported-languages'
+which should then list OpenCL C.
 
-Note: the OpenCL support most likely does not work with the released
-version as the pocl is being under major development. Thus, in case you
-want to use the OpenCL support, you should check out the 'devel' branch of 
-the TCE. See: http://tce.cs.tut.fi/cgi-bin/moin.cgi/branches
+Known unsupported language features:
+
+- automatic local variables
+- probably something else we haven't bumped into yet
 
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
