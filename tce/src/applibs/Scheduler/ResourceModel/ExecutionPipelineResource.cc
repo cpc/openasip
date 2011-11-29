@@ -968,7 +968,11 @@ ExecutionPipelineResource::canAssignDestination(
     if (lastCycle > cycle) {
         return false;
     }
-
+    
+    // Too late to schedule trigger, results would not be ready in time.
+    if (cycle > node.latestTriggerWriteCycle()) {
+        return false;
+    }
     // make sure operand not so early that it conflicts with same
     // operation on previous iteration.
     if (ii != INT_MAX && firstCycle + (int)ii <= cycle) {
@@ -1598,7 +1602,7 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                 int or2Mod = instructionIndex(otherReady);
                 bool orLooped = or2Mod > (int)modi; // FAIL HERE?
                 
-                // neither looped or both looped.
+                // neither looped or both looped.                       
                 if (modiLooped == orLooped) {
                     if (or2Mod <= (int)rrMod) {
                         return false;
@@ -1634,7 +1638,7 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                     
                     // neither looped or both looped.
                     if (modiLooped == orLooped) {
-                        if (or2Mod <= rrMod) {
+                        if (or2Mod <= rrMod) {                           
                             return false;
                         } else {
                             if (otherTrigger->move().isUnconditional()) {

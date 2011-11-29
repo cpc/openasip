@@ -586,6 +586,39 @@ MoveNode::earliestResultReadCycle() const {
     }
     return INT_MAX;
 }
+/**
+ * Returns the lates cycle the given trigger move can be scheduled at,
+ * taking in the account the latency of the operation results.
+ *
+ * In case the none of the result moves has been scheduled yet, returns INT_MAX.
+ *
+ * @exception IllegalObject if this MoveNode is not a result read.
+ */
+int
+MoveNode::latestTriggerWriteCycle() const {
+
+    if (!isDestinationOperation())
+        throw IllegalParameters(
+            __FILE__, __LINE__, __func__, "Not a result read move.");
+
+    const ProgramOperation& po = destinationOperation();
+    int latestTrigger = INT_MAX;
+    for (int i = 0; i < po.outputMoveCount(); i++){ 
+        MoveNode& result = po.outputMove(i);
+        if (!result.isScheduled()) {
+            continue;
+        }
+        // find the latency of the operation output we are testing
+        const TTAMachine::HWOperation& hwop =
+            *result.move().source().functionUnit().operation(
+                po.operation().name());
+        // find the OSAL id of the operand of the output we are testing
+        const int outputIndex = result.move().source().operationIndex();
+        int latency = hwop.latency(outputIndex);
+        latestTrigger = std::min(latestTrigger, result.cycle() - latency);
+    }
+    return latestTrigger;
+}
 
 /**
  * Unsets destination operation.

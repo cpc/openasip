@@ -91,6 +91,7 @@ public:
     int cycle() const throw(InvalidData);
 
     int earliestResultReadCycle() const;
+    int latestTriggerWriteCycle() const;
     int guardLatency() const;
 
     Scope& scope();
