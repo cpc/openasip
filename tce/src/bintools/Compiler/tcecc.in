@@ -292,7 +292,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 #include <stdlib.h>
 #include <stdio.h>
 #include "cl_tce.h"
-#include <pocl/pocl_cl.h>
+#include <pocl/pocl.h>
 
 #ifdef __TCE__
 
