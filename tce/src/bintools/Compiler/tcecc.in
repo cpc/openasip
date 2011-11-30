@@ -154,7 +154,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     # list of valid suffixes
     knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
-    if "@OPENCL_ENABLED@":
+    if @OPENCL_ENABLED@:
         knownSuffices.append(".cl")
 
     linkList = []
@@ -985,7 +985,7 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
 
-if "@OPENCL_ENABLED@":
+if @OPENCL_ENABLED@:
     p.add_option('--opencl-max-parallel-wi-count',
              type="int", action="store",
              dest='opencl_max_parallel_wi_count', default=8,
@@ -1036,7 +1036,7 @@ if options.clear_cache:
 
 if options.list_langs:
     supported_languages = ["ISO C99 (c)", "C++ (c++)"]
-    if "@OPENCL_ENABLED@":
+    if @OPENCL_ENABLED@:
         supported_languages.append("OpenCL C (cl)")
     print "\n".join(supported_languages)
     sys.exit(0)

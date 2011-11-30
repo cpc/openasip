@@ -1199,9 +1199,12 @@ $BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
 # Check that the pocl-standalone script is found in PATH.
 AC_CHECK_PROG(POCL_FOUND_IN_PATH, pocl-standalone, "1", "0")
 # Check that pkg-config finds POCL.
+if test x"$POCL_FOUND_IN_PATH" == x"1"
+then
 PKG_CHECK_EXISTS(pocl, [POCL_PKG_CONFIG="1"], [POCL_PKG_CONFIG="0"])
+fi
 
-if test x"$LLVM_VERSION" != x2.9 -a $POCL_FOUND_IN_PATH == "1" -a $POCL_PKG_CONFIG == "1"
+if test x"$LLVM_VERSION" != x2.9 -a $POCL_PKG_CONFIG == "1"
 then
 
 AC_SUBST([OPENCL_ENABLED], ["1"])
