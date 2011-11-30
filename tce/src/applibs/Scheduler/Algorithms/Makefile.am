@@ -9,7 +9,8 @@ InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
 RegisterRenamer.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
-BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc
+BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
+BUBasicBlockScheduler.cc
 
 
 libscheduleralgorithms_la_LIBADD = \
@@ -68,5 +69,5 @@ libscheduleralgorithms_la_SOURCES += \
 	ControlFlowGraphPass.hh SimpleGuardAllocatorCore.hh \
 	ProgramPass.hh RegisterRenamer.hh \
 	BBSchedulerController.hh BasicBlockScheduler.hh \
-	InterPassDatum.hh 
+	InterPassDatum.hh BUBasicBlockScheduler.hh
 ## headers end

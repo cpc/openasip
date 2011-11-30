@@ -455,7 +455,7 @@ DataDependenceGraph::latestCycle(
             // If call, make sure all incoming deps fit into delay slots,
             // can still be later than the call itself
             // dependence type does not matter.
-            if (edge.tailPseudo()) {
+            if (edge.headPseudo()) {
                 effHeadCycle += delaySlots_;
             } else {
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {

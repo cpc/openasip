@@ -59,6 +59,7 @@
 #include "ResourceConstraintAnalyzer.hh"
 #include "BasicBlockScheduler.hh"
 #include "RegisterRenamer.hh"
+#include "BUBasicBlockScheduler.hh"
 namespace TTAMachine {
     class UniversalMachine;
 }
@@ -139,9 +140,15 @@ BBSchedulerController::handleBasicBlock(
         rr = new RegisterRenamer(targetMachine, bb);
     }
 
-    BasicBlockScheduler bbScheduler(
-        BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-
+    BasicBlockScheduler* bbScheduler = NULL;
+    if (options_ != NULL && options_->useBUScheduler()) {
+        bbScheduler = new BUBasicBlockScheduler(
+            BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
+    } else {   
+        bbScheduler = new BasicBlockScheduler(
+            BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
+    }
+    
     // if not scheduled yet (or loop scheduling failed)
     if (!bbScheduled) {
 
@@ -150,7 +157,7 @@ BBSchedulerController::handleBasicBlock(
                 << "executing ddg pass " << std::endl;
         }
 
-        executeDDGPass(bb, targetMachine, bbScheduler);
+        executeDDGPass(bb, targetMachine, *bbScheduler);
 
         if (Application::verboseLevel() > 0) {
             if (progressBar_ != NULL)
@@ -172,6 +179,7 @@ BBSchedulerController::handleBasicBlock(
     bb.liveRangeData_->registersUsedAfter_.clear();
     bb.liveRangeData_->regFirstUses_.clear();
     bb.liveRangeData_->regDefines_.clear();
+    delete bbScheduler;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
