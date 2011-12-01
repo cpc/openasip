@@ -238,7 +238,7 @@ BUBasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
             continue;            
         }
         
-        if (scheduleOperandWrites(moves)) {
+        if (scheduleOperandWrites(moves, resultsStartCycle)) {
             debugLog("Operands scheduled happily.");
             operandsFailed = false;
         } else {
@@ -251,29 +251,25 @@ BUBasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
             }
             operandsFailed = true;
             resultsStartCycle--;
-            maxResult--;
-            resultsStartCycle = std::max(maxResult, resultsStartCycle);            
+//            maxResult--;
+//            resultsStartCycle = std::max(maxResult, resultsStartCycle);            
         }
     }
     // This fails if we reach 0 cycle. Probably means that the original scope
     // was too small? TODO: better heuristics.
     
-    if (operandsFailed) {
-#ifdef DDG_SNAPSHOTS    
+    if (operandsFailed) { 
         ddg_->writeToDotFile(
             (boost::format("bb_%s_2_failed_scheduling.dot")
              % ddg_->name()).str());    
-#endif             
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Operands scheduling failed for \'" + moves.toString());
     }
     if (resultsFailed) {
-#ifdef DDG_SNAPSHOTS    
         ddg_->writeToDotFile(
             (boost::format("bb_%s_2_failed_scheduling.dot")
              % ddg_->name()).str());    
-#endif             
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Results scheduling failed for \'" + moves.toString());
@@ -302,27 +298,29 @@ BUBasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
  * If found, the temp moves are scheduled atomically with the operand move.
  * Assumes top-down scheduling.
  *
- * @param cycle Earliest cycle for starting scheduling of operands
  * @param moves Moves of the operation execution.
- * @return The cycle the earliest of the operands got scheduled 
+ * @param cycle latest cycle for starting scheduling of operands 
+ * @return True if all operands got scheduled
  */
 bool
-BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
+BUBasicBlockScheduler::scheduleOperandWrites(
+    MoveNodeGroup& moves, 
+    int cycle)
     throw (Exception) {
 
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
         (moves.node(0).destinationOperation());    
-    int lastOperandCycle = endCycle_;
-    int latestScheduledOperand = endCycle_;
-    int startCycle = endCycle_;
+        
+    int lastOperandCycle = 0;
+    int latestScheduledOperand = 0;
+    int startCycle = 0;
     // Counts operands that are not scheduled at beginning.
     int unscheduledMoves = 0;
     MoveNode* trigger = NULL;
     MoveNode* firstToSchedule = NULL;
 
-    int cycle = endCycle_;
     debugLog(
         "Scheduling: " + moves.toString() + "in cycle " +
         Conversion::toString(cycle));       
@@ -347,15 +345,16 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
         }
 
         int latestDDG = ddg_->latestCycle(moves.node(i));
-
+        debugLog("finding first, latestDDG " + Conversion::toString(latestDDG));
         // passed argument could be larger than what DDG thinks is earliest
         latestDDG = std::min(latestDDG, cycle);
-        int latest = rm_->latestCycle(latestDDG, moves.node(i));
+        int latest = rm_->latestCycle(latestDDG, moves.node(i));        
+        debugLog("Latest RM " + Conversion::toString(latest));
         if (latest == -1) {
             debugLog("LatestRM == -1");
             continue;
         }
-        if (latest <= startCycle) {
+        if (latest >= startCycle) {
             // Find first moveNode that will be scheduled
             startCycle = latest;
             firstToSchedule = &moves.node(i);
@@ -393,8 +392,9 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
         if (firstToSchedule->move().destination().isTriggering()) {
             trigger = firstToSchedule;
         }        
-        lastOperandCycle = std::min(lastOperandCycle, startCycle);
+        lastOperandCycle = startCycle;
     } else {
+        debugLog("first to schedule == NULL");
         return false;
     }
 
@@ -404,7 +404,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
     // remove timeout when software bypassing is tested and guaranteed to work
     // TODO: remove this kind of kludges. They just await for code that
     // breaks them.
-    while (unscheduledMoves != scheduledMoves && counter < 2) {
+    while (unscheduledMoves != scheduledMoves && counter < 20 && cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -420,9 +420,10 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
                 }
                 continue;
             }
-
+            debugLog("Trying to schedule " + moveNode.toString() +
+                " in " + Conversion::toString(cycle));
             scheduleMove(moveNode, cycle);
-
+            debugLog("Result: " + moveNode.toString());
             if (moveNode.isScheduled()) {
                 lastOperandCycle =
                     std::max(lastOperandCycle, moveNode.cycle());
@@ -458,7 +459,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
                 
                 // triger is earlier than operand OR some new fu dep edges
                 // make trigger's earliestcycle later.
-                if (moveNode.cycle() > triggerMinCycle) {
+                if (moveNode.cycle() < lastOperandCycle) {
                     unschedule(moveNode);
                     debugLog(
                         "Rescheduling " + moveNode.toString() +
@@ -468,7 +469,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
             }
             if (moveNode.isScheduled()) {
                 lastOperandCycle =
-                    std::min(lastOperandCycle, moveNode.cycle());
+                    std::max(lastOperandCycle, moveNode.cycle());
                 latestScheduledOperand =
                     std::max(latestScheduledOperand, moveNode.cycle());
                 scheduledMoves++;
@@ -483,6 +484,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
 
                 if (moveNode.isScheduled() &&
                     moveNode.isDestinationOperation()) {
+                    debugLog("Unscheduling " + moveNode.toString());
                     unschedule(moveNode);
                 }
             }
@@ -491,7 +493,11 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves)
             // every operand is scheduled, we can return quickly
             return true;
         }        
-        cycle = std::min(cycle, latestScheduledOperand) - 1;
+        if (cycle > latestScheduledOperand) {
+            cycle = latestScheduledOperand;
+        } else {
+            cycle--;
+        }
         counter++;
     }
     // If loop timeouts we get here
@@ -533,9 +539,13 @@ BUBasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves, int cycle)
                     std::min(latestDDGCycle, startingCycle) : 
                     startingCycle;
             int latestRMCycle = rm_->latestCycle(startingCycle, moveNode);
+            if (latestRMCycle == -1) {
+                return -1;
+            }
             startingCycle = std::min(latestRMCycle, startingCycle);
-            
+            debugLog("Scheduling result " + moveNode.toString());
             scheduleMove(moveNode, startingCycle);
+            debugLog("Result is " + moveNode.toString());
             if (!moveNode.isScheduled()) {
                 return -1;
             }
@@ -582,7 +592,7 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
     ddg_->sanityCheck();
 #endif
 
-    scheduleMove(moveNode, INT_MAX);
+    scheduleMove(moveNode, endCycle_);
 
 }
 
@@ -613,7 +623,8 @@ BUBasicBlockScheduler::scheduleMove(
 
     int sourceReadyCycle = endCycle_;
     int ddgCycle = endCycle_;
-
+    debugLog("Scheduling " + moveNode.toString() + " in cycle " +
+        Conversion::toString(latestCycle));
     if (moveNode.move().isControlFlowMove()) {
         ddgCycle = endCycle_ - targetMachine_->controlUnit()->delaySlots();
         debugLog(
@@ -626,6 +637,7 @@ BUBasicBlockScheduler::scheduleMove(
 #endif            
     } else { // not a control flow move:
         ddgCycle = ddg_->latestCycle(moveNode);
+#if 0        
         if (renamer_ != NULL) {
             int minRenamedEC = std::max(
                 sourceReadyCycle, ddg_->earliestCycle(
@@ -662,15 +674,16 @@ BUBasicBlockScheduler::scheduleMove(
                 }
             }
         }
+#endif        
     }
 
     // if it's a conditional move then we have to be sure that the guard
     // is defined before executing the move.
     // this is already handled by DDGs earliestCycle, except cases
     // where the guard is defined in a previous BB. 
-    // So this prevents scheduling unconditional moves at the beginning
+    // So this prevents scheduling conditional moves at the beginning
     // of a BB.
-    
+   
     if (!moveNode.move().isUnconditional()) {
         ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
     }
@@ -682,7 +695,6 @@ BUBasicBlockScheduler::scheduleMove(
         " DDGCycle = " + Conversion::toString(ddgCycle));
     int minCycle = 
         (ddgCycle != -1) ? std::min(latestCycle, ddgCycle) : latestCycle;
-    minCycle = std::min(minCycle, sourceReadyCycle);
     if (moveNode.isSourceConstant() && 
         !moveNode.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
@@ -719,7 +731,7 @@ BUBasicBlockScheduler::scheduleMove(
         moveNode.move().setAnnotation(annotation);
     }
     
-    minCycle = rm_->latestCycle(minCycle, moveNode);
+    minCycle = std::min(rm_->latestCycle(minCycle, moveNode), minCycle);
     debugLog("RM latestCycle =" + Conversion::toString(minCycle));
     if (minCycle == -1 || minCycle == INT_MAX) {
         if (moveNode.isSourceConstant() &&
@@ -746,6 +758,7 @@ BUBasicBlockScheduler::scheduleMove(
     }
     // Find out the cycle when execution of operation actually ends.
     // Only needed for ProgramOperations without result reads, like store.
+#if 0    
     if (moveNode.isDestinationOperation()) {
     
         const Operation& op = moveNode.destinationOperation().operation();
@@ -763,6 +776,7 @@ BUBasicBlockScheduler::scheduleMove(
             rm_->unassign(moveNode);
         }
     }
+#endif    
 }
 
 
