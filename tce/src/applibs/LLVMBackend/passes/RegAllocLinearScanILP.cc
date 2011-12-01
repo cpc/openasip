@@ -1451,7 +1451,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
   // linearscan.
   if (cur->weight != HUGE_VALF && cur->weight <= minWeight) {
     DEBUG(dbgs() << "\t\t\tspilling(c): " << *cur << '\n');
-#if (defined(LLVM_2_8) || defined(LLVM_2_9))
+#if (defined(LLVM_2_9))
     SmallVector<LiveInterval*, 8> spillIs, added;
     spiller_->spill(cur, added, spillIs);
 #else // LLVM-3.0-svn
@@ -1535,7 +1535,7 @@ void RALinScanILP::assignRegOrStackSlotAtInterval(LiveInterval* cur) {
       earliestStart = sli->beginIndex();
        
     std::vector<LiveInterval*> newIs;
-#if (defined(LLVM_2_8) || defined(LLVM_2_9))
+#if (defined(LLVM_2_9))
     spiller_->spill(sli, added, spillIs);
 #else // LLVM-3.0-svn
     LiveRangeEdit LRE(*sli, added, 0, &spillIs);

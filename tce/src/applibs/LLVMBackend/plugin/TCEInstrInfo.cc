@@ -82,55 +82,6 @@ TCEInstrInfo::TCEInstrInfo() :
 TCEInstrInfo:: ~TCEInstrInfo() {   
 }
 
-#ifdef LLVM_2_7		       
-/**
- * Returns true if the instruction is a register to register move.
- */
-bool
-TCEInstrInfo::isMoveInstr(
-    const MachineInstr &MI, unsigned &SrcReg, unsigned &DstReg, 
-    unsigned &SrcSubIdx, unsigned &DstSubIdx) const {   
-
-    // No sub registers
-    SrcSubIdx = DstSubIdx = 0;
-    
-    if (MI.getOpcode() == TCE::MOVI1rr ||
-        MI.getOpcode() == TCE::MOVI8rr ||
-        MI.getOpcode() == TCE::MOVI16rr ||
-        MI.getOpcode() == TCE::MOVI32rr ||
-        MI.getOpcode() == TCE::MOVI64rr ||
-
-        MI.getOpcode() == TCE::MOVI8I1rr ||
-        MI.getOpcode() == TCE::MOVI16I1rr ||
-        MI.getOpcode() == TCE::MOVI32I1rr ||
-        MI.getOpcode() == TCE::MOVI64I1rr ||
-
-        MI.getOpcode() == TCE::MOVI16I8rr ||
-        MI.getOpcode() == TCE::MOVI32I8rr ||
-        MI.getOpcode() == TCE::MOVI64I8rr ||
-
-        MI.getOpcode() == TCE::MOVI32I16rr ||
-        MI.getOpcode() == TCE::MOVI64I16rr ||
-
-        MI.getOpcode() == TCE::MOVI64I32rr ||
-
-        MI.getOpcode() == TCE::MOVF32rr ||
-        MI.getOpcode() == TCE::MOVF64rr ||
-        MI.getOpcode() == TCE::MOVFI32rr ||
-        MI.getOpcode() == TCE::MOVIF32rr) {
-
-        assert(MI.getOperand(0).isReg());
-        assert(MI.getOperand(1).isReg());
-
-        DstReg = MI.getOperand(0).getReg();
-        SrcReg = MI.getOperand(1).getReg();
-        return true;
-    }        
-
-    return false;
-}
-#endif
-
 /**
  * Inserts a branch instruction or brach instructions into llvm MBB.
  *

@@ -69,11 +69,7 @@ namespace {
  * Constructor
  */
 LinkBitcode::LinkBitcode(Module& input) :
-#ifdef LLVM_2_7
-    BasicBlockPass((intptr_t)&ID), 
-#else
     BasicBlockPass(ID), 
-#endif
     inputModule_(input) {
 }
 

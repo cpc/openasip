@@ -35,11 +35,7 @@
 #include "tce_config.h"
 
 #include <llvm/Support/ErrorHandling.h>
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-#include <llvm/Target/TargetFrameInfo.h>
-#else
 #include <llvm/Target/TargetFrameLowering.h>
-#endif
 #include "TCERegisterInfo.hh"
 
 namespace llvm {
@@ -57,14 +53,9 @@ namespace llvm {
 // -------------
 // Grows down, alignment 4 bytes.
 //
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    class TCEFrameInfo : public TargetFrameInfo {
-#else
     class TCEFrameInfo : public TargetFrameLowering {
-#endif
     public:
 
-#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
 	TCEFrameInfo(const TCERegisterInfo* tri)
 	    : TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
@@ -74,11 +65,6 @@ namespace llvm {
 
     private:
 	const TCERegisterInfo* tri_;
-#else
-	TCEFrameInfo(const TCERegisterInfo* tri)
-	    : TargetFrameInfo(
-        TargetFrameInfo::StackGrowsDown, 4, -4) {}
-#endif
     };
 } // /namespace
 

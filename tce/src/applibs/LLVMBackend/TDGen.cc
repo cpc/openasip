@@ -79,11 +79,6 @@ TDGen::TDGen(const TTAMachine::Machine& mach) :
 void
 TDGen::generateBackend(std::string& path) throw (Exception) {    
 
-    std::ofstream callTD;
-    callTD.open((path + "/GenCallSeq.td").c_str());
-    writeCallSeq(callTD);
-    callTD.close();
-
     std::ofstream regTD;
     regTD.open((path + "/GenRegisterInfo.td").c_str());
     writeRegisterInfo(regTD);
@@ -818,37 +813,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
-}
-
-/**
- * Writes .td pattern for the call instruction(s) to the output stream.
- */
-void
-TDGen::writeCallSeq(std::ostream& o) {
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    o << 
-"def callseq_start : SDNode<\"ISD::CALLSEQ_START\", SDT_TCECallSeqStart," <<
-"                             [SDNPHasChain, SDNPOutFlag]>;" <<
-"def callseq_end   : SDNode<\"ISD::CALLSEQ_END\",   SDT_TCECallSeqEnd," <<
-"                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;" <<
-"def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;" <<
-"def call          : SDNode<\"TCEISD::CALL\", SDT_TCECall," <<
-"                  [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;" <<
-"def retflag       : SDNode<\"TCEISD::RET_FLAG\", SDTNone," <<
-"                           [SDNPHasChain, SDNPOptInFlag]>; " <<
- std::endl;
-#else
-    o << 
-"def callseq_start : SDNode<\"ISD::CALLSEQ_START\", SDT_TCECallSeqStart," <<
-"                           [SDNPHasChain, SDNPOutGlue]>;" <<
-"def callseq_end   : SDNode<\"ISD::CALLSEQ_END\",   SDT_TCECallSeqEnd," <<
-"                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;" <<
-"def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;" <<
-"def call          : SDNode<\"TCEISD::CALL\", SDT_TCECall," <<
-"                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;" <<
-"def retflag       : SDNode<\"TCEISD::RET_FLAG\", SDTNone," <<
-"                           [SDNPHasChain, SDNPOptInGlue]>;" << std::endl;
-#endif
 }
 
 /**

@@ -31,8 +31,6 @@
 
 #include "tce_config.h"
 
-#ifndef LLVM_2_7
-
 #include "TCETargetSelectionDAGInfo.hh"
 
 #include "TCETargetMachine.hh"
@@ -42,5 +40,3 @@ namespace llvm {
 	TargetSelectionDAGInfo(tm) {}
     TCESelectionDAGInfo::~TCESelectionDAGInfo() {}
 }
-
-#endif

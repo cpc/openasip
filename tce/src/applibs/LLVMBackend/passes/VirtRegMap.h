@@ -52,13 +52,9 @@ namespace llvm {
   private:
     MachineRegisterInfo *MRI;
       const TargetInstrInfo *TII;
-#ifndef LLVM_2_7
   public:
-#endif
     const TargetRegisterInfo *TRI;
-#ifndef LLVM_2_7
   private:
-#endif
     MachineFunction *MF;
 
     DenseMap<const TargetRegisterClass*, BitVector> allocatableRCRegs;
@@ -146,11 +142,7 @@ namespace llvm {
 
   public:
     static char ID;
-#ifdef LLVM_2_7
-    VirtRegMap() : MachineFunctionPass(&ID), Virt2PhysMap(NO_PHYS_REG),
-#else
     VirtRegMap() : MachineFunctionPass(ID), Virt2PhysMap(NO_PHYS_REG),
-#endif
                    Virt2StackSlotMap(NO_STACK_SLOT), 
                    Virt2ReMatIdMap(NO_STACK_SLOT), Virt2SplitMap(0),
                    Virt2SplitKillMap(SlotIndex()), ReMatMap(NULL),
@@ -430,17 +422,6 @@ namespace llvm {
       return !SpillSlotToUsesMap[FrameIndex-LowSpillSlot].empty();
     }
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8)) 
-    /// @brief Mark the specified register as being implicitly defined.
-    void setIsImplicitlyDefined(unsigned VirtReg) {
-      ImplicitDefed.set(VirtReg-TargetRegisterInfo::FirstVirtualRegister);
-    }
-
-    /// @brief Returns true if the virtual register is implicitly defined.
-    bool isImplicitlyDefined(unsigned VirtReg) const {
-      return ImplicitDefed[VirtReg-TargetRegisterInfo::FirstVirtualRegister];
-    }
-#else
     /// @brief Mark the specified register as being implicitly defined.
     void setIsImplicitlyDefined(unsigned VirtReg) {
       ImplicitDefed.set(TargetRegisterInfo::virtReg2Index(VirtReg));
@@ -450,7 +431,6 @@ namespace llvm {
     bool isImplicitlyDefined(unsigned VirtReg) const {
       return ImplicitDefed[TargetRegisterInfo::virtReg2Index(VirtReg)];
     }
-#endif
 
     /// @brief Updates information about the specified virtual register's value
     /// folded into newMI machine instruction.
@@ -514,12 +494,8 @@ namespace llvm {
             SmallPtrSet<MachineInstr*, 4>& ptrSet = SpillSlotToUsesMap[i]; 
             for (SmallPtrSet<MachineInstr*, 4>::iterator j = 
                      ptrSet.begin(); j != ptrSet.end(); j++) {
-#ifdef LLVM_2_7
-                (*j)->setDebugLoc(DebugLoc::get(0xFFFFFFF0));
-#else
                 (*j)->setDebugLoc(DebugLoc::get(
 				      0xFFFFFFF0,0xFFFFFFF0,NULL));
-#endif
             }
         }
     }

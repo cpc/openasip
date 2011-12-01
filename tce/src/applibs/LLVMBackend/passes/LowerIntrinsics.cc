@@ -136,12 +136,7 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
        for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
            
            CallInst* ci = dynamic_cast<CallInst*>(&(*I));
-#ifdef LLVM_2_7
-	   // TODO: should this be >1 ?
-           if (ci != NULL && ci->getNumOperands() != 0) {
-#else
            if (ci != NULL && ci->getNumArgOperands() != 0) {
-#endif
                Function* callee = ci->getCalledFunction();
                if (callee != NULL && callee->isIntrinsic() &&
                    replace_.find(callee->getIntrinsicID()) != replace_.end()) {

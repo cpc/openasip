@@ -34,7 +34,6 @@
 
 #include "tce_config.h"
 
-#ifndef LLVM_2_7
 #include "llvm/Target/TargetSelectionDAGInfo.h"
 
 namespace llvm {
@@ -48,5 +47,4 @@ public:
 };
 }
 
-#endif
 #endif

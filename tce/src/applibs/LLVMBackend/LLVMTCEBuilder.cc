@@ -638,13 +638,9 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    TCEString label = mang_->getNameWithPrefix(gv);
-#else
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, gv, false);
     TCEString label(Buffer.c_str());
-#endif
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
 
@@ -780,13 +776,9 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
     
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    TCEString fnName = mang_->getNameWithPrefix(mf.getFunction());
-#else
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
     TCEString fnName(Buffer.c_str());
-#endif
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -1533,13 +1525,9 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         ref << mo.getIndex();
         return createSymbolReference(ref);    
     } else if (mo.isGlobal()) {
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-        TCEString name = mang_->getNameWithPrefix(mo.getGlobal());
-#else
         SmallString<256> Buffer;
         mang_->getNameWithPrefix(Buffer, mo.getGlobal(), false);
         TCEString name(Buffer.c_str());
-#endif
         if (name == END_SYMBOL_NAME) {
             return createSymbolReference(name);
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
@@ -1821,13 +1809,9 @@ LLVMTCEBuilder::emitSelect(
  */
 std::string
 LLVMTCEBuilder::mbbName(const MachineBasicBlock& mbb) {
-#if (defined(LLVM_2_7) || defined(LLVM_2_8))
-    TCEString name = mang_->getNameWithPrefix(mbb.getParent()->getFunction());
-#else
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, mbb.getParent()->getFunction(), false);
     TCEString name(Buffer.c_str());
-#endif
     name += " ";
     name += Conversion::toString(mbb.getNumber());
     return name;
