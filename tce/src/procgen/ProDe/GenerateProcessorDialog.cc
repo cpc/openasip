@@ -207,6 +207,9 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     }
 
     ProGe::ProcessorGenerator generator;
+    // remove unconnected sockets (if any)
+    ProGe::ProcessorGenerator::removeUnconnectedSockets(machine_,
+                                                        warningStream);
     try {
         generator.generateProcessor(
             ProGe::VHDL,

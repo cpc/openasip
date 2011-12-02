@@ -63,6 +63,7 @@
 #include "RFArchitecture.hh"
 #include "HDBManager.hh"
 #include "HDBRegistry.hh"
+#include "MachineResourceModifier.hh"
 
 #include "FileSystem.hh"
 #include "MathTools.hh"
@@ -136,7 +137,7 @@ ProcessorGenerator::generateProcessor(
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
     netlist_ = 
         netlistGenerator.generate(
-            imemWidthInMAUs, entityString, warningStream);
+            imemWidthInMAUs, entityStr_, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";
@@ -441,4 +442,21 @@ ProcessorGenerator::entityName() const {
     
     return entityStr_;
 }
+
+void
+ProcessorGenerator::removeUnconnectedSockets(
+    TTAMachine::Machine& machine,
+    std::ostream& warningStream) {
+
+    MachineResourceModifier modifier;
+    std::list<string> removedSockets;
+    modifier.removeNotConnectedSockets(machine, removedSockets);
+
+    for (std::list<string>::iterator i = removedSockets.begin();
+         i != removedSockets.end(); i++) {
+        warningStream << "Warning: Removed unconnected socket " << *i
+                      << std::endl;
+    }
+}
+
 } // namespace ProGe

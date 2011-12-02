@@ -352,6 +352,9 @@ ProGeUI::generateProcessor(
             }
         }
     }
+    // remove unconnected sockets (if any) before generation
+    ProGe::ProcessorGenerator::removeUnconnectedSockets(
+        *machine_, warningStream);
 
     generator_.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,

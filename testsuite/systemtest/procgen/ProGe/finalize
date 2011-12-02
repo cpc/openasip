@@ -1,5 +1,6 @@
 #!/bin/bash
 rm -rf 3rd.bem
 rm -fr proge-output
+rm -fr proge-output-sockets
 rm -fr shared-vhdl
 

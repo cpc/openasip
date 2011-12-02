@@ -1,3 +1,4 @@
 #!/bin/bash
 rm -rf ./proge-output
+rm -rf ./proge-output-sockets
 rm -fr shared-vhdl

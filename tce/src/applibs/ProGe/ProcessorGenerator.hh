@@ -87,6 +87,10 @@ public:
 
     TCEString entityName() const;
 
+    static void removeUnconnectedSockets(
+        TTAMachine::Machine& machine,
+        std::ostream& warningStream);
+
 private:
     void validateMachine(
         const TTAMachine::Machine& machine,
