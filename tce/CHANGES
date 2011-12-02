@@ -140,6 +140,7 @@ Documentation
   bindings and timings to a function unit in ProDe.
 - Added hints about avoiding the most common bottlenecks on TTA designs with
   the current TCE compiler.
+- Added some documentation for the OpenCL support.
 
 1.4       April 2011
 ====================
