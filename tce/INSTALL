@@ -150,6 +150,9 @@ Known unsupported language features:
 - automatic local variables
 - probably something else we haven't bumped into yet
 
+See the TCE User Manual for more information on using the OpenCL in
+"offline mode".
+
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
 

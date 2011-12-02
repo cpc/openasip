@@ -47,6 +47,8 @@
 #include <string.h>
 #include "cl_tce.h"
 
+#define DUMMY_PLATFORM_ID 42
+
 extern "C" {
 
 //////////////////////////////////////////////////////////////////////////////
@@ -211,6 +213,10 @@ clCreateKernel(
     if (kernel == NULL) {
         if (errcode_ret != NULL)
             *errcode_ret = CL_OUT_OF_HOST_MEMORY;
+#ifdef DEBUG_OCL_HOST
+        iprintf("Couldn't malloc %u bytes of memory for the cl_kernel.\n",
+                sizeof(struct _cl_kernel));
+#endif
         return NULL;
     }
 
@@ -227,6 +233,8 @@ clCreateKernel(
     for (i = 0; i < _TCE_CL_DEVICE_MAX_PARAMETERS; ++i) {
         kernel->args[i] = NULL;
     }
+    if (errcode_ret != NULL)
+        *errcode_ret = CL_SUCCESS;
     return kernel;
 }
 
@@ -335,6 +343,23 @@ clEnqueueReadBuffer(
     iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, buffer, ptr);
 #endif
     memcpy(ptr, buffer, cb);
+    return CL_SUCCESS;
+}
+
+CL_API_ENTRY cl_int CL_API_CALL
+clEnqueueWriteBuffer(cl_command_queue command_queue,
+                     cl_mem buffer,
+                     cl_bool blocking_write,
+                     size_t offset,
+                     size_t cb, 
+                     const void *ptr,
+                     cl_uint num_events_in_wait_list,
+                     const cl_event *event_wait_list,
+                     cl_event *event) CL_API_SUFFIX__VERSION_1_0 {
+#ifdef DEBUG_OCL_HOST
+    iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, buffer, ptr);
+#endif
+    memcpy(buffer, ptr, cb);
     return CL_SUCCESS;
 }
 
@@ -447,7 +472,6 @@ clGetDeviceIDs(cl_platform_id   /* platform */,
     return CL_SUCCESS;
 }
 
-
 cl_int
 clGetPlatformIDs(cl_uint          /*num_entries*/,
                  cl_platform_id * platforms,
@@ -457,12 +481,71 @@ clGetPlatformIDs(cl_uint          /*num_entries*/,
     }
     // just some dummy platform id here
     if (platforms != NULL)
-        platforms[0] = (cl_platform_id) 1;
+        platforms[0] = (cl_platform_id) DUMMY_PLATFORM_ID;
     if (num_platforms != NULL)
         *num_platforms = 1;
     
     return CL_SUCCESS;
 }
+
+/* COPIED DIRECTLY FROM POCL START (todo: reuse directly) */
+CL_API_ENTRY cl_int CL_API_CALL 
+clGetPlatformInfo(cl_platform_id   platform,
+                  cl_platform_info param_name,
+                  size_t           param_value_size, 
+                  void *           param_value,
+                  size_t *         param_value_size_ret) CL_API_SUFFIX__VERSION_1_0
+{
+  const char *ret = 0;
+  int retlen;	
+
+  if (platform != DUMMY_PLATFORM_ID)
+      return CL_INVALID_PLATFORM;
+	
+  switch (param_name)
+	{
+    case CL_PLATFORM_PROFILE:
+      // TODO: figure this out depending on the native execution host.
+      // assume FULL_PROFILE for now.
+      ret = "FULL_PROFILE";
+      break;
+    case CL_PLATFORM_VERSION:
+      ret = "OpenCL 1.2";
+      break;
+    case CL_PLATFORM_NAME:
+      ret = "Portable OpenCL";
+      break;
+    case CL_PLATFORM_VENDOR:
+      ret = "The POCL project";
+      break;
+    case CL_PLATFORM_EXTENSIONS:
+      // TODO: list all suppoted extensions here.
+      ret = "";
+      break;
+    default: 
+      return CL_INVALID_VALUE;
+	}
+
+  // Specs say (section 4.1) to "ignore param_value" should it be NULL
+  if (param_value == NULL)
+    return CL_SUCCESS;	
+	
+  // the OpenCL API docs *seem* to count the trailing NULL
+  retlen = strlen(ret) + 1;
+	
+  if (param_value_size < retlen)
+    return CL_INVALID_VALUE;
+
+  strncpy((char*)param_value, ret, retlen); 
+	
+  if (param_value_size_ret != NULL)
+    *param_value_size_ret=retlen;
+	
+  return CL_SUCCESS;
+
+}
+
+/* COPIED DIRECTLY FROM POCL END (todo: reuse via a library) */
 
 //////////////////////////////////////////////////////////////////////////////
 // NVIDIA OpenCL SDK APIs for easier out-of-the-box compilation
