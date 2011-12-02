@@ -143,7 +143,8 @@ OutputFUBroker::allAvailableResources(
                     }
                 }
             }
-            for (int i = 1; PO.hasOutputNode(i); i++) {
+            // Output nodes indexing starts after input nodes            
+            for (int i = 1 + PO.inputMoveCount(); PO.hasOutputNode(i); i++) {            
                 MoveNodeSet nodeSet = PO.outputNode(i);
                 for (int j = 0; j < nodeSet.count(); j++) {
                     Move& move = nodeSet.at(j).move();
