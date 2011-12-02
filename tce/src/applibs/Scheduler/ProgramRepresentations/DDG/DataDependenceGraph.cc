@@ -55,7 +55,7 @@
 #include "XMLSerializer.hh"
 #include "MoveNodeSet.hh"
 #include "LiveRangeData.hh"
-
+#include "LiveRange.hh"
 
 /**
  * Constructor.
@@ -3505,7 +3505,7 @@ DataDependenceGraph::moveFUDependenciesToTrigger(MoveNode& trigger) {
  * if none found, returns empty pair.
  * @return first set contains writes, second set uses
  */
-std::pair<DataDependenceGraph::NodeSet, DataDependenceGraph::NodeSet>
+LiveRange*
 DataDependenceGraph::findLiveRange(
     MoveNode& moveNode, bool dest) const {
 
@@ -3513,8 +3513,7 @@ DataDependenceGraph::findLiveRange(
     NodeSet queuedReads;
     typedef EdgeSet::iterator EdgeIterator;
 
-    // todo: play ping-pong between users and definers. 
-    std::pair<NodeSet, NodeSet> liveRange;
+    LiveRange* liveRange = new LiveRange;
 
     if (dest == true) {
         queuedWrites.insert(&moveNode);
@@ -3524,6 +3523,8 @@ DataDependenceGraph::findLiveRange(
 
     // loop as long as we have not checked successors of some
     // write or predecessors of some read.
+    // this is done in double-while-loop. only stop when neither
+    // loop wants to continue. 
     while (!queuedWrites.empty() || !queuedReads.empty()) {
 
         // first check writes.
@@ -3545,20 +3546,20 @@ DataDependenceGraph::findLiveRange(
             
                     if (e.isBackEdge() || e.headPseudo() || e.tailPseudo() || 
                         !hasNode(succ) || e.guardUse() ) { 
-                        liveRange.first.clear();
-                        liveRange.second.clear();
+                        liveRange->writes.clear();
+                        liveRange->reads.clear();
                         return liveRange;
                     } else {
                         // not yet handled. queue it
-                        if (liveRange.second.find(&succ) == 
-                            liveRange.second.end()) {
+                        if (liveRange->reads.find(&succ) == 
+                            liveRange->reads.end()) {
                             queuedReads.insert(&succ);
                         }
                     }
                 }
             }
             // this is fully checked. add to result, remove from queue
-            liveRange.first.insert(&write);
+            liveRange->writes.insert(&write);
             queuedWrites.erase(&write);
         }
 
@@ -3581,19 +3582,19 @@ DataDependenceGraph::findLiveRange(
                          (rootGraph()))->tailNode(e, nd);
                     if (e.isBackEdge() || e.headPseudo() ||
                         e.tailPseudo() || !hasNode(pred)) {
-                        liveRange.first.clear();
-                        liveRange.second.clear();
+                        liveRange->writes.clear();
+                        liveRange->reads.clear();
                         return liveRange;
                     } else {
-                        if (liveRange.first.find(&pred) == 
-                            liveRange.first.end()) {
+                        if (liveRange->writes.find(&pred) == 
+                            liveRange->writes.end()) {
                             queuedWrites.insert(&pred);
                         }
                     }
                 }
             }
             // this is fully checked. add to result, remove from queue
-            liveRange.second.insert(&read);
+            liveRange->reads.insert(&read);
             queuedReads.erase(&read);
         }
     }

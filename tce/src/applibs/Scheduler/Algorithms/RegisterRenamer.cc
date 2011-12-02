@@ -72,7 +72,7 @@ RegisterRenamer::RegisterRenamer(
 void 
 RegisterRenamer::initialize(DataDependenceGraph& ddg) {
     ddg_ = &ddg;
-    findFreeRegisters(freeGPRs_, partiallyUsedRegs_);
+    initializeFreeRegisters(freeGPRs_, partiallyUsedRegs_);
 }
 
 void
@@ -112,15 +112,15 @@ RegisterRenamer::initialize() {
  * of the basic block. 
  */
 void
-RegisterRenamer::findFreeRegisters(
+RegisterRenamer::initializeFreeRegisters(
     std::set<TCEString>& freeRegs, 
     std::set<TCEString>& partiallyUsedRegs) const {
     
-    findFreeRegisters(allNormalGPRs_,freeRegs, partiallyUsedRegs);
+    initializeFreeRegisters(allNormalGPRs_,freeRegs, partiallyUsedRegs);
 }
 
 void
-RegisterRenamer::findFreeRegisters(
+RegisterRenamer::initializeFreeRegisters(
     const std::set<TCEString>& allRegs,
     std::set<TCEString>& freeRegs, 
     std::set<TCEString>& partiallyUsedRegs) const {
@@ -267,6 +267,50 @@ RegisterRenamer::findPartiallyUsedRegistersInRF(
     return availableRegs;
 }
 
+std::set<TCEString> 
+RegisterRenamer::findPartiallyUsedRegisters(int bitWidth, int earliestCycle) const {
+    std::set<TCEString> availableRegs;
+    // nothing can be scheduled earlier than cycle 0.
+    // in that case we have empty set, no need to check.
+    if (earliestCycle < 1) {
+        return availableRegs;
+    }
+
+    for (std::set<TCEString>::iterator i = partiallyUsedRegs_.begin(); 
+         i != partiallyUsedRegs_.end(); i++) {
+
+        TCEString rfName = i->substr(0, i->find('.'));
+        TTAMachine::RegisterFile* rf = 
+            machine_.registerFileNavigator().item(rfName);
+        if (ddg_->lastRegisterCycle(
+                *rf, atoi(i->substr(i->find('.')+1).c_str())) <
+            earliestCycle && rf->width() >= bitWidth) {
+            availableRegs.insert(*i);
+        }
+    }
+    return availableRegs;
+}
+
+std::set<TCEString> 
+RegisterRenamer::findFreeRegisters(
+    int bitWidth) const {
+
+    std::set<TCEString> availableRegs;
+
+    for (std::set<TCEString>::iterator i = freeGPRs_.begin(); 
+         i != freeGPRs_.end(); i++) {
+
+        TCEString rfName = i->substr(0, i->find('.'));
+        TTAMachine::RegisterFile* rf = 
+            machine_.registerFileNavigator().item(rfName);
+        if (rf->width() >= bitWidth) {
+            availableRegs.insert(*i);
+        }
+    }
+    return availableRegs;
+}
+
+
 /** 
  * Renames destination register of a move (from the move itself and 
  * from all other moves in same liverange)
@@ -288,24 +332,31 @@ RegisterRenamer::renameDestinationRegister(
     }
     // first find used fullys cheduled ones!
     bool reused = true;
+    
+    std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
 
-    std::set<TCEString> availableRegisters =
+    bool allowDifferentRF = //false;
+        liveRange->noneScheduled() && tempRegFiles_.empty();
+
+    std::set<TCEString> availableRegisters = allowDifferentRF ?
+        findPartiallyUsedRegisters(rf.width(),earliestCycle) :
         findPartiallyUsedRegistersInRF(rf, earliestCycle);
 
     // if no partially used found, take unused.
     if (availableRegisters.empty()) {
         reused = false;
-        availableRegisters = findFreeRegistersInRF(rf);
+        availableRegisters = allowDifferentRF ?
+            findFreeRegisters(rf.width()) :
+            findFreeRegistersInRF(rf);
         if (availableRegisters.empty()) {
             return false;
         }
     }
     
-    LiveRange liveRange = ddg_->findLiveRange(node);
-    
     // then actually do it.
     return renameLiveRange(
-        liveRange, *availableRegisters.begin(), reused, loopScheduling);
+        *liveRange, *availableRegisters.begin(), 
+        reused, loopScheduling);
 }
 
 /** 
@@ -321,36 +372,35 @@ RegisterRenamer::renameSourceRegister(
     }
     const TTAMachine::RegisterFile& rf = 
         node.move().source().registerFile();
+    
+    std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
 
-    std::set<TCEString> freeRegisters = findFreeRegistersInRF(rf);
-    if (freeRegisters.empty()) {
+    std::set<TCEString> freeRegistersInSameRF = findFreeRegistersInRF(rf);
+    if (freeRegistersInSameRF.empty()) {
         return false;
     }
     
-    LiveRange liveRange = ddg_->findLiveRange(node, false);
-    
     // then actually do it.
     return renameLiveRange(
-        liveRange, *freeRegisters.begin(), false, loopScheduling);
+        *liveRange, *freeRegistersInSameRF.begin(), false, loopScheduling);
 }
 
 bool
 RegisterRenamer::renameLiveRange(
-    LiveRange& liveRange, const TCEString& newReg, bool reused, 
+    LiveRange& liveRange, const TCEString& newReg, bool reused,
     bool loopScheduling) {
 
     // > 0 breaks at least denbench
-    if (!(liveRange.first.size() == 1  && liveRange.second.size() > 0)) {
+    if (!(liveRange.writes.size() == 1  && liveRange.reads.size() > 0)) {
         return false;
     } 
 
-    MoveNode& writingNode = **(liveRange.first.begin());
-
-    const TTAMachine::RegisterFile& rf = 
-        writingNode.move().destination().registerFile();
-
+    TCEString rfName = newReg.substr(0, newReg.find('.'));
+    TTAMachine::RegisterFile* rf = 
+        machine_.registerFileNavigator().item(rfName);
+    
     int newRegIndex = 
-        Conversion::toInt(newReg.substr((rf.name().length()+1)));
+        atoi(newReg.substr(newReg.find('.')+1).c_str());
 
     if (reused) {
         // create antidependencies from the previous use of this temp reg.
@@ -358,19 +408,19 @@ RegisterRenamer::renameLiveRange(
         //todo: if in a loop, create antidependencies to first ones in the BB.
         DataDependenceGraph::NodeSet lastReads = 
             ddg_->lastScheduledRegisterReads(
-                rf, newRegIndex);
+                *rf, newRegIndex);
         
         DataDependenceGraph::NodeSet lastWrites = 
             ddg_->lastScheduledRegisterWrites(
-                rf, newRegIndex);
+                *rf, newRegIndex);
 
         DataDependenceGraph::NodeSet lastGuards = 
             ddg_->lastScheduledRegisterGuardReads(
-                rf, newRegIndex);
+                *rf, newRegIndex);
 
         // create the deps.
         for (DataDependenceGraph::NodeSet::iterator i = 
-                 liveRange.first.begin(); i != liveRange.first.end(); i++) {
+                 liveRange.writes.begin(); i != liveRange.writes.end(); i++) {
 
             // create WAR's from previous reads
             for (DataDependenceGraph::NodeSet::iterator 
@@ -422,16 +472,16 @@ RegisterRenamer::renameLiveRange(
 //        assert(bb_.regFirstDefines_[newReg].empty());
 
         // killing write.
-        if (liveRange.first.size() == 1 && 
-            (*liveRange.first.begin())->move().isUnconditional()) {
+        if (liveRange.writes.size() == 1 && 
+            (*liveRange.writes.begin())->move().isUnconditional()) {
             bb_.liveRangeData_->regKills_[newReg].first = 
-                MoveNodeUse(**liveRange.first.begin());
+                MoveNodeUse(**liveRange.writes.begin());
             bb_.liveRangeData_->regFirstDefines_[newReg].clear();
         }
 
         // for writing.
         for (DataDependenceGraph::NodeSet::iterator i = 
-                 liveRange.first.begin(); i != liveRange.first.end(); i++) {
+                 liveRange.writes.begin(); i != liveRange.writes.end(); i++) {
 
             MoveNodeUse mnd(**i);
             bb_.liveRangeData_->regFirstDefines_[newReg].insert(mnd);
@@ -441,7 +491,7 @@ RegisterRenamer::renameLiveRange(
 
         // for reading.
         for (DataDependenceGraph::NodeSet::iterator i = 
-                 liveRange.second.begin(); i != liveRange.second.end(); i++) {
+                 liveRange.reads.begin(); i != liveRange.reads.end(); i++) {
 
             MoveNodeUse mnd(**i);
             bb_.liveRangeData_->regFirstUses_[newReg].insert(mnd);
@@ -459,27 +509,39 @@ RegisterRenamer::renameLiveRange(
     // first update the movenodes.
 
     // for writes.
-    for (DataDependenceGraph::NodeSet::iterator i = liveRange.first.begin();
-         i != liveRange.first.end(); i++) {
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.writes.begin();
+         i != liveRange.writes.end(); i++) {
         TTAProgram::Move& move = (**i).move();
+        const TTAMachine::Port& oldPort = move.destination().port();
+        if (oldPort.parentUnit() == rf) {
+            move.setDestination(new TTAProgram::TerminalRegister(
+                                    oldPort, newRegIndex));
+        } else {
+            move.setDestination(new TTAProgram::TerminalRegister(
+                                    *rf->port(0), newRegIndex));
+        }
 
-        move.setDestination(new TTAProgram::TerminalRegister(
-                           move.destination().port(), newRegIndex));
     }
 
     // for reads.
-    for (DataDependenceGraph::NodeSet::iterator i = liveRange.second.begin();
-         i != liveRange.second.end(); i++) {
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.reads.begin();
+         i != liveRange.reads.end(); i++) {
         TTAProgram::Move& move = (**i).move();
-        move.setSource(new TTAProgram::TerminalRegister(
-                           move.source().port(), newRegIndex));
+        const TTAMachine::Port& oldPort = move.destination().port();
+        if (oldPort.parentUnit() == rf) {
+            move.setSource(new TTAProgram::TerminalRegister(
+                           oldPort, newRegIndex));
+        } else {
+            move.setSource(new TTAProgram::TerminalRegister(
+                                    *rf->port(0), newRegIndex));
+        }
     }
 
     // then update ddg and notify selector.
 
     // for writes.
-    for (DataDependenceGraph::NodeSet::iterator i = liveRange.first.begin();
-         i != liveRange.first.end(); i++) {
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.writes.begin();
+         i != liveRange.writes.end(); i++) {
 
         DataDependenceGraph::NodeSet writeSuccessors =
             ddg_->successors(**i);
@@ -495,8 +557,8 @@ RegisterRenamer::renameLiveRange(
     }
 
     // for reads
-    for (DataDependenceGraph::NodeSet::iterator i = liveRange.second.begin();
-         i != liveRange.second.end(); i++) {
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.reads.begin();
+         i != liveRange.reads.end(); i++) {
         DataDependenceGraph::NodeSet successors =
             ddg_->successors(**i);
 
@@ -554,8 +616,8 @@ RegisterRenamer::updateAntiEdges(
             
             //WaW's of writes.
             for (DataDependenceGraph::NodeSet::iterator j = 
-                     liveRange.first.begin(); 
-                 j != liveRange.first.end(); j++) {
+                     liveRange.writes.begin(); 
+                 j != liveRange.writes.end(); j++) {
                 
                 // create dependency edge
                 DataDependenceEdge* dde =
@@ -571,8 +633,8 @@ RegisterRenamer::updateAntiEdges(
             
             //War's of reads.
             for (DataDependenceGraph::NodeSet::iterator j = 
-                     liveRange.second.begin(); 
-                 j != liveRange.second.end(); j++) {
+                     liveRange.reads.begin(); 
+                 j != liveRange.reads.end(); j++) {
                 
                 // create dependency edge
                 DataDependenceEdge* dde =

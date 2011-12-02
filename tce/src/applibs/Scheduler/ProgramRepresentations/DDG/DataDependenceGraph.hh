@@ -52,6 +52,7 @@ class BasicBlockNode;
 class DataGraphBuilder;
 class ControlFlowGraph;
 class MoveNodeUse;
+class LiveRange;
 
 namespace TTAMachine {
     class BaseRegisterFile;
@@ -268,7 +269,7 @@ public:
 
     void moveFUDependenciesToTrigger(MoveNode& trigger);
 
-    std::pair<NodeSet,NodeSet> findLiveRange(
+    LiveRange* findLiveRange(
         MoveNode& lrNode, bool writingNode=true) const;
 
     MoveNode* findLimitingAntidependenceSource(MoveNode& mn);

@@ -37,6 +37,7 @@
 #include <set>
 #include "DataDependenceGraph.hh"
 #include "MoveNodeSelector.hh"
+#include "LiveRange.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -57,7 +58,7 @@ public:
     RegisterRenamer(
         const TTAMachine::Machine& machine, TTAProgram::BasicBlock& bb);
     unsigned int freeGPRCount() const { return freeGPRs_.size(); }
-    void findFreeRegisters(
+    void initializeFreeRegisters(
         std::set<TCEString>& freeRegs, 
         std::set<TCEString>& partiallyUsedRegs) const;
     std::set<TCEString> findFreeRegistersInRF(
@@ -72,17 +73,22 @@ public:
     
     void setSelector(MoveNodeSelector* selector);
 
-    typedef std::pair<DataDependenceGraph::NodeSet, 
-                      DataDependenceGraph::NodeSet> LiveRange;
+    //    typedef std::pair<DataDependenceGraph::NodeSet, 
+    //DataDependenceGraph::NodeSet> LiveRange;
 
 private:
-    void findFreeRegisters(
+    void initializeFreeRegisters(
         const std::set<TCEString>& allRegs,
         std::set<TCEString>& freeRegs, 
         std::set<TCEString>& partiallyUsedRegs) const;
 
     std::set<TCEString> findPartiallyUsedRegistersInRF(
         const TTAMachine::RegisterFile& rf, int earliestCycle) const;
+    
+    std::set<TCEString> findPartiallyUsedRegisters(
+        int bitWidth, int earliestCycle) const;
+    
+    std::set<TCEString> findFreeRegisters(int bitWidth) const;
 
     bool renameLiveRange(
         LiveRange& liveRange, const TCEString& newReg, bool reusedreg,

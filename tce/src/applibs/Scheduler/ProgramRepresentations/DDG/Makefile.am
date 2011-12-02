@@ -3,7 +3,7 @@ libddg_la_SOURCES = \
 	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc \
     ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc \
 	LLVMTCEDataDependenceGraphBuilder.cc MemoryAliasAnalyzer.cc \
-	LLVMAliasAnalyzer.cc LiveRangeData.cc
+	LLVMAliasAnalyzer.cc LiveRangeData.cc LiveRange.cc
 
 #MNData.cc
 #MemoryAliasAnalyzer.cc
@@ -45,6 +45,6 @@ libddg_la_SOURCES += \
 	LLVMAliasAnalyzer.hh MemoryAliasAnalyzer.hh \
 	DataDependenceEdge.hh DataDependenceGraph.hh \
 	LLVMTCEDataDependenceGraphBuilder.hh MoveNodeUse.hh \
-	LiveRangeData.hh FalseAliasAnalyzer.hh \
+	LiveRangeData.hh FalseAliasAnalyzer.hh LiveRange.hh \
 	MoveNodeUse.icc 
 ## headers end
