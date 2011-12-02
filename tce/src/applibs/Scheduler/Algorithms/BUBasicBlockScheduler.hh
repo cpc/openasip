@@ -90,7 +90,7 @@ private:
     void scheduleOperation(MoveNodeGroup& moves)
         throw (Exception);
 
-    bool scheduleOperandWrites(MoveNodeGroup& moves)
+    bool scheduleOperandWrites(MoveNodeGroup& moves, int cycle)
         throw (Exception);
 
     int scheduleResultReads(MoveNodeGroup& moves, int cycle)
