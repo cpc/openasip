@@ -74,6 +74,9 @@ Bugfixes
   to produce a graceful error message printout for this case.
 - Proxim: the configuration file was not saved to the correct location in
   the user home dir.
+- tcecc: fixed an issue compiling multiple source code in the same
+  command line with the same basename (but with a different suffix or
+  directory).
 
 Code generator improvements
 ---------------------------

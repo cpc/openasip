@@ -102,11 +102,9 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
     
 
 # TODO: add support for ll and check if file is .bc object from magic number...
-def processInputFiles(inFiles, tmpDir, verbose):
-    
-    """ Compiles input files to .bc files and returns list
-    cotaining all the files to link together.
-    """
+def processInputFiles(inFiles, tmpDir, verbose):    
+    """Compiles input files to .bc files and returns a list
+    cotaining all the files to link together."""
 
     compileFlags = newlib_includes + " " + bclib_includes + " "
 
@@ -159,6 +157,11 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     linkList = []
 
+    # There can be two files with the same base name. Add the
+    # counter to the destination object file to avoid name
+    # clashes.
+    file_counter = 0
+
     # Compile input files if needed
     if len(inFiles) == 0:
         exitWithError(
@@ -169,6 +172,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
             # check file type based on knownSuffices
             baseName = ""
             suffix = ""
+            file_counter += 1
             temp_file = None
             # The OpenCL C device specific header file that is
             # generated from the ADF.
@@ -203,7 +207,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # (ld knows how to select only needed parts from libc.a,
                 # even thoug it does it very badly, it shortens optimize time)
 
-                outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
+                outFileName = tmpDir + "/" + os.path.basename(baseName) + "%d.o" % file_counter
                 if suffix == ".c":
                     if options.use_clang:
                         command =  ("clang -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
