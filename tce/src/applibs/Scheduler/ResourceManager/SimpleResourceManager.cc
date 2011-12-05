@@ -54,7 +54,8 @@ using namespace TTAProgram;
  */
 SimpleResourceManager::SimpleResourceManager(
     const TTAMachine::Machine& machine, unsigned int ii):
-    ResourceManager(machine), director_(NULL),  initiationInterval_(ii) {
+    ResourceManager(machine), director_(NULL),  initiationInterval_(ii),
+    startingCycle_(0) {
 
     buildResourceModel(machine);
 }
@@ -546,6 +547,22 @@ SimpleResourceManager::setDDG(const DataDependenceGraph* ddg) {
     director_->setDDG(ddg);
 }
 
+/**
+ * Set start cycle of RM where something meaningfull is stored after RM
+ * is copied to BasicBlock and empty instructions at beginning are skipped.
+ */
+void
+SimpleResourceManager::setStartingCycle(const int cycle) {
+    startingCycle_ = cycle;
+}
+/**
+ * Returns first cycle where something meaningfull is stored in the RM, after
+ * empty instruction at beginning are removed.
+ */
+int
+SimpleResourceManager::startingCycle() const {
+    return startingCycle_;
+}
 std::map<const TTAMachine::Machine*, 
          std::map<int, std::list< SimpleResourceManager*> > >
 SimpleResourceManager::rmPool_;

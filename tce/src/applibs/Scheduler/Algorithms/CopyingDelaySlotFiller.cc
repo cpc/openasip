@@ -405,7 +405,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBNode.basicBlock();
 
-    int firstToFill = blockToFill.instructionCount() - slotsToFill;
+    int firstToFill = rm.startingCycle() + blockToFill.instructionCount() - slotsToFill;
 
     if (fallThru) {
         // test that we can create an inverse guard

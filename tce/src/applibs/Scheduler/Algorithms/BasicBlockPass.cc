@@ -151,6 +151,9 @@ void BasicBlockPass::copyRMToBB(
         }
         rm.loseInstructionOwnership(cycle);        
     }
+    // Notify RM that previous cycles were empty.
+    rm.setStartingCycle(cycle);
+    
     for (; cycle <= lastCycle; ++cycle) {
 
         TTAProgram::Instruction* newInstruction = rm.instruction(cycle);
