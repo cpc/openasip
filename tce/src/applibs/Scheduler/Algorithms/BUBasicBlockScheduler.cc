@@ -321,7 +321,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         
     int lastOperandCycle = 0;
     int latestScheduledOperand = 0;
-    int startCycle = 0;
+    int startCycle = cycle;
     // Counts operands that are not scheduled at beginning.
     int unscheduledMoves = 0;
     MoveNode* trigger = NULL;
@@ -360,7 +360,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
             debugLog("LatestRM == -1");
             continue;
         }
-        if (latest >= startCycle) {
+        if (latest <= startCycle) {
             // Find first moveNode that will be scheduled
             startCycle = latest;
             firstToSchedule = &moves.node(i);
@@ -401,7 +401,6 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         lastOperandCycle = startCycle;
     } else {
         // None of the operands can get scheduled.
-        debugLog("First to schedule == NULL");
         return false;
     }
 
@@ -411,7 +410,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
     // remove timeout when software bypassing is tested and guaranteed to work
     // TODO: remove this kind of kludges. They just await for code that
     // breaks them.
-    while (unscheduledMoves != scheduledMoves && /*counter < 20 &&*/ cycle >=0) {
+    while (unscheduledMoves != scheduledMoves && counter < 20 && cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -528,7 +527,7 @@ BUBasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves, int cycle)
     throw (Exception) {
     
     int startingCycle = cycle;
-    int maxResultCycle = 0;
+    int maxResultCycle = cycle;
     
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
         if (!moves.node(moveIndex).isSourceOperation()) {
