@@ -70,11 +70,13 @@ Please follow the steps below to ensure LLVM and Clang are built
 correctly to be used by TCE:
 
  1) download the LLVM package
- 2) unpack the package, e.g. tar xfz llvm-3.0.tgz
- 3) cd llvm-3.0/tools
+    wget http://llvm.org/releases/3.0/llvm-3.0.tar.gz
+ 2) unpack the package, e.g. tar xfz llvm-3.0.tar.gz
+ 3) cd llvm-3.0.src/tools
  4) download the clang package 
- 5) unpack clang to llvm-3.0/tools, e.g. tar xfz clang-3.0.tgz
- 6) mv clang-3.0 clang
+    wget http://llvm.org/releases/3.0/clang-3.0.tar.gz
+ 5) unpack clang to llvm-3.0/tools, e.g. tar xfz clang-3.0.tar.gz
+ 6) mv clang-3.0.src clang
  7) cd ..
 
 IMPORTANT NOTE! In order to use LLVM with TCE you need to configure LLVM 
