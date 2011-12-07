@@ -168,6 +168,9 @@ public:
     int lastRegisterCycle(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
 
+    int firstRegisterCycle(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
     void sanityCheck() const
         throw (Exception);
 

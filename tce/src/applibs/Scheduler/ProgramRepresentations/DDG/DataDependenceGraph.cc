@@ -654,6 +654,7 @@ DataDependenceGraph::lastScheduledRegisterRead(
 /**
  * Returns the highest cycle where accesses the given register.
  * If unscheudled moves accessing the register, returns INT_MAX;
+ * If none found, returns -1.
  *
  * @param rf The register file.
  * @param registerIndex Index of the register.
@@ -747,6 +748,106 @@ DataDependenceGraph::lastRegisterCycle(
         }
     }
     return lastCycle;
+}
+
+/**
+ * Returns the lowest cycle where accesses the given register.
+ * If unscheudled moves accessing the register, returns -1.
+ * If none found, return INT_MAX
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return cycle, or -1 if some unscheduled found, or INT_MAX if none found.
+ */
+int
+DataDependenceGraph::firstRegisterCycle(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int firstCycle = INT_MAX;
+    for (int i = nodeCount()-1; i >= 0; --i) {
+        MoveNode& n = node(i);
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+        
+        // check source
+        TTAProgram::Terminal& source = n.move().source();
+        bool sourceImmReg = source.isImmediateRegister();
+        bool sourceGPR = source.isGPR();
+        
+        if (sourceImmReg || sourceGPR) {
+            
+            if (sourceImmReg)
+                currentRF = &source.immediateUnit();
+            else
+                currentRF = &source.registerFile();
+            
+            if (&rf == currentRF && source.index() == registerIndex) {
+                if (!n.isScheduled()) {
+                    return -1;
+                }
+                if (n.cycle() < firstCycle) {
+                    firstCycle = n.cycle();
+                }
+            }
+        }
+        
+        // check destination
+        TTAProgram::Terminal& destination = n.move().destination();
+        if (destination.isGPR()) {
+            currentRF = &destination.registerFile();
+            
+            if (&rf == currentRF && destination.index() == registerIndex) {
+                if (!n.isScheduled()) {
+                    return INT_MAX;
+                }
+                if (n.cycle() < firstCycle) {
+                    firstCycle = n.cycle();
+                }
+
+                // this is a write of (constant) into reg, and no antideps in?
+                if (n.move().isUnconditional()) {
+                    if (inDegree(n) == 0) {
+                        assert(firstCycle == n.cycle());
+                        return firstCycle;
+                    }
+                }
+            }
+        }
+        
+        // check guard.
+        if (!n.move().isUnconditional()) {
+            TTAMachine::Guard& guard = n.move().guard().guard();
+            TTAMachine::RegisterGuard* rg = 
+                dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+            if (rg != NULL) {
+                if (rg->registerFile() == &rf && 
+                    rg->registerIndex() == registerIndex) {
+                    if (!n.isScheduled()) {
+                        return INT_MAX;
+                    }
+                    if (n.cycle() < firstCycle) {
+                        firstCycle = n.cycle();
+                    }
+                }
+            }
+        }
+        if (n.move().isCall()) {
+            const TTAMachine::RegisterFile* rrf = 
+                dynamic_cast<const TTAMachine::RegisterFile*>(&rf);
+            assert(rrf != NULL);
+            TCEString reg = 
+                DisassemblyRegister::registerName(*rrf, registerIndex);
+            if (allParamRegs_.find(reg) != allParamRegs_.end()) {
+                if (!n.isScheduled()) {
+                    return INT_MAX;
+                }
+                if (n.cycle() + delaySlots_ < firstCycle) {
+                    firstCycle = n.cycle() + delaySlots_ ;
+                }
+            }                    
+        }
+    }
+    return firstCycle;
 }
 
 

@@ -69,7 +69,8 @@ public:
     bool renameDestinationRegister(
         MoveNode& node, bool loopScheduling, int earliestCycle=-1);
 
-    bool renameSourceRegister(MoveNode& node, bool loopScheduling);
+    bool renameSourceRegister(
+        MoveNode& node, bool loopScheduling, int latestCycle = INT_MAX);
     
     void setSelector(MoveNodeSelector* selector);
 
@@ -83,10 +84,12 @@ private:
         std::set<TCEString>& partiallyUsedRegs) const;
 
     std::set<TCEString> findPartiallyUsedRegistersInRF(
-        const TTAMachine::RegisterFile& rf, int earliestCycle) const;
+        const TTAMachine::RegisterFile& rf,
+        int earliestCycle, 
+        int latestCycle) const;
     
     std::set<TCEString> findPartiallyUsedRegisters(
-        int bitWidth, int earliestCycle) const;
+        int bitWidth, int earliestCycle, int latestCycle) const;
     
     std::set<TCEString> findFreeRegisters(int bitWidth) const;
 
