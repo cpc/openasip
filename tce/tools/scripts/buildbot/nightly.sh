@@ -69,7 +69,7 @@ function start_compiletest {
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
 
-    ./gen_config.sh >& /dev/null
+    ./autogen.sh >& /dev/null
 
     if [ -x gen_llvm_shared_lib.sh ]
     then

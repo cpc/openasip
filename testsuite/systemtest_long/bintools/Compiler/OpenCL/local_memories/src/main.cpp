@@ -121,7 +121,6 @@ exec_dot_product_kernel(const char *program_source,
 
     // the local buffers
     err |= clSetKernelArg(kernel, 3, sizeof(cl_float)*4, NULL);
-    err |= clSetKernelArg(kernel, 4, sizeof(cl_float)*4, NULL);
 
     if (err != CL_SUCCESS)
     {
@@ -188,15 +187,15 @@ __attribute__((noinline))
 int main() {  
 
     for (int i = 0; i < TEST_SET_SIZE; ++i) {
-        inputA[i][0] = i;
-        inputA[i][1] = i;
-        inputA[i][2] = i;
-        inputA[i][3] = i;
+        inputA[i].s[0] = i;
+        inputA[i].s[1] = i;
+        inputA[i].s[2] = i;
+        inputA[i].s[3] = i;
 
-        inputB[i][0] = 1;
-        inputB[i][1] = 2;
-        inputB[i][2] = 3;
-        inputB[i][3] = 4;
+        inputB[i].s[0] = 1;
+        inputB[i].s[1] = 2;
+        inputB[i].s[2] = 3;
+        inputB[i].s[3] = 4;
     }
 
     int retVal = exec_dot_product_kernel(
@@ -215,15 +214,15 @@ int main() {
     for (int i = 0; i < TEST_SET_SIZE; ++i) {
 
         cl_float expected = 
-            inputA[i][0]*inputB[i][0] +
-            inputA[i][1]*inputB[i][1] +
-            inputA[i][2]*inputB[i][2] +
-            inputA[i][3]*inputB[i][3];
+            inputA[i].s[0]*inputB[i].s[0] +
+            inputA[i].s[1]*inputB[i].s[1] +
+            inputA[i].s[2]*inputB[i].s[2] +
+            inputA[i].s[3]*inputB[i].s[3];
 
         printf("result[%d]: (%f, %f, %f, %f) dot (%f, %f, %f, %f) = %f ",
                i, 
-               inputA[i][0], inputA[i][1], inputA[i][2], inputA[i][3], 
-               inputB[i][0], inputB[i][1], inputB[i][2], inputB[i][3], 
+               inputA[i].s[0], inputA[i].s[1], inputA[i].s[2], inputA[i].s[3], 
+               inputB[i].s[0], inputB[i].s[1], inputB[i].s[2], inputB[i].s[3], 
                results[i]);
 
         if (results[i] == expected)

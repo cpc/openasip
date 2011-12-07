@@ -260,7 +260,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                        " " + input + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
-                                       ("-I " + tceSAOpenCLIncDir)
+                                       ("-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
 # + " -I" + poclDir + "/lib" + " -I" + poclDir
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
@@ -309,6 +309,7 @@ extern "C" int _get_core_count();
 
 #define USE_MT 0
 //#define DEBUG_MT
+//#define DEBUG_OCL
 
 #if USE_MT == 1
 #include <pthread.h>
@@ -367,6 +368,10 @@ static void __opencl_trampoline_%(kernel_name)s(
                 context.global_offset[0] = 0;
                 context.global_offset[1] = 0;
                 context.global_offset[2] = 0;
+#ifdef DEBUG_OCL
+                iprintf("### launching a WG %%d-%%d-%%d of %%d-%%d-%%d\\n", 
+                        gid_x, gid_y, gid_z, num_groups_x, num_groups_y, num_groups_z);
+#endif
                 %(converted_name)s(args, &context);
             } 
         }

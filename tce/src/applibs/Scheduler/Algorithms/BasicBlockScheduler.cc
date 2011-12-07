@@ -466,7 +466,7 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
         // count how many operand moves will need to be scheduled
         unscheduledMoves++;
 
-        int limit = ddg_->earliestCycle(moves.node(i), true) - 
+        int limit = ddg_->earliestCycle(moves.node(i)) - 
             EARLY_OPERAND_DIFFERENCE;
         if (limit < 0) {
             limit = 0;

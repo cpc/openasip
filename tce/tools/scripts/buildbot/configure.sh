@@ -32,7 +32,7 @@ export LD_LIBRARY_PATH=$LLVM_DIR/lib:$LD_LIBRARY_PATH
 
 make clean >& /dev/null
 
-./gen_config.sh >& /dev/null
+./autogen.sh >& /dev/null
 
 if [ -x gen_llvm_shared_lib.sh ]
 then

@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.6-pre}
-\ver{26}
+\ver{27}
 \firstday{2006-10-25}
-\lastday{2011-11-24}
+\lastday{2011-12-02}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -2907,8 +2907,8 @@ a directory to which HDL files that can be shared between multiple TTAs are
 copied. This avoids name clashes, e.g. on FU names when two or more TTAs 
 use the same implementation. 
 
-The second useful switch is \textit{--entity-name}. This switch allow 
-naming the generated core in the HDL files with an arbitrary name. The name 
+The second useful switch is \textit{--entity-name}. This switch allows
+naming the generated core in the HDL files with a custom name. The name 
 string is also inserted to all the core-specific component names to make
 them unique to avoid name clashes in HDL compilation of the system. It
 should be noted that the Program Image Generator (generatebits) also
@@ -2923,6 +2923,77 @@ the shared memory hierarchy is currently out of scope of TCE. While
 these switches assist in HDL generation of multi-TTA designs, the
 designer can also simulate multi-TTA designs at system level by
 using the TCE SystemC API (see Section~\ref{sec:SystemC}).
+
+\section{OpenCL Support}
+
+TCE has experimental support for running both OpenCL C kernels and the host 
+runtime in a same statically linked program. This can be used to benefit from
+parallelizable kernels written in OpenCL C without requiring a host processor 
+with an OpenCL C compiler.
+
+The OpenCL support uses the {Portable OpenCL (pocl)} project. In order to
+add OpenCL support to tcecc, you should download and install the latest version of 
+pocl and reconfigure the TCE. At the end of the configure run, the script 
+mentions whether the OpenCL support was enabled or not. After building TCE
+you can also check for the OpenCL C support via ``tcecc --supported-languages''
+switch.
+
+It must be emphasized that the OpenCL support is a work in progress and
+does not provide full support for the standard. The missing APIs are
+implemented ``as needed''.
+
+The ``statically compiled OpenCL C'' support works by relying on the
+\textit{reqd\_work\_group\_size} kernel attributes. It uses the work
+group dimensions defined with the attributes to statically parallelize 
+multiple work items (WI) in a single work group (WG) to produce highly 
+parallel code for the compiler instruction scheduler.
+
+For example: the dot\_product example must be written as follows to
+produce four parallel WIs per WG:
+
+\begin{verbatim}
+/* dot.cl */
+ __attribute__((reqd_work_group_size(4, 1, 1)))
+kernel void
+dot_product (global const float4 *a,
+             global const float4 *b, 
+             global float *c) {
+    int gid = get_global_id(0);
+
+    c[gid] = dot(a[gid], b[gid]);    
+} 
+\end{verbatim}
+
+Currently the host API must know about the WG dimensions and use the
+same ones when launching the kernel, otherwise undefined behavior
+occurs. For the other parts, the OpenCL host runtime API can be used 
+similarly as in the ``regular mode`` where the kernels are (or can be)
+compiled and linked at runtime. This enables easier porting 
+of OpenCL programs to the TCE standalone OpenCL mode. In the
+standalone mode, the compiler invokation APIs of the OpenCL host runtime 
+are implemented as dummy functions to produce source code level 
+compatibility with most of the OpenCL programs.
+
+For example, the host program for invoking the dot\_product code
+can be written identically as it was done in the original OpenCL
+example. The host program can invoke the compiler etc. to make
+the program run in the regular OpenCL environments while in TCE
+standalone mode the kernel is compiled offline, linked to the
+main program, and the compiler calls are no-operations.
+
+The command line to compile both the host code and the kernel to
+a single program is as follows:
+
+\begin{verbatim}
+ tcecc -a mytta.adf -O3 host.c dot.cl -o dot_product -loclhost-sa
+\end{verbatim}
+
+The resulting program can be simulated and executed like any 
+other TTA program produced by tcecc.
+
+The \textit{oclhost-sa} library provides the more-or-less dummy
+implementations of the host runtime APIs to enable launching the
+kernel and moving the buffers etc. 
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
