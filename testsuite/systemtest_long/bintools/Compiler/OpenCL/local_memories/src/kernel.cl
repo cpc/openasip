@@ -1,5 +1,5 @@
 /* A kernel that tests the local memory accesses with 
-   a strange code that moves stuff to the local memory
+   a mysterious code that moves stuff to local memories
    and then back ;)
  */
 //int iprintf(const char *format, ...);
@@ -9,9 +9,9 @@ kernel void
 dot_product (global const float4 *a,
              global const float4 *b, 
              global float *c,
-             local float *temp1,
-             local float *temp2) {
+             local float *temp1) {
 
+    __local float temp2[4];
     int lid = get_local_id(0);
     int gid = get_global_id(0);
 
