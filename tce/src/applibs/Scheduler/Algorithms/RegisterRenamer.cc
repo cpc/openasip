@@ -481,7 +481,8 @@ RegisterRenamer::renameLiveRange(
         // this is not used before.
 
         // update bookkeeping about first use of this reg
-        assert(bb_.liveRangeData_->regFirstUses_[newReg].empty());
+        if (!usedAfter)
+            assert(bb_.liveRangeData_->regFirstUses_[newReg].empty());
 
         // killing write.
         if (liveRange.writes.size() == 1 && 
@@ -489,6 +490,7 @@ RegisterRenamer::renameLiveRange(
             bb_.liveRangeData_->regKills_[newReg].first = 
                 MoveNodeUse(**liveRange.writes.begin());
             bb_.liveRangeData_->regFirstDefines_[newReg].clear();
+            bb_.liveRangeData_->regFirstUses_[newReg].clear();            
         }
 
         // for writing.
