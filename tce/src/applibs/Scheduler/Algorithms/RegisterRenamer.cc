@@ -359,7 +359,7 @@ RegisterRenamer::renameDestinationRegister(
     // then actually do it.
     return renameLiveRange(
         *liveRange, *availableRegisters.begin(), 
-        reused, loopScheduling);
+        reused, false, loopScheduling);
 }
 
 /** 
@@ -404,13 +404,13 @@ RegisterRenamer::renameSourceRegister(
     
     // then actually do it.
     return renameLiveRange(
-        *liveRange, *availableRegisters.begin(), false, loopScheduling);
+        *liveRange, *availableRegisters.begin(), false, reused, loopScheduling);
 }
 
 bool
 RegisterRenamer::renameLiveRange(
-    LiveRange& liveRange, const TCEString& newReg, bool reused,
-    bool loopScheduling) {
+    LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
+    bool usedAfter, bool loopScheduling) {
 
     // > 0 breaks at least denbench
     if (!(liveRange.writes.size() == 1  && liveRange.reads.size() > 0)) {
@@ -424,7 +424,7 @@ RegisterRenamer::renameLiveRange(
     int newRegIndex = 
         atoi(newReg.substr(newReg.find('.')+1).c_str());
 
-    if (reused) {
+    if (usedBefore) {
         // create antidependencies from the previous use of this temp reg.
 
         //todo: if in a loop, create antidependencies to first ones in the BB.
@@ -478,20 +478,10 @@ RegisterRenamer::renameLiveRange(
             }
         }
     } else {
+        // this is not used before.
 
         // update bookkeeping about first use of this reg
         assert(bb_.liveRangeData_->regFirstUses_[newReg].empty());
-        if (!bb_.liveRangeData_->regFirstDefines_[newReg].empty()) {
-
-            std::set<MoveNodeUse>& firstDefs = 
-                bb_.liveRangeData_->regFirstDefines_[newReg];
-            for (std::set<MoveNodeUse>::iterator i = firstDefs.begin();
-                 i != firstDefs.end(); i++) {                
-            }
-        }
-
-//        regfirstdefiens may contain some call is renamed to rv reg.
-//        assert(bb_.regFirstDefines_[newReg].empty());
 
         // killing write.
         if (liveRange.writes.size() == 1 && 
@@ -507,6 +497,7 @@ RegisterRenamer::renameLiveRange(
 
             MoveNodeUse mnd(**i);
             bb_.liveRangeData_->regFirstDefines_[newReg].insert(mnd);
+            // TODO: only if intra-bb-antideps enabled?
             static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
                 updateRegWrite(mnd, newReg, bb_);
         }
@@ -517,15 +508,75 @@ RegisterRenamer::renameLiveRange(
 
             MoveNodeUse mnd(**i);
             bb_.liveRangeData_->regFirstUses_[newReg].insert(mnd);
-            static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
-                updateRegUse(mnd, newReg, bb_);
+            // no need to create raw deps here
         }
-        
     }
 
-    // need to create backedges to first if we are loop scheduling.
-    if (loopScheduling) {
-        updateAntiEdges(liveRange, newReg, bb_, 1);
+    if (usedAfter) {
+        
+        DataDependenceGraph::NodeSet firstWrites = 
+            ddg_->firstScheduledRegisterWrites(
+                *rf, newRegIndex);
+
+        // create the antidep deps.
+
+        for (DataDependenceGraph::NodeSet::iterator 
+                 j = firstWrites.begin(); j != firstWrites.end(); j++) {
+            
+            // WaW's
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     liveRange.writes.begin(); i != liveRange.writes.end(); 
+                 i++) {
+                
+                DataDependenceEdge* edge = new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAW, newReg);
+                
+                ddg_->connectNodes(**i,**j, *edge);
+            }
+        
+            // WaR's
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     liveRange.reads.begin(); i != liveRange.reads.end(); 
+                 i++) {
+                DataDependenceEdge* edge = new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAR, newReg);
+                
+                ddg_->connectNodes(**i,**j, *edge);
+            }
+        }
+
+    } else {
+
+        // killing write.
+        if (liveRange.writes.size() == 1 && 
+            (*liveRange.writes.begin())->move().isUnconditional()) {
+            bb_.liveRangeData_->regLastKills_[newReg].first = 
+                MoveNodeUse(**liveRange.writes.begin());
+            bb_.liveRangeData_->regDefines_[newReg].clear();
+        }
+
+        // for writing.
+        for (DataDependenceGraph::NodeSet::iterator i = 
+                 liveRange.writes.begin(); i != liveRange.writes.end(); i++) {
+
+            MoveNodeUse mnd(**i);
+            bb_.liveRangeData_->regDefines_[newReg].insert(mnd);
+        }
+
+        // for reading.
+        for (DataDependenceGraph::NodeSet::iterator i = 
+                 liveRange.reads.begin(); i != liveRange.reads.end(); i++) {
+
+            MoveNodeUse mnd(**i);
+            bb_.liveRangeData_->regLastUses_[newReg].insert(mnd);
+        }
+
+        // need to create backedges to first if we are loop scheduling.
+        if (loopScheduling) {
+            updateAntiEdgesFromLRTo(liveRange, newReg, bb_, 1);
+        }
     }
 
     // first update the movenodes.
@@ -624,7 +675,7 @@ RegisterRenamer::setSelector(MoveNodeSelector* selector) {
  * @loopDepth loop depth of added edges.
  */
 void 
-RegisterRenamer::updateAntiEdges(
+RegisterRenamer::updateAntiEdgesFromLRTo(
     LiveRange& liveRange, const TCEString& newReg, TTAProgram::BasicBlock& bb,
     int loopDepth) const {
     std::set<MoveNodeUse>& firstDefs = 

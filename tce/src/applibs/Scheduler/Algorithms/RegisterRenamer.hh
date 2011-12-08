@@ -94,10 +94,10 @@ private:
     std::set<TCEString> findFreeRegisters(int bitWidth) const;
 
     bool renameLiveRange(
-        LiveRange& liveRange, const TCEString& newReg, bool reusedreg,
-        bool loopScheduling);
+        LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
+        bool usedAfter, bool loopScheduling);
 
-    void updateAntiEdges(
+    void updateAntiEdgesFromLRTo(
         LiveRange& liveRange, 
         const TCEString& newReg, 
         TTAProgram::BasicBlock& bb, 

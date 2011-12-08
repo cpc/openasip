@@ -892,6 +892,7 @@ DataDependenceGraph::lastScheduledRegisterReads(
     return lastReads;
 }
 
+
 /**
  * Returns the set of MoveNodes which reads given register as guard after
  * last unconditional scheduled write to the register.
@@ -971,6 +972,45 @@ DataDependenceGraph::lastScheduledRegisterWrites(
     return lastReads;
 }
 
+/**
+ * Returns the set of MoveNodes which writes given register after
+ * last unconditional scheduled write to the register,
+ * and the last unconditional write.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The set of movenodes.
+ */
+DataDependenceGraph::NodeSet
+DataDependenceGraph::firstScheduledRegisterWrites(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    // TODO: should this be able to be calculated from LR bookkeeping?
+
+    MoveNode* firstKill = firstScheduledRegisterKill(rf, registerIndex);
+    int killCycle = firstKill == NULL ? INT_MAX : firstKill->cycle();
+    NodeSet firstWrites;
+
+    // first search last kill.
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& dest = n.move().destination();
+        if (!n.isScheduled() || !dest.isGPR())
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+            currentRF = &dest.registerFile();
+
+        if (&rf == currentRF && 
+            dest.index() == registerIndex) {
+            if (n.cycle() <= killCycle) {
+                firstWrites.insert(&n);
+            }
+        }
+    }
+    return firstWrites;
+}
 
 
 /**
@@ -1005,6 +1045,40 @@ DataDependenceGraph::lastScheduledRegisterKill(
         }
     }
     return lastFound;
+}
+
+/**
+ * Returns the MoveNode of unconditional move with highest cycle that writes the given register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The MoveNode, NULL, if not found.
+ */
+MoveNode*
+DataDependenceGraph::firstScheduledRegisterKill(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int firstCycle = INT_MAX;
+    MoveNode* firstFound = NULL;
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& dest = n.move().destination();
+        if (!n.isScheduled() || !dest.isGPR())
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+            currentRF = &dest.registerFile();
+
+        if (&rf == currentRF && 
+            dest.index() == registerIndex &&
+            n.cycle() < firstCycle &&
+            n.move().isUnconditional()) {
+            firstCycle = n.cycle();
+            firstFound = &n;
+        }
+    }
+    return firstFound;
 }
 
 
