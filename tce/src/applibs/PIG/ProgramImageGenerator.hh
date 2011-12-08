@@ -92,8 +92,7 @@ public:
         std::string& programName,
         std::ostream& stream,
         OutputFormat format,
-        int mausPerLine = 0)
-        throw (InvalidData);
+        int mausPerLine = 0);
     void generateDataImage(
         std::string& programName,
         TPEF::Binary& program,
@@ -106,6 +105,7 @@ public:
     void generateDecompressor(std::ostream& stream, TCEString entityStr);
 
     int imemMauWidth() const;
+    const CodeCompressorPlugin& compressor() { return *compressor_; }
 
     void setEntityName(const std::string& entity);
 
