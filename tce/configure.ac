@@ -1370,6 +1370,7 @@ AC_CONFIG_FILES([
   bclib/lwpr/Makefile
   bclib/saocl/Makefile 
   bclib/include/Makefile
+  bclib/include/CL/Makefile
 ])
 
 ## The test Makefile generation will be removed automatically 
