@@ -225,8 +225,6 @@ Proxim::loadOptions() {
 
     string configFile = Environment::confPath(CONFIG_FILE_NAME);
 
-    PRINT_VAR(configFile);
-
     string schemaFile = Environment::dataDirPath("Proxim") +
         FileSystem::DIRECTORY_SEPARATOR + SCHEMA_FILE_NAME;
 
