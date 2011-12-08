@@ -132,7 +132,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
     unsigned int grIndex = 0;
 
     // lets be aggressive, fill more than just slots?
-    int maxFillCount = std::min(delaySlots+3, thisBB.instructionCount()
+    int maxFillCount = std::min(delaySlots+12, thisBB.instructionCount()
                                 - thisBB.skippedFirstInstructions());
 
     // if we have references to instructions in target BB, cannot put anything
@@ -153,10 +153,26 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         } else { 
             return; // port guards not yet supported
         }
-        // if conditional, fill only slots+jump ins
-        // this is safe as the guard latency is also in the jump,
-        // but may be unoptimal if guard written before.
-        maxFillCount = std::min(maxFillCount,delaySlots+1);
+
+        // find when the predicate reg is written to and use that
+        // to limit how many to bypass.
+        MoveNode& jumpNode = ddg_->nodeOfMove(*jumpMove);
+        DataDependenceGraph::NodeSet guardDefs =
+            ddg_->guardDefMoves(jumpNode);
+        if (guardDefs.size() != 1) {
+            // many defs, don't know which is the critical one.
+            // fill only slots+jump ins
+            maxFillCount = delaySlots+1;
+        } else {
+            MoveNode& guardDefMove = **guardDefs.begin();
+            if (&ddg_->getBasicBlockNode(guardDefMove) == &jumpingBB) {
+                int earliestToFill = guardDefMove.cycle() +
+                    jumpNode.guardLatency();
+                
+                maxFillCount = thisBB.instructionCount() -
+                    earliestToFill;
+            }
+        }
     }
 
     // 1 or two items, big loop. These may come in either order, grr.
@@ -170,6 +186,17 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         }
 
         BasicBlockNode& nextBBN = cfg_->headNode(edge);
+
+        int nextInsCount = nextBBN.basicBlock().instructionCount();
+        if (&nextBBN == &jumpingBB) {
+            // jump to itself. may not fill from instructions 
+            // which are itself being filled.
+            maxFillCount = std::min(maxFillCount, nextInsCount/2);
+        } else {
+            // otherwise may fill all other target bb
+            maxFillCount = std::min(maxFillCount,nextInsCount);
+        }
+
         if (nextBBN.isNormalBB()) {
 
             // cannot remove ins if more than one input path to BB
