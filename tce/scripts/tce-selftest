@@ -196,8 +196,18 @@ class TestCompiler(TCETestCase):
     def setUp(self):
         self.hello_world_file = self.get_helloWorldCFile()
 
+        (fd, self.ocl_kernel_fn) = tempfile.mkstemp(".cl")
+        os.write(fd, opencl_example_kernel)
+        os.close(fd)
+
+        (fd, self.ocl_host_fn) = tempfile.mkstemp(".c")
+        os.write(fd, opencl_example_host)
+        os.close(fd)
+
     def tearDown(self):
         os.unlink(self.hello_world_file)
+        os.unlink(self.ocl_kernel_fn)
+        os.unlink(self.ocl_host_fn)
 
     def _verify_output(self, tpef):
         (timeout, stdout, stderr, code) = \
@@ -227,7 +237,32 @@ class TestCompiler(TCETestCase):
         
     def test_opt(self):
         "Test C compilation with -O3"
-        self._test_compilation("-O3")        
+        self._test_compilation("-O3") 
+
+    def test_opencl_sa(self):
+        "Test standalone OpenCL compilation if the support has been enabled"
+
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("tcecc --supported-languages", 20*60)
+        if "OpenCL C" not in stdout: return
+
+        (fd, tpef_file_name) = tempfile.mkstemp(".tpef")
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("tcecc --swfp -O3 -a %s -o %s %s %s -loclhost-sa" % \
+                               (self.get_minimalStdoutADF(),
+                                tpef_file_name, self.ocl_kernel_fn, self.ocl_host_fn),
+                               20*60)
+        self.assertEquals(stdout, "")
+        self.assertEquals(stderr, "")
+        self.assertEquals(code, 0)
+
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
+                               (self.get_minimalStdoutADF(), tpef_file_name), 15*60)
+        self.assertEquals(stdout.strip(), "OK")
+        self.assertEquals(stderr, "")
+        self.assertEquals(code, 0)        
+
 
 class TestSimulator(TCETestCase):
     """Test simulating with the compiled and debugging engines."""
@@ -607,6 +642,259 @@ class TestProGeAndPIG(TCETestCase):
         self.assertTrue(os.path.getsize('test.img') > 0)
         self.assertEquals(len(open('test.img','r').readlines()[0].strip()), 6)
         self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/imem_mau_pkg.vhdl', 'r').read())
+
+opencl_example_kernel = \
+r"""
+__attribute__((reqd_work_group_size(4, 1, 1)))
+kernel void
+dot_product (global const float4 *a,
+             global const float4 *b, 
+             global float *c,
+             local float *temp1) {
+
+    __local float temp2[4];
+    int lid = get_local_id(0);
+    int gid = get_global_id(0);
+
+    temp1[lid] = dot(a[gid], b[gid]);
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    temp2[3 - lid] = temp1[lid];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    temp1[lid] = temp2[3 - lid];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    c[gid] = temp1[lid];
+} 
+"""
+
+opencl_example_host = \
+r"""
+#include <CL/cl.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+/* OpenCL API implementations end */
+
+void
+delete_memobjs(cl_mem *memobjs, int n)
+{
+    int i;
+    for (i=0; i<n; i++)
+        clReleaseMemObject(memobjs[i]);
+}
+
+int
+exec_dot_product_kernel(const char *program_source,
+                        int n, void *srcA, void *srcB, void *dst)
+{
+    cl_context context;
+
+    cl_command_queue cmd_queue;
+    cl_device_id *devices;
+    cl_program program;
+    cl_kernel kernel;
+    cl_mem memobjs[3];
+    size_t global_work_size[1];
+    size_t local_work_size[1];
+    size_t cb;
+    cl_int err;
+// create the OpenCL context on a GPU device
+    context = clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU,
+                                      NULL, NULL, NULL);
+    if (context == (cl_context)0)
+        return -1;
+// get the list of GPU devices associated with context
+    clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &cb);
+    cb = 0;
+    devices = (cl_device_id*)malloc(cb);
+    clGetContextInfo(context, CL_CONTEXT_DEVICES, cb, devices, NULL);
+// create a command-queue
+    cmd_queue = clCreateCommandQueue(context, devices[0], 0, NULL);
+    if (cmd_queue == (cl_command_queue)0)
+    {
+        clReleaseContext(context);
+        return -2;
+    }
+    //free(devices);
+// allocate the buffer memory objects
+    memobjs[0] = clCreateBuffer(context,
+                                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(cl_float4) * n, srcA, NULL);
+    if (memobjs[0] == (cl_mem)0)
+    {
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -3;
+    }
+    memobjs[1] = clCreateBuffer(context,
+                                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                sizeof(cl_float4) * n, srcB, NULL);
+    if (memobjs[1] == (cl_mem)0)
+    {
+        delete_memobjs(memobjs, 1);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -4;
+    }
+
+    memobjs[2] = clCreateBuffer(context,
+                                CL_MEM_READ_WRITE,
+                                sizeof(cl_float) * n, NULL, NULL);
+    if (memobjs[2] == (cl_mem)0)
+    {
+        delete_memobjs(memobjs, 2);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -5;
+    }
+// create the program
+    program = clCreateProgramWithSource(context,
+                                        1, (const char**)&program_source, NULL, NULL);
+//     if (program == (cl_program)0)
+//     {
+//         delete_memobjs(memobjs, 3);
+//         clReleaseCommandQueue(cmd_queue);
+//         clReleaseContext(context);
+//         return -6;
+//     }
+// build the program
+    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+    if (err != CL_SUCCESS)
+    {
+        delete_memobjs(memobjs, 3);
+        clReleaseProgram(program);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -7;
+    }
+// create the kernel
+    kernel = clCreateKernel(program, "dot_product", NULL);
+    if (kernel == (cl_kernel)0)
+    {
+        delete_memobjs(memobjs, 3);
+        clReleaseProgram(program);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -8;
+    }
+// set the args values
+    err = clSetKernelArg(kernel, 0,
+                         sizeof(cl_mem), (void *) &memobjs[0]);
+    err |= clSetKernelArg(kernel, 1,
+                          sizeof(cl_mem), (void *) &memobjs[1]);
+    err |= clSetKernelArg(kernel, 2,
+                          sizeof(cl_mem), (void *) &memobjs[2]);
+
+    // the local buffers
+    err |= clSetKernelArg(kernel, 3, sizeof(cl_float)*4, NULL);
+
+    if (err != CL_SUCCESS)
+    {
+        delete_memobjs(memobjs, 3);
+        clReleaseKernel(kernel);
+        clReleaseProgram(program);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -9;
+    }
+// set work-item dimensions
+    global_work_size[0] = n; /* n work groups with 4 work item per group */
+    local_work_size[0] = 4; /* 4  work items per work group */
+// execute kernel
+    err = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL,
+                                 global_work_size, local_work_size,
+                                 0, NULL, NULL);
+
+    if (err != CL_SUCCESS)
+    {
+        delete_memobjs(memobjs, 3);
+        clReleaseKernel(kernel);
+        clReleaseProgram(program);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -10;
+    }
+// read output image
+    err = clEnqueueReadBuffer(cmd_queue, memobjs[2], CL_TRUE,
+                              0, n * sizeof(cl_float), dst,
+                              0, NULL, NULL);
+    if (err != CL_SUCCESS)
+    {
+        delete_memobjs(memobjs, 3);
+        clReleaseKernel(kernel);
+        clReleaseProgram(program);
+        clReleaseCommandQueue(cmd_queue);
+        clReleaseContext(context);
+        return -11;
+    }
+// release kernel, program, and memory objects
+    delete_memobjs(memobjs, 3);
+    clReleaseKernel(kernel);
+    clReleaseProgram(program);
+    clReleaseCommandQueue(cmd_queue);
+    clReleaseContext(context);
+    return 0; // success...
+}
+
+
+#define TEST_SET_SIZE 16
+
+volatile cl_float4 inputA[TEST_SET_SIZE];
+volatile cl_float4 inputB[TEST_SET_SIZE];
+volatile cl_float results[TEST_SET_SIZE];
+
+/* TODO: global constructor call injection breaks
+   in case main is inlined as the context is not 
+   saved before calling it at the moment and inlining
+   brings in live variables. FIXME by doing the calls
+   at LLVM Instruction level after which proper
+   context saving code will be generated automatically. */
+__attribute__((noinline))
+int main() {  
+
+    for (int i = 0; i < TEST_SET_SIZE; ++i) {
+        inputA[i].s[0] = i;
+        inputA[i].s[1] = i;
+        inputA[i].s[2] = i;
+        inputA[i].s[3] = i;
+
+        inputB[i].s[0] = 1;
+        inputB[i].s[1] = 2;
+        inputB[i].s[2] = 3;
+        inputB[i].s[3] = 4;
+    }
+
+    int retVal = exec_dot_product_kernel(
+        NULL, TEST_SET_SIZE, (void*)inputA, 
+        (void*)inputB, (void*)results);
+
+#ifdef DEBUG
+    if (retVal != 0)
+        printf("ERROR: %d\\n", retVal);
+#endif
+
+    /* verify results */
+
+    int broken = 0;
+    for (int i = 0; i < TEST_SET_SIZE; ++i) {
+
+        cl_float expected = 
+            inputA[i].s[0]*inputB[i].s[0] +
+            inputA[i].s[1]*inputB[i].s[1] +
+            inputA[i].s[2]*inputB[i].s[2] +
+            inputA[i].s[3]*inputB[i].s[3];
+
+        if (results[i] != expected) ++broken;
+    }
+    if (broken == 0) 
+        puts("OK"); 
+    else 
+        puts("NOK");
+    return retVal;
+}
+"""
 
 if __name__ == '__main__':
     print "Testing TCE installation, this can take up to two hours."
