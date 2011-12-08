@@ -223,7 +223,6 @@ BUBasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(moves, resultsStartCycle);
         if (maxResult != -1) {
-            debugLog("Results scheduled happily.");
             resultsFailed = false;
         } else {
             // At least one of the results did not get scheduled correctly,
@@ -247,7 +246,6 @@ BUBasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
         }
         
         if (scheduleOperandWrites(moves, resultsStartCycle)) {
-            debugLog("Operands scheduled happily.");
             operandsFailed = false;
         } else {
             // Scheduling some operand failed, unschedule all moves, try earlier 
@@ -383,7 +381,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
     int counter = 0;
 
     // Trigger is scheduled, try to schedule other operands
-    while (unscheduledMoves != scheduledMoves && counter < 2 && cycle >=0) {
+    while (unscheduledMoves != scheduledMoves && /*counter < 20 &&*/ cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -425,7 +423,6 @@ BUBasicBlockScheduler::scheduleOperandWrites(
                 MoveNode& moveNode = moves.node(i);
                 if (moveNode.isScheduled() &&
                     moveNode.isDestinationOperation()) {
-                    debugLog("Unscheduling " + moveNode.toString());
                     unschedule(moveNode);
                 }
             }
@@ -556,8 +553,7 @@ BUBasicBlockScheduler::scheduleMove(
     }            
 
     int ddgCycle = endCycle_;
-    debugLog("Scheduling " + moveNode.toString() + " in cycle " +
-        Conversion::toString(latestCycle));
+    bool registerRenamed = false;
     if (moveNode.move().isControlFlowMove()) {
         ddgCycle = endCycle_ - targetMachine_->controlUnit()->delaySlots();
         
@@ -570,14 +566,8 @@ BUBasicBlockScheduler::scheduleMove(
                 " but data dependence does not allow it!") 
                 % moveNode.toString() % ddgCycle).str());                        
         }
-#if 0        
-        assert(
-            latestCycle == ddgCycle && 
-            "Trying to schedule CFG move ignoring delay slots.");
-#endif            
     } else { // not a control flow move:
         ddgCycle = ddg_->latestCycle(moveNode);
-#if 1        
         if (renamer_ != NULL) {
             int latestFromTrigger = 
                 (moveNode.isDestinationOperation()) ?
@@ -586,40 +576,36 @@ BUBasicBlockScheduler::scheduleMove(
                 latestFromTrigger, ddg_->latestCycle(
                     moveNode, INT_MAX, true)); // TODO: 0 or INT_MAX
 
-            // rename if can and may alow scheuduling earlier.
+            // rename if can and may alow scheuduling later.
             if (minRenamedEC > ddgCycle) {
                 minRenamedEC =  rm_->latestCycle(minRenamedEC, moveNode);
                 if (minRenamedEC > ddgCycle) {
-                    
-                    if (renamer_->renameDestinationRegister(
+                    if (renamer_->renameSourceRegister(
                             moveNode, false, minRenamedEC)) {                            
                         ddgCycle = ddg_->latestCycle(moveNode);
-                        debugLog("Rename Destination succeeded");
-                    }
-                    else {
+                    } else {
                         MoveNode *limitingAdep =
-                            ddg_->findLimitingAntidependenceSource(
+                            ddg_->findLimitingAntidependenceDestination(
                                 moveNode);
                         if (limitingAdep != NULL) {
                             // don't try to rename is same operation.
                             // as it would not help at all.
-                            if (!moveNode.isSourceOperation() ||
-                                !limitingAdep->isDestinationOperation() ||
-                                &moveNode.sourceOperation() !=
-                                &limitingAdep->destinationOperation()) {
-                                    if (renamer_->renameSourceRegister(
-                                        *limitingAdep, false)) {
-                                        debugLog("Rename Source succeeded");
-                                        ddgCycle = ddg_->latestCycle(
-                                        moveNode);
-                                    }
+                            if (!moveNode.isDestinationOperation() ||
+                                !limitingAdep->isSourceOperation() ||
+                                &moveNode.destinationOperation() !=
+                                &limitingAdep->sourceOperation()) {
+                                if (renamer_->renameDestinationRegister(
+                                    *limitingAdep, false)) {
+                                    ddgCycle = 
+                                        ddg_->latestCycle(moveNode);
+                                    registerRenamed = true;
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-#endif        
+        }    
     }
 
     // if it's a conditional move then we have to be sure that the guard
@@ -632,12 +618,9 @@ BUBasicBlockScheduler::scheduleMove(
     if (!moveNode.move().isUnconditional()) {
         ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
     }
-
+    ddgCycle = (ddgCycle == INT_MAX) ? endCycle_ : ddgCycle;
     // Earliest cycle from which to start, could depend on result ready
     // for result moves.
-    debugLog(
-        "LatestCycle = " + Conversion::toString(latestCycle) +
-        " DDGCycle = " + Conversion::toString(ddgCycle));
     int minCycle = 
         (ddgCycle != -1) ? std::min(latestCycle, ddgCycle) : latestCycle;
     if (moveNode.isSourceConstant() && 
@@ -676,8 +659,7 @@ BUBasicBlockScheduler::scheduleMove(
         moveNode.move().setAnnotation(annotation);
     }
     
-    minCycle = std::min(rm_->latestCycle(minCycle, moveNode), minCycle);
-    debugLog("RM latestCycle =" + Conversion::toString(minCycle));
+    minCycle = rm_->latestCycle(minCycle, moveNode);
     if (minCycle == -1 || minCycle == INT_MAX) {
         if (moveNode.isSourceConstant() &&
             !moveNode.isDestinationOperation() &&
