@@ -166,7 +166,11 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         } else {
             MoveNode& guardDefMove = **guardDefs.begin();
             if (&ddg_->getBasicBlockNode(guardDefMove) == &jumpingBB) {
-                int earliestToFill = guardDefMove.cycle() +
+                SimpleResourceManager& rm = 
+                    *resourceManagers_[&jumpingBB.basicBlock()];
+                
+                int earliestToFill = guardDefMove.cycle() -
+                    rm.startingCycle() +
                     jumpNode.guardLatency();
                 
                 maxFillCount = thisBB.instructionCount() -
@@ -429,11 +433,15 @@ CopyingDelaySlotFiller::tryToFillSlots(
 
     SimpleResourceManager& rm = 
         *resourceManagers_[&blockToFillNode.basicBlock()];
+    SimpleResourceManager& nextRm = 
+        *resourceManagers_[&nextBBNode.basicBlock()];        
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBNode.basicBlock();
 
-    int firstToFill = rm.startingCycle() + blockToFill.instructionCount() - slotsToFill;
-
+    int firstToFill = 
+        rm.startingCycle() + blockToFill.instructionCount() - slotsToFill;
+    int nextBBStart = nextRm.startingCycle();
+    
     if (fallThru) {
         // test that we can create an inverse guard
         MoveGuard* invG = createInverseGuard(jumpMove.guard());
@@ -582,7 +590,6 @@ CopyingDelaySlotFiller::tryToFillSlots(
     for (int i = 0; i < slotsToFill; i++) {
         list<MoveNode*>& movesInThisCycle = moves.at(i);
         int currentCycle = firstToFill + i;
-
         for (std::list<MoveNode*>::iterator iter = movesInThisCycle.begin();
              iter != movesInThisCycle.end(); iter++) {
             MoveNode& mn = **iter;
@@ -601,7 +608,9 @@ CopyingDelaySlotFiller::tryToFillSlots(
                         for (int j = 0; j < po.outputMoveCount(); j++) {
                             MoveNode& resMn = po.outputMove(j);
                             int mnCycle = 
-                                firstToFill + oldMoveNodes_[&resMn]->cycle();
+                                firstToFill +
+                                oldMoveNodes_[&resMn]->cycle() -
+                                nextBBStart;
                             assert(resMn.isSourceOperation());
                             if (!rm.canAssign(mnCycle, resMn)) {
                                 failed = true;
@@ -617,10 +626,11 @@ CopyingDelaySlotFiller::tryToFillSlots(
                             if (!operMn.isScheduled()) {
                                 int mnCycle = 
                                     firstToFill + 
-                                    oldMoveNodes_[&operMn]->cycle();
+                                    oldMoveNodes_[&operMn]->cycle() -
+                                    nextBBStart;
                                 assert(operMn.isDestinationOperation());
 
-                                if (!rm.canAssign(mnCycle, operMn)) {
+                                if (!rm.canAssign(mnCycle, operMn)) {                                
                                     failed = true;
                                     break;
                                 } else {
@@ -641,7 +651,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
                                 assert(!resMn.isScheduled());
                                 int mnCycle = 
                                     firstToFill + 
-                                    oldMoveNodes_[&resMn]->cycle();
+                                    oldMoveNodes_[&resMn]->cycle() -
+                                    nextBBStart;
                                 assert(resMn.isSourceOperation());
 
                                 if (!rm.canAssign(mnCycle, resMn)) {
