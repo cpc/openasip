@@ -27,6 +27,8 @@
  * Implementation of ProgramImageGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008-2009 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
  * @note rating: red
@@ -34,6 +36,7 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 #include "ProgramImageGenerator.hh"
 #include "AsciiProgramImageWriter.hh"
@@ -57,6 +60,10 @@
 #include "Binary.hh"
 #include "InstructionElement.hh"
 #include "Program.hh"
+#include "Move.hh"
+#include "Terminal.hh"
+#include "TerminalImmediate.hh"
+#include "Immediate.hh"
 #include "Machine.hh"
 
 #include "PluginTools.hh"
@@ -179,8 +186,7 @@ ProgramImageGenerator::generateProgramImage(
     std::string& programName,
     std::ostream& stream,
     OutputFormat format,
-    int mausPerLine) 
-    throw (InvalidData) {
+    int mausPerLine) {
 
     if (mausPerLine < 0) {
         string errorMsg = "Negative number of MAUs printed per line.";
@@ -189,6 +195,96 @@ ProgramImageGenerator::generateProgramImage(
     InstructionBitVector* programBits = compressor_->compress(programName);
     int mau = compressor_->machine().controlUnit()->addressSpace()->width();
     BitImageWriter* writer = NULL;
+
+    if (Application::verboseLevel() > 0) {
+        size_t instructionCount = 
+            compressor_->currentProgram().instructionCount();
+        size_t uncompressedWidth = compressor_->binaryEncoding().width();
+        Application::logStream()
+            << (boost::format(
+                    "%s: %d instructions\n"
+                    "uncompressed total size %d bits (%d bytes),\n")
+                % programName % instructionCount 
+                % (uncompressedWidth * instructionCount)
+                % int(std::ceil(uncompressedWidth * instructionCount / 8.0))).
+            str();
+
+        Application::logStream()
+            << (boost::format(
+                    "compressed total size %d bits (%d bytes)\n")
+                % programBits->size() 
+                % size_t(std::ceil(programBits->size() / 8.0))).str();
+
+        // count some stats from the program that affect instruction 
+        // memory usage
+        TTAProgram::Program& prog = compressor_->currentProgram();
+        TTAMachine::Machine mach = prog.targetProcessor();
+
+        TTAProgram::Program::InstructionVector instructions =
+            prog.instructionVector();
+
+        std::size_t moveSlots = mach.busNavigator().count();
+        std::size_t maxMoves = moveSlots * prog.instructionCount();
+        std::size_t moves = prog.moveCount();
+        std::size_t NOPCount = maxMoves - moves;
+
+        Application::logStream()
+            << (boost::format(
+                    "number of NOP moves: %d (%.1f%% of total move slots)\n")         
+                % NOPCount % (float(NOPCount) * 100 / maxMoves)).str();
+
+
+        // immediate stats
+        int totalImmediates = 0;
+        int totalLongImmediates = 0;
+        std::set<int> allImmediates;
+        std::set<int> programAddresses;
+        std::set<int> dataAddresses;
+
+        for (int m = 0; m < prog.moveCount(); ++m) {
+            const TTAProgram::Move& move = prog.moveAt(m);
+            if (move.source().isImmediate()) {
+                ++totalImmediates;
+                allImmediates.insert(move.source().value().sIntWordValue());
+                if (move.source().isAddress()) {
+                        dataAddresses.insert(move.source().value().sIntWordValue());
+                } else if (move.source().isInstructionAddress()) {
+                    programAddresses.insert(move.source().value().sIntWordValue());
+                }
+            }
+        }
+        // find the long immediates also
+        for (TTAProgram::Program::InstructionVector::const_iterator i = 
+                 instructions.begin(); i != instructions.end(); ++i) {
+            const TTAProgram::Instruction& instruction = **i;
+            for (int imm = 0; imm < instruction.immediateCount(); ++imm) {
+                const Immediate& immediate = instruction.immediate(imm);
+                ++totalImmediates;
+                ++totalLongImmediates;
+                allImmediates.insert(immediate.value().value().sIntWordValue());
+                if (immediate.value().isAddress()) {
+                    dataAddresses.insert(immediate.value().value().sIntWordValue());
+                } else if (immediate.value().isInstructionAddress()) {
+                    programAddresses.insert(immediate.value().value().sIntWordValue());
+                }
+            }
+                
+        }
+        Application::logStream()
+            << (boost::format(
+                    "total immediates: %d (long %.1f%%), "
+                    "different immediate values: %d,\n"
+                    "instr. addresses %d (%.1f%%), "
+                    "data addresses %d (%.1f%%)\n") 
+                % totalImmediates 
+                % (totalLongImmediates * 100.0 / totalImmediates)
+                % allImmediates.size() % programAddresses.size() 
+                % (programAddresses.size() * 100.0 / allImmediates.size())
+                % dataAddresses.size()
+                % (dataAddresses.size() * 100.0 / allImmediates.size()))
+                .str();
+    }
+
 
     if (format == BINARY) {
         writer = new RawImageWriter(*programBits);

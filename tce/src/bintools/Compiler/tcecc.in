@@ -261,7 +261,6 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
                                        ("-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
-# + " -I" + poclDir + "/lib" + " -I" + poclDir
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
                             exitWithError(1, "Error while compiling %s." % input)
@@ -462,11 +461,31 @@ void __opencl_trampoline_mt_%(kernel_name)s(
             args[i] = malloc(sizeof(void*));             
             *((void**)args[i]) = malloc(sizes[i]);
             if (*((void**)args[i]) == NULL) {
-#if 0
+#ifdef DEBUG_OCL
                puts("### out of memory while allocating the local buffers\\n");
 #endif
                exit(1);
             }
+        }
+        /* Allocate data for the automatic local buffers which have
+           been converted to pointer arguments in the kernel launcher
+           function. They are the last arguments always. */
+        int alocal_sizes[] = _%(kernel_name)s_LOCAL_SIZE;
+        for (int i = _%(kernel_name)s_NUM_ARGS; 
+             i < _%(kernel_name)s_NUM_ARGS + _%(kernel_name)s_NUM_LOCALS; 
+             ++i) {
+           args[i] = malloc(sizeof(void*));
+            *((void**)args[i]) = malloc(alocal_sizes[i - _%(kernel_name)s_NUM_ARGS]);
+#ifdef DEBUG_OCL
+           iprintf("### allocated %%d bytes for the automatic local arg %%d at %%x\\n", 
+                   alocal_sizes[i - _%(kernel_name)s_NUM_ARGS], i, *(unsigned int*)args[i]);
+#endif
+            if (*((void**)args[i]) == NULL) {
+#ifdef DEBUG_OCL
+               puts("### out of memory while allocating the local buffers\\n");
+#endif
+               exit(1);
+            }          
         }
         __opencl_trampoline_%(kernel_name)s(
            args, work_dim, local_work_size, global_work_size,
@@ -478,7 +497,16 @@ void __opencl_trampoline_mt_%(kernel_name)s(
             free(*((void**)args[i]));
             free(args[1]);
         }
-
+        /* free the automatic local buffers */
+        for (int i = _%(kernel_name)s_NUM_ARGS; 
+             i < _%(kernel_name)s_NUM_ARGS + _%(kernel_name)s_NUM_LOCALS; 
+             ++i) {
+#ifdef DEBUG_OCL
+            iprintf("### freed automatic local arg %%d\\n", i);
+#endif
+            free(*((void**)args[i]));
+            free(args[1]);
+        }
    }
 }
 
@@ -1090,7 +1118,7 @@ runningInstalled = 'src/bintools/Compiler' not in scriptDir
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
     newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
-    newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
+    newlib_includes = "-I " + os.path.join(tceprefix,"tce-llvm/include") + " "
     bclib_includes = "" # same as newlib_includes
     bclib_libdirs = [newlib_libdir] # all libs should be in the same newlib_libdir
     opencl_includes = "" # same as newlib_includes
@@ -1104,10 +1132,10 @@ else:
     srcRoot = "@abs_top_srcdir@"
     lowerintrinsicsplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
     newlib_libdir = os.path.join("@abs_top_builddir@","newlib-1.17.0/tce-llvm/newlib")
-    newlib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
-                       " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
-                       " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
-    bclib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@", "bclib/include"))
+    newlib_includes = ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
+                       " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+                       " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
+    bclib_includes = ("-I " + os.path.join("@abs_top_srcdir@", "bclib/include"))
     lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
 
     # The standalone OpenCL paths.

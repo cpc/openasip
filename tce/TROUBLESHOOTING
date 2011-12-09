@@ -1,6 +1,22 @@
 This file lists solutions to common troubles people have with 
 compilation and installation of TCE.
 
+TCE build failing when linking with LLVM
+-----------------------------------------
+
+If, while doing the final linking of TCE with LLVM, you see the following
+errors:
+
+...
+../../.libs/libtce.so: undefined reference to `typeinfo for llvm::MCAsmInfo'
+../../.libs/libtce.so: undefined reference to `typeinfo for
+...
+
+This means that you have an LLVM that is not built with RTTI
+info. Please consult the INSTALL file of TCE for information on
+how to correctly build LLVM so it can be used from external
+projects that use C++ RTTI.
+
 configure does not find wxWidgets library
 -----------------------------------------
 
