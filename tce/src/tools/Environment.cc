@@ -536,6 +536,8 @@ Environment::osalPaths() {
 	string customPath =
 	    string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
 	    "opset" + DS + "custom";
+	// search path taken from environment
+	string envPath = Environment::environmentVariable("TCE_OSAL_PATH");
 	// as a last resort fall-back, operations are always searched in
 	// in current working directory
     string cwd = FileSystem::currentWorkingDir();
@@ -543,6 +545,8 @@ Environment::osalPaths() {
     VectorTools::insertUnique(paths, basePath);
     VectorTools::insertUnique(paths, userPath);
     VectorTools::insertUnique(paths, customPath);
+    if (envPath != "")
+        VectorTools::insertUnique(paths, envPath);
     VectorTools::insertUnique(paths, cwd);
 
 	return paths;

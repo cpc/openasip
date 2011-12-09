@@ -1,0 +1,8 @@
+Acknowledgements
+----------------
+Many thanks to Kalle Raiskila who submitted his first code contributions 
+to this release. Keep them coming!
+
+Also we'd like to thank the Radio Implementation Research Team from Nokia
+Research Center which funded a significant part of the work for developing 
+this release. Much appreciated!
