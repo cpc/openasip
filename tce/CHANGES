@@ -5,6 +5,7 @@ Usability features
 ------------------
 - dumptpef -m has now more user friendly output. 
   Thanks to Kalle Raiskila for the patch!
+- OSAL files are searched also from environment variable TCE_OSAL_PATH
 
 1.5    December 2011
 ====================
