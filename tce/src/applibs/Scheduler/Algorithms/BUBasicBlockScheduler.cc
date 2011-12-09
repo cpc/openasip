@@ -553,7 +553,6 @@ BUBasicBlockScheduler::scheduleMove(
     }            
 
     int ddgCycle = endCycle_;
-    bool registerRenamed = false;
     if (moveNode.move().isControlFlowMove()) {
         ddgCycle = endCycle_ - targetMachine_->controlUnit()->delaySlots();
         
@@ -598,7 +597,6 @@ BUBasicBlockScheduler::scheduleMove(
                                     *limitingAdep, false)) {
                                     ddgCycle = 
                                         ddg_->latestCycle(moveNode);
-                                    registerRenamed = true;
                                 }
                             }
                         }
