@@ -21,6 +21,7 @@ change listing.
 
 Acknowledgements
 ----------------
+
 Thanks to Tomasz Czajkowski of Altera for ensuring the TCE project 
 is allowed to use the VHDL wrappers for certain Altera IP blocks in 
 the Platform Integrator tool. This made the TCE's Altera FPGA support more 
