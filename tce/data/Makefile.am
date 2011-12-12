@@ -14,6 +14,9 @@ nobase_data_DATA = $(srcdir)/ProDe/confschema.xsd \
                    $(srcdir)/ProGe/tb/*.vhdl $(srcdir)/ProGe/tb/*.vhdl.tmpl \
                    $(srcdir)/ProGe/platform/*.vhd \
                    $(srcdir)/Proxim/confschema.xsd \
-                   $(srcdir)/hdb/*.vhdl.template
+                   $(srcdir)/hdb/*.vhdl.template \
+                   $(srcdir)/tcecc/oclc_launcher_header.c \
+                   $(srcdir)/tcecc/oclc_launcher_single.c \
+                   $(srcdir)/tcecc/oclc_initializer_object.cc 
 
 EXTRA_DIST = ${nobase_data_DATA}
