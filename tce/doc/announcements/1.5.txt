@@ -1,5 +1,5 @@
-TTA-based Codesign Environment (TCE) v1.5 released
---------------------------------------------------
+TTA-based Co-design Environment (TCE) v1.5 released
+---------------------------------------------------
 
 TTA-based Co-design Environment (TCE) is a toolset for designing 
 application-specific processors based on the Transport Triggered 
