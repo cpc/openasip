@@ -4,7 +4,7 @@ tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm
 tceopgen=../../../../../tce/src/bintools/Compiler/tceopgen/tceopgen
 
-tpef=/tmp/test_customop.1234werqu802.tpef
+tpef=`mktemp`.tpef
 adf=../../../../../tce/scheduler/testbench/ADF/huge.adf
 program=data/customop.c
 

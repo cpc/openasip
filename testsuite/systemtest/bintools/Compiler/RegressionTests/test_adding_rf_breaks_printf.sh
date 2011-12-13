@@ -5,7 +5,7 @@
 
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 ttasim=../../../../../tce/src/codesign/ttasim/ttasim
-tpef=/tmp/fooo234sdwe342klwemwet.124.tpef
+tpef=`mktemp`.tpef
 
 function test_machine {
   $tcecc -O0 -a $1 -o $tpef -k main data/printf_broken.c
