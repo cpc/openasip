@@ -1002,13 +1002,15 @@ OperationPropertyDialog::updateOperation(bool newOpDag) {
         dialog.ShowModal();
     } else {
 
-        // let's check there isn't already an operation by the same name
-        // TODO: this check is broken!!!!
-        if (operation_ != NULL) {
+        // let's check there isn't already an operation by the same name.
+        // Do the check only if we are renaming this op.
+        if (operation_ != NULL && operation_->name() != opName) {
+
             Operation* op = 
                 OperationContainer::operation(path_, module_.name(), opName);
 
-            if (op != NULL && op != operation_) {
+            // there was old operation with same name
+            if (op != NULL) {
                 format fmt = 
                     texts.text(OSEdTextGenerator::TXT_ERROR_OPERATION_EXISTS);
                 fmt % WxConversion::toString(name_);
