@@ -707,6 +707,9 @@ RegisterRenamer::renameLiveRange(
         DataDependenceGraph::NodeSet writeSuccessors =
             ddg_->successors(**i);
 
+        DataDependenceGraph::NodeSet writePredecessors =
+            ddg_->predecessors(**i);
+
         ddg_->destRenamed(**i);
 
         // notify successors of write to prevent orphan nodes.
@@ -715,6 +718,14 @@ RegisterRenamer::renameLiveRange(
              iter != writeSuccessors.end(); iter++) {
             selector_->mightBeReady(**iter);
         }
+
+        // notify successors of write to prevent orphan nodes.
+        for (DataDependenceGraph::NodeSet::iterator iter =
+                 writePredecessors.begin();
+             iter != writePredecessors.end(); iter++) {
+            selector_->mightBeReady(**iter);
+        }
+
     }
 
     // for reads
@@ -724,6 +735,9 @@ RegisterRenamer::renameLiveRange(
             ddg_->successors(**i);
 
         ddg_->sourceRenamed(**i);
+
+        DataDependenceGraph::NodeSet predecessors =
+            ddg_->predecessors(**i);
         
         // notify successors to prevent orphan nodes.
         for (DataDependenceGraph::NodeSet::iterator iter =
@@ -731,6 +745,14 @@ RegisterRenamer::renameLiveRange(
              iter != successors.end(); iter++) {
             selector_->mightBeReady(**iter);
         }
+
+        // notify successors to prevent orphan nodes.
+        for (DataDependenceGraph::NodeSet::iterator iter =
+                 predecessors.begin();
+             iter != predecessors.end(); iter++) {
+            selector_->mightBeReady(**iter);
+        }
+
     }
 
     freeGPRs_.erase(newReg);
