@@ -161,6 +161,14 @@ public:
     lastScheduledRegisterWrites(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
 
+    MoveNode*
+    firstScheduledRegisterRead(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
+    MoveNode*
+    firstScheduledRegisterWrite(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
     NodeSet
     firstScheduledRegisterWrites(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;

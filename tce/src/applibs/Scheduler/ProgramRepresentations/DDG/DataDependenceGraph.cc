@@ -653,6 +653,76 @@ DataDependenceGraph::lastScheduledRegisterRead(
 }
 
 /**
+ * Returns the MoveNode with lowest cycle that reads the given register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The MoveNode, NULL, if not found.
+ */
+MoveNode*
+DataDependenceGraph::firstScheduledRegisterRead(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int firstCycle = INT_MAX;
+    MoveNode* firstFound = NULL;
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& source = n.move().source();
+        if (!n.isScheduled() || 
+            !(source.isImmediateRegister() || source.isGPR())) 
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+        if (source.isImmediateRegister())
+            currentRF = &source.immediateUnit();
+        else
+            currentRF = &source.registerFile();
+
+        if (&rf == currentRF && 
+            source.index() == registerIndex &&
+            n.cycle() < firstCycle) {
+            firstCycle = n.cycle();
+            firstFound = &n;
+        }
+    }
+    return firstFound;
+}
+
+/**
+ * Returns the MoveNode with lowest cycle that writes the given register.
+ *
+ * @param rf The register file.
+ * @param registerIndex Index of the register.
+ * @return The MoveNode, NULL, if not found.
+ */
+MoveNode*
+DataDependenceGraph::firstScheduledRegisterWrite(
+    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+
+    int firstCycle = INT_MAX;
+    MoveNode* firstFound = NULL;
+    for (int i = 0; i < nodeCount(); ++i) {
+        MoveNode& n = node(i);
+
+        TTAProgram::Terminal& destination = n.move().destination();
+        if (!n.isScheduled() || !destination.isGPR()) 
+            continue;
+
+        const TTAMachine::BaseRegisterFile* currentRF = NULL;
+        currentRF = &destination.registerFile();
+
+        if (&rf == currentRF && 
+            destination.index() == registerIndex &&
+            n.cycle() < firstCycle) {
+            firstCycle = n.cycle();
+            firstFound = &n;
+        }
+    }
+    return firstFound;
+}
+
+/**
  * Returns the highest cycle where accesses the given register.
  * If unscheudled moves accessing the register, returns INT_MAX;
  * If none found, returns -1.
