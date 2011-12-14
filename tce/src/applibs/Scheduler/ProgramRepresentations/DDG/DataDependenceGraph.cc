@@ -56,6 +56,7 @@
 #include "MoveNodeSet.hh"
 #include "LiveRangeData.hh"
 #include "LiveRange.hh"
+#include "Terminal.hh"
 
 /**
  * Constructor.
@@ -667,11 +668,11 @@ DataDependenceGraph::lastRegisterCycle(
     int lastCycle = -1;
     for (int i = 0; i < nodeCount(); ++i) {
         MoveNode& n = node(i);
-
+        TTAProgram::Move& move = n.move();
         const TTAMachine::BaseRegisterFile* currentRF = NULL;
         
         // check source
-        TTAProgram::Terminal& source = n.move().source();
+        TTAProgram::Terminal& source = move.source();
         bool sourceImmReg = source.isImmediateRegister();
         bool sourceGPR = source.isGPR();
         
@@ -693,7 +694,7 @@ DataDependenceGraph::lastRegisterCycle(
         }
         
         // check destination
-        TTAProgram::Terminal& destination = n.move().destination();
+        TTAProgram::Terminal& destination = move.destination();
         if (destination.isGPR()) {
             currentRF = &destination.registerFile();
             
@@ -705,7 +706,7 @@ DataDependenceGraph::lastRegisterCycle(
                     lastCycle = n.cycle();
                 }
 
-                if (n.move().isUnconditional()) {
+                if (move.isUnconditional()) {
                     if (outDegree(n) == 0) {
                         assert(lastCycle == n.cycle());
                         return lastCycle;
@@ -715,8 +716,8 @@ DataDependenceGraph::lastRegisterCycle(
         }
         
         // check guard.
-        if (!n.move().isUnconditional()) {
-            TTAMachine::Guard& guard = n.move().guard().guard();
+        if (!move.isUnconditional()) {
+            TTAMachine::Guard& guard = move.guard().guard();
             TTAMachine::RegisterGuard* rg = 
                 dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
             if (rg != NULL) {
@@ -731,7 +732,7 @@ DataDependenceGraph::lastRegisterCycle(
                 }
             }
         }
-        if (n.move().isCall()) {
+        if (move.isCall()) {
             const TTAMachine::RegisterFile* rrf = 
                 dynamic_cast<const TTAMachine::RegisterFile*>(&rf);
             assert(rrf != NULL);
@@ -766,11 +767,11 @@ DataDependenceGraph::firstRegisterCycle(
     int firstCycle = INT_MAX;
     for (int i = nodeCount()-1; i >= 0; --i) {
         MoveNode& n = node(i);
-
+        TTAProgram::Move& move = n.move();
         const TTAMachine::BaseRegisterFile* currentRF = NULL;
         
         // check source
-        TTAProgram::Terminal& source = n.move().source();
+        TTAProgram::Terminal& source = move.source();
         bool sourceImmReg = source.isImmediateRegister();
         bool sourceGPR = source.isGPR();
         
@@ -792,20 +793,19 @@ DataDependenceGraph::firstRegisterCycle(
         }
         
         // check destination
-        TTAProgram::Terminal& destination = n.move().destination();
+        TTAProgram::Terminal& destination = move.destination();
         if (destination.isGPR()) {
             currentRF = &destination.registerFile();
             
             if (&rf == currentRF && destination.index() == registerIndex) {
                 if (!n.isScheduled()) {
-                    return INT_MAX;
+                    return -1;
                 }
                 if (n.cycle() < firstCycle) {
                     firstCycle = n.cycle();
                 }
-
                 // this is a write of (constant) into reg, and no antideps in?
-                if (n.move().isUnconditional()) {
+                if (move.isUnconditional()) {
                     if (inDegree(n) == 0) {
                         assert(firstCycle == n.cycle());
                         return firstCycle;
@@ -815,15 +815,15 @@ DataDependenceGraph::firstRegisterCycle(
         }
         
         // check guard.
-        if (!n.move().isUnconditional()) {
-            TTAMachine::Guard& guard = n.move().guard().guard();
+        if (!move.isUnconditional()) {
+            TTAMachine::Guard& guard = move.guard().guard();
             TTAMachine::RegisterGuard* rg = 
                 dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
             if (rg != NULL) {
                 if (rg->registerFile() == &rf && 
                     rg->registerIndex() == registerIndex) {
                     if (!n.isScheduled()) {
-                        return INT_MAX;
+                        return -1;
                     }
                     if (n.cycle() < firstCycle) {
                         firstCycle = n.cycle();
@@ -831,7 +831,7 @@ DataDependenceGraph::firstRegisterCycle(
                 }
             }
         }
-        if (n.move().isCall()) {
+        if (move.isCall()) {
             const TTAMachine::RegisterFile* rrf = 
                 dynamic_cast<const TTAMachine::RegisterFile*>(&rf);
             assert(rrf != NULL);
@@ -839,7 +839,7 @@ DataDependenceGraph::firstRegisterCycle(
                 DisassemblyRegister::registerName(*rrf, registerIndex);
             if (allParamRegs_.find(reg) != allParamRegs_.end()) {
                 if (!n.isScheduled()) {
-                    return INT_MAX;
+                    return -1;
                 }
                 if (n.cycle() + delaySlots_ < firstCycle) {
                     firstCycle = n.cycle() + delaySlots_ ;
@@ -2440,6 +2440,9 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
     std::pair<InEdgeIter, InEdgeIter> edges =
         boost::in_edges(nd, graph_);
 
+    bool srcOp = node.isSourceOperation();
+    bool dstOp = node.isDestinationOperation();
+
     for (InEdgeIter ei = edges.first; ei != edges.second; ei++) {
         EdgeDescriptor ed = *ei;
         DataDependenceEdge& edge = *graph_[ed];
@@ -2448,18 +2451,18 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
         }
         const MoveNode& m = *graph_[boost::source(ed, graph_)];
 
-        const bool operandMoveOfSameOperation =
-            (node.isSourceOperation() && m.isDestinationOperation() && 
-             &node.sourceOperation() == &m.destinationOperation());
-        const bool resultMoveOfSameOperation = 
-            (node.isSourceOperation() && m.isSourceOperation() &&
-             &node.sourceOperation() == &m.sourceOperation());
-        const bool operandsOfSameOperation =
-            (node.isDestinationOperation() && m.isDestinationOperation() &&
-             &node.destinationOperation() == &m.destinationOperation());
-        
-        if (operandMoveOfSameOperation || resultMoveOfSameOperation ||
-            operandsOfSameOperation) {
+        if (srcOp) {
+            // operand move of same operation
+            if ((m.isDestinationOperation() && 
+                 &node.sourceOperation() == &m.destinationOperation()) ||
+                (m.isSourceOperation() &&
+                 &node.sourceOperation() == &m.sourceOperation())) {
+                continue;
+            }
+        }
+
+        if (dstOp && m.isDestinationOperation() &&
+            &node.destinationOperation() == &m.destinationOperation()) {
             continue;
         } 
         if (!m.isScheduled()) {

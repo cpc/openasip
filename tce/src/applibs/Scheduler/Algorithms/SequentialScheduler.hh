@@ -35,11 +35,6 @@
 
 #include <vector>
 
-#include "Program.hh"
-#include "MoveNode.hh"
-#include "MoveNodeGroup.hh"
-#include "SequentialMoveNodeSelector.hh"
-#include "FunctionUnit.hh"
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraphPass.hh"
 #include "ProcedurePass.hh"
@@ -48,6 +43,7 @@
 
 class BasicBlockNode;
 class SimpleResourceManager;
+class MoveNodeGroup;
 
 /**
  * A class that implements the functionality of a basic block scheduler.

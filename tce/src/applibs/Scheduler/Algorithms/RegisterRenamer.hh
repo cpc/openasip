@@ -35,8 +35,6 @@
 
 #include "TCEString.hh"
 #include <set>
-#include "DataDependenceGraph.hh"
-#include "MoveNodeSelector.hh"
 #include "LiveRange.hh"
 
 namespace TTAMachine {
@@ -51,16 +49,14 @@ namespace TTAProgram {
 class BasicBlock;
 class DataDependenceGraph;
 class MoveNode;
+class MoveNodeSelector;
 
 class RegisterRenamer {
 public:
-//    RegisterRenamer(const TTAMachine::Machine& machine);
     RegisterRenamer(
         const TTAMachine::Machine& machine, TTAProgram::BasicBlock& bb);
     unsigned int freeGPRCount() const { return freeGPRs_.size(); }
-    void initializeFreeRegisters(
-        std::set<TCEString>& freeRegs, 
-        std::set<TCEString>& partiallyUsedRegs) const;
+
     std::set<TCEString> findFreeRegistersInRF(
         const TTAMachine::RegisterFile& rf) const;
 
@@ -78,18 +74,21 @@ public:
     //DataDependenceGraph::NodeSet> LiveRange;
 
 private:
-    void initializeFreeRegisters(
-        const std::set<TCEString>& allRegs,
-        std::set<TCEString>& freeRegs, 
-        std::set<TCEString>& partiallyUsedRegs) const;
+    void initializeFreeRegisters();
 
-    std::set<TCEString> findPartiallyUsedRegistersInRF(
+    std::set<TCEString> findPartiallyUsedRegistersInRFBeforeCycle(
         const TTAMachine::RegisterFile& rf,
-        int earliestCycle, 
+        int earliestCycle) const;
+
+    std::set<TCEString> findPartiallyUsedRegistersInRFAfterCycle(
+        const TTAMachine::RegisterFile& rf,
         int latestCycle) const;
     
-    std::set<TCEString> findPartiallyUsedRegisters(
-        int bitWidth, int earliestCycle, int latestCycle) const;
+    std::set<TCEString> findPartiallyUsedRegistersBeforeCycle(
+        int bitWidth, int earliestCycle) const;
+
+    std::set<TCEString> findPartiallyUsedRegistersAfterCycle(
+        int bitWidth, int latestCycle) const;
     
     std::set<TCEString> findFreeRegisters(int bitWidth) const;
 
@@ -111,8 +110,12 @@ private:
     // cannot overlap?
     std::set<TCEString> usedGPRs_;
 
-    // used partially by original code; used at beginning of bb, free at end.
-    std::set<TCEString> partiallyUsedRegs_;
+    // used partially by original code; 
+    // used at beginning of bb, free at end.
+    std::set<TCEString> onlyBeginPartiallyUsedRegs_;
+    // used at end of bb, free at begin.
+    std::set<TCEString> onlyEndPartiallyUsedRegs_;
+    std::set<TCEString> onlyMidPartiallyUsedRegs_;
 
     static std::map<const TTAMachine::Machine*, 
                     std::vector <TTAMachine::RegisterFile*> >tempRegFileCache_;

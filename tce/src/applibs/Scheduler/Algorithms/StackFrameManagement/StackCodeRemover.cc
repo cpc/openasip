@@ -32,6 +32,7 @@
  *
  */
 
+#include "Conversion.hh"
 #include "Procedure.hh"
 #include "Program.hh"
 #include "ProgramAnnotation.hh"

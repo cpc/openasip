@@ -46,6 +46,7 @@
 #include "DisassemblyRegister.hh"
 #include "LiveRangeData.hh"
 #include "TerminalRegister.hh"
+#include "MoveNodeSelector.hh"
 
 /**
  * Constructor.
@@ -72,7 +73,7 @@ RegisterRenamer::RegisterRenamer(
 void 
 RegisterRenamer::initialize(DataDependenceGraph& ddg) {
     ddg_ = &ddg;
-    initializeFreeRegisters(freeGPRs_, partiallyUsedRegs_);
+    initializeFreeRegisters();
 }
 
 void
@@ -107,27 +108,14 @@ RegisterRenamer::initialize() {
     }
 }
 
-/** 
- * Finds a register which is completely free during the whole execution 
- * of the basic block. 
- */
 void
-RegisterRenamer::initializeFreeRegisters(
-    std::set<TCEString>& freeRegs, 
-    std::set<TCEString>& partiallyUsedRegs) const {
-    
-    initializeFreeRegisters(allNormalGPRs_,freeRegs, partiallyUsedRegs);
-}
-
-void
-RegisterRenamer::initializeFreeRegisters(
-    const std::set<TCEString>& allRegs,
-    std::set<TCEString>& freeRegs, 
-    std::set<TCEString>& partiallyUsedRegs) const {
+RegisterRenamer::initializeFreeRegisters() {
     
     assert(ddg_ != NULL);
-    freeRegs = allRegs;
-    partiallyUsedRegs.clear();
+    freeGPRs_ = allNormalGPRs_;
+    onlyBeginPartiallyUsedRegs_.clear();
+    onlyEndPartiallyUsedRegs_.clear();
+    onlyMidPartiallyUsedRegs_.clear();
 
     std::map<TCEString,int> lastUses;
 
@@ -140,16 +128,23 @@ RegisterRenamer::initializeFreeRegisters(
         if (dest.isGPR()) {
             TCEString regName = DisassemblyRegister::registerName(
                 dest.registerFile(), dest.index());
-            partiallyUsedRegs.insert(regName);
+            onlyMidPartiallyUsedRegs_.insert(regName);
+        }
+        TTAProgram::Terminal& src = node.move().source();
+        if (src.isGPR()) {
+            TCEString regName = DisassemblyRegister::registerName(
+                src.registerFile(), src.index());
+            onlyMidPartiallyUsedRegs_.insert(regName);
         }
     }
 
     // then loop for deps outside or inside this bb.
-    for (std::set<TCEString>::iterator allIter = freeRegs.begin(); 
-         allIter != freeRegs.end();) {
+    for (std::set<TCEString>::iterator allIter = freeGPRs_.begin(); 
+         allIter != freeGPRs_.end();) {
         bool aliveOver = false;
         bool aliveAtBeginning = false;
         bool aliveAtEnd = false;
+        bool aliveAtMid = false;
         // defined before and used here or after?
         if (bb_.liveRangeData_->regDefReaches_.find(*allIter) != 
             bb_.liveRangeData_->regDefReaches_.end()) {
@@ -174,7 +169,7 @@ RegisterRenamer::initializeFreeRegisters(
             }
             aliveAtBeginning = true;
         }
-        // used after thhis?
+        // used after this?
         if (bb_.liveRangeData_->registersUsedAfter_.find(*allIter) != 
             bb_.liveRangeData_->registersUsedAfter_.end()) {
             // defined here?
@@ -183,18 +178,40 @@ RegisterRenamer::initializeFreeRegisters(
                 aliveAtEnd = true;
             }            
         }
-        if (partiallyUsedRegs.find(*allIter) != partiallyUsedRegs.end()) {
-            aliveAtBeginning = true;
+        
+        if (aliveAtEnd && aliveAtBeginning) {
+            aliveOver = true;
         }
-        if (aliveOver | aliveAtEnd) {
-            partiallyUsedRegs.erase(*allIter);
-            freeRegs.erase(allIter++);
+
+        // TODO: why was this here?
+        if (onlyMidPartiallyUsedRegs_.find(*allIter) != 
+            onlyMidPartiallyUsedRegs_.end()) {
+            aliveAtMid = true;
+        }
+
+        if (aliveOver) {
+            // can not be used for renaming.
+            onlyMidPartiallyUsedRegs_.erase(*allIter);
+            freeGPRs_.erase(allIter++);
         } else {
             if (aliveAtBeginning) {
-                partiallyUsedRegs.insert(*allIter);
-                freeRegs.erase(allIter++);
+                onlyBeginPartiallyUsedRegs_.insert(*allIter);
+
+                onlyMidPartiallyUsedRegs_.erase(*allIter);
+                freeGPRs_.erase(allIter++);
             } else {
-                allIter++;
+                if (aliveAtEnd) {
+                    onlyEndPartiallyUsedRegs_.insert(*allIter);
+
+                    onlyMidPartiallyUsedRegs_.erase(*allIter);
+                    freeGPRs_.erase(allIter++);
+                } else { // only mid if has reads of writes?
+                    if (aliveAtMid) {
+                        freeGPRs_.erase(allIter++);
+                    } else {
+                        allIter++;
+                    }
+                }
             }
         }
     }
@@ -225,10 +242,9 @@ RegisterRenamer::findFreeRegistersInRF(
  * Finds registers which are used but only before given earliestCycle.
  */ 
 std::set<TCEString> 
-RegisterRenamer::findPartiallyUsedRegistersInRF(
+RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
     const TTAMachine::RegisterFile& rf, 
-    int earliestCycle,
-    int latestCycle) const {
+    int earliestCycle) const {
 
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
@@ -250,7 +266,8 @@ RegisterRenamer::findPartiallyUsedRegistersInRF(
     }
 
     std::set<TCEString> regs = usedGPRs_;
-    AssocTools::append(partiallyUsedRegs_, regs);
+    AssocTools::append(onlyBeginPartiallyUsedRegs_, regs);
+    AssocTools::append(onlyMidPartiallyUsedRegs_, regs);
     std::set<TCEString> regs2;
     SetTools::intersection(gprs, regs, regs2);
 
@@ -260,8 +277,49 @@ RegisterRenamer::findPartiallyUsedRegistersInRF(
     for (std::set<TCEString>::iterator i = regs2.begin(); 
          i != regs2.end(); i++) {
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
-        if (ddg_->lastRegisterCycle(rf, regIndex) < earliestCycle && 
-            ddg_->firstRegisterCycle(rf, regIndex) > latestCycle) {
+        if (ddg_->lastRegisterCycle(rf, regIndex) < earliestCycle) {
+            availableRegs.insert(*i);
+        }
+    }
+    return availableRegs;
+}
+
+/** 
+ * Finds registers which are used but only after given earliestCycle.
+ */ 
+std::set<TCEString> 
+RegisterRenamer::findPartiallyUsedRegistersInRFAfterCycle(
+    const TTAMachine::RegisterFile& rf, 
+    int latestCycle) const {
+
+    std::set<TCEString> availableRegs;
+    // nothing can be scheduled earlier than cycle 0.
+    // in that case we have empty set, no need to check.
+
+    bool isTempRF = false;
+    for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
+        if (tempRegFiles_[j] == &rf) {
+            isTempRF = true;
+        }
+    }
+
+    std::set<TCEString> gprs;
+    for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
+        gprs.insert(DisassemblyRegister::registerName(rf, j));
+    }
+
+    std::set<TCEString> regs = usedGPRs_;
+    AssocTools::append(onlyEndPartiallyUsedRegs_, regs);
+    AssocTools::append(onlyMidPartiallyUsedRegs_, regs);
+    std::set<TCEString> regs2;
+    SetTools::intersection(gprs, regs, regs2);
+    
+    // find from used gprs.
+    // todo: this is too conservative? leaves one cycle netween war?
+    for (std::set<TCEString>::iterator i = regs2.begin(); 
+         i != regs2.end(); i++) {
+        unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
+        if (ddg_->firstRegisterCycle(rf, regIndex) > latestCycle) {
             availableRegs.insert(*i);
         }
     }
@@ -269,8 +327,8 @@ RegisterRenamer::findPartiallyUsedRegistersInRF(
 }
 
 std::set<TCEString> 
-RegisterRenamer::findPartiallyUsedRegisters(
-    int bitWidth, int earliestCycle, int latestCycle) const {
+RegisterRenamer::findPartiallyUsedRegistersBeforeCycle(
+    int bitWidth, int earliestCycle) const {
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
     // in that case we have empty set, no need to check.
@@ -278,15 +336,40 @@ RegisterRenamer::findPartiallyUsedRegisters(
         return availableRegs;
     }
 
-    for (std::set<TCEString>::iterator i = partiallyUsedRegs_.begin(); 
-         i != partiallyUsedRegs_.end(); i++) {
+    std::set<TCEString> regs = onlyMidPartiallyUsedRegs_;
+    AssocTools::append(onlyBeginPartiallyUsedRegs_, regs);
+
+    for (std::set<TCEString>::iterator i = regs.begin(); 
+         i != regs.end(); i++) {
 
         TCEString rfName = i->substr(0, i->find('.'));
         TTAMachine::RegisterFile* rf = 
             machine_.registerFileNavigator().item(rfName);
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
         if (ddg_->lastRegisterCycle(*rf, regIndex) < earliestCycle && 
-            ddg_->firstRegisterCycle(*rf, regIndex) > latestCycle &&
+            rf->width() >= bitWidth) {
+            availableRegs.insert(*i);
+        }
+    }
+    return availableRegs;
+}
+
+std::set<TCEString> 
+RegisterRenamer::findPartiallyUsedRegistersAfterCycle(
+    int bitWidth, int latestCycle) const {
+    std::set<TCEString> availableRegs;
+
+    std::set<TCEString> regs = onlyMidPartiallyUsedRegs_;
+    AssocTools::append(onlyEndPartiallyUsedRegs_, regs);
+
+    for (std::set<TCEString>::iterator i = regs.begin(); 
+         i != regs.end(); i++) {
+
+        TCEString rfName = i->substr(0, i->find('.'));
+        TTAMachine::RegisterFile* rf = 
+            machine_.registerFileNavigator().item(rfName);
+        unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
+        if (ddg_->firstRegisterCycle(*rf, regIndex) > latestCycle && 
             rf->width() >= bitWidth) {
             availableRegs.insert(*i);
         }
@@ -342,8 +425,8 @@ RegisterRenamer::renameDestinationRegister(
         liveRange->noneScheduled() && tempRegFiles_.empty();
 
     std::set<TCEString> availableRegisters = allowDifferentRF ?
-        findPartiallyUsedRegisters(rf.width(),earliestCycle, 0) :
-        findPartiallyUsedRegistersInRF(rf, earliestCycle, 0);
+        findPartiallyUsedRegistersBeforeCycle(rf.width(),earliestCycle) :
+        findPartiallyUsedRegistersInRFBeforeCycle(rf, earliestCycle);
 
     // if no partially used found, take unused.
     if (availableRegisters.empty()) {
@@ -388,9 +471,11 @@ RegisterRenamer::renameSourceRegister(
     bool allowDifferentRF = //false;
         liveRange->noneScheduled() && tempRegFiles_.empty();
 
-    std::set<TCEString> availableRegisters = allowDifferentRF ?
-        findPartiallyUsedRegisters(rf.width(),INT_MAX-1,latestCycle) :
-        findPartiallyUsedRegistersInRF(rf, INT_MAX-1, latestCycle);
+    std::set<TCEString> availableRegisters;
+
+    availableRegisters = allowDifferentRF ?
+        findPartiallyUsedRegistersAfterCycle(rf.width(), latestCycle) :
+        findPartiallyUsedRegistersInRFAfterCycle(rf, latestCycle);
 
     if (availableRegisters.empty()) {
         reused = false;
@@ -402,9 +487,10 @@ RegisterRenamer::renameSourceRegister(
         }
     }
     
-    // then actually do it.
-    return renameLiveRange(
-        *liveRange, *availableRegisters.begin(), false, reused, loopScheduling);
+    return
+        renameLiveRange(
+            *liveRange, *availableRegisters.begin(), false, reused, 
+            loopScheduling);
 }
 
 bool
@@ -648,7 +734,10 @@ RegisterRenamer::renameLiveRange(
     }
 
     freeGPRs_.erase(newReg);
-    partiallyUsedRegs_.erase(newReg);
+    onlyBeginPartiallyUsedRegs_.erase(newReg);
+    onlyEndPartiallyUsedRegs_.erase(newReg);
+    onlyMidPartiallyUsedRegs_.erase(newReg);
+
     usedGPRs_.insert(newReg);
     return true;
 }

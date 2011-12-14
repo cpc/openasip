@@ -34,7 +34,6 @@
 #define TTA_DATA_DEPENDENCE_EDGE_HH
 
 #include "TCEString.hh"
-#include "Application.hh"
 #include "GraphEdge.hh"
 
 class MoveNode;

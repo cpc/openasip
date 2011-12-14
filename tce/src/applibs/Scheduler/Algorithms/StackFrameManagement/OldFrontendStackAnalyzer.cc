@@ -47,6 +47,7 @@
 #include "DataMemory.hh"
 #include "AddressSpace.hh"
 #include "TCEString.hh"
+#include "Conversion.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

@@ -57,6 +57,10 @@
 #include "MoveGuard.hh"
 #include "MoveNodeSet.hh"
 #include "SequentialScheduler.hh"
+#include "Terminal.hh"
+#include "MoveNodeGroup.hh"
+#include "MoveNode.hh"
+#include "SequentialMoveNodeSelector.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
