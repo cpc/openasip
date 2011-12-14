@@ -679,7 +679,7 @@ RegisterRenamer::renameLiveRange(
                                     oldPort, newRegIndex));
         } else {
             move.setDestination(new TTAProgram::TerminalRegister(
-                                    *rf->port(0), newRegIndex));
+                                    *rf->firstWritePort(), newRegIndex));
         }
 
     }
@@ -688,13 +688,13 @@ RegisterRenamer::renameLiveRange(
     for (DataDependenceGraph::NodeSet::iterator i = liveRange.reads.begin();
          i != liveRange.reads.end(); i++) {
         TTAProgram::Move& move = (**i).move();
-        const TTAMachine::Port& oldPort = move.destination().port();
+        const TTAMachine::Port& oldPort = move.source().port();
         if (oldPort.parentUnit() == rf) {
             move.setSource(new TTAProgram::TerminalRegister(
                            oldPort, newRegIndex));
         } else {
             move.setSource(new TTAProgram::TerminalRegister(
-                                    *rf->port(0), newRegIndex));
+                               *rf->firstReadPort(), newRegIndex));
         }
     }
 

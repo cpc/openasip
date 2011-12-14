@@ -117,6 +117,9 @@ public:
     /// ObjectState attribute key for the guard latency.
     static const std::string OSKEY_GUARD_LATENCY;
 
+    Port* firstReadPort();
+    Port* firstWritePort();
+
 protected:
 
 private:

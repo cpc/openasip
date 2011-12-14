@@ -619,4 +619,27 @@ RegisterFile::copy() const {
 
     return new RegisterFile(saveState());
 }
+
+Port*
+RegisterFile::firstReadPort() {
+    for (int i = 0; i < portCount(); i++) {
+        Port* p = port(i);
+        if (p->outputSocket() != NULL) {
+            return p;
+        }
+    }
+    return NULL;
+}
+
+Port*
+RegisterFile::firstWritePort() {
+    for (int i = 0; i < portCount(); i++) {
+        Port* p = port(i);
+        if (p->inputSocket() != NULL) {
+            return p;
+        }
+    }
+    return NULL;
+}
+
 }
