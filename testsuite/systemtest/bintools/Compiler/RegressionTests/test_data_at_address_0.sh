@@ -1,6 +1,6 @@
 #!/bin/bash
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-tpef=`mktemp`.tpef
+tpef=`mktemp tmpXXXXX`.tpef
 adf=../../../../../tce/scheduler/testbench/ADF/FU_constrained.adf
 prog=data/data_at_0.c
 dumptpef=../../../../../tce/src/bintools/TPEFDumper/dumptpef

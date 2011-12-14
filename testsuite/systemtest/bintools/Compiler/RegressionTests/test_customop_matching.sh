@@ -1,7 +1,7 @@
 #!/bin/bash
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm
-tpef=`mktemp`.tpef
+tpef=`mktemp tmpXXXXX`.tpef
 adf=../../../../../tce/scheduler/testbench/ADF/huge.adf
 
 # this is necessary to see operation dag changes..
