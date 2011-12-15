@@ -1053,9 +1053,9 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
 
     MoveNode* lastUse = NULL;
     if (buScheduler_) {
-        ddg.firstScheduledRegisterWrite(*lastRF, lastRegisterIndex);    
+        lastUse = ddg.firstScheduledRegisterWrite(*lastRF, lastRegisterIndex);    
     } else {
-        ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);        
+        lastUse = ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);        
     }
     if (lastUse != NULL) {
         DataDependenceEdge* war = 
@@ -1202,9 +1202,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
 	
     MoveNode* lastUse = NULL;
     if (buScheduler_) {
-        ddg.firstScheduledRegisterWrite(*firstRF, firstRegisterIndex);   
+        lastUse = ddg.firstScheduledRegisterWrite(*firstRF, firstRegisterIndex);   
     } else {
-        ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);        
+        lastUse = ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);        
     }
 
     if (lastUse != NULL) {
@@ -1431,9 +1431,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
 
         MoveNode* lastUse = NULL;
         if (buScheduler_) {
-            ddg.firstScheduledRegisterWrite(*tempRF2, tempRegisterIndex2);        
+            lastUse = ddg.firstScheduledRegisterWrite(*tempRF2, tempRegisterIndex2);        
         } else {
-            ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);            
+            lastUse = ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);            
         }
 
         if (lastUse != NULL) {
@@ -1464,9 +1464,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
 
     MoveNode* lastUse = NULL;
     if (buScheduler_) {
-        ddg.firstScheduledRegisterWrite(*tempRF1, tempRegisterIndex1);    
+        lastUse = ddg.firstScheduledRegisterWrite(*tempRF1, tempRegisterIndex1);    
     } else {
-        ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);        
+        lastUse = ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);        
     }
 
     if (lastUse != NULL) {
