@@ -69,8 +69,8 @@
  * @param rm The resource manager used to check for availability of resources.
  */
 RegisterCopyAdder::RegisterCopyAdder(
-    InterPassData& data, SimpleResourceManager& rm) :
-    interPassData_(data), rm_(rm) {
+    InterPassData& data, SimpleResourceManager& rm, bool buScheduler) :
+    interPassData_(data), rm_(rm), buScheduler_(buScheduler) {
 }
 
 /**
@@ -288,12 +288,13 @@ RegisterCopyAdder::addRegisterCopies(
             else
                 assert(false && "Temp moves not possible for the FU.");
         }
-        registerCopyCount += count;
+        registerCopyCount += count;       
         if (count != 0 && !countOnly) {
             copies.copies_[&m] = addedNodes;
         }
     }
     copies.count_ = registerCopyCount;
+    
     return copies;
 }
 
@@ -367,7 +368,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const TTAMachine::RegisterFile* lastRF = NULL;
     const TTAMachine::RegisterFile* firstRF = NULL;
     int correctSizeTempsFound = 0;
-
     // analyze the first level of connections
     // check the temp regs directly connected to source
     for (std::size_t i = 0; i < tempRegs.size(); ++i) {
@@ -512,7 +512,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
        be in the ProgramOperation, i.e., an operation move. The original
        move should be either the last of the chain or the first, in case
        it's input or output move, respectively. In case of register move, 
-       the original move is considered the fisrt of the chain */
+       the original move is considered the first of the chain */
 
 
     TTAProgram::Terminal& omDest = originalMove.move().destination();
@@ -1012,7 +1012,7 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
 
             DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
             ddg.removeEdge(edge);
-            ddg.connectNodes(*firstMove, dest, *edgeCopy);
+            ddg.connectNodes(*firstMove, dest, *edgeCopy);            
         }        
     }    
 
@@ -1051,16 +1051,22 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
 
-    MoveNode* lastUse =
-        ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
-
+    MoveNode* lastUse = NULL;
+    if (buScheduler_) {
+        ddg.firstScheduledRegisterWrite(*lastRF, lastRegisterIndex);    
+    } else {
+        ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);        
+    }
     if (lastUse != NULL) {
         DataDependenceEdge* war = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
+        if (buScheduler_) {
+            ddg.connectNodes(*lastMove, *lastUse, *war);
+        } else {
+            ddg.connectNodes(*lastUse, *firstMove, *war);            
+        }
     }
 
     if (!originalMove.move().isUnconditional()) {
@@ -1194,8 +1200,12 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*firstMove, *intMoves[0], *edgeFirst);
 	
-    MoveNode* lastUse =
-      ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);
+    MoveNode* lastUse = NULL;
+    if (buScheduler_) {
+        ddg.firstScheduledRegisterWrite(*firstRF, firstRegisterIndex);   
+    } else {
+        ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);        
+    }
 
     if (lastUse != NULL) {
       // the WAR edges from the last (scheduled) use of the temporary
@@ -1204,8 +1214,11 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
+        if (buScheduler_) {
+            ddg.connectNodes(*lastMove, *lastUse, *war);        
+        } else {
+            ddg.connectNodes(*lastUse, *firstMove, *war);            
+        }
     }
 
 
@@ -1219,8 +1232,13 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*intMoves[i], *intMoves[i + 1], *edgeInt);
-        lastUse =
-            ddg.lastScheduledRegisterRead(*intRF[i], intRegisterIndex[i]);
+        if (buScheduler_) {
+            lastUse =
+                ddg.firstScheduledRegisterWrite(*intRF[i], intRegisterIndex[i]);                    
+        } else {
+            lastUse =
+                ddg.lastScheduledRegisterRead(*intRF[i], intRegisterIndex[i]);            
+        }
 
         if (lastUse != NULL) {
             // the WAR edges from the last (scheduled) use of the temporary
@@ -1229,8 +1247,11 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER, 
                     DataDependenceEdge::DEP_WAR, tempReg);
-
-            ddg.connectNodes(*lastUse, *intMoves[i], *war);
+            if (buScheduler_) {
+                ddg.connectNodes(*intMoves[i], *lastUse,  *war);            
+            } else {
+                ddg.connectNodes(*lastUse, *intMoves[i], *war);                
+            }
         }
     }
 
@@ -1240,21 +1261,29 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
       new DataDependenceEdge(DataDependenceEdge::EDGE_REGISTER, 
                              DataDependenceEdge::DEP_RAW, tempReg);
     ddg.connectNodes(*intMoves[regsRequired - 2], *lastMove, *edgeLast);
-
-    lastUse =
-      ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
+    
+    if (buScheduler_) {
+        lastUse = 
+            ddg.firstScheduledRegisterWrite(*lastRF, lastRegisterIndex);                
+    } else {
+        lastUse =
+            ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);        
+    } 
 
     if (lastUse != NULL) {
         tempReg = DisassemblyRegister::registerName(lastUse->move().source());
 
-      // the WAR edges from the last (scheduled) use of the temporary
-      // registers
-      DataDependenceEdge* edgeWAR = 
-	new DataDependenceEdge(
-			       DataDependenceEdge::EDGE_REGISTER, 
-			       DataDependenceEdge::DEP_WAR, tempReg);
-
-      ddg.connectNodes(*lastUse, *intMoves[regsRequired - 2], *edgeWAR);
+        // the WAR edges from the last (scheduled) use of the temporary
+        // registers
+        DataDependenceEdge* edgeWAR = 
+            new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_WAR, tempReg);
+        if (buScheduler_) {
+            ddg.connectNodes(*intMoves[regsRequired - 2], *lastUse, *edgeWAR);        
+        } else {
+            ddg.connectNodes(*lastUse, *intMoves[regsRequired - 2], *edgeWAR);            
+        }
       
     } 
 
@@ -1400,8 +1429,12 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*regToRegCopy, *lastMove, *edge2);
 
-        MoveNode* lastUse =
-            ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);
+        MoveNode* lastUse = NULL;
+        if (buScheduler_) {
+            ddg.firstScheduledRegisterWrite(*tempRF2, tempRegisterIndex2);        
+        } else {
+            ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);            
+        }
 
         if (lastUse != NULL) {
             tempReg = DisassemblyRegister::registerName(
@@ -1413,8 +1446,11 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER, 
                     DataDependenceEdge::DEP_WAR, tempReg);
-
-            ddg.connectNodes(*lastUse, *regToRegCopy, *edge3);
+            if (buScheduler_) {
+                ddg.connectNodes(*regToRegCopy, *lastUse, *edge3);            
+            } else {
+                ddg.connectNodes(*lastUse, *regToRegCopy, *edge3);                
+            }
         } 
     } else {
         TCEString tempReg = 
@@ -1426,8 +1462,12 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
     } 
 
-    MoveNode* lastUse =
-        ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);
+    MoveNode* lastUse = NULL;
+    if (buScheduler_) {
+        ddg.firstScheduledRegisterWrite(*tempRF1, tempRegisterIndex1);    
+    } else {
+        ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);        
+    }
 
     if (lastUse != NULL) {
         TCEString tempReg = 
@@ -1437,8 +1477,11 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
+        if (buScheduler_) {
+            ddg.connectNodes(*lastMove, *lastUse, *war);        
+        } else {
+            ddg.connectNodes(*lastUse, *firstMove, *war);            
+        }
     }
 
     if (!originalMove.move().isUnconditional()) {

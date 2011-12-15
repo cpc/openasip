@@ -84,7 +84,10 @@ namespace TTAProgram {
  */
 class RegisterCopyAdder {
 public:
-    RegisterCopyAdder(InterPassData& data, SimpleResourceManager& rm);
+    RegisterCopyAdder(
+        InterPassData& data, 
+        SimpleResourceManager& rm, 
+        bool buScheduler = false);
     virtual ~RegisterCopyAdder();
 
     typedef std::map<const MoveNode*, DataDependenceGraph::NodeSet> 
@@ -198,5 +201,9 @@ private:
     // SimpleResourceManager provides many methods not in the base interface
     // ResourceManager, so we cannot use it.
     SimpleResourceManager& rm_;
+    /// Indicate that register copy adder is called from bottom up scheduler,
+    /// this causes search for first scheduled register write instead of last
+    /// read.
+    bool buScheduler_;
 };
 #endif
