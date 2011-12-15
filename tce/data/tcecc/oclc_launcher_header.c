@@ -40,26 +40,8 @@
 #include "cl_tce.h"
 #include <pocl/pocl.h>
 
-#ifdef __TCE__
-
-extern "C" int _get_core_count();
-
-/* The maximum number of work groups to execute in parallel threads. */
-#define _MAX_WG_THREADS _get_core_count()
-
-#else
-
-#define _MAX_WG_THREADS 2
-
-#endif
-
-#define USE_MT 0
 //#define DEBUG_MT
 //#define DEBUG_OCL
-
-#if USE_MT == 1
-#include <pthread.h>
-#endif
 
 /* The arguments and context data passed to a work group function. */
 struct _ocl_args {

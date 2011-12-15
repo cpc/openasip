@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file oclc_simple_launcher.c
+ * @file oclc_launcher_single.c
  *
  * A template C file for generating the launcher code for OpenCL C
  * kernel work group functions. This version does not spawn any threads,
@@ -94,101 +94,48 @@ void __opencl_trampoline_mt_%(kernel_name)s(
     int num_groups_x = global_work_size[0] / local_work_size[0];
     int i, first_gid_x, last_gid_x;
 
-    if (USE_MT && _MAX_WG_THREADS > 1) {
-#if USE_MT == 1
-        int num_threads = min(_MAX_WG_THREADS, num_groups_x);
-        int wgs_per_thread = num_groups_x / num_threads;
-        /* In case the work group count is not divisible by the
-           number of threads, we have to execute some additional
-           workgroups in the last thread. */
-        int leftover_wgs = num_groups_x - (num_threads*wgs_per_thread);
-        pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t)*num_threads);
-        _ocl_args* arguments = (_ocl_args*)malloc(sizeof(_ocl_args)*num_threads);
+    /* single thread version: execute all work groups in
+       a single trampoline call as fast as possible. 
 
-#ifdef DEBUG_MT    
-    iprintf("### global_work_size[0]==%%d local_work_size[0]==%%d\\n", 
-             global_work_size[0], local_work_size[0]);
-    iprintf("### creating %%d work group threads\\n", num_threads);
-    iprintf("### wgs per thread==%%d leftover wgs==%%d\\n", wgs_per_thread, leftover_wgs);
-#endif
-    
-        for (i = 0, first_gid_x = 0, last_gid_x = wgs_per_thread - 1; 
-             i < num_threads; 
-             ++i, first_gid_x += wgs_per_thread, last_gid_x += wgs_per_thread) {
-           arguments[i].args = args;
-           arguments[i].work_dim = work_dim;
-           arguments[i].local_work_size = local_work_size;
-           arguments[i].global_work_size = global_work_size;
-           arguments[i].first_gid_x = first_gid_x;
-           if (i + 1 == num_threads) last_gid_x += leftover_wgs;
-           arguments[i].last_gid_x = last_gid_x;
-
-
-#ifdef DEBUG_MT       
-       iprintf("### creating wg thread: first_gid_x==%%d, last_gid_x==%%d\\n",
-                first_gid_x, last_gid_x);
-#endif
-       
-           pthread_attr_t attr;
-           pthread_attr_init(&attr);
-          /* TODO: set stack size according to WG size so we don't waste space nor
-             allocate too small stack  */
-           pthread_attr_setstacksize(&attr, 32*1024); 
-           pthread_create(&threads[i], &attr, &__opencl_wg_thread_%(kernel_name)s, &arguments[i]);
-        }
-
-        for (i = 0; i < num_threads; ++i) {
-            pthread_join(threads[i], NULL);
-        /*
-        iprintf("### thread %%x finished\\n", (unsigned)threads[i]);
-        */
-        }
-        free(arguments);
-        free(threads);
-#endif
-   } else {
-        /* single thread version: execute all work groups in
-           a single trampoline call as fast as possible. 
-
-           Do not create any threads. */
-        /* allocate data for the local buffers. TODO: this is not
-           thread safe due to the shared 'args' struct. In MT we need
-           to copy the local pointers for each invocation. */
-        int arg_is_local[] = _%(kernel_name)s_ARG_IS_LOCAL;
-        for (int i = 0; i < _%(kernel_name)s_NUM_ARGS; ++i) {
-            if (!arg_is_local[i]) continue;
-            args[i] = malloc(sizeof(void*));             
-            *((void**)args[i]) = malloc(sizes[i]);
-            if (*((void**)args[i]) == NULL) {
+       Do not create any threads. */
+    /* allocate data for the local buffers. TODO: this is not
+       thread safe due to the shared 'args' struct. In MT we need
+       to copy the local pointers for each invocation. */
+    int arg_is_local[] = _%(kernel_name)s_ARG_IS_LOCAL;
+    for (int i = 0; i < _%(kernel_name)s_NUM_ARGS; ++i) {
+        if (!arg_is_local[i]) continue;
+        args[i] = malloc(sizeof(void*));             
+        *((void**)args[i]) = malloc(sizes[i]);
+        if (*((void**)args[i]) == NULL) {
 #ifdef DEBUG_OCL
-               puts("### out of memory while allocating the local buffers\\n");
+            puts("### out of memory while allocating the local buffers\\n");
 #endif
-               exit(1);
-            }
+            exit(1);
         }
-        /* Allocate data for the automatic local buffers which have
-           been converted to pointer arguments in the kernel launcher
-           function. They are the last arguments always. */
+    }
+    /* Allocate data for the automatic local buffers which have
+       been converted to pointer arguments in the kernel launcher
+       function. They are the last arguments always. */
         int alocal_sizes[] = _%(kernel_name)s_LOCAL_SIZE;
         for (int i = _%(kernel_name)s_NUM_ARGS; 
              i < _%(kernel_name)s_NUM_ARGS + _%(kernel_name)s_NUM_LOCALS; 
              ++i) {
-           args[i] = malloc(sizeof(void*));
+            args[i] = malloc(sizeof(void*));
             *((void**)args[i]) = malloc(alocal_sizes[i - _%(kernel_name)s_NUM_ARGS]);
 #ifdef DEBUG_OCL
-           iprintf("### allocated %%d bytes for the automatic local arg %%d at %%x\\n", 
-                   alocal_sizes[i - _%(kernel_name)s_NUM_ARGS], i, *(unsigned int*)args[i]);
+            iprintf("### allocated %%d bytes for the automatic local arg %%d at %%x\\n", 
+                    alocal_sizes[i - _%(kernel_name)s_NUM_ARGS], i, *(unsigned int*)args[i]);
 #endif
             if (*((void**)args[i]) == NULL) {
 #ifdef DEBUG_OCL
-               puts("### out of memory while allocating the local buffers\\n");
+                puts("### out of memory while allocating the local buffers\\n");
 #endif
-               exit(1);
+                exit(1);
             }          
         }
         __opencl_trampoline_%(kernel_name)s(
-           args, work_dim, local_work_size, global_work_size,
-           0, num_groups_x - 1);
+            args, work_dim, local_work_size, global_work_size,
+            0, num_groups_x - 1);
 
         /* free the local buffers */
         for (int i = 0; i < _%(kernel_name)s_NUM_ARGS; ++i) {
@@ -206,6 +153,5 @@ void __opencl_trampoline_mt_%(kernel_name)s(
             free(*((void**)args[i]));
             free(args[1]);
         }
-   }
 }
 
