@@ -83,7 +83,7 @@ public:
 
     using BasicBlockPass::ddgBuilder;
 
-private:
+protected:
     void scheduleRRMove(MoveNode& moveNode)
         throw (Exception);
 

@@ -1271,7 +1271,13 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     } 
 
     if (lastUse != NULL) {
-        tempReg = DisassemblyRegister::registerName(lastUse->move().source());
+        if(buScheduler_) {
+            tempReg = 
+                DisassemblyRegister::registerName(lastUse->move().destination());        
+        } else {        
+            tempReg = 
+                DisassemblyRegister::registerName(lastUse->move().source());
+        }
 
         // the WAR edges from the last (scheduled) use of the temporary
         // registers
@@ -1437,8 +1443,13 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
         }
 
         if (lastUse != NULL) {
-            tempReg = DisassemblyRegister::registerName(
-                lastUse->move().source());
+            if (buScheduler_) {
+                tempReg = DisassemblyRegister::registerName(
+                    lastUse->move().destination());            
+            } else {            
+                tempReg = DisassemblyRegister::registerName(
+                    lastUse->move().source());
+            }
 
             // the WAR edges from the last (scheduled) use of the temporary
             // registers
@@ -1470,9 +1481,14 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
     }
 
     if (lastUse != NULL) {
-        TCEString tempReg = 
-            DisassemblyRegister::registerName(lastUse->move().source());
-
+        TCEString tempReg;
+        if (buScheduler_) {
+            tempReg = 
+                DisassemblyRegister::registerName(lastUse->move().destination());        
+        } else {
+            tempReg = 
+                DisassemblyRegister::registerName(lastUse->move().source());
+        }
         DataDependenceEdge* war = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 

@@ -80,7 +80,6 @@ public:
         return new BUMoveNodeSelector(bb, machine);
     }
 
-
     using BasicBlockPass::ddgBuilder;
 
 private:
@@ -98,32 +97,21 @@ private:
 
     void scheduleMove(MoveNode& move, int cycle)
         throw (Exception);
-    void unschedule(MoveNode& moveNode);
 
-    void notifyScheduled(
-        MoveNodeGroup& moves, MoveNodeSelector& selector);
+    void scheduleResultReadTempMoves(
+        MoveNode& resultMove, MoveNode& resultRead, int lastUse)
+        throw (Exception);
 
-    void ddgSnapshot(
-        DataDependenceGraph& ddg, 
-        const std::string& name,
-        DataDependenceGraph::DumpFileFormat format,
-        bool final,
-        bool resetCounter = false) const;
-    /// The target machine we are scheduling the program against.
-    const TTAMachine::Machine* targetMachine_;
-    /// DDG of the currently scheduled BB.
-    DataDependenceGraph* ddg_;
-    /// Resource Manager of the currently scheduled BB.
-    SimpleResourceManager* rm_;
-    /// The software bypasser to use to bypass registers when possible.
-    SoftwareBypasser* softwareBypasser_;
+    void scheduleInputOperandTempMoves(
+        MoveNode& resultMove, MoveNode& resultRead)
+        throw (Exception);
 
-    RegisterRenamer* renamer_;
-
-    int bypassedCount_;
-    int deadResults_;
-
-    LLVMTCECmdLineOptions* options_;
+    void scheduleRRTempMoves(
+        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
+        throw (Exception);
+        
+    MoveNode* precedingTempMove(MoveNode& current);        
+            
     unsigned int endCycle_;
 };
 
