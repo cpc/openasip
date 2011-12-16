@@ -139,7 +139,7 @@ BUBasicBlockScheduler::handleDDG(
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
     // instructions into the beginning of basic block.
     // Remove magic 1000 once the sparse implementation of RM vectors works.
-    endCycle_ = (ddg.nodeCount() < 1000) ? ddg.nodeCount() + 20 : 1000;
+    endCycle_ = (ddg.nodeCount() < 1000) ? ddg.nodeCount() + 200 : 1000;
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
@@ -374,7 +374,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         // Find out if RegCopyAdded create temporary move for input.
         // If so, the operand has to be scheduled before the other use
         // of same temporary register.
-        int tempRegLimitCycle = endCycle_;
+        int tempRegLimitCycle = cycle;
         MoveNode* test = precedingTempMove(moves.node(i));
         if (test != NULL) { 
             // Input temp move exists. Check where the move is reading data
@@ -385,7 +385,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
                     moves.node(i).move().source().registerFile(),
                     moves.node(i).move().source().index());
             if (firstWrite != NULL) {
-                tempRegLimitCycle = firstWrite->cycle() - 1;
+                tempRegLimitCycle = firstWrite->cycle() -1;
             }
         } 
         cycle = std::min(cycle, tempRegLimitCycle);
@@ -456,11 +456,42 @@ BUBasicBlockScheduler::scheduleOperandWrites(
                 }
                 continue;
             }
-
+            // Try to schedule trigger first once again, otherwise the operand
+            // may get scheduled in cycle where trigger does not fit and 
+            // later cycle will not be possible for trigger.
+            if (trigger != NULL && !trigger->isScheduled()) {
+                int tempRegLimitCycle = cycle;
+                MoveNode* test = precedingTempMove(*trigger);
+                if (test != NULL) { 
+                    // Input temp move exists. Check where the move is reading data
+                    // from, so operand move can be scheduled earlier then
+                    // the already scheduled overwriting cycle.
+                    MoveNode* firstWrite =
+                        ddg_->firstScheduledRegisterWrite(
+                            trigger->move().source().registerFile(),
+                            trigger->move().source().index());
+                    if (firstWrite != NULL) {
+                        tempRegLimitCycle = firstWrite->cycle() -1;
+                    }
+                } 
+                cycle = std::min(cycle, tempRegLimitCycle);
+                int latestDDG = ddg_->latestCycle(*trigger);
+                latestDDG = std::min(latestDDG, cycle);
+                int latest = rm_->latestCycle(latestDDG, *trigger);    
+                if (latest == -1) {
+                    break;
+                }
+                // This must pass, since we got latest cycle from RM.
+                scheduleMove(*trigger, latest);      
+                assert(trigger->isScheduled());
+                scheduleInputOperandTempMoves(*trigger, *trigger);                
+                continue;
+            }        
+        
             // Find out if RegCopyAdded create temporary move for input.
             // If so, the operand has to be scheduled before the other use
             // of same temporary register.
-            int tempRegLimitCycle = endCycle_;
+            int tempRegLimitCycle = cycle;
             MoveNode* test = precedingTempMove(moveNode);
             if (test != NULL) { 
                 // Input temp move exists. Check where the move is reading data
@@ -471,17 +502,16 @@ BUBasicBlockScheduler::scheduleOperandWrites(
                         moveNode.move().source().registerFile(),
                         moveNode.move().source().index());
                 if (firstWrite != NULL) {
-                    tempRegLimitCycle = firstWrite->cycle() - 1;
+                    tempRegLimitCycle = firstWrite->cycle() -1;
                 }
             } 
             tempRegLimitCycle = std::min(tempRegLimitCycle, cycle);
             scheduleMove(moveNode, tempRegLimitCycle);
+            if (!moveNode.isScheduled()) {
+                break;
+            }            
             scheduleInputOperandTempMoves(moveNode, moveNode);            
             
-            if (!moveNode.isScheduled()) {
-                unscheduleInputOperandTempMoves(moveNode);            
-                break;
-            }
         }
         // Tests if all input moveNodes were scheduled
         scheduledMoves = 0;

@@ -102,10 +102,17 @@ public:
             // so they will be poped out
             return false;
         }
+        if (a.node(0).move().isControlFlowMove()) {
+            // Push control flow move to beginning of the ready list
+            return false;
+        }
+        if (b.node(0).move().isControlFlowMove()) {
+            // Push control flow move to beginning of the ready list
+            return true;
+        }        
         // Compute distances only once, it is expensive operation on graph
         int aSourceDistance = a.maxSourceDistance();
         int bSourceDistance = b.maxSourceDistance();
-        
         if (bSourceDistance == aSourceDistance) {
             return b.node(0).nodeID() < a.node(0).nodeID();
         }
