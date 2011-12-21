@@ -33,6 +33,7 @@
 
 #include "SchedulerConfigurationSerializer.hh"
 #include "SchedulerPluginLoader.hh"
+#include "ObjectState.hh"
 
 /**
  * Constructor.

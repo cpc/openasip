@@ -50,6 +50,7 @@
 #include "ProximToolbox.hh"
 #include "ErrorDialog.hh"
 #include "tce_config.h"
+#include "ObjectState.hh"
 
 IMPLEMENT_APP(Proxim)
 
