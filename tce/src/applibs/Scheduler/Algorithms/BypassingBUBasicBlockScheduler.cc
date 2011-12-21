@@ -233,7 +233,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         if (scheduleOperation(po,i)) {
 //            ddg_->writeToDotFile("op_schedok.dot");
 
-            finalizeOperation(po, selector);
+            finalizeOperation(selector);
             return;
         }
         std::cerr << "Trying to schedule op again with smaller cycle"
@@ -275,8 +275,7 @@ BypassingBUBasicBlockScheduler::longDescription() const {
 }
 
 void
-BypassingBUBasicBlockScheduler::finalizeOperation(
-    ProgramOperation& po, MoveNodeSelector& selector) {
+BypassingBUBasicBlockScheduler::finalizeOperation(MoveNodeSelector& selector) {
     for (std::set<MoveNode*, MoveNode::Comparator>::iterator i =
              pendingBypassSources_.begin(); i != pendingBypassSources_.end();
          i++) {

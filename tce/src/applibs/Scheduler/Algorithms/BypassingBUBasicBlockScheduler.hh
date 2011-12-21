@@ -91,7 +91,7 @@ public:
 
 private:
 
-    void finalizeOperation(ProgramOperation& po, MoveNodeSelector& selector);
+    void finalizeOperation(MoveNodeSelector& selector);
 
     bool scheduleOperation(ProgramOperation& po, int latestCycle);
 
