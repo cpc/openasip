@@ -166,7 +166,8 @@ bool
 Move::isJump() const {
 
     if (dst_->isFUPort()) {
-        const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
+        // there is already check. no need for double-check.
+        const TerminalFUPort* tfup = static_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
             if (tfup->operation().isBranch()) {
                 return true;
@@ -191,7 +192,8 @@ bool
 Move::isCall() const {
 
     if (dst_->isFUPort()) {
-        const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
+        // there is already check. no need for double-check.
+        const TerminalFUPort* tfup = static_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
             if (tfup->operation().isCall()) {
                 return true;
