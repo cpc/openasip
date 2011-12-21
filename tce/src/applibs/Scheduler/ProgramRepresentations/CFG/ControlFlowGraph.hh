@@ -50,7 +50,6 @@ namespace llvm {
 #include "Exception.hh"
 #include "BoostGraph.hh"
 #include "BasicBlockNode.hh"
-#include "BasicBlock.hh"
 #include "ControlFlowEdge.hh"
 #include "Address.hh"
 #include "NullAddress.hh"

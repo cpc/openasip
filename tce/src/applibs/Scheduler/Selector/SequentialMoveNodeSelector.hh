@@ -36,7 +36,10 @@
 #include <list>
 
 #include "MoveNodeSelector.hh"
-#include "BasicBlock.hh"
+
+namespace TTAProgram {
+    class BasicBlock;
+}
 
 /**
  * Selects move nodes from a basic block in their sequential input order.

@@ -39,9 +39,8 @@
 
 #include "Exception.hh"
 #include "SchedulerPluginLoader.hh"
-#include "SchedulingPlan.hh"
-#include "OperationPool.hh"
 
+class SchedulingPlan;
 class SchedulerCmdLineOptions;
 class BaseSchedulerModule;
 
