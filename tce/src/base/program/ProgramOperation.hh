@@ -74,7 +74,10 @@ public:
     bool isReady();
     bool isMultinode();
     bool isAssigned();
+    bool isAnyNodeAssigned();
+    bool isAnyInputAssigned();
     bool areInputsAssigned();
+    bool areOutputsAssigned();
 
     MoveNode& opcodeSettingNode() throw (InvalidData);
     MoveNodeSet& inputNode(int in) const throw (OutOfRange, KeyNotFound);

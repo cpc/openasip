@@ -437,7 +437,8 @@ DataDependenceGraph::earliestCycle(
  */
 int
 DataDependenceGraph::latestCycle(
-    const MoveNode& moveNode, unsigned int ii, bool ignoreRegAntideps) const {
+    const MoveNode& moveNode, unsigned int ii, bool ignoreRegAntideps,
+    bool ignoreUnscheduledSuccessors) const {
 
     if (machine_ == NULL) {
         throw InvalidData(__FILE__,__LINE__,__func__,
@@ -512,6 +513,10 @@ DataDependenceGraph::latestCycle(
             effHeadCycle += (ii * edge.loopDepth());
 
             maxCycle = std::min(effHeadCycle, maxCycle);
+        } else {
+            if (!ignoreUnscheduledSuccessors) {
+                return -1;
+            }
         }
 
         // TODO: now does this for all input moves, not just trigger
@@ -1637,8 +1642,10 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
     assert(sourceNode.isMove());
 
     if (!hasEdge(sourceNode, userNode)) {
+        writeToDotFile("no_edge_on_merge.dot");
         throw Exception(
-            __FILE__,__LINE__,__func__,"No edge between nodes being merged");
+            __FILE__,__LINE__,__func__,"No edge between nodes being merged "
+            + sourceNode.toString() + " " + userNode.toString());
     }
 
     if (!sourceNode.isMove() || !userNode.isMove()) {

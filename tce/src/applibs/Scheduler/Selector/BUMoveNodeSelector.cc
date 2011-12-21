@@ -148,6 +148,7 @@ BUMoveNodeSelector::candidates() {
              i != unscheduled.end();
              ++i) {
             MoveNode& node = **i;
+            std::cerr << "Found orphan node: " << node.toString() << std::endl;
             mightBeReady(node);
         }
     }

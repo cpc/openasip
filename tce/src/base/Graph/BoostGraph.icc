@@ -2460,7 +2460,7 @@ BoostGraph<GraphNode, GraphEdge>::hasPath(
         if (height_ != -1) {
             sd = maxSinkDistance(*current);
         }
-        if (sd > dstSinkDist) {
+        if (sd >= dstSinkDist) {
             NodeDescriptor nd = descriptor(*current);
             std::pair<OutEdgeIter, OutEdgeIter> edges =
                 boost::out_edges(nd, graph_);

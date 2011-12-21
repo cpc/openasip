@@ -77,6 +77,26 @@ MachineConnectivityCheck::MachineConnectivityCheck(
     const std::string& shortDesc_) : MachineCheck(shortDesc_) {
 }
 
+
+bool
+MachineConnectivityCheck::isConnected(
+    std::set<const TTAMachine::Port*> sourcePorts,
+    std::set<const TTAMachine::Port*> destinationPorts) {
+    for (std::set<const TTAMachine::Port*>::iterator i =
+             sourcePorts.begin();
+         i != sourcePorts.end(); i++) {
+        const TTAMachine::Port& sport = **i;
+        for (std::set<const TTAMachine::Port*>::iterator j =
+                 destinationPorts.begin();
+             j != destinationPorts.end(); j++) {
+            if (isConnected(sport, **j)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Checks whether there is a connection between two ports.
  *
@@ -169,6 +189,21 @@ MachineConnectivityCheck::canTransportImmediate(
                 *destinationPort.parentUnit()->machine());
         if (bus.immediateWidth() >= requiredBits)
             return true;
+    }
+    return false;
+}
+
+bool 
+MachineConnectivityCheck::canTransportImmediate(
+    const TTAProgram::TerminalImmediate& immediate,
+    std::set<const TTAMachine::Port*> destinationPorts) {
+
+    for (std::set<const TTAMachine::Port*>::iterator i =
+             destinationPorts.begin();
+         i != destinationPorts.end(); i++) {
+        if (canTransportImmediate(immediate, **i)) {
+            return true;
+        }
     }
     return false;
 }

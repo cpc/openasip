@@ -30,24 +30,29 @@
  * @note rating: red
  */
 
-#ifndef TTA_BU_BB_SCHEDULER_HH
-#define TTA_BU_BB_SCHEDULER_HH
+#ifndef TTA_BYPASSING_BU_BB_SCHEDULER_HH
+#define TTA_BYPASSING_BU_BB_SCHEDULER_HH
 
 #include "BUMoveNodeSelector.hh"
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
 #include "BasicBlockScheduler.hh"
+#include "DataDependenceGraph.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
 class SoftwareBypasser;
 class CopyingDelaySlotFiller;
 class DataDependenceGraphBuilder;
-class DataDependenceGraph;
 class RegisterRenamer;
 class MoveNode;
 class MoveNodeGroup;
 class LLVMTCECmdLineOptions;
+
+namespace TTAMachine {
+    class Unit;
+    class Port;
+}
 
 /**
  * A class that implements the functionality of a bottom up basic block 
@@ -57,14 +62,14 @@ class LLVMTCECmdLineOptions;
  * if they couldn't be filled with the basic block's contents itself (no
  * instruction importing).
  */
-class BUBasicBlockScheduler :
+class BypassingBUBasicBlockScheduler :
     public BasicBlockScheduler {
 public:
-    BUBasicBlockScheduler(
+    BypassingBUBasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
         CopyingDelaySlotFiller* delaySlotFiller=NULL,
         RegisterRenamer* registerRenamer = NULL);
-    virtual ~BUBasicBlockScheduler();
+    virtual ~BypassingBUBasicBlockScheduler();
 
     virtual void handleDDG(
         DataDependenceGraph& ddg,
@@ -82,37 +87,73 @@ public:
 
     using BasicBlockPass::ddgBuilder;
 
-protected:
-    void scheduleRRMove(MoveNode& moveNode)
-        throw (Exception);
+    void scheduleOperation(MoveNodeGroup& mng, MoveNodeSelector& selector);
 
-    void scheduleOperation(MoveNodeGroup& moves)
-        throw (Exception);
+private:
 
-    bool scheduleOperandWrites(MoveNodeGroup& moves, int cycle)
-        throw (Exception);
+    void finalizeOperation(ProgramOperation& po, MoveNodeSelector& selector);
 
-    int scheduleResultReads(MoveNodeGroup& moves, int cycle)
-        throw (Exception);
+    bool scheduleOperation(ProgramOperation& po, int latestCycle);
 
-    void scheduleMove(MoveNode& move, int cycle)
-        throw (Exception);
+    bool scheduleResults(ProgramOperation& po, int latestCycle);
 
-    void scheduleResultReadTempMoves(
-        MoveNode& resultMove, MoveNode& resultRead, int lastUse)
-        throw (Exception);
+    bool scheduleMoveUB(MoveNode& mn, int earlistCycle, int latestCycle);
 
-    void scheduleInputOperandTempMoves(
-        MoveNode& resultMove, MoveNode& resultRead)
-        throw (Exception);
+    bool scheduleMoveBU(MoveNode& mn, int earlistCycle, int latestCycle);
 
-    void scheduleRRTempMoves(
-        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-        throw (Exception);
-        
-    MoveNode* precedingTempMove(MoveNode& current);        
-            
-    unsigned int endCycle_;
+    int bypassNode(MoveNode& node, int maxHopCount);
+
+    std::pair<MoveNode*, int> findBypassSource(
+        MoveNode& node, int maxHopCount);
+
+    bool bypassAndScheduleNode(
+        MoveNode& node, MoveNode* trigger, int latestCycle);
+
+    bool bypassAndScheduleOperands(
+        ProgramOperation& po, MoveNode* trigger, int latestCycle);
+
+    bool scheduleOperandOrTrigger(
+        MoveNode& operand, MoveNode* trigger, int latestCycle);
+
+    void unscheduleResults(ProgramOperation& po);
+    
+    void unscheduleOperands(ProgramOperation& po);
+
+    void undoBypass(MoveNode& mn);
+
+    void undoBypassAndUnschedule(MoveNode& mn);
+
+    void unscheduleOperation(ProgramOperation& po);
+
+    std::pair<int,int> operandCycleLimits(MoveNode& mn, MoveNode* trigger);
+
+    int lastOperandCycle(const ProgramOperation& po);
+
+    MoveNode* findTrigger(ProgramOperation& po);
+
+    MoveNode* findTriggerFromUnit(
+        ProgramOperation& po, TTAMachine::Unit& unit);
+
+    std::set<const TTAMachine::Port*> findPossibleDestinationPorts(
+        MoveNode& node);
+
+    std::set<const TTAMachine::Port*> findPossibleSourcePorts(
+        MoveNode& node);
+
+    void clearCaches();
+
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> bypassSources_;
+
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> removedBypassSources_;
+
+    std::set<MoveNode*, MoveNode::Comparator> removedNodes_;
+
+    std::set<MoveNode*, MoveNode::Comparator> pendingBypassSources_;
+
+    std::set<MoveNode*, MoveNode::Comparator> scheduledMoves_;
+
+    bool killDeadResults_;
+    int endCycle_;
 };
 
 #endif

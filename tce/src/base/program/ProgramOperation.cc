@@ -309,6 +309,43 @@ ProgramOperation::isAssigned() {
 }
 
 /**
+ * Return true if any node of this operation have function unit assigned to
+ * their source or destination respectively
+ *
+ * @return True if any node has source or destination function unit assigned
+ */
+bool
+ProgramOperation::isAnyNodeAssigned() {
+    for (int i = 0; i < inputMoveCount(); i++ ) {
+        if (inputMove(i).isAssigned()) {
+            return true;
+        }
+    }
+    for (int i = 0; i < outputMoveCount(); i++ ) {
+        if (outputMove(i).isAssigned()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Return true if any node of this operation have function unit assigned to
+ * their source or destination respectively
+ *
+ * @return True if any node has source or destination function unit assigned
+ */
+bool
+ProgramOperation::isAnyInputAssigned() {
+    for (int i = 0; i < inputMoveCount(); i++ ) {
+        if (inputMove(i).isAssigned()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Return true if nodes of this operation have function unit assigned to
  * their source or destination respectively
  *
@@ -318,6 +355,22 @@ bool
 ProgramOperation::areInputsAssigned() {
     for (int i = 0; i < inputMoveCount(); i++ ) {
         if (!inputMove(i).isAssigned()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Return true if nodes of this operation have function unit assigned to
+ * their source or destination respectively
+ *
+ * @return True if nodes have source or destination function unit assigned
+ */
+bool
+ProgramOperation::areOutputsAssigned() {
+    for (int i = 0; i < outputMoveCount(); i++ ) {
+        if (!outputMove(i).isAssigned()) {
             return false;
         }
     }

@@ -83,6 +83,10 @@ public:
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::FunctionUnit& destFU);
 
+    static bool isConnected(
+        std::set<const TTAMachine::Port*> sourcePorts,
+        std::set<const TTAMachine::Port*> destinationPorts);
+
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
 
     static bool canTransportImmediate(
@@ -92,6 +96,10 @@ public:
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         const TTAMachine::Port& destinationPort);
+
+    static bool canTransportImmediate(
+        const TTAProgram::TerminalImmediate& immediate,
+        std::set<const TTAMachine::Port*> destinationPorts);
     
     static bool rfConnected(
         const TTAMachine::RegisterFile& rf);

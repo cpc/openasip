@@ -80,6 +80,8 @@ public:
     
     bool useBUScheduler() const;
 
+    bool useRecursiveBUScheduler() const;
+
     virtual bool dumpDDGsDot() const;
     virtual bool dumpDDGsXML() const;
     virtual bool disableLLVMAA() const;
@@ -113,6 +115,7 @@ private:
     static const std::string SWL_POM_BUILDER;
     static const std::string SWL_SAVE_BACKEND_PLUGIN;
     static const std::string SWL_BU_SCHEDULER;
+    static const std::string SWL_RECURSIVE_BU_SCHEDULER;
     static const std::string USAGE;
 
 };

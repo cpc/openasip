@@ -132,7 +132,8 @@ public:
 
     int latestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX,
-        bool ignoreRegAntideps = false) const;
+        bool ignoreRegAntideps = false, 
+        bool ignoreUnscheduledSuccessors = true) const;
     
     int smallestCycle() const;
     int largestCycle() const;

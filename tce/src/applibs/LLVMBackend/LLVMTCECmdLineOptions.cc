@@ -57,6 +57,8 @@ const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN =
     "save-backend-plugin";
 const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER = 
     "bottom-up-scheduler";
+const std::string LLVMTCECmdLineOptions::SWL_RECURSIVE_BU_SCHEDULER = 
+    "recursive-scheduler";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -143,6 +145,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             SWL_BU_SCHEDULER, 
             "Use an experiment Bottom Up scheduler."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_RECURSIVE_BU_SCHEDULER, 
+            "Use an experimental Bypassign Recursive Bottom Up scheduler."));
             
 }
 
@@ -319,4 +326,9 @@ LLVMTCECmdLineOptions::saveBackendPlugin() const {
 bool
 LLVMTCECmdLineOptions::useBUScheduler() const {
     return findOption(SWL_BU_SCHEDULER)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::useRecursiveBUScheduler() const {
+    return findOption(SWL_RECURSIVE_BU_SCHEDULER)->isDefined();
 }

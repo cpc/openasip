@@ -60,6 +60,8 @@
 #include "BasicBlockScheduler.hh"
 #include "RegisterRenamer.hh"
 #include "BUBasicBlockScheduler.hh"
+#include "BypassingBUBasicBlockScheduler.hh"
+
 namespace TTAMachine {
     class UniversalMachine;
 }
@@ -141,12 +143,17 @@ BBSchedulerController::handleBasicBlock(
     }
 
     BasicBlockScheduler* bbScheduler = NULL;
-    if (options_ != NULL && options_->useBUScheduler()) {
-        bbScheduler = new BUBasicBlockScheduler(
+    if (options_ != NULL && options_->useRecursiveBUScheduler()) {
+        bbScheduler = new BypassingBUBasicBlockScheduler(
             BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-    } else {   
-        bbScheduler = new BasicBlockScheduler(
-            BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
+    } else {
+        if (options_ != NULL && options_->useBUScheduler()) {
+            bbScheduler = new BUBasicBlockScheduler(
+                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
+        } else {   
+            bbScheduler = new BasicBlockScheduler(
+                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
+        }
     }
     
     // if not scheduled yet (or loop scheduling failed)
