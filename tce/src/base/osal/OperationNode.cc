@@ -30,9 +30,8 @@
  * @note rating: red
  */
 
-
+#include "Application.hh"
 #include "OperationNode.hh"
-#include "OperationDAG.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
 

@@ -35,28 +35,19 @@
 
 #include "BypassingBUBasicBlockScheduler.hh"
 #include "DataDependenceGraph.hh"
-#include "DataDependenceGraphBuilder.hh"
 #include "SimpleResourceManager.hh"
 #include "BUMoveNodeSelector.hh"
 #include "POMDisassembler.hh"
-#include "Procedure.hh"
 #include "ProgramOperation.hh"
 #include "ControlUnit.hh"
 #include "Machine.hh"
-#include "UniversalMachine.hh"
-#include "Guard.hh"
-#include "MapTools.hh"
-#include "Instruction.hh"
-#include "InstructionReference.hh"
 #include "BasicBlock.hh"
-#include "RegisterCopyAdder.hh"
 #include "SchedulerPass.hh"
-#include "CycleLookBackSoftwareBypasser.hh"
 #include "LLVMTCECmdLineOptions.hh"
-#include "InterPassData.hh"
+//#include "InterPassData.hh"
 #include "MoveNodeSet.hh"
 #include "Terminal.hh"
-#include "RegisterRenamer.hh"
+//#include "RegisterRenamer.hh"
 #include "HWOperation.hh"
 #include "MachineConnectivityCheck.hh"
 #include "Operation.hh"
@@ -73,6 +64,8 @@
 //#define SW_BYPASSING_STATISTICS
 
 class CopyingDelaySlotFiller;
+class InterPassData;
+class RegisterRenamer;
 
 /**
  * Constructs the basic block scheduler.
@@ -121,10 +114,11 @@ BypassingBUBasicBlockScheduler::handleDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
+/*
     if (renamer_ != NULL) {
         renamer_->initialize(ddg);
     }
-
+*/
     if (options_ != NULL && options_->dumpDDGsDot()) {
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, false);
@@ -149,9 +143,11 @@ BypassingBUBasicBlockScheduler::handleDDG(
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
+/*
     if (renamer_ != NULL) {
         renamer_->setSelector(&selector);
     }
+*/
 
     rm_ = &rm;
 
