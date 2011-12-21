@@ -36,7 +36,7 @@
 #include "MapTools.hh"
 #include "Exception.hh"
 #include "MoveGuard.hh"
-
+#include "Move.hh"
 
 
 

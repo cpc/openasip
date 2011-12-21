@@ -35,6 +35,7 @@
 #include "MoveNode.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
+#include "Move.hh"
 
 /**
  * Constructor defining resource name

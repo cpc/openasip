@@ -33,6 +33,7 @@
 #include "ProDeOptionsSerializer.hh"
 #include "Application.hh"
 #include "Conversion.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

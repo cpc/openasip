@@ -37,8 +37,15 @@
 #include <set>
 #include <vector>
 
+#include "TCEString.hh"
+
 class Operation;
+class OperationDAG;
 class OperationBehavior;
+class Operand;
+class ObjectState;
+class SimValue;
+class OperationContext;
 
 /**
  * A private implementation class for Operation

@@ -81,7 +81,7 @@
 #include "Move.hh"
 #include "MoveGuard.hh"
 #include "TCEString.hh"
-
+#include "Program.hh"
 #include "Operation.hh"
 
 #include "tce_config.h"

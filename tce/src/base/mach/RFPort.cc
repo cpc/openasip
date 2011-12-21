@@ -34,6 +34,7 @@
 
 #include "RFPort.hh"
 #include "BaseRegisterFile.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

@@ -61,6 +61,8 @@
 #include "InterPassData.hh"
 #include "SequenceTools.hh"
 #include "MoveNodeSet.hh"
+#include "Program.hh"
+#include "Move.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT

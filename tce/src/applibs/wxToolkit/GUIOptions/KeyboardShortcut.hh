@@ -36,7 +36,7 @@
 #include <string>
 
 #include "Serializable.hh"
-#include "ObjectState.hh"
+#include "Exception.hh"
 
 /**
  * This class stores the keyboard buttons used in a keyboard

@@ -35,7 +35,10 @@
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 
-#include "Machine.hh"
+namespace TTAMachine {
+    class Machine;
+    class AddressSpace;
+}
 
 class wxListCtrl;
 

@@ -41,6 +41,7 @@
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
 #include "AssocTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::set;

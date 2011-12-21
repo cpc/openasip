@@ -43,8 +43,6 @@
 #include <set>
 
 #include "Exception.hh"
-#include "Machine.hh"
-#include "Program.hh"
 #include "SimulationController.hh"
 #include "SimulatorConstants.hh"
 #include "BaseType.hh"
@@ -67,6 +65,10 @@ namespace TPEF {
     class Binary;
 }
 
+namespace TTAProgram {
+    class Program;
+    class Procedure;
+}
 /**
  * Frontend to simulator functionality.
  *

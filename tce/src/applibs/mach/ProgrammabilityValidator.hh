@@ -39,26 +39,40 @@
 #include <map>
 
 #include "Exception.hh"
-#include "Machine.hh"
-#include "Program.hh"
-#include "Guard.hh"
 
 #include "MinimalOpSetCheck.hh"
 
-using namespace TTAMachine;
-using namespace TTAProgram;
 using std::map;
 using std::set;
 using std::vector;
 using std::string;
 using std::pair;
 
+namespace TTAMachine {
+    class Machine;
+    class RegisterGuard;
+    class RegisterFile;
+    class Segment;
+    class Port;
+    class FunctionUnit;
+    class HWOperation;
+    class Socket;
+}
+
+namespace TTAProgram {
+    class Program;
+    class Procedure;
+}
+
 namespace TPEF {
     class Binary;
 }
 
-class ProgrammabilityValidatorResults;
+using namespace TTAMachine;
+using namespace TTAProgram;
 
+class ProgrammabilityValidatorResults;
+class MinimalOpSetCheck;
 
 class ProgrammabilityValidator {
 public:

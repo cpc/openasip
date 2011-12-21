@@ -34,7 +34,6 @@
 #define TTA_DELETE_PORT_CMD_HH
 
 #include "ComponentCommand.hh"
-#include "Port.hh"
 
 class EditPart;
 

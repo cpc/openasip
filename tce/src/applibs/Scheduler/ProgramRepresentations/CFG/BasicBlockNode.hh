@@ -38,10 +38,11 @@
 #include <string>
 
 #include "GraphNode.hh"
-#include "BasicBlock.hh"
-#include "Instruction.hh"
+#include "Address.hh"
 
 namespace TTAProgram {
+    class Program;
+    class Move;
     class Instruction;
     class CodeSnippet;
     class BasicBlock;

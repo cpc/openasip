@@ -38,7 +38,6 @@
 
 #include "DesignSpaceExplorer.hh"
 #include "ExplorerPluginParameter.hh"
-#include "Machine.hh"
 
 #include "Exception.hh"
 #include "Conversion.hh"

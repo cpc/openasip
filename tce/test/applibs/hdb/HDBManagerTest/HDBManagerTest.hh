@@ -48,7 +48,7 @@
 #include "RFImplementation.hh"
 #include "RFPortImplementation.hh"
 #include "FUExternalPort.hh"
-
+#include "Machine.hh"
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
 #include "ExecutionPipeline.hh"

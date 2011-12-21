@@ -38,6 +38,7 @@
 #include "HWOperation.hh"
 #include "Conversion.hh"
 #include "AssocTools.hh"
+#include "ExecutionPipeline.hh"
 
 /**
  * Constructor.

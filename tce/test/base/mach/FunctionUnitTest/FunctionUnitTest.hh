@@ -42,6 +42,8 @@
 #include "PipelineElement.hh"
 #include "ExecutionPipeline.hh"
 #include "FileSystem.hh"
+#include "FunctionUnit.hh"
+#include "Machine.hh"
 
 using std::string;
 using namespace TTAMachine;

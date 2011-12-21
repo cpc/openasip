@@ -38,6 +38,7 @@
 #include "WxConversion.hh"
 #include "SimulatorFrontend.hh"
 #include "ProximConstants.hh"
+#include "Conversion.hh"
 
 BEGIN_EVENT_TABLE(SimulatorSettingsDialog, wxDialog)
     EVT_BUTTON(wxID_OK, SimulatorSettingsDialog::onOK)

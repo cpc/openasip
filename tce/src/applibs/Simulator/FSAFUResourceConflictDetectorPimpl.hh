@@ -34,15 +34,16 @@
 #ifndef FSA_FU_RESOURCE_CONFLICT_DETECTOR_PIMPL_HH
 #define FSA_FU_RESOURCE_CONFLICT_DETECTOR_PIMPL_HH
 
-#include <map>
 #include <string>
 
 #include "Exception.hh"
-#include "FunctionUnit.hh"
 #include "FUResourceConflictDetector.hh"
 #include "FUFiniteStateAutomaton.hh"
 #include "FSAFUResourceConflictDetector.hh"
 
+namespace TTAMachine {
+    class FunctionUnit;
+}
 
 class FSAFUResourceConflictDetectorPimpl {
 public:

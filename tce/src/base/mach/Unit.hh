@@ -40,7 +40,6 @@
 
 #include "MachinePart.hh"
 #include "Exception.hh"
-//#include "Port.hh"
 
 namespace TTAMachine {
 

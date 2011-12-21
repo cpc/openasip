@@ -40,6 +40,7 @@
 #include "OperationNode.hh"
 #include "TerminalNode.hh"
 #include "MoveNodeSet.hh"
+#include "Operation.hh"
 
 /**
  * Compares two indeces (memory addresses or part of memory address).

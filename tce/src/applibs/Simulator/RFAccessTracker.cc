@@ -44,7 +44,7 @@
 #include "Terminal.hh"
 #include "hash_map.hh"
 #include "NullInstruction.hh"
-
+#include "Program.hh"
 #include "boost/tuple/tuple_comparison.hpp"
 
 #include <algorithm>

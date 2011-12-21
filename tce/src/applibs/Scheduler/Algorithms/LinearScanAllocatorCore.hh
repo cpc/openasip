@@ -40,11 +40,7 @@
 #include <set>
 #include <list>
 
-#include "MoveNode.hh"
-//#include "StackFrameCodeCreator.hh"
-#include "StackFrameData.hh"
 #include "StackCodeRemover.hh"
-#include "InterPassData.hh"
 
 using std::map;
 using std::vector;
@@ -55,6 +51,7 @@ namespace TTAProgram {
     class Procedure;
     class Program;
     class TerminalRegister;
+    class Terminal;
 }
 
 namespace TTAMachine {
@@ -63,12 +60,13 @@ namespace TTAMachine {
 
 class MoveNode;
 class RegisterMap;
-//class StackManager;
+class StackFrameData;
 class DataDependenceGraph;
 class DataDependenceEdge;
 class ControlFlowGraph;
 class StackFrameCodeCreator;
 class UniversalMachine;
+class InterPassData;
 
 class LinearScanAllocatorCore {
 public:

@@ -40,6 +40,8 @@
 #include "Segment.hh"
 #include "ADFSerializer.hh"
 #include "FileSystem.hh"
+#include "RegisterFile.hh"
+#include "Machine.hh"
 
 using std::string;
 using namespace TTAMachine;

@@ -37,6 +37,7 @@
 #include "Segment.hh"
 #include "Socket.hh"
 #include "MoveNode.hh"
+#include "Move.hh"
 
 using namespace TTAMachine;
 

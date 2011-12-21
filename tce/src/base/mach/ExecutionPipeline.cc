@@ -41,6 +41,7 @@
 #include "ContainerTools.hh"
 #include "AssocTools.hh"
 #include "MapTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::pair;

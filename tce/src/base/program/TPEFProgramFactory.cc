@@ -82,6 +82,9 @@
 #include "BinaryStream.hh"
 #include "BinaryReader.hh"
 #include "MathTools.hh"
+#include "GlobalScope.hh"
+#include "UniversalMachine.hh"
+#include "Program.hh"
 
 using namespace TTAMachine;
 using namespace TPEF;

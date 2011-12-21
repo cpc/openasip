@@ -52,6 +52,7 @@
 #include "OperationPoolPimpl.hh"
 #include "OperationSerializer.hh"
 #include "TCEString.hh"
+#include "ObjectState.hh"
 
 // disable warnings from LLVm headers
 #pragma GCC diagnostic ignored "-Wunused-parameter"

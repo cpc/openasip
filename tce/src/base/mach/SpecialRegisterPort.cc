@@ -34,6 +34,7 @@
 
 #include "SpecialRegisterPort.hh"
 #include "ControlUnit.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

@@ -41,6 +41,7 @@
 #include "SimValue.hh"
 #include "GlobalScope.hh"
 #include "DataLabel.hh"
+#include "Program.hh"
 
 #include <iostream>
 

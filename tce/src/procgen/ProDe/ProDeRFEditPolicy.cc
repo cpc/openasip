@@ -44,6 +44,7 @@
 #include "EditPart.hh"
 #include "SetStatusTextCmd.hh"
 #include "ProDeTextGenerator.hh"
+#include "Conversion.hh"
 
 using boost::format;
 using std::string;

@@ -30,6 +30,7 @@
 #include "MoveGuard.hh"
 #include "Program.hh"
 #include "Procedure.hh"
+#include "Instruction.hh"
 
 namespace TTAProgram {
 

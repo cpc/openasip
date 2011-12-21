@@ -38,6 +38,7 @@
 #include "MachineTester.hh"
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;
@@ -157,18 +158,6 @@ Component::setName(const std::string& name)
 
     name_ = name;
 }
-
-
-/**
- * Returns the machine which is set for this component.
- *
- * @return The machine which is set for this component.
- */
-Machine*
-Component::machine() const {
-    return machine_;
-}
-
 
 /**
  * Ensures that the component is registered to the same machine as the

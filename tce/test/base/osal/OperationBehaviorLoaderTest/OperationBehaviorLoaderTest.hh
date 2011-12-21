@@ -46,6 +46,7 @@
 #include "Application.hh"
 #include "SimValue.hh"
 #include "TCEString.hh"
+#include "OperationBehavior.hh"
 
 using std::string;
 using std::vector;

@@ -36,8 +36,8 @@
 #include <map>
 
 #include "MachinePart.hh"
-#include "ObjectState.hh"
 
+class ObjectState;
 class Operand;
 
 namespace TTAMachine {

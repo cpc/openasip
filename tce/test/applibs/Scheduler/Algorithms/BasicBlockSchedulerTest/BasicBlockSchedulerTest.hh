@@ -48,6 +48,8 @@
 #include "Instruction.hh"
 #include "InterPassData.hh"
 #include "Terminal.hh"
+#include "GlobalScope.hh"
+
 
 class BasicBlockSchedulerTest : public CxxTest::TestSuite {
 public:

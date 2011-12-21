@@ -35,7 +35,7 @@
 
 #include <TestSuite.h>
 #include "XMLSerializer.hh"
-
+#include "ObjectState.hh"
 
 /**
  * Test suite for XMLSerializer class.

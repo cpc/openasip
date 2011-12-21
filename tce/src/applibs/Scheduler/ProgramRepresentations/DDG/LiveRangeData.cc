@@ -36,6 +36,7 @@
  */
 
 #include "LiveRangeData.hh"
+#include "Move.hh"
 
 /**
  * merges liverangedata of successor into this.

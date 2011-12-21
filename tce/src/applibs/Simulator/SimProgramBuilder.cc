@@ -73,6 +73,7 @@
 #include "POMDisassembler.hh"
 #include "TCEString.hh"
 #include "MathTools.hh"
+#include "Program.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

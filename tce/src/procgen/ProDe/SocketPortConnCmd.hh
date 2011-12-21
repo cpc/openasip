@@ -33,8 +33,6 @@
 #ifndef TTA_SOCKET_PORT_CONN_CMD_HH
 #define TTA_SOCKET_PORT_CONN_CMD_HH
 
-#include "Port.hh"
-#include "Socket.hh"
 #include "ComponentCommand.hh"
 
 namespace TTAMachine {

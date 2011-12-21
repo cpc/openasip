@@ -39,6 +39,7 @@
 #include "Exception.hh"
 #include "Address.hh"
 #include "CodeSnippet.hh"
+#include "Application.hh"
 
 class TCEString;
 

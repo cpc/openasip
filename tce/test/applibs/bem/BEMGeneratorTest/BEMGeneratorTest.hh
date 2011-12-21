@@ -48,6 +48,7 @@
 #include "DestinationField.hh"
 #include "SocketEncoding.hh"
 #include "SocketCodeTable.hh"
+#include "Machine.hh"
 
 using std::string;
 using namespace TTAMachine;

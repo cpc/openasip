@@ -37,7 +37,6 @@
 #include <vector>
 
 #include "BaseType.hh"
-#include "DataObject.hh"
 
 namespace TTAProgram {
 

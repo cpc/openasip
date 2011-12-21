@@ -57,6 +57,9 @@
 #include "LiveRangeData.hh"
 #include "LiveRange.hh"
 #include "Terminal.hh"
+#include "BasicBlock.hh"
+#include "Operation.hh"
+#include "Move.hh"
 
 /**
  * Constructor.

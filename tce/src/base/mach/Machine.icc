@@ -42,6 +42,7 @@
 #include "RegisterFile.hh"
 #include "ImmediateSlot.hh"
 #include "ContainerTools.hh"
+#include "ObjectState.hh"
 
 namespace TTAMachine {
 

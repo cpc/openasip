@@ -32,6 +32,7 @@
 
 #include "Application.hh"
 #include "SocketPortConnCmd.hh"
+#include "Port.hh"
 
 using namespace TTAMachine;
 

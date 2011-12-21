@@ -43,7 +43,6 @@
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include "Exception.hh"
-#include "Move.hh"
 #include "GraphNode.hh"
 
 // dummy classes until real implementations are written

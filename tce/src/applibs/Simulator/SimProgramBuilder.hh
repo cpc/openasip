@@ -35,7 +35,6 @@
 #define TTA_SIM_PROGRAM_BUILDER_HH
 
 #include "Exception.hh"
-#include "Program.hh"
 
 class StateLocator;
 class InstructionMemory;
@@ -53,6 +52,7 @@ namespace TTAProgram {
     class Instruction;
     class Move;
     class Terminal;
+    class Program;
 }
 
 /**

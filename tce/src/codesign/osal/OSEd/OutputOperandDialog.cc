@@ -42,6 +42,7 @@
 #include "WidgetTools.hh"
 #include "DialogPosition.hh"
 #include "Operand.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

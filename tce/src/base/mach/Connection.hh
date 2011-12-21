@@ -34,8 +34,9 @@
 #ifndef TTA_CONNECTION_HH
 #define TTA_CONNECTION_HH
 
-#include "ObjectState.hh"
+#include <string>
 
+class ObjectState;
 namespace TTAMachine {
 
 class Segment;

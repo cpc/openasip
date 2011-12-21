@@ -37,10 +37,13 @@
 #include <string>
 
 #include "Exception.hh"
-#include "FunctionUnit.hh"
 #include "FUResourceConflictDetector.hh"
 #include "FUFiniteStateAutomaton.hh"
 #include "ResourceVectorSet.hh"
+
+namespace TTAMachine {
+    class FunctionUnit;
+}
 
 class Operation;
 

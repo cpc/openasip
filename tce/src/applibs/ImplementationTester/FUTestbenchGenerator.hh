@@ -42,10 +42,14 @@
 #include <stdint.h>
 #include "HDBManager.hh"
 #include "FUEntry.hh"
-#include "MachineState.hh"
-#include "Machine.hh"
 #include "MemorySystem.hh"
 #include "TestbenchGenerator.hh"
+
+namespace TTAMachine {
+    class Machine;
+}
+
+class MachineState;
 
 class FUTestbenchGenerator : public TestbenchGenerator {
 public:

@@ -33,7 +33,8 @@
 #define TTA_GUARD_HH
 
 #include "MachinePart.hh"
-#include "ObjectState.hh"
+
+class ObjectState;
 
 namespace TTAMachine {
 

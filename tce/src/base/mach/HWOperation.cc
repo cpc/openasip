@@ -40,6 +40,7 @@
 #include "MapTools.hh"
 #include "ContainerTools.hh"
 #include "StringTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::pair;

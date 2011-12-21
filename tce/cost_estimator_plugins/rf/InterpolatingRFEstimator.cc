@@ -46,6 +46,7 @@
 #include "RFArchitecture.hh"
 #include "FilterSearch.hh"
 #include "CostDatabaseRegistry.hh"
+#include "Conversion.hh"
 
 using namespace CostEstimator;
 using namespace HDB;

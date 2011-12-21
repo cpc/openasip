@@ -40,7 +40,8 @@
 
 #include "Serializable.hh"
 #include "Exception.hh"
-#include "ObjectState.hh"
+
+class ObjectState;
 
 /**
  * Class that models Operation Operand.

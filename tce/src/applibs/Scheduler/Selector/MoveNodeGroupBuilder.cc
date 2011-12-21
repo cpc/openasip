@@ -39,6 +39,8 @@
 #include "TCEString.hh"
 #include "SpecialRegisterPort.hh"
 #include "Terminal.hh"
+#include "Instruction.hh"
+#include "Move.hh"
 
 //#define DEBUG_MNGBUILDER
 

@@ -36,7 +36,6 @@
 #include <string>
 
 #include "FunctionUnit.hh"
-#include "AddressSpace.hh"
 
 class ObjectState;
 

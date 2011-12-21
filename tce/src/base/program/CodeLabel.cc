@@ -35,8 +35,9 @@
 #include "InstructionReference.hh"
 #include "Procedure.hh"
 #include "Program.hh"
-#include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 #include "NullInstruction.hh"
+#include "GlobalScope.hh"
 
 using std::string;
 

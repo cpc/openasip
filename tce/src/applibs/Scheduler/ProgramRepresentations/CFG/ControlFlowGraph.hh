@@ -52,7 +52,6 @@ namespace llvm {
 #include "BasicBlockNode.hh"
 #include "BasicBlock.hh"
 #include "ControlFlowEdge.hh"
-#include "Program.hh"
 #include "Address.hh"
 #include "NullAddress.hh"
 #include "CFGStatistics.hh"

@@ -38,9 +38,10 @@
 #include <set>
 
 #include "OperationDAG.hh"
-#include "Operation.hh"
 #include "CIStringSet.hh"
 #include "TCEString.hh"
+
+class Operation;
 
 /**
  * Class that search DAGs from operation set.

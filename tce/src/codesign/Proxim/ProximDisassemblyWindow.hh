@@ -39,11 +39,14 @@
 #include <wx/grid.h>
 #include "SimulatorEvent.hh"
 #include "ProximSimulatorWindow.hh"
-#include "Program.hh"
 
 class ProximMainFrame;
 class ProximDisassemblyGridTable;
 class ProximDisasmAttrProvider;
+
+namespace TTAProgram {
+    class Program;
+}
 
 /**
  * A window which can be utilized to display disassembly of a program object

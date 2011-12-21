@@ -60,6 +60,7 @@
 #include "CodeSection.hh"
 #include "InstructionElement.hh"
 #include "Move.hh"
+#include "UniversalMachine.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

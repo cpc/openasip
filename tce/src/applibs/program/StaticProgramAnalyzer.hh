@@ -36,9 +36,11 @@
 #include <string>
 #include <set>
 #include <map>
-#include "Program.hh"
-#include "Operation.hh"
+#include "BaseType.hh"
 
+namespace TTAProgram {
+    class Program;
+}
 
 /**
  * Analyzes sequential programs operation use, register needs and

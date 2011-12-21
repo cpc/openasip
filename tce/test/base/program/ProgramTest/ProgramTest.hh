@@ -45,7 +45,7 @@ using std::endl;
 #include "NullInstruction.hh"
 #include "AddressSpace.hh"
 #include "Machine.hh"
-
+#include "GlobalScope.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

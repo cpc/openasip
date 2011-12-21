@@ -34,6 +34,7 @@
 
 #include "BaseFUPort.hh"
 #include "FunctionUnit.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

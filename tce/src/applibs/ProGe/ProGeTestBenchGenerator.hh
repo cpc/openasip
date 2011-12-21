@@ -34,12 +34,16 @@
 #ifndef TTA_PROGE_TEST_BENCH_GENERATOR_HH
 #define TTA_PROGE_TEST_BANCH_GENERATOR_HH
 
-#include "Machine.hh"
 #include "Exception.hh"
 #include "MachineImplementation.hh"
 #include "FUImplementationLocation.hh"
 
 #include <string>
+#include "TCEString.hh"
+
+namespace TTAMachine {
+    class Machine;
+}
 
 /**
  * Class for test bench generating objects.

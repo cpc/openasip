@@ -40,6 +40,7 @@
 #include "SpecialRegisterPort.hh"
 #include "ADFSerializer.hh"
 #include "FileSystem.hh"
+#include "Machine.hh"
 
 using std::string;
 using namespace TTAMachine;

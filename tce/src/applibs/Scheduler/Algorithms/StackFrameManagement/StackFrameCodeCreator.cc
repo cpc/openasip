@@ -44,7 +44,7 @@
 #include "MoveNode.hh"
 #include "MoveNodeSet.hh"
 #include "ProgramOperation.hh"
-
+#include "Instruction.hh"
 #include "StackFrameCodeCreator.hh"
 
 using namespace TTAMachine;

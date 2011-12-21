@@ -64,6 +64,7 @@
 #include "OperationDAG.hh"
 #include "TCEString.hh"
 #include "FileSystem.hh"
+#include "OperationBehavior.hh"
 
 using std::string;
 using std::vector;

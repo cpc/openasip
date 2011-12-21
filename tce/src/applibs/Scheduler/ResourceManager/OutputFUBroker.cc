@@ -49,6 +49,7 @@
 #include "MoveNodeSet.hh"
 #include "OutputPSocketResource.hh"
 #include "ResourceManager.hh"
+#include "Move.hh"
 
 using std::string;
 using namespace TTAMachine;

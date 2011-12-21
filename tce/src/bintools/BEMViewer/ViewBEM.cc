@@ -56,7 +56,7 @@
 #include "FUPortCode.hh"
 #include "RFPortCode.hh"
 #include "IUPortCode.hh"
-
+#include "Conversion.hh"
 #include "FileSystem.hh"
 
 using std::cerr;

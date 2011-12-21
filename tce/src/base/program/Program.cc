@@ -64,6 +64,7 @@
 #include "Immediate.hh"
 #include "MathTools.hh"
 #include "TerminalInstructionReference.hh"
+#include "GlobalScope.hh"
 
 using std::string;
 

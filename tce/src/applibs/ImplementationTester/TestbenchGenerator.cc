@@ -42,6 +42,7 @@
 #include "Environment.hh"
 #include "FileSystem.hh"
 #include "Conversion.hh"
+#include "HWBlockImplementation.hh"
 
 using std::string;
 using std::vector;

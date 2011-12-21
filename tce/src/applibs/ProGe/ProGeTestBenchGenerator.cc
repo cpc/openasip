@@ -61,6 +61,7 @@
 #include "Exception.hh"
 #include "StringTools.hh"
 
+
 using namespace IDF; 
 using namespace HDB; 
 using namespace TTAMachine;

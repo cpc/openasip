@@ -35,6 +35,7 @@
 #include "FiniteStateAutomaton.hh"
 #include "Conversion.hh"
 #include "boost/format.hpp"
+#include "FunctionUnit.hh"
 
 const FiniteStateAutomaton::FSAStateIndex 
 FiniteStateAutomaton::ILLEGAL_STATE;

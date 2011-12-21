@@ -44,6 +44,8 @@
 #include "SpecialRegisterPort.hh"
 #include "StringTools.hh"
 #include "Operation.hh"
+#include "Machine.hh"
+#include "Program.hh"
 
 /**
  * Constructor.

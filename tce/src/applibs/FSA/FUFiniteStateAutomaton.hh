@@ -35,9 +35,12 @@
 
 #include <string>
 #include "FiniteStateAutomaton.hh"
-#include "FunctionUnit.hh"
 #include "Exception.hh"
 #include "FUCollisionMatrixIndex.hh"
+
+namespace TTAMachine {
+    class FunctionUnit;
+}
 
 class ResourceVectorSet;
 class CollisionMatrix;

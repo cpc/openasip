@@ -32,7 +32,7 @@
  */
 
 #include "FSAFUResourceConflictDetectorPimpl.hh"
-
+#include "FunctionUnit.hh"
 
 FSAFUResourceConflictDetectorPimpl::FSAFUResourceConflictDetectorPimpl(
     const TTAMachine::FunctionUnit& fu) :

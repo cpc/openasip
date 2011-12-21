@@ -49,6 +49,8 @@
 #include "OSEdInfoView.hh"
 #include "OperationIndex.hh"
 #include "TCEString.hh"
+#include "OperationBehavior.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

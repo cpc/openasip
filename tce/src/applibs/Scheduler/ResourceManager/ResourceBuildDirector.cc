@@ -30,6 +30,7 @@
  * @note rating: red
  */
 
+#include <iomanip>
 #include "ResourceBuildDirector.hh"
 #include "ResourceBroker.hh"
 #include "ContainerTools.hh"

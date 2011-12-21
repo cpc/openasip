@@ -42,6 +42,8 @@
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
 #include "TerminalFUPort.hh"
+#include "Program.hh"
+#include "Instruction.hh"
 
 /**
  * Constructor.

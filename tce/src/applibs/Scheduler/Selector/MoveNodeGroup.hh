@@ -36,10 +36,11 @@
 
 #include <vector>
 
-#include "MoveNode.hh"
 #include "Exception.hh"
+#include "ProgramOperation.hh"
 
 class DataDependenceGraph;
+class MoveNode;
 
 /**
  * Class which contains group of moves which are to be scheduled.

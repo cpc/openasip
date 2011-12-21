@@ -47,6 +47,7 @@
 #include "SequenceTools.hh"
 #include "StringTools.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

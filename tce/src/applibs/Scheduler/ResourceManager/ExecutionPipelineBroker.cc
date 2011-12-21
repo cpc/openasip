@@ -49,6 +49,8 @@
 #include "ResourceManager.hh"
 #include "Terminal.hh"
 #include "ProgramOperation.hh"
+#include "Operation.hh"
+#include "Move.hh"
 
 using namespace TTAMachine;
 using std::pair;

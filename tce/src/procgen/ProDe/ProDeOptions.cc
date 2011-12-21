@@ -35,6 +35,7 @@
 #include "ProDeOptions.hh"
 #include "Conversion.hh"
 #include "SequenceTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

@@ -71,6 +71,7 @@
 #include "LinearScanAllocatorCore.hh"
 #include "ProcedurePass.hh"
 #include "InstructionReferenceManager.hh"
+#include "InterPassData.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

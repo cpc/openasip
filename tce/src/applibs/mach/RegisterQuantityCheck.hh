@@ -41,7 +41,9 @@
 #include <set>
 #include <string>
 
-#include "RegisterFile.hh"
+namespace TTAMachine {
+    class RegisterFile;
+}
 
 class RegisterQuantityCheck : public MachineCheck {
 public:

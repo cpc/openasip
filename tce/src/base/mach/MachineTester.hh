@@ -38,7 +38,6 @@
 
 #include "Exception.hh"
 #include "Socket.hh"
-#include "Unit.hh"
 
 /**
  * MachineTester is a class that implements all the API needed for

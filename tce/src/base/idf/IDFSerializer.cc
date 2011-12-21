@@ -37,6 +37,7 @@
 #include "UnitImplementationLocation.hh"
 #include "Environment.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

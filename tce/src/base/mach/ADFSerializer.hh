@@ -35,7 +35,10 @@
 #define TTA_MDF_SERIALIZER_HH
 
 #include "XMLSerializer.hh"
-#include "Machine.hh"
+
+namespace TTAMachine {
+    class Machine;
+}
 
 /**
  * This class is used to generate a machine object model from MDF file and to

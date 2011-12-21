@@ -37,7 +37,8 @@
 
 #include "XMLSerializer.hh"
 #include "Exception.hh"
-#include "GUIOptions.hh"
+
+class GUIOptions;
 
 /**
  * Reads and writes options of a graphical user interface from an XML file.

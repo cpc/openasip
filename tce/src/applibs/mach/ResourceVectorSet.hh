@@ -35,8 +35,11 @@
 
 #include "FiniteStateAutomaton.hh"
 #include "ResourceVector.hh"
-#include "FunctionUnit.hh"
 #include "Exception.hh"
+
+namespace TTAMachine {
+    class FunctionUnit;
+}
 
 /**
  * Represents a set of resource vectors used in building the states in case

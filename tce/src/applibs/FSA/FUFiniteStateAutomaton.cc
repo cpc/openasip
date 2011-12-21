@@ -39,6 +39,7 @@
 #include "SequenceTools.hh"
 #include "hash_set.hh"
 #include "HWOperation.hh"
+#include "FunctionUnit.hh"
 
 /**
  * Initializes the FSA from the given FU.

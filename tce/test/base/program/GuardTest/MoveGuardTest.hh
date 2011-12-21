@@ -39,6 +39,7 @@
 #include "RegisterFile.hh"
 #include "RFPort.hh"
 #include "Bus.hh"
+#include "BaseType.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

@@ -41,6 +41,7 @@
 
 #include "IDFSerializer.hh"
 #include "ADFSerializer.hh"
+#include "Machine.hh"
 
 using std::string;
 

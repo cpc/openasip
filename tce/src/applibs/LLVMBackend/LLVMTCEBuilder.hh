@@ -50,7 +50,6 @@
 #include "TCEString.hh"
 #include "passes/MachineDCE.hh"
 #include "TCETargetMachine.hh"
-#include "UniversalMachine.hh"
 #include "ProgramOperation.hh"
 
 namespace TTAProgram {

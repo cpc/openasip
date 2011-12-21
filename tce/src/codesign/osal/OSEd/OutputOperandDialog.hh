@@ -37,8 +37,6 @@
 #include <wx/wx.h>
 #include <map>
 
-class Operand;
-
 #include "Operand.hh"
 
 typedef std::map <int, Operand::OperandType> operandList;

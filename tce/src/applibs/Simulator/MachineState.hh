@@ -38,8 +38,7 @@
 #include <map>
 #include <vector>
 
-#include "PortState.hh"
-#include "Guard.hh"
+#include "Exception.hh"
 
 class GCUState;
 class BusState;
@@ -48,6 +47,11 @@ class LongImmediateUnitState;
 class RegisterFileState;
 class OperationExecutor;
 class GuardState;
+class PortState;
+
+namespace TTAMachine {
+    class Guard;
+}
 
 /**
  * Root class of machine state model.

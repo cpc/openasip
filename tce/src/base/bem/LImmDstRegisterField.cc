@@ -36,6 +36,7 @@
 #include "BinaryEncoding.hh"
 #include "MapTools.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

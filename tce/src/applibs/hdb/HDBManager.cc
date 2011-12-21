@@ -66,6 +66,7 @@
 
 #include "FUValidator.hh"
 #include "MachineValidatorResults.hh"
+#include "Conversion.hh"
 
 using std::string;
 using boost::format;

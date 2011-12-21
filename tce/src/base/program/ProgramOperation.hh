@@ -40,10 +40,10 @@
 #include <boost/shared_ptr.hpp>
 
 #include "Exception.hh"
-#include "Operation.hh"
 
 class MoveNode;
 class MoveNodeSet;
+class Operation;
 
 namespace llvm {
     class MachineInstr;

@@ -55,8 +55,8 @@
 #include "BinaryEncoding.hh"
 #include "MachineValidator.hh"
 #include "MachineValidatorResults.hh"
-
 #include "MinimalOpSetCheck.hh"
+#include "Guard.hh"
 
 using std::set;
 using std::vector;

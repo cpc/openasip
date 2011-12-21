@@ -38,6 +38,7 @@
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
 #include "Machine.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

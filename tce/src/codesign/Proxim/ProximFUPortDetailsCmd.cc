@@ -42,6 +42,7 @@
 #include "ProximConstants.hh"
 #include "MachineState.hh"
 #include "PortState.hh"
+#include "FunctionUnit.hh"
 
 using std::string;
 using namespace TTAMachine;

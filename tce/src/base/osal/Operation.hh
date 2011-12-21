@@ -37,12 +37,14 @@
 #define TTA_OPERATION_HH
 
 #include "Serializable.hh"
-#include "OperationBehavior.hh"
 
+class OperationContext;
+class OperationBehavior;
 class OperationDAG;
 class TCEString;
 class OperationPimpl;
 class Operand;
+class SimValue;
 
 /**
  * Class that models the static properties and the behavior of operations

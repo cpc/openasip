@@ -34,6 +34,8 @@
 #include "GUIOptionsSerializer.hh"
 #include "KeyboardShortcut.hh"
 #include "Conversion.hh"
+#include "GUIOptions.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

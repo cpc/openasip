@@ -55,6 +55,7 @@
 #include "NOPEncoding.hh"
 #include "Application.hh"
 #include "Environment.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

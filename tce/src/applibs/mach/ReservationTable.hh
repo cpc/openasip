@@ -33,7 +33,6 @@
 #ifndef TTA_RESERVATION_TABLE_HH
 #define TTA_RESERVATION_TABLE_HH
 
-#include "ExecutionPipeline.hh"
 #include "BitMatrix.hh"
 
 namespace TTAMachine {

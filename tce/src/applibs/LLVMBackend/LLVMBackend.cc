@@ -104,6 +104,7 @@
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
 #include "LLVMTCEIRBuilder.hh"
+#include "Machine.hh"
 
 //#define DEBUG_TDGEN
 

@@ -55,6 +55,8 @@
 #include "ControlUnit.hh"
 #include "Terminal.hh"
 #include "MoveGuard.hh"
+#include "Operation.hh"
+#include "Move.hh"
 
 using namespace TTAMachine;
 
@@ -348,7 +350,7 @@ MoveNode::isAssigned() const {
  */
 bool
 MoveNode::isScheduled() const {
-    return isAssigned() && isPlaced();
+    return isPlaced() && isAssigned();
 }
 
 

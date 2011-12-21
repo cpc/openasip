@@ -36,7 +36,6 @@
 #include <map>
 #include <wx/wx.h>
 #include <wx/listctrl.h>
-#include "Machine.hh"
 
 class Model;
 

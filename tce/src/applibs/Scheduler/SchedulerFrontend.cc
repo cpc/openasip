@@ -56,6 +56,8 @@
 #include "Algorithms/InterPassData.hh"
 #include "MachineCheckResults.hh"
 #include "FileSystem.hh"
+#include "UniversalMachine.hh"
+#include "Program.hh"
 
 using std::string;
 using std::vector;

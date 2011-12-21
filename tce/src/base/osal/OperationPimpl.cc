@@ -30,7 +30,9 @@
  * @note rating: red
  */
 
+#include "OperationPimpl.hh"
 #include "Operation.hh"
+#include "OperationBehavior.hh"
 #include "OperationDAG.hh"
 #include "OperationDAGConverter.hh"
 #include "SequenceTools.hh"
@@ -40,6 +42,7 @@
 #include "OperationPool.hh"
 #include "TCEString.hh"
 #include "OperationPimpl.hh"
+#include "ObjectState.hh"
 
 using std::set;
 using std::vector;

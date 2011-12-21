@@ -32,6 +32,8 @@
  */
 
 #include "ProgramDependenceNode.hh"
+#include "Move.hh"
+#include "MoveNode.hh"
 
 /**
  * Constructor creating Program Dependence Node from Control Dependence 

@@ -34,9 +34,15 @@
 #define TTA_MACHINE_RESOURCE_MODIFIER_HH
 
 #include <map>
-#include "Machine.hh"
-#include "Bus.hh"
+#include <list>
+#include <string>
 
+namespace TTAMachine {
+    class Machine;
+    class Bus;
+    class RegisterFile;
+    class FunctionUnit;
+}
 /**
  * Class that adds or removes resources of the given architecture.
  */

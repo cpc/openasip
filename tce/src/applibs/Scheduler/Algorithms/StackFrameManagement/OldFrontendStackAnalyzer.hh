@@ -40,8 +40,6 @@
 
 #include "Exception.hh"
 
-#include "StackFrameData.hh"
-
 namespace TTAProgram {
     class Move;
     class Instruction;
@@ -50,6 +48,8 @@ namespace TTAProgram {
     class TerminalRegister;
     class ProgramAnnotation;
 }
+
+class StackFrameData;
 
 class OldFrontendStackAnalyzer {
 public:

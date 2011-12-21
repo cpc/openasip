@@ -41,6 +41,7 @@
 #include "FunctionUnit.hh"
 #include "TCEString.hh"
 #include "MoveNodeGroupBuilder.hh"
+#include "MoveNode.hh"
 
 namespace TTAProgram {
 }

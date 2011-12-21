@@ -49,6 +49,7 @@
 #include "Operation.hh"
 #include "OperationModule.hh"
 #include "TCEString.hh"
+#include "ObjectState.hh"
 
 using boost::format;
 using std::string;

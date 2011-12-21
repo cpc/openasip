@@ -41,7 +41,9 @@
 #include "CodeLabel.hh"
 #include "AddressSpace.hh"
 #include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 #include "Machine.hh"
+#include "GlobalScope.hh"
 
 using std::string;
 using namespace TTAMachine;

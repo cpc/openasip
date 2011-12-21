@@ -43,6 +43,7 @@
 #include "Application.hh"
 #include "BEMTester.hh"
 #include "SequenceTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

@@ -35,6 +35,7 @@
 #include "Application.hh"
 #include "ImmediateSlotField.hh"
 #include "BinaryEncoding.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

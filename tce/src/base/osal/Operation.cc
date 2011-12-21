@@ -38,6 +38,7 @@
 #include "Application.hh"
 #include "Exception.hh"
 #include "Operand.hh"
+#include "OperationBehavior.hh"
 
 const char* Operation::OPRN_OPERATION = "operation";
 const char* Operation::OPRN_NAME = "name";

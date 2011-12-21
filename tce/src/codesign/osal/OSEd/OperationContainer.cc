@@ -49,6 +49,7 @@
 #include "IdealSRAM.hh"
 #include "SimValue.hh"
 #include "TCEString.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

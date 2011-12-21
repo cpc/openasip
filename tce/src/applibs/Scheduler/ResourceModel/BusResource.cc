@@ -39,6 +39,7 @@
 #include "MoveNode.hh"
 #include "Port.hh"
 #include "Terminal.hh"
+#include "Move.hh"
 
 /**
  * Constructor

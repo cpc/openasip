@@ -39,11 +39,13 @@
 #include "CustomCommand.hh"
 #include "Exception.hh"
 #include "DataObject.hh"
-#include "OperationPool.hh"
 #include "SimpleScriptInterpreter.hh"
 #include "CmdLineOptions.hh"
 #include "OperationContext.hh"
 #include "SimValue.hh"
+
+class Operation;
+class OperationPool;
 
 //////////////////////////////////////////////////////////////////////////////
 // CmdTrigger

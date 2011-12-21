@@ -34,6 +34,7 @@
 #include "Instruction.hh"
 #include "ProgramOperation.hh"
 #include "MoveNode.hh"
+#include "Move.hh"
 
 using namespace TTAMachine;
 

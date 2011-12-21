@@ -35,7 +35,6 @@
 
 #include "Serializable.hh"
 #include "InstructionField.hh"
-#include "ObjectState.hh"
 #include <vector>
 
 class MoveSlot;

@@ -38,6 +38,7 @@
 #include "SequenceTools.hh"
 #include "FileSystem.hh"
 #include "IDFSerializer.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

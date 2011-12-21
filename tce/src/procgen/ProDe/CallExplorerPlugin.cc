@@ -55,6 +55,7 @@
 #include "EditParameterDialog.hh"
 #include "Model.hh"
 #include "MDFDocument.hh"
+#include "Machine.hh"
 
 using boost::format;
 using std::string;

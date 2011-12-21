@@ -38,8 +38,6 @@
 #include "Address.hh"
 #include "BaseType.hh"
 #include "Exception.hh"
-#include "GlobalScope.hh"
-#include "Instruction.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -49,12 +47,14 @@ class UniversalMachine;
 
 namespace TTAProgram {
 
+    class Instruction;
 class Procedure;
 class DataMemory;
 class Move;
 class InstructionReferenceManager;
 class TerminalImmediate;
 class Terminal;
+class GlobalScope;
 
 /**
  * Represents a TTA program.

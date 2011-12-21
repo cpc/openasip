@@ -38,6 +38,7 @@
 #include "SimpleResourceManager.hh"
 #include "ControlUnit.hh"
 #include "DDGPass.hh"
+#include "Instruction.hh"
 
 /**
  * Constructor.

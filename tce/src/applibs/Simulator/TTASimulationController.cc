@@ -45,6 +45,8 @@
 #include "InstructionMemory.hh"
 #include "Move.hh"
 #include "ExecutableInstruction.hh"
+#include "Program.hh"
+#include "Instruction.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

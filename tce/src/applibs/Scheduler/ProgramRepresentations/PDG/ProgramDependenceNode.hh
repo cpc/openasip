@@ -33,8 +33,10 @@
 #ifndef TTA_PROGRAM_DEPENDENCE_NODE_HH
 #define PROGRAM_DEPENDENCE_NODE_HH
 
-#include "MoveNode.hh"
 #include "ControlDependenceNode.hh"
+
+class MoveNode;
+
 /**
 */
 class ProgramDependenceNode : public GraphNode {

@@ -34,6 +34,7 @@
 #include "AddressSpace.hh"
 #include "DataDefinition.hh"
 #include "MapTools.hh"
+#include "Conversion.hh"
 
 namespace TTAProgram {
 

@@ -78,4 +78,14 @@ MachinePart::Comparator::operator() (
     return mp1->id_ > mp2->id_;
 }
 
+/**
+ * Returns the machine which is set for this component.
+ *
+ * @return The machine which is set for this component.
+ */
+inline Machine*
+Component::machine() const {
+    return machine_;
+}
+
 }

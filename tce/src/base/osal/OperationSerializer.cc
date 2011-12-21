@@ -42,6 +42,7 @@
 #include "Environment.hh"
 #include "StringTools.hh"
 #include "Operand.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

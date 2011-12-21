@@ -38,8 +38,6 @@
 #include <string>
 #include <vector>
 #include "Exception.hh"
-#include "Move.hh"
-#include "Program.hh"
 #include "MoveNode.hh"
 #include "ControlFlowGraph.hh"
 #include "ControlDependenceGraph.hh"

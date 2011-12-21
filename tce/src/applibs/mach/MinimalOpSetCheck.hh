@@ -40,8 +40,11 @@
 
 #include "MachineCheck.hh"
 #include "MachineCheckResults.hh"
-#include "Machine.hh"
 #include "CIStringSet.hh"
+
+namespace TTAMachine {
+    class Machine;
+}
 
 /**
  * MachineCheck to check is the machine fully connected.

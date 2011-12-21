@@ -38,7 +38,10 @@
 #include <vector>
 
 #include "SchedulingResource.hh"
-#include "Terminal.hh"
+
+namespace TTAProgram {
+    class Terminal;
+}
 
 /**
  * An interface for scheduling resources of Resource Model

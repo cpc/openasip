@@ -42,6 +42,7 @@
 #include "NullInstructionTemplate.hh"
 #include "NullProcedure.hh"
 #include "POMDisassembler.hh"
+#include "Conversion.hh"
 
 namespace TTAProgram {
 

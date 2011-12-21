@@ -49,6 +49,7 @@
 #include "Procedure.hh"
 #include "Instruction.hh"
 #include "InterPassData.hh"
+#include "GlobalScope.hh"
 
 class SequentialSchedulerTest : public CxxTest::TestSuite {
 public:

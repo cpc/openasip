@@ -33,11 +33,12 @@
 #ifndef TTA_STACK_CODE_REMOVER_HH
 #define TTA_STACK_CODE_REMOVER_HH
 
+#include <Exception.hh>
 
 namespace TTAProgram {
     class Procedure;
     class Instruction;
-    class programAnnotation;
+    class ProgramAnnotation;
 }
 
 class StackFrameData;

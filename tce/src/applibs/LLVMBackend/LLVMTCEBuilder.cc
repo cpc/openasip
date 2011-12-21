@@ -78,6 +78,8 @@
 #include "TCEString.hh"
 #include "ProgramOperation.hh"
 #include "LLVMTCECmdLineOptions.hh"
+#include "GlobalScope.hh"
+#include "InstructionReferenceManager.hh"
 
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>

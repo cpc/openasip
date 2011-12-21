@@ -45,8 +45,7 @@
 #include "DisassemblyInstruction.hh"
 #include "ADFSerializer.hh"
 #include "Machine.hh"
-
-// #include "Program.hh"
+#include "Program.hh"
 
 using namespace TTAProgram;
 using namespace TPEF;

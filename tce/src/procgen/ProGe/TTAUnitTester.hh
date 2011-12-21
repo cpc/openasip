@@ -34,9 +34,15 @@
 #define TTA_TTA_UNIT_TESTER_HH
 
 #include <string>
-#include "Machine.hh"
-#include "MachineImplementation.hh"
 #include "ImplementationTester.hh"
+
+namespace TTAMachine {
+    class Machine;
+}
+
+namespace IDF {
+    class MachineImplementation;
+}
 
 TTAMachine::Machine* readAdf(std::string adfName);
 

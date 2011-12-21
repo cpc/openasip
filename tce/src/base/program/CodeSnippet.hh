@@ -35,16 +35,17 @@
 
 #include <vector>
 
-#include "Instruction.hh"
 #include "Exception.hh"
+#include "Address.hh"
 
 namespace TTAMachine {
     class AddressSpace;
 }
 
 namespace TTAProgram {
-
     class Program;
+    class Instruction;
+    class Address;
 
 /**
  * A code snippet is an ordered sequence of adjacent instructions.

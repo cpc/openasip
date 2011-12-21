@@ -36,6 +36,7 @@
 #include "NullProcedure.hh"
 #include "NullInstruction.hh"
 #include "InstructionReferenceManager.hh"
+#include "GlobalScope.hh"
 
 using std::string;
 using namespace TTAMachine;

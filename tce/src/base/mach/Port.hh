@@ -38,7 +38,8 @@
 
 #include "MachinePart.hh"
 #include "Exception.hh"
-#include "ObjectState.hh"
+
+class ObjctState;
 
 namespace TTAMachine {
 

@@ -48,6 +48,8 @@
 #include "BaseType.hh"
 #include "TCEString.hh"
 #include "tce_config.h"
+#include "OperationBehavior.hh"
+#include "OperationPool.hh"
 
 using std::string;
 using std::vector;

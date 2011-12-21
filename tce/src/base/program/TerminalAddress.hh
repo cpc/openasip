@@ -35,7 +35,6 @@
 
 #include "TerminalImmediate.hh"
 #include "Address.hh"
-#include "AddressSpace.hh"
 
 namespace TTAMachine {
     class AddressSpace;

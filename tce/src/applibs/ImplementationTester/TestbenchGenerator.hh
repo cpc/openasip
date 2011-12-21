@@ -39,7 +39,10 @@
 #include <vector>
 #include <map>
 #include <stdint.h>
-#include "HWBlockImplementation.hh"
+
+namespace HDB {
+    class HWBlockImplementation;
+}
 
 class TestbenchGenerator {
 public:

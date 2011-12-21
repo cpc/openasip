@@ -54,6 +54,10 @@
 #include "AssocTools.hh"
 #include "POMDisassembler.hh"
 #include "ResourceManager.hh"
+#include "Terminal.hh"
+#include "MoveGuard.hh"
+#include "Move.hh"
+#include "Bus.hh"
 
 #ifdef DEBUG_RM
 #include <typeinfo>

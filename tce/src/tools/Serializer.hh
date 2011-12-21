@@ -32,9 +32,10 @@
 #ifndef TTA_SERIALIZER_HH
 #define TTA_SERIALIZER_HH
 
-#include "ObjectState.hh"
 #include "Serializable.hh"
 #include "Exception.hh"
+
+class ObjectState;
 
 /**
  * All serializers must implement this interface.

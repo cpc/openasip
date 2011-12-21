@@ -38,6 +38,7 @@
 #include "ControlUnit.hh"
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

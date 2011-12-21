@@ -37,7 +37,6 @@
 #include <string>
 
 #include "MachinePart.hh"
-#include "ObjectState.hh"
 
 namespace TTAMachine {
 

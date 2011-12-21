@@ -32,11 +32,9 @@
 
 #include "OperationDAGLanguageParser.hh"
 
-#include "OperationPool.hh"
-#include "OperationNode.hh"
-#include "OperationDAGEdge.hh"
-#include "TerminalNode.hh"
-#include "Operation.hh"
+class OperationNode;
+class TerminalNode;
+class OperationPimpl;
 
 /**
  * Builds OperationDAG from parsed and tokenized OSAL code.

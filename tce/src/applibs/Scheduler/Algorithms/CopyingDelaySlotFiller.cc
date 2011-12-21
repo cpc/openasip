@@ -48,7 +48,7 @@
 #include "TerminalRegister.hh"
 #include "SpecialRegisterPort.hh"
 #include "MoveGuard.hh"
-
+#include "Instruction.hh"
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
 #include "SimpleResourceManager.hh"
@@ -57,11 +57,12 @@
 
 #include "POMDisassembler.hh"
 #include "CopyingDelaySlotFiller.hh"
-
+#include "Program.hh"
 #include "InterPassDatum.hh"
 #include "InterPassData.hh"
 #include "TCEString.hh"
 #include "TerminalFUPort.hh"
+#include "Operation.hh"
 
 //using std::set;
 using std::list;

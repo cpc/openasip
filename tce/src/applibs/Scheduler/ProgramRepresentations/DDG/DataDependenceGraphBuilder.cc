@@ -56,7 +56,7 @@
 #include "Operand.hh"
 #include "POMDisassembler.hh"
 #include "DisassemblyRegister.hh"
-
+#include "Move.hh"
 #include "ControlFlowGraph.hh"
 #include "ControlFlowEdge.hh"
 #include "BasicBlockNode.hh"

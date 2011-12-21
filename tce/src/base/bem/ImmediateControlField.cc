@@ -38,6 +38,7 @@
 #include "MathTools.hh"
 #include "MapTools.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::pair;

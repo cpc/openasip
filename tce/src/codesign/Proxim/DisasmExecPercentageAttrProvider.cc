@@ -38,6 +38,7 @@
 #include "Instruction.hh"
 #include "ExecutableInstruction.hh"
 #include "Move.hh"
+#include "Machine.hh"
 
 /**
  * The Constructor.

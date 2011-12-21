@@ -33,6 +33,7 @@
 #ifndef TTA_CI_STRING_SET_HH
 #define TTA_CI_STRING_SET_HH
 
+#include <cstring>
 #include "TCEString.hh"
 
 namespace TCETools {

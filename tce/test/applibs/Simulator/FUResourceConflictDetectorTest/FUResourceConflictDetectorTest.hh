@@ -47,6 +47,7 @@
 #include "ReservationTableFUResourceConflictDetector.hh"
 #include "DCMFUResourceConflictDetector.hh"
 #include "TCEString.hh"
+#include "Machine.hh"
 
 /**
  * Class for testing FU resource conflict detectors.

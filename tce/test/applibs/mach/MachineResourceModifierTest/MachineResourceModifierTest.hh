@@ -44,6 +44,7 @@
 #include "Bus.hh"
 #include "Segment.hh"
 #include "ADFSerializer.hh"
+#include "RegisterFile.hh"
 
 using namespace TTAMachine;
 

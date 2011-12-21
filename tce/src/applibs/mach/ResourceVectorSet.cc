@@ -39,6 +39,7 @@
 #include "HWOperation.hh"
 #include "StringTools.hh"
 #include "AssocTools.hh"
+#include "FunctionUnit.hh"
 
 /**
  * Builds the resource vectors for the given FU.

@@ -38,6 +38,7 @@
 #include "Procedure.hh"
 #include "NullAddress.hh"
 #include "NullAddressSpace.hh"
+#include "Instruction.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

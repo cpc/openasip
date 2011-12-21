@@ -37,7 +37,6 @@
 #include <string>
 
 #include "Exception.hh"
-#include "FunctionUnit.hh"
 #include "FUResourceConflictDetector.hh"
 #include "FUReservationTableIndex.hh"
 #include "ReservationTable.hh"

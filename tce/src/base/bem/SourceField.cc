@@ -41,6 +41,7 @@
 #include "ContainerTools.hh"
 #include "SequenceTools.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

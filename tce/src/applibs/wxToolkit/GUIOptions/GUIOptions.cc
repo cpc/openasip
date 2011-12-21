@@ -39,6 +39,7 @@
 #include "CommandRegistry.hh"
 #include "GUICommand.hh"
 #include "FileSystem.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

@@ -48,6 +48,7 @@
 #include "FileSystem.hh"
 #include "UniversalMachine.hh"
 #include "tce_config.h"
+#include "Program.hh"
 
 using std::cout;
 using std::cerr;

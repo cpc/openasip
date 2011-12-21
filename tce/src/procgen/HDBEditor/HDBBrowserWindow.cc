@@ -50,6 +50,7 @@
 #include "HWOperation.hh"
 #include "CostFunctionPlugin.hh"
 #include "HDBToHtml.hh"
+#include "Conversion.hh"
 
 using namespace HDB;
 using namespace TTAMachine;

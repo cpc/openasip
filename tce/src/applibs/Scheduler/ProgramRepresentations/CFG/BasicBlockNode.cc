@@ -40,6 +40,7 @@
 #include "InstructionReferenceManager.hh"
 #include "Move.hh"
 #include "Program.hh"
+#include "Instruction.hh"
 
 /**
  * Constructor.

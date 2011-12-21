@@ -58,6 +58,7 @@
 #include "NullAddressSpace.hh"
 #include "CodeLabel.hh"
 #include "DataLabel.hh"
+#include "GlobalScope.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

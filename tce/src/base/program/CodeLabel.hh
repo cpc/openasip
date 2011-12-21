@@ -37,7 +37,6 @@
 #include "Label.hh"
 #include "Exception.hh"
 #include "InstructionReference.hh"
-#include "InstructionReferenceManager.hh"
 
 namespace TTAProgram {
 

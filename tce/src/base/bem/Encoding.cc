@@ -35,6 +35,7 @@
 #include "Encoding.hh"
 #include "ObjectState.hh"
 #include "MathTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

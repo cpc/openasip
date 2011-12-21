@@ -40,7 +40,7 @@
 #include "Application.hh"
 #include "InterPassData.hh"
 #include "LLVMTCECmdLineOptions.hh"
-
+#include "OperationPool.hh"
 
 namespace llvm {
 

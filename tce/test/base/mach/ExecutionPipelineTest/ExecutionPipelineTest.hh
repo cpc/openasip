@@ -40,6 +40,7 @@
 #include "FunctionUnit.hh"
 #include "ExecutionPipeline.hh"
 #include "AssocTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

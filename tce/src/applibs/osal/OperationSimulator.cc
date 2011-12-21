@@ -35,6 +35,7 @@
 #include "OperationSimulator.hh"
 #include "SimValue.hh"
 #include "Conversion.hh"
+#include "Operation.hh"
 
 using std::string;
 using std::vector;

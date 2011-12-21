@@ -48,6 +48,7 @@
 #include "AddressSpace.hh"
 #include "TCEString.hh"
 #include "Conversion.hh"
+#include "StackFrameData.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

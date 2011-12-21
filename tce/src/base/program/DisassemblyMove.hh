@@ -34,8 +34,9 @@
 #define TTA_DISASSEMBLY_MOVE_HH
 
 #include "DisassemblyInstructionSlot.hh"
-#include "DisassemblyElement.hh"
-#include "DisassemblyGuard.hh"
+
+class DisassemblyGuard;
+class DisassemblyElement;
 
 /**
  * Represents a move in the disassembler.

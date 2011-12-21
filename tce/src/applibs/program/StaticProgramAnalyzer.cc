@@ -39,6 +39,8 @@
 #include "DataDefinition.hh"
 #include "TCEString.hh"
 #include "MathTools.hh"
+#include "Program.hh"
+#include "Operation.hh"
 
 using namespace TTAProgram;
 

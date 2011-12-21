@@ -39,6 +39,7 @@
 #include "HDBManager.hh"
 #include "BaseRegisterFile.hh"
 #include "ExecutionTrace.hh"
+#include "Conversion.hh"
 
 using namespace CostEstimator;
 

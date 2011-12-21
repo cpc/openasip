@@ -58,6 +58,7 @@
 #include "ProDeClipboard.hh"
 #include "ProDeTextGenerator.hh"
 #include "UserManualCmd.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::cerr;

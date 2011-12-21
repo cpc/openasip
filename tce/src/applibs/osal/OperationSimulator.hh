@@ -36,10 +36,11 @@
 #include <string>
 #include <vector>
 
-#include "Operation.hh"
 #include "OperationContext.hh"
 #include "DataObject.hh"
 #include "SimValue.hh"
+
+class Operation;
 
 /**
  * Contains functionality to simulate operation behavior.

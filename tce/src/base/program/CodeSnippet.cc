@@ -39,6 +39,7 @@
 #include "InstructionReferenceManager.hh"
 #include "NullProgram.hh"
 #include "NullProcedure.hh"
+#include "Conversion.hh"
 
 using std::string;
 

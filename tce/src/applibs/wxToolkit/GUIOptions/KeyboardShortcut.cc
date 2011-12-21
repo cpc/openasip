@@ -33,6 +33,7 @@
 #include "Application.hh"
 #include "KeyboardShortcut.hh"
 #include "Conversion.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

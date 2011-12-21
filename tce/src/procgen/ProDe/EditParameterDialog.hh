@@ -34,7 +34,6 @@
 #define EDIT_PARAMETER_DIALOG_HH
 
 #include <wx/wx.h>
-#include "PluginTools.hh"
 #include "DesignSpaceExplorer.hh"
 #include "ExplorerPluginParameter.hh"
 

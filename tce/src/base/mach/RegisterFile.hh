@@ -38,7 +38,6 @@
 
 #include "MachinePart.hh"
 #include "BaseRegisterFile.hh"
-#include "ObjectState.hh"
 
 namespace TTAMachine {
 

@@ -36,7 +36,13 @@
 #include <vector>
 #include <set>
 #include <deque>
-#include "ExecutionPipeline.hh"
+#include <string>
+
+#include "Exception.hh"
+
+namespace TTAMachine {
+    class ExecutionPipeline;
+}
 
 /**
  * Represents a resource vector used in building the states in case

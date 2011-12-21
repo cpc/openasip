@@ -47,7 +47,6 @@
 
 
 #include "Serializable.hh"
-#include "ObjectState.hh"
 #include "Serializer.hh"
 #include "Exception.hh"
 
@@ -55,6 +54,7 @@
 XERCES_CPP_NAMESPACE_USE
 #endif
 
+class ObjectState;
 
 /**
  * This class is used to read and write XML. This is a base class for

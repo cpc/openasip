@@ -39,6 +39,7 @@
 #include "NullSocketCodeTable.hh"
 #include "Application.hh"
 #include "MathTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

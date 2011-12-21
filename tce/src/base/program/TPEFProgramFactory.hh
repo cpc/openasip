@@ -38,23 +38,41 @@
 #include <list>
 
 #include "Binary.hh"
-#include "Machine.hh"
-#include "Program.hh"
-#include "UniversalMachine.hh"
 #include "MoveElement.hh"
-#include "ImmediateElement.hh"
-#include "Terminal.hh"
 #include "ResourceElement.hh"
 #include "ResourceSection.hh"
 #include "Socket.hh"
 #include "TPEFTools.hh"
-#include "AddressSpace.hh"
 #include "ASpaceElement.hh"
+
+namespace TTAMachine {
+    class Machine;
+    class FunctionUnit;
+    class AddressSpace;
+    class Socket;
+    class RegisterFile;
+    class Guard;
+    class ImmediateUnit;
+    class InstructionTemplate;
+    class Port;
+    class Bus;
+    class Unit;
+}
+
+namespace TPEF {
+    class ImmediateElement;
+}
+
+class SimValue;
+class UniversalMachine;
 
 namespace TTAProgram {
 
 class Move;
 class Immediate;
+class Terminal;
+class Program;
+class Instruction;
 
 /**
  * Creates a new TTA program out of a description of a binary representation

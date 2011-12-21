@@ -67,6 +67,7 @@
 #include "Conversion.hh"
 #include "FileSystem.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::ifstream;

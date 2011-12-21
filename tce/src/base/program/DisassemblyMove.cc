@@ -32,6 +32,7 @@
  */
 
 #include "DisassemblyMove.hh"
+#include "DisassemblyGuard.hh"
 
 /**
  * Creates disassembler of a move.

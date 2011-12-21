@@ -36,11 +36,14 @@
 
 #include "ProximSimulatorWindow.hh"
 #include "SimulatorEvent.hh"
-#include "AddressSpace.hh"
 
 class MemorySystem;
 class MemoryControl;
 class SimulatorFrontend;
+
+namespace TTAMachine {
+    class AddressSpace;
+}
 
 /**
  * Proxim subwindow which displays memory contents.

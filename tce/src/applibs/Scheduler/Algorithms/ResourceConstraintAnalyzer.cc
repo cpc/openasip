@@ -39,6 +39,7 @@
 #include "Guard.hh"
 #include "TerminalFUPort.hh"
 #include "MoveGuard.hh"
+#include "Operation.hh"
 
 /**
  * Analyzes the resource constraints in the schedule.

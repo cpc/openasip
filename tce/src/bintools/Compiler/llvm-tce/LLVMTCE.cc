@@ -39,6 +39,7 @@
 #include "SchedulerFrontend.hh"
 #include "FileSystem.hh"
 #include "InterPassData.hh"
+#include "Machine.hh"
 
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
 const int DEFAULT_OPT_LEVEL = 2;

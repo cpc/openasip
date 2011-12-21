@@ -36,6 +36,9 @@
 #include <vector>
 #include <queue>
 
+#include "MoveNode.hh"
+#include "Move.hh"
+
 /**
  * A function object for prioritizing the ready list according to the move's
  * distance from farthest sink node.

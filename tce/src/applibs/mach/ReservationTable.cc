@@ -38,6 +38,7 @@
 #include "BaseType.hh"
 #include "HWOperation.hh"
 #include "PipelineElement.hh"
+#include "ExecutionPipeline.hh"
 
 /**
  * Builds an empty reservation table of given width for the given function

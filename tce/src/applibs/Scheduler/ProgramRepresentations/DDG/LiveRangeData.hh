@@ -38,6 +38,7 @@
 #include "MoveNodeUse.hh"
 #include "TCEString.hh"
 #include <set>
+#include <map>
 
 struct LiveRangeData {
     std::set<TCEString> registersAlive(

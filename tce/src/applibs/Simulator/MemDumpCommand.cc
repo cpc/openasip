@@ -39,7 +39,7 @@
 #include "Address.hh"
 #include "NullAddressSpace.hh"
 #include "SimValue.hh"
-
+#include "Conversion.hh"
 #include <iostream>
 #include <fstream>
 

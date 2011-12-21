@@ -38,14 +38,17 @@
 #include <map>
 #include "BrokerDirector.hh"
 #include "Exception.hh"
-#include "Terminal.hh"
-#include "MoveGuard.hh"
-#include "Bus.hh"
-#include "Immediate.hh"
 #include "MoveNode.hh"
 
 namespace TTAProgram {
     class Instruction;
+    class Terminal;
+    class Immediate;
+    class MoveGuard;
+}
+
+namespace TTAMachine {
+    class Bus;
 }
 
 class ResourceBroker;

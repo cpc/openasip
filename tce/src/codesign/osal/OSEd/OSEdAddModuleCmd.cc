@@ -46,6 +46,7 @@
 #include "OperationSerializer.hh"
 #include "OperationIndex.hh"
 #include "OperationModule.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

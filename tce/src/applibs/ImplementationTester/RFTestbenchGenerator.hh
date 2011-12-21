@@ -39,9 +39,14 @@
 #include "TestbenchGenerator.hh"
 #include "HDBManager.hh"
 #include "RFEntry.hh"
-#include "MachineState.hh"
-#include "Machine.hh"
 #include "MemorySystem.hh"
+
+class MachineState;
+
+namespace TTAMachine {
+    class RegisterFile;
+    class Machine;
+}
 
 class RFTestbenchGenerator : public TestbenchGenerator {
 public:

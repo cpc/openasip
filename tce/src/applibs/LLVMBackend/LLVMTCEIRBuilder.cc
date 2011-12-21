@@ -48,12 +48,12 @@
 #include "BBSchedulerController.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
 #include "CopyingDelaySlotFiller.hh"
-
+#include "Machine.hh"
 #include "InstructionReferenceManager.hh"
-
+#include "Program.hh"
 #include "RegisterCopyAdder.hh"
 #include "LLVMTCECmdLineOptions.hh"
-
+#include "Instruction.hh"
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
 #include "FUPort.hh"

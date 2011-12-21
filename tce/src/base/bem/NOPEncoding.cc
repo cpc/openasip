@@ -33,6 +33,7 @@
 #include "NOPEncoding.hh"
 #include "SourceField.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

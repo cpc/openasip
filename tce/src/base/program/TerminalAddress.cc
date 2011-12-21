@@ -31,6 +31,7 @@
  */
 
 #include "TerminalAddress.hh"
+#include "AddressSpace.hh"
 
 using namespace TTAMachine;
 

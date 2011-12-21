@@ -39,6 +39,7 @@
 #include "OperationModule.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

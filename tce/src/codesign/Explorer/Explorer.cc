@@ -50,7 +50,7 @@
 #include "DSDBManager.hh"
 #include "HDBRegistry.hh"
 #include "MachineImplementation.hh"
-
+#include "Machine.hh"
 #include "ExplorerPluginParameter.hh"
 #include "Environment.hh"
 

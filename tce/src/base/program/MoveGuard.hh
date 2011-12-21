@@ -33,8 +33,6 @@
 #ifndef TTA_MOVE_GUARD_HH
 #define TTA_MOVE_GUARD_HH
 
-#include "Terminal.hh"
-
 namespace TTAMachine {
     class Guard;
 }

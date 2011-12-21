@@ -37,9 +37,10 @@
 
 #include <string>
 
-#include "ObjectState.hh"
 #include "Serializable.hh"
 #include "Exception.hh"
+
+class ObjectState;
 
 namespace TTAMachine {
 
