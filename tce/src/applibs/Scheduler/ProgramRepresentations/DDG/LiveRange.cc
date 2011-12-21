@@ -48,3 +48,17 @@ LiveRange::noneScheduled() {
     }
     return true;
 }
+
+TCEString 
+LiveRange::toString() {
+    TCEString rv;
+    for (DataDependenceGraph::NodeSet::iterator i = writes.begin();
+         i != writes.end(); i++) {
+        rv << (*i)->toString() << " ";
+    }
+    for (DataDependenceGraph::NodeSet::iterator i = reads.begin();
+         i != reads.end(); i++) {
+        rv << (*i)->toString() << " ";
+    }
+    return rv;
+}    
