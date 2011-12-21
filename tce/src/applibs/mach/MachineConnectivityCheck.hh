@@ -35,8 +35,8 @@
 
 #include <set>
 #include <map>
+#include <vector>
 
-#include "MachineCheckResults.hh"
 #include "MachineCheck.hh"
 
 class TCEString;

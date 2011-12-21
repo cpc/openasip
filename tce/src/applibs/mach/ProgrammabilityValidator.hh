@@ -40,8 +40,6 @@
 
 #include "Exception.hh"
 
-#include "MinimalOpSetCheck.hh"
-
 using std::map;
 using std::set;
 using std::vector;

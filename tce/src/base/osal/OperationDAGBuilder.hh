@@ -35,6 +35,8 @@
 class OperationNode;
 class TerminalNode;
 class OperationPimpl;
+class OperationDAG;
+class OperationDAGNode;
 
 /**
  * Builds OperationDAG from parsed and tokenized OSAL code.

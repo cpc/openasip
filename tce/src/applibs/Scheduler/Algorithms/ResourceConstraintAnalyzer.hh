@@ -33,8 +33,13 @@
 #ifndef TTA_RESOURCE_CONSTRAINT_ANALYZER_HH
 #define TTA_RESOURCE_CONSTRAINT_ANALYZER_HH
 
-#include "DataDependenceGraph.hh"
-#include "SimpleResourceManager.hh"
+#include <map>
+#include <set>
+#include "TCEString.hh"
+
+class DataDependenceGraph;
+class SimpleResourceManager;
+class MoveNode;
 
 /**
  * A class that analyzes the most important resource constraints in the 

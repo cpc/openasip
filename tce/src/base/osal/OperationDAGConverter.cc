@@ -45,6 +45,7 @@
 #include "ConstantNode.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
+#include "OperationDAG.hh"
 
 /**
  * Creates OperationDAG out of OSAL DAG language source code.

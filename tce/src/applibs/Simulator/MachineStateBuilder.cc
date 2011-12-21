@@ -72,6 +72,7 @@
 #include "Guard.hh"
 #include "AddressSpaceCheck.hh"
 #include "TCEString.hh"
+#include "MachineCheckResults.hh"
 
 using namespace TTAMachine;
 using std::string;

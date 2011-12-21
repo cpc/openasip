@@ -37,13 +37,13 @@
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
 #include "BasicBlockScheduler.hh"
-#include "DataDependenceGraph.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
 class SoftwareBypasser;
 class CopyingDelaySlotFiller;
 class DataDependenceGraphBuilder;
+class DataDependenceGraph;
 class RegisterRenamer;
 class MoveNode;
 class MoveNodeGroup;

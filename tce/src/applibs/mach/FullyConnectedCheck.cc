@@ -41,6 +41,7 @@
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
 #include "Socket.hh"
+#include "MachineCheckResults.hh"
 
 using namespace TTAMachine;
 

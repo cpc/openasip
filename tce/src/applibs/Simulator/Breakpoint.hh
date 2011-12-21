@@ -35,7 +35,6 @@
 #define TTA_BREAKPOINT_HH
 
 #include "ConditionScript.hh"
-#include "SimulatorConstants.hh"
 #include "BaseType.hh"
 #include "StopPoint.hh"
 

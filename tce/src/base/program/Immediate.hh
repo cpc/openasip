@@ -33,7 +33,6 @@
 #ifndef TTA_IMMEDIATE_HH
 #define TTA_IMMEDIATE_HH
 
-#include "SimValue.hh"
 #include "Exception.hh"
 
 namespace TTAMachine {
@@ -71,7 +70,6 @@ private:
     Immediate& operator=(const Immediate&);
 
     /// Value of the immediate.
-    // SimValue value_;
     TerminalImmediate* value_;
 
     /// The destination register.

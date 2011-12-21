@@ -46,6 +46,7 @@
 #include "OSEdTreeView.hh"
 #include "FileSystem.hh"
 #include "Application.hh"
+#include "OSEdOptions.hh"
 
 using std::cerr;
 using std::endl;

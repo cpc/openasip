@@ -34,6 +34,7 @@
 #include "Application.hh"
 #include "Conversion.hh"
 #include "ObjectState.hh"
+#include "ProDeOptions.hh"
 
 using std::string;
 

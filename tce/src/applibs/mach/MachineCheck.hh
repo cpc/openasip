@@ -33,7 +33,11 @@
 #ifndef TTA_MACHINE_CHECK_HH
 #define TTA_MACHINE_CHECK_HH
 
-#include "MachineCheckResults.hh"
+#include <string>
+
+#include "Exception.hh"
+
+class MachineCheckResults;
 
 namespace TTAMachine {
     class Machine;

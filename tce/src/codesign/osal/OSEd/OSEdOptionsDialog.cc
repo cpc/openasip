@@ -47,6 +47,7 @@
 #include "DialogPosition.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"
+#include "OSEdOptions.hh"
 
 using boost::format;
 using std::string;

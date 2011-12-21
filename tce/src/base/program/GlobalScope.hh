@@ -33,7 +33,6 @@
 #ifndef TTA_GLOBAL_SCOPE_HH
 #define TTA_GLOBAL_SCOPE_HH
 
-#include "Label.hh"
 #include "Scope.hh"
 
 namespace TTAMachine {
@@ -43,6 +42,7 @@ namespace TTAMachine {
 namespace TTAProgram {
 
     class Program;
+    class Label;
 
 class GlobalScope : public Scope {
 public:

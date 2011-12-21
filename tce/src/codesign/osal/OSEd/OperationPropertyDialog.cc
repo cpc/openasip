@@ -65,6 +65,7 @@
 #include "TCEString.hh"
 #include "FileSystem.hh"
 #include "OperationBehavior.hh"
+#include "OSEdOptions.hh"
 
 using std::string;
 using std::vector;

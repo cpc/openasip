@@ -37,7 +37,9 @@
 #include <map>
 #include <vector>
 
-#include "OptionValue.hh"
+#include "Exception.hh"
+
+class OptionValue;
 
 using std::map;
 using std::string;

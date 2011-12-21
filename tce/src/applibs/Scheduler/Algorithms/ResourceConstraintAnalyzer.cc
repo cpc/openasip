@@ -40,6 +40,8 @@
 #include "TerminalFUPort.hh"
 #include "MoveGuard.hh"
 #include "Operation.hh"
+#include "DataDependenceGraph.hh"
+#include "SimpleResourceManager.hh"
 
 /**
  * Analyzes the resource constraints in the schedule.

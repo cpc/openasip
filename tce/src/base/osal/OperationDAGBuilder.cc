@@ -41,6 +41,8 @@
 #include "Operation.hh"
 #include "Operand.hh"
 #include "OperationPimpl.hh"
+#include "OperationDAG.hh"
+#include "OperationDAGNode.hh"
 
 /**
  * Constructor.

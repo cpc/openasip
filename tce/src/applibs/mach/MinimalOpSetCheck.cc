@@ -41,6 +41,7 @@
 #include "Environment.hh"
 #include "FullyConnectedCheck.hh"
 #include "CIStringSet.hh"
+#include "MachineCheckResults.hh"
 
 MinimalOpSetCheck::MinimalOpSetCheck() : 
     MachineCheck("Common helper functionality for minimal opset checks.") {

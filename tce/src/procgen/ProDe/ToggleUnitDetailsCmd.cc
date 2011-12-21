@@ -38,6 +38,7 @@
 #include "ProDeConstants.hh"
 #include "ProDe.hh"
 #include "MachineCanvasOptions.hh"
+#include "OptionValue.hh"
 
 using std::string;
 

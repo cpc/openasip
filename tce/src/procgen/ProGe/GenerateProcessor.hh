@@ -34,9 +34,10 @@
 #define TTA_GENERATE_PROCESSOR_HH
 
 #include "ProGeUI.hh"
-#include "ProGeCmdLineOptions.hh"
 #include "Exception.hh"
 #include "MemoryGenerator.hh"
+
+class ProGeCmdLineOptions;
 
 /**
  * Implements the command line user interface 'generateprocessor'.

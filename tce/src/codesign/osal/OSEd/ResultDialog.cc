@@ -42,6 +42,7 @@
 #include "CommandThread.hh"
 #include "FileSystem.hh"
 #include "OSEd.hh"
+#include "OSEdOptions.hh"
 
 using boost::format;
 using std::string;

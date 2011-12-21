@@ -37,9 +37,9 @@
 #include "BoostGraph.hh"
 #include "ProgramDependenceEdge.hh"
 #include "ProgramDependenceNode.hh"
-#include "ControlFlowGraph.hh"
 #include "ControlDependenceGraph.hh"
-#include "DataDependenceGraph.hh"
+
+class DataDependenceGraph;
 
 class ProgramDependenceGraph :
     public BoostGraph<ProgramDependenceNode, ProgramDependenceEdge> {

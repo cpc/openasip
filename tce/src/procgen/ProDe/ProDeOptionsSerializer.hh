@@ -36,7 +36,6 @@
 #include <string>
 
 #include "GUIOptionsSerializer.hh"
-#include "ProDeOptions.hh"
 
 /**
  * Reads/writes ProDe options from/to an XML file.

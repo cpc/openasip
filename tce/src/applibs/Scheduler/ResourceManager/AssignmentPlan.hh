@@ -34,7 +34,6 @@
 #define TTA_ASSIGNMENT_PLAN_HH
 
 #include <vector>
-#include "AssignmentPlan.hh"
 #include "Exception.hh"
 
 class ResourceBroker;

@@ -42,6 +42,7 @@
 
 #include "RegisterQuantityCheck.hh"
 #include "FullyConnectedCheck.hh"
+#include "MachineCheckResults.hh"
 
 RegisterQuantityCheck::RegisterQuantityCheck() : 
     MachineCheck("Checks that machine has enough registers") {}

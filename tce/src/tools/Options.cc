@@ -35,6 +35,7 @@
 
 #include "Options.hh"
 #include "MapTools.hh"
+#include "OptionValue.hh"
 
 using std::string;
 using std::vector;

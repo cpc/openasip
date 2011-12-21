@@ -35,7 +35,6 @@
 
 #include "Listener.hh"
 #include "Exception.hh"
-#include "BusState.hh"
 
 #include <string>
 #include <vector>

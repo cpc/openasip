@@ -31,6 +31,7 @@
  */
 
 #include "MachineCanvasOptions.hh"
+#include "OptionValue.hh"
 
 const std::string MachineCanvasOptions::SHOW_UNIT_INFO_STRING =
     "SHOT_UNIT_INFO_STRING";

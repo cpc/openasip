@@ -37,6 +37,8 @@
 #include "Exception.hh"
 #include "MoveGuard.hh"
 #include "Move.hh"
+#include "MoveNode.hh"
+#include "DataDependenceGraph.hh"
 
 
 

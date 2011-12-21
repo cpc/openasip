@@ -38,7 +38,7 @@
 #include "ExecutionPipeline.hh"
 #include "FUPort.hh"
 #include "FunctionUnit.hh"
-
+#include "MachineCheckResults.hh"
 
 using namespace TTAMachine;
 

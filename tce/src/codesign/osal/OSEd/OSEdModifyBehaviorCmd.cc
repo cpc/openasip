@@ -43,6 +43,7 @@
 #include "CommandThread.hh"
 #include "OperationModule.hh"
 #include "OSEdTreeView.hh"
+#include "OSEdOptions.hh"
 
 using std::string;
 using boost::format;

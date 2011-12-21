@@ -39,11 +39,11 @@
 #include <vector>
 #include "Exception.hh"
 #include "MoveNode.hh"
-#include "ControlFlowGraph.hh"
 #include "ControlDependenceGraph.hh"
-#include "DataDependenceGraph.hh"
 #include "ProgramDependenceGraph.hh"
 
+class DataDependenceGraph;
+class ControleFlowGraph;
 
 namespace TTAProgram{
     class Move;

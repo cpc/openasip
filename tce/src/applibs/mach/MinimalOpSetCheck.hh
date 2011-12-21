@@ -39,8 +39,9 @@
 #include <string>
 
 #include "MachineCheck.hh"
-#include "MachineCheckResults.hh"
 #include "CIStringSet.hh"
+
+class MachineCheckResults;
 
 namespace TTAMachine {
     class Machine;

@@ -39,6 +39,7 @@
 #include "Machine.hh"
 #include "OperationBindingCheck.hh"
 #include "RegisterQuantityCheck.hh"
+#include "MachineCheckResults.hh"
 
 class MachineCheckTest : public CxxTest::TestSuite {
 public:

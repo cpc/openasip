@@ -41,6 +41,7 @@
 #include "OutputSocketFigure.hh"
 #include "TriggeringPortFigure.hh"
 #include "MachineCanvasOptions.hh"
+#include "OptionValue.hh"
 
 using std::vector;
 using std::map;

@@ -59,6 +59,7 @@
 #include "Request.hh"
 #include "ComponentCommand.hh"
 #include "Program.hh"
+#include "OptionValue.hh"
 
 BEGIN_EVENT_TABLE(ProximMachineStateWindow, ProximSimulatorWindow)
     EVT_SIMULATOR_STOP(0, ProximMachineStateWindow::onSimulationStop)

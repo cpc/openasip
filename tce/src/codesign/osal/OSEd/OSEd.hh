@@ -36,7 +36,8 @@
 #include <wx/app.h>
 
 #include "OSEdMainFrame.hh"
-#include "OSEdOptions.hh"
+
+class OSEdOptions;
 
 /**
  * Main class for OSEd (Operation Set Editor).

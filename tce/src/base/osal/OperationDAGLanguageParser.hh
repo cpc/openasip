@@ -57,6 +57,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <map>
 
 #if defined(_DEBUG)
 // LLVM svn builds want to define _DEBUG which causes massive
@@ -108,7 +109,6 @@ using namespace boost::spirit;
 
 #endif
 
-#include "OperationDAG.hh"
 #include "Conversion.hh"
 
 // There is a g++ (3.1 and 3.2) bug on MINGW that prohibits

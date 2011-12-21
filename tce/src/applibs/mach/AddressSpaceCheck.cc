@@ -39,6 +39,7 @@
 #include "Operation.hh"
 #include "OperationPool.hh"
 #include "TCEString.hh"
+#include "MachineCheckResults.hh"
 
 using namespace TTAMachine;
 

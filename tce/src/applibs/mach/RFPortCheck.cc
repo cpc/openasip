@@ -37,6 +37,7 @@
 #include "RFPortCheck.hh"
 #include "RegisterFile.hh"
 #include "Machine.hh"
+#include "MachineCheckResults.hh"
 
 using namespace TTAMachine;
 
