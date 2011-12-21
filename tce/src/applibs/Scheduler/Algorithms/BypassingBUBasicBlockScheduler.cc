@@ -407,7 +407,6 @@ BypassingBUBasicBlockScheduler::scheduleResults(
                           << std::endl;
                 continue;
             }
-            /* this causes borken schedle
             if (hwop != NULL) {
                 TTAProgram::Terminal& src = mn.move().source();
 
@@ -426,7 +425,6 @@ BypassingBUBasicBlockScheduler::scheduleResults(
                     return false;
                 }
             }
-            */
             if (!scheduleMoveBU(mn, 0, latestCycle)) {
                 unscheduleResults(po);
                 return false;
@@ -449,11 +447,13 @@ BypassingBUBasicBlockScheduler::scheduleMoveUB(
               << std::endl;
     // TODO: unscheduld ones
     latestCycle = std::min(latestCycle, (int)endCycle_);
-    int ddgCycle = ddg_->earliestCycle(mn);
-    if (ddgCycle == -1 || ddgCycle == INT_MAX) {
+    int ddgLC = ddg_->latestCycle(mn);
+    latestCycle = std::min(latestCycle, ddgLC);
+    int ddgEC = ddg_->earliestCycle(mn);
+    if (ddgEC == -1 || ddgEC == INT_MAX) {
         return false;
     }
-    int minCycle = std::max(earliestCycle, ddgCycle);
+    int minCycle = std::max(earliestCycle, ddgEC);
     int rmCycle = rm_->earliestCycle(minCycle, mn);
     if (rmCycle != -1 && rmCycle <= latestCycle) {
         rm_->assign(rmCycle, mn);
