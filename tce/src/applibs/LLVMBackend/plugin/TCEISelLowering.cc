@@ -599,8 +599,6 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     case TCEISD::RET_FLAG: return "TCEISD::RET_FLAG";
     case TCEISD::GLOBAL_ADDR: return "TCEISD::GLOBAL_ADDR";
     case TCEISD::CONST_POOL: return "TCEISD::CONST_POOL";
-    case TCEISD::Hi: return "TCEISD::Hi";
-    case TCEISD::Lo: return "TCEISD::Lo";
     case TCEISD::FTOI: return "TCEISD::FTOI";
     case TCEISD::ITOF: return "TCEISD::ITOF";
     case TCEISD::SELECT_I1: return "TCEISD::SELECT_I1";
@@ -611,50 +609,6 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     case TCEISD::SELECT_F32: return "TCEISD::SELECT_F32";
     case TCEISD::SELECT_F64: return "TCEISD::SELECT_F64";
     }
-}
-
-static SDValue LowerSELECT(
-    SDValue op, SelectionDAG& dag) {
-
-    SDValue cond = op.getOperand(0);
-    SDValue trueVal = op.getOperand(1);
-    SDValue falseVal = op.getOperand(2);
-
-    unsigned opcode = 0;
-    switch(trueVal.getValueType().getSimpleVT().SimpleTy) {
-    default: assert(0 && "Unknown type to select.");
-    case MVT::i1: {
-        opcode = TCEISD::SELECT_I1;
-        break;
-    }
-    case MVT::i8: {
-        opcode = TCEISD::SELECT_I8;
-        break;
-    }
-    case MVT::i16: {
-        opcode = TCEISD::SELECT_I16;
-        break;
-    }
-    case MVT::i32: {
-        opcode = TCEISD::SELECT_I32;
-        break;
-    }
-    case MVT::i64: {
-        opcode = TCEISD::SELECT_I64;
-        break;
-    }
-    case MVT::f32: {
-        opcode = TCEISD::SELECT_F32;
-        break;
-    }
-    case MVT::f64: {
-        opcode = TCEISD::SELECT_F64;
-        break;
-    }
-    }
-
-    return dag.getNode(
-        opcode, op.getDebugLoc(), trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
 SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
@@ -735,7 +689,6 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     switch(op.getOpcode()) {
     case ISD::TRAP: return LowerTRAP(op, dag);
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
-    case ISD::SELECT: return LowerSELECT(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag, *this);
     case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
     case ISD::DYNAMIC_STACKALLOC: {

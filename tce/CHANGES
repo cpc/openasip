@@ -6,6 +6,11 @@ Usability features
 - dumptpef -m has now more user friendly output. 
 - OSAL files are searched also from environment variable TCE_OSAL_PATH
 
+Code generator improvements
+---------------------------
+- Immediates marked as rematerializable; This should reduce spilling as
+  values that come from immediates are not spilled to stack.
+
 1.5    December 2011
 ====================
 

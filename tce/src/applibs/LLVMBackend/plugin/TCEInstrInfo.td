@@ -36,10 +36,6 @@ SDTypeProfile<1, 1, [SDTCisVT<0, f32>, SDTCisFP<1>]>;
 def SDTTCEITOF :
 SDTypeProfile<1, 1, [SDTCisFP<0>, SDTCisVT<1, f32>]>;
 
-// not used for anything?
-def TCEhi    : SDNode<"TCEISD::Hi", SDTIntUnaryOp>;
-def TCElo    : SDNode<"TCEISD::Lo", SDTIntUnaryOp>;
-
 def TCEftoi  : SDNode<"TCEISD::FTOI", SDTTCEFTOI>;
 def TCEitof  : SDNode<"TCEISD::ITOF", SDTTCEITOF>;
 
@@ -82,17 +78,10 @@ def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
 //  Moves
 // =========================
 
-
-// Int -> Int register move.
-def MOVI1rr : InstTCE<(outs I1Regs:$dst), (ins I1Regs:$src),
-	           "$src -> $dst;",
-                   []>;
+// Immediate writes to register
+let isReMaterializable = 1, neverHasSideEffects = 1, isMoveImm = 1 in {
 
 def MOVI1ri : InstTCE<(outs I1Regs:$dst), (ins i1imm:$src),
-	           "$src -> $dst;",
-                   []>;
-
-def MOVI8rr : InstTCE<(outs I8Regs:$dst), (ins I8Regs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -100,15 +89,7 @@ def MOVI8ri : InstTCE<(outs I8Regs:$dst), (ins i8imm:$src),
 	           "$src -> $dst;",
                    []>;
 
-def MOVI16rr : InstTCE<(outs I16Regs:$dst), (ins I16Regs:$src),
-	           "$src -> $dst;",
-                   []>;
-
 def MOVI16ri : InstTCE<(outs I16Regs:$dst), (ins i16imm:$src),
-	           "$src -> $dst;",
-                   []>;
-
-def MOVI32rr : InstTCE<(outs I32Regs:$dst), (ins I32Regs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -116,11 +97,39 @@ def MOVI32ri : InstTCE<(outs I32Regs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
 
-def MOVI64rr : InstTCE<(outs I64Regs:$dst), (ins I64Regs:$src),
+def MOVI64ri : InstTCE<(outs I64Regs:$dst), (ins i64imm:$src),
 	           "$src -> $dst;",
                    []>;
 
-def MOVI64ri : InstTCE<(outs I64Regs:$dst), (ins i64imm:$src),
+def MOVF32ri : InstTCE<(outs F32Regs:$dst), (ins i32imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVF64ri : InstTCE<(outs F64Regs:$dst), (ins i64imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+}
+
+// Int -> Int register moves.
+def MOVI1rr : InstTCE<(outs I1Regs:$dst), (ins I1Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI8rr : InstTCE<(outs I8Regs:$dst), (ins I8Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI16rr : InstTCE<(outs I16Regs:$dst), (ins I16Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI32rr : InstTCE<(outs I32Regs:$dst), (ins I32Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+
+def MOVI64rr : InstTCE<(outs I64Regs:$dst), (ins I64Regs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -178,15 +187,7 @@ def MOVF32rr : InstTCE<(outs F32Regs:$dst), (ins F32Regs:$src),
 	           "$src -> $dst;",
                    []>;
 	
-def MOVF32ri : InstTCE<(outs F32Regs:$dst), (ins i32imm:$src),
-	           "$src -> $dst;",
-                   []>;
-
 def MOVF64rr : InstTCE<(outs F64Regs:$dst), (ins F64Regs:$src),
-	           "$src -> $dst;",
-                   []>;
-
-def MOVF64ri : InstTCE<(outs F64Regs:$dst), (ins i64imm:$src),
 	           "$src -> $dst;",
                    []>;
 
