@@ -139,7 +139,7 @@ BypassingBUBasicBlockScheduler::handleDDG(
     // instructions into the beginning of basic block.
     // Remove magic 1000 once the sparse implementation of RM vectors works.
 //endCycle_ = (ddg.nodeCount() < 1000) ? ddg.nodeCount() + 200 : 1000;
-    endCycle_ = ddg.nodeCount()*1.3 + 150;
+    endCycle_ = (int)(ddg.nodeCount()*1.3 + 150);
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
