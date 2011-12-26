@@ -175,6 +175,7 @@ def MOVI64I32rr : InstTCE<(outs I32Regs:$dst), (ins I64Regs:$src),
                      "$src -> $dst;",
                     [(set I32Regs:$dst, (trunc I64Regs:$src))]>;
 
+let isAsCheapAsAMove = 1 in {
 def MOVFI32rr : InstTCE<(outs I32Regs:$dst), (ins F32Regs:$src),
 	           "$src -> $dst;",
                    [(set I32Regs:$dst, (bitconvert F32Regs:$src))]>;
@@ -182,6 +183,7 @@ def MOVFI32rr : InstTCE<(outs I32Regs:$dst), (ins F32Regs:$src),
 def MOVIF32rr : InstTCE<(outs F32Regs:$dst), (ins I32Regs:$src),
 	           "$src -> $dst;",
                    [(set F32Regs:$dst, (bitconvert I32Regs:$src))]>;
+}
 
 def MOVF32rr : InstTCE<(outs F32Regs:$dst), (ins F32Regs:$src),
 	           "$src -> $dst;",
