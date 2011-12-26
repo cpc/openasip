@@ -1,3 +1,11 @@
+1.6       unreleased
+====================
+
+Bugfixes
+--------
+- Missing antidependence edges could cause broken schedule when
+  bypasser used on partially connected machines.
+
 1.5    December 2011
 ====================
 

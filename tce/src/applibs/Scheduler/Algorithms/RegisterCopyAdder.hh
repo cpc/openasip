@@ -51,6 +51,11 @@ namespace TTAProgram {
     class BasicBlock;
 }
 
+namespace TTAMachine {
+    class Port;
+    class RegisterFile;
+}
+
 /**
  * Adds register copies through connected register files in case of missing 
  * connectivity in the operand moves of operations.
@@ -89,19 +94,27 @@ public:
 
     typedef std::map<const MoveNode*, DataDependenceGraph::NodeSet> 
     AddedRegisterCopyMap;
-    
 
     struct AddedRegisterCopies {
         AddedRegisterCopies(int count);
         AddedRegisterCopies();
         int count_;
-        AddedRegisterCopyMap copies_;
+        AddedRegisterCopyMap operandCopies_;
+        AddedRegisterCopyMap resultCopies_;
     };
 
     AddedRegisterCopies addMinimumRegisterCopies(
         ProgramOperation& programOperation,
         const TTAMachine::Machine& targetMachine,
         DataDependenceGraph* ddg);
+
+    void operandsScheduled(
+        AddedRegisterCopies& copies,
+        DataDependenceGraph& ddg);
+
+    void resultsScheduled(
+        AddedRegisterCopies& copies,
+        DataDependenceGraph& ddg);
 
     AddedRegisterCopies addRegisterCopiesToRRMove(
         MoveNode& moveNode, 
@@ -130,7 +143,7 @@ private:
         const TTAMachine::Port& destinationPort,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        DataDependenceGraph::NodeSet* addedNodes = NULL);
+	DataDependenceGraph::NodeSet* addedNodes = NULL);
 
     int addConnectionRegisterCopies(
         MoveNode& moveNode,
@@ -154,7 +167,8 @@ private:
         MoveNode* firstMove,
         MoveNode* lastMove,
         const TTAMachine::RegisterFile* lastRF,
-        int lastRegisterIndex);
+        int lastRegisterIndex,
+        BasicBlockNode& currentBBNode);
 
     void fixDDGEdgesInTempRegChain(
         DataDependenceGraph& ddg,
@@ -168,7 +182,17 @@ private:
         int firstRegisterIndex,
 	std::vector<int> intRegisterIndex,
         int lastRegisterIndex,
-	int regsRequired);
+	int regsRequired,
+        BasicBlockNode& currentBBNode);
+
+    void createAntidepsForReg(
+	const MoveNode& defMove, 
+	const MoveNode& useMove,
+	const MoveNode& originalMove,
+	const TTAMachine::RegisterFile& rf, 
+	int index,
+	DataDependenceGraph& ddg, 
+	BasicBlockNode& bbn);
 
   void fixDDGEdgesInTempRegChainImmediate(
     DataDependenceGraph& ddg,
@@ -179,7 +203,8 @@ private:
     const TTAMachine::RegisterFile* tempRF1, 
     const TTAMachine::RegisterFile* tempRF2, 
     int tempRegisterIndex1,
-    int tempRegisterIndex2);
+    int tempRegisterIndex2,
+    BasicBlockNode& currentBBNode);
 
     /// container for storing the required register copies if the operation
     /// was bound to the given FU

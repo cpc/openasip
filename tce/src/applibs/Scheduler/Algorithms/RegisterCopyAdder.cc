@@ -224,7 +224,7 @@ RegisterCopyAdder::addRegisterCopiesToRRMove(
     }
     registerCopyCount += count;
     if (count != 0) {
-        copies.copies_[&moveNode] = addedNodes;
+        copies.operandCopies_[&moveNode] = addedNodes;
     }
         
     copies.count_ = registerCopyCount;
@@ -266,7 +266,7 @@ RegisterCopyAdder::addRegisterCopies(
         }
         registerCopyCount += count;
         if (count != 0 && !countOnly) {
-            copies.copies_[&m] = addedNodes;
+            copies.operandCopies_[&m] = addedNodes;
         }
     }
 
@@ -290,7 +290,7 @@ RegisterCopyAdder::addRegisterCopies(
         }
         registerCopyCount += count;
         if (count != 0 && !countOnly) {
-            copies.copies_[&m] = addedNodes;
+            copies.resultCopies_[&m] = addedNodes;
         }
     }
     copies.count_ = registerCopyCount;
@@ -321,7 +321,8 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const TTAMachine::Port& destinationPort,
     bool countOnly,
     DataDependenceGraph* ddg,
-    DataDependenceGraph::NodeSet* addedNodes) { 
+    DataDependenceGraph::NodeSet* addedNodes) {
+
 
     if (MachineConnectivityCheck::isConnected(sourcePort, destinationPort))
         return 0;
@@ -651,16 +652,18 @@ RegisterCopyAdder::addConnectionRegisterCopies(
   
     if (ddg != NULL) {
         // update the DDG edges
+        BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
         if (regsRequired >= 2) {
             fixDDGEdgesInTempRegChain(
                 *ddg, originalMove, firstMove, intMoves, lastMove, firstRF,
-                intRF, lastRF, firstRegisterIndex, intRegisterIndex, lastRegisterIndex, regsRequired);
+                intRF, lastRF, firstRegisterIndex, intRegisterIndex, 
+                lastRegisterIndex, regsRequired, bbn);
         }
 
         else {
             fixDDGEdgesInTempReg(
                 *ddg, originalMove, firstMove, lastMove, lastRF,
-                lastRegisterIndex);
+                lastRegisterIndex, bbn);
         }
     }
     
@@ -934,10 +937,11 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     lastMove->move().setDestination(originalDestination);
 
     if (ddg != NULL) {
+        BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
         // update the DDG edges
         fixDDGEdgesInTempRegChainImmediate(
             *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
-            tempRF2, tempRegisterIndex1, tempRegisterIndex2);
+            tempRF2, tempRegisterIndex1, tempRegisterIndex2, bbn);
     }
 
     return regsRequired;
@@ -965,113 +969,93 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
     MoveNode* firstMove,
     MoveNode* lastMove,
     const TTAMachine::RegisterFile* lastRF, 
-    int lastRegisterIndex) {
+    int lastRegisterIndex,
+    BasicBlockNode& currentBBNode) {
 
-    // the guard edge needs to be copied to all new nodes
-    DataDependenceEdge* guardEdge = NULL;
-    MoveNode* guardDef = NULL;
-    // move the possible WAW/WAR edge(s) pointing to the first move to point to
-    // the last move in the chain (in case of output move)
-    DataDependenceGraph::EdgeSet inEdges = ddg.inEdges(originalMove);
+    // move all incoming edges
+    DataDependenceGraph::EdgeSet inEdges = 
+        ddg.rootGraph()->inEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
          i != inEdges.end(); ++i) {
-       DataDependenceEdge& edge = **i;
-        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-
-            MoveNode& source = ddg.tailNode(edge);
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, *lastMove, *edgeCopy);
-        } else if (edge.guardUse()) {
-            assert(guardEdge == NULL && "Multiple guard edges not supported.");
-            // save the guard edge for later
-            guardEdge = new DataDependenceEdge(edge);
-            guardDef = &ddg.tailNode(edge);
-            // remove it for now, and add it back later
-            ddg.removeEdge(edge);
+        DataDependenceEdge& edge = **i;
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.headPseudo()) {
+            continue; 
         }
-    }    
-
-    // move the possible WAW/WAR edge(s) going out from the original move 
-    // to point to the first move in the chain except M_waw, it should still
-    // stay between the store operand moves
-    DataDependenceGraph::EdgeSet outEdges = ddg.outEdges(originalMove);
+        
+        // guard is copied to all.
+        if (edge.guardUse() && 
+            edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+            ddg.copyInEdge(*firstMove, edge);
+        } else {
+            // operand move?
+            if (lastMove == &originalMove) {
+                if (edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                    ddg.moveInEdge(originalMove, *firstMove, edge);
+                }
+            } else { // result move
+                assert (firstMove == &originalMove);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+                    edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    ddg.moveInEdge(originalMove, *lastMove, edge);
+                }
+            }
+        }
+    }
+    
+    // move all outgoing edges
+    DataDependenceGraph::EdgeSet outEdges = 
+        ddg.rootGraph()->outEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = outEdges.begin(); 
          i != outEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
-        MoveNode& dest = ddg.headNode(edge);
-        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
-            !edge.guardUse()) {
-            // do not touch memory edges, they should still be going out from
-            // original moves
-            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
-                continue;
+	
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.tailPseudo()) {
+            continue; 
+        }
+	
+        // operand move?
+        if (lastMove == &originalMove) {
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                // guard war's leave from all nodes.
+                if (!edge.guardUse()) {
+                    ddg.moveOutEdge(originalMove, *firstMove, edge);
+                } // todo: should be copyOutEdge in else branch but
+                // it causes some ddg to not be dag
             }
-
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(*firstMove, dest, *edgeCopy);
-        }        
-    }    
-
-
-    // move the rest of the edges, incoming to the first node, outgoing to
-    // the last
-    ddg.moveInEdges(originalMove, *firstMove);
-    ddg.moveOutEdges(originalMove, *lastMove);
-
-    // special case: the RV edge should still point to the original in
-    // case of a jump, also M_raw should point to the mem operation operand
-    // move instead of the operand temp move
-    inEdges = ddg.inEdges(*firstMove);
-    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); i != inEdges.end(); ++i) {
-        DataDependenceEdge& edge = **i;
-        MoveNode& source = ddg.tailNode(edge);
-        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-            ((originalMove.move().isJump() && 
-             !source.move().destination().equals(
-                 firstMove->move().source()) && 
-             !source.move().destination().isFUPort()) ||
-            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, originalMove, *edgeCopy);
+        } else { // result move
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW ||
+                edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                ddg.moveOutEdge(originalMove, *lastMove, edge);
+            }
+            // copy outgoing guard war
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                edge.guardUse()) {
+                ddg.copyOutEdge(*lastMove, edge);
+            }
         }
     }    
-
-    TCEString tempReg = DisassemblyRegister::registerName(
-        firstMove->move().destination());
-
+    
+    
+    TCEString tempReg = lastRF->name() + '.' +
+        Conversion::toString(lastRegisterIndex);
+    
     // add the new edge(s)
     DataDependenceEdge* edge1 = 
-    new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW, tempReg);
-        ddg.connectNodes(*firstMove, *lastMove, *edge1);
+	new DataDependenceEdge(
+	    DataDependenceEdge::EDGE_REGISTER, 
+	    DataDependenceEdge::DEP_RAW, tempReg);
+    ddg.connectNodes(*firstMove, *lastMove, *edge1);
+    
 
-    MoveNode* lastUse =
-        ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
-
-    if (lastUse != NULL) {
-        DataDependenceEdge* war = 
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
-    }
-
-    if (!originalMove.move().isUnconditional()) {
-        // copy the guard RAW edge to all nodes
-        // TODO: breaks if guard comes outside of the BB.
-        if (guardEdge != NULL) {
-            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
-            ddg.connectNodes(
-                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
-        }
-    }
+    createAntidepsForReg(
+	*firstMove, *lastMove, originalMove, *lastRF, lastRegisterIndex, ddg, 
+	currentBBNode);
 }
 
 /**
@@ -1107,172 +1091,213 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     int firstRegisterIndex,
     std::vector<int> intRegisterIndex,
     int lastRegisterIndex,
-    int regsRequired) {
+    int regsRequired,
+    BasicBlockNode& currentBBNode) {
   
-    // the guard edge needs to be copied to all new nodes
-    DataDependenceEdge* guardEdge = NULL;
-    MoveNode* guardDef = NULL;
-    // move the possible WAW/WAR edge(s) pointing to the first move to point to
-    // the last move in the chain (in case of output move)
-    DataDependenceGraph::EdgeSet inEdges = ddg.inEdges(originalMove);
+    // move all incoming edges
+    DataDependenceGraph::EdgeSet inEdges = 
+        ddg.rootGraph()->inEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
          i != inEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
-        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-
-            MoveNode& source = ddg.tailNode(edge);
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, *lastMove, *edgeCopy);
-        } else if (edge.guardUse()) {
-            assert(guardEdge == NULL && "Multiple guard edges not supported.");
-            // save the guard edge for later
-            guardEdge = new DataDependenceEdge(edge);
-            guardDef = &ddg.tailNode(edge);
-            // remove it for now, and add it back later
-            ddg.removeEdge(edge);
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.headPseudo()) {
+            continue; 
         }
-    }    
-
-    // move the possible WAW/WAR edge(s) going out from the original move 
-    // to point to the first move in the chain except M_waw, it should still
-    // stay between the store operand moves
-    DataDependenceGraph::EdgeSet outEdges = ddg.outEdges(originalMove);
+        
+        // guard is copied to all.
+        if (edge.guardUse() && 
+            edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+            
+            // grr, these do not contain ALL temp moves
+            for (int i = 0; i < regsRequired - 1; ++i) {
+                ddg.copyInEdge(*intMoves[i], edge);
+            }
+            // .. so we need also this.
+            // operand move?
+            if (lastMove == &originalMove) {
+                ddg.copyInEdge(*firstMove, edge);
+            } else { // result move
+                assert (firstMove == &originalMove);
+                ddg.copyInEdge(*lastMove, edge);
+            }
+        } else {
+            // operand move?
+            if (lastMove == &originalMove) {
+                if (edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                    ddg.moveInEdge(originalMove, *firstMove, edge);
+                }
+            } else { // result move
+                assert (firstMove == &originalMove);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+                    edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    ddg.moveInEdge(originalMove, *lastMove, edge);
+                }
+            }
+        }
+    }
+    
+    // move all outgoing edges
+    DataDependenceGraph::EdgeSet outEdges = 
+        ddg.rootGraph()->outEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = outEdges.begin(); 
          i != outEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
-        MoveNode& dest = ddg.headNode(edge);
-        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
-            !edge.guardUse()) {
-            // do not touch memory edges, they should still be going out from
-            // original moves
-            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
-                continue;
+	
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.tailPseudo()) {
+            continue; 
+        }
+	
+        // operand move?
+        if (lastMove == &originalMove) {
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                // guard war's leave from all nodes.
+                if (!edge.guardUse()) {
+                    ddg.moveOutEdge(originalMove, *firstMove, edge);
+                } // todo: should be copyOutEdge in else branch but
+                // it causes some ddg to not be dag
             }
-
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(*firstMove, dest, *edgeCopy);
-        }        
-    }    
-
-
-    // move the rest of the edges, incoming to the first node, outgoing to
-    // the last
-    ddg.moveInEdges(originalMove, *firstMove);
-    ddg.moveOutEdges(originalMove, *lastMove);
-
-    // special case: the RV edge should still point to the original in
-    // case of a jump, also M_raw should point to the mem operation operand
-    // move instead of the operand temp move
-    inEdges = ddg.inEdges(*firstMove);
-    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
-         i != inEdges.end(); ++i) {
-        DataDependenceEdge& edge = **i;
-        MoveNode& source = ddg.tailNode(edge);
-        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-            ((originalMove.move().isJump() && 
-             !source.move().destination().equals(
-                 firstMove->move().source()) && 
-             !source.move().destination().isFUPort()) ||
-            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, originalMove, *edgeCopy);
+        } else { // result move
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW ||
+                edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                ddg.moveOutEdge(originalMove, *lastMove, edge);
+            }
+            // copy outgoing guard war
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                edge.guardUse()) {
+                ddg.copyOutEdge(*lastMove, edge);
+            }
         }
     }    
-
-    TCEString tempReg = DisassemblyRegister::registerName(
-        firstMove->move().destination());
+    
+    TCEString firstTempReg = DisassemblyRegister::registerName(
+	*firstRF, firstRegisterIndex);
 
     // add the new edge(s)
     DataDependenceEdge* edgeFirst = 
     new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW, tempReg);
-        ddg.connectNodes(*firstMove, *intMoves[0], *edgeFirst);
-	
-    MoveNode* lastUse =
-      ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);
-
-    if (lastUse != NULL) {
-      // the WAR edges from the last (scheduled) use of the temporary
-      // registers
-      DataDependenceEdge* war = 
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
-    }
-
+                DataDependenceEdge::DEP_RAW, firstTempReg);
+    ddg.connectNodes(*firstMove, *intMoves[0], *edgeFirst);
+    
+    createAntidepsForReg(
+        *firstMove, *intMoves[0], originalMove, 
+        *firstRF, firstRegisterIndex, ddg, currentBBNode);
 
     for (int i = 0; i < regsRequired - 2; ++i) {
 
-        TCEString tempReg = DisassemblyRegister::registerName(
-            intMoves[i]->move().destination());
+	TCEString tempReg = intRF[i+1]->name() + '.' +
+	    Conversion::toString(intRegisterIndex[i+1]);
 
         DataDependenceEdge* edgeInt = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*intMoves[i], *intMoves[i + 1], *edgeInt);
-        lastUse =
-            ddg.lastScheduledRegisterRead(*intRF[i], intRegisterIndex[i]);
 
-        if (lastUse != NULL) {
-            // the WAR edges from the last (scheduled) use of the temporary
-            // registers
-            DataDependenceEdge* war = 
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_REGISTER, 
-                    DataDependenceEdge::DEP_WAR, tempReg);
-
-            ddg.connectNodes(*lastUse, *intMoves[i], *war);
-        }
+	createAntidepsForReg(
+	    *intMoves[i], *intMoves[i+1], originalMove, 
+	    *intRF[i], intRegisterIndex[i], ddg, currentBBNode);
     }
 
-    tempReg = DisassemblyRegister::registerName(lastMove->move().source());
+    TCEString lastTempReg = DisassemblyRegister::registerName(
+	*lastRF, lastRegisterIndex);
 
     DataDependenceEdge* edgeLast = 
       new DataDependenceEdge(DataDependenceEdge::EDGE_REGISTER, 
-                             DataDependenceEdge::DEP_RAW, tempReg);
+			     DataDependenceEdge::DEP_RAW, lastTempReg);
     ddg.connectNodes(*intMoves[regsRequired - 2], *lastMove, *edgeLast);
 
-    lastUse =
-      ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
+    createAntidepsForReg(
+	*intMoves[regsRequired - 2], *lastMove, originalMove,
+	*lastRF, lastRegisterIndex, ddg, currentBBNode);
+}
 
-    if (lastUse != NULL) {
-        tempReg = DisassemblyRegister::registerName(lastUse->move().source());
 
-      // the WAR edges from the last (scheduled) use of the temporary
-      // registers
-      DataDependenceEdge* edgeWAR = 
-	new DataDependenceEdge(
-			       DataDependenceEdge::EDGE_REGISTER, 
-			       DataDependenceEdge::DEP_WAR, tempReg);
 
-      ddg.connectNodes(*lastUse, *intMoves[regsRequired - 2], *edgeWAR);
-      
-    } 
+void
+RegisterCopyAdder::createAntidepsForReg(
+    const MoveNode& defMove, const MoveNode& useMove, 
+    const MoveNode& originalMove,
+    const TTAMachine::RegisterFile& rf, int index,
+    DataDependenceGraph& ddg, BasicBlockNode& bbn) {
 
-    if (!originalMove.move().isUnconditional()) {
-        // copy the guard RAW edge to all nodes
-        // TODO: breaks if guard comes outside of the BB.
-        if (guardEdge != NULL) {
-            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
-            ddg.connectNodes(
-                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
-	    for (int i = 0; i < regsRequired - 1; ++i) {
-                ddg.connectNodes(
-                    *guardDef, *intMoves[i], 
-                    *(new DataDependenceEdge(*guardEdge)));
-            }
+    TCEString tempReg = DisassemblyRegister::registerName(rf, index);
+
+    // then some antideps
+	
+    DataDependenceGraph::NodeSet lastScheduledDefs0 =
+        ddg.lastScheduledRegisterWrites(rf, index);
+
+    DataDependenceGraph::NodeSet lastScheduledUses0 =
+        ddg.lastScheduledRegisterReads(rf, index);
+
+    MoveNode* lastScheduledKill0 = 
+        ddg.lastScheduledRegisterKill(rf, index);
+
+
+    for (DataDependenceGraph::NodeSet::iterator i = lastScheduledUses0.begin();
+         i != lastScheduledUses0.end(); i++) {
+        if (!ddg.exclusingGuards(**i, defMove)) {
+            DataDependenceEdge* edge5 = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER, 
+                    DataDependenceEdge::DEP_WAR, tempReg);
+            
+            ddg.connectNodes(**i, defMove, *edge5);
         }
     }
+    
+    for (DataDependenceGraph::NodeSet::iterator i = lastScheduledDefs0.begin();
+         i != lastScheduledDefs0.end(); i++) {
+        if (!ddg.exclusingGuards(**i, defMove)) {
+            DataDependenceEdge* edge6 = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER, 
+                    DataDependenceEdge::DEP_WAW, tempReg);
+        
+            ddg.connectNodes(**i, defMove, *edge6);
+        }
+    }
+
+
+    if (bbn.basicBlock().liveRangeData_ != NULL) {
+        if (lastScheduledKill0 == NULL) {
+            // set first use of given reg.
+            LiveRangeData::MoveNodeUseSet& firstWrites0 = 
+                bbn.basicBlock().liveRangeData_->regFirstDefines_[tempReg];
+            firstWrites0.insert(MoveNodeUse(defMove));
+        }
+
+        // sets this to be last use of given reg
+        LiveRangeData::MoveNodeUseSet& lastReads = 
+            bbn.basicBlock().liveRangeData_->regLastUses_[tempReg];
+        
+        // last write, for WaW defs
+        LiveRangeData::MoveNodeUseSet& lastDefs = 
+            bbn.basicBlock().liveRangeData_->regDefines_[tempReg];
+
+        // TODO: is this correct???
+        if (originalMove.move().isUnconditional()) {
+            lastReads.clear();
+            lastDefs.clear();
+        }
+        
+        // last read for WaR deps
+        lastReads.insert(
+            MoveNodeUse(useMove));
+        
+        // last write for WaW deps
+        lastDefs.insert(
+            MoveNodeUse(defMove));
+    }
 }
+
 
 /**
  * Fixes edges in DDG after creating the temporary register chain
@@ -1304,156 +1329,121 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
     const TTAMachine::RegisterFile* tempRF1, 
     const TTAMachine::RegisterFile* tempRF2, 
     int tempRegisterIndex1,
-    int tempRegisterIndex2) {
+    int tempRegisterIndex2,
+    BasicBlockNode& currentBBNode) {
 
-    // the guard edge needs to be copied to all new nodes
-    DataDependenceEdge* guardEdge = NULL;
-    MoveNode* guardDef = NULL;
-    
-    // move the possible WAW/WAR edge(s) pointing to the first move to point to
-    // the last move in the chain (in case of output move)
-    DataDependenceGraph::EdgeSet inEdges = ddg.inEdges(originalMove);
+    // move all incoming edges
+    DataDependenceGraph::EdgeSet inEdges = 
+        ddg.rootGraph()->inEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
          i != inEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
-        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-
-            MoveNode& source = ddg.tailNode(edge);
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, *lastMove, *edgeCopy);
-        } else if (edge.guardUse()) {
-            assert(guardEdge == NULL && "Multiple guard edges not supported.");
-            // save the guard edge for later
-            guardEdge = new DataDependenceEdge(edge);
-            guardDef = &ddg.tailNode(edge);
-            // remove it for now, and add it back later
-            ddg.removeEdge(edge);
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.headPseudo()) {
+            continue; 
         }
-    }    
+        
+        // guard is copied to all.
+        if (edge.guardUse() && 
+            edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+            ddg.copyInEdge(*firstMove, edge);
+            if (regToRegCopy != NULL) {
+                ddg.copyInEdge(*regToRegCopy, edge);
+            }
+        } else {
+            // operand move?
+            if (lastMove == &originalMove) {
+                if (edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                    ddg.moveInEdge(originalMove, *firstMove, edge);
+                }
+            } else { // result move
+                assert (firstMove == &originalMove);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+                    edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    ddg.moveInEdge(originalMove, *lastMove, edge);
+                }
+            }
+        }
+    }
 
-    // move the possible WAW/WAR edge(s) going out from the original move 
-    // to point to the first move in the chain except M_waw, it should still
-    // stay between the store operand moves
-    DataDependenceGraph::EdgeSet outEdges = ddg.outEdges(originalMove);
+    // move all outgoing edges
+    DataDependenceGraph::EdgeSet outEdges = 
+        ddg.rootGraph()->outEdges(originalMove);
     for (DataDependenceGraph::EdgeSet::iterator i = outEdges.begin(); 
          i != outEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
-        MoveNode& dest = ddg.headNode(edge);
-        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
-            !edge.guardUse()) {
-            // do not touch memory edges, they should still be going out from
-            // original moves
-            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
-                continue;
+
+        // only move ra and reg edges
+        if ((edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER &&
+             edge.edgeReason() != DataDependenceEdge::EDGE_RA) ||
+            edge.tailPseudo()) {
+            continue; 
+        }
+
+        // operand move?
+        if (lastMove == &originalMove) {
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                // guard war's leave from all nodes.
+                if (!edge.guardUse()) {
+                    ddg.moveOutEdge(originalMove, *firstMove, edge);
+                } // todo: should be copyOutEdge in else branch but
+                // it causes some ddg to not be dag
             }
-
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(*firstMove, dest, *edgeCopy);
-        }        
-    }    
-
-
-    // move the rest of the edges, incoming to the first node, outgoing to
-    // the last
-    ddg.moveInEdges(originalMove, *firstMove);
-    ddg.moveOutEdges(originalMove, *lastMove);
-
-    // special case: the RV edge should still point to the original in
-    // case of a jump, also M_raw should point to the mem operation operand
-    // move instead of the operand temp move
-    inEdges = ddg.inEdges(*firstMove);
-    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
-         i != inEdges.end(); ++i) {
-        DataDependenceEdge& edge = **i;
-        MoveNode& source = ddg.tailNode(edge);
-        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-            ((originalMove.move().isJump() && 
-             !source.move().destination().equals(
-                 firstMove->move().source()) && 
-             !source.move().destination().isFUPort()) ||
-            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
-            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
-            ddg.removeEdge(edge);
-            ddg.connectNodes(source, originalMove, *edgeCopy);
+        } else { // result move
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW ||
+                edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
+                ddg.moveOutEdge(originalMove, *lastMove, edge);
+            }
+            // copy outgoing guard war
+            if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
+                edge.guardUse()) {
+                ddg.copyOutEdge(*lastMove, edge);
+            }
         }
     }    
+    
+    TCEString reg1 = tempRF1->name() + '.' +
+        Conversion::toString(tempRegisterIndex1);
 
     // add the new edge(s)
     if (regToRegCopy != NULL) {
-        TCEString tempReg = 
-            DisassemblyRegister::registerName(firstMove->move().destination());
 
+        // todo: also update output list.
+        TCEString reg2 = tempRF2->name() + '.' +
+            Conversion::toString(tempRegisterIndex2);
+        
         DataDependenceEdge* edge1 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW, tempReg);
+                DataDependenceEdge::DEP_RAW, reg1);
         ddg.connectNodes(*firstMove, *regToRegCopy, *edge1);
 
-        tempReg = DisassemblyRegister::registerName(lastMove->move().source());
         DataDependenceEdge* edge2 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW, tempReg);
+                DataDependenceEdge::DEP_RAW, reg2);
         ddg.connectNodes(*regToRegCopy, *lastMove, *edge2);
 
-        MoveNode* lastUse =
-            ddg.lastScheduledRegisterRead(*tempRF2, tempRegisterIndex2);
+        createAntidepsForReg(
+            *firstMove, *regToRegCopy, originalMove,
+            *tempRF1, tempRegisterIndex1, ddg, currentBBNode);
 
-        if (lastUse != NULL) {
-            tempReg = DisassemblyRegister::registerName(
-                lastUse->move().source());
+        createAntidepsForReg(
+            *regToRegCopy, *lastMove, originalMove, 
+            *tempRF2, tempRegisterIndex2, ddg, currentBBNode);
 
-            // the WAR edges from the last (scheduled) use of the temporary
-            // registers
-            DataDependenceEdge* edge3 = 
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_REGISTER, 
-                    DataDependenceEdge::DEP_WAR, tempReg);
-
-            ddg.connectNodes(*lastUse, *regToRegCopy, *edge3);
-        } 
-    } else {
-        TCEString tempReg = 
-            DisassemblyRegister::registerName(firstMove->move().destination());
+    } else { // regcopy == nul
         DataDependenceEdge* edge1 = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_RAW, tempReg);
+                DataDependenceEdge::DEP_RAW, reg1);
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
-    } 
 
-    MoveNode* lastUse =
-        ddg.lastScheduledRegisterRead(*tempRF1, tempRegisterIndex1);
-
-    if (lastUse != NULL) {
-        TCEString tempReg = 
-            DisassemblyRegister::registerName(lastUse->move().source());
-
-        DataDependenceEdge* war = 
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER, 
-                DataDependenceEdge::DEP_WAR, tempReg);
-
-        ddg.connectNodes(*lastUse, *firstMove, *war);
-    }
-
-    if (!originalMove.move().isUnconditional()) {
-        // copy the guard RAW edge to all nodes
-        // TODO: breaks if guard comes outside of the BB.
-        if (guardEdge != NULL) {
-            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
-            ddg.connectNodes(
-                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
-            if (regToRegCopy != NULL) {
-                ddg.connectNodes(
-                    *guardDef, *regToRegCopy, 
-                    *(new DataDependenceEdge(*guardEdge)));
-            }
-        }
+    createAntidepsForReg(
+        *firstMove, *lastMove, originalMove,
+        *tempRF1, tempRegisterIndex1, ddg, currentBBNode);
     }
 }
 
@@ -1489,9 +1479,13 @@ RegisterCopyAdder::countAndAddConnectionRegisterCopiesToRR(
                 dstPorts.insert(port);
         }
     } else {
-        abortWithError(
-            "Unsupported move destination type in move '" + 
-            moveNode.toString() + "'.");
+        if (dest.isRA()) {
+            dstPorts.insert(&(dest.port()));
+        } else {
+            abortWithError(
+                "Unsupported move destination type in move '" + 
+                moveNode.toString() + "'.");
+        }
     } 
 
     // collect the set of possible candidate source ports (in case of 
@@ -1588,12 +1582,10 @@ RegisterCopyAdder::countAndAddConnectionRegisterCopiesToRR(
  */
 int 
 RegisterCopyAdder::addConnectionRegisterCopies(
-    MoveNode& moveNode,
-    const TTAMachine::FunctionUnit& fu,
-    bool countOnly,
-    DataDependenceGraph* ddg,
+    MoveNode& moveNode,const TTAMachine::FunctionUnit& fu,
+    bool countOnly, DataDependenceGraph* ddg, 
     DataDependenceGraph::NodeSet* addedNodes) {
-  
+    
     // collect the set of possible candidate destination ports (in case of 
     // RFs, there can be multiple ports)
     TTAProgram::Terminal& dest = moveNode.move().destination();
@@ -1610,7 +1602,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     } else if (dest.isFUPort()) {
         if (dynamic_cast<const TTAMachine::SpecialRegisterPort*>(
                 &dest.port())) {
-            // the return address port
             dstPorts.insert(fu.machine()->controlUnit()->returnAddressPort());
         } else {
             // regular FU port
@@ -1778,6 +1769,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
                 __FILE__, __LINE__, __func__,
                 "Could not schedule move " + moveNode.toString());
         }
+
         int regCount = addConnectionRegisterCopies(moveNode, src, dst);
 
         if (regCount == 0) {
@@ -1883,6 +1875,64 @@ RegisterCopyAdder::addCandidateSetAnnotations(
         }
     }
 }
+
+/**
+ * Called after all operands of a move are scheduled.
+ * This creates the dependence edges between them. 
+ * 
+ * @param copies information about all regcopies of the po
+ * @param ddg ddg to update
+ */
+void RegisterCopyAdder::operandsScheduled(
+    AddedRegisterCopies& copies,
+    DataDependenceGraph& ddg) {
+
+    DataDependenceGraph::NodeSet inputMoves;
+    // TODO: sort by cycle, smallest first.
+    // input operands scheduled, set the ddg edges between temp reg copies.
+    for (RegisterCopyAdder::AddedRegisterCopyMap::iterator iter = 
+             copies.operandCopies_.begin(); 
+	 iter != copies.operandCopies_.end(); 
+         iter++) {
+        MoveNode* result = const_cast<MoveNode*>(iter->first);
+        assert(result->isScheduled());
+        inputMoves.insert(result);
+	for (DataDependenceGraph::NodeSet::iterator i2 =
+		 iter->second.begin(); i2 != iter->second.end(); i2++) {
+	    inputMoves.insert(*i2);
+	}
+    }
+    ddg.createRegisterAntiDependenciesBetweenNodes(inputMoves);
+}
+
+/**
+ * Called after all results of a move are scheduled.
+ * This creates the dependence edges between them. 
+ * 
+ * @param copies information about all regcopies of the po
+ * @param ddg ddg to update
+ */
+void RegisterCopyAdder::resultsScheduled(
+    AddedRegisterCopies& copies,
+    DataDependenceGraph& ddg) {
+
+    DataDependenceGraph::NodeSet outputMoves;
+    // TODO: sort by cycle, smallest first.
+    // input operands scheduled, set the ddg edges between temp reg copies.
+    for (RegisterCopyAdder::AddedRegisterCopyMap::iterator iter = 
+             copies.resultCopies_.begin(); iter != copies.resultCopies_.end(); 
+         iter++) {
+        MoveNode* result = const_cast<MoveNode*>(iter->first);
+        assert(result->isScheduled());
+        outputMoves.insert(result);
+	for (DataDependenceGraph::NodeSet::iterator i2 =
+		 iter->second.begin(); i2 != iter->second.end(); i2++) {
+	    outputMoves.insert(*i2);
+	}
+    }
+    ddg.createRegisterAntiDependenciesBetweenNodes(outputMoves);
+}
+
 
 /** 
  * Find the temporary registers usef for reg copies
