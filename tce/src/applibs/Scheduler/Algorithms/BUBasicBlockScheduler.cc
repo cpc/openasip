@@ -139,7 +139,7 @@ BUBasicBlockScheduler::handleDDG(
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
     // instructions into the beginning of basic block.
     // Remove magic 1000 once the sparse implementation of RM vectors works.
-    endCycle_ = (ddg.nodeCount() < 1000) ? ddg.nodeCount() + 200 : 1000;
+    endCycle_ = ddg.nodeCount()*1.3 + 150 ;
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
@@ -193,6 +193,13 @@ BUBasicBlockScheduler::handleDDG(
     if (options_ != NULL && options_->dumpDDGsXML()) {
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
+    }
+    if (rm_->largestCycle() > endCycle_) {
+        ddg.writeToDotFile("largest_bigger_than_endcycle.dot");
+        std::cerr << "rm largest cycle bigger than endCycle_!" <<
+            std::endl << "This may break delay slot filler!" << 
+            std::endl << " rm largest: " << rm_->largestCycle() <<
+            " end cycle: " << endCycle_ << std::endl;
     }
 }
 
@@ -485,6 +492,9 @@ BUBasicBlockScheduler::scheduleOperandWrites(
                 scheduleMove(*trigger, latest);      
                 assert(trigger->isScheduled());
                 scheduleInputOperandTempMoves(*trigger, *trigger);                
+                // redo this loop iteration to also allow the first one
+                // beiing scheduled if it's not the trigger
+                moveIndex--;
                 continue;
             }        
         
@@ -743,6 +753,7 @@ BUBasicBlockScheduler::scheduleMove(
     // So this prevents scheduling conditional moves at the beginning
     // of a BB.
    
+    // TODO: this goes on opposite direction with BU?
     if (!moveNode.move().isUnconditional()) {
         ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
     }
@@ -959,6 +970,9 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
         tempMove = &m;
         // First cycle where temporary register will be read, this should
         // be actuall operand move cycle!
+
+        // TODO: variable lastRead but calls first read function? 
+        // fix these variable names!
         MoveNode* lastRead =
             ddg_->firstScheduledRegisterRead(
                 tempMove->move().destination().registerFile(),
@@ -976,6 +990,12 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
         return; // no temp moves found
 
     scheduleMove(*tempMove, lastUse - 1);
+    if (!tempMove->isScheduled()) {
+        std::cerr << "temp move: " << tempMove->toString()
+                  << "not scheduled."
+                  << std::endl;
+        ddg_->writeToDotFile("failTempNotSched.dot");
+    }
     assert(tempMove->isScheduled());    
     scheduledTempMoves_[&operandWrite].insert(tempMove);
     scheduleInputOperandTempMoves(*tempMove, operandWrite);        
