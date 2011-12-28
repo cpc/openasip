@@ -22,11 +22,18 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file BUBasicBlockScheduler.cc
+ * @file BypassingBUBasicBlockScheduler.cc
  *
- * Definition of BUBasicBlockScheduler class.
+ * Implementation of BypassingBUBasicBlockScheduler class.
  *
- * @author Vladimir Guzma 2011 (vladimir.guzma-no.spam-tut.fi)
+ * This scheduler first schedules result reads of an operation, then
+ * it tries to bypass the operands, and recursively schedule the 
+ * operations which produce the result, bypassing the operands while
+ * bypassing the results of the other operation. If it cannot schedule the
+ * operation producing the value of the operand, it reverts the bypass,
+ * and schedules operands from registers.
+ *
+ * @author Heikki Kultala 2011 (hkultala-no.spam-tut.fi)
  * @note rating: red
  */
 
