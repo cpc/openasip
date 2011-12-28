@@ -51,6 +51,11 @@ namespace TTAProgram {
     class BasicBlock;
 }
 
+namespace TTAMachine {
+    class Port;
+    class RegisterFile;
+}
+
 /**
  * Adds register copies through connected register files in case of missing 
  * connectivity in the operand moves of operations.
@@ -86,25 +91,34 @@ class RegisterCopyAdder {
 public:
     RegisterCopyAdder(
         InterPassData& data, 
-        SimpleResourceManager& rm, 
+        SimpleResourceManager& rm,
         bool buScheduler = false);
+
     virtual ~RegisterCopyAdder();
 
     typedef std::map<const MoveNode*, DataDependenceGraph::NodeSet> 
     AddedRegisterCopyMap;
-    
 
     struct AddedRegisterCopies {
         AddedRegisterCopies(int count);
         AddedRegisterCopies();
         int count_;
-        AddedRegisterCopyMap copies_;
+        AddedRegisterCopyMap operandCopies_;
+        AddedRegisterCopyMap resultCopies_;
     };
 
     AddedRegisterCopies addMinimumRegisterCopies(
         ProgramOperation& programOperation,
         const TTAMachine::Machine& targetMachine,
         DataDependenceGraph* ddg);
+
+    void operandsScheduled(
+        AddedRegisterCopies& copies,
+        DataDependenceGraph& ddg);
+
+    void resultsScheduled(
+        AddedRegisterCopies& copies,
+        DataDependenceGraph& ddg);
 
     AddedRegisterCopies addRegisterCopiesToRRMove(
         MoveNode& moveNode, 
@@ -118,7 +132,8 @@ private:
         ProgramOperation& programOperation,
         const TTAMachine::FunctionUnit& fu,
         bool countOnly = true,
-        DataDependenceGraph* ddg = NULL);
+        DataDependenceGraph* ddg = NULL,
+        int neededCopies = 0);
 
     int addConnectionRegisterCopies(
         MoveNode& originalMove,
@@ -126,21 +141,23 @@ private:
         const TTAMachine::Port& destinationPort,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        DataDependenceGraph::NodeSet* addedNodes = NULL);
+        DataDependenceGraph::NodeSet* addedNodes = NULL,
+        int neededCopies = 0);
 
     int addConnectionRegisterCopiesImmediate(
         MoveNode& originalMove,
         const TTAMachine::Port& destinationPort,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        DataDependenceGraph::NodeSet* addedNodes = NULL);
+	DataDependenceGraph::NodeSet* addedNodes = NULL);
 
     int addConnectionRegisterCopies(
         MoveNode& moveNode,
         const TTAMachine::FunctionUnit& fu,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        DataDependenceGraph::NodeSet* addedNodes = NULL);
+        DataDependenceGraph::NodeSet* addedNodes = NULL,
+        int neededCopies = 0);
 
     int countAndAddConnectionRegisterCopiesToRR(
         MoveNode& moveNode,
@@ -157,7 +174,8 @@ private:
         MoveNode* firstMove,
         MoveNode* lastMove,
         const TTAMachine::RegisterFile* lastRF,
-        int lastRegisterIndex);
+        int lastRegisterIndex,
+        BasicBlockNode& currentBBNode);
 
     void fixDDGEdgesInTempRegChain(
         DataDependenceGraph& ddg,
@@ -171,7 +189,17 @@ private:
         int firstRegisterIndex,
 	std::vector<int> intRegisterIndex,
         int lastRegisterIndex,
-	int regsRequired);
+	int regsRequired,
+        BasicBlockNode& currentBBNode);
+
+    void createAntidepsForReg(
+	const MoveNode& defMove, 
+	const MoveNode& useMove,
+	const MoveNode& originalMove,
+	const TTAMachine::RegisterFile& rf, 
+	int index,
+	DataDependenceGraph& ddg, 
+	BasicBlockNode& bbn);
 
   void fixDDGEdgesInTempRegChainImmediate(
     DataDependenceGraph& ddg,
@@ -182,7 +210,8 @@ private:
     const TTAMachine::RegisterFile* tempRF1, 
     const TTAMachine::RegisterFile* tempRF2, 
     int tempRegisterIndex1,
-    int tempRegisterIndex2);
+    int tempRegisterIndex2,
+    BasicBlockNode& currentBBNode);
 
     /// container for storing the required register copies if the operation
     /// was bound to the given FU
@@ -201,6 +230,7 @@ private:
     // SimpleResourceManager provides many methods not in the base interface
     // ResourceManager, so we cannot use it.
     SimpleResourceManager& rm_;
+
     /// Indicate that register copy adder is called from bottom up scheduler,
     /// this causes search for first scheduled register write instead of last
     /// read.

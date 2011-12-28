@@ -364,14 +364,13 @@ SequentialScheduler::scheduleMove(
         int guardLatency =
             targetMachine_->controlUnit()->globalGuardLatency();
 
-        earliestCycle += guardLatency; // jut for sure?
         TTAMachine::Guard& guard = moveNode.move().guard().guard();
         TTAMachine::RegisterGuard* rg =
             dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
         if (rg != NULL) {
             guardLatency += rg->registerFile()->guardLatency();
         }
-        earliestCycle+= guardLatency;
+        earliestCycle += std::max(0, guardLatency - 1);
     }
 
     // RM hasConnection takes MoveNodeSet, however is called only for one
@@ -464,9 +463,9 @@ SequentialScheduler::scheduleRRTempMoves(
     throw (Exception) {
 
     if (regCopies.count_ > 0) {
-        if (MapTools::containsKey(regCopies.copies_,&regToRegMove)) {
+        if (MapTools::containsKey(regCopies.operandCopies_,&regToRegMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
-                regCopies.copies_[&regToRegMove];
+                regCopies.operandCopies_[&regToRegMove];
             //in the tempMoves nodeset, the first move is the original one,
             //in case of RR temp moves it must be scheduled at the end;
             //all the temp moves must be scheduled in reverse order            
@@ -495,9 +494,9 @@ SequentialScheduler::scheduleInputOperandTempMoves(
     throw (Exception) {
     
     if (regCopies.count_ > 0) {
-        if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
+        if (MapTools::containsKey(regCopies.operandCopies_,&operandMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
-                regCopies.copies_[&operandMove]; 
+		regCopies.operandCopies_[&operandMove]; 
             //in the tempMoves nodeset, the first move is the original one;
             //in case of input operand temp moves, it must be scheduled first
             DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
@@ -527,9 +526,9 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
     MoveNode& operandMove, RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     
     if (regCopies.count_ > 0) {
-        if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
+        if (MapTools::containsKey(regCopies.operandCopies_,&operandMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
-                regCopies.copies_[&operandMove];
+		regCopies.operandCopies_[&operandMove];
             for (DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
                  i != tempMoves.end(); ++i) {
                 unschedule(**i);
@@ -554,16 +553,16 @@ SequentialScheduler::scheduleResultTempMoves(
     throw (Exception) {
     
     if (regCopies.count_ > 0) {
-        if (MapTools::containsKey(regCopies.copies_,&resultMove)) {
+        if (MapTools::containsKey(regCopies.resultCopies_,&resultMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
-                regCopies.copies_[&resultMove];
+		regCopies.resultCopies_[&resultMove];
             //in the tempMoves nodeset, the first move is the original one,
             //in case of result temp moves it must be scheduled at the end;
             //all the temp moves must be scheduled in reverse order            
             DataDependenceGraph::NodeSet::iterator i = tempMoves.end();
-            while(i != tempMoves.begin()){
+            while (i != tempMoves.begin()) {
                 --i;
-	    	    cycle = scheduleMove(cycle, **i) + 1;
+                cycle = scheduleMove(cycle, **i) + 1;
             }
         }
     }
@@ -592,7 +591,7 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
         // If we added annotation during scheduleMove delete it
         moveNode.move().removeAnnotations(
         TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM);
-    }    
+    }
     if (moveNode.isScheduled() || moveNode.isPlaced()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
