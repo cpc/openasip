@@ -1,11 +1,31 @@
-TTA-Based Codesign Environment (TCE) v1.5 released
---------------------------------------------------
+TTA-based Co-design Environment (TCE) v1.5 released
+---------------------------------------------------
+
+TTA-based Co-design Environment (TCE) is a toolset for designing 
+application-specific processors based on the Transport Triggered 
+Architecture (TTA). The toolset provides a complete retargetable co-design
+flow from high-level language programs down to synthesizable VHDL and 
+parallel program binaries. Processor customization points include the 
+register files, function units, supported operations, and the 
+interconnection network.
+
+This release includes support for LLVM 3.0, experimental OpenCL C
+Ebedded Profile support (in offline compilation/standalone mode),
+a light weight (debug output) printing library, support for calling
+custom operations in specific function units, generalizations to 
+the architecture description format to allow using the instruction 
+scheduler for operation triggered architectures (with a proof of 
+concept for the Cell SPU), several code generator improvements and
+plenty of bug fixes. See the CHANGES file for a more thorough 
+change listing.
 
 Acknowledgements
 ----------------
+
 Thanks to Tomasz Czajkowski of Altera for ensuring the TCE project 
-is allowed to use VHDL wrappers for certain Altera IP blocks in 
-the Platform Integrator. This made the Altera FPGA support more robust.
+is allowed to use the VHDL wrappers for certain Altera IP blocks in 
+the Platform Integrator tool. This made the TCE's Altera FPGA support more 
+robust.
 
 Many thanks to Hervé Yviquel and Vinogradov Vyacheslav who submitted their
 first TCE patches to this release. Keep them coming!

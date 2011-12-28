@@ -434,7 +434,6 @@ AC_MSG_NOTICE([
   installed at all or development support for it is missing. On certain
   systems, development support comes in separate '-dev' packages.])
 else
- 
 
 AC_CHECK_FILE($llvmConf, 
 [
@@ -446,39 +445,18 @@ LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
-LLVM_FIXED_28=$($llvmConf --has-lowest-bit-compare-fix 2>/dev/null)
+LLVM_RTTI_CHECK=$($llvmConf --cxxflags | grep -i "\-fno-rtti")
+
+if test x"$LLVM_RTTI_CHECK" != x; then
+AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
+fi
+
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.7)
-     AC_DEFINE([LLVM_2_7], [], "Using LLVM v2.7")
-     AC_MSG_NOTICE(
-     [
-Warning. Old version of LLVM(2.7) in use. You should upgrade to LLVM 2.9.
-     ])
-   ;;
-     2.8*)
-     AC_DEFINE([LLVM_2_8], [], "Using LLVM v2.8")
-     AC_MSG_NOTICE(
-     [
-Warning. Old version of LLVM(2.8) in use. You should upgrade to LLVM 2.9.
-     ])
-     if test "$LLVM_FIXED_28" != YES;
-	then
-	AC_MSG_ERROR(
-	[
-Your LLVM 2.8 contains a bug causing miscompilation on TTAs. 
-Apply tce/tools/patches/llvm-2.6-lowest-bit-compare.patch to your 
-LLVM 2.8 source, reconfigure, recompile and re-install your LLVM.
-
-Please refer to INSTALL for instructions on how to do this correctly.
-	])
-	LLVM_VERSION=
-	fi
-   ;;
      2.9*)
      AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
    ;;
@@ -486,7 +464,8 @@ Please refer to INSTALL for instructions on how to do this correctly.
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
    ;;
      *svn)
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.0)")     
+     AC_DEFINE([LLVM_3_1], [], "Using LLVM svn (upcoming 3.1)")     
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.1)")     
    ;;   
      *)
    AC_MSG_NOTICE(

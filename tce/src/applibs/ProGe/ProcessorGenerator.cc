@@ -188,7 +188,7 @@ ProcessorGenerator::generateProcessor(
         }
     }
 
-    BlockSourceCopier copier(implementation, entityString);
+    BlockSourceCopier copier(implementation, entityStr_);
     copier.copyShared(sharedDstDirectory);
     copier.copyProcessorSpecific(dstDirectory);
 

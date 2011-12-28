@@ -11,6 +11,11 @@ Code generator improvements
 - Immediates marked as rematerializable; This should reduce spilling as
   values that come from immediates are not spilled to stack.
 
+Bugfixes
+--------
+- Missing antidependence edges could cause broken schedule when
+  bypasser used on partially connected machines.
+
 1.5    December 2011
 ====================
 
