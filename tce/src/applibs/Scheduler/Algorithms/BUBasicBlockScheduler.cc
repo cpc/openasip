@@ -194,7 +194,7 @@ BUBasicBlockScheduler::handleDDG(
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
     }
-    if (rm_->largestCycle() > endCycle_) {
+    if (rm_->largestCycle() > (int)endCycle_) {
         ddg.writeToDotFile("largest_bigger_than_endcycle.dot");
         std::cerr << "rm largest cycle bigger than endCycle_!" <<
             std::endl << "This may break delay slot filler!" << 
@@ -404,6 +404,9 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         }
         
         // This must pass, since we got latest cycle from RM.
+        // TODO: 
+        // the latest cycle may change because schuleMove may do things like
+        // register renaming, so this may fail. 
         scheduleMove(moves.node(i), latest);      
         assert(moves.node(i).isScheduled());
         scheduleInputOperandTempMoves(moves.node(i), moves.node(i)); 
