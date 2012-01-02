@@ -66,10 +66,10 @@ public:
     virtual int position() const
         throw (NotAvailable);
 
-    virtual int width() const;
-    virtual int immediateWidth() const;
-    virtual bool signExtends() const;
-    virtual bool zeroExtends() const;
+    int width() const;
+    int immediateWidth() const;
+    bool signExtends() const;
+    bool zeroExtends() const;
 
     virtual void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
@@ -93,11 +93,12 @@ public:
 
     virtual bool isConnectedTo(const Socket& socket) const;
 
-    virtual void addGuard(Guard& guard)
+    bool hasGuard(Guard& guard) const;
+    void addGuard(Guard& guard)
         throw (ComponentAlreadyExists);
     virtual void removeGuard(Guard& guard);
-    virtual int guardCount() const;
-    virtual Guard* guard(int index) const
+    int guardCount() const;
+    Guard* guard(int index) const
         throw (OutOfRange);
 
     virtual bool hasNextBus() const;

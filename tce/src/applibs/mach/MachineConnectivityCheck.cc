@@ -53,6 +53,7 @@
 #include "AssocTools.hh"
 #include "StringTools.hh"
 #include "MoveNode.hh"
+#include "MoveGuard.hh"
 
 using namespace TTAMachine;
 /**
@@ -81,7 +82,8 @@ MachineConnectivityCheck::MachineConnectivityCheck(
 bool
 MachineConnectivityCheck::isConnected(
     std::set<const TTAMachine::Port*> sourcePorts,
-    std::set<const TTAMachine::Port*> destinationPorts) {
+    std::set<const TTAMachine::Port*> destinationPorts,
+    Guard* guard) {
     for (std::set<const TTAMachine::Port*>::iterator i =
              sourcePorts.begin();
          i != sourcePorts.end(); i++) {
@@ -89,7 +91,7 @@ MachineConnectivityCheck::isConnected(
         for (std::set<const TTAMachine::Port*>::iterator j =
                  destinationPorts.begin();
              j != destinationPorts.end(); j++) {
-            if (isConnected(sport, **j)) {
+            if (isConnected(sport, **j, guard)) {
                 return true;
             }
         }
@@ -107,12 +109,16 @@ MachineConnectivityCheck::isConnected(
 bool
 MachineConnectivityCheck::isConnected(
     const TTAMachine::Port& sourcePort,
-    const TTAMachine::Port& destinationPort) {
+    const TTAMachine::Port& destinationPort,
+    Guard* guard) {
 
+    // TODO: replace this cache's second value(bool) with set of buses.
     PortPortBoolMap::const_iterator
         i = portPortCache_.find(PortPortPair(&sourcePort, &destinationPort));
     if (i != portPortCache_.end()) {
-        return i->second;
+        if (i->second == false || guard == NULL) {
+            return i->second;
+        }
     }
     std::set<TTAMachine::Bus*> sourceBuses;
     MachineConnectivityCheck::appendConnectedDestinationBuses(
@@ -126,7 +132,19 @@ MachineConnectivityCheck::isConnected(
     SetTools::intersection(sourceBuses, destinationBuses, sharedBuses);
     if (sharedBuses.size() > 0) {
         portPortCache_[PortPortPair(&sourcePort,&destinationPort)] = true;
-        return true;
+
+        if (guard == NULL) {
+            return true;
+        }
+
+        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
+             i != sharedBuses.end(); i++) {
+            if ((*i)->hasGuard(*guard)) {
+                return true;
+            }
+        }
+             
+        return false; // bus found but lacks the guards
     } else {
         portPortCache_[PortPortPair(&sourcePort,&destinationPort)] = false;
         return false;
@@ -144,7 +162,8 @@ MachineConnectivityCheck::isConnected(
 bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
-    const TTAMachine::BaseRegisterFile& destRF) {
+    const TTAMachine::BaseRegisterFile& destRF,
+    Guard* guard) {
 
     std::set<TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(destRF, buses);
@@ -156,8 +175,17 @@ MachineConnectivityCheck::canTransportImmediate(
         int requiredBits = 
             MachineConnectivityCheck::requiredImmediateWidth(
                 bus.signExtends(), immediate, *destRF.machine());
-        if (bus.immediateWidth() >= requiredBits)
+        if (bus.immediateWidth() < requiredBits) {
+            continue;
+        }
+        
+        if (guard == NULL) {
             return true;
+        } else {
+            if (bus.hasGuard(*guard)) {
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -173,7 +201,8 @@ MachineConnectivityCheck::canTransportImmediate(
 bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
-    const TTAMachine::Port& destinationPort) {
+    const TTAMachine::Port& destinationPort,
+    Guard* guard) {
 
     std::set<TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(
@@ -187,8 +216,16 @@ MachineConnectivityCheck::canTransportImmediate(
             MachineConnectivityCheck::requiredImmediateWidth(
                 bus.signExtends(), immediate, 
                 *destinationPort.parentUnit()->machine());
-        if (bus.immediateWidth() >= requiredBits)
+        if (bus.immediateWidth() < requiredBits) {
+            continue;
+        }
+        if (guard == NULL) {
             return true;
+        } else {
+            if (bus.hasGuard(*guard)) {
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -196,12 +233,13 @@ MachineConnectivityCheck::canTransportImmediate(
 bool 
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
-    std::set<const TTAMachine::Port*> destinationPorts) {
+    std::set<const TTAMachine::Port*> destinationPorts,
+    Guard* guard) {
 
     for (std::set<const TTAMachine::Port*>::iterator i =
              destinationPorts.begin();
          i != destinationPorts.end(); i++) {
-        if (canTransportImmediate(immediate, **i)) {
+        if (canTransportImmediate(immediate, **i, guard)) {
             return true;
         }
     }
@@ -961,6 +999,238 @@ MachineConnectivityCheck::totalConnectionCount(
         totalFound += s.connectionCount();
     }
     return totalFound;
+}
+
+
+std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::findPossibleDestinationPorts(
+const TTAMachine::Machine& mach, const MoveNode& node) {
+    std::set<const TTAMachine::Port*> res;
+    if (node.isScheduled()) {
+        res.insert(&node.move().destination().port());
+        return res;
+    }
+
+    if (node.isDestinationOperation()) {
+        TTAMachine::Machine::FunctionUnitNavigator nav = 
+            mach.functionUnitNavigator();
+        ProgramOperation& po = node.destinationOperation();
+
+        std::set<TCEString> allowedFUNames;
+        if (node.move().hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
+            const int annotationCount =
+                node.move().annotationCount(
+                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
+            for (int i = 0; i < annotationCount; ++i) {
+                allowedFUNames.insert(
+                    node.move().annotation(
+                        i, 
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST).
+                    stringValue());
+            }
+        }
+
+        for (int i = 0; i <= nav.count(); i++) {
+            TTAMachine::FunctionUnit* fu;
+            if (i == nav.count()) { // GCU is not on fu navigator
+                fu = mach.controlUnit();
+            } else {
+                fu = nav.item(i);
+            }
+            
+            if (!allowedFUNames.empty() && !AssocTools::containsKey(
+                    allowedFUNames, fu->name())) {
+                continue;
+            }
+            if (fu->hasOperation(po.operation().name())) {
+                TTAMachine::HWOperation* hwop = 
+                    fu->operation(po.operation().name());
+                res.insert(
+                    hwop->port(node.move().destination().operationIndex()));
+            }
+        }
+        return res;
+    }
+
+    if (node.move().destination().isRA()) {
+        res.insert(mach.controlUnit()->returnAddressPort());
+        return res;
+    }
+
+    // destination is register
+    if (!node.move().destination().isGPR()) {
+        std::cerr << "node should have dest as reg: " << 
+            node.toString() << std::endl;
+    }
+    assert(node.move().destination().isGPR());
+    return findWritePorts(
+        *node.move().destination().port().parentUnit());
+}
+
+std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
+    std::set<const TTAMachine::Port*> res;
+    for (int i = 0; i < rf.portCount(); i++) {
+        TTAMachine::Port* port = rf.port(i);
+        if (port->isInput()) {
+            res.insert(port);
+        }
+    }
+    return res;
+}
+
+std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
+    std::set<const TTAMachine::Port*> res;
+    for (int i = 0; i < rf.portCount(); i++) {
+        TTAMachine::Port* port = rf.port(i);
+        if (port->isOutput()) {
+            res.insert(port);
+        }
+    }
+    return res;
+}
+
+
+std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::findPossibleSourcePorts(
+    const TTAMachine::Machine& mach, const MoveNode& node) {
+    std::set<const TTAMachine::Port*> res;
+    if (node.isScheduled()) {
+        res.insert(&node.move().source().port());
+        return res;
+    }
+
+    if (node.isSourceOperation()) {
+        TTAMachine::Machine::FunctionUnitNavigator nav = 
+            mach.functionUnitNavigator();
+        ProgramOperation& po = node.sourceOperation();
+
+        std::set<TCEString> allowedFUNames;
+        if (node.move().hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC)) {
+            const int annotationCount =
+                node.move().annotationCount(
+                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC);
+            
+            for (int i = 0; i < annotationCount; ++i) {
+                allowedFUNames.insert(
+                    node.move().annotation(
+                        i, 
+                        TTAProgram::ProgramAnnotation::
+                        ANN_CANDIDATE_UNIT_SRC).
+                    stringValue());
+            }
+        }
+
+        for (int i = 0; i < nav.count(); i++) {
+            TTAMachine::FunctionUnit* fu = nav.item(i);
+            if (!allowedFUNames.empty() && !AssocTools::containsKey(
+                    allowedFUNames, fu->name())) {
+                continue;
+            }
+            
+            if (fu->hasOperation(po.operation().name())) {
+                TTAMachine::HWOperation* hwop = 
+                    fu->operation(po.operation().name());
+                res.insert(
+                    hwop->port(node.move().source().operationIndex()));
+            }
+        }
+        return res;
+    }
+
+    if (node.isSourceVariable()) {
+        // source is register
+        return findReadPorts(
+            *node.move().source().port().parentUnit());
+    }
+
+    // consider only long immediates here.
+    if (node.isSourceConstant()) {
+        TTAProgram::TerminalImmediate& imm = 
+            static_cast<TTAProgram::TerminalImmediate&>(node.move().source());
+        TTAMachine::Machine::ImmediateUnitNavigator nav = 
+            mach.immediateUnitNavigator();
+        for (int i = 0; i < nav.count(); i++) {
+            TTAMachine::ImmediateUnit* iu = nav.item(i);
+            if (iu->width() >= 
+                MachineConnectivityCheck::requiredImmediateWidth(
+                    iu->extensionMode() == Machine::SIGN, imm, mach)) {
+                for (int i = 0; i < iu->portCount(); i++) {
+                    TTAMachine::Port* port = iu->port(i);
+                    assert(port->isOutput());
+                    res.insert(port);
+                }
+            }
+        }
+        return res;
+    }
+
+    if (node.move().source().isRA()) {
+        std::cerr << "\t\tsource is RA!" << std::endl;
+        res.insert(mach.controlUnit()->returnAddressPort());
+    }
+
+    return res;
+}
+
+/**
+ * 1 = can write
+ * 0 = cannot write
+ * -1 = can write through limm
+ */
+int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+    const MoveNode& src, std::set<const TTAMachine::Port*>& destinationPorts) {
+
+    int trueVal = 1;
+    if (destinationPorts.empty()) {
+        std::cerr << "\t\tdestination ports empty!" << std::endl;
+        return false;
+    }
+
+    if (src.isSourceConstant()) {
+        TTAProgram::TerminalImmediate* imm = 
+            static_cast<TTAProgram::TerminalImmediate*>(
+                &src.move().source());
+        if (MachineConnectivityCheck::canTransportImmediate(
+                *imm, destinationPorts)) {
+            std::cerr << "\t\t\tshort imm possible" << std::endl;
+            return true; // can transfer via short imm.
+        } else {
+            std::cerr << "\t\t\tshort imm not possible" << std::endl;
+            trueVal = -1; // mayby through LIMM?
+        }
+    }
+
+    std::set<const TTAMachine::Port*>
+        sourcePorts = findPossibleSourcePorts(
+            *(*destinationPorts.begin())->parentUnit()->machine(), src);
+
+    // TODO: Why cannot move.guard return pointer which is NULL if unconditional?
+    const TTAProgram::Move& move = src.move();
+    if (MachineConnectivityCheck::isConnected(
+            sourcePorts, destinationPorts, 
+            move.isUnconditional() ? NULL : &move.guard().guard())) {
+        return trueVal;
+    }
+
+    return false;
+}
+
+bool MachineConnectivityCheck::canAnyPortWriteToDestination(
+    std::set<const TTAMachine::Port*>& sourcePorts, 
+    const MoveNode& dest) {
+
+    if (sourcePorts.empty()) {
+        return false;
+    }
+
+    std::set<const TTAMachine::Port*>
+        destPorts = findPossibleDestinationPorts(
+            *(*sourcePorts.begin())->parentUnit()->machine(), dest);
+    return MachineConnectivityCheck::isConnected(sourcePorts, destPorts);
 }
 
 /* These are static */

@@ -98,9 +98,12 @@ public:
 
 private:
 
+    bool renameSourceIfNotConnected(
+        MoveNode& moveNode, int earliestCycle, int latestCycle);
+
     void finalizeOperation(MoveNodeSelector& selector);
 
-    bool scheduleOperation(ProgramOperation& po, int latestCycle);
+    bool scheduleOperation(ProgramOperation& po, int& latestCycle);
 
     bool scheduleResults(ProgramOperation& po, int latestCycle);
 
@@ -140,12 +143,6 @@ private:
 
     MoveNode* findTriggerFromUnit(
         ProgramOperation& po, TTAMachine::Unit& unit);
-
-    std::set<const TTAMachine::Port*> findPossibleDestinationPorts(
-        MoveNode& node);
-
-    std::set<const TTAMachine::Port*> findPossibleSourcePorts(
-        MoveNode& node);
 
     void clearCaches();
 

@@ -219,31 +219,45 @@ RegisterRenamer::initializeFreeRegisters() {
 
 std::set<TCEString> 
 RegisterRenamer::findFreeRegistersInRF(
-    const TTAMachine::RegisterFile& rf) const {
-    
-    bool isTempRF = false;
-    for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
-        if (tempRegFiles_[j] == &rf) {
-            isTempRF = true;
-        }
-    }
+    std::set<const TTAMachine::RegisterFile*, 
+    TTAMachine::MachinePart::Comparator>& rfs) const {
 
-    std::set<TCEString> gprs;
-    for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
-        gprs.insert(DisassemblyRegister::registerName(rf, j));
-    }
-
-    std::set<TCEString>  regs;
-    SetTools::intersection(gprs, freeGPRs_, regs);
+    std::set<TCEString> allowedGprs = registersOfRFs(rfs);
+    std::set<TCEString> regs;
+    SetTools::intersection(allowedGprs, freeGPRs_, regs);
     return regs;
 }
 
+std::set<TCEString> 
+RegisterRenamer::registersOfRFs(
+    std::set<const TTAMachine::RegisterFile*,
+    TTAMachine::MachinePart::Comparator>& rfs) const {
+
+    std::set<TCEString> gprs;
+    for (std::set<const TTAMachine::RegisterFile*,
+             TTAMachine::MachinePart::Comparator>::iterator i = rfs.begin();
+         i != rfs.end(); i++) {
+        bool isTempRF = false;
+        const TTAMachine::RegisterFile& rf = **i;
+        for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
+            if (tempRegFiles_[j] == &rf) {
+                isTempRF = true;
+            }
+        }
+
+        for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
+            gprs.insert(DisassemblyRegister::registerName(rf, j));
+        }
+    }
+    return gprs;
+}
 /** 
  * Finds registers which are used but only before given earliestCycle.
  */ 
 std::set<TCEString> 
 RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
-    const TTAMachine::RegisterFile& rf, 
+    std::set<const TTAMachine::RegisterFile*,
+    TTAMachine::MachinePart::Comparator>& rfs, 
     int earliestCycle) const {
 
     std::set<TCEString> availableRegs;
@@ -253,31 +267,24 @@ RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
         return availableRegs;
     }
 
-    bool isTempRF = false;
-    for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
-        if (tempRegFiles_[j] == &rf) {
-            isTempRF = true;
-        }
-    }
-
-    std::set<TCEString> gprs;
-    for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
-        gprs.insert(DisassemblyRegister::registerName(rf, j));
-    }
-
+    std::set<TCEString> allowedGprs = registersOfRFs(rfs);
     std::set<TCEString> regs = usedGPRs_;
     AssocTools::append(onlyBeginPartiallyUsedRegs_, regs);
     AssocTools::append(onlyMidPartiallyUsedRegs_, regs);
     std::set<TCEString> regs2;
-    SetTools::intersection(gprs, regs, regs2);
+    SetTools::intersection(allowedGprs, regs, regs2);
 
     
     // find from used gprs.
     // todo: this is too conservative? leaves one cycle netween war?
     for (std::set<TCEString>::iterator i = regs2.begin(); 
          i != regs2.end(); i++) {
+        TCEString rfName = i->substr(0, i->find('.'));
+        TTAMachine::RegisterFile* rf = 
+            machine_.registerFileNavigator().item(rfName);
+
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
-        if (ddg_->lastRegisterCycle(rf, regIndex) < earliestCycle) {
+        if (ddg_->lastRegisterCycle(*rf, regIndex) < earliestCycle) {
             availableRegs.insert(*i);
         }
     }
@@ -289,37 +296,31 @@ RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
  */ 
 std::set<TCEString> 
 RegisterRenamer::findPartiallyUsedRegistersInRFAfterCycle(
-    const TTAMachine::RegisterFile& rf, 
+    std::set<const TTAMachine::RegisterFile*,
+    TTAMachine::MachinePart::Comparator>& rfs, 
     int latestCycle) const {
 
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
     // in that case we have empty set, no need to check.
 
-    bool isTempRF = false;
-    for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
-        if (tempRegFiles_[j] == &rf) {
-            isTempRF = true;
-        }
-    }
-
-    std::set<TCEString> gprs;
-    for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
-        gprs.insert(DisassemblyRegister::registerName(rf, j));
-    }
-
+    std::set<TCEString> allowedGprs = registersOfRFs(rfs);
     std::set<TCEString> regs = usedGPRs_;
     AssocTools::append(onlyEndPartiallyUsedRegs_, regs);
     AssocTools::append(onlyMidPartiallyUsedRegs_, regs);
     std::set<TCEString> regs2;
-    SetTools::intersection(gprs, regs, regs2);
+    SetTools::intersection(allowedGprs, regs, regs2);
     
     // find from used gprs.
     // todo: this is too conservative? leaves one cycle netween war?
     for (std::set<TCEString>::iterator i = regs2.begin(); 
          i != regs2.end(); i++) {
+        TCEString rfName = i->substr(0, i->find('.'));
+        TTAMachine::RegisterFile* rf = 
+            machine_.registerFileNavigator().item(rfName);
+
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
-        if (ddg_->firstRegisterCycle(rf, regIndex) > latestCycle) {
+        if (ddg_->firstRegisterCycle(*rf, regIndex) > latestCycle) {
             availableRegs.insert(*i);
         }
     }
@@ -420,20 +421,65 @@ RegisterRenamer::renameDestinationRegister(
     bool reused = true;
     
     std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
+    if (liveRange->writes.empty()) {
+        return false;
+    }
+    std::set<TCEString> availableRegisters;
 
-    bool allowDifferentRF = //false;
-        liveRange->noneScheduled() && tempRegFiles_.empty();
+    if (!liveRange->noneScheduled()) {
+        std::set<const TTAMachine::RegisterFile*,
+            TTAMachine::MachinePart::Comparator> rfs;
+        rfs.insert(&rf);
+        availableRegisters = 
+        findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+    } else { 
+        if (tempRegFiles_.empty()) {
+            availableRegisters = 
+                findPartiallyUsedRegistersBeforeCycle(rf.width(), earliestCycle);
+        } else {
+            // only connected RFs
+            std::set<const TTAMachine::RegisterFile*, 
+                TTAMachine::MachinePart::Comparator> rfs = 
+                findConnectedRFs(*liveRange, false);
+            availableRegisters = 
+                findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+            if (availableRegisters.empty()) {
+                // allow usasge of limm.
+                rfs = findConnectedRFs(*liveRange, true);
+                availableRegisters = 
+                    findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+            }
+        }
+    }        
 
-    std::set<TCEString> availableRegisters = allowDifferentRF ?
-        findPartiallyUsedRegistersBeforeCycle(rf.width(),earliestCycle) :
-        findPartiallyUsedRegistersInRFBeforeCycle(rf, earliestCycle);
-
-    // if no partially used found, take unused.
     if (availableRegisters.empty()) {
         reused = false;
-        availableRegisters = allowDifferentRF ?
-            findFreeRegisters(rf.width()) :
-            findFreeRegistersInRF(rf);
+
+        if (!liveRange->noneScheduled()) {
+            std::set<const TTAMachine::RegisterFile*,
+                TTAMachine::MachinePart::Comparator> rfs;
+            rfs.insert(&rf);
+            availableRegisters = 
+                findFreeRegistersInRF(rfs);
+        } else {
+            if (tempRegFiles_.empty()) {
+                availableRegisters = 
+                    findFreeRegisters(rf.width());
+            } else { 
+                // only connected RFs
+                std::set<const TTAMachine::RegisterFile*,
+                    TTAMachine::MachinePart::Comparator> rfs =
+                    findConnectedRFs(*liveRange, false);
+                availableRegisters = 
+                    findFreeRegistersInRF(rfs);
+                if (availableRegisters.empty()) {
+                    // allow usage of LIMM
+                    rfs = findConnectedRFs(*liveRange, true);
+                    availableRegisters = 
+                        findFreeRegistersInRF(rfs);
+                }
+            }
+        }
         if (availableRegisters.empty()) {
             return false;
         }
@@ -467,21 +513,61 @@ RegisterRenamer::renameSourceRegister(
     bool reused = true;
 
     std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
-
-    bool allowDifferentRF = //false;
-        liveRange->noneScheduled() && tempRegFiles_.empty();
-
+    if (liveRange->writes.empty()) {
+        return false;
+    }
     std::set<TCEString> availableRegisters;
 
-    availableRegisters = allowDifferentRF ?
-        findPartiallyUsedRegistersAfterCycle(rf.width(), latestCycle) :
-        findPartiallyUsedRegistersInRFAfterCycle(rf, latestCycle);
+    if (!liveRange->noneScheduled()) {
+        std::set<const TTAMachine::RegisterFile*,
+            TTAMachine::MachinePart::Comparator> rfs;
+        rfs.insert(&rf);
+        availableRegisters = 
+        findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
+    } else { 
+        if (tempRegFiles_.empty()) {
+            availableRegisters = 
+                findPartiallyUsedRegistersAfterCycle(rf.width(), latestCycle);
+        } else {
+            // only connected RFs
+            std::set<const TTAMachine::RegisterFile*, 
+                TTAMachine::MachinePart::Comparator> rfs = 
+                findConnectedRFs(*liveRange, false);
+            availableRegisters = 
+                findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
+            if (availableRegisters.empty()) {
+                rfs = findConnectedRFs(*liveRange, true);
+                availableRegisters = 
+                    findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
+            }
+        }
+    }        
 
     if (availableRegisters.empty()) {
         reused = false;
-        availableRegisters = allowDifferentRF ?
-            findFreeRegisters(rf.width()) :
-            findFreeRegistersInRF(rf);
+
+        if (!liveRange->noneScheduled()) {
+            std::set<const TTAMachine::RegisterFile*,
+                TTAMachine::MachinePart::Comparator> rfs;
+            rfs.insert(&rf);
+            availableRegisters = 
+                findFreeRegistersInRF(rfs);
+        } else {
+            if (tempRegFiles_.empty()) {
+                availableRegisters = 
+                    findFreeRegisters(rf.width());
+            } else { 
+                // only connected RFs
+                std::set<const TTAMachine::RegisterFile*,
+                    TTAMachine::MachinePart::Comparator> rfs =
+                    findConnectedRFs(*liveRange, false);
+                availableRegisters = findFreeRegistersInRF(rfs);
+                if (availableRegisters.empty()) {
+                    rfs = findConnectedRFs(*liveRange, true);
+                    availableRegisters = findFreeRegistersInRF(rfs);
+                }
+            }
+        }
         if (availableRegisters.empty()) {
             return false;
         }
@@ -503,6 +589,7 @@ RegisterRenamer::renameLiveRange(
         return false;
     } 
 
+    assert(newReg.length() > 2);
     TCEString rfName = newReg.substr(0, newReg.find('.'));
     TTAMachine::RegisterFile* rf = 
         machine_.registerFileNavigator().item(rfName);
@@ -836,6 +923,68 @@ RegisterRenamer::updateAntiEdgesFromLRTo(
         }
     }
 }
+
+std::set<const TTAMachine::RegisterFile*,
+         TTAMachine::MachinePart::Comparator>
+RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
+
+    assert(!lr.writes.empty());
+    TTAMachine::RegisterFile* originalRF = 
+        dynamic_cast<TTAMachine::RegisterFile*>(
+            (*lr.writes.begin())->move().destination().port().parentUnit());
+    assert(originalRF != 0);
+    int bitwidth = originalRF->width();
+    std::set<const TTAMachine::RegisterFile*, 
+        TTAMachine::MachinePart::Comparator> rv;
+
+    // TODO: loop over movenoeds or RF's? this routine could be made faster.
+    TTAMachine::Machine::RegisterFileNavigator rfNav = 
+        machine_.registerFileNavigator();
+    for (int i = 0; i < rfNav.count(); i++) {
+        TTAMachine::RegisterFile* rf = rfNav.item(i);
+        if (rf->width() < bitwidth) {
+            continue;
+        }
+        std::set<const TTAMachine::Port*> writePorts = 
+            MachineConnectivityCheck::findWritePorts(*rf);
+        bool connected = true;
+        
+        for (DataDependenceGraph::NodeSet::iterator j = lr.writes.begin();
+             j != lr.writes.end() && connected; j++) {
+            const MoveNode& write = **j;
+            switch (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+                        write, writePorts)) {
+            case -1:
+                connected = allowLimm;
+                break;
+            case 0:
+                connected = false;
+            default:
+                break;
+            }
+        }
+        if (!connected) {
+            continue;
+        }
+        
+        std::set<const TTAMachine::Port*> readPorts = 
+            MachineConnectivityCheck::findReadPorts(*rf);
+        
+        for (DataDependenceGraph::NodeSet::iterator j = lr.reads.begin();
+             j != lr.reads.end() && connected; j++) {
+            const MoveNode& read = **j;
+            if (!MachineConnectivityCheck::canAnyPortWriteToDestination(
+                    readPorts, read)) {
+                connected = false;
+            }
+        }
+        if (connected) {
+            rv.insert(rf);
+        }
+    }
+    return rv;
+}
+
 
 /// To avoid reanalysing machine every time hen new rr created.
 std::map<const TTAMachine::Machine*, std::vector <TTAMachine::RegisterFile*> >

@@ -49,6 +49,7 @@ namespace TTAMachine {
     class BaseRegisterFile;
     class Unit;
     class FunctionUnit;
+    class Guard;
 }
 
 namespace TTAProgram {
@@ -65,7 +66,8 @@ class MachineConnectivityCheck : MachineCheck {
 public:
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
-        const TTAMachine::Port& destinationPort);
+        const TTAMachine::Port& destinationPort,
+        TTAMachine::Guard* guard = NULL);
 
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
@@ -85,21 +87,25 @@ public:
 
     static bool isConnected(
         std::set<const TTAMachine::Port*> sourcePorts,
-        std::set<const TTAMachine::Port*> destinationPorts);
+        std::set<const TTAMachine::Port*> destinationPorts,
+        TTAMachine::Guard* guard = NULL);
 
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
-        const TTAMachine::BaseRegisterFile& destRF);
+        const TTAMachine::BaseRegisterFile& destRF,
+        TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
-        const TTAMachine::Port& destinationPort);
+        const TTAMachine::Port& destinationPort,
+        TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
-        std::set<const TTAMachine::Port*> destinationPorts);
+        std::set<const TTAMachine::Port*> destinationPorts,
+        TTAMachine::Guard* guard = NULL);
     
     static bool rfConnected(
         const TTAMachine::RegisterFile& rf);
@@ -153,6 +159,26 @@ public:
         const TTAMachine::Bus& bus, const MoveNode& moveNode);
 
     static int totalConnectionCount(const TTAMachine::Machine& mach);
+    
+    static std::set<const TTAMachine::Port*> findPossibleDestinationPorts(
+        const TTAMachine::Machine& mach, const MoveNode& node);
+
+    static std::set<const TTAMachine::Port*> findPossibleSourcePorts(
+        const TTAMachine::Machine& mach, const MoveNode& node);
+
+    static int canSourceWriteToAnyDestinationPort(
+        const MoveNode& src, 
+        std::set<const TTAMachine::Port*>& ports);
+
+    static bool canAnyPortWriteToDestination(
+        std::set<const TTAMachine::Port*>& ports,
+        const MoveNode& dest);
+
+    static std::set<const TTAMachine::Port*> findWritePorts(
+        TTAMachine::Unit& rf);
+
+    static std::set<const TTAMachine::Port*> findReadPorts(
+        TTAMachine::Unit& rf);
 
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();

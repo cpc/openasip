@@ -54,7 +54,7 @@
 //#include "InterPassData.hh"
 #include "MoveNodeSet.hh"
 #include "Terminal.hh"
-//#include "RegisterRenamer.hh"
+#include "RegisterRenamer.hh"
 #include "HWOperation.hh"
 #include "MachineConnectivityCheck.hh"
 #include "Operation.hh"
@@ -62,6 +62,7 @@
 #include "TerminalImmediate.hh"
 #include "MathTools.hh"
 #include "SpecialRegisterPort.hh"
+#include "LiveRange.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -121,11 +122,10 @@ BypassingBUBasicBlockScheduler::handleDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
-/*
     if (renamer_ != NULL) {
         renamer_->initialize(ddg);
     }
-*/
+
     if (options_ != NULL && options_->dumpDDGsDot()) {
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, false);
@@ -150,11 +150,9 @@ BypassingBUBasicBlockScheduler::handleDDG(
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
-/*
     if (renamer_ != NULL) {
         renamer_->setSelector(&selector);
     }
-*/
 
     rm_ = &rm;
 
@@ -236,8 +234,8 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         (moves.node(0).sourceOperation()):
         (moves.node(0).destinationOperation());
 
-    for (int i = endCycle_; i > 0; i--) {
-        if (scheduleOperation(po,i)) {
+    for (int lastCycle = endCycle_; lastCycle > 0; lastCycle--) {
+        if (scheduleOperation(po, lastCycle)) {
 //            ddg_->writeToDotFile("op_schedok.dot");
 
             finalizeOperation(selector);
@@ -308,18 +306,42 @@ BypassingBUBasicBlockScheduler::finalizeOperation(MoveNodeSelector& selector) {
 
 bool
 BypassingBUBasicBlockScheduler::scheduleOperation(
-    ProgramOperation& po, int latestCycle) {
+    ProgramOperation& po, int& latestCycle) {
 
-    std::cerr << "Scheduling operation: " << po.toString() << std::endl;
+    int lc = latestCycle;
+    std::cerr << "Scheduling operation: " << po.toString() 
+              << " lc: " << latestCycle << std::endl;
     if (po.isAnyNodeAssigned()) {
         ddg_->writeToDotFile("po_already_assigned.dot");
         throw Exception(__FILE__,__LINE__,__func__,
                         "po already scheduled!" +
                         po.toString());
     }
-    if (!scheduleResults(po, latestCycle-1)) {
+    if (!scheduleResults(po, latestCycle)) {
         std::cerr << "results fail for: " << po.toString() << std::endl;
         return false;
+    }
+
+    // update latestcycle
+    int lastRes = -1;
+    for (int i = 0; i < po.outputMoveCount(); i++) {
+        MoveNode& mn = po.outputMove(i);
+        if (mn.isScheduled()) {
+            if (mn.cycle() > lastRes) {
+                lastRes = mn.cycle();
+            }
+            lc = endCycle_;
+            // TODO: why does this make the schedule worse?
+//            if (mn.cycle() < lc) {
+//                lc = mn.cycle() -1;
+//            }
+        }
+    }
+    if (lastRes > -1) {
+        std::cerr << "Last result cycle: " << lastRes << std::endl;
+        assert(lastRes <= latestCycle);
+        latestCycle = lastRes;
+
     }
 
     MoveNode* trigger = findTrigger(po);
@@ -331,7 +353,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         return false;
     }
 
-    if (!bypassAndScheduleNode(*trigger, trigger, latestCycle)) {
+    if (!bypassAndScheduleNode(*trigger, trigger, lc)) {
         unscheduleResults(po);
         std::cerr << "trigger bypass or shed fail for: " << 
             po.toString() << std::endl;
@@ -339,7 +361,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
     }
 
     // if trigger bypass jamms fu, this may fail.
-    if (!bypassAndScheduleOperands(po, trigger, latestCycle)) {
+    if (!bypassAndScheduleOperands(po, trigger, lc)) {
         unscheduleOperands(po);
 
         // try to remove bypass of trigger and then re-schedule this
@@ -349,7 +371,11 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         }
         
         // try now operands, with bypass.
-        if (!bypassAndScheduleOperands(po, trigger, latestCycle)) {
+        if (!bypassAndScheduleOperands(po, trigger, lc)) {
+            // advance latest cycle retry counter
+            if (po.outputMoveCount() == 0) {
+                latestCycle = trigger->cycle();
+            }
             unscheduleOperands(po);
             unscheduleResults(po);
 
@@ -361,7 +387,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
     std::cerr << "Operation scheduled ok!" << po.toString() << std::endl;
 //    ddg_->writeToDotFile("op_schedok.dot");
 //    if (!po.isScheduled()) {
-        
+
     return true;
 }
 
@@ -569,7 +595,9 @@ std::pair<MoveNode*, int>
 BypassingBUBasicBlockScheduler::findBypassSource(
     MoveNode& node, int maxHopCount) {
     std::set<const TTAMachine::Port*>
-        destinationPorts = findPossibleDestinationPorts(node);
+        destinationPorts = 
+        MachineConnectivityCheck::findPossibleDestinationPorts(
+            *targetMachine_, node);
 
     MoveNode* n = &node;
     MoveNode* okSource = NULL;
@@ -580,21 +608,8 @@ BypassingBUBasicBlockScheduler::findBypassSource(
             break;
         }
         n = rrSource;
-        if (rrSource->isSourceConstant()) {
-            TTAProgram::TerminalImmediate* imm = 
-                static_cast<TTAProgram::TerminalImmediate*>(
-                &rrSource->move().source());
-            if (MachineConnectivityCheck::canTransportImmediate(
-                    *imm, destinationPorts)) {
-                okSource = n;
-                hops = i+1;
-            }
-            // TODO: what about long immediates?
-        }
-        std::set<const TTAMachine::Port*>
-        sourcePorts = findPossibleSourcePorts(*rrSource);
-        if (MachineConnectivityCheck::isConnected(
-                sourcePorts, destinationPorts)) {
+        if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+                *n, destinationPorts)) {
             okSource = n;
             hops = i+1;
         }
@@ -612,7 +627,10 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
         if (bypassHopCount > 0) {
             std::cerr << "\tBypassed node: " << node.toString() << std::endl;
             if (node.isSourceOperation()) {
-                if (scheduleOperation(node.sourceOperation(), latestCycle)) {
+                // take a copy of latestCycle because scheduleOperation
+                // may modify it
+                int lc = latestCycle;
+                if (scheduleOperation(node.sourceOperation(), lc)) {
                     return true; 
                 } else {
                     // scheduling bypassed op failed. 
@@ -673,6 +691,18 @@ BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
     MoveNode& operand, MoveNode* trigger, int latestCycle) {
     std::pair<int,int> cycleLimits = 
         operandCycleLimits(operand, trigger);
+
+    // if not connected and cannot rename fail here
+    if (!renameSourceIfNotConnected(
+            operand, cycleLimits.first, std::min(
+                cycleLimits.second, latestCycle))) {
+        std::cerr << "\t\t\tNo connctivity and cannot rename for: "
+                  << operand.toString();
+
+        // TODO: revert to adding regcopies.
+        return false;
+    }
+
     return scheduleMoveBU(operand, cycleLimits.first, 
                           std::min(latestCycle,cycleLimits.second));
 }
@@ -799,109 +829,6 @@ BypassingBUBasicBlockScheduler::lastOperandCycle(
     return res;
 }
 
-std::set<const TTAMachine::Port*> 
-BypassingBUBasicBlockScheduler::findPossibleDestinationPorts(MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
-    if (node.isScheduled()) {
-        res.insert(&node.move().destination().port());
-        return res;
-    }
-
-    if (node.isDestinationOperation()) {
-        TTAMachine::Machine::FunctionUnitNavigator nav = 
-            targetMachine_->functionUnitNavigator();
-        ProgramOperation& po = node.destinationOperation();
-
-        for (int i = 0; i < nav.count(); i++) {
-            TTAMachine::FunctionUnit* fu = nav.item(i);
-            if (fu->hasOperation(po.operation().name())) {
-                TTAMachine::HWOperation* hwop = 
-                    fu->operation(po.operation().name());
-                res.insert(
-                    hwop->port(node.move().destination().operationIndex()));
-            }
-        }
-        return res;
-    }
-
-    // destination is register
-    TTAMachine::Unit* rf = 
-        node.move().destination().port().parentUnit();
-    for (int i = 0; i < rf->portCount(); i++) {
-        TTAMachine::Port* port = rf->port(i);
-        if (port->isInput()) {
-            res.insert(port);
-        }
-    }
-    return res;
-}
-
-
-std::set<const TTAMachine::Port*> 
-BypassingBUBasicBlockScheduler::findPossibleSourcePorts(MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
-    if (node.isScheduled()) {
-        res.insert(&node.move().source().port());
-        return res;
-    }
-
-    if (node.isSourceOperation()) {
-        TTAMachine::Machine::FunctionUnitNavigator nav = 
-            targetMachine_->functionUnitNavigator();
-        ProgramOperation& po = node.sourceOperation();
-
-        for (int i = 0; i < nav.count(); i++) {
-            TTAMachine::FunctionUnit* fu = nav.item(i);
-            if (fu->hasOperation(po.operation().name())) {
-                TTAMachine::HWOperation* hwop = 
-                    fu->operation(po.operation().name());
-                res.insert(
-                    hwop->port(node.move().source().operationIndex()));
-            }
-        }
-        return res;
-    }
-
-    if (node.isSourceVariable()) {
-        // destination is register
-        TTAMachine::Unit* rf = 
-            node.move().destination().port().parentUnit();
-        for (int i = 0; i < rf->portCount(); i++) {
-            TTAMachine::Port* port = rf->port(i);
-            if (port->isOutput()) {
-                res.insert(port);
-            }
-        }
-        return res;
-    }
-
-    // consider only long immediates here.
-    if (node.isSourceConstant()) {
-
-        int bitw = MathTools::requiredBits(
-            node.move().source().value().intValue());
-        TTAMachine::Machine::ImmediateUnitNavigator nav = 
-            targetMachine_->immediateUnitNavigator();
-        for (int i = 0; i < nav.count(); i++) {
-            TTAMachine::ImmediateUnit* iu = nav.item(i);
-            if (iu->width() >= bitw) {
-                for (int i = 0; i < iu->portCount(); i++) {
-                    TTAMachine::Port* port = iu->port(i);
-                    assert(port->isOutput());
-                    res.insert(port);
-                }
-            }
-        }
-        return res;
-    }
-
-    if (node.move().source().isRA()) {
-        res.insert(targetMachine_->controlUnit()->returnAddressPort());
-    }
-
-    // TODO: Immediate
-    return res;
-}
 
 void
 BypassingBUBasicBlockScheduler::undoBypass(MoveNode& mn) {
@@ -967,4 +894,44 @@ BypassingBUBasicBlockScheduler::clearCaches() {
     }
     removedNodes_.clear();
     pendingBypassSources_.clear();
+}                                     
+
+bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
+    MoveNode& moveNode, int earliestCycle, int latestCycle) {
+    
+    std::set<const TTAMachine::Port*>
+        destinationPorts = 
+        MachineConnectivityCheck::findPossibleDestinationPorts(
+            *targetMachine_,moveNode);
+
+    if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+            moveNode, destinationPorts)) {
+        std::cerr << "Already connected." << std::endl;
+        return true;
+    }
+
+    
+    return renamer_->renameSourceRegister(moveNode, false, latestCycle);
+
+#if 0
+    LiveRange* lr = ddg_->findLiveRange(moveNode, false);
+    // todo: should rename here
+    if (lr == NULL) {
+        std::cerr << "Could not find liverange for:" << moveNode.toString() << std::endl;
+        return false;
+    }
+
+    // for now limit to simple cases.
+    if (!(lr->writes.size() == 1  && lr->reads.size() > 0)) {
+        std::cerr << "Liverange too complex to rename: " << lr->toString()
+                  <<" for: " << moveNode.toString() << std::endl;
+        return false;
+    } 
+    
+    std::cerr << "(Not really yeat)Trying to rename lr: " << lr->toString() << std::endl;
+
+    // TODO: find the register.
+
+    return renamer_->renameLiveRange(*lr, "", false, false, false);
+#endif
 }

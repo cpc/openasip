@@ -10,6 +10,9 @@ Code generator improvements
 ---------------------------
 - Immediates marked as rematerializable; This should reduce spilling as
   values that come from immediates are not spilled to stack.
+- Registers can now be renamed to different RF during scheduling.
+  This is however not yet used to reduce number of register-to-registe copies
+  on sparsely connected machines.
 
 Bugfixes
 --------

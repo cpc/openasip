@@ -274,8 +274,9 @@ Machine::Navigator<ComponentType>::item(const std::string& name) const
     if (component != NULL) {
         return component;
     } else {
-        std::string procName = "Machine::Navigator<ComponentType>::item";
-        throw InstanceNotFound(__FILE__, __LINE__, procName);
+        std::string msg = "Component with name: " + name + 
+            "Not found in navigator.";
+        throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
     }
 }
 

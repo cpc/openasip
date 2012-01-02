@@ -36,6 +36,7 @@
 #include "TCEString.hh"
 #include <set>
 #include "LiveRange.hh"
+#include "MachinePart.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -57,9 +58,6 @@ public:
         const TTAMachine::Machine& machine, TTAProgram::BasicBlock& bb);
     unsigned int freeGPRCount() const { return freeGPRs_.size(); }
 
-    std::set<TCEString> findFreeRegistersInRF(
-        const TTAMachine::RegisterFile& rf) const;
-
     void initialize(DataDependenceGraph& ddg);
 
     bool renameDestinationRegister(
@@ -73,15 +71,34 @@ public:
     //    typedef std::pair<DataDependenceGraph::NodeSet, 
     //DataDependenceGraph::NodeSet> LiveRange;
 
+    bool renameLiveRange(
+        LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
+        bool usedAfter, bool loopScheduling);
+
 private:
+
+    std::set<TCEString> registersOfRFs(
+        std::set<const TTAMachine::RegisterFile*, 
+        TTAMachine::MachinePart::Comparator>& rfs) const;
+
+    std::set<const TTAMachine::RegisterFile*,
+             TTAMachine::MachinePart::Comparator>
+    findConnectedRFs(LiveRange& lr, bool allowLimm);
+
     void initializeFreeRegisters();
 
+    std::set<TCEString> findFreeRegistersInRF(
+        std::set<const TTAMachine::RegisterFile*,
+        TTAMachine::MachinePart::Comparator>& rfs) const;
+
     std::set<TCEString> findPartiallyUsedRegistersInRFBeforeCycle(
-        const TTAMachine::RegisterFile& rf,
+        std::set<const TTAMachine::RegisterFile*,
+        TTAMachine::MachinePart::Comparator>& rfs,
         int earliestCycle) const;
 
     std::set<TCEString> findPartiallyUsedRegistersInRFAfterCycle(
-        const TTAMachine::RegisterFile& rf,
+        std::set<const TTAMachine::RegisterFile*,
+        TTAMachine::MachinePart::Comparator>& rfs,
         int latestCycle) const;
     
     std::set<TCEString> findPartiallyUsedRegistersBeforeCycle(
@@ -91,10 +108,6 @@ private:
         int bitWidth, int latestCycle) const;
     
     std::set<TCEString> findFreeRegisters(int bitWidth) const;
-
-    bool renameLiveRange(
-        LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
-        bool usedAfter, bool loopScheduling);
 
     void updateAntiEdgesFromLRTo(
         LiveRange& liveRange, 

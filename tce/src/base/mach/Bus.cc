@@ -410,6 +410,19 @@ Bus::segmentCount() const {
     return segments_.size();
 }
 
+/**
+ * Checks whether the bus has the given guard.
+ */
+bool 
+Bus::hasGuard(Guard& guard) const {
+    for (GuardTable::const_iterator iter = guards_.begin();
+         iter != guards_.end(); iter++) {
+        if ((*iter)->isEqual(guard)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Adds guard to the bus.
@@ -420,15 +433,12 @@ Bus::segmentCount() const {
 void
 Bus::addGuard(Guard& guard)
     throw (ComponentAlreadyExists) {
-
-    GuardTable::const_iterator iter = guards_.begin();
-    while (iter != guards_.end()) {
-        if ((*iter)->isEqual(guard)) {
-            string procName = "Bus::addGuard";
-            throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
-        }
-        iter++;
+    if (hasGuard(guard)) {
+        string procName = "Bus::addGuard";
+        throw ComponentAlreadyExists(__FILE__, __LINE__, __func__,
+                                     "Bus already has the given guard!");
     }
+
     guards_.push_back(&guard);
 }
 
