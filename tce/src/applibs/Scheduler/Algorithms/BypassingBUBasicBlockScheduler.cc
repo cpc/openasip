@@ -694,7 +694,7 @@ BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
 
     // if not connected and cannot rename fail here
     if (!renameSourceIfNotConnected(
-            operand, cycleLimits.first, std::min(
+            operand, std::min(
                 cycleLimits.second, latestCycle))) {
         std::cerr << "\t\t\tNo connctivity and cannot rename for: "
                   << operand.toString();
@@ -897,7 +897,7 @@ BypassingBUBasicBlockScheduler::clearCaches() {
 }                                     
 
 bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
-    MoveNode& moveNode, int earliestCycle, int latestCycle) {
+    MoveNode& moveNode, int latestCycle) {
     
     std::set<const TTAMachine::Port*>
         destinationPorts = 

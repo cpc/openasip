@@ -99,7 +99,7 @@ public:
 private:
 
     bool renameSourceIfNotConnected(
-        MoveNode& moveNode, int earliestCycle, int latestCycle);
+        MoveNode& moveNode, int latestCycle);
 
     void finalizeOperation(MoveNodeSelector& selector);
 

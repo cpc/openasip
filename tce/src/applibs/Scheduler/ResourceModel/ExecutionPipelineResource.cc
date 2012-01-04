@@ -1358,10 +1358,11 @@ ExecutionPipelineResource::nextResultCycle(
         ii = INT_MAX;
     }
 
+    unsigned int rwSize = resultWriten.size();
     for (unsigned int i = cycle; i < cycle + ii; i++) {
         unsigned int modi = instructionIndex(i);
         
-        if (resultWriten.size() <= modi) {
+        if (rwSize <= modi) {
             if (ii == INT_MAX) {
                 return INT_MAX;
             } else {
@@ -1369,7 +1370,7 @@ ExecutionPipelineResource::nextResultCycle(
             }
         }
         
-        const ResultHelperPair& rhp = resultWriten.at(modi);
+        const ResultHelperPair& rhp = resultWriten[modi];
         if (rhp.first.count != 0) {
             assert(rhp.first.po != NULL);
             if (rhp.first.po != sourcePo &&
@@ -1567,10 +1568,11 @@ ExecutionPipelineResource::resultAllowedAtCycle(
         ii = INT_MAX;
     }
     
+    unsigned int rrSize = resultRead.size();
     unsigned int rrMod = instructionIndex(resultCycle);
     for (unsigned int i = rrMod; i < rrMod + ii; i++) {
         unsigned int modi = instructionIndex(i);
-        if (modi >= resultRead.size()) {
+        if (modi >= rrSize) {
             if (ii == INT_MAX) {
                 break;
             } else {
@@ -1579,7 +1581,7 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                 continue;
             }
         }
-        const ResultHelperPair& resultReadPair = resultRead.at(modi);
+        const ResultHelperPair& resultReadPair = resultRead[modi];
         if (resultReadPair.first.count > 0) {
             // same operation reading result again. cannot fail.
             if (resultReadPair.first.po == &po) {

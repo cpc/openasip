@@ -369,24 +369,6 @@ SchedulingResource::decreaseUseCount() {
 }
 
 /**
- * Return the instruction index corresponding to cycle.
- *
- * If modulo scheduling is not used (ie. initiation interval is 0), then
- * index is equal to cycle.
- *
- * @param cycle Cycle to get instruction index.
- * @return Return the instruction index for cycle.
- */
-unsigned int
-SchedulingResource::instructionIndex(unsigned int cycle) const {
-    if (initiationInterval_ != 0) {
-        return cycle % initiationInterval_;
-    } else {
-        return cycle;
-    }
-}
-
-/**
  * Set initiation interval, if ii = 0 then initiation interval is not used.
  *
  * @param ii initiation interval

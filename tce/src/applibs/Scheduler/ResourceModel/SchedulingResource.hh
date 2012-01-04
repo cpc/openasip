@@ -113,7 +113,7 @@ public:
     virtual bool isITemplateResource() const;
     
     // Get instruction index for resource
-    unsigned int instructionIndex(unsigned int cycle) const;
+    inline unsigned int instructionIndex(unsigned int cycle) const;
 
     // Set initiation interval for resource
     void setInitiationInterval(unsigned int ii);
