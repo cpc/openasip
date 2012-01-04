@@ -16,8 +16,10 @@ Code generator improvements
 
 Bugfixes
 --------
-- Missing antidependence edges could cause broken schedule when
+- tcecc: Missing antidependence edges could cause broken schedule when
   bypasser used on partially connected machines.
+- ttasim: Try to simulate machines with unconnected ports (only a warning
+  is printed in such cases). 
 
 1.5    December 2011
 ====================

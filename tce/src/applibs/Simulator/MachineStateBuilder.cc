@@ -551,12 +551,13 @@ MachineStateBuilder::addPortToFU(
         }   
 
         if (!operationBindingFound) {
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__,
-                std::string("Cannot determine the direction of port ") +
-                port->parentUnit()->name() + "." + port->name() + ".");
+            Application::warningStream()
+                << "warning: Cannot determine the direction of port "
+                << port->parentUnit()->name() + "." + port->name() 
+                << ", omitting it from the simulation model."
+                << std::endl;
+            return;
         }
-
     }
 
     if (inputPort) {

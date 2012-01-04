@@ -976,6 +976,8 @@ function compile_test_with_all_compilers {
             echo "This error log was sent at: $(date +"%d.%m.%y %H:%M")" >> ${ERROR_LOG_FILE}
             tail -n ${LINES_FROM_ERROR_LOG} $ERROR_LOG_FILE | grep -vEx "${MAIL_FILTER}" | eval $MAILER 
         fi
+        rm -f $TEMP_FILE
+        return 1
     else
         echo "OK." >> $LOG_FILE
         debug_print No errors were found during testing.
@@ -1008,9 +1010,10 @@ function compile_test_with_all_compilers {
         then
             tag_fully_tested
         fi
+        rm -f $TEMP_FILE
+        return 0
     fi
 
-    rm -f $TEMP_FILE
 }
 
 #
@@ -1019,4 +1022,5 @@ function compile_test_with_all_compilers {
 
 echo " Temp: $TEMP_FILE"
 echo "[ === Starting compile test for branch ${BRANCH_NAME} ===]" >> $LOG_FILE
-compile_test_with_all_compilers tce .
+compile_test_with_all_compilers tce . || exit 1
+
