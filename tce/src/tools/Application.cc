@@ -81,6 +81,7 @@ using std::set_unexpected;
 bool Application::initialized_ = false;
 std::ostream* Application::logStream_ = NULL;
 std::ostream* Application::errorStream_ = NULL;
+std::ostream* Application::warningStream_ = NULL;
 std::map<int, Application::UnixSignalHandler*> Application::signalHandlers_;
 
 int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
@@ -113,6 +114,7 @@ Application::initialize() {
     }
 
     errorStream_ = &cerr;
+    warningStream_ = &cerr;
 
     // set the unexpected exception callback
     set_unexpected(Application::unexpectedExceptionHandler);
@@ -145,6 +147,8 @@ Application::logStream() {
  * Stream where error messages that should be printed immediately to the user
  * should be written.
  *
+ * Errors are fatal which means the action performed could not be finished.
+ *
  * Usage example: errorStream() << "Compilation error: "...
  *
  * @return A reference to the error stream.
@@ -153,6 +157,23 @@ std::ostream&
 Application::errorStream() {
     initialize();
     return *errorStream_;
+}
+
+/**
+ * Stream where warning messages that should be printed immediately to the user
+ * should be written.
+ *
+ * Warnings are non-fatal notifications to the user. The action performed
+ * might still be able to be finished.
+ *
+ * Usage example: warningStream() << "warning: uninitialized thing "...
+ *
+ * @return A reference to the warning stream.
+ */
+std::ostream&
+Application::warningStream() {
+    initialize();
+    return *warningStream_;
 }
 
 /**
