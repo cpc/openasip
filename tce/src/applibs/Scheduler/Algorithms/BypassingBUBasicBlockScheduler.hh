@@ -44,6 +44,7 @@
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
 #include "BasicBlockScheduler.hh"
+#include "MachinePart.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
@@ -59,6 +60,7 @@ class LLVMTCECmdLineOptions;
 namespace TTAMachine {
     class Unit;
     class Port;
+    class RegisterFile;
 }
 
 /**
@@ -72,6 +74,12 @@ namespace TTAMachine {
 class BypassingBUBasicBlockScheduler :
     public BasicBlockScheduler {
 public:
+
+    enum TempRegCopyLocation {
+        TempRegNotAllowed,
+        TempRegBefore,
+        TempRegAfter };
+
     BypassingBUBasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
         CopyingDelaySlotFiller* delaySlotFiller=NULL,
@@ -103,13 +111,20 @@ private:
 
     void finalizeOperation(MoveNodeSelector& selector);
 
-    bool scheduleOperation(ProgramOperation& po, int& latestCycle);
+    bool scheduleOperation(
+        ProgramOperation& po, int& latestCycle, bool allowTempRegCopies);
+                           
 
-    bool scheduleResults(ProgramOperation& po, int latestCycle);
+    bool scheduleResults(
+        ProgramOperation& po, int latestCycle, bool allowTempRegCopies);
+
+
 
     bool scheduleMoveUB(MoveNode& mn, int earlistCycle, int latestCycle);
 
-    bool scheduleMoveBU(MoveNode& mn, int earlistCycle, int latestCycle);
+    bool scheduleMoveBU(
+        MoveNode& mn, int earlistCycle, int latestCycle, 
+        TempRegCopyLocation t);
 
     int bypassNode(MoveNode& node, int maxHopCount);
 
@@ -117,17 +132,22 @@ private:
         MoveNode& node, int maxHopCount);
 
     bool bypassAndScheduleNode(
-        MoveNode& node, MoveNode* trigger, int latestCycle);
+        MoveNode& node, MoveNode* trigger, int latestCycle, 
+        bool allowRegCopies);
 
     bool bypassAndScheduleOperands(
-        ProgramOperation& po, MoveNode* trigger, int latestCycle);
+        ProgramOperation& po, MoveNode* trigger, int latestCycle,
+        bool allowRegCopies);
 
     bool scheduleOperandOrTrigger(
-        MoveNode& operand, MoveNode* trigger, int latestCycle);
+        MoveNode& operand, MoveNode* trigger, int latestCycle,
+        bool allowRegCopies);
 
     void unscheduleResults(ProgramOperation& po);
     
     void unscheduleOperands(ProgramOperation& po);
+
+    void unschedule(MoveNode& mn);
 
     void undoBypass(MoveNode& mn);
 
@@ -144,19 +164,26 @@ private:
     MoveNode* findTriggerFromUnit(
         ProgramOperation& po, TTAMachine::Unit& unit);
 
+    MoveNode* createTempRegCopy(MoveNode& mn, bool after);
+
+    std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator> 
+    possibleTempRegRFs(const MoveNode& mn);
+
     void clearCaches();
 
     std::map<MoveNode*, MoveNode*, MoveNode::Comparator> bypassSources_;
-
     std::map<MoveNode*, MoveNode*, MoveNode::Comparator> removedBypassSources_;
 
     std::set<MoveNode*, MoveNode::Comparator> removedNodes_;
-
     std::set<MoveNode*, MoveNode::Comparator> pendingBypassSources_;
-
     std::set<MoveNode*, MoveNode::Comparator> scheduledMoves_;
 
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> regCopiesBefore_;
+    std::map<MoveNode*, MoveNode*, MoveNode::Comparator> regCopiesAfter_;
+
+
     bool killDeadResults_;
+    bool renameRegisters_;
     int endCycle_;
 };
 

@@ -719,7 +719,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         else {
             fixDDGEdgesInTempReg(
                 *ddg, originalMove, firstMove, lastMove, lastRF,
-                lastRegisterIndex, bbn);
+                lastRegisterIndex, bbn, buScheduler_);
         }
     }
     
@@ -1026,7 +1026,8 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
     MoveNode* lastMove,
     const TTAMachine::RegisterFile* lastRF, 
     int lastRegisterIndex,
-    BasicBlockNode& currentBBNode) {
+    BasicBlockNode& currentBBNode,
+    bool bottomUpScheduler) {
 
     // move all incoming edges
     DataDependenceGraph::EdgeSet inEdges = 
@@ -1110,9 +1111,8 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
     
 
     createAntidepsForReg(
-	*firstMove, *lastMove, originalMove, *lastRF, lastRegisterIndex, ddg, 
-	currentBBNode);
-
+        *firstMove, *lastMove, originalMove, *lastRF, lastRegisterIndex,
+        ddg, currentBBNode, bottomUpScheduler);
 }
 
 /**
@@ -1244,22 +1244,22 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     
     createAntidepsForReg(
         *firstMove, *intMoves[0], originalMove, 
-        *firstRF, firstRegisterIndex, ddg, currentBBNode);
+        *firstRF, firstRegisterIndex, ddg, currentBBNode, buScheduler_);
 
     for (int i = 0; i < regsRequired - 2; ++i) {
 
-	TCEString tempReg = intRF[i+1]->name() + '.' +
-	    Conversion::toString(intRegisterIndex[i+1]);
-
+        TCEString tempReg = intRF[i+1]->name() + '.' +
+            Conversion::toString(intRegisterIndex[i+1]);
+        
         DataDependenceEdge* edgeInt = 
             new DataDependenceEdge(
                 DataDependenceEdge::EDGE_REGISTER, 
                 DataDependenceEdge::DEP_RAW, tempReg);
         ddg.connectNodes(*intMoves[i], *intMoves[i + 1], *edgeInt);
-
-	createAntidepsForReg(
-	    *intMoves[i], *intMoves[i+1], originalMove, 
-	    *intRF[i], intRegisterIndex[i], ddg, currentBBNode);
+        
+        createAntidepsForReg(
+            *intMoves[i], *intMoves[i+1], originalMove, 
+            *intRF[i], intRegisterIndex[i], ddg, currentBBNode, buScheduler_);
     }
 
     TCEString lastTempReg = DisassemblyRegister::registerName(
@@ -1271,8 +1271,8 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     ddg.connectNodes(*intMoves[regsRequired - 2], *lastMove, *edgeLast);
 
     createAntidepsForReg(
-	*intMoves[regsRequired - 2], *lastMove, originalMove,
-	*lastRF, lastRegisterIndex, ddg, currentBBNode);
+        *intMoves[regsRequired - 2], *lastMove, originalMove,
+        *lastRF, lastRegisterIndex, ddg, currentBBNode, buScheduler_);
 }
 
 
@@ -1282,14 +1282,11 @@ RegisterCopyAdder::createAntidepsForReg(
     const MoveNode& defMove, const MoveNode& useMove, 
     const MoveNode& originalMove,
     const TTAMachine::RegisterFile& rf, int index,
-    DataDependenceGraph& ddg, BasicBlockNode& bbn) {
-
+    DataDependenceGraph& ddg, BasicBlockNode& bbn, bool backwards) {
+    
     TCEString tempReg = DisassemblyRegister::registerName(rf, index);
-
-    // then some antideps
-	
-    if (buScheduler_) {
-
+    
+    if (backwards) {
         DataDependenceGraph::NodeSet firstScheduledDefs0 = 
             ddg.firstScheduledRegisterWrites(rf, index);
 
@@ -1326,7 +1323,7 @@ RegisterCopyAdder::createAntidepsForReg(
                     bbn.basicBlock().liveRangeData_->regLastUses_[tempReg];
                 lastReads0.insert(MoveNodeUse(useMove));
             }
-        
+
             // last write, for WaW defs
             LiveRangeData::MoveNodeUseSet& firstDefs = 
                 bbn.basicBlock().liveRangeData_->regFirstDefines_[tempReg];
@@ -1338,11 +1335,11 @@ RegisterCopyAdder::createAntidepsForReg(
                 firstDefs.clear();
                 // TODO: what about updating the kill bookkeeping?
             } 
-           
+
             // last write for WaW deps
             firstDefs.insert(
                 MoveNodeUse(defMove));
- 
+
             // no need to inser use to anything here. all antideps to to def
         } // update intra-bb-live-info
     } else {
@@ -1366,15 +1363,15 @@ RegisterCopyAdder::createAntidepsForReg(
                 ddg.connectNodes(**i, defMove, *war);
             }
         }
-    
+
         for (DataDependenceGraph::NodeSet::iterator i = 
                  lastScheduledDefs0.begin();
              i != lastScheduledDefs0.end(); i++) {
             if (!ddg.exclusingGuards(**i, defMove)) {
                 DataDependenceEdge* waw = 
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_REGISTER, 
-                    DataDependenceEdge::DEP_WAW, tempReg);
+                    new DataDependenceEdge(
+                        DataDependenceEdge::EDGE_REGISTER, 
+                        DataDependenceEdge::DEP_WAW, tempReg);
                 ddg.connectNodes(**i, defMove, *waw);
             }
         }
@@ -1542,12 +1539,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
 
         createAntidepsForReg(
             *firstMove, *regToRegCopy, originalMove,
-            *tempRF1, tempRegisterIndex1, ddg, currentBBNode);
-
-        createAntidepsForReg(
-            *regToRegCopy, *lastMove, originalMove, 
-            *tempRF2, tempRegisterIndex2, ddg, currentBBNode);
-
+            *tempRF1, tempRegisterIndex1, ddg, currentBBNode,
+            buScheduler_);
+            
     } else { // regcopy == nul
         DataDependenceEdge* edge1 = 
             new DataDependenceEdge(
@@ -1555,9 +1549,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
                 DataDependenceEdge::DEP_RAW, reg1);
         ddg.connectNodes(*firstMove, *lastMove, *edge1);
 
-    createAntidepsForReg(
-        *firstMove, *lastMove, originalMove,
-        *tempRF1, tempRegisterIndex1, ddg, currentBBNode);
+        createAntidepsForReg(
+            *firstMove, *lastMove, originalMove,
+            *tempRF1, tempRegisterIndex1, ddg, currentBBNode, buScheduler_);
     }
 }
 

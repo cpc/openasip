@@ -37,6 +37,16 @@
  * @note rating: red
  */
 
+/*
+  TODO:
+  
+  * Don't rename for connectivity to same reg file
+  * Allow reverting of regcopyadding
+  * Allow bypassing also when not scheduling recursively
+  * switch from DFS to BFS
+  * Bypass and schedule top-down other results?
+  */
+
 #include <set>
 #include <string>
 
@@ -51,7 +61,7 @@
 #include "BasicBlock.hh"
 #include "SchedulerPass.hh"
 #include "LLVMTCECmdLineOptions.hh"
-//#include "InterPassData.hh"
+#include "InterPassData.hh"
 #include "MoveNodeSet.hh"
 #include "Terminal.hh"
 #include "RegisterRenamer.hh"
@@ -63,6 +73,10 @@
 #include "MathTools.hh"
 #include "SpecialRegisterPort.hh"
 #include "LiveRange.hh"
+#include "TerminalRegister.hh"
+#include "Move.hh"
+#include "RegisterCopyAdder.hh"
+#include "MoveGuard.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -89,12 +103,13 @@ BypassingBUBasicBlockScheduler::BypassingBUBasicBlockScheduler(
     CopyingDelaySlotFiller* delaySlotFiller,
     RegisterRenamer* renamer) :
     BasicBlockScheduler(data, bypasser, delaySlotFiller, renamer),
-    killDeadResults_(false) {
+    killDeadResults_(false), renameRegisters_(false) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
     if (options_ != NULL) {
         killDeadResults_ = options_->killDeadResults();
+        renameRegisters_ = options_->renameRegisters();
     }
 }
 
@@ -118,6 +133,9 @@ BypassingBUBasicBlockScheduler::handleDDG(
     SimpleResourceManager& rm,
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
+
+    RegisterCopyAdder::findTempRegisters(
+        targetMachine, BasicBlockPass::interPassData());
 
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
@@ -158,25 +176,19 @@ BypassingBUBasicBlockScheduler::handleDDG(
 
     MoveNodeGroup moves = selector.candidates();
     while (moves.nodeCount() > 0) {
-        bool movesRemoved = false;
         MoveNode& firstMove = moves.node(0);
         if (firstMove.isOperationMove()) {
             scheduleOperation(moves, selector);
         } else {
-            scheduleMoveBU(firstMove, 0, endCycle_);
+            scheduleMoveBU(firstMove, 0, endCycle_, TempRegBefore);
         }
-        if (!movesRemoved) {
-            if (!moves.isScheduled()) {
-                std::string message = " Move(s) did not get scheduled: ";
-                for (int i = 0; i < moves.nodeCount(); i++) {
-                    message += moves.node(i).toString() + " ";
-                }
-                ddg.writeToDotFile("failed_bb.dot");                
-                throw ModuleRunTimeError(__FILE__,__LINE__,__func__, message);
+        if (!moves.isScheduled()) {
+            std::string message = " Move(s) did not get scheduled: ";
+            for (int i = 0; i < moves.nodeCount(); i++) {
+                message += moves.node(i).toString() + " ";
             }
-
-            // notifies successors of the scheduled moves.
-            notifyScheduled(moves, selector);
+            ddg.writeToDotFile("failed_bb.dot");                
+            throw ModuleRunTimeError(__FILE__,__LINE__,__func__, message);
         }
         moves = selector.candidates();
     }
@@ -235,7 +247,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         (moves.node(0).destinationOperation());
 
     for (int lastCycle = endCycle_; lastCycle > 0; lastCycle--) {
-        if (scheduleOperation(po, lastCycle)) {
+        if (scheduleOperation(po, lastCycle , true)) {
 //            ddg_->writeToDotFile("op_schedok.dot");
 
             finalizeOperation(selector);
@@ -298,15 +310,19 @@ BypassingBUBasicBlockScheduler::finalizeOperation(MoveNodeSelector& selector) {
     for (std::set<MoveNode*, MoveNode::Comparator>::iterator i =
              scheduledMoves_.begin(); i != scheduledMoves_.end();
          i++) {
+        assert((**i).isScheduled());
         selector.notifyScheduled(**i);
     }
     scheduledMoves_.clear();
+
+    regCopiesBefore_.clear();
+    regCopiesAfter_.clear();
 }
 
 
 bool
 BypassingBUBasicBlockScheduler::scheduleOperation(
-    ProgramOperation& po, int& latestCycle) {
+    ProgramOperation& po, int& latestCycle, bool allowRegCopies) {
 
     int lc = latestCycle;
     std::cerr << "Scheduling operation: " << po.toString() 
@@ -317,7 +333,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
                         "po already scheduled!" +
                         po.toString());
     }
-    if (!scheduleResults(po, latestCycle)) {
+    if (!scheduleResults(po, latestCycle, allowRegCopies)) {
         std::cerr << "results fail for: " << po.toString() << std::endl;
         return false;
     }
@@ -353,7 +369,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
         return false;
     }
 
-    if (!bypassAndScheduleNode(*trigger, trigger, lc)) {
+    if (!bypassAndScheduleNode(*trigger, trigger, lc, allowRegCopies)) {
         unscheduleResults(po);
         std::cerr << "trigger bypass or shed fail for: " << 
             po.toString() << std::endl;
@@ -361,17 +377,22 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
     }
 
     // if trigger bypass jamms fu, this may fail.
-    if (!bypassAndScheduleOperands(po, trigger, lc)) {
+    if (!bypassAndScheduleOperands(po, trigger, lc, allowRegCopies)) {
         unscheduleOperands(po);
 
         // try to remove bypass of trigger and then re-schedule this
-        if (!scheduleMoveBU(*trigger, 0, latestCycle)) {
+        if (!scheduleMoveBU(*trigger, 0, latestCycle, 
+                            allowRegCopies ? 
+                            TempRegBefore : 
+                            TempRegNotAllowed)) {
             unscheduleResults(po);
+            std::cerr << "Unscheduled trigger fail:" << trigger->toString()
+                      << std::endl;
             return false;
         }
         
         // try now operands, with bypass.
-        if (!bypassAndScheduleOperands(po, trigger, lc)) {
+        if (!bypassAndScheduleOperands(po, trigger, lc, allowRegCopies)) {
             // advance latest cycle retry counter
             if (po.outputMoveCount() == 0) {
                 latestCycle = trigger->cycle();
@@ -398,7 +419,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
  */
 bool
 BypassingBUBasicBlockScheduler::scheduleResults(
-    ProgramOperation& po, int latestCycle) {
+    ProgramOperation& po, int latestCycle, bool allowRegCopies) {
 
     TTAMachine::HWOperation* hwop = NULL;
     int ectrig = -1;
@@ -409,10 +430,12 @@ BypassingBUBasicBlockScheduler::scheduleResults(
             std::pair<int,int> cycleLimits = operandCycleLimits(mn, NULL);
             if (!scheduleMoveBU(
                     mn, cycleLimits.first, std::min(
-                        cycleLimits.second, latestCycle))) {
+                        cycleLimits.second, latestCycle), 
+                    allowRegCopies ? TempRegAfter : TempRegNotAllowed)) {
                 unscheduleResults(po);
                 return false;
             } else {
+                // bypassed move is now scheduled.
                 TTAProgram::Terminal& src = mn.move().source();
                 TTAMachine::FunctionUnit* fu = 
                     dynamic_cast<TTAMachine::FunctionUnit*>(
@@ -435,6 +458,7 @@ BypassingBUBasicBlockScheduler::scheduleResults(
                           << std::endl;
                 continue;
             }
+            // is some bypassed move already scheduled?
             if (hwop != NULL) {
                 TTAProgram::Terminal& src = mn.move().source();
 
@@ -453,7 +477,14 @@ BypassingBUBasicBlockScheduler::scheduleResults(
                     return false;
                 }
             }
-            if (!scheduleMoveBU(mn, 0, latestCycle)) {
+
+            // old regcopy may mess up scheduling result
+            // TODO: remove those regcopies?
+            if (!scheduleMoveBU(
+                    mn, 0, latestCycle, 
+                    allowRegCopies? 
+                    TempRegAfter :
+                    TempRegNotAllowed)) {
                 unscheduleResults(po);
                 return false;
             }
@@ -474,6 +505,32 @@ BypassingBUBasicBlockScheduler::scheduleMoveUB(
         " Cycle limits: " << earliestCycle << " , " << latestCycle
               << std::endl;
     // TODO: unscheduld ones
+
+    // Does not try to rename as this ub is mostly used with non-dre'd result
+    // when bypassing
+    if (!MachineConnectivityCheck::canTransportMove(mn, *targetMachine_)) {
+        return false;
+    }
+/*
+        MoveNode* reg2RegCopy = createTempRegCopy(mn, true);
+        // recursively call this first, then the generated copy.
+        
+        if (reg2RegCopy == NULL) {
+            return false;
+        }
+        std::cerr << "Created regcopy: " << reg2RegCopy->toString();
+
+        if (!scheduleMoveUB(mn, earliestCycle, latestCycle)) {
+            return false;
+        }
+
+        if (!scheduleMoveUB(*reg2RegCopy, 0, endCycle_)) {
+            unschedule(mn);
+            return false;
+        }
+    }
+*/
+
     latestCycle = std::min(latestCycle, (int)endCycle_);
     int ddgLC = ddg_->latestCycle(mn);
     latestCycle = std::min(latestCycle, ddgLC);
@@ -499,16 +556,92 @@ BypassingBUBasicBlockScheduler::scheduleMoveUB(
  */
 bool
 BypassingBUBasicBlockScheduler::scheduleMoveBU(
-    MoveNode& mn, int earliestCycle, int latestCycle) {
+    MoveNode& mn, int earliestCycle, int latestCycle, 
+    TempRegCopyLocation t) {
     int endCycle = endCycle_;
+
+    std::cerr << "\t\tSchedulign moveBU: " << mn.toString() << 
+        " Cycle limits: " << earliestCycle << " , " << latestCycle
+              << std::endl;
+
     // if control flow move, limit delay slots before end
     if (mn.move().isControlFlowMove()) {
         endCycle -= targetMachine_->controlUnit()->delaySlots();
     }
 
-    std::cerr << "\t\tSchedulign moveBU: " << mn.toString() << 
-        " Cycle limits: " << earliestCycle << " , " << latestCycle
-              << std::endl;
+    // if regcpy is unscheudled it must be rescheduled
+    if (t == TempRegAfter) {
+        MoveNode* regCopyAfter = regCopiesAfter_[&mn];
+        if (regCopyAfter != NULL && 
+            pendingBypassSources_.find(regCopyAfter) ==
+            pendingBypassSources_.end()) {
+            if (!regCopyAfter->isScheduled()) {
+                std::cerr << "scheduling regcopyafter: " <<
+                    regCopyAfter->toString() << std::endl;
+                if (!(scheduleMoveBU(
+                          *regCopyAfter, 0, latestCycle, t))) {
+                    std::cerr << "regcopyafter scheduling failed" << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (!MachineConnectivityCheck::canTransportMove(
+            mn, *targetMachine_)) {
+        std::cerr << "scheudlemoveBU cannot transport move" << std::endl;
+
+        if (t == TempRegNotAllowed) {
+            return false;
+        }
+
+        if (!renameSourceIfNotConnected(mn, latestCycle)) {
+            
+            MoveNode* reg2RegCopy = 
+                createTempRegCopy(mn, t == TempRegAfter);
+            // recursively call this first, then the generated copy.
+            
+            if (reg2RegCopy == NULL) {
+                return false;
+            }
+            std::cerr << "Created regcopy: " << reg2RegCopy->toString();
+            if (t == TempRegBefore) {
+                regCopiesBefore_[&mn] = reg2RegCopy;
+                if (!scheduleMoveBU(
+                        mn, earliestCycle, latestCycle, TempRegBefore)) {
+                    return false;
+                }
+                
+                if (!scheduleMoveBU(
+                        *reg2RegCopy, 0, endCycle_, TempRegBefore)) {
+                    unschedule(mn);
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                regCopiesAfter_[&mn] = reg2RegCopy;
+                if (!scheduleMoveBU(
+                        *reg2RegCopy, 0, endCycle_, TempRegAfter)) {
+                    return false;
+                }
+                
+                if (!scheduleMoveBU(
+                        mn, earliestCycle, latestCycle, TempRegAfter)) {
+                    unschedule(*reg2RegCopy);
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        } else {
+            std::cerr << "\t\t\tRenamed source to get connectivity: " <<
+                mn.toString() << std::endl;
+        }
+    } else {
+        std::cerr << "\t\t\tCantransportmove ok for: " <<  mn.toString() << std::endl;
+    }
+
     latestCycle = std::min(latestCycle, endCycle);
     int ddgCycle = ddg_->latestCycle(mn,UINT_MAX,false, false);
     if (ddgCycle == -1) {
@@ -523,6 +656,26 @@ BypassingBUBasicBlockScheduler::scheduleMoveBU(
         rm_->assign(rmCycle, mn);
         scheduledMoves_.insert(&mn);
         std::cerr << "\t\tScheduled to cycle: " << rmCycle << std::endl;
+
+        // if regcpy is unscheudled it must be rescheduled
+        if (t == TempRegBefore) {
+            MoveNode* regCopyBefore = regCopiesBefore_[&mn];
+            if (regCopyBefore != NULL &&
+                pendingBypassSources_.find(regCopyBefore) ==
+                pendingBypassSources_.end()) {
+                if (!regCopyBefore->isScheduled()) {
+                    std::cerr << "scheduling regcopybefore: " <<
+                        regCopyBefore->toString() << std::endl;
+                    if (!(scheduleMoveBU(
+                              *regCopyBefore, 0, rmCycle-1, t))) {
+                        std::cerr << "regcopybefore scheduling failed" << 
+                            std::endl;
+                        unschedule(mn);
+                        return false;
+                    }
+                }
+            }
+        }
         return true;
     } else {
         std::cerr << "\t\t\trmcycle is -1, cannot schedule move" << std::endl;
@@ -619,7 +772,7 @@ BypassingBUBasicBlockScheduler::findBypassSource(
 
 bool
 BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
-    MoveNode& node, MoveNode* trigger, int latestCycle) {
+    MoveNode& node, MoveNode* trigger, int latestCycle, bool allowRegCopies) {
     // TODO: DDG does not yet support bypass over multiply nodes
     int bypassHopCount = 1; //INT_MAX;
     while (bypassHopCount >= 0) {
@@ -630,7 +783,7 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
                 // take a copy of latestCycle because scheduleOperation
                 // may modify it
                 int lc = latestCycle;
-                if (scheduleOperation(node.sourceOperation(), lc)) {
+                if (scheduleOperation(node.sourceOperation(), lc, false)) {
                     return true; 
                 } else {
                     // scheduling bypassed op failed. 
@@ -642,9 +795,14 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
             } else {
                 // schedule individual input, not bypassed from op.
                 // bypassed from reg write?
-                if (scheduleOperandOrTrigger(node, trigger, latestCycle)) {
+                if (scheduleOperandOrTrigger(
+                        node, trigger, latestCycle, allowRegCopies)) {
                     return true;
                 } else {
+                    std::cerr << "Bypassed operand failed.. trying smaller "
+                              << " hop count." << 
+                        node.toString() << std::endl;
+                        
                     // scheduling bypassed op failed. 
                     // revert bypass, and try with smaller bypass ho count.
                     undoBypass(node);
@@ -655,7 +813,8 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
         }
         // not bypassed.
         std::cerr << "\tDid not bypass: " << node.toString() << std::endl;
-        if (scheduleOperandOrTrigger(node, trigger, latestCycle)) {
+        if (scheduleOperandOrTrigger(
+                node, trigger, latestCycle, allowRegCopies)) {
             return true;
         } else {
             return false;
@@ -667,12 +826,14 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
 
 bool 
 BypassingBUBasicBlockScheduler::bypassAndScheduleOperands(
-    ProgramOperation& po, MoveNode* trigger, int latestCycle) {
+    ProgramOperation& po, MoveNode* trigger, int latestCycle, 
+    bool allowRegCopies) {
     
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& operand = po.inputMove(i);
         if (trigger != &operand) {
-            if (!bypassAndScheduleNode(operand, trigger, latestCycle)) {
+            if (!bypassAndScheduleNode(
+                    operand, trigger, latestCycle, allowRegCopies)) {
                 for (; i >= 0; i++) {
                     undoBypassAndUnschedule(po.inputMove(i));
                     return false;
@@ -688,10 +849,11 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleOperands(
 // Called when cannot bypass.
 bool 
 BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
-    MoveNode& operand, MoveNode* trigger, int latestCycle) {
+    MoveNode& operand, MoveNode* trigger, int latestCycle, 
+    bool allowRegCopies) {
     std::pair<int,int> cycleLimits = 
         operandCycleLimits(operand, trigger);
-
+/*
     // if not connected and cannot rename fail here
     if (!renameSourceIfNotConnected(
             operand, std::min(
@@ -700,11 +862,34 @@ BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
                   << operand.toString();
 
         // TODO: revert to adding regcopies.
-        return false;
+
+        MoveNode* reg2RegCopy = createTempRegCopy(operand, false);
+        // recursively call this first, then the generated copy.
+        
+        if (reg2RegCopy == NULL) {
+            return false;
+        }
+        std::cerr << "Created regcopy: " << reg2RegCopy->toString();
+
+        if (!scheduleOperandOrTrigger(operand, trigger, latestCycle)) {
+
+            return false;
+        }
+
+        if (!scheduleMoveBU(*reg2RegCopy, 0, endCycle_)) {
+            unschedule(operand);
+            return false;
+        } else {
+            return true;
+        }
     }
+*/
 
     return scheduleMoveBU(operand, cycleLimits.first, 
-                          std::min(latestCycle,cycleLimits.second));
+                          std::min(latestCycle,cycleLimits.second), 
+                          allowRegCopies ? 
+                          TempRegBefore : 
+                          TempRegNotAllowed);
 }
 
 /* 
@@ -850,11 +1035,47 @@ BypassingBUBasicBlockScheduler::undoBypassAndUnschedule(MoveNode& mn) {
     if (mn.isBypass()) {
         unscheduleOperation(mn.sourceOperation());
     }
+    unschedule(mn);
+    undoBypass(mn);
+}
+
+/*
+void
+BypassingBUBasicBlockScheduler::revertRegCopyBefore(
+    MoveNode& regCopy, MoveNode& mn) {
+    ddg->mergeAndKeep(regCopy, mn);
+}
+
+void
+BypassingBUBasicBlockScheduler::revertRegCopyAfter(
+    MoveNode& mn, MoveNode& regCopy) {
+    ddg->mergeAndKeep(regCopy, mn);
+}
+*/
+
+void
+BypassingBUBasicBlockScheduler::unschedule(MoveNode& mn) {
+    // TODO: use find
+    MoveNode* regcopy = regCopiesBefore_[&mn];
+    if (regcopy != NULL) {
+        unschedule(*regcopy);
+    }
     if (mn.isScheduled()) {
         rm_->unassign(mn);
-        scheduledMoves_.erase(&mn);
     }
-    undoBypass(mn);
+/*
+    if (regcopy != NULL) {
+        revertRegCopyBefore(mn);
+    }
+*/
+    scheduledMoves_.erase(&mn);
+    regcopy = regCopiesAfter_[&mn];
+    if (regcopy != NULL) {
+        unschedule(*regcopy);
+//        revertRegCopyAfter(mn);
+    }
+
+    
 }
 
 void 
@@ -863,14 +1084,14 @@ BypassingBUBasicBlockScheduler::unscheduleResults(ProgramOperation& po) {
     for (int i = 0; i < po.outputMoveCount(); i++) {
         MoveNode& mn = po.outputMove(i);
         if (mn.isScheduled()) {
-            rm_->unassign(mn);
-            scheduledMoves_.erase(&mn);
+            unschedule(mn);
         }
     }
 }
     
 void
-BypassingBUBasicBlockScheduler::unscheduleOperands(ProgramOperation& po) {
+BypassingBUBasicBlockScheduler::unscheduleOperands(
+    ProgramOperation& po) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         undoBypassAndUnschedule(po.inputMove(i));
     }
@@ -888,30 +1109,46 @@ BypassingBUBasicBlockScheduler::clearCaches() {
     for (DataDependenceGraph::NodeSet::iterator i = removedNodes_.begin();
          i != removedNodes_.end(); i++) {
         if (ddg_->rootGraph() != ddg_) {
+            if ((**i).isScheduled()) {
+                std::cerr << "DRE'd move: " << (**i).toString() << 
+                    " is Scheduled! " << std::endl;
+            }
+            assert(!(**i).isScheduled());
             ddg_->rootGraph()->removeNode(**i);
         }
         delete *i;
     }
     removedNodes_.clear();
     pendingBypassSources_.clear();
+    
+    regCopiesBefore_.clear();
+    regCopiesAfter_.clear();
 }                                     
 
 bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
     MoveNode& moveNode, int latestCycle) {
-    
-    std::set<const TTAMachine::Port*>
-        destinationPorts = 
-        MachineConnectivityCheck::findPossibleDestinationPorts(
-            *targetMachine_,moveNode);
 
-    if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-            moveNode, destinationPorts)) {
-        std::cerr << "Already connected." << std::endl;
-        return true;
+    if (!renameRegisters_) {
+        return false;
     }
 
+    // 1511 breaks.. 1512 not?
+    if (moveNode.nodeID() < 1511) {
+        return false;
+    }
+
+    if (!renamer_->renameSourceRegister(moveNode, false, latestCycle)) {
+        return false;
+    }
+
+    if (MachineConnectivityCheck::canTransportMove(
+            moveNode, *targetMachine_)) {
+        return true;
+    } else {
+        return false;
+    }
     
-    return renamer_->renameSourceRegister(moveNode, false, latestCycle);
+
 
 #if 0
     LiveRange* lr = ddg_->findLiveRange(moveNode, false);
@@ -934,4 +1171,171 @@ bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
 
     return renamer_->renameLiveRange(*lr, "", false, false, false);
 #endif
+}
+
+/**
+ * Creates a temp reg copy for given move.
+ *
+ * Does not necessarily create all required temp reg copies, 
+ * so this may be needed to be called recursively to get all required copies.
+ * 
+ * @TODO: Smarted logic to select the register to use
+ *
+ * @param mn movenode to be splitted
+ * @param after set to true if temp reg is the last of the nodes, false if first
+ * @return the created tempregcopy
+ */
+MoveNode*
+BypassingBUBasicBlockScheduler::createTempRegCopy(MoveNode& mn, bool after) {
+
+    // before splitting, annotate the possible return move so we can still
+    // detect a procedure return in simulator
+    if (mn.move().isReturn()) {
+        TTAProgram::ProgramAnnotation annotation(
+            TTAProgram::ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN);
+        mn.move().setAnnotation(annotation);
+    }
+
+    std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator>
+        rfs = possibleTempRegRFs(mn);
+
+    TTAMachine::RegisterFile* rf = *rfs.rbegin();
+    
+    int lastRegisterIndex = rf->size()-1;
+    TTAMachine::Port* dstRFPort = rf->firstWritePort();
+    TTAMachine::Port* srcRFPort = rf->firstReadPort();
+
+    TTAProgram::TerminalRegister* tempWrite =
+        new TTAProgram::TerminalRegister(*dstRFPort, lastRegisterIndex);
+
+    TTAProgram::TerminalRegister* tempRead =
+        new TTAProgram::TerminalRegister(*srcRFPort, lastRegisterIndex);
+    
+    TTAProgram::ProgramAnnotation connMoveAnnotation(
+        TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE);
+
+    TTAProgram::Move* copyMove = mn.move().copy();
+    MoveNode* copyNode = new MoveNode(copyMove);
+    BasicBlockNode& bbn = ddg_->getBasicBlockNode(mn);
+    ddg_->addNode(*copyNode,bbn);
+    copyMove->addAnnotation(connMoveAnnotation);
+
+    if (after) {
+        std::cerr << "Creating temp move after: " << mn.toString();
+        copyMove->setSource(tempRead);
+        mn.move().setDestination(tempWrite);
+        RegisterCopyAdder::fixDDGEdgesInTempReg(
+            *ddg_, mn, &mn, copyNode, rf, lastRegisterIndex, bbn, true);
+        std::cerr << "Moves after split: " << mn.toString() << " and " <<
+            copyMove->toString() << std::endl;
+
+
+    } else {
+        std::cerr << "Creating temp move before: " << mn.toString();
+        copyMove->setDestination(tempWrite);
+        mn.move().setSource(tempRead);
+
+        RegisterCopyAdder::fixDDGEdgesInTempReg(
+            *ddg_, mn, copyNode, &mn, rf, lastRegisterIndex, bbn, true);
+
+        std::cerr << "Moves after split: " << copyMove->toString()
+                  << " and "<< mn.toString() << std::endl;
+    }
+
+    return copyNode;
+}
+
+
+
+
+std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator> 
+BypassingBUBasicBlockScheduler::possibleTempRegRFs(const MoveNode& mn) {
+    
+    std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator>
+        result;
+
+    std::map<int, int> rfDistanceFromSource;
+    std::map<int, int> rfDistanceFromDestination;
+
+    typedef SimpleInterPassDatum<
+    std::vector<std::pair<TTAMachine::RegisterFile*, int> > > 
+        TempRegData;
+
+    std::string srDatumName = "SCRATCH_REGISTERS";
+    if (!BasicBlockPass::interPassData().hasDatum(srDatumName) ||
+        (dynamic_cast<TempRegData&>(
+            BasicBlockPass::interPassData().datum(srDatumName))).size() == 0)
+        throw IllegalProgram(
+            __FILE__, __LINE__, __func__,
+            "No scratch registers available for temporary moves.");
+
+    const TempRegData& tempRegs = 
+        dynamic_cast<TempRegData&>(
+            BasicBlockPass::interPassData().datum(srDatumName));
+
+
+    for (unsigned int i = 0; i < tempRegs.size(); i++) {
+        rfDistanceFromSource[i] = INT_MAX;
+        rfDistanceFromDestination[i] = INT_MAX;
+    }
+
+
+    for (unsigned int i = 0; i < tempRegs.size(); i++) {
+        TTAMachine::RegisterFile* rf = tempRegs[i].first;
+        // TODO: smarter way for reqrd width
+//        if (rf->width() < 32) {
+//            continue;
+//        }
+        std::set<const TTAMachine::Port*> readPorts = 
+            MachineConnectivityCheck::findReadPorts(*rf);
+        std::set<const TTAMachine::Port*> writePorts = 
+            MachineConnectivityCheck::findWritePorts(*rf);
+        bool srcOk = false;
+        if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+                mn, writePorts)) {
+            rfDistanceFromSource[i] = 1;
+            srcOk = true;
+        }
+
+        if (MachineConnectivityCheck::canAnyPortWriteToDestination(
+                readPorts, mn)) {
+            rfDistanceFromDestination[i] = 1;
+            if (srcOk) {
+                // this RF does it!
+                result.insert(rf);
+            }
+        }
+    }
+
+    // modified check to avoid 4ever loop in case of broken machine
+    bool modified = true;
+    while (result.empty() && modified) {
+        modified = false;
+        for (unsigned int i = 0; i < tempRegs.size(); i++) {
+            int srcDist = rfDistanceFromSource[i];
+            if (srcDist != INT_MAX) {
+                TTAMachine::RegisterFile* rfSrc = tempRegs[i].first;
+                for (unsigned int j = 0; j < tempRegs.size(); j++) {
+                    if (rfDistanceFromSource[j] > srcDist + 1) {
+                        TTAMachine::RegisterFile* rfDest = tempRegs[j].first;
+                        // ignore rf's which are not wide enough
+//                        if (rfDest->width() < 32) {
+//                            continue;
+//                        }
+                        if (MachineConnectivityCheck::isConnected(
+                                *rfSrc, *rfDest, 
+                                (mn.move().isUnconditional() ? NULL :
+                                 &mn.move().guard().guard()))) {
+                            rfDistanceFromSource[j] = srcDist + 1;
+                            modified = true;
+                            if (rfDistanceFromDestination[j] == 1) {
+                                result.insert(rfDest);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
 }

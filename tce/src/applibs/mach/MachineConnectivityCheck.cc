@@ -300,12 +300,15 @@ MachineConnectivityCheck::isConnected(
 bool
 MachineConnectivityCheck::isConnected(
     const TTAMachine::BaseRegisterFile& sourceRF,
-    const TTAMachine::BaseRegisterFile& destRF) {
+    const TTAMachine::BaseRegisterFile& destRF,
+    TTAMachine::Guard* guard) {
     
     RfRfBoolMap::const_iterator
         i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
     if (i != rfRfCache_.end()) {
-        return i->second;
+        if (i->second == false || guard == NULL) {
+            return i->second;
+        }
     }
     std::set<TTAMachine::Bus*> srcBuses;
     appendConnectedDestinationBuses(sourceRF, srcBuses);
@@ -317,7 +320,17 @@ MachineConnectivityCheck::isConnected(
     SetTools::intersection(srcBuses, dstBuses, sharedBuses);
     if (sharedBuses.size() > 0) {
         rfRfCache_[RfRfPair(&sourceRF,&destRF)] = true;
-        return true;
+        if (guard == NULL) {
+            return true;
+        }
+
+        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
+             i != sharedBuses.end(); i++) {
+            if ((*i)->hasGuard(*guard)) {
+                return true;
+            }
+        }
+        return false; // bus found but lacks the guards
     } else {
         rfRfCache_[RfRfPair(&sourceRF,&destRF)] = false;
         return false;
@@ -1015,8 +1028,26 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
         TTAMachine::Machine::FunctionUnitNavigator nav = 
             mach.functionUnitNavigator();
         ProgramOperation& po = node.destinationOperation();
-
         std::set<TCEString> allowedFUNames;
+
+        if (po.isAnyNodeAssigned()) {
+            for (int i = 0; i < po.inputMoveCount(); i++) {
+                MoveNode& mn = po.inputMove(i);
+                if (mn.isScheduled()) {
+                    allowedFUNames.insert(
+                        mn.move().destination().port().parentUnit()->name());
+                }
+            }
+
+            for (int i = 0; i < po.outputMoveCount(); i++) {
+                MoveNode& mn = po.outputMove(i);
+                if (mn.isScheduled()) {
+                    allowedFUNames.insert(
+                        mn.move().source().port().parentUnit()->name());
+                }
+            }
+        }
+        
         if (node.move().hasAnnotations(
                 TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
             const int annotationCount =
@@ -1169,7 +1200,6 @@ MachineConnectivityCheck::findPossibleSourcePorts(
     }
 
     if (node.move().source().isRA()) {
-        std::cerr << "\t\tsource is RA!" << std::endl;
         res.insert(mach.controlUnit()->returnAddressPort());
     }
 
@@ -1186,7 +1216,6 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
 
     int trueVal = 1;
     if (destinationPorts.empty()) {
-        std::cerr << "\t\tdestination ports empty!" << std::endl;
         return false;
     }
 
@@ -1196,10 +1225,8 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
                 &src.move().source());
         if (MachineConnectivityCheck::canTransportImmediate(
                 *imm, destinationPorts)) {
-            std::cerr << "\t\t\tshort imm possible" << std::endl;
             return true; // can transfer via short imm.
         } else {
-            std::cerr << "\t\t\tshort imm not possible" << std::endl;
             trueVal = -1; // mayby through LIMM?
         }
     }
@@ -1219,7 +1246,8 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
     return false;
 }
 
-bool MachineConnectivityCheck::canAnyPortWriteToDestination(
+bool
+MachineConnectivityCheck::canAnyPortWriteToDestination(
     std::set<const TTAMachine::Port*>& sourcePorts, 
     const MoveNode& dest) {
 
@@ -1231,6 +1259,18 @@ bool MachineConnectivityCheck::canAnyPortWriteToDestination(
         destPorts = findPossibleDestinationPorts(
             *(*sourcePorts.begin())->parentUnit()->machine(), dest);
     return MachineConnectivityCheck::isConnected(sourcePorts, destPorts);
+}
+
+bool 
+MachineConnectivityCheck::canTransportMove(
+    MoveNode& moveNode, const TTAMachine::Machine& machine) {
+    std::set<const TTAMachine::Port*>
+        destinationPorts = 
+        MachineConnectivityCheck::findPossibleDestinationPorts(
+            machine,moveNode);
+
+    return MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+        moveNode, destinationPorts);
 }
 
 /* These are static */

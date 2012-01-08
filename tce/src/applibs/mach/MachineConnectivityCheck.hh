@@ -75,7 +75,8 @@ public:
 
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
-        const TTAMachine::BaseRegisterFile& destRF);
+        const TTAMachine::BaseRegisterFile& destRF,
+        TTAMachine::Guard* guard = NULL);
 
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
@@ -107,6 +108,9 @@ public:
         std::set<const TTAMachine::Port*> destinationPorts,
         TTAMachine::Guard* guard = NULL);
     
+    static bool canTransportMove(
+        MoveNode& moveNode, const TTAMachine::Machine& machine);
+
     static bool rfConnected(
         const TTAMachine::RegisterFile& rf);
 

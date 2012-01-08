@@ -127,6 +127,16 @@ public:
     static void findTempRegisters(
         const TTAMachine::Machine& machine, InterPassData& ipd);
 
+    static void fixDDGEdgesInTempReg(
+        DataDependenceGraph& ddg,
+        MoveNode& originalMove,
+        MoveNode* firstMove,
+        MoveNode* lastMove,
+        const TTAMachine::RegisterFile* lastRF,
+        int lastRegisterIndex,
+        BasicBlockNode& currentBBNode,
+        bool bottomUpScheduling);
+
 private:
     AddedRegisterCopies addRegisterCopies(
         ProgramOperation& programOperation,
@@ -168,15 +178,6 @@ private:
         ProgramOperation& programOperation,
         const TTAMachine::Machine& machine);
 
-    void fixDDGEdgesInTempReg(
-        DataDependenceGraph& ddg,
-        MoveNode& originalMove,
-        MoveNode* firstMove,
-        MoveNode* lastMove,
-        const TTAMachine::RegisterFile* lastRF,
-        int lastRegisterIndex,
-        BasicBlockNode& currentBBNode);
-
     void fixDDGEdgesInTempRegChain(
         DataDependenceGraph& ddg,
         MoveNode& originalMove,
@@ -192,14 +193,15 @@ private:
 	int regsRequired,
         BasicBlockNode& currentBBNode);
 
-    void createAntidepsForReg(
-	const MoveNode& defMove, 
-	const MoveNode& useMove,
-	const MoveNode& originalMove,
-	const TTAMachine::RegisterFile& rf, 
-	int index,
-	DataDependenceGraph& ddg, 
-	BasicBlockNode& bbn);
+    static void createAntidepsForReg(
+        const MoveNode& defMove, 
+        const MoveNode& useMove,
+        const MoveNode& originalMove,
+        const TTAMachine::RegisterFile& rf, 
+        int index,
+        DataDependenceGraph& ddg, 
+        BasicBlockNode& bbn,
+        bool backwards);
 
   void fixDDGEdgesInTempRegChainImmediate(
     DataDependenceGraph& ddg,
