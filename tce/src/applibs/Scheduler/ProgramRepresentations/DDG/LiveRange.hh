@@ -38,8 +38,10 @@
 struct LiveRange {
     DataDependenceGraph::NodeSet writes;
     DataDependenceGraph::NodeSet reads;
-    bool noneScheduled();
-    TCEString toString();
+    bool noneScheduled() const;
+    TCEString toString() const;
+    int firstCycle() const;
+    int lastCycle() const;
 };
 
 #endif

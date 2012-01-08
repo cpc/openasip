@@ -430,6 +430,7 @@ RegisterRenamer::renameDestinationRegister(
         std::set<const TTAMachine::RegisterFile*,
             TTAMachine::MachinePart::Comparator> rfs;
         rfs.insert(&rf);
+        earliestCycle = std::min(earliestCycle, liveRange->firstCycle());
         availableRegisters = 
         findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
     } else { 
@@ -522,6 +523,8 @@ RegisterRenamer::renameSourceRegister(
         std::set<const TTAMachine::RegisterFile*,
             TTAMachine::MachinePart::Comparator> rfs;
         rfs.insert(&rf);
+        latestCycle = std::max(latestCycle, liveRange->lastCycle());
+
         availableRegisters = 
         findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
     } else { 

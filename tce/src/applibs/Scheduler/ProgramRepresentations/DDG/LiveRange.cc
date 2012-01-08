@@ -33,7 +33,7 @@
 #include "LiveRange.hh"
 
 bool
-LiveRange::noneScheduled() {
+LiveRange::noneScheduled() const {
     for (DataDependenceGraph::NodeSet::iterator i = writes.begin();
          i != writes.end(); i++) {
         if ((*i)->isScheduled()) {
@@ -50,7 +50,7 @@ LiveRange::noneScheduled() {
 }
 
 TCEString 
-LiveRange::toString() {
+LiveRange::toString() const {
     TCEString rv;
     for (DataDependenceGraph::NodeSet::iterator i = writes.begin();
          i != writes.end(); i++) {
@@ -62,3 +62,41 @@ LiveRange::toString() {
     }
     return rv;
 }    
+
+int
+LiveRange::firstCycle() const {
+    int fc = INT_MAX;
+    for (DataDependenceGraph::NodeSet::iterator i = writes.begin();
+         i != writes.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::min(fc, (*i)->cycle());
+        }
+    }
+    for (DataDependenceGraph::NodeSet::iterator i = reads.begin();
+         i != reads.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::min(fc, (*i)->cycle());
+
+        }
+    }
+    return fc;
+}
+
+int
+LiveRange::lastCycle() const {
+    int fc = -1;
+    for (DataDependenceGraph::NodeSet::iterator i = writes.begin();
+         i != writes.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::max(fc, (*i)->cycle());
+        }
+    }
+    for (DataDependenceGraph::NodeSet::iterator i = reads.begin();
+         i != reads.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::max(fc, (*i)->cycle());
+
+        }
+    }
+    return fc;
+}

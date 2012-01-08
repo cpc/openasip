@@ -4051,7 +4051,8 @@ DataDependenceGraph::destRenamed(MoveNode& mn) {
 
         } else {
             if (edge.dependenceType() == DataDependenceEdge::DEP_WAW &&
-                !edge.tailPseudo()) {
+                !edge.tailPseudo() &&
+                edge.data() != newReg) {
                 removeEdge(edge, &mn, NULL);
                 i--;
             }
