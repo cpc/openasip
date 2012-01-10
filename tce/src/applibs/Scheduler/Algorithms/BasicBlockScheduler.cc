@@ -841,7 +841,7 @@ BasicBlockScheduler::scheduleMove(
                 if (minRenamedEC < ddgCycle) {
                     
                     if (renamer_->renameDestinationRegister(
-                            moveNode, false, minRenamedEC)) {
+                            moveNode, false, true, minRenamedEC)) {
                         ddgCycle = ddg_->earliestCycle(moveNode);
                     }
                     else {
@@ -849,17 +849,17 @@ BasicBlockScheduler::scheduleMove(
                             ddg_->findLimitingAntidependenceSource(
                                 moveNode);
                         if (limitingAdep != NULL) {
-			    // don't try to rename is same operation.
-			    // as it would not help at all.
-			    if (!moveNode.isSourceOperation() ||
-				!limitingAdep->isDestinationOperation() ||
-				&moveNode.sourceOperation() !=
-				&limitingAdep->destinationOperation()) {
-				if (renamer_->renameSourceRegister(
-					*limitingAdep, false)) {
-				    ddgCycle = ddg_->earliestCycle(
-					moveNode);
-				}
+                            // don't try to rename is same operation.
+                            // as it would not help at all.
+                            if (!moveNode.isSourceOperation() ||
+                                !limitingAdep->isDestinationOperation() ||
+                                &moveNode.sourceOperation() !=
+                                &limitingAdep->destinationOperation()) {
+                                if (renamer_->renameSourceRegister(
+                                        *limitingAdep, false, true)) {
+                                    ddgCycle = ddg_->earliestCycle(
+                                        moveNode);
+                                }
                             }
                         }
                     }

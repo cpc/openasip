@@ -61,10 +61,14 @@ public:
     void initialize(DataDependenceGraph& ddg);
 
     bool renameDestinationRegister(
-        MoveNode& node, bool loopScheduling, int earliestCycle=-1);
+        MoveNode& node, bool loopScheduling, 
+        bool allowSameRf,
+        int earliestCycle=-1);
 
     bool renameSourceRegister(
-        MoveNode& node, bool loopScheduling, int latestCycle = INT_MAX);
+        MoveNode& node, bool loopScheduling, 
+        bool allowSameRf,
+        int latestCycle = INT_MAX);
     
     void setSelector(MoveNodeSelector* selector);
 

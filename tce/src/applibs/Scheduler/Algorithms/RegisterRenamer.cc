@@ -404,7 +404,7 @@ RegisterRenamer::findFreeRegisters(
  */
 bool 
 RegisterRenamer::renameDestinationRegister(
-    MoveNode& node, bool loopScheduling, int earliestCycle) {
+    MoveNode& node, bool loopScheduling, bool allowSameRf, int earliestCycle) {
 
     if (!node.isMove() || !node.move().destination().isGPR()) {
         return false;
@@ -427,6 +427,9 @@ RegisterRenamer::renameDestinationRegister(
     std::set<TCEString> availableRegisters;
 
     if (!liveRange->noneScheduled()) {
+        if (!allowSameRf) {
+            return false;
+        }
         std::set<const TTAMachine::RegisterFile*,
             TTAMachine::MachinePart::Comparator> rfs;
         rfs.insert(&rf);
@@ -498,7 +501,7 @@ RegisterRenamer::renameDestinationRegister(
  */
 bool 
 RegisterRenamer::renameSourceRegister(
-    MoveNode& node, bool loopScheduling, int latestCycle) {
+    MoveNode& node, bool loopScheduling, bool allowSameRf, int latestCycle) {
 
     if (!node.isMove() || !node.move().source().isGPR()) {
         return false;
@@ -520,6 +523,9 @@ RegisterRenamer::renameSourceRegister(
     std::set<TCEString> availableRegisters;
 
     if (!liveRange->noneScheduled()) {
+        if (!allowSameRf) {
+            return false;
+        }
         std::set<const TTAMachine::RegisterFile*,
             TTAMachine::MachinePart::Comparator> rfs;
         rfs.insert(&rf);

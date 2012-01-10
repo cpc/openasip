@@ -83,6 +83,7 @@ public:
     virtual DataDependenceGraph& dataDependenceGraph();
 private:
     virtual bool isReadyToBeScheduled(MoveNode& node) const;
+    virtual bool isReadyToBeScheduled(MoveNodeGroup& nodes) const;
     /// Initializes ready list from nodes that are ready.
     virtual void initializeReadylist();
     /// The data dependence graph built from the basic block.

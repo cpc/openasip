@@ -43,6 +43,13 @@
 //#define DEBUG_OUTPUT__
 //#define WRITE_DOT_SNAPSHOTS
 
+//#define ABORT_ORPHAN_NODES
+//#define WARN_ORPHAN_NODES
+
+#ifdef ABORT_ORPHAN_NODES
+#define WARN_ORPHAN_NODES
+#endif
+
 /**
  * Add the unscheduled sink nodes of the DDG to the ready list
  */
@@ -135,7 +142,8 @@ BUMoveNodeSelector::candidates() {
     // find a MoveNodeGroup with unscheduled MoveNodes
     while (readyList_.size() > 0) {
         MoveNodeGroup moves = readyList_.top();
-        if (!moves.isAlive() || moves.isScheduled())
+        if (!moves.isAlive() || moves.isScheduled() ||
+            !isReadyToBeScheduled(moves))
             readyList_.pop();
         else
             return moves;
@@ -148,7 +156,13 @@ BUMoveNodeSelector::candidates() {
              i != unscheduled.end();
              ++i) {
             MoveNode& node = **i;
+#ifdef WARN_ORPHAN_NODES
             std::cerr << "Found orphan node: " << node.toString() << std::endl;
+            ddg_->writeToDotFile("oprhan.dot");
+#ifdef ABORT_ORPHAN_NODES
+            abortWithError("orphan node!");
+#endif
+#endif
             mightBeReady(node);
         }
     }
@@ -299,4 +313,15 @@ BUMoveNodeSelector::isReadyToBeScheduled(MoveNode& node)
         return true;    
     }
     return ddg_->successorsReady(node);
+}
+
+bool
+BUMoveNodeSelector::isReadyToBeScheduled(MoveNodeGroup& nodes) const {
+    for (int i = 0; i < nodes.nodeCount(); i++) {
+        MoveNode& mn = nodes.node(i);
+        if (!isReadyToBeScheduled(mn)) {
+            return false;
+        }
+    }
+    return true;
 }

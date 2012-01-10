@@ -166,8 +166,12 @@ private:
 
     MoveNode* createTempRegCopy(MoveNode& mn, bool after);
 
+    void createAntidepsFromUnscheduledRegCopies(
+        MoveNode& copyNode, MoveNode& mn, 
+        TTAProgram::Terminal& terminalRegister);
+
     std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator> 
-    possibleTempRegRFs(const MoveNode& mn);
+    possibleTempRegRFs(const MoveNode& mn, bool tempRegAfter);
 
     void clearCaches();
 
