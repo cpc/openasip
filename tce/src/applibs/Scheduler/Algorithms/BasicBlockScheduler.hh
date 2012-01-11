@@ -50,6 +50,12 @@ class MoveNode;
 class MoveNodeGroup;
 class LLVMTCECmdLineOptions;
 
+namespace TTAMachine {
+    class Unit;
+    class Port;
+    class RegisterFile;
+}
+
 /**
  * A class that implements the functionality of a basic block scheduler.
  *
@@ -128,6 +134,12 @@ protected:
         bool resetCounter = false) const;
 
     MoveNode* succeedingTempMove(MoveNode& current);
+
+        
+    MoveNode* findTrigger(ProgramOperation& po);
+        
+    MoveNode* findTriggerFromUnit(
+        ProgramOperation& po, TTAMachine::Unit& unit);
     
     /// The target machine we are scheduling the program against.
     const TTAMachine::Machine* targetMachine_;

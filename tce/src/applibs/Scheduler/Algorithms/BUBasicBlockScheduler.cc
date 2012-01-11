@@ -403,12 +403,12 @@ BUBasicBlockScheduler::scheduleOperandWrites(
             continue;
         }
         
-        // This must pass, since we got latest cycle from RM.
-        // TODO: 
-        // the latest cycle may change because schuleMove may do things like
-        // register renaming, so this may fail. 
-        scheduleMove(moves.node(i), latest);      
-        assert(moves.node(i).isScheduled());
+        scheduleMove(moves.node(i), latest); 
+        if (moves.node(i).isScheduled() == false) {
+            // the latest cycle may change because scheduleMove may do things like
+            // register renaming, so this may fail.         
+            continue;
+        }     
         scheduleInputOperandTempMoves(moves.node(i), moves.node(i)); 
                  
         if (moves.node(i).isScheduled() && 
@@ -451,7 +451,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
     int counter = 0;
 
     // Trigger is scheduled, try to schedule other operands
-    while (unscheduledMoves != scheduledMoves && /*counter < 20 &&*/ cycle >=0) {
+    while (unscheduledMoves != scheduledMoves && counter < 5 && cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -973,18 +973,15 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
         tempMove = &m;
         // First cycle where temporary register will be read, this should
         // be actuall operand move cycle!
-
-        // TODO: variable lastRead but calls first read function? 
-        // fix these variable names!
-        MoveNode* lastRead =
+        MoveNode* firstRead =
             ddg_->firstScheduledRegisterRead(
                 tempMove->move().destination().registerFile(),
                 tempMove->move().destination().index());
-        if (lastRead != NULL)            
-            lastUse = lastRead->cycle();
+        if (firstRead != NULL)            
+            lastUse = firstRead->cycle();
             if (operandMove.isScheduled() && lastUse != operandMove.cycle()) {
                 Application::logStream() << "\tFirst register read problem "
-                << operandMove.toString() << " temp " << lastRead->toString()
+                << operandMove.toString() << " temp " << firstRead->toString()
                 << std::endl;
             }
     }
@@ -1036,12 +1033,12 @@ BUBasicBlockScheduler::scheduleRRTempMoves(
     
     MoveNode* tempMove2 = succeedingTempMove(*tempMove1);
     if (tempMove2 != NULL) {
-        MoveNode* lastRead =
+        MoveNode* firstWrite =
             ddg_->firstScheduledRegisterWrite(
                 tempMove1->move().destination().registerFile(),
                 tempMove1->move().destination().index());
-        if (lastRead != NULL)
-            lastUse = lastRead->cycle();
+        if (firstWrite != NULL)
+            lastUse = firstWrite->cycle();
     }
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse);
     scheduleMove(*tempMove1, lastUse);

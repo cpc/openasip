@@ -159,11 +159,6 @@ private:
 
     int lastOperandCycle(const ProgramOperation& po);
 
-    MoveNode* findTrigger(ProgramOperation& po);
-
-    MoveNode* findTriggerFromUnit(
-        ProgramOperation& po, TTAMachine::Unit& unit);
-
     MoveNode* createTempRegCopy(MoveNode& mn, bool after);
 
     void createAntidepsFromUnscheduledRegCopies(

@@ -60,6 +60,9 @@
 #include "MoveNodeSet.hh"
 #include "Terminal.hh"
 #include "RegisterRenamer.hh"
+#include "Operation.hh"
+#include "FUPort.hh"
+#include "HWOperation.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -1323,3 +1326,72 @@ void BasicBlockScheduler::notifyScheduled(
         }
     }
 }
+
+// find which movenode is the trigger of an operation.
+MoveNode*
+BasicBlockScheduler::findTrigger(ProgramOperation& po) {
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& mn = po.inputMove(i);
+        if (mn.isScheduled()) {
+            TTAProgram::Terminal& term = mn.move().destination();
+            if (term.isTriggering()) {
+                return &mn;
+            }
+            return findTriggerFromUnit(po, *term.port().parentUnit());
+        }
+    }
+    
+    for (int i = 0; i < po.outputMoveCount(); i++) {
+        MoveNode& mn = po.outputMove(i);
+        if (mn.isScheduled()) {
+            TTAProgram::Terminal& term = mn.move().source();
+            return findTriggerFromUnit(po, *term.port().parentUnit());
+        }
+    }
+    
+    // no scheduled moves. getting harder.
+    
+    TTAMachine::Machine::FunctionUnitNavigator nav = 
+    targetMachine_->functionUnitNavigator();
+    MoveNode* candidate = NULL;
+    for (int i = 0; i < nav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = nav.item(i);
+        if (fu->hasOperation(po.operation().name())) {
+            if (candidate == NULL) {
+                candidate = findTriggerFromUnit(po, *fu);
+            } else {
+                // make sure two different FU's don't have different
+                // trigger ports.
+                if (findTriggerFromUnit(po, *fu) != candidate) {
+                    return NULL;
+                }
+            }
+        }
+    }
+    
+    if (targetMachine_->controlUnit()->hasOperation(po.operation().name())) {
+        return findTriggerFromUnit(po, *targetMachine_->controlUnit());
+    }
+    return candidate;
+    
+}
+
+MoveNode* 
+BasicBlockScheduler::findTriggerFromUnit(
+    ProgramOperation& po, TTAMachine::Unit& unit) {
+    TTAMachine::FunctionUnit* fu = 
+    dynamic_cast<TTAMachine::FunctionUnit*>(&unit);
+    int ioIndex = -1;
+    for (int i = 0; i < fu->operationPortCount(); i++) {
+        TTAMachine::FUPort* port = fu->operationPort(i);
+        if (port->isTriggering()) {
+            TTAMachine::HWOperation* hwop = 
+            fu->operation(po.operation().name());
+            ioIndex = hwop->io(*port);
+            return &po.inputNode(ioIndex).at(0);
+        }
+    }
+    return NULL;
+}
+
+
