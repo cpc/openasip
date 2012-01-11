@@ -351,6 +351,11 @@ BUBasicBlockScheduler::scheduleOperandWrites(
     int cycle)
     throw (Exception) {
 
+    ProgramOperation& po =
+        (moves.node(0).isSourceOperation())?
+        (moves.node(0).sourceOperation()):
+        (moves.node(0).destinationOperation());
+
     int unscheduledMoves = 0;
     int scheduledMoves = 0;        
     MoveNode* trigger = NULL;
@@ -368,7 +373,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
             cycle = (limit < cycle) ? limit : cycle;
         }
     }
-    
+#if 0    
     // Find and schedule triggering move. Other operands have to be scheduled
     // at same cycle or earlier.
     // Triggering is property of a port so we do not know which move is
@@ -447,12 +452,48 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         // Can not schedule trigger, will try again later.
         return false;
     }
-
+#endif
     int counter = 0;
 
     // Trigger is scheduled, try to schedule other operands
     while (unscheduledMoves != scheduledMoves && counter < 5 && cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
+        // Try to schedule trigger first, otherwise the operand
+        // may get scheduled in cycle where trigger does not fit and 
+        // later cycle will not be possible for trigger.
+        trigger = findTrigger(po);
+        if (trigger != NULL && !trigger->isScheduled()) {
+            if (scheduleOperand(*trigger, cycle) == false) {
+                break;
+            }            
+            cycle = trigger->cycle(); 
+
+            if (trigger->move().destination().isTriggering()) {
+                // We schedulled trigger, this will give us latest possible cycle
+                // in order not to have operands later then trigger.  
+                if (ddg_->hasNode(*trigger)) {
+                    // handle moving fu deps. 
+                    // they may move trigger to later time.
+                    ddg_->moveFUDependenciesToTrigger(*trigger);
+                    int triggerLatest = 
+                        std::min(ddg_->latestCycle(*trigger), cycle);
+                    triggerLatest = rm_->latestCycle(triggerLatest, *trigger);
+                    if (triggerLatest != INT_MAX &&
+                        triggerLatest > trigger->cycle()) {
+                        
+                        unschedule(*trigger);
+                        unscheduleInputOperandTempMoves(*trigger);                        
+                        if (scheduleOperand(*trigger, triggerLatest) == false) {
+                            // reschedule with new dependencies failed,
+                            // bringing back originaly scheduled trigger 
+                            scheduleOperand(*trigger, cycle);
+                        }                     
+                        cycle = trigger->cycle();                         
+                    }                
+                }                 
+            }
+        }        
+        
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
             // skip the result reads
@@ -461,69 +502,12 @@ BUBasicBlockScheduler::scheduleOperandWrites(
             }
 
             if (moveNode.isScheduled()) {
-                if (moveNode.move().destination().isTriggering()) {
-                    trigger = &moveNode;
-                }
                 continue;
             }
-            // Try to schedule trigger first once again, otherwise the operand
-            // may get scheduled in cycle where trigger does not fit and 
-            // later cycle will not be possible for trigger.
-            if (trigger != NULL && !trigger->isScheduled()) {
-                int tempRegLimitCycle = cycle;
-                MoveNode* test = precedingTempMove(*trigger);
-                if (test != NULL) { 
-                    // Input temp move exists. Check where the move is reading data
-                    // from, so operand move can be scheduled earlier then
-                    // the already scheduled overwriting cycle.
-                    MoveNode* firstWrite =
-                        ddg_->firstScheduledRegisterWrite(
-                            trigger->move().source().registerFile(),
-                            trigger->move().source().index());
-                    if (firstWrite != NULL) {
-                        tempRegLimitCycle = firstWrite->cycle() -1;
-                    }
-                } 
-                cycle = std::min(cycle, tempRegLimitCycle);
-                int latestDDG = ddg_->latestCycle(*trigger);
-                latestDDG = std::min(latestDDG, cycle);
-                int latest = rm_->latestCycle(latestDDG, *trigger);    
-                if (latest == -1) {
-                    break;
-                }
-                // This must pass, since we got latest cycle from RM.
-                scheduleMove(*trigger, latest);      
-                assert(trigger->isScheduled());
-                scheduleInputOperandTempMoves(*trigger, *trigger);                
-                // redo this loop iteration to also allow the first one
-                // beiing scheduled if it's not the trigger
-                moveIndex--;
-                continue;
-            }        
-        
-            // Find out if RegCopyAdded create temporary move for input.
-            // If so, the operand has to be scheduled before the other use
-            // of same temporary register.
-            int tempRegLimitCycle = cycle;
-            MoveNode* test = precedingTempMove(moveNode);
-            if (test != NULL) { 
-                // Input temp move exists. Check where the move is reading data
-                // from, so operand move can be scheduled earlier then
-                // the already scheduled overwriting cycle.
-                MoveNode* firstWrite =
-                    ddg_->firstScheduledRegisterWrite(
-                        moveNode.move().source().registerFile(),
-                        moveNode.move().source().index());
-                if (firstWrite != NULL) {
-                    tempRegLimitCycle = firstWrite->cycle() -1;
-                }
-            } 
-            tempRegLimitCycle = std::min(tempRegLimitCycle, cycle);
-            scheduleMove(moveNode, tempRegLimitCycle);
-            if (!moveNode.isScheduled()) {
+            if (scheduleOperand(moveNode, cycle) == false) {
+                unscheduleInputOperandTempMoves(*trigger);            
                 break;
-            }            
-            scheduleInputOperandTempMoves(moveNode, moveNode);            
+            }         
             
         }
         // Tests if all input moveNodes were scheduled
@@ -1072,5 +1056,40 @@ BUBasicBlockScheduler::precedingTempMove(MoveNode& current) {
         result = &m;
     }
     return result;
+}
+
+/** 
+ * Checks existence of temporary moves and schedules operand according
+ * to discovered dependencies.
+ */
+bool
+BUBasicBlockScheduler::scheduleOperand(MoveNode& node, int cycle) {
+    int tempRegLimitCycle = cycle;
+    // Find out if RegCopyAdded create temporary move for input.
+    // If so, the operand has to be scheduled before the other use
+    // of same temporary register.    
+    MoveNode* test = precedingTempMove(node);
+    if (test != NULL) { 
+        // Input temp move exists. Check where the move is reading data
+        // from, so operand move can be scheduled earlier then
+        // the already scheduled overwriting cycle.
+        MoveNode* firstWrite =
+        ddg_->firstScheduledRegisterWrite(
+            node.move().source().registerFile(),
+            node.move().source().index());
+        if (firstWrite != NULL) {
+            tempRegLimitCycle = firstWrite->cycle() -1;
+        }
+    } 
+    cycle = std::min(cycle, tempRegLimitCycle);
+    // This must pass, since we got latest cycle from RM.
+    scheduleMove(node, cycle);      
+    if (node.isScheduled() == false) {
+        // the latest cycle may change because scheduleMove may do things like
+        // register renaming, so this may fail.         
+        return false;
+    }    
+    scheduleInputOperandTempMoves(node, node);                
+    return true;
 }
 

@@ -109,6 +109,8 @@ protected:
     void scheduleRRTempMoves(
         MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
         throw (Exception);
+    
+    bool scheduleOperand(MoveNode&, int cycle);
         
     MoveNode* precedingTempMove(MoveNode& current);        
             
