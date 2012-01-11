@@ -195,8 +195,14 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
                 if (ObjectVT == MVT::i32) {
+#ifdef LLVM_3_0
                     Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
                                        MachinePointerInfo(), false, false, 0);
+#else
+                    Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
+                                       MachinePointerInfo(), false, false, 
+				       false, 0);
+#endif
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
@@ -223,9 +229,15 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#ifdef LLVM_3_0
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
                                            MachinePointerInfo(),
                                            false, false, 0);
+#else
+                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
+                                           MachinePointerInfo(),
+                                           false, false, false, 0);
+#endif
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -241,15 +253,28 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-		HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-				    false, false, 0);
+#ifdef LLVM_3_0
+		HiVal = DAG.getLoad(
+		    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+		    false, false, 0);
+#else
+		HiVal = DAG.getLoad(
+		    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+		    false, false, false, 0);
+#endif
                 SDValue LoVal;
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#ifdef LLVM_3_0
                 LoVal = DAG.getLoad(
                     MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-				    false, false, 0);
+		    false, false, 0);
+#else
+                LoVal = DAG.getLoad(
+                    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+		    false, false, false, 0);
+#endif
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
