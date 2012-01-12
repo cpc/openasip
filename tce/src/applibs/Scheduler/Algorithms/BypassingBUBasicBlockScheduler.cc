@@ -1081,7 +1081,8 @@ bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
         return false;
     }
 
-    if (!renamer_->renameSourceRegister(moveNode, false, latestCycle)) {
+    if (!renamer_->renameSourceRegister(
+	    moveNode, false, false, false, latestCycle)) {
         return false;
     }
 

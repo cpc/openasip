@@ -404,7 +404,9 @@ RegisterRenamer::findFreeRegisters(
  */
 bool 
 RegisterRenamer::renameDestinationRegister(
-    MoveNode& node, bool loopScheduling, bool allowSameRf, int earliestCycle) {
+    MoveNode& node, bool loopScheduling, 
+    bool allowSameRf, bool differentRfOnlyDirectlyReachable, 
+    int earliestCycle) {
 
     if (!node.isMove() || !node.move().destination().isGPR()) {
         return false;
@@ -441,17 +443,21 @@ RegisterRenamer::renameDestinationRegister(
             availableRegisters = 
                 findPartiallyUsedRegistersBeforeCycle(rf.width(), earliestCycle);
         } else {
-            // only connected RFs
-            std::set<const TTAMachine::RegisterFile*, 
-                TTAMachine::MachinePart::Comparator> rfs = 
-                findConnectedRFs(*liveRange, false);
-            availableRegisters = 
-                findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
-            if (availableRegisters.empty()) {
-                // allow usasge of limm.
-                rfs = findConnectedRFs(*liveRange, true);
-                availableRegisters = 
-                    findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+	    if (!differentRfOnlyDirectlyReachable) {
+		// only connected RFs
+		std::set<const TTAMachine::RegisterFile*, 
+		    TTAMachine::MachinePart::Comparator> 
+		rfs = findConnectedRFs(*liveRange, false);
+		availableRegisters = 
+		    findPartiallyUsedRegistersInRFBeforeCycle(
+			rfs, earliestCycle);
+		if (availableRegisters.empty()) {
+		    // allow usasge of limm.
+		    rfs = findConnectedRFs(*liveRange, true);
+		    availableRegisters = 
+			findPartiallyUsedRegistersInRFBeforeCycle(
+			    rfs, earliestCycle);
+		}
             }
         }
     }        
@@ -469,20 +475,22 @@ RegisterRenamer::renameDestinationRegister(
             if (tempRegFiles_.empty()) {
                 availableRegisters = 
                     findFreeRegisters(rf.width());
-            } else { 
-                // only connected RFs
-                std::set<const TTAMachine::RegisterFile*,
-                    TTAMachine::MachinePart::Comparator> rfs =
-                    findConnectedRFs(*liveRange, false);
-                availableRegisters = 
-                    findFreeRegistersInRF(rfs);
-                if (availableRegisters.empty()) {
-                    // allow usage of LIMM
-                    rfs = findConnectedRFs(*liveRange, true);
-                    availableRegisters = 
-                        findFreeRegistersInRF(rfs);
-                }
-            }
+            } else {
+		if (!differentRfOnlyDirectlyReachable) {
+		    // only connected RFs
+		    std::set<const TTAMachine::RegisterFile*,
+			TTAMachine::MachinePart::Comparator> 
+		    rfs = findConnectedRFs(*liveRange, false);
+		    availableRegisters = 
+			findFreeRegistersInRF(rfs);
+		    if (availableRegisters.empty()) {
+			// allow usage of LIMM
+			rfs = findConnectedRFs(*liveRange, true);
+			availableRegisters = 
+			    findFreeRegistersInRF(rfs);
+		    }
+	        }
+	    }
         }
         if (availableRegisters.empty()) {
             return false;
@@ -501,7 +509,8 @@ RegisterRenamer::renameDestinationRegister(
  */
 bool 
 RegisterRenamer::renameSourceRegister(
-    MoveNode& node, bool loopScheduling, bool allowSameRf, int latestCycle) {
+    MoveNode& node, bool loopScheduling, 
+    bool allowSameRf, bool differentRfOnlyDirectlyReachable, int latestCycle) {
 
     if (!node.isMove() || !node.move().source().isGPR()) {
         return false;

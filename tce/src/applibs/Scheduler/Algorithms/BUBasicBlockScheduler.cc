@@ -707,7 +707,7 @@ BUBasicBlockScheduler::scheduleMove(
                 minRenamedEC =  rm_->latestCycle(minRenamedEC, moveNode);
                 if (minRenamedEC > ddgCycle) {
                     if (renamer_->renameSourceRegister(
-                            moveNode, false, true, minRenamedEC)) {
+                            moveNode, false, true, true, minRenamedEC)) {
                         ddgCycle = ddg_->latestCycle(moveNode);
                     } else {
                         MoveNode *limitingAdep =
@@ -721,7 +721,7 @@ BUBasicBlockScheduler::scheduleMove(
                                 &moveNode.destinationOperation() !=
                                 &limitingAdep->sourceOperation()) {
                                 if (renamer_->renameDestinationRegister(
-                                        *limitingAdep, false, true)) {
+                                        *limitingAdep, false, true, true)) {
                                     ddgCycle = 
                                         ddg_->latestCycle(moveNode);
                                 }

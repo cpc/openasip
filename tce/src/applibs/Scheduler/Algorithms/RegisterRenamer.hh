@@ -62,12 +62,12 @@ public:
 
     bool renameDestinationRegister(
         MoveNode& node, bool loopScheduling, 
-        bool allowSameRf,
+        bool allowSameRf, bool differentRfOnlyDirectlyReachable,
         int earliestCycle=-1);
 
     bool renameSourceRegister(
         MoveNode& node, bool loopScheduling, 
-        bool allowSameRf,
+        bool allowSameRf, bool differentRfOnlyDirectlyReachable,
         int latestCycle = INT_MAX);
     
     void setSelector(MoveNodeSelector* selector);

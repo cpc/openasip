@@ -267,7 +267,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
         regCopyAdder.addMinimumRegisterCopies(po, *targetMachine_, ddg_)
 #ifdef DEBUG_REG_COPY_ADDER
         .count_
-#endif    
+#endif
         ;
 #ifdef DEBUG_REG_COPY_ADDER
     if (tempsAdded > 0) {
@@ -391,11 +391,13 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     // Should not be needed in final version.
     
     if (operandsFailed) {
+	ddg_->writeToDotFile("operands_fail.dot");
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Operands scheduling failed for \'" + moves.toString());
     }
     if (resultsFailed) {
+	ddg_->writeToDotFile("result_fail.dot");
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
             "Results scheduling failed for \'" + moves.toString());
@@ -844,7 +846,7 @@ BasicBlockScheduler::scheduleMove(
                 if (minRenamedEC < ddgCycle) {
                     
                     if (renamer_->renameDestinationRegister(
-                            moveNode, false, true, minRenamedEC)) {
+                            moveNode, false, true, true, minRenamedEC)) {
                         ddgCycle = ddg_->earliestCycle(moveNode);
                     }
                     else {
@@ -859,7 +861,7 @@ BasicBlockScheduler::scheduleMove(
                                 &moveNode.sourceOperation() !=
                                 &limitingAdep->destinationOperation()) {
                                 if (renamer_->renameSourceRegister(
-                                        *limitingAdep, false, true)) {
+                                        *limitingAdep, false, true, true)) {
                                     ddgCycle = ddg_->earliestCycle(
                                         moveNode);
                                 }
