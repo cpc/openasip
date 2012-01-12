@@ -39,6 +39,9 @@
 #include <llvm/Value.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 
+#include <llvm/Analysis/AliasAnalysis.h>
+
+
 #include "MoveNode.hh"
 #include "Move.hh"
 #include "DataDependenceGraph.hh"

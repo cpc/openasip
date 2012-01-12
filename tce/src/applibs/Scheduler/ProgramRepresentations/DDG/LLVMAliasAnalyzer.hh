@@ -37,7 +37,9 @@
 #ifndef TTA_LLVM_ALIAS_ANALYZER
 #define TTA_LLVM_ALIAS_ANALYZER
 
-#include <llvm/Analysis/AliasAnalysis.h>
+namespace llvm {
+    class AliasAnalysis;
+}
 
 #include "MemoryAliasAnalyzer.hh"
 
