@@ -1,0 +1,8 @@
+<?php
+// short test description
+$test_description="Compiling short test cases with tcecc";
+$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
+$bin_args = "-vrx -g \"-O3 -k_Output --recursive-scheduler\" -e tests/DSPStone -w 15.7 ".
+    "-a ti64x_subset.adf ".
+    "-a 2regcopies.adf ";
+?>
