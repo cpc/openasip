@@ -81,6 +81,7 @@ SimpleBrokerDirector::SimpleBrokerDirector(
     initiationInterval_(ii), schedulingWindow_(140),
     busCount_(machine.busNavigator().count()) {
     knownMaxCycle_ = -1;
+    knownMinCycle_ = INT_MAX;
 
 #if 0
    // Scheduling window is not supported in the devel branch at the moment.
@@ -271,6 +272,9 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     if (knownMaxCycle_ < cycle) {
         knownMaxCycle_ = cycle;
     }
+    if (knownMinCycle_ > cycle) {
+        knownMinCycle_ = cycle;
+    }
     moveCounts_[instructionIndex(cycle)]++;
 }
 
@@ -333,18 +337,36 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // if unassigned move was known to be in highest cycle assigned so far
     // tries to decrease highest cycle checking for assigned moves and
     // immediates
-    if (nodeCycle == knownMaxCycle_) {
-        while(nodeCycle >= 0) {
+    int cycleCounter = nodeCycle;
+    if (cycleCounter == knownMaxCycle_) {
+        while(cycleCounter >= 0) {
             // this may memory leak
-            Instruction* tempIns = instruction(nodeCycle);
+            Instruction* tempIns = instruction(cycleCounter);
             if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
                 knownMaxCycle_--;
-                nodeCycle--;
+                cycleCounter--;
             } else {
                 break;
             }
         }
     }
+    // if unassigned move was known to be in smallest cycle assigned so far
+    // tries to increase smallest cycle checking for assigned moves and
+    // immediates
+    cycleCounter = nodeCycle;    
+    if (cycleCounter == knownMinCycle_) {
+        while(cycleCounter <= knownMaxCycle_) {
+            // this may memory leak
+            Instruction* tempIns = instruction(cycleCounter);
+            if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
+                knownMinCycle_++;
+                cycleCounter++;
+            } else {
+                break;
+            }
+        }
+    }
+    
 }
 
 /**
@@ -389,6 +411,7 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
     if (cycle < knownMaxCycle_ - schedulingWindow_) {
         cycle = knownMaxCycle_ - schedulingWindow_;
     }
+    // TODO: is there need for similar test for knownMinCycle as well?
 
     int minCycle = executionPipelineBroker().earliestCycle(cycle, node);
 
@@ -480,9 +503,14 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node) const {
     int lastCycleToTest = -1;
     lastCycleToTest =
         std::max(knownMaxCycle_,
-                executionPipelineBroker().highestKnownCycle());
+            executionPipelineBroker().highestKnownCycle());
+    // Define earliest cycle where to finish testing. If the move can not
+    // be scheduled after this cycle, it can not be scheduled at all.            
+    int earliestCycleLimit = 
+        (knownMinCycle_ > executionPipelineBroker().longestLatency() + 1) ? 
+        knownMinCycle_ - executionPipelineBroker().longestLatency() : 0;
     if (maxCycle <= lastCycleToTest) {
-        for (int i = maxCycle; i >= 0; i--) {
+        for (int i = maxCycle; i >= earliestCycleLimit; i--) {
             if (canAssign(i, node)) {
                 return i;
             }
@@ -492,8 +520,8 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node) const {
             if (canAssign(maxCycle, node)) {
                 return maxCycle;
             }
-        }
-        for (int i = lastCycleToTest; i >= 0; i--) {
+        }        
+        for (int i = lastCycleToTest; i >= earliestCycleLimit; i--) {
             if (canAssign(i, node)) {
                 return i;
             }
@@ -633,7 +661,6 @@ SimpleBrokerDirector::OriginalResources::~OriginalResources() {
         delete guard_;
     }
 }
-
 /**
  * Test if the MoveSet can be schedule with machine connectivity.
  *
@@ -644,7 +671,7 @@ SimpleBrokerDirector::OriginalResources::~OriginalResources() {
  */
 bool
 SimpleBrokerDirector::hasConnection(MoveNodeSet& nodes) {
-
+    
     int lastCycleToTest = -1;
     lastCycleToTest = largestCycle();
     int testedCycle = lastCycleToTest + 1;
@@ -664,7 +691,7 @@ SimpleBrokerDirector::hasConnection(MoveNodeSet& nodes) {
             break;
         }
     }
-
+    
     for (int i = 0; i < nodes.count(); i++) {
         if (nodes.at(i).isScheduled()) {
             unassign(nodes.at(i));
@@ -672,7 +699,6 @@ SimpleBrokerDirector::hasConnection(MoveNodeSet& nodes) {
     }
     return success;
 }
-
 /**
  * Tests if any of a buses of machine supports guard needed
  * by a node. Should always return true! Otherwise, scheduler generated
@@ -723,6 +749,18 @@ int
 SimpleBrokerDirector::largestCycle() const{
     return std::max(knownMaxCycle_,
         executionPipelineBroker().highestKnownCycle());
+}
+
+/**
+ * Returns smallest cycle known to be used by any of the resources.
+ *
+ * @return Smallest cycle resource manager assigned any resource to.
+ */
+int
+SimpleBrokerDirector::smallestCycle() const{
+    // No need to check the execution pipeline resource here
+    // since there are no negative pipelines
+    return knownMinCycle_;
 }
 
 /**
@@ -806,6 +844,7 @@ SimpleBrokerDirector::instructionIndex(unsigned int cycle) const {
 void
 SimpleBrokerDirector::clear() {
     knownMaxCycle_ = -1;
+    knownMinCycle_ = INT_MAX;
     moveCounts_.clear();
     plan_->clear();
 }

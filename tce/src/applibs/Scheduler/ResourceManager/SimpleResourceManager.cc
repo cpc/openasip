@@ -350,6 +350,7 @@ SimpleResourceManager::hasConnection(MoveNodeSet& nodes) {
     return director_->hasConnection(nodes);
 }
 
+
 /**
  * Tests if any of a buses of machine supports guard needed
  * by a node. Should always return true! Otherwise, scheduler generated
@@ -405,6 +406,23 @@ SimpleResourceManager::largestCycle() const{
     return lc;
 #else
     return director_->largestCycle();
+#endif
+}
+
+/**
+ * Returns smallest cycle known to be used by any of the resources.
+ *
+ * @return Smallest cycle resource manager assigned any resource to.
+ */
+int
+SimpleResourceManager::smallestCycle() const{
+#ifdef DEBUG_RM
+    Application::logStream() << "\tSC." << std::endl;
+    int sc = director_->smallestCycle();
+    Application::logStream() << "\tSC got: " << lc << std::endl;
+    return sc;
+#else
+    return director_->smallestCycle();
 #endif
 }
 

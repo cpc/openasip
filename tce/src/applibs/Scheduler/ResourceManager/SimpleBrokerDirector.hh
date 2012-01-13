@@ -89,6 +89,7 @@ public:
     virtual TTAProgram::Instruction* instruction(int cycle) const;
     virtual bool supportsExternalAssignments() const;
     virtual int largestCycle() const;
+    virtual int smallestCycle() const;    
     virtual void loseInstructionOwnership(int cycle);
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
@@ -123,8 +124,9 @@ private:
         throw (InstanceNotFound);
 
     std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
-    origResMap_;
+        origResMap_;
     int knownMaxCycle_;
+    int knownMinCycle_;
     unsigned int initiationInterval_;
 
     /// the number of instructions to look back in the schedule

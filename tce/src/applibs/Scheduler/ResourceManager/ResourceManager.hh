@@ -62,6 +62,7 @@ public:
     virtual bool hasConnection(MoveNodeSet& nodes) = 0;
     virtual bool supportsExternalAssignments() const = 0;
     virtual int largestCycle() const = 0;
+    virtual int smallestCycle() const = 0;
     const TTAMachine::Machine& machine() const;
     virtual TTAProgram::Instruction* instruction(int cycle) const =0;
 private:

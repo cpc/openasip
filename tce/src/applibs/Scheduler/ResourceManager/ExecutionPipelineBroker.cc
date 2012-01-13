@@ -60,7 +60,7 @@ using std::pair;
  */
 ExecutionPipelineBroker::ExecutionPipelineBroker(std::string name,
         unsigned int initiationInterval): 
-    ResourceBroker(name, initiationInterval) {
+    ResourceBroker(name, initiationInterval), longestLatency_(0) {
         
     // change ii for broker's resources also
     for (FUPipelineMap::iterator i = fuPipelineMap_.begin();
@@ -235,6 +235,9 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
         ResourceBroker::addResource(*fu, epResource);
         fuPipelineMap_.insert(
             pair<SchedulingResource*, const FunctionUnit*>(epResource, fu));
+        longestLatency_ = 
+            (longestLatency_ < fu->maxLatency()) 
+                ? fu->maxLatency() : longestLatency_;            
     }
 
     ControlUnit* gcu = target.controlUnit();

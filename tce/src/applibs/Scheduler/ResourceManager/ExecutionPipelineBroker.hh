@@ -68,6 +68,7 @@ public:
     virtual int highestKnownCycle() const;
     virtual bool isExecutionPipelineBroker() const;
     virtual void setInitiationInterval(unsigned int cycles);
+    virtual int longestLatency() const { return longestLatency_; }
     void setDDG(const DataDependenceGraph* ddg);
 
 private:
@@ -81,6 +82,8 @@ private:
 
     /// FU's and their corresponding pipeline resources.
     FUPipelineMap fuPipelineMap_;
+    /// Longest latency of all operations of all the FUs
+    int longestLatency_;
 };
 
 #endif
