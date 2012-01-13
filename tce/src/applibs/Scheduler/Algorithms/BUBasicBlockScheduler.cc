@@ -709,7 +709,9 @@ BUBasicBlockScheduler::scheduleMove(
                     if (renamer_->renameSourceRegister(
                             moveNode, false, true, true, minRenamedEC)) {
                         ddgCycle = ddg_->latestCycle(moveNode);
-                    } else {
+                    } 
+#ifdef THIS_IS_BUGGY_WITH_REGCOPY_ADDER                    
+                    else {
                         MoveNode *limitingAdep =
                             ddg_->findLimitingAntidependenceDestination(
                                 moveNode);
@@ -728,6 +730,7 @@ BUBasicBlockScheduler::scheduleMove(
                             }
                         }
                     }
+#endif
                 }
             }
         }    

@@ -849,6 +849,7 @@ BasicBlockScheduler::scheduleMove(
                             moveNode, false, true, true, minRenamedEC)) {
                         ddgCycle = ddg_->earliestCycle(moveNode);
                     }
+#ifdef THIS_IS_BUGGY_WITH_REGCOPY_ADDER                    
                     else {
                         MoveNode *limitingAdep =
                             ddg_->findLimitingAntidependenceSource(
@@ -868,6 +869,7 @@ BasicBlockScheduler::scheduleMove(
                             }
                         }
                     }
+#endif
                 }
             }
         }
