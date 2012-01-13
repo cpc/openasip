@@ -33,6 +33,20 @@
  * operation producing the value of the operand, it reverts the bypass,
  * and schedules operands from registers.
  *
+ * When the original/first scheduleOperation() call finishes,
+ * all operations and
+ * moves scheduled directly by it or recursively by it are "fixed in place",
+ * and can no longer be reverted. Then selector gives another operation or
+ * individual move to be scheduled.
+ *
+ * The basic principle of this scheduler is greediness:
+ * "try the fastest way of doing things first, and if it succeeds, good,
+ *  it not, revert to slower way of doing things.
+ * so 1) bypass 2) rename 3) add regcopies
+ *
+ * The old BB scheduler does these in exactly opposite order(
+ * first addregcopies, then rename, then bypass).
+ *
  * @author Heikki Kultala 2011 (hkultala-no.spam-tut.fi)
  * @note rating: red
  */
@@ -44,6 +58,9 @@
   * Allow bypassing also when not scheduling recursively
   * switch from DFS to BFS
   * Bypass and schedule top-down other results?
+  * Allow bypassing when scheduling reg-reg moves
+  * Allow bypassing over multiple nodes
+  * Smarter logic for selecting registers when 1) renaming 2)tempregadding
   */
 
 #include <set>
@@ -93,7 +110,7 @@ class RegisterRenamer;
  * Constructs the basic block scheduler.
  *
  * @param data Interpass data
- * @param bypasser Helper module implementing software bypassing
+ * @param bypasser Helper module implementing software bypassing. Not used.
  * @param delaySlotFiller Helper module implementing jump delay slot filling
  * @param registerRenamer Helper module implementing register renaming 
  */
@@ -276,7 +293,7 @@ BypassingBUBasicBlockScheduler::scheduleOperation(
  */
 std::string
 BypassingBUBasicBlockScheduler::shortDescription() const {
-    return "Bypassing Bottom-up list scheduler with a basic block scope.";
+    return "Bypassing recursive Bottom-up list scheduler with a basic block scope.";
 }
 
 /**
@@ -291,7 +308,7 @@ std::string
 BypassingBUBasicBlockScheduler::longDescription() const {
     return
         "Bottom-up list basic block scheduler that first tries to bypass"
-        " and only then assign moves.";
+        " and only then assign moves,and recursively schedules bypass sources";
 }
 
 void
@@ -340,7 +357,12 @@ BypassingBUBasicBlockScheduler::finalizeOperation(MoveNodeSelector& selector) {
     regCopiesAfter_.clear();
 }
 
-
+/**
+ * Tries to schedule an operation.
+ *
+ * This function is called recursively, when bypassing.
+ *
+ */
 bool
 BypassingBUBasicBlockScheduler::scheduleOperation(
     ProgramOperation& po, int& latestCycle, bool allowRegCopies) {
@@ -517,7 +539,10 @@ BypassingBUBasicBlockScheduler::scheduleResults(
 }
 
 /** 
- * Schedule a single move.
+ * Schedule a single move with up-down scheduling.
+ *
+ * Currently used only for results which also have bypassed read of the
+ * result, to get this as close to the bypassed one as possible.
  */
 bool
 BypassingBUBasicBlockScheduler::scheduleMoveUB(
@@ -578,7 +603,16 @@ BypassingBUBasicBlockScheduler::scheduleMoveUB(
 }
 
 /** 
- * Schedule a single move.
+ * Schedule a single move with bottom-up-scheduling.
+ * 
+ * If the machine does not have sufficient connectivity,
+ * tries to rename the source register or add regcopies.
+ *
+ * @param mn MoveNode to be scheduled
+ * @param earliestCycle earliestCycle allowed.
+ * @param latestCycle latest allowed cycle. Tries to schedule close to this.
+ * @param t whether temp register copies are allowed, and whether they
+          are added after or before this move.
  */
 bool
 BypassingBUBasicBlockScheduler::scheduleMoveBU(
@@ -719,6 +753,10 @@ BypassingBUBasicBlockScheduler::scheduleMoveBU(
 }
 
 /**
+ * Bypasses a node.
+ *
+ * @param maxHopCount maximum amount or registers to skip while bypassing.
+ *        1 == bypass from move which produced the value, 0 == do not bypass.
  *
  * @return the amount of moves saved by this bypass
  */
@@ -785,6 +823,8 @@ BypassingBUBasicBlockScheduler::bypassNode(MoveNode& node, int maxHopCount) {
  * Finds a source where from to bypass. 
  *
  * Goes ddg backwards and checks for connectivity.
+ *
+ * @return pair of source of bypass and amount of regs skipped by the bypass.
  */
 std::pair<MoveNode*, int>
 BypassingBUBasicBlockScheduler::findBypassSource(
@@ -812,6 +852,9 @@ BypassingBUBasicBlockScheduler::findBypassSource(
     return std::pair<MoveNode*,int>(okSource, hops);
 }
 
+/**
+ * Tries to schedule an (input) node, bypassing if possible
+ */
 bool
 BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
     MoveNode& node, MoveNode* trigger, int latestCycle, bool allowRegCopies) {
@@ -866,6 +909,10 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleNode(
     return false;
 }
 
+/** 
+ * Schedule all operands of an operation, (but no trigger), trying t
+ * bypass them.
+ */
 bool 
 BypassingBUBasicBlockScheduler::bypassAndScheduleOperands(
     ProgramOperation& po, MoveNode* trigger, int latestCycle, 
@@ -888,7 +935,9 @@ BypassingBUBasicBlockScheduler::bypassAndScheduleOperands(
     return true;
 }
 
-// Called when cannot bypass.
+/**
+ * Tries to schedue operand or trigger, but not trying to bypass
+ */
 bool 
 BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
     MoveNode& operand, MoveNode* trigger, int latestCycle, 
@@ -903,7 +952,7 @@ BypassingBUBasicBlockScheduler::scheduleOperandOrTrigger(
                           TempRegNotAllowed);
 }
 
-/* 
+/**
  * Calculates the range where operand can be scheduled, based on
  * results and other operands.
  */
@@ -942,6 +991,11 @@ BypassingBUBasicBlockScheduler::operandCycleLimits(
     return std::pair<int,int>(minn, maxx);
 }
 
+/**
+ * find the highest cycle some operand of an operation is scheduled.
+ *
+ * @TODO: move this to ProgramOperation class?
+ */
 int
 BypassingBUBasicBlockScheduler::lastOperandCycle(
     const ProgramOperation& po) {
@@ -957,7 +1011,9 @@ BypassingBUBasicBlockScheduler::lastOperandCycle(
     return res;
 }
 
-
+/**
+ * undoes a bypass.
+ */
 void
 BypassingBUBasicBlockScheduler::undoBypass(MoveNode& mn) {
     std::cerr << "\tundoing bypass: " << mn.toString() << std::endl;
@@ -979,6 +1035,11 @@ BypassingBUBasicBlockScheduler::undoBypass(MoveNode& mn) {
     std::cerr << "\tundid bypass: " << mn.toString() << std::endl;
 }
 
+/**
+ * Undoes bypass and unschedules a move.
+ * 
+ * This also recursively unschedules the source operation of the bypass.
+ */
 void
 BypassingBUBasicBlockScheduler::undoBypassAndUnschedule(MoveNode& mn) {
     if (mn.isBypass()) {
@@ -1002,6 +1063,11 @@ BypassingBUBasicBlockScheduler::revertRegCopyAfter(
 }
 */
 
+/**
+ * Unschedule a move
+ *
+ * Also unschedules the tempregcopies of that move.
+ */
 void
 BypassingBUBasicBlockScheduler::unschedule(MoveNode& mn) {
     std::cerr << "UnScheduling: " << mn.toString() << std::endl;
@@ -1027,6 +1093,9 @@ BypassingBUBasicBlockScheduler::unschedule(MoveNode& mn) {
     
 }
 
+/**
+ * Unschedule all result moves of an operation.
+ */
 void 
 BypassingBUBasicBlockScheduler::unscheduleResults(ProgramOperation& po) {
     std::cerr << "\tUnschedulign results" << std::endl;
@@ -1037,7 +1106,11 @@ BypassingBUBasicBlockScheduler::unscheduleResults(ProgramOperation& po) {
         }
     }
 }
-    
+   
+/**
+ * Unschedules all operands of an operation. 
+ * Also reverts bypasses and unschedules the bypass sources.
+ */
 void
 BypassingBUBasicBlockScheduler::unscheduleOperands(
     ProgramOperation& po) {
@@ -1046,12 +1119,18 @@ BypassingBUBasicBlockScheduler::unscheduleOperands(
     }
 }
 
+/** 
+ * Unschedules an operation (and recursively the bypass sources
+ */
 void
 BypassingBUBasicBlockScheduler::unscheduleOperation(ProgramOperation& po) {
     unscheduleOperands(po);
     unscheduleResults(po);
 }
 
+/**
+ * Cleanups some bookkeeping. This should not be needed
+ */
 void
 BypassingBUBasicBlockScheduler::clearCaches() {
     bypassSources_.clear();
@@ -1074,6 +1153,9 @@ BypassingBUBasicBlockScheduler::clearCaches() {
     regCopiesAfter_.clear();
 }                                     
 
+/**
+ * Tries to rename source register of unconnected move to make it connected.
+ */
 bool BypassingBUBasicBlockScheduler::renameSourceIfNotConnected(
     MoveNode& moveNode, int latestCycle) {
 
@@ -1192,6 +1274,14 @@ BypassingBUBasicBlockScheduler::createTempRegCopy(MoveNode& mn, bool after) {
     return copyNode;
 }
 
+/**
+ * Creste register antideps from unscheduled temp reg copies
+ * to the just created one.
+ * 
+ * This is needed when temp reg copies are "created on wrong order",
+ * for example if some operation is attempted to first schedule some FU,
+ * later to some another
+ */
 void BypassingBUBasicBlockScheduler::createAntidepsFromUnscheduledRegCopies(
     MoveNode& copyNode, MoveNode& mn, 
     TTAProgram::Terminal& terminalRegister) {
@@ -1222,7 +1312,12 @@ void BypassingBUBasicBlockScheduler::createAntidepsFromUnscheduledRegCopies(
     }
 }
 
-
+/**
+ * Find possible temp reg RF's for connectivity of given register.
+ *
+ * This only gives the register files that for the "next register in the
+ * temp reg chain", not the whole chain
+ */
 std::set<TTAMachine::RegisterFile*, TTAMachine::MachinePart::Comparator> 
 BypassingBUBasicBlockScheduler::possibleTempRegRFs(
     const MoveNode& mn, bool tempRegAfter) {
@@ -1317,9 +1412,6 @@ BypassingBUBasicBlockScheduler::possibleTempRegRFs(
     }
     return result;
     } else {
-
-        std::cerr << "temp reg after in find rf, mn: " << mn.toString() << 
-            std::endl;
         while (result.empty() && modified) {
         int shortest = INT_MAX;
         modified = false;
