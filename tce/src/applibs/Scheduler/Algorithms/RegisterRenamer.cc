@@ -547,16 +547,19 @@ RegisterRenamer::renameSourceRegister(
             availableRegisters = 
                 findPartiallyUsedRegistersAfterCycle(rf.width(), latestCycle);
         } else {
-            // only connected RFs
-            std::set<const TTAMachine::RegisterFile*, 
-                TTAMachine::MachinePart::Comparator> rfs = 
-                findConnectedRFs(*liveRange, false);
-            availableRegisters = 
-                findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
-            if (availableRegisters.empty()) {
-                rfs = findConnectedRFs(*liveRange, true);
+            if (!differentRfOnlyDirectlyReachable) {
+                // only connected RFs
+                std::set<const TTAMachine::RegisterFile*, 
+                    TTAMachine::MachinePart::Comparator> 
+                rfs = findConnectedRFs(*liveRange, false);
                 availableRegisters = 
                     findPartiallyUsedRegistersInRFAfterCycle(rfs, latestCycle);
+                if (availableRegisters.empty()) {
+                    rfs = findConnectedRFs(*liveRange, true);
+                    availableRegisters = 
+                        findPartiallyUsedRegistersInRFAfterCycle(
+                            rfs, latestCycle);
+                }
             }
         }
     }        
@@ -575,14 +578,16 @@ RegisterRenamer::renameSourceRegister(
                 availableRegisters = 
                     findFreeRegisters(rf.width());
             } else { 
-                // only connected RFs
-                std::set<const TTAMachine::RegisterFile*,
-                    TTAMachine::MachinePart::Comparator> rfs =
-                    findConnectedRFs(*liveRange, false);
-                availableRegisters = findFreeRegistersInRF(rfs);
-                if (availableRegisters.empty()) {
-                    rfs = findConnectedRFs(*liveRange, true);
+                if (!differentRfOnlyDirectlyReachable) {
+                    // only connected RFs
+                    std::set<const TTAMachine::RegisterFile*,
+                        TTAMachine::MachinePart::Comparator> 
+                    rfs = findConnectedRFs(*liveRange, false);
                     availableRegisters = findFreeRegistersInRF(rfs);
+                    if (availableRegisters.empty()) {
+                        rfs = findConnectedRFs(*liveRange, true);
+                        availableRegisters = findFreeRegistersInRF(rfs);
+                    }
                 }
             }
         }
