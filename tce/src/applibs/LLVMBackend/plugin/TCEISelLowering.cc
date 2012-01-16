@@ -49,7 +49,7 @@
 
 #include <llvm/Target/TargetLoweringObjectFile.h>
 
-#include <llvm/Config/config.h>
+//#include <llvm/Config/config.h>
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
