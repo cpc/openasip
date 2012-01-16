@@ -1284,13 +1284,13 @@ LLVMTCEBuilder::addPointerAnnotations(
             // GetElemntPtrInst
                 
             if (memOpValue->hasName()) {
-                pointerName = memOpValue->getNameStr();
+                pointerName = memOpValue->getName();
             } else if (isa<GetElementPtrInst>(memOpValue)) {
                 memOpValue =
                     cast<GetElementPtrInst>(
                         memOpValue)->getPointerOperand();
                 if (memOpValue->hasName()) {
-                    pointerName = memOpValue->getNameStr();
+                    pointerName = memOpValue->getName();
                 }
             } 
 
@@ -1311,7 +1311,8 @@ LLVMTCEBuilder::addPointerAnnotations(
             // a function argument with 'noalias' attribute set
             const llvm::Value* originMemOpValue = memOpValue;
             while (originMemOpValue != NULL) {
-                TCEString currentPointerName = originMemOpValue->getNameStr();
+                TCEString currentPointerName = 
+		    (std::string)originMemOpValue->getName();
 
                 // the OpenCL work item pointer variables start with __wi_,
                 // annotate the move with the work item offset so we can
@@ -1358,7 +1359,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                       real pointer name + offset.
                     */
 
-                    pointerName = originMemOpValue->getNameStr();
+                    pointerName = originMemOpValue->getName();
                     break;
                 } else if (isa<GetElementPtrInst>(originMemOpValue)) {
                     originMemOpValue =

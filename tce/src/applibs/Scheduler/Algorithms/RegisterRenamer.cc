@@ -437,16 +437,17 @@ RegisterRenamer::renameDestinationRegister(
         rfs.insert(&rf);
         earliestCycle = std::min(earliestCycle, liveRange->firstCycle());
         availableRegisters = 
-        findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
-    } else { 
+	    findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+    } else { // none scheduled.
         if (tempRegFiles_.empty()) {
             availableRegisters = 
                 findPartiallyUsedRegistersBeforeCycle(rf.width(), earliestCycle);
         } else {
-	    if (!differentRfOnlyDirectlyReachable) {
+	    if (!differentRfOnlyDirectlyReachable) 
+	    {
 		// only connected RFs
-		std::set<const TTAMachine::RegisterFile*, 
-		    TTAMachine::MachinePart::Comparator> 
+		std::set < const TTAMachine::RegisterFile*, 
+		    TTAMachine::MachinePart::Comparator >
 		rfs = findConnectedRFs(*liveRange, false);
 		availableRegisters = 
 		    findPartiallyUsedRegistersInRFBeforeCycle(
@@ -458,9 +459,9 @@ RegisterRenamer::renameDestinationRegister(
 			findPartiallyUsedRegistersInRFBeforeCycle(
 			    rfs, earliestCycle);
 		}
-            }
-        }
-    }        
+	   }
+       }
+    }
 
     if (availableRegisters.empty()) {
         reused = false;

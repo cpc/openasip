@@ -49,15 +49,17 @@
 
 #include <llvm/Target/TargetLoweringObjectFile.h>
 
+#include <llvm/Config/config.h>
+
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
 #include "TCETargetMachine.hh"
 #include "TCETargetObjectFile.hh"
 #include "TCESubtarget.hh"
-#include "Application.hh"
 #include "TCEISelLowering.hh"
 #include "tce_config.h"
 #include "LLVMTCECmdLineOptions.hh"
+#include "Application.hh"
 
 #include <iostream> // DEBUG
 

@@ -57,7 +57,7 @@ void MachineDCE::addInitializer(const Constant* init, std::string& name) {
                << "\n";
 #endif
         baseUsers_.insert(name);
-        usersOfValue_[gv->getNameStr()].insert(name);
+        usersOfValue_[gv->getName()].insert(name);
     }
     
     if ((dyn_cast<ConstantArray>(init) != NULL) ||
@@ -78,13 +78,12 @@ bool MachineDCE::doInitialization(Module &M) {
     // errs() << "Initializing MachineDCE\n";
 
     // add first function to baseUsers
-    baseUsers_.insert(M.begin()->getNameStr());
-    
+    baseUsers_.insert(M.begin()->getName());
     // Go through global variables to find out 
     for (Module::const_global_iterator i = M.global_begin();
          i != M.global_end(); i++) {
         
-        std::string name = i->getNameStr();        
+        std::string name = i->getName();
 
         if (!i->hasInitializer()) {
             continue;
@@ -104,8 +103,8 @@ bool MachineDCE::doInitialization(Module &M) {
 }
 
 bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
-    
-    std::string funcName = F.getFunction()->getNameStr();
+
+    std::string funcName = F.getFunction()->getName();
 
     // add function to function map...
     functionMappings_[funcName] = &F;
@@ -122,7 +121,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
                 std::string moName;
 
                 if (mo.isGlobal()) {
-                    moName = mo.getGlobal()->getNameStr();
+                    moName = mo.getGlobal()->getName();
                 } else if (mo.isSymbol()) {
                     moName = mo.getSymbolName();
                 }

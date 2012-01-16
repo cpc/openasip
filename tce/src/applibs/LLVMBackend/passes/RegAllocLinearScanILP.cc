@@ -16,6 +16,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifdef LLVM_3_0
+
 #define DEBUG_TYPE "regalloc"
 #include "LiveDebugVariables.h"
 #ifndef LLVM_2_9
@@ -2042,3 +2044,5 @@ unsigned RALinScanILP::getFreePhysReg(LiveInterval *cur) {
 FunctionPass* createILPLinearScanRegisterAllocator() {
   return new RALinScanILP();
 }
+
+#endif

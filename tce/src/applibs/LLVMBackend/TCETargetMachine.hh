@@ -64,17 +64,19 @@ namespace llvm {
     class TCETargetMachine : public LLVMTargetMachine {
 
     public:
-#ifndef LLVM_2_9
+#ifdef LLVM_3_0
         TCETargetMachine(
 	    const Target &T, const std::string &TT,
-	    const std::string& CPU, const std::string &FS, 
+	    const std::string& CPU, const std::string &FS,
 	    Reloc::Model RM, CodeModel::Model CM);
+
 #else
         TCETargetMachine(
-	    const Target &T, const std::string &TT, const std::string &FS);
+	    const Target &T, const std::string &TT,
+	    const std::string& CPU, const std::string &FS,
+	    const TargetOptions &Options,
+	    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
 #endif
-
-
         virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);
@@ -93,13 +95,9 @@ namespace llvm {
             ttaMach_ = mach;
         }
 
-#ifdef LLVM_2_9
-        virtual const TargetSubtarget* getSubtargetImpl() const {
-            return &Subtarget; }
-#else
         virtual const TargetSubtargetInfo* getSubtargetImpl() const {
             return &Subtarget; }
-#endif
+
         virtual const TargetInstrInfo* getInstrInfo() const {
             return plugin_->getInstrInfo();
         }
@@ -119,13 +117,22 @@ namespace llvm {
             return plugin_->getTargetLowering();
         }
 
-        virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {                                                                                                                                                                     return &tsInfo;                                                                                                                                                                                                            }                                                                                                                                                                                                                            
+        virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {
+	    return &tsInfo;
+	}
+
+#ifdef LLVM_3_0
         virtual bool addPreISel(PassManagerBase& PM, 
                                 CodeGenOpt::Level OptLevel);
 
         virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
-        
+#else
+        virtual bool addPreISel(PassManagerBase& PM);
+
+        virtual bool addInstSelector(PassManagerBase& pm);
+#endif
+
         // we do not want branch folder pass
         virtual bool getEnableTailMergeDefault() const;
 

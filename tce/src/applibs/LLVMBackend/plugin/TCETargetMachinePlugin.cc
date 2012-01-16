@@ -31,6 +31,7 @@
  * @note rating: red
  */
 
+#include <llvm/Config/config.h>
 #include <string>
 #include <iostream>
 #include "TCETargetMachinePlugin.hh"

@@ -34,11 +34,7 @@
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
-#ifdef LLVM_2_9
-#include "llvm/Target/TargetRegistry.h"
-#else
 #include "llvm/Support/TargetRegistry.h"
-#endif
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
@@ -96,16 +92,20 @@ extern "C" void LLVMInitializeSparcMCAsmInfo() {
 // etc.
 // 
 
-#ifdef LLVM_2_9
-TCETargetMachine::TCETargetMachine(
-    const Target &T, const std::string &TT, const std::string &FS)
-    : LLVMTargetMachine(T,TT),
-#else
+#ifdef LLVM_3_0
 TCETargetMachine::TCETargetMachine(
     const Target &T, const std::string &TT, const std::string& CPU,
     const std::string &FS, Reloc::Model RM, CodeModel::Model CM)
     : LLVMTargetMachine(T,TT, CPU, FS, RM, CM),
+
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const std::string &TT, const std::string& CPU,
+    const std::string &FS, const TargetOptions &Options,
+    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL)
+    : LLVMTargetMachine(T,TT, CPU, FS, Options, RM, CM, OL),
 #endif
+
       Subtarget(TT,FS),
       DataLayout(
         "E-p:32:32:32"
@@ -175,7 +175,12 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
  */                                     
 bool
 TCETargetMachine::addInstSelector(
-    PassManagerBase& pm, CodeGenOpt::Level /* OptLevel */) {
+#ifdef LLVM_3_0
+    PassManagerBase& pm, CodeGenOpt::Level /* OptLevel */) 
+#else
+    PassManagerBase& pm) 
+#endif
+{
     pm.add(plugin_->createISelPass(this));
     return false;
 }
@@ -186,17 +191,27 @@ TCETargetMachine::addInstSelector(
  * @param pm Function pass manager to add isel pass.
  * @param fast Not used.
  */                                     
+#ifdef LLVM_3_0 
 bool
 TCETargetMachine::addPreISel(
-    PassManagerBase& PM, CodeGenOpt::Level OptLevel) {
-    
+   PassManagerBase& PM, CodeGenOpt::Level OptLevel) 
+#else
+bool
+TCETargetMachine::addPreISel(
+    PassManagerBase& PM) 
+#endif
+{
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     PM.add(createLowerMissingInstructionsPass(*ttaMach_));
 
     if (emulationModule_ != NULL) {
         PM.add(createLinkBitcodePass(*emulationModule_));
     }
-  
+    
+#ifndef LLVM_3_0
+    CodeGenOpt::Level OptLevel = getOptLevel();
+#endif
+
     // if llvm-tce opt level is -O2 or -O3
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 

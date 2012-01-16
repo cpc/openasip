@@ -110,17 +110,9 @@
 
 #define DS TCEString(FileSystem::DIRECTORY_SEPARATOR)
 
-
-namespace llvm {
-    void initializeRALinScanILPPass(llvm::PassRegistry&);
-}
-
 using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
-
-// From passes/RegAllocLinearScanILP.cc:
-FunctionPass* createILPLinearScanRegisterAllocator();
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -234,8 +226,6 @@ LLVMBackend::LLVMBackend(
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
     initializeTarget(Registry);
-
-    initializeRALinScanILPPass(Registry);
 }
 
 /**
@@ -434,16 +424,44 @@ LLVMBackend::compile(
         return NULL;
     }
     
-#ifdef LLVM_2_9
-    TCETargetMachine* targetMachine = 
-        static_cast<TCETargetMachine*>(
-            tceTarget->createTargetMachine(targetStr, featureString));
-#else
     // TODO: what should this be? revision 134127 of llvm added this.
     std::string cpuStr = "tce";
+#ifdef LLVM_3_0
     TCETargetMachine* targetMachine = 
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(targetStr, cpuStr, featureString));
+#else
+    // TODO: are these default options, ripped from llc, sensible?
+
+  TargetOptions Options;
+  Options.LessPreciseFPMADOption = true; //EnableFPMAD;
+  Options.PrintMachineCode = false; //PrintCode;
+  Options.NoFramePointerElim = false; // DisableFPElim;
+  Options.NoFramePointerElimNonLeaf = false; //DisableFPElimNonLeaf;
+  Options.NoExcessFPPrecision = true; //DisableExcessPrecision;
+  Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
+  Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
+  Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
+  Options.HonorSignDependentRoundingFPMathOption = false;
+//      EnableHonorSignDependentRoundingFPMath;
+  Options.UseSoftFloat = false; //GenerateSoftFloatCalls; 
+//  if (FloatABIForCalls != FloatABI::Default)
+//    Options.FloatABIType = FloatABIForCalls;
+//  Options.NoZerosInBSS = DontPlaceZerosInBSS;
+//  Options.JITExceptionHandling = EnableJITExceptionHandling;
+//  Options.JITEmitDebugInfo = EmitJitDebugInfo;
+//  Options.JITEmitDebugInfoToDisk = EmitJitDebugInfoToDisk;
+  Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
+  Options.StackAlignmentOverride = false; //OverrideStackAlignment;
+  Options.RealignStack = false; //EnableRealignStack;
+  Options.DisableJumpTables = false; //DisableSwitchTables;
+//  Options.TrapFuncName = TrapFuncName;
+  Options.EnableSegmentedStacks = false; //SegmentedStacks;
+
+    TCETargetMachine* targetMachine = 
+        static_cast<TCETargetMachine*>(
+            tceTarget->createTargetMachine(
+		targetStr, cpuStr, featureString, Options));
 #endif
 
     if (!targetMachine) {
@@ -456,16 +474,6 @@ LLVMBackend::compile(
     targetMachine->setTargetMachinePlugin(plugin);
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
-
-    if (options_->useExperimentalRegAllocator()) {
-#ifdef LLVM_2_9
-        llvm::RegisterRegAlloc::setDefault(
-            createILPLinearScanRegisterAllocator);
-#else
-        // LLVM 3.0's greedy allocator is better than the ILP-modified
-        // linear scan allocator of ours, thus let's use the default.
-#endif
-    }
 
     /**
      * This is quite straight copy how llc actually creates passes for target.
@@ -692,11 +700,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw ne;
     }
 
-#ifdef LLVM_2_9    
-    std::string tblgenbin = "tblgen";
-#else
     std::string tblgenbin = "llvm-tblgen";
-#endif
        
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd;

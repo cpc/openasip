@@ -1774,18 +1774,17 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         llvm::MachineInstr* mi = programOperationToMIMap_[po.get()];
         assert(mi != NULL);
         const llvm::TargetInstrInfo& tii = *mf.getTarget().getInstrInfo();
-#ifdef LLVM_2_9
-        const llvm::TargetInstrDesc& tid =
-            findLLVMTargetInstrDesc("HBR_LABEL", tii);
-#else
         const llvm::MCInstrDesc& tid =
             findLLVMTargetInstrDesc("HBR_LABEL", tii);
-#endif
         llvm::MachineInstr* labelInstruction = 
             mf.CreateMachineInstr(tid, llvm::DebugLoc());
         labelInstruction->addOperand(
             llvm::MachineOperand::CreateMCSymbol(symbol));
+#ifdef LLVM_3_0
         mi->getParent()->insert(mi, labelInstruction);
+#else
+	abortWithError("mbb->insert method changed in llvm-svn. TODO: fix");
+#endif
     }
     tpos_.clear();
     programOperationToMIMap_.clear();

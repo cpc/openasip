@@ -1,5 +1,10 @@
-tce-devel r1216:
-llvm-trunk r139691: some explorer tests fail because of incompatible .bc file
+tce-devel r1391:
+llvm-trunk r144788: At least short tests pass.
+Some explorer long test fails? maybe just bad luck that
+it cannot remove anything?
+SPU branch hint support broken.
+
+r146931: jpeg works?, 146932 fail??
 
 Notes:
 

@@ -162,7 +162,8 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     int numBytes = (int)mfi->getStackSize();
     if (mfi->hasVarSizedObjects()) {
         TCEString errMsg;
-        errMsg << "ERROR: function '" << mf.getFunction()->getNameStr() 
+        errMsg << "ERROR: function '" 
+	       << (std::string)(mf.getFunction()->getName())
                << "' contains dynamic stack objects which are not supported by tcecc yet.\n"
                << "See the user manual section Unsupported C Language Constructs for more info.\n";
         std::cerr << errMsg;

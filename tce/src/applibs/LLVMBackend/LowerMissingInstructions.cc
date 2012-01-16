@@ -324,7 +324,7 @@ std::string getFootprint(Instruction& I) {
             dynamic_cast<CallInst*>(&I)->getCalledFunction() == NULL)
             break;
         std::string calledName = 
-            dynamic_cast<CallInst*>(&I)->getCalledFunction()->getNameStr();
+            dynamic_cast<CallInst*>(&I)->getCalledFunction()->getName();
         if (calledName == "llvm.sqrt.f32") {
             return "f32.sqrt.f32";
         }
