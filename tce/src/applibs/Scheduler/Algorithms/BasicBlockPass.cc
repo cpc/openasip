@@ -145,12 +145,11 @@ void BasicBlockPass::copyRMToBB(
     bb.clear();
     // Find first nonempty cycle.
     int cycle = 0;
-    for (; cycle <= lastCycle; ++cycle) {
+    for (cycle = rm.smallestCycle(); cycle <= lastCycle; ++cycle) {
         if (rm.instruction(cycle)->moveCount() != 0 ||
             rm.instruction(cycle)->immediateCount() != 0) {
             break;
         }
-        rm.loseInstructionOwnership(cycle);        
     }
     // Notify RM that previous cycles were empty.
     rm.setStartingCycle(cycle);
