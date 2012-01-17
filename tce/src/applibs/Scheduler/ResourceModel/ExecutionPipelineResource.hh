@@ -40,6 +40,8 @@
 #include <vector>
 #include <map>
 
+#include <boost/numeric/ublas/vector_sparse.hpp>
+
 #include "SchedulingResource.hh"
 #include "MoveNode.hh"
 
@@ -53,6 +55,8 @@ namespace TTAMachine {
     class FunctionUnit;
     class Port;
 }
+
+using namespace boost::numeric::ublas;
 
 /**
  * ExecutionPipelineResource keeps book of pipeline resource reservation
@@ -128,13 +132,13 @@ private:
     ResourceReservationVector;
 
     /// Used for both result read and result written.
-    typedef std::vector<ResultHelperPair> ResultVector;
+    typedef mapped_vector<ResultHelperPair> ResultVector;
 
     typedef std::map<const TTAMachine::Port*, ResultVector> ResultMap;
 
     /// Type for resource reservation table, resource vector x latency.
     /// Includes the ownerships of the reservation.
-    typedef std::vector<ResourceReservationVector> ResourceReservationTable;
+    typedef mapped_vector<ResourceReservationVector> ResourceReservationTable;
 
 
     //Copying forbidden
@@ -202,8 +206,8 @@ private:
 
     // Stores for every cycle the PO whose operand writes are in that cycle
     // these are modcycles, not real cycles
-    std::vector<std::pair<ProgramOperation*,ProgramOperation*> > 
-    operandsWriten_;
+    mapped_vector<std::pair<ProgramOperation*,ProgramOperation*> > 
+        operandsWriten_;
     // Stores for each move a cycle in which the result is written to output
     // register of FU, this information is not available elsewhere
     // these are real cycles.
