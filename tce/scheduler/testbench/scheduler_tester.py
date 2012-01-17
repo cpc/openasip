@@ -375,6 +375,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
                 os.kill(process.pid, signal.SIGTSTP)
             
                 return (False, stdoutContents, stderrContents)
+    except KeyboardInterrupt:
+        os.kill(process.pid, signal.SIGTSTP)
+        raise
     except:
         # if something threw exception (e.g. ctrl-c)
         os.kill(process.pid, signal.SIGTSTP)
