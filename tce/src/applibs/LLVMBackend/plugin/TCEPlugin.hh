@@ -37,8 +37,6 @@
 
 #include <llvm/Target/TargetInstrInfo.h>
 
-#include "tce_config.h"
-
 /**
  * Instruction selector and code printer creator declarations.
  */
@@ -50,20 +48,10 @@ namespace llvm  {
     FunctionPass* createTCECodePrinterPass(std::ostream& os, TargetMachine& tm);
 }
 
-#ifdef LLVM_2_9
-
-#include "TCEGenRegisterNames.inc"
-#include "TCEGenInstrNames.inc"
-
-#else
-
 #define GET_REGINFO_ENUM
 #include "TCEGenRegisterInfo.inc"
 
 #define GET_INSTRINFO_ENUM
 #include "TCEGenInstrInfo.inc"
-
-
-#endif
 
 #endif
