@@ -782,7 +782,7 @@ ExecutionPipelineResource::unassignDestination(
     for (unsigned int i = 0; i < resources->maximalLatency(); i++) {
         for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
             assert(
-                fuExecutionPipeline_.ref(instructionIndex(cycle+i).size() != 0));
+                fuExecutionPipeline_.ref(instructionIndex(cycle+i)).size() != 0);
             ResourceReservation& rr = 
                 fuExecutionPipeline_.ref(instructionIndex(cycle+i))[j];
             if (rr.first == &node) {
