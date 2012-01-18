@@ -35,16 +35,14 @@
  * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
-
-#include "TCEInstrInfo.hh"
-#include "TCETargetMachine.hh"
-
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 
+#include "TCEInstrInfo.hh"
+#include "TCETargetMachine.hh"
 
 #include <iostream>
 #include "TCEPlugin.hh"

@@ -33,8 +33,6 @@
 #ifndef TCE_TARGET_MACHINE_H
 #define TCE_TARGET_MACHINE_H
 
-#include "tce_config.h"
-
 #include <set>
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
@@ -44,6 +42,13 @@
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetSelectionDAGInfo.hh"
+
+// tce_config.h defines these. this undef to avoid warning.
+// TODO: how to do this in tce_config.h???
+#ifdef LLVM_LIBDIR
+#undef LLVM_LIBDIR
+#endif
+#include "tce_config.h"
 
 namespace TTAMachine {
     class Machine;

@@ -56,7 +56,14 @@
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt
 
+
 // TCE headers
+// tce_config.h defines these. this undef to avoid warning.
+// TODO: how to do this in tce_config.h???
+#ifdef LLVM_LIBDIR
+#undef LLVM_LIBDIR
+#endif
+
 #include "Machine.hh"
 #include "OperationDAGSelector.hh"
 #include "MachineInfo.hh"
@@ -74,14 +81,8 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 
 #include <iostream>
 
-#ifdef LLVM_2_9
-#define ARGLIST_CONST const
-#define TYPE_CONST const
-
-#else
 #define ARGLIST_CONST
 #define TYPE_CONST
-#endif
 
 namespace {
     class LowerMissingInstructions : public BasicBlockPass {
@@ -582,15 +583,9 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                     args.push_back(I->getOperand(j));
                 }
             }
-#ifdef LLVM_2_9
-            CallInst *NewCall = 
-                CallInst::Create(
-                    replaceFunc->second, args.begin(), args.end(), "", I);
-#else // LLVM-3.x            
             CallInst *NewCall = 
                 CallInst::Create(
                     replaceFunc->second, args, "", I);
-#endif
 
             NewCall->setTailCall();    
 

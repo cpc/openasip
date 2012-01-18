@@ -29,8 +29,6 @@
  * @author Heikki Kultala 2010 (hkultala-no.spam-cs.tut.fi) 
  */
 
-#include "tce_config.h"
-
 #include "TCETargetSelectionDAGInfo.hh"
 
 #include "TCETargetMachine.hh"

@@ -21,8 +21,6 @@
 
 #include "llvm/ADT/StringMap.h"
 
-#include "tce_config.h"
-
 #include <map>
 
 namespace llvm {    

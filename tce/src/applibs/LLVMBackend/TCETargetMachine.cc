@@ -30,7 +30,6 @@
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam—tut.fi)
  */
 
-#include "tce_config.h"
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
@@ -61,9 +60,6 @@ Pass* createLinkBitcodePass(Module& inputCode);
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
-#ifdef LLVM_2_9
-    RegisterAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
-#else // LLVM-3.x
 
 // TODO:
 // this to MVTargetDesc.cpp - where is it?
@@ -77,7 +73,6 @@ extern "C" void LLVMInitializeSparcMCAsmInfo() {
 }
 */
 
-#endif
 }
 
 //

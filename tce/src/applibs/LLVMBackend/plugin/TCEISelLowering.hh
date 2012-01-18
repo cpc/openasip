@@ -125,14 +125,7 @@ namespace llvm {
         TCETargetMachine& tm_;
         
     public:        
-#ifdef LLVM_2_9
-        virtual llvm::MVT::SimpleValueType 
-#else
-        virtual llvm::EVT
-#endif
-        getSetCCResultType(llvm::EVT VT) const;
-
-
+        virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const;
     };
 }
 

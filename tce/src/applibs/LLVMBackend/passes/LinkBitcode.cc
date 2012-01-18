@@ -37,7 +37,6 @@
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Linker.h"
-#include "tce_config.h"
 
 using namespace llvm;
 
@@ -94,13 +93,8 @@ LinkBitcode::doFinalization(Module& /*M*/) {
 bool
 LinkBitcode::doInitialization(Module& M) {
     std::string errors;
-#ifndef LLVM_2_9
-    if (Linker::LinkModules(&M, &inputModule_, Linker::DestroySource, &errors)) 
-#else
-    if (Linker::LinkModules(&M, &inputModule_, &errors)) 
-#endif
-    {
-
+    if (Linker::LinkModules(
+	    &M, &inputModule_, Linker::DestroySource, &errors)) {
         errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
     } 
     return true;

@@ -32,8 +32,6 @@
 #ifndef TCE_TARGET_SELECTION_DAG_INFO_HH
 #define TCE_TARGET_SELECTION_DAG_INFO_HH
 
-#include "tce_config.h"
-
 #include "llvm/Target/TargetSelectionDAGInfo.h"
 
 namespace llvm {

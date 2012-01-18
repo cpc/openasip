@@ -48,6 +48,12 @@
 #include <llvm/Transforms/IPO.h>
 
 #include "Exception.hh"
+
+// tce_config.h defines these. this undef to avoid warning.
+// TODO: how to do this in tce_config.h???
+#ifdef LLVM_LIBDIR
+#undef LLVM_LIBDIR
+#endif
 #include "BaseType.hh"
 #include "LLVMPOMBuilder.hh"
 

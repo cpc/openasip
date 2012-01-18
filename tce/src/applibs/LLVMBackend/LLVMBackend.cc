@@ -67,13 +67,14 @@
 
 #include <llvm/CodeGen/ObjectCodeEmitter.h>
 
+// tce_config.h defines these. this undef to avoid warning.
+// TODO: how to do this in tce_config.h???
+#ifdef LLVM_LIBDIR
+#undef LLVM_LIBDIR
+#endif
 #include "tce_config.h" // to get llvm version
 
-#ifdef LLVM_2_9
-#include <llvm/Target/TargetRegistry.h>
-#else
 #include <llvm/Support/TargetRegistry.h>
-#endif
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H
@@ -739,96 +740,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     tblgenCmd += " " + tmpDir + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
-#ifdef LLVM_2_9
-    std::string cmd = tblgenCmd + " -gen-register-enums" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenRegisterNames.inc";
-
-    int ret = system(cmd.c_str());
-    if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        std::string msg = std::string() +
-            "Failed to build compiler plugin for target architecture.\n" +
-            "Failed command was: " + cmd;
-
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-    // Generate TCEGenRegisterInfo.inc
-    cmd = tblgenCmd +
-        " -gen-register-desc" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenRegisterInfo.inc";
-
-    ret = system(cmd.c_str());
-    if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        std::string msg = std::string() +
-            "Failed to build compiler plugin for target architecture.\n" +
-            "Failed command was: " + cmd;
-
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-    // Generate TCEGenRegisterInfo.h.inc
-    cmd = tblgenCmd +
-        " -gen-register-desc-header" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenRegisterInfo.h.inc";
-
-    ret = system(cmd.c_str());
-    if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        std::string msg = std::string() +
-            "Failed to build compiler plugin for target architecture.\n" +
-            "Failed command was: " + cmd;
-
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-    // Generate TCEGenInstrNames.inc
-    cmd = tblgenCmd +
-        " -gen-instr-enums" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenInstrNames.inc";
-
-    ret = system(cmd.c_str());
-    if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        std::string msg = std::string() +
-            "Failed to build compiler plugin for target architecture.\n" +
-            "Failed command was: " + cmd;
-
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-    // Generate TCEGenInstrInfo.inc
-    cmd = tblgenCmd +
-        " -gen-instr-desc" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenInstrInfo.inc";
-
-    ret = system(cmd.c_str());
-    if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
-        std::string msg = std::string() +
-            "Failed to build compiler plugin for target architecture.\n" +
-            "Failed command was: " + cmd;
-
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-#else // LLVM 3.x
     // Generate TCEGenRegisterInfo.inc
 
     std::string cmd = tblgenCmd +
@@ -865,8 +776,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
-
-#endif
 
     // Generate TCEGenDAGISel.inc
     cmd = tblgenCmd +

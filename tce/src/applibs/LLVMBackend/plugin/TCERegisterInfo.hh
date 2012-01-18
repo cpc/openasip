@@ -37,13 +37,8 @@
 
 #include "TCESubtarget.hh"
 
-#ifdef LLVM_2_9
-#include "TCEGenRegisterInfo.h.inc"
-#else
 #define GET_REGINFO_HEADER
 #include "TCEGenRegisterInfo.inc"
-#endif
-#include "tce_config.h"
 
 namespace llvm {
     class TargetInstrInfo;

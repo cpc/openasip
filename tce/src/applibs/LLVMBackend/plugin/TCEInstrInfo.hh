@@ -37,10 +37,8 @@
 #include <llvm/Target/TargetInstrInfo.h>
 #include "TCERegisterInfo.hh"
 
-#ifndef LLVM_2_9
 #define GET_INSTRINFO_HEADER
 #include "TCEGenInstrInfo.inc"
-#endif
 
 namespace llvm {
 
@@ -55,11 +53,7 @@ namespace llvm {
      * very good job.
      */
 
-#ifdef LLVM_2_9
-    class TCEInstrInfo : public TargetInstrInfoImpl {
-#else
     class TCEInstrInfo : public TCEGenInstrInfo {
-#endif
     public:
         TCEInstrInfo();
         virtual ~TCEInstrInfo();
