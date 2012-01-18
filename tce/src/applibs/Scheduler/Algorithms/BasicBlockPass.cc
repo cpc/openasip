@@ -128,12 +128,12 @@ BasicBlockPass::executeDDGPass(
  * @param bb the basicblock
  * @param targetMachine machine we are scheduling for.
  */
-void BasicBlockPass::copyRMToBB(
+void 
+BasicBlockPass::copyRMToBB(
     SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
     const TTAMachine::Machine& targetMachine) {
     // find the largest cycle any of a pipelines is still used
     const int rmLastCycle = rm.largestCycle();
-//    assert(rmLastCycle >= ddgLastCycle);
     int lastCycle = rmLastCycle;
 
     // the location of the branch instruction in the BB
@@ -143,16 +143,8 @@ void BasicBlockPass::copyRMToBB(
 
     // update the BB with the new instructions
     bb.clear();
-    // Find first nonempty cycle.
-    int cycle = 0;
-    for (; cycle <= lastCycle; ++cycle) {
-        if (rm.instruction(cycle)->moveCount() != 0 ||
-            rm.instruction(cycle)->immediateCount() != 0) {
-            break;
-        }
-    }
-    // Notify RM that previous cycles were empty.
-    rm.setStartingCycle(cycle);
+
+    int cycle = rm.smallestCycle();
     
     for (; cycle <= lastCycle; ++cycle) {
 

@@ -89,8 +89,6 @@ public:
     virtual unsigned initiationInterval() const {return initiationInterval_;}
     virtual void clearOldResources();
     void setDDG(const DataDependenceGraph* ddg);
-    virtual void setStartingCycle(const int cycle);
-    virtual int startingCycle() const;
 private:
     SimpleResourceManager(
         const TTAMachine::Machine& machine, unsigned int ii = 0);
@@ -115,7 +113,6 @@ private:
 
     unsigned int resources;
     
-    unsigned int startingCycle_;
     
     static std::map<const TTAMachine::Machine*, 
                     std::map<int, std::list< SimpleResourceManager*> > >

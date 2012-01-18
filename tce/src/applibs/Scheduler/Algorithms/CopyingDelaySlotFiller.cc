@@ -171,7 +171,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                     *resourceManagers_[&jumpingBB.basicBlock()];
                 
                 int earliestToFill = guardDefMove.cycle() -
-                    rm.startingCycle() +
+                    rm.smallestCycle() +
                     jumpNode.guardLatency();
                 
                 maxFillCount = thisBB.instructionCount() -
@@ -440,8 +440,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlock& nextBB = nextBBNode.basicBlock();
 
     int firstToFill = 
-        rm.startingCycle() + blockToFill.instructionCount() - slotsToFill;
-    int nextBBStart = nextRm.startingCycle();
+        rm.smallestCycle() + blockToFill.instructionCount() - slotsToFill;
+    int nextBBStart = nextRm.smallestCycle();
     
     if (fallThru) {
         // test that we can create an inverse guard

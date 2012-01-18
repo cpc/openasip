@@ -275,6 +275,10 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     if (knownMinCycle_ > cycle) {
         knownMinCycle_ = cycle;
     }
+    if (node.isSourceImmediateRegister() &&
+         knownMinCycle_ > immediateWriteCycle(node)) {
+        knownMinCycle_ = immediateWriteCycle(node);
+    }
     moveCounts_[instructionIndex(cycle)]++;
 }
 
