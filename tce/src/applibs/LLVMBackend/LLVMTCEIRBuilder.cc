@@ -67,6 +67,16 @@
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include "llvm/Analysis/AliasAnalysis.h"
 
+#define EXIT_IF_THROWS(__X__)                               \
+    try {                                                   \
+        __X__;                                              \
+    } catch (const Exception& e) {                          \
+        Application::errorStream()                          \
+            << "Error: " << e.errorMessage() << std::endl;  \
+        exit(1);                                            \
+    }
+
+
 //#define WRITE_DDG_DOTS
 //#define WRITE_CFG_DOTS
 
@@ -160,7 +170,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     }
     markJumpTableDestinations(mf, *cfg);
     if (fastCompilation) {
-        compileFast(*cfg);
+        EXIT_IF_THROWS(compileFast(*cfg));
     } else {
         AliasAnalysis* AA = NULL;
         if (!AA_) {
@@ -174,7 +184,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
             // got them for us and passed through.        
             AA = AA_;
         }
-        compileOptimized(*cfg, *irm, AA);
+        EXIT_IF_THROWS(compileOptimized(*cfg, *irm, AA));
     }
 
     if (!modifyMF_) {
@@ -712,18 +722,12 @@ LLVMTCEIRBuilder::doInitialization(Module& m) {
 bool
 LLVMTCEIRBuilder::doFinalization(Module& m) { 
 
-    try {
-        LLVMTCEBuilder::doFinalization(m);
-        prog_->convertSymbolRefsToInsRefs();
-    } catch (const Exception& e) {
-        // Catch the exception here as throwing exceptions
-        // through library boundaries is flaky. It crashes 
-        // on x86-32 Linux at least. See:
-        // https://bugs.launchpad.net/tce/+bug/894816
-        Application::errorStream() 
-            << "Error: " << e.errorMessage() << std::endl;
-        exit(1);
-    }
+    // Catch the exception here as throwing exceptions
+    // through library boundaries is flaky. It crashes 
+    // on x86-32 Linux at least. See:
+    // https://bugs.launchpad.net/tce/+bug/894816
+    EXIT_IF_THROWS(LLVMTCEBuilder::doFinalization(m));
+    EXIT_IF_THROWS(prog_->convertSymbolRefsToInsRefs());
     return false; 
 }
 

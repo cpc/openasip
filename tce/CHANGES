@@ -7,6 +7,8 @@ Bugfixes
   bypasser used on partially connected machines.
 - ttasim: Try to simulate machines with unconnected ports (only a warning
   is printed in such cases). 
+- tcecc: some scheduling errors didn't fail gracefully
+  https://bugs.launchpad.net/tce/+bug/894816
 
 1.5    December 2011
 ====================
