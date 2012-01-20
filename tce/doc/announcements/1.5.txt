@@ -10,7 +10,7 @@ register files, function units, supported operations, and the
 interconnection network.
 
 This release includes support for LLVM 3.0, experimental OpenCL C
-Ebedded Profile support (in offline compilation/standalone mode),
+Embedded Profile support (in offline compilation/standalone mode),
 a light weight (debug output) printing library, support for calling
 custom operations in specific function units, generalizations to 
 the architecture description format to allow using the instruction 
