@@ -2062,31 +2062,27 @@ int main() {
 \end{verbatim}
 
 Next, compile it to an architecture that implements the
-STDOUT. In this case we add an FU with STDOUT (see the previous
-tutorial for instructions on adding FUs to your designs) to the minimal.adf, 
-after copying it to minimalWithStdout.adf:
+STDOUT. TCE ships with a minimal architecture that also includes
+the STDOUT function unit, which you can use:
 
 \begin{verbatim}
-cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf minimalWithStdout.adf
-prode minimalWithStdout.adf &
-... add the IO function unit with the STDOUT operation to the ADF ...
-tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpef
+cp $(tce-config --prefix)/share/tce/data/mach/minimal_with_stdout.adf .
+tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
 
 It should compile without errors. Beware: the compilation can take
-a couple of minutes on a slower machine! This is because \textit{printf()} 
+a while on a slower machine. This is because \textit{printf()} 
 is actually quite a large function and the compiler is not yet optimized for 
 speed.
 
 Finally, simulate the program to get the greeting:
 
 \begin{verbatim}
-ttasim -a minimalWithStdout.adf -p hello.tpef --no-debugmode
+ttasim -a minimal_with_stdout.adf -p hello.tpef --no-debugmode
 Hello TTA World!
 \end{verbatim}
 
 That's it. Happy debugging!
-
 
 \section{Streaming I/O}
 \label{section:streamIO}
