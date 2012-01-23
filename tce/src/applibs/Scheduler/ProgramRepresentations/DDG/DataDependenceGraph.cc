@@ -3362,6 +3362,41 @@ DataDependenceGraph::onlyRegisterRawSource(const MoveNode& mn) const {
 }
 
 /**
+ * Returns the destinations of ordinary register RAW edge to given node,
+ * ie the moves which reads the value this move writes.
+ *
+ * @param mn MoveNode whose succssor moves we are searching.
+ * @return only move reading reg this writes or NULL if no or multiple.
+ */
+
+MoveNodeSet 
+DataDependenceGraph::onlyRegisterRawDestinations(const MoveNode& mn) const {
+    MoveNodeSet destination;
+    NodeDescriptor nd = descriptor(mn);
+    
+    // use the internal data structures to make this fast.
+    // edgeset has too much set overhead,
+    // inedge(n,i) is O(n^2) , this is linear with no overhead
+    std::pair<OutEdgeIter, OutEdgeIter> edges =
+        boost::out_edges(nd, graph_);
+
+    for (OutEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        EdgeDescriptor ed = *ei;
+        DataDependenceEdge* edge = graph_[ed];
+        if (edge->dependenceType() == DataDependenceEdge::DEP_RAW &&
+            edge->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !edge->guardUse() && !edge->tailPseudo()) {
+            if (!edge->headPseudo()) {
+                destination.addMoveNode(*graph_[boost::target(ed, graph_)]);
+            } else {
+                break;
+            }
+        }
+    }
+    return destination;
+}
+
+/**
  * Tracks the origin of the data a movenode reads. Goes back thru DDG
  * and tracks register-to register reads. 
  *
