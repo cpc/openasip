@@ -291,11 +291,12 @@ SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const
  */
 int
 SimpleResourceManager::latestCycle(MoveNode& node) const {
+    int lc = director_->latestCycle(node);
 #ifdef DEBUG_RM
-    Application::logStream() << "\tLC: " << node.toString()
-                             << std::endl;
+    Application::logStream() << "\tLC: " << node.toString() << std::endl;
+    Application::logStream() << "\t\tLC result is: " << lc << std::endl;                             
 #endif
-    return director_->latestCycle(node);
+    return lc;
 }
 
 /**
@@ -314,11 +315,13 @@ SimpleResourceManager::latestCycle(MoveNode& node) const {
  */
 int
 SimpleResourceManager::latestCycle(int cycle, MoveNode& node) const {
+    int lc = director_->latestCycle(cycle, node);
 #ifdef DEBUG_RM
     Application::logStream() << "\tLC: " << cycle << " " << node.toString()
-                             << std::endl;
+        << std::endl;
+    Application::logStream() << "\t\tLC result is: " << lc << std::endl;                             
 #endif
-    return director_->latestCycle(cycle, node);
+    return lc;
 }
 
 /**
@@ -418,7 +421,7 @@ SimpleResourceManager::smallestCycle() const{
 #ifdef DEBUG_RM
     Application::logStream() << "\tSC." << std::endl;
     int sc = director_->smallestCycle();
-    Application::logStream() << "\tSC got: " << lc << std::endl;
+    Application::logStream() << "\tSC got: " << sc << std::endl;
     return sc;
 #else
     return director_->smallestCycle();
