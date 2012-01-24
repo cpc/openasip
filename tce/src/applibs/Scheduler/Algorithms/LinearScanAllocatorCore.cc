@@ -72,6 +72,7 @@
 #include "ProcedurePass.hh"
 #include "InstructionReferenceManager.hh"
 #include "InterPassData.hh"
+#include "BasicBlock.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

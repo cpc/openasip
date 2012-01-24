@@ -60,7 +60,7 @@
 #include "ControlFlowGraph.hh"
 #include "ControlFlowEdge.hh"
 #include "BasicBlockNode.hh"
-
+#include "BasicBlock.hh"
 #include "DataDependenceGraphBuilder.hh"
 #include "DataDependenceEdge.hh"
 #include "MemoryAliasAnalyzer.hh"

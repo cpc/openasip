@@ -44,6 +44,7 @@
 #include "TerminalFUPort.hh"
 #include "Program.hh"
 #include "Instruction.hh"
+#include "BasicBlock.hh"
 
 /**
  * Constructor.

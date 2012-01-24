@@ -48,6 +48,7 @@
 #include "DisassemblyRegister.hh"
 #include "Program.hh"
 #include "Operation.hh"
+#include "BasicBlock.hh"
 
 static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
 

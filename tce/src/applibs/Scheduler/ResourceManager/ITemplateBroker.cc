@@ -81,6 +81,7 @@ ITemplateBroker::~ITemplateBroker(){
     for (std::map<int, TTAProgram::Instruction*>::iterator i =
              instructions_.begin(); i != instructions_.end(); i++) {
         std::map<int, bool>::iterator j = instructionsNotOwned_.find(i->first);
+        // not found = >owns, deletes. 
         if (j == instructionsNotOwned_.end() || j->second == false) {
             delete i->second;
         }
@@ -831,6 +832,7 @@ ITemplateBroker::clear() {
     for (std::map<int, TTAProgram::Instruction*>::iterator i =
              instructions_.begin(); i != instructions_.end(); i++) {
         std::map<int, bool>::iterator j = instructionsNotOwned_.find(i->first);
+        // does not find => owns, delete.
         if (j == instructionsNotOwned_.end() || j->second == false) {
             delete i->second;
         }

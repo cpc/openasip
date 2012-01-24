@@ -54,6 +54,7 @@
 #include "SimpleResourceManager.hh"
 #include "ControlFlowGraph.hh"
 #include "DataDependenceGraph.hh"
+#include "BasicBlock.hh"
 
 #include "POMDisassembler.hh"
 #include "CopyingDelaySlotFiller.hh"

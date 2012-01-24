@@ -47,7 +47,6 @@ namespace TTAMachine {
 
 namespace llvm {
 
-//    extern "C" MachineFunctionPass* createLLVMTCEIRBuilderPass();
     FunctionPass* createLLVMTCECFGBuilderPass(
         TCETargetMachine& tm, TTAMachine::Machine* mach, InterPassData& ipd);
 

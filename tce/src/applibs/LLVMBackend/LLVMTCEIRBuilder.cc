@@ -57,6 +57,7 @@
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
 #include "FUPort.hh"
+#include "BasicBlock.hh"
 
 #include <stdlib.h>
 #include <llvm/ADT/SmallString.h>
