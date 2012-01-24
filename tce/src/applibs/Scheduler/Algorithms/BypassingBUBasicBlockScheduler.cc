@@ -47,7 +47,7 @@
  * The old BB scheduler does these in exactly opposite order(
  * first addregcopies, then rename, then bypass).
  *
- * @author Heikki Kultala 2011 (hkultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2011-2012 (hkultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -61,6 +61,7 @@
   * Allow bypassing when scheduling reg-reg moves
   * Allow bypassing over multiple nodes
   * Smarter logic for selecting registers when 1) renaming 2)tempregadding
+  * switch operands on commutative operations.
   */
 
 #include <set>
@@ -70,12 +71,10 @@
 #include "DataDependenceGraph.hh"
 #include "SimpleResourceManager.hh"
 #include "BUMoveNodeSelector.hh"
-#include "POMDisassembler.hh"
 #include "ProgramOperation.hh"
 #include "ControlUnit.hh"
 #include "Machine.hh"
 #include "BasicBlock.hh"
-#include "SchedulerPass.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "InterPassData.hh"
 #include "MoveNodeSet.hh"
@@ -84,11 +83,6 @@
 #include "HWOperation.hh"
 #include "MachineConnectivityCheck.hh"
 #include "Operation.hh"
-#include "FUPort.hh"
-#include "TerminalImmediate.hh"
-#include "MathTools.hh"
-#include "SpecialRegisterPort.hh"
-#include "LiveRange.hh"
 #include "TerminalRegister.hh"
 #include "Move.hh"
 #include "RegisterCopyAdder.hh"
@@ -103,7 +97,6 @@
 //#define SW_BYPASSING_STATISTICS
 
 class CopyingDelaySlotFiller;
-class InterPassData;
 class RegisterRenamer;
 
 /**
@@ -151,8 +144,10 @@ BypassingBUBasicBlockScheduler::handleDDG(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
-    RegisterCopyAdder::findTempRegisters(
-        targetMachine, BasicBlockPass::interPassData());
+    if (!BasicBlockPass::interPassData().hasDatum("SCRATCH_REGISTERS")) {
+        RegisterCopyAdder::findTempRegisters(
+            targetMachine, BasicBlockPass::interPassData());
+    }
 
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
