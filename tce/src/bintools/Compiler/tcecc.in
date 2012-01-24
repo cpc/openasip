@@ -114,6 +114,11 @@ def processInputFiles(inFiles, tmpDir, verbose):
     cotaining all the files to link together.
     """
 
+    if "@LLVM_VERSION@" == "3.0":
+        tripleOption = " -ccc-host-triple "
+    else:
+        tripleOption = " -target "
+        
     compileFlags = newlib_includes + " " + bclib_includes + " "
 
     if options.compile_only and not options.use_clang:
@@ -212,11 +217,13 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
-                        command =  ("clang -O%d -ccc-host-triple tce-tut-llvm -emit-llvm -c "\
+                        command =  ("clang -O%d %s tce-tut-llvm -emit-llvm -c "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;" ) % \
-                                       options.frontend_optlevel
+                                       (options.frontend_optlevel, \
+                                       tripleOption)
+                        
                     else:
                         command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
                                        "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
@@ -251,21 +258,22 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     cpp_trampoline = mkstemp("_ocl_launcher.cpp", dir=tempDir)[1]
                     kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
 
-                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ -ccc-host-triple tce-tut-llvm -fasm -include %s" ' % device_header[1]) + \
+                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s tce-tut-llvm -fasm -include %s" ' % device_header[1]) + \
                                "pocl-standalone -t tce -h %s -o %s %s" % \
-                               (cpp_trampoline, kernel_bc, input_file), verbose, 
+                               (tripleOption, cpp_trampoline, kernel_bc, input_file), verbose, 
                                echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
                             1, "Error while compiling the OpenCL C file %s.\n" % input_file)
 
                     def compile(input, output):
-                        command = ("clang -ccc-host-triple tce-tut-llvm " + \
+                        command = ("clang %s tce-tut-llvm " + \
                                        "-emit-llvm -O3 "\
                                        "-fno-inline -c -I" + tmpDir +\
                                        " " + input + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
+                                       tripleOption % \
                                        ("-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
@@ -327,12 +335,12 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     input_file = baseName + suffix
                     
                     if options.use_clang:
-                        command = ("clang -ccc-host-triple tce-tut-llvm %s -emit-llvm " +\
+                        command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
                                     "-O%d "\
                                     "-fno-inline -c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
-                                    (extra_opts, options.frontend_optlevel)
+                                    (tripleOption, extra_opts, options.frontend_optlevel)
                     else:
                         command = ("tce-llvm-g++ %s --emit-llvm -O%d "\
                                     "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir + \

@@ -1,10 +1,5 @@
-tce-devel r1391:
-llvm-trunk r144788: At least short tests pass.
-Some explorer long test fails? maybe just bad luck that
-it cannot remove anything?
-SPU branch hint support broken.
-
-r146931: jpeg works?, 146932 fail??
+tce-devel r1417:
+llvm-trunk r148725: works
 
 Notes:
 
