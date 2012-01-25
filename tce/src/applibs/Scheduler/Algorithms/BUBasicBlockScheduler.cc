@@ -135,11 +135,10 @@ BUBasicBlockScheduler::handleDDG(
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
         return;
     }
-    // TODO: Magic number! Provide better heuristics.
+
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
-    // instructions into the beginning of basic block.
-    // Remove magic 1000 once the sparse implementation of RM vectors works.
-    endCycle_ = (int)(ddg.nodeCount()*1.3 + 150);
+    // instructions into the beginning of basic block.    
+    endCycle_ = INT_MAX/10; //(int)(ddg.nodeCount()*1.3 + 150);
     BUMoveNodeSelector selector(ddg, targetMachine);
 
     // register selector to renamer for notfications.
@@ -736,17 +735,6 @@ BUBasicBlockScheduler::scheduleMove(
         }    
     }
 
-    // if it's a conditional move then we have to be sure that the guard
-    // is defined before executing the move.
-    // this is already handled by DDGs earliestCycle, except cases
-    // where the guard is defined in a previous BB. 
-    // So this prevents scheduling conditional moves at the beginning
-    // of a BB.
-   
-    // TODO: this goes on opposite direction with BU?
-    if (!moveNode.move().isUnconditional()) {
-        ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
-    }
     ddgCycle = (ddgCycle == INT_MAX) ? endCycle_ : ddgCycle;
     // Earliest cycle from which to start, could depend on result ready
     // for result moves.
