@@ -47,6 +47,7 @@
 #include "ControlFlowGraph.hh"
 #include "ADFSerializer.hh"
 #include "Instruction.hh"
+#include "BasicBlock.hh"
 
 using TTAProgram::Move;
 

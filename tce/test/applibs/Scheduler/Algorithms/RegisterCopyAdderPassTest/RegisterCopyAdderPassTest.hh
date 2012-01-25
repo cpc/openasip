@@ -49,6 +49,7 @@
 #include "BasicBlockScheduler.hh"
 #include "InterPassData.hh"
 #include "Instruction.hh"
+#include "BasicBlock.hh"
 
 class RegisterCopyAdderPassTest : public CxxTest::TestSuite {
 public:

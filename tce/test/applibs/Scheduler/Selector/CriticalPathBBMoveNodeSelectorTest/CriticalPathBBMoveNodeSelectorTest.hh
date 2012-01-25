@@ -41,6 +41,7 @@
 #include "CriticalPathBBMoveNodeSelector.hh"
 #include "MoveNode.hh"
 #include "SimpleResourceManager.hh"
+#include "BasicBlock.hh"
 
 class CriticalPathBBMoveNodeSelectorTest : public CxxTest::TestSuite {
 public:

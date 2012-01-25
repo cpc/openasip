@@ -273,8 +273,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                        " " + input + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
-                                       tripleOption % \
-                                       ("-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
+                                       (tripleOption,  \
+                                       "-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
                         exitCode = runCommand(command, verbose, echoStderr=True) 
                         if exitCode != 0:
                             exitWithError(1, "Error while compiling %s." % input)

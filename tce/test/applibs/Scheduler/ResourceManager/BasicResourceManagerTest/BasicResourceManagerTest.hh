@@ -63,6 +63,7 @@
 #include "MoveNodeSet.hh"
 #include "Program.hh"
 #include "Move.hh"
+#include "BasicBlock.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT
