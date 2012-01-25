@@ -258,9 +258,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     cpp_trampoline = mkstemp("_ocl_launcher.cpp", dir=tempDir)[1]
                     kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
 
-                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s tce-tut-llvm -fasm -include %s" ' % device_header[1]) + \
+                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s tce-tut-llvm -fasm -include %s" ' % (tripleOption, device_header[1])) + \
                                "pocl-standalone -t tce -h %s -o %s %s" % \
-                               (tripleOption, cpp_trampoline, kernel_bc, input_file), verbose, 
+                               (cpp_trampoline, kernel_bc, input_file), verbose, 
                                echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
