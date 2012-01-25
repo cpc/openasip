@@ -683,24 +683,7 @@ int MoveNode::guardLatency() const {
     if (!isMove()) {
         return 0;
     }
-    if (!move_->isUnconditional()) {
-
-        const TTAMachine::Guard& guard = move().guard().guard();
-        const TTAMachine::RegisterGuard* rg =
-            dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
-        if (rg != NULL) {
-            const TTAMachine::RegisterFile& rf =
-                *rg->registerFile();
-            return rf.guardLatency() +
-                rf.machine()->controlUnit()->globalGuardLatency();
-        } else {
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__,
-                "Scheduling FU output port guards is not yet supported.");
-        }
-    } else {
-        return 0;
-    }
+    return move_->guardLatency();
 }
 
 /**

@@ -272,8 +272,9 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     if (knownMaxCycle_ < cycle) {
         knownMaxCycle_ = cycle;
     }
-    if (knownMinCycle_ > cycle) {
-        knownMinCycle_ = cycle;
+    int guardSlack = std::max(0, node.guardLatency() -1);
+    if (knownMinCycle_ > cycle - guardSlack) {
+        knownMinCycle_ = cycle - guardSlack ;
     }
     if (node.isSourceImmediateRegister() &&
          knownMinCycle_ > immediateWriteCycle(node)) {
@@ -357,7 +358,8 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // if unassigned move was known to be in smallest cycle assigned so far
     // tries to increase smallest cycle checking for assigned moves and
     // immediates
-    cycleCounter = nodeCycle;    
+    int guardSlack = std::max(0, node.guardLatency() -1);    
+    cycleCounter = nodeCycle - guardSlack;
     if (cycleCounter == knownMinCycle_) {
         while(cycleCounter <= knownMaxCycle_) {
             // this may memory leak
@@ -366,6 +368,13 @@ SimpleBrokerDirector::unassign(MoveNode& node)
                 knownMinCycle_++;
                 cycleCounter++;
             } else {
+                for (int i = 0; i < tempIns->moveCount(); i++) {
+                    int guardSlack = std::max(0, tempIns->move(i).guardLatency() -1);
+                    if(cycleCounter - guardSlack < knownMinCycle_) {
+                        knownMinCycle_ = 
+                            cycleCounter - guardSlack;                   
+                    }
+                }
                 break;
             }
         }

@@ -47,6 +47,7 @@
 #include "TCEString.hh"
 #include "POMDisassembler.hh"
 #include "MoveGuard.hh"
+#include "Guard.hh"
 
 using namespace TTAMachine;
 
@@ -481,6 +482,30 @@ Move::sourceFileName() const {
     return fileName; 
   
 }
-
+/**
+ * Returns the total guard latency of the guard of given move,
+ * or 0 if the move is unconditional.
+ */
+int
+Move::guardLatency() const {
+    if (!isUnconditional()) {
+        
+        const TTAMachine::Guard& g = guard().guard();
+        const TTAMachine::RegisterGuard* rg =
+        dynamic_cast<const TTAMachine::RegisterGuard*>(&g);
+        if (rg != NULL) {
+            const TTAMachine::RegisterFile& rf =
+            *rg->registerFile();
+            return rf.guardLatency() +
+            rf.machine()->controlUnit()->globalGuardLatency();
+        } else {
+            throw IllegalMachine(
+                __FILE__, __LINE__, __func__,
+                "Scheduling FU output port guards is not yet supported.");
+        }
+    } else {
+        return 0;
+    }
+}
 
 }

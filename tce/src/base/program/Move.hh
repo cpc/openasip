@@ -84,7 +84,7 @@ public:
     void setBus(TTAMachine::Bus& bus);
     TTAMachine::Socket& destinationSocket() const;
     TTAMachine::Socket& sourceSocket() const throw (WrongSubclass);
-
+    int guardLatency() const;
     Move* copy() const;
 
     std::string toString() const;
@@ -93,7 +93,7 @@ public:
     int sourceLineNumber() const;
     bool hasSourceFileName() const;
     std::string sourceFileName() const;   
-
+    
 private:
     /// Copying not allowed.
     Move(const Move&);
