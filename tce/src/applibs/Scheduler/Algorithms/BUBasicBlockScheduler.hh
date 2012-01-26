@@ -50,7 +50,7 @@ class MoveNodeGroup;
 class LLVMTCECmdLineOptions;
 
 /**
- * A class that implements the functionality of a bottom up basic block 
+ * A class that implements the functionality of a bottom up basic block
  * scheduler.
  *
  * Schedules the program one basic block at a time. Does not fill delay slots
@@ -61,7 +61,7 @@ class BUBasicBlockScheduler :
     public BasicBlockScheduler {
 public:
     BUBasicBlockScheduler(
-        InterPassData& data, SoftwareBypasser* bypasser=NULL, 
+        InterPassData& data, SoftwareBypasser* bypasser=NULL,
         CopyingDelaySlotFiller* delaySlotFiller=NULL,
         RegisterRenamer* registerRenamer = NULL);
     virtual ~BUBasicBlockScheduler();
@@ -75,7 +75,7 @@ public:
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
-    virtual MoveNodeSelector* createSelector( 
+    virtual MoveNodeSelector* createSelector(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) {
         return new BUMoveNodeSelector(bb, machine);
     }
@@ -83,16 +83,28 @@ public:
     using BasicBlockPass::ddgBuilder;
 
 protected:
+    struct ltstr
+    {
+        bool operator()(const MoveNode* m1, const MoveNode* m2) const
+        {
+            return m1->cycle() < m2->cycle();
+        }
+    };
+    
+    typedef std::set<MoveNode*, ltstr> OrderedSet;
+
+
     void scheduleRRMove(MoveNode& moveNode)
         throw (Exception);
 
-    void scheduleOperation(MoveNodeGroup& moves)
+    void scheduleOperation(MoveNodeGroup& moves, BUMoveNodeSelector& selector)
         throw (Exception);
 
     bool scheduleOperandWrites(MoveNodeGroup& moves, int cycle)
         throw (Exception);
 
-    int scheduleResultReads(MoveNodeGroup& moves, int cycle)
+    int scheduleResultReads(
+        MoveNodeGroup& moves, int cycle, bool bypass = false, bool dre = false)
         throw (Exception);
 
     void scheduleMove(MoveNode& move, int cycle)
@@ -109,11 +121,21 @@ protected:
     void scheduleRRTempMoves(
         MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
         throw (Exception);
-    
+
     bool scheduleOperand(MoveNode&, int cycle);
-        
-    MoveNode* precedingTempMove(MoveNode& current);        
-            
+
+    MoveNode* precedingTempMove(MoveNode& current);
+
+    std::pair<OrderedSet, int> findBypassDestinations(
+        MoveNode& node, int maxHopCount);
+
+    void undoBypass(
+        MoveNode& node, MoveNode* single = NULL, int originalCycle = -1);
+    
+    std::map<MoveNode*, std::vector<MoveNode*>, MoveNode::Comparator> 
+        bypassDestinations_;
+    std::map<MoveNode*, std::vector<int>, MoveNode::Comparator > 
+        bypassDestinationsCycle_;
     unsigned int endCycle_;
 };
 
