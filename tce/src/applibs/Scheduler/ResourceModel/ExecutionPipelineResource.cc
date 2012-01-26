@@ -1365,7 +1365,7 @@ ExecutionPipelineResource::highestKnownCycle() const {
              rwi != resultWriten_.end(); rwi++) {
             const ResultVector& resultWriten = rwi->second;
             if (assignedSourceNodes_.size() > 0) {
-                for (unsigned int i = resultWriten.size() -1; i >= 0 ; i--) {
+                for (int i = resultWriten.size() -1; i >= 0 ; i--) {
                     const ResultHelperPair& rhp = resultWriten[i];
                     if (rhp.first.po != NULL) {
                         if (int(rhp.first.realCycle) > highest) {
@@ -1384,7 +1384,7 @@ ExecutionPipelineResource::highestKnownCycle() const {
              rri != resultRead_.end(); rri++) {
             const ResultVector& resultRead = rri->second;
             if (assignedSourceNodes_.size() > 0) {            
-                for (unsigned int i = resultRead.size() -1; i >= 0 ; i--) {
+                for (int i = resultRead.size() -1; i >= 0 ; i--) {
                     const ResultHelperPair& rrp = resultRead[i];
                     if (rrp.first.po != NULL) {
                         if (int(rrp.first.realCycle) > highest) {
