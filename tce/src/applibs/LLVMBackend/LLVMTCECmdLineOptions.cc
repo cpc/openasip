@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of LLVMTCECmdLineOptions class.
  *
  * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2008-2012
  * @note rating: red
  */
 
@@ -45,7 +46,6 @@ const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 const std::string LLVMTCECmdLineOptions::SWL_EXPERIMENTAL_REGALLOC = "experimental-ra";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
-const std::string LLVMTCECmdLineOptions::LEAVE_DIRTY = "d";
 const std::string LLVMTCECmdLineOptions::DISABLE_LLVMAA = "disable-llvmaa";
 const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
     "conservative-pre-ra-scheduler";
@@ -59,6 +59,10 @@ const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER =
     "bottom-up-scheduler";
 const std::string LLVMTCECmdLineOptions::SWL_RECURSIVE_BU_SCHEDULER = 
     "recursive-scheduler";
+const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES = 
+    "use-old-backend-src";
+
+const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -108,17 +112,14 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
 
     addOption(
         new BoolCmdLineOptionParser(
-            LEAVE_DIRTY, "Do not remove temp files", LEAVE_DIRTY));
-
-    addOption(
-        new BoolCmdLineOptionParser(
-            DISABLE_LLVMAA, "Disable use of LLVM Alias Analysis", DISABLE_LLVMAA));
+            DISABLE_LLVMAA, "Disable use of LLVM alias analysis.", 
+            DISABLE_LLVMAA));
 
     addOption(
         new BoolCmdLineOptionParser(
             CONSERVATIVE_PRE_RA_SCHEDULER, 
-            "Conservative pre-ra-scheduler. May decrease register usage but"
-            " limit ILP. good for machines with low amount of registers."));
+            "Conservative pre-ra-scheduler. May decrease register usage but "
+            "limit ILP. good for machines with low amount of registers."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -150,7 +151,17 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             SWL_RECURSIVE_BU_SCHEDULER, 
             "Use an experimental Bypassign Recursive Bottom Up scheduler."));
-            
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_USE_OLD_BACKEND_SOURCES, 
+            "Use the existing backend sources from the given temporary directory."));
+
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_TEMP_DIR, 
+            "The temporary directory to use for files needed during the code generation."));
+
 }
 
 /**
@@ -274,12 +285,6 @@ LLVMTCECmdLineOptions::useExperimentalRegAllocator() const {
     return findOption(SWL_EXPERIMENTAL_REGALLOC)->isDefined();
 }
 
-
-bool
-LLVMTCECmdLineOptions::leaveDirty() const {
-    return findOption(LEAVE_DIRTY)->isDefined();
-}
-
 bool
 LLVMTCECmdLineOptions::disableLLVMAA() const {
     return findOption(DISABLE_LLVMAA)->isDefined();
@@ -332,3 +337,14 @@ bool
 LLVMTCECmdLineOptions::useRecursiveBUScheduler() const {
     return findOption(SWL_RECURSIVE_BU_SCHEDULER)->isDefined();
 }
+
+bool
+LLVMTCECmdLineOptions::useOldBackendSources() const {
+    return findOption(SWL_USE_OLD_BACKEND_SOURCES)->isDefined();
+}
+
+TCEString
+LLVMTCECmdLineOptions::tempDir() const {
+    return findOption(SWL_TEMP_DIR)->String();
+}
+

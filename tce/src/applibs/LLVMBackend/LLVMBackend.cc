@@ -207,11 +207,14 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
 }
 /**
  * Constructor.
+ *
+ * @param useInstalledVersion Should be true in case we are running an
+ * installed TCE (not from the source/build tree).
+ * @param tempDir An existing directory where to store temporary files.
+ *                The directory should be removed by the caller after use.
  */
-LLVMBackend::LLVMBackend(
-    bool useCache, bool useInstalledVersion, bool removeTempFiles) : 
-    useCache_(useCache), useInstalledVersion_(useInstalledVersion), 
-    removeTmp_(removeTempFiles) {
+LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) : 
+    useInstalledVersion_(useInstalledVersion), tempDir_(tempDir) {
 
     cachePath_ = Environment::llvmtceCachePath();
 
@@ -612,22 +615,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     std::string pluginFile = pluginFilename(target);
     std::string pluginFileName = "";
 
-    // Create temp directory for building the target machine plugin.
-    std::string tmpDir = FileSystem::createTempDirectory();
-
-    // useCache_ has bitrotted: it has to be true for compilation
-    // to work
-    // FIXME: remove it
-    if (useCache_) {
-        // Create cache directory if it doesn't exist.
-        if (!FileSystem::fileIsDirectory(cachePath_)) {
-            FileSystem::createDirectory(cachePath_);
-        }
-        pluginFileName = cachePath_ + DS + pluginFile;
-
-    } else {
-        pluginFileName = tmpDir + DS + pluginFile;
+    // Create cache directory if it doesn't exist.
+    if (!FileSystem::fileIsDirectory(cachePath_)) {
+        FileSystem::createDirectory(cachePath_);
     }
+    pluginFileName = cachePath_ + DS + pluginFile;
 
     // Static plugin source files path.
     std::string srcsPath = "";
@@ -671,9 +663,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             pluginTool_.importSymbol(
                 "create_tce_backend_plugin", creator, pluginFile);
 
-            if (removeTmp_) {
-                FileSystem::removeFileOrDirectory(tmpDir);
-            }
             return creator();
         } catch(Exception& e) {
             if (Application::verboseLevel() > 0) {
@@ -685,22 +674,20 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         }
     }
 
-    // Create target instruction and register definitions in .td files.
-    TDGen plugingen(target);
-    try {
-        plugingen.generateBackend(tmpDir);
-    } catch(Exception& e) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
+    if (!options_->useOldBackendSources()) {
+        // Create target instruction and register definitions in .td files.
+        TDGen plugingen(target);
+        try {
+            plugingen.generateBackend(tempDir_);
+        } catch(Exception& e) {
+            std::string msg =
+                "Failed to build compiler plugin for target architecture.";
+            
+            CompileError ne(__FILE__, __LINE__, __func__, msg);
+            ne.setCause(e);
+            throw ne;
         }
-        std::string msg =
-            "Failed to build compiler plugin for target architecture.";
-
-        CompileError ne(__FILE__, __LINE__, __func__, msg);
-        ne.setCause(e);
-        throw ne;
     }
-
     std::string tblgenbin = "llvm-tblgen";
        
     // Generate TCEGenRegisterNames.inc
@@ -712,9 +699,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         // work if llvm-config is not found in path.
         // First check that llvm-config is found in path.
         if (system("llvm-config --version")) {
-            if (removeTmp_) {
-                FileSystem::removeFileOrDirectory(tmpDir);
-            }
             std::string msg = "Unable to determine llvm include dir. "
                 "llvm-config not found in path";
 
@@ -724,7 +708,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         // from packages
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             pluginIncludeFlags + 
-            " -I" + tmpDir +
+            " -I" + tempDir_ +
             " -I`llvm-config --includedir`" + 
             " -I`llvm-config --includedir`/Target" + 
             " -I`llvm-config --includedir`/llvm/Target" +
@@ -732,26 +716,23 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             pluginIncludeFlags +
-            " -I" + tmpDir + 
+            " -I" + tempDir_ + 
             " -I" + LLVM_INCLUDEDIR +
             " -I" + LLVM_INCLUDEDIR + "/Target" +
             " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
     }
 
-    tblgenCmd += " " + tmpDir + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
+    tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
     // Generate TCEGenRegisterInfo.inc
 
     std::string cmd = tblgenCmd +
         " -gen-register-info" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
+        " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenRegisterInfo.inc";
 
     int ret = system(cmd.c_str());
     if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -762,14 +743,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Generate TCEGenInstrInfo.inc
     cmd = tblgenCmd +
         " -gen-instr-info" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
+        " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenInstrInfo.inc";
 
     ret = system(cmd.c_str());
     if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -780,14 +758,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Generate TCEGenDAGISel.inc
     cmd = tblgenCmd +
         " -gen-dag-isel" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
+        " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenDAGISel.inc";
 
     ret = system(cmd.c_str());
     if (ret) { 
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -799,14 +774,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Generate TCEGenCallingConv.inc
     cmd = tblgenCmd +
         " -gen-callingconv" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
+        " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenCallingConv.inc";
 
     ret = system(cmd.c_str());
     if (ret) { 
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -816,9 +788,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -839,7 +808,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
-        " -I" + tmpDir +
+        " -I" + tempDir_ +
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
         " " + LLVM_CPPFLAGS +
@@ -848,9 +817,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -866,9 +832,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginTool_.importSymbol(
             "create_tce_backend_plugin", creator, pluginFile);       
     } catch(Exception& e) {
-        if (removeTmp_) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-        }
         std::string msg = std::string() +
             "Unable to load plugin file '" +
             pluginFileName + "'. Error: " + e.errorMessage();
@@ -877,9 +840,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw ne;
     }
 
-    if (removeTmp_) {
-        FileSystem::removeFileOrDirectory(tmpDir);
-    }
     return creator();
 }
 

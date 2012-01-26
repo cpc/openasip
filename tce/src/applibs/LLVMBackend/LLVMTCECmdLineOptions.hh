@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of LLVMTCECmdLineOptions class.
  *
  * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2010 
+ * @author Pekka Jääskeläinen 2010-2012
  * @note rating: red
  */
 
@@ -70,8 +70,6 @@ public:
 
     bool debugFlag() const;
 
-    bool leaveDirty() const;
-
     bool conservativePreRAScheduler() const;
 
     bool usePOMBuilder() const;
@@ -81,6 +79,10 @@ public:
     bool useBUScheduler() const;
 
     bool useRecursiveBUScheduler() const;
+
+    bool useOldBackendSources() const;
+
+    TCEString tempDir() const;    
 
     virtual bool dumpDDGsDot() const;
     virtual bool dumpDDGsXML() const;
@@ -116,8 +118,9 @@ private:
     static const std::string SWL_SAVE_BACKEND_PLUGIN;
     static const std::string SWL_BU_SCHEDULER;
     static const std::string SWL_RECURSIVE_BU_SCHEDULER;
+    static const std::string SWL_USE_OLD_BACKEND_SOURCES;
+    static const std::string SWL_TEMP_DIR;
     static const std::string USAGE;
-
 };
 
 #endif

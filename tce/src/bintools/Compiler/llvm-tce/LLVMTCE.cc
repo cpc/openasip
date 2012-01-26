@@ -75,6 +75,13 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    if (options->tempDir() == "") {
+        Application::errorStream() 
+            << "Temporary directory required." << std::endl;
+        options->printHelp();
+        return EXIT_FAILURE;
+    }
+
     Application::setCmdLineOptions(options);
 
     if (options->isVerboseSwitchDefined()) {
@@ -172,7 +179,7 @@ main(int argc, char* argv[]) {
     try {
         InterPassData* ipData = new InterPassData;
         
-        LLVMBackend compiler(true, useInstalledVersion, !options->leaveDirty());
+        LLVMBackend compiler(useInstalledVersion, options->tempDir());
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 

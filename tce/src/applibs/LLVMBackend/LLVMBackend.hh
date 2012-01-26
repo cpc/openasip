@@ -63,7 +63,7 @@ public:
     static OperationDAGSelector::OperationSet 
     llvmRequiredOpset(bool includeFloatOps=true);
 
-    LLVMBackend(bool useCache = true, bool useInstalledVersion = false, bool removeTempFiles = true);
+    LLVMBackend(bool useInstalledVersion, TCEString tempDir);
     virtual ~LLVMBackend();
 
     TTAProgram::Program* compile(
@@ -105,13 +105,13 @@ private:
     /// Plugin tool for loading target machine plugin.
     PluginTools pluginTool_;
     /// Path to the cache where precompiled plugins are stored.
-    std::string cachePath_;
+    TCEString cachePath_;
+    /// Directory to store temporary files.
+    TCEString tempDir_;
 
     LLVMTCECmdLineOptions* options_;
 
-    bool useCache_;
     bool useInstalledVersion_;
-    bool removeTmp_;
     InterPassData* ipData_;
 
     static const std::string TCEPLUGINGEN_BIN;

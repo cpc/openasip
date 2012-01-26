@@ -64,7 +64,7 @@ def handler(signum, frame):
 
 def cleanup(tmpDir):
     """Removes temporary files created during build."""
-    if not options.leave_dirty:
+    if not options.leave_dirty and not options.temp_dir:
         rmtree(tmpDir, ignore_errors=True)
     else:
         sys.stdout.write("Intermediate files left in build dir " +\
@@ -811,13 +811,24 @@ p.add_option('--old-builder', action='store_true', dest='pom_builder',
 p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler', 
              default=False,
              help=\
-"Use an experiment Bottom Up scheduler.")
+"Use the bottom-up scheduler (experimental).")
 
 p.add_option('--recursive-scheduler', action='store_true',
              dest='recursive_scheduler', 
              default=False,
              help=\
-"Use an experiment Recursive bypassing Bottom Up scheduler.")
+"Use the recursive bypassing bottom-up scheduler (experimental).")
+
+p.add_option('--use-old-backend-src',
+             action="store_true", default=False,
+             dest="use_old_backend_src", 
+             help="Use the backend sources from the given temp directory instead of "
+             "regenerating them.")
+
+p.add_option('--temp-dir',
+             type="string", action="store", metavar='temp-dir',
+             dest="temp_dir", default=None,
+             help="Use the given directory for temporary files.")
 
 # Commandline argument parsing
 
@@ -833,8 +844,10 @@ options, inFiles = p.parse_args(args)
 if options.frontend_optlevel is None:
     options.frontend_optlevel = options.optimization_level
 
-# create temp dir
-tempDir = mkdtemp("","tcecc-")
+if options.temp_dir:
+    tempDir = options.temp_dir
+else:
+    tempDir = mkdtemp("","tcecc-")
 
 # assign signal handlers to exit cleanly
 try:
@@ -1056,6 +1069,11 @@ if options.adf_file != "":
     else:
         command = "llvm-tce"
 
+    command += " --temp-dir=%s " % tempDir
+
+    if options.use_old_backend_src and options.temp_dir:
+        command += " --use-old-backend-src" 
+
     if options.verbose:
         command += " -v"
         
@@ -1070,9 +1088,6 @@ if options.adf_file != "":
 
     if not options.default_regalloc:
         command += " --experimental-ra"
-
-    if options.leave_dirty:
-        command += " -d"
 
     if options.disable_llvmaa:
         command += " --disable-llvmaa"
