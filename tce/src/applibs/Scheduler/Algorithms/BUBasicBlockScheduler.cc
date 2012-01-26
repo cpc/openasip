@@ -68,6 +68,7 @@
 //#define BIG_DDG_SNAPSHOTS
 //#define DDG_SNAPSHOTS
 //#define SW_BYPASSING_STATISTICS
+//#define DEBUG_BYPASS
 
 class CopyingDelaySlotFiller;
 
@@ -579,7 +580,10 @@ BUBasicBlockScheduler::scheduleResultReads(
                         assert((*it)->isScheduled());
                         int originalCycle = (*it)->cycle();
                         bypassDestinationsCycle_[&moveNode].push_back(
-                            originalCycle);                                 
+                            originalCycle);  
+#ifdef DEBUG_BYPASS                            
+                        ddg_->writeToDotFile("beforeUnschedule.dot");
+#endif                        
                         unschedule(**it);
                         if (!ddg_->mergeAndKeep(moveNode, **it)) {
                             std::cerr << "Merge fail." << std::endl;
@@ -591,8 +595,10 @@ BUBasicBlockScheduler::scheduleResultReads(
                         bypassDestinations_[&moveNode].push_back(*it);       
                         assert((*it)->isScheduled() == false);
                         scheduleMove(**it, endCycle_);
+#ifdef DEBUG_BYPASS                        
                         std::cerr << " created " << (*it)->toString()
                         << " with original cycle " << originalCycle << std::endl;
+#endif                        
                         if (!(*it)->isScheduled()) {
                             // Scheduling bypass failed, undo and try to 
                             // schedule other possible bypasses.
@@ -601,6 +607,14 @@ BUBasicBlockScheduler::scheduleResultReads(
                             bypassDestinationsCycle_[&moveNode].pop_back();                        
                             bypassSuccess = false;
                         } else {
+#ifdef DEBUG_BYPASS
+                            if ((*it)->cycle() < originalCycle) {
+                                std::cerr << "Bypassed node " << 
+                                (*it)->toString() << "rescheduled "
+                                "earlier then it's original location - " <<
+                                originalCycle << std::endl;
+                            }
+#endif                        
                             maxResultCycle =
                                 ((*it)->cycle() > maxResultCycle) ?
                                 (*it)->cycle() : maxResultCycle;                    
@@ -820,8 +834,12 @@ BUBasicBlockScheduler::scheduleMove(
             TTAProgram::ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN);
         moveNode.move().setAnnotation(annotation);
     }
+    int earliestDDG = ddg_->earliestCycle(moveNode,rm_->smallestCycle());
     minCycle = rm_->latestCycle(minCycle, moveNode);
-    
+    if (minCycle < earliestDDG) {
+        // Bypassed move could get scheduld too early, this should prevent it
+        return ;
+    }
     if (minCycle == -1 || minCycle == INT_MAX) {
         if (moveNode.isSourceConstant() &&
             !moveNode.isDestinationOperation() &&
@@ -1160,6 +1178,13 @@ BUBasicBlockScheduler::findBypassDestinations(
         }
         for (int j = 0; j < rrDestinations.count(); j++) {
             n = &rrDestinations.at(j);
+            if (ddg_->onlyRegisterEdgeIn(*n) == NULL) {
+                // No bypassing of moves with multiple register definition
+                // sources.
+                // TODO: bypass destination with multiple definition sources
+                // using inverse guard of guarded source.
+                continue;
+            }
             std::set<const TTAMachine::Port*> destinationPorts;            
             destinationPorts.insert(&n->move().destination().port());
             
@@ -1202,7 +1227,13 @@ BUBasicBlockScheduler::undoBypass(
             for (unsigned int i = 0; i < rescheduleVector.size(); i++) {
             // reassign nodes to their original places
                 std::pair<MoveNode*, int> dest = rescheduleVector[i];
-                rm_->assign(dest.second, *dest.first); 
+                scheduleMove(*dest.first, dest.second);
+                if (!dest.first->isScheduled()) {
+                    ddg_->writeToDotFile("unbypassFailed.dot");
+                    std::cerr << " Source: " << moveNode.toString()
+                    << ", Original: " << dest.first->toString() << 
+                    ", original cycle: " << dest.second << std::endl;                    
+                }
                 assert(dest.first->isScheduled());                
             }
             
@@ -1211,7 +1242,13 @@ BUBasicBlockScheduler::undoBypass(
         }
     } else {
         ddg_->unMerge(moveNode, *single);
-        rm_->assign(oCycle, *single);
+        scheduleMove(*single, oCycle);
+        if (!single->isScheduled()) {
+            ddg_->writeToDotFile("unbypassFailed.dot");
+            std::cerr << " Source: " << moveNode.toString()
+            << ", Original: " << single->toString() << ", original cycle: " 
+            << oCycle << std::endl;
+        }
         assert(single->isScheduled());
     }
 }
