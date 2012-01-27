@@ -378,7 +378,7 @@ ExecutionPipelineResource::assignSource(
     ResultVector& resultRead = resultRead_[&port];
 
     /// Assiging result read
-    assignedSourceNodes_.insert(&node);
+    assignedSourceNodes_.insert(std::pair<int, MoveNode*>(cycle, &node));
     ProgramOperation* pOp = &node.sourceOperation();
     
     /// Record Program Operation in cycle where the "result read"
@@ -460,7 +460,7 @@ ExecutionPipelineResource::assignDestination(
     std::string opName = "";
 
     // If move is opcode setting, we set operation based on opcode.
-    assignedDestinationNodes_.insert(&node);
+    assignedDestinationNodes_.insert(std::pair<int, MoveNode*>(cycle, &node));
     ProgramOperation& pOp = node.destinationOperation();
 
     int firstCycle = 0;
@@ -606,8 +606,9 @@ ExecutionPipelineResource::unassignSource(
     ProgramOperation& po = node.sourceOperation();
 
     /// Unscheduling result read
-    if (assignedSourceNodes_.find(&node) != assignedSourceNodes_.end()) {
-        assignedSourceNodes_.erase(&node);
+    if (MapTools::containsValue(assignedSourceNodes_, &node)) {
+        MapTools::removeItemsByValue(assignedSourceNodes_, &node);
+
         
         if (MapTools::containsKey(storedResultCycles_, &node)) {
             /// Remove record of result beeing written to result register
@@ -673,12 +674,11 @@ ExecutionPipelineResource::unassignDestination(
         ii = INT_MAX;
     }
 
-    if (assignedDestinationNodes_.find(&node) ==
-        assignedDestinationNodes_.end()) {
+    if (!MapTools::containsValue(assignedDestinationNodes_, &node)) {
         return;
     }
     /// Now unassing destination part of move
-    assignedDestinationNodes_.erase(&node);
+    MapTools::removeItemsByValue(assignedDestinationNodes_, &node);
 
     unsigned int progOpCount = operandsWriten_.size();
     if ((unsigned(modCycle) >= fuExecutionPipeline_.size() &&
@@ -746,10 +746,7 @@ ExecutionPipelineResource::unassignDestination(
     // no point looking for the maximum operand write cycle then.
     if (assignedDestinationNodes_.size() > 0) {
         if (ii == INT_MAX) {
-            while (maxOperandsWrite >= 0 &&
-                operandsWriten_.ref(maxOperandsWrite).first == NULL) {
-                maxOperandsWrite--;
-            }
+            maxOperandsWrite = (*assignedDestinationNodes_.rbegin()).first;
             operandsWriten_.resize(maxOperandsWrite + 1);
         }
     } else {
@@ -1188,24 +1185,12 @@ ExecutionPipelineResource::size() const {
     }
     int stoppingCycle = length;    
     if (dstCount > 0) {
-        for (std::set<MoveNode*, MoveNode::Comparator>::iterator it =
-                assignedDestinationNodes_.begin();
-                it != assignedDestinationNodes_.end();
-                it++) {
-            if ((*it)->cycle() < stoppingCycle) {
-                stoppingCycle = (*it)->cycle();
-            }
-        }            
+        int dstMin = (*assignedDestinationNodes_.begin()).first;
+        stoppingCycle = std::min(stoppingCycle, dstMin);
     }
     if (srcCount > 0) {
-        for (std::set<MoveNode*, MoveNode::Comparator>::iterator it =
-                assignedSourceNodes_.begin();
-                it != assignedSourceNodes_.end();
-                it++) {
-            if ((*it)->cycle() < stoppingCycle) {
-                stoppingCycle = (*it)->cycle();
-            }
-        }            
+        int srcMin = (*assignedSourceNodes_.begin()).first;
+        stoppingCycle = std::min(stoppingCycle, srcMin);
     }
     // Don't go bellow smallest known assigned node
     for (int i = length; i >= stoppingCycle; i--) {
@@ -1307,93 +1292,69 @@ ExecutionPipelineResource::findRange(
 int
 ExecutionPipelineResource::highestKnownCycle() const {
     if (initiationInterval_ == 0 || initiationInterval_ == INT_MAX) {
-        int maximum = operandsWriten_.size() - 1;
-        // If there are no assigned destination nodes, no point searching through 
-        // operandsWriten_.
+
+        // Find largest cycle where any operand or result was previously
+        // scheduled.
+        int maximum = 0;
         if (assignedDestinationNodes_.size() > 0) {
-            while (maximum >= 0 && operandsWriten_[maximum].first == NULL) {
-                maximum--;
-            }
+            maximum = (*assignedDestinationNodes_.rbegin()).first;
         } else {
             maximum = -1;
         }
-        
-        for (ResultMap::const_iterator rwi = resultWriten_.begin(); 
-             rwi != resultWriten_.end(); rwi++) {
-            const ResultVector& resultWriten = rwi->second;
-            int maxResults = resultWriten.size() - 1;
-            // If there are no assigned source nodes, no point searching through 
-            // operandsWriten_.            
-            if (assignedSourceNodes_.size() > 0) {
-                while (maxResults >= 0 && 
-                    resultWriten[maxResults].first.po == NULL) {
-                    maxResults--;
-                }
-            } else {
-                maxResults = 0;
-            }
-            if (maxResults> maximum) {
-                maximum = maxResults;
-            }
+    
+        int maxResults = 0;
+        if (assignedSourceNodes_.size() > 0) {
+            maxResults = (*assignedSourceNodes_.rbegin()).first;
+        } else {
+            maxResults = 0;
         }
-
-        for (ResultMap::const_iterator rri = resultRead_.begin(); 
-             rri != resultRead_.end(); rri++) {
-            const ResultVector& resultRead = rri->second;
-
-            int maxResultReads = resultRead.size() -1;
-            // If there are no assigned source nodes, no point searching through 
-            // operandsWriten_.
-            
-            if (assignedSourceNodes_.size() > 0) {
-                while (maxResultReads >= 0 &&
-                    resultRead[maxResultReads].first.po == NULL) {
-                    maxResultReads--;
-                }
-            } else {
-                maxResultReads = 0;
-            }
-            if (maxResultReads > maximum) {
-                maximum = maxResultReads;
-            }
+        if (maxResults> maximum) {
+            maximum = maxResults;
         }
         // size returns count of cycle, max cycle address needs -1
         return std::max(maximum, size() - 1);
     } else {
         int highest = -1;
+        int min = INT_MAX;        
+        if (assignedSourceNodes_.size() > 0) {
+            int srcMin = (*assignedSourceNodes_.begin()).first;
+            min = std::min(min, srcMin);
+        }
+        if (assignedDestinationNodes_.size() > 0) {
+            int dstMin = (*assignedDestinationNodes_.begin()).first;
+            min = std::min(min, dstMin);
+        }
+        
         for (ResultMap::const_iterator rwi = resultWriten_.begin(); 
              rwi != resultWriten_.end(); rwi++) {
             const ResultVector& resultWriten = rwi->second;
-            if (assignedSourceNodes_.size() > 0) {
-                for (int i = resultWriten.size() -1; i >= 0 ; i--) {
-                    const ResultHelperPair& rhp = resultWriten[i];
-                    if (rhp.first.po != NULL) {
-                        if (int(rhp.first.realCycle) > highest) {
-                            highest = rhp.first.realCycle;
+                
+            for (int i = resultWriten.size() -1; i >= min; i--) {
+                const ResultHelperPair& rhp = resultWriten[i];
+                if (rhp.first.po != NULL) {
+                    if (int(rhp.first.realCycle) > highest) {
+                        highest = rhp.first.realCycle;
+                    }
+                    if (rhp.second.po != NULL) {
+                        if (int(rhp.second.realCycle) > highest) {
+                            highest = rhp.second.realCycle;
                         }
-                        if (rhp.second.po != NULL) {
-                            if (int(rhp.second.realCycle) > highest) {
-                                highest = rhp.second.realCycle;
-                            }
-                        }
-                    } 
-                }
-            }
+                    }
+                } 
+            }            
         }
         for (ResultMap::const_iterator rri = resultRead_.begin(); 
              rri != resultRead_.end(); rri++) {
             const ResultVector& resultRead = rri->second;
-            if (assignedSourceNodes_.size() > 0) {            
-                for (int i = resultRead.size() -1; i >= 0 ; i--) {
-                    const ResultHelperPair& rrp = resultRead[i];
-                    if (rrp.first.po != NULL) {
-                        if (int(rrp.first.realCycle) > highest) {
-                            highest = rrp.first.realCycle;
-                        }
-                        if (rrp.second.po != NULL) {
-                            if (int(rrp.second.realCycle) > highest) {
-                                highest = rrp.second.realCycle;
-                            }
+            for (int i = resultRead.size() -1; i >= min ; i--) {
+                const ResultHelperPair& rrp = resultRead[i];
+                if (rrp.first.po != NULL) {
+                    if (int(rrp.first.realCycle) > highest) {
+                        highest = rrp.first.realCycle;
+                    }
+                    if (rrp.second.po != NULL) {
+                        if (int(rrp.second.realCycle) > highest) {
+                            highest = rrp.second.realCycle;
                         }
                     }
                 }

@@ -213,9 +213,9 @@ private:
     // these are real cycles.
     std::map<MoveNode*, int, MoveNode::Comparator> storedResultCycles_;
     // stores the set of assigned source nodes
-    std::set<MoveNode*, MoveNode::Comparator> assignedSourceNodes_;
+    std::multimap<int, MoveNode*> assignedSourceNodes_;
     // stores the set of assigned destination nodes
-    std::set<MoveNode*, MoveNode::Comparator> assignedDestinationNodes_;
+    std::multimap<int, MoveNode*> assignedDestinationNodes_;
 
     mutable int cachedSize_;
 
