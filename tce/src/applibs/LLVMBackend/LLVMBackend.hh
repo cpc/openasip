@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of LLVMBackend class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2008-2012
  * @note rating: red
  */
 
@@ -102,6 +103,9 @@ private:
 
     std::string pluginFilename(const TTAMachine::Machine& target);
 
+    /// Assume we are running an installed TCE version.
+    bool useInstalledVersion_;
+
     /// Plugin tool for loading target machine plugin.
     PluginTools pluginTool_;
     /// Path to the cache where precompiled plugins are stored.
@@ -111,7 +115,6 @@ private:
 
     LLVMTCECmdLineOptions* options_;
 
-    bool useInstalledVersion_;
     InterPassData* ipData_;
 
     static const std::string TCEPLUGINGEN_BIN;
