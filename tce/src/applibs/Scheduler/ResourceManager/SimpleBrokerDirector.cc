@@ -344,7 +344,7 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // immediates
     int cycleCounter = nodeCycle;
     if (cycleCounter == knownMaxCycle_) {
-        while(cycleCounter >= 0) {
+        while(cycleCounter >= knownMinCycle_) {
             // this may memory leak
             Instruction* tempIns = instruction(cycleCounter);
             if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
