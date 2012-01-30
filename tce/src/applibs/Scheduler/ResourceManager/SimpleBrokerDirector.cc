@@ -304,6 +304,12 @@ SimpleBrokerDirector::unassign(MoveNode& node)
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
 
+    bool minCycleImmSrc = false;
+    if (node.isSourceImmediateRegister() &&
+         knownMinCycle_ == immediateWriteCycle(node)) {
+        minCycleImmSrc = true;
+    }
+
     int nodeCycle = node.cycle();
 
     moveCounts_[instructionIndex(nodeCycle)]--;
@@ -359,8 +365,8 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // tries to increase smallest cycle checking for assigned moves and
     // immediates
     int guardSlack = std::max(0, node.guardLatency() -1);    
-    cycleCounter = nodeCycle - guardSlack;
-    if (cycleCounter == knownMinCycle_) {
+    cycleCounter = knownMinCycle_;
+    if (cycleCounter == nodeCycle - guardSlack || minCycleImmSrc) {
         while(cycleCounter <= knownMaxCycle_) {
             // this may memory leak
             Instruction* tempIns = instruction(cycleCounter);
@@ -379,7 +385,6 @@ SimpleBrokerDirector::unassign(MoveNode& node)
             }
         }
     }
-    
 }
 
 /**
