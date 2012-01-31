@@ -4,7 +4,8 @@ pkglib_LTLIBRARIES = \
 	RemoveUnconnectedComponents.la MinimizeMachine.la \
 	GrowMachine.la ImmediateGenerator.la \
 	ImplementationSelector.la ComponentAdder.la \
-	Evaluate.la MinimalOpSet.la ConnectionSweeper.la
+	Evaluate.la MinimalOpSet.la ConnectionSweeper.la \
+	ADFCombiner.la
 
 # Libtool seems to realize we are compiling from .cc instead of .c
 # just by defining the first source. Without this it fails.
@@ -19,6 +20,7 @@ ComponentAdder_la_SOURCES = ComponentAdder.cc
 Evaluate_la_SOURCES = Evaluate.cc
 MinimalOpSet_la_SOURCES = MinimalOpSet.cc
 ConnectionSweeper_la_SOURCES = ConnectionSweeper.cc
+ADFCombiner_la_SOURCES = ADFCombiner.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
