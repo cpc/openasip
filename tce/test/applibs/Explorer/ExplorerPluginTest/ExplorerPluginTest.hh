@@ -43,6 +43,7 @@
 #include "DSDBManager.hh"
 #include "Exception.hh"
 #include "HDBRegistry.hh"
+#include "Conversion.hh"
 
 using std::string;
 
