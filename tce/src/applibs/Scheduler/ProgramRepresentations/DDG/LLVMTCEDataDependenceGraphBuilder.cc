@@ -32,6 +32,7 @@
 #include "MoveNodeGroup.hh"
 #include "ProgramOperation.hh"
 #include "Terminal.hh"
+#include "Move.hh"
 
 DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::build(

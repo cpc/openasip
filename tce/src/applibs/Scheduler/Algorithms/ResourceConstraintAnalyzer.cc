@@ -42,6 +42,7 @@
 #include "Operation.hh"
 #include "DataDependenceGraph.hh"
 #include "SimpleResourceManager.hh"
+#include "Move.hh"
 
 /**
  * Analyzes the resource constraints in the schedule.

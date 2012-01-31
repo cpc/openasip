@@ -45,6 +45,7 @@
 #include "Program.hh"
 #include "Instruction.hh"
 #include "BasicBlock.hh"
+#include "Move.hh"
 
 /**
  * Constructor.

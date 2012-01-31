@@ -47,6 +47,8 @@
 #include "LiveRangeData.hh"
 #include "TerminalRegister.hh"
 #include "MoveNodeSelector.hh"
+#include "Move.hh"
+#include "LiveRange.hh"
 
 /**
  * Constructor.

@@ -33,9 +33,10 @@
 #ifndef TTA_REGISTER_RENAMER_HH
 #define TTA_REGISTER_RENAMER_HH
 
+#include <climits>
+
 #include "TCEString.hh"
 #include <set>
-#include "LiveRange.hh"
 #include "MachinePart.hh"
 
 namespace TTAMachine {
@@ -45,9 +46,10 @@ namespace TTAMachine {
 
 namespace TTAProgram {
     class TerminalRegister;
+    class BasicBlock;
 }
 
-class BasicBlock;
+class LiveRange;
 class DataDependenceGraph;
 class MoveNode;
 class MoveNodeSelector;

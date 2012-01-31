@@ -58,6 +58,7 @@
 #include "HWOperation.hh"
 #include "FUPort.hh"
 #include "BasicBlock.hh"
+#include "Move.hh"
 
 #include <stdlib.h>
 #include <llvm/ADT/SmallString.h>

@@ -62,6 +62,7 @@
 #include "MoveNode.hh"
 #include "SequentialMoveNodeSelector.hh"
 #include "Program.hh"
+#include "Move.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER

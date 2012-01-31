@@ -47,7 +47,7 @@
 #include "SimpleResourceManager.hh"
 #include "SchedulerCmdLineOptions.hh"
 #include "ProgramOperation.hh"
-
+#include "Move.hh"
 // DEBUG:
 #include "SimpleResourceManager.hh"
 #include "Instruction.hh"

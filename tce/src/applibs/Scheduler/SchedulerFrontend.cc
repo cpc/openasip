@@ -37,6 +37,7 @@
 #include <boost/timer.hpp>
 
 #include "SchedulerFrontend.hh"
+#include "SchedulerPluginLoader.hh"
 #include "SchedulerCmdLineOptions.hh"
 #include "BinaryStream.hh"
 #include "BinaryReader.hh"

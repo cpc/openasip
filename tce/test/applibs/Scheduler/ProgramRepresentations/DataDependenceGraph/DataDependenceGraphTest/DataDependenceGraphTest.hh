@@ -48,6 +48,7 @@
 #include "ADFSerializer.hh"
 #include "Instruction.hh"
 #include "BasicBlock.hh"
+#include "Move.hh"
 
 using TTAProgram::Move;
 

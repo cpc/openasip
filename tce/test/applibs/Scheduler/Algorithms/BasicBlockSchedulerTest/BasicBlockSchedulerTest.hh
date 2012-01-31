@@ -49,6 +49,7 @@
 #include "InterPassData.hh"
 #include "Terminal.hh"
 #include "GlobalScope.hh"
+#include "Move.hh"
 
 
 class BasicBlockSchedulerTest : public CxxTest::TestSuite {

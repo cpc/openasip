@@ -61,6 +61,7 @@
 #include "DisassemblyRegister.hh"
 #include "SimpleResourceManager.hh"
 #include "Operation.hh"
+#include "Move.hh"
 
 //#define DEBUG_REG_COPY_ADDER
 

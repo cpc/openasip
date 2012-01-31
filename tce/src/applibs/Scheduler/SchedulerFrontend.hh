@@ -38,8 +38,8 @@
 #include <string>
 
 #include "Exception.hh"
-#include "SchedulerPluginLoader.hh"
 
+class SchedulerPluginLoader;
 class SchedulingPlan;
 class SchedulerCmdLineOptions;
 class BaseSchedulerModule;

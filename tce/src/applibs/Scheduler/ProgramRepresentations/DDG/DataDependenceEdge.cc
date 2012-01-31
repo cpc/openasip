@@ -44,6 +44,7 @@
 #include "ObjectState.hh"
 #include "TerminalFUPort.hh"
 #include "TerminalRegister.hh"
+#include "Move.hh"
 
 int DataDependenceEdge::regAntidepCount_ = 0;
 

@@ -35,7 +35,6 @@
 
 #include "TCEString.hh"
 #include "GraphEdge.hh"
-#include "Move.hh"
 
 class MoveNode;
 class ObjectState;

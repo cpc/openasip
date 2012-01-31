@@ -42,6 +42,7 @@
 #include "Guard.hh"
 #include "UniversalFunctionUnit.hh"
 
+#include "Move.hh"
 #include "TerminalInstructionReference.hh"
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
