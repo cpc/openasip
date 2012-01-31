@@ -51,7 +51,9 @@
 #include "CodeSection.hh"
 #include "InstructionElement.hh"
 #include "MoveElement.hh"
-
+#include "NullSection.hh"
+#include "DebugSection.hh"
+#include "CodeSection.hh"
 
 namespace TPEF {
 

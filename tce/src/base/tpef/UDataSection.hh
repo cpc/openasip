@@ -37,7 +37,6 @@
 
 #include "Section.hh"
 #include "BaseType.hh"
-#include "Chunk.hh"
 #include "Exception.hh"
 
 namespace TPEF {

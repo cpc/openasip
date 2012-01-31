@@ -38,6 +38,7 @@
 
 #include "BinaryStream.hh"
 #include "Section.hh"
+#include "Binary.hh"
 #include "ContainerTools.hh"
 #include "AssocTools.hh"
 #include "ReferenceKey.hh"

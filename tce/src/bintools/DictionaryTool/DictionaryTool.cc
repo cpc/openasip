@@ -47,7 +47,7 @@
 #include "TPEFWriter.hh"
 #include "TPEFProgramFactory.hh"
 #include "ProgramWriter.hh"
-
+#include "BinaryStream.hh"
 #include "MoveElement.hh"
 #include "tce_config.h"
 

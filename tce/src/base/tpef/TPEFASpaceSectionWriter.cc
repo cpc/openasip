@@ -42,6 +42,7 @@
 #include "ASpaceElement.hh"
 #include "SectionSizeReplacer.hh"
 #include "SectionOffsetReplacer.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

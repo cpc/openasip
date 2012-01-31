@@ -39,6 +39,9 @@
 #include "ReferenceKey.hh"
 #include "SectionReader.hh"
 #include "Conversion.hh"
+#include "ResourceSection.hh"
+#include "MoveElement.hh"
+#include "ImmediateElement.hh"
 
 namespace TPEF {
 

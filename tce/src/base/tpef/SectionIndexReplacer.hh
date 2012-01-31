@@ -34,10 +34,8 @@
 #ifndef TTA_SECTION_INDEX_REPLACER_HH
 #define TTA_SECTION_INDEX_REPLACER_HH
 
+#include "BaseType.hh"
 #include "ValueReplacer.hh"
-
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "Exception.hh"
 
 namespace TPEF {

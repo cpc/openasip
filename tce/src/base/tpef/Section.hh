@@ -39,14 +39,17 @@
 #include <vector>
 
 #include "TPEFBaseType.hh"
-#include "SectionElement.hh"
 #include "ASpaceElement.hh"
-#include "SafePointer.hh"
 #include "SafePointable.hh"
 #include "Exception.hh"
 #include "Chunk.hh"
 
 namespace TPEF {
+    namespace ReferenceManager {
+        class SafePointer;
+    }
+
+    class SectionElement;
 
 /////////////////////////////////////////////////////////////////////////////
 // Section

@@ -37,6 +37,7 @@
 #include "TPEFBaseType.hh"
 #include "ReferenceKey.hh"
 #include "SafePointer.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

@@ -35,7 +35,7 @@
 #include "SectionReader.hh"
 #include "TPEFBaseType.hh"
 #include "SafePointer.hh"
-
+#include "BinaryStream.hh"
 #include "StringSection.hh"
 
 namespace TPEF {

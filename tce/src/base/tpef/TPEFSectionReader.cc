@@ -32,6 +32,8 @@
  */
 
 #include "TPEFSectionReader.hh"
+#include "BinaryStream.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 

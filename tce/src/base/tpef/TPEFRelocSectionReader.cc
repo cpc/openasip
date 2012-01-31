@@ -41,7 +41,7 @@
 #include "ReferenceKey.hh"
 #include "SectionReader.hh"
 #include "TPEFBaseType.hh"
-
+#include "BinaryStream.hh"
 #include "RelocSection.hh"
 #include "RelocElement.hh"
 #include "ImmediateElement.hh"
@@ -49,6 +49,7 @@
 #include "TPEFHeaders.hh"
 #include "ASpaceSection.hh"
 #include "CodeSection.hh"
+#include "DataSection.hh"
 
 #include "TPEFBaseType.hh"
 #include "Locator.hh"

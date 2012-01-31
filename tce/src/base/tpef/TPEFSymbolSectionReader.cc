@@ -45,6 +45,8 @@
 #include "ProcedSymElement.hh"
 #include "FileSymElement.hh"
 #include "SectionSymElement.hh"
+#include "BinaryStream.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 

@@ -43,6 +43,7 @@
 #include "ImmediateElement.hh"
 #include "SectionSizeReplacer.hh"
 #include "CodeSection.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

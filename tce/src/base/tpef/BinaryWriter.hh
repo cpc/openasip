@@ -37,9 +37,9 @@
 
 #include "Binary.hh"
 #include "Section.hh"
-#include "BinaryStream.hh"
 
 namespace TPEF {
+    class BinaryStream;
 
 /**
  * Interface for actual binary writer classes and for clients

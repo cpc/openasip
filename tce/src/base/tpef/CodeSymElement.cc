@@ -32,6 +32,7 @@
  */
 
 #include "CodeSymElement.hh"
+#include "InstructionElement.hh"
 
 namespace TPEF {
 

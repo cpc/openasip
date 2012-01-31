@@ -36,12 +36,12 @@
 
 #include <set>
 
-#include "BinaryStream.hh"
-#include "Binary.hh"
 #include "Exception.hh"
 
 namespace TPEF {
 
+    class BinaryStream;
+    class Binary;
 /**
  * Abstract base class for each actual BinaryReader class.
  *

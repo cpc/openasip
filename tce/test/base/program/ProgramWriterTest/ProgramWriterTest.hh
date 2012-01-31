@@ -61,6 +61,7 @@
 #include "InstructionElement.hh"
 #include "Move.hh"
 #include "UniversalMachine.hh"
+#include "BinaryStream.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

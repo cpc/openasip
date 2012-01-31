@@ -36,7 +36,6 @@
 
 #include "SectionWriter.hh"
 
-#include "BinaryWriter.hh"
 #include "Section.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"

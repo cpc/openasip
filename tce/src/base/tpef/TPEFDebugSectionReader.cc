@@ -39,6 +39,7 @@
 #include "TPEFBaseType.hh"
 #include "DebugSection.hh"
 #include "DebugStabElem.hh"
+#include "BinaryStream.hh"
 
 
 namespace TPEF {

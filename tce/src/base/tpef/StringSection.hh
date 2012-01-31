@@ -38,9 +38,9 @@
 
 #include "Section.hh"
 #include "DataSection.hh"
-#include "Chunk.hh"
 
 namespace TPEF {
+    class Chunk;
 
 /**
  * Represents a string table section.

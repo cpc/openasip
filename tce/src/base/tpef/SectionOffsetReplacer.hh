@@ -35,9 +35,6 @@
 #define TTA_SECTION_OFFSET_REPLACER_HH
 
 #include "ValueReplacer.hh"
-
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "Exception.hh"
 
 namespace TPEF {

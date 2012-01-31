@@ -37,14 +37,13 @@
 #include <map>
 #include <utility>
 
-#include "BinaryStream.hh"
 #include "Section.hh"
 #include "BinaryReader.hh"
 #include "Exception.hh"
-#include "ReferenceKey.hh"
-#include "TPEFBaseType.hh"
 
 namespace TPEF {
+
+    class BinaryStream;
 
 /**
  * Abstract base class for SectionReaders.

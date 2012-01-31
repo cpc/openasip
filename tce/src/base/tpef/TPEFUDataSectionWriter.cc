@@ -41,6 +41,7 @@
 #include "ReferenceKey.hh"
 #include "SafePointer.hh"
 #include "UDataSection.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

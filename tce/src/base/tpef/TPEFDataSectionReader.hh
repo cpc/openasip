@@ -35,8 +35,6 @@
 #define TTA_TPEF_DATA_SECTION_READER_HH
 
 #include "TPEFSectionReader.hh"
-#include "BinaryReader.hh"
-#include "ReferenceKey.hh"
 #include "TPEFBaseType.hh"
 #include "Section.hh"
 

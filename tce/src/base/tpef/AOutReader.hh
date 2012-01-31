@@ -40,13 +40,13 @@
 #include "Binary.hh"
 #include "TPEFBaseType.hh"
 #include "Exception.hh"
-#include "ReferenceKey.hh"
-#include "ResourceSection.hh"
-#include "NullSection.hh"
-#include "DebugSection.hh"
-#include "CodeSection.hh"
 
 namespace TPEF {
+    class Binary;
+    class CodeSection;
+    class ResourceSection;
+    class NullSection;
+    class DebugSection;
 
 /**
  * Reads binary file that is in TTA a.out format.

@@ -48,6 +48,7 @@
 #include "SectionIdReplacer.hh"
 #include "SectionIndexReplacer.hh"
 #include "RelocSection.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

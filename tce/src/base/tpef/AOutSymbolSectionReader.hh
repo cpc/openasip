@@ -39,16 +39,14 @@
 #include <deque>
 
 #include "AOutSectionReader.hh"
-#include "AOutReader.hh"
-#include "BinaryStream.hh"
 #include "Section.hh"
-#include "SymbolElement.hh"
-#include "BinaryReader.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"
-#include "ReferenceKey.hh"
 
 namespace TPEF {
+
+    class SymbolElement;
+    class AOutReader;
 
 /**
  * Reads symbol table section from a.out binary file.

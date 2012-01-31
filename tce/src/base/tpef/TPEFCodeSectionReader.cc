@@ -40,6 +40,8 @@
 #include "InstructionElement.hh"
 #include "MoveElement.hh"
 #include "ImmediateElement.hh"
+#include "BinaryStream.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 

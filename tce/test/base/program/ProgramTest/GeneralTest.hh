@@ -59,6 +59,7 @@
 #include "CodeLabel.hh"
 #include "DataLabel.hh"
 #include "GlobalScope.hh"
+#include "BinaryStream.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

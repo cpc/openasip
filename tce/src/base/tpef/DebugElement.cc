@@ -32,6 +32,8 @@
  */
 
 #include "DebugElement.hh"
+#include "SafePointer.hh"
+#include "Chunk.hh"
 
 namespace TPEF {
 

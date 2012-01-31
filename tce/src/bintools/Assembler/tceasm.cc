@@ -41,6 +41,7 @@
 #include "Binary.hh"
 #include "TPEFWriter.hh"
 #include "FileSystem.hh"
+#include "BinaryStream.hh"
 
 using namespace TTAMachine;
 using namespace TPEF;

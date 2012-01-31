@@ -36,8 +36,6 @@
 
 #include <set>
 
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "RelocElement.hh"
 #include "Exception.hh"
 

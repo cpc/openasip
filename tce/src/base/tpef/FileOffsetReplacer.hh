@@ -36,12 +36,10 @@
 
 #include "ValueReplacer.hh"
 
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "Exception.hh"
 
 namespace TPEF {
-
+    class SafePointable;
 /**
  * Replaces object reference with file offset. File offset key
  * must be stored in reference manager for that object whose file

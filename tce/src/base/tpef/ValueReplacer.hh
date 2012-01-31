@@ -36,12 +36,11 @@
 
 #include <set>
 
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "Exception.hh"
 
 namespace TPEF {
-
+    class BinaryStream;
+    class SafePointable;
 /**
  * Abstract base class of value replacer classes.
  *

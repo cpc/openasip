@@ -42,6 +42,7 @@
 #include "SectionIdReplacer.hh"
 #include "DebugElement.hh"
 #include "SectionSymElement.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

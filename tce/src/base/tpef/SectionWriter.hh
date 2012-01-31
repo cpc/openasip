@@ -37,12 +37,15 @@
 #include <map>
 #include <utility>
 
-#include "BinaryWriter.hh"
 #include "Section.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"
 
 namespace TPEF {
+
+    class BinaryWriter;
+    class BinaryStream;
+    class Binary;
 
 /**
  * Abstract base class for actual section writer classes.

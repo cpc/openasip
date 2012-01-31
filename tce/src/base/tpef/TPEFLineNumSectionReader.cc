@@ -39,6 +39,7 @@
 #include "SectionReader.hh"
 #include "TPEFBaseType.hh"
 #include "LineNumProcedure.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

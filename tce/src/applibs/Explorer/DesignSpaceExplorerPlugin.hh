@@ -40,7 +40,6 @@
 #include "ExplorerPluginParameter.hh"
 
 #include "Exception.hh"
-#include "Conversion.hh"
 #include "Application.hh"
 
 

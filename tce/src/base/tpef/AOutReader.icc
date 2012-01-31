@@ -35,6 +35,7 @@
 
 #include "SectionReader.hh"
 #include "InstructionElement.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

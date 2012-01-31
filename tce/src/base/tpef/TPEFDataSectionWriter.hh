@@ -36,7 +36,6 @@
 
 #include "TPEFSectionWriter.hh"
 
-#include "BinaryStream.hh"
 #include "Section.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"

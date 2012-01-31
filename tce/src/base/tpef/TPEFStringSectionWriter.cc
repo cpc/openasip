@@ -37,6 +37,7 @@
 #include "SafePointer.hh"
 #include "SectionSizeReplacer.hh"
 #include "ReferenceKey.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

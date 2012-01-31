@@ -35,9 +35,10 @@
 #define TTA_CODE_SYM_ELEMENT_HH
 
 #include "SymbolElement.hh"
-#include "InstructionElement.hh"
 
 namespace TPEF {
+
+    class InstructionElement;
 
 /**
  * Code symbol.

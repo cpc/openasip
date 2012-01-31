@@ -46,6 +46,7 @@
 #include "ADFSerializer.hh"
 #include "Machine.hh"
 #include "Program.hh"
+#include "BinaryStream.hh"
 
 using namespace TTAProgram;
 using namespace TPEF;

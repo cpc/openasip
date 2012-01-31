@@ -37,7 +37,6 @@
 #include "TPEFSectionReader.hh"
 #include "Section.hh"
 #include "BinaryReader.hh"
-#include "ReferenceKey.hh"
 #include "TPEFBaseType.hh"
 
 namespace TPEF {

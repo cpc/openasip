@@ -56,6 +56,7 @@
 #include "InstructionReference.hh"
 #include "TerminalImmediate.hh"
 #include "NullAddressSpace.hh"
+#include "BinaryStream.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

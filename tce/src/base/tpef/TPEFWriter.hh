@@ -37,13 +37,7 @@
 
 #include "BinaryWriter.hh"
 
-#include "Binary.hh"
-#include "Section.hh"
-#include "BinaryStream.hh"
-#include "TPEFHeaders.hh"
-
 namespace TPEF {
-
 /**
  * Class for writing TPEF binary files.
  */

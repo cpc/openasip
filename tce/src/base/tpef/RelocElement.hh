@@ -37,11 +37,13 @@
 #define TTA_RELOC_ELEMENT_HH
 
 #include "SectionElement.hh"
-#include "SafePointer.hh"
 #include "SymbolElement.hh"
 #include "ASpaceElement.hh"
 
 namespace TPEF {
+    namespace ReferenceManager {
+        class SafePointer;
+    }
 
 /**
  * Relocation table entry.

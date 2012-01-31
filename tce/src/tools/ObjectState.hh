@@ -37,8 +37,6 @@
 #include <string>
 #include <vector>
 
-#include <xercesc/dom/DOMNode.hpp>
-
 #include "Exception.hh"
 
 /**

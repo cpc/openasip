@@ -34,6 +34,7 @@
 #include "SectionSizeReplacer.hh"
 #include "SafePointer.hh"
 #include "MapTools.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

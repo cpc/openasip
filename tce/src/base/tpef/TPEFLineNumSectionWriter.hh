@@ -35,7 +35,6 @@
 #define TTA_TPEF_LINE_NUM_SECTION_WRITER_HH
 
 #include "TPEFSectionWriter.hh"
-#include "BinaryStream.hh"
 #include "Section.hh"
 #include "TPEFBaseType.hh"
 

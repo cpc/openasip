@@ -39,10 +39,13 @@
 #include "TPEFBaseType.hh"
 #include "SectionElement.hh"
 #include "Exception.hh"
-#include "Chunk.hh"
 
 namespace TPEF {
+namespace ReferenceManager {
+    class SafePointer;
+}
 
+    class Chunk;
 /**
  * Base class for all kinds of TPEF elements that belong to debug sections.
  *

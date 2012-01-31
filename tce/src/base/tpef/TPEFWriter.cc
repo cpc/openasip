@@ -40,6 +40,8 @@
 #include "ValueReplacer.hh"
 #include "FileOffsetReplacer.hh"
 #include "SectionSizeReplacer.hh"
+#include "BinaryStream.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 

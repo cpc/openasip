@@ -48,6 +48,7 @@
 #include "TPEFCodeSectionWriter.hh"
 #include "ImmediateElement.hh"
 #include "TPEFHeaders.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

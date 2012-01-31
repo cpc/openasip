@@ -35,7 +35,6 @@
 #define TTA_CHUNK_HH
 
 #include "TPEFBaseType.hh"
-#include "SafePointer.hh"
 #include "SectionElement.hh"
 
 namespace TPEF {

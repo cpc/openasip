@@ -37,9 +37,7 @@
 #define TTA_AOUT_STRING_SECTION_READER_HH
 
 #include "AOutSectionReader.hh"
-#include "BinaryReader.hh"
 #include "Exception.hh"
-#include "ReferenceKey.hh"
 
 namespace TPEF {
 

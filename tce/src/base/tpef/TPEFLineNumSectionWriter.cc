@@ -44,6 +44,7 @@
 #include "SectionOffsetReplacer.hh"
 #include "SectionIndexReplacer.hh"
 #include "SectionIdReplacer.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

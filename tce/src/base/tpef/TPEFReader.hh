@@ -34,17 +34,18 @@
 #ifndef TTA_TPEF_READER_HH
 #define TTA_TPEF_READER_HH
 
+#include <map>
+
 #include "BinaryReader.hh"
-#include "Binary.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"
-#include "Section.hh"
-#include "BinaryStream.hh"
-#include "TPEFHeaders.hh"
-#include "ASpaceSection.hh"
 
 namespace TPEF {
-
+    class BinaryStream;
+    class Binary;
+    class ASpaceElement;
+    class ASpaceSection;
+    class Section;
 /**
  * Reads binary file that is in TPEF binary format.
  */

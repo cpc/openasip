@@ -33,6 +33,7 @@
 
 #include "SectionOffsetReplacer.hh"
 #include "SafePointer.hh"
+#include "BinaryStream.hh"
 
 namespace TPEF {
 

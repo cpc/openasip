@@ -45,6 +45,10 @@
 #include "SafePointer.hh"
 #include "ReferenceKey.hh"
 #include "CodeSection.hh"
+#include "ResourceSection.hh"
+#include "NullSection.hh"
+#include "DebugSection.hh"
+#include "CodeSection.hh"
 
 namespace TPEF {
 

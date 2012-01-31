@@ -37,19 +37,12 @@
 #define TTA_AOUT_TEXT_SECTION_READER_HH
 
 #include "TPEFBaseType.hh"
-#include "InstructionElement.hh"
 #include "AOutSectionReader.hh"
-#include "BinaryStream.hh"
-#include "MoveElement.hh"
-#include "ImmediateElement.hh"
-#include "Section.hh"
-#include "BinaryReader.hh"
-#include "AOutReader.hh"
 #include "Exception.hh"
-#include "ReferenceKey.hh"
 
 namespace TPEF {
-
+    class ImmediateElement;
+    class MoveElement;
 /**
  * Reads text sections of a.out format.
  */

@@ -38,13 +38,11 @@
 
 #include "ValueReplacer.hh"
 
-#include "SafePointable.hh"
-#include "BinaryStream.hh"
 #include "Exception.hh"
 #include "TPEFBaseType.hh"
 
 namespace TPEF {
-
+    class SafePointable;
 /**
  * Replaces object reference with size of object. Size for object must be
  * stored with static setSize method of this class.

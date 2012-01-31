@@ -42,7 +42,6 @@
 #include "BinaryReader.hh"
 #include "Exception.hh"
 #include "RelocElement.hh"
-#include "ReferenceKey.hh"
 
 namespace TPEF {
 

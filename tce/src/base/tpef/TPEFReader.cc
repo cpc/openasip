@@ -41,6 +41,10 @@
 #include "ReferenceKey.hh"
 #include "SectionReader.hh"
 #include "CodeSection.hh"
+#include "BinaryStream.hh"
+#include "Binary.hh"
+#include "ASpaceSection.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 
