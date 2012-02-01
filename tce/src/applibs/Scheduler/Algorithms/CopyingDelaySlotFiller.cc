@@ -176,8 +176,17 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                     rm.smallestCycle() +
                     jumpNode.guardLatency();
                 
-                maxFillCount = thisBB.instructionCount() -
-                    earliestToFill;
+                maxFillCount = 
+                    std::min(maxFillCount, 
+                             thisBB.instructionCount() - earliestToFill);
+            } else {
+                // guard written in previous BB?
+                // make sure not filled to first insrt if
+                // guard latency 2
+                maxFillCount = 
+                    std::min(maxFillCount,
+                             thisBB.instructionCount() -
+                             std::max(0,jumpNode.guardLatency()-1));
             }
         }
     }
@@ -235,43 +244,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         if (slotsFilled != 0) {
             // filled from jump dest or fal-thru? 
             if (!fillFallThru) {
-                // update jump destination
-
-                InstructionReferenceManager& irm = cfg_->program()->
-                    instructionReferenceManager();
-                // TODO: only the correct jump one, nto both
-                assert(slotsFilled <= nextBBN.basicBlock().instructionCount());
-                if ( slotsFilled == nextBBN.basicBlock().instructionCount()) {
-                    ControlFlowGraph::NodeSet nextBBs = 
-                        cfg_->successors(nextBBN);
-                    if (nextBBs.size() != 1) {
-                        std::string msg = "no succeessors but no jump";
-                        throw IllegalProgram(__FILE__,__LINE__,__func__, msg);
-                    }
-                    assert(
-                        (*nextBBs.begin())->basicBlock().instructionCount()
-                        != 0);
-                    
-                    InstructionReference ir = irm.createReference(
-                        (*nextBBs.begin())->basicBlock().instructionAtIndex(
-                            0));
-                    if (jumpImm == NULL) {
-                        jumpMove->source().setInstructionReference(ir);
-                    } else {
-                        jumpImm->setValue(
-                            new TerminalInstructionReference(ir));
-                    }
-                } else {
-                    InstructionReference ir = irm.createReference(
-                        nextBBN.basicBlock().instructionAtIndex(slotsFilled));
-                    
-                    if (jumpImm == NULL) {
-                        jumpMove->source().setInstructionReference(ir);
-                    } else {
-                        jumpImm->setValue(
-                            new TerminalInstructionReference(ir));
-                    }
-                }
+                updateJumps(nextBBN, jumpImm, jumpMove, slotsFilled);
             } else { // fall-thru, skip first instructions of next BB.
                 nextBBN.basicBlock().skipFirstInstructions(slotsFilled);
             }
@@ -441,7 +414,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBNode.basicBlock();
 
-    int firstToFill = 
+    int firstCycleToFill = 
         rm.smallestCycle() + blockToFill.instructionCount() - slotsToFill;
     int nextBBStart = nextRm.smallestCycle();
     
@@ -465,9 +438,71 @@ CopyingDelaySlotFiller::tryToFillSlots(
         return false;
     }
     
-    bool failed = false;
-
     MoveNodeListVector moves(slotsToFill);
+
+    // Collect all the moves to fill.
+
+    if (!collectMoves(
+            blockToFillNode, nextBBNode, moves, slotsToFill,fallThru, 
+            jumpMove, grIndex, grFile)) {
+        loseCopies();
+        return false;
+    }
+
+
+    // now we have got all the movenodes we are going to fill.
+    // then try to assign them to the block where they are being filled to.
+    if (!tryToAssignNodes(moves, slotsToFill, firstCycleToFill, rm, nextBBStart)) {
+        // cleanup part 2 : delete movenodes
+        for (int i = 0; i < slotsToFill; i++) {
+            list<MoveNode*>& movesInThisCycle = moves.at(i);
+            for (std::list<MoveNode*>::iterator iter = 
+                     movesInThisCycle.begin();
+                 iter != movesInThisCycle.end();iter++) {
+                MoveNode& mn = **iter;
+                if (mn.isScheduled()) {
+                    rm.unassign(mn);
+                }
+            }
+        }
+        loseCopies();
+        return false;
+    }
+
+    // all ok, add filled nodes and PO's to DDG
+    // first movenodes.
+    for (int i = 0; i < slotsToFill; i++) {
+        list<MoveNode*> movesInThisCycle = moves.at(i);
+        for (std::list<MoveNode*>::iterator iter = movesInThisCycle.begin();
+             iter != movesInThisCycle.end(); iter++) {
+            MoveNode& mn = **iter;
+            ddg_->addNode(mn, blockToFillNode);
+            mnOwned_[&mn] = false;
+
+            // TODO: this may not work as it should?
+            ddg_->copyDependencies(*oldMoveNodes_[&mn],mn);
+        }
+    }
+
+    loseCopies();
+    return true;
+}
+
+bool 
+CopyingDelaySlotFiller::collectMoves(
+    BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBN, 
+    MoveNodeListVector& moves, int slotsToFill, bool fallThru, 
+    /*int removeGuards, */TTAProgram::Move& jumpMove, int grIndex, 
+    TTAMachine::RegisterFile* grFile //, TTAProgram::Move*& skippedJump,
+    ) {
+
+    bool failed = false;
+    BasicBlock& bb = blockToFillNode.basicBlock();
+    BasicBlock& nextBB = nextBBN.basicBlock();
+    SimpleResourceManager& rm = *resourceManagers_[&bb];
+
+    int firstCycleToFill = 
+        rm.smallestCycle() + bb.instructionCount() - slotsToFill;
 
     // Find all moves to copy and check their dependencies.
     // Loop thru instructions first..
@@ -516,7 +551,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 // don't allow unconditionals before 
                 // BB start + guard latency (if guard written in last move
                 // of previous BB)
-                if (firstToFill < mnOld.guardLatency()-1) {
+                if (firstCycleToFill < mnOld.guardLatency()-1) {
                     failed = true;
                     break;
                 }
@@ -551,7 +586,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
                             }
                             nodeCycle = pred.cycle()+delay;
                         }
-                        if (nodeCycle > firstToFill+i) {
+                        if (nodeCycle > firstCycleToFill+i) {
                             failed = true;
                             break;
                         }
@@ -588,11 +623,18 @@ CopyingDelaySlotFiller::tryToFillSlots(
         loseCopies();
         return false;
     }
+    return true;
+}
+
+bool
+CopyingDelaySlotFiller::tryToAssignNodes(
+    MoveNodeListVector& moves, int slotsToFill, int firstCycleToFill, 
+    ResourceManager& rm, int nextBBStart) {
 
     // then try to assign the nodes
     for (int i = 0; i < slotsToFill; i++) {
         list<MoveNode*>& movesInThisCycle = moves.at(i);
-        int currentCycle = firstToFill + i;
+        int currentCycle = firstCycleToFill + i;
         for (std::list<MoveNode*>::iterator iter = movesInThisCycle.begin();
              iter != movesInThisCycle.end(); iter++) {
             MoveNode& mn = **iter;
@@ -611,12 +653,12 @@ CopyingDelaySlotFiller::tryToFillSlots(
                         for (int j = 0; j < po.outputMoveCount(); j++) {
                             MoveNode& resMn = po.outputMove(j);
                             int mnCycle = 
-                                firstToFill +
+                                firstCycleToFill +
                                 oldMoveNodes_[&resMn]->cycle() -
                                 nextBBStart;
                             assert(resMn.isSourceOperation());
                             if (!rm.canAssign(mnCycle, resMn)) {
-                                failed = true;
+                                return false;
                             }
                         }
                     } else {
@@ -628,14 +670,13 @@ CopyingDelaySlotFiller::tryToFillSlots(
                             // schedule only those not scheduled
                             if (!operMn.isScheduled()) {
                                 int mnCycle = 
-                                    firstToFill + 
+                                    firstCycleToFill + 
                                     oldMoveNodes_[&operMn]->cycle() -
                                     nextBBStart;
                                 assert(operMn.isDestinationOperation());
 
-                                if (!rm.canAssign(mnCycle, operMn)) {                                
-                                    failed = true;
-                                    break;
+                                if (!rm.canAssign(mnCycle, operMn)) {
+                                    return false;
                                 } else {
                                     rm.assign(mnCycle, operMn);
                                     // need to be removed at end
@@ -646,22 +687,19 @@ CopyingDelaySlotFiller::tryToFillSlots(
 
                         // all operands could be scheduled,
                         // then test results.
-                        if (!failed) {
-                            assert(po.areInputsAssigned());
-                            // allnputs scheduled, then outputs
-                            for (int j = 0; j < po.outputMoveCount(); j++) {
-                                MoveNode& resMn = po.outputMove(j);
-                                assert(!resMn.isScheduled());
-                                int mnCycle = 
-                                    firstToFill + 
-                                    oldMoveNodes_[&resMn]->cycle() -
-                                    nextBBStart;
-                                assert(resMn.isSourceOperation());
-
-                                if (!rm.canAssign(mnCycle, resMn)) {
-                                    failed = true;
-                                    break;
-                                }
+                        assert(po.areInputsAssigned());
+                        // allnputs scheduled, then outputs
+                        for (int j = 0; j < po.outputMoveCount(); j++) {
+                            MoveNode& resMn = po.outputMove(j);
+                            assert(!resMn.isScheduled());
+                            int mnCycle = 
+                                firstCycleToFill + 
+                                oldMoveNodes_[&resMn]->cycle() -
+                                nextBBStart;
+                            assert(resMn.isSourceOperation());
+                            
+                            if (!rm.canAssign(mnCycle, resMn)) {
+                                return false;
                             }
                         }
                         // now we have to unassign all temporarily assigned
@@ -672,54 +710,15 @@ CopyingDelaySlotFiller::tryToFillSlots(
                             rm.unassign(**iter);
                         }
                     }
-                    if (failed) {
-                        break;
-                    }
                 }
             } else {
-                failed = true;
-                break;
+                return false;
             }
         }
-        if (failed) { 
-            break;
-        }
     }
-    if (failed) {
-        // cleanup part 2 : delete movenodes
-        for (int i = 0; i < slotsToFill; i++) {
-            list<MoveNode*>& movesInThisCycle = moves.at(i);
-            for (std::list<MoveNode*>::iterator iter = 
-                     movesInThisCycle.begin();
-                 iter != movesInThisCycle.end();iter++) {
-                MoveNode& mn = **iter;
-                if (mn.isScheduled()) {
-                    rm.unassign(mn);
-                }
-            }
-        }
-        loseCopies();
-        return false;
-    }
-
-    // all ok, add filled nodes and PO's to DDG
-    // first movenodes.
-    for (int i = 0; i < slotsToFill; i++) {
-        list<MoveNode*> movesInThisCycle = moves.at(i);
-        for (std::list<MoveNode*>::iterator iter = movesInThisCycle.begin();
-             iter != movesInThisCycle.end(); iter++) {
-            MoveNode& mn = **iter;
-            ddg_->addNode(mn, blockToFillNode);
-            mnOwned_[&mn] = false;
-
-            // TODO: this may not work as it should?
-            ddg_->copyDependencies(*oldMoveNodes_[&mn],mn);
-        }
-    }
-
-    loseCopies();
     return true;
 }
+
 
 /**
  * 
@@ -900,11 +899,12 @@ void CopyingDelaySlotFiller::loseCopies() {
  * Destructor.
  */
 CopyingDelaySlotFiller::~CopyingDelaySlotFiller() {
+/* it seems these asserts may fire if an exception has been flown.
     assert(programOperations_.size() == 0);
     assert(moveNodes_.size() == 0);
     assert(mnOwned_.size() == 0);
     assert(moves_.size() == 0);
-    
+*/  
     //should not be needed but lets be sure
     loseCopies();
 }
@@ -972,4 +972,48 @@ CopyingDelaySlotFiller::poMoved(
         }
     }
     return false;
+}
+
+void 
+CopyingDelaySlotFiller::updateJumps(
+    BasicBlockNode& nextBBN,
+//        TTAProgram::Move* jumpAddressMove, 
+    TTAProgram::Immediate* jumpImm,
+    TTAProgram::Move* jumpMove,
+    int slotsFilled) {
+    InstructionReferenceManager& irm = cfg_->program()->
+        instructionReferenceManager();
+    // TODO: only the correct jump one, nto both
+    assert(slotsFilled <= nextBBN.basicBlock().instructionCount());
+    if ( slotsFilled == nextBBN.basicBlock().instructionCount()) {
+        ControlFlowGraph::NodeSet nextBBs = 
+            cfg_->successors(nextBBN);
+        if (nextBBs.size() != 1) {
+            std::string msg = "no succeessors but no jump";
+            throw IllegalProgram(__FILE__,__LINE__,__func__, msg);
+        }
+        assert(
+            (*nextBBs.begin())->basicBlock().instructionCount()
+            != 0);
+        
+        InstructionReference ir = irm.createReference(
+            (*nextBBs.begin())->basicBlock().instructionAtIndex(
+                0));
+        if (jumpImm == NULL) {
+            jumpMove->source().setInstructionReference(ir);
+        } else {
+            jumpImm->setValue(
+                new TerminalInstructionReference(ir));
+        }
+    } else {
+        InstructionReference ir = irm.createReference(
+            nextBBN.basicBlock().instructionAtIndex(slotsFilled));
+        
+        if (jumpImm == NULL) {
+            jumpMove->source().setInstructionReference(ir);
+        } else {
+            jumpImm->setValue(
+                new TerminalInstructionReference(ir));
+        }
+    }
 }

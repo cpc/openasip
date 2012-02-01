@@ -47,6 +47,7 @@ class DataDependenceGraph;
 class SimpleResourceManager;
 class UniversalMachine;
 class InterPassData;
+class ResourceManager;
 
 namespace TTAMachine {
     class Machine;
@@ -94,7 +95,23 @@ private:
         bool fallThru, TTAProgram::Move& jumpMove, int slotsToFill,
         int grIndex, TTAMachine::RegisterFile* grFile) throw (Exception);
 
+    void updateJumps(
+        BasicBlockNode& fillingBBN,
+        TTAProgram::Immediate* jumpAddressImmediate,
+        TTAProgram::Move* jumpMove,
+        int slotsFilled);
+
     void loseCopies();
+
+    bool collectMoves(
+        BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBN, 
+        MoveNodeListVector& moves, int slotsToFill, bool fallThru, 
+        TTAProgram::Move& jumpMove, int grIndex, 
+        TTAMachine::RegisterFile* grFile);
+
+    bool tryToAssignNodes(
+        MoveNodeListVector& moves, int slotsToFill, int firstCycleToFill, 
+        ResourceManager& rm, int nextBBStart);
 
     MoveNode& getMoveNode(MoveNode& old);
     ProgramOperationPtr getProgramOperationPtr(ProgramOperationPtr old);

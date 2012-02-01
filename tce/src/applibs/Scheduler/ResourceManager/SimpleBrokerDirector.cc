@@ -275,10 +275,12 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     int guardSlack = std::max(0, node.guardLatency() -1);
     if (knownMinCycle_ > cycle - guardSlack) {
         knownMinCycle_ = cycle - guardSlack ;
+        assert(knownMinCycle_ >= 0);
     }
     if (node.isSourceImmediateRegister() &&
          knownMinCycle_ > immediateWriteCycle(node)) {
         knownMinCycle_ = immediateWriteCycle(node);
+        assert(knownMinCycle_ >= 0);
     }
     moveCounts_[instructionIndex(cycle)]++;
 }
