@@ -484,72 +484,132 @@ private:
                     Application::exitProgram(1);
                 }   
 
-                TTAMachine::RFPort* firstPortRead = new TTAMachine::RFPort(
-                    firstName + "_connect_r1", *firstRF);
-                TTAMachine::RFPort* secondPortWrite = new TTAMachine::RFPort(
-                    secondName + "_connect_w1", *secondRF);
+                TTAMachine::RFPort* firstPortRead = NULL;
+                TTAMachine::RFPort* firstPortWrite = NULL;                
+                TTAMachine::RFPort* secondPortWrite = NULL;
+                TTAMachine::RFPort* secondPortRead = NULL;
                 
-                TTAMachine::Socket* firstSocket = 
-                    new TTAMachine::Socket(firstPortRead->name());                
-                try {     
-                    finalMach->addSocket(*firstSocket);
-                } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Socket with "
-                    " an already existing name (" + firstPortRead->name())
-                    Application::exitProgram(1);
+                for (int k = 0; k < firstRF->portCount(); k++) {
+                    if (firstRF->port(k)->name() == firstName + "_connect_r") {
+                        firstPortRead = firstRF->port(k);
+                    }
+                    if (firstRF->port(k)->name() == firstName + "_connect_w") {
+                        firstPortWrite = firstRF->port(k);
+                    }                    
                 }
+                if (firstPortRead == NULL) {
+                    firstPortRead = new TTAMachine::RFPort(
+                        firstName + "_connect_r", *firstRF);
+                }
+                if (firstPortWrite == NULL) {
+                    firstPortWrite = new TTAMachine::RFPort(
+                        firstName + "_connect_w", *firstRF);
+                }
+                for (int k = 0; k < secondRF->portCount(); k++) {
+                    if (secondRF->port(k)->name() == secondName + "_connect_r") {
+                        secondPortRead = secondRF->port(k);
+                    }
+                    if (secondRF->port(k)->name() == secondName + "_connect_w") {
+                        secondPortWrite = secondRF->port(k);
+                    }                    
+                }
+                if (secondPortRead == NULL) {
+                    secondPortRead = new TTAMachine::RFPort(
+                        secondName + "_connect_r", *secondRF);
+                }
+                if (secondPortWrite == NULL) {
+                    secondPortWrite = new TTAMachine::RFPort(
+                        secondName + "_connect_w", *secondRF);
+                }
+                
+                const Machine::SocketNavigator socketNavigator = 
+                    finalMach->socketNavigator();
                     
-                TTAMachine::Socket* secondSocket = 
-                    new TTAMachine::Socket(secondPortWrite->name());
-                try {     
-                    finalMach->addSocket(*secondSocket);
-                } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Socket with "
-                    " an already existing name (" + secondPortWrite->name())
-                    Application::exitProgram(1);
-                }
-                                    
-                firstPortRead->attachSocket(*firstSocket);                
-                firstSocket->attachBus(*newBus->segment(0));
-                firstSocket->setDirection(Socket::OUTPUT);                
-                
-                secondPortWrite->attachSocket(*secondSocket);                                
-                secondSocket->attachBus(*newBus->segment(0));                
-                secondSocket->setDirection(Socket::INPUT);                                        
-                
-                TTAMachine::RFPort* firstPortWrite = new TTAMachine::RFPort(
-                    firstName + "_connect_w2", *firstRF);
-                TTAMachine::RFPort* secondPortRead = new TTAMachine::RFPort(
-                    secondName + "_connect_r2", *secondRF);
-                
-                TTAMachine::Socket* thirdSocket = 
-                    new TTAMachine::Socket(firstPortWrite->name());                
-                try {     
-                    finalMach->addSocket(*thirdSocket);
-                } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Socket with "
-                    " an already existing name (" + firstPortWrite->name())
-                    Application::exitProgram(1);
+                TTAMachine::Socket* firstSocketRead = NULL;
+                if (!socketNavigator.hasItem(firstPortRead->name())) {
+                    firstSocketRead = new TTAMachine::Socket(firstPortRead->name());                
+                    try {     
+                        finalMach->addSocket(*firstSocketRead);
+                    } catch (const ComponentAlreadyExists& e) {
+                        verboseLog("ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + firstPortRead->name())
+                        Application::exitProgram(1);
+                    }
+                } else {
+                    firstSocketRead = socketNavigator.item(firstPortRead->name());
                 }
                 
-                TTAMachine::Socket* fourthSocket = 
-                new TTAMachine::Socket(secondPortRead->name());
-                try {     
-                    finalMach->addSocket(*fourthSocket);
-                } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Socket with "
-                    " an already existing name (" + secondPortRead->name())
-                    Application::exitProgram(1);
+                TTAMachine::Socket* firstSocketWrite = NULL;
+                if (!socketNavigator.hasItem(firstPortWrite->name())) {
+                    firstSocketWrite = new TTAMachine::Socket(firstPortWrite->name());                
+                    try {     
+                        finalMach->addSocket(*firstSocketWrite);
+                    } catch (const ComponentAlreadyExists& e) {
+                        verboseLog("ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + firstPortWrite->name())
+                        Application::exitProgram(1);
+                    }
+                } else {
+                    firstSocketWrite = socketNavigator.item(firstPortWrite->name());
                 }
                 
-                firstPortWrite->attachSocket(*thirdSocket);                
-                thirdSocket->attachBus(*newBus->segment(0));
-                thirdSocket->setDirection(Socket::OUTPUT);                
+                TTAMachine::Socket* secondSocketRead = NULL;
+                if (!socketNavigator.hasItem(secondPortRead->name())) {
+                    secondSocketRead = new TTAMachine::Socket(secondPortRead->name());                
+                    try {     
+                        finalMach->addSocket(*secondSocketRead);
+                    } catch (const ComponentAlreadyExists& e) {
+                        verboseLog("ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + secondPortRead->name())
+                        Application::exitProgram(1);
+                    }
+                } else {
+                    secondSocketRead = socketNavigator.item(secondPortRead->name());
+                }
                 
-                secondPortRead->attachSocket(*fourthSocket);                                
-                fourthSocket->attachBus(*newBus->segment(0));                
-                fourthSocket->setDirection(Socket::INPUT);                                        
+                TTAMachine::Socket* secondSocketWrite = NULL;
+                if (!socketNavigator.hasItem(secondPortWrite->name())) {
+                    secondSocketWrite = new TTAMachine::Socket(secondPortWrite->name());                
+                    try {     
+                        finalMach->addSocket(*secondSocketWrite);
+                    } catch (const ComponentAlreadyExists& e) {
+                        verboseLog("ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + secondPortWrite->name())
+                        Application::exitProgram(1);
+                    }
+                } else {
+                    secondSocketWrite = socketNavigator.item(secondPortWrite->name());
+                }
                 
+                if (firstPortRead->outputSocket() == NULL) {
+                    firstPortRead->attachSocket(*firstSocketRead);                                
+                }
+                if (!firstSocketRead->isConnectedTo(*newBus->segment(0))) {
+                    firstSocketRead->attachBus(*newBus->segment(0));
+                    firstSocketRead->setDirection(Socket::OUTPUT);                                                    
+                }
+                if (firstPortWrite->inputSocket() == NULL) {               
+                    firstPortWrite->attachSocket(*firstSocketWrite);                                                
+                }
+                if (!firstSocketWrite->isConnectedTo(*newBus->segment(0))) {
+                    firstSocketWrite->attachBus(*newBus->segment(0));                
+                    firstSocketWrite->setDirection(Socket::INPUT);                                        
+                    
+                }
+                if (secondPortRead->outputSocket() == NULL) {
+                    secondPortRead->attachSocket(*secondSocketRead);                                                
+                }
+                if (!secondSocketRead->isConnectedTo(*newBus->segment(0))) {                
+                    secondSocketRead->attachBus(*newBus->segment(0));                
+                    secondSocketRead->setDirection(Socket::OUTPUT);                                     
+                }
+                if (secondPortWrite->inputSocket() == NULL) {
+                    secondPortWrite->attachSocket(*secondSocketWrite);                                
+                }
+                if (!secondSocketWrite->isConnectedTo(*newBus->segment(0))) {                                
+                    secondSocketWrite->attachBus(*newBus->segment(0));
+                    secondSocketWrite->setDirection(Socket::INPUT);                
+                }
             }
         }
     }
