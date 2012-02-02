@@ -485,9 +485,9 @@ private:
                 }   
 
                 TTAMachine::RFPort* firstPortRead = new TTAMachine::RFPort(
-                    firstName + "_connect_r", *firstRF);
+                    firstName + "_connect_r1", *firstRF);
                 TTAMachine::RFPort* secondPortWrite = new TTAMachine::RFPort(
-                    secondName + "_connect_w", *secondRF);
+                    secondName + "_connect_w1", *secondRF);
                 
                 TTAMachine::Socket* firstSocket = 
                     new TTAMachine::Socket(firstPortRead->name());                
@@ -516,6 +516,39 @@ private:
                 secondPortWrite->attachSocket(*secondSocket);                                
                 secondSocket->attachBus(*newBus->segment(0));                
                 secondSocket->setDirection(Socket::INPUT);                                        
+                
+                TTAMachine::RFPort* firstPortWrite = new TTAMachine::RFPort(
+                    firstName + "_connect_w2", *firstRF);
+                TTAMachine::RFPort* secondPortRead = new TTAMachine::RFPort(
+                    secondName + "_connect_r2", *secondRF);
+                
+                TTAMachine::Socket* thirdSocket = 
+                    new TTAMachine::Socket(firstPortWrite->name());                
+                try {     
+                    finalMach->addSocket(*thirdSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    verboseLog("ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + firstPortWrite->name())
+                    Application::exitProgram(1);
+                }
+                
+                TTAMachine::Socket* fourthSocket = 
+                new TTAMachine::Socket(secondPortRead->name());
+                try {     
+                    finalMach->addSocket(*fourthSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    verboseLog("ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + secondPortRead->name())
+                    Application::exitProgram(1);
+                }
+                
+                firstPortWrite->attachSocket(*thirdSocket);                
+                thirdSocket->attachBus(*newBus->segment(0));
+                thirdSocket->setDirection(Socket::OUTPUT);                
+                
+                secondPortRead->attachSocket(*fourthSocket);                                
+                fourthSocket->attachBus(*newBus->segment(0));                
+                fourthSocket->setDirection(Socket::INPUT);                                        
                 
             }
         }
