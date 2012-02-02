@@ -204,10 +204,12 @@ private:
      */
     void addComponents(
         TTAMachine::Machine* finalMach, 
-        TTAMachine::Machine* nodeMach, unsigned nodeCount) {
+        TTAMachine::Machine* nodeMach,                
+        unsigned nodeCount) {
         // Order is important here!
         // When adding busses also socket will be created
         // and the RF and FU ports will be connected to them when adding.
+        addAddressSpaces(finalMach, nodeMach);                        
         addBuses(finalMach, nodeMach, nodeCount);                
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);        
@@ -334,11 +336,12 @@ private:
         for (unsigned j = 0; j < nodeCount; j++) {
             
             for (int i = 0; i < FUNav.count(); i++) {
+                
                 TTAMachine::FunctionUnit* addFU = FUNav.item(i)->copy();
                 TTAMachine::FunctionUnit* originalFU = FUNav.item(i);                
                 std::string FUName = 
                     FUNav.item(i)->name() + "_" + Conversion::toString(j);
-                addFU->setName(FUName);
+                addFU->setName(FUName);                
                 try {     
                     finalMach->addFunctionUnit(*addFU);
                 } catch (const ComponentAlreadyExists& e) {
@@ -346,6 +349,16 @@ private:
                     "existing name (" + FUName)
                     Application::exitProgram(1);
                 }
+                if (originalFU->hasAddressSpace()) {                    
+                    
+                    std::string aName = originalFU->addressSpace()->name();
+                    const TTAMachine::Machine::AddressSpaceNavigator& aNav = 
+                    finalMach->addressSpaceNavigator();
+                    
+                    assert(aNav.hasItem(aName));
+                    addFU->setAddressSpace(aNav.item(aName));
+                }
+                
                 connectPorts(finalMach, originalFU, addFU, j);
             }
         }
@@ -398,6 +411,33 @@ private:
                     finalMach->socketNavigator().item(socketName);
                 newUnit->port(k)->attachSocket(*newSocket);                        
             }                    
+        }        
+    }
+    
+    /**
+     * Adds address spaces from node machine to final one if missing.
+     * Address spaces from extra machine are already in final.
+     *
+     *
+     * @return void 
+     */    
+    void addAddressSpaces(
+        TTAMachine::Machine* finalMach, 
+        TTAMachine::Machine* nodeMach) {    
+        
+        const TTAMachine::Machine::AddressSpaceNavigator& ANav = 
+            nodeMach->addressSpaceNavigator();        
+        for (int i = 0; i < ANav.count(); i++) {
+            TTAMachine::AddressSpace* origA = ANav.item(i);
+            if (!finalMach->addressSpaceNavigator().hasItem(origA->name())) {            
+                // Creating address space registers it.
+                TTAMachine::AddressSpace* aSpace = 
+                    new TTAMachine::AddressSpace(
+                        origA->name(), origA->width(), origA->start(), 
+                        origA->end(), *finalMach);
+                assert(
+                    finalMach->addressSpaceNavigator().hasItem(origA->name()));
+            }
         }        
     }
 
