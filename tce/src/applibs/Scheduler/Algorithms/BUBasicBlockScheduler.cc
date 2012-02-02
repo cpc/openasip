@@ -252,8 +252,8 @@ BUBasicBlockScheduler::scheduleOperation(
     }
 //    ddg_->sanityCheck();
 #endif
-    bool bypass = false;
-    bool dre = false;
+    bool bypass = true;
+    bool dre = true;
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(moves, resultsStartCycle, bypass, dre);
@@ -596,6 +596,21 @@ BUBasicBlockScheduler::scheduleResultReads(
                             continue;
                         }
                         assert((*it)->isScheduled());
+                        if ((*it)->isDestinationVariable()) {
+                            MoveNode* firstWrite =
+                            ddg_->firstScheduledRegisterWrite(
+                                (*it)->move().destination().registerFile(),
+                                (*it)->move().destination().index());                        
+                            if (firstWrite != (*it)) {
+                            // If bypassing to temporary register
+                            // missing edges in DDG could cause 
+                            // overwrite of temporary value before it is 
+                            // consumed. Avoid this error for now.
+                            // TODO: figure out some better logic, this leads
+                            // to inefficiency.
+                                continue;
+                            }
+                        }                        
                         int originalCycle = (*it)->cycle();
                         bypassDestinationsCycle_[&moveNode].push_back(
                             originalCycle);  
