@@ -90,13 +90,8 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
-#ifdef LLVM_2_9
-  CCState CCInfo(CallConv, isVarArg, DAG.getTarget(),
-                 RVLocs, *DAG.getContext());
-#else
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
-#endif
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
@@ -144,13 +139,8 @@ TCETargetLowering::LowerFormalArguments(
 
     // Assign locations to all of the incoming arguments.
     SmallVector<CCValAssign, 16> ArgLocs;
-#ifdef LLVM_2_9
-    CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
-                   ArgLocs, *DAG.getContext());
-#else
     CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                    getTargetMachine(), ArgLocs, *DAG.getContext());
-#endif
 
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
   
@@ -453,14 +443,8 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-#ifdef LLVM_2_9
-  CCState RVInfo(CallConv, isVarArg, DAG.getTarget(), RVLocs, 
-                 *DAG.getContext());
-#else
   CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
-#endif
-
 
   RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
 
@@ -697,17 +681,11 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
 /**
  * Returns the preferred comparison result type.
  */
-#ifdef LLVM_2_9
-MVT::SimpleValueType 
-TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
-    return llvm::MVT::i1;
-}
-#else
 EVT
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
     return llvm::MVT::i1;
 }
-#endif
+
 /**
  * Handles custom operation lowerings.
  */
