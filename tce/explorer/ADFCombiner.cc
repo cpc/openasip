@@ -40,6 +40,7 @@
 #include "RFPort.hh"
 #include "ComponentImplementationSelector.hh"
 #include "Exception.hh"
+#include "Segment.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;
@@ -212,8 +213,8 @@ private:
         addAddressSpaces(finalMach, nodeMach);                        
         addBuses(finalMach, nodeMach, nodeCount);                
         addRegisterFiles(finalMach, nodeMach, nodeCount);
-        addFunctionUnits(finalMach, nodeMach, nodeCount);        
-
+        addFunctionUnits(finalMach, nodeMach, nodeCount);     
+        connectRegisterFiles(finalMach, nodeMach, nodeCount);
     }
 
     /**
@@ -301,6 +302,7 @@ private:
     void addRegisterFiles(
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach, unsigned nodeCount) {
+        
         const TTAMachine::Machine::RegisterFileNavigator& RFNav = 
             nodeMach->registerFileNavigator();        
         for (unsigned j = 0; j < nodeCount; j++) {
@@ -415,7 +417,7 @@ private:
     }
     
     /**
-     * Adds address spaces from node machine to final one if missing.
+     * Adds address spaces from node machine to final one, if missing.
      * Address spaces from extra machine are already in final.
      *
      *
@@ -436,9 +438,87 @@ private:
                         origA->name(), origA->width(), origA->start(), 
                         origA->end(), *finalMach);
                 assert(
-                    finalMach->addressSpaceNavigator().hasItem(origA->name()));
+                    finalMach->addressSpaceNavigator().hasItem(aSpace->name()));
             }
         }        
+    }
+    void connectRegisterFiles(
+        TTAMachine::Machine* finalMach, 
+        TTAMachine::Machine* nodeMach, unsigned nodeCount) {
+        
+        const TTAMachine::Machine::RegisterFileNavigator& nodeNav =
+            nodeMach->registerFileNavigator();
+        const TTAMachine::Machine::RegisterFileNavigator& finalNav =
+            finalMach->registerFileNavigator();
+            
+        for (int i = 0; i < nodeNav.count(); i++) {
+            if (nodeNav.item(i)->width() == 1) {
+                // Don't bother connecting boolean registers atm.
+                continue;
+            }            
+            std::string rfName = nodeNav.item(i)->name();            
+            
+            for (unsigned int j = 0; j < nodeCount; j++) {        
+                std::string firstName = 
+                    rfName + "_" + Conversion::toString(j);
+                std::string secondName = 
+                    rfName + "_" + Conversion::toString((j + 1) % nodeCount);
+                TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
+                TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
+                
+                std::string busName = "connect_" + rfName + "_"
+                    + Conversion::toString(j) +
+                    "_" + Conversion::toString((j + 1) % nodeCount);
+                int width = std::max(firstRF->width(), secondRF->width());
+                TTAMachine::Bus* newBus = new TTAMachine::Bus(
+                    busName, width, 0,
+                    Machine::SIGN);
+                TTAMachine::Segment* newSegment = 
+                    new TTAMachine::Segment(busName, *newBus);
+                assert(newBus->hasSegment(newSegment->name()));
+                try {     
+                    finalMach->addBus(*newBus);
+                } catch (const ComponentAlreadyExists& e) {
+                    verboseLog("ADFCombiner: Tried to add Bus with an already"
+                    "existing name (" + busName)
+                    Application::exitProgram(1);
+                }   
+
+                TTAMachine::RFPort* firstPortRead = new TTAMachine::RFPort(
+                    firstName + "_connect_r", *firstRF);
+                TTAMachine::RFPort* secondPortWrite = new TTAMachine::RFPort(
+                    secondName + "_connect_w", *secondRF);
+                
+                TTAMachine::Socket* firstSocket = 
+                    new TTAMachine::Socket(firstPortRead->name());                
+                try {     
+                    finalMach->addSocket(*firstSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    verboseLog("ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + firstPortRead->name())
+                    Application::exitProgram(1);
+                }
+                    
+                TTAMachine::Socket* secondSocket = 
+                    new TTAMachine::Socket(secondPortWrite->name());
+                try {     
+                    finalMach->addSocket(*secondSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    verboseLog("ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + secondPortWrite->name())
+                    Application::exitProgram(1);
+                }
+                                    
+                firstPortRead->attachSocket(*firstSocket);                
+                firstSocket->attachBus(*newBus->segment(0));
+                firstSocket->setDirection(Socket::OUTPUT);                
+                
+                secondPortWrite->attachSocket(*secondSocket);                                
+                secondSocket->attachBus(*newBus->segment(0));                
+                secondSocket->setDirection(Socket::INPUT);                                        
+                
+            }
+        }
     }
 
 };
