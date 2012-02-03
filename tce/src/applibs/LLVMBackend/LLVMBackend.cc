@@ -65,8 +65,6 @@
 
 #include <llvm/Analysis/Verifier.h>
 
-#include <llvm/CodeGen/ObjectCodeEmitter.h>
-
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
 #ifdef LLVM_LIBDIR
