@@ -34,11 +34,14 @@
 #define TTA_UNIVERSAL_FUNCTION_UNIT_HH
 
 #include "FunctionUnit.hh"
-#include "SmartHWOperation.hh"
 
 class Operation;
 class OperationPool;
+class SmartHWOperation;
 
+namespace TTAMachine {
+    class HWOperation;
+}
 /**
  * UniversalFunctionUnit class represents a function unit which has
  * all the operations of an operation pool. The operations are added
@@ -51,7 +54,7 @@ public:
     virtual ~UniversalFunctionUnit();
 
     virtual bool hasOperation(const std::string& name) const;
-    virtual SmartHWOperation* operation(const std::string& name) const
+    virtual TTAMachine::HWOperation* operation(const std::string& name) const
         throw (InstanceNotFound);
     virtual void addPipelineElement(TTAMachine::PipelineElement& element)
         throw (ComponentAlreadyExists);

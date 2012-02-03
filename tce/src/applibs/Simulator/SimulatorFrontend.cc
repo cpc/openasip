@@ -55,6 +55,7 @@
 #include "SimulationController.hh"
 #include "UniversalMachine.hh"
 #include "UniversalFunctionUnit.hh"
+#include "HWOperation.hh"
 #include "RegisterFileState.hh"
 #include "StringTools.hh"
 #include "MachineState.hh"

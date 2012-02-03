@@ -35,6 +35,7 @@
 #include "UniversalMachine.hh"
 #include "UniversalFUPort.hh"
 #include "HWOperation.hh"
+#include "SmartHWOperation.hh"
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
@@ -100,18 +101,14 @@ UniversalFunctionUnit::hasOperation(const std::string& name) const {
  *                             exist in the operation pool.
  * @return The operation.
  */
-SmartHWOperation*
+TTAMachine::HWOperation*
 UniversalFunctionUnit::operation(const std::string& name) const
     throw (InstanceNotFound) {
 
     const string procName = "UniversalFunctionUnit::operation";
 
     if (FunctionUnit::hasOperation(name)) {
-        HWOperation* operation = FunctionUnit::operation(name);
-        SmartHWOperation* smartOp =
-            dynamic_cast<SmartHWOperation*>(operation);
-        assert(smartOp != NULL);
-        return smartOp;
+        return FunctionUnit::operation(name);
     } else {
         Operation& oper = opPool_.operation(name.c_str());
 
