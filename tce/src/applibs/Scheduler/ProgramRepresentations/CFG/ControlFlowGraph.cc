@@ -144,6 +144,7 @@ ControlFlowGraph::ControlFlowGraph(
     startAddress_(TTAProgram::NullAddress::instance()),
     endAddress_(TTAProgram::NullAddress::instance()),
     passData_(NULL) {
+    procedureName_ = name;
 }
 
 /**
@@ -1256,11 +1257,11 @@ ControlFlowGraph::printStatistics() {
     TCEString result = "";
     result += (boost::format("Procedure '%s' has %d moves, %d immediate"
         " writes, %d instructions and %d bypassed moves in %d basic blocks.")
-        %procedureName() % stats.moveCount() % stats.immediateCount()
+        % procedureName() % stats.moveCount() % stats.immediateCount()
         % stats.instructionCount() % stats.bypassedCount()
         % stats.normalBBCount()).str();
     result += (boost::format("\n\tLargest basic block has %d moves, %d"
-        " immediate writes, %d instructions and %d bypassed moves.")
+        " immediate writes, %d instructions and %d bypassed moves.\n")
         % stats.maxMoveCount() % stats.maxImmediateCount()
         % stats.maxInstructionCount() % stats.maxBypassedCount()).str();
     return result;
