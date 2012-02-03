@@ -109,6 +109,9 @@ private:
         TTAProgram::Move& jumpMove, int grIndex, 
         TTAMachine::RegisterFile* grFile);
 
+    bool checkIncomingDeps(
+        MoveNode& mnOld, BasicBlockNode& blockToFillNode, int cycleDiff);
+
     bool tryToAssignNodes(
         MoveNodeListVector& moves, int slotsToFill, int firstCycleToFill, 
         ResourceManager& rm, int nextBBStart);

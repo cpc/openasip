@@ -500,9 +500,12 @@ CopyingDelaySlotFiller::collectMoves(
     BasicBlock& bb = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBN.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&bb];
+    SimpleResourceManager& nextRm = *resourceManagers_[&nextBB];
 
-    int firstCycleToFill = 
-        rm.smallestCycle() + bb.instructionCount() - slotsToFill;
+    int firstIndexToFill = bb.instructionCount() - slotsToFill;
+
+    int cycleDiff = 
+        firstIndexToFill + rm.smallestCycle() - nextRm.smallestCycle();
 
     // Find all moves to copy and check their dependencies.
     // Loop thru instructions first..
@@ -551,51 +554,17 @@ CopyingDelaySlotFiller::collectMoves(
                 // don't allow unconditionals before 
                 // BB start + guard latency (if guard written in last move
                 // of previous BB)
-                if (firstCycleToFill < mnOld.guardLatency()-1) {
+                if (firstIndexToFill < mnOld.guardLatency()-1) {
                     failed = true;
                     break;
                 }
             }
 
-            DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(mnOld);
-            for (DataDependenceGraph::EdgeSet::iterator ieIter = 
-                     inEdges.begin(); ieIter != inEdges.end(); ieIter++) {
-                // slow
-                DataDependenceEdge& ddEdge = **ieIter;
-                MoveNode& pred = ddg_->tailNode(ddEdge);
-                if (pred.isMove()) {
-                    BasicBlockNode& predBlock = ddg_->getBasicBlockNode(pred);
+            if (!checkIncomingDeps(mnOld, blockToFillNode, cycleDiff)) {
+                loseCopies();
+                return false;
+            }
 
-                    if (&predBlock == &blockToFillNode) {
-                        int nodeCycle;
-                        int delay = 1;
-                        // guard latency.
-                        if (ddEdge.dependenceType() == 
-                            DataDependenceEdge::DEP_WAR) {
-                            if (ddEdge.guardUse()) {
-                                delay = pred.guardLatency();
-                            }
-                            nodeCycle = pred.cycle() - delay+1;
-                        } else {
-                            // if WAW, always 1
-                            if (ddEdge.dependenceType() !=
-                                DataDependenceEdge::DEP_WAW) {
-                                if (ddEdge.guardUse()) {
-                                    delay = mnOld.guardLatency();
-                                }
-                            }
-                            nodeCycle = pred.cycle()+delay;
-                        }
-                        if (nodeCycle > firstCycleToFill+i) {
-                            failed = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (failed) {
-                break;
-            }
             MoveNode& mn = getMoveNode(mnOld); // also copies move
             Move& newMove = mn.move();
 
@@ -622,6 +591,59 @@ CopyingDelaySlotFiller::collectMoves(
     if (failed) {
         loseCopies();
         return false;
+    }
+    return true;
+}
+
+/**
+ * Checks that no incoming deps prevent the filling, ie. no data hazards.
+ *
+ * @param mnOld movenode which to fill from successor bb
+ * @param blockToFillNode block containing the jump being filled.
+ * @param firstCycleToFill index of first instruction where to fill
+ * @return true if no data hazards, false if cannot fill.
+ */
+bool
+CopyingDelaySlotFiller::checkIncomingDeps(
+    MoveNode& mnOld, BasicBlockNode& blockToFillNode, int cycleDiff) {
+    DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(mnOld);
+    for (DataDependenceGraph::EdgeSet::iterator ieIter = 
+             inEdges.begin(); ieIter != inEdges.end(); ieIter++) {
+        int mnCycle = mnOld.cycle();
+        // slow
+        DataDependenceEdge& ddEdge = **ieIter;
+        MoveNode& pred = ddg_->tailNode(ddEdge);
+        if (pred.isMove()) {
+            BasicBlockNode& predBlock = ddg_->getBasicBlockNode(pred);
+            if (!pred.isScheduled()) {
+                continue;
+            }
+
+            if (&predBlock == &blockToFillNode) {
+                int nodeCycle;
+                int delay = 1;
+                // guard latency.
+                if (ddEdge.dependenceType() == 
+                    DataDependenceEdge::DEP_WAR) {
+                    if (ddEdge.guardUse()) {
+                        delay = pred.guardLatency();
+                    }
+                    nodeCycle = pred.cycle() - delay+1;
+                } else {
+                    // if WAW, always 1
+                    if (ddEdge.dependenceType() !=
+                        DataDependenceEdge::DEP_WAW) {
+                        if (ddEdge.guardUse()) {
+                            delay = mnOld.guardLatency();
+                        }
+                    }
+                    nodeCycle = pred.cycle()+delay;
+                }
+                if (nodeCycle > cycleDiff+mnCycle) {
+                    return false;
+                }
+            }
+        }
     }
     return true;
 }
