@@ -136,7 +136,7 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         // Copies the extra machine to new architecture
         finalMach = new TTAMachine::Machine(*extraMach);
         // add components
-        addComponents(finalMach, nodeMach, NodeCount_);
+        addComponents(finalMach, nodeMach, extraMach, NodeCount_);
 
         if (buildIdf_) {
             try {
@@ -206,6 +206,7 @@ private:
     void addComponents(
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach,                
+        TTAMachine::Machine* extraMach,          
         unsigned nodeCount) {
         // Order is important here!
         // When adding busses also socket will be created
@@ -214,7 +215,7 @@ private:
         addBuses(finalMach, nodeMach, nodeCount);                
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
-        connectRegisterFiles(finalMach, nodeMach, nodeCount);
+        connectRegisterFiles(finalMach, nodeMach, extraMach, nodeCount);
     }
 
     /**
@@ -444,12 +445,16 @@ private:
     }
     void connectRegisterFiles(
         TTAMachine::Machine* finalMach, 
-        TTAMachine::Machine* nodeMach, unsigned nodeCount) {
+        TTAMachine::Machine* nodeMach, 
+        TTAMachine::Machine* extraMach,
+        unsigned nodeCount) {
         
         const TTAMachine::Machine::RegisterFileNavigator& nodeNav =
             nodeMach->registerFileNavigator();
         const TTAMachine::Machine::RegisterFileNavigator& finalNav =
             finalMach->registerFileNavigator();
+        const TTAMachine::Machine::RegisterFileNavigator& extraNav =
+            extraMach->registerFileNavigator();
             
         for (int i = 0; i < nodeNav.count(); i++) {
             if (nodeNav.item(i)->width() == 1) {
@@ -457,163 +462,144 @@ private:
                 continue;
             }            
             std::string rfName = nodeNav.item(i)->name();            
-            
-            for (unsigned int j = 0; j < nodeCount; j++) {        
+            // Connect register file between neighbouring node
+            for (unsigned int j = 0; j < nodeCount -1; j++) {        
                 std::string firstName = 
                     rfName + "_" + Conversion::toString(j);
                 std::string secondName = 
-                    rfName + "_" + Conversion::toString((j + 1) % nodeCount);
+                    rfName + "_" + Conversion::toString(j + 1);
                 TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
                 TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
                 
                 std::string busName = "connect_" + rfName + "_"
                     + Conversion::toString(j) +
-                    "_" + Conversion::toString((j + 1) % nodeCount);
+                    "_" + Conversion::toString(j + 1);
                 int width = std::max(firstRF->width(), secondRF->width());
-                TTAMachine::Bus* newBus = new TTAMachine::Bus(
-                    busName, width, 0,
-                    Machine::SIGN);
-                TTAMachine::Segment* newSegment = 
-                    new TTAMachine::Segment(busName, *newBus);
-                assert(newBus->hasSegment(newSegment->name()));
-                try {     
-                    finalMach->addBus(*newBus);
-                } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Bus with an already"
-                    "existing name (" + busName)
-                    Application::exitProgram(1);
-                }   
-
-                TTAMachine::RFPort* firstPortRead = NULL;
-                TTAMachine::RFPort* firstPortWrite = NULL;                
-                TTAMachine::RFPort* secondPortWrite = NULL;
-                TTAMachine::RFPort* secondPortRead = NULL;
+                TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
                 
-                for (int k = 0; k < firstRF->portCount(); k++) {
-                    if (firstRF->port(k)->name() == firstName + "_connect_r") {
-                        firstPortRead = firstRF->port(k);
-                    }
-                    if (firstRF->port(k)->name() == firstName + "_connect_w") {
-                        firstPortWrite = firstRF->port(k);
-                    }                    
-                }
-                if (firstPortRead == NULL) {
-                    firstPortRead = new TTAMachine::RFPort(
-                        firstName + "_connect_r", *firstRF);
-                }
-                if (firstPortWrite == NULL) {
-                    firstPortWrite = new TTAMachine::RFPort(
-                        firstName + "_connect_w", *firstRF);
-                }
-                for (int k = 0; k < secondRF->portCount(); k++) {
-                    if (secondRF->port(k)->name() == secondName + "_connect_r") {
-                        secondPortRead = secondRF->port(k);
-                    }
-                    if (secondRF->port(k)->name() == secondName + "_connect_w") {
-                        secondPortWrite = secondRF->port(k);
-                    }                    
-                }
-                if (secondPortRead == NULL) {
-                    secondPortRead = new TTAMachine::RFPort(
-                        secondName + "_connect_r", *secondRF);
-                }
-                if (secondPortWrite == NULL) {
-                    secondPortWrite = new TTAMachine::RFPort(
-                        secondName + "_connect_w", *secondRF);
-                }
-                
-                const Machine::SocketNavigator socketNavigator = 
-                    finalMach->socketNavigator();
-                    
-                TTAMachine::Socket* firstSocketRead = NULL;
-                if (!socketNavigator.hasItem(firstPortRead->name())) {
-                    firstSocketRead = new TTAMachine::Socket(firstPortRead->name());                
-                    try {     
-                        finalMach->addSocket(*firstSocketRead);
-                    } catch (const ComponentAlreadyExists& e) {
-                        verboseLog("ADFCombiner: Tried to add Socket with "
-                        " an already existing name (" + firstPortRead->name())
-                        Application::exitProgram(1);
-                    }
-                } else {
-                    firstSocketRead = socketNavigator.item(firstPortRead->name());
-                }
-                
-                TTAMachine::Socket* firstSocketWrite = NULL;
-                if (!socketNavigator.hasItem(firstPortWrite->name())) {
-                    firstSocketWrite = new TTAMachine::Socket(firstPortWrite->name());                
-                    try {     
-                        finalMach->addSocket(*firstSocketWrite);
-                    } catch (const ComponentAlreadyExists& e) {
-                        verboseLog("ADFCombiner: Tried to add Socket with "
-                        " an already existing name (" + firstPortWrite->name())
-                        Application::exitProgram(1);
-                    }
-                } else {
-                    firstSocketWrite = socketNavigator.item(firstPortWrite->name());
-                }
-                
-                TTAMachine::Socket* secondSocketRead = NULL;
-                if (!socketNavigator.hasItem(secondPortRead->name())) {
-                    secondSocketRead = new TTAMachine::Socket(secondPortRead->name());                
-                    try {     
-                        finalMach->addSocket(*secondSocketRead);
-                    } catch (const ComponentAlreadyExists& e) {
-                        verboseLog("ADFCombiner: Tried to add Socket with "
-                        " an already existing name (" + secondPortRead->name())
-                        Application::exitProgram(1);
-                    }
-                } else {
-                    secondSocketRead = socketNavigator.item(secondPortRead->name());
-                }
-                
-                TTAMachine::Socket* secondSocketWrite = NULL;
-                if (!socketNavigator.hasItem(secondPortWrite->name())) {
-                    secondSocketWrite = new TTAMachine::Socket(secondPortWrite->name());                
-                    try {     
-                        finalMach->addSocket(*secondSocketWrite);
-                    } catch (const ComponentAlreadyExists& e) {
-                        verboseLog("ADFCombiner: Tried to add Socket with "
-                        " an already existing name (" + secondPortWrite->name())
-                        Application::exitProgram(1);
-                    }
-                } else {
-                    secondSocketWrite = socketNavigator.item(secondPortWrite->name());
-                }
-                
-                if (firstPortRead->outputSocket() == NULL) {
-                    firstPortRead->attachSocket(*firstSocketRead);                                
-                }
-                if (!firstSocketRead->isConnectedTo(*newBus->segment(0))) {
-                    firstSocketRead->attachBus(*newBus->segment(0));
-                    firstSocketRead->setDirection(Socket::OUTPUT);                                                    
-                }
-                if (firstPortWrite->inputSocket() == NULL) {               
-                    firstPortWrite->attachSocket(*firstSocketWrite);                                                
-                }
-                if (!firstSocketWrite->isConnectedTo(*newBus->segment(0))) {
-                    firstSocketWrite->attachBus(*newBus->segment(0));                
-                    firstSocketWrite->setDirection(Socket::INPUT);                                        
-                    
-                }
-                if (secondPortRead->outputSocket() == NULL) {
-                    secondPortRead->attachSocket(*secondSocketRead);                                                
-                }
-                if (!secondSocketRead->isConnectedTo(*newBus->segment(0))) {                
-                    secondSocketRead->attachBus(*newBus->segment(0));                
-                    secondSocketRead->setDirection(Socket::OUTPUT);                                     
-                }
-                if (secondPortWrite->inputSocket() == NULL) {
-                    secondPortWrite->attachSocket(*secondSocketWrite);                                
-                }
-                if (!secondSocketWrite->isConnectedTo(*newBus->segment(0))) {                                
-                    secondSocketWrite->attachBus(*newBus->segment(0));
-                    secondSocketWrite->setDirection(Socket::INPUT);                
-                }
+                createPortsAndSockets(finalMach, firstRF, newBus, firstName);
+                createPortsAndSockets(finalMach, secondRF, newBus, secondName);                
             }
-        }
+            // Add connections between RF in extra.adf with first and
+            // last of the multiplied nodes
+            std::string firstName = rfName + "_0";
+            std::string lastName = 
+                rfName + "_" + Conversion::toString(nodeCount -1);            
+            TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
+            TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
+                
+            for (int k = 0; k < extraNav.count(); k++) {
+                TTAMachine::RegisterFile* extraRF =
+                    finalNav.item(extraNav.item(k)->name());                
+                if (extraRF->width() == 1) {
+                    continue;
+                }
+                std::string extraName = extraRF->name();
+                int width = std::max(firstRF->width(), extraRF->width());
+                std::string busName = "connect_" + extraName + "_" + firstName;
+                TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
+                createPortsAndSockets(finalMach, firstRF, newBus, firstName);
+                createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
+                
+                width = std::max(lastRF->width(), extraRF->width());
+                busName = "connect_" + extraName + "_" + lastName;
+                newBus = createBus(finalMach, busName, width);
+                createPortsAndSockets(finalMach, lastRF, newBus, lastName);
+                createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
+            }                
+        }        
     }
 
+    TTAMachine::Bus* createBus(
+        TTAMachine::Machine* finalMach, 
+        std::string busName,
+        int width) {
+        TTAMachine::Bus* newBus = new TTAMachine::Bus(
+            busName, width, 0,
+            Machine::SIGN);
+        TTAMachine::Segment* newSegment = 
+            new TTAMachine::Segment(busName, *newBus);
+        assert(newBus->hasSegment(newSegment->name()));
+        try {     
+            finalMach->addBus(*newBus);
+        } catch (const ComponentAlreadyExists& e) {
+            verboseLog("ADFCombiner: Tried to add Bus with an already"
+            "existing name (" + busName)
+            Application::exitProgram(1);
+        }   
+        return newBus;
+    }
+                   
+    void createPortsAndSockets(
+        TTAMachine::Machine* finalMach,
+        TTAMachine::RegisterFile* rf,
+        TTAMachine::Bus* newBus,
+        std::string name) {
+        
+        TTAMachine::RFPort* readPort = NULL;
+        TTAMachine::RFPort* writePort = NULL;                
+        
+        for (int k = 0; k < rf->portCount(); k++) {
+            if (rf->port(k)->name() == name + "_connect_r") {
+                readPort = rf->port(k);
+            }
+            if (rf->port(k)->name() == name + "_connect_w") {
+                writePort = rf->port(k);
+            }                    
+        }
+        if (readPort == NULL) {
+            readPort = new TTAMachine::RFPort(
+                name + "_connect_r", *rf);
+        }
+        if (writePort == NULL) {
+            writePort = new TTAMachine::RFPort(
+                name + "_connect_w", *rf);        
+        }
+        const Machine::SocketNavigator socketNavigator = 
+            finalMach->socketNavigator();
+        
+        TTAMachine::Socket* readSocket = NULL;
+        TTAMachine::Socket* writeSocket = NULL;        
+        
+        if (!socketNavigator.hasItem(readPort->name())) {
+            readSocket = new TTAMachine::Socket(readPort->name());                
+            try {     
+                finalMach->addSocket(*readSocket);
+            } catch (const ComponentAlreadyExists& e) {
+                verboseLog("ADFCombiner: Tried to add Socket with "
+                " an already existing name (" + readSocket->name())
+                Application::exitProgram(1);
+            }
+        } else {
+            readSocket = socketNavigator.item(readPort->name());
+        }                
+        if (!socketNavigator.hasItem(writePort->name())) {
+            writeSocket = new TTAMachine::Socket(writePort->name());                
+            try {     
+                finalMach->addSocket(*writeSocket);
+            } catch (const ComponentAlreadyExists& e) {
+                verboseLog("ADFCombiner: Tried to add Socket with "
+                " an already existing name (" + writeSocket->name())
+                Application::exitProgram(1);
+            }
+        } else {
+            writeSocket = socketNavigator.item(writePort->name());
+        }
+        if (readPort->outputSocket() == NULL) {
+            readPort->attachSocket(*readSocket);                                
+        }
+        if (!readSocket->isConnectedTo(*newBus->segment(0))) {
+            readSocket->attachBus(*newBus->segment(0));
+            readSocket->setDirection(Socket::OUTPUT);                                                    
+        }
+        if (writePort->inputSocket() == NULL) {               
+            writePort->attachSocket(*writeSocket);                                                
+        }
+        if (!writeSocket->isConnectedTo(*newBus->segment(0))) {
+            writeSocket->attachBus(*newBus->segment(0));                
+            writeSocket->setDirection(Socket::INPUT);                                                            
+        }  
+    }
 };
 
 // parameters
