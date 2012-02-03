@@ -80,6 +80,7 @@ namespace TTAMachine {
     class Machine;
     class AddressSpace;
     class Bus;
+    class HWOperation;
 }
 namespace llvm {
 
@@ -163,6 +164,11 @@ namespace llvm {
         /* Helper methods */
         std::string mbbName(const MachineBasicBlock& mbb);
 
+	const TTAMachine::HWOperation& getHWOperation(std::string opName);
+
+	TTAProgram::TerminalRegister* createTerminalRegister(
+	    const std::string& rfName, int index);
+
         TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
 
         TTAProgram::Move* createMove(
@@ -172,6 +178,8 @@ namespace llvm {
             TTAProgram::MoveGuard *guard = NULL);
 
         void emitConstantPool(const llvm::MachineConstantPool& cp);
+
+	bool isVectorOperand(const MachineOperand& mo);
 
         virtual TTAProgram::Terminal* createMBBReference(
             const MachineOperand& mo);
@@ -296,6 +304,20 @@ namespace llvm {
 
         TTAProgram::Instruction* handleMemoryCategoryInfo(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+	TTAProgram::Instruction* emitVectorBuild(
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+	TTAProgram::Instruction* emitVectorExtract(
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+	TTAProgram::Instruction* emitVectorInsert(
+	    const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+	TTAProgram::Instruction* emitVectorInstruction(
+	    const std::string& opName,
+            const MachineInstr* mi,
+	    TTAProgram::CodeSnippet* proc);
 
         bool isInitialized(const Constant* cv);
 

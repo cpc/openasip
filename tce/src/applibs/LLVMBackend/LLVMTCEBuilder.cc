@@ -963,6 +963,31 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
     return false;
 }
 
+const TTAMachine::HWOperation&
+LLVMTCEBuilder::getHWOperation(std::string opName) {
+    const TTAMachine::FunctionUnit* fu = NULL;
+
+    if (UniversalMachine::instance().controlUnit()->hasOperation(opName)) {
+        fu = UniversalMachine::instance().controlUnit();
+    } else if (UniversalMachine::instance().universalFunctionUnit().
+               hasOperation(opName)) {
+        fu = &UniversalMachine::instance().universalFunctionUnit();
+    } else {
+        abortWithError(
+            TCEString("ERROR: Operation '") + opName +
+            "' not found in the machine.");
+    }
+
+    // Check that the target machine supports this instruction.
+    if (opset_.find(StringTools::stringToLower(opName)) == opset_.end()) {
+        std::cerr << "ERROR: Operation '" << opName
+                  << "' is required by the program but not found "
+                  << "in the machine." << std::endl;
+        abortWithError("Cannot proceed.");
+    }
+    return *fu->operation(opName);
+}
+
 /**
  * Creates POM instructions from a LLVM MachineInstruction.
  *
@@ -1029,37 +1054,34 @@ LLVMTCEBuilder::emitInstruction(
 
         if (opName == "SELECT") {
             return emitSelect(mi, proc);
-        }       
+        }
+
+	if (opName == "__BUILD") {
+	    return emitVectorBuild(mi, proc);
+	}
+
+	if (opName == "__EXTRACT") {
+	    return emitVectorExtract(mi, proc);
+	}
+
+	if (opName == "__INSERT") {
+	    return emitVectorInsert(mi, proc);
+	}
+
     } else {
         opName = operationName(*mi);
     }
 
+    if (opName.substr(0,10) == "__VECTOR__") {
+	return emitVectorInstruction(opName.substr(10), mi, proc);
+    }
+
+    const HWOperation& op = getHWOperation(opName);
+
     Bus& bus = UniversalMachine::instance().universalBus();
-    const TTAMachine::FunctionUnit* fu = NULL;
-
-    if (UniversalMachine::instance().controlUnit()->hasOperation(opName)) {
-        fu = UniversalMachine::instance().controlUnit();
-    } else if (UniversalMachine::instance().universalFunctionUnit().
-               hasOperation(opName)) {
-        fu = &UniversalMachine::instance().universalFunctionUnit();
-    } else {
-        abortWithError(
-            TCEString("ERROR: Operation '") + opName +
-            "' not found in the machine.");
-    }
-
-    // Check that the target machine supports this instruction.
-    if (opset_.find(StringTools::stringToLower(opName)) == opset_.end()) {
-        std::cerr << "ERROR: Operation '" << opName
-                  << "' is required by the program but not found "
-                  << "in the machine." << std::endl;
-        mi->dump();
-        abortWithError("Cannot proceed.");
-    }
 
     OperationPool pool;
     const Operation& operation = pool.operation(opName.c_str());
-    HWOperation* op = fu->operation(opName);
 
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
@@ -1093,6 +1115,64 @@ LLVMTCEBuilder::emitInstruction(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
+
+	// if vector operand, expand one MachineOperand into
+	// multiple TCE operands.
+	if (isVectorOperand(mo)) {
+	    int vectorWidth = 2;
+	    int nameIndex = strlen("__VECTOR__");
+	    for (int i = 0; i < vectorWidth; i++) {
+		int dRegNum = mo.getReg();
+		int idx = registerIndex(dRegNum);
+		std::string vectorRfName = registerFileName(dRegNum);
+		int nextNameIndex = vectorRfName.find('+', nameIndex);
+		int len = nextNameIndex - nameIndex;
+		std::string rfName = vectorRfName.substr(nameIndex, len);
+		nameIndex = nextNameIndex + 1;
+		
+		TTAProgram::TerminalRegister* tr = 
+		    createTerminalRegister(rfName, idx);
+		
+		// input
+		if (mo.isUse() || operation.numberOfOutputs() == 0) {
+		    ++inputOperand;
+		    // something messed up?
+		    if (inputOperand > operation.numberOfInputs()) 
+			continue;
+		    
+		    TTAProgram::Terminal* dst = 
+			new TTAProgram::TerminalFUPort(op, inputOperand);
+		    TTAProgram::Move* move = createMove(tr, dst, bus);
+		    TTAProgram::Instruction* ins = 
+			new TTAProgram::Instruction();
+		    ins->addMove(move);
+		    operandMoves.push_back(ins);
+		    debugDataToAnnotations(mi, move);
+		} else {
+		    // output
+		    ++outputOperand;
+		    
+		    if (operation.operand(outputOperand).isNull())
+			continue;
+		    
+		    assert(operation.operand(outputOperand).isOutput() &&
+			   !operation.operand(outputOperand).isAddress() &&
+			   "Operand mismatch.");
+		    
+		    TTAProgram::Terminal* src = 
+			new TTAProgram::TerminalFUPort(op, outputOperand);
+		    
+		    TTAProgram::Move* move = createMove(src, tr, bus);
+		    TTAProgram::Instruction* ins = 
+			new TTAProgram::Instruction();
+		    ins->addMove(move);
+		    resultMoves.push_back(ins);
+		    debugDataToAnnotations(mi, move);
+		}
+	    }
+	    continue;
+	} 
+
         if (!mo.isReg() || mo.isUse() || operation.numberOfOutputs() == 0) {
             ++inputOperand;
             if (inputOperand > operation.numberOfInputs())
@@ -1112,7 +1192,7 @@ LLVMTCEBuilder::emitInstruction(
                 // two in case of an add+ld/st.
                 const MachineOperand& base = mo;
                 src = createTerminal(base);
-                dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+                dst = new TTAProgram::TerminalFUPort(op, inputOperand);
 
                 TTAProgram::Move* move = createMove(src, dst, bus, guard);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
@@ -1132,7 +1212,7 @@ LLVMTCEBuilder::emitInstruction(
 
                     // create the offset operand move
                     src = createTerminal(offset);                
-                    dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+                    dst = new TTAProgram::TerminalFUPort(op, inputOperand);
                     TTAProgram::MoveGuard* guardCopy = NULL;
                     if (guard != NULL)
                         guardCopy = guard->copy();
@@ -1147,7 +1227,7 @@ LLVMTCEBuilder::emitInstruction(
                 }
             } else {
                 src = createTerminal(mo);
-                dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+                dst = new TTAProgram::TerminalFUPort(op, inputOperand);
                 TTAProgram::Move* move = createMove(src, dst, bus, guard);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
@@ -1167,7 +1247,7 @@ LLVMTCEBuilder::emitInstruction(
                    !operation.operand(outputOperand).isAddress() &&
                    "Operand mismatch.");
 
-            src = new TTAProgram::TerminalFUPort(*op, outputOperand);
+            src = new TTAProgram::TerminalFUPort(op, outputOperand);
             dst = createTerminal(mo);
 
             TTAProgram::Move* move = createMove(src, dst, bus, guard);
@@ -1194,7 +1274,8 @@ LLVMTCEBuilder::emitInstruction(
         // To convert it to move, we just write 0 as source terminal. 
         // LLVM already  generated code to put return address on a top of the stack, 
         // so no point explicitely writing ra -> ret.1.
-        TTAMachine::HWOperation* jump = fu->operation(opName);        
+        TTAMachine::HWOperation* jump = 
+	    UniversalMachine::instance().controlUnit()->operation(opName);
         TTAProgram::TerminalFUPort* dst = 
         	new TTAProgram::TerminalFUPort(*jump, 1);
         int width = 32; // FIXME
@@ -1217,13 +1298,15 @@ LLVMTCEBuilder::emitInstruction(
         TTAProgram::Instruction* instr = operandMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-        createMoveNode(po, m, true);
+	// nasty hack because of ddg builfing bug
+        if (resultMoves.size() < 2) {createMoveNode(po, m, true);}
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-        createMoveNode(po, m, false);
+	// nasty hack because of ddg builfing bug
+        if (resultMoves.size() < 2) {createMoveNode(po, m, false);}
     }
     return first;
 }
@@ -1433,6 +1516,28 @@ LLVMTCEBuilder::debugDataToAnnotations(
         }
 }
 
+TTAProgram::TerminalRegister*
+LLVMTCEBuilder::createTerminalRegister(
+    const std::string& rfName, int idx) {
+
+    if (!mach_->registerFileNavigator().hasItem(rfName)) {
+	TCEString msg = "regfile ";
+	msg << rfName << " not found.";
+    }
+    const RegisterFile* rf = 
+	mach_->registerFileNavigator().item(rfName);
+    assert(idx >= 0 && idx < rf->size());
+    const RFPort* port = NULL;
+    for (int i = 0; i < rf->portCount(); i++) {
+	if (rf->port(i)->isOutput()) {
+	    port = rf->port(i);
+	    break;
+	}
+    }
+    assert(port != NULL);
+    return new TTAProgram::TerminalRegister(*port, idx);
+}
+
 /**
  * Creates a POM source terminal from an LLVM machine operand.
  *
@@ -1459,23 +1564,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         // a general purpose register?
         std::string rfName = registerFileName(dRegNum);
         int idx = registerIndex(dRegNum);
-        if (!mach_->registerFileNavigator().hasItem(rfName)) {
-            TCEString msg = "regfile ";
-            msg << rfName << " not found.";
-        }
-        const RegisterFile* rf = 
-            mach_->registerFileNavigator().item(rfName);
-        assert(idx >= 0 && idx < rf->size());
-        const RFPort* port = NULL;
-        for (int i = 0; i < rf->portCount(); i++) {
-            if (rf->port(i)->isOutput()) {
-                port = rf->port(i);
-                break;
-            }
-        }
-        assert(port != NULL);
-        return new TTAProgram::TerminalRegister(*port, idx);
-
+	return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         assert(false && "FP immediates not implemented.");
     } else if (mo.isImm()) {
@@ -2501,6 +2590,297 @@ LLVMTCEBuilder::emitLongjmp(
     codeGenerator.registerJump(*proc, "RA");
 
     return &(proc->nextInstruction(last_instruction));
+}
+
+/**
+ * Emits a vector build instruction.
+ *
+ * Creates moves from all source operands into all elements of the
+ * destintion vector
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitVectorBuild(
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    Bus& bus = UniversalMachine::instance().universalBus();
+    TTAProgram::Instruction* first = NULL;
+    MachineOperand dstOperand = mi->getOperand(0);
+
+    int dRegNum = dstOperand.getReg();
+    int idx = registerIndex(dRegNum);
+    std::string vectorRfName = registerFileName(dRegNum);
+    int nameIndex = strlen("__VECTOR__");
+    for (int i = 0; i < 2; i++) {
+	int nextNameIndex = vectorRfName.find('+', nameIndex);
+	int len = nextNameIndex - nameIndex;
+	std::string rfName = vectorRfName.substr(nameIndex, len);
+	nameIndex = nextNameIndex + 1;
+
+	TTAProgram::Terminal* dst = createTerminalRegister(rfName, idx);
+	TTAProgram::Terminal* src = createTerminal(mi->getOperand(i+1));
+	TTAProgram::Move* move = createMove(src, dst, bus);
+
+	TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+	if (first == NULL) {
+	    first = instr;
+	}
+
+	instr->addMove(move);
+	proc->add(instr);
+    }
+    return first;
+}
+/**
+ *
+ * Emits an llvm vector extract instruction.
+ *
+ * Reads one element from a vector to a scalar registers.
+ *
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitVectorExtract(
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    MachineOperand srcMO = mi->getOperand(1);
+    MachineOperand dstMO = mi->getOperand(0);
+    MachineOperand elementIndexMO = mi->getOperand(2);
+    
+    int dRegNum = srcMO.getReg();
+    int idx = registerIndex(dRegNum);
+    std::string vectorRfName = registerFileName(dRegNum);
+    int nameIndex = strlen("__VECTOR__");
+    int nextNameIndex = vectorRfName.find('+', nameIndex);
+    
+    // this for loop just searches for the correct rf name from the string
+    assert(elementIndexMO.isImm());
+    int elementIndex = elementIndexMO.getImm();
+    for (int i = 0; i < elementIndex; i++) {
+	nameIndex = nextNameIndex + 1;
+	nextNameIndex = vectorRfName.find('+', nameIndex);
+    }
+    int len = nextNameIndex - nameIndex;
+    std::string rfName = vectorRfName.substr(nameIndex, len);
+    
+    TTAProgram::Terminal* src = createTerminalRegister(rfName, idx);
+    TTAProgram::Terminal* dst = createTerminal(dstMO);
+    Bus& bus = UniversalMachine::instance().universalBus();
+
+    TTAProgram::Move* move = createMove(src, dst, bus);
+    
+    TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+    instr->addMove(move);
+    proc->add(instr);
+    return instr;
+}
+
+/**
+ * Emits an llvm vector insert instruction.
+ * 
+ * This instruction copies a vector into different vector, taking one element
+ * from a scalar.
+ * If the source and destinations are same, skip the copying of the vector,
+ * only create the scalar move into the element of the vector
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitVectorInsert(
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+    
+    MachineOperand dstVectorMO = mi->getOperand(0);
+    MachineOperand srcVectorMO = mi->getOperand(1);
+    MachineOperand srcScalarMO = mi->getOperand(2);
+    MachineOperand elementIndexMO = mi->getOperand(3);
+    
+    int dRegNumDst = dstVectorMO.getReg();
+    int dstIdx = registerIndex(dRegNumDst);
+    std::string dstVectorRfName = registerFileName(dRegNumDst);
+    int dstNameIndex = strlen("__VECTOR__");
+    int dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
+
+    assert(elementIndexMO.isImm());
+    int elementIndex = elementIndexMO.getImm();
+    for (int i = 0; i < elementIndex; i++) {
+	dstNameIndex = dstNextNameIndex + 1;
+	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
+    }
+    int len = dstNextNameIndex - dstNameIndex;
+    std::string dstRfName = dstVectorRfName.substr(dstNameIndex, len);
+    
+    TTAProgram::Terminal* src = createTerminal(srcScalarMO);
+    TTAProgram::Terminal* dst = createTerminalRegister(dstRfName, dstIdx);
+    Bus& bus = UniversalMachine::instance().universalBus();
+
+    TTAProgram::Move* move = createMove(src, dst, bus);
+    
+    TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+    instr->addMove(move);
+    proc->add(instr);
+
+#define VEC_SIZE 2 // todo: read from the vector operand?
+
+    // if not same registers, need to copy whole vector excludng the 1 element.
+    if (srcVectorMO.getReg() != dstVectorMO.getReg()) {
+	int dRegNumSrc = srcVectorMO.getReg();
+	int srcIdx = registerIndex(dRegNumSrc);
+	std::string srcVectorRfName = registerFileName(dRegNumSrc);
+	int srcNameIndex = strlen("__VECTOR__");
+	int srcNextNameIndex = srcVectorRfName.find('+', srcNameIndex);
+
+	dstNameIndex = strlen("__VECTOR__");
+	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
+	for (int i = 0; i < VEC_SIZE; i++) {
+	    if (i != elementIndex) {
+		int dlen = dstNextNameIndex - dstNameIndex;
+		std::string dstRfName = 
+		    dstVectorRfName.substr(dstNameIndex, len);
+	    
+		int slen = srcNextNameIndex - srcNameIndex;
+		std::string srcRfName = 
+		    srcVectorRfName.substr(srcNameIndex, len);
+
+		TTAProgram::Terminal* src = 
+		    createTerminalRegister(srcRfName, srcIdx);
+		TTAProgram::Terminal* dst = 
+		    createTerminalRegister(dstRfName, dstIdx);
+		Bus& bus = UniversalMachine::instance().universalBus();
+		TTAProgram::Move* move = createMove(src, dst, bus);
+		
+		TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+		instr->addMove(move);
+		proc->add(instr);
+	    }
+	    srcNameIndex = srcNextNameIndex + 1;
+	    srcNextNameIndex = srcVectorRfName.find('+', srcNameIndex);
+
+	    dstNameIndex = dstNextNameIndex + 1;
+	    dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
+	}
+    }
+    return instr;
+}
+
+/**
+ * Emits generic vector calculation instruction.
+ *
+ * Emits operation which operates between 2 vectors.
+ * These operations are expanded into multiple tce operations.
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitVectorInstruction(
+    // currently only support vectors of size 2
+    const std::string& opName,
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    TTAProgram::Instruction* firstIns = NULL;
+    Bus& bus = UniversalMachine::instance().universalBus();
+
+    int operandCount = mi->getNumOperands();
+    std::vector<int> regNameStringIndex(operandCount, strlen("__VECTOR__"));
+    const HWOperation& hwop = getHWOperation(opName);
+
+    OperationPool pool;
+    const Operation& operation = pool.operation(opName.c_str());
+
+    for (int i = 0; i < 2; i++) {
+	int inputOperand = 0;
+	int outputOperand = operation.numberOfInputs();
+	std::vector<TTAProgram::Instruction*> operandMoves;
+	std::vector<TTAProgram::Instruction*> resultMoves;
+
+	for (unsigned o = 0; o < mi->getNumOperands(); o++) {
+	    const MachineOperand& mo = mi->getOperand(o);
+
+	    assert(mo.isReg());
+
+	    int dRegNum = mo.getReg();
+	    int idx = registerIndex(dRegNum);
+	    std::string vectorRfName = registerFileName(dRegNum);
+	    int nameIndex = regNameStringIndex[o];
+	    int nextNameIndex = vectorRfName.find('+', nameIndex);
+	    int len = nextNameIndex - nameIndex;
+	    std::string rfName = vectorRfName.substr(nameIndex, len);
+	    regNameStringIndex[o] = nextNameIndex + 1;
+
+	    TTAProgram::TerminalRegister* tr = 
+		createTerminalRegister(rfName, idx);
+
+	    // input
+	    if (mo.isUse() || operation.numberOfOutputs() == 0) {
+		++inputOperand;
+
+		// something messed up?
+		if (inputOperand > operation.numberOfInputs()) 
+		    continue;
+
+//		assert(!mo.isAddress());
+		TTAProgram::Terminal* dst = 
+		    new TTAProgram::TerminalFUPort(hwop, inputOperand);
+		TTAProgram::Move* move = createMove(tr, dst, bus);
+		TTAProgram::Instruction* ins = new TTAProgram::Instruction();
+		if (firstIns == NULL) {
+		    firstIns = ins;
+		}
+		ins->addMove(move);
+		operandMoves.push_back(ins);
+	    } else {
+		// output
+		++outputOperand;
+
+		if (operation.operand(outputOperand).isNull())
+		    continue;
+
+		assert(operation.operand(outputOperand).isOutput() &&
+		       !operation.operand(outputOperand).isAddress() &&
+		       "Operand mismatch.");
+
+		TTAProgram::Terminal* src = 
+		    new TTAProgram::TerminalFUPort(hwop, outputOperand);
+		
+		TTAProgram::Move* move = createMove(src, tr, bus);
+		TTAProgram::Instruction* ins = new TTAProgram::Instruction();
+		ins->addMove(move);
+		resultMoves.push_back(ins);
+	    }
+	}
+// disabled until ddgbuilder's multi-out po handling fixed
+//	boost::shared_ptr<ProgramOperation> po(
+//	    new ProgramOperation(operation, mi));
+	
+	for (unsigned i = 0; i < operandMoves.size(); i++) {
+	    TTAProgram::Instruction* instr = operandMoves[i];
+	    TTAProgram::Move& m = instr->move(0);
+	    proc->add(instr);
+//	    createMoveNode(po, m, true);
+	}
+	for (unsigned i = 0; i < resultMoves.size(); i++) {
+	    TTAProgram::Instruction* instr = resultMoves[i];
+	    TTAProgram::Move& m = instr->move(0);
+	    proc->add(instr);
+//	    createMoveNode(po, m, false);
+	}
+    }
+    return firstIns;
+}
+
+/**
+ * Checks if machineOperand is a vector register.
+ * 
+ * @TODO: is there some llvm way of doing this?
+ */
+bool LLVMTCEBuilder::isVectorOperand(const MachineOperand& mo) {
+    if (!mo.isReg()) {
+	return false;
+    }
+    int dRegNum = mo.getReg();
+    if (dRegNum == raPortDRegNum()) {
+	return false;
+    }
+    
+    int idx = registerIndex(dRegNum);
+    std::string origRfName = registerFileName(dRegNum);
+    if (origRfName.length() < 10) {
+	return false;
+    }
+    return origRfName.substr(0,10) == "__VECTOR__";
 }
 
 /**
