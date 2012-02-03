@@ -51,10 +51,8 @@
 
 using namespace llvm;
 
-#ifndef LLVM_2_9
 #define GET_REGINFO_MC_DESC
 #define GET_REGINFO_TARGET_DESC
-#endif
 
 #include "TCEGenRegisterInfo.inc"
 
@@ -65,11 +63,7 @@ using namespace llvm;
  * @param tii Target architecture instruction info.
  */
 TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
-#ifdef LLVM_2_9
-    TCEGenRegisterInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-#else
     TCEGenRegisterInfo(TCE::RA),
-#endif
     tii_(tii) {
 }
 
@@ -276,24 +270,6 @@ unsigned
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
     return 0;
 }
-
-#ifdef LLVM_2_9
-int
-TCERegisterInfo::getDwarfRegNum(unsigned RegNum, bool /*isEH*/) const {
-    return TCEGenRegisterInfo::getDwarfRegNumFull(RegNum, 0); 
-}
-
-int
-TCERegisterInfo::getLLVMRegNum(unsigned RegNum, bool /*isEH */) const {
-#ifdef LLVM_2_9
-    return -1;
-#else
-    return TCEGenRegisterInfo::getLLVMRegNumFull(RegNum, 0);
-#endif
-}
-
-
-#endif
 
 bool
 TCERegisterInfo::containsCall(MachineFunction& mf) const {

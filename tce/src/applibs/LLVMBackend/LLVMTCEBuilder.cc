@@ -107,13 +107,8 @@
 
 #include "tce_config.h"
 
-#ifdef LLVM_2_9
-#include <llvm/Target/TargetInstrDesc.h>
-#define TYPE_CONST const
-#else
 #define TYPE_CONST
 #include <llvm/MC/MCInstrDesc.h>
-#endif
 
 #include <llvm/ADT/SmallString.h>
 
@@ -245,13 +240,9 @@ LLVMTCEBuilder::initDataSections() {
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
-#ifdef LLVM_2_9
-    MCContext* ctx = 
-	new MCContext(*tm_->getMCAsmInfo(), NULL);
-#else
     MCContext* ctx = 
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
-#endif
+
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
@@ -690,13 +681,9 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
-#ifdef LLVM_2_9
-        int64_t ptrOffset = offset + td->getIndexedOffset(
-            ptr->getType(), &idxVec[0], idxVec.size());
-#else
         int64_t ptrOffset = offset + td->getIndexedOffset(
             ptr->getType(), idxVec);
-#endif
+
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(addr, gv, ptrOffset);
         } else if (const ConstantExpr* ce =
@@ -988,11 +975,7 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitInstruction(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-#ifdef LLVM_2_9
-    const llvm::TargetInstrDesc* opDesc = &mi->getDesc();
-#else
     const llvm::MCInstrDesc* opDesc = &mi->getDesc();
-#endif
     unsigned opc = mi->getDesc().getOpcode();
 
     // when the -g option turn on, this will come up opc with this, therefore

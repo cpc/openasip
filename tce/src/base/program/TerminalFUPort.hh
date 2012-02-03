@@ -57,11 +57,11 @@ class TerminalFUPort : public Terminal {
 public:
     TerminalFUPort(
         const TTAMachine::FUPort& opcodeSettingPort, 
-        TTAMachine::HWOperation& opcode);
+        const TTAMachine::HWOperation& opcode);
 
     TerminalFUPort(const TTAMachine::BaseFUPort& port)
         throw (IllegalParameters);
-    TerminalFUPort(TTAMachine::HWOperation& operation, int opIndex)
+    TerminalFUPort(const TTAMachine::HWOperation& operation, int opIndex)
         throw (IllegalParameters);
     virtual ~TerminalFUPort();
 
@@ -82,7 +82,7 @@ public:
         throw (WrongSubclass, InvalidData);
     // sets the "hint operation" for moves which are not opcode setting
     // but are known to be part of an operation execution
-    virtual void setOperation(TTAMachine::HWOperation& hwOp);
+    virtual void setOperation(const TTAMachine::HWOperation& hwOp);
     virtual int operationIndex() const 
         throw (WrongSubclass, InvalidData);
     virtual void setOperationIndex(int index) { opIndex_ = index; }
@@ -90,7 +90,7 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
     
-    virtual TTAMachine::HWOperation* hwOperation() const;
+    virtual const TTAMachine::HWOperation* hwOperation() const;
 
     /// these methods are used to group terminals belonging to a single
     /// program operation invocation
@@ -118,7 +118,7 @@ private:
     /// Port of the unit.
     const TTAMachine::BaseFUPort& port_;
     /// Operation code transported to the port.
-    TTAMachine::HWOperation* operation_;
+    const TTAMachine::HWOperation* operation_;
     /// The OSAL operation.
     Operation* opcode_;
     /// Operation index.

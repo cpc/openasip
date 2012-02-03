@@ -73,7 +73,7 @@ TerminalFUPort::TerminalFUPort(
  */
 TerminalFUPort::TerminalFUPort(
     const TTAMachine::FUPort& opcodeSettingPort,
-    TTAMachine::HWOperation& opcode) :
+    const TTAMachine::HWOperation& opcode) :
     port_(opcodeSettingPort), operation_(&opcode), opcode_(NULL) {
 
     assert(opcodeSettingPort.isOpcodeSetting());
@@ -103,7 +103,7 @@ TerminalFUPort::TerminalFUPort(
  * @param operation Operation of terminal.
  * @param opIndex Operation index.
  */
-TerminalFUPort::TerminalFUPort(HWOperation &operation, int opIndex)
+TerminalFUPort::TerminalFUPort(const HWOperation &operation, int opIndex)
     throw (IllegalParameters) :
     port_(*operation.port(opIndex)), operation_(&operation), 
     opIndex_(opIndex) {
@@ -281,7 +281,7 @@ TerminalFUPort::hintOperation() const
 }
 
 void
-TerminalFUPort::setOperation(TTAMachine::HWOperation& hwOp) { 
+TerminalFUPort::setOperation(const TTAMachine::HWOperation& hwOp) { 
     OperationPool opPool;
     opcode_ = &opPool.operation(hwOp.name().c_str());
     operation_ = &hwOp;
@@ -382,7 +382,7 @@ TerminalFUPort::findNewOperationIndex() const {
  * 
  * @return a pointer to the HW operation
  */
-HWOperation*
+const HWOperation*
 TerminalFUPort::hwOperation() const {
      return operation_; 
 }

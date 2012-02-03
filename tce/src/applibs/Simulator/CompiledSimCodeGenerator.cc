@@ -1258,7 +1258,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         
         const TerminalFUPort& tfup = 
             static_cast<const TerminalFUPort&>(move.destination());
-        HWOperation& hwOperation = *tfup.hwOperation();
+        const HWOperation& hwOperation = *tfup.hwOperation();
 
         if (hwOperation.name() == "stw" ||hwOperation.name() == "sth" || 
             hwOperation.name() == "stq") {
@@ -1309,7 +1309,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         
         const TerminalFUPort& tfup = 
             static_cast<const TerminalFUPort&>(move.destination());
-        HWOperation& hwOperation = *tfup.hwOperation();
+        const HWOperation& hwOperation = *tfup.hwOperation();
 
         if (!(hwOperation.name() == "stw" || hwOperation.name() == "sth" || hwOperation.name() == "stq")) {
             continue;

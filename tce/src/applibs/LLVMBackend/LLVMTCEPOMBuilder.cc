@@ -200,7 +200,8 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
     /* update the operation and operand info of non-trigger moves */
     for (int procIndex = 0; procIndex < prog.procedureCount(); ++procIndex) {
 
-        std::map<std::string, TTAMachine::HWOperation*> lastTriggeredOperations;
+        std::map<std::string, const TTAMachine::HWOperation*> 
+            lastTriggeredOperations;
         std::map<std::string, std::set<TTAProgram::TerminalFUPort*> > 
             pendingOperandTerminals;
         const TTAProgram::Procedure& proc = prog.procedureAtIndex(procIndex);
@@ -227,7 +228,7 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
                             termFUportDst->functionUnit().name()];
                     std::set<TTAProgram::TerminalFUPort*>::const_iterator i = 
                         pending.begin();
-                    TTAMachine::HWOperation& hwOp = 
+                    const TTAMachine::HWOperation& hwOp = 
                         *termFUportDst->hwOperation();
                     for (; i != pending.end(); ++i) {
                         TTAProgram::TerminalFUPort& term = (**i);
@@ -249,7 +250,7 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
             if (termFUportSrc != NULL && !termFUportSrc->isRA()) {
                 // fix the output moves, assume the operation is the
                 // previously triggered one in the FU
-                TTAMachine::HWOperation& hwOp = 
+                const TTAMachine::HWOperation& hwOp = 
                     *lastTriggeredOperations[
                         termFUportSrc->functionUnit().name()];
                 termFUportSrc->setOperation(hwOp);
