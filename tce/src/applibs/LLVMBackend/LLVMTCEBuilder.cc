@@ -2787,24 +2787,29 @@ LLVMTCEBuilder::emitVectorInstruction(
 	std::vector<TTAProgram::Instruction*> resultMoves;
 
 	for (unsigned o = 0; o < mi->getNumOperands(); o++) {
-	    const MachineOperand& mo = mi->getOperand(o);
+	    const MachineOperand* mo = &mi->getOperand(o);
 
-	    assert(mo.isReg());
-
-	    int dRegNum = mo.getReg();
-	    int idx = registerIndex(dRegNum);
-	    std::string vectorRfName = registerFileName(dRegNum);
-	    int nameIndex = regNameStringIndex[o];
-	    int nextNameIndex = vectorRfName.find('+', nameIndex);
-	    int len = nextNameIndex - nameIndex;
-	    std::string rfName = vectorRfName.substr(nameIndex, len);
-	    regNameStringIndex[o] = nextNameIndex + 1;
-
-	    TTAProgram::TerminalRegister* tr = 
-		createTerminalRegister(rfName, idx);
+	    TTAProgram::Terminal* tr = NULL;
+	    if (isVectorOperand(*mo)) {
+		int dRegNum = mo->getReg();
+		int idx = registerIndex(dRegNum);
+		std::string vectorRfName = registerFileName(dRegNum);
+		int nameIndex = regNameStringIndex[o];
+		int nextNameIndex = vectorRfName.find('+', nameIndex);
+		int len = nextNameIndex - nameIndex;
+		std::string rfName = vectorRfName.substr(nameIndex, len);
+		regNameStringIndex[o] = nextNameIndex + 1;
+		tr = createTerminalRegister(rfName, idx);
+	    } else {
+		o += i;
+		mo = &mi->getOperand(o);
+		assert(!isVectorOperand(*mo));
+		tr = createTerminal(*mo);
+	    }
 
 	    // input
-	    if (mo.isUse() || operation.numberOfOutputs() == 0) {
+	    if (!mo->isReg() || mo->isUse() || 
+		operation.numberOfOutputs() == 0) {
 		++inputOperand;
 
 		// something messed up?
@@ -2839,6 +2844,10 @@ LLVMTCEBuilder::emitVectorInstruction(
 		TTAProgram::Instruction* ins = new TTAProgram::Instruction();
 		ins->addMove(move);
 		resultMoves.push_back(ins);
+	    }
+	    // skip to next operand
+	    if (!isVectorOperand(*mo)) {
+		o += (1-i);
 	    }
 	}
 // disabled until ddgbuilder's multi-out po handling fixed
