@@ -240,13 +240,13 @@ private:
                 TTAMachine::Bus* originalBus = busNav.item(i);
                 
                 std::string busName = 
-                originalBus->name() + "_" + Conversion::toString(j);
+                originalBus->name() + "_connect_" + Conversion::toString(j);
                 addBus->setName(busName);
                 try {     
                     finalMach->addBus(*addBus);
                 } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Bus with an already"
-                    "existing name (" + busName)
+                    verboseLog("ADFCombiner: Tried to add Bus with an already "
+                    "existing name (" + busName +")")
                     Application::exitProgram(1);
                 }
                 for (int k = 0; k < socketNav.count(); k++) {
@@ -266,7 +266,7 @@ private:
                             finalMach->addSocket(*addSocket);
                         } catch (const ComponentAlreadyExists& e) {
                             verboseLog("ADFCombiner: Tried to add Socket with "
-                            " an already existing name (" + socketName)
+                            " an already existing name (" + socketName +")")
                             Application::exitProgram(1);
                         }
                     } else {
@@ -317,7 +317,7 @@ private:
                     finalMach->addRegisterFile(*addRF);
                 } catch (const ComponentAlreadyExists& e) {
                     verboseLog("ADFCombiner: Tried to add RF with an already"
-                        "existing name (" + RFName)
+                        "existing name (" + RFName +")")
                     Application::exitProgram(1);
                 }
                 connectPorts(finalMach, originalRF, addRF, j);
@@ -349,7 +349,7 @@ private:
                     finalMach->addFunctionUnit(*addFU);
                 } catch (const ComponentAlreadyExists& e) {
                     verboseLog("ADFCombiner: Tried to add FU with an already"
-                    "existing name (" + FUName)
+                    "existing name (" + FUName +")")
                     Application::exitProgram(1);
                 }
                 if (originalFU->hasAddressSpace()) {                    
@@ -523,8 +523,8 @@ private:
         try {     
             finalMach->addBus(*newBus);
         } catch (const ComponentAlreadyExists& e) {
-            verboseLog("ADFCombiner: Tried to add Bus with an already"
-            "existing name (" + busName)
+            verboseLog("ADFCombiner: Tried to add Bus with an already "
+            "existing name (" + busName +")")
             Application::exitProgram(1);
         }   
         return newBus;
@@ -567,7 +567,7 @@ private:
                 finalMach->addSocket(*readSocket);
             } catch (const ComponentAlreadyExists& e) {
                 verboseLog("ADFCombiner: Tried to add Socket with "
-                " an already existing name (" + readSocket->name())
+                " an already existing name (" + readSocket->name() +")")
                 Application::exitProgram(1);
             }
         } else {
@@ -579,7 +579,7 @@ private:
                 finalMach->addSocket(*writeSocket);
             } catch (const ComponentAlreadyExists& e) {
                 verboseLog("ADFCombiner: Tried to add Socket with "
-                " an already existing name (" + writeSocket->name())
+                " an already existing name (" + writeSocket->name() +")")
                 Application::exitProgram(1);
             }
         } else {
