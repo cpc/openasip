@@ -796,6 +796,7 @@ DataDependenceGraphBuilder::processTriggerPO(
             if (dop.numberOfOutputs() > 0) {
                 assert(currentData_->readPending_ == NULL);
                 currentData_->readPending_ = po;
+		currentData_->poReadsHandled_ = 0;
             } else {
                 currentDDG_->addProgramOperation(po);
             }
@@ -938,6 +939,7 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
     // universalmachine code.
     if (currentData_->readPending_ != NULL) {
         ProgramOperationPtr po = currentData_->readPending_;
+        currentData_->poReadsHandled_++;
         
         if (!po->isComplete()) {
             po->addOutputNode(moveNode);
@@ -945,10 +947,12 @@ DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
         }
 
         // if this PO is ready, remove from list of incomplete ones
-        if (po->isComplete())   {
+        if (currentData_->poReadsHandled_ >= 
+            po->operation().numberOfOutputs()) {
             createOperationEdges(po);
             currentData_->readPending_ = ProgramOperationPtr();
             currentDDG_->addProgramOperation(po);
+            currentData_->poReadsHandled_ = 0;
         }
         return;
     }
@@ -2699,6 +2703,7 @@ const TCEString DataDependenceGraphBuilder::RA_NAME = "RA";
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
+    poReadsHandled_(0),
     state_(BB_UNREACHED),  constructed_(false), bblock_(&bb) {
 }
 

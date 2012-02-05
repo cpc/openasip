@@ -126,6 +126,7 @@ protected:
         ProgramOperationPtr destPending_;
         /// ProgramOperations lacking result read
         ProgramOperationPtr readPending_;
+	int poReadsHandled_;
         /// State of the BB.
         BBState state_;
         /// Whether the BB has been constructed or not.
