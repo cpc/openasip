@@ -1298,15 +1298,13 @@ LLVMTCEBuilder::emitInstruction(
         TTAProgram::Instruction* instr = operandMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-	// nasty hack because of ddg builfing bug
-        if (resultMoves.size() < 2) {createMoveNode(po, m, true);}
+        createMoveNode(po, m, true);
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
-	// nasty hack because of ddg builfing bug
-        if (resultMoves.size() < 2) {createMoveNode(po, m, false);}
+        createMoveNode(po, m, false);
     }
     return first;
 }

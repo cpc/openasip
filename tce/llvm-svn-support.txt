@@ -1,5 +1,6 @@
 tce-devel r1417:
-llvm-trunk r148725: works
+llvm-trunk r148725: works. 
+llvm-trunk r149671 works, 149672 propably breaks?
 
 Notes:
 
