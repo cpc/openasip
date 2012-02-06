@@ -69,9 +69,8 @@ namespace llvm {
 	TCEPassConfig(
 	    LLVMTargetMachine* tm, 
 	    PassManagerBase& pm, 
-	    TCETargetMachinePlugin* plugin, 
-	    bool disableVerify) :
-	    TargetPassConfig(tm, pm, disableVerify), plugin_(plugin) {
+	    TCETargetMachinePlugin* plugin) :
+	    TargetPassConfig(tm, pm), plugin_(plugin) {
 	    assert(plugin_ != NULL);
 	}
 
@@ -159,7 +158,7 @@ namespace llvm {
 #else
 
 	virtual TargetPassConfig *createPassConfig(
-	    PassManagerBase &PM, bool DisableVerify);
+	    PassManagerBase &PM);
 
 #endif
 

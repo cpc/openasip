@@ -294,7 +294,7 @@ TCETargetMachine::missingOperations() {
 
 TargetPassConfig* 
 TCETargetMachine::createPassConfig(
-    PassManagerBase &PM, bool DisableVerify) {
-    return new TCEPassConfig(this, PM, plugin_, DisableVerify);
+    PassManagerBase &PM) {
+    return new TCEPassConfig(this, PM, plugin_);
 }
 #endif
