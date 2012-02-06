@@ -1,0 +1,3 @@
+# just dummy test since this is already tested with stw4 test
+ldw4 0
+!quit

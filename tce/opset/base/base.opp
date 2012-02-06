@@ -1430,4 +1430,228 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <in id="1" type="UIntWord"/>
   </operation>
 
+  <operation>
+    <name>LDW4</name>
+    <description>Loads vector of 4 words from memory.</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="3" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="4" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="5" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STW4</name>
+    <description>Stores 4 words to memory consecutively.</description>
+    <inputs>5</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="3" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="4" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="5" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(5));
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDW2</name>
+    <description>Loads two words from memory.</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="3" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STW2</name>
+    <description>Stores two words to memory.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="3" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(3));
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STW8</name>
+    <description>Writes 8 words to memory</description>
+    <inputs>9</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="3" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="4" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="5" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="6" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="7" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="8" type="UIntWord">
+      <mem-data/>
+    </in>
+    <in id="9" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(stw, tmp, IO(9));
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDW8</name>
+    <description>Loads 8 words from memory.</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="3" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="4" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="5" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="6" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="7" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="8" type="UIntWord">
+      <mem-data/>
+    </out>
+    <out id="9" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldw, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 4, tmp);
+EXEC_OPERATION(ldw, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
 </osal>

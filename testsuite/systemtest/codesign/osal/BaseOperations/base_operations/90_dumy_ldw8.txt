@@ -1,0 +1,3 @@
+# just dummy test since this is already tested with stw8 test
+ldw8 0
+!quit

@@ -1,0 +1,12 @@
+!mem word 0x64
+!mem word 0x68
+ldw2 0x64
+stw2 0x64 100 200
+!advanceclock
+!mem word 0x64
+!mem word 0x68
+ldw2 0x64
+stw2 0x64 -2000000000 -1
+!advanceclock
+ldw2 0x64
+!quit

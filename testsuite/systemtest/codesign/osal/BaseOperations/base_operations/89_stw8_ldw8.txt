@@ -1,0 +1,25 @@
+!mem word 0x64
+!mem word 0x68
+!mem word 0x6c
+!mem word 0x70
+!mem word 0x74
+!mem word 0x78
+!mem word 0x7c
+!mem word 0x80
+ldw8 0x64
+stw8 0x64 100 200 300 400 500 600 700 800
+!advanceclock
+!mem word 0x64
+!mem word 0x68
+!mem word 0x6c
+!mem word 0x70
+!mem word 0x74
+!mem word 0x78
+!mem word 0x7c
+!mem word 0x80
+ldw8 0x64
+stw8 0x64 -2000000000 -1 -300 -123456 -9 -987654 1 -2
+!advanceclock
+ldw8 0x64
+ldw4 0x74
+!quit
