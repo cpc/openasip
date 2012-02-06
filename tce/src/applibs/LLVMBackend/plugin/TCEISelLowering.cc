@@ -45,7 +45,6 @@
 #include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/ADT/VectorExtras.h>
 
 #include <llvm/Target/TargetLoweringObjectFile.h>
 
@@ -755,12 +754,8 @@ getRegClassForInlineAsmConstraint(const std::string &Constraint,
   default: break;
   case 'r':
       // TODO: WHAT TO DO WITH THESE?
-    return make_vector<unsigned>(/*SP::L0, SP::L1, SP::L2, SP::L3,
-                                 SP::L4, SP::L5, SP::L6, SP::L7,
-                                 SP::I0, SP::I1, SP::I2, SP::I3,
-                                 SP::I4, SP::I5,
-                                 SP::O0, SP::O1, SP::O2, SP::O3,
-                                 SP::O4, SP::O5, SP::O7,*/ 0);
+      return std::vector<unsigned>(1,0);
+
   }
 
   return std::vector<unsigned>();
