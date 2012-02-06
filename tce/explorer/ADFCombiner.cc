@@ -38,9 +38,12 @@
 #include "HDBRegistry.hh"
 #include "StringTools.hh"
 #include "RFPort.hh"
+#include "FUPort.hh"
 #include "ComponentImplementationSelector.hh"
 #include "Exception.hh"
 #include "Segment.hh"
+#include "HWOperation.hh"
+#include "ExecutionPipeline.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;
@@ -185,6 +188,7 @@ private:
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
         connectRegisterFiles(finalMach, nodeMach, extraMach, nodeCount);
+        connectVectorLSU(finalMach, nodeMach, extraMach, nodeCount);
     }
 
     /**
@@ -229,8 +233,8 @@ private:
                     // When first bus added, create also new sockets
                     if (!socketsCreated) {                        
                         TCEString socketName = 
-                        socketNav.item(k)->name() + "_" + 
-                        Conversion::toString(j);                        
+                            socketNav.item(k)->name() + "_" + 
+                            Conversion::toString(j);                        
                         addSocket = new TTAMachine::Socket(socketName);   
                         try {     
                             finalMach->addSocket(*addSocket);
@@ -255,7 +259,7 @@ private:
                             *originalBus->segment(l))) {
                             addSocket->attachBus(*addBus->segment(l));
                             addSocket->setDirection(
-                            socketNav.item(k)->direction());
+                                socketNav.item(k)->direction());
                         }
                     }
                 }
@@ -413,6 +417,9 @@ private:
             }
         }        
     }
+    /**
+     * Connect register files from extra and node into a ring.
+     */
     void connectRegisterFiles(
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach, 
@@ -479,7 +486,9 @@ private:
             }                
         }        
     }
-
+    /**
+     * Create single bus with given name and width.
+     */
     TTAMachine::Bus* createBus(
         TTAMachine::Machine* finalMach, 
         TCEString busName,
@@ -501,7 +510,10 @@ private:
         }   
         return newBus;
     }
-                   
+    /**
+     * Create new ports in RF and connected them to sockets
+     * and connect sockets to the bus.
+     */               
     void createPortsAndSockets(
         TTAMachine::Machine* finalMach,
         TTAMachine::RegisterFile* rf,
@@ -575,6 +587,201 @@ private:
             writeSocket->attachBus(*newBus->segment(0));                
             writeSocket->setDirection(Socket::INPUT);                                                            
         }  
+    }
+    /**
+     * If extra has LSU that is not connected to any of the buses,
+     * treat is as a vector LSU and connect address write port to extra
+     * and data ports to respective number of nodes.
+     */
+    void connectVectorLSU(
+        TTAMachine::Machine* finalMach, 
+        TTAMachine::Machine* nodeMach, 
+        TTAMachine::Machine* extraMach, 
+        int nodeCount){
+        
+        const TTAMachine::Machine::FunctionUnitNavigator& FUExtraNav =
+            extraMach->functionUnitNavigator();
+        const TTAMachine::Machine::FunctionUnitNavigator& finalNav =
+            finalMach->functionUnitNavigator();
+        TTAMachine::FunctionUnit* vectorLSU = NULL;
+        TTAMachine::FUPort* trigger = NULL;
+        int triggerIndex = -1;
+        int outputPortCount = 0;
+        for (int i = 0; i < FUExtraNav.count(); i++) {
+            TTAMachine::FunctionUnit* fu = FUExtraNav.item(i);
+            bool unconnected = false;
+            for(int j = 0; j < fu->operationPortCount(); j++) {
+                if (fu->operationPort(j)->socketCount() == 0) {
+                    unconnected = true;    
+                    outputPortCount++;
+                    if (fu->operationPort(j)->isTriggering()) {
+                        triggerIndex = j;
+                    }
+                } else {
+                    unconnected = false;
+                    triggerIndex = -1;
+                }
+            }
+            if (unconnected) {
+            // We found FU in extra that is not connected to any sockets,
+            // that is agreed indication that is it vector load/store and
+            // needs specific connectivity.
+            // Let's check if it has address space
+                if (fu->hasAddressSpace()) {
+                    // Ok, it seems to be load/store we look for, stop looking.
+                    // Find equivalends in final architecture
+                    vectorLSU = finalNav.item(fu->name());                                    
+                    trigger = vectorLSU->operationPort(triggerIndex);
+                    break;
+                } else {
+                    verboseLog("Candidate for Vector LSU does not have "
+                    "address space defined - " + fu->name());
+                }
+            }
+        }
+        if (vectorLSU == NULL) {
+            // No vector LSU found, nothing to do here.
+            return;
+        }
+        
+        assert(trigger != NULL);
+        TTAMachine::Socket* triggerSocket = 
+            new TTAMachine::Socket("vectorLSU_" + trigger->name());                
+        try {     
+            finalMach->addSocket(*triggerSocket);
+        } catch (const ComponentAlreadyExists& e) {
+            TCEString msg = 
+                "ADFCombiner: Tried to add Socket with "
+                " an already existing name (" + triggerSocket->name() +")";
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);                            
+        }        
+        
+        trigger->attachSocket(*triggerSocket);
+        
+        const TTAMachine::Machine::BusNavigator& extraBusNav = 
+            extraMach->busNavigator();
+        const TTAMachine::Machine::BusNavigator& nodeBusNav = 
+            nodeMach->busNavigator();            
+        const TTAMachine::Machine::BusNavigator& finalBusNav = 
+            finalMach->busNavigator();            
+        // Connect trigger socket to all the buses in extra.
+        for (int i = 0; i < extraBusNav.count(); i++) {
+            TCEString busName = extraBusNav.item(i)->name();
+            triggerSocket->attachBus(*finalBusNav.item(busName)->segment(0));                            
+        }
+        triggerSocket->setDirection(Socket::INPUT);    
+        
+
+        int nodeCounter = 0;
+        for (int j = 0; j < vectorLSU->operationCount(); j++) {
+            // We run this for all the HW operations, so some 
+            // sockets port connections could already exists            
+            TTAMachine::HWOperation* operation = vectorLSU->operation(j);
+            TTAMachine::ExecutionPipeline* pipeline = operation->pipeline();
+            
+            // connect write ports to nodes.            
+            TTAMachine::ExecutionPipeline::OperandSet readOperandSet =
+                pipeline->readOperands();
+            TTAMachine::ExecutionPipeline::OperandSet::iterator it =
+                readOperandSet.begin();
+            for (; it != readOperandSet.end(); it++) {
+                TTAMachine::Port* port = operation->port(*it);               
+                if (port != trigger) {
+                    // Trigger is already connected to extra, we just connect
+                    // rest of writing ports.
+                    TCEString socketName = "vectorLSU_" + port->name();
+                    TTAMachine::Socket* inputSocket = NULL;                        
+                    if (!finalMach->socketNavigator().hasItem(socketName)) {
+                        inputSocket = 
+                            new TTAMachine::Socket("vectorLSU_" + port->name());                
+                        try {     
+                            finalMach->addSocket(*inputSocket);
+                        } catch (const ComponentAlreadyExists& e) {
+                            TCEString msg = 
+                            "ADFCombiner: Tried to add Socket with "
+                            " an already existing name (" + inputSocket->name() +")";
+                            throw Exception(
+                                __FILE__, __LINE__, __func__, msg);                            
+                        }        
+                    } else {
+                        inputSocket = 
+                            finalMach->socketNavigator().item(socketName);
+                    }
+                    if (!port->isConnectedTo(*inputSocket)){
+                        port->attachSocket(*inputSocket);
+                    }
+                    for (int i = 0; i < nodeBusNav.count(); i++) {
+                        /// The name of bus is generated same way as when creating
+                        /// new buses for nodes. Any change there must be reflected
+                        /// here as well!
+                        /// In case LSU has more ports then there are nodes
+                        /// we start from beginning.
+                        // Operand index 1 is trigger, usefull operand
+                        // indexes starts from 2, node counting starts from 0
+                        TCEString busName = 
+                            nodeBusNav.item(i)->name() + "_connect_" + 
+                            Conversion::toString((*it -2) % nodeCount);
+                        assert(finalBusNav.hasItem(busName));
+                        if (!inputSocket->isConnectedTo(
+                            *finalBusNav.item(busName)->segment(0))) {
+                            inputSocket->attachBus(
+                                *finalBusNav.item(busName)->segment(0));                            
+                        }
+                    }
+                    inputSocket->setDirection(Socket::INPUT);                                                                    
+                }
+            }
+            // connect read ports to nodes.            
+            TTAMachine::ExecutionPipeline::OperandSet writeOperandSet =
+                pipeline->writtenOperands();
+            it = writeOperandSet.begin();
+            
+            for (; it != writeOperandSet.end(); it++) {
+                TTAMachine::Port* port = operation->port(*it);               
+                assert(port != trigger);
+                TCEString socketName = "vectorLSU_" + port->name();
+                TTAMachine::Socket* outputSocket = NULL;                        
+                if (!finalMach->socketNavigator().hasItem(socketName)) {
+                    outputSocket = 
+                        new TTAMachine::Socket("vectorLSU_" + port->name());                
+                    try {     
+                        finalMach->addSocket(*outputSocket);
+                    } catch (const ComponentAlreadyExists& e) {
+                        TCEString msg = 
+                        "ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + outputSocket->name() +")";
+                        throw Exception(
+                            __FILE__, __LINE__, __func__, msg);                            
+                    }        
+                } else {
+                    outputSocket = 
+                        finalMach->socketNavigator().item(socketName);
+                }
+                if (!port->isConnectedTo(*outputSocket)){
+                    port->attachSocket(*outputSocket);
+                }
+                for (int i = 0; i < nodeBusNav.count(); i++) {
+                    /// The name of bus is generated same way as when creating
+                    /// new buses for nodes. Any change there must be reflected
+                    /// here as well!
+                    /// In case LSU has more ports then there are nodes
+                    /// we start from beginning.
+                    // Operand index 1 is trigger, usefull operand
+                    // indexes starts from 2, node counting starts from 0                    
+                    TCEString busName = 
+                        nodeBusNav.item(i)->name() + "_connect_" + 
+                        Conversion::toString((*it -2) % nodeCount);
+                    assert(finalBusNav.hasItem(busName));
+                    if (!outputSocket->isConnectedTo(
+                            *finalBusNav.item(busName)->segment(0))) {
+                        outputSocket->attachBus(
+                            *finalBusNav.item(busName)->segment(0));                            
+                    }
+                }
+                outputSocket->setDirection(Socket::OUTPUT);                                                                    
+            }
+        }                            
     }
 };
 
