@@ -207,25 +207,29 @@ TCEPassConfig::addInstSelector()
 #ifdef LLVM_3_0 
 bool
 TCETargetMachine::addPreISel(
-   PassManagerBase& PM, CodeGenOpt::Level OptLevel) 
+    PassManagerBase& PM, CodeGenOpt::Level OptLevel) {
+    // lower floating point stuff.. maybe could use plugin as param instead machine...    
+    PM.add(createLowerMissingInstructionsPass(*ttaMach_));
+    
+    if (emulationModule_ != NULL) {
+        PM.add(createLinkBitcodePass(*emulationModule_));
+    }
+
 #else
 bool
-TCEPassConfig::addPreISel()
-#endif
-{
+TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     PM.add(createLowerMissingInstructionsPass(
-	       *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
-
+               *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
+    
     if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
         PM.add(createLinkBitcodePass(
-		   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
+                   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
-    
-#ifndef LLVM_3_0
-    CodeGenOpt::Level OptLevel = getOptLevel();
-#endif
 
+    CodeGenOpt::Level OptLevel = getOptLevel();
+
+#endif
     // if llvm-tce opt level is -O2 or -O3
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 
