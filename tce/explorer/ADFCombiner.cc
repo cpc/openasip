@@ -673,7 +673,6 @@ private:
         triggerSocket->setDirection(Socket::INPUT);    
         
 
-        int nodeCounter = 0;
         for (int j = 0; j < vectorLSU->operationCount(); j++) {
             // We run this for all the HW operations, so some 
             // sockets port connections could already exists            
