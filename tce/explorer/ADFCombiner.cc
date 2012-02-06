@@ -67,13 +67,9 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
             " to produce larger machine.");
 
     ADFCombiner(): DesignSpaceExplorerPlugin(), 
-        Node_(""),
+        Node_("node.adf"),
         NodeCount_(4),
-        RFSize_(4),
-        RFReadPorts_(1),
-        RFWritePorts_(1),
-        Extra_(""),
-        buildIdf_(false) {
+        Extra_("extra.adf") {
 
         // compulsory parameters
         // no compulsory parameters
@@ -82,13 +78,7 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         addParameter(NodePN_, STRING, false, Node_);
         addParameter(NodeCountPN_, UINT, false, 
             Conversion::toString(NodeCount_));        
-        addParameter(RFSizePN_, UINT, false, Conversion::toString(RFSize_));
-        addParameter(RFReadPortsPN_, UINT, false, 
-            Conversion::toString(RFReadPorts_));
-        addParameter(RFWritePortsPN_, UINT, false, 
-            Conversion::toString(RFWritePorts_));
         addParameter(ExtraPN_, STRING, false, Extra_);
-        addParameter(buildIdfPN_, BOOL, false, Conversion::toString(buildIdf_));
     }
 
     virtual bool requiresStartingPointArchitecture() const { return false; }
@@ -108,11 +98,11 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
 
         // check if adf given
         if (Extra_ == "" && Node_ == "") {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "No Node adf or Extra adf defined. "
-                << "Give adfs as plugin parameters." << endl;
-            verboseLog(msg.str());
-            return result;
+            TCEString msg =
+                "No node.adf or extra.adf defined. "
+                "Give adfs as plugin parameters.";
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);
         }
 
         DSDBManager& dsdb = db();
@@ -125,33 +115,26 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         // load the adf from file or from dsdb
         try {
             nodeMach = TTAMachine::Machine::loadFromADF(Node_);            
-            extraMach = TTAMachine::Machine::loadFromADF(Extra_);
         } catch (const Exception& e) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "Error loading the adfs." << std::endl;
-            verboseLog(msg.str());
-            return result;
+            TCEString msg =
+                "Error loading the \'" + Node_ + "\'";
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);
         }
+        try {
+            extraMach = TTAMachine::Machine::loadFromADF(Extra_);            
+        } catch (const Exception& e) {
+            TCEString msg =
+            "Error loading the \'" + Extra_ + "\'";
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);
+        }
+        
         assert(nodeMach != NULL && extraMach != NULL);
         // Copies the extra machine to new architecture
         finalMach = new TTAMachine::Machine(*extraMach);
         // add components
-        addComponents(finalMach, nodeMach, extraMach, NodeCount_);
-
-        if (buildIdf_) {
-            try {
-                // add idf to configuration
-                selector_.selectComponentsToConf(conf, dsdb, finalMach);
-            } catch (const Exception& e) {
-                std::ostringstream msg(std::ostringstream::out);
-                msg << e.errorMessage() 
-                    << " " << e.fileName() 
-                    << " " << e.lineNum() << std::endl;
-                verboseLog(msg.str());
-            }
-        } else {
-            conf.hasImplementation = false;
-        }
+        addComponents(finalMach, nodeMach, extraMach, NodeCount_);        
 
         // add machine to configuration
         conf.architectureID = dsdb.addArchitecture(*finalMach);
@@ -166,23 +149,13 @@ private:
     /// Selector used by the plugin.
     ComponentImplementationSelector selector_;
     
-    static const std::string NodePN_;
-    static const std::string NodeCountPN_;    
-    static const std::string RFSizePN_;
-    static const std::string RFReadPortsPN_;
-    static const std::string RFWritePortsPN_;
-    static const std::string ExtraPN_;
-    static const std::string buildIdfPN_;
+    static const TCEString NodePN_;
+    static const TCEString NodeCountPN_;    
+    static const TCEString ExtraPN_;
     
-    std::string Node_;
+    TCEString Node_;
     int NodeCount_;    
-    int RFSize_;
-    int RFReadPorts_;
-    int RFWritePorts_;
-    /// name of the adf file if wanted to use idf generation
-    std::string Extra_;
-    /// do we build idf
-    bool buildIdf_;
+    TCEString Extra_;
 
     /**
      * Reads the parameters given to the plugin.
@@ -190,11 +163,7 @@ private:
     void readParameters() {
         readOptionalParameter(NodePN_, Node_);
         readOptionalParameter(NodeCountPN_, NodeCount_);        
-        readOptionalParameter(RFSizePN_, RFSize_);
-        readOptionalParameter(RFReadPortsPN_, RFReadPorts_);
-        readOptionalParameter(RFWritePortsPN_, RFWritePorts_);
         readOptionalParameter(ExtraPN_, Extra_);
-        readOptionalParameter(buildIdfPN_, buildIdf_);
     }
 
     
@@ -239,15 +208,16 @@ private:
                 TTAMachine::Bus* addBus = busNav.item(i)->copy();
                 TTAMachine::Bus* originalBus = busNav.item(i);
                 
-                std::string busName = 
-                originalBus->name() + "_connect_" + Conversion::toString(j);
+                TCEString busName = 
+                    originalBus->name() + "_connect_" + Conversion::toString(j);
                 addBus->setName(busName);
                 try {     
                     finalMach->addBus(*addBus);
                 } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add Bus with an already "
-                    "existing name (" + busName +")")
-                    Application::exitProgram(1);
+                    TCEString msg = "ADFCombiner: Tried to add Bus with an "
+                        "already existing name (" + busName + ")";
+                    throw Exception(
+                        __FILE__, __LINE__, __func__, msg);
                 }
                 for (int k = 0; k < socketNav.count(); k++) {
                     TTAMachine::Socket* addSocket = NULL;
@@ -258,34 +228,35 @@ private:
                     }
                     // When first bus added, create also new sockets
                     if (!socketsCreated) {                        
-                        std::string socketName = 
+                        TCEString socketName = 
                         socketNav.item(k)->name() + "_" + 
                         Conversion::toString(j);                        
                         addSocket = new TTAMachine::Socket(socketName);   
                         try {     
                             finalMach->addSocket(*addSocket);
                         } catch (const ComponentAlreadyExists& e) {
-                            verboseLog("ADFCombiner: Tried to add Socket with "
-                            " an already existing name (" + socketName +")")
-                            Application::exitProgram(1);
+                            TCEString msg = "ADFCombiner: Tried to add Socket with "
+                            " an already existing name (" + socketName +")";
+                            throw Exception(
+                                __FILE__, __LINE__, __func__, msg);                            
                         }
                     } else {
                         // Sockets were create for first bus already, just pick
                         // them based on their known generated names.
-                        std::string socketName = 
-                        socketNav.item(k)->name() + "_" + 
-                        Conversion::toString(j);                        
+                        TCEString socketName = 
+                            socketNav.item(k)->name() + "_" + 
+                            Conversion::toString(j);                        
                         addSocket = 
-                        finalMach->socketNavigator().item(socketName);
+                            finalMach->socketNavigator().item(socketName);
                     }
                     // Connect sockets to bus
                     for (int l = 0; l < originalBus->segmentCount(); l++) {
                         if (socketNav.item(k)->isConnectedTo(
                             *originalBus->segment(l))) {
                             addSocket->attachBus(*addBus->segment(l));
-                        addSocket->setDirection(
+                            addSocket->setDirection(
                             socketNav.item(k)->direction());
-                            }
+                        }
                     }
                 }
                 socketsCreated = true;                
@@ -309,16 +280,18 @@ private:
         for (unsigned j = 0; j < nodeCount; j++) {
             for (int i = 0; i < RFNav.count(); i++) {
                 TTAMachine::RegisterFile* addRF = RFNav.item(i)->copy();
-                TTAMachine::RegisterFile* originalRF = RFNav.item(i);                
-                std::string RFName = 
+                TTAMachine::RegisterFile* originalRF = RFNav.item(i);
+                TCEString RFName = 
                     RFNav.item(i)->name() + "_" + Conversion::toString(j);
                 addRF->setName(RFName);
                 try {     
                     finalMach->addRegisterFile(*addRF);
                 } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add RF with an already"
-                        "existing name (" + RFName +")")
-                    Application::exitProgram(1);
+                    TCEString msg = 
+                        "ADFCombiner: Tried to add RF with an already"
+                        "existing name (" + RFName +")";
+                    throw Exception(
+                        __FILE__, __LINE__, __func__, msg);
                 }
                 connectPorts(finalMach, originalRF, addRF, j);
             }
@@ -337,31 +310,28 @@ private:
         const TTAMachine::Machine::FunctionUnitNavigator& FUNav = 
             nodeMach->functionUnitNavigator();        
         for (unsigned j = 0; j < nodeCount; j++) {
-            
             for (int i = 0; i < FUNav.count(); i++) {
-                
                 TTAMachine::FunctionUnit* addFU = FUNav.item(i)->copy();
                 TTAMachine::FunctionUnit* originalFU = FUNav.item(i);                
-                std::string FUName = 
+                TCEString FUName = 
                     FUNav.item(i)->name() + "_" + Conversion::toString(j);
                 addFU->setName(FUName);                
                 try {     
                     finalMach->addFunctionUnit(*addFU);
                 } catch (const ComponentAlreadyExists& e) {
-                    verboseLog("ADFCombiner: Tried to add FU with an already"
-                    "existing name (" + FUName +")")
-                    Application::exitProgram(1);
+                    TCEString msg = 
+                        "ADFCombiner: Tried to add FU with an already"
+                        "existing name (" + FUName +")";
+                    throw Exception(
+                        __FILE__, __LINE__, __func__, msg);
                 }
-                if (originalFU->hasAddressSpace()) {                    
-                    
-                    std::string aName = originalFU->addressSpace()->name();
+                if (originalFU->hasAddressSpace()) {
+                    TCEString aName = originalFU->addressSpace()->name();
                     const TTAMachine::Machine::AddressSpaceNavigator& aNav = 
-                    finalMach->addressSpaceNavigator();
-                    
+                        finalMach->addressSpaceNavigator();
                     assert(aNav.hasItem(aName));
                     addFU->setAddressSpace(aNav.item(aName));
                 }
-                
                 connectPorts(finalMach, originalFU, addFU, j);
             }
         }
@@ -384,7 +354,7 @@ private:
             TTAMachine::Port* port = original->port(k);
             TTAMachine::Socket* socket = port->inputSocket();
             if (socket != NULL) {
-                std::string socketName = socket->name() + "_" +
+                TCEString socketName = socket->name() + "_" +
                     Conversion::toString(count);
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
@@ -392,7 +362,7 @@ private:
             }
             socket = port->outputSocket();
             if (socket != NULL) {
-                std::string socketName = socket->name() + "_" +
+                TCEString socketName = socket->name() + "_" +
                     Conversion::toString(count);
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
@@ -400,7 +370,7 @@ private:
             }
             socket = port->unconnectedSocket(0);
             if (socket != NULL) {
-                std::string socketName = socket->name() + "_" +
+                TCEString socketName = socket->name() + "_" +
                     Conversion::toString(count);
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
@@ -408,7 +378,7 @@ private:
             }
             socket = port->unconnectedSocket(1);
             if (socket != NULL) {
-                std::string socketName = socket->name() + "_" +
+                TCEString socketName = socket->name() + "_" +
                     Conversion::toString(count);
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
@@ -461,17 +431,17 @@ private:
                 // Don't bother connecting boolean registers atm.
                 continue;
             }            
-            std::string rfName = nodeNav.item(i)->name();            
+            TCEString rfName = nodeNav.item(i)->name();            
             // Connect register file between neighbouring node
             for (unsigned int j = 0; j < nodeCount -1; j++) {        
-                std::string firstName = 
+                TCEString firstName = 
                     rfName + "_" + Conversion::toString(j);
-                std::string secondName = 
+                TCEString secondName = 
                     rfName + "_" + Conversion::toString(j + 1);
                 TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
                 TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
                 
-                std::string busName = "connect_" + rfName + "_"
+                TCEString busName = "connect_" + rfName + "_"
                     + Conversion::toString(j) +
                     "_" + Conversion::toString(j + 1);
                 int width = std::max(firstRF->width(), secondRF->width());
@@ -482,8 +452,8 @@ private:
             }
             // Add connections between RF in extra.adf with first and
             // last of the multiplied nodes
-            std::string firstName = rfName + "_0";
-            std::string lastName = 
+            TCEString firstName = rfName + "_0";
+            TCEString lastName = 
                 rfName + "_" + Conversion::toString(nodeCount -1);            
             TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
             TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
@@ -494,9 +464,9 @@ private:
                 if (extraRF->width() == 1) {
                     continue;
                 }
-                std::string extraName = extraRF->name();
+                TCEString extraName = extraRF->name();
                 int width = std::max(firstRF->width(), extraRF->width());
-                std::string busName = "connect_" + extraName + "_" + firstName;
+                TCEString busName = "connect_" + extraName + "_" + firstName;
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
@@ -512,7 +482,7 @@ private:
 
     TTAMachine::Bus* createBus(
         TTAMachine::Machine* finalMach, 
-        std::string busName,
+        TCEString busName,
         int width) {
         TTAMachine::Bus* newBus = new TTAMachine::Bus(
             busName, width, 0,
@@ -523,9 +493,11 @@ private:
         try {     
             finalMach->addBus(*newBus);
         } catch (const ComponentAlreadyExists& e) {
-            verboseLog("ADFCombiner: Tried to add Bus with an already "
-            "existing name (" + busName +")")
-            Application::exitProgram(1);
+            TCEString msg = 
+                "ADFCombiner: Tried to add Bus with an already"
+                "existing name (" + busName +")";
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);            
         }   
         return newBus;
     }
@@ -534,7 +506,7 @@ private:
         TTAMachine::Machine* finalMach,
         TTAMachine::RegisterFile* rf,
         TTAMachine::Bus* newBus,
-        std::string name) {
+        TCEString name) {
         
         TTAMachine::RFPort* readPort = NULL;
         TTAMachine::RFPort* writePort = NULL;                
@@ -566,9 +538,11 @@ private:
             try {     
                 finalMach->addSocket(*readSocket);
             } catch (const ComponentAlreadyExists& e) {
-                verboseLog("ADFCombiner: Tried to add Socket with "
-                " an already existing name (" + readSocket->name() +")")
-                Application::exitProgram(1);
+                TCEString msg = 
+                    "ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + readSocket->name() +")";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);                            
             }
         } else {
             readSocket = socketNavigator.item(readPort->name());
@@ -578,9 +552,11 @@ private:
             try {     
                 finalMach->addSocket(*writeSocket);
             } catch (const ComponentAlreadyExists& e) {
-                verboseLog("ADFCombiner: Tried to add Socket with "
-                " an already existing name (" + writeSocket->name() +")")
-                Application::exitProgram(1);
+                TCEString msg = 
+                "ADFCombiner: Tried to add Socket with "
+                " an already existing name (" + writeSocket->name() +")";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);                            
             }
         } else {
             writeSocket = socketNavigator.item(writePort->name());
@@ -603,12 +579,9 @@ private:
 };
 
 // parameters
-const std::string ADFCombiner::NodePN_("node");
-const std::string ADFCombiner::NodeCountPN_("node_count");
-const std::string ADFCombiner::RFSizePN_("rf_size");
-const std::string ADFCombiner::RFReadPortsPN_("rf_reads");
-const std::string ADFCombiner::RFWritePortsPN_("rf_writes");
-const std::string ADFCombiner::ExtraPN_("extra");
-const std::string ADFCombiner::buildIdfPN_("build_idf");
+const TCEString ADFCombiner::NodePN_("node");
+const TCEString ADFCombiner::NodeCountPN_("node_count");
+const TCEString ADFCombiner::ExtraPN_("extra");
+
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ADFCombiner)
