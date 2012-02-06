@@ -228,6 +228,9 @@ CallExplorerPluginWindow::onRun(wxCommandEvent&) {
         model_.getMachine()->copyFromMachine(machine);
     } catch (KeyNotFound& e) { 
         // no new adf created by the plugin. just exit
+        InformationDialog diag(
+            this, WxConversion::toWxString(e.errorMessage()));
+        diag.ShowModal();        
         FileSystem::removeFileOrDirectory(dsdbFile);
         EndModal(wxID_CANCEL);
         return;
