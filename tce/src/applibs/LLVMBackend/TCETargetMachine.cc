@@ -126,6 +126,7 @@ TCETargetMachine::~TCETargetMachine() {
     }
 }
 
+#ifdef LLVM_3_0
 /**
  * Branch folding pass does worse than normal, so currently disabled.
  */
@@ -133,6 +134,7 @@ bool
 TCETargetMachine::getEnableTailMergeDefault() const { 
     return false; 
 }
+#endif
 
 void 
 TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
@@ -162,6 +164,7 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     plugin_->registerTargetMachine(*this);
 }
 
+#ifdef LLVM_3_0
 /**
  * Creates an instruction selector instance.
  *
@@ -170,15 +173,30 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
  */                                     
 bool
 TCETargetMachine::addInstSelector(
-#ifdef LLVM_3_0
     PassManagerBase& pm, CodeGenOpt::Level /* OptLevel */) 
-#else
-    PassManagerBase& pm) 
-#endif
 {
     pm.add(plugin_->createISelPass(this));
     return false;
 }
+
+#else
+/**
+ * Creates an instruction selector instance.
+ *
+ * @param pm Function pass manager to add isel pass.
+ * @param fast Not used.
+ */                                     
+bool
+TCEPassConfig::addInstSelector() 
+{
+    PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+    return false;
+}
+
+
+
+#endif
+
 
 /**
  * Some extra passes needed by TCE
@@ -192,15 +210,16 @@ TCETargetMachine::addPreISel(
    PassManagerBase& PM, CodeGenOpt::Level OptLevel) 
 #else
 bool
-TCETargetMachine::addPreISel(
-    PassManagerBase& PM) 
+TCEPassConfig::addPreISel()
 #endif
 {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
-    PM.add(createLowerMissingInstructionsPass(*ttaMach_));
+    PM.add(createLowerMissingInstructionsPass(
+	       *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
 
-    if (emulationModule_ != NULL) {
-        PM.add(createLinkBitcodePass(*emulationModule_));
+    if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
+        PM.add(createLinkBitcodePass(
+		   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
     
 #ifndef LLVM_3_0
@@ -267,3 +286,11 @@ TCETargetMachine::missingOperations() {
     return &missingOps_;
 }
 
+#ifndef LLVM_3_0
+
+TargetPassConfig* 
+TCETargetMachine::createPassConfig(
+    PassManagerBase &PM, bool DisableVerify) {
+    return new TCEPassConfig(this, PM, plugin_, DisableVerify);
+}
+#endif

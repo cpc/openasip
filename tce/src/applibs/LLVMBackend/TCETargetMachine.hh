@@ -42,13 +42,16 @@
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetSelectionDAGInfo.hh"
-
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
 #ifdef LLVM_LIBDIR
 #undef LLVM_LIBDIR
 #endif
 #include "tce_config.h"
+
+#ifndef LLVM_3_0
+#include "llvm/CodeGen/Passes.h"
+#endif
 
 namespace TTAMachine {
     class Machine;
@@ -60,6 +63,24 @@ class PluginTools;
 extern "C" void LLVMInitializeTCETargetInfo();
 
 namespace llvm {
+#ifndef LLVM_3_0
+    class TCEPassConfig : public TargetPassConfig {
+    public:
+	TCEPassConfig(
+	    LLVMTargetMachine* tm, 
+	    PassManagerBase& pm, 
+	    TCETargetMachinePlugin* plugin, 
+	    bool disableVerify) :
+	    TargetPassConfig(tm, pm, disableVerify), plugin_(plugin) {
+	    assert(plugin_ != NULL);
+	}
+
+	virtual bool addPreISel();
+	virtual bool addInstSelector();
+
+	TCETargetMachinePlugin* plugin_;
+    };
+#endif
 
     class Module;
 
@@ -132,14 +153,15 @@ namespace llvm {
 
         virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
-#else
-        virtual bool addPreISel(PassManagerBase& PM);
 
-        virtual bool addInstSelector(PassManagerBase& pm);
-#endif
-
-        // we do not want branch folder pass
+        // we do not want branch folder pass(we don not??)
         virtual bool getEnableTailMergeDefault() const;
+#else
+
+	virtual TargetPassConfig *createPassConfig(
+	    PassManagerBase &PM, bool DisableVerify);
+
+#endif
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);
