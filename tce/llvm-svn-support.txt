@@ -1,7 +1,4 @@
-tce-devel r1457:
-llvm-trunk r149753 works. 
+tce-devel r1467:
+llvm-trunk r150086 works.
 
 Notes:
-
-Performance worsening at around r123400: No longer optimizes away "constant" parameters in qsort test. 
-
