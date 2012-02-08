@@ -286,7 +286,8 @@ private:
                 TTAMachine::RegisterFile* addRF = RFNav.item(i)->copy();
                 TTAMachine::RegisterFile* originalRF = RFNav.item(i);
                 TCEString RFName = 
-                    RFNav.item(i)->name() + "_" + Conversion::toString(j);
+                    "L_" + Conversion::toString(j) + "_" + 
+                    RFNav.item(i)->name();
                 addRF->setName(RFName);
                 try {     
                     finalMach->addRegisterFile(*addRF);
@@ -318,7 +319,8 @@ private:
                 TTAMachine::FunctionUnit* addFU = FUNav.item(i)->copy();
                 TTAMachine::FunctionUnit* originalFU = FUNav.item(i);                
                 TCEString FUName = 
-                    FUNav.item(i)->name() + "_" + Conversion::toString(j);
+                    "L_" + Conversion::toString(j) + "_" + 
+                    FUNav.item(i)->name();
                 addFU->setName(FUName);                
                 try {     
                     finalMach->addFunctionUnit(*addFU);
@@ -442,9 +444,9 @@ private:
             // Connect register file between neighbouring node
             for (unsigned int j = 0; j < nodeCount -1; j++) {        
                 TCEString firstName = 
-                    rfName + "_" + Conversion::toString(j);
+                    "L_" + Conversion::toString(j) + "_" + rfName;
                 TCEString secondName = 
-                    rfName + "_" + Conversion::toString(j + 1);
+                    "L_" + Conversion::toString(j + 1) + "_" + rfName;
                 TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
                 TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
                 
@@ -459,9 +461,9 @@ private:
             }
             // Add connections between RF in extra.adf with first and
             // last of the multiplied nodes
-            TCEString firstName = rfName + "_0";
+            TCEString firstName = "L_0_" + rfName;
             TCEString lastName = 
-                rfName + "_" + Conversion::toString(nodeCount -1);            
+            "L_" + Conversion::toString(nodeCount -1) + "_" + rfName;            
             TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
             TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
                 
