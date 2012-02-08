@@ -316,6 +316,7 @@ namespace llvm {
 
 	TTAProgram::Instruction* emitVectorInstruction(
 	    const std::string& opName,
+	    int elementCount,
             const MachineInstr* mi,
 	    TTAProgram::CodeSnippet* proc);
 

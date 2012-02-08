@@ -1078,8 +1078,14 @@ LLVMTCEBuilder::emitInstruction(
         opName = operationName(*mi);
     }
 
-    if (opName.substr(0,10) == "__VECTOR__") {
-	return emitVectorInstruction(opName.substr(10), mi, proc);
+    // format is __VECTOR__##__opname
+    // where ## is number of elements
+    if (opName.find("_VECTOR_") == 0) {
+	std::vector<std::string> res;
+	StringTools::chopString(opName, "_", res);
+	int elemCount = Conversion::toInt(res.at(2));
+	return emitVectorInstruction(
+	    res.at(3), elemCount, mi, proc);
     }
 
     const HWOperation& op = getHWOperation(opName);
@@ -2772,6 +2778,7 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitVectorInstruction(
     // currently only support vectors of size 2
     const std::string& opName,
+    int elementCount,
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     TTAProgram::Instruction* firstIns = NULL;
@@ -2784,7 +2791,7 @@ LLVMTCEBuilder::emitVectorInstruction(
     OperationPool pool;
     const Operation& operation = pool.operation(opName.c_str());
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < elementCount; i++) {
 	int inputOperand = 0;
 	int outputOperand = operation.numberOfInputs();
 	std::vector<TTAProgram::Instruction*> operandMoves;

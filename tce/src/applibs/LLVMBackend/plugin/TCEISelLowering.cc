@@ -480,7 +480,8 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
-#ifdef USE_VECTOR_DEGS
+//#define USE_VECTOR_REGS
+#ifdef USE_VECTOR_REGS
     addRegisterClass(MVT::v2i32, TCE::VECREGSRegisterClass);
 #endif
 
