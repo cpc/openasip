@@ -1062,16 +1062,22 @@ LLVMTCEBuilder::emitInstruction(
             return emitSelect(mi, proc);
         }
 
-	if (opName == "__BUILD") {
-	    return emitVectorBuild(mi, proc);
+	if (opName.find("_BUILD_") == 0) {
+	    std::vector<std::string> res;
+	    StringTools::chopString(opName, "_", res);
+	    int elemCount = Conversion::toInt(res.at(2));
+	    return emitVectorBuild(elemCount, mi, proc);
 	}
 
-	if (opName == "__EXTRACT") {
+	if (opName.find("_EXTRACT_") == 0) {
 	    return emitVectorExtract(mi, proc);
 	}
 
-	if (opName == "__INSERT") {
-	    return emitVectorInsert(mi, proc);
+	if (opName.find("_INSERT_") == 0) {
+	    std::vector<std::string> res;
+	    StringTools::chopString(opName, "_", res);
+	    int elemCount = Conversion::toInt(res.at(2));
+	    return emitVectorInsert(elemCount, mi, proc);
 	}
 
     } else {
@@ -2610,6 +2616,7 @@ LLVMTCEBuilder::emitLongjmp(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitVectorBuild(
+    int elementCount,
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     Bus& bus = UniversalMachine::instance().universalBus();
@@ -2620,7 +2627,7 @@ LLVMTCEBuilder::emitVectorBuild(
     int idx = registerIndex(dRegNum);
     std::string vectorRfName = registerFileName(dRegNum);
     int nameIndex = strlen("__VECTOR__");
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < elementCount; i++) {
 	int nextNameIndex = vectorRfName.find('+', nameIndex);
 	int len = nextNameIndex - nameIndex;
 	std::string rfName = vectorRfName.substr(nameIndex, len);
@@ -2693,7 +2700,9 @@ LLVMTCEBuilder::emitVectorExtract(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitVectorInsert(
-    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+    int elementCount, 
+    const MachineInstr* mi, 
+    TTAProgram::CodeSnippet* proc) {
     
     MachineOperand dstVectorMO = mi->getOperand(0);
     MachineOperand srcVectorMO = mi->getOperand(1);
@@ -2708,6 +2717,7 @@ LLVMTCEBuilder::emitVectorInsert(
 
     assert(elementIndexMO.isImm());
     int elementIndex = elementIndexMO.getImm();
+    assert(elementIndex < elementCount);
     for (int i = 0; i < elementIndex; i++) {
 	dstNameIndex = dstNextNameIndex + 1;
 	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
@@ -2725,8 +2735,6 @@ LLVMTCEBuilder::emitVectorInsert(
     instr->addMove(move);
     proc->add(instr);
 
-#define VEC_SIZE 2 // todo: read from the vector operand?
-
     // if not same registers, need to copy whole vector excludng the 1 element.
     if (srcVectorMO.getReg() != dstVectorMO.getReg()) {
 	int dRegNumSrc = srcVectorMO.getReg();
@@ -2737,7 +2745,7 @@ LLVMTCEBuilder::emitVectorInsert(
 
 	dstNameIndex = strlen("__VECTOR__");
 	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
-	for (int i = 0; i < VEC_SIZE; i++) {
+	for (int i = 0; i < elementCount; i++) {
 	    if (i != elementIndex) {
 		int dlen = dstNextNameIndex - dstNameIndex;
 		std::string dstRfName = 
@@ -2776,7 +2784,6 @@ LLVMTCEBuilder::emitVectorInsert(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitVectorInstruction(
-    // currently only support vectors of size 2
     const std::string& opName,
     int elementCount,
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
@@ -2827,7 +2834,6 @@ LLVMTCEBuilder::emitVectorInstruction(
 		if (inputOperand > operation.numberOfInputs()) 
 		    continue;
 
-//		assert(!mo.isAddress());
 		TTAProgram::Terminal* dst = 
 		    new TTAProgram::TerminalFUPort(hwop, inputOperand);
 		TTAProgram::Move* move = createMove(tr, dst, bus);
