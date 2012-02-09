@@ -2712,8 +2712,8 @@ LLVMTCEBuilder::emitVectorInsert(
 	dstNameIndex = dstNextNameIndex + 1;
 	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
     }
-    int len = dstNextNameIndex - dstNameIndex;
-    std::string dstRfName = dstVectorRfName.substr(dstNameIndex, len);
+    int dlen = dstNextNameIndex - dstNameIndex;
+    std::string dstRfName = dstVectorRfName.substr(dstNameIndex, dlen);
     
     TTAProgram::Terminal* src = createTerminal(srcScalarMO);
     TTAProgram::Terminal* dst = createTerminalRegister(dstRfName, dstIdx);
@@ -2741,11 +2741,11 @@ LLVMTCEBuilder::emitVectorInsert(
 	    if (i != elementIndex) {
 		int dlen = dstNextNameIndex - dstNameIndex;
 		std::string dstRfName = 
-		    dstVectorRfName.substr(dstNameIndex, len);
+		    dstVectorRfName.substr(dstNameIndex, dlen);
 	    
 		int slen = srcNextNameIndex - srcNameIndex;
 		std::string srcRfName = 
-		    srcVectorRfName.substr(srcNameIndex, len);
+		    srcVectorRfName.substr(srcNameIndex, slen);
 
 		TTAProgram::Terminal* src = 
 		    createTerminalRegister(srcRfName, srcIdx);
@@ -2890,12 +2890,11 @@ bool LLVMTCEBuilder::isVectorOperand(const MachineOperand& mo) {
     if (!mo.isReg()) {
 	return false;
     }
-    int dRegNum = mo.getReg();
+    unsigned int dRegNum = mo.getReg();
     if (dRegNum == raPortDRegNum()) {
 	return false;
     }
     
-    int idx = registerIndex(dRegNum);
     std::string origRfName = registerFileName(dRegNum);
     if (origRfName.length() < 10) {
 	return false;
