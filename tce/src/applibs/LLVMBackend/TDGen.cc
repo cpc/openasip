@@ -246,6 +246,13 @@ TDGen::analyzeRegisters() {
         }
     }
 
+    analyzeRegisters(ONLY_EXTRAS);
+    analyzeRegisters(ONLY_NORMAL);
+    analyzeRegisters(ONLY_LANES);
+}
+
+void TDGen::analyzeRegisters(RegsToProcess regsToProcess) {
+
     const TTAMachine::Machine::RegisterFileNavigator nav =
         mach_.registerFileNavigator();
 
@@ -256,6 +263,21 @@ TDGen::analyzeRegisters() {
         for (int i = 0; i < nav.count(); i++) {
             const TTAMachine::RegisterFile* rf = nav.item(i);
 
+	    if (regsToProcess != ALL_REGISTERS) {
+		if (rf->name().find("EX_") == 0) {
+		    if (regsToProcess != ONLY_EXTRAS) {
+			continue;
+		    }
+		} else if (rf->name().find("L_") == 0) {
+		    if (regsToProcess != ONLY_LANES) {
+			continue;
+		    }
+		} else {
+		    if (regsToProcess != ONLY_NORMAL) {
+			continue;
+		    }
+		}
+	    }
             // Check that the registerfile has both input and output ports.
             bool hasInput = false;
             bool hasOutput = false;

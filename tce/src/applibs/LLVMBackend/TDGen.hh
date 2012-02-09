@@ -105,8 +105,15 @@ protected:
         }
     };
 
+    enum RegsToProcess {
+	ALL_REGISTERS,
+	ONLY_EXTRAS,
+	ONLY_LANES,
+	ONLY_NORMAL
+    };
     bool checkRequiredRegisters() throw (Exception);
     void analyzeRegisters();
+    void analyzeRegisters(RegsToProcess regsToProcess);
 
     void writeRegisterDef(
         std::ostream& o,
