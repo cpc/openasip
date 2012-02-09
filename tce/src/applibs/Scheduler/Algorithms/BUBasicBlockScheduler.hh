@@ -104,7 +104,8 @@ protected:
         throw (Exception);
 
     int scheduleResultReads(
-        MoveNodeGroup& moves, int cycle, bool bypass = false, bool dre = false)
+        MoveNodeGroup& moves, int cycle, bool bypass = false, 
+        bool bypassLate = false, bool dre = false)
         throw (Exception);
 
     void scheduleMove(MoveNode& move, int cycle)

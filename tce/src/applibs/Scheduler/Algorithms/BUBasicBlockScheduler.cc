@@ -253,10 +253,12 @@ BUBasicBlockScheduler::scheduleOperation(
 //    ddg_->sanityCheck();
 #endif
     bool bypass = true;
+    bool bypassLate = false;
     bool dre = true;
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
-        maxResult = scheduleResultReads(moves, resultsStartCycle, bypass, dre);
+        maxResult = scheduleResultReads(
+            moves, resultsStartCycle, bypass, bypassLate, dre);
         if (maxResult != -1) {
             resultsFailed = false;
         } else {
@@ -277,9 +279,16 @@ BUBasicBlockScheduler::scheduleOperation(
                 }
             }
             resultsFailed = true;
-            // We will try to schedule results in earlier cycle
-            resultsStartCycle--;
-            bypass = false;            
+            if (bypass) {
+                bypass = false;            
+                bypassLate = false;
+            } else if (bypassLate) {
+                bypassLate = false;
+            } else {
+                // We will try to schedule results in earlier cycle
+                resultsStartCycle--;                
+            }
+                
             continue;
         }
 
@@ -301,14 +310,19 @@ BUBasicBlockScheduler::scheduleOperation(
                 }
             }
             operandsFailed = true;
-            resultsStartCycle--;
             maxResult--;
-            bypass = false;                
-            resultsStartCycle = std::min(maxResult, resultsStartCycle);
+            if (bypass) {
+                bypass = false;            
+                bypassLate = false;
+            } else if (bypassLate) {
+                bypassLate = false;
+            } else {
+                resultsStartCycle--;                
+                resultsStartCycle = std::min(maxResult, resultsStartCycle);                                
+            }
         }
     }
-    // This fails if we reach 0 cycle. Probably means that the original scope
-    // was too small? TODO: better heuristics.
+    // This fails if we reach 0 cycle.
     if (resultsFailed) {
         ddg_->writeToDotFile(
              (boost::format("bb_%s_2_failed_scheduling.dot")
@@ -559,7 +573,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
  */
 int
 BUBasicBlockScheduler::scheduleResultReads(
-    MoveNodeGroup& moves, int cycle, bool bypass, bool dre)
+    MoveNodeGroup& moves, int cycle, bool bypass, bool bypassLate, bool dre)
     throw (Exception) {
 
     int maxResultCycle = cycle;
@@ -695,13 +709,96 @@ BUBasicBlockScheduler::scheduleResultReads(
             // to be at least one cycle earlier.    
             tempRegLimitCycle = std::min(tempRegLimitCycle - 1, cycle);
             scheduleMove(moveNode, tempRegLimitCycle);
-
             if (!moveNode.isScheduled()) {
                 // Scheduling result failed due to some of the bypassed moves
                 // will try again without bypassing anything.
                 undoBypass(moveNode);
                 return -1;
+            }            
+            if (bypassLate) {                
+                bool edgesCopied = false;
+                // First try to bypass all uses of the result
+                OrderedSet destinations = findBypassDestinations(moveNode, 1).first;
+                if (destinations.size() > 0) {
+                    for (OrderedSet::iterator it = destinations.begin(); 
+                         it != destinations.end(); it++) {
+                        if (!ddg_->guardsAllowBypass(moveNode, **it)) {
+                            std::cerr << "\t\tguardsnotallowbypass" << std::endl;
+                            bypassSuccess = false;
+                            continue;
+                        }
+                        assert((*it)->isScheduled());
+                        if ((*it)->isDestinationVariable()) {
+                            MoveNode* firstWrite =
+                            ddg_->firstScheduledRegisterWrite(
+                                (*it)->move().destination().registerFile(),
+                                (*it)->move().destination().index());                        
+                            if (firstWrite != (*it)) {
+                                // If bypassing to temporary register
+                                // missing edges in DDG could cause 
+                                // overwrite of temporary value before it is 
+                                // consumed. Avoid this error for now.
+                                // TODO: figure out some better logic, this leads
+                                // to inefficiency.
+                                continue;
+                            }
+                        }                        
+                        int originalCycle = (*it)->cycle();
+                        bypassDestinationsCycle_[&moveNode].push_back(
+                            originalCycle);  
+#ifdef DEBUG_BYPASS                            
+                        ddg_->writeToDotFile("beforeUnscheduleLate.dot");
+#endif                        
+                        unschedule(**it);
+                        if (!ddg_->mergeAndKeep(moveNode, **it)) {
+                            std::cerr << "Merge fail." << std::endl;
+                            scheduleMove(**it, originalCycle);
+                            bypassSuccess = false;
+                            continue;
+                        }
+                        
+                        bypassDestinations_[&moveNode].push_back(*it);       
+                        assert((*it)->isScheduled() == false);
+                        scheduleMove(**it, endCycle_);
+#ifdef DEBUG_BYPASS                        
+                        std::cerr << "Created late " << (*it)->toString()
+                        << " with original cycle " << originalCycle << std::endl;
+#endif                        
+                        if (!(*it)->isScheduled()) {
+                            // Scheduling bypass failed, undo and try to 
+                            // schedule other possible bypasses.
+                            undoBypass(moveNode, *it, originalCycle);
+                            bypassDestinations_[&moveNode].pop_back();
+                            bypassDestinationsCycle_[&moveNode].pop_back();                        
+                            bypassSuccess = false;
+                        } else {
+#ifdef DEBUG_BYPASS
+                            if ((*it)->cycle() < originalCycle) {
+                                std::cerr << "Bypassed node late " << 
+                                (*it)->toString() << "rescheduled "
+                                "earlier then it's original location - " <<
+                                originalCycle << std::endl;
+                            }
+#endif                        
+                            maxResultCycle =
+                                ((*it)->cycle() > maxResultCycle) ?
+                                (*it)->cycle() : maxResultCycle;                    
+                            bypassedCount++;
+                            bypassSuccess = true;
+                            if (!edgesCopied) {
+                                // In case operands reads same register that
+                                // result writes, removing result move after
+                                // successfull bypass could lead to operand
+                                // scheduled after the register it reads is 
+                                // overwriten. This should prevent such situation.
+                                ddg_->copyDepsOver(moveNode, true, true);
+                                edgesCopied = true;
+                            }
+                        }
+                    }
+                }
             }
+
             // Find latest schedule result cycle
             maxResultCycle =
                 (moveNode.cycle() > maxResultCycle) ?
