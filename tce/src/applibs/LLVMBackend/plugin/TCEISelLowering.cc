@@ -482,7 +482,7 @@ TCETargetLowering::TCETargetLowering(
 
 //#define USE_VECTOR_REGS
 #ifdef USE_VECTOR_REGS
-    addRegisterClass(MVT::v2i32, TCE::VECREGSRegisterClass);
+    addRegisterClass(MVT::v2i32, TCE::VECTOR2RegisterClass);
 #endif
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);

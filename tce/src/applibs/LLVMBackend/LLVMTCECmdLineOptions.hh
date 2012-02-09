@@ -88,6 +88,8 @@ public:
     virtual bool dumpDDGsXML() const;
     virtual bool disableLLVMAA() const;
 
+    bool useVectorBackend() const;
+
     virtual void printVersion() const {
         std::cout << "llvm-tce - TCE LLVM code generator " << VERSION
                   << std::endl;
@@ -120,6 +122,7 @@ private:
     static const std::string SWL_RECURSIVE_BU_SCHEDULER;
     static const std::string SWL_USE_OLD_BACKEND_SOURCES;
     static const std::string SWL_TEMP_DIR;
+    static const std::string ENABLE_VECTOR_BACKEND;
     static const std::string USAGE;
 };
 

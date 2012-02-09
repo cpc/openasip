@@ -784,6 +784,10 @@ p.add_option('--no-rename-registers', action='store_false', dest='rename_registe
              help=\
 """Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
 
+p.add_option('--vector-backend', action='store_true', dest='vector_backend', default=False,
+             help=\
+"""Enable vector registes support by cobining multiple RF's into one vector RF.""")
+
 p.add_option('--print-resource-constraints', action='store_true',
              dest='print_resource_constraints', default=False,
              help=\
@@ -1108,6 +1112,9 @@ if options.adf_file != "":
         command += " --rename-registers"
     else:
         command += " --no-rename-registers"
+
+    if options.vector_backend:
+        command += " --vector-backend"
 
     if options.kill_dead_results:
         command += " --kill-dead-results"

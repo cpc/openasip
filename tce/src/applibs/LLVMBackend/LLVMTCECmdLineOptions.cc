@@ -64,6 +64,9 @@ const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES =
 
 const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
 
+const std::string LLVMTCECmdLineOptions::ENABLE_VECTOR_BACKEND = 
+    "vector-backend";
+
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
     "Compile LLVM bytecode for target TCE architecture.\n";
@@ -162,6 +165,10 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             SWL_TEMP_DIR, 
             "The temporary directory to use for files needed during the code generation."));
 
+    addOption(
+	new BoolCmdLineOptionParser(
+	    ENABLE_VECTOR_BACKEND,
+	    "Enable backend support for vector registers split between multiple RF's"));
 }
 
 /**
@@ -348,3 +355,7 @@ LLVMTCECmdLineOptions::tempDir() const {
     return findOption(SWL_TEMP_DIR)->String();
 }
 
+bool
+LLVMTCECmdLineOptions::useVectorBackend() const {
+    return findOption(ENABLE_VECTOR_BACKEND)->isDefined();
+}

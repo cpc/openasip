@@ -813,6 +813,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         " " + pluginSources +
         " -o " + pluginFileName;
 
+    // TODO: whether vectors are used or not stored in has of the
+    // plugin. this is a temporary solution
+    if (options_->useVectorBackend()) {
+	cmd += " -DUSE_VECTOR_REGS";
+    }
     ret = system(cmd.c_str());
     if (ret) {
         std::string msg = std::string() +
