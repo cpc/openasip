@@ -11,7 +11,9 @@ ${EXPLORE_BIN} -e ADFCombiner -u node=${MINIMAL_ADF_PATH} -u extra=${MINIMAL_ADF
 "${EXPLORE_BIN}" -w 1 test.dsdb 1>/dev/null
 
 CONNECTING_BUSES="$(grep '<bus name.*>' 1.adf |grep "connect"| wc -l)"
-((REQUIRED_BUSES= 1 + NODE_COUNT*2))
+# NODE_COUNT buses for each node internal connections
+# NODE_COUNT + 1 buses for each register file and and neighbour register files, including extra
+((REQUIRED_BUSES=(NODE_COUNT+1)*2 + NODE_COUNT))
 if [ ! "${CONNECTING_BUSES}" -eq "${REQUIRED_BUSES}" ]; then
     echo "Added wrong number of connecting buses (${CONNECTING_BUSES} != ${REQUIRED_BUES})."
 fi

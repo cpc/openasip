@@ -183,6 +183,7 @@ private:
         // Order is important here!
         // When adding busses also socket will be created
         // and the RF and FU ports will be connected to them when adding.
+        renameExtraUnits(finalMach);
         addAddressSpaces(finalMach, nodeMach);                        
         addBuses(finalMach, nodeMach, nodeCount);                
         addRegisterFiles(finalMach, nodeMach, nodeCount);
@@ -233,8 +234,7 @@ private:
                     // When first bus added, create also new sockets
                     if (!socketsCreated) {                        
                         TCEString socketName = 
-                            socketNav.item(k)->name() + "_" + 
-                            Conversion::toString(j);                        
+                            getNodeComponentName(socketNav.item(k)->name(), j);
                         addSocket = new TTAMachine::Socket(socketName);   
                         try {     
                             finalMach->addSocket(*addSocket);
@@ -248,8 +248,7 @@ private:
                         // Sockets were create for first bus already, just pick
                         // them based on their known generated names.
                         TCEString socketName = 
-                            socketNav.item(k)->name() + "_" + 
-                            Conversion::toString(j);                        
+                            getNodeComponentName(socketNav.item(k)->name(), j);
                         addSocket = 
                             finalMach->socketNavigator().item(socketName);
                     }
@@ -286,8 +285,7 @@ private:
                 TTAMachine::RegisterFile* addRF = RFNav.item(i)->copy();
                 TTAMachine::RegisterFile* originalRF = RFNav.item(i);
                 TCEString RFName = 
-                    "L_" + Conversion::toString(j) + "_" + 
-                    RFNav.item(i)->name();
+                    getNodeComponentName(RFNav.item(i)->name(), j);                    
                 addRF->setName(RFName);
                 try {     
                     finalMach->addRegisterFile(*addRF);
@@ -319,8 +317,7 @@ private:
                 TTAMachine::FunctionUnit* addFU = FUNav.item(i)->copy();
                 TTAMachine::FunctionUnit* originalFU = FUNav.item(i);                
                 TCEString FUName = 
-                    "L_" + Conversion::toString(j) + "_" + 
-                    FUNav.item(i)->name();
+                    getNodeComponentName(FUNav.item(i)->name(), j);
                 addFU->setName(FUName);                
                 try {     
                     finalMach->addFunctionUnit(*addFU);
@@ -360,32 +357,32 @@ private:
             TTAMachine::Port* port = original->port(k);
             TTAMachine::Socket* socket = port->inputSocket();
             if (socket != NULL) {
-                TCEString socketName = socket->name() + "_" +
-                    Conversion::toString(count);
+                TCEString socketName = 
+                    getNodeComponentName(socket->name(), count);                
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
                 newUnit->port(k)->attachSocket(*newSocket);
             }
             socket = port->outputSocket();
             if (socket != NULL) {
-                TCEString socketName = socket->name() + "_" +
-                    Conversion::toString(count);
+                TCEString socketName = 
+                    getNodeComponentName(socket->name(), count);                
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
                 newUnit->port(k)->attachSocket(*newSocket);                        
             }
             socket = port->unconnectedSocket(0);
             if (socket != NULL) {
-                TCEString socketName = socket->name() + "_" +
-                    Conversion::toString(count);
+                TCEString socketName =                     
+                    getNodeComponentName(socket->name(), count);                
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
                 newUnit->port(k)->attachSocket(*newSocket);                        
             }
             socket = port->unconnectedSocket(1);
             if (socket != NULL) {
-                TCEString socketName = socket->name() + "_" +
-                    Conversion::toString(count);
+                TCEString socketName = 
+                    getNodeComponentName(socket->name(), count);                
                 TTAMachine::Socket* newSocket = 
                     finalMach->socketNavigator().item(socketName);
                 newUnit->port(k)->attachSocket(*newSocket);                        
@@ -436,17 +433,11 @@ private:
             extraMach->registerFileNavigator();
             
         for (int i = 0; i < nodeNav.count(); i++) {
-            if (nodeNav.item(i)->width() == 1) {
-                // Don't bother connecting boolean registers atm.
-                continue;
-            }            
             TCEString rfName = nodeNav.item(i)->name();            
             // Connect register file between neighbouring node
             for (unsigned int j = 0; j < nodeCount -1; j++) {        
-                TCEString firstName = 
-                    "L_" + Conversion::toString(j) + "_" + rfName;
-                TCEString secondName = 
-                    "L_" + Conversion::toString(j + 1) + "_" + rfName;
+                TCEString firstName = getNodeComponentName(rfName, j);
+                TCEString secondName = getNodeComponentName(rfName, j+1);
                 TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
                 TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
                 
@@ -461,16 +452,16 @@ private:
             }
             // Add connections between RF in extra.adf with first and
             // last of the multiplied nodes
-            TCEString firstName = "L_0_" + rfName;
-            TCEString lastName = 
-            "L_" + Conversion::toString(nodeCount -1) + "_" + rfName;            
+            TCEString firstName = getNodeComponentName(rfName, 0);
+            TCEString lastName = getNodeComponentName(rfName, nodeCount -1);
             TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
             TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
                 
             for (int k = 0; k < extraNav.count(); k++) {
-                TTAMachine::RegisterFile* extraRF =
-                    finalNav.item(extraNav.item(k)->name());                
-                if (extraRF->width() == 1) {
+                TCEString newName = 
+                    getExtraComponentName(extraNav.item(k)->name());                
+                TTAMachine::RegisterFile* extraRF = finalNav.item(newName);                
+                if (extraRF->width() != firstRF->width()) {
                     continue;
                 }
                 TCEString extraName = extraRF->name();
@@ -632,7 +623,8 @@ private:
                 if (fu->hasAddressSpace()) {
                     // Ok, it seems to be load/store we look for, stop looking.
                     // Find equivalends in final architecture
-                    vectorLSU = finalNav.item(fu->name());                                    
+                    vectorLSU = finalNav.item(
+                        getExtraComponentName(fu->name()));                                    
                     trigger = vectorLSU->operationPort(triggerIndex);
                     break;
                 } else {
@@ -784,6 +776,28 @@ private:
             }
         }                            
     }
+    void renameExtraUnits(TTAMachine::Machine* finalMach) {
+        const TTAMachine::Machine::FunctionUnitNavigator& finalNav =
+            finalMach->functionUnitNavigator();
+        for (int i = 0; i < finalNav.count(); i++) {
+            TCEString oldName = finalNav.item(i)->name();
+            finalNav.item(i)->setName(getExtraComponentName(oldName));
+        }
+        const TTAMachine::Machine::RegisterFileNavigator& finalRFNav =
+            finalMach->registerFileNavigator();
+        for (int i = 0; i < finalRFNav.count(); i++) {
+            TCEString oldName = finalRFNav.item(i)->name();
+            finalRFNav.item(i)->setName(getExtraComponentName(oldName));
+        }
+        
+    }
+    TCEString getNodeComponentName(TCEString originalName, int idx) {
+        return "L_" + Conversion::toString(idx) + "_" + originalName; 
+    }
+    
+    TCEString getExtraComponentName(TCEString originalName) {
+        return "EX_"  + originalName; 
+    }    
 };
 
 // parameters
