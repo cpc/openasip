@@ -56,7 +56,7 @@
 #include "Operand.hh"
 #include "Application.hh"
 #include "LLVMBackend.hh" // llvmRequiredOps..
-
+#include "MathTools.hh"
 #include "tce_config.h"
 // SP, RES, KLUDGE, 2 GPRs?
 unsigned const TDGen::REQUIRED_I32_REGS = 5;
@@ -206,6 +206,10 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << std::endl;
     o << "}" << std::endl;
 
+    o << "class V2<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << std::endl;
+    o << "}" << std::endl;
+
     o << std::endl;
    
     writeRARegisterInfo(o);
@@ -214,6 +218,7 @@ TDGen::writeRegisterInfo(std::ostream& o)
     write16bitRegisterInfo(o);
     write32bitRegisterInfo(o);
     write64bitRegisterInfo(o);
+    writeVectorRegisterInfo(o);
 
     return true;
 }
@@ -559,7 +564,85 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << f64regs << ")>;" << std::endl;
 }
 
+/**
+ * Writes register definitions for vector registers consisting from
+ * multiple ordinar register files to the output stream.
+ * @TODO: currently only support 2-sized registers.
+ */
+void
+TDGen::writeVectorRegisterInfo(std::ostream& o) {
+    std::vector<const TTAMachine::RegisterFile*> vectorRFs;
 
+    const TTAMachine::Machine::RegisterFileNavigator nav =
+        mach_.registerFileNavigator();
+
+    for (int i = 0; i < nav.count(); i++) {
+	const TTAMachine::RegisterFile* rf = nav.item(i);
+	
+	if (rf->name().find("L_") == 0) {
+	    vectorRFs.push_back(rf);
+	}
+    }
+
+    int maxVectorSize = MathTools::roundDownToPowerTwo(vectorRFs.size());
+    std::string vectorRegs;
+    if (maxVectorSize < 2) {
+	return;
+    } else {
+	maxVectorSize = 2;
+    }
+
+    for (unsigned i = 3; i < regs32bit_.size(); i++) {
+	if (regs32bit_[i].rf.find("L_") == 0) {
+	    bool ok = true;
+	    int regIndex = regs32bit_[i].idx;
+	    std::vector<RegInfo> subRegs;
+	    TCEString vecRegRfName = "_VECTOR_" + regs32bit_[i].rf;
+
+	    std::string aliasName = "I" + Conversion::toString(i);
+	    for (int j = 1; j < maxVectorSize; j++) {
+		RegInfo& gprRegInfo = regs32bit_[i+j];
+		if (gprRegInfo.rf.find("L_") != 0 ||
+		    gprRegInfo.idx != regIndex) {
+		    ok = false;
+		    break;
+		} else {
+		    aliasName+=",I";
+		    aliasName+=Conversion::toString(i+j);
+		    subRegs.push_back(gprRegInfo);
+		    vecRegRfName += "+" + gprRegInfo.rf;
+		}
+	    }
+	    if (ok) {
+		std::string regName = "_VEC2_" + Conversion::toString(i);
+		if (vectorRegs != "") {
+		    vectorRegs += ", " + regName;
+		} else {
+		    vectorRegs = regName;
+		}
+		RegInfo vecRegInfo = { vecRegRfName, regIndex };
+
+		writeRegisterDef(o, vecRegInfo, regName, "V2", aliasName, GPR);
+
+		i+= (maxVectorSize-1);
+	    }
+	}
+    }
+
+    if (vectorRegs == "") {
+        RegInfo reg = {"dummyvec2", 0};
+        std::string name = "V2DUMMY";
+        writeRegisterDef(o, reg, name, "V2", "", RESERVED);
+	o << std::endl
+	  << "def V2Regs : RegisterClass<\"TCE\", [v2i32], 32, (add V2DUMMY)> ;"
+	  << std::endl;
+    } else {
+	o << std::endl
+	  << "def V2Regs : RegisterClass<\"TCE\", [v2i32], 32, (add "
+	  << vectorRegs << std::endl
+	  << ")> ;" << std::endl;
+    }
+}
 
 /**
  * Writes return address register definition to the output stream.

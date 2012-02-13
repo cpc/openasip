@@ -53,6 +53,7 @@ public:
     static bool bit(unsigned int integer, unsigned int index);
     
     static int random(int, int);
+    static unsigned int roundDownToPowerTwo(unsigned int number);
 };
 
 #include "MathTools.icc"

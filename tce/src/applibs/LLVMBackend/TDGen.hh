@@ -129,6 +129,7 @@ protected:
     void write8bitRegisterInfo(std::ostream& o);
     void write1bitRegisterInfo(std::ostream& o);
     void writeRARegisterInfo(std::ostream& o);
+    void writeVectorRegisterInfo(std::ostream& o);
 
     void writeOperationDef(std::ostream& o, Operation& op);
     void writeEmulationPattern(

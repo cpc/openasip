@@ -257,4 +257,15 @@ MathTools::random(int min, int max) {
     return (rand() % (max - min + 1)) + min;
 }
 
-
+/**
+ * Rounds a number downwards to a number which is of power-2.
+ */
+inline unsigned int 
+MathTools::roundDownToPowerTwo(unsigned int number) {
+    unsigned int i = 0;
+    if (number == 0) {
+	return 0;
+    }
+    for (; 1u << i <= number; i++);
+    return (1u<<i) >> 1;
+}
