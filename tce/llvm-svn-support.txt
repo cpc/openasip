@@ -1,4 +1,4 @@
-tce-devel r1467:
-llvm-trunk r150152 works.
+tce-devel r1478:
+llvm-trunk r150365 works.
 
 Notes:

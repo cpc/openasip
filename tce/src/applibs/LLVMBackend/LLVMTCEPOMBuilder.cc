@@ -105,8 +105,11 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
 TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::Procedure* proc) {
-
+#ifdef LLVM_3_0
     TCEString opName(mi->getDesc().getName());
+#else
+    TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
+#endif
     /* Non-trigger move. */
     if (opName == "MOVE")
         return LLVMTCEBuilder::emitMove(mi, proc);

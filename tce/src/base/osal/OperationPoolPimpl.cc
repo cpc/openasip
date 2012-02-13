@@ -57,13 +57,8 @@
 // disable warnings from LLVm headers
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#ifdef LLVM_2_9
-#include <llvm/Target/TargetInstrDesc.h>
-#include <llvm/Target/TargetInstrInfo.h>
-#else
 #include <llvm/MC/MCInstrDesc.h>
 #include <llvm/MC/MCInstrInfo.h>
-#endif
 
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
@@ -74,11 +69,7 @@ OperationPoolPimpl::OperationTable OperationPoolPimpl::operationCache_;
 std::vector<OperationBehaviorProxy*> OperationPoolPimpl::proxies_;
 OperationIndex* OperationPoolPimpl::index_(NULL);
 OperationBehaviorLoader* OperationPoolPimpl::loader_(NULL);
-#ifdef LLVM_2_9
-const llvm::TargetInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
-#else
 const llvm::MCInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
-#endif
 
 /**
  * The constructor
@@ -142,12 +133,12 @@ OperationPoolPimpl::operation(const char* name) {
     if (llvmTargetInstrInfo_ != NULL) {
         for (unsigned opc = 0; opc < llvmTargetInstrInfo_->getNumOpcodes();
              ++opc) {
-#ifdef LLVM_2_9
-            const llvm::TargetInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
-#else
             const llvm::MCInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
-#endif
+#ifdef LLVM_3_0
             TCEString operName = TCEString(tid.getName()).lower();
+#else
+	    TCEString operName = llvmTargetInstrInfo_->getName(opc);
+#endif
             if (operName == TCEString(name).lower()) {
                 Operation* llvmOperation = loadFromLLVM(tid);
                 operationCache_[operName] = llvmOperation;
@@ -217,13 +208,13 @@ OperationPoolPimpl::operation(const char* name) {
  */
 Operation*
 OperationPoolPimpl::loadFromLLVM(
-#ifdef LLVM_2_9
-const llvm::TargetInstrDesc& tid
-#else
 const llvm::MCInstrDesc& tid
-#endif
 ) {
+#ifdef LLVM_3_0
     TCEString opName = TCEString(tid.getName());
+#else
+    TCEString opName = llvmTargetInstrInfo_->getName(tid.getOpcode());
+#endif
     Operation* op = new Operation(opName, NullOperationBehavior::instance());
    
     unsigned outputs = tid.getNumDefs();

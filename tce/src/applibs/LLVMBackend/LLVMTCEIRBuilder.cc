@@ -732,7 +732,11 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
+#ifdef LLVM_3_0
         return mi.getDesc().getName();
+#else
+	return targetMachine().getInstrInfo()->getName(mi.getOpcode());
+#endif
     }
 }
 

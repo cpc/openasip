@@ -1814,25 +1814,20 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 /**
  * Finds the TargetInstrDesc for the given LLVM instruction name.
  */
-#ifdef LLVM_2_9
-const llvm::TargetInstrDesc& 
-ControlFlowGraph::findLLVMTargetInstrDesc(
-    TCEString name, 
-    const llvm::TargetInstrInfo& tii) const {
-#else
 const llvm::MCInstrDesc& 
 ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
     const llvm::MCInstrInfo& tii) const {
-#endif
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
-#ifdef LLVM_2_9
-        const llvm::TargetInstrDesc& tid = tii.get(opc);
-#else
+#ifdef LLVM_3_0
         const llvm::MCInstrDesc& tid = tii.get(opc);
-#endif
         if (name.ciEqual(tid.getName()))
             return tid;
+#else
+	if (name.ciEqual(tii.getName(opc))) {
+	    return tii.get(opc);
+	}
+#endif
     }
     abort();
     abortWithError(TCEString("Could not find ") << name << " in the TII.");
