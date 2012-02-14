@@ -1462,7 +1462,8 @@ TDGen::tceOperationPattern(const Operation& op) {
  */
 bool
 TDGen::operationCanBeMatched(
-    const Operation& op, std::set<std::string>* recursionCycleCheck) {
+    const Operation& op, std::set<std::string>* recursionCycleCheck,
+    bool recursionHasStore) {
     
     // if operation has llvm pattern
     if (llvmOperationPattern(op.name()) != "") {
@@ -1485,11 +1486,20 @@ TDGen::operationCanBeMatched(
         }
 
         bool dagIsGood = true;
+        bool hasStore = false;
       
         for (int j = 0; j < dag.nodeCount(); j++) {
             OperationNode* opNode = dynamic_cast<OperationNode*>(&dag.node(j));
             if (opNode != NULL) {
                 Operation& refOp = opNode->referencedOperation();
+                if (refOp.writesMemory()) {
+                    if (recursionHasStore || hasStore) {
+                        dagIsGood = false;
+                        break;
+                    } else {
+                        hasStore = true;
+                    }
+                }
 
                 // check that the same operation is not used recursively
                 if (useSet.count(refOp.name()) != 0) {
@@ -1498,7 +1508,7 @@ TDGen::operationCanBeMatched(
                 }
 
                 // check if referenced op can be matched
-                if (!operationCanBeMatched(refOp, &useSet)) {
+                if (!operationCanBeMatched(refOp, &useSet, hasStore)) {
                     dagIsGood =  false;
                     break;
                 }

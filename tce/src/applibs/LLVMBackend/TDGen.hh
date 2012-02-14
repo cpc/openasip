@@ -142,7 +142,10 @@ protected:
     std::string llvmOperationPattern(const std::string& osalOperationName);
     std::string llvmOperationName(const std::string& osalOperationName);
     bool operationCanBeMatched(
-        const Operation& op, std::set<std::string>* recursionCycleCheck = NULL);
+        const Operation& op, 
+        std::set<std::string>* recursionCycleCheck = NULL,
+        bool recursionHasStore = false);
+
     std::string tceOperationPattern(const Operation& op);
 
     std::string patOutputs(const Operation& op, bool intToBool);
