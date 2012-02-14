@@ -86,7 +86,7 @@ BUBasicBlockScheduler::BUBasicBlockScheduler(
     CopyingDelaySlotFiller* delaySlotFiller,
     RegisterRenamer* renamer) :
     BasicBlockScheduler(data, bypasser, delaySlotFiller, renamer),
-    endCycle_(INT_MAX) {
+    endCycle_(INT_MAX), bypassDistance_(5) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
@@ -130,6 +130,9 @@ BUBasicBlockScheduler::handleDDG(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, false);
     }
 
+    if (options_ != NULL && options_->bypassDistance() != -1) {
+        bypassDistance_ = options_->bypassDistance();
+    }
 
 
     // empty need not to be scheduled
@@ -281,7 +284,7 @@ BUBasicBlockScheduler::scheduleOperation(
             resultsFailed = true;
             if (bypass) {
                 bypass = false;            
-                bypassLate = false;
+                bypassLate = true;
             } else if (bypassLate) {
                 bypassLate = false;
             } else {
@@ -607,6 +610,12 @@ BUBasicBlockScheduler::scheduleResultReads(
                         }
                         MoveNode* temp = succeedingTempMove(moveNode);                         
                         if (!(*it)->isScheduled() && temp == (*it)) {
+                            // skip temp moves if unscheduled.
+                            // The temp moves of reading operand could be 
+                            // scheduled and bypass will try to skip those
+                            // but temp moves of result are there for reason
+                            // so bypass would only revert to original
+                            // status which is unschedulable.
                             continue;
                         }
                         assert((*it)->isScheduled());
@@ -641,7 +650,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                         
                         bypassDestinations_[&moveNode].push_back(*it);       
                         assert((*it)->isScheduled() == false);
-                        scheduleMove(**it, endCycle_);
+                        scheduleMove(**it, originalCycle + bypassDistance_);
 #ifdef DEBUG_BYPASS                        
                         std::cerr << "Created " << (*it)->toString()
                         << " with original cycle " << originalCycle << std::endl;
@@ -698,7 +707,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                         moveNode.move().destination().index());
                 if (firstWrite != NULL) {
                     assert(firstWrite->isScheduled());
-                    tempRegLimitCycle = firstWrite->cycle() -1;
+                    tempRegLimitCycle = firstWrite->cycle() - 1;
                 }
             }
 
@@ -759,7 +768,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                         
                         bypassDestinations_[&moveNode].push_back(*it);       
                         assert((*it)->isScheduled() == false);
-                        scheduleMove(**it, endCycle_);
+                        scheduleMove(**it, originalCycle + bypassDistance_);
 #ifdef DEBUG_BYPASS                        
                         std::cerr << "Created late " << (*it)->toString()
                         << " with original cycle " << originalCycle << std::endl;
@@ -1095,10 +1104,10 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
                 tempMove1->move().destination().registerFile(),
                 tempMove1->move().destination().index());
         if (firstWrite != NULL && firstWrite->isScheduled())
-            firstWriteCycle = firstWrite->cycle() -1;
+            firstWriteCycle = firstWrite->cycle();
     }
     scheduleResultReadTempMoves(*tempMove1, resultRead, firstWriteCycle);
-    scheduleMove(*tempMove1, firstWriteCycle);
+    scheduleMove(*tempMove1, firstWriteCycle -1);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultRead].insert(tempMove1);
 
@@ -1219,11 +1228,11 @@ BUBasicBlockScheduler::scheduleRRTempMoves(
                 tempMove1->move().destination().index());
         if (firstWrite != NULL) {
             assert(firstWrite->isScheduled());
-            lastUse = firstWrite->cycle() -1;
+            lastUse = firstWrite->cycle();
         }            
     }
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse);
-    scheduleMove(*tempMove1, lastUse);
+    scheduleMove(*tempMove1, lastUse -1);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&firstMove].insert(tempMove1);
 }
