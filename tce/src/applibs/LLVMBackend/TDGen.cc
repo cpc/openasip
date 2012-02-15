@@ -1809,7 +1809,7 @@ TDGen::emulatingOpNodeLLVMName(
                     int strIndex = t->operandIndex() -1 -
                         op.numberOfInputs();
                     assert(operandTypes.length() > strIndex &&
-                           strIndex > 0);
+                           strIndex >= 0);
                     if (c != 0 && c != operandTypes[strIndex]) {
                         throw InvalidData(__FILE__,__LINE__,__func__,
                                           "conflicting output types!");
