@@ -195,7 +195,7 @@ throw (InvalidData);
     
     std::string createDefaultOperandTypeString(const Operation& op);
 
-    void writeOperandDefs(
+    void writeOperationDefs(
         std::ostream& o, Operation& op, 
         const std::string& operandTypes,
         const std::string& attrs);

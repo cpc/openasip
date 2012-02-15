@@ -594,12 +594,11 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
 
     int maxVectorSize = MathTools::roundDownToPowerTwo(vectorRFs.size());
     std::string vectorRegs;
-    if (maxVectorSize < 2) {
-        return;
-    } else {
+    if (maxVectorSize > 2) {
         maxVectorSize = 2;
     }
 
+    if (maxVectorSize >1) {
     for (unsigned i = 3; i < regs32bit_.size(); i++) {
         if (regs32bit_[i].rf.find("L_") == 0) {
             bool ok = true;
@@ -636,7 +635,7 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
             }
         }
     }
-
+    }
     if (vectorRegs == "") {
         RegInfo reg = {"dummyvec2", 0};
         std::string name = "V2DUMMY";
@@ -1043,7 +1042,7 @@ TDGen::writeOperationDefs(
     // rotations are allways n x n -> n bits.
     if (op.name() == "ROTL" || op.name() == "ROTR" ||
         op.name() == "SHL" || op.name() == "SHR" || op.name() == "SHRU") {
-        writeOperandDefs(o, op, "rrr", attrs);
+        writeOperationDefs(o, op, "rrr", attrs);
         return;
     }
 
@@ -1056,7 +1055,7 @@ TDGen::writeOperationDefs(
     if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "AND" ||
         op.name() == "ANDN" || op.name() == "ADD" || op.name() == "SUB") {
         
-        writeOperandDefs(o, op, "bbb", attrs);
+        writeOperationDefs(o, op, "bbb", attrs);
     }
 
     // store likes this. store immediate to immediate address
@@ -1079,7 +1078,7 @@ TDGen::writeOperationDefs(
     // TODO: this should be 2^n loop instead of n loop, to get
     // all permutations.
 
-    writeOperandDefs(o, op, operandTypes, attrs);
+    writeOperationDefs(o, op, operandTypes, attrs);
 
     // then with boolean outs.
     if (op.numberOfOutputs() == 1 && !op.readsMemory()) {
@@ -1089,7 +1088,11 @@ TDGen::writeOperationDefs(
 
             // 32  to 1-bit operations
             operandTypes[0] = 'b';
-            writeOperandDefs(o, op, operandTypes, attrs);
+            writeOperationDefs(o, op, operandTypes, attrs);
+        }
+        
+        if (createDefaultOperandTypeString(op) == "rrr") {
+            writeOperationDef(o, op, "vvv", attrs);
         }
     }
 }
@@ -1102,7 +1105,7 @@ TDGen::writeOperationDefs(
  * @param operandTypes value types of operands.
  */
 void
-TDGen::writeOperandDefs(
+TDGen::writeOperationDefs(
     std::ostream& o, Operation& op, const std::string& operandTypes,
     const std::string& attrs) {
 
@@ -2017,6 +2020,8 @@ TDGen::operandToString(
             return "I32Regs:$op" + Conversion::toString(idx);
         case 'b':
             return "I1Regs:$op" + Conversion::toString(idx);
+        case 'v':
+            return "V2Regs:$op" + Conversion::toString(idx);
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";
