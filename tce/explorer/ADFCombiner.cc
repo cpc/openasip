@@ -70,18 +70,20 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
             " to produce larger machine.");
 
     ADFCombiner(): DesignSpaceExplorerPlugin(), 
-        Node_("node.adf"),
-        NodeCount_(4),
-        Extra_("extra.adf") {
+        node_("node.adf"),
+        nodeCount_(4),
+        extra_("extra.adf"),
+        buildIDF_(false) {
 
         // compulsory parameters
         // no compulsory parameters
 
         // parameters that have a default value
-        addParameter(NodePN_, STRING, false, Node_);
+        addParameter(NodePN_, STRING, false, node_);
         addParameter(NodeCountPN_, UINT, false, 
-            Conversion::toString(NodeCount_));        
-        addParameter(ExtraPN_, STRING, false, Extra_);
+            Conversion::toString(nodeCount_));        
+        addParameter(ExtraPN_, STRING, false, extra_);
+	addParameter(BuildIDFPN_, BOOL, false, Conversion::toString(buildIDF_));	
     }
 
     virtual bool requiresStartingPointArchitecture() const { return false; }
@@ -100,7 +102,7 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         std::vector<RowID> result;
 
         // check if adf given
-        if (Extra_ == "" && Node_ == "") {
+        if (extra_ == "" && node_ == "") {
             TCEString msg =
                 "No node.adf or extra.adf defined. "
                 "Give adfs as plugin parameters.";
@@ -117,18 +119,18 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
 
         // load the adf from file or from dsdb
         try {
-            nodeMach = TTAMachine::Machine::loadFromADF(Node_);            
+            nodeMach = TTAMachine::Machine::loadFromADF(node_);            
         } catch (const Exception& e) {
             TCEString msg =
-                "Error loading the \'" + Node_ + "\'";
+                "Error loading the \'" + node_ + "\'";
             throw Exception(
                 __FILE__, __LINE__, __func__, msg);
         }
         try {
-            extraMach = TTAMachine::Machine::loadFromADF(Extra_);            
+            extraMach = TTAMachine::Machine::loadFromADF(extra_);            
         } catch (const Exception& e) {
             TCEString msg =
-            "Error loading the \'" + Extra_ + "\'";
+            "Error loading the \'" + extra_ + "\'";
             throw Exception(
                 __FILE__, __LINE__, __func__, msg);
         }
@@ -137,8 +139,19 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         // Copies the extra machine to new architecture
         finalMach = new TTAMachine::Machine(*extraMach);
         // add components
-        addComponents(finalMach, nodeMach, extraMach, NodeCount_);        
+        addComponents(finalMach, nodeMach, extraMach, nodeCount_);        
 
+	if (buildIDF_) {
+            try {
+                // add idf to configuration
+                selector_.selectComponentsToConf(conf, dsdb, finalMach);
+            } catch (const Exception& e) {
+		throw Exception(
+		    __FILE__, __LINE__, __func__, e.errorMessageStack());
+            }
+        } else {
+            conf.hasImplementation = false;
+        }
         // add machine to configuration
         conf.architectureID = dsdb.addArchitecture(*finalMach);
 
@@ -155,18 +168,21 @@ private:
     static const TCEString NodePN_;
     static const TCEString NodeCountPN_;    
     static const TCEString ExtraPN_;
+    static const TCEString BuildIDFPN_;
     
-    TCEString Node_;
-    int NodeCount_;    
-    TCEString Extra_;
+    TCEString node_;
+    int nodeCount_;    
+    TCEString extra_;
+    bool buildIDF_;
 
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        readOptionalParameter(NodePN_, Node_);
-        readOptionalParameter(NodeCountPN_, NodeCount_);        
-        readOptionalParameter(ExtraPN_, Extra_);
+        readOptionalParameter(NodePN_, node_);
+        readOptionalParameter(NodeCountPN_, nodeCount_);        
+        readOptionalParameter(ExtraPN_, extra_);
+	readOptionalParameter(BuildIDFPN_, buildIDF_);
     }
 
     
@@ -804,6 +820,7 @@ private:
 const TCEString ADFCombiner::NodePN_("node");
 const TCEString ADFCombiner::NodeCountPN_("node_count");
 const TCEString ADFCombiner::ExtraPN_("extra");
+const TCEString ADFCombiner::BuildIDFPN_("build_idf");
 
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ADFCombiner)

@@ -6,7 +6,7 @@ ADF_PATH="${MINIMAL_ADF_PATH}"
 
 # Create 6 nodes of minimal.adf
 NODE_COUNT=6
-${EXPLORE_BIN} -e ADFCombiner -u node=${MINIMAL_ADF_PATH} -u extra=${MINIMAL_ADF_PATH} -u node_count=${NODE_COUNT} test.dsdb 1>/dev/null
+${EXPLORE_BIN} -e ADFCombiner -u node=${MINIMAL_ADF_PATH} -u extra=${MINIMAL_ADF_PATH} -u node_count=${NODE_COUNT} -u build_idf=true  test.dsdb 1>/dev/null
 
 "${EXPLORE_BIN}" -w 1 test.dsdb 1>/dev/null
 
@@ -22,5 +22,8 @@ CONNECTING_SOCKET_W="$(grep '<socket name.*>' 1.adf |grep "connect_w"| wc -l)"
 if [ ! "${CONNECTING_SOCKET_R}" -eq "${CONNECTING_SOCKET_W}" ]; then
     echo "Added wrong number of connecting sockets between register files (${CONNECTING_SOCKET_R} != ${CONNECTING_SOCKET_W})."
 fi
-
-rm -rf 1.adf
+IDF=`ls *.idf`
+if [ ! "${IDF}" = "1.idf" ]; then
+    echo "Creation of IDF file failed. ${IDF}"
+fi
+rm -rf 1.adf 1.idf
