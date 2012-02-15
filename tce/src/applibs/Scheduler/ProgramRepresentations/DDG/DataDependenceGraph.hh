@@ -148,7 +148,9 @@ public:
 
     MoveNode*
     lastScheduledRegisterRead(
-        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+        const TTAMachine::BaseRegisterFile& rf,
+        int registerIndex,
+        int lastCycleToTest = INT_MAX) const;
 
     NodeSet
     lastScheduledRegisterReads(
@@ -164,7 +166,9 @@ public:
 
     MoveNode*
     firstScheduledRegisterRead(
-        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+        const TTAMachine::BaseRegisterFile& rf, 
+        int registerIndex, 
+        int firstCycleToTest = 0) const;
 
     MoveNode*
     firstScheduledRegisterWrite(

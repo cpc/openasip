@@ -622,22 +622,33 @@ BUBasicBlockScheduler::scheduleResultReads(
                             continue;
                         }
                         assert((*it)->isScheduled());
+                        int latestLimit = INT_MAX;
+                        int earliestLimit = 0;
+                        int originalCycle = (*it)->cycle();                        
                         if ((*it)->isDestinationVariable()) {
-                            MoveNode* firstWrite =
-                            ddg_->firstScheduledRegisterWrite(
-                                (*it)->move().destination().registerFile(),
-                                (*it)->move().destination().index());                        
-                            if (firstWrite != (*it)) {
                             // If bypassing to temporary register
                             // missing edges in DDG could cause 
                             // overwrite of temporary value before it is 
-                            // consumed. Avoid this error for now.
-                            // TODO: figure out some better logic, this leads
-                            // to inefficiency.
-                                continue;
+                            // consumed. 
+                            // Find previous and following reads from temp
+                            // register around location of original temp write.                                                                                                                                                                               
+                            MoveNode* lastRead =
+                                ddg_->lastScheduledRegisterRead(
+                                    (*it)->move().destination().registerFile(),
+                                    (*it)->move().destination().index(),
+                                    originalCycle);                        
+                            if (lastRead != NULL) {
+                                earliestLimit = lastRead->cycle();
                             }
+                            MoveNode *firstRead = 
+                                ddg_->firstScheduledRegisterRead(
+                                     (*it)->move().destination().registerFile(),
+                                     (*it)->move().destination().index(),
+                                     originalCycle);                        
+                            if (firstRead != NULL) {
+                                latestLimit = firstRead->cycle();
+                            }                                                            
                         }                        
-                        int originalCycle = (*it)->cycle();
                         bypassDestinationsCycle_[&moveNode].push_back(
                             originalCycle);  
 #ifdef DEBUG_BYPASS                            
@@ -653,12 +664,16 @@ BUBasicBlockScheduler::scheduleResultReads(
                         
                         bypassDestinations_[&moveNode].push_back(*it);       
                         assert((*it)->isScheduled() == false);
-                        scheduleMove(**it, originalCycle + bypassDistance_);
+                        int startCycle = 
+                            std::min(originalCycle + bypassDistance_, latestLimit);
+                        scheduleMove(**it, startCycle);
 #ifdef DEBUG_BYPASS                        
                         std::cerr << "Created " << (*it)->toString()
                         << " with original cycle " << originalCycle << std::endl;
 #endif                        
-                        if (!(*it)->isScheduled()) {
+                        if (!(*it)->isScheduled() || 
+                            (*it)->cycle() > latestLimit ||
+                            (*it)->cycle() < earliestLimit) {
                             // Scheduling bypass failed, undo and try to 
                             // schedule other possible bypasses.
                             undoBypass(moveNode, *it, originalCycle);

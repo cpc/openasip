@@ -632,7 +632,9 @@ DataDependenceGraph::guardDefMoves(const MoveNode& moveNode) {
  */
 MoveNode*
 DataDependenceGraph::lastScheduledRegisterRead(
-    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+    const TTAMachine::BaseRegisterFile& rf,
+    int registerIndex,
+    int lastCycleToTest) const {
 
     int lastCycle = -1;
     MoveNode* lastFound = NULL;
@@ -652,7 +654,8 @@ DataDependenceGraph::lastScheduledRegisterRead(
 
         if (&rf == currentRF && 
             source.index() == registerIndex &&
-            n.cycle() > lastCycle) {
+            n.cycle() > lastCycle &&
+            n.cycle() <= lastCycleToTest) {
             lastCycle = n.cycle();
             lastFound = &n;
         }
@@ -665,11 +668,14 @@ DataDependenceGraph::lastScheduledRegisterRead(
  *
  * @param rf The register file.
  * @param registerIndex Index of the register.
+ * @param firstCycleToTest optional argument from which cycle to start
+ *        search.
  * @return The MoveNode, NULL, if not found.
  */
 MoveNode*
 DataDependenceGraph::firstScheduledRegisterRead(
-    const TTAMachine::BaseRegisterFile& rf, int registerIndex) const {
+    const TTAMachine::BaseRegisterFile& rf, 
+    int registerIndex, int firstCycleToTest) const {
 
     int firstCycle = INT_MAX;
     MoveNode* firstFound = NULL;
@@ -689,7 +695,8 @@ DataDependenceGraph::firstScheduledRegisterRead(
 
         if (&rf == currentRF && 
             source.index() == registerIndex &&
-            n.cycle() < firstCycle) {
+            n.cycle() < firstCycle &&
+            n.cycle() >= firstCycleToTest) {
             firstCycle = n.cycle();
             firstFound = &n;
         }
