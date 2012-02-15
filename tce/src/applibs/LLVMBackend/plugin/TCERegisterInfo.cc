@@ -138,7 +138,7 @@ void TCERegisterInfo::eliminateFrameIndex(
     if (Offset != 0) {
         MI.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
         BuildMI(
-            *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDri),
+            *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
             TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
     } else {
         MI.getOperand(i).ChangeToRegister(TCE::SP, false);
@@ -178,7 +178,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
                    ii->getDebugLoc() : DebugLoc());
 
     if (hasCalls) {
-        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(4);
 
@@ -193,7 +193,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
         // Adjust stack pointer
         if (numBytes != 0) {
-            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(numBytes);
         }
@@ -202,7 +202,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
         // Adjust stack pointer
         if (numBytes != 0) {
-            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP)
+            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(numBytes);
         }
@@ -235,7 +235,7 @@ TCERegisterInfo::emitEpilogue(
 
     if (hasCalls) {
         if (numBytes != 4) {
-            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(numBytes - 4);
         }
@@ -246,14 +246,14 @@ TCERegisterInfo::emitEpilogue(
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
         
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(4);
     } else { // leaf function
         
         // adjust by stack size
         if (numBytes != 0) {
-            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP)
+            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(numBytes);
         }

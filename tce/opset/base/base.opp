@@ -1212,7 +1212,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <out id="3" type="UIntWord"/>
     <trigger-semantics>	SimValue negResult, mulin;
 	EXEC_OPERATION(not, IO(2), negResult);
-	EXEC_OPERATION(and, IO(1), negResult, IO(3));
+	EXEC_OPERATION(and, negResult, IO(1), IO(3));
 
 
 

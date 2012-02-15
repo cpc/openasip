@@ -261,8 +261,8 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
 
     if (opc == TCE::STQBrb) return "stq";
     if (opc == TCE::STQBib) return "stq";
-//    if (opc == TCE::STQBri) return "stq";
-//    if (opc == TCE::STQBii) return "stq";
+    if (opc == TCE::STQBrj) return "stq";
+    if (opc == TCE::STQBij) return "stq";
 
     if (opc == TCE::LDQBr) return "ldq";
     if (opc == TCE::LDQBi) return "ldq";
@@ -273,12 +273,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::STWRArr) return "stw";
     if (opc == TCE::LDWRAr) return "ldw";
     
-    // floatingpoint store/load
-    if (opc == TCE::STWFrr) return "stw";
-    if (opc == TCE::STWFir) return "stw";
-    if (opc == TCE::LDWFr) return "ldw";
-    if (opc == TCE::LDWFi) return "ldw";
-  
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBRICOND) return "!jump";
     if (opc == TCE::TCEBR) return "jump";

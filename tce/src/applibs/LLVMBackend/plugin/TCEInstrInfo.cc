@@ -197,16 +197,16 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
   if (RC == TCE::I32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::STWir)).addFrameIndex(FI).addImm(0)
+    BuildMI(MBB, I, DL, get(TCE::STWrr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::F32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::STWFir)).addFrameIndex(FI).addImm(0)
+    BuildMI(MBB, I, DL, get(TCE::STWfr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STWRArr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::I1RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::STQBib)).addFrameIndex(FI).addImm(0)
+    BuildMI(MBB, I, DL, get(TCE::STQBrb)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else
     assert(0 && "Can't store this register to stack slot");
@@ -221,9 +221,9 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   if (RC == TCE::I32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::LDWi), DestReg).addFrameIndex(FI).addImm(0);
+    BuildMI(MBB, I, DL, get(TCE::LDWrr), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::F32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::LDWFi), DestReg).addFrameIndex(FI).addImm(0);
+    BuildMI(MBB, I, DL, get(TCE::LDWfr), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWRAr), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::I1RegsRegisterClass)

@@ -28,6 +28,7 @@
  *
  * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Pekka J‰‰skel‰inen 2010
+ * @author Heikki Kultala 2012
  */
 
 #ifndef TTA_TDGEN_HH
@@ -131,7 +132,20 @@ protected:
     void writeRARegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o);
 
-    void writeOperationDef(std::ostream& o, Operation& op);
+    void writeOperationDefs(std::ostream& o, Operation& op);
+
+    void writeOperationDef(
+        std::ostream& o, Operation& op, 
+        const std::string& operandTypes,
+        const std::string& attrs);
+
+    std::string emulatingOpNodeLLVMName(
+        const Operation& op,
+        const OperationDAG& dag, 
+        const OperationNode& node,
+        const std::string& operandTypes)
+        throw (InvalidData);
+
     void writeEmulationPattern(
         std::ostream& o,
         const Operation& op,
@@ -148,34 +162,43 @@ protected:
 
     std::string tceOperationPattern(const Operation& op);
 
-    std::string patOutputs(const Operation& op, bool intToBool);
-    std::string patInputs(const Operation& op, int immOp, bool intToBool);
+    std::string patOutputs(const Operation& op, const std::string& oprTypes);
+    std::string patInputs(const Operation& op, const std::string& oprTypes);
 
     std::string operandToString(
         const Operand& operand,
         bool match,
-        bool immediate, int intToBool);
-
+        char operandType);
 
     std::string operationNodeToString(
         const Operation& op,
         const OperationDAG& dag,
         const OperationNode& node,
-        int immOp,
         bool emulationPattern,
-        int intToBool) throw (InvalidData);
+        const std::string& operandTypes)
+throw (InvalidData);
 
     std::string dagNodeToString(
         const Operation& op,
         const OperationDAG& dag,
         const OperationDAGNode& node,
-        int immOp,
-        bool emulationPattern, int intToBool) throw (InvalidData);
+        bool emulationPattern, 
+        const std::string& operandTypes)
+throw (InvalidData);
 
     std::string operationPattern(
         const Operation& op,
         const OperationDAG& dag,
-        int immOp, int intToBool);
+        const std::string& operandTypes);
+
+    char operandChar(Operand& operand);
+    
+    std::string createDefaultOperandTypeString(const Operation& op);
+
+    void writeOperandDefs(
+        std::ostream& o, Operation& op, 
+        const std::string& operandTypes,
+        const std::string& attrs);
 
     std::string subPattern(
 	const Operation& op,

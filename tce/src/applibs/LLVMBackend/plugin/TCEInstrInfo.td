@@ -256,11 +256,11 @@ include "GenInstrInfo.td"
 
 // some peephole patterns.
 // 1-bit select with imm values - xor or mov.
-def : Pat<(i1 (select I1Regs:$c, (i1 0), (i1 -1))), (XORbj I1Regs:$c, 1)>;
+def : Pat<(i1 (select I1Regs:$c, (i1 0), (i1 -1))), (XORbbj I1Regs:$c, 1)>;
 def : Pat<(i1 (select I1Regs:$c, (i1 -1), (i1 0))), (MOVI1rr I1Regs:$c)>;
 
-def : Pat<(i1 (select I1Regs:$c, (i1 -1), I1Regs:$F)), (IORbb I1Regs:$c, I1Regs:$F)>;
-def : Pat<(i1 (select I1Regs:$c, I1Regs:$T, (i1 0))), (ANDbb I1Regs:$c, I1Regs:$T)>;
+def : Pat<(i1 (select I1Regs:$c, (i1 -1), I1Regs:$F)), (IORbbb I1Regs:$c, I1Regs:$F)>;
+def : Pat<(i1 (select I1Regs:$c, I1Regs:$T, (i1 0))), (ANDbbb I1Regs:$c, I1Regs:$T)>;
 
 // select of 1 or 0.
 def : Pat<(i32 (select I1Regs:$c, (i32 1), (i32 0))), (ANDext I1Regs:$c, 1)>;
@@ -354,15 +354,19 @@ def : Pat<(i32 (select I1Regs:$c, (i32 1), (i32 0))), (ANDext I1Regs:$c, 1)>;
 
 
 // sign extension from i1 means 0 -> 0 , 1(true) -> -1
-def: Pat <(i32 (sext I1Regs:$src)), (SUBir 0, (ANDext I1Regs:$src,1))>;
+def: Pat <(i32 (sext I1Regs:$src)), (SUBrir 0, (ANDext I1Regs:$src,1))>;
 
 // boolean store and load
 def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRrr:$op1)]>;
 def STQBib : InstTCE<(outs), (ins MEMri:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRri:$op1)]>;
+
+def STQBrj : InstTCE<(outs), (ins MEMrr:$op1,i1imm:$op2), "", [(truncstorei8 (i1 imm:$op2), ADDRrr:$op1)]>;
+def STQBij : InstTCE<(outs), (ins MEMri:$op1,i1imm:$op2), "", [(truncstorei8 (i1 imm:$op2), ADDRri:$op1)]>;
+
 def : Pat<(store I1Regs:$src, ADDRrr:$addr), (STQBrb ADDRrr:$addr, I1Regs:$src)>;
 def : Pat<(store I1Regs:$src, ADDRri:$addr), (STQBib ADDRri:$addr, I1Regs:$src)>;
-def : Pat<(store (i1 imm:$src), ADDRrr:$addr), (STQBrb ADDRrr:$addr, imm:$src)>;
-def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQBib ADDRri:$addr, imm:$src)>;
+def : Pat<(store (i1 imm:$src), ADDRrr:$addr), (STQBrj ADDRrr:$addr, imm:$src)>;
+def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQBij ADDRri:$addr, imm:$src)>;
 
 def LDQBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (sextloadi1 ADDRrr:$op1))]>;
 def LDQBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (sextloadi1 ADDRri:$op1))]>;
@@ -371,33 +375,27 @@ def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2
 def : Pat<(i1 (load ADDRrr:$addr)), (LDQBr ADDRrr:$addr)>;
 def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
 
-def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDri (LDQr ADDRrr:$addr),1)>;
-def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDri (LDQi ADDRri:$addr),1)>;
+def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDrri (LDQrr ADDRrr:$addr),1)>;
+def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDrri (LDQri ADDRri:$addr),1)>;
 
 // the and could be dropped if we knew our store1 cannot write garbage to upper bits?
 // so TODO: create true 1-bit mem operations
-def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBir 0,(ANDri (LDQr ADDRrr:$addr),1))>;
-def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBir 0,(ANDri (LDQi ADDRri:$addr),1))>;
+def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBrir 0,(ANDrri (LDQrr ADDRrr:$addr),1))>;
+def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBrir 0,(ANDrri (LDQri ADDRri:$addr),1))>;
 
-def: Pat <(i32 (sext I1Regs:$src)), (SUBir 0,(ANDext I1Regs:$src, 1))>;
-
-// float store and load in a way that machine code validator likes them
-def STWFir : InstTCE<(outs), (ins MEMri:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRri:$op1)]>;
-def STWFrr : InstTCE<(outs), (ins MEMrr:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRrr:$op1)]>;
-def LDWFi : InstTCE<(outs F32Regs:$op2), (ins MEMri:$op1), "", [(set F32Regs:$op2, (load ADDRri:$op1))]>;
-def LDWFr : InstTCE<(outs F32Regs:$op2), (ins MEMrr:$op1), "", [(set F32Regs:$op2, (load ADDRrr:$op1))]>;
+def: Pat <(i32 (sext I1Regs:$src)), (SUBrir 0,(ANDext I1Regs:$src, 1))>;
 
 // return address stack store/load
 def STWRArr : InstTCE<(outs), (ins MEMrr:$op1,RAReg:$op2), "", [(store RAReg:$op2, ADDRrr:$op1)]>;
 def LDWRAr : InstTCE<(outs RAReg:$op2), (ins MEMrr:$op1), "", [(set RAReg:$op2, (load ADDRrr:$op1))]>;
 
 // anyextloads -> sextloads
-def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
-def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
-def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
+def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQri ADDRri:$src)>;
+def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQri ADDRri:$src)>;
+def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHrr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;
 
 // 1-bit comparison with constant - xor or move.
 // 1-bit one becomes -1 as i1 is signed, so the incoming imm is -1, not 1.
@@ -413,8 +411,9 @@ def : Pat<(i1 (seteq (i1 -1), I1Regs:$op1)), (MOVI1rr I1Regs:$op1)>;
 
 
 // 1-bit comparison between booleans - xor or xnor(implemented with 2 xors)
-def : Pat<(i1 (setne I1Regs:$op1, I1Regs:$op2)), (XORbb I1Regs:$op1, I1Regs:$op2)>;
-def : Pat<(i1 (seteq I1Regs:$op1, I1Regs:$op2)), (XORbj (XORbb I1Regs:$op1, I1Regs:$op2), 1)>;
+def : Pat<(i1 (setne I1Regs:$op1, I1Regs:$op2)), (XORbbb I1Regs:$op1, I1Regs:$op2)>;
+// TODO: should the temp values be converted to i32? usually more i32 regs.
+def : Pat<(i1 (seteq I1Regs:$op1, I1Regs:$op2)), (XORbbj (XORbbb I1Regs:$op1, I1Regs:$op2), 1)>;
 
 
 //def : Pat<(i1 (setne (trunc I32Regs:$op1), I1Regs:$op2)), (XORrb I1Regs:$op1, I1Regs:$op2)>;
