@@ -138,6 +138,9 @@ protected:
     std::map<MoveNode*, std::vector<int>, MoveNode::Comparator > 
         bypassDestinationsCycle_;
     unsigned int endCycle_;
+    
+    bool bypass_;
+    bool dre_;
     int bypassDistance_;
 };
 

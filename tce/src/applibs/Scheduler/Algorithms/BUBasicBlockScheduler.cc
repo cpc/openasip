@@ -86,7 +86,7 @@ BUBasicBlockScheduler::BUBasicBlockScheduler(
     CopyingDelaySlotFiller* delaySlotFiller,
     RegisterRenamer* renamer) :
     BasicBlockScheduler(data, bypasser, delaySlotFiller, renamer),
-    endCycle_(INT_MAX), bypassDistance_(5) {
+    endCycle_(INT_MAX), bypass_(true), dre_(true), bypassDistance_(5) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
@@ -130,7 +130,10 @@ BUBasicBlockScheduler::handleDDG(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, false);
     }
 
-    if (options_ != NULL && options_->bypassDistance() != -1) {
+    if (options_ != NULL && options_->bypassDistance() == -1) {
+        bypass_ = false;
+        dre_ = false;
+    } else {
         bypassDistance_ = options_->bypassDistance();
     }
 
@@ -255,9 +258,9 @@ BUBasicBlockScheduler::scheduleOperation(
     }
 //    ddg_->sanityCheck();
 #endif
-    bool bypass = true;
+    bool bypass = bypass_;
     bool bypassLate = false;
-    bool dre = true;
+    bool dre = dre_;
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(
@@ -316,7 +319,7 @@ BUBasicBlockScheduler::scheduleOperation(
             maxResult--;
             if (bypass) {
                 bypass = false;            
-                bypassLate = false;
+                bypassLate = true;
             } else if (bypassLate) {
                 bypassLate = false;
             } else {
