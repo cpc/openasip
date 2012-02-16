@@ -137,7 +137,8 @@ protected:
     void writeOperationDef(
         std::ostream& o, Operation& op, 
         const std::string& operandTypes,
-        const std::string& attrs);
+        const std::string& attrs,
+        std::string backendPrefix = "");
 
     std::string emulatingOpNodeLLVMName(
         const Operation& op,
@@ -198,7 +199,12 @@ throw (InvalidData);
     void writeOperationDefs(
         std::ostream& o, Operation& op, 
         const std::string& operandTypes,
-        const std::string& attrs);
+        const std::string& attrs,
+        std::string backendPrefix = "");
+
+  void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
+
+  void  writeVectorLoadDefs(std::ostream& o, Operation& op, int vectorLen);
 
     std::string subPattern(
 	const Operation& op,

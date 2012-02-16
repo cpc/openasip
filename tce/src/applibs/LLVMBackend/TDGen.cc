@@ -754,11 +754,29 @@ TDGen::writeInstrInfo(std::ostream& os) {
             requiredOps.erase(r);
         }
         Operation& op = opPool.operation((*iter).c_str());
-        
+
+        if (&op == &NullOperation::instance()) {
+            continue;
+        }
+
+        // these can be written even if these have broken dag as the
+        // dag is ignored
+        if (op.name() == "STW2" || op.name() == "STW4" || op.name() == "STW8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorStoreDefs(os, op, vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "LDW2" || op.name() == "LDW4" || op.name() == "LDW8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorLoadDefs(os, op, vectorWidth);
+            continue;
+        }
         
         // TODO: Allow multioutput (remove last or)
-        if (&op == &NullOperation::instance() || 
-            !operationCanBeMatched(op)) {
+        if (!operationCanBeMatched(op)) {
             
             if (&op != &NullOperation::instance()) {
                 if (Application::verboseLevel() > 0) {
@@ -1050,7 +1068,7 @@ TDGen::writeOperationDefs(
         writeOperationDef(o, op, "rr", attrs);
         return;
     }
-        
+
     // these can have 1-bit inputs
     if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "AND" ||
         op.name() == "ANDN" || op.name() == "ADD" || op.name() == "SUB") {
@@ -1092,7 +1110,7 @@ TDGen::writeOperationDefs(
         }
         
         if (createDefaultOperandTypeString(op) == "rrr") {
-            writeOperationDef(o, op, "vvv", attrs);
+            writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
         }
     }
 }
@@ -1107,10 +1125,10 @@ TDGen::writeOperationDefs(
 void
 TDGen::writeOperationDefs(
     std::ostream& o, Operation& op, const std::string& operandTypes,
-    const std::string& attrs) {
+    const std::string& attrs, std::string backendPrefix) {
 
     // first without imms.
-    writeOperationDef(o, op, operandTypes, attrs);
+    writeOperationDef(o, op, operandTypes, attrs, backendPrefix);
 
     for (int i = 0; i < op.numberOfInputs(); i++) {
         bool canSwap = false;
@@ -1136,10 +1154,44 @@ TDGen::writeOperationDefs(
             default:
                 continue;
             }
-            writeOperationDef(o, op, opTypes, attrs);
+            writeOperationDef(o, op, opTypes, attrs, backendPrefix);
         }
     }
 }
+
+void 
+TDGen::writeVectorStoreDefs(
+    std::ostream& o,
+    Operation& op, int vectorLen) {
+
+    o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "Regs:$data),"
+      << "\"\", [(store V" << vectorLen << "Regs:$data, ADDRrr:$addr)]>;" << std::endl;
+
+    o << "def STW" << vectorLen << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "Regs:$data),"
+      << "\"\", [(store V" << vectorLen << "Regs:$data, ADDRri:$addr)]>;" << std::endl;
+
+    opNames_[op.name() + "vr"] = op.name();
+    opNames_[op.name() + "vi"] = op.name();
+}
+
+void 
+TDGen::writeVectorLoadDefs(
+    std::ostream& o,
+    Operation& op, int vectorLen) {
+
+    o << "def LDW" << vectorLen << "vr : InstTCE<(outs V" << vectorLen << "Regs:$data), (ins MEMrr:$addr),"
+      << "\"\", [(set V" << vectorLen << "Regs:$data, (load ADDRrr:$addr))]>;" << std::endl;
+
+    o << "def LDW" << vectorLen << "vi : InstTCE<(outs V" << vectorLen << "Regs:$data), (ins MEMri:$addr),"
+      << "\"\", [(set V" << vectorLen << "Regs:$data, (load ADDRri:$addr))]>;" << std::endl;
+
+    opNames_[op.name() + "vr"] = op.name();
+    opNames_[op.name() + "vi"] = op.name();
+
+//def LDW2r : InstTCE<(outs V2Regs:$op2), (ins MEMrr:$op1), "", [(set V2Regs:$op2, (load ADDRrr:$op1))]>;
+
+}
+
 
 /**
  * Writes a single operation def for single operation.
@@ -1151,7 +1203,8 @@ TDGen::writeOperationDefs(
 void 
 TDGen::writeOperationDef(
     std::ostream& o,
-    Operation& op, const std::string& operandTypes, const std::string& attrs) {
+    Operation& op, const std::string& operandTypes, const std::string& attrs,
+    std::string backendPrefix) {
     assert (operandTypes.size() > 0);
 
     
@@ -1188,7 +1241,7 @@ TDGen::writeOperationDef(
     if (attrs != "") {
         o << "}" << std::endl;
     }        
-    opNames_[opcEnum] = op.name();
+    opNames_[opcEnum] = backendPrefix + op.name();
 }
 
 /**

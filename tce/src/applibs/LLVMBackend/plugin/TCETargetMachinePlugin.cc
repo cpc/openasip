@@ -280,6 +280,25 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
 
+    if (opc == TCE::EXTRACT2vi) return "_EXTRACT_2";
+    if (opc == TCE::BUILDV2vrr) return "_BUILD_2";
+    if (opc == TCE::BUILDV2vii) return "_BUILD_2";
+    if (opc == TCE::INSERTV2vvri) return "_INSERT_2";
+    if (opc == TCE::INSERTV2vvii) return "_INSERT_2";
+
+    /*
+    if (opc == TCE::EXTRACT4vi) return "_EXTRACT_4";
+    if (opc == TCE::EXTRACT8vi) return "_EXTRACT_8";
+    if (opc == TCE::BUILDV4vrr) return "_BUILD_4";
+    if (opc == TCE::BUILDV4vii) return "_BUILD_4";
+    if (opc == TCE::BUILDV8vrr) return "_BUILD_8";
+    if (opc == TCE::BUILDV8vii) return "_BUILD_8";
+    if (opc == TCE::INSERTV4vvri) return "_INSERT_4";
+    if (opc == TCE::INSERTV4vvii) return "_INSERT_4";
+    if (opc == TCE::INSERTV8vvri) return "_INSERT_8";
+    if (opc == TCE::INSERTV8vvii) return "_INSERT_8";
+    */
+
     if (opNames_.find(opc) == opNames_.end()) {
         std::cerr << "ERROR: Couldn't find operation with opc: " << opc
                   << std::endl;

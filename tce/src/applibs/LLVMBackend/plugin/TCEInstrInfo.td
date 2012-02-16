@@ -418,3 +418,44 @@ def : Pat<(i1 (seteq I1Regs:$op1, I1Regs:$op2)), (XORbbj (XORbbb I1Regs:$op1, I1
 
 //def : Pat<(i1 (setne (trunc I32Regs:$op1), I1Regs:$op2)), (XORrb I1Regs:$op1, I1Regs:$op2)>;
 //def : Pat<(i1 (seteq (trunc I1Regs:$op1), I1Regs:$op2)), (XORbj (XORrb I32Regs:$op1, I1Regs:$op2), 1)>;
+
+
+// vector extracts and inserts
+def EXTRACT2vi : InstTCE<(outs I32Regs:$res), (ins V2Regs:$op1, i32imm:$index), "", [(set I32Regs:$res, (vector_extract V2Regs:$op1, (i32 imm:$index)))]>;
+
+def BUILDV2vrr : InstTCE<(outs V2Regs:$res), (ins I32Regs:$e1, I32Regs:$e2),"",
+[(set V2Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2))]>;
+
+def BUILDV2vii : InstTCE<(outs V2Regs:$res), (ins i32imm:$e1, i32imm:$e2),"",
+[(set V2Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2)))]>;
+
+def INSERTV2vvri : InstTCE<(outs V2Regs:$res), (ins V2Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V2Regs:$res, (vector_insert V2Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
+
+def INSERTV2vvii : InstTCE<(outs V2Regs:$res), (ins V2Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V2Regs:$res, (vector_insert V2Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+
+/*
+def EXTRACT4vi : InstTCE<(outs I32Regs:$res), (ins V4Regs:$op1, i32imm:$index), "", [(set I32Regs:$res, (vector_extract V4Regs:$op1, (i32 imm:$index)))]>;
+
+def BUILDV4vrr : InstTCE<(outs V4Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4),"",
+[(set V4Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4))]>;
+
+def BUILDV4vii : InstTCE<(outs V4Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
+[(set V4Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
+
+def INSERTV4vvri : InstTCE<(outs V4Regs:$res), (ins V4Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V4Regs:$res, (vector_insert V2Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
+
+def INSERTV4vvii : InstTCE<(outs V4Regs:$res), (ins V4Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V4Regs:$res, (vector_insert V4Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+
+
+def EXTRACT8vi : InstTCE<(outs I32Regs:$res), (ins V8Regs:$op1, i32imm:$index), "", [(set I32Regs:$res, (vector_extract V8Regs:$op1, (i32 imm:$index)))]>;
+
+def BUILDV8vrr : InstTCE<(outs V8Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, ins I32Regs:$e3, I32Regs:$e4, ins I32Regs:$e5, I32Regs:$e6, ins I32Regs:$e7, I32Regs:$e8),"",
+[(set V8Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4, I32Regs:$e5, I32Regs:$e6, I32Regs:$e7, I32Regs:$e8))]>;
+
+def BUILDV8vii : InstTCE<(outs V8Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
+[(set V8Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
+
+def INSERTV8vvri : InstTCE<(outs V8Regs:$res), (ins V8Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V8Regs:$res, (vector_insert V8Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
+
+def INSERTV8vvii : InstTCE<(outs V8Regs:$res), (ins V8Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V8Regs:$res, (vector_insert V8Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+*/
