@@ -2867,9 +2867,8 @@ LLVMTCEBuilder::emitVectorInstruction(
 		o += (1-i);
 	    }
 	}
-// disabled until ddgbuilder's multi-out po handling fixed
-//	boost::shared_ptr<ProgramOperation> po(
-//	    new ProgramOperation(operation, mi));
+	boost::shared_ptr<ProgramOperation> po(
+	    new ProgramOperation(operation, mi));
 	
 	for (unsigned i = 0; i < operandMoves.size(); i++) {
 	    TTAProgram::Instruction* instr = operandMoves[i];
