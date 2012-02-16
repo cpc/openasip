@@ -2875,13 +2875,13 @@ LLVMTCEBuilder::emitVectorInstruction(
 	    TTAProgram::Instruction* instr = operandMoves[i];
 	    TTAProgram::Move& m = instr->move(0);
 	    proc->add(instr);
-//	    createMoveNode(po, m, true);
+	    createMoveNode(po, m, true);
 	}
 	for (unsigned i = 0; i < resultMoves.size(); i++) {
 	    TTAProgram::Instruction* instr = resultMoves[i];
 	    TTAProgram::Move& m = instr->move(0);
 	    proc->add(instr);
-//	    createMoveNode(po, m, false);
+	    createMoveNode(po, m, false);
 	}
     }
     return firstIns;

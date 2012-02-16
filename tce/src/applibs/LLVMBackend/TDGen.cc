@@ -602,7 +602,7 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
     for (unsigned i = 3; i < regs32bit_.size(); i++) {
         if (regs32bit_[i].rf.find("L_") == 0) {
             bool ok = true;
-            int regIndex = regs32bit_[i].idx;
+            unsigned int regIndex = regs32bit_[i].idx;
             std::vector<RegInfo> subRegs;
             TCEString vecRegRfName = "_VECTOR_" + regs32bit_[i].rf;
             
@@ -1113,7 +1113,6 @@ TDGen::writeOperationDefs(
     writeOperationDef(o, op, operandTypes, attrs);
 
     for (int i = 0; i < op.numberOfInputs(); i++) {
-        Operand& operand = op.operand(i+1);
         bool canSwap = false;
         for (int j = i+1 ; j < op.numberOfInputs(); j++) {
             if (op.canSwap(i+1, j+1)) {
@@ -1252,7 +1251,6 @@ TDGen::writeEmulationPattern(
         }
 
         bool ok = true;
-        int input = 0;
         std::string llvmPat = llvmOperationPattern(op.name());
         assert(llvmPat != "" && "Unknown operation to emulate.");
         
