@@ -44,6 +44,7 @@
 #include "Segment.hh"
 #include "HWOperation.hh"
 #include "ExecutionPipeline.hh"
+#include "Guard.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;
@@ -447,7 +448,17 @@ private:
             finalMach->registerFileNavigator();
         const TTAMachine::Machine::RegisterFileNavigator& extraNav =
             extraMach->registerFileNavigator();
+        const TTAMachine::Machine::BusNavigator& busNav = 
+            extraMach->busNavigator();
+        const TTAMachine::Machine::BusNavigator& finalBusNav = 
+            finalMach->busNavigator();
             
+        std::vector <TTAMachine::Guard*> guards;
+        for (int k = 0; k < busNav.count(); k++) {
+            for (int j = 0; j < busNav.item(k)->guardCount(); j++) {
+                guards.push_back(finalBusNav.item(k)->guard(j));
+            }
+        }
         for (int i = 0; i < nodeNav.count(); i++) {
             TCEString rfName = nodeNav.item(i)->name();            
             // Connect register file between neighbouring node
@@ -484,12 +495,26 @@ private:
                 int width = std::max(firstRF->width(), extraRF->width());
                 TCEString busName = "connect_" + extraName + "_" + firstName;
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
+                for (int j = 0; j < guards.size(); j++) {
+                    try {
+                        guards[j]->copyTo(*newBus);
+                    } catch (const Exception& e) {
+                        std::cerr << e.errorMessageStack() << std::endl;
+                    }
+                }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
                 
                 width = std::max(lastRF->width(), extraRF->width());
                 busName = "connect_" + extraName + "_" + lastName;
                 newBus = createBus(finalMach, busName, width);
+                for (int j = 0; j < guards.size(); j++) {
+                    try {
+                        guards[j]->copyTo(*newBus);
+                    } catch (const Exception& e) {
+                        std::cerr << e.errorMessageStack() << std::endl;
+                    }
+                }                
                 createPortsAndSockets(finalMach, lastRF, newBus, lastName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
             }                
