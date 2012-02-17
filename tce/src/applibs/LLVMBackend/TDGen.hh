@@ -131,8 +131,7 @@ protected:
     void write1bitRegisterInfo(std::ostream& o);
     void writeRARegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o);
-    void writeVectorRegisterInfo(
-        std::ostream& o, int width, int maxVectorSize);
+    void writeVectorRegisterInfo(std::ostream& o, int width);;
 
     void writeOperationDefs(std::ostream& o, Operation& op);
 
@@ -240,6 +239,8 @@ throw (InvalidData);
     std::vector<std::string> gprRegNames_;
 
     std::map<std::string, std::string> opNames_;
+
+    int maxVectorSize_;
 
     /// Minimum number of 32 bit registers.
     unsigned static const REQUIRED_I32_REGS;

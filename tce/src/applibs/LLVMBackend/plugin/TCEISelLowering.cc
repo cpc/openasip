@@ -480,11 +480,19 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
-//#define USE_VECTOR_REGS
-#ifdef USE_VECTOR_REGS
-    addRegisterClass(MVT::v2i32, TCE::V2RegsRegisterClass);
-    addRegisterClass(MVT::v4i32, TCE::V4RegsRegisterClass);
-#endif
+    if (opts->useVectorBackend()) {
+        switch (tm_.maxVectorSize()) {
+        default: // more than 8? 
+        case 8:
+            addRegisterClass(MVT::v8i32, TCE::V8RegsRegisterClass);
+        case 4:
+            addRegisterClass(MVT::v4i32, TCE::V4RegsRegisterClass);
+        case 2:
+            addRegisterClass(MVT::v2i32, TCE::V2RegsRegisterClass);
+        case 1:
+            break;
+        }
+    }
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);

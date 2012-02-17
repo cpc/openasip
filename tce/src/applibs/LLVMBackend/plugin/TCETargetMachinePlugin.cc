@@ -99,6 +99,7 @@ public:
     virtual bool hasSXHW() const;
     virtual bool hasSXQW() const;
     virtual bool hasSQRTF() const;
+    virtual int maxVectorSize() const;
 
     virtual void registerTargetMachine(TCETargetMachine &tm);
 

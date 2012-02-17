@@ -189,6 +189,10 @@ namespace llvm {
             return plugin_->spDRegNum();
         }
 
+        int maxVectorSize() const {
+            return plugin_->maxVectorSize();
+        }
+
         const std::set<
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();

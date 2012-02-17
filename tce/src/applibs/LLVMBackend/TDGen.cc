@@ -69,7 +69,7 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
  * @param mach Machine to generate plugin for.
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
-    mach_(mach), dregNum_(0) {
+    mach_(mach), dregNum_(0), maxVectorSize_(1) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
 }
 
@@ -584,9 +584,9 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 
 void
 TDGen::writeVectorRegisterInfo(
-    std::ostream& o, int width, int maxVectorSize) {
+    std::ostream& o, int width) {
     std::string vectorRegs;
-    if (width <= maxVectorSize) {
+    if (width <= maxVectorSize_) {
         for (unsigned i = 3; i < regs32bit_.size(); i++) {
             if (regs32bit_[i].rf.find("L_") == 0) {
                 bool ok = true;
@@ -626,7 +626,7 @@ TDGen::writeVectorRegisterInfo(
                         aliasName, GPR);
                     
                     // this only uses n first RF's.
-                    i+= (maxVectorSize-1);
+                    i+= (maxVectorSize_-1);
 
                     // the following would spread across all RF's
                     // more regs to use, but may cause regcopies
@@ -672,9 +672,12 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
         }
     }
 
-    int maxVectorSize = MathTools::roundDownToPowerTwo(vectorRFs.size());
+    maxVectorSize_ = MathTools::roundDownToPowerTwo(vectorRFs.size());
+    if (maxVectorSize_ == 0) {
+        maxVectorSize_ = 1;
+    }
     for (int width = 2; width <= 8; width<<=1) {
-        writeVectorRegisterInfo(o, width, maxVectorSize);
+        writeVectorRegisterInfo(o, width);
     }
 }
 
@@ -1025,8 +1028,9 @@ TDGen::writeBackendCode(std::ostream& o) {
       << "bool GeneratedTCEPlugin::hasSXQW() const { return "
       << hasSXQW << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasSQRTF() const { return "
-      << hasSQRTF << "; }" << std::endl;
-    
+      << hasSQRTF << "; }" << std::endl
+      << "int GeneratedTCEPlugin::maxVectorSize() const { return "
+      << maxVectorSize_ << "; }" << std::endl;
 }
 
 /**
