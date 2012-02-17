@@ -456,7 +456,15 @@ private:
         std::vector <TTAMachine::Guard*> guards;
         for (int k = 0; k < busNav.count(); k++) {
             for (int j = 0; j < busNav.item(k)->guardCount(); j++) {
-                guards.push_back(finalBusNav.item(k)->guard(j));
+                bool duplicit = false;
+                for (unsigned int i = 0; i < guards.size(); i++) {
+                    if (guards[i]->isEqual(*finalBusNav.item(k)->guard(j))) {
+                        duplicit = true;
+                    }
+                }
+                if (duplicit == false) {
+                    guards.push_back(finalBusNav.item(k)->guard(j));
+                }
             }
         }
         for (int i = 0; i < nodeNav.count(); i++) {
@@ -495,12 +503,8 @@ private:
                 int width = std::max(firstRF->width(), extraRF->width());
                 TCEString busName = "connect_" + extraName + "_" + firstName;
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
-                for (int j = 0; j < guards.size(); j++) {
-                    try {
-                        guards[j]->copyTo(*newBus);
-                    } catch (const Exception& e) {
-                        std::cerr << e.errorMessageStack() << std::endl;
-                    }
+                for (unsigned int j = 0; j < guards.size(); j++) {
+                    guards[j]->copyTo(*newBus);
                 }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
@@ -508,12 +512,8 @@ private:
                 width = std::max(lastRF->width(), extraRF->width());
                 busName = "connect_" + extraName + "_" + lastName;
                 newBus = createBus(finalMach, busName, width);
-                for (int j = 0; j < guards.size(); j++) {
-                    try {
-                        guards[j]->copyTo(*newBus);
-                    } catch (const Exception& e) {
-                        std::cerr << e.errorMessageStack() << std::endl;
-                    }
+                for (unsigned int j = 0; j < guards.size(); j++) {
+                    guards[j]->copyTo(*newBus);
                 }                
                 createPortsAndSockets(finalMach, lastRF, newBus, lastName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
