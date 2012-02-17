@@ -1143,6 +1143,7 @@ TDGen::writeOperationDefs(
         if (createDefaultOperandTypeString(op) == "rrr") {
             writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
             writeOperationDef(o, op, "www", attrs, "_VECTOR_4_");
+            writeOperationDef(o, op, "xxx", attrs, "_VECTOR_8_");
         }
     }
 }
@@ -2107,6 +2108,8 @@ TDGen::operandToString(
             return "V2Regs:$op" + Conversion::toString(idx);
         case 'w':
             return "V4Regs:$op" + Conversion::toString(idx);
+        case 'x':
+            return "V8Regs:$op" + Conversion::toString(idx);
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";
