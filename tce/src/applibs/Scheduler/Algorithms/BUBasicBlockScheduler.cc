@@ -169,6 +169,12 @@ BUBasicBlockScheduler::handleDDG(
                 notifyScheduled(moves, selector);                
             } else {
                 scheduleRRMove(firstMove);
+                if (!firstMove.isScheduled()) {
+                    std::cerr << "not scheduled: " << firstMove.toString()
+                              << std::endl;
+                    ddg.writeToDotFile("rr_move_not_sched.dot");
+                }
+                assert(moves.nodeCount() == 1);
                 notifyScheduled(moves, selector);                
             }
         }
@@ -1251,6 +1257,10 @@ BUBasicBlockScheduler::scheduleRRTempMoves(
     }
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse);
     scheduleMove(*tempMove1, lastUse -1);
+    if (!tempMove1->isScheduled()) {
+        std::cerr << "not scheudled: " << tempMove1->toString() << std::endl;
+        ddg_->writeToDotFile("tempNotSched.dot");
+    }
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&firstMove].insert(tempMove1);
 }

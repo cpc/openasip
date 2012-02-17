@@ -286,7 +286,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::INSERTV2vvri) return "_INSERT_2";
     if (opc == TCE::INSERTV2vvii) return "_INSERT_2";
 
-    /*
     if (opc == TCE::EXTRACT4vi) return "_EXTRACT_4";
     if (opc == TCE::EXTRACT8vi) return "_EXTRACT_8";
     if (opc == TCE::BUILDV4vrr) return "_BUILD_4";
@@ -297,7 +296,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::INSERTV4vvii) return "_INSERT_4";
     if (opc == TCE::INSERTV8vvri) return "_INSERT_8";
     if (opc == TCE::INSERTV8vvii) return "_INSERT_8";
-    */
 
     if (opNames_.find(opc) == opNames_.end()) {
         std::cerr << "ERROR: Couldn't find operation with opc: " << opc

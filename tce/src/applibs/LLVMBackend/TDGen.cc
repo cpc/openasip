@@ -211,6 +211,14 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << std::endl;
     o << "}" << std::endl;
 
+    o << "class V4<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << std::endl;
+    o << "}" << std::endl;
+
+    o << "class V8<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << std::endl;
+    o << "}" << std::endl;
+
     o << std::endl;
    
     writeRARegisterInfo(o);
@@ -572,6 +580,78 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << f64regs << ")>;" << std::endl;
 }
 
+
+
+void
+TDGen::writeVectorRegisterInfo(
+    std::ostream& o, int width, int maxVectorSize) {
+    std::string vectorRegs;
+    if (width <= maxVectorSize) {
+        for (unsigned i = 3; i < regs32bit_.size(); i++) {
+            if (regs32bit_[i].rf.find("L_") == 0) {
+                bool ok = true;
+                unsigned int regIndex = regs32bit_[i].idx;
+                std::vector<RegInfo> subRegs;
+                TCEString vecRegRfName = 
+                  "_VECTOR_" + Conversion::toString(width) + "_" + 
+                  regs32bit_[i].rf;
+                
+                std::string aliasName = "I" + Conversion::toString(i);
+                for (int j = 1; j < width; j++) {
+                    RegInfo& gprRegInfo = regs32bit_[i+j];
+                    if (gprRegInfo.rf.find("L_") != 0 ||
+                        gprRegInfo.idx != regIndex) {
+                        ok = false;
+                        break;
+                    } else {
+                        aliasName+=",I";
+                        aliasName+=Conversion::toString(i+j);
+                        subRegs.push_back(gprRegInfo);
+                        vecRegRfName += "+" + gprRegInfo.rf;
+                    }
+                }
+                if (ok) {
+                    TCEString regName = "_VEC_";
+                    regName << width << "_" << Conversion::toString(i);
+                    if (vectorRegs != "") {
+                        vectorRegs += ", " + regName;
+                    } else {
+                        vectorRegs = regName;
+                    }
+                    RegInfo vecRegInfo = { vecRegRfName, regIndex };
+                    
+                    writeRegisterDef(
+                        o, vecRegInfo, regName, 
+                        TCEString("V") + Conversion::toString(width), 
+                        aliasName, GPR);
+                    
+                    // this only uses n first RF's.
+                    i+= (maxVectorSize-1);
+
+                    // the following would spread across all RF's
+                    // more regs to use, but may cause regcopies
+//                    i+= (width-1);
+                }
+            }
+        }
+    }
+    TCEString regClassBase("V"); regClassBase << width;
+    if (vectorRegs == "") {
+      RegInfo reg = {TCEString("dummyvec") + Conversion::toString(width), 0};
+        TCEString name("V"); name << width << "DUMMY";
+        writeRegisterDef(o, reg, name, regClassBase, "", RESERVED);
+        o << std::endl
+          << "def " << regClassBase << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add V" << width << "DUMMY)> ;"
+          << std::endl;
+    } 
+    else {
+        o << std::endl
+          << "def " << regClassBase << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add "
+          << vectorRegs << std::endl
+          << ")> ;" << std::endl;
+    }
+}
+
 /**
  * Writes register definitions for vector registers consisting from
  * multiple ordinar register files to the output stream.
@@ -585,69 +665,16 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
         mach_.registerFileNavigator();
 
     for (int i = 0; i < nav.count(); i++) {
-	const TTAMachine::RegisterFile* rf = nav.item(i);
-	
-	if (rf->name().find("L_") == 0) {
-	    vectorRFs.push_back(rf);
-	}
+        const TTAMachine::RegisterFile* rf = nav.item(i);
+        
+        if (rf->name().find("L_") == 0) {
+            vectorRFs.push_back(rf);
+        }
     }
 
     int maxVectorSize = MathTools::roundDownToPowerTwo(vectorRFs.size());
-    std::string vectorRegs;
-    if (maxVectorSize > 2) {
-        maxVectorSize = 2;
-    }
-
-    if (maxVectorSize >1) {
-    for (unsigned i = 3; i < regs32bit_.size(); i++) {
-        if (regs32bit_[i].rf.find("L_") == 0) {
-            bool ok = true;
-            unsigned int regIndex = regs32bit_[i].idx;
-            std::vector<RegInfo> subRegs;
-            TCEString vecRegRfName = "_VECTOR_" + regs32bit_[i].rf;
-            
-            std::string aliasName = "I" + Conversion::toString(i);
-            for (int j = 1; j < maxVectorSize; j++) {
-                RegInfo& gprRegInfo = regs32bit_[i+j];
-                if (gprRegInfo.rf.find("L_") != 0 ||
-                    gprRegInfo.idx != regIndex) {
-                    ok = false;
-                    break;
-                } else {
-                    aliasName+=",I";
-                    aliasName+=Conversion::toString(i+j);
-                    subRegs.push_back(gprRegInfo);
-                    vecRegRfName += "+" + gprRegInfo.rf;
-                }
-            }
-            if (ok) {
-                std::string regName = "_VEC2_" + Conversion::toString(i);
-                if (vectorRegs != "") {
-                    vectorRegs += ", " + regName;
-                } else {
-                    vectorRegs = regName;
-                }
-                RegInfo vecRegInfo = { vecRegRfName, regIndex };
-                
-                writeRegisterDef(o, vecRegInfo, regName, "V2", aliasName, GPR);
-                
-                i+= (maxVectorSize-1);
-            }
-        }
-    }
-    }
-    if (vectorRegs == "") {
-        RegInfo reg = {"dummyvec2", 0};
-        std::string name = "V2DUMMY";
-        writeRegisterDef(o, reg, name, "V2", "", RESERVED);
-	o << std::endl
-	  << "def V2Regs : RegisterClass<\"TCE\", [v2i32], 32, (add V2DUMMY)> ;"
-	  << std::endl;
-    } else {
-	o << std::endl
-	  << "def V2Regs : RegisterClass<\"TCE\", [v2i32], 32, (add "
-	  << vectorRegs << std::endl
-	  << ")> ;" << std::endl;
+    for (int width = 2; width <= 8; width<<=1) {
+        writeVectorRegisterInfo(o, width, maxVectorSize);
     }
 }
 
@@ -1111,6 +1138,7 @@ TDGen::writeOperationDefs(
         
         if (createDefaultOperandTypeString(op) == "rrr") {
             writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
+            writeOperationDef(o, op, "www", attrs, "_VECTOR_4_");
         }
     }
 }
@@ -2073,6 +2101,8 @@ TDGen::operandToString(
             return "I1Regs:$op" + Conversion::toString(idx);
         case 'v':
             return "V2Regs:$op" + Conversion::toString(idx);
+        case 'w':
+            return "V4Regs:$op" + Conversion::toString(idx);
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";

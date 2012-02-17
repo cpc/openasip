@@ -786,6 +786,11 @@ DataDependenceGraphBuilder::processTriggerPO(
     if (currentData_->destPending_ != NULL) {
         ProgramOperationPtr po = currentData_->destPending_;
         
+        if (&dop != &po->operation()) {
+            std::cerr << "pending po: " << po->toString() << std::endl;
+            std::cerr << "current dop: " << dop.name() << std::endl;
+            currentDDG_->writeToDotFile("build_fail_po.dot");
+        }
         assert(&dop == &po->operation());
         if (!po->isComplete()) {
             po->addInputNode(moveNode);

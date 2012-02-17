@@ -1136,9 +1136,10 @@ LLVMTCEBuilder::emitInstruction(
 
 	// if vector operand, expand one MachineOperand into
 	// multiple TCE operands.
-	if (isVectorOperand(mo)) {
-	    int vectorWidth = 2;
-	    int nameIndex = strlen("_VECTOR_");
+        int vectorWidth = vectorOperandSize(mo);
+	if (vectorWidth > 1) {
+            // TODO: does not work with bigger than 8 size vectors
+	    int nameIndex = strlen("_VECTOR_") + 2;
 	    for (int i = 0; i < vectorWidth; i++) {
 		int dRegNum = mo.getReg();
 		int idx = registerIndex(dRegNum);
@@ -2626,7 +2627,8 @@ LLVMTCEBuilder::emitVectorBuild(
     int dRegNum = dstOperand.getReg();
     int idx = registerIndex(dRegNum);
     std::string vectorRfName = registerFileName(dRegNum);
-    int nameIndex = strlen("_VECTOR_");
+    // TODO: does not work with more than 8-sized vector.
+    int nameIndex = strlen("_VECTOR_") +2;
     for (int i = 0; i < elementCount; i++) {
 	int nextNameIndex = vectorRfName.find('+', nameIndex);
 	int len = nextNameIndex - nameIndex;
@@ -2665,7 +2667,8 @@ LLVMTCEBuilder::emitVectorExtract(
     int dRegNum = srcMO.getReg();
     int idx = registerIndex(dRegNum);
     std::string vectorRfName = registerFileName(dRegNum);
-    int nameIndex = strlen("_VECTOR_");
+    // TODO: does not work with more than 8-sized vectors
+    int nameIndex = strlen("_VECTOR_") +2;
     int nextNameIndex = vectorRfName.find('+', nameIndex);
     
     // this for loop just searches for the correct rf name from the string
@@ -2712,7 +2715,8 @@ LLVMTCEBuilder::emitVectorInsert(
     int dRegNumDst = dstVectorMO.getReg();
     int dstIdx = registerIndex(dRegNumDst);
     std::string dstVectorRfName = registerFileName(dRegNumDst);
-    int dstNameIndex = strlen("_VECTOR_");
+    // TODO: does not work with more than 8-sized vectors
+    int dstNameIndex = strlen("_VECTOR_") +2;
     int dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
 
     assert(elementIndexMO.isImm());
@@ -2740,10 +2744,12 @@ LLVMTCEBuilder::emitVectorInsert(
 	int dRegNumSrc = srcVectorMO.getReg();
 	int srcIdx = registerIndex(dRegNumSrc);
 	std::string srcVectorRfName = registerFileName(dRegNumSrc);
-	int srcNameIndex = strlen("_VECTOR_");
+        // TODO: does not work with more than 8-sized vectors
+	int srcNameIndex = strlen("_VECTOR_")+2;
 	int srcNextNameIndex = srcVectorRfName.find('+', srcNameIndex);
 
-	dstNameIndex = strlen("_VECTOR_");
+        // TODO: does not work with more than 8-sized vectors
+	dstNameIndex = strlen("_VECTOR_")+2;
 	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
 	for (int i = 0; i < elementCount; i++) {
 	    if (i != elementIndex) {
@@ -2792,7 +2798,8 @@ LLVMTCEBuilder::emitVectorInstruction(
     Bus& bus = UniversalMachine::instance().universalBus();
 
     int operandCount = mi->getNumOperands();
-    std::vector<int> regNameStringIndex(operandCount, strlen("_VECTOR_"));
+    // TODO: does not work with more than 8-sized vectors
+    std::vector<int> regNameStringIndex(operandCount, strlen("_VECTOR_") +2);
     const HWOperation& hwop = getHWOperation(opName);
 
     OperationPool pool;
@@ -2808,7 +2815,7 @@ LLVMTCEBuilder::emitVectorInstruction(
 	    const MachineOperand* mo = &mi->getOperand(o);
 
 	    TTAProgram::Terminal* tr = NULL;
-	    if (isVectorOperand(*mo)) {
+	    if (vectorOperandSize(*mo) > 1) {
 		int dRegNum = mo->getReg();
 		int idx = registerIndex(dRegNum);
 		std::string vectorRfName = registerFileName(dRegNum);
@@ -2821,7 +2828,7 @@ LLVMTCEBuilder::emitVectorInstruction(
 	    } else {
 		o += i;
 		mo = &mi->getOperand(o);
-		assert(!isVectorOperand(*mo));
+		assert(vectorOperandSize(*mo) == 1);
 		tr = createTerminal(*mo);
 	    }
 
@@ -2863,7 +2870,7 @@ LLVMTCEBuilder::emitVectorInstruction(
 		resultMoves.push_back(ins);
 	    }
 	    // skip to next operand
-	    if (!isVectorOperand(*mo)) {
+	    if (vectorOperandSize(*mo) == 1) {
 		o += (1-i);
 	    }
 	}
@@ -2891,20 +2898,31 @@ LLVMTCEBuilder::emitVectorInstruction(
  * 
  * @TODO: is there some llvm way of doing this?
  */
-bool LLVMTCEBuilder::isVectorOperand(const MachineOperand& mo) {
+int LLVMTCEBuilder::vectorOperandSize(const MachineOperand& mo) {
     if (!mo.isReg()) {
-	return false;
+        return 1;
     }
     unsigned int dRegNum = mo.getReg();
     if (dRegNum == raPortDRegNum()) {
-	return false;
+	return 1;
     }
     
     std::string origRfName = registerFileName(dRegNum);
     if (origRfName.length() < 8) {
-	return false;
+	return 1;
     }
-    return origRfName.substr(0,8) == "_VECTOR_";
+    if (origRfName.substr(0,8) == "_VECTOR_") {
+        int sizeEndIndex = origRfName.find('_', 8);
+        if (sizeEndIndex != std::string::npos) {
+            return Conversion::toInt(
+                origRfName.substr(8, (sizeEndIndex-8)));
+        } else {
+            return 1;
+        }
+    } else {
+        return 1;
+    }
+
 }
 
 /**

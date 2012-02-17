@@ -131,6 +131,8 @@ protected:
     void write1bitRegisterInfo(std::ostream& o);
     void writeRARegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o);
+    void writeVectorRegisterInfo(
+        std::ostream& o, int width, int maxVectorSize);
 
     void writeOperationDefs(std::ostream& o, Operation& op);
 

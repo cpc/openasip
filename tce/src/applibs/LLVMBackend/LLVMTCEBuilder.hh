@@ -179,7 +179,7 @@ namespace llvm {
 
         void emitConstantPool(const llvm::MachineConstantPool& cp);
 
-	bool isVectorOperand(const MachineOperand& mo);
+	int vectorOperandSize(const MachineOperand& mo);
 
         virtual TTAProgram::Terminal* createMBBReference(
             const MachineOperand& mo);
