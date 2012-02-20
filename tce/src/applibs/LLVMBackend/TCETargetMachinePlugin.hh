@@ -52,7 +52,7 @@ namespace llvm {
    class TargetFrameLowering;
    class FunctionPass;
    class TCETargetMachine;
-
+   class TargetRegisterClass;
    class TCETargetMachinePlugin {
     public:
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL) {};
@@ -106,6 +106,8 @@ namespace llvm {
        virtual int maxVectorSize() const = 0;
        /// Plugin needs target machine for TragetLowering generation
        virtual void registerTargetMachine(TCETargetMachine &tm) = 0;
+       virtual int getLoad(const TargetRegisterClass *rc) const = 0;
+       virtual int getStore(const TargetRegisterClass *rc) const = 0;
 
    protected:
        /// Target machine instruction info for the llvm framework. 

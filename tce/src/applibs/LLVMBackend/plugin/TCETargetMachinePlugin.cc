@@ -103,6 +103,8 @@ public:
 
     virtual void registerTargetMachine(TCETargetMachine &tm);
 
+    virtual int getLoad(const TargetRegisterClass *rc) const;
+    virtual int getStore(const TargetRegisterClass *rc) const;
 private:
     void initialize();
     
@@ -123,7 +125,7 @@ private:
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
 
-   instrInfo_ = new TCEInstrInfo();
+   instrInfo_ = new TCEInstrInfo(this);
    // Initialize register & opcode maps.
    initialize();
    frameInfo_ = new TCEFrameInfo(
@@ -281,14 +283,18 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
 
-    if (opc == TCE::EXTRACT2vi) return "_EXTRACT_2";
+    if (opc == TCE::EXTRACT2rvi) return "_EXTRACT_2";
+    if (opc == TCE::EXTRACT2fmi) return "_EXTRACT_2";
     if (opc == TCE::BUILDV2vrr) return "_BUILD_2";
+    if (opc == TCE::BUILDV2mff) return "_BUILD_2";
     if (opc == TCE::BUILDV2vii) return "_BUILD_2";
     if (opc == TCE::INSERTV2vvri) return "_INSERT_2";
     if (opc == TCE::INSERTV2vvii) return "_INSERT_2";
 
-    if (opc == TCE::EXTRACT4vi) return "_EXTRACT_4";
-    if (opc == TCE::EXTRACT8vi) return "_EXTRACT_8";
+    if (opc == TCE::EXTRACT4rvi) return "_EXTRACT_4";
+    if (opc == TCE::EXTRACT4fmi) return "_EXTRACT_4";
+    if (opc == TCE::EXTRACT8rvi) return "_EXTRACT_8";
+    if (opc == TCE::EXTRACT8fmi) return "_EXTRACT_8";
     if (opc == TCE::BUILDV4vrr) return "_BUILD_4";
     if (opc == TCE::BUILDV4vii) return "_BUILD_4";
     if (opc == TCE::BUILDV8vrr) return "_BUILD_8";

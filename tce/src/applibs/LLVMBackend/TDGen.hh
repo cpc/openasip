@@ -131,7 +131,7 @@ protected:
     void write1bitRegisterInfo(std::ostream& o);
     void writeRARegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o);
-    void writeVectorRegisterInfo(std::ostream& o, int width);;
+    void writeVectorRegisterInfo(std::ostream& o, int width);
 
     void writeOperationDefs(std::ostream& o, Operation& op);
 
@@ -213,6 +213,8 @@ throw (InvalidData);
 
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
+
+    void generateVectorLoadStoreGenerator(std::ostream& os);
 
     const TTAMachine::Machine& mach_;
 

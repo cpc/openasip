@@ -484,11 +484,15 @@ TCETargetLowering::TCETargetLowering(
         switch (tm_.maxVectorSize()) {
         default: // more than 8? 
         case 8:
-            addRegisterClass(MVT::v8i32, TCE::V8RegsRegisterClass);
+            addRegisterClass(MVT::v8i32, TCE::V8I32RegsRegisterClass);
+            addRegisterClass(MVT::v8f32, TCE::V8F32RegsRegisterClass);
         case 4:
-            addRegisterClass(MVT::v4i32, TCE::V4RegsRegisterClass);
+            addRegisterClass(MVT::v4i32, TCE::V4I32RegsRegisterClass);
+            addRegisterClass(MVT::v4f32, TCE::V4F32RegsRegisterClass);
         case 2:
-            addRegisterClass(MVT::v2i32, TCE::V2RegsRegisterClass);
+            addRegisterClass(MVT::v2i32, TCE::V2I32RegsRegisterClass);
+            addRegisterClass(MVT::v2f32, TCE::V2F32RegsRegisterClass);
+
         case 1:
             break;
         }
@@ -649,6 +653,7 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
 
 }
 
+// TODO: why is there custom selector for this??
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
   // FIXME there isn't really any debug info here

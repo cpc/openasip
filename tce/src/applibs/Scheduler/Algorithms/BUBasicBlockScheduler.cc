@@ -902,6 +902,7 @@ BUBasicBlockScheduler::scheduleMove(
     throw (Exception) {
 
     if (moveNode.isScheduled()) {
+        ddg_->writeToDotFile("already_sched.dot");
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             (boost::format("Move '%s' is already scheduled!")

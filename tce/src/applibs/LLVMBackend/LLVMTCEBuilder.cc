@@ -2912,7 +2912,7 @@ int LLVMTCEBuilder::vectorOperandSize(const MachineOperand& mo) {
 	return 1;
     }
     if (origRfName.substr(0,8) == "_VECTOR_") {
-        int sizeEndIndex = origRfName.find('_', 8);
+        size_t sizeEndIndex = origRfName.find('_', 8);
         if (sizeEndIndex != std::string::npos) {
             return Conversion::toInt(
                 origRfName.substr(8, (sizeEndIndex-8)));

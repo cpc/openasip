@@ -43,6 +43,7 @@
 
 #include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
+#include "TCETargetMachinePlugin.hh"
 
 #include <iostream>
 #include "TCEPlugin.hh"
@@ -60,9 +61,9 @@ using namespace llvm;
 /**
  * Constructor.
  */
-TCEInstrInfo::TCEInstrInfo() :
+TCEInstrInfo::TCEInstrInfo(const TCETargetMachinePlugin* plugin) :
     TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-    ri_(*this) {
+    ri_(*this), plugin_(plugin) {
 }
 
 /**
@@ -209,7 +210,18 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     BuildMI(MBB, I, DL, get(TCE::STQBrb)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else
+    BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+#if 0    
+  else if (RC == TCE::V2I32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STW2vr)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else if (RC == TCE::V2F32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STW2mr)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else
     assert(0 && "Can't store this register to stack slot");
+#endif
 }
 
 void TCEInstrInfo::
@@ -229,7 +241,14 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   else if (RC == TCE::I1RegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDQBr), DestReg).addFrameIndex(FI).addImm(0);
   else
+    BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI).addImm(0);
+#if 0  
+
+  else if (RC == TCE::V2F32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::LDW2mr), DestReg).addFrameIndex(FI).addImm(0);
+  else
     assert(0 && "Can't load this register from stack slot");
+#endif
 }
 
 /**
@@ -272,8 +291,12 @@ void TCEInstrInfo::copyPhysReg(
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
     } else {
+      //        BuildMI(mbb, mbbi, dl, getMove(RC), destReg)
+      //	    .addReg(srcReg, getKillRegState(killSrc));
+      
         assert(
             false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
+
     }
 }
 

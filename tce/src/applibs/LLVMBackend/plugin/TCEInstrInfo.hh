@@ -43,7 +43,7 @@
 namespace llvm {
 
     class TCETargetMachine;
-
+    class TCETargetMachinePlugin;
     /** !! Important !! *************
      * ON EVERY LLVM UPDATE CHECK THESE INTERFACES VERY CAREFULLY
      * FROM include/llvm/Target/TargetInstrInfo.h
@@ -55,7 +55,7 @@ namespace llvm {
 
     class TCEInstrInfo : public TCEGenInstrInfo {
     public:
-        TCEInstrInfo();
+        TCEInstrInfo(const TCETargetMachinePlugin* plugin);
         virtual ~TCEInstrInfo();
 
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
@@ -123,6 +123,7 @@ namespace llvm {
 
     private:
         const TCERegisterInfo ri_;
+        const TCETargetMachinePlugin* plugin_;
     };
 }
 
