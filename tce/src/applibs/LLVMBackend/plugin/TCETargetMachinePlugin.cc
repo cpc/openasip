@@ -289,6 +289,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::BUILDV2mff) return "_BUILD_2";
     if (opc == TCE::BUILDV2vii) return "_BUILD_2";
     if (opc == TCE::INSERTV2vvri) return "_INSERT_2";
+    if (opc == TCE::INSERTV2mmfi) return "_INSERT_2";
     if (opc == TCE::INSERTV2vvii) return "_INSERT_2";
 
     if (opc == TCE::EXTRACT4rvi) return "_EXTRACT_4";
@@ -300,8 +301,10 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::BUILDV8vrr) return "_BUILD_8";
     if (opc == TCE::BUILDV8vii) return "_BUILD_8";
     if (opc == TCE::INSERTV4vvri) return "_INSERT_4";
+    if (opc == TCE::INSERTV4mmfi) return "_INSERT_4";
     if (opc == TCE::INSERTV4vvii) return "_INSERT_4";
     if (opc == TCE::INSERTV8vvri) return "_INSERT_8";
+    if (opc == TCE::INSERTV8mmfi) return "_INSERT_8";
     if (opc == TCE::INSERTV8vvii) return "_INSERT_8";
 
     if (opNames_.find(opc) == opNames_.end()) {

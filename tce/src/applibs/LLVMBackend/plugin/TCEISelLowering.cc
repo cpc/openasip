@@ -492,7 +492,6 @@ TCETargetLowering::TCETargetLowering(
         case 2:
             addRegisterClass(MVT::v2i32, TCE::V2I32RegsRegisterClass);
             addRegisterClass(MVT::v2f32, TCE::V2F32RegsRegisterClass);
-
         case 1:
             break;
         }
@@ -518,7 +517,8 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
-    // SELECT is used instead of SELECT_CC
+    // SELECT is used instead of SELECT_CC.
+    // so expand expands it into separate comparison and select.
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
     // not needed when we uses xor for boolean comparison

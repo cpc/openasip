@@ -1160,6 +1160,10 @@ TDGen::writeOperationDefs(
     // no bool outs for some operatios
     if (op.name() == "CFI" || op.name() == "CFIU") {
         writeOperationDef(o, op, "rf", attrs);
+        writeOperationDef(o, op, "vm", attrs, "_VECTOR_2_");
+        writeOperationDef(o, op, "wn", attrs, "_VECTOR_4_");
+        writeOperationDef(o, op, "xo", attrs, "_VECTOR_8_");
+
         return;
     }
         
@@ -1167,11 +1171,21 @@ TDGen::writeOperationDefs(
     if (op.name() == "ROTL" || op.name() == "ROTR" ||
         op.name() == "SHL" || op.name() == "SHR" || op.name() == "SHRU") {
         writeOperationDefs(o, op, "rrr", attrs);
+
+        writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
+        writeOperationDef(o, op, "www", attrs, "_VECTOR_4_");
+        writeOperationDef(o, op, "xxx", attrs, "_VECTOR_8_");
         return;
     }
 
     if (op.name() == "SXHW" || op.name() == "SXQW") {
         writeOperationDef(o, op, "rr", attrs);
+        /* For some reason these cause a type contradiction 
+        writeOperationDef(o, op, "vv", attrs, "_VECTOR_2_");
+        writeOperationDef(o, op, "ww", attrs, "_VECTOR_4_");
+        writeOperationDef(o, op, "xx", attrs, "_VECTOR_8_");
+        */
+
         return;
     }
 
@@ -1225,9 +1239,14 @@ TDGen::writeOperationDefs(
             writeOperationDef(o, op, "mmm", attrs, "_VECTOR_2_");            
             writeOperationDef(o, op, "nnn", attrs, "_VECTOR_4_");
             writeOperationDef(o, op, "ooo", attrs, "_VECTOR_8_");
-
         }
 
+        // int-to-float conversions. also vector versions of those
+        if (createDefaultOperandTypeString(op) == "fr") {
+            writeOperationDef(o, op, "mv", attrs, "_VECTOR_2_");            
+            writeOperationDef(o, op, "nw", attrs, "_VECTOR_4_");
+            writeOperationDef(o, op, "ox", attrs, "_VECTOR_8_");
+        }
     }
 }
 
