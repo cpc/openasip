@@ -56,7 +56,7 @@ using std::endl;
  *
  * Supported parameters:
  *  - node, first input architecture, will be copied multiple times
- *  - node_cout, number of times the input architecture is copied to new one,
+ *  - node_count, number of times the input architecture is copied to new one,
  *               default is 4
  *  - rf_size, the size of the register file connecting copied architectures,
  *              default is 4
@@ -74,7 +74,9 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         node_("node.adf"),
         nodeCount_(4),
         extra_("extra.adf"),
-        buildIDF_(false) {
+        buildIDF_(false),
+        vectorLSU_(false),
+        addressSpace_("data") {
 
         // compulsory parameters
         // no compulsory parameters
@@ -84,7 +86,10 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         addParameter(NodeCountPN_, UINT, false, 
             Conversion::toString(nodeCount_));        
         addParameter(ExtraPN_, STRING, false, extra_);
-	addParameter(BuildIDFPN_, BOOL, false, Conversion::toString(buildIDF_));	
+        addParameter(BuildIDFPN_, BOOL, false, Conversion::toString(buildIDF_));
+        addParameter(VectorLSUPN_, BOOL, false, 
+            Conversion::toString(vectorLSU_));        
+        addParameter(AddressSpacePN_, STRING, false, addressSpace_);        
     }
 
     virtual bool requiresStartingPointArchitecture() const { return false; }
@@ -140,24 +145,45 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         // Copies the extra machine to new architecture
         finalMach = new TTAMachine::Machine(*extraMach);
         // add components
-        addComponents(finalMach, nodeMach, extraMach, nodeCount_);        
-
-	if (buildIDF_) {
-            try {
-                // add idf to configuration
-                selector_.selectComponentsToConf(conf, dsdb, finalMach);
-            } catch (const Exception& e) {
-		throw Exception(
-		    __FILE__, __LINE__, __func__, e.errorMessageStack());
-            }
-        } else {
-            conf.hasImplementation = false;
-        }
+        addComponents(finalMach, nodeMach, extraMach, nodeCount_);                  
+        
         // add machine to configuration
         conf.architectureID = dsdb.addArchitecture(*finalMach);
 
         // add new configuration to dsdb
         RowID confID = dsdb.addConfiguration(conf);
+        
+        // If requested, adds wide load/store unit
+        if (vectorLSU_) {
+            DesignSpaceExplorerPlugin* lsuAdd =
+                DesignSpaceExplorer::loadExplorerPlugin(
+                "VectorLSGenerator", &db());    
+                
+            lsuAdd->giveParameter("node_count", Conversion::toString(nodeCount_));            
+            lsuAdd->giveParameter(
+                "address_space", Conversion::toString(addressSpace_));        
+            std::vector<RowID> addedLSUConf = 
+                lsuAdd->explore(confID);   
+                
+            finalMach = dsdb.architecture(addedLSUConf.back());
+            connectVectorLSU(finalMach, nodeMach, extraMach, nodeCount_);
+            
+            conf.architectureID = dsdb.addArchitecture(*finalMach);
+            confID = dsdb.addConfiguration(conf);       
+        }
+        if (buildIDF_) {
+            try {
+                // add idf to configuration
+                selector_.selectComponentsToConf(conf, dsdb, finalMach);                
+                conf.architectureID = dsdb.addArchitecture(*finalMach);
+                confID = dsdb.addConfiguration(conf);                       
+            } catch (const Exception& e) {
+                throw Exception(
+                    __FILE__, __LINE__, __func__, e.errorMessageStack());
+            }
+        } else {
+            conf.hasImplementation = false;
+        }        
         result.push_back(confID);
         return result;
     }
@@ -170,11 +196,16 @@ private:
     static const TCEString NodeCountPN_;    
     static const TCEString ExtraPN_;
     static const TCEString BuildIDFPN_;
+    static const TCEString VectorLSUPN_;
+    static const TCEString AddressSpacePN_;    
+    
     
     TCEString node_;
     int nodeCount_;    
     TCEString extra_;
     bool buildIDF_;
+    bool vectorLSU_;
+    TCEString addressSpace_;
 
     /**
      * Reads the parameters given to the plugin.
@@ -183,7 +214,9 @@ private:
         readOptionalParameter(NodePN_, node_);
         readOptionalParameter(NodeCountPN_, nodeCount_);        
         readOptionalParameter(ExtraPN_, extra_);
-	readOptionalParameter(BuildIDFPN_, buildIDF_);
+        readOptionalParameter(BuildIDFPN_, buildIDF_);
+        readOptionalParameter(VectorLSUPN_, vectorLSU_);        
+        readOptionalParameter(AddressSpacePN_, addressSpace_);        
     }
 
     
@@ -206,7 +239,6 @@ private:
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
         connectRegisterFiles(finalMach, nodeMach, extraMach, nodeCount);
-        connectVectorLSU(finalMach, nodeMach, extraMach, nodeCount);
     }
 
     /**
@@ -633,16 +665,14 @@ private:
         TTAMachine::Machine* extraMach, 
         int nodeCount){
         
-        const TTAMachine::Machine::FunctionUnitNavigator& FUExtraNav =
-            extraMach->functionUnitNavigator();
         const TTAMachine::Machine::FunctionUnitNavigator& finalNav =
             finalMach->functionUnitNavigator();
         TTAMachine::FunctionUnit* vectorLSU = NULL;
         TTAMachine::FUPort* trigger = NULL;
         int triggerIndex = -1;
         int outputPortCount = 0;
-        for (int i = 0; i < FUExtraNav.count(); i++) {
-            TTAMachine::FunctionUnit* fu = FUExtraNav.item(i);
+        for (int i = 0; i < finalNav.count(); i++) {
+            TTAMachine::FunctionUnit* fu = finalNav.item(i);
             bool unconnected = false;
             for(int j = 0; j < fu->operationPortCount(); j++) {
                 if (fu->operationPort(j)->socketCount() == 0) {
@@ -664,8 +694,7 @@ private:
                 if (fu->hasAddressSpace()) {
                     // Ok, it seems to be load/store we look for, stop looking.
                     // Find equivalends in final architecture
-                    vectorLSU = finalNav.item(
-                        getExtraComponentName(fu->name()));                                    
+                    vectorLSU = fu;                                    
                     trigger = vectorLSU->operationPort(triggerIndex);
                     break;
                 } else {
@@ -676,6 +705,7 @@ private:
         }
         if (vectorLSU == NULL) {
             // No vector LSU found, nothing to do here.
+            std::cerr << " did not find the lsu " << std::endl;
             return;
         }
         
@@ -846,6 +876,8 @@ const TCEString ADFCombiner::NodePN_("node");
 const TCEString ADFCombiner::NodeCountPN_("node_count");
 const TCEString ADFCombiner::ExtraPN_("extra");
 const TCEString ADFCombiner::BuildIDFPN_("build_idf");
+const TCEString ADFCombiner::VectorLSUPN_("vector_lsu");
+const TCEString ADFCombiner::AddressSpacePN_("address_space");
 
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ADFCombiner)
