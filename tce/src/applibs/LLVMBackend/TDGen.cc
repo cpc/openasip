@@ -2385,8 +2385,8 @@ TDGen::generateVectorLoadStoreGenerator(std::ostream& os) {
            << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::STW4mr;" << std::endl;
     }
     if (opNames_.find("STW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr" << std::endl
-           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr" << std::endl;
+        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr;" << std::endl
+           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr;" << std::endl;
     }
     os << "assert(0&&\"storing given regclass to stack not supported\");"
        << std::endl
