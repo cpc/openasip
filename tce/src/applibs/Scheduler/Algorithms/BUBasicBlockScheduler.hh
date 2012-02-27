@@ -94,7 +94,7 @@ protected:
     typedef std::set<MoveNode*, ltstr> OrderedSet;
 
 
-    void scheduleRRMove(MoveNode& moveNode)
+    void scheduleRRMove(MoveNode& moveNode, BUMoveNodeSelector& selector)
         throw (Exception);
 
     void scheduleOperation(MoveNodeGroup& moves, BUMoveNodeSelector& selector)
@@ -105,7 +105,7 @@ protected:
 
     int scheduleResultReads(
         MoveNodeGroup& moves, int cycle, bool bypass = false, 
-        bool bypassLate = false, bool dre = false)
+        bool bypassLate = false)
         throw (Exception);
 
     void scheduleMove(MoveNode& move, int cycle)
@@ -132,6 +132,10 @@ protected:
 
     void undoBypass(
         MoveNode& node, MoveNode* single = NULL, int originalCycle = -1);
+    
+    bool bypassNode(MoveNode& node, int& maxResultCycle);
+    
+    void finalizeSchedule(MoveNode& node, BUMoveNodeSelector& selector);
     
     std::map<MoveNode*, std::vector<MoveNode*>, MoveNode::Comparator> 
         bypassDestinations_;
