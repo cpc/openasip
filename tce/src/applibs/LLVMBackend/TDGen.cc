@@ -713,7 +713,7 @@ TDGen::writeVectorRegisterInfo(std::ostream& o) {
     for (int i = 0; i < nav.count(); i++) {
         const TTAMachine::RegisterFile* rf = nav.item(i);
         
-        if (rf->name().find("L_") == 0) {
+        if (rf->name().find("L_") == 0 && rf->width() == 32) {
             vectorRFs.push_back(rf);
         }
     }
