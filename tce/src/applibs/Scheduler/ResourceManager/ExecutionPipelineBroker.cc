@@ -386,33 +386,46 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     }
     ProgramOperation& sourceOp = node.sourceOperation();
     const MoveNode* triggerNode = NULL;
-    const MoveNode* lastNode = NULL;
+    const MoveNode* lastOperandNode = NULL;
+    const MoveNode* lastResultNode = NULL;    
     int minCycle = -1;
-    // Source is result read, we test all operands and next result
+    // Source is result read, we test all operands
     for (int i = 0; i < sourceOp.inputMoveCount(); i++) {
         const MoveNode* tempNode = &sourceOp.inputMove(i);
         if (tempNode->isScheduled() && tempNode != &node) {
             minCycle = std::max(tempNode->cycle(), minCycle);
-            lastNode = tempNode;
+            lastOperandNode = tempNode;
             if (tempNode->move().isTriggering()) {
                 triggerNode = tempNode;
             }
         }
     }
+    // Source is result read, we test all results    
+    for (int i = 0; i < sourceOp.outputMoveCount(); i++) {
+        const MoveNode* tempNode = &sourceOp.outputMove(i);
+        if (tempNode->isScheduled() && tempNode != &node) {
+            minCycle = std::max(tempNode->cycle(), minCycle);
+            lastResultNode = tempNode;
+        }
+    }
+    
     if (minCycle == -1) {
         return cycle;
     }
-    if (minCycle > cycle) {
-        // Some operand is already later then where we started to backtrack
+    if (minCycle > cycle && lastResultNode == NULL) {
+        // Some operand is already later then where we started to backtrack.
         debugLogRM("returning -1");
         return -1;
     }
     if (triggerNode != NULL) {
         
-        if (minCycle >= node.earliestResultReadCycle()) {
+        if (minCycle >= node.earliestResultReadCycle() 
+            && lastResultNode == NULL) {
+            // If we do have minCycle from operands, this is valid test,
+            // otherwise it is not.
             throw InvalidData(__FILE__, __LINE__, __func__, 
                 "Some operand move is written after the result move "
-                "is ready!");
+                "is ready! " + node.toString());
         }
         if (node.earliestResultReadCycle() > cycle) {
             // Result is available later then where we started to backtrack
@@ -424,7 +437,11 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     }
     // minCycle has latest of operand writes or earliest result read cycle
     // find next read of same FU with different PO
-    const FunctionUnit& fu = lastNode->move().destination().functionUnit();
+    assert(lastOperandNode != NULL || lastResultNode != NULL);
+    const FunctionUnit& fu = 
+        (lastOperandNode != NULL) 
+            ? lastOperandNode->move().destination().functionUnit()
+            : lastResultNode->move().source().functionUnit();
     HWOperation& hwop = *fu.operation(sourceOp.operation().name());
     const TTAMachine::Port& port = *hwop.port(node.move().source().operationIndex());
     SchedulingResource& res = *resourceOf(fu);
