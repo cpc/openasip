@@ -134,6 +134,10 @@ BUBasicBlockScheduler::handleDDG(
         bypassDistance_ = options_->bypassDistance();        
     } 
     
+    if (options_ != NULL && options_->bypassDistance() == 0) {
+        bypass_ = false;
+    }     
+    
     if (options_ != NULL && !options_->killDeadResults()) {
         dre_ = false;
     }
@@ -176,7 +180,11 @@ BUBasicBlockScheduler::handleDDG(
                 } else {
                     // schedule original move
                     scheduleRRMove(firstMove, selector);
+                    // If move was register copy to self, it could have been
+                    // just dropped.
+                    movesRemoved = true;                    
                 }
+
                 finalizeSchedule(firstMove, selector);    
                 bypassDestinationsCycle_.clear();
                 bypassDestinations_.clear();                
@@ -269,7 +277,7 @@ BUBasicBlockScheduler::scheduleOperation(
 //    ddg_->sanityCheck();
 #endif
     bool bypass = bypass_;
-    bool bypassLate = true;    
+    bool bypassLate = false;    
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(
@@ -325,7 +333,6 @@ BUBasicBlockScheduler::scheduleOperation(
                 }
             }
             operandsFailed = true;
-            maxResult--;
             if (bypass) {
                 bypass = false;            
                 bypassLate = true;
@@ -333,6 +340,7 @@ BUBasicBlockScheduler::scheduleOperation(
                 bypassLate = false;
             } else {
                 resultsStartCycle--;                
+                maxResult--;                
                 resultsStartCycle = std::min(maxResult, resultsStartCycle);                                
             }
         }
@@ -527,6 +535,8 @@ BUBasicBlockScheduler::scheduleResultReads(
 
     int maxResultCycle = cycle;
     int tempRegLimitCycle = cycle;
+    int localMaximum = 0;
+    bool resultScheduled = false;
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
         if (!moves.node(moveIndex).isSourceOperation()) {
             continue;
@@ -541,17 +551,18 @@ BUBasicBlockScheduler::scheduleResultReads(
                     "result move!") % moveNode.toString()).str());
             }
             if (bypass) {
-                int old = maxResultCycle;
-                bypassSuccess = bypassNode(moveNode, old);                
-                if (old != maxResultCycle) {
-                    Application::logStream() <<"\tNew maxResultCycle " << 
-                        old << ", previous " << maxResultCycle << std::endl;
+                int newMaximum = maxResultCycle;
+                bypassSuccess = bypassNode(moveNode, newMaximum);                
+                if (newMaximum != maxResultCycle) {
+                    localMaximum = 
+                        (newMaximum > localMaximum) ? newMaximum : localMaximum;
                 }
                 if (dre_ && bypassSuccess &&
                     !ddg_->resultUsed(moveNode)) {
                     // All uses of result were bypassed, result will be removed
                     // after whole operation is scheduled.
-                    tempRegLimitCycle = std::max(tempRegLimitCycle, maxResultCycle);                                
+                    //tempRegLimitCycle = std::max(tempRegLimitCycle, maxResultCycle);  
+                    resultScheduled = true;
                     continue;
                 } 
             }
@@ -583,28 +594,33 @@ BUBasicBlockScheduler::scheduleResultReads(
                 undoBypass(moveNode);
                 return -1;
             }            
-            if (bypassLate) {                
-                bypassNode(moveNode, maxResultCycle);
-                int originalCycle = moveNode.cycle();
-                unschedule(moveNode);
-                scheduleMove(moveNode, cycle);
-                if (!moveNode.isScheduled()) {
-                    scheduleMove(moveNode, originalCycle);
-                } else if (moveNode.cycle() != originalCycle) {
-                    Application::logStream() <<"\tRescheduled " << moveNode.toString()
-                    << " from original cycle " << originalCycle << std::endl;
+            if (bypassLate) {     
+                int newMaximum = cycle;
+                if (bypassNode(moveNode, newMaximum)) {
+                    localMaximum = 
+                        (localMaximum < newMaximum) ? newMaximum : localMaximum;
+                    int originalCycle = moveNode.cycle();
+                    unschedule(moveNode);
+                    scheduleMove(moveNode, cycle);
+                    if (!moveNode.isScheduled()) {
+                        scheduleMove(moveNode, originalCycle);
+                    }
                 }
                 assert(moveNode.isScheduled());
             }
-
+            resultScheduled = true;
             // Find latest schedule result cycle
+            localMaximum = 
+                (localMaximum < moveNode.cycle()) 
+                ? moveNode.cycle() : localMaximum;                    
+            
             maxResultCycle =
                 (moveNode.cycle() > maxResultCycle) ?
                     moveNode.cycle() : maxResultCycle;
         }
 
-    }
-    return maxResultCycle;
+    }    
+    return (resultScheduled) ? localMaximum : maxResultCycle;
 }
 
 /**
@@ -1360,70 +1376,79 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
 void 
 BUBasicBlockScheduler::finalizeSchedule(
     MoveNode& node, BUMoveNodeSelector& selector) {
-        if (node.isScheduled()) {                                    
-            selector.notifyScheduled(node);
-            std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
-                iterator tmIter = scheduledTempMoves_.find(&node);
-            if (tmIter != scheduledTempMoves_.end()) {
-                DataDependenceGraph::NodeSet& tempMoves = tmIter->second;
-                for (DataDependenceGraph::NodeSet::iterator i =
-                    tempMoves.begin(); i != tempMoves.end(); i++) {
-                    selector.notifyScheduled(**i);
-                }
-            }                      
-        } else if (MapTools::containsKey(bypassDestinations_, &node) && dre_) {
+
+    if (node.isScheduled()) {                                    
+        selector.notifyScheduled(node);
+        std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
+            iterator tmIter = scheduledTempMoves_.find(&node);
+        if (tmIter != scheduledTempMoves_.end()) {
+            DataDependenceGraph::NodeSet& tempMoves = tmIter->second;
+            for (DataDependenceGraph::NodeSet::iterator i =
+                tempMoves.begin(); i != tempMoves.end(); i++) {
+                selector.notifyScheduled(**i);
+            }
+        }                      
+    } else if (MapTools::containsKey(bypassDestinations_, &node) && dre_) {
       
 #ifdef DEBUG_BYPASS
-          std::cerr << "\tDroping node " << node.toString() << std::endl;
-          ddg_->writeToDotFile("before_copyDeps.dot");
+        std::cerr << "\tDroping node " << node.toString() << std::endl;
+        ddg_->writeToDotFile("before_copyDeps.dot");
 #endif                
-          static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
-              copyDepsOver(node, true, true); 
-          DataDependenceGraph::NodeSet preds = ddg_->predecessors(node); 
-          ddg_->dropNode(node);
-          if (ddg_->rootGraph() != ddg_) {
-              assert(!node.isScheduled());
-              ddg_->rootGraph()->removeNode(node);
-          }
+        static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
+            copyDepsOver(node, true, true); 
+        DataDependenceGraph::NodeSet preds = ddg_->predecessors(node); 
+        ddg_->dropNode(node);
+        if (ddg_->rootGraph() != ddg_) {
+            assert(!node.isScheduled());
+            ddg_->rootGraph()->removeNode(node);
+        }
 #ifdef DEBUG_BYPASS
-          ddg_->writeToDotFile("after_dropNode.dot");
+        ddg_->writeToDotFile("after_dropNode.dot");
 #endif                
           
-          for (DataDependenceGraph::NodeSet::iterator i = 
-               preds.begin(); i != preds.end(); i++) {
-               selector.mightBeReady(**i);
-          }          
-          std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
-              iterator tmIter = scheduledTempMoves_.find(&node);
-          if (tmIter != scheduledTempMoves_.end()) {
-              DataDependenceGraph::NodeSet& tempMoves = tmIter->second;
-              for (DataDependenceGraph::NodeSet::iterator i =
-                   tempMoves.begin(); i != tempMoves.end(); i++) {
-                  if ((*i)->isScheduled()) {
-                      selector.notifyScheduled(**i);
-                  } else {
+        for (DataDependenceGraph::NodeSet::iterator i = 
+            preds.begin(); i != preds.end(); i++) {
+            selector.mightBeReady(**i);
+        }          
+        std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
+            iterator tmIter = scheduledTempMoves_.find(&node);
+        if (tmIter != scheduledTempMoves_.end()) {
+            DataDependenceGraph::NodeSet& tempMoves = tmIter->second;
+            for (DataDependenceGraph::NodeSet::iterator i =
+                tempMoves.begin(); i != tempMoves.end(); i++) {
+                if ((*i)->isScheduled()) {
+                    selector.notifyScheduled(**i);
+                } else {
 #ifdef DEBUG_BYPASS
-                      std::cerr << "\tDroping temp move for node " 
-                      << node.toString() << ", " << (*i)->toString() << std::endl;
-                      ddg_->writeToDotFile("before_temp_copyDeps.dot");
+                    std::cerr << "\tDroping temp move for node " 
+                        << node.toString() << ", " << (*i)->toString() 
+                        << std::endl;
+                    ddg_->writeToDotFile("before_temp_copyDeps.dot");
 #endif                                  
-                      static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
+                    static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
                         copyDepsOver(**i, true, true);                   
-                      ddg_->dropNode(**i);
-                      if (ddg_->rootGraph() != ddg_) {
-                          assert((*i)->isScheduled());
-                          ddg_->rootGraph()->removeNode(**i);
-                      }                      
+                    ddg_->dropNode(**i);
+                    if (ddg_->rootGraph() != ddg_) {
+                        assert((*i)->isScheduled());
+                        ddg_->rootGraph()->removeNode(**i);
+                    }                      
 #ifdef DEBUG_BYPASS
-                      ddg_->writeToDotFile("after_temp_dropNode.dot");
+                    ddg_->writeToDotFile("after_temp_dropNode.dot");
 #endif                                      
-                  }    
-              }
-          }          
-          
-      } else {
-          TCEString msg = "Node " + node.toString() + " did not get scheduled";
-          throw InvalidData(
-              __FILE__, __LINE__, __func__, msg);
-      }      
+                }    
+            }
+        }          
+      
+    } else if (node.move().source().equals(node.move().destination())) {
+        // Node was dropped from the graph while scheduling RR copy
+        if (ddg_->rootGraph() != ddg_) {
+            assert(!node.isScheduled());
+            ddg_->rootGraph()->removeNode(node);
+        }        
+    }else {
+        TCEString msg = "Node " + node.toString() + " did not get scheduled";
+        ddg_->writeToDotFile("after_dropNode.dot");          
+        throw InvalidData(
+        __FILE__, __LINE__, __func__, msg);
+    }      
 }
