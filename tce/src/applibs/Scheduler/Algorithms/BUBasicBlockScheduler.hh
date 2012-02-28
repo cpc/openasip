@@ -94,7 +94,7 @@ protected:
     typedef std::set<MoveNode*, ltstr> OrderedSet;
 
 
-    void scheduleRRMove(MoveNode& moveNode, BUMoveNodeSelector& selector)
+    void scheduleRRMove(MoveNode& moveNode)
         throw (Exception);
 
     void scheduleOperation(MoveNodeGroup& moves, BUMoveNodeSelector& selector)

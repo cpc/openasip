@@ -179,7 +179,7 @@ BUBasicBlockScheduler::handleDDG(
                     movesRemoved = true;
                 } else {
                     // schedule original move
-                    scheduleRRMove(firstMove, selector);
+                    scheduleRRMove(firstMove);
                     // If move was register copy to self, it could have been
                     // just dropped.
                     movesRemoved = true;                    
@@ -633,9 +633,7 @@ BUBasicBlockScheduler::scheduleResultReads(
  * @param moveNode R-R Move to schedule.
  */
 void
-BUBasicBlockScheduler::scheduleRRMove(
-    MoveNode& moveNode, 
-    BUMoveNodeSelector& selector)
+BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
     throw (Exception) {
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -646,28 +644,6 @@ BUBasicBlockScheduler::scheduleRRMove(
 
     if (moveNode.move().source().equals(
         moveNode.move().destination())) {
-        // we lost edges so our notifyScheduled does not notify
-        // some antidependencies. store them for notification.
-                        
-        DataDependenceGraph::NodeSet predecessors =
-            ddg_->predecessors(moveNode);          
-        predecessors.erase(&moveNode); // if WaW to itself, rremove it.
-    
-        assert(moveNode.isScheduled() == false);
-    
-        // this may lead to extra raw edges.
-        static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
-            copyDepsOver(moveNode, true, true);
-    
-        ddg_->dropNode(moveNode);
-    
-        // we lost edges so our notifyScheduled does not notify
-        // some antidependencies. notify them.
-        for (DataDependenceGraph::NodeSet::iterator iter =
-            predecessors.begin();
-            iter != predecessors.end(); iter++) {
-            selector.mightBeReady(**iter);
-        }
         return;
     } 
 
@@ -1222,8 +1198,7 @@ BUBasicBlockScheduler::undoBypass(
                     ", original cycle: " << dest.second << std::endl;                    
                 }
                 assert(dest.first->isScheduled());                
-            }
-            
+            }            
             bypassDestinations_.erase(&moveNode);          
             bypassDestinationsCycle_.erase(&moveNode);                                      
         }
@@ -1440,11 +1415,34 @@ BUBasicBlockScheduler::finalizeSchedule(
         }          
       
     } else if (node.move().source().equals(node.move().destination())) {
+        // we lost edges so our notifyScheduled does not notify
+        // some antidependencies. store them for notification.
+                        
+        DataDependenceGraph::NodeSet predecessors =
+            ddg_->predecessors(node);          
+        predecessors.erase(&node); // if WaW to itself, rremove it.
+    
+        assert(node.isScheduled() == false);
+    
+        // this may lead to extra raw edges.
+        static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
+            copyDepsOver(node, true, true);
+    
+        ddg_->dropNode(node);
         // Node was dropped from the graph while scheduling RR copy
         if (ddg_->rootGraph() != ddg_) {
             assert(!node.isScheduled());
             ddg_->rootGraph()->removeNode(node);
         }        
+    
+        // we lost edges so our notifyScheduled does not notify
+        // some antidependencies. notify them.
+        for (DataDependenceGraph::NodeSet::iterator iter =
+            predecessors.begin();
+            iter != predecessors.end(); iter++) {
+            selector.mightBeReady(**iter);
+        }
+        
     }else {
         TCEString msg = "Node " + node.toString() + " did not get scheduled";
         ddg_->writeToDotFile("after_dropNode.dot");          
