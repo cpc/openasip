@@ -102,6 +102,9 @@ namespace llvm {
         virtual SDValue
         LowerCall(SDValue Chain, SDValue Callee,
                   CallingConv::ID CallConv, bool isVarArg,
+#ifndef LLVM_3_0
+                             bool /*doesNotRet*/,
+#endif
                   bool& isTailCall,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<SDValue> &OutVals,

@@ -1,6 +1,5 @@
-
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -299,6 +298,9 @@ TCETargetLowering::LowerFormalArguments(
 SDValue
 TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
+#ifndef LLVM_3_0
+                             bool /*doesNotRet*/,
+#endif
                              bool &isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
                              const SmallVectorImpl<SDValue> &OutVals,
@@ -642,13 +644,24 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
     TargetLowering::ArgListTy Args;
     DebugLoc dl = Op->getDebugLoc();
+#ifdef LLVM_3_0
     std::pair<SDValue, SDValue> CallResult =
       LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
                   false, false, false, false, 0, CallingConv::C,
                   /*isTailCall=*/false,
-                  /*isReturnValueUsed=*/true,
+                  /*isReturnValueUsed=*/true,                  
                   DAG.getExternalSymbol("_exit", getPointerTy()),
                   Args, DAG, dl);
+#else
+    std::pair<SDValue, SDValue> CallResult =
+      LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
+                  false, false, false, false, 0, CallingConv::C,
+                  /*isTailCall=*/false,
+                  /*doesNotRet=*/true,
+                  /*isReturnValueUsed=*/true,                  
+                  DAG.getExternalSymbol("_exit", getPointerTy()),
+                  Args, DAG, dl);
+#endif
     return CallResult.second;
 
 }
