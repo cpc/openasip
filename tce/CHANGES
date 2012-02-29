@@ -9,6 +9,8 @@ Bugfixes
   is printed in such cases). 
 - tcecc: some scheduling errors didn't fail gracefully
   https://bugs.launchpad.net/tce/+bug/894816
+- hdb: fpu_sp_mul.vhdl didn't freeze the pipeline with glock
+  https://bugs.launchpad.net/tce/+bug/942551
 
 1.5    December 2011
 ====================
