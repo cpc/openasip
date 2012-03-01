@@ -1782,9 +1782,10 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         labelInstruction->addOperand(
             llvm::MachineOperand::CreateMCSymbol(symbol));
 #ifdef LLVM_3_0
-        mi->getParent()->insert(mi, labelInstruction);
+        mi->getParent()->insert(mi, labelInstruction);        
 #else
-	abortWithError("mbb->insert method changed in llvm-svn. TODO: fix");
+        mi->getParent()->insert(
+            llvm::MachineBasicBlock::instr_iterator (mi), labelInstruction);        
 #endif
     }
     tpos_.clear();

@@ -137,7 +137,8 @@ OperationPoolPimpl::operation(const char* name) {
 #ifdef LLVM_3_0
             TCEString operName = TCEString(tid.getName()).lower();
 #else
-	    TCEString operName = llvmTargetInstrInfo_->getName(opc);
+            TCEString operName = 
+                TCEString(llvmTargetInstrInfo_->getName(opc)).lower();
 #endif
             if (operName == TCEString(name).lower()) {
                 Operation* llvmOperation = loadFromLLVM(tid);

@@ -1293,8 +1293,7 @@ LLVMTCEBuilder::emitInstruction(
         // To convert it to move, we just write 0 as source terminal. 
         // LLVM already  generated code to put return address on a top of the stack, 
         // so no point explicitely writing ra -> ret.1.
-        TTAMachine::HWOperation* jump = 
-	    UniversalMachine::instance().controlUnit()->operation(opName);
+        const TTAMachine::HWOperation* jump =  &getHWOperation(opName);
         TTAProgram::TerminalFUPort* dst = 
         	new TTAProgram::TerminalFUPort(*jump, 1);
         int width = 32; // FIXME
