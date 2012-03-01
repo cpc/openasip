@@ -462,11 +462,6 @@ DataDependenceGraphBuilder::build(
 
     delete currentData_;
     currentData_ = NULL;
-
-    if (Application::verboseLevel() > 0) {
-        Application::logStream()
-            << "DDG: height: " << currentDDG_->height() << std::endl;
-    }
     return currentDDG_;
 }
 

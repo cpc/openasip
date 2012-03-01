@@ -773,8 +773,9 @@ BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
             int eWeight = edgeWeight(*e, nHead);
             if (sourceDistances_[&nTail] + eWeight ==
                 sourceDistances_[&nHead] ||
+                (!sinkDistances_.empty() &&
                 sinkDistances_[&nHead] + eWeight ==
-                sinkDistances_[&nTail]) {
+                 sinkDistances_[&nTail])) {
                 // removing a edge may invalidate some cached data
                 height_ = -1;
                 sourceDistances_.clear();
@@ -1208,7 +1209,8 @@ BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
             if (height_ != -1) {
                 int eWeight = edgeWeight(e, dest);
                 // does removal of this edge shorten longest paths?
-                if (sinkDistances_[&dest] + eWeight ==
+                if (!sinkDistances_.empty() &&
+                    sinkDistances_[&dest] + eWeight ==
                     sinkDistances_[&tail]) {
                     height_ = -1;
                     sourceDistances_.clear();
@@ -2286,7 +2288,8 @@ BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node)
             iterator iter2 = sourceDistances_.find(&node);
 
         if (iter2 == sourceDistances_.end()) {
-            calculatePathLengths();
+            calculateSourceDistances();
+//            calculatePathLengths();
         } else {
             return iter2->second;
         }
