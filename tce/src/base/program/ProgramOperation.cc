@@ -362,6 +362,22 @@ ProgramOperation::areInputsAssigned() {
 }
 
 /**
+ * Return true if any output node of this operation have function unit assigned to
+ * their source or destination respectively
+ *
+ * @return True if any node has source or destination function unit assigned
+ */
+bool
+ProgramOperation::isAnyOutputAssigned() {
+    for (int i = 0; i < outputMoveCount(); i++ ) {
+        if (outputMove(i).isAssigned()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Return true if nodes of this operation have function unit assigned to
  * their source or destination respectively
  *

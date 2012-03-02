@@ -277,7 +277,7 @@ BUBasicBlockScheduler::scheduleOperation(
 //    ddg_->sanityCheck();
 #endif
     bool bypass = bypass_;
-    bool bypassLate = false;    
+    bool bypassLate = true;    
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(
@@ -582,11 +582,14 @@ BUBasicBlockScheduler::scheduleResultReads(
                 // Schedule temporary move first.
                 scheduleResultReadTempMoves(
                     moveNode, moveNode, tempRegLimitCycle);                
+                // If there was temporary result read scheduled, write needs
+                // to be at least one cycle earlier.                    
                 tempRegLimitCycle = std::min(tempRegLimitCycle -1, cycle);                
             }
-            // If there was temporary result read scheduled, write needs
-            // to be at least one cycle earlier.    
-
+            tempRegLimitCycle = 
+                (localMaximum != 0) 
+                    ? std::min(localMaximum + 1, tempRegLimitCycle)
+                    : tempRegLimitCycle;
             scheduleMove(moveNode, tempRegLimitCycle);
             if (!moveNode.isScheduled()) {
                 // Scheduling result failed due to some of the bypassed moves
@@ -595,7 +598,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                 return -1;
             }            
             if (bypassLate) {     
-                int newMaximum = cycle;
+                int newMaximum = moveNode.cycle();
                 if (bypassNode(moveNode, newMaximum)) {
                     localMaximum = 
                         (localMaximum < newMaximum) ? newMaximum : localMaximum;
@@ -814,8 +817,37 @@ BUBasicBlockScheduler::scheduleMove(
                 __FILE__, __LINE__, __func__, msg);
         }
         return;
-    }
-
+    }    
+    /*if (moveNode.isSourceOperation() && !moveNode.isDestinationOperation()) {
+        ProgramOperation& po = moveNode.sourceOperation();
+        if (po.isAnyOutputAssigned()) {
+            // Some of the output moves are already assigned, we try to 
+            // put this as close to them as possible
+            int localMaximum = 0;
+            for (int i = 0; i < po.outputMoveCount(); i++) {
+                MoveNode& temp = po.outputMove(i);
+                if (temp.isScheduled()) {
+                    localMaximum = std::max(temp.cycle(), localMaximum);
+                }
+            }
+            if (localMaximum != 0 && localMaximum < minCycle) {
+                // Bypassed moves are earlier then this one can be scheduled
+                // scheduling it too late won't help since operands are limited
+                // with already scheduled result move
+                
+                // if ddg requires move to be later then the bypassed
+                // versions, we have to obey that
+                localMaximum = std::max(earliestDDG, localMaximum);
+                int rmEarliest = 
+                    rm_->earliestCycle((localMaximum + minCycle)/2, moveNode);
+                if (rmEarliest != -1 && 
+                    rmEarliest != INT_MAX && 
+                    rmEarliest < minCycle) {
+                    minCycle = rmEarliest;
+                }
+            }
+        }
+    }*/
     rm_->assign(minCycle,  moveNode);
 
     if (!moveNode.isScheduled()) {
@@ -1302,6 +1334,7 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
             int startCycle = 
                 std::min(originalCycle + bypassDistance_, 
                 latestLimit);
+            startCycle = std::min(startCycle, maxResultCycle);
             scheduleMove(**it, startCycle);
 #ifdef DEBUG_BYPASS                        
             std::cerr << "\t\t\tCreated " << (*it)->toString()

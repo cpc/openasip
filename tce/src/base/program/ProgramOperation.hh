@@ -76,6 +76,7 @@ public:
     bool isAssigned();
     bool isAnyNodeAssigned();
     bool isAnyInputAssigned();
+    bool isAnyOutputAssigned();    
     bool areInputsAssigned();
     bool areOutputsAssigned();
 
