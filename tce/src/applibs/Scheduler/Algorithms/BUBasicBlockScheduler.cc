@@ -277,7 +277,7 @@ BUBasicBlockScheduler::scheduleOperation(
 //    ddg_->sanityCheck();
 #endif
     bool bypass = bypass_;
-    bool bypassLate = true;    
+    bool bypassLate = false;    
     while ((operandsFailed || resultsFailed) &&
         resultsStartCycle >= 0) {
         maxResult = scheduleResultReads(
