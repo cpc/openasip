@@ -488,12 +488,62 @@ TCETargetLowering::TCETargetLowering(
         case 8:
             addRegisterClass(MVT::v8i32, TCE::V8I32RegsRegisterClass);
             addRegisterClass(MVT::v8f32, TCE::V8F32RegsRegisterClass);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8i32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8f32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
+
         case 4:
             addRegisterClass(MVT::v4i32, TCE::V4I32RegsRegisterClass);
             addRegisterClass(MVT::v4f32, TCE::V4F32RegsRegisterClass);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4i32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4f32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4f32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4f32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4f32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
+
         case 2:
             addRegisterClass(MVT::v2i32, TCE::V2I32RegsRegisterClass);
             addRegisterClass(MVT::v2f32, TCE::V2F32RegsRegisterClass);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v2i32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
+
+            // TODO: the expanded code is suboptimal for subvectors
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v2f32, Expand);
+            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Expand);
+            setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
+            setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
         case 1:
             break;
         }
@@ -540,12 +590,6 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
-
-/*TODO: how are these handled in 2.7?
-    setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
-    setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
-    setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
-*/
 
     setOperationAction(ISD::VASTART           , MVT::Other, Custom);
 
