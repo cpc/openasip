@@ -57,8 +57,11 @@ namespace llvm {
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const;
 
+#ifdef LLVM_3_0
         const unsigned *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
-
+#else
+        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+#endif
         const TargetRegisterClass* const* getCalleeSavedRegClasses(
             const MachineFunction *MF = 0) const;
 

@@ -70,9 +70,17 @@ TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
 /**
  * Returns list of callee saved registers.
  */
-const unsigned* 
+#ifdef LLVM_3_0
+const unsigned*
+#else
+const uint16_t*
+#endif 
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
+#ifdef LLVM_3_0
     static const unsigned calleeSavedRegs[] = { 0 };
+#else
+    static const uint16_t calleeSavedRegs[] = { 0 };
+#endif
     return calleeSavedRegs;
 }
 
