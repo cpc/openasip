@@ -40,6 +40,8 @@
 #define GET_REGINFO_HEADER
 #include "TCEGenRegisterInfo.inc"
 
+#include "tce_config.h"
+
 namespace llvm {
     class TargetInstrInfo;
     class Type;
