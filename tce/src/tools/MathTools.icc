@@ -266,6 +266,6 @@ MathTools::roundDownToPowerTwo(unsigned int number) {
     if (number == 0) {
 	return 0;
     }
-    for (; 1u << i <= number; i++);
+    for (; 1u << i <= number; i++) ;
     return (1u<<i) >> 1;
 }
