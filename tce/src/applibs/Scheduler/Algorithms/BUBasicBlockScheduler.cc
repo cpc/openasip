@@ -1342,21 +1342,14 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
 #endif                        
             if (!(*it)->isScheduled() || 
                 (*it)->cycle() > latestLimit ||
-                (*it)->cycle() < earliestLimit) {
+                (*it)->cycle() < earliestLimit ||
+                (*it)->cycle() < originalCycle) {
                 // Scheduling bypass failed, undo and try to 
                 // schedule other possible bypasses.
                 undoBypass(moveNode, *it, originalCycle);
                 bypassDestinations_[&moveNode].pop_back();
                 bypassDestinationsCycle_[&moveNode].pop_back();                                                    
             } else {
-#ifdef DEBUG_BYPASS
-                if ((*it)->cycle() < originalCycle) {
-                    std::cerr << "Bypassed node " << 
-                    (*it)->toString() << " rescheduled "
-                    "earlier then it's original location - " <<
-                    originalCycle << std::endl;
-                }
-#endif                        
                 localMaximum =
                     ((*it)->cycle() > localMaximum) ?
                     (*it)->cycle() : localMaximum;                    
