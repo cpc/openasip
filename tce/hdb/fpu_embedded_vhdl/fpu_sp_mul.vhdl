@@ -121,7 +121,7 @@ begin
       
         result_reg_out <= (others=>'0');
       elsif clk'event and clk='1' then 
-        if True then 
+        if (glock = '0') then
           rexpon_reg_2_out <= rexpon_reg_2_in;
           sign_reg_2_out <= sign_reg_2_in;
           lfpstate_reg_2_out <= lfpstate_reg_2_in;

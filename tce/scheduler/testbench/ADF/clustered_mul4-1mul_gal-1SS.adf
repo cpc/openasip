@@ -6946,20 +6946,20 @@
   <address-space name="instructions">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>65535</max-address>
+    <max-address>33554431</max-address>
   </address-space>
 
   <global-control-unit name="gcu">
     <port name="pc">
       <connects-to>gcu_i1</connects-to>
-      <width>16</width>
+      <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <special-port name="ra">
       <connects-to>gcu_i2</connects-to>
       <connects-to>gcu_o1</connects-to>
-      <width>16</width>
+      <width>32</width>
     </special-port>
     <return-address>ra</return-address>
     <ctrl-operation>
