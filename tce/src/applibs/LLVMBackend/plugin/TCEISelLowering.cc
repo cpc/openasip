@@ -482,6 +482,7 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
+#ifndef LLVM_3_0
     if (opts->useVectorBackend()) {
         switch (tm_.maxVectorSize()) {
         default: // more than 8? 
@@ -548,6 +549,12 @@ TCETargetLowering::TCETargetLowering(
             break;
         }
     }
+#else
+    if (opts->useVectorBackend()) {
+        std::cerr << "Warning: Vector backend disabled with LLVM-3.0"
+                  << std::endl;
+    }
+#endif
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
