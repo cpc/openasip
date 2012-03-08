@@ -310,6 +310,11 @@ namespace llvm {
             const MachineInstr* mi, 
 	    TTAProgram::CodeSnippet* proc);
 
+	TTAProgram::Instruction* emitVectorMov(
+	    int elementCount, 
+            const MachineInstr* mi, 
+	    TTAProgram::CodeSnippet* proc);
+
 	TTAProgram::Instruction* emitVectorExtract(
             const MachineInstr* mi, 
 	    TTAProgram::CodeSnippet* proc);

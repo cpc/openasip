@@ -1080,6 +1080,12 @@ LLVMTCEBuilder::emitInstruction(
 	    return emitVectorInsert(elemCount, mi, proc);
 	}
 
+        if (opName.find("_VECTOR_MOV") == 0) {
+	    std::vector<std::string> res;
+	    StringTools::chopString(opName, "_", res);
+	    int elemCount = Conversion::toInt(res.at(3));
+	    return emitVectorMov(elemCount, mi, proc);
+        }
     } else {
         opName = operationName(*mi);
     }
@@ -2636,6 +2642,56 @@ LLVMTCEBuilder::emitVectorBuild(
 
 	TTAProgram::Terminal* dst = createTerminalRegister(rfName, idx);
 	TTAProgram::Terminal* src = createTerminal(mi->getOperand(i+1));
+	TTAProgram::Move* move = createMove(src, dst, bus);
+
+	TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+	if (first == NULL) {
+	    first = instr;
+	}
+
+	instr->addMove(move);
+	proc->add(instr);
+    }
+    return first;
+}
+
+/**
+ * Emits a vector move instruction.
+ *
+ * Creates moves from all vector lanes.
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitVectorMov(
+    int elementCount,
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    Bus& bus = UniversalMachine::instance().universalBus();
+    TTAProgram::Instruction* first = NULL;
+    MachineOperand dstOperand = mi->getOperand(0);
+    MachineOperand srcOperand = mi->getOperand(1);
+
+    int sRegNum = srcOperand.getReg();
+    int dRegNum = dstOperand.getReg();
+    int sIdx = registerIndex(sRegNum);
+    int dIdx = registerIndex(dRegNum);
+
+    std::string srcVectorRfName = registerFileName(sRegNum);
+    std::string dstVectorRfName = registerFileName(dRegNum);
+    // TODO: does not work with more than 8-sized vector.
+    int srcNameIndex = strlen("_VECTOR_") +2;
+    int dstNameIndex = strlen("_VECTOR_") +2;
+    for (int i = 0; i < elementCount; i++) {
+	int nextSrcNameIndex = srcVectorRfName.find('+', srcNameIndex);
+	int nextDstNameIndex = dstVectorRfName.find('+', dstNameIndex);
+	int sLen = nextSrcNameIndex - srcNameIndex;
+	int dLen = nextDstNameIndex - dstNameIndex;
+	std::string srcRfName = srcVectorRfName.substr(srcNameIndex, sLen);
+	std::string dstRfName = dstVectorRfName.substr(dstNameIndex, dLen);
+	srcNameIndex = nextSrcNameIndex + 1;
+	dstNameIndex = nextDstNameIndex + 1;
+
+	TTAProgram::Terminal* dst = createTerminalRegister(dstRfName, dIdx);
+	TTAProgram::Terminal* src = createTerminalRegister(srcRfName, sIdx);
 	TTAProgram::Move* move = createMove(src, dst, bus);
 
 	TTAProgram::Instruction* instr = new TTAProgram::Instruction();

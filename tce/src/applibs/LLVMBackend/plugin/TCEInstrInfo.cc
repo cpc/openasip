@@ -242,13 +242,6 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     BuildMI(MBB, I, DL, get(TCE::LDQBr), DestReg).addFrameIndex(FI).addImm(0);
   else
     BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI).addImm(0);
-#if 0  
-
-  else if (RC == TCE::V2F32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::LDW2mr), DestReg).addFrameIndex(FI).addImm(0);
-  else
-    assert(0 && "Can't load this register from stack slot");
-#endif
 }
 
 /**
@@ -290,10 +283,25 @@ void TCEInstrInfo::copyPhysReg(
     } else if (TCE::F64RegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V2I32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV2vv), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V2F32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV2mm), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V4I32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV4ww), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V4F32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV4nn), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V8I32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV8xx), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::V8F32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOV8oo), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
     } else {
-      //        BuildMI(mbb, mbbi, dl, getMove(RC), destReg)
-      //	    .addReg(srcReg, getKillRegState(killSrc));
-      
         assert(
             false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
 
