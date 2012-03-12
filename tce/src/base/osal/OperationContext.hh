@@ -35,6 +35,8 @@
 #ifndef TTA_OPERATION_CONTEXT_HH
 #define TTA_OPERATION_CONTEXT_HH
 
+#include <string>
+
 #include "BaseType.hh"
 
 class OperationState;
@@ -53,6 +55,7 @@ class OperationContext {
 public:
 
     OperationContext();
+    OperationContext(std::string *name);
     OperationContext(
         Memory* memory,
         InstructionAddress& programCounter,
@@ -74,6 +77,7 @@ public:
     void advanceClock();
     bool isEmpty() const;
     bool hasMemoryModel() const;
+	std::string& functionUnitName();
 
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
@@ -84,6 +88,7 @@ public:
     CycleCount cycleCount() const;
     void setCycleCountVariable(CycleCount& cycleCount);
 
+	static std::string DEFAULT_FU_NAME;
 private:
     /// Assignment not allowed
     OperationContext& operator=(const OperationContext&);

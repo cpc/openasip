@@ -50,12 +50,12 @@ InstructionAddress dummyInstructionAddress;
 /**
  * Constructor for contexts suitable for basic operations.
  */
-OperationContextPimpl::OperationContextPimpl() : 
+OperationContextPimpl::OperationContextPimpl(std::string *name) : 
     memory_(NULL), 
     programCounter_(dummyInstructionAddress), 
     returnAddress_(NullSimValue::instance()),
     saveReturnAddress_(false), cycleCount_(0), 
-    cycleCountVar_(NULL)  {
+    cycleCountVar_(NULL), FUName_(name) {
     initializeContextId();
 }
 
@@ -71,12 +71,13 @@ OperationContextPimpl::OperationContextPimpl() :
  *
  */
 OperationContextPimpl::OperationContextPimpl(
+	std::string *name,
     Memory* memory,
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
     memory_(memory), programCounter_(programCounter), 
     returnAddress_(returnAddress), saveReturnAddress_(false), 
-    cycleCount_(0), cycleCountVar_(NULL) {
+    cycleCount_(0), cycleCountVar_(NULL), FUName_(name) {
     initializeContextId();
 }
 
@@ -218,6 +219,16 @@ OperationContextPimpl::setMemory(Memory* memory) {
 int 
 OperationContextPimpl::contextId() const {
     return contextId_;
+}
+
+/**
+ * Returns the FU name of the OperationContext instance.
+ *
+ * @return The FU name for the OperationContext instance.
+ */
+std::string& 
+OperationContextPimpl::functionUnitName() {
+	return *FUName_;
 }
 
 /**

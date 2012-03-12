@@ -1133,7 +1133,7 @@ INIT_STATE(INPUT_STREAM)
     const char* fileNameFromEnv = getenv("TTASIM_STREAM_IN_FILE");
     std::string fileName = "";
     if (fileNameFromEnv == NULL) {
-        fileName = "tta_stream.in";
+        fileName = context.functionUnitName() + ".in";
     } else {
         fileName = fileNameFromEnv;
     }
@@ -1219,7 +1219,7 @@ INIT_STATE(OUTPUT_STREAM)
     const char* fileNameFromEnv = getenv("TTASIM_STREAM_OUT_FILE");
     std::string fileName = "";
     if (fileNameFromEnv == NULL) {
-        fileName = "tta_stream.out";
+        fileName = context.functionUnitName() + ".out";
     } else {
         fileName = fileNameFromEnv;
     }

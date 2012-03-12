@@ -216,14 +216,14 @@ MachineStateBuilder::buildMachineState(
         if (unit->addressSpace() != NULL) {
             try {
                 Memory& memory = memSys.memory(*unit->addressSpace());
-                state = new MemoryAccessingFUState(memory);
+                state = new MemoryAccessingFUState(new std::string(unit->name()), memory);
             } catch (const Exception& i) {
                 string msg = "Problems building machine state: " +
                     i.errorMessage();
                 throw IllegalMachine(__FILE__, __LINE__, __func__, msg);
             }
         } else {
-            state = new FUState;
+            state = new FUState(new std::string(unit->name()));
         }        
         machineState->addFUState(state, unit->name());
         

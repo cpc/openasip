@@ -50,8 +50,9 @@ public:
     ~OperationContextPimpl();
 
 private:
-    OperationContextPimpl();
+    OperationContextPimpl(std::string *name);
     OperationContextPimpl(
+		std::string *name,
         Memory* memory,
         InstructionAddress& programCounter,
         SimValue& returnAddress);
@@ -72,6 +73,7 @@ private:
     void advanceClock(OperationContext&);
     bool isEmpty() const;
     bool hasMemoryModel() const;
+	std::string& functionUnitName();
 
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
@@ -105,6 +107,8 @@ private:
     /// The external variable that contains the current simulation
     /// cycle count.
     CycleCount* cycleCountVar_;
+    /// Name of the FU instance -- passed down from MachineStateBuilder
+    std::string *FUName_;
 };
 
 #endif
