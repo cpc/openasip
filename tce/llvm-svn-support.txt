@@ -1,4 +1,4 @@
-tce-devel r1514:
-llvm-trunk r152016-r152295 work. (except 152019-152099 and 152202-152222 do not work)
+tce-devel r1523:
+llvm-trunk r152016-r152548 work. (except 152019-152099 and 152202-152222 do not work)
 
 Notes:

@@ -611,7 +611,8 @@ TDGen::writeVectorRegisterInfo(
                   "_VECTOR_" + Conversion::toString(width) + "_" + 
                   regs32bit_[i].rf;
                 
-                TCEString aliasName = "I" + Conversion::toString(i);
+                TCEString aliasName = "I" + Conversion::toString(i) +
+                    ", F" + Conversion::toString(i);
                 for (int j = 1; j < width; j++) {
                     if (i+i >= regs32bit_.size()) {
                         ok = false;
@@ -623,8 +624,11 @@ TDGen::writeVectorRegisterInfo(
                         ok = false;
                         break;
                     } else {
-                        aliasName+=",I";
-                        aliasName+=Conversion::toString(i+j);
+                        TCEString aliasIndex = Conversion::toString(i+j);
+                        aliasName+= ", I";
+                        aliasName+= aliasIndex;
+                        aliasName+= ", F";
+                        aliasName+= aliasIndex;
                         subRegs.push_back(gprRegInfo);
                         vecRegRfName += "+" + gprRegInfo.rf;
                     }
@@ -643,6 +647,13 @@ TDGen::writeVectorRegisterInfo(
                     }
                     RegInfo vecRegInfo = { vecRegRfName, regIndex };
                     
+                    for (int k = width >> 1; k > 1; k >>=1 ) {
+                        TCEString aliasNameI = ", _VECI32_";
+                        TCEString aliasNameF = ", _VECF32_";
+                        aliasNameI << k << "_" << Conversion::toString(i);
+                        aliasNameF << k << "_" << Conversion::toString(i);
+                        aliasName += (aliasNameI + aliasNameF);
+                    }
                     writeRegisterDef(
                         o, vecRegInfo, regNameI, 
                         TCEString("V") + Conversion::toString(width) + "I32",
@@ -685,13 +696,11 @@ TDGen::writeVectorRegisterInfo(
     else {
         o << std::endl
           << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add "
-          << vectorRegsI << std::endl
-          << ")> ;" << std::endl;
+          << vectorRegsI << ")> ;" << std::endl;
 
         o << std::endl
           << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add "
-          << vectorRegsF << std::endl
-          << ")> ;" << std::endl;
+          << vectorRegsF << ")> ;" << std::endl;
     }
 
 
