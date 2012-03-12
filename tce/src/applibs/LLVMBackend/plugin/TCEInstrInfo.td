@@ -450,6 +450,9 @@ def EXTRACT4fmi : InstTCE<(outs F32Regs:$res), (ins V4F32Regs:$op1, i32imm:$inde
 def BUILDV4vrr : InstTCE<(outs V4I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4),"",
 [(set V4I32Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4))]>;
 
+def BUILDV4nffff : InstTCE<(outs V4F32Regs:$res), (ins F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4),"",
+[(set V4F32Regs:$res, (build_vector F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4))]>;
+
 def BUILDV4vii : InstTCE<(outs V4I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
 [(set V4I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
 
@@ -471,6 +474,9 @@ def BUILDV8vrr : InstTCE<(outs V8I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I
 
 def BUILDV8vii : InstTCE<(outs V8I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
 [(set V8I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
+
+def BUILDV8offffffff : InstTCE<(outs V8F32Regs:$res), (ins F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4, F32Regs:$e5, F32Regs:$e6, F32Regs:$e7, F32Regs:$e8),"",
+[(set V8F32Regs:$res, (build_vector F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4, F32Regs:$e5, F32Regs:$e6, F32Regs:$e7, F32Regs:$e8))]>;
 
 def INSERTV8vvri : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
 

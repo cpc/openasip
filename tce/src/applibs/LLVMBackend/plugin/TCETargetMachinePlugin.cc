@@ -296,8 +296,10 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::EXTRACT8rvi) return "_EXTRACT_8";
     if (opc == TCE::EXTRACT8fmi) return "_EXTRACT_8";
     if (opc == TCE::BUILDV4vrr) return "_BUILD_4";
+    if (opc == TCE::BUILDV4nffff) return "_BUILD_4";
     if (opc == TCE::BUILDV4vii) return "_BUILD_4";
     if (opc == TCE::BUILDV8vrr) return "_BUILD_8";
+    if (opc == TCE::BUILDV8offffffff) return "_BUILD_8";
     if (opc == TCE::BUILDV8vii) return "_BUILD_8";
     if (opc == TCE::INSERTV4vvri) return "_INSERT_4";
     if (opc == TCE::INSERTV4mmfi) return "_INSERT_4";
