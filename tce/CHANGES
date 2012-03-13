@@ -33,6 +33,8 @@ Bugfixes
   https://bugs.launchpad.net/tce/+bug/894816
 - hdb: fpu_sp_mul.vhdl didn't freeze the pipeline with glock
   https://bugs.launchpad.net/tce/+bug/942551
+- Removed one broken fu architecture from hdb;
+  There was no implementation for it anyway
 
 1.5    December 2011
 ====================
