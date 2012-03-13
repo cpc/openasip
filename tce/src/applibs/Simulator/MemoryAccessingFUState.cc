@@ -46,7 +46,7 @@
  */
 MemoryAccessingFUState::MemoryAccessingFUState(
     Memory& memory) : 
-    FUState(), memory_(memory), operationContext_(&OperationContext::DEFAULT_FU_NAME) {
+    FUState(), memory_(memory), operationContext_(OperationContext::DEFAULT_FU_NAME) {
        
     operationContext_.setMemory(&memory_);
 }
@@ -60,7 +60,7 @@ MemoryAccessingFUState::MemoryAccessingFUState(
  * @todo Do not hard code the MAU or NW sizes!
  */
 MemoryAccessingFUState::MemoryAccessingFUState(
-	std::string *name,
+    const TCEString& name,
     Memory& memory) : 
     FUState(), memory_(memory), operationContext_(name) {
        

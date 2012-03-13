@@ -227,7 +227,7 @@ class STATE_NAME##_State : public OperationState { \
  */
 #define INIT_STATE(STATE_NAME) \
         public: STATE_NAME##_State(OperationContext& context) { \
-		context.isEmpty();
+            context.isEmpty();
 
 #define END_INIT_STATE }
 

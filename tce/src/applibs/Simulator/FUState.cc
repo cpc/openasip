@@ -66,7 +66,7 @@ using std::string;
  */
 FUState::FUState() : 
     ClockedState(), idle_(false), trigger_(false),
-    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(&OperationContext::DEFAULT_FU_NAME), 
+    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(OperationContext::DEFAULT_FU_NAME), 
     activeExecutors_(0), detailedModel_(NULL) {
 }
 
@@ -75,7 +75,7 @@ FUState::FUState() :
  *
  * @param lock Global lock signal.
  */
-FUState::FUState(std::string *name) : 
+FUState::FUState(const TCEString& name) : 
     ClockedState(), idle_(false), trigger_(false),
     nextOperation_(NULL), nextExecutor_(NULL), operationContext_(name), 
     activeExecutors_(0), detailedModel_(NULL) {

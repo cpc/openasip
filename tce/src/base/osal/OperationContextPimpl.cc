@@ -50,7 +50,7 @@ InstructionAddress dummyInstructionAddress;
 /**
  * Constructor for contexts suitable for basic operations.
  */
-OperationContextPimpl::OperationContextPimpl(std::string *name) : 
+OperationContextPimpl::OperationContextPimpl(const TCEString& name) : 
     memory_(NULL), 
     programCounter_(dummyInstructionAddress), 
     returnAddress_(NullSimValue::instance()),
@@ -71,7 +71,7 @@ OperationContextPimpl::OperationContextPimpl(std::string *name) :
  *
  */
 OperationContextPimpl::OperationContextPimpl(
-	std::string *name,
+    const TCEString& name,
     Memory* memory,
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
@@ -226,9 +226,9 @@ OperationContextPimpl::contextId() const {
  *
  * @return The FU name for the OperationContext instance.
  */
-std::string& 
+const TCEString& 
 OperationContextPimpl::functionUnitName() {
-	return *FUName_;
+    return FUName_;
 }
 
 /**

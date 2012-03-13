@@ -37,6 +37,7 @@
 #include <map>
 
 #include "BaseType.hh"
+#include "TCEString.hh"
 
 class OperationState;
 class SimValue;
@@ -50,9 +51,9 @@ public:
     ~OperationContextPimpl();
 
 private:
-    OperationContextPimpl(std::string *name);
+    OperationContextPimpl(const TCEString& name);
     OperationContextPimpl(
-		std::string *name,
+        const TCEString& name,
         Memory* memory,
         InstructionAddress& programCounter,
         SimValue& returnAddress);
@@ -73,7 +74,7 @@ private:
     void advanceClock(OperationContext&);
     bool isEmpty() const;
     bool hasMemoryModel() const;
-	std::string& functionUnitName();
+    const TCEString& functionUnitName();
 
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
@@ -108,7 +109,7 @@ private:
     /// cycle count.
     CycleCount* cycleCountVar_;
     /// Name of the FU instance -- passed down from MachineStateBuilder
-    std::string *FUName_;
+    const TCEString& FUName_;
 };
 
 #endif

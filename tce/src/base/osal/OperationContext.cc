@@ -40,18 +40,20 @@
 #include "SimValue.hh"
 #include "OperationContextPimpl.hh"
 
-std::string OperationContext::DEFAULT_FU_NAME = "unnamed_fu";
+using std::string;
+
+const TCEString OperationContext::DEFAULT_FU_NAME = "unnamed_fu";
 
 /**
  * Constructor for contexts suitable for basic operations.
  */
-OperationContext::OperationContext() : pimpl_(new OperationContextPimpl(&DEFAULT_FU_NAME)) {
+OperationContext::OperationContext() : pimpl_(new OperationContextPimpl(DEFAULT_FU_NAME)) {
 }
 
 /**
  * Constructor for basic operations in simulation -- FU name passed.
  */
-OperationContext::OperationContext(std::string *name) : pimpl_(new OperationContextPimpl(name)) {
+OperationContext::OperationContext(const TCEString& name) : pimpl_(new OperationContextPimpl(name)) {
 }
 
 /**
@@ -67,7 +69,7 @@ OperationContext::OperationContext(
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
     pimpl_(new OperationContextPimpl(
-        &DEFAULT_FU_NAME, memory, programCounter, returnAddress)) {
+        DEFAULT_FU_NAME, memory, programCounter, returnAddress)) {
 }
 
 /**
@@ -80,14 +82,9 @@ OperationContext::OperationContext(const OperationContext& context) :
 }
 
 /**
- * Destructor. Deletes the pimpl object and FUName
+ * Destructor. Deletes the pimpl object
  */
 OperationContext::~OperationContext() {
-	if(pimpl_->FUName_ != &DEFAULT_FU_NAME)
-	{
-    	delete pimpl_->FUName_;
-    	pimpl_->FUName_ = NULL;
-	}
     delete pimpl_;
     pimpl_ = NULL;
 }
@@ -246,7 +243,7 @@ OperationContext::contextId() const {
  *
  * @return The FU name for the OperationContext instance.
  */
-std::string& 
+const TCEString& 
 OperationContext::functionUnitName() {
 	return pimpl_->functionUnitName();
 }
