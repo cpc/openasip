@@ -109,7 +109,7 @@ private:
     /// cycle count.
     CycleCount* cycleCountVar_;
     /// Name of the FU instance -- passed down from MachineStateBuilder
-    const TCEString& FUName_;
+    const TCEString FUName_;
 };
 
 #endif

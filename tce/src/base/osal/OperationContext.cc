@@ -42,8 +42,6 @@
 
 using std::string;
 
-const TCEString OperationContext::DEFAULT_FU_NAME = "unnamed_fu";
-
 /**
  * Constructor for contexts suitable for basic operations.
  */

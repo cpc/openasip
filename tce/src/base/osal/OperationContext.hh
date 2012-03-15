@@ -43,6 +43,8 @@ class SimValue;
 class Memory;
 class OperationContextPimpl;
 
+#define DEFAULT_FU_NAME "unnamed_fu"
+
 /**
  * OperationContext is used to store any implementation and context dependent 
  * data that may affect the result of an operation. 
@@ -87,7 +89,6 @@ public:
     CycleCount cycleCount() const;
     void setCycleCountVariable(CycleCount& cycleCount);
 
-    static const TCEString DEFAULT_FU_NAME;
 private:
     /// Assignment not allowed
     OperationContext& operator=(const OperationContext&);
