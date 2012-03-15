@@ -155,7 +155,8 @@ protected:
 
     void writeCallDef(std::ostream& o);
 
-    std::string llvmOperationPattern(const std::string& osalOperationName);
+    std::string llvmOperationPattern(
+        const std::string& osalOperationName, char operandType);
     std::string llvmOperationName(const std::string& osalOperationName);
     bool operationCanBeMatched(
         const Operation& op, 

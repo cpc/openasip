@@ -1193,12 +1193,9 @@ TDGen::writeOperationDefs(
 
     if (op.name() == "SXHW" || op.name() == "SXQW") {
         writeOperationDef(o, op, "rr", attrs);
-        /* For some reason these cause a type contradiction 
         writeOperationDef(o, op, "vv", attrs, "_VECTOR_2_");
         writeOperationDef(o, op, "ww", attrs, "_VECTOR_4_");
         writeOperationDef(o, op, "xx", attrs, "_VECTOR_8_");
-        */
-
         return;
     }
 
@@ -1380,7 +1377,7 @@ TDGen::writeOperationDef(
 
     asmstr = "\"\"";
     
-    if (llvmOperationPattern(op.name()) != "" || 
+    if (llvmOperationPattern(op.name(),'r') != "" || 
         op.dagCount() == 0) {
         OperationDAG* trivial = createTrivialDAG(op);
         pattern = operationPattern(op, *trivial, operandTypes);
@@ -1470,7 +1467,7 @@ TDGen::writeEmulationPattern(
         }
 
         bool ok = true;
-        std::string llvmPat = llvmOperationPattern(op.name());
+        std::string llvmPat = llvmOperationPattern(op.name(), 'r');
         assert(llvmPat != "" && "Unknown operation to emulate.");
         
         boost::format match1(llvmPat);
@@ -1535,7 +1532,8 @@ TDGen::writeEmulationPattern(
  * @return Boost::format string of the operation node in llvm.
  */
 std::string
-TDGen::llvmOperationPattern(const std::string& osalOperationName) {
+TDGen::llvmOperationPattern(const std::string& osalOperationName,
+    char operandType) {
 
     const std::string opName = StringTools::stringToLower(osalOperationName);
 
@@ -1610,8 +1608,32 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "stw") return "store %2%, %1%";
     //if (opName == "std") return "load";
 
-    if (opName == "sxhw") return "sext_inreg %1%, i16";
-    if (opName == "sxqw") return "sext_inreg %1%, i8";
+    if (opName == "sxhw") {
+        switch (operandType) {
+        case 'x':
+            return "sext_inreg %1%, v8i16";
+        case 'w':
+            return "sext_inreg %1%, v4i16";
+        case 'v':
+            return "sext_inreg %1%, v2i16";
+        case 'r':
+        default:
+            return "sext_inreg %1%, i16";
+        }
+    }
+    if (opName == "sxqw") {
+        switch (operandType) {
+        case 'x':
+            return "sext_inreg %1%, v8i8";
+        case 'w':
+            return "sext_inreg %1%, v4i8";
+        case 'v':
+            return "sext_inreg %1%, v2i8";
+        case 'r':
+        default:
+            return "sext_inreg %1%, i8";
+        }
+    }
 
     if (opName == "neg") return "ineg %1%";
     if (opName == "not") return "not %1%";
@@ -1735,7 +1757,7 @@ TDGen::operationCanBeMatched(
     bool recursionHasStore) {
     
     // if operation has llvm pattern
-    if (llvmOperationPattern(op.name()) != "") {
+    if (llvmOperationPattern(op.name(),'r') != "") {
         return true;
     }
 
@@ -2129,7 +2151,7 @@ TDGen::operationNodeToString(
                 operationPat + "%" + Conversion::toString(i + 1) + "%";
         }
     } else {
-        operationPat = llvmOperationPattern(operation.name());
+        operationPat = llvmOperationPattern(operation.name(), operandTypes[0]);
         
         // generate pattern for operation if not llvmOperation (can match 
         // custom op patterns)
