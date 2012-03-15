@@ -58,6 +58,7 @@ class DetailedOperationSimulator;
 class FUState : public ClockedState {
 public:
     FUState();
+    FUState(const TCEString& name);
     virtual ~FUState();
 
     void setTriggered();

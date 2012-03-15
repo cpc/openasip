@@ -6,6 +6,14 @@ Usability features
 - dumptpef -m has now more user friendly output. 
 - OSAL files are searched also from environment variable TCE_OSAL_PATH
 
+Smaller features
+----------------
+- OSAL.hh: FU_NAME macro for accessing the name of the function
+  unit the operation is executed in. The standard STREAM operations
+  now use filenames FU_NAME.in and FU_NAME.out instead of the fixed
+  names. This allows easier simulation of TTAs with multiple 
+  I/O FUs. By Jani Boutellier from University of Oulu.
+
 Code generator improvements
 ---------------------------
 - Immediates marked as rematerializable; This should reduce spilling as

@@ -37,7 +37,7 @@
 #include "Memory.hh"
 
 /**
- * Constructor.
+ * Constructor (no explicitly given FU name).
  *
  * @param memory Memory instance.
  * @param MAUSize Width of the minimum addressable unit.
@@ -46,7 +46,23 @@
  */
 MemoryAccessingFUState::MemoryAccessingFUState(
     Memory& memory) : 
-    FUState(), memory_(memory), operationContext_() {
+    FUState(), memory_(memory), operationContext_(DEFAULT_FU_NAME) {
+       
+    operationContext_.setMemory(&memory_);
+}
+
+/**
+ * Constructor (with explicitly given FU name).
+ *
+ * @param memory Memory instance.
+ * @param MAUSize Width of the minimum addressable unit.
+ * @param lock Global lock signal.
+ * @todo Do not hard code the MAU or NW sizes!
+ */
+MemoryAccessingFUState::MemoryAccessingFUState(
+    const TCEString& name,
+    Memory& memory) : 
+    FUState(), memory_(memory), operationContext_(name) {
        
     operationContext_.setMemory(&memory_);
 }

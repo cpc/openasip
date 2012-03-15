@@ -1,2 +1,2 @@
-Cannot open input stream file tta_stream.in
+Cannot open input stream file unnamed_fu.in
 1

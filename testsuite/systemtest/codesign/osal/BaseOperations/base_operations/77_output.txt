@@ -1,3 +1,3 @@
-Cannot open input stream file tta_stream.in
+Cannot open input stream file unnamed_fu.in
 STREAM_IN works with bytes only at the moment.
 0

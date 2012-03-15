@@ -165,7 +165,7 @@ public: \
 \
     void createState(OperationContext& context) const {\
          if (!stateExists(context)) {\
-             context.registerState(new STATE_NAME##_State());\
+             context.registerState(new STATE_NAME##_State(context));\
          }\
     }\
 \
@@ -222,10 +222,12 @@ class STATE_NAME##_State : public OperationState { \
  * Custom state initialization.
  *
  * If the state data needs to be initialized before use, INIT_STATE can be used
- * to define a constructor to the state class.
+ * to define a constructor to the state class. isEmpty call is to avoid warning
+ * about unused parameter.
  */
 #define INIT_STATE(STATE_NAME) \
-        public: STATE_NAME##_State() { 
+        public: STATE_NAME##_State(OperationContext& context) { \
+            context.isEmpty();
 
 #define END_INIT_STATE }
 
@@ -432,3 +434,8 @@ bool simulateTrigger( \
  * Returns the cycle count since the beginning of simulation.
  */
 #define CYCLE_COUNT (context.cycleCount())
+
+/**
+ * Returns the function unit name associated to the OperationContext.
+ */
+#define FU_NAME (context.functionUnitName())

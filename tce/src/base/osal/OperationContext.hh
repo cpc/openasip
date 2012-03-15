@@ -36,11 +36,14 @@
 #define TTA_OPERATION_CONTEXT_HH
 
 #include "BaseType.hh"
+#include "TCEString.hh"
 
 class OperationState;
 class SimValue;
 class Memory;
 class OperationContextPimpl;
+
+#define DEFAULT_FU_NAME "unnamed_fu"
 
 /**
  * OperationContext is used to store any implementation and context dependent 
@@ -53,6 +56,7 @@ class OperationContext {
 public:
 
     OperationContext();
+    OperationContext(const TCEString& name);
     OperationContext(
         Memory* memory,
         InstructionAddress& programCounter,
@@ -74,6 +78,7 @@ public:
     void advanceClock();
     bool isEmpty() const;
     bool hasMemoryModel() const;
+    const TCEString& functionUnitName();
 
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.

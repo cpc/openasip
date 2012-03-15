@@ -45,7 +45,13 @@ using std::string;
 /**
  * Constructor for contexts suitable for basic operations.
  */
-OperationContext::OperationContext() : pimpl_(new OperationContextPimpl()) {
+OperationContext::OperationContext() : pimpl_(new OperationContextPimpl(DEFAULT_FU_NAME)) {
+}
+
+/**
+ * Constructor for basic operations in simulation -- FU name passed.
+ */
+OperationContext::OperationContext(const TCEString& name) : pimpl_(new OperationContextPimpl(name)) {
 }
 
 /**
@@ -61,7 +67,7 @@ OperationContext::OperationContext(
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
     pimpl_(new OperationContextPimpl(
-        memory, programCounter, returnAddress)) {
+        DEFAULT_FU_NAME, memory, programCounter, returnAddress)) {
 }
 
 /**
@@ -228,6 +234,16 @@ OperationContext::memory() {
 int 
 OperationContext::contextId() const {
     return pimpl_->contextId();
+}
+
+/**
+ * Returns the FU name of the OperationContext instance.
+ *
+ * @return The FU name for the OperationContext instance.
+ */
+const TCEString& 
+OperationContext::functionUnitName() {
+	return pimpl_->functionUnitName();
 }
 
 /**

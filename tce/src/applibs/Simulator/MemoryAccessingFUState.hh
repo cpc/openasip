@@ -44,6 +44,7 @@ class Memory;
 class MemoryAccessingFUState : public FUState {
 public:
     MemoryAccessingFUState(Memory& memory);
+    MemoryAccessingFUState(const TCEString& name, Memory& memory);
     virtual ~MemoryAccessingFUState();
 
 protected:

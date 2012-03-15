@@ -60,13 +60,24 @@ using std::string;
 //////////////////////////////////////////////////////////////////////////////
 
 /**
- * Constructor.
+ * Constructor (no explicitly given FU name).
  *
  * @param lock Global lock signal.
  */
 FUState::FUState() : 
     ClockedState(), idle_(false), trigger_(false),
-    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(), 
+    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(DEFAULT_FU_NAME), 
+    activeExecutors_(0), detailedModel_(NULL) {
+}
+
+/**
+ * Constructor (with explicitly given FU name).
+ *
+ * @param lock Global lock signal.
+ */
+FUState::FUState(const TCEString& name) : 
+    ClockedState(), idle_(false), trigger_(false),
+    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(name), 
     activeExecutors_(0), detailedModel_(NULL) {
 }
 
