@@ -38,6 +38,7 @@
 #include <map>
 
 #include "CentralizedControlICGenerator.hh"
+#include "ProGeTypes.hh"
 #include "HDBTypes.hh"
 #include "Socket.hh"
 #include "Machine.hh"
@@ -60,7 +61,9 @@ class DefaultICGenerator : public CentralizedControlICGenerator {
 public:
     DefaultICGenerator(const TTAMachine::Machine& machine);
     virtual ~DefaultICGenerator();
-
+    
+    void SetHDL(ProGe::HDL language);
+    
     void addICToNetlist(
         const ProGe::NetlistGenerator& generator,
         ProGe::Netlist& netlist);
@@ -119,11 +122,13 @@ private:
     void createSignalsForIC(std::ostream& stream);
     void declareSocketEntities(std::ostream& stream) const;
     static void writeOutputSocketComponentDeclaration(
+        const ProGe::HDL language,
         int portConns,
         int segmentConns,
         int ind,
         std::ostream& stream);
     static void writeInputSocketComponentDeclaration(
+        const ProGe::HDL language,
         int segmentConns,
         int ind,
         std::ostream& stream);
@@ -175,6 +180,7 @@ private:
         TTAMachine::Socket::Direction direction);
 
     static std::string socketFileName(
+        const ProGe::HDL language,
         TTAMachine::Socket::Direction direction,
         int portConns,
         int segmentConns);
@@ -198,6 +204,7 @@ private:
     /// The starting cycle for bus tracing.
     unsigned int busTraceStartingCycle_;
     TCEString entityNameStr_;
+    ProGe::HDL  language_;
 };
 
 #endif

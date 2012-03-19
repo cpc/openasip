@@ -1,0 +1,244 @@
+// Copyright (c) 2002-2009 Tampere University of Technology.
+//
+// This file is part of TTA-Based Codesign Environment (TCE).
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+//////////////////////////////////////////////////////////////////////////////-
+// Title      : Processor based on TTA TCE architecture template
+// Project    : FlexDSP
+//////////////////////////////////////////////////////////////////////////////-
+// File       : proc_arch.vhdl
+// Author     : Teemu Pitkänen (teemu.pitkanen@tut.fi)
+// Company    : TUT/IDCS
+// Created    : 2003-11-26
+// Last update: 2007/04/23
+// Platform   : 
+// Standard   : VHDL'87
+//////////////////////////////////////////////////////////////////////////////-
+// Description: architecture for processor with a core with single port data
+// memory/cache (structural) and with a core with dual-port data memory/cache
+// (structural_dp_dmem)
+//////////////////////////////////////////////////////////////////////////////-
+// Revisions  :
+// Date        Version  Author  Description
+// 2003-11-26  1.0      sertamo	Created
+//////////////////////////////////////////////////////////////////////////////-
+
+module proc
+#(
+`include "testbench_constants_pkg.vh"
+,
+`include "ENTITY_STR_imem_mau_pkg.vh"
+,
+`include "ENTITY_STR_params_pkg.vh"
+,
+`include "ENTITY_STR_globals_pkg.vh"
+)
+(
+    // clock and active low reset
+    input clk,
+    input rst_x,
+
+    // interface to access internal data memory
+    // bit-mask to select which bits are written active low
+    input[DMEMDATAWIDTH-1 : 0] dmem_ext_bit_wr_x,
+    // write enable active low
+    input dmem_ext_wr_x,
+    // memory enable active low
+    input dmem_ext_en_x,
+
+    // data and address for internal data memory
+    input[DMEMDATAWIDTH-1 : 0] dmem_ext_data,
+    input[DMEMADDRWIDTH-1 : 0] dmem_ext_addr,
+
+    // data from internal data memory
+    output[DMEMDATAWIDTH-1 : 0] data_out,
+
+    // interface to access internal program memory
+    // bit-mask to select which bits are written active low
+    input[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 : 0] imem_ext_bit_wr_x,
+    // write enable active low for data memory
+    input imem_ext_wr_x,
+    // memory enable active low for data memory
+    input imem_ext_en_x,
+    // data an address for internal instruction memory
+    input[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 : 0] imem_ext_data,
+    input[IMEMADDRWIDTH-1 : 0] imem_ext_addr,
+    
+    // control pin to indicate that data memory is accessed internally
+    // and external access is blocked in the current cycle 
+    output dmem_busy,
+    output imem_busy,
+
+    // program counter initialization
+    input[IMEMADDRWIDTH-1 : 0] pc_init
+);
+    
+//architecture structural_dp_dmem of proc is
+    wire[DMEMDATAWIDTH-1 : 0] dmem_q_a;
+    wire[DMEMDATAWIDTH-1 : 0] dmem_d_a;
+    wire[DMEMADDRWIDTH-1 : 0] dmem_addr_a;
+    wire dmem_en_a_x;
+    wire dmem_wr_a_x;
+    wire[DMEMDATAWIDTH-1 : 0] dmem_bit_wr_a_x;
+    wire[DMEMDATAWIDTH-1 : 0] dmem_q_b;
+    wire[DMEMDATAWIDTH-1 : 0] dmem_d_b;
+    wire[DMEMADDRWIDTH-1 : 0] dmem_addr_b;
+    wire dmem_en_b_x; //:='1';
+    wire dmem_wr_b_x;
+    wire[DMEMDATAWIDTH-1 : 0] dmem_bit_wr_b_x;
+    wire[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 : 0] imem_data;
+    wire[IMEMADDRWIDTH-1 : 0] imem_addr;
+    wire imem_en_x;
+
+    wire[DMEMDATAWIDTH-1 : 0] q_a;
+    wire[DMEMDATAWIDTH-1 : 0] d_a;
+    wire[DMEMADDRWIDTH-1 : 0] addr_a;
+    wire en_a_x;
+    wire en_b_x;
+    wire wr_a_x;
+    wire[DMEMDATAWIDTH-1 : 0] bit_wr_a_x;
+
+    wire[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 : 0] imem_d_arb;
+    wire[IMEMADDRWIDTH-1 : 0] imem_addr_arb;
+    wire imem_en_arb_x;
+    wire imem_wr_arb_x;
+    wire[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 : 0] imem_bit_wr_arb_x;
+ 
+    ENTITY_STR core(
+        .clk                (clk),
+        .rstx               (rst_x),
+        .busy               ('0'),
+        .imem_en_x          (imem_en_x),
+        .imem_addr          (imem_addr),
+        .imem_data          (imem_data),
+        .pc_init            (pc_init),
+        .fu_LSUA_data_in    (dmem_q_a),
+        .fu_LSUA_data_out   (dmem_d_a),
+        .fu_LSUA_addr       (dmem_addr_a),
+        .fu_LSUA_mem_en_x(0)(dmem_en_a_x),
+        .fu_LSUA_wr_en_x(0) (dmem_wr_a_x),
+        .fu_LSUA_wr_mask_x  (dmem_bit_wr_a_x),
+        .fu_LSUB_data_in    (dmem_q_b),
+        .fu_LSUB_data_out   (dmem_d_b),
+        .fu_LSUB_addr       (dmem_addr_b),
+        .fu_LSUB_mem_en_x(0)(dmem_en_b_x),
+        .fu_LSUB_wr_en_x(0) (dmem_wr_b_x),
+        .fu_LSUB_wr_mask_x  (dmem_bit_wr_b_x)
+    );
+
+    synch_dualport_sram
+    #(
+        .INITFILENAME(DMEM_INIT_FILE),
+        .DATAW       (DMEMDATAWIDTH),
+        .ADDRW       (DMEMADDRWIDTH)
+    )
+    datamem
+    (
+        .clk         (clk),
+        .d_a         (d_a),
+        .addr_a      (addr_a),
+        .en_a_x      (en_a_x),
+        .wr_a_x      (wr_a_x),
+        .bit_wr_a_x  (bit_wr_a_x),
+        .d_b         (dmem_d_b),
+        .addr_b      (dmem_addr_b),
+        .en_b_x      (dmem_en_b_x),
+        .wr_b_x      (dmem_wr_b_x),
+        .bit_wr_b_x  (dmem_bit_wr_b_x),
+        .q_a         (q_a),
+        .q_b         (dmem_q_b)
+    );
+
+    assign dmem_q_a = q_a;
+    assign data_out = q_a;
+
+    mem_arbiter
+    #(
+        .PORTW      (DMEMDATAWIDTH),
+        .ADDRWIDTH  (DMEMADDRWIDTH)
+    )
+    dmem_arbiter
+    (
+        .d_1 ( dmem_d_a),
+        .d_2 ( dmem_ext_data),
+        .d   ( d_a),
+
+        .addr_1 ( dmem_addr_a),
+        .addr_2 ( dmem_ext_addr),
+        .addr   ( addr_a),
+
+        .en_1_x ( dmem_en_a_x),
+        .en_2_x ( dmem_ext_en_x),
+        .en_x   ( en_a_x),
+
+        .wr_1_x ( dmem_wr_a_x),
+        .wr_2_x ( dmem_ext_wr_x),
+        .wr_x   ( wr_a_x),
+
+        .bit_wr_1_x ( dmem_bit_wr_a_x),
+        .bit_wr_2_x ( dmem_ext_bit_wr_x),
+        .bit_wr_x   ( bit_wr_a_x),
+        .mem_busy   ( dmem_busy)
+    );
+
+    imem_arbiter
+    #(
+        .PORTW     ( IMEMWIDTHINMAUS*IMEMMAUWIDTH),
+        .ADDRWIDTH ( IMEMADDRWIDTH)
+    )
+    instrmem_arbiter
+    (
+        .d_2       ( imem_ext_data),
+        .d         ( imem_d_arb),
+
+        .addr_1 ( imem_addr),
+        .addr_2 ( imem_ext_addr),
+        .addr   ( imem_addr_arb),
+
+        .en_1_x ( imem_en_x),
+        .en_2_x ( imem_ext_en_x),
+        .en_x   ( imem_en_arb_x),
+
+        .wr_2_x ( imem_ext_wr_x),
+        .wr_x   ( imem_wr_arb_x),
+
+        .bit_wr_2_x ( imem_ext_bit_wr_x),
+        .bit_wr_x   ( imem_bit_wr_arb_x),
+        .mem_busy   ( imem_busy)
+    );
+
+    synch_sram
+    #(
+        .INITFILENAME ( IMEM_INIT_FILE),
+        .DATAW ( IMEMWIDTHINMAUS*IMEMMAUWIDTH),
+        .ADDRW ( IMEMADDRWIDTH)
+    )
+    instmem
+    (
+        .clk  ( clk),
+        .d ( imem_d_arb),
+        .addr ( imem_addr_arb),      
+        .en_x ( imem_en_arb_x),
+        .wr_x ( imem_wr_arb_x),
+        .bit_wr_x ( imem_bit_wr_arb_x),
+        .q ( imem_data)
+    );
+    
+endmodule //structural_dp_dmem;

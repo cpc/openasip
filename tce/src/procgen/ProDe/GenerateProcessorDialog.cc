@@ -208,11 +208,13 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
 
     ProGe::ProcessorGenerator generator;
     // remove unconnected sockets (if any)
-    ProGe::ProcessorGenerator::removeUnconnectedSockets(machine_,
-                                                        warningStream);
+    ProGe::ProcessorGenerator::removeUnconnectedSockets(machine_,warningStream);
+
+    wxRadioButton *vhdl_item = (wxRadioButton *) FindWindow(ID_VHDL);
+    ProGe::HDL language = (vhdl_item->GetValue())?ProGe::VHDL:ProGe::Verilog;
     try {
         generator.generateProcessor(
-            ProGe::VHDL,
+            language,
             machine_, impl_, *plugin, 1, targetDir, targetDir, "",
             errorStream, warningStream);
     } catch (Exception& e) {
@@ -227,7 +229,7 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         "tb";
     try {
         ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-        tbGen.generate(machine_, impl_, testbenchDir, targetDir);
+        tbGen.generate(language,machine_, impl_, testbenchDir, targetDir);
     } catch (const Exception& e) {
         string errorMsg = "Warning: Processor Generator failed to "
                           "generate a test bench.\n"; 
@@ -240,6 +242,7 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     // generate vhdl compilation and simulation scripts
     try {
         ProGeScriptGenerator sGen(
+            language,
             impl_, targetDir, targetDir, targetDir, testbenchDir,
             generator.entityName());
         sGen.generateAll();
@@ -398,6 +401,20 @@ GenerateProcessorDialog::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    //HDL type radio buttons
+    wxStaticBox *hdl_box = new wxStaticBox( parent, -1, wxT("HDL type selection:") );
+    wxStaticBoxSizer *hdl_boxsizer = new wxStaticBoxSizer( hdl_box, wxVERTICAL );
+
+    wxRadioButton *vhdl_item = new wxRadioButton( parent, ID_VHDL, wxT("VHDL"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    vhdl_item->SetValue( TRUE );
+
+    wxRadioButton *verilog_item = new wxRadioButton( parent, ID_VERILOG, wxT("Verilog"), wxDefaultPosition, wxDefaultSize, 0 );
+
+    hdl_boxsizer->Add( vhdl_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    hdl_boxsizer->Add( verilog_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( hdl_boxsizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    //
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, wxT("Binary Encoding Map:") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );

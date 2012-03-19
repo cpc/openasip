@@ -144,7 +144,7 @@ HDBEditorModifyCmd::Do() {
                 int id = manager->addRFImplementation(
                     entry->implementation(), entryID);
 
-                wxGetApp().mainFrame().update();
+                //wxGetApp().mainFrame().update();
                 wxGetApp().mainFrame().browser()->selectRFImplementation(id);
             } catch (Exception& e) {
                 wxString message = _T("Error:\n");

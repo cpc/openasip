@@ -103,6 +103,7 @@ private:
         const ICDecoderGeneratorPlugin& plugin)
         throw (Exception);
     void generateGlobalsPackage(
+        HDL language,
         const TTAMachine::Machine& machine,
         const BinaryEncoding& bem,
         int imemWidthInMAUs,

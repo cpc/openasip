@@ -37,7 +37,9 @@ namespace ProGe {
 
 /// HDLs supported by ProGe.
 enum HDL {
-    VHDL ///< VHDL
+    VHDL, //< VHDL
+    Verilog,//Verilog
+    BOTH_HDL//
 };
 
 /// Data types of hardware ports.
