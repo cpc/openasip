@@ -500,6 +500,7 @@ class TestCase:
         """Loads a new test case stored in the given directory."""        
 
         global cmdLineArchitectures
+        global extraCompileFlags
 
         self.description = ""
         self.architectures = []
@@ -524,6 +525,15 @@ class TestCase:
             self.architectures = cmdLineArchitectures            
         else:
             self.architectures = allArchitectures
+
+        if os.access(directory + '/extraCompileFlags', R_OK):
+            flagsFile = __builtin__.open(directory + '/extraCompileFlags')
+            for line in flagsFile.read().splitlines():
+                param = line.strip()
+                if param != '':
+                    extraCompileFlags += ' ';
+                    extraCompileFlags += param;
+                    extraCompileFlags += ' ';
 
         self.improvedRuns = False
         # Simulation results for each architecture (the verification data and the 
