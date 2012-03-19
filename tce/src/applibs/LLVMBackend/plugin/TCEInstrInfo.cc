@@ -278,7 +278,7 @@ void TCEInstrInfo::copyPhysReg(
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI64rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::F32RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF32rr), destReg)
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVF32ff), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::F64RegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg)

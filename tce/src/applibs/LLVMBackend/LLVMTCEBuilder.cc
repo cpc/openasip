@@ -1588,7 +1588,11 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         int idx = registerIndex(dRegNum);
 	return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
-        assert(false && "FP immediates not implemented.");
+        const APFloat& apf = mo.getFPImm()->getValueAPF();
+        float fval = apf.convertToFloat();
+        SimValue val(32);
+        val.value_.floatWord = fval;
+        return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isImm()) {
         int width = 32; // FIXME
         SimValue val(mo.getImm(), width);
@@ -2826,7 +2830,7 @@ LLVMTCEBuilder::emitVectorInsert(
 		TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 		instr->addMove(move);
 		proc->add(instr);
-	    }
+            }
 	    srcNameIndex = srcNextNameIndex + 1;
 	    srcNextNameIndex = srcVectorRfName.find('+', srcNameIndex);
 

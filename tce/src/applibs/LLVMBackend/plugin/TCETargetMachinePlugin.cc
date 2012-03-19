@@ -238,10 +238,11 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOVI32ri) return MOVE;
     if (opc == TCE::MOVI64rr) return MOVE;
     if (opc == TCE::MOVI64ri) return MOVE;
-    if (opc == TCE::MOVF32rr) return MOVE;
-    if (opc == TCE::MOVF32ri) return MOVE;
+    if (opc == TCE::MOVF32ff) return MOVE;
+    if (opc == TCE::MOVF32fi) return MOVE;
+    if (opc == TCE::MOVF32fk) return MOVE;
     if (opc == TCE::MOVF64rr) return MOVE;
-    if (opc == TCE::MOVF64ri) return MOVE;
+    if (opc == TCE::MOVF64fi) return MOVE;
 
     if (opc == TCE::MOVI8I1rr) return MOVE;
     if (opc == TCE::MOVI16I1rr) return MOVE;
@@ -254,8 +255,8 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOVI64I16rr) return MOVE;
     if (opc == TCE::MOVI64I32rr) return MOVE;
 
-    if (opc == TCE::MOVFI32rr) return MOVE;
-    if (opc == TCE::MOVIF32rr) return MOVE;
+    if (opc == TCE::MOVFI32rf) return MOVE;
+    if (opc == TCE::MOVIF32fr) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 
