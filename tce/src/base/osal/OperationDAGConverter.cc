@@ -552,10 +552,21 @@ OperationDAGConverter::createSimulationCode(
     opReplacements["MOD"] = "%";
     opReplacements["MODU"] = "%";
 
-    // Writes recursively all the DAG from node(0)
-    writeNode(retVal, dag, dag.node(0), varBindings, 
-              alreadyHandled, tempVarCount, currentlyHandling,
-              &opReplacements, varReplacements);
-    
+    while (alreadyHandled.size() != unsigned(dag.nodeCount())) {
+        // Writes recursively all the DAG from node(0)
+        // But this recursion does not work so added the while loop
+        // to make sure all nodes get processed.
+        OperationDAGNode* node;
+        for (int i = 0; i < dag.nodeCount(); i++) {
+            node = &dag.node(i);
+            if (alreadyHandled.find(node) == alreadyHandled.end()) {
+                break;
+            }
+        }
+        writeNode(retVal, dag, *node, varBindings, 
+                  alreadyHandled, tempVarCount, currentlyHandling,
+                  &opReplacements, varReplacements);
+
+    }
     return retVal;
 }

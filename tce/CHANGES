@@ -45,6 +45,8 @@ Bugfixes
   https://bugs.launchpad.net/tce/+bug/942551
 - Removed one broken fu architecture from hdb;
   There was no implementation for it anyway
+- ttasim: In compiling mode failed to generate simulation code for
+  operation with some dags.
 
 1.5    December 2011
 ====================

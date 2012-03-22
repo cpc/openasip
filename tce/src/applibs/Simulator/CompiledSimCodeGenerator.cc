@@ -215,7 +215,6 @@ CompiledSimCodeGenerator::generateMakefile() {
         << "-c -o CompiledSimulationEngine.o" << endl 
         << "\t$(CC) $(soflags) CompiledSimulationEngine.o -o CompiledSimulationEngine.so"
         << endl << endl
-            
         << "$(dobjects): %.so: %.cpp CompiledSimulationEngine.hh.gch" << endl
 
         // compile and link phases separately to allow distributed compilation
@@ -1464,7 +1463,7 @@ CompiledSimCodeGenerator::generateTriggerCode(
                 std::size_t begin = simCode.find(outputStr+" = ");
                 std::size_t end = simCode.find(";", begin);
                 outValueStr = simCode.substr(begin+ovLen,(end-begin-ovLen));
-                simCode.erase(begin, end);
+                simCode.erase(begin, end-begin);
             }
 
             if (outValueStr.empty()) {
