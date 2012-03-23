@@ -1294,8 +1294,8 @@ TDGen::writeOperationDefs(
                 c = 'j';
                 break;
             case 'f':
-                // continue skips writing this.
-                //c = 'k';
+                c = 'k';
+                break;
             default:
                 continue;
             }
@@ -2278,7 +2278,7 @@ TDGen::operandToString(
             if (match) {
                 return "f32imm:$op" + Conversion::toString(idx);
             } else {
-                return "(f32 imm:$op" + Conversion::toString(idx) + ")";
+                return "(f32 fpimm:$op" + Conversion::toString(idx) + ")";
             }
         case 'r':
         case 'f':

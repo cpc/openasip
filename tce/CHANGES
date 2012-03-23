@@ -30,7 +30,7 @@ Code generator improvements
   This feature does not work with llvm-3.0.
 - Added experimental bottom-up-instruction scheduler. Can be enabled with
   --bottom-up-scheduler command line parameter.
-- Compiler can now make floating point values to be loaded from
+- Compiler can now make floating point constant values to be used from
   immediates instead of always putting them to constant pool.
 
 Bugfixes

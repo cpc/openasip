@@ -436,11 +436,16 @@ def BUILDV2mff : InstTCE<(outs V2F32Regs:$res), (ins F32Regs:$e1, F32Regs:$e2),"
 def BUILDV2vii : InstTCE<(outs V2I32Regs:$res), (ins i32imm:$e1, i32imm:$e2),"",
 [(set V2I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2)))]>;
 
+def BUILDV2mkk : InstTCE<(outs V2F32Regs:$res), (ins f32imm:$e1, f32imm:$e2),"",
+[(set V2F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2)))]>;
+
 def INSERTV2vvri : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V2I32Regs:$res, (vector_insert V2I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
 
 def INSERTV2mmfi : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$vec, F32Regs:$e, i32imm:$index), "", [(set V2F32Regs:$res, (vector_insert V2F32Regs:$vec, F32Regs:$e, (i32 imm:$index)))]>;
 
 def INSERTV2vvii : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V2I32Regs:$res, (vector_insert V2I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+
+def INSERTV2mmki : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V2F32Regs:$res, (vector_insert V2F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
 
 def MOV2vv : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$src), "", []>;
 def MOV2mm : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$src), "", []>;
@@ -449,20 +454,25 @@ def EXTRACT4rvi : InstTCE<(outs I32Regs:$res), (ins V4I32Regs:$op1, i32imm:$inde
 
 def EXTRACT4fmi : InstTCE<(outs F32Regs:$res), (ins V4F32Regs:$op1, i32imm:$index), "", [(set F32Regs:$res, (vector_extract V4F32Regs:$op1, (i32 imm:$index)))]>;
 
-def BUILDV4vrr : InstTCE<(outs V4I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4),"",
+def BUILDV4wrrrr : InstTCE<(outs V4I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4),"",
 [(set V4I32Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4))]>;
 
 def BUILDV4nffff : InstTCE<(outs V4F32Regs:$res), (ins F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4),"",
 [(set V4F32Regs:$res, (build_vector F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4))]>;
 
-def BUILDV4vii : InstTCE<(outs V4I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
+def BUILDV4wiiii : InstTCE<(outs V4I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
 [(set V4I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
 
-def INSERTV4vvri : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
+def BUILDV4nkkkk : InstTCE<(outs V4F32Regs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4),"",
+[(set V4F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4)))]>;
 
-def INSERTV4mmfi : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$vec, F32Regs:$e, i32imm:$index), "", [(set V4F32Regs:$res, (vector_insert V4F32Regs:$vec, F32Regs:$e, (i32 imm:$index)))]>;
+def INSERTV4wwri : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
 
-def INSERTV4vvii : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+def INSERTV4nnfi : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$vec, F32Regs:$e, i32imm:$index), "", [(set V4F32Regs:$res, (vector_insert V4F32Regs:$vec, F32Regs:$e, (i32 imm:$index)))]>;
+
+def INSERTV4wwii : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+
+def INSERTV4nnki : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V4F32Regs:$res, (vector_insert V4F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
 
 def MOV4ww : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$src), "", []>;
 def MOV4nn : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$src), "", []>;
@@ -471,20 +481,25 @@ def EXTRACT8rvi : InstTCE<(outs I32Regs:$res), (ins V8I32Regs:$op1, i32imm:$inde
 
 def EXTRACT8fmi : InstTCE<(outs F32Regs:$res), (ins V8F32Regs:$op1, i32imm:$index), "", [(set F32Regs:$res, (vector_extract V8F32Regs:$op1, (i32 imm:$index)))]>;
 
-def BUILDV8vrr : InstTCE<(outs V8I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4, I32Regs:$e5, I32Regs:$e6, I32Regs:$e7, I32Regs:$e8),"",
+def BUILDV8xrrrrrrrr : InstTCE<(outs V8I32Regs:$res), (ins I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4, I32Regs:$e5, I32Regs:$e6, I32Regs:$e7, I32Regs:$e8),"",
 [(set V8I32Regs:$res, (build_vector I32Regs:$e1, I32Regs:$e2, I32Regs:$e3, I32Regs:$e4, I32Regs:$e5, I32Regs:$e6, I32Regs:$e7, I32Regs:$e8))]>;
 
-def BUILDV8vii : InstTCE<(outs V8I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
+def BUILDV8xiiiiiiii : InstTCE<(outs V8I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
 [(set V8I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
+
+def BUILDV8okkkkkkkk : InstTCE<(outs V8F32Regs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4, f32imm:$e5, f32imm:$e6, f32imm:$e7, f32imm:$e8),"",
+[(set V8F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4), (f32 fpimm:$e5), (f32 fpimm:$e6), (f32 fpimm:$e7), (f32 fpimm:$e8)))]>;
 
 def BUILDV8offffffff : InstTCE<(outs V8F32Regs:$res), (ins F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4, F32Regs:$e5, F32Regs:$e6, F32Regs:$e7, F32Regs:$e8),"",
 [(set V8F32Regs:$res, (build_vector F32Regs:$e1, F32Regs:$e2, F32Regs:$e3, F32Regs:$e4, F32Regs:$e5, F32Regs:$e6, F32Regs:$e7, F32Regs:$e8))]>;
 
-def INSERTV8vvri : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
+def INSERTV8xxri : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, I32Regs:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, I32Regs:$e, (i32 imm:$index)))]>;
 
-def INSERTV8mmfi : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$vec, F32Regs:$e, i32imm:$index), "", [(set V8F32Regs:$res, (vector_insert V8F32Regs:$vec, F32Regs:$e, (i32 imm:$index)))]>;
+def INSERTV8oofi : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$vec, F32Regs:$e, i32imm:$index), "", [(set V8F32Regs:$res, (vector_insert V8F32Regs:$vec, F32Regs:$e, (i32 imm:$index)))]>;
 
-def INSERTV8vvii : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+def INSERTV8xxii : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+
+def INSERTV8ooki : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V8F32Regs:$res, (vector_insert V8F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
 
 def MOV8xx : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$src), "", []>;
 def MOV8oo : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$src), "", []>;
