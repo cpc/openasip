@@ -111,7 +111,10 @@ TCETargetMachine::TCETargetMachine(
         "-i32:32:32"
         "-i64:32:32"
         "-f32:32:32"
-        "-f64:32:32"),
+        "-f64:32:32"
+        "-v64:32:32"
+        "-v128:32:32"
+        "-v256:32:32"),
       tsInfo(*this),
       plugin_(NULL), pluginTool_(NULL) {
 }
