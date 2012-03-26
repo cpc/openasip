@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libproge.la
 libproge_la_SOURCES = Netlist.cc NetlistBlock.cc NetlistPort.cc \
 NetlistGenerator.cc PortConnectionProperty.cc ICDecoderGeneratorPlugin.cc \
-NetlistWriter.cc VHDLNetlistWriter.cc ProGeUI.cc ProcessorGenerator.cc \
+NetlistWriter.cc VerilogNetlistWriter.cc VHDLNetlistWriter.cc ProGeUI.cc ProcessorGenerator.cc \
 BlockSourceCopier.cc ProGeScriptGenerator.cc ProGeTestBenchGenerator.cc \
 VirtualNetlistBlock.cc HDLTemplateInstantiator.cc
 
@@ -41,6 +41,6 @@ libproge_la_SOURCES += \
 	HDLTemplateInstantiator.hh NetlistPort.hh \
 	ProcessorGenerator.hh BlockSourceCopier.hh \
 	NetlistBlock.hh Netlist.hh \
-	VHDLNetlistWriter.hh VirtualNetlistBlock.hh \
+	VerilogNetlistWriter.hh VHDLNetlistWriter.hh VirtualNetlistBlock.hh \
 	ProGeScriptGenerator.icc 
 ## headers end

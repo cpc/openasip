@@ -36,6 +36,7 @@
 #include <string>
 #include <set>
 
+#include "ProGeTypes.hh"
 #include "TCEString.hh"
 #include "Exception.hh"
 
@@ -85,6 +86,8 @@ public:
         const CentralizedControlICGenerator& icGenerator);
     virtual ~DefaultDecoderGenerator();
 
+    void SetHDL(ProGe::HDL language);
+    
     void completeDecoderBlock(
         const ProGe::NetlistGenerator& nlGenerator,
         ProGe::Netlist& netlist);
@@ -147,11 +150,13 @@ private:
         const TTAMachine::RFPort& port,
         std::ostream& stream) const;
     void writeInstructionTemplateProcedures(
+        const ProGe::HDL language,
         const TTAMachine::InstructionTemplate& iTemp,
         int indLevel,
         std::ostream& stream) const;
 
     static void writeSquashSignalSubstitution(
+        const ProGe::HDL language,
         const TTAMachine::Bus& bus,
         const GuardEncoding& enc,
         const TTAMachine::Guard& guard,
@@ -226,14 +231,18 @@ private:
 
     static BusSet connectedBuses(const TTAMachine::Socket& socket);
     static std::string socketEncodingCondition(
+        const ProGe::HDL language,
         const SlotField& srcField,
         const std::string& socketName);
     static std::string portCodeCondition(
+        const ProGe::HDL language,
         const SocketEncoding& socketEnc,
         const PortCode& code);
     std::string instructionTemplateCondition(
+        const ProGe::HDL language,
         const std::string& iTempName) const;
     static std::string rfOpcodeFromSrcOrDstField(
+        const ProGe::HDL language,
         const SocketEncoding& socketEnc,
         const PortCode& code);
 
@@ -242,7 +251,7 @@ private:
         const TTAMachine::Bus& bus) const;
     int opcode(const TTAMachine::HWOperation& operation) const;
     static std::string indentation(unsigned int level);
-
+    
     /// The machine.
     const TTAMachine::Machine& machine_;
     /// The binary encoding map.
@@ -254,6 +263,7 @@ private:
     /// The instruction decoder block in the netlist.
     ProGe::NetlistBlock* decoderBlock_;
     TCEString entityNameStr_;
+    ProGe::HDL language_;
 };
 
 #endif

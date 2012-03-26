@@ -43,6 +43,7 @@
 #include "NetlistPort.hh"
 #include "Netlist.hh"
 #include "VHDLNetlistWriter.hh"
+#include "VerilogNetlistWriter.hh"
 
 #include "Machine.hh"
 #include "Bus.hh"
@@ -112,6 +113,15 @@ DefaultDecoderGenerator::DefaultDecoderGenerator(
     nlGenerator_(NULL), decoderBlock_(NULL) {
 }
 
+/**
+ * SetHDL.
+ *
+ * @param language The HDL language.
+ */
+void
+DefaultDecoderGenerator::SetHDL(ProGe::HDL language){
+    language_=language;
+}
 
 /**
  * The destructor.
@@ -486,8 +496,10 @@ DefaultDecoderGenerator::generateInstructionDecoder(
     throw (IOException) {
 
     nlGenerator_ = &nlGenerator;
-    string iDecoderFile = dstDirectory + 
-        FileSystem::DIRECTORY_SEPARATOR + "decoder.vhdl";
+    
+    string iDecoderFile = dstDirectory
+            + FileSystem::DIRECTORY_SEPARATOR
+            + ((language_==Verilog)?"decoder.v":"decoder.vhdl");
     bool decCreated = FileSystem::createFile(iDecoderFile);
     if (!decCreated) {
         string errorMsg = "Unable to create file " + iDecoderFile;
@@ -566,75 +578,143 @@ DefaultDecoderGenerator::verifyCompatibility() const
  */
 void
 DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
-
-    stream << "library IEEE;" << endl;
-    stream << "use IEEE.std_logic_1164.all;" << endl;
-    stream << "use IEEE.std_logic_arith.all;" << endl;
-    stream << "use work." << entityNameStr_ << "_globals.all;" << endl;
-    stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;" << endl << endl;
-    
-    string entityName = entityNameStr_ + "_decoder";
-    stream << "entity " << entityName << " is" << endl << endl;
-    
-    // create generic and port declarations
-    VHDLNetlistWriter::writeGenericDeclaration(
-        *decoderBlock_, 1, indentation(1), stream);
-    VHDLNetlistWriter::writePortDeclaration(
-        *decoderBlock_, 1, indentation(1), stream);
-    
-    stream << endl;
-    stream << "end " << entityName << ";" << endl << endl;
-    string architectureName = "rtl_andor";
-    stream << "architecture " << architectureName << " of " << entityName
-           << " is" << endl << endl;
-    
-    writeSourceDestinationAndGuardSignals(stream);
-    stream << endl;
-    writeImmediateSlotSignals(stream);
-    stream << endl;
-    writeLongImmediateTagSignal(stream);
-    stream << endl;
-    writeSquashSignals(stream);
-    stream << endl;
-    writeSocketCntrlSignals(stream);
-    stream << endl;
-    writeFUCntrlSignals(stream);
-    stream << endl;
-    writeRFCntrlSignals(stream);
-    
-    stream << endl << "begin" << endl << endl;
-    
-    writeInstructionDismembering(stream);
-    stream << endl;
-    writeControlRegisterMappings(stream);
-    stream << endl;
-    writeSquashSignalGenerationProcesses(stream);
-    stream << endl;
-    writeLongImmediateWriteProcess(stream);
-    stream << endl;
-    writeMainDecodingProcess(stream);
-    stream << endl;
-    
-    int lockReqWidth = glockRequestWidth();
-    stream << indentation(1) << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
-	   << " <= ";
-    if (lockReqWidth > 0) {
-        for (int i = 0; i < lockReqWidth; i++) {
-            stream << LOCK_REQ_PORT_NAME << "(" << i << ")";
-            if (i+1 < lockReqWidth) {
-                stream << " or ";
+    if(language_==VHDL){
+        stream << "library IEEE;" << endl;
+        stream << "use IEEE.std_logic_1164.all;" << endl;
+        stream << "use IEEE.std_logic_arith.all;" << endl;
+        stream << "use work." << entityNameStr_ << "_globals.all;" << endl;
+        stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;" << endl << endl;
+        
+        string entityName = entityNameStr_ + "_decoder";
+        stream << "entity " << entityName << " is" << endl << endl;
+        
+        // create generic and port declarations
+        VHDLNetlistWriter::writeGenericDeclaration(
+            *decoderBlock_, 1, indentation(1), stream);
+        VHDLNetlistWriter::writePortDeclaration(
+            *decoderBlock_, 1, indentation(1), stream);
+        
+        stream << endl;
+        stream << "end " << entityName << ";" << endl << endl;
+        string architectureName = "rtl_andor";
+        stream << "architecture " << architectureName << " of " << entityName
+               << " is" << endl << endl;
+        
+        writeSourceDestinationAndGuardSignals(stream);
+        stream << endl;
+        writeImmediateSlotSignals(stream);
+        stream << endl;
+        writeLongImmediateTagSignal(stream);
+        stream << endl;
+        writeSquashSignals(stream);
+        stream << endl;
+        writeSocketCntrlSignals(stream);
+        stream << endl;
+        writeFUCntrlSignals(stream);
+        stream << endl;
+        writeRFCntrlSignals(stream);
+        
+        stream << endl << "begin" << endl << endl;
+        
+        writeInstructionDismembering(stream);
+        stream << endl;
+        writeControlRegisterMappings(stream);
+        stream << endl;
+        writeSquashSignalGenerationProcesses(stream);
+        stream << endl;
+        writeLongImmediateWriteProcess(stream);
+        stream << endl;
+        writeMainDecodingProcess(stream);
+        stream << endl;
+        
+        int lockReqWidth = glockRequestWidth();
+        stream << indentation(1) << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
+           << " <= ";
+        if (lockReqWidth > 0) {
+            for (int i = 0; i < lockReqWidth; i++) {
+                stream << LOCK_REQ_PORT_NAME << "(" << i << ")";
+                if (i+1 < lockReqWidth) {
+                    stream << " or ";
+                }
             }
+            stream << ";" << endl;
+        } else {
+          stream << "'0';" << endl;
         }
-        stream << ";" << endl;
+        
+        stream << indentation(1) << GLOCK_PORT_NAME << " <= "
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";" << endl
+               << endl;
+        
+        stream << endl << "end " << architectureName << ";" << endl;
     } else {
-      stream << "'0';" << endl;
+        const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+        string entityName = entityNameStr_ + "_decoder";
+        stream << "`timescale 10ns/1ns" << endl
+               << "module " << entityName << endl
+               << "#(" << endl
+               << "`include \".."<< DS << "verilog" << DS
+               << entityNameStr_ << "_globals_pkg.vh\"" << endl
+               << "," << endl
+               << "`include \""  << "gcu_opcodes_pkg.vh\"" << endl
+               << ")" << endl;
+        
+        VerilogNetlistWriter::writePortDeclaration(
+            *decoderBlock_, 1, indentation(1), stream);
+
+        // create generic and port declarations
+        VerilogNetlistWriter::writeGenericDeclaration(
+            *decoderBlock_, 1, indentation(1), stream);
+
+        stream << endl;
+        
+        writeSourceDestinationAndGuardSignals(stream);
+        stream << endl;
+        writeImmediateSlotSignals(stream);
+        stream << endl;
+        writeLongImmediateTagSignal(stream);
+        stream << endl;
+        writeSquashSignals(stream);
+        stream << endl;
+        writeSocketCntrlSignals(stream);
+        stream << endl;
+        writeFUCntrlSignals(stream);
+        stream << endl;
+        writeRFCntrlSignals(stream);
+        stream << endl;
+        
+        writeInstructionDismembering(stream);
+        stream << endl;
+        writeControlRegisterMappings(stream);
+        stream << endl;
+        writeSquashSignalGenerationProcesses(stream);
+        stream << endl;
+        writeLongImmediateWriteProcess(stream);
+        stream << endl;
+        writeMainDecodingProcess(stream);
+        stream << endl;
+        
+        int lockReqWidth = glockRequestWidth();
+        stream << indentation(1) << "assign " << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
+           << "=";
+        if (lockReqWidth > 0) {
+            for (int i = 0; i < lockReqWidth; i++) {
+                stream << LOCK_REQ_PORT_NAME << "[" << i << "]";
+                if (i+1 < lockReqWidth) {
+                    stream << " | ";
+                }
+            }
+            stream << ";" << endl;
+        } else {
+          stream << "1'b0;" << endl;
+        }
+        
+        stream << indentation(1) << "assign " << GLOCK_PORT_NAME << "="
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";" << endl
+               << endl;
+        
+        stream << endl << "endmodule" << endl;    
     }
-    
-    stream << indentation(1) << GLOCK_PORT_NAME << " <= "
-           << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";" << endl
-           << endl;
-    
-    stream << endl << "end " << architectureName << ";" << endl;
 }
 
 
@@ -648,31 +728,61 @@ void
 DefaultDecoderGenerator::writeSourceDestinationAndGuardSignals(
     std::ostream& stream) const {
 
-    stream << indentation(1) 
-           << "-- signals for source, destination and guard fields" 
-           << endl;
-    for (int i = 0; i < bem_.moveSlotCount(); i++) {
-        MoveSlot& slot = bem_.moveSlot(i);
-        if (slot.hasSourceField()) {
-            SourceField& srcField = slot.sourceField();
-            stream << indentation(1) << "signal " 
-                   << srcFieldSignal(slot.name()) 
-                   << " : std_logic_vector(" << srcField.width() - 1 
-                   << " downto 0);" << endl;
+    if(language_==VHDL){
+        stream << indentation(1) 
+               << "-- signals for source, destination and guard fields" 
+               << endl;
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            if (slot.hasSourceField()) {
+                SourceField& srcField = slot.sourceField();
+                stream << indentation(1) << "signal " 
+                       << srcFieldSignal(slot.name()) 
+                       << " : std_logic_vector(" << srcField.width() - 1 
+                       << " downto 0);" << endl;
+            }
+            if (slot.hasDestinationField()) {
+                DestinationField& dstField = slot.destinationField();
+                stream << indentation(1) << "signal " 
+                       << dstFieldSignal(slot.name()) << " : std_logic_vector("
+                       << dstField.width() - 1 << " downto 0);" << endl;
+            }
+            if (slot.hasGuardField()) {
+                GuardField& grdField = slot.guardField();
+                stream << indentation(1) << "signal " 
+                       << guardFieldSignal(slot.name()) 
+                       << " : std_logic_vector(" << grdField.width() - 1 
+                       << " downto 0);" << endl;
+            }
         }
-        if (slot.hasDestinationField()) {
-            DestinationField& dstField = slot.destinationField();
-            stream << indentation(1) << "signal " 
-                   << dstFieldSignal(slot.name()) << " : std_logic_vector("
-                   << dstField.width() - 1 << " downto 0);" << endl;
-        }
-        if (slot.hasGuardField()) {
-            GuardField& grdField = slot.guardField();
-            stream << indentation(1) << "signal " 
-                   << guardFieldSignal(slot.name()) 
-                   << " : std_logic_vector(" << grdField.width() - 1 
-                   << " downto 0);" << endl;
-        }
+    } else {
+        stream << indentation(1) 
+               << "// signals for source, destination and guard fields" 
+               << endl;
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            if (slot.hasSourceField()) {
+                SourceField& srcField = slot.sourceField();
+                stream << indentation(1) << "reg[" 
+                       << srcField.width() - 1 << ":0] "
+                       << srcFieldSignal(slot.name()) << ";"
+                       << endl;
+            }
+            if (slot.hasDestinationField()) {
+                DestinationField& dstField = slot.destinationField();
+                stream << indentation(1) << "reg[" 
+                       << dstField.width() - 1 << ":0] "
+                       << dstFieldSignal(slot.name()) << ";"
+                       << endl;
+            }
+            if (slot.hasGuardField()) {
+                GuardField& grdField = slot.guardField();
+                stream << indentation(1) << "reg[" 
+                       << grdField.width() - 1 << ":0] "
+                       << guardFieldSignal(slot.name()) << ";" 
+                       << endl;
+            }
+        }    
     }
 }
 
@@ -685,14 +795,25 @@ DefaultDecoderGenerator::writeSourceDestinationAndGuardSignals(
 void 
 DefaultDecoderGenerator::writeImmediateSlotSignals(
     std::ostream& stream) const {
-
-    stream << indentation(1) 
-           << "-- signals for dedicated immediate slots" << endl;
-    for (int i = 0; i < bem_.immediateSlotCount(); i++) {
-        ImmediateSlotField& slot = bem_.immediateSlot(i);
-        stream << indentation(1) << "signal " 
-               << immSlotSignal(slot.name()) << " : std_logic_vector(" 
-               << slot.width() - 1 << " downto 0);" << endl;
+    if(language_==VHDL){
+        stream << indentation(1) 
+               << "-- signals for dedicated immediate slots" << endl;
+        for (int i = 0; i < bem_.immediateSlotCount(); i++) {
+            ImmediateSlotField& slot = bem_.immediateSlot(i);
+            stream << indentation(1) << "signal " 
+                   << immSlotSignal(slot.name()) << " : std_logic_vector(" 
+                   << slot.width() - 1 << " downto 0);" << endl;
+        }
+    } else {
+        stream << indentation(1) 
+               << "// signals for dedicated immediate slots" << endl;
+        for (int i = 0; i < bem_.immediateSlotCount(); i++) {
+            ImmediateSlotField& slot = bem_.immediateSlot(i);
+            stream << indentation(1) << "reg[" 
+                   << slot.width() - 1 << ":0] "
+                   << immSlotSignal(slot.name()) << ";"
+                   << endl;    
+        }
     }
 }
 
@@ -705,14 +826,25 @@ DefaultDecoderGenerator::writeImmediateSlotSignals(
 void 
 DefaultDecoderGenerator::writeLongImmediateTagSignal(
     std::ostream& stream) const {
-
-    if (bem_.hasImmediateControlField()) {
-        stream << indentation(1) << "-- signal for long immediate tag" 
-               << endl;
-        stream << indentation(1) << "signal " << LIMM_TAG_SIGNAL 
-               << " : std_logic_vector(" 
-               << bem_.immediateControlField().width() - 1 
-               << " downto 0);" << endl;
+    if(language_==VHDL){
+        if (bem_.hasImmediateControlField()) {
+            stream << indentation(1) << "-- signal for long immediate tag" 
+                   << endl;
+            stream << indentation(1) << "signal " << LIMM_TAG_SIGNAL 
+                   << " : std_logic_vector(" 
+                   << bem_.immediateControlField().width() - 1 
+                   << " downto 0);" << endl;
+        }
+    } else {
+        if (bem_.hasImmediateControlField()) {
+            stream << indentation(1) << "// signal for long immediate tag" 
+                   << endl;
+            stream << indentation(1) << "reg["
+                   << bem_.immediateControlField().width() - 1 
+                   << ":0] "
+                   << LIMM_TAG_SIGNAL << ";"
+                   << endl;
+        }    
     }
 }
     
@@ -723,14 +855,27 @@ DefaultDecoderGenerator::writeLongImmediateTagSignal(
  * @param stream The stream.
  */
 void
-DefaultDecoderGenerator::writeSquashSignals(std::ostream& stream) const {
-    stream << indentation(1) << "-- squash signals" << endl;
-    for (int i = 0; i < bem_.moveSlotCount(); i++) {
-        MoveSlot& slot = bem_.moveSlot(i);
-        if (slot.hasGuardField()) {
-            stream << indentation(1) << "signal " 
-                   << squashSignal(slot.name()) << " : std_logic;" 
-                   << endl;
+DefaultDecoderGenerator::writeSquashSignals(
+    std::ostream& stream) const {
+    if(language_==VHDL){
+        stream << indentation(1) << "-- squash signals" << endl;
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            if (slot.hasGuardField()) {
+                stream << indentation(1) << "signal " 
+                       << squashSignal(slot.name()) << " : std_logic;" 
+                       << endl;
+            }
+        }
+    } else {
+        stream << indentation(1) << "// squash signals" << endl;
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            if (slot.hasGuardField()) {
+                stream << indentation(1) << "reg " 
+                       << squashSignal(slot.name()) << ";" 
+                       << endl;
+            }
         }
     }
 }
@@ -744,44 +889,83 @@ DefaultDecoderGenerator::writeSquashSignals(std::ostream& stream) const {
 void
 DefaultDecoderGenerator::writeSocketCntrlSignals(
     std::ostream& stream) const {
+    if(language_==VHDL){
+        stream << indentation(1) << "-- socket control signals" << endl;
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (socket->portCount() == 0 || socket->segmentCount() == 0) {
+                continue;
+            }
 
-    stream << indentation(1) << "-- socket control signals" << endl;
-    Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i < socketNav.count(); i++) {
-        Socket* socket = socketNav.item(i);
-        if (socket->portCount() == 0 || socket->segmentCount() == 0) {
-            continue;
+            if (needsBusControl(*socket)) {
+                stream << indentation(1) << "signal " 
+                       << socketBusCntrlSignalName(
+                           socket->name()) << " : std_logic_vector(" 
+                       << busControlWidth(*socket) - 1 << " downto 0);" 
+                       << endl;
+            }
+            if (needsDataControl(*socket)) {
+                stream << indentation(1) << "signal " 
+                       << socketDataCntrlSignalName(socket->name()) 
+                       << " : std_logic_vector(" 
+                       << dataControlWidth(*socket) - 1 << " downto 0);" 
+                       << endl;
+            }
         }
 
-        if (needsBusControl(*socket)) {
-            stream << indentation(1) << "signal " 
-                   << socketBusCntrlSignalName(
-                       socket->name()) << " : std_logic_vector(" 
-                   << busControlWidth(*socket) - 1 << " downto 0);" 
-                   << endl;
+        // write signals for short immediate sockets (not visible in ADF)
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << "signal "
+                       << simmDataSignalName(bus->name())
+                       << " : std_logic_vector(" << simmPortWidth(*bus) - 1
+                       << " downto 0);" << endl;
+                stream << indentation(1) << "signal "
+                       << simmCntrlSignalName(bus->name())
+                       << " : std_logic_vector(0 downto 0);" << endl;
+            }
         }
-        if (needsDataControl(*socket)) {
-            stream << indentation(1) << "signal " 
-                   << socketDataCntrlSignalName(socket->name()) 
-                   << " : std_logic_vector(" 
-                   << dataControlWidth(*socket) - 1 << " downto 0);" 
-                   << endl;
-        }
-    }
+    } else {
+        stream << indentation(1) << "// socket control signals" << endl;
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (socket->portCount() == 0 || socket->segmentCount() == 0) {
+                continue;
+            }
 
-    // write signals for short immediate sockets (not visible in ADF)
-    Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        if (bus->immediateWidth() > 0) {
-            stream << indentation(1) << "signal "
-                   << simmDataSignalName(bus->name())
-                   << " : std_logic_vector(" << simmPortWidth(*bus) - 1
-                   << " downto 0);" << endl;
-            stream << indentation(1) << "signal "
-                   << simmCntrlSignalName(bus->name())
-                   << " : std_logic_vector(0 downto 0);" << endl;
+            if (needsBusControl(*socket)) {
+                stream << indentation(1) << "reg[" 
+                       << busControlWidth(*socket) - 1 << ":0] " 
+                       << socketBusCntrlSignalName(socket->name())
+                       << ";" << endl;
+            }
+            if (needsDataControl(*socket)) {
+                stream << indentation(1) << "reg[" 
+                       << dataControlWidth(*socket) - 1 << ":0] " 
+                       << socketDataCntrlSignalName(socket->name()) 
+                       << ";" << endl;
+            }
         }
+
+        // write signals for short immediate sockets (not visible in ADF)
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << "reg["
+                       << simmPortWidth(*bus) - 1 << ":0] "
+                       << simmDataSignalName(bus->name())
+                       << ";" << endl;
+                       
+                stream << indentation(1) << "reg[0:0] "
+                       << simmCntrlSignalName(bus->name())
+                       << ";" << endl;
+            }
+        }    
     }
 }
 
@@ -792,9 +976,14 @@ DefaultDecoderGenerator::writeSocketCntrlSignals(
  * @param stream The stream.
  */
 void
-DefaultDecoderGenerator::writeFUCntrlSignals(std::ostream& stream) const {
+DefaultDecoderGenerator::writeFUCntrlSignals(
+    std::ostream& stream) const {
 
-    stream << indentation(1) << "-- FU control signals" << endl;
+    if(language_==VHDL)
+        stream << indentation(1) << "-- FU control signals" << endl;
+    else
+        stream << indentation(1) << "// FU control signals" << endl;
+    
     Machine::FunctionUnitNavigator fuNav = machine_.
         functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
@@ -825,9 +1014,15 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
         
         if (port->inputSocket() != NULL) {
             // if input port
-            stream << indentation(1) << "signal "
-                   << fuLoadSignalName(fu.name(), port->name()) 
-                   << " : std_logic;" << endl;
+            if(language_==VHDL){
+                stream << indentation(1) << "signal "
+                       << fuLoadSignalName(fu.name(), port->name()) 
+                       << " : std_logic;" << endl;
+            } else {
+                stream << indentation(1) << "reg "
+                       << fuLoadSignalName(fu.name(), port->name()) 
+                       << ";" << endl;
+            }
         }
     }
     
@@ -840,10 +1035,17 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
     }
     
     if (opcWidth > 0) {
-        stream << indentation(1) << "signal "
-               << fuOpcodeSignalName(fu.name())
-               << " : std_logic_vector(" << opcWidth - 1 << " downto 0);"
-               << endl;
+        if(language_==VHDL){
+            stream << indentation(1) << "signal "
+                   << fuOpcodeSignalName(fu.name())
+                   << " : std_logic_vector(" << opcWidth - 1 << " downto 0);"
+                   << endl;
+        } else {
+            stream << indentation(1) << "reg["
+                   << opcWidth - 1 << ":0] "
+                   << fuOpcodeSignalName(fu.name())
+                   << ";" << endl;       
+        }
     }
 }   
 
@@ -854,8 +1056,13 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
  * @param stream The stream.
  */
 void
-DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) const {
-    stream << indentation(1) << "-- RF control signals" << endl;
+DefaultDecoderGenerator::writeRFCntrlSignals(
+    std::ostream& stream) const {
+    if(language_==VHDL)
+        stream << indentation(1) << "-- RF control signals" << endl;
+    else
+        stream << indentation(1) << "// RF control signals" << endl;
+    
     Machine::RegisterFileNavigator rfNav = machine_.
         registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
@@ -864,14 +1071,27 @@ DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) const {
             RFPort* port = rf->port(i);
                 
             // load signal
-            stream << indentation(1) << "signal " << rfLoadSignalName(
+            if(language_==VHDL){
+                stream << indentation(1) << "signal " << rfLoadSignalName(
                 rf->name(), port->name()) << " : std_logic;" << endl;
+            } else {
+                stream << indentation(1) << "reg " << rfLoadSignalName(
+                rf->name(), port->name()) << ";" << endl;            
+            }
+                
             // opcode signal
             if (0 < rfOpcodeWidth(*rf)) {
-                stream << indentation(1) << "signal " 
-                    << rfOpcodeSignalName(rf->name(), port->name()) 
-                    << " : std_logic_vector(" << rfOpcodeWidth(*rf) - 1 
-                    << " downto 0);" << endl;
+                if(language_==VHDL){
+                    stream << indentation(1) << "signal " 
+                        << rfOpcodeSignalName(rf->name(), port->name()) 
+                        << " : std_logic_vector(" << rfOpcodeWidth(*rf) - 1 
+                        << " downto 0);" << endl;
+                } else {
+                    stream << indentation(1) << "reg[" 
+                        << rfOpcodeWidth(*rf) - 1 << ":0] " 
+                        << rfOpcodeSignalName(rf->name(), port->name()) 
+                        << ";" << endl;
+                }
             }
         }
     }
@@ -886,60 +1106,112 @@ DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) const {
 void 
 DefaultDecoderGenerator::writeInstructionDismembering(
     std::ostream& stream) const {
-
-    stream << indentation(1) << "-- dismembering of instruction" << endl;
-    stream << indentation(1) << "process ("
-           << NetlistGenerator::DECODER_INSTR_WORD_PORT << ")" << endl;
-    stream << indentation(1) << "begin --process" << endl;
-        
-    for (int i = 0; i < bem_.moveSlotCount(); i++) {
-        MoveSlot& slot = bem_.moveSlot(i);
-        int slotPosition = slot.bitPosition();
-        if (slot.hasSourceField()) {
-            SourceField& srcField = slot.sourceField();
-            stream << indentation(2) << srcFieldSignal(slot.name()) 
-                   << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                   << "(" << slotPosition + srcField.bitPosition() + 
-                srcField.width() - 1 << " downto " 
-                   << slotPosition + srcField.bitPosition() << ");" 
-                   << endl;
+    if(language_==VHDL){
+        stream << indentation(1) << "-- dismembering of instruction" << endl;
+        stream << indentation(1) << "process ("
+               << NetlistGenerator::DECODER_INSTR_WORD_PORT << ")" << endl;
+        stream << indentation(1) << "begin --process" << endl;
+            
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            int slotPosition = slot.bitPosition();
+            if (slot.hasSourceField()) {
+                SourceField& srcField = slot.sourceField();
+                stream << indentation(2) << srcFieldSignal(slot.name()) 
+                       << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "(" << slotPosition + srcField.bitPosition() + 
+                    srcField.width() - 1 << " downto " 
+                       << slotPosition + srcField.bitPosition() << ");" 
+                       << endl;
+            }
+            if (slot.hasDestinationField()) {
+                DestinationField& dstField = slot.destinationField();
+                stream << indentation(2) << dstFieldSignal(slot.name()) 
+                       << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "(" << slotPosition + dstField.bitPosition() + 
+                    dstField.width() - 1 << " downto " 
+                       << slotPosition + dstField.bitPosition() << ");" 
+                       << endl;
+            }
+            if (slot.hasGuardField()) {
+                GuardField& grdField = slot.guardField();
+                stream << indentation(2) << guardFieldSignal(slot.name()) 
+                       << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "(" << slotPosition + grdField.bitPosition() + 
+                    grdField.width() - 1 << " downto " 
+                       << slotPosition + grdField.bitPosition() << ");" 
+                       << endl;
+            }
         }
-        if (slot.hasDestinationField()) {
-            DestinationField& dstField = slot.destinationField();
-            stream << indentation(2) << dstFieldSignal(slot.name()) 
-                   << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                   << "(" << slotPosition + dstField.bitPosition() + 
-                dstField.width() - 1 << " downto " 
-                   << slotPosition + dstField.bitPosition() << ");" 
-                   << endl;
+        stream << endl;
+        for (int i = 0; i < bem_.immediateSlotCount(); i++) {
+            ImmediateSlotField& slot = bem_.immediateSlot(i);
+            stream << indentation(2) << immSlotSignal(slot.name()) << " <= "
+                   << NetlistGenerator::DECODER_INSTR_WORD_PORT << "(" 
+                   << slot.bitPosition() + slot.width() - 1 << " downto " 
+                   << slot.bitPosition() << ");" << endl;
         }
-        if (slot.hasGuardField()) {
-            GuardField& grdField = slot.guardField();
-            stream << indentation(2) << guardFieldSignal(slot.name()) 
-                   << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                   << "(" << slotPosition + grdField.bitPosition() + 
-                grdField.width() - 1 << " downto " 
-                   << slotPosition + grdField.bitPosition() << ");" 
-                   << endl;
+        if (bem_.hasImmediateControlField()) {
+            ImmediateControlField& icField = bem_.immediateControlField();
+            stream << indentation(2) << LIMM_TAG_SIGNAL << " <= " 
+                   << NetlistGenerator::DECODER_INSTR_WORD_PORT << "(" 
+                   << icField.bitPosition() + icField.width() - 1 
+                   << " downto " << icField.bitPosition() << ");" << endl;
         }
+        stream << indentation(1) << "end process;" << endl;
+    } else {
+        stream << indentation(1) << "// dismembering of instruction" << endl;
+        stream << indentation(1) << "always@(*)" << endl;
+        stream << indentation(1) << "begin //process" << endl;
+            
+        for (int i = 0; i < bem_.moveSlotCount(); i++) {
+            MoveSlot& slot = bem_.moveSlot(i);
+            int slotPosition = slot.bitPosition();
+            if (slot.hasSourceField()) {
+                SourceField& srcField = slot.sourceField();
+                stream << indentation(2) << srcFieldSignal(slot.name()) 
+                       << " = " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "[" << slotPosition + srcField.bitPosition() + 
+                    srcField.width() - 1 << " : " 
+                       << slotPosition + srcField.bitPosition() << "];" 
+                       << endl;
+            }
+            if (slot.hasDestinationField()) {
+                DestinationField& dstField = slot.destinationField();
+                stream << indentation(2) << dstFieldSignal(slot.name()) 
+                       << " = " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "[" << slotPosition + dstField.bitPosition() + 
+                    dstField.width() - 1 << " : " 
+                       << slotPosition + dstField.bitPosition() << "];" 
+                       << endl;
+            }
+            if (slot.hasGuardField()) {
+                GuardField& grdField = slot.guardField();
+                stream << indentation(2) << guardFieldSignal(slot.name()) 
+                       << " = " << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                       << "[" << slotPosition + grdField.bitPosition() + 
+                    grdField.width() - 1 << " : " 
+                       << slotPosition + grdField.bitPosition() << "];" 
+                       << endl;
+            }
+        }
+        stream << endl;
+        for (int i = 0; i < bem_.immediateSlotCount(); i++) {
+            ImmediateSlotField& slot = bem_.immediateSlot(i);
+            stream << indentation(2) << immSlotSignal(slot.name()) << " = "
+                   << NetlistGenerator::DECODER_INSTR_WORD_PORT << "[" 
+                   << slot.bitPosition() + slot.width() - 1 << " : " 
+                   << slot.bitPosition() << "];" << endl;
+        }
+        if (bem_.hasImmediateControlField()) {
+            ImmediateControlField& icField = bem_.immediateControlField();
+            stream << indentation(2) << LIMM_TAG_SIGNAL << " = " 
+                   << NetlistGenerator::DECODER_INSTR_WORD_PORT << "[" 
+                   << icField.bitPosition() + icField.width() - 1 
+                   << " : " << icField.bitPosition() << "];" << endl;
+        }
+        stream << indentation(1) << "end" << endl;    
     }
-    stream << endl;
-    for (int i = 0; i < bem_.immediateSlotCount(); i++) {
-        ImmediateSlotField& slot = bem_.immediateSlot(i);
-        stream << indentation(2) << immSlotSignal(slot.name()) << " <= "
-               << NetlistGenerator::DECODER_INSTR_WORD_PORT << "(" 
-               << slot.bitPosition() + slot.width() - 1 << " downto " 
-               << slot.bitPosition() << ");" << endl;
-    }
-    if (bem_.hasImmediateControlField()) {
-        ImmediateControlField& icField = bem_.immediateControlField();
-        stream << indentation(2) << LIMM_TAG_SIGNAL << " <= " 
-               << NetlistGenerator::DECODER_INSTR_WORD_PORT << "(" 
-               << icField.bitPosition() + icField.width() - 1 
-               << " downto " << icField.bitPosition() << ");" << endl;
-    }
-
-    stream << indentation(1) << "end process;" << endl;
 }
 
 
@@ -970,101 +1242,192 @@ void
 DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
     const TTAMachine::Bus& bus,
     std::ostream& stream) const {
-    
-    assert(bem_.hasMoveSlot(bus.name()));
-    MoveSlot& slot = bem_.moveSlot(bus.name());
-    if (slot.hasGuardField()) {
-        GuardField& grdField = slot.guardField();
-        stream << indentation(1) << "-- generate signal " 
-               << squashSignal(slot.name()) << endl;
-        stream << indentation(1) << "process (";
-        std::set<string> guardPorts;
-        for (int i = 0; i < bus.guardCount(); i++) {
-            Guard* guard = bus.guard(i);
-            string guardPort = guardPortName(*guard);
-            if (guardPort != "" &&
-                !AssocTools::containsKey(guardPorts, guardPort)) {
-                stream << guardPortName(*guard) << ", ";
-                guardPorts.insert(guardPort);
-            }
-        }
-        stream << guardFieldSignal(slot.name());
-
-        std::set<InstructionTemplate*> affectingInstTemplates;
-        Machine::InstructionTemplateNavigator itNav = 
-            machine_.instructionTemplateNavigator();
-        for (int i = 0; i < itNav.count(); i++) {
-            InstructionTemplate* iTemp = itNav.item(i);
-            if (iTemp->usesSlot(bus.name())) {
-                affectingInstTemplates.insert(iTemp);
-            }
-        }
-
-        if (affectingInstTemplates.size() > 0) {
-            stream << ", " << LIMM_TAG_SIGNAL;
-        }
-
-        stream << ")" << endl;
-        stream << indentation(2) << "variable sel : integer;" << endl;
-        stream << indentation(1) << "begin --process" << endl;
-        int indLevel = 2;
-        if (affectingInstTemplates.size() > 0) {
-            stream << indentation(indLevel) << "if (";
-            for (set<InstructionTemplate*>::const_iterator iter = 
-                     affectingInstTemplates.begin();
-                 iter != affectingInstTemplates.end(); iter++) {
-                if (iter != affectingInstTemplates.begin()) {
-                    stream << " or ";
+    if(language_==VHDL){
+        assert(bem_.hasMoveSlot(bus.name()));
+        MoveSlot& slot = bem_.moveSlot(bus.name());
+        if (slot.hasGuardField()) {
+            GuardField& grdField = slot.guardField();
+            stream << indentation(1) << "-- generate signal " 
+                   << squashSignal(slot.name()) << endl;
+            stream << indentation(1) << "process (";
+            std::set<string> guardPorts;
+            for (int i = 0; i < bus.guardCount(); i++) {
+                Guard* guard = bus.guard(i);
+                string guardPort = guardPortName(*guard);
+                if (guardPort != "" &&
+                    !AssocTools::containsKey(guardPorts, guardPort)) {
+                    stream << guardPortName(*guard) << ", ";
+                    guardPorts.insert(guardPort);
                 }
-                ImmediateControlField& icField = 
-                    bem_.immediateControlField();
-                InstructionTemplate* affectingTemp = *iter;
-                stream << "conv_integer(unsigned(" << LIMM_TAG_SIGNAL
-                       << ")) = "
-                       << icField.templateEncoding(affectingTemp->name());
             }
-            stream << ") then" << endl;
-            stream << indentation(indLevel+1) << squashSignal(bus.name())
-                   << " <= '1';" << endl;
-            stream << indentation(indLevel) << "else" << endl;
+            stream << guardFieldSignal(slot.name());
+
+            std::set<InstructionTemplate*> affectingInstTemplates;
+            Machine::InstructionTemplateNavigator itNav = 
+                machine_.instructionTemplateNavigator();
+            for (int i = 0; i < itNav.count(); i++) {
+                InstructionTemplate* iTemp = itNav.item(i);
+                if (iTemp->usesSlot(bus.name())) {
+                    affectingInstTemplates.insert(iTemp);
+                }
+            }
+
+            if (affectingInstTemplates.size() > 0) {
+                stream << ", " << LIMM_TAG_SIGNAL;
+            }
+
+            stream << ")" << endl;
+            stream << indentation(2) << "variable sel : integer;" << endl;
+            stream << indentation(1) << "begin --process" << endl;
+            int indLevel = 2;
+            if (affectingInstTemplates.size() > 0) {
+                stream << indentation(indLevel) << "if (";
+                for (set<InstructionTemplate*>::const_iterator iter = 
+                         affectingInstTemplates.begin();
+                     iter != affectingInstTemplates.end(); iter++) {
+                    if (iter != affectingInstTemplates.begin()) {
+                        stream << " or ";
+                    }
+                    ImmediateControlField& icField = 
+                        bem_.immediateControlField();
+                    InstructionTemplate* affectingTemp = *iter;
+                    stream << "conv_integer(unsigned(" << LIMM_TAG_SIGNAL
+                           << ")) = "
+                           << icField.templateEncoding(affectingTemp->name());
+                }
+                stream << ") then" << endl;
+                stream << indentation(indLevel+1) << squashSignal(bus.name())
+                       << " <= '1';" << endl;
+                stream << indentation(indLevel) << "else" << endl;
+                indLevel++;
+            }
+            stream << indentation(indLevel) << "sel := conv_integer(unsigned(" 
+                   << guardFieldSignal(slot.name()) << "));" << endl;
+            stream << indentation(indLevel) << "case sel is" << endl;
             indLevel++;
-        }
-        stream << indentation(indLevel) << "sel := conv_integer(unsigned(" 
-               << guardFieldSignal(slot.name()) << "));" << endl;
-        stream << indentation(indLevel) << "case sel is" << endl;
-        indLevel++;
-        for (int i = 0; i < grdField.gprGuardEncodingCount(); i++) {
-            GPRGuardEncoding& enc = grdField.gprGuardEncoding(i);
-            RegisterGuard& regGuard = findGuard(enc);
-            writeSquashSignalSubstitution(
-                bus, enc, regGuard, stream, indLevel);
-        }
+            for (int i = 0; i < grdField.gprGuardEncodingCount(); i++) {
+                GPRGuardEncoding& enc = grdField.gprGuardEncoding(i);
+                RegisterGuard& regGuard = findGuard(enc);
+                writeSquashSignalSubstitution(VHDL,
+                    bus, enc, regGuard, stream, indLevel);
+            }
 
-        for (int i = 0; i < grdField.fuGuardEncodingCount(); i++) {
-            FUGuardEncoding& enc = grdField.fuGuardEncoding(i);
-            PortGuard& portGuard = findGuard(enc);
-            writeSquashSignalSubstitution(
-                bus, enc, portGuard, stream, indLevel);
-        }
+            for (int i = 0; i < grdField.fuGuardEncodingCount(); i++) {
+                FUGuardEncoding& enc = grdField.fuGuardEncoding(i);
+                PortGuard& portGuard = findGuard(enc);
+                writeSquashSignalSubstitution(VHDL,
+                    bus, enc, portGuard, stream, indLevel);
+            }
 
-        if (grdField.hasUnconditionalGuardEncoding(true)) {
-            UnconditionalGuardEncoding& enc = 
-                grdField.unconditionalGuardEncoding(true);
-            stream << indentation(indLevel) << "when " << enc.encoding()
-                   << " => "
-                   << endl;
+            if (grdField.hasUnconditionalGuardEncoding(true)) {
+                UnconditionalGuardEncoding& enc = 
+                    grdField.unconditionalGuardEncoding(true);
+                stream << indentation(indLevel) << "when " << enc.encoding()
+                       << " => "
+                       << endl;
+                stream << indentation(indLevel+1) << squashSignal(slot.name()) 
+                       << " <= '1';" << endl;
+            }
+
+            stream << indentation(indLevel) << "when others =>" << endl;
             stream << indentation(indLevel+1) << squashSignal(slot.name()) 
-                   << " <= '1';" << endl;
+                   << " <= '0';" << endl;
+            stream << indentation(indLevel-1) << "end case;" << endl;
+            if (affectingInstTemplates.size() > 0) {
+                stream << indentation(2) << "end if;" << endl;
+            }
+            stream << indentation(1) << "end process;" << endl << endl;
         }
+    } else {
+        assert(bem_.hasMoveSlot(bus.name()));
+        MoveSlot& slot = bem_.moveSlot(bus.name());
+        if (slot.hasGuardField()) {
+            GuardField& grdField = slot.guardField();
+            stream << indentation(1) << "// generate signal "
+                   << squashSignal(slot.name()) << endl;
+            stream << indentation(1) << "always@(";
+            std::set<string> guardPorts;
+            for (int i = 0; i < bus.guardCount(); i++) {
+                Guard* guard = bus.guard(i);
+                string guardPort = guardPortName(*guard);
+                if (guardPort != "" &&
+                    !AssocTools::containsKey(guardPorts, guardPort)) {
+                    stream << guardPortName(*guard) << ", ";
+                    guardPorts.insert(guardPort);
+                }
+            }
+            stream << guardFieldSignal(slot.name());
 
-        stream << indentation(indLevel) << "when others =>" << endl;
-        stream << indentation(indLevel+1) << squashSignal(slot.name()) 
-               << " <= '0';" << endl;
-        stream << indentation(indLevel-1) << "end case;" << endl;
-        if (affectingInstTemplates.size() > 0) {
-            stream << indentation(2) << "end if;" << endl;
-        }
-        stream << indentation(1) << "end process;" << endl << endl;
+            std::set<InstructionTemplate*> affectingInstTemplates;
+            Machine::InstructionTemplateNavigator itNav = 
+                machine_.instructionTemplateNavigator();
+            for (int i = 0; i < itNav.count(); i++) {
+                InstructionTemplate* iTemp = itNav.item(i);
+                if (iTemp->usesSlot(bus.name())) {
+                    affectingInstTemplates.insert(iTemp);
+                }
+            }
+
+            if (affectingInstTemplates.size() > 0) {
+                stream << ", " << LIMM_TAG_SIGNAL;
+            }
+
+            stream << ")" << endl;
+            stream << indentation(1) << "begin" << endl;
+            int indLevel = 2;
+            if (affectingInstTemplates.size() > 0) {
+                stream << indentation(indLevel) << "if (";
+                for (set<InstructionTemplate*>::const_iterator iter = 
+                         affectingInstTemplates.begin();
+                     iter != affectingInstTemplates.end(); iter++) {
+                    if (iter != affectingInstTemplates.begin()) {
+                        stream << " || ";
+                    }
+                    ImmediateControlField& icField = 
+                        bem_.immediateControlField();
+                    InstructionTemplate* affectingTemp = *iter;
+                    stream <<  LIMM_TAG_SIGNAL
+                           << " == "
+                           << icField.templateEncoding(affectingTemp->name());
+                }
+                stream << ")" << endl;
+                stream << indentation(indLevel+1) << squashSignal(bus.name())
+                       << " <= 1'b1;" << endl;
+                stream << indentation(indLevel) << "else" << endl;
+                indLevel++;
+            }
+            stream << indentation(indLevel) << "case("
+                   << guardFieldSignal(slot.name()) << ")" << endl;
+            indLevel++;
+            for (int i = 0; i < grdField.gprGuardEncodingCount(); i++) {
+                GPRGuardEncoding& enc = grdField.gprGuardEncoding(i);
+                RegisterGuard& regGuard = findGuard(enc);
+                writeSquashSignalSubstitution(Verilog,
+                    bus, enc, regGuard, stream, indLevel);
+            }
+
+            for (int i = 0; i < grdField.fuGuardEncodingCount(); i++) {
+                FUGuardEncoding& enc = grdField.fuGuardEncoding(i);
+                PortGuard& portGuard = findGuard(enc);
+                writeSquashSignalSubstitution(Verilog,
+                    bus, enc, portGuard, stream, indLevel);
+            }
+
+            if (grdField.hasUnconditionalGuardEncoding(true)) {
+                UnconditionalGuardEncoding& enc = 
+                    grdField.unconditionalGuardEncoding(true);
+                stream << indentation(indLevel) << enc.encoding() << " :"
+                       << endl;
+                stream << indentation(indLevel+1) << squashSignal(slot.name()) 
+                       << " <= 1'b1;" << endl;
+            }
+
+            stream << indentation(indLevel) << "default:" << endl;
+            stream << indentation(indLevel+1) << squashSignal(slot.name()) 
+                   << " <= 1'b0;" << endl;
+            stream << indentation(indLevel-1) << "endcase" << endl;
+            stream << indentation(1) << "end" << endl << endl;
+        }    
     }
 }
 
@@ -1087,57 +1450,102 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
 
     string resetPort = NetlistGenerator::DECODER_RESET_PORT;
     string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
+    if(language_==VHDL){
+        stream << indentation(1) << "--long immediate write process" << endl;
+        stream << indentation(1) << "process ("
+               << clockPort << ", "  << resetPort << ")" << endl;
+        stream << indentation(1) << "begin --process" << endl;
+        
+        // reset
+        stream << indentation(2) << "if (" << resetPort << " = '0') then" 
+               << endl;
+        Machine::ImmediateUnitNavigator iuNav = 
+            machine_.immediateUnitNavigator();
 
-    stream << indentation(1) << "--long immediate write process" << endl;
-    stream << indentation(1) << "process ("
-           << clockPort << ", "  << resetPort << ")" << endl;
-    stream << indentation(1) << "begin --process" << endl;
-    
-    // reset
-    stream << indentation(2) << "if (" << resetPort << " = '0') then" 
-           << endl;
-    Machine::ImmediateUnitNavigator iuNav = 
-        machine_.immediateUnitNavigator();
-
-    for (int i = 0; i < iuNav.count(); i++) {
-        ImmediateUnit* iu = iuNav.item(i);
-        stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
-               << " <= '0';" << endl;
-        stream << indentation(3) << iuWritePort(iu->name()) 
-               << " <= (others => '0');" << endl;
-    }
-    // else
-    stream << indentation(2)  << "elsif (clk'event and clk = '1') then" << endl;
-    // global lock test
-    stream << indentation(3)  << "if lock = '0' then" << endl;
-    for (int i = 0; i < itNav.count(); i++) {
-        InstructionTemplate* iTemp = itNav.item(i);
-        int indLevel = 4;
-        if (bem_.hasImmediateControlField()) {
-            indLevel = 5;
-            if (i == 0) {
-                stream << indentation(4) << "if ("
-                       << instructionTemplateCondition(iTemp->name()) 
-                       << ") then" << endl;
-            } else if (i+1 < itNav.count()) {
-                stream << indentation(4) << "elsif ("
-                       << instructionTemplateCondition(iTemp->name())
-                       << ") then" << endl;
-            } else {
-                stream << indentation(4) << "else" << endl;
-            }
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
+                   << " <= '0';" << endl;
+            stream << indentation(3) << iuWritePort(iu->name()) 
+                   << " <= (others => '0');" << endl;
         }
-        writeInstructionTemplateProcedures(*iTemp, indLevel, stream);
-    }
+        // else
+        stream << indentation(2)  << "elsif (clk'event and clk = '1') then" << endl;
+        // global lock test
+        stream << indentation(3)  << "if lock = '0' then" << endl;
+        for (int i = 0; i < itNav.count(); i++) {
+            InstructionTemplate* iTemp = itNav.item(i);
+            int indLevel = 4;
+            if (bem_.hasImmediateControlField()) {
+                indLevel = 5;
+                if (i == 0) {
+                    stream << indentation(4) << "if ("
+                           << instructionTemplateCondition(VHDL,iTemp->name()) 
+                           << ") then" << endl;
+                } else if (i+1 < itNav.count()) {
+                    stream << indentation(4) << "elsif ("
+                           << instructionTemplateCondition(VHDL,iTemp->name())
+                           << ") then" << endl;
+                } else {
+                    stream << indentation(4) << "else" << endl;
+                }
+            }
+            writeInstructionTemplateProcedures(VHDL,*iTemp, indLevel, stream);
+        }
 
-    if (bem_.hasImmediateControlField()) {
-        stream << indentation(4) << "end if;" << endl;
+        if (bem_.hasImmediateControlField()) {
+            stream << indentation(4) << "end if;" << endl;
+        }
+        // global lock test endif
+        stream << indentation(3) << "end if;" << endl;
+        // reset endif
+        stream << indentation(2) << "end if;" << endl;
+        stream << indentation(1) << "end process;" << endl;
+    } else {
+        stream << indentation(1) << "//long immediate write process" << endl
+               << indentation(1) << "always@(posedge "
+               << clockPort << " or negedge "  << resetPort << ")" << endl
+                // reset
+               << indentation(2) << "if (" << resetPort << " == 0)"
+               << endl
+               << indentation(2) << "begin" << endl;
+        Machine::ImmediateUnitNavigator iuNav = 
+            machine_.immediateUnitNavigator();
+
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
+                   << " <= 1'b0;" << endl
+                   << indentation(3) << iuWritePort(iu->name()) 
+                   << " <= 0;" << endl;
+        }
+        stream  << indentation(2) << "end" << endl
+                << indentation(2) << "else" << endl
+                << indentation(2) << "begin" << endl
+                << indentation(3) << "if (lock == 0)" << endl
+                << indentation(3) << "begin" << endl;
+        for (int i = 0; i < itNav.count(); i++) {
+            InstructionTemplate* iTemp = itNav.item(i);
+            int indLevel = 4;
+            if (bem_.hasImmediateControlField()) {
+                indLevel = 5;
+                if (i == 0) {
+                    stream << indentation(4) << "if ("
+                           << instructionTemplateCondition(Verilog,iTemp->name()) 
+                           << ")" << endl;
+                } else if (i+1 < itNav.count()) {
+                    stream << indentation(4) << "else if ("
+                           << instructionTemplateCondition(Verilog,iTemp->name())
+                           << ")" << endl;
+                } else {
+                    stream << indentation(4) << "else" << endl;
+                }
+            }
+            writeInstructionTemplateProcedures(Verilog,*iTemp, indLevel, stream);
+        }
+        stream << indentation(3) << "end" << endl
+               << indentation(2) << "end" << endl;
     }
-    // global lock test endif
-    stream << indentation(3) << "end if;" << endl;
-    // reset endif
-    stream << indentation(2) << "end if;" << endl;
-    stream << indentation(1) << "end process;" << endl;
 }
 
 
@@ -1151,93 +1559,176 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
  */
 void
 DefaultDecoderGenerator::writeInstructionTemplateProcedures(
+    const ProGe::HDL language,
     const TTAMachine::InstructionTemplate& iTemp,
     int indLevel,
     std::ostream& stream) const {
 
     Machine::ImmediateUnitNavigator iuNav = 
         machine_.immediateUnitNavigator();
+    if(language==VHDL){
+        if (iTemp.isEmpty()) {
+            for (int i = 0; i < iuNav.count(); i++) {
+                ImmediateUnit* iu = iuNav.item(i);
+                stream << indentation(indLevel)
+                       << iuWriteLoadCntrlPort(iu->name()) << " <= '0';" << endl;
 
-    if (iTemp.isEmpty()) {
-        for (int i = 0; i < iuNav.count(); i++) {
-            ImmediateUnit* iu = iuNav.item(i);
-            stream << indentation(indLevel)
-                   << iuWriteLoadCntrlPort(iu->name()) << " <= '0';" << endl;
+                stream << indentation(indLevel)
+                       << iuWritePort(iu->name())
+                       << "(" << (iu->width() - 1) << " downto 0"
+                       << ") <= sxt(\"0\", " << iu->width() << ");" << endl;
+            }
+        } else {
+            for (int i = 0; i < iuNav.count(); i++) {
+                ImmediateUnit* iu = iuNav.item(i);
+                if (iTemp.isOneOfDestinations(*iu)) {
+                    int msb = iu->width() - 1; 
+                    int lsb = iTemp.supportedWidth(*iu) - 
+                        iTemp.supportedWidth(iTemp.slotOfDestination(*iu, 0));
+                    for (int j = 0; j < iTemp.numberOfSlots(*iu); j++) {
+                        string slot = iTemp.slotOfDestination(*iu, j);
+                        if (j != 0) {
+                            msb = lsb-1;
+                            lsb = msb - iTemp.supportedWidth(slot) + 1;
+                        }
+                        
+                        int immPartWidth = msb - lsb + 1;
+                        stream << indentation(indLevel)
+                               << iuWritePort(iu->name())
+                               << "(" << msb << " downto " << lsb << ") <= ";
+                        if (j == 0) {
+                            if (iu->extensionMode() == Machine::SIGN) {
+                                stream << "sxt(";
+                            } else {
+                                stream << "ext(";
+                            }
+                        }
 
-            stream << indentation(indLevel)
-                   << iuWritePort(iu->name())
-                   << "(" << (iu->width() - 1) << " downto 0"
-                   << ") <= sxt(\"0\", " << iu->width() << ");" << endl;
+                        if (machine_.busNavigator().hasItem(slot)) {
+                            MoveSlot& mSlot = bem_.moveSlot(slot);
+                            stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                                   << "(" << mSlot.bitPosition() + 
+                                iTemp.supportedWidth(slot) - 1
+                                   << " downto " << mSlot.bitPosition() << ")";
+                        } else {
+                            ImmediateSlotField& iSlot = 
+                                bem_.immediateSlot(slot);
+                            stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                                   << "(" << iSlot.bitPosition() + 
+                                iTemp.supportedWidth(slot) - 1
+                                   << " downto " << iSlot.bitPosition() << ")";
+                        }
+
+                        if (j == 0) {
+                            stream << ", " << immPartWidth << ");" << endl;
+                        } else {
+                            stream << ";" << endl;
+                        }
+
+                    }
+                    if (iu->numberOfRegisters() > 1) {
+                        LImmDstRegisterField& field = 
+                            bem_.longImmDstRegisterField(
+                            iTemp.name(), iu->name());
+                        stream << indentation(indLevel) 
+                               << iuWriteOpcodeCntrlPort(iu->name()) << " <= "
+                               << "ext("
+                               << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                               << "("
+                               << field.bitPosition() + rfOpcodeWidth(*iu) - 1
+                               << " downto " << field.bitPosition() << "), "
+                               << iuWriteOpcodeCntrlPort(iu->name())
+                               << "'length);" << endl;
+                    }
+                    stream << indentation(indLevel)
+                           << iuWriteLoadCntrlPort(iu->name()) << " <= '1';"
+                           << endl;
+                } else {
+                    stream << indentation(indLevel)
+                           << iuWriteLoadCntrlPort(iu->name()) << " <= '0';"
+                           << endl;
+                }
+            }
         }
     } else {
-        for (int i = 0; i < iuNav.count(); i++) {
-            ImmediateUnit* iu = iuNav.item(i);
-            if (iTemp.isOneOfDestinations(*iu)) {
-                int msb = iu->width() - 1; 
-                int lsb = iTemp.supportedWidth(*iu) - 
-                    iTemp.supportedWidth(iTemp.slotOfDestination(*iu, 0));
-                for (int j = 0; j < iTemp.numberOfSlots(*iu); j++) {
-                    string slot = iTemp.slotOfDestination(*iu, j);
-                    if (j != 0) {
-                        msb = lsb-1;
-                        lsb = msb - iTemp.supportedWidth(slot) + 1;
-                    }
-                    
-                    int immPartWidth = msb - lsb + 1;
-                    stream << indentation(indLevel)
-                           << iuWritePort(iu->name())
-                           << "(" << msb << " downto " << lsb << ") <= ";
-                    if (j == 0) {
-                        if (iu->extensionMode() == Machine::SIGN) {
-                            stream << "sxt(";
+        if (iTemp.isEmpty()) {
+            for (int i = 0; i < iuNav.count(); i++) {
+                ImmediateUnit* iu = iuNav.item(i);
+                stream << indentation(indLevel)
+                       << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b0;" << endl;
+
+                stream << indentation(indLevel)
+                       << iuWritePort(iu->name())
+                       << "[" << (iu->width() - 1) << " : 0"
+                       << "] <= {" << iu->width() <<"{1'b0}});" << endl;
+            }
+        } else {
+            for (int i = 0; i < iuNav.count(); i++) {
+                ImmediateUnit* iu = iuNav.item(i);
+                if (iTemp.isOneOfDestinations(*iu)) {
+                    int msb = iu->width() - 1; 
+                    int lsb = iTemp.supportedWidth(*iu) - 
+                        iTemp.supportedWidth(iTemp.slotOfDestination(*iu, 0));
+                    for (int j = 0; j < iTemp.numberOfSlots(*iu); j++) {
+                        string slot = iTemp.slotOfDestination(*iu, j);
+                        if (j != 0) {
+                            msb = lsb-1;
+                            lsb = msb - iTemp.supportedWidth(slot) + 1;
+                        }
+
+                        stream << indentation(indLevel)
+                               << iuWritePort(iu->name())
+                               << "[" << msb << " : " << lsb << "] <= ";
+                        if (j == 0) {
+                            if (iu->extensionMode() == Machine::SIGN) {
+                                stream << "$signed(";
+                            } else {
+                                stream << "$unsigned(";
+                            }
+                        }
+
+                        if (machine_.busNavigator().hasItem(slot)) {
+                            MoveSlot& mSlot = bem_.moveSlot(slot);
+                            stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                                   << "[" << mSlot.bitPosition() + 
+                                iTemp.supportedWidth(slot) - 1
+                                   << " : " << mSlot.bitPosition() << "]";
                         } else {
-                            stream << "ext(";
+                            ImmediateSlotField& iSlot = 
+                                bem_.immediateSlot(slot);
+                            stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                                   << "[" << iSlot.bitPosition() + 
+                                iTemp.supportedWidth(slot) - 1
+                                   << " : " << iSlot.bitPosition() << "]";
+                        }
+
+                        if (j == 0) {
+                            stream << ");" << endl;
+                        } else {
+                            stream << ";" << endl;
                         }
                     }
-
-                    if (machine_.busNavigator().hasItem(slot)) {
-                        MoveSlot& mSlot = bem_.moveSlot(slot);
-                        stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                               << "(" << mSlot.bitPosition() + 
-                            iTemp.supportedWidth(slot) - 1
-                               << " downto " << mSlot.bitPosition() << ")";
-                    } else {
-                        ImmediateSlotField& iSlot = 
-                            bem_.immediateSlot(slot);
-                        stream << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                               << "(" << iSlot.bitPosition() + 
-                            iTemp.supportedWidth(slot) - 1
-                               << " downto " << iSlot.bitPosition() << ")";
+                    if (iu->numberOfRegisters() > 1) {
+                        LImmDstRegisterField& field = 
+                            bem_.longImmDstRegisterField(
+                            iTemp.name(), iu->name());
+                        stream << indentation(indLevel) 
+                               << iuWriteOpcodeCntrlPort(iu->name()) << " <= "
+                               << "$unsigned("
+                               << NetlistGenerator::DECODER_INSTR_WORD_PORT
+                               << "["
+                               << field.bitPosition() + rfOpcodeWidth(*iu) - 1
+                               << " : " << field.bitPosition() << "]);"
+                               << endl;
                     }
-
-                    if (j == 0) {
-                        stream << ", " << immPartWidth << ");" << endl;
-                    } else {
-                        stream << ";" << endl;
-                    }
-
+                    stream << indentation(indLevel)
+                           << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b1;"
+                           << endl;
+                } else {
+                    stream << indentation(indLevel)
+                           << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b0;"
+                           << endl;
                 }
-                if (iu->numberOfRegisters() > 1) {
-                    LImmDstRegisterField& field = 
-                        bem_.longImmDstRegisterField(
-                        iTemp.name(), iu->name());
-                    stream << indentation(indLevel) 
-                           << iuWriteOpcodeCntrlPort(iu->name()) << " <= "
-                           << "ext("
-                           << NetlistGenerator::DECODER_INSTR_WORD_PORT
-                           << "("
-                           << field.bitPosition() + rfOpcodeWidth(*iu) - 1
-                           << " downto " << field.bitPosition() << "), "
-                           << iuWriteOpcodeCntrlPort(iu->name())
-                           << "'length);" << endl;
-                }
-                stream << indentation(indLevel)
-                       << iuWriteLoadCntrlPort(iu->name()) << " <= '1';"
-                       << endl;
-            } else {
-                stream << indentation(indLevel)
-                       << iuWriteLoadCntrlPort(iu->name()) << " <= '0';"
-                       << endl;
             }
         }
     }
@@ -1252,28 +1743,50 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
 void
 DefaultDecoderGenerator::writeMainDecodingProcess(
     std::ostream& stream) const {
+    if(language_==VHDL){
+        string resetPort = NetlistGenerator::DECODER_RESET_PORT;
+        string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
 
-    string resetPort = NetlistGenerator::DECODER_RESET_PORT;
-    string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
+        stream << indentation(1) << "-- main decoding process" << endl;
+        stream << indentation(1) << "process (" << clockPort << ", " 
+               << resetPort << ")" << endl;
+        stream << indentation(1) << "begin" << endl;
 
-    stream << indentation(1) << "-- main decoding process" << endl;
-    stream << indentation(1) << "process (" << clockPort << ", " 
-           << resetPort << ")" << endl;
-    stream << indentation(1) << "begin" << endl;
+        // if reset is active
+        stream << indentation(2) << "if (" << resetPort << " = '0') then" 
+               << endl;
+        writeResettingOfControlRegisters(stream);
+        stream << endl << indentation(2) 
+           << "elsif (clk'event and clk = '1') then" << endl << indentation(3);
+        stream <<  "if (" << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
+           << " = '0') then -- rising clock edge"
+           << endl << endl;
+        writeInstructionDecoding(stream);
+        stream << indentation(3) << "end if;" << endl;
+        stream << indentation(2) << "end if;" << endl;
+        stream << indentation(1) << "end process;" << endl;
+    } else {
+        string resetPort = NetlistGenerator::DECODER_RESET_PORT;
+        string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
 
-    // if reset is active
-    stream << indentation(2) << "if (" << resetPort << " = '0') then" 
-           << endl;
-    writeResettingOfControlRegisters(stream);
-    stream << endl << indentation(2) 
-	   << "elsif (clk'event and clk = '1') then" << endl << indentation(3);
-    stream <<  "if (" << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
-	   << " = '0') then -- rising clock edge"
-	   << endl << endl;
-    writeInstructionDecoding(stream);
-    stream << indentation(3) << "end if;" << endl;
-    stream << indentation(2) << "end if;" << endl;
-    stream << indentation(1) << "end process;" << endl;
+        stream << indentation(1) << "// main decoding process" << endl
+               << indentation(1) << "always@(posedge " << clockPort
+               << " or negedge " << resetPort << ")" << endl
+                // if reset is active
+               << indentation(2) << "if (" << resetPort << " == 0)" << endl
+               << indentation(2) <<"begin" << endl;
+        writeResettingOfControlRegisters(stream);
+        stream << indentation(2) << "end"  << endl
+               << indentation(2) << "else" << endl
+               << indentation(3) << "begin"<< endl
+               << indentation(3) << "if ("
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
+               << " == 0)" << endl << endl
+               << indentation(3) << "begin"<< endl;
+        writeInstructionDecoding(stream);
+        stream << indentation(3) << "end" << endl
+               << indentation(2) << "end" << endl;
+    }
 }
     
     
@@ -1285,90 +1798,175 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
 void
 DefaultDecoderGenerator::writeResettingOfControlRegisters(
     std::ostream& stream) const {
-
-    // reset socket control registers
-    Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i < socketNav.count(); i++) {
-        Socket* socket = socketNav.item(i);
-        if (needsBusControl(*socket)) {
-            stream << indentation(3) 
-                   << socketBusCntrlSignalName(socket->name())
-                   << " <= (others => '0');" << endl;
-        }
-        if (needsDataControl(*socket)) {
-            stream << indentation(3) 
-                   << socketDataCntrlSignalName(socket->name())
-                   << " <= (others => '0');" << endl;
-        }
-    }
-
-    stream << endl;
-
-    // reset short immediate registers
-    Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        if (bus->immediateWidth() > 0) {
-            stream << indentation(3) << simmCntrlSignalName(bus->name())
-                   << " <= (others => '0');" << endl;
-            stream << indentation(3) << simmDataSignalName(bus->name())
-                   << " <= (others => '0');" << endl;
-        }
-    }
-
-    stream << endl;
-        
-    // reset FU control registers
-    Machine::FunctionUnitNavigator fuNav = machine_.
-        functionUnitNavigator();
-    for (int i = 0; i < fuNav.count(); i++) {
-        FunctionUnit* fu = fuNav.item(i);
-        if (opcodeWidth(*fu) > 0) {
-            stream << indentation(3) << fuOpcodeSignalName(fu->name()) 
-                   << " <= (others => '0');" << endl;
-        }
-        
-        for (int i = 0; i < fu->portCount(); i++) {
-            BaseFUPort* port = fu->port(i);
-            if (port->inputSocket() != NULL) {
+    if(language_==VHDL){
+        // reset socket control registers
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (needsBusControl(*socket)) {
                 stream << indentation(3) 
-                       << fuLoadSignalName(fu->name(), port->name()) 
-                       << " <= '0';" << endl;
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= (others => '0');" << endl;
             }
-        }
-    }
-
-    // reset GCU control registers
-    ControlUnit* gcu = machine_.controlUnit();
-    stream << indentation(3) << fuOpcodeSignalName(gcu->name())
-           << " <= (others => '0');" << endl;
-    for (int i = 0; i < gcu->portCount(); i++) {
-        BaseFUPort* port = gcu->port(i);
-        if (port->inputSocket() != NULL) {
-            stream << indentation(3)
-                   << fuLoadSignalName(gcu->name(), port->name())
-                   << " <= '0';" << endl;
-        }
-    }
-
-    stream << endl;
-
-    // reset RF control registers
-    Machine::RegisterFileNavigator rfNav = machine_.
-        registerFileNavigator();
-    for (int i = 0; i < rfNav.count(); i++) {
-        RegisterFile* rf = rfNav.item(i);
-        for (int i = 0; i < rf->portCount(); i++) {
-            RFPort* port = rf->port(i);
-            stream << indentation(3) 
-                   << rfLoadSignalName(rf->name(), port->name())
-                   << " <= '0';" << endl;
-            if (0 < rfOpcodeWidth(*rf)) {
+            if (needsDataControl(*socket)) {
                 stream << indentation(3) 
-                       << rfOpcodeSignalName(rf->name(), port->name()) 
+                       << socketDataCntrlSignalName(socket->name())
                        << " <= (others => '0');" << endl;
             }
         }
+
+        stream << endl;
+
+        // reset short immediate registers
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(3) << simmCntrlSignalName(bus->name())
+                       << " <= (others => '0');" << endl;
+                stream << indentation(3) << simmDataSignalName(bus->name())
+                       << " <= (others => '0');" << endl;
+            }
+        }
+
+        stream << endl;
+        // reset FU control registers
+        Machine::FunctionUnitNavigator fuNav = machine_.
+            functionUnitNavigator();
+        for (int i = 0; i < fuNav.count(); i++) {
+            FunctionUnit* fu = fuNav.item(i);
+            if (opcodeWidth(*fu) > 0) {
+                stream << indentation(3) << fuOpcodeSignalName(fu->name()) 
+                       << " <= (others => '0');" << endl;
+            }
+            
+            for (int i = 0; i < fu->portCount(); i++) {
+                BaseFUPort* port = fu->port(i);
+                if (port->inputSocket() != NULL) {
+                    stream << indentation(3) 
+                           << fuLoadSignalName(fu->name(), port->name()) 
+                           << " <= '0';" << endl;
+                }
+            }
+        }
+
+        // reset GCU control registers
+        ControlUnit* gcu = machine_.controlUnit();
+        stream << indentation(3) << fuOpcodeSignalName(gcu->name())
+               << " <= (others => '0');" << endl;
+        for (int i = 0; i < gcu->portCount(); i++) {
+            BaseFUPort* port = gcu->port(i);
+            if (port->inputSocket() != NULL) {
+                stream << indentation(3)
+                       << fuLoadSignalName(gcu->name(), port->name())
+                       << " <= '0';" << endl;
+            }
+        }
+
+        stream << endl;
+
+        // reset RF control registers
+        Machine::RegisterFileNavigator rfNav = machine_.
+            registerFileNavigator();
+        for (int i = 0; i < rfNav.count(); i++) {
+            RegisterFile* rf = rfNav.item(i);
+            for (int i = 0; i < rf->portCount(); i++) {
+                RFPort* port = rf->port(i);
+                stream << indentation(3) 
+                       << rfLoadSignalName(rf->name(), port->name())
+                       << " <= '0';" << endl;
+                if (0 < rfOpcodeWidth(*rf)) {
+                    stream << indentation(3) 
+                           << rfOpcodeSignalName(rf->name(), port->name()) 
+                           << " <= (others => '0');" << endl;
+                }
+            }
+        }
+    } else {
+        // reset socket control registers
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (needsBusControl(*socket)) {
+                stream << indentation(3) 
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= 0;" << endl;
+            }
+            if (needsDataControl(*socket)) {
+                stream << indentation(3) 
+                       << socketDataCntrlSignalName(socket->name())
+                       << " <= 0;" << endl;
+            }
+        }
+
+        stream << endl;
+
+        // reset short immediate registers
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(3) << simmCntrlSignalName(bus->name())
+                       << " <= 0;" << endl;
+                stream << indentation(3) << simmDataSignalName(bus->name())
+                       << " <= 0;" << endl;
+            }
+        }
+
+        stream << endl;
+            
+        // reset FU control registers
+        Machine::FunctionUnitNavigator fuNav = machine_.
+            functionUnitNavigator();
+        for (int i = 0; i < fuNav.count(); i++) {
+            FunctionUnit* fu = fuNav.item(i);
+            if (opcodeWidth(*fu) > 0) {
+                stream << indentation(3) << fuOpcodeSignalName(fu->name()) 
+                       << " <= 0;" << endl;
+            }
+            
+            for (int i = 0; i < fu->portCount(); i++) {
+                BaseFUPort* port = fu->port(i);
+                if (port->inputSocket() != NULL) {
+                    stream << indentation(3) 
+                           << fuLoadSignalName(fu->name(), port->name()) 
+                           << " <= 1'b0;" << endl;
+                }
+            }
+        }
+
+        // reset GCU control registers
+        ControlUnit* gcu = machine_.controlUnit();
+        stream << indentation(3) << fuOpcodeSignalName(gcu->name())
+               << " <= 0;" << endl;
+        for (int i = 0; i < gcu->portCount(); i++) {
+            BaseFUPort* port = gcu->port(i);
+            if (port->inputSocket() != NULL) {
+                stream << indentation(3)
+                       << fuLoadSignalName(gcu->name(), port->name())
+                       << " <= 1'b0;" << endl;
+            }
+        }
+
+        stream << endl;
+
+        // reset RF control registers
+        Machine::RegisterFileNavigator rfNav = machine_.
+            registerFileNavigator();
+        for (int i = 0; i < rfNav.count(); i++) {
+            RegisterFile* rf = rfNav.item(i);
+            for (int i = 0; i < rf->portCount(); i++) {
+                RFPort* port = rf->port(i);
+                stream << indentation(3) 
+                       << rfLoadSignalName(rf->name(), port->name())
+                       << " <= 1'b0;" << endl;
+                if (0 < rfOpcodeWidth(*rf)) {
+                    stream << indentation(3) 
+                           << rfOpcodeSignalName(rf->name(), port->name()) 
+                           << " <= 0;" << endl;
+                }
+            }
+        }    
     }
 }
 
@@ -1397,8 +1995,9 @@ DefaultDecoderGenerator::writeInstructionDecoding(
 void
 DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     std::ostream& stream) const {
-
-    stream << indentation(4) << "-- bus control signals for output sockets"
+    
+    stream << indentation(4) << ((language_==VHDL)?"--":"//")
+           << "bus control signals for output sockets"
            << endl;
 
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -1411,7 +2010,8 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     }
 
     stream << endl << indentation(4)
-           << "-- bus control signals for short immediate sockets" << endl;
+           << ((language_==VHDL)?"--":"//")
+           << "bus control signals for short immediate sockets" << endl;
     Machine::BusNavigator busNav = machine_.busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
         Bus* bus = busNav.item(i);
@@ -1421,7 +2021,8 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     }
 
     stream << endl << indentation(4) 
-           << "-- data control signals for output sockets connected to FUs"
+           << ((language_==VHDL)?"--":"//")
+           << "data control signals for output sockets connected to FUs"
            << endl;
     Machine::FunctionUnitNavigator fuNav = machine_.functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
@@ -1444,8 +2045,9 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
         }
     }
 
-    stream << endl << indentation(4) 
-           << "-- control signals for RF read ports" << endl;
+    stream << endl << indentation(4)
+           << ((language_==VHDL)?"--":"//")
+           << "control signals for RF read ports" << endl;
     Machine::RegisterFileNavigator rfNav = machine_.registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile* rf = rfNav.item(i);
@@ -1458,7 +2060,8 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     }
 
     stream << endl << indentation(4)
-           << "-- control signals for IU read ports" << endl;
+           << ((language_==VHDL)?"--":"//")
+           << "control signals for IU read ports" << endl;
     Machine::ImmediateUnitNavigator iuNav = 
         machine_.immediateUnitNavigator();
     for (int i = 0; i < iuNav.count(); i++) {
@@ -1483,7 +2086,9 @@ void
 DefaultDecoderGenerator::writeRulesForDestinationControlSignals(
     std::ostream& stream) const {
 
-    stream << indentation(4) << "-- control signals for FU inputs" << endl;
+    stream << indentation(4)
+           << ((language_==VHDL)?"--":"//")
+           << "control signals for FU inputs" << endl;
     Machine::FunctionUnitNavigator fuNav = machine_.functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
         FunctionUnit* fu = fuNav.item(i);
@@ -1503,7 +2108,9 @@ DefaultDecoderGenerator::writeRulesForDestinationControlSignals(
         }
     }
 
-    stream << endl << indentation(4) << "-- control signals for RF inputs"
+    stream << endl << indentation(4)
+           << ((language_==VHDL)?"--":"//")
+           << "control signals for RF inputs"
            << endl;
     Machine::RegisterFileNavigator rfNav = machine_.registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
@@ -1530,24 +2137,42 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
     std::ostream& stream) const {
 
     assert(socket.direction() == Socket::OUTPUT);
-    
-    // collect to a set all the buses the socket is connected to
-    BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(socket);
-    for (BusSet::const_iterator iter = connectedBuses.begin(); 
-         iter != connectedBuses.end(); iter++) {
-        Bus* bus = *iter;
-        MoveSlot& slot = bem_.moveSlot(bus->name());
-        SourceField& srcField = slot.sourceField();
-        stream << indentation(4) << "if (" 
-               << socketEncodingCondition(srcField, socket.name()) 
-               << " and " << squashSignal(bus->name()) << " = '0') then"
-               << endl;
-        string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
-        stream << indentation(5) << busCntrlPin << " <= '1';" << endl;
-        
-        stream << indentation(4) << "else" << endl;
-        stream << indentation(5) << busCntrlPin << " <= '0';" << endl;
-        stream << indentation(4) << "end if;" << endl;
+    if(language_==VHDL){
+        // collect to a set all the buses the socket is connected to
+        BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(socket);
+        for (BusSet::const_iterator iter = connectedBuses.begin(); 
+             iter != connectedBuses.end(); iter++) {
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            stream << indentation(4) << "if (" 
+                   << socketEncodingCondition(VHDL,srcField, socket.name()) 
+                   << " and " << squashSignal(bus->name()) << " = '0') then"
+                   << endl;
+            string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
+            stream << indentation(5) << busCntrlPin << " <= '1';" << endl;
+            
+            stream << indentation(4) << "else" << endl;
+            stream << indentation(5) << busCntrlPin << " <= '0';" << endl;
+            stream << indentation(4) << "end if;" << endl;
+        }
+    } else{
+        // collect to a set all the buses the socket is connected to
+        BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(socket);
+        for (BusSet::const_iterator iter = connectedBuses.begin(); 
+             iter != connectedBuses.end(); iter++) {
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            stream << indentation(4) << "if (" 
+                   << socketEncodingCondition(Verilog,srcField, socket.name()) 
+                   << " && " << squashSignal(bus->name()) << " == 0)"
+                   << endl;
+            string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
+            stream << indentation(5) << busCntrlPin << " <= 1'b1;" << endl
+                   << indentation(4) << "else" << endl
+                   << indentation(5) << busCntrlPin << " <= 1'b0;" << endl << endl;
+        }
     }
 }      
 
@@ -1569,27 +2194,55 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
     SourceField& srcField = slot.sourceField();
     assert(srcField.hasImmediateEncoding());
     ImmediateEncoding& enc = srcField.immediateEncoding();
-    stream << indentation(4) << "if (conv_integer(unsigned(" 
-           << srcFieldSignal(bus.name()) << "(" 
-           << enc.encodingPosition() + enc.encodingWidth() - 1 << " downto " 
-           << enc.encodingPosition() << "))) = " << enc.encoding() << " and "
-           << squashSignal(bus.name()) << " = '0') then" << endl;
-    stream << indentation(5) << simmCntrlSignalName(bus.name())
-           << "(0) <= '1';" << endl;
-    stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
-    if (bus.signExtends()) {
-        stream << "sxt(";
+    
+    if(language_==VHDL){
+        stream << indentation(4) << "if (conv_integer(unsigned(" 
+               << srcFieldSignal(bus.name()) << "(" 
+               << enc.encodingPosition() + enc.encodingWidth() - 1 << " downto " 
+               << enc.encodingPosition() << "))) = " << enc.encoding() << " and "
+               << squashSignal(bus.name()) << " = '0') then" << endl;
+        stream << indentation(5) << simmCntrlSignalName(bus.name())
+               << "(0) <= '1';" << endl;
+        stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
+        if (bus.signExtends()) {
+            stream << "sxt(";
+        } else {
+            stream << "ext(";
+        }
+        stream << srcFieldSignal(bus.name()) << "("
+               << enc.immediatePosition() + enc.immediateWidth() - 1
+               << " downto " << enc.immediatePosition() << "), "
+               << simmDataSignalName(bus.name()) << "'length);" << endl;
+        stream << indentation(4) << "else" << endl;
+        stream << indentation(5) << simmCntrlSignalName(bus.name())
+               << "(0) <= '0';" << endl;
+        stream << indentation(4) << "end if;" << endl;
     } else {
-        stream << "ext(";
+        stream << indentation(4) << "if (" 
+               << srcFieldSignal(bus.name()) << "[" 
+               << enc.encodingPosition() + enc.encodingWidth() - 1 << " : " 
+               << enc.encodingPosition() << "] == " << enc.encoding() << " && "
+               << squashSignal(bus.name()) << " == 0)" << endl
+               << indentation(4) << "begin" << endl
+               << indentation(5) << simmCntrlSignalName(bus.name())
+               << "[0] <= 1'b1;" << endl
+               << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
+        
+        if (bus.signExtends()) {
+            stream << "$signed(";
+        } else {
+            stream << "$unsigned(";
+        }
+        stream << srcFieldSignal(bus.name()) << "["
+               << enc.immediatePosition() + enc.immediateWidth() - 1
+               << " : " << enc.immediatePosition() << "]);" << endl
+               << indentation(4) << "end"   << endl
+               << indentation(4) << "else"  << endl
+               << indentation(4) << "begin" << endl
+               << indentation(5) << simmCntrlSignalName(bus.name())
+               << "[0] <= 1'b0;" << endl
+               << indentation(4) << "end" << endl;
     }
-    stream << srcFieldSignal(bus.name()) << "("
-           << enc.immediatePosition() + enc.immediateWidth() - 1
-           << " downto " << enc.immediatePosition() << "), "
-           << simmDataSignalName(bus.name()) << "'length);" << endl;
-    stream << indentation(4) << "else" << endl;
-    stream << indentation(5) << simmCntrlSignalName(bus.name())
-           << "(0) <= '0';" << endl;
-    stream << indentation(4) << "end if;" << endl;
 }
 
 
@@ -1607,32 +2260,57 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
 
     Socket* socket = port.outputSocket();
     assert(socket != NULL);
-    
     BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(*socket);
-    for (BusSet::const_iterator iter = connectedBuses.begin();
-         iter != connectedBuses.end(); iter++) {
-        Bus* bus = *iter;
-        MoveSlot& slot = bem_.moveSlot(bus->name());
-        SourceField& srcField = slot.sourceField();
-        SocketEncoding& enc = srcField.socketEncoding(socket->name());
-        stream << indentation(4) << "if ("
-               << socketEncodingCondition(srcField, socket->name())
-               << " and " << squashSignal(bus->name()) << " = '0'";
-        if (enc.hasSocketCodes()) {
-            SocketCodeTable& scTable = enc.socketCodes();
-            FUPortCode& code = scTable.fuPortCode(
-                port.parentUnit()->name(), port.name());
-            stream << " and " << portCodeCondition(enc, code) << ") then" 
-                   << endl;
-        } else {
-            stream << ") then" << endl;
+    if(language_==VHDL){
+        for (BusSet::const_iterator iter = connectedBuses.begin();
+             iter != connectedBuses.end(); iter++) {
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            SocketEncoding& enc = srcField.socketEncoding(socket->name());
+            stream << indentation(4) << "if ("
+                   << socketEncodingCondition(VHDL,srcField, socket->name())
+                   << " and " << squashSignal(bus->name()) << " = '0'";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                FUPortCode& code = scTable.fuPortCode(
+                    port.parentUnit()->name(), port.name());
+                stream << " and " << portCodeCondition(VHDL,enc, code) << ") then" 
+                       << endl;
+            } else {
+                stream << ") then" << endl;
+            }
+            stream << indentation(5) << socketDataCntrlSignalName(socket->name())
+                   << " <= " << "conv_std_logic_vector(" 
+                   << icGenerator_.outputSocketDataControlValue(*socket, port) 
+                   << ", " << socketDataCntrlSignalName(socket->name()) 
+                   << "'length);" << endl; 
+            stream << indentation(4) << "end if;" << endl;
         }
-        stream << indentation(5) << socketDataCntrlSignalName(socket->name())
-               << " <= " << "conv_std_logic_vector(" 
-               << icGenerator_.outputSocketDataControlValue(*socket, port) 
-               << ", " << socketDataCntrlSignalName(socket->name()) 
-               << "'length);" << endl; 
-        stream << indentation(4) << "end if;" << endl;
+    } else {
+        for (BusSet::const_iterator iter = connectedBuses.begin();
+             iter != connectedBuses.end(); iter++) {
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            SocketEncoding& enc = srcField.socketEncoding(socket->name());
+            stream << indentation(4) << "if ("
+                   << socketEncodingCondition(Verilog,srcField, socket->name())
+                   << " && " << squashSignal(bus->name()) << " == 0";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                FUPortCode& code = scTable.fuPortCode(
+                    port.parentUnit()->name(), port.name());
+                stream << " && " << portCodeCondition(Verilog,enc, code) << ")"
+                       << endl;
+            } else {
+                stream << ")" << endl;
+            }
+            stream << indentation(5) << socketDataCntrlSignalName(socket->name())
+                   << " <= "
+                   << icGenerator_.outputSocketDataControlValue(*socket, port) 
+                   << ";" << endl;
+        }
     }
 }
 
@@ -1654,76 +2332,150 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
 
     // collect to a set all the buses the socket is connected to
     BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(*socket);
-    for (BusSet::const_iterator iter = connectedBuses.begin();
-         iter != connectedBuses.end();iter++) {
-        BusSet::const_iterator nextIter = iter;
-        nextIter++;
-        if (iter == connectedBuses.begin()) {
-            stream << indentation(4) << "if (";
-        } else {
-            stream << indentation(4) << "elsif (";
-        }
-
-        Bus* bus = *iter;
-        MoveSlot& slot = bem_.moveSlot(bus->name());
-        SourceField& srcField = slot.sourceField();
-        SocketEncoding& enc = srcField.socketEncoding(socket->name());
-        SocketCodeTable* scTable = NULL;
-        if (enc.hasSocketCodes()) {
-            scTable = &enc.socketCodes();
-        }
-
-        PortCode* code = NULL;
-        if (scTable != NULL) {
-            if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-                code = &scTable->iuPortCode(rf->name());
+    if(language_==VHDL){
+        for (BusSet::const_iterator iter = connectedBuses.begin();
+             iter != connectedBuses.end();iter++) {
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            if (iter == connectedBuses.begin()) {
+                stream << indentation(4) << "if (";
             } else {
-                code = &scTable->rfPortCode(rf->name());
+                stream << indentation(4) << "elsif (";
             }
-        }
-        stream << socketEncodingCondition(srcField, socket->name()) << " and " 
-               << squashSignal(bus->name()) << " = '0'";
-        if (code != NULL && code->hasEncoding()) {
-            stream << " and " << portCodeCondition(enc, *code);
-        }
-        stream << ") then" << endl;
-        
-        string loadSignalName;
-        string opcodeSignalName;
-        if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-            loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
-            opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
-        } else {
-            loadSignalName = rfLoadSignalName(rf->name(), port.name());
-            opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
-        }
-        
-        stream << indentation(5) << loadSignalName << " <= '1';" << endl;
-        if (code != NULL) {
-            stream << indentation(5) << opcodeSignalName << " <= ext(" 
-                   << rfOpcodeFromSrcOrDstField(enc, *code) << ", "
-                   << opcodeSignalName << "'length);" << endl;
-        }
-        
-        if (needsDataControl(*socket)) {
-            stream << indentation(5) 
-                   << socketDataCntrlSignalName(socket->name())
-                   << " <= conv_std_logic_vector(" 
-                   << icGenerator_.outputSocketDataControlValue(*socket, port)
-                   << ", " << socketDataCntrlSignalName(socket->name())
-                   << "'length);" << endl;
-        }                                                 
-    }
 
-    stream << indentation(4) << "else" << endl;
-    stream << indentation(5);
-    if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-        stream << iuReadLoadCntrlPort(rf->name(), port.name());
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            SocketEncoding& enc = srcField.socketEncoding(socket->name());
+            SocketCodeTable* scTable = NULL;
+            if (enc.hasSocketCodes()) {
+                scTable = &enc.socketCodes();
+            }
+
+            PortCode* code = NULL;
+            if (scTable != NULL) {
+                if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+                    code = &scTable->iuPortCode(rf->name());
+                } else {
+                    code = &scTable->rfPortCode(rf->name());
+                }
+            }
+            stream << socketEncodingCondition(VHDL,srcField, socket->name()) << " and " 
+                   << squashSignal(bus->name()) << " = '0'";
+            if (code != NULL && code->hasEncoding()) {
+                stream << " and " << portCodeCondition(VHDL,enc, *code);
+            }
+            stream << ") then" << endl;
+            
+            string loadSignalName;
+            string opcodeSignalName;
+            if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+                loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
+                opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
+            } else {
+                loadSignalName = rfLoadSignalName(rf->name(), port.name());
+                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
+            }
+            
+            stream << indentation(5) << loadSignalName << " <= '1';" << endl;
+            if (code != NULL) {
+                stream << indentation(5) << opcodeSignalName << " <= ext(" 
+                       << rfOpcodeFromSrcOrDstField(VHDL,enc, *code) << ", "
+                       << opcodeSignalName << "'length);" << endl;
+            }
+            
+            if (needsDataControl(*socket)) {
+                stream << indentation(5) 
+                       << socketDataCntrlSignalName(socket->name())
+                       << " <= conv_std_logic_vector(" 
+                       << icGenerator_.outputSocketDataControlValue(*socket, port)
+                       << ", " << socketDataCntrlSignalName(socket->name())
+                       << "'length);" << endl;
+            }                                                 
+        }
+
+        stream << indentation(4) << "else" << endl;
+        stream << indentation(5);
+        if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+            stream << iuReadLoadCntrlPort(rf->name(), port.name());
+        } else {
+            stream << rfLoadSignalName(rf->name(), port.name());
+        }
+        stream << " <= '0';" << endl;
+        stream << indentation(4) << "end if;" << endl;
     } else {
-        stream << rfLoadSignalName(rf->name(), port.name());
+        for (BusSet::const_iterator iter = connectedBuses.begin();
+             iter != connectedBuses.end();iter++) {
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            if (iter == connectedBuses.begin()) {
+                stream << indentation(4) << "if (";
+            } else {
+                stream << indentation(4) << "else if(";
+            }
+            
+            Bus* bus = *iter;
+            MoveSlot& slot = bem_.moveSlot(bus->name());
+            SourceField& srcField = slot.sourceField();
+            SocketEncoding& enc = srcField.socketEncoding(socket->name());
+            SocketCodeTable* scTable = NULL;
+            if (enc.hasSocketCodes()) {
+                scTable = &enc.socketCodes();
+            }
+
+            PortCode* code = NULL;
+            if (scTable != NULL) {
+                if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+                    code = &scTable->iuPortCode(rf->name());
+                } else {
+                    code = &scTable->rfPortCode(rf->name());
+                }
+            }
+            stream << socketEncodingCondition(Verilog,srcField, socket->name())
+                   << " && " 
+                   << squashSignal(bus->name()) << " == 0";
+            if (code != NULL && code->hasEncoding()) {
+                stream << " && " << portCodeCondition(Verilog,enc, *code);
+            }
+            stream << ")" << endl
+                   << indentation(4) << "begin" << endl;
+            
+            string loadSignalName;
+            string opcodeSignalName;
+            if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+                loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
+                opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
+            } else {
+                loadSignalName = rfLoadSignalName(rf->name(), port.name());
+                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
+            }
+            
+            stream << indentation(5) << loadSignalName << " <= 1'b1;" << endl;
+            if (code != NULL) {
+                stream << indentation(5) << opcodeSignalName << " <= $unsigned(" 
+                       << rfOpcodeFromSrcOrDstField(Verilog,enc, *code) << ");" << endl;
+            }
+            
+            if (needsDataControl(*socket)) {
+                stream << indentation(5) 
+                       << socketDataCntrlSignalName(socket->name())
+                       << " <= " 
+                       << icGenerator_.outputSocketDataControlValue(*socket, port)
+                       << ";" << endl;
+            }
+            stream << indentation(4) << "end" << endl;
+        }
+        stream << indentation(4) << "else"  << endl
+               << indentation(4) << "begin" << endl
+               << indentation(5);
+        if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
+            stream << iuReadLoadCntrlPort(rf->name(), port.name());
+        } else {
+            stream << rfLoadSignalName(rf->name(), port.name());
+        }
+        stream << " <= 1'b0;" << endl
+               << indentation(4) << "end" << endl;
     }
-    stream << " <= '0';" << endl;
-    stream << indentation(4) << "end if;" << endl;
 }
 
 
@@ -1743,114 +2495,227 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
     assert(socket != NULL);
     BusSet buses = connectedBuses(*socket);
     stream << indentation(4) << "if (";
-    for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
-         iter++) {
-        Bus* bus = *iter;
-        MoveSlot& moveSlot = bem_.moveSlot(bus->name());
-        DestinationField& dstField = moveSlot.destinationField();
-        SocketEncoding& enc = dstField.socketEncoding(socket->name());
-        stream << socketEncodingCondition(dstField, socket->name());
-        stream << " and " << squashSignal(bus->name()) << " = '0'";
-        if (enc.hasSocketCodes()) {
-            SocketCodeTable& scTable = enc.socketCodes();
-            if (port.isOpcodeSetting()) {
-                stream << ") then" << endl;
-                stream << indentation(5) << "if (";
-                for (int i = 0; i < fu->operationCount(); i++) {
-                    HWOperation* operation = fu->operation(i);
-                    FUPortCode& code = scTable.fuPortCode(
-                        fu->name(), port.name(), operation->name());
-                    stream << portCodeCondition(enc, code) << ") then"
-                           << endl;
+    if(language_==VHDL){
+        for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
+             iter++) {
+            Bus* bus = *iter;
+            MoveSlot& moveSlot = bem_.moveSlot(bus->name());
+            DestinationField& dstField = moveSlot.destinationField();
+            SocketEncoding& enc = dstField.socketEncoding(socket->name());
+            stream << socketEncodingCondition(VHDL,dstField, socket->name());
+            stream << " and " << squashSignal(bus->name()) << " = '0'";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                if (port.isOpcodeSetting()) {
+                    stream << ") then" << endl;
+                    stream << indentation(5) << "if (";
+                    for (int i = 0; i < fu->operationCount(); i++) {
+                        HWOperation* operation = fu->operation(i);
+                        FUPortCode& code = scTable.fuPortCode(
+                            fu->name(), port.name(), operation->name());
+                        stream << portCodeCondition(VHDL,enc, code) << ") then"
+                               << endl;
+                        stream << indentation(6) 
+                               << fuLoadSignalName(fu->name(), port.name())
+                               << " <= '1';" << endl;
+                        ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
+                        if (gcu != NULL) {
+                            if (operation->name() == JUMP) {
+                                stream << indentation(5) 
+                                       << fuOpcodeSignalName(fu->name())
+                                       << " <= IFE_JUMP;" << endl;
+                            } else if (operation->name() == CALL) {
+                                stream << indentation(5)
+                                       << fuOpcodeSignalName(fu->name())
+                                       << " <= IFE_CALL;" << endl;
+                            }
+                        } else {                            
+                            stream << indentation(6) 
+                                   << fuOpcodeSignalName(fu->name())
+                                   << " <= conv_std_logic_vector(" 
+                                   << opcode(*operation) << ", " 
+                                   << fuOpcodeSignalName(fu->name())
+                                   << "'length);"
+                                   << endl;
+                        }
+                        if (i+1 < fu->operationCount()) {
+                            stream << indentation(5) << "elsif (";
+                        }
+                    }
+                    stream << indentation(5) << "else" << endl;
                     stream << indentation(6) 
                            << fuLoadSignalName(fu->name(), port.name())
+                           << " <= '0';"
+                           << endl;
+                    stream << indentation(5) << "end if;" << endl;
+                } else {
+                    FUPortCode& code = scTable.fuPortCode(
+                        fu->name(), port.name());
+                    stream << " and " << portCodeCondition(VHDL,enc, code) << ") then"
+                           << endl;
+                    stream << indentation(5) 
+                           << fuLoadSignalName(fu->name(), port.name()) 
                            << " <= '1';" << endl;
-                    ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
-                    if (gcu != NULL) {
-                        if (operation->name() == JUMP) {
+                }
+
+            } else {
+                stream << ") then" << endl;
+                stream << indentation(5) 
+                       << fuLoadSignalName(fu->name(), port.name()) << " <= '1';"
+                       << endl;
+                ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
+                if (gcu != NULL) {
+                    if (gcu->hasOperation(JUMP)) {
+                        HWOperation* jumpOp = gcu->operation(JUMP);
+                        if (&port == jumpOp->port(1)) {
                             stream << indentation(5) 
                                    << fuOpcodeSignalName(fu->name())
                                    << " <= IFE_JUMP;" << endl;
-                        } else if (operation->name() == CALL) {
+                        }
+                    }
+                    if (gcu->hasOperation(CALL)) {
+                        HWOperation* callOp = gcu->operation(CALL);
+                        if (&port == callOp->port(1)) {
                             stream << indentation(5)
                                    << fuOpcodeSignalName(fu->name())
                                    << " <= IFE_CALL;" << endl;
                         }
-                    } else {                            
-                        stream << indentation(6) 
-                               << fuOpcodeSignalName(fu->name())
-                               << " <= conv_std_logic_vector(" 
-                               << opcode(*operation) << ", " 
-                               << fuOpcodeSignalName(fu->name())
-                               << "'length);"
-                               << endl;
-                    }
-                    if (i+1 < fu->operationCount()) {
-                        stream << indentation(5) << "elsif (";
                     }
                 }
-                stream << indentation(5) << "else" << endl;
-                stream << indentation(6) 
-                       << fuLoadSignalName(fu->name(), port.name())
-                       << " <= '0';"
+            }
+            if (needsBusControl(*socket)) {
+                stream << indentation(5)
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= conv_std_logic_vector(" 
+                       << icGenerator_.inputSocketControlValue(
+                           *socket, *bus->segment(0)) << ", " 
+                       << socketBusCntrlSignalName(socket->name()) << "'length);"
                        << endl;
-                stream << indentation(5) << "end if;" << endl;
+            }
+            
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            if (nextIter != buses.end()) {
+                stream << indentation(4) << "elsif (";
+            };
+        }
+
+        stream << indentation(4) << "else" << endl;
+        stream << indentation(5) << fuLoadSignalName(fu->name(), port.name())
+               << " <= '0';" << endl;
+        stream << indentation(4) << "end if;" << endl;
+    } else {
+        for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
+             iter++) {
+            Bus* bus = *iter;
+            MoveSlot& moveSlot = bem_.moveSlot(bus->name());
+            DestinationField& dstField = moveSlot.destinationField();
+            SocketEncoding& enc = dstField.socketEncoding(socket->name());
+            stream << socketEncodingCondition(Verilog,dstField, socket->name())
+                   << " && " << squashSignal(bus->name()) << " == 0";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                if (port.isOpcodeSetting()) {
+                    stream << ")" << endl
+                           << indentation(4) << "begin" << endl 
+                           << indentation(5) << "if (";
+                    for (int i = 0; i < fu->operationCount(); i++) {
+                        HWOperation* operation = fu->operation(i);
+                        FUPortCode& code = scTable.fuPortCode(
+                            fu->name(), port.name(), operation->name());
+                        stream << portCodeCondition(Verilog,enc, code) << ")"
+                               << endl
+                               << indentation(5) << "begin" << endl
+                               << indentation(6) 
+                               << fuLoadSignalName(fu->name(), port.name())
+                               << " <= 1'b1;" << endl;
+                        ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
+                        if (gcu != NULL) {
+                            if (operation->name() == JUMP) {
+                                stream << indentation(5) 
+                                       << fuOpcodeSignalName(fu->name())
+                                       << " <= IFE_JUMP;" << endl;
+                            } else if (operation->name() == CALL) {
+                                stream << indentation(5)
+                                       << fuOpcodeSignalName(fu->name())
+                                       << " <= IFE_CALL;" << endl;
+                            }
+                        } else {                            
+                            stream << indentation(6) 
+                                   << fuOpcodeSignalName(fu->name())
+                                   << " <= "
+                                   << opcode(*operation)
+                                   << ";"
+                                   << endl;
+                        }
+                        if (i+1 < fu->operationCount()) {
+                            stream << indentation(5) << "end" << endl
+                                   << indentation(5) << "else if (";
+                        }
+                    }
+                    stream << indentation(5) << "end"   << endl
+                           << indentation(5) << "else"  << endl
+                           << indentation(6) 
+                           << fuLoadSignalName(fu->name(), port.name())
+                           << " <= 1'b0;"
+                           << endl;
+                } else {
+                    FUPortCode& code = scTable.fuPortCode(
+                        fu->name(), port.name());
+                    stream << " && " << portCodeCondition(Verilog,enc, code) << ")"
+                           << endl
+                           << indentation(4) << "begin" << endl
+                           << indentation(5) 
+                           << fuLoadSignalName(fu->name(), port.name()) 
+                           << " <= 1'b1;" << endl;
+                }
             } else {
-                FUPortCode& code = scTable.fuPortCode(
-                    fu->name(), port.name());
-                stream << " and " << portCodeCondition(enc, code) << ") then"
+                stream << ")" << endl
+                       << indentation(4) << "begin" << endl
+                       << indentation(5) 
+                       << fuLoadSignalName(fu->name(), port.name()) << " <= 1'b1;"
                        << endl;
-                stream << indentation(5) 
-                       << fuLoadSignalName(fu->name(), port.name()) 
-                       << " <= '1';" << endl;
+                ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
+                if (gcu != NULL) {
+                    if (gcu->hasOperation(JUMP)) {
+                        HWOperation* jumpOp = gcu->operation(JUMP);
+                        if (&port == jumpOp->port(1)) {
+                            stream << indentation(5) 
+                                   << fuOpcodeSignalName(fu->name())
+                                   << " <= IFE_JUMP;" << endl;
+                        }
+                    }
+                    if (gcu->hasOperation(CALL)) {
+                        HWOperation* callOp = gcu->operation(CALL);
+                        if (&port == callOp->port(1)) {
+                            stream << indentation(5)
+                                   << fuOpcodeSignalName(fu->name())
+                                   << " <= IFE_CALL;" << endl;
+                        }
+                    }
+                }
             }
+            if (needsBusControl(*socket)) {
+                stream << indentation(5)
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= " 
+                       << icGenerator_.inputSocketControlValue(
+                           *socket, *bus->segment(0)) << ";" 
+                       << endl;
+            }
+            
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            stream << indentation(4) << "end" << endl;
+            if (nextIter != buses.end()) {
+                stream << indentation(4) << "else if(";
+            };
+        }
 
-        } else {
-            stream << ") then" << endl;
-            stream << indentation(5) 
-                   << fuLoadSignalName(fu->name(), port.name()) << " <= '1';"
-                   << endl;
-            ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
-            if (gcu != NULL) {
-                if (gcu->hasOperation(JUMP)) {
-                    HWOperation* jumpOp = gcu->operation(JUMP);
-                    if (&port == jumpOp->port(1)) {
-                        stream << indentation(5) 
-                               << fuOpcodeSignalName(fu->name())
-                               << " <= IFE_JUMP;" << endl;
-                    }
-                }
-                if (gcu->hasOperation(CALL)) {
-                    HWOperation* callOp = gcu->operation(CALL);
-                    if (&port == callOp->port(1)) {
-                        stream << indentation(5)
-                               << fuOpcodeSignalName(fu->name())
-                               << " <= IFE_CALL;" << endl;
-                    }
-                }
-            }
-        }
-        if (needsBusControl(*socket)) {
-            stream << indentation(5)
-                   << socketBusCntrlSignalName(socket->name())
-                   << " <= conv_std_logic_vector(" 
-                   << icGenerator_.inputSocketControlValue(
-                       *socket, *bus->segment(0)) << ", " 
-                   << socketBusCntrlSignalName(socket->name()) << "'length);"
-                   << endl;
-        }
-        
-        BusSet::const_iterator nextIter = iter;
-        nextIter++;
-        if (nextIter != buses.end()) {
-            stream << indentation(4) << "elsif (";
-        };
+        stream << indentation(4) << "else" << endl;
+        stream << indentation(5) << fuLoadSignalName(fu->name(), port.name())
+               << " <= 1'b0;" << endl;
     }
-
-    stream << indentation(4) << "else" << endl;
-    stream << indentation(5) << fuLoadSignalName(fu->name(), port.name())
-           << " <= '0';" << endl;
-    stream << indentation(4) << "end if;" << endl;
 }
 
 
@@ -1870,55 +2735,109 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
     assert(socket != NULL);
     BusSet buses = connectedBuses(*socket);
     stream << indentation(4) << "if (";
-    for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
-         iter++) {
-        Bus* bus = *iter;
-        MoveSlot& moveSlot = bem_.moveSlot(bus->name());
-        DestinationField& dstField = moveSlot.destinationField();
-        SocketEncoding& enc = dstField.socketEncoding(socket->name());
-        stream << socketEncodingCondition(dstField, socket->name()) << " and "
-               << squashSignal(bus->name()) << " = '0'";
-        if (enc.hasSocketCodes()) {
-            SocketCodeTable& scTable = enc.socketCodes();
-            RFPortCode& code = scTable.rfPortCode(rf->name());
-            if (code.hasEncoding()) {
-                stream << " and " << portCodeCondition(enc, code);
+    if(language_==VHDL){
+        for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
+             iter++) {
+            Bus* bus = *iter;
+            MoveSlot& moveSlot = bem_.moveSlot(bus->name());
+            DestinationField& dstField = moveSlot.destinationField();
+            SocketEncoding& enc = dstField.socketEncoding(socket->name());
+            stream << socketEncodingCondition(VHDL,dstField, socket->name()) << " and "
+                   << squashSignal(bus->name()) << " = '0'";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                RFPortCode& code = scTable.rfPortCode(rf->name());
+                if (code.hasEncoding()) {
+                    stream << " and " << portCodeCondition(VHDL,enc, code);
 
+                }
+                stream << ") then" << endl;
+                stream << indentation(5)
+                       << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
+                       << endl;
+                stream << indentation(5) 
+                       << rfOpcodeSignalName(rf->name(), port.name()) << " <= "
+                       << rfOpcodeFromSrcOrDstField(VHDL,enc, code) << ";" << endl;
+            } else {
+                stream << ") then" << endl;
+                stream << indentation(5)
+                       << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
+                       << endl;
             }
-            stream << ") then" << endl;
-            stream << indentation(5)
-                   << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
-                   << endl;
-            stream << indentation(5) 
-                   << rfOpcodeSignalName(rf->name(), port.name()) << " <= "
-                   << rfOpcodeFromSrcOrDstField(enc, code) << ";" << endl;
-        } else {
-            stream << ") then" << endl;
-            stream << indentation(5)
-                   << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
-                   << endl;
-        }
 
-        if (needsBusControl(*socket)) {
-            stream << indentation(5)
-                   << socketBusCntrlSignalName(socket->name())
-                   << " <= conv_std_logic_vector(" 
-                   << icGenerator_.inputSocketControlValue(
-                       *socket, *bus->segment(0)) << ", " 
-                   << socketBusCntrlSignalName(socket->name()) << "'length);"
-                   << endl;
+            if (needsBusControl(*socket)) {
+                stream << indentation(5)
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= conv_std_logic_vector(" 
+                       << icGenerator_.inputSocketControlValue(
+                           *socket, *bus->segment(0)) << ", " 
+                       << socketBusCntrlSignalName(socket->name()) << "'length);"
+                       << endl;
+            }
+            
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            if (nextIter != buses.end()) {
+                stream << indentation(4) << "elsif (";
+            }
         }
-        
-        BusSet::const_iterator nextIter = iter;
-        nextIter++;
-        if (nextIter != buses.end()) {
-            stream << indentation(4) << "elsif (";
+        stream << indentation(4) << "else" << endl;
+        stream << indentation(5) << rfLoadSignalName(rf->name(), port.name())
+               << " <= '0';" << endl;
+        stream << indentation(4) << "end if;" << endl;
+    } else {
+        for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
+             iter++) {
+            Bus* bus = *iter;
+            MoveSlot& moveSlot = bem_.moveSlot(bus->name());
+            DestinationField& dstField = moveSlot.destinationField();
+            SocketEncoding& enc = dstField.socketEncoding(socket->name());
+            stream << socketEncodingCondition(Verilog,dstField, socket->name())
+                   << " && "
+                   << squashSignal(bus->name()) << " == 0";
+            if (enc.hasSocketCodes()) {
+                SocketCodeTable& scTable = enc.socketCodes();
+                RFPortCode& code = scTable.rfPortCode(rf->name());
+                if (code.hasEncoding()) {
+                    stream << " && " << portCodeCondition(VHDL,enc, code);
+
+                }
+                stream << ")" << endl
+                       << indentation(4) << "begin" << endl
+                       << indentation(5)
+                       << rfLoadSignalName(rf->name(), port.name()) << " <= 1'b1;"
+                       << endl
+                       << indentation(5) 
+                       << rfOpcodeSignalName(rf->name(), port.name()) << " <= "
+                       << rfOpcodeFromSrcOrDstField(Verilog,enc, code) << ";" << endl;
+            } else {
+                stream << ")" << endl
+                       << indentation(4) << "begin" << endl
+                       << indentation(5)
+                       << rfLoadSignalName(rf->name(), port.name()) << " <= 1'b1;"
+                       << endl;
+            }
+
+            if (needsBusControl(*socket)) {
+                stream << indentation(5)
+                       << socketBusCntrlSignalName(socket->name())
+                       << " <= " 
+                       << icGenerator_.inputSocketControlValue(
+                           *socket, *bus->segment(0)) << ";"
+                       << endl;
+            }
+            
+            BusSet::const_iterator nextIter = iter;
+            nextIter++;
+            stream << indentation(4) << "end" << endl;
+            if (nextIter != buses.end()) {
+                stream << indentation(4) << "else if (";
+            }
         }
+        stream << indentation(4) << "else" << endl
+               << indentation(5) << rfLoadSignalName(rf->name(), port.name())
+               << " <= 1'b0;" << endl;
     }
-    stream << indentation(4) << "else" << endl;
-    stream << indentation(5) << rfLoadSignalName(rf->name(), port.name())
-           << " <= '0';" << endl;
-    stream << indentation(4) << "end if;" << endl;
 }
 
 
@@ -1931,144 +2850,306 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
 void
 DefaultDecoderGenerator::writeControlRegisterMappings(
     std::ostream& stream) const {
+    if(language_==VHDL){
+        stream << indentation(1) << "-- map control registers to outputs" 
+               << endl;
 
-    stream << indentation(1) << "-- map control registers to outputs" 
-           << endl;
+        // map FU control signals
+        Machine::FunctionUnitNavigator fuNav = machine_.
+            functionUnitNavigator();
+        for (int i = 0; i < fuNav.count(); i++) {
+            FunctionUnit* fu = fuNav.item(i);
+            for (int i = 0; i < fu->portCount(); i++) {
+                BaseFUPort* port = fu->port(i);
+                if (port->inputSocket() != NULL) {
+                    // map load signal
+                    stream << indentation(1) 
+                           << fuLoadCntrlPort(fu->name(), port->name()) 
+                           << " <= " 
+                           << fuLoadSignalName(fu->name(), port->name())
+                           << ";" << endl;
+                }
+            }
+                
+            // map opcode signal
+            if (fu->operationCount() > 1) {
+                stream << indentation(1) << fuOpcodeCntrlPort(fu->name()) 
+                       << " <= " << fuOpcodeSignalName(fu->name()) << ";" 
+                       << endl;
+            }
+            stream << endl;
+        }
 
-    // map FU control signals
-    Machine::FunctionUnitNavigator fuNav = machine_.
-        functionUnitNavigator();
-    for (int i = 0; i < fuNav.count(); i++) {
-        FunctionUnit* fu = fuNav.item(i);
-        for (int i = 0; i < fu->portCount(); i++) {
-            BaseFUPort* port = fu->port(i);
-            if (port->inputSocket() != NULL) {
+        // map pc_load and ra_load signals
+        ControlUnit* gcu = machine_.controlUnit();
+        if (gcu->hasReturnAddressPort()) {
+            SpecialRegisterPort* raPort = gcu->returnAddressPort();
+            stream << indentation(1) << NetlistGenerator::DECODER_RA_LOAD_PORT
+                   << " <= " << fuLoadSignalName(gcu->name(), raPort->name())
+                   << ";" << endl;
+        }
+
+        // find the PC port
+        FUPort* pcPort = NULL;
+        if (gcu->hasOperation(CALL)) {
+            HWOperation* callOp = gcu->operation(CALL);
+            pcPort = callOp->port(1);
+        } else if (gcu->hasOperation(JUMP)) {
+            HWOperation* jumpOp = gcu->operation(JUMP);
+            pcPort = jumpOp->port(1);
+        }
+        if (pcPort != NULL) {
+            stream << indentation(1) << NetlistGenerator::DECODER_PC_LOAD_PORT
+                   << " <= " << fuLoadSignalName(gcu->name(), pcPort->name())
+                   << ";" << endl;
+        }
+
+        // map pc_opcode signal
+        if (gcu->hasOperation(JUMP) || gcu->hasOperation(CALL)) {
+            stream << indentation(1) << NetlistGenerator::DECODER_PC_OPCODE_PORT
+                   << " <= " << fuOpcodeSignalName(gcu->name()) << ";" << endl;
+        }
+            
+        // map RF control signals
+        Machine::RegisterFileNavigator rfNav = machine_.
+            registerFileNavigator();
+        for (int i = 0; i < rfNav.count(); i++) {
+            RegisterFile* rf = rfNav.item(i);
+            for (int i = 0; i < rf->portCount(); i++) {
+                RFPort* port = rf->port(i);
+                    
                 // map load signal
                 stream << indentation(1) 
-                       << fuLoadCntrlPort(fu->name(), port->name()) 
+                       << rfLoadCntrlPort(rf->name(), port->name()) << " <= " 
+                       << rfLoadSignalName(rf->name(), port->name()) << ";" 
+                       << endl;
+                // map opcode signal
+                stream << indentation(1) 
+                       << rfOpcodeCntrlPort(rf->name(), port->name()) 
                        << " <= " 
-                       << fuLoadSignalName(fu->name(), port->name())
+                       << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
+                            rfOpcodeSignalName(rf->name(), port->name()))
+                       << ";"
+                       << endl;
+            }
+        }
+
+        // map IU write/read opcode signals (only 0 downto 0) to 0
+        // TODO: mapping of these ports should probably be elsewhere
+        Machine::ImmediateUnitNavigator iuNav = 
+            machine_.immediateUnitNavigator();
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            for (int i = 0; i < iu->portCount(); i++) {
+                RFPort* port = iu->port(i);
+
+                if (rfOpcodeWidth(*iu) == 0) {
+                stream << indentation(1) 
+                       << iuReadOpcodeCntrlPort(iu->name(), port->name())
+                       << " <= \"0\";" 
+                       << endl;
+
+                stream << indentation(1) 
+                       << iuWriteOpcodeCntrlPort(iu->name())
+                       << " <= \"0\";" 
+                       << endl;
+                }
+            }
+        }
+       
+
+        // map socket control signals
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (socket->portCount() == 0 || socket->segmentCount() == 0) {
+                continue;
+            }
+
+            if (needsBusControl(*socket)) {
+                stream << indentation(1) << socketBusControlPort(socket->name())
+                       << " <= " << socketBusCntrlSignalName(socket->name())
+                       << ";" << endl;
+            }
+            if (needsDataControl(*socket)) {
+                stream << indentation(1) << socketDataControlPort(socket->name())
+                       << " <= " << socketDataCntrlSignalName(socket->name()) 
                        << ";" << endl;
             }
         }
-            
-        // map opcode signal
-        if (fu->operationCount() > 1) {
-            stream << indentation(1) << fuOpcodeCntrlPort(fu->name()) 
-                   << " <= " << fuOpcodeSignalName(fu->name()) << ";" 
-                   << endl;
-        }
-        stream << endl;
-    }
 
-    // map pc_load and ra_load signals
-    ControlUnit* gcu = machine_.controlUnit();
-    if (gcu->hasReturnAddressPort()) {
-        SpecialRegisterPort* raPort = gcu->returnAddressPort();
-        stream << indentation(1) << NetlistGenerator::DECODER_RA_LOAD_PORT
-               << " <= " << fuLoadSignalName(gcu->name(), raPort->name())
-               << ";" << endl;
-    }
-
-    // find the PC port
-    FUPort* pcPort = NULL;
-    if (gcu->hasOperation(CALL)) {
-        HWOperation* callOp = gcu->operation(CALL);
-        pcPort = callOp->port(1);
-    } else if (gcu->hasOperation(JUMP)) {
-        HWOperation* jumpOp = gcu->operation(JUMP);
-        pcPort = jumpOp->port(1);
-    }
-    if (pcPort != NULL) {
-        stream << indentation(1) << NetlistGenerator::DECODER_PC_LOAD_PORT
-               << " <= " << fuLoadSignalName(gcu->name(), pcPort->name())
-               << ";" << endl;
-    }
-
-    // map pc_opcode signal
-    if (gcu->hasOperation(JUMP) || gcu->hasOperation(CALL)) {
-        stream << indentation(1) << NetlistGenerator::DECODER_PC_OPCODE_PORT
-               << " <= " << fuOpcodeSignalName(gcu->name()) << ";" << endl;
-    }
-        
-    // map RF control signals
-    Machine::RegisterFileNavigator rfNav = machine_.
-        registerFileNavigator();
-    for (int i = 0; i < rfNav.count(); i++) {
-        RegisterFile* rf = rfNav.item(i);
-        for (int i = 0; i < rf->portCount(); i++) {
-            RFPort* port = rf->port(i);
-                
-            // map load signal
-            stream << indentation(1) 
-                   << rfLoadCntrlPort(rf->name(), port->name()) << " <= " 
-                   << rfLoadSignalName(rf->name(), port->name()) << ";" 
-                   << endl;
-            // map opcode signal
-            stream << indentation(1) 
-                   << rfOpcodeCntrlPort(rf->name(), port->name()) 
-                   << " <= " 
-                   << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
-                        rfOpcodeSignalName(rf->name(), port->name()))
-                   << ";"
-                   << endl;
-        }
-    }
-
-    // map IU write/read opcode signals (only 0 downto 0) to 0
-    // TODO: mapping of these ports should probably be elsewhere
-    Machine::ImmediateUnitNavigator iuNav = 
-        machine_.immediateUnitNavigator();
-    for (int i = 0; i < iuNav.count(); i++) {
-        ImmediateUnit* iu = iuNav.item(i);
-        for (int i = 0; i < iu->portCount(); i++) {
-            RFPort* port = iu->port(i);
-
-            if (rfOpcodeWidth(*iu) == 0) {
-            stream << indentation(1) 
-                   << iuReadOpcodeCntrlPort(iu->name(), port->name())
-                   << " <= \"0\";" 
-                   << endl;
-
-            stream << indentation(1) 
-                   << iuWriteOpcodeCntrlPort(iu->name())
-                   << " <= \"0\";" 
-                   << endl;
+        // map short immediate signals
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << simmControlPort(bus->name())
+                       << " <= " << simmCntrlSignalName(bus->name()) << ";"
+                       << endl;
+                stream << indentation(1) << simmDataPort(bus->name()) << " <= "
+                       << simmDataSignalName(bus->name()) << ";" << endl;
             }
         }
-    }
-   
+    } else {
+        stream << indentation(1) << "// map control registers to outputs" 
+               << endl;
 
-    // map socket control signals
-    Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i < socketNav.count(); i++) {
-        Socket* socket = socketNav.item(i);
-        if (socket->portCount() == 0 || socket->segmentCount() == 0) {
-            continue;
+        // map FU control signals
+        Machine::FunctionUnitNavigator fuNav = machine_.
+            functionUnitNavigator();
+        for (int i = 0; i < fuNav.count(); i++) {
+            FunctionUnit* fu = fuNav.item(i);
+            for (int i = 0; i < fu->portCount(); i++) {
+                BaseFUPort* port = fu->port(i);
+                if (port->inputSocket() != NULL) {
+                    // map load signal
+                    stream << indentation(1) 
+                           << "assign "
+                           << fuLoadCntrlPort(fu->name(), port->name()) 
+                           << " = " 
+                           << fuLoadSignalName(fu->name(), port->name())
+                           << ";" << endl;
+                }
+            }
+                
+            // map opcode signal
+            if (fu->operationCount() > 1) {
+                stream << indentation(1)
+                       << "assign "
+                       << fuOpcodeCntrlPort(fu->name()) 
+                       << " = " << fuOpcodeSignalName(fu->name()) << ";" 
+                       << endl;
+            }
+            stream << endl;
         }
 
-        if (needsBusControl(*socket)) {
-            stream << indentation(1) << socketBusControlPort(socket->name())
-                   << " <= " << socketBusCntrlSignalName(socket->name())
+        // map pc_load and ra_load signals
+        ControlUnit* gcu = machine_.controlUnit();
+        if (gcu->hasReturnAddressPort()) {
+            SpecialRegisterPort* raPort = gcu->returnAddressPort();
+            stream << indentation(1)
+                   << "assign "
+                   << NetlistGenerator::DECODER_RA_LOAD_PORT
+                   << " = " << fuLoadSignalName(gcu->name(), raPort->name())
                    << ";" << endl;
         }
-        if (needsDataControl(*socket)) {
-            stream << indentation(1) << socketDataControlPort(socket->name())
-                   << " <= " << socketDataCntrlSignalName(socket->name()) 
+
+        // find the PC port
+        FUPort* pcPort = NULL;
+        if (gcu->hasOperation(CALL)) {
+            HWOperation* callOp = gcu->operation(CALL);
+            pcPort = callOp->port(1);
+        } else if (gcu->hasOperation(JUMP)) {
+            HWOperation* jumpOp = gcu->operation(JUMP);
+            pcPort = jumpOp->port(1);
+        }
+        if (pcPort != NULL) {
+            stream << indentation(1)
+                   << "assign "
+                   << NetlistGenerator::DECODER_PC_LOAD_PORT
+                   << " = " << fuLoadSignalName(gcu->name(), pcPort->name())
                    << ";" << endl;
         }
-    }
 
-    // map short immediate signals
-    Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        if (bus->immediateWidth() > 0) {
-            stream << indentation(1) << simmControlPort(bus->name())
-                   << " <= " << simmCntrlSignalName(bus->name()) << ";"
-                   << endl;
-            stream << indentation(1) << simmDataPort(bus->name()) << " <= "
-                   << simmDataSignalName(bus->name()) << ";" << endl;
+        // map pc_opcode signal
+        if (gcu->hasOperation(JUMP) || gcu->hasOperation(CALL)) {
+            stream << indentation(1) 
+                   << "assign "
+                   << NetlistGenerator::DECODER_PC_OPCODE_PORT
+                   << " = " << fuOpcodeSignalName(gcu->name()) << ";" << endl;
+        }
+            
+        // map RF control signals
+        Machine::RegisterFileNavigator rfNav = machine_.
+            registerFileNavigator();
+        for (int i = 0; i < rfNav.count(); i++) {
+            RegisterFile* rf = rfNav.item(i);
+            for (int i = 0; i < rf->portCount(); i++) {
+                RFPort* port = rf->port(i);
+                    
+                // map load signal
+                stream << indentation(1) 
+                       << "assign "
+                       << rfLoadCntrlPort(rf->name(), port->name()) << " = " 
+                       << rfLoadSignalName(rf->name(), port->name()) << ";" 
+                       << endl;
+                // map opcode signal
+                stream << indentation(1)
+                       << "assign "                
+                       << rfOpcodeCntrlPort(rf->name(), port->name()) 
+                       << " = " 
+                       << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
+                            rfOpcodeSignalName(rf->name(), port->name()))
+                       << ";"
+                       << endl;
+            }
+        }
+
+        // map IU write/read opcode signals (only 0 downto 0) to 0
+        // TODO: mapping of these ports should probably be elsewhere
+        Machine::ImmediateUnitNavigator iuNav = 
+            machine_.immediateUnitNavigator();
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            for (int i = 0; i < iu->portCount(); i++) {
+                RFPort* port = iu->port(i);
+
+                if (rfOpcodeWidth(*iu) == 0) {
+                stream << indentation(1)
+                       << "assign "
+                       << iuReadOpcodeCntrlPort(iu->name(), port->name())
+                       << " = 1'b0;" 
+                       << endl;
+
+                stream << indentation(1)
+                       << "assign "
+                       << iuWriteOpcodeCntrlPort(iu->name())
+                       << " = 1'b0;" 
+                       << endl;
+                }
+            }
+        }
+       
+
+        // map socket control signals
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            if (socket->portCount() == 0 || socket->segmentCount() == 0) {
+                continue;
+            }
+
+            if (needsBusControl(*socket)) {
+                stream << indentation(1)
+                       << "assign "
+                       << socketBusControlPort(socket->name())
+                       << " = " << socketBusCntrlSignalName(socket->name())
+                       << ";" << endl;
+            }
+            if (needsDataControl(*socket)) {
+                stream << indentation(1)
+                       << "assign "
+                       << socketDataControlPort(socket->name())
+                       << " = " << socketDataCntrlSignalName(socket->name()) 
+                       << ";" << endl;
+            }
+        }
+
+        // map short immediate signals
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1)
+                       << "assign "
+                       << simmControlPort(bus->name())
+                       << " = " << simmCntrlSignalName(bus->name()) << ";"
+                       << endl
+                       << indentation(1)
+                       << "assign "
+                       << simmDataPort(bus->name()) << " = "
+                       << simmDataSignalName(bus->name()) << ";" << endl;
+            }
         }
     }
 }
@@ -2086,19 +3167,28 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
  */
 void
 DefaultDecoderGenerator::writeSquashSignalSubstitution(
+    const ProGe::HDL language,
     const TTAMachine::Bus& bus,
     const GuardEncoding& enc,
     const TTAMachine::Guard& guard,
     std::ostream& stream,
     int indLevel) {
-    
-    stream << indentation(indLevel) << "when " << enc.encoding() 
-           << " =>" << endl;
-    stream << indentation(indLevel+1) << squashSignal(bus.name()) << " <= ";
-    if (!guard.isInverted()) {
-        stream << "not ";
+    if(language==VHDL){
+        stream << indentation(indLevel) << "when " << enc.encoding() 
+               << " =>" << endl;
+        stream << indentation(indLevel+1) << squashSignal(bus.name()) << " <= ";
+        if (!guard.isInverted()) {
+            stream << "not ";
+        }
+        stream << guardPortName(guard) << ";" << endl;
+    } else {
+        stream << indentation(indLevel)   << enc.encoding() << " : "
+               << squashSignal(bus.name()) << " = ";
+        if (!guard.isInverted()) {
+            stream << " !";
+        }
+        stream << guardPortName(guard) << ";" << endl;
     }
-    stream << guardPortName(guard) << ";" << endl;
 }
 
 
@@ -2754,6 +3844,7 @@ DefaultDecoderGenerator::connectedBuses(const TTAMachine::Socket& socket) {
  */
 std::string
 DefaultDecoderGenerator::socketEncodingCondition(
+    const ProGe::HDL language,
     const SlotField& slotField,
     const std::string& socketName) {
     
@@ -2766,9 +3857,15 @@ DefaultDecoderGenerator::socketEncodingCondition(
     SocketEncoding& enc = slotField.socketEncoding(socketName);
     int start = enc.socketIDPosition();
     int end = start + enc.socketIDWidth() - 1;
-    return "conv_integer(unsigned(" + signalName + "(" + 
-        Conversion::toString(end) + " downto " +  Conversion::toString(start) +
-        "))) = " + Conversion::toString(enc.encoding());
+    if(language==VHDL){
+        return "conv_integer(unsigned(" + signalName + "(" + 
+            Conversion::toString(end) + " downto " +  Conversion::toString(start) +
+            "))) = " + Conversion::toString(enc.encoding());
+    } else {
+        return signalName + "[" + 
+            Conversion::toString(end) + " : " +  Conversion::toString(start) +
+            "] == " + Conversion::toString(enc.encoding());    
+    }
 }
 
 
@@ -2782,6 +3879,7 @@ DefaultDecoderGenerator::socketEncodingCondition(
  */
 std::string
 DefaultDecoderGenerator::portCodeCondition(
+    const ProGe::HDL language,
     const SocketEncoding& socketEnc,
     const PortCode& code) {
 
@@ -2802,10 +3900,16 @@ DefaultDecoderGenerator::portCodeCondition(
     int codeEnd = codeStart + code.encodingWidth() - 1;
     assert(codeEnd >= codeStart);
 
-    return "conv_integer(unsigned(" + signalName + "(" + 
-        Conversion::toString(codeEnd) + " downto " + 
-        Conversion::toString(codeStart) + "))) = " + 
-        Conversion::toString(code.encoding());
+    if(language==VHDL)
+        return "conv_integer(unsigned(" + signalName + "(" + 
+            Conversion::toString(codeEnd) + " downto " + 
+            Conversion::toString(codeStart) + "))) = " + 
+            Conversion::toString(code.encoding());
+    else
+    return signalName + "[" + 
+        Conversion::toString(codeEnd) + " : " + 
+        Conversion::toString(codeStart) + "] == " + 
+        Conversion::toString(code.encoding());    
 }
 
 
@@ -2817,13 +3921,18 @@ DefaultDecoderGenerator::portCodeCondition(
  */
 std::string
 DefaultDecoderGenerator::instructionTemplateCondition(
+    const ProGe::HDL language,
     const std::string& iTempName) const {
 
     assert(bem_.hasImmediateControlField());
     ImmediateControlField& field = bem_.immediateControlField();
     assert(field.hasTemplateEncoding(iTempName));
-    return "conv_integer(unsigned(" + LIMM_TAG_SIGNAL + ")) = "
-        + Conversion::toString(field.templateEncoding(iTempName));
+    if(language==VHDL)
+        return "conv_integer(unsigned(" + LIMM_TAG_SIGNAL + ")) = "
+            + Conversion::toString(field.templateEncoding(iTempName));
+    else
+        return LIMM_TAG_SIGNAL + " == "
+            + Conversion::toString(field.templateEncoding(iTempName));
 }
 
 
@@ -2837,6 +3946,7 @@ DefaultDecoderGenerator::instructionTemplateCondition(
  */
 std::string
 DefaultDecoderGenerator::rfOpcodeFromSrcOrDstField(
+    const ProGe::HDL language,
     const SocketEncoding& socketEnc,
     const PortCode& code) {
 
@@ -2856,9 +3966,12 @@ DefaultDecoderGenerator::rfOpcodeFromSrcOrDstField(
         opcStart = 0;
     }
     int opcEnd = opcStart + code.indexWidth() - 1;
-
-    return signalName + "(" + Conversion::toString(opcEnd) + " downto " + 
-        Conversion::toString(opcStart) + ")";
+    if(language==VHDL)
+        return signalName + "(" + Conversion::toString(opcEnd) + " downto " + 
+            Conversion::toString(opcStart) + ")";
+    else
+        return signalName + "[" + Conversion::toString(opcEnd) + " : " + 
+            Conversion::toString(opcStart) + "]";
 }
 
 
@@ -2877,8 +3990,10 @@ DefaultDecoderGenerator::busCntrlSignalPinOfSocket(
     assert(socket.direction() == Socket::OUTPUT);
     int pin = icGenerator_.outputSocketCntrlPinForSegment(
         socket, *bus.segment(0));
-    return socketBusCntrlSignalName(socket.name()) + "(" + 
-        Conversion::toString(pin) + ")";
+    return socketBusCntrlSignalName(socket.name())
+        + ((language_==VHDL)?"(":"[")
+        + Conversion::toString(pin)
+        + ((language_==VHDL)?")":"]");
 }
 
 
@@ -2916,7 +4031,6 @@ DefaultDecoderGenerator::opcode(
     return -1; // 
 }
 
-                                            
 /**
  * Generates an indentation of the given level.
  *

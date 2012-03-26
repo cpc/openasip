@@ -44,7 +44,8 @@ class BlockImplementationFile {
 public:
     /// Format of the file.
     enum Format {
-        VHDL ///< VHDL file.
+        VHDL, ///< VHDL file.
+        Verilog ///< Verilog file.
     };
 
     BlockImplementationFile(const std::string& pathToFile, Format format);
