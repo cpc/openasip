@@ -93,9 +93,11 @@ protected:
         throw (InvalidData, DynamicLibraryException, IOException,
                InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
     void generateTestBench(
+        const ProGe::HDL language,
         const std::string& dstDir, 
         const std::string& progeOutDir);
     void generateScripts(
+        const ProGe::HDL language,
         const std::string& dstDir,
         const std::string& progeOutDir,
         const std::string& sharedOutDir,

@@ -665,7 +665,11 @@ HDBToHtml::fuImplToHtml(RowID id, std::ostream& stream) {
                << "<td align=center>";
         if (file.format() == HDB::BlockImplementationFile::VHDL) {
             stream << "VHDL";
+        }else
+        if (file.format() == HDB::BlockImplementationFile::Verilog) {
+            stream << "Verilog";
         }
+
         stream << "</td></tr>" << endl;
     }
     stream << "</table><br><br>" << endl;
@@ -787,7 +791,11 @@ HDBToHtml::rfImplToHtml(RowID id, std::ostream& stream) {
                << "<td align=center>";
         if (file.format() == HDB::BlockImplementationFile::VHDL) {
             stream << "VHDL";
+        }else
+        if (file.format() == HDB::BlockImplementationFile::Verilog) {
+            stream << "Verilog";
         }
+
         stream << "</td></tr>" << endl;
     }
     stream << "</table><br><br>" << endl;

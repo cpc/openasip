@@ -143,7 +143,7 @@ HDBEditorModifyCmd::Do() {
                 manager->removeRFImplementation(implID);
                 int id = manager->addRFImplementation(
                     entry->implementation(), entryID);
-
+                //can be commented for not update DB-> fast editing
                 wxGetApp().mainFrame().update();
                 wxGetApp().mainFrame().browser()->selectRFImplementation(id);
             } catch (Exception& e) {

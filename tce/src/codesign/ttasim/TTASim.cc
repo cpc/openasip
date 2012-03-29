@@ -280,14 +280,14 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     
-    simFront.reset(new SimulatorFrontend(options.fastSimulationEngine()));
-    
-    SimulatorInterpreterContext context(*simFront);
     LineReader* reader = LineReaderFactory::lineReader();
     assert(reader != NULL);
     reader->initialize(SIM_COMMAND_PROMPT);
     reader->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
-
+    
+    simFront.reset(new SimulatorFrontend(options.fastSimulationEngine()));
+    SimulatorInterpreterContext context(*simFront);
+    
     // handler for catching ctrl-c from the user (stops simulation)
     SigINTHandler ctrlcHandler(*simFront);
     Application::setSignalHandler(SIGINT, ctrlcHandler);
@@ -380,7 +380,6 @@ int main(int argc, char* argv[]) {
         if (interpreter->result().size() > 0)
             std::cout << interpreter->result() << std::endl;	
     }
-
     delete reader;
     reader = NULL;
 
@@ -389,6 +388,7 @@ int main(int argc, char* argv[]) {
         Application::restoreSignalHandler(SIGFPE);
         Application::restoreSignalHandler(SIGSEGV);
     }
+    //Application::finalize();
     
     return EXIT_SUCCESS;
 }

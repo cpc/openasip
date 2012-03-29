@@ -52,6 +52,8 @@
 #include "RFEntry.hh"
 #include "RFImplementation.hh"
 
+using namespace ProGe;
+
 using IDF::MachineImplementation;
 using IDF::FUImplementationLocation;
 using IDF::RFImplementationLocation;
@@ -75,6 +77,7 @@ const string MAGICAL_RUNTIME_CONSTANT = "52390ns";
  * directory.
  */
 ProGeScriptGenerator::ProGeScriptGenerator( 
+    const ProGe::HDL language,
     const IDF::MachineImplementation& idf,
     const std::string& dstDir,
     const std::string& progeOutDir,
@@ -87,16 +90,20 @@ ProGeScriptGenerator::ProGeScriptGenerator(
     testBenchDir_(testBenchDir),
     workDir_("work"),
     vhdlDir_("vhdl"),
+    verDir_("verilog"),
     gcuicDir_("gcu_ic"),
     tbDir_("tb"),
     modsimCompileScriptName_("modsim_compile.sh"),
     ghdlCompileScriptName_("ghdl_compile.sh"),
+    iverilogCompileScriptName_("iverilog_compile.sh"),
     modsimSimulateScriptName_("modsim_simulate.sh"),
     ghdlSimulateScriptName_("ghdl_simulate.sh"),
+    iverilogSimulateScriptName_("iverilog_simulate.sh"),
     testbenchName_("testbench"),
     toplevelEntity_(toplevelEntity),
-    idf_(idf) {
-        
+    idf_(idf),
+    language_(language){
+
     fetchFiles();
     prepareFiles();
 }
@@ -118,12 +125,20 @@ ProGeScriptGenerator::~ProGeScriptGenerator() {
 void
 ProGeScriptGenerator::generateAll()
     throw (IOException) {
-    
+
     generateModsimCompile();
-    generateGhdlCompile();
+    
+    if(language_==VHDL)
+        generateGhdlCompile();
+    else
+        generateIverilogCompile();
 
     generateModsimSimulate();
-    generateGhdlSimulate();
+    
+    if(language_==VHDL)
+        generateGhdlSimulate();
+    else
+        generateIverilogSimulate();        
 }
 
 
@@ -149,14 +164,15 @@ ProGeScriptGenerator::generateModsimCompile()
     stream << "vmap"  << endl;
 
     stream << endl;
-    string program = "vcom";
-    outputScriptCommands(stream, vhdlFiles_, program);
+    string program =
+    ((language_==VHDL)?"vcom":"vlog +incdir+verilog +incdir+gcu_ic +incdir+tb");
+    outputScriptCommands(stream, vhdlFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program);
+    outputScriptCommands(stream, gcuicFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program);
+    outputScriptCommands(stream, testBenchFiles_, program,"");
 
     stream.close();
 }
@@ -186,13 +202,13 @@ ProGeScriptGenerator::generateGhdlCompile()
 
     stream << endl;
     string program = "ghdl -i --workdir=" + workDir_;
-    outputScriptCommands(stream, vhdlFiles_, program);
+    outputScriptCommands(stream, vhdlFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program);
+    outputScriptCommands(stream, gcuicFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program);
+    outputScriptCommands(stream, testBenchFiles_, program,"");
 
     stream << endl;
     // compile command for ghdl
@@ -202,6 +218,36 @@ ProGeScriptGenerator::generateGhdlCompile()
     stream.close();
 }
 
+/** 
+ * Generates a script for compilation using iVerilog.
+ *
+ * @exception IOException 
+ */
+void
+ProGeScriptGenerator::generateIverilogCompile()
+    throw (IOException) {
+
+    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        iverilogCompileScriptName_;
+
+    createExecutableFile(dstFile);
+
+    std::ofstream stream(dstFile.c_str(), std::ofstream::out);
+    generateStart(stream);
+
+    stream << "rm -rf " << workDir_ << endl
+           << "mkdir -p work" << endl
+           << "rm -rf bus.dump" << endl
+           << "rm -rf " << testbenchName_ << endl
+           << endl
+           << "iverilog -Itb -Iverilog -Igcu_ic ";
+    outputScriptCommands(stream, vhdlFiles_, ""," \\");
+    outputScriptCommands(stream, gcuicFiles_, ""," \\");
+    outputScriptCommands(stream, testBenchFiles_, ""," \\");
+
+    stream << "-s testbench" << endl;
+    stream.close();
+}
 
 /** 
  * Generates a script for simulating using modelsims vsim. 
@@ -236,6 +282,31 @@ ProGeScriptGenerator::generateGhdlSimulate()
 
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ghdlSimulateScriptName_;
+
+    createExecutableFile(dstFile);
+
+    std::ofstream stream(dstFile.c_str(), std::ofstream::out);
+    generateStart(stream);
+
+    stream << "./" << testbenchName_ 
+           << " --assert-level=none --stop-time="
+           << MAGICAL_RUNTIME_CONSTANT
+           << endl;
+
+    stream.close();
+}
+
+/** 
+ * Generates a script for simulating using iVerilog.
+ *
+ * @exception IOException 
+ */
+void
+ProGeScriptGenerator::generateIverilogSimulate()
+    throw (IOException) {
+
+    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        iverilogSimulateScriptName_;
 
     createExecutableFile(dstFile);
 
@@ -291,16 +362,18 @@ ProGeScriptGenerator::generateStart(std::ostream& stream) {
  * @param stream Output stream.
  * @param files List of filenames to use. 
  * @param cmdPrefix Prefix command.
+ * @param cmdPostfix Prefix command.
  */
 void
 ProGeScriptGenerator::outputScriptCommands( 
     std::ostream& stream,
     const std::list<std::string>& files,
-    const std::string& cmdPrefix) {
+    const std::string& cmdPrefix,
+    const std::string& cmdPostfix) {
 
     list<string>::const_iterator iter = files.begin();
     while (iter != files.end()) {
-        stream << cmdPrefix << " " << *iter++ << endl;
+        stream << cmdPrefix << " " << *iter++ << cmdPostfix << endl;
     }
 }
 
@@ -521,26 +594,31 @@ void
 ProGeScriptGenerator::fetchFiles() {
     
     // files that match are accepted
-    string vhdlRegex = ".*\\.(vhd|vhdl|pkg)$";
+    string vhdlRegex =
+    ((language_==VHDL)?".*\\.(vhd|vhdl|pkg)$":".*\\.(v)$");
 
     // generate relative paths
     bool absolutePaths = false;
     
     // getting files from project dir
     string dirName = progeOutDir_ + FileSystem::DIRECTORY_SEPARATOR 
-        + vhdlDir_;
+        + ((language_==VHDL)?vhdlDir_:verDir_);
     if (FileSystem::fileIsDirectory(dirName)) {
         findFiles(vhdlRegex, 
             FileSystem::directoryContents(dirName, absolutePaths),
             vhdlFiles_);
         // add the imem_mau_pkg.vhdl to vhdlFiles_. It is generated by PIG
         // so it is not yet present
-        string imemMauPkg = vhdlDir_ + FileSystem::DIRECTORY_SEPARATOR 
-            + "imem_mau_pkg.vhdl";
-        vhdlFiles_.push_back(imemMauPkg);
+        if(language_==VHDL){
+            string imemMauPkg = vhdlDir_ + FileSystem::DIRECTORY_SEPARATOR 
+                + "imem_mau_pkg.vhdl";
+            vhdlFiles_.push_back(imemMauPkg);
+        }
     }
     std::string sharedDir = 
-        sharedOutDir_ + FileSystem::DIRECTORY_SEPARATOR + vhdlDir_;
+        sharedOutDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        ((language_==VHDL)?vhdlDir_:verDir_);
+        
     if (sharedDir != dirName && FileSystem::fileIsDirectory(sharedDir)) {
         findFiles(
             vhdlRegex, 
@@ -573,45 +651,48 @@ void
 ProGeScriptGenerator::prepareFiles() {
 
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
+    if(language_==VHDL){
+        string gcuIcDirName = progeOutDir_ + DS + gcuicDir_ + DS;
+        list<string> gcuicFirstOrder;
+        gcuicFirstOrder.push_back("gcu_opcodes_pkg.vhdl");
+        prefixStrings(gcuicFirstOrder, gcuIcDirName);
+        sortFilesFirst(gcuicFiles_, gcuicFirstOrder); 
 
-    string gcuIcDirName = progeOutDir_ + DS + gcuicDir_ + DS;
-    list<string> gcuicFirstOrder;
-    gcuicFirstOrder.push_back("gcu_opcodes_pkg.vhdl");
-    prefixStrings(gcuicFirstOrder, gcuIcDirName);
-    sortFilesFirst(gcuicFiles_, gcuicFirstOrder); 
+        list<string> gcuicLastOrder;
+        gcuicLastOrder.push_back("ic.vhdl");
+        prefixStrings(gcuicLastOrder, gcuIcDirName);
+        sortFilesLast(gcuicFiles_, gcuicLastOrder);
 
-    list<string> gcuicLastOrder;
-    gcuicLastOrder.push_back("ic.vhdl");
-    prefixStrings(gcuicLastOrder, gcuIcDirName);
-    sortFilesLast(gcuicFiles_, gcuicLastOrder);
-
-    string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
-    list<string> vhdlFirstOrder;
-    vhdlFirstOrder.push_back("globals_pkg.vhdl");
-    string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
-    vhdlFirstOrder.push_back(paramsPkg);
-    vhdlFirstOrder.push_back("imem_mau_pkg.vhdl");
-    // add FU and RF files in correct order
-    getBlockOrder(vhdlFirstOrder);
-    prefixStrings(vhdlFirstOrder, vhdlDirName);
-    sortFilesFirst(vhdlFiles_, vhdlFirstOrder);
-    
-    list<string> vhdlLastOrder;
-    string toplevelFile = toplevelEntity_ + ".vhdl";
-    vhdlLastOrder.push_back(toplevelFile);
-    prefixStrings(vhdlLastOrder, vhdlDirName);
-    sortFilesLast(vhdlFiles_, vhdlLastOrder);
-    
-    string tbDirName = progeOutDir_ + DS + tbDir_ + DS;
-    list<string> testBenchLastOrder;
-    testBenchLastOrder.push_back("testbench_cfg.vhdl");
-    testBenchLastOrder.push_back("testbench.vhdl");
-    testBenchLastOrder.push_back("proc_arch.vhdl");
-    testBenchLastOrder.push_back("proc_ent.vhdl");
-    testBenchLastOrder.push_back("testbench_constants_pkg.vhdl");
-    prefixStrings(testBenchLastOrder, tbDirName);
-    sortFilesLast(testBenchFiles_, testBenchLastOrder);
-    
+        string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
+        list<string> vhdlFirstOrder;
+        vhdlFirstOrder.push_back("globals_pkg.vhdl");
+        vhdlFirstOrder.push_back("tce_util_pkg.vhdl");
+        string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
+        vhdlFirstOrder.push_back(paramsPkg);
+        vhdlFirstOrder.push_back("imem_mau_pkg.vhdl");
+        // add FU and RF files in correct order
+        getBlockOrder(vhdlFirstOrder);
+        prefixStrings(vhdlFirstOrder, vhdlDirName);
+        sortFilesFirst(vhdlFiles_, vhdlFirstOrder);
+        
+        list<string> vhdlLastOrder;
+        string toplevelFile = toplevelEntity_ + ".vhdl";
+        vhdlLastOrder.push_back(toplevelFile);
+        prefixStrings(vhdlLastOrder, vhdlDirName);
+        sortFilesLast(vhdlFiles_, vhdlLastOrder);
+        
+        string tbDirName = progeOutDir_ + DS + tbDir_ + DS;
+        list<string> testBenchLastOrder;
+        testBenchLastOrder.push_back("testbench_cfg.vhdl");
+        testBenchLastOrder.push_back("testbench.vhdl");
+        testBenchLastOrder.push_back("proc_arch.vhdl");
+        testBenchLastOrder.push_back("proc_ent.vhdl");
+        testBenchLastOrder.push_back("testbench_constants_pkg.vhdl");
+        prefixStrings(testBenchLastOrder, tbDirName);
+        sortFilesLast(testBenchFiles_, testBenchLastOrder);
+    } else {
+    //nothing to do here
+    }
     // make dirs relative to dstDir_
     list<string>::iterator itl;
     itl = vhdlFiles_.begin();
