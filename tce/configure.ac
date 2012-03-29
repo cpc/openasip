@@ -518,6 +518,7 @@ AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
                    [Directory containing LLVM libraries.])
 
 AM_CONDITIONAL(LLVM, test x$LLVM_VERSION != x)
+AM_CONDITIONAL(LLVM_SVN, test x$LLVM_SVN = xtrue)
 
 ####################################################################
 #

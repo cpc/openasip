@@ -488,14 +488,15 @@ def optimizeBytecode(inFile, fileNamePrefix):
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
 
-    if options.vectorize:
-        extra_opts = " -load=" + wivectorizeplugin + " -wi-vectorize"
-        extra_opts += " -wi-vectorize-vector-width=" + str(options.vector_width)
-        extra_opts += " -basicaa -tbaa -instcombine -gvn"
-        optSwitches += extra_opts
+    if "@LLVM_VERSION@" != "3.0":
+        if options.vectorize:
+            extra_opts = " -load=" + wivectorizeplugin + " -wi-vectorize"
+            extra_opts += " -wi-vectorize-vector-width=" + str(options.vector_width)
+            extra_opts += " -basicaa -tbaa -instcombine -gvn"
+            optSwitches += extra_opts
 
-    if options.vectorize_mem_only:
-        optSwitches += " -wi-vectorize-mem-ops-only"
+        if options.vectorize_mem_only:
+            optSwitches += " -wi-vectorize-mem-ops-only"
         
     if options.extra_llvm_opts != "":
         extra_opts = options.extra_llvm_opts.split(',')
