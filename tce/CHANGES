@@ -47,6 +47,8 @@ Bugfixes
   There was no implementation for it anyway
 - ttasim: In compiling mode failed to generate simulation code for
   operation with some dags.
+- compatibility fix for Fedora 16's default libedit 
+  (thanks to Vinogradov Viacheslav)
 
 1.5    December 2011
 ====================

@@ -94,28 +94,29 @@ EditLineReader::initialize(
     FILE* in, 
     FILE* out, 
     FILE* err) {
-    
-    prompt_ = StringTools::stringToCharPtr(defPrompt);
 
+    prompt_ = StringTools::stringToCharPtr(defPrompt);
     // initialize EditLine
     editLine_ = el_init(program_.c_str(), in, out, err);
+    assert(editLine_!=NULL);
+    // define prompt printing function
+    el_set(editLine_, EL_PROMPT, wrapperToCallPrompt);
+    // bind all keys to the standard GNU emacs-like bindings.
+    //el_set(editLine_, EL_BIND, "-e");
+    el_set(editLine_, EL_EDITOR, "emacs");
     if (in != stdin) {
         // when reading from file, editing is set off
         el_set(editLine_, EL_EDITMODE, 0);
     }
-    // define prompt printing function
-    el_set(editLine_, EL_PROMPT, wrapperToCallPrompt);
-    // bind all keys to the standard GNU emacs-like bindings.
-    el_set(editLine_, EL_BIND, "-e");
-
-    lineReaders_.insert(ValType(editLine_, this));
-    
     // initialize History
+    HistEvent ev;    
     history_ = history_init();
-    el_set(editLine_, EL_HIST, history, history_);
-    HistEvent ev;
-    // size of the history is set to 100
-    history(history_, &ev, H_SETSIZE, 100);
+    if (history_!=NULL) {
+        // size of the history is set to 100
+        history(history_, &ev, H_SETSIZE, 100);
+        el_set(editLine_, EL_HIST, history, history_);
+    }
+    lineReaders_.insert(ValType(editLine_, this));
     in_ = in;
     setInitialized();
 }
