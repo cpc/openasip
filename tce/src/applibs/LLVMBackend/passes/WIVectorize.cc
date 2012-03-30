@@ -346,8 +346,8 @@ namespace {
             break;
         }
       }
-      //if (changed)
-        //vectorizePhiNodes(BB);
+      if (changed)
+        vectorizePhiNodes(BB);
       //dropUnused(BB);
       DEBUG(dbgs() << "WIV: done!\n");
       return changed;
@@ -384,6 +384,14 @@ namespace {
 
       return VectorType::get(ElemTy, 2);
     }
+    std::string getReplacementName(Instruction *I, bool IsInput, unsigned o,
+                        unsigned n = 0) {
+        if (!I->hasName())
+        return "";
+
+        return (I->getName() + (IsInput ? ".v.i" : ".v.r") + utostr(o) +
+                (n > 0 ? "." + utostr(n) : "")).str();
+    }
 
     // Returns the weight associated with the provided value. A chain of
     // candidate pairs has a length given by the sum of the weights of its
@@ -408,12 +416,9 @@ namespace {
 
       // Give a load or store half of the required depth so that load/store
       // pairs will vectorize.
-      if (MemOpsOnly && (isa<LoadInst>(V) || isa<StoreInst>(V)))
+      if ((isa<LoadInst>(V) || isa<StoreInst>(V)))
         return ReqChainDepth;
         
-      if ((isa<LoadInst>(V) || isa<StoreInst>(V)))
-        return ReqChainDepth/2;
-
       return 1;
     }
 
@@ -504,76 +509,122 @@ namespace {
       return false;
     }
   };
-
-  bool WIVectorize::vectorizePhiNodes(BasicBlock &BB) {
-      BasicBlock::iterator Start = BB.begin();
-      BasicBlock::iterator End = BB.getFirstInsertionPt();
-      //BB.dump();
-      ValueVectorMap valueMap;
-      for (BasicBlock::iterator I = Start; I != End; ++I) {
-          PHINode* node = dyn_cast<PHINode>(I);
-          if (node) {
-              ValueVector* candidateVector = new ValueVector;
-              for (BasicBlock::iterator J = llvm::next(I);
-                   J != End; ++J) {
-                PHINode* node2 = dyn_cast<PHINode>(J);
-                if (node2) {
-                    bool match = true;
-                    if (node->getNumIncomingValues() != 
-                        node2->getNumIncomingValues())
-                        continue;
-                    
-                    for (int i = 0; i < node->getNumIncomingValues(); i++) {
-                        Value* v1 = node->getIncomingValue(i);
-                        Value* v2 = node2->getIncomingValue(i);
-                        if (node->getIncomingBlock(i) != 
-                            node2->getIncomingBlock(i)) {
-                            match = false;
-                        }
-                        DenseMap<Value*, Value*>::iterator vi = 
-                            storedSources.find(v1);
-                        if (vi != storedSources.end()) {
-                            DenseMap<Value*, Value*>::iterator ji =
-                                storedSources.find(v2);
-                            if (ji != storedSources.end() &&
-                                (*vi).second == (*ji).second) {
-                            } else {
+    // Replace phi nodes of individual valiables with vector they originated 
+    // from.
+    bool WIVectorize::vectorizePhiNodes(BasicBlock &BB) {
+        BasicBlock::iterator Start = BB.begin();
+        BasicBlock::iterator End = BB.getFirstInsertionPt();
+        //BB.dump();
+        ValueVectorMap valueMap;
+        for (BasicBlock::iterator I = Start; I != End; ++I) {
+            PHINode* node = dyn_cast<PHINode>(I);
+            if (node) {
+                ValueVector* candidateVector = new ValueVector;
+                for (BasicBlock::iterator J = llvm::next(I);
+                    J != End; ++J) {
+                    PHINode* node2 = dyn_cast<PHINode>(J);
+                    if (node2) {
+                        bool match = true;
+                        if (node->getNumIncomingValues() != 
+                            node2->getNumIncomingValues())
+                            continue;
+                        
+                        for (int i = 0; i < node->getNumIncomingValues(); i++) {
+                            Value* v1 = node->getIncomingValue(i);
+                            Value* v2 = node2->getIncomingValue(i);
+                            if (node->getIncomingBlock(i) != 
+                                node2->getIncomingBlock(i)) {
                                 match = false;
                             }
+                            // Stored sources contain original value from
+                            // which one in phi node was extracted from
+                            DenseMap<Value*, Value*>::iterator vi = 
+                                storedSources.find(v1);
+                            if (vi != storedSources.end()) {
+                                DenseMap<Value*, Value*>::iterator ji =
+                                    storedSources.find(v2);
+                                if (ji != storedSources.end() &&
+                                    (*vi).second == (*ji).second) {
+                                } else {
+                                    match = false;
+                                }
+                            } else {
+                                // Incaming value can be also constant, they 
+                                // have to match.                                
+                                Constant* const1 = dyn_cast<Constant>(v1);
+                                Constant* const2 = dyn_cast<Constant>(v2);
+                                if (!(const1 && const2)) /* && 
+                                    const1->getValue() == const2->getValue())) */{
+                                    match = false;
+                                }
+                            }
                         }
+                        if (match)
+                            candidateVector->push_back(node2);
                     }
-                    if (match)
-                        candidateVector->push_back(node2);
                 }
-              }
-              if (candidateVector->size() == VectorWidth -1) {
-                  Value* newV = cast<Value>(node);
-                  valueMap[newV] = candidateVector;
-              }
-          }
-      }
-      for (DenseMap<Value*, ValueVector*>::iterator i =
-          valueMap.begin(); i != valueMap.end(); i++) {
-          ValueVector& v = *(*i).second;
-          PHINode* orig = cast<PHINode>((*i).first);          
-          Type *IType = orig->getType();
-          Type *VType = getVecTypeForVector(IType);          
-          PHINode* phi = PHINode::Create(VType, orig->getNumIncomingValues(),
-                "", orig);
-          for (int i = 0; i < orig->getNumIncomingValues(); i++) {
-              Value* inc = orig->getIncomingValue(i);
-              BasicBlock* BB = orig->getIncomingBlock(i);
-              DenseMap<Value*, Value*>::iterator iter = 
-                storedSources.find(inc);
-              if (iter != storedSources.end()) {
-                  phi->addIncoming((*iter).second, BB);
-              }
-          }
-          
-      }
-      //BB.dump();
-      return true;
-  }
+                if (candidateVector->size() == VectorWidth -1) {
+                    Value* newV = cast<Value>(node);
+                    valueMap[newV] = candidateVector;
+                }
+            }
+        }
+        // Actually create new phi node
+        for (DenseMap<Value*, ValueVector*>::iterator i =
+            valueMap.begin(); i != valueMap.end(); i++) {
+            ValueVector& v = *(*i).second;
+            PHINode* orig = cast<PHINode>((*i).first);          
+            Type *IType = orig->getType();
+            Type *VType = getVecTypeForVector(IType);          
+            PHINode* phi = PHINode::Create(VType, orig->getNumIncomingValues(),
+                    getReplacementName(orig, false,0), orig);
+            // Add incoming pairs to the phi node.
+            for (int i = 0; i < orig->getNumIncomingValues(); i++) {
+                Value* inc = orig->getIncomingValue(i);
+                BasicBlock* BB = orig->getIncomingBlock(i);
+                DenseMap<Value*, Value*>::iterator iter = 
+                    storedSources.find(inc);
+                if (iter != storedSources.end()) {
+                    phi->addIncoming((*iter).second, BB);
+                } else {
+                    Constant* origConst = cast<Constant>(inc);
+                    Constant* cons = ConstantVector::getSplat(                      
+                        VectorWidth, origConst);
+                    phi->addIncoming(cons, BB);
+                }
+            }
+            // Extract scalar values from phi node to be used in the body 
+            // of basic block. Replacing their uses cause instruction combiner
+            // to find extractlement -> insertelement pairs and drop them
+            // leaving direct use of vector.
+            LLVMContext& Context = BB.getContext();
+            BasicBlock::iterator toFill = BB.getFirstInsertionPt();
+            Value *X = ConstantInt::get(Type::getInt32Ty(Context), 0);       
+            Instruction* other = ExtractElementInst::Create(phi, X,
+                                            getReplacementName(phi, false, 0));
+            other->insertAfter(toFill);
+            orig->replaceAllUsesWith(other);
+            AA->replaceWithNewValue(orig, other);
+            SE->forgetValue(orig);
+            orig->eraseFromParent();
+            Instruction* ins = other;
+            for (int i = 0; i < v.size(); i++) {
+                X = ConstantInt::get(Type::getInt32Ty(Context), i+1);            
+                Instruction* other = ExtractElementInst::Create(phi, X,
+                                            getReplacementName(phi, false, i+1));
+                other->insertAfter(ins);
+                Instruction* tmp = cast<Instruction>(v[i]);            
+                tmp->replaceAllUsesWith(other);
+                AA->replaceWithNewValue(tmp, other);  
+                SE->forgetValue(tmp);
+                tmp->eraseFromParent();
+                ins = other;
+            }          
+            
+        }
+        //BB.dump();
+        return true;      
+    }
   // This function implements one vectorization iteration on the provided
   // basic block. It returns true if the block is changed.
   bool WIVectorize::vectorizePairs(BasicBlock &BB) {
@@ -1563,14 +1614,6 @@ namespace {
     DEBUG(dbgs() << "WIV: selected " << ChosenPairs.size() << " pairs.\n");
   }
 
-  std::string getReplacementName(Instruction *I, bool IsInput, unsigned o,
-                     unsigned n = 0) {
-    if (!I->hasName())
-      return "";
-
-    return (I->getName() + (IsInput ? ".v.i" : ".v.r") + utostr(o) +
-             (n > 0 ? "." + utostr(n) : "")).str();
-  }
   // Returns the value that is to be used as the pointer input to the vector
   // instruction that fuses I with J.
   Value *WIVectorize::getReplacementPointerInput(LLVMContext& Context,
