@@ -462,10 +462,12 @@ case "$LLVM_VERSION" in
    ;;
      3.0*)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
+     AM_CONDITIONAL(LLVM_VECTORIZE, false)
    ;;
      *svn)
      AC_DEFINE([LLVM_3_1], [], "Using LLVM svn (upcoming 3.1)")     
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.1)")     
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.1)")
+     AM_CONDITIONAL(LLVM_VECTORIZE, true)
    ;;   
      *)
    AC_MSG_NOTICE(
@@ -518,7 +520,6 @@ AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
                    [Directory containing LLVM libraries.])
 
 AM_CONDITIONAL(LLVM, test x$LLVM_VERSION != x)
-AM_CONDITIONAL(LLVM_SVN, test x$LLVM_SVN = xtrue)
 
 ####################################################################
 #

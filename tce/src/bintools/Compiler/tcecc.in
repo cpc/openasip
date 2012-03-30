@@ -799,19 +799,20 @@ p.add_option('--vector-backend', action='store_true', dest='vector_backend', def
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
 
-p.add_option('--vectorize', action='store_true', dest='vectorize', default=False,
+if "@LLVM_VERSION@" != "3.0":
+    p.add_option('--vectorize', action='store_true', dest='vectorize', default=False,
              help=\
-"""Call work item vectorizer.""")
+    """Call work item vectorizer. This requires metadata support from pocl.""")
 
-p.add_option('--vectorize-mem-only', action='store_true', dest='vectorize_mem_only',
+    p.add_option('--vectorize-mem-only', action='store_true', dest='vectorize_mem_only',
             default=False,
              help=\
-"""Call work item vectorizer.""")
+    """Vectorize only memory operations.""")
 
-p.add_option('--vector-width', type="int", action='store', dest='vector_width', 
+    p.add_option('--vector-width', type="int", action='store', dest='vector_width', 
             default=8,
              help=\
-"""Number of lanes for vectorizer.""")
+    """Number of lanes for vectorizer.""")
 
 p.add_option('--print-resource-constraints', action='store_true',
              dest='print_resource_constraints', default=False,
