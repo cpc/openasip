@@ -1072,7 +1072,7 @@ if options.adf_file != "":
     else:
         emulationLinkedFileName = optimizedFileName
 
-    toCodeGenFname = emulationLinkedFileName + ".intrinsics_lowered"
+    toCodeGenFname = tempDir + "/" + os.path.basename(emulationLinkedFileName) + ".intrinsics_lowered"
 
     runCommand(lowerMemIntrinsicCommand(emulationLinkedFileName, toCodeGenFname),
                options.verbose, True)
