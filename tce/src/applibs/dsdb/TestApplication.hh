@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of TestApplication class.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2012
  * @note rating: red
  */
 
@@ -80,10 +81,13 @@ private:
     /// Maximum runtime of the test appication in nano seconds
     Runtime maxRuntime_;
 
-    /// Name of the file that contains a description.
+    /// File name of the description text for the application.
     static const std::string DESCRIPTION_FILE_NAME_;
     /// Name of the sequential program file.
-    static const std::string APPLICATION_FILE_NAME_;
+    /// Base name of the file that contains the fully linked program.
+    /// The actual file name will be formed by appending either .bc or .ll,
+    /// whichever is found first.
+    static const std::string APPLICATION_BASE_FILE_NAME_;
     /// Name of the file that contains setup script.
     static const std::string SETUP_FILE_NAME_;
     /// Name of the file that runs the simulation.

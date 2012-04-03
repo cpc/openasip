@@ -33,7 +33,7 @@ if [ "${RFS}" -gt "${MIN_RFS}" ]; then
 fi
 
 # compile
-${COMPILER_BIN} -o sim.tpef -a ${NEW_CONFIG}.adf data/program.bc 1>/dev/null 2>/dev/null
+${COMPILER_BIN} -o sim.tpef -a ${NEW_CONFIG}.adf --no-link data/program.ll 1>/dev/null 2>/dev/null
 
 # simulate output
 {

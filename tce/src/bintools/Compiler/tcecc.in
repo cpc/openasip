@@ -363,11 +363,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
                 elif suffix == ".bc":
-                    exitWithError(
-                        1, 
-                        "Bytecode files can't be relinked. "
-                        "Use .o suffix for unlinked bytecode files.\n")
-
+                    # Nothing to be done for the fully linked bitcode files.
+                    outFileName = fName
                 elif suffix == ".o":
                     outFileName =  fName
 
@@ -408,7 +405,7 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
-    startFiles = os.path.join(newlib_libdir,"crt0.o ")
+    startFiles = os.path.join(newlib_libdir, "crt0.o ")
 
     libNoSys = os.path.join(newlib_libdir,"libnosys.a")
     if not os.path.exists(libNoSys):
@@ -648,6 +645,10 @@ p.add_option('--no-plugin-cache', action="store_false",
 p.add_option('--no-schedule', action="store_true",
              dest="no_schedule", default=False,
              help="Do not call scheduler.")
+
+p.add_option('--no-link', action="store_true",
+             dest="no_link", default=False,
+             help="Do not call linker. Assume the input file is a fully linked file (default for .bc).")
 
 p.add_option('--disable-llvmaa', action="store_true",
              dest="disable_llvmaa", default=False,
@@ -991,11 +992,11 @@ if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     cleanup(tempDir)
     sys.exit(1)
 
-elif len(inFiles) == 1 and inFiles[0][-3:] == ".bc":
+elif len(inFiles) == 1 and (options.no_link or inFiles[0][-3:] == ".bc"):
     # Only one .bc inputfile given. No need to compile, link or optimize anything.
     # Note: Already linked bytecode can't be linked or optimized
     # with -lowermissing again anyway!
-    optimizedFileName = inFiles[0]
+    optimizedFileName = processInputFiles(inFiles, tempDir, options.verbose)[0]
 else:
     # Compile, link and optimize input files.
     

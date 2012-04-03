@@ -347,7 +347,7 @@ DesignSpaceExplorer::schedule(
     std::vector<std::string> tceccOutputLines;
     std::string tceccPath = Environment::tceCompiler();
     std::string tceccCommand = tceccPath + " "  
-        + compilerOptions + " -a " + adf + " -o " 
+        + compilerOptions + " --no-link -a " + adf + " -o " 
         + tpef + " " + bytecodeFile + " --no-plugin-cache 2>&1";
     
     Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);

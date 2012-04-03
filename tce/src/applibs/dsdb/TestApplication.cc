@@ -42,7 +42,7 @@
 using std::string;
 
 const string TestApplication::DESCRIPTION_FILE_NAME_ = "description.txt";
-const string TestApplication::APPLICATION_FILE_NAME_ = "program.bc";
+const string TestApplication::APPLICATION_BASE_FILE_NAME_ = "program";
 const string TestApplication::SETUP_FILE_NAME_ = "setup.sh";
 const string TestApplication::SIMULATE_TTASIM_FILE_NAME_ = "simulate.ttasim";
 const string 
@@ -233,10 +233,15 @@ TestApplication::maxRuntime() const {
 bool
 TestApplication::hasApplication() const {
 
-    string applicationFile =
+    string applicationBCFile =
         testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
-        APPLICATION_FILE_NAME_;
-    return FileSystem::fileExists(applicationFile);
+        APPLICATION_BASE_FILE_NAME_ + ".bc";
+    string applicationLLFile =
+        testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
+        APPLICATION_BASE_FILE_NAME_ + ".ll";
+
+    return FileSystem::fileExists(applicationBCFile) ||
+        FileSystem::fileExists(applicationLLFile);
 }
 
 /**
@@ -311,12 +316,22 @@ const std::string
 TestApplication::applicationPath() const {
 
     if (hasApplication()) {
-        string applicationFile =
+        string applicationBCFile =
             testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
-            APPLICATION_FILE_NAME_;
-        if (FileSystem::fileExists(applicationFile)) {
-            return applicationFile;
+            APPLICATION_BASE_FILE_NAME_ + ".bc";
+        string applicationLLFile =
+            testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
+            APPLICATION_BASE_FILE_NAME_ + ".ll";
+
+        // prioritize the .ll file as it's more portable across
+        // LLVM versions than the bitcode
+        if (FileSystem::fileExists(applicationLLFile)) {
+            return applicationLLFile;
         }
+        if (FileSystem::fileExists(applicationBCFile)) {
+            return applicationBCFile;
+        }
+
     }
     return "";
 }

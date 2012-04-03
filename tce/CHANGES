@@ -13,6 +13,8 @@ Smaller features
   now use filenames FU_NAME.in and FU_NAME.out instead of the fixed
   names. This allows easier simulation of TTAs with multiple 
   I/O FUs. By Jani Boutellier from University of Oulu.
+- Allow program.ll (a fully linked LLVM assembly file) as an option for
+  program.bc as an input file for the DSExplorer applications.
 
 Code generator improvements
 ---------------------------
