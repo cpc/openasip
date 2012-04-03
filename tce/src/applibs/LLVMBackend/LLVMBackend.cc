@@ -280,12 +280,11 @@ LLVMBackend::compile(
     std::auto_ptr<Module> m;
     OwningPtr<MemoryBuffer> buffer;
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(
-	    bytecodeFile.c_str(), buffer)) {
-	std::string msg = "Error reading bytecode file: " + bytecodeFile +
-	    "\n" + ec.message();
+            bytecodeFile.c_str(), buffer)) {
+        std::string msg = "Error reading bytecode file: " + bytecodeFile +
+            "\n" + ec.message();
         throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-    else {
+    } else {
         m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
     }
     if (m.get() == 0) {

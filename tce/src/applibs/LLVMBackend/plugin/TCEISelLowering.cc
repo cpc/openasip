@@ -563,6 +563,11 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
+#if 0
+            setOperationAction(ISD::ADD, MVT::v2f32, Expand);
+            setOperationAction(ISD::ADD, MVT::v2i32, Expand);
+            setOperationAction(ISD::MUL, MVT::v2i32, Expand);
+#endif
         case 1:
             break;
         }

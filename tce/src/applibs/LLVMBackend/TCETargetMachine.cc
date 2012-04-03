@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam—tut.fi)
+ * @author Pekka Jääskeläinen 2007-2012
  */
 
 #include "llvm/PassManager.h"
@@ -56,6 +57,7 @@ namespace llvm {
 
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
+Pass* createProgramPartitionerPass();
 
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
@@ -219,6 +221,12 @@ TCETargetMachine::addPreISel(
     }
 
 #else
+
+bool
+TCEPassConfig::addPreRegAlloc() {
+    PM.add(createProgramPartitionerPass());
+}
+
 bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    

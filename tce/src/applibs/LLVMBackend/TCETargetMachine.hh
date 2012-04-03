@@ -75,6 +75,7 @@ namespace llvm {
 	}
 
 	virtual bool addPreISel();
+	virtual bool addPreRegAlloc();
 	virtual bool addInstSelector();
 
 	TCETargetMachinePlugin* plugin_;
@@ -105,6 +106,7 @@ namespace llvm {
         virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);
+        virtual TCETargetMachinePlugin& targetPlugin() const { return *plugin_; }
 
         /**
          * These two parameter passing should be rethought... maybe TTAMach can be avoided

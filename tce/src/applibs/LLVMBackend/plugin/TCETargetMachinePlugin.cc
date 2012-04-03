@@ -76,6 +76,9 @@ public:
 
     virtual std::string rfName(unsigned dwarfRegNum);
     virtual unsigned registerIndex(unsigned dwarfRegNum);
+
+    bool isExtractElement(unsigned opc) const;
+
     virtual std::string operationName(unsigned opc);
 
     virtual bool hasOperation(TCEString operationName) const {
@@ -192,6 +195,26 @@ GeneratedTCEPlugin::getTargetLowering() const {
 FunctionPass*
 GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
     return createTCEISelDag(*tm);
+}
+
+/**
+ * Returns true in case the given opc is for an extract element
+ * operation.
+ */
+bool
+GeneratedTCEPlugin::isExtractElement(unsigned opc) const {
+    switch (opc) {
+    case TCE::EXTRACT2rvi:
+    case TCE::EXTRACT2fmi:
+    case TCE::EXTRACT4rvi:
+    case TCE::EXTRACT4fmi:
+    case TCE::EXTRACT8rvi:
+    case TCE::EXTRACT8fmi:
+        return true;
+    default:
+        return false;
+    }
+    return false;
 }
 
 /**
