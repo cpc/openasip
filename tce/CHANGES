@@ -34,6 +34,9 @@ Code generator improvements
   --bottom-up-scheduler command line parameter.
 - Compiler can now make floating point constant values to be used from
   immediates instead of always putting them to constant pool.
+- No longer floating point aliases for 32-bit registers on llvm backend;
+  The same registers now belong to both i32 and f32 register classes.
+  
 
 Bugfixes
 --------

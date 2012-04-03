@@ -212,16 +212,12 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     else if (opc == TCE::SELECT_I1ir) return SELECT;
     else if (opc == TCE::SELECT_I1ii) return SELECT;
 
-    else if (opc == TCE::SELECT_I8rr) return SELECT;
-
     else if (opc == TCE::SELECT_I32rr) return SELECT;
     else if (opc == TCE::SELECT_I32ri) return SELECT;
     else if (opc == TCE::SELECT_I32ir) return SELECT;
     else if (opc == TCE::SELECT_I32ii) return SELECT;
 
-    else if (opc == TCE::SELECT_I64) return SELECT;
     else if (opc == TCE::SELECT_F32) return SELECT;
-    else if (opc == TCE::SELECT_F64) return SELECT;
     else if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
@@ -230,31 +226,12 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     // Moves
     if (opc == TCE::MOVI1rr) return MOVE;
     if (opc == TCE::MOVI1ri) return MOVE;
-    if (opc == TCE::MOVI8rr) return MOVE;
-    if (opc == TCE::MOVI8ri) return MOVE;
-    if (opc == TCE::MOVI16rr) return MOVE;
-    if (opc == TCE::MOVI16ri) return MOVE;
     if (opc == TCE::MOVI32rr) return MOVE;
     if (opc == TCE::MOVI32ri) return MOVE;
-    if (opc == TCE::MOVI64rr) return MOVE;
-    if (opc == TCE::MOVI64ri) return MOVE;
     if (opc == TCE::MOVF32ff) return MOVE;
     if (opc == TCE::MOVF32fi) return MOVE;
     if (opc == TCE::MOVF32fk) return MOVE;
-    if (opc == TCE::MOVF64rr) return MOVE;
-    if (opc == TCE::MOVF64fi) return MOVE;
-
-    if (opc == TCE::MOVI8I1rr) return MOVE;
-    if (opc == TCE::MOVI16I1rr) return MOVE;
-    if (opc == TCE::MOVI16I8rr) return MOVE;
     if (opc == TCE::MOVI32I1rr) return MOVE;
-    if (opc == TCE::MOVI32I8rr) return MOVE;
-    if (opc == TCE::MOVI32I16rr) return MOVE;
-    if (opc == TCE::MOVI64I1rr) return MOVE;
-    if (opc == TCE::MOVI64I8rr) return MOVE;
-    if (opc == TCE::MOVI64I16rr) return MOVE;
-    if (opc == TCE::MOVI64I32rr) return MOVE;
-
     if (opc == TCE::MOVFI32rf) return MOVE;
     if (opc == TCE::MOVIF32fr) return MOVE;
 

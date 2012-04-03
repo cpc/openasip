@@ -94,9 +94,6 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     reserved.set(TCE::KLUDGE_REGISTER);
     reserved.set(TCE::RA);
     reserved.set(TCE::IRES0);
-    reserved.set(TCE::FRES0);
-    reserved.set(TCE::FSP);
-    reserved.set(TCE::FKLUDGE);
     return reserved;
 }
 

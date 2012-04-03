@@ -114,6 +114,7 @@ protected:
     };
     bool checkRequiredRegisters() throw (Exception);
     void analyzeRegisters();
+    void analyzeRegisterFileClasses();
     void analyzeRegisters(RegsToProcess regsToProcess);
 
     void writeRegisterDef(
@@ -154,6 +155,8 @@ protected:
         const OperationDAG& dag);
 
     void writeCallDef(std::ostream& o);
+
+    void writeRegisterClasses(std::ostream& o);
 
     std::string llvmOperationPattern(
         const std::string& osalOperationName, char operandType);
@@ -245,6 +248,12 @@ throw (InvalidData);
 
     int maxVectorSize_;
 
+    int highestLaneInt_;
+    int highestLaneBool_;
+
+    bool hasExBoolRegs_;
+    bool hasExIntRegs_;
+
     /// Minimum number of 32 bit registers.
     unsigned static const REQUIRED_I32_REGS;
     /// List of register that are associated with a guard on a bus.
@@ -253,6 +262,9 @@ throw (InvalidData);
     /// Register files whose last reg reserved for temp reg copies.
     std::vector<TTAMachine::RegisterFile*> tempRegFiles_;
 
+    typedef std::map<std::string, std::vector<std::string> > RegClassMap;
+    /// All registers in certain group
+    RegClassMap regsInClasses_;
 };
 
 #endif

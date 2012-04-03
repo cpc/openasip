@@ -197,23 +197,23 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
-  if (RC == TCE::I32RegsRegisterClass)
+  if (RC == TCE::R32IRegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STWrr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
-  else if (RC == TCE::F32RegsRegisterClass)
+  else if (RC == TCE::R32FPRegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STWfr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STWRArr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
-  else if (RC == TCE::I1RegsRegisterClass)
+  else if (RC == TCE::R1RegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STQBrb)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else
     BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
 #if 0    
-  else if (RC == TCE::V2I32RegsRegisterClass)
+  else if (RC == TCE::V2R32IRegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STW2vr)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::V2F32RegsRegisterClass)
@@ -232,13 +232,13 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   if (I != MBB.end()) DL = I->getDebugLoc();
 
-  if (RC == TCE::I32RegsRegisterClass)
+  if (RC == TCE::R32IRegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWrr), DestReg).addFrameIndex(FI).addImm(0);
-  else if (RC == TCE::F32RegsRegisterClass)
+  else if (RC == TCE::R32FPRegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWfr), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWRAr), DestReg).addFrameIndex(FI).addImm(0);
-  else if (RC == TCE::I1RegsRegisterClass)
+  else if (RC == TCE::R1RegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDQBr), DestReg).addFrameIndex(FI).addImm(0);
   else
     BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI).addImm(0);
@@ -262,26 +262,14 @@ void TCEInstrInfo::copyPhysReg(
     DebugLoc dl;
     if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
 
-    if (TCE::I1RegsRegisterClass->contains(destReg, srcReg)) {
+    if (TCE::R1RegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::I8RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI8rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::I16RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI16rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::I32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::R32IRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::I64RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI64rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::F32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::R32FPRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF32ff), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::F64RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::V2I32RegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV2vv), destReg)

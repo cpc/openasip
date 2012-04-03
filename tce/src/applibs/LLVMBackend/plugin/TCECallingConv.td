@@ -17,7 +17,7 @@
 
 def RetCC_TCE : CallingConv<[
   CCIfType<[i32], CCAssignToReg<[IRES0]>>,
-  CCIfType<[f32], CCAssignToReg<[FRES0]>>,
+  CCIfType<[f32], CCAssignToReg<[IRES0]>>,
   CCAssignToStack<4, 4>
 ]>;
 

@@ -167,7 +167,7 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else if (CurArgReg < ArgRegEnd && !isVarArg) {
                 unsigned VReg = RegInfo.createVirtualRegister(
-                    TCE::I32RegsRegisterClass);
+                    TCE::R32IRegsRegisterClass);
                 MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
                 SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
                 if (ObjectVT != MVT::i32) {
@@ -478,9 +478,9 @@ TCETargetLowering::TCETargetLowering(
 	setSchedulingPreference(llvm::Sched::RegPressure);
     }
 
-    addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
-    addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
-    addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
+    addRegisterClass(MVT::i1, TCE::R1RegsRegisterClass);
+    addRegisterClass(MVT::i32, TCE::R32IRegsRegisterClass);
+    addRegisterClass(MVT::f32, TCE::R32FPRegsRegisterClass);
 
 #ifndef LLVM_3_0
     if (opts->useVectorBackend()) {
@@ -494,15 +494,27 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Expand);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Expand);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v8i32, Expand);
-            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Expand);
+//            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
+
+            setTruncStoreAction(MVT::v8i32, MVT::v8i8, Expand);
+            setTruncStoreAction(MVT::v8i32, MVT::v8i16, Expand);
+
+            setLoadExtAction(ISD::EXTLOAD, MVT::v8i8, Expand);
+            setLoadExtAction(ISD::EXTLOAD, MVT::v8i16, Expand);
+
+            setLoadExtAction(ISD::SEXTLOAD, MVT::v8i8, Expand);
+            setLoadExtAction(ISD::SEXTLOAD, MVT::v8i16, Expand);
+
+            setLoadExtAction(ISD::ZEXTLOAD, MVT::v8i8, Expand);
+            setLoadExtAction(ISD::ZEXTLOAD, MVT::v8i16, Expand);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Expand);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Expand);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v8f32, Expand);
-            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Expand);
+//            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
 
@@ -517,6 +529,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
+
+            setTruncStoreAction(MVT::v4i32, MVT::v4i8, Expand);
+            setTruncStoreAction(MVT::v4i32, MVT::v4i16, Expand);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Expand);
@@ -537,6 +552,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
+
+            setTruncStoreAction(MVT::v2i32, MVT::v2i8, Expand);
+            setTruncStoreAction(MVT::v2i32, MVT::v2i16, Expand);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Expand);
@@ -809,12 +827,10 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
     case 'r':
-        return std::make_pair(0U, TCE::I32RegsRegisterClass);
+        return std::make_pair(0U, TCE::R32IRegsRegisterClass);
     case 'f':
         if (VT == MVT::f32) {
-            return std::make_pair(0U, TCE::F32RegsRegisterClass);
-        } else if (VT == MVT::f64) {
-            return std::make_pair(0U, TCE::F64RegsRegisterClass);
+            return std::make_pair(0U, TCE::R32FPRegsRegisterClass);
         }
     }
   }

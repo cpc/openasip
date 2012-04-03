@@ -1795,6 +1795,9 @@ LLVMTCEBuilder::emitMove(
     const MachineOperand& src = mi->getOperand(1);
     TTAProgram::Move* move = createMove(src, dst);
 
+    if (move == NULL) {
+        return NULL;
+    }
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 
     instr->addMove(move);

@@ -69,7 +69,7 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
  * @param mach Machine to generate plugin for.
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
-    mach_(mach), dregNum_(0), maxVectorSize_(1) {
+    mach_(mach), dregNum_(0), maxVectorSize_(1), highestLaneInt_(-1), highestLaneBool_(-1) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
 }
 
@@ -123,7 +123,17 @@ TDGen::writeRegisterDef(
     const std::string aliases,
     RegType type) {
 
-    o << "def " << regName << " : " << regTemplate
+    std::string templ = regTemplate;
+    if (reg.rf.find("EX_") ==0) {
+        templ += "_Ex";
+        regsInClasses_[templ].push_back(regName);
+    } else if (reg.rf.find("L_") == 0) {
+        templ += "_" + reg.rf.substr(0,3);
+        regsInClasses_[templ].push_back(regName);
+
+    }
+
+    o << "def " << regName << " : " << templ
       << "<\"" << reg.rf << "." << reg.idx
       << "\", [" << aliases << "]>, DwarfRegNum<"
       << "[" << dregNum_ << "]>;"
@@ -143,6 +153,8 @@ TDGen::writeRegisterDef(
 
     regs_[regName] = reg;
 
+    regsInClasses_[regTemplate].push_back(regName);
+
     dregNum_++;
 }
 
@@ -156,6 +168,8 @@ TDGen::writeRegisterDef(
 bool
 TDGen::writeRegisterInfo(std::ostream& o) 
     throw (Exception) {
+
+    analyzeRegisterFileClasses();
 
     analyzeRegisters();
 
@@ -179,70 +193,57 @@ TDGen::writeRegisterInfo(std::ostream& o)
     o << "   let Aliases = aliases;" << std::endl;
     o << "}" << std::endl;
 
-    o << "class Ri1<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
 
-    o << "class Ri8<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
+    writeRegisterClasses(o);
 
-    o << "class Ri16<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class Ri32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class Rf32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class Ri64<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class Rf64<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class V2I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class V4I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class V8I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-
-    o << "class V2F32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class V4F32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << "class V8F32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << std::endl;
-    o << "}" << std::endl;
-
-    o << std::endl;
+    
    
     writeRARegisterInfo(o);
     write1bitRegisterInfo(o);
-    write8bitRegisterInfo(o);
-    write16bitRegisterInfo(o);
     write32bitRegisterInfo(o);
-    write64bitRegisterInfo(o);
     writeVectorRegisterInfo(o);
 
     return true;
+}
+
+
+void
+TDGen::writeRegisterClasses(std::ostream& o) {
+
+    o << "class R1<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+
+    if (hasExBoolRegs_) {
+        o << "class R1_Ex<string n, list<Register> aliases> : R1<n, aliases> {"
+          << "}" << std::endl;
+    }
+    
+    o << "class R32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+    if (hasExIntRegs_) {
+        o << "class R32_Ex<string n, list<Register> aliases> : R32<n, aliases> {}"
+          << std::endl;
+    }
+
+    for (int i = 0; i <= highestLaneInt_; i++) {
+        o << "class R32_L_" << i << "<string n, list<Register> aliases> : R32<n, aliases>{}" << std::endl;
+    }
+
+    for (int i = 0; i <= highestLaneBool_; i++) {
+        o << "class R1_L_" << i << "<string n, list<Register> aliases> : R1<n, aliases>{}" << std::endl;
+    }
+
+    o << "class V2I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+
+    o << "class V4I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+
+    o << "class V8I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+
+    o << std::endl;
+
 }
 
 
@@ -277,6 +278,49 @@ TDGen::analyzeRegisters() {
     analyzeRegisters(ONLY_NORMAL);
     analyzeRegisters(ONLY_LANES);
 }
+
+void 
+TDGen::analyzeRegisterFileClasses() {
+
+    const TTAMachine::Machine::RegisterFileNavigator nav =
+        mach_.registerFileNavigator();
+    
+    for (int i = 0; i < nav.count(); i++) {
+        const TTAMachine::RegisterFile* rf = nav.item(i);
+        unsigned width = rf->width();
+		if (rf->name().find("EX_") == 0) {
+            switch (width) {
+            case 1:
+                hasExBoolRegs_ = true;
+                break;
+            case 32:
+                hasExIntRegs_ = true;
+                break;
+            default:
+                break;
+                // other sizes not supported yet?
+            }
+        }
+		if (rf->name().find("L_") == 0) {
+            // only works up to 8 first;
+            int lane = rf->name()[2] - 48;
+            switch (width) {
+            case 1:
+                if (lane < 8 && lane > highestLaneBool_) {
+                    highestLaneBool_ = lane;
+                }
+            case 32:
+                if (lane < 8 && lane > highestLaneInt_) {
+                    highestLaneInt_ = lane;
+                }
+            default:
+                break;
+                // other sizes not supported yet?
+            }
+        }
+    }
+}
+
 
 /**
  * Iterates through some register files.
@@ -411,85 +455,34 @@ void TDGen::analyzeRegisters(RegsToProcess regsToProcess) {
 void
 TDGen::write1bitRegisterInfo(std::ostream& o) {
 
-    std::string i1regs;
-
     if (regs1bit_.size() < 1) {
         RegInfo reg = {"dummy1", 0};
         std::string name = "I1DUMMY";
-        writeRegisterDef(o, reg, name, "Ri1", "", RESERVED);
-        i1regs += name;
+        writeRegisterDef(o, reg, name, "R1", "", RESERVED);
     } else {
         for (unsigned i = 0; i < regs1bit_.size(); i++) {
             std::string regName = "B" + Conversion::toString(i);
-            if (i > 0) i1regs += ", ";
-            i1regs += regName;
-            writeRegisterDef(o, regs1bit_[i], regName, "Ri1", "", GPR);
+            writeRegisterDef(o, regs1bit_[i], regName, "R1", "", GPR);
         }
     }
 
-    o << std::endl
-      << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, (add "
-      << i1regs << ")> {" << std::endl
-      << " let Size=8;" << std::endl
-      << "}" << std::endl;
-}
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R1") == 0) {
 
-
-/**
- * Writes 8-bit register definitions to the output stream.
- */
-void
-TDGen::write8bitRegisterInfo(std::ostream& o) {
-
-    std::string i8regs;
-    if (regs8bit_.size() < 1) {
-        RegInfo reg = { "dummy8", 0 };
-        std::string name = "I8DUMMY";
-        writeRegisterDef(o, reg, name, "Ri8", "", RESERVED);
-        i8regs += name;
-    } else {
-        for (unsigned i = 0; i < regs8bit_.size(); i++) {
-            std::string regName = "Q" + Conversion::toString(i);
-            if (i > 0) i8regs += ", ";
-            i8regs += regName;
-            writeRegisterDef(o, regs8bit_[i], regName, "Ri8", "", GPR);
+            o << std::endl
+              << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1], 8, (add ";
+            o << ri->second[0];
+            for (int i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")> {" << std::endl
+              << " let Size=8;" << std::endl
+              << "}" << std::endl;
         }
     }
-
-    o << std::endl
-       << "def I8Regs : RegisterClass<\"TCE\", [i8], 8, (add "
-       << i8regs << ")>;" << std::endl
-       << std::endl << std::endl << std::endl;
 }
-
-
-/**
- * Writes 16-bit register definitions to the output stream.
- */
-void
-TDGen::write16bitRegisterInfo(std::ostream& o) {
-
-    std::string i16regs;
-    if (regs16bit_.size() < 1) {
-        RegInfo reg = { "dummy16", 0 };
-        std::string name = "I16DUMMY";
-        writeRegisterDef(o, reg, name, "Ri16", "", RESERVED);
-        i16regs += name;
-    } else {
-        for (unsigned i = 0; i < regs16bit_.size(); i++) {
-            std::string regName = "H" + Conversion::toString(i);
-            if (i > 0) i16regs += ", ";
-            i16regs += regName;
-            writeRegisterDef(o, regs16bit_[i], regName, "Ri16", "", GPR);
-        }
-    }
-
-    o << std::endl
-       << "def I16Regs : RegisterClass<\"TCE\", [i16], 16, (add "
-       << i16regs << ")>;" << std::endl
-       << std::endl;
-}
-
 
 /**
  * Writes 32-bit register definitions to the output stream.
@@ -498,44 +491,67 @@ void
 TDGen::write32bitRegisterInfo(std::ostream& o) {
 
     // --- Hardcoded reserved registers. ---
-    writeRegisterDef(o, regs32bit_[0], "SP", "Ri32", "", RESERVED);
-    writeRegisterDef(o, regs32bit_[1], "IRES0", "Ri32", "", RESULT);
+    writeRegisterDef(o, regs32bit_[0], "SP", "R32", "", RESERVED);
+    writeRegisterDef(o, regs32bit_[1], "IRES0", "R32", "", RESULT);
     writeRegisterDef(
-        o, regs32bit_[2], "KLUDGE_REGISTER", "Ri32", "", RESERVED);
+        o, regs32bit_[2], "KLUDGE_REGISTER", "R32", "", RESERVED);
 
     // -------------------------------------
     
-    std::string i32regs;
     for (unsigned i = 3; i < regs32bit_.size(); i++) {
         std::string regName = "I" + Conversion::toString(i);
-        i32regs += regName + ", ";
-        writeRegisterDef(o, regs32bit_[i], regName, "Ri32", "", GPR);
+        writeRegisterDef(o, regs32bit_[i], regName, "R32", "", GPR);
     }
 
-    o << std::endl
-      << "def I32Regs : RegisterClass<\"TCE\", [i32], 32, (add "
-      << i32regs << std::endl
-      << "SP, IRES0, KLUDGE_REGISTER)> ;"
-      << std::endl;
+    o << std::endl;
+
+    // All 32-bit regs.
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R32") == 0) {
+            
+            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32], 32, (add ";
+            o << ri->second[0];
+            for (int i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+    o << std::endl;
     
-    // --- Hardcoded reserved registers. ---
-    writeRegisterDef(o, regs32bit_[0], "FSP", "Rf32", "SP", RESERVED);
-    writeRegisterDef(o, regs32bit_[1], "FRES0", "Rf32", "IRES0", RESULT);
-    writeRegisterDef(o, regs32bit_[2], "FKLUDGE", "Rf32", "KLUDGE_REGISTER",
-                     RESERVED);
-    // -------------------------------------
-    std::string f32regs;
-    for (unsigned i = 3; i < regs32bit_.size(); i++) {
-        std::string regName = "F" + Conversion::toString(i);
-        std::string aliasName = "I" + Conversion::toString(i);
-        f32regs += regName + ", ";
-        writeRegisterDef(o, regs32bit_[i], regName, "Rf32", aliasName, GPR);
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R32") == 0) {
+            o << "def " << ri->first << "IRegs : RegisterClass<\"TCE\", [i32], 32, (add ";
+            o << ri->second[0];
+            for (int i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+    o << std::endl;
+
+    // floating-point-versions of these
+
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R32") == 0) {
+            
+            o << "def " << ri->first << "FPRegs : RegisterClass<\"TCE\", [f32], 32, (add ";
+            o << ri->second[0];
+            for (int i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
     }
 
-    o << std::endl
-      << "def F32Regs : RegisterClass<\"TCE\", [f32], 32, (add "
-      << f32regs << std::endl
-      << "FSP, FRES0, FKLUDGE)> ;" << std::endl;
+    o << std::endl;
 }
 
 
@@ -589,7 +605,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
         f64regs += "DRES0";
     }
     o << std::endl
-      << "def F64Regs : RegisterClass<\"TCE\", [f64], 32, (add " // DRES
+      << "def F64Regs : RegisterClass<\"TCE\", [f64], 32, (add "
       << f64regs << ")>;" << std::endl;
 }
 
@@ -598,8 +614,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 void
 TDGen::writeVectorRegisterInfo(
     std::ostream& o, int width) {
-    std::string vectorRegsI;
-    std::string vectorRegsF;
+    std::string vectorRegs;
 
     if (width <= maxVectorSize_) {
         for (unsigned i = 3; i < regs32bit_.size(); i++) {
@@ -611,8 +626,7 @@ TDGen::writeVectorRegisterInfo(
                   "_VECTOR_" + Conversion::toString(width) + "_" + 
                   regs32bit_[i].rf;
                 
-                TCEString aliasName = "I" + Conversion::toString(i) +
-                    ", F" + Conversion::toString(i);
+                TCEString aliasName = "I" + Conversion::toString(i);
                 for (int j = 1; j < width; j++) {
                     if (i+i >= regs32bit_.size()) {
                         ok = false;
@@ -627,43 +641,30 @@ TDGen::writeVectorRegisterInfo(
                         TCEString aliasIndex = Conversion::toString(i+j);
                         aliasName+= ", I";
                         aliasName+= aliasIndex;
-                        aliasName+= ", F";
-                        aliasName+= aliasIndex;
                         subRegs.push_back(gprRegInfo);
                         vecRegRfName += "+" + gprRegInfo.rf;
                     }
                 }
                 if (ok) {
-                    TCEString regNameI = "_VECI32_";
-                    TCEString regNameF = "_VECF32_";
-                    regNameI << width << "_" << Conversion::toString(i);
-                    regNameF << width << "_" << Conversion::toString(i);
-                    if (vectorRegsI != "") {
-                        vectorRegsI += ", " + regNameI;
-                        vectorRegsF += ", " + regNameF;
+                    TCEString regName = "_VEC32_";
+                    regName << width << "_" << Conversion::toString(i);
+                    if (vectorRegs != "") {
+                        vectorRegs += ", " + regName;
                     } else {
-                        vectorRegsI = regNameI;
-                        vectorRegsF = regNameF;
+                        vectorRegs = regName;
                     }
                     RegInfo vecRegInfo = { vecRegRfName, regIndex };
                     
                     for (int k = width >> 1; k > 1; k >>=1 ) {
-                        TCEString aliasNameI = ", _VECI32_";
-                        TCEString aliasNameF = ", _VECF32_";
+                        TCEString aliasNameI = ", _VEC32_";
                         aliasNameI << k << "_" << Conversion::toString(i);
-                        aliasNameF << k << "_" << Conversion::toString(i);
-                        aliasName += (aliasNameI + aliasNameF);
+                        aliasName += aliasNameI;
                     }
                     writeRegisterDef(
-                        o, vecRegInfo, regNameI, 
+                        o, vecRegInfo, regName, 
                         TCEString("V") + Conversion::toString(width) + "I32",
                         aliasName, GPR);
 
-                    writeRegisterDef(
-                        o, vecRegInfo, regNameF, 
-                        TCEString("V") + Conversion::toString(width) + "F32",
-                        aliasName + ", " + regNameI, GPR);
-                    
                     // this only uses n first RF's.
                     i+= (maxVectorSize_-1);
 
@@ -678,29 +679,24 @@ TDGen::writeVectorRegisterInfo(
     TCEString regClassBaseI = regClassBase + "I32";
     TCEString regClassBaseF = regClassBase + "F32";
 
-    if (vectorRegsI == "") {
+    if (vectorRegs == "") {
       RegInfo reg = {TCEString("dummyvec") + Conversion::toString(width), 0};
       TCEString nameI("V"); nameI << width << "I32DUMMY" ;
         writeRegisterDef(o, reg, nameI, regClassBaseI, "", RESERVED);
-        o << std::endl
-          << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add V" << width << "I32DUMMY)> ;"
+        o << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add V" << width << "I32DUMMY)> ;"
           << std::endl;
 
-        TCEString nameF("V"); nameF << width << "F32DUMMY"; 
-        writeRegisterDef(o, reg, nameF, regClassBaseF, "", RESERVED);
-        o << std::endl
-          << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add V" << width << "F32DUMMY)> ;"
-          << std::endl;
+        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add V" << width << "I32DUMMY)> ;"
+          << std::endl << std::endl;
 
     } 
     else {
         o << std::endl
           << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add "
-          << vectorRegsI << ")> ;" << std::endl;
+          << vectorRegs << ")> ;" << std::endl;
 
-        o << std::endl
-          << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add "
-          << vectorRegsF << ")> ;" << std::endl;
+        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add "
+          << vectorRegs << ")> ;" << std::endl << std::endl;
     }
 
 
@@ -809,21 +805,21 @@ TDGen::writeInstrInfo(std::ostream& os) {
 
     // add the floating point load and store patterns first so they will
     // be selected instead of i32 ldw/stw to avoid dummy castings
-    os << "def LDWfr : InstTCE<(outs F32Regs:$op2), " 
-       << "(ins MEMrr:$op1), \"\", [(set F32Regs:$op2, " 
+    os << "def LDWfr : InstTCE<(outs R32FPRegs:$op2), " 
+       << "(ins MEMrr:$op1), \"\", [(set R32FPRegs:$op2, " 
        << "(load ADDRrr:$op1))]>;" << std::endl;
 
-    os << "def LDWfi : InstTCE<(outs F32Regs:$op2), " 
-       << "(ins MEMri:$op1), \"\", [(set F32Regs:$op2, " 
+    os << "def LDWfi : InstTCE<(outs R32FPRegs:$op2), " 
+       << "(ins MEMri:$op1), \"\", [(set R32FPRegs:$op2, " 
        << "(load ADDRri:$op1))]>;" << std::endl;
 
     os << "def STWfr : InstTCE<(outs), " 
-       << "(ins MEMrr:$op1, F32Regs:$op2), \"\"," 
-       << "[(store F32Regs:$op2, ADDRrr:$op1)]>;" << std::endl;
+       << "(ins MEMrr:$op1, R32FPRegs:$op2), \"\"," 
+       << "[(store R32FPRegs:$op2, ADDRrr:$op1)]>;" << std::endl;
 
     os << "def STWfi : InstTCE<(outs), " 
-       << "(ins MEMri:$op1, F32Regs:$op2), \"\"," 
-       << "[(store F32Regs:$op2, ADDRri:$op1)]>;" << std::endl;
+       << "(ins MEMri:$op1, R32FPRegs:$op2), \"\"," 
+       << "[(store R32FPRegs:$op2, ADDRri:$op1)]>;" << std::endl;
 
     opNames_["LDWfr"] = "LDW";
     opNames_["LDWfi"] = "LDW";
@@ -2256,9 +2252,9 @@ TDGen::operandToString(
                 return "(i1 imm:$op" + Conversion::toString(idx) + ")";
             }
         case 'r':
-            return "I32Regs:$op" + Conversion::toString(idx);
+            return "R32IRegs:$op" + Conversion::toString(idx);
         case 'b':
-            return "I1Regs:$op" + Conversion::toString(idx);
+            return "R1Regs:$op" + Conversion::toString(idx);
         case 'v':
             return "V2I32Regs:$op" + Conversion::toString(idx);
         case 'w':
@@ -2282,7 +2278,7 @@ TDGen::operandToString(
             }
         case 'r':
         case 'f':
-            return "F32Regs:$op" + Conversion::toString(idx);
+            return "R32FPRegs:$op" + Conversion::toString(idx);
         case 'm':
             return "V2F32Regs:$op" + Conversion::toString(idx);
         case 'n':
