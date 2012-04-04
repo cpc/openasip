@@ -76,6 +76,7 @@ namespace llvm {
        /// Returns operation name corresponding to llvm target opcode.
        virtual std::string operationName(unsigned opc) = 0;
        /// Returns true in case the target supports the given osal operation
+
        virtual bool hasOperation(TCEString operationName) const = 0;
        /// Returns the opcode for the given osal operation, undefined if not found.
        virtual unsigned opcode(TCEString operationName) const = 0;
@@ -109,6 +110,9 @@ namespace llvm {
        virtual void registerTargetMachine(TCETargetMachine &tm) = 0;
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
+
+       virtual const llvm::TargetRegisterClass* nodeRegClass(
+           unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
    protected:
        /// Target machine instruction info for the llvm framework. 

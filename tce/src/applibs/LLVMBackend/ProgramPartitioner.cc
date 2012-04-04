@@ -67,7 +67,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
     const TCETargetMachinePlugin& tmPlugin = 
         dynamic_cast<const TCETargetMachinePlugin&>(targetMach.targetPlugin());
 
-    const llvm::MachineRegisterInfo& MRI = MF.getRegInfo();
+    llvm::MachineRegisterInfo& MRI = MF.getRegInfo();
 
     hash_map<const llvm::MachineInstr*, unsigned> partitions;
 
@@ -79,7 +79,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 
             const llvm::MachineInstr& mi = *j; 
             if (partitions.find(&mi) != partitions.end())
-                continue;
+                continue; /* Already partitioned. */
             unsigned nodeIndex = UINT_MAX;
             if (tmPlugin.isExtractElement(mi.getDesc().getOpcode())) {
                 assert(mi.getNumOperands() >= 3 && mi.getOperand(2).isImm());
@@ -121,6 +121,30 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 
             /* TODO: Use the partition's register class instead of the super class to force
              the instruction's regs to be allocated from the partition. */
+            if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
+                !mi.getOperand(0).isDef()) continue;
+            const llvm::MachineOperand& result = mi.getOperand(0);
+            const llvm::TargetRegisterClass* nodeRegClass = 
+                tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
+#ifdef DEBUG_PROGRAM_PARTITIONER
+            std::cerr << "[ORIGINAL REG CLASS " 
+                      << MRI.getRegClass(result.getReg())->getName() 
+                      << "]" << std::endl;
+#endif
+            if (nodeRegClass == NULL) {
+#ifdef DEBUG_PROGRAM_PARTITIONER
+                std::cerr << "[NO REG CLASS FOUND FOR THE NODE]" << std::endl;
+#endif                
+            } else {
+#ifdef DEBUG_PROGRAM_PARTITIONER
+                std::cerr << "[ASSIGNED REG CLASS " 
+                          << nodeRegClass->getName() << "]" << std::endl;
+#endif
+                MRI.setRegClass(result.getReg(), nodeRegClass);
+            }
+
+                                      
+            
         }
     }
     return true;

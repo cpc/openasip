@@ -34,6 +34,7 @@
 //#include <llvm/Config/config.h>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include "TCETargetMachinePlugin.hh"
 #include "TCEPlugin.hh"
 #include "TCEInstrInfo.hh"
@@ -108,6 +109,9 @@ public:
 
     virtual int getLoad(const TargetRegisterClass *rc) const;
     virtual int getStore(const TargetRegisterClass *rc) const;
+
+    virtual const llvm::TargetRegisterClass* nodeRegClass(
+        unsigned nodeId, const llvm::TargetRegisterClass* current) const;
 private:
     void initialize();
     
@@ -330,6 +334,38 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     }
 
     return opNames_[opc];
+}
+
+#include "TCEGenRegisterInfo.inc"
+
+const llvm::TargetRegisterClass*
+GeneratedTCEPlugin::nodeRegClass(
+    unsigned nodeId, const llvm::TargetRegisterClass* current) const {
+
+
+    const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
+
+    TCEString origRCName(current->getName());
+    for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
+        const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
+        TCEString RCName(regClass->getName());
+        if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
+            continue;
+        std::istringstream parser(origRCName);
+        char c;
+        int width;
+        TCEString suffix;
+        parser >> c;
+        parser >> width;
+        parser >> suffix;
+
+        TCEString wantedRegClassName;
+        wantedRegClassName << "R" << width << "_L_" << nodeId << suffix;
+
+        if (wantedRegClassName == RCName)
+            return regClass;
+    }
+    return current;
 }
 
 /**
