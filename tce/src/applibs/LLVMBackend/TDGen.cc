@@ -193,10 +193,31 @@ TDGen::writeRegisterInfo(std::ostream& o)
     o << "   let Aliases = aliases;" << std::endl;
     o << "}" << std::endl;
 
-
-    writeRegisterClasses(o);
+    o << "class TCEVectorReg<string n, list<Register> subregs> : "
+      << "RegisterWithSubRegs<n, subregs> {"
+      << std::endl
+      << "    let Namespace = \"TCE\";" << std::endl
+      << "}" << std::endl;
 
     
+  // Subregister indices.
+    o << "def lane0 : SubRegIndex;" << std::endl 
+      << "def lane1 : SubRegIndex;" << std::endl
+      << "def lane2 : SubRegIndex;" << std::endl
+      << "def lane3 : SubRegIndex;" << std::endl
+      << "def lane4 : SubRegIndex;" << std::endl
+      << "def lane5 : SubRegIndex;" << std::endl
+      << "def lane6 : SubRegIndex;" << std::endl
+      << "def lane7 : SubRegIndex;" << std::endl << std::endl
+        
+      << "def subvector2_0 : SubRegIndex;" << std::endl
+      << "def subvector2_2 : SubRegIndex;" << std::endl
+      << "def subvector2_4 : SubRegIndex;" << std::endl
+      << "def subvector2_6 : SubRegIndex;" << std::endl
+      << "def subvector4_0 : SubRegIndex;" << std::endl
+      << "def subvector4_4 : SubRegIndex;" << std::endl << std::endl;
+    
+    writeRegisterClasses(o);
    
     writeRARegisterInfo(o);
     write1bitRegisterInfo(o);
@@ -233,13 +254,13 @@ TDGen::writeRegisterClasses(std::ostream& o) {
         o << "class R1_L_" << i << "<string n, list<Register> aliases> : R1<n, aliases>{}" << std::endl;
     }
 
-    o << "class V2I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+    o << "class V2I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
-    o << "class V4I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+    o << "class V4I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
-    o << "class V8I32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+    o << "class V8I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
     o << std::endl;
@@ -614,7 +635,9 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 void
 TDGen::writeVectorRegisterInfo(
     std::ostream& o, int width) {
-    std::string vectorRegs;
+
+    std::string vectorRegsAll;
+    std::string vectorRegsLowLane;
 
     if (width <= maxVectorSize_) {
         for (unsigned i = 3; i < regs32bit_.size(); i++) {
@@ -625,8 +648,15 @@ TDGen::writeVectorRegisterInfo(
                 TCEString vecRegRfName = 
                   "_VECTOR_" + Conversion::toString(width) + "_" + 
                   regs32bit_[i].rf;
-                
-                TCEString aliasName = "I" + Conversion::toString(i);
+                int laneIndex = regs32bit_[i].rf[2] - 48;
+
+                TCEString aliasName;
+                if (width == 2) {
+                    aliasName = "I" + Conversion::toString(i);
+                } else {
+                    aliasName = "_VEC32_";
+                    aliasName << (width >> 1) << "_" << i; //Conversion::toString(i);
+                }
                 for (int j = 1; j < width; j++) {
                     if (i+i >= regs32bit_.size()) {
                         ok = false;
@@ -638,39 +668,53 @@ TDGen::writeVectorRegisterInfo(
                         ok = false;
                         break;
                     } else {
-                        TCEString aliasIndex = Conversion::toString(i+j);
-                        aliasName+= ", I";
-                        aliasName+= aliasIndex;
-                        subRegs.push_back(gprRegInfo);
+                        if (width == 2) {
+                            TCEString aliasIndex = Conversion::toString(i+j);
+                            aliasName+= ", I";
+                            aliasName+= aliasIndex;
+                        } else {
+                            if (j == width >>1) {
+                                aliasName <<" , _VEC32_" << (width >>1) << "_" << i+j;
+                            }
+                        }
                         vecRegRfName += "+" + gprRegInfo.rf;
                     }
                 }
                 if (ok) {
                     TCEString regName = "_VEC32_";
                     regName << width << "_" << Conversion::toString(i);
-                    if (vectorRegs != "") {
-                        vectorRegs += ", " + regName;
+                    if (vectorRegsAll != "") {
+                        vectorRegsAll += ", " + regName;
                     } else {
-                        vectorRegs = regName;
+                        vectorRegsAll = regName;
                     }
+
+                    if (laneIndex == 0) {
+                        if (vectorRegsLowLane != "") {
+                            vectorRegsLowLane += ", " + regName;
+                        } else {
+                            vectorRegsLowLane = regName;
+                        }
+                    }
+
                     RegInfo vecRegInfo = { vecRegRfName, regIndex };
-                    
-                    for (int k = width >> 1; k > 1; k >>=1 ) {
-                        TCEString aliasNameI = ", _VEC32_";
-                        aliasNameI << k << "_" << Conversion::toString(i);
-                        aliasName += aliasNameI;
+                    o << "let SubRegIndices = [";
+                    if (width == 2) {
+                        o << "lane" << laneIndex << ", lane" << (laneIndex+1);
+                    } else {
+                        o << "subvector" << (width >> 1) << "_" << laneIndex << " , "
+                          << "subvector" << (width >> 1) << "_" << laneIndex + (width>>1);
                     }
+                    o << "], CoveredBySubRegs = 1 in {" << std::endl;
+                        
                     writeRegisterDef(
                         o, vecRegInfo, regName, 
                         TCEString("V") + Conversion::toString(width) + "I32",
                         aliasName, GPR);
 
-                    // this only uses n first RF's.
-                    i+= (maxVectorSize_-1);
+                    o << "}" << std::endl;
 
-                    // the following would spread across all RF's
-                    // more regs to use, but may cause regcopies
-//                    i+= (width-1);
+                    i+= (width-1);
                 }
             }
         }
@@ -678,28 +722,53 @@ TDGen::writeVectorRegisterInfo(
     TCEString regClassBase("V"); regClassBase << width;
     TCEString regClassBaseI = regClassBase + "I32";
     TCEString regClassBaseF = regClassBase + "F32";
-
-    if (vectorRegs == "") {
-      RegInfo reg = {TCEString("dummyvec") + Conversion::toString(width), 0};
-      TCEString nameI("V"); nameI << width << "I32DUMMY" ;
+    
+    // only low lane ones are really used for data(ie. first element in lane 0)
+    if (vectorRegsLowLane == "") {
+        RegInfo reg = {TCEString("dummyvec") + Conversion::toString(width), 0};
+        TCEString nameI("V"); nameI << width << "I32DUMMY" ;
         writeRegisterDef(o, reg, nameI, regClassBaseI, "", RESERVED);
-        o << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add V" << width << "I32DUMMY)> ;"
+        o << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "i32], 32, (add V" << width << "I32DUMMY)> ;"
           << std::endl;
 
-        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add V" << width << "I32DUMMY)> ;"
+        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "f32], 32, (add V" << width << "I32DUMMY)> ;"
           << std::endl << std::endl;
-
     } 
     else {
         o << std::endl
-          << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width << "i32], 32, (add "
-          << vectorRegs << ")> ;" << std::endl;
+          << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "i32], 32, (add "
+          << vectorRegsLowLane << ")> ;" << std::endl;
 
-        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width << "f32], 32, (add "
-          << vectorRegs << ")> ;" << std::endl << std::endl;
+        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "f32], 32, (add "
+          << vectorRegsLowLane << ")> ;" << std::endl << std::endl;
     }
 
+    // add class of all vector lanes, also ones whose lanes don't match
+    // for example 2-wide vector consisting of lanes 2 and 3.
+    if (vectorRegsAll == "") {
+        // dummy already written, no need to write again.
 
+        o << "def " << regClassBaseI << "RegsAll : RegisterClass<\"TCE\", [v" << width
+          << "i32], 32, (add V" << width << "I32DUMMY)> ;"
+          << std::endl;
+
+        o << "def " << regClassBaseF << "RegsAll : RegisterClass<\"TCE\", [v" << width
+          << "f32], 32, (add V" << width << "I32DUMMY)> ;"
+          << std::endl << std::endl;
+    } 
+    else {
+        o << "def " << regClassBaseI << "RegsAll : RegisterClass<\"TCE\", [v" << width
+          << "i32], 32, (add "
+          << vectorRegsAll << ")> ;" << std::endl;
+
+        o << "def " << regClassBaseF << "RegsAll : RegisterClass<\"TCE\", [v" << width
+          << "f32], 32, (add "
+          << vectorRegsAll << ")> ;" << std::endl << std::endl;
+    }
 
 }
 
