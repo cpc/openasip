@@ -65,8 +65,11 @@ SetStatusTextCmd::~SetStatusTextCmd() {
  */
 bool
 SetStatusTextCmd::Do() {
-    ChildFrame* frame = dynamic_cast<ChildFrame*>(
-        wxGetApp().docManager()->GetCurrentView()->GetFrame());
-    frame->setStatus(WxConversion::toWxString(text_));
-    return true;
+    wxView * view = wxGetApp().docManager()->GetCurrentView();
+    if(view != NULL){
+        ChildFrame* frame = dynamic_cast<ChildFrame*>(view->GetFrame());
+        frame->setStatus(WxConversion::toWxString(text_));
+        return true;
+    }
+    return false;
 }

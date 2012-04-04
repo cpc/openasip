@@ -27,7 +27,7 @@
  * Implementation of HDBManager class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -84,6 +84,7 @@ const string IN_DIRECTION = "IN";
 const string OUT_DIRECTION = "OUT";
 const string BIDIR_DIRECTION = "BIDIR";
 const string VHDL_FORMAT = "VHDL";
+const string VERILOG_FORMAT = "Verilog";
 
 const int DEFAULT_PORT_WIDTH = 32;
 
@@ -4710,6 +4711,10 @@ HDBManager::insertFileFormats(RelationalDBConnection& connection) {
             std::string(
                 "INSERT INTO format(id,format) VALUES(1,\"" +
                 VHDL_FORMAT + "\");"));
+        connection.updateQuery(
+            std::string(
+                "INSERT INTO format(id,format) VALUES(2,\"" +
+                VERILOG_FORMAT + "\");"));
     } catch (const Exception& e) {
         debugLog(e.errorMessage());
         assert(false);
@@ -4729,10 +4734,11 @@ HDBManager::fileFormat(const std::string& formatString) {
 
     if (formatString == VHDL_FORMAT) {
         return BlockImplementationFile::VHDL;
-    } else {
-        assert(false);
+    } else
+    if (formatString == VERILOG_FORMAT) {
+         return BlockImplementationFile::Verilog;
     }
-
+    assert(false);
     // dummy return to avoid whining with some compilers
     return BlockImplementationFile::VHDL;
 }
@@ -4748,8 +4754,9 @@ std::string
 HDBManager::formatString(BlockImplementationFile::Format format) {
     if (format == BlockImplementationFile::VHDL) {
         return VHDL_FORMAT;
-    } else {
-        assert(false);
+    } else
+    if (format == BlockImplementationFile::Verilog) {
+       return VERILOG_FORMAT;
     }
 
     // dummy return to avoid compiler whining

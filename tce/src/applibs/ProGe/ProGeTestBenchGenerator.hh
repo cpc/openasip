@@ -40,6 +40,7 @@
 
 #include <string>
 #include "TCEString.hh"
+#include "ProGeTypes.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -56,6 +57,7 @@ public:
     virtual ~ProGeTestBenchGenerator();
 
     void generate(
+        const ProGe::HDL language,
         const TTAMachine::Machine& mach,
         const IDF::MachineImplementation& implementation,
         const std::string& dstDirectory,
@@ -85,6 +87,7 @@ private:
         throw (IOException);
 
     TCEString entityStr_;
+    ProGe::HDL language_;
 };
 
 #endif

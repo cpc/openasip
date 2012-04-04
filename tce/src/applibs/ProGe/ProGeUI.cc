@@ -39,6 +39,7 @@
 #include <cmath>
 
 #include "ProGeUI.hh"
+#include "ProGeTypes.hh"
 #include "ProcessorGenerator.hh"
 
 #include "Machine.hh"
@@ -373,6 +374,7 @@ ProGeUI::generateProcessor(
  */
 void
 ProGeUI::generateTestBench(
+    const ProGe::HDL language,
     const std::string& dstDir, 
     const std::string& progeOutDir) {
 
@@ -380,7 +382,7 @@ ProGeUI::generateTestBench(
     checkIfNull(idf_, "IDF not loaded");
 
     ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-    tbGen.generate(*machine_, *idf_, dstDir, progeOutDir, entityName_);
+    tbGen.generate(language,*machine_, *idf_, dstDir, progeOutDir, entityName_);
 }
 
 /** 
@@ -393,12 +395,14 @@ ProGeUI::generateTestBench(
  */
 void 
 ProGeUI::generateScripts(
+    const ProGe::HDL language,
     const std::string& dstDir,
     const std::string& progeOutDir,
     const std::string& sharedOutDir,
     const std::string& testBenchDir) {
 
     ProGeScriptGenerator sGen(
+        language,
         *idf_, dstDir, progeOutDir, sharedOutDir, testBenchDir, entityName_);
     sGen.generateAll();
 }

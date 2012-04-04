@@ -164,7 +164,7 @@ HDBBrowserWindow::update() {
 
     dialog.SetSize(300,100);
 
-    int ids = 0;
+    int ids = fuArchIds.size();
     int cur = 0;
     wxString message;
 
@@ -178,12 +178,9 @@ HDBBrowserWindow::update() {
         fuArchitectures_[*iter] = id;
         c++;
         cur++;
-        message = _T("Loading FU Architectures... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+        message.Printf(wxT("Loading FU Architectures... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     cur = 0;
@@ -195,12 +192,9 @@ HDBBrowserWindow::update() {
         rfArchitectures_[*iter] = id;
         c++;
         cur++;
-        message = _T("Loading RF Architectures... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading RF Architectures... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     // FU Entries
@@ -229,12 +223,9 @@ HDBBrowserWindow::update() {
         delete fuEntry;
         c++;
         cur++;
-        message = _T("Loading FU entries... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading FU entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     // RF Entries
@@ -261,12 +252,9 @@ HDBBrowserWindow::update() {
         delete rfEntry;
         c++;
         cur++;
-        message = _T("Loading RF entries... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading RF entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     // Bus Entries
@@ -280,12 +268,9 @@ HDBBrowserWindow::update() {
         busEntries_[*iter] = entryTreeID;
         c++;
         cur++;
-        message = _T("Loading bus entries... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading bus entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     // Socket Entries
@@ -298,12 +283,9 @@ HDBBrowserWindow::update() {
 
         socketEntries_[*iter] = entryTreeID;
         cur++;
-        message = _T("Loading socket entries... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading socket entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
     
     // Cost estimation plugin data
@@ -320,12 +302,9 @@ HDBBrowserWindow::update() {
         delete plugin;
         c++;
         cur++;
-        message = _T("Loading cost estimation plugins... (");
-        message.Append(WxConversion::toWxString(cur));
-        message.Append(_T(" / "));
-        message.Append(WxConversion::toWxString(ids));
-        message.Append(_T(")"));
+		message.Printf(wxT("Loading cost estimation plugins... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
+		dialog.SetSize(300,100);
     }
 
     tree_->Expand(root);

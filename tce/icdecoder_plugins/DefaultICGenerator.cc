@@ -44,6 +44,7 @@
 #include "NetlistPort.hh"
 #include "NetlistGenerator.hh"
 #include "VHDLNetlistWriter.hh"
+#include "VerilogNetlistWriter.hh"
 
 #include "Machine.hh"
 #include "Socket.hh"
@@ -90,7 +91,14 @@ DefaultICGenerator::~DefaultICGenerator() {
     }
 }
 
-
+/**
+ *  Set HDL
+ *  @param language
+ */
+void
+DefaultICGenerator::SetHDL(ProGe::HDL language){
+    language_= language;
+} 
 /**
  * Adds the interconnection network block to the given netlist and connects
  * it to the FUs, RFs and IUs.
@@ -249,7 +257,7 @@ DefaultICGenerator::generateInterconnectionNetwork(
     
     // generate interconnection network
     string icFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR + 
-        "ic.vhdl";
+        ((language_==Verilog)?"ic.v":"ic.vhdl");
     bool icCreated = FileSystem::createFile(icFile);
     if (!icCreated) {
         string errorMsg = "Unable to create file " + icFile;
@@ -418,7 +426,7 @@ DefaultICGenerator::generateSocket(
     const std::string& dstDirectory) const
     throw (IOException) {
     
-    string fileName = socketFileName(direction, portConns, segmentConns);
+    string fileName = socketFileName(language_,direction, portConns, segmentConns);
     string pathToFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         fileName;
     bool created = FileSystem::createFile(pathToFile);
@@ -428,21 +436,24 @@ DefaultICGenerator::generateSocket(
     }
     
     std::ofstream stream(pathToFile.c_str(), std::ofstream::out);
-    stream << "library IEEE;" << endl;
-    stream << "use IEEE.std_logic_1164.all;" << endl;
-    stream << "use IEEE.std_logic_arith.all;" << endl;
-    if (direction == Socket::OUTPUT) {
-        stream << "use work.tce_util.all;" << endl;
-    } 
+    if(language_==VHDL){
+        stream << "library IEEE;" << endl;
+        stream << "use IEEE.std_logic_1164.all;" << endl;
+        stream << "use IEEE.std_logic_arith.all;" << endl;
+        if (direction == Socket::OUTPUT) {
+            stream << "use work.tce_util.all;" << endl;
+        }
+    } else {
+        //nothing for verilog
+    }
     stream << endl;
-    
     if (direction == Socket::INPUT) {
         generateInputSocket(segmentConns, stream);
     } else if (direction == Socket::OUTPUT) {
         generateOutputSocket(portConns, segmentConns, stream);
     } else {
         assert(false);
-    }   
+    }
     stream.close();
 }
 
@@ -458,67 +469,124 @@ DefaultICGenerator::generateInputSocket(
     std::ofstream& stream) const {
     
     assert(segmentConns > 0);
-    
-    string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
-    stream << "entity " << entityName << " is" << endl << endl;
-    writeInputSocketComponentDeclaration(segmentConns, 1, stream);
-    stream << endl << "end " << entityName << ";" << endl << endl;
-    
-    stream << "architecture input_socket of " << entityName << " is"
-           << endl;
-    stream << "begin" << endl << endl;
-    stream << indentation(2) 
-           << "-- If width of input bus is greater than width of output,"
-           << endl;
-    stream << indentation(2) << "-- using the LSB bits." << endl;
-    stream << indentation(2) 
-           << "-- If width of input bus is smaller than width of output,"
-           << endl;
-    stream << indentation(2) 
-           << "-- using zero extension to generate extra bits." << endl;
-    stream << endl;
-    
-    if (segmentConns > 1) {
-        stream << indentation(1) << "sel : process (" 
-               << SOCKET_BUS_CONTROL_PORT << ", ";
+    if(language_==VHDL){
+        string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
+        stream << "entity " << entityName << " is" << endl << endl;
+        writeInputSocketComponentDeclaration(VHDL,segmentConns, 1, stream);
+        stream << endl << "end " << entityName << ";" << endl << endl;
         
-        for (int i = 0; i < segmentConns; i++) {
-            stream << inputSocketBusPort(i);
-            if (i + 1 < segmentConns) {
-                stream << ", ";
-            } else {
-                stream << ")" << endl;
+        stream << "architecture input_socket of " << entityName << " is"
+               << endl;
+        stream << "begin" << endl << endl;
+        stream << indentation(2) 
+               << "-- If width of input bus is greater than width of output,"
+               << endl;
+        stream << indentation(2) << "-- using the LSB bits." << endl;
+        stream << indentation(2) 
+               << "-- If width of input bus is smaller than width of output,"
+               << endl;
+        stream << indentation(2) 
+               << "-- using zero extension to generate extra bits." << endl;
+        stream << endl;
+        
+        if (segmentConns > 1) {
+            stream << indentation(1) << "sel : process (" 
+                   << SOCKET_BUS_CONTROL_PORT << ", ";
+            
+            for (int i = 0; i < segmentConns; i++) {
+                stream << inputSocketBusPort(i);
+                if (i + 1 < segmentConns) {
+                    stream << ", ";
+                } else {
+                    stream << ")" << endl;
+                }
             }
+            
+            stream << indentation(1) << "begin" << endl;
+            stream << indentation(2) << "case " << SOCKET_BUS_CONTROL_PORT 
+                   << " is" << endl;
+            
+            for (int i = 0; i < segmentConns; i++) {
+                if (i+1 < segmentConns) {
+                    stream << indentation(3) << "when \""
+                           << Conversion::toBinary(
+                               i, busControlWidth(Socket::INPUT, segmentConns))
+                           << "\" =>" << endl;
+                } else {
+                    stream << indentation(3) << "when others =>" << endl;
+                }
+                generateInputSocketRuleForBus(i, 4, stream);
+            }
+            
+            stream << indentation(2) << "end case;" << endl;
+            stream << indentation(1) << "end process sel;" << endl;
+            
+        } else {
+            stream << indentation(1) << "process (" << inputSocketBusPort(0)
+                   << ")" << endl;
+            stream << indentation(1) << "begin" << endl;
+            generateInputSocketRuleForBus(0, 2, stream);
+            stream << indentation(1) << "end process;" << endl;
         }
         
-        stream << indentation(1) << "begin" << endl;
-        stream << indentation(2) << "case " << SOCKET_BUS_CONTROL_PORT 
-               << " is" << endl;
-        
-        for (int i = 0; i < segmentConns; i++) {
-            if (i+1 < segmentConns) {
-                stream << indentation(3) << "when \""
-                       << Conversion::toBinary(
-                           i, busControlWidth(Socket::INPUT, segmentConns))
-                       << "\" =>" << endl;
-            } else {
-                stream << indentation(3) << "when others =>" << endl;
-            }
-            generateInputSocketRuleForBus(i, 4, stream);
-        }
-        
-        stream << indentation(2) << "end case;" << endl;
-        stream << indentation(1) << "end process sel;" << endl;
-        
+        stream << "end input_socket;" << endl;
     } else {
-        stream << indentation(1) << "process (" << inputSocketBusPort(0)
-               << ")" << endl;
-        stream << indentation(1) << "begin" << endl;
-        generateInputSocketRuleForBus(0, 2, stream);
-        stream << indentation(1) << "end process;" << endl;
+        string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
+        stream << "`timescale 10ns/1ns" << endl
+               << "module " << entityName << "" << endl << endl;
+        writeInputSocketComponentDeclaration(Verilog,segmentConns, 1, stream);
+
+        stream << indentation(2) 
+               << "// If width of input bus is greater than width of output,"
+               << endl;
+        stream << indentation(2) << "// using the LSB bits." << endl;
+        stream << indentation(2) 
+               << "// If width of input bus is smaller than width of output,"
+               << endl;
+        stream << indentation(2) 
+               << "// using zero extension to generate extra bits." << endl;
+        stream << endl;
+        
+        if (segmentConns > 1) {
+            stream << indentation(1) << "always@(" 
+                   << SOCKET_BUS_CONTROL_PORT << ", ";
+            
+            for (int i = 0; i < segmentConns; i++) {
+                stream << inputSocketBusPort(i);
+                if (i + 1 < segmentConns) {
+                    stream << ", ";
+                } else {
+                    stream << ")" << endl;
+                }
+            }
+            
+            stream << indentation(1) << "begin" << endl;
+            stream << indentation(2) << "case(" << SOCKET_BUS_CONTROL_PORT 
+                   << ")" << endl;
+            
+            for (int i = 0; i < segmentConns; i++) {
+                if (i+1 < segmentConns) {
+                    stream << indentation(3)
+                           << i << " :" << endl;
+                } else {
+                    stream << indentation(3) << "default:" << endl;
+                }
+                generateInputSocketRuleForBus(i, 4, stream);
+            }
+            
+            stream << indentation(2) << "endcase" << endl;
+            stream << indentation(1) << "end" << endl;
+            
+        } else {
+            stream << indentation(1) << "always@(" << inputSocketBusPort(0)
+                   << ")" << endl;
+            stream << indentation(1) << "begin" << endl;
+            generateInputSocketRuleForBus(0, 2, stream);
+            stream << indentation(1) << "end;" << endl;
+        }
+        
+        stream << "endmodule" << endl;    
     }
-    
-    stream << "end input_socket;" << endl;
 }
 
     
@@ -532,22 +600,37 @@ DefaultICGenerator::generateInputSocket(
 void
 DefaultICGenerator::generateInputSocketRuleForBus(
     int bus, int ind, std::ofstream& stream) const {
-    
-    stream << indentation(ind) << "if " << busWidthGeneric(bus) << " < " 
-           << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
-    stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= ext(" 
-           << inputSocketBusPort(bus) << "," << INPUT_SOCKET_DATA_PORT 
-           << "'length);" << endl;
-    stream << indentation(ind) << "elsif " << busWidthGeneric(bus) 
-           << " > " << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
-    stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
-           << inputSocketBusPort(bus) << "(" << INPUT_SOCKET_DATAW_GENERIC
-           << "-1 downto 0);" << endl;
-    stream << indentation(ind) << "else" << endl;
-    stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
-           << inputSocketBusPort(bus) << "(" << busWidthGeneric(bus) 
-           << "-1 downto 0);" << endl;
-    stream << indentation(ind) << "end if;" << endl;
+    if(language_==VHDL){
+        stream << indentation(ind) << "if " << busWidthGeneric(bus) << " < " 
+               << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
+        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= ext(" 
+               << inputSocketBusPort(bus) << "," << INPUT_SOCKET_DATA_PORT 
+               << "'length);" << endl;
+        stream << indentation(ind) << "elsif " << busWidthGeneric(bus) 
+               << " > " << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
+        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
+               << inputSocketBusPort(bus) << "(" << INPUT_SOCKET_DATAW_GENERIC
+               << "-1 downto 0);" << endl;
+        stream << indentation(ind) << "else" << endl;
+        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
+               << inputSocketBusPort(bus) << "(" << busWidthGeneric(bus) 
+               << "-1 downto 0);" << endl;
+        stream << indentation(ind) << "end if;" << endl;
+    } else {
+        stream << indentation(ind) << "if (" << busWidthGeneric(bus) << " < " 
+               << INPUT_SOCKET_DATAW_GENERIC << ")" << endl
+               << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= $unsigned(" 
+               << inputSocketBusPort(bus) << ");"<< endl
+               << indentation(ind) << "else if (" << busWidthGeneric(bus) 
+               << " > " << INPUT_SOCKET_DATAW_GENERIC << ")" << endl
+               << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
+               << inputSocketBusPort(bus) << "[" << INPUT_SOCKET_DATAW_GENERIC
+               << "-1 : 0];" << endl
+               << indentation(ind) << "else" << endl
+               << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
+               << inputSocketBusPort(bus) << "[" << busWidthGeneric(bus) 
+               << "-1 : 0];" << endl;
+    }
 } 
 
 
@@ -565,122 +648,248 @@ DefaultICGenerator::generateOutputSocket(
     
     string entityName = socketEntityName(
         Socket::OUTPUT, portConns, segmentConns);
+    if(language_==VHDL){
+        stream << "entity " << entityName << " is" << endl;
+        writeOutputSocketComponentDeclaration(VHDL,
+            portConns, segmentConns, 1, stream);
+        stream << "end " << entityName << ";" << endl << endl << endl;
+        
+        stream << "architecture output_socket_andor of " << entityName 
+               << " is" << endl << endl;
 
-    stream << "entity " << entityName << " is" << endl;
-    writeOutputSocketComponentDeclaration(
-        portConns, segmentConns, 1, stream);
-    stream << "end " << entityName << ";" << endl << endl << endl;
-    
-    stream << "architecture output_socket_andor of " << entityName 
-           << " is" << endl << endl;
-
-    if (portConns > 1) {
-        stream << indentation(1) << "constant data_widths : integer_array(" 
-               << portConns - 1 << " downto 0) := (";
-        for (int i = 0; i < portConns; i++) {
-            stream << dataWidthGeneric(i);
-            if (i+1 < portConns) {
-                stream << ", ";
+        if (portConns > 1) {
+            stream << indentation(1) << "constant data_widths : integer_array(" 
+                   << portConns - 1 << " downto 0) := (";
+            for (int i = 0; i < portConns; i++) {
+                stream << dataWidthGeneric(i);
+                if (i+1 < portConns) {
+                    stream << ", ";
+                }
             }
-        }
-        stream << ");" << endl;
-       
-        for (int i = 0; i < segmentConns; i++) {
-            stream << indentation(1) << "signal databus_" << i 
-                   << "_temp : std_logic_vector(return_highest(data_widths, "
+            stream << ");" << endl;
+           
+            for (int i = 0; i < segmentConns; i++) {
+                stream << indentation(1) << "signal databus_" << i 
+                       << "_temp : std_logic_vector(return_highest(data_widths, "
+                       << portConns << ")-1 downto 0);" << endl;
+            }
+            
+            stream << indentation(1) 
+                   << "signal data : std_logic_vector(return_highest(data_widths, "
                    << portConns << ")-1 downto 0);" << endl;
-        }
-        
-        stream << indentation(1) 
-               << "signal data : std_logic_vector(return_highest(data_widths, "
-               << portConns << ")-1 downto 0);" << endl;
-    } else {
-        for (int i = 0; i < segmentConns; i++) {
-            stream << indentation(1) << "signal databus_" << i
-                   << "_temp : std_logic_vector(" << dataWidthGeneric(0)
-                   << "-1 downto 0);" << endl;
-        }
-        stream << indentation(1) << "signal data : std_logic_vector("
-               << dataWidthGeneric(0) << "-1 downto 0);" << endl;
-    }
-        
-    stream << endl;
-    stream << "begin -- output_socket_andor" << endl << endl;
-        
-    if (portConns > 1) {
-        stream << indentation(1) << "data_sel : process(";
-        for (int i = 0; i < portConns; i++) {
-            stream << outputSocketDataPort(i) << ", ";
-        }
-        stream << SOCKET_DATA_CONTROL_PORT << ")" << endl;
-        stream << indentation(1) << "begin  -- process data_sel" << endl;
-        for (int i = 0; i < portConns; i++) {
-            stream << indentation(2);
-            if (i == 0) {
-                stream << "if conv_integer(unsigned(" 
-                       << SOCKET_DATA_CONTROL_PORT << ")) = 0 then" 
-                       << endl;
-            } else if (i < portConns-1) {
-                stream << "elsif conv_integer(unsignd("
-                       << SOCKET_DATA_CONTROL_PORT << ")) = " << i 
-                       << endl;
-            } else {
-                stream << "else" << endl;
+        } else {
+            for (int i = 0; i < segmentConns; i++) {
+                stream << indentation(1) << "signal databus_" << i
+                       << "_temp : std_logic_vector(" << dataWidthGeneric(0)
+                       << "-1 downto 0);" << endl;
             }
-            stream << indentation(3) << "data <= sxt(" 
-                   << outputSocketDataPort(i) << ", data'length);" 
+            stream << indentation(1) << "signal data : std_logic_vector("
+                   << dataWidthGeneric(0) << "-1 downto 0);" << endl;
+        }
+            
+        stream << endl;
+        stream << "begin -- output_socket_andor" << endl << endl;
+            
+        if (portConns > 1) {
+            stream << indentation(1) << "data_sel : process(";
+            for (int i = 0; i < portConns; i++) {
+                stream << outputSocketDataPort(i) << ", ";
+            }
+            stream << SOCKET_DATA_CONTROL_PORT << ")" << endl;
+            stream << indentation(1) << "begin  -- process data_sel" << endl;
+            for (int i = 0; i < portConns; i++) {
+                stream << indentation(2);
+                if (i == 0) {
+                    stream << "if conv_integer(unsigned(" 
+                           << SOCKET_DATA_CONTROL_PORT << ")) = 0 then" 
+                           << endl;
+                } else if (i < portConns-1) {
+                    stream << "elsif conv_integer(unsignd("
+                           << SOCKET_DATA_CONTROL_PORT << ")) = " << i 
+                           << endl;
+                } else {
+                    stream << "else" << endl;
+                }
+                stream << indentation(3) << "data <= sxt(" 
+                       << outputSocketDataPort(i) << ", data'length);" 
+                       << endl;
+            }
+            stream << indentation(2) << "end if;" << endl;
+            stream << indentation(1) << "end process data_sel;" << endl 
+                   << endl;
+        } else {
+            stream << indentation(1) << "data <= " << outputSocketDataPort(0)
+                   << ";" << endl << endl;
+        }
+
+        stream << indentation(1) << "internal_signal : process(data, " 
+               << SOCKET_BUS_CONTROL_PORT << ")" << endl; 
+        stream << indentation(1) << "begin -- process internal_signal" 
+               << endl;
+
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(2) << "databus_" << i 
+                   << "_temp <= data and sxt(" << SOCKET_BUS_CONTROL_PORT 
+                   << "(" << i << " downto " << i << "), data'length);" 
                    << endl;
         }
-        stream << indentation(2) << "end if;" << endl;
-        stream << indentation(1) << "end process data_sel;" << endl 
+
+        stream << indentation(1) << "end process internal_signal;" << endl
                << endl;
-    } else {
-        stream << indentation(1) << "data <= " << outputSocketDataPort(0)
-               << ";" << endl << endl;
-    }
 
-    stream << indentation(1) << "internal_signal : process(data, " 
-           << SOCKET_BUS_CONTROL_PORT << ")" << endl; 
-    stream << indentation(1) << "begin -- process internal_signal" 
-           << endl;
+        stream << indentation(1) << "output : process (";
 
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(2) << "databus_" << i 
-               << "_temp <= data and sxt(" << SOCKET_BUS_CONTROL_PORT 
-               << "(" << i << " downto " << i << "), data'length);" 
-               << endl;
-    }
-
-    stream << indentation(1) << "end process internal_signal;" << endl
-           << endl;
-
-    stream << indentation(1) << "output : process (";
-
-    for (int i = 0; i < segmentConns; i++) {
-        stream << "databus_" << i << "_temp";
-        if (i+1 < segmentConns) {
-            stream << ",";
-        } else {
-            stream << ")" << endl;
+        for (int i = 0; i < segmentConns; i++) {
+            stream << "databus_" << i << "_temp";
+            if (i+1 < segmentConns) {
+                stream << ",";
+            } else {
+                stream << ")" << endl;
+            }
         }
-    }
+            
+        stream << indentation(1) << "begin -- process output" << endl;
+            
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(2) << "if " << busWidthGeneric(i) 
+                   << " < data'length then" << endl;
+            stream << indentation(3) << outputSocketBusPort(i) 
+                   << " <= databus_" << i << "_temp(" << busWidthGeneric(i)
+                   << "-1 downto 0);" << endl;
+            stream << indentation(2) << "else" << endl;
+            stream << indentation(3) << outputSocketBusPort(i) 
+                   << " <= ext(databus_" << i << "_temp, " 
+                   << outputSocketBusPort(i) << "'length);" << endl;
+            stream << indentation(2) << "end if;" << endl;
+        }
+        stream << indentation(1) << "end process output;" << endl << endl;
+        stream << "end output_socket_andor;" << endl;
+    } else {
+        stream << "`timescale 10ns/1ns" << endl
+               << "module " << entityName << endl;
+        writeOutputSocketComponentDeclaration(Verilog,
+            portConns, segmentConns, 1, stream);
         
-    stream << indentation(1) << "begin -- process output" << endl;
+        //for avoiding absence of length attribute in verilog 2001        
+        std::string data_length = dataWidthGeneric(0);
         
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(2) << "if " << busWidthGeneric(i) 
-               << " < data'length then" << endl;
-        stream << indentation(3) << outputSocketBusPort(i) 
-               << " <= databus_" << i << "_temp(" << busWidthGeneric(i)
-               << "-1 downto 0);" << endl;
-        stream << indentation(2) << "else" << endl;
-        stream << indentation(3) << outputSocketBusPort(i) 
-               << " <= ext(databus_" << i << "_temp, " 
-               << outputSocketBusPort(i) << "'length);" << endl;
-        stream << indentation(2) << "end if;" << endl;
+        stream << "//architecture output_socket_andor of " << entityName 
+               << endl << endl;
+        if (portConns > 1) {
+//!!!!!!!!!!!!!!!!!!!!!!!!!not finished here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // stream << indentation(1) << "constant data_widths : integer_array("
+                   // << portConns - 1 << " : 0] := (";
+            // for (int i = 0; i < portConns; i++) {
+                // stream << dataWidthGeneric(i);
+                // if (i+1 < portConns) {
+                    // stream << ", ";
+                // }
+            // }
+            // stream << ");" << endl;
+           
+            // for (int i = 0; i < segmentConns; i++) {
+                // stream << indentation(1) << "signal databus_" << i 
+                       // << "_temp : std_logic_vector(return_highest(data_widths, "
+                       // << portConns << ")-1 downto 0);" << endl;
+            // }
+            
+            // stream << indentation(1) 
+                   // << "signal data : std_logic_vector(return_highest(data_widths, "
+                   // << portConns << ")-1 downto 0);" << endl;
+        } else {
+            for (int i = 0; i < segmentConns; i++) {
+                stream << indentation(1)
+                       << "reg["<< dataWidthGeneric(0)
+                       << "-1 : 0] "
+                       <<" databus_" << i << "_temp;" << endl;
+            }
+            stream << indentation(1)
+                   << "reg["<< dataWidthGeneric(0)
+                   << "-1 : 0] "
+                   << "data;" << endl;
+        }
+            
+        stream << endl;
+
+        if (portConns > 1) {
+            stream << indentation(1) << "always@(";
+            // for (int i = 0; i < portConns; i++) {
+                // stream << outputSocketDataPort(i) << ", ";
+            // }
+            // stream << SOCKET_DATA_CONTROL_PORT << ")" << endl;
+            stream << "*" << ")" << endl;
+            stream << indentation(1) << "begin  // process data_sel" << endl;
+            for (int i = 0; i < portConns; i++) {
+                stream << indentation(2);
+                if (i == 0) {
+                    stream << "if(" 
+                           << SOCKET_DATA_CONTROL_PORT << "== 0)" 
+                           << endl;
+                } else if (i < portConns-1) {
+                    stream << "else if("
+                           << SOCKET_DATA_CONTROL_PORT << "== " << i
+                           << ")"
+                           << endl;
+                } else {
+                    stream << "else" << endl;
+                }
+                stream << indentation(3) << "data = $signed(" 
+                       << outputSocketDataPort(i) << ");" 
+                       << endl;
+            }
+            stream << indentation(1) << "end //process data_sel;" << endl 
+                   << endl;
+        } else {
+            stream << indentation(1)
+                   << "always@(*)" << "data = " << outputSocketDataPort(0)
+                   << ";" << endl << endl;
+        }
+
+        // stream << indentation(1) << "always@(data, "
+               // << SOCKET_BUS_CONTROL_PORT << ")" << endl; 
+        stream << indentation(1) << "always@(*)" << endl; 
+        stream << indentation(1) << "begin //process internal_signal" 
+               << endl;
+
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(2)
+                   << "databus_"   << i << "_temp"
+                   << "= data & {" << dataWidthGeneric(0) << "{"
+                   << SOCKET_BUS_CONTROL_PORT 
+                   << "[" << i << " : " << i << "]}};"
+                   << endl;
+        }
+
+        stream << indentation(1) << "end //process internal_signal;" << endl
+               << endl;
+
+        stream << indentation(1) << "always@(*)" << endl;
+        // stream << indentation(1) << "always@(";
+        // for (int i = 0; i < segmentConns; i++) {
+            // stream << "databus_" << i << "_temp";
+            // if (i+1 < segmentConns) {
+                // stream << ",";
+            // } else {
+                // stream << ")" << endl;
+            // }
+        // }
+            
+        stream << indentation(1) << "begin // process output" << endl;
+            
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(2) << "if(" << busWidthGeneric(i) 
+                   << " < " << data_length << ")" << endl;
+            stream << indentation(3) << outputSocketBusPort(i) 
+                   << " = databus_" << i << "_temp[" << busWidthGeneric(i)
+                   << "-1 : 0];" << endl;
+            stream << indentation(2) << "else" << endl;
+            stream << indentation(3) << outputSocketBusPort(i) 
+                   << " = $unsigned(databus_" << i << "_temp);" 
+                   << endl;
+        }
+        stream << indentation(1) << "end //process output;" << endl << endl;
+        stream << "endmodule //output_socket_andor;" << endl;    
     }
-    stream << indentation(1) << "end process output;" << endl << endl;
-    stream << "end output_socket_andor;" << endl;
 }
 
 
@@ -692,169 +901,338 @@ DefaultICGenerator::generateOutputSocket(
 void
 DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
 
-    stream << "library IEEE;" << endl;
-    stream << "use IEEE.std_logic_1164.all;" << endl;
-    stream << "use IEEE.std_logic_arith.all;" << endl;
-    stream << "use STD.textio.all;" << endl;
-    stream << "use work." << entityNameStr_ << "_globals.all;" << endl << endl;
-        
-    string entityName = entityNameStr_ + "_interconn";
-    stream << "entity " << entityName << " is" << endl << endl;
+    if(language_ ==VHDL){
+        stream << "library IEEE;" << endl;
+        stream << "use IEEE.std_logic_1164.all;" << endl;
+        stream << "use IEEE.std_logic_arith.all;" << endl;
+        stream << "use STD.textio.all;" << endl;
+        stream << "use work." << entityNameStr_ << "_globals.all;" << endl << endl;
+            
+        string entityName = entityNameStr_ + "_interconn";
+        stream << "entity " << entityName << " is" << endl << endl;
 
-    VHDLNetlistWriter::writePortDeclaration(
-        *icBlock_, 1, indentation(1), stream);
+        VHDLNetlistWriter::writePortDeclaration(
+            *icBlock_, 1, indentation(1), stream);
 
-    stream << endl << "end " << entityName << ";" << endl << endl;
+        stream << endl << "end " << entityName << ";" << endl << endl;
 
-    // create architecture
-    stream << "architecture comb_andor of " << entityName << " is" << endl
-           << endl;
-    createSignalsForIC(stream);
-    stream << endl;
-    declareSocketEntities(stream);
-    stream << endl;
-    stream << "begin -- comb_andor" << endl << endl;
-
-    if (generateBusTrace_) {
-        writeBusDumpCode(stream);
-        stream << endl;
-    }
-        
-    Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i < socketNav.count(); i++) {
-        Socket* socket = socketNav.item(i);
-        int segmentCount = socket->segmentCount();
-        if (segmentCount == 0 || socket->portCount() == 0) {
-            continue;
-        }
-        stream << indentation(1) << socket->name() << " : " 
-               << socketEntityName(
-                   socket->direction(), socket->portCount(),
-                   socket->segmentCount())
+        // create architecture
+        stream << "architecture comb_andor of " << entityName << " is" << endl
                << endl;
-        stream << indentation(2) << "generic map (" << endl;
-        for (int i = 0; i < segmentCount; i++) {
-            stream << indentation(3) << busWidthGeneric(i) << " => " 
-                   << socket->segment(i)->parentBus()->width() << "," 
-                   << endl;
+        createSignalsForIC(stream);
+        stream << endl;
+        declareSocketEntities(stream);
+        stream << endl;
+        stream << "begin -- comb_andor" << endl << endl;
+
+        if (generateBusTrace_) {
+            writeBusDumpCode(stream);
+            stream << endl;
         }
-        if (socket->direction() == Socket::OUTPUT) {
-            for (int i = 0; i < socket->portCount(); i++) {
-                string socketWidth = "";
+            
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            int segmentCount = socket->segmentCount();
+            if (segmentCount == 0 || socket->portCount() == 0) {
+                continue;
+            }
+            stream << indentation(1) << socket->name() << " : " 
+                   << socketEntityName(
+                       socket->direction(), socket->portCount(),
+                       socket->segmentCount())
+                   << endl;
+            stream << indentation(2) << "generic map (" << endl;
+            for (int i = 0; i < segmentCount; i++) {
+                stream << indentation(3) << busWidthGeneric(i) << " => " 
+                       << socket->segment(i)->parentBus()->width() << "," 
+                       << endl;
+            }
+            if (socket->direction() == Socket::OUTPUT) {
+                for (int i = 0; i < socket->portCount(); i++) {
+                    string socketWidth = "";
+                    if (socket->hasDataPortWidth()) {
+                        socketWidth = socket->dataPortWidth();
+                    } else {
+                        socketWidth =
+                            Conversion::toString(socket->port(i)->width());
+                    }
+                    stream << indentation(3) << dataWidthGeneric(i) 
+                           << " => " << socketWidth;
+                    if (i+1 == socket->portCount()) {
+                        stream << ")" << endl;
+                    } else {
+                        stream << "," << endl;
+                    }
+                }
+            } else {
+                string socketWidth;
                 if (socket->hasDataPortWidth()) {
                     socketWidth = socket->dataPortWidth();
                 } else {
                     socketWidth =
-                        Conversion::toString(socket->port(i)->width());
+                        Conversion::toString(inputSocketDataPortWidth(*socket));
                 }
-                stream << indentation(3) << dataWidthGeneric(i) 
-                       << " => " << socketWidth;
-                if (i+1 == socket->portCount()) {
-                    stream << ")" << endl;
-                } else {
-                    stream << "," << endl;
-                }
+                stream << indentation(3) << INPUT_SOCKET_DATAW_GENERIC 
+                       << " => " << socketWidth << ")"
+                       << endl;
             }
-        } else {
-            string socketWidth;
-            if (socket->hasDataPortWidth()) {
-                socketWidth = socket->dataPortWidth();
-            } else {
-                socketWidth =
-                    Conversion::toString(inputSocketDataPortWidth(*socket));
-            }
-            stream << indentation(3) << INPUT_SOCKET_DATAW_GENERIC 
-                   << " => " << socketWidth << ")"
-                   << endl;
-        }
-        stream << indentation(2) << "port map (" << endl;
-        for (int i = 0; i < segmentCount; i++) {
-            Bus* bus = socket->segment(i)->parentBus();
-            stream << indentation(3);
-            if (socket->direction() == Socket::INPUT) {
-                stream << inputSocketBusPort(i) << " => " 
-                       << busSignal(*bus) << "," << endl;
-            } else {
-                stream << outputSocketBusPort(i) << " => "
-                       << busAltSignal(*bus, *socket) << "," << endl;
-            }
-        }
-
-        if (socket->direction() == Socket::OUTPUT) {
-            for (int i = 0; i < socket->portCount(); i++) {
-                stream << indentation(3) << outputSocketDataPort(i) 
-                       << " => " 
-                       << outputSocketDataPort(socket->name(), i);
-                if (i+1 < socket->portCount()) {
-                    stream << "," << endl;
-                }
-            }
-        } else {                
-            stream << indentation(3) << INPUT_SOCKET_DATA_PORT << " => " 
-                   << inputSocketDataPort(socket->name());
-        }
-        if (busControlWidth(
-                socket->direction(), socket->segmentCount()) > 0) {
-            stream << "," << endl;
-            stream << indentation(3) << SOCKET_BUS_CONTROL_PORT << " => "
-                   << socketBusControlPort(socket->name());
-        }
-        if (dataControlWidth(socket->direction(), socket->portCount()) > 0) {
-            stream << "," << endl;
-            stream << indentation(3) << SOCKET_DATA_CONTROL_PORT << " => "
-                   << socketDataControlPort(socket->name());
-        }
-        stream << ");" << endl << endl;
-    }
-
-    // add the sockets for short immediates
-    Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        if (bus->immediateWidth() > 0) {
-            stream << indentation(1) << simmSocket(*bus) << " : "
-                   << outputSocketEntityName(1, 1) << endl;
-            stream << indentation(2) << "generic map (" << endl;
-            stream << indentation(3) << busWidthGeneric(0) << " => " 
-                   << bus->width() << "," << endl;
-            stream << indentation(3) << dataWidthGeneric(0) << " => "
-                   << simmPortWidth(*bus) << ")" << endl;
             stream << indentation(2) << "port map (" << endl;
-            stream << indentation(3) << outputSocketBusPort(0) << " => "
-                   << simmSignal(*bus) << "," << endl;
-            stream << indentation(3) << outputSocketDataPort(0) << " => " 
-                   << simmDataPort(bus->name()) << "," << endl;
-            stream << indentation(3) << SOCKET_BUS_CONTROL_PORT << " => "
-                   << simmControlPort(bus->name()) << ");" << endl << endl;  
-        }
-    }
+            for (int i = 0; i < segmentCount; i++) {
+                Bus* bus = socket->segment(i)->parentBus();
+                stream << indentation(3);
+                if (socket->direction() == Socket::INPUT) {
+                    stream << inputSocketBusPort(i) << " => " 
+                           << busSignal(*bus) << "," << endl;
+                } else {
+                    stream << outputSocketBusPort(i) << " => "
+                           << busAltSignal(*bus, *socket) << "," << endl;
+                }
+            }
 
-    // add assignments to data buses
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        std::set<Socket*> outputSockets = this->outputSockets(*bus);
-        stream << indentation(1) << busSignal(*bus) << " <= ";
-        for (std::set<Socket*>::const_iterator iter = 
-                 outputSockets.begin(); 
-             iter != outputSockets.end();) {
-            Socket* socket = *iter;
-            stream << busAltSignal(*bus, *socket);
-            iter++;
-            if (iter != outputSockets.end()) {
-                stream << " or ";
+            if (socket->direction() == Socket::OUTPUT) {
+                for (int i = 0; i < socket->portCount(); i++) {
+                    stream << indentation(3) << outputSocketDataPort(i) 
+                           << " => " 
+                           << outputSocketDataPort(socket->name(), i);
+                    if (i+1 < socket->portCount()) {
+                        stream << "," << endl;
+                    }
+                }
+            } else {                
+                stream << indentation(3) << INPUT_SOCKET_DATA_PORT << " => " 
+                       << inputSocketDataPort(socket->name());
+            }
+            if (busControlWidth(
+                    socket->direction(), socket->segmentCount()) > 0) {
+                stream << "," << endl;
+                stream << indentation(3) << SOCKET_BUS_CONTROL_PORT << " => "
+                       << socketBusControlPort(socket->name());
+            }
+            if (dataControlWidth(socket->direction(), socket->portCount()) > 0) {
+                stream << "," << endl;
+                stream << indentation(3) << SOCKET_DATA_CONTROL_PORT << " => "
+                       << socketDataControlPort(socket->name());
+            }
+            stream << ");" << endl << endl;
+        }
+
+        // add the sockets for short immediates
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << simmSocket(*bus) << " : "
+                       << outputSocketEntityName(1, 1) << endl;
+                stream << indentation(2) << "generic map (" << endl;
+                stream << indentation(3) << busWidthGeneric(0) << " => " 
+                       << bus->width() << "," << endl;
+                stream << indentation(3) << dataWidthGeneric(0) << " => "
+                       << simmPortWidth(*bus) << ")" << endl;
+                stream << indentation(2) << "port map (" << endl;
+                stream << indentation(3) << outputSocketBusPort(0) << " => "
+                       << simmSignal(*bus) << "," << endl;
+                stream << indentation(3) << outputSocketDataPort(0) << " => " 
+                       << simmDataPort(bus->name()) << "," << endl;
+                stream << indentation(3) << SOCKET_BUS_CONTROL_PORT << " => "
+                       << simmControlPort(bus->name()) << ");" << endl << endl;  
             }
         }
-        if (bus->immediateWidth() > 0) {
-            if (outputSockets.begin() != outputSockets.end()) {
-                stream << " or ";
+
+        // add assignments to data buses
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            stream << indentation(1) << busSignal(*bus) << " <= ";
+            for (std::set<Socket*>::const_iterator iter = 
+                     outputSockets.begin(); 
+                 iter != outputSockets.end();) {
+                Socket* socket = *iter;
+                stream << busAltSignal(*bus, *socket);
+                iter++;
+                if (iter != outputSockets.end()) {
+                    stream << " or ";
+                }
             }
-            stream << simmSignal(*bus);
+            if (bus->immediateWidth() > 0) {
+                if (outputSockets.begin() != outputSockets.end()) {
+                    stream << " or ";
+                }
+                stream << simmSignal(*bus);
+            }
+            stream << ";" << endl;
         }
-        stream << ";" << endl;
+            
+        stream << endl;
+        stream << "end comb_andor;" << endl;
+    } else {
+        const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+        string entityName = entityNameStr_ + "_interconn";
+        stream << "`timescale 10ns/1ns" << endl
+               << "module " << entityName << endl
+        //include parameters here
+               << "#(" << endl
+               << "`include \""
+               << entityNameStr_ << "_globals_pkg.vh\"" << endl
+               << ")" << endl;
+
+        VerilogNetlistWriter::writePortDeclaration(
+            *icBlock_, 1, indentation(1), stream);
+        // create architecture
+
+        createSignalsForIC(stream);
+        stream << endl;
+
+        if (generateBusTrace_) {
+            writeBusDumpCode(stream);
+            stream << endl;
+        }
+            
+        Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        for (int i = 0; i < socketNav.count(); i++) {
+            Socket* socket = socketNav.item(i);
+            int segmentCount = socket->segmentCount();
+            if (segmentCount == 0 || socket->portCount() == 0) {
+                continue;
+            }
+            stream << indentation(1)
+                   << socketEntityName(
+                       socket->direction(), socket->portCount(),
+                       socket->segmentCount())
+                   << endl;
+            
+            //parameters(generics)
+            stream << indentation(2) << "#(" << endl;
+            for (int i = 0; i < segmentCount; i++) {
+                stream << indentation(3) << "." << busWidthGeneric(i) << "(" 
+                       << socket->segment(i)->parentBus()->width() << ")," 
+                       << endl;
+            }
+            
+            if (socket->direction() == Socket::OUTPUT) {
+                for (int i = 0; i < socket->portCount(); i++) {
+                    string socketWidth = "";
+                    if (socket->hasDataPortWidth()) {
+                        socketWidth = socket->dataPortWidth();
+                    } else {
+                        socketWidth =
+                            Conversion::toString(socket->port(i)->width());
+                    }
+                    stream << indentation(3) << "." << dataWidthGeneric(i) 
+                           << "(" << socketWidth;
+                    if (i+1 == socket->portCount()) {
+                        stream << ")" << endl;
+                    } else {
+                        stream << ")," << endl;
+                    }
+                }
+            } else {
+                string socketWidth;
+                if (socket->hasDataPortWidth()) {
+                    socketWidth = socket->dataPortWidth();
+                } else {
+                    socketWidth =
+                        Conversion::toString(inputSocketDataPortWidth(*socket));
+                }
+                stream << indentation(3) << "." << INPUT_SOCKET_DATAW_GENERIC 
+                       << "(" << socketWidth << ")"
+                       << endl;
+            }
+            stream << indentation(2) << ")" << endl
+                   << indentation(2) << socket->name() << endl
+                   << indentation(2) << "(" << endl;
+            for (int i = 0; i < segmentCount; i++) {
+                Bus* bus = socket->segment(i)->parentBus();
+                stream << indentation(3);
+                if (socket->direction() == Socket::INPUT) {
+                    stream << "." << inputSocketBusPort(i) << "(" 
+                           << busSignal(*bus) << ")," << endl;
+                } else {
+                    stream << "." << outputSocketBusPort(i) << "("
+                           << busAltSignal(*bus, *socket) << ")," << endl;
+                }
+            }
+
+            if (socket->direction() == Socket::OUTPUT) {
+                for (int i = 0; i < socket->portCount(); i++) {
+                    stream << indentation(3) << "." << outputSocketDataPort(i) 
+                           << "(" 
+                           << outputSocketDataPort(socket->name(), i);
+                    if (i+1 < socket->portCount()) {
+                        stream << ")," << endl;
+                    }
+                }
+            } else {                
+                stream << indentation(3) << "." << INPUT_SOCKET_DATA_PORT << "(" 
+                       << inputSocketDataPort(socket->name());
+            }
+            if (busControlWidth(
+                    socket->direction(), socket->segmentCount()) > 0) {
+                stream << ")," << endl;
+                stream << indentation(3) << "." << SOCKET_BUS_CONTROL_PORT << "("
+                       << socketBusControlPort(socket->name());
+            }
+            if (dataControlWidth(socket->direction(), socket->portCount()) > 0) {
+                stream << ")," << endl;
+                stream << indentation(3) << "." << SOCKET_DATA_CONTROL_PORT << "("
+                       << socketDataControlPort(socket->name());
+            }
+            stream << "));" << endl << endl;
+        }
+
+        // add the sockets for short immediates
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1)
+                       << outputSocketEntityName(1, 1)
+                       << " "
+                       << endl
+                       
+                       << indentation(2) << "#(" << endl
+                       << indentation(3) << "." << busWidthGeneric(0) << "("
+                       << bus->width() << ")," << endl
+                       << indentation(3) << "." << dataWidthGeneric(0) << "("
+                       << simmPortWidth(*bus) << ")" << endl
+                       << indentation(2) << ")" << endl
+                       << indentation(2) << simmSocket(*bus) << endl
+                       << indentation(2) << "(" << endl
+                       << indentation(3) << "." << outputSocketBusPort(0) << "("
+                       << simmSignal(*bus) << ")," << endl
+                       << indentation(3) << "." << outputSocketDataPort(0) << "("
+                       << simmDataPort(bus->name()) << ")," << endl
+                       << indentation(3) << "." << SOCKET_BUS_CONTROL_PORT << "("
+                       << simmControlPort(bus->name()) << "));" << endl << endl;
+            }
+        }
+
+        // add assignments to data buses
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            stream << indentation(1) << "assign " << busSignal(*bus) << " = ";
+            for (std::set<Socket*>::const_iterator iter =
+                     outputSockets.begin(); 
+                 iter != outputSockets.end();) {
+                Socket* socket = *iter;
+                stream << busAltSignal(*bus, *socket);
+                iter++;
+                if (iter != outputSockets.end()) {
+                    stream << " | ";
+                }
+            }
+            if (bus->immediateWidth() > 0) {
+                if (outputSockets.begin() != outputSockets.end()) {
+                    stream << " | ";
+                }
+                stream << simmSignal(*bus);
+            }
+            stream << ";" << endl;
+        }
+        stream << endl;
+        stream << "endmodule"<< endl;    
     }
-        
-    stream << endl;
-    stream << "end comb_andor;" << endl;
 }
 
 
@@ -866,30 +1244,52 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
  */
 void
 DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
-
     Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus* bus = busNav.item(i);
-        // create signal for the bus
-        stream << indentation(1) << "signal " << busSignal(*bus) 
-               << " : std_logic_vector(" << bus->width() - 1 
-               << " downto 0);" << endl;
-            
-        // create a signal for all the output sockets connected to the bus
-        std::set<Socket*> outputSockets = this->outputSockets(*bus);
-        for (std::set<Socket*>::iterator iter = outputSockets.begin();
-             iter != outputSockets.end(); iter++) {
-            stream << indentation(1) << "signal " 
-                   << busAltSignal(*bus, **iter) << " : std_logic_vector("
-                   << bus->width() - 1 << " downto 0);" << endl;
-        }
-
-        // create additional signal for short immediate
-        if (bus->immediateWidth() > 0) {
-            stream << indentation(1) << "signal " << simmSignal(*bus) 
+    if(language_==VHDL){
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            // create signal for the bus
+            stream << indentation(1) << "signal " << busSignal(*bus) 
                    << " : std_logic_vector(" << bus->width() - 1 
                    << " downto 0);" << endl;
+                
+            // create a signal for all the output sockets connected to the bus
+            std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            for (std::set<Socket*>::iterator iter = outputSockets.begin();
+                 iter != outputSockets.end(); iter++) {
+                stream << indentation(1) << "signal " 
+                       << busAltSignal(*bus, **iter) << " : std_logic_vector("
+                       << bus->width() - 1 << " downto 0);" << endl;
+            }
+
+            // create additional signal for short immediate
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << "signal " << simmSignal(*bus) 
+                       << " : std_logic_vector(" << bus->width() - 1 
+                       << " downto 0);" << endl;
+            }
         }
+    } else {
+        for (int i = 0; i < busNav.count(); i++) {
+            Bus* bus = busNav.item(i);
+            // create wire for the bus
+            stream << indentation(1) << "wire[" << bus->width() - 1 << ":0] "
+                   << busSignal(*bus) << ";"<< endl;
+                
+            // create a wires for all the output sockets connected to the bus
+            std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            for (std::set<Socket*>::iterator iter = outputSockets.begin();
+                 iter != outputSockets.end(); iter++) {
+                stream << indentation(1) << "wire[" << bus->width() - 1 <<":0] "
+                       << busAltSignal(*bus, **iter)<<";"<< endl;
+            }
+
+            // create additional wire for short immediate
+            if (bus->immediateWidth() > 0) {
+                stream << indentation(1) << "wire[" << bus->width() - 1 << ":0] "
+                       << simmSignal(*bus) << ";" << endl;
+            }
+        }    
     }
 }
 
@@ -917,10 +1317,10 @@ DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
             declaredSockets.insert(entityName);
             stream << indentation(1) << "component " << entityName << endl;
             if (socket->direction() == Socket::INPUT) {
-                writeInputSocketComponentDeclaration(
+                writeInputSocketComponentDeclaration(VHDL,
                     socket->segmentCount(), 2, stream);
             } else {
-                writeOutputSocketComponentDeclaration(
+                writeOutputSocketComponentDeclaration(VHDL,
                     socket->portCount(), socket->segmentCount(), 2, stream);
             }
             stream << indentation(1) << "end component;" << endl << endl;
@@ -932,7 +1332,7 @@ DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
     string entityName = socketEntityName(Socket::OUTPUT, 1, 1);
     if (!AssocTools::containsKey(declaredSockets, entityName)) {
         stream << indentation(1) << "component " << entityName << endl;
-        writeOutputSocketComponentDeclaration(1, 1, 2, stream);
+        writeOutputSocketComponentDeclaration(VHDL,1, 1, 2, stream);
         stream << indentation(1) << "end component;" << endl << endl;
     }
 }
@@ -949,54 +1349,107 @@ DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
  */
 void
 DefaultICGenerator::writeOutputSocketComponentDeclaration(
+    const ProGe::HDL language,
     int portConns,
     int segmentConns,
     int ind,
     std::ostream& stream) {
 
-    stream << indentation(ind) << "generic (" << endl;
-    
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(ind+1) << busWidthGeneric(i) 
-               << " : integer := 32;" << endl;
-    }
-    
-    for (int i = 0; i < portConns; i++) {
-        stream << indentation(ind+1) << dataWidthGeneric(i) 
-               << " : integer := 32";
-        if (i+1 == portConns) {
-            stream << ");" << endl;
-        } else {
-            stream << ";" << endl;
+    if(language==VHDL){
+        stream << indentation(ind) << "generic (" << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << busWidthGeneric(i) 
+                   << " : integer := 32;" << endl;
         }
-    }
-    
-    stream << indentation(ind) << "port (" << endl;
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(ind+1) << outputSocketBusPort(i) 
-               << " : out std_logic_vector(" << busWidthGeneric(i) 
-               << "-1 downto 0);" << endl;
-    }
-    for (int i = 0; i < portConns; i++) {
-        stream << indentation(ind+1) << outputSocketDataPort(i) 
-               << " : in std_logic_vector(" << dataWidthGeneric(i) 
-               << "-1 downto 0);" << endl;   
-    }
-    
-    const int busControlWidth = segmentConns;
-    stream << indentation(ind+1) << SOCKET_BUS_CONTROL_PORT 
-           << " : in std_logic_vector(" << busControlWidth - 1 
-           << " downto 0)";
-    
-    if (portConns > 1) {
-        stream << ";" << endl;
-        const int dataControlWidth = DefaultICGenerator::dataControlWidth(
-            Socket::OUTPUT, portConns);
-        stream << indentation(ind+1) << SOCKET_DATA_CONTROL_PORT 
-               << " : in std_logic_vector(" << dataControlWidth - 1 
-               << " downto 0));" << endl;
+        
+        for (int i = 0; i < portConns; i++) {
+            stream << indentation(ind+1) << dataWidthGeneric(i) 
+                   << " : integer := 32";
+            if (i+1 == portConns) {
+                stream << ");" << endl;
+            } else {
+                stream << ";" << endl;
+            }
+        }
+        
+        stream << indentation(ind) << "port (" << endl;
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << outputSocketBusPort(i) 
+                   << " : out std_logic_vector(" << busWidthGeneric(i) 
+                   << "-1 downto 0);" << endl;
+        }
+        for (int i = 0; i < portConns; i++) {
+            stream << indentation(ind+1) << outputSocketDataPort(i) 
+                   << " : in std_logic_vector(" << dataWidthGeneric(i) 
+                   << "-1 downto 0);" << endl;   
+        }
+        
+        const int busControlWidth = segmentConns;
+        stream << indentation(ind+1) << SOCKET_BUS_CONTROL_PORT 
+               << " : in std_logic_vector(" << busControlWidth - 1 
+               << " downto 0)";
+        
+        if (portConns > 1) {
+            stream << ";" << endl;
+            const int dataControlWidth = DefaultICGenerator::dataControlWidth(
+                Socket::OUTPUT, portConns);
+            stream << indentation(ind+1) << SOCKET_DATA_CONTROL_PORT 
+                   << " : in std_logic_vector(" << dataControlWidth - 1 
+                   << " downto 0));" << endl;
+        } else {
+            stream << ");" << endl;
+        }
     } else {
-        stream << ");" << endl;
+        stream << indentation(ind) << "#( parameter " << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << busWidthGeneric(i) 
+                   << " = 32," << endl;
+        }
+        
+        for (int i = 0; i < portConns; i++) {
+            stream << indentation(ind+1) << dataWidthGeneric(i) 
+                   << " = 32";
+            if (i+1 == portConns) {
+                stream << ")" << endl;
+            } else {
+                stream << "," << endl;
+            }
+        }
+        
+        stream << indentation(ind) << "(" << endl;
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1)
+                   << "output reg[" << busWidthGeneric(i) 
+                   << "-1 : 0] "
+                   << outputSocketBusPort(i)
+                   << "," << endl;
+        }
+        for (int i = 0; i < portConns; i++) {
+            stream << indentation(ind+1)
+                   << "input[" << dataWidthGeneric(i) 
+                   << "-1 : 0] " 
+                   << outputSocketDataPort(i) 
+                   << "," << endl;   
+        }
+        
+        const int busControlWidth = segmentConns;
+        stream << indentation(ind+1)
+               << "input [" << busControlWidth - 1 
+               << " : 0]"
+               << SOCKET_BUS_CONTROL_PORT;
+        
+        if (portConns > 1) {
+            stream << "," << endl;
+            const int dataControlWidth = DefaultICGenerator::dataControlWidth(
+                Socket::OUTPUT, portConns);
+            stream << indentation(ind+1) << SOCKET_DATA_CONTROL_PORT 
+                   << "input [" << dataControlWidth - 1 
+                   << " : 0]);" << endl;
+        } else {
+            stream << ");" << endl;
+        }    
     }
 }
 
@@ -1011,37 +1464,72 @@ DefaultICGenerator::writeOutputSocketComponentDeclaration(
  */
 void
 DefaultICGenerator::writeInputSocketComponentDeclaration(
+    const ProGe::HDL language,
     int segmentConns,
     int ind,
     std::ostream& stream) {
     
-    stream << indentation(ind) << "generic (" << endl;
-    
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(ind+1) << busWidthGeneric(i) << 
-            " : integer := 32;" << endl;
-    }
-    
-    stream << indentation(ind+1) << INPUT_SOCKET_DATAW_GENERIC 
-           << " : integer := 32);" << endl;
-    stream << indentation(ind) << "port (" << endl;
-    
-    for (int i = 0; i < segmentConns; i++) {
-        stream << indentation(ind+1) << inputSocketBusPort(i) 
-               << " : in std_logic_vector(" << busWidthGeneric(i) 
-               << "-1 downto 0);" << endl;
-    }
-    
-    stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT 
-           << " : out std_logic_vector(" << INPUT_SOCKET_DATAW_GENERIC 
-           << "-1 downto 0)";
-    int controlWidth = MathTools::requiredBits(segmentConns - 1);
-    if (segmentConns > 1) {
-        stream << ";" << endl;
-        stream << indentation(ind+1) << SOCKET_BUS_CONTROL_PORT 
-               << " : in std_logic_vector(" << controlWidth - 1 
-               << " downto 0));" << endl;
+    if(language==VHDL){
+        stream << indentation(ind) << "generic (" << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << busWidthGeneric(i) << 
+                " : integer := 32;" << endl;
+        }
+        
+        stream << indentation(ind+1) << INPUT_SOCKET_DATAW_GENERIC 
+               << " : integer := 32);" << endl;
+        stream << indentation(ind) << "port (" << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << inputSocketBusPort(i) 
+                   << " : in std_logic_vector(" << busWidthGeneric(i) 
+                   << "-1 downto 0);" << endl;
+        }
+        
+        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT 
+               << " : out std_logic_vector(" << INPUT_SOCKET_DATAW_GENERIC 
+               << "-1 downto 0)";
+        int controlWidth = MathTools::requiredBits(segmentConns - 1);
+        if (segmentConns > 1) {
+            stream << ";" << endl;
+            stream << indentation(ind+1) << SOCKET_BUS_CONTROL_PORT 
+                   << " : in std_logic_vector(" << controlWidth - 1 
+                   << " downto 0));" << endl;
+        } else {
+            stream << ");" << endl;
+        }
     } else {
+        stream << indentation(ind) << "#( parameter " << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1) << busWidthGeneric(i) << 
+                " = 32," << endl;
+        }
+        
+        stream << indentation(ind+1) << INPUT_SOCKET_DATAW_GENERIC 
+               << " = 32)" << endl;
+        stream << indentation(ind) << "(" << endl;
+        
+        for (int i = 0; i < segmentConns; i++) {
+            stream << indentation(ind+1)
+                   << "input[" << busWidthGeneric(i) 
+                   << "-1 : 0] " << inputSocketBusPort(i) << ","
+                   << endl;
+        }
+        
+        stream << indentation(ind+1)
+               << "output reg[" << INPUT_SOCKET_DATAW_GENERIC 
+               << "-1 : 0] "
+               << INPUT_SOCKET_DATA_PORT;
+        int controlWidth = MathTools::requiredBits(segmentConns - 1);
+        if (segmentConns > 1) {
+            stream << "," << endl;
+            stream << indentation(ind+1)
+                   << "input[" << controlWidth - 1 
+                   << " : 0] " 
+                   << SOCKET_BUS_CONTROL_PORT;
+        }
         stream << ");" << endl;
     }
 }
@@ -1054,65 +1542,107 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
  */
 void
 DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
+    if(language_==VHDL){
+        stream << indentation(1)
+               << "-- Dump the value on the buses into a file once in clock cycle"
+               << endl;
+        stream << indentation(1)
+               << "-- setting DUMP false will disable dumping" << endl << endl;
+        stream << indentation(1) << "-- Do not synthesize this process!" << endl;
+        stream << indentation(1) << "-- pragma synthesis_off" << endl;
 
-    stream << indentation(1)
-           << "-- Dump the value on the buses into a file once in clock cycle"
-           << endl;
-    stream << indentation(1)
-           << "-- setting DUMP false will disable dumping" << endl << endl;
-    stream << indentation(1) << "-- Do not synthesize this process!" << endl;
-    stream << indentation(1) << "-- pragma synthesis_off" << endl;
+        stream << indentation(1) << "file_output : process" << endl << endl;
+        stream << indentation(2) << "file fileout : text;" << endl << endl;
+        stream << indentation(2) << "variable lineout : line;" << endl;
+        stream << indentation(2) << "variable start : boolean := true;" << endl;
+        stream << indentation(2) << "variable count : integer := 0;" << endl
+               << endl;
+        stream << indentation(2) << "constant SEPARATOR : string := \" | \";"
+               << endl;
+        stream << indentation(2) << "constant DUMP : boolean := true;" << endl;
+        stream << indentation(2) << "constant DUMPFILE : string := \"bus.dump\";"
+               << endl << endl;
 
-    stream << indentation(1) << "file_output : process" << endl << endl;
-    stream << indentation(2) << "file fileout : text;" << endl << endl;
-    stream << indentation(2) << "variable lineout : line;" << endl;
-    stream << indentation(2) << "variable start : boolean := true;" << endl;
-    stream << indentation(2) << "variable count : integer := 0;" << endl
-           << endl;
-    stream << indentation(2) << "constant SEPARATOR : string := \" | \";"
-           << endl;
-    stream << indentation(2) << "constant DUMP : boolean := true;" << endl;
-    stream << indentation(2) << "constant DUMPFILE : string := \"bus.dump\";"
-           << endl << endl;
-
-    stream << indentation(1) << "begin" << endl;
-    stream << indentation(2) << "if DUMP = true then" << endl;
-    stream << indentation(3) << "if start = true then" << endl;
-    stream << indentation(4) << "file_open(fileout, DUMPFILE, write_mode);" 
-           << endl;
-    stream << indentation(4) << "start := false;" << endl;
-    stream << indentation(3) << "end if;" << endl << endl;
-    
-    stream << indentation(3) << "wait for PERIOD;" << endl;
-    int ind = 3;
-    if (busTraceStartingCycle_ > 0) {
-        stream << indentation(3) << "if count > "
-               << busTraceStartingCycle_ - 1
-               << " then" << endl;
-        ind++;
-    }
-    stream << indentation(ind) << "write(lineout, count-"
-           << busTraceStartingCycle_ << ", right, 12);"
-           << endl;
-    stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
-
-    Machine::BusNavigator busNav = machine_.busNavigator();
-    for (int i = 0; i < busNav.count(); i++) {
-        stream << indentation(ind) << "write(lineout, conv_integer(signed(" 
-               << busSignal(*busNav.item(i)) << ")), right, 12);" << endl;
+        stream << indentation(1) << "begin" << endl;
+        stream << indentation(2) << "if DUMP = true then" << endl;
+        stream << indentation(3) << "if start = true then" << endl;
+        stream << indentation(4) << "file_open(fileout, DUMPFILE, write_mode);" 
+               << endl;
+        stream << indentation(4) << "start := false;" << endl;
+        stream << indentation(3) << "end if;" << endl << endl;
+        
+        stream << indentation(3) << "wait for PERIOD;" << endl;
+        int ind = 3;
+        if (busTraceStartingCycle_ > 0) {
+            stream << indentation(3) << "if count > "
+                   << busTraceStartingCycle_ - 1
+                   << " then" << endl;
+            ind++;
+        }
+        stream << indentation(ind) << "write(lineout, count-"
+               << busTraceStartingCycle_ << ", right, 12);"
+               << endl;
         stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
-    }
-    
-    stream << endl << indentation(ind) << "writeline(fileout, lineout);" 
-           << endl;
 
-    if (busTraceStartingCycle_ > 0) {
-        stream << indentation(3) << "end if;" << endl;
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            stream << indentation(ind) << "write(lineout, conv_integer(signed(" 
+                   << busSignal(*busNav.item(i)) << ")), right, 12);" << endl;
+            stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
+        }
+        
+        stream << endl << indentation(ind) << "writeline(fileout, lineout);" 
+               << endl;
+
+        if (busTraceStartingCycle_ > 0) {
+            stream << indentation(3) << "end if;" << endl;
+        }
+        stream << indentation(3) << "count := count + 1;" << endl;
+        stream << indentation(2) << "end if;" << endl;
+        stream << indentation(1) << "end process file_output;" << endl;
+        stream << indentation(1) << "-- pragma synthesis_on" << endl;
+    } else {
+        stream << indentation(1)
+               << "// Dump the value on the buses into a file once in clock cycle"
+               << endl;
+        stream << indentation(1)
+               << "// setting DUMP false will disable dumping" << endl << endl;
+        stream << indentation(1) << "// Do not synthesize!" << endl;
+        stream << indentation(1) << "//synthesis translate_off" << endl;
+
+        stream << indentation(1) << "integer fileout;" << endl << endl;
+        stream << indentation(1) << "integer count=0;" << endl
+               << endl;
+        stream << indentation(1) << "`define DUMPFILE \"bus.dump\""
+               << endl << endl;
+               
+        stream << indentation(2) << "initial" << endl;
+        stream << indentation(2) << "begin" << endl;
+        stream << indentation(3) << "fileout = $fopen(`DUMPFILE,\"w\");"
+               << endl;
+        stream << indentation(3) << "forever" << endl;
+        stream << indentation(4) << "#PERIOD;" << endl;
+        if (busTraceStartingCycle_ > 0) {
+            stream << indentation(4) << "if(count > "
+                   << busTraceStartingCycle_ - 1
+                   << ")" << endl;
+        }
+        std::string format_string = "%0d";
+        std::string variable_list = "count-" + Conversion::toString(busTraceStartingCycle_);
+
+        Machine::BusNavigator busNav = machine_.busNavigator();
+        for (int i = 0; i < busNav.count(); i++) {
+            format_string += " | %0d";
+            variable_list += ", " + Conversion::toString(busSignal(*busNav.item(i)));
+        }
+        stream << indentation(5) << "$fwrite(fileout,"
+               << "\"" << format_string << "\\n\"" << ", "
+               << variable_list << ");"
+               << endl
+               << indentation(4) << "count = count + 1;" << endl
+               << indentation(2) << "end" << endl
+               << indentation(1) << "//synthesis translate_on" << endl;    
     }
-    stream << indentation(3) << "count := count + 1;" << endl;
-    stream << indentation(2) << "end if;" << endl;
-    stream << indentation(1) << "end process file_output;" << endl;
-    stream << indentation(1) << "-- pragma synthesis_on" << endl;
 }   
 
 
@@ -1583,17 +2113,18 @@ DefaultICGenerator::convertDirection(
  */
 std::string
 DefaultICGenerator::socketFileName(
+    const ProGe::HDL language,
     TTAMachine::Socket::Direction direction,
     int portConns,
     int segmentConns) {
 
     if (direction == Socket::INPUT) {
         return "input_socket_" + 
-            Conversion::toString(segmentConns) + ".vhdl";
+            Conversion::toString(segmentConns) + ((language==VHDL)?".vhdl":".v");
     } else if (direction == Socket::OUTPUT) {
         return "output_socket_" +
             Conversion::toString(segmentConns) + "_" + 
-            Conversion::toString(portConns) + ".vhdl";
+            Conversion::toString(portConns) + ((language==VHDL)?".vhdl":".v");
     } else {
         assert(false);
     }

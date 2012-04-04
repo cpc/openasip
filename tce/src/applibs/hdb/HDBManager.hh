@@ -27,7 +27,7 @@
  * Declaration of HDBManager class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

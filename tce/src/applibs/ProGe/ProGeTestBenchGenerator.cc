@@ -41,6 +41,7 @@
 
 #include <boost/regex.hpp>
 
+#include "ProGeTypes.hh"
 #include "ProGeTestBenchGenerator.hh"
 #include "HDLTemplateInstantiator.hh"
 #include "FileSystem.hh"
@@ -65,6 +66,7 @@
 using namespace IDF; 
 using namespace HDB; 
 using namespace TTAMachine;
+using namespace ProGe;
 
 using std::string;
 using std::endl;
@@ -112,6 +114,7 @@ ProGeTestBenchGenerator::~ProGeTestBenchGenerator() {
  */
 void
 ProGeTestBenchGenerator::generate(
+    const ProGe::HDL language,
     const TTAMachine::Machine& mach,
     const IDF::MachineImplementation& implementation,
     const std::string& dstDirectory,
@@ -120,7 +123,7 @@ ProGeTestBenchGenerator::generate(
     throw (IOException, OutOfRange, InvalidName, InvalidData) {
      
     entityStr_ = entityStr;
-
+    language_  = language;
     // map to store FUs that use address spaces
     std::map<string, std::vector<FunctionUnit*> > ASFUs;
     
@@ -278,7 +281,9 @@ ProGeTestBenchGenerator::generate(
     }
 
     // the beginning of the core FU (load store unit) mappings
-    string LSUMapConst = 
+    string LSUMapConst;
+    if(language==VHDL){
+        LSUMapConst = 
         "port map (\n"
         "clk  => clk,\n"
         "rstx => rst_x,\n"
@@ -287,6 +292,16 @@ ProGeTestBenchGenerator::generate(
         "imem_addr => imem_addr,\n"
         "imem_data => imem_data,\n"
         "pc_init => pc_init";
+    } else {
+        LSUMapConst=
+        ".clk                (clk),\n"
+        ".rstx               (rst_x),\n"
+        ".busy               (1'b0),\n"
+        ".imem_en_x          (imem_en_x),\n"
+        ".imem_addr          (imem_addr),\n"
+        ".imem_data          (imem_data),\n"
+        ".pc_init            (pc_init)";
+    }
     
     if (LSUMap.length() < 1) {
         LSUMapConst.append(");\n");
@@ -298,8 +313,8 @@ ProGeTestBenchGenerator::generate(
     
     // read toplevel.vhdl from proge output dir for proc_arch.vhdl
     string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
-        + "vhdl" + FileSystem::DIRECTORY_SEPARATOR + 
-        entityStr + ".vhdl";
+        + ((language==VHDL)?"vhdl":"verilog") + FileSystem::DIRECTORY_SEPARATOR + 
+        entityStr + ((language==VHDL)?".vhdl":".v");
 
     createProcArchVhdl(dstDirectory, toplevel, LSUMapConst);
 }
@@ -330,8 +345,15 @@ ProGeTestBenchGenerator::createProcArchVhdl(
         throw error;
     }
 
-    string startRE = std::string(".*entity.") + entityStr_ + ".is.*";
-    string endRE = std::string(".*end.") + entityStr_ + ";.*";
+    string startRE,endRE;
+    if(language_==VHDL){
+        startRE = std::string(".*entity.") + entityStr_ + ".is.*";
+        endRE = std::string(".*end.") + entityStr_ + ";.*";
+    } else {
+        startRE = std::string(".*module.") + entityStr_;
+        endRE = std::string(".*endmodule.*");
+    }
+    
     string block = "";
     bool ok = 
         FileSystem::readBlockFromFile(
@@ -346,11 +368,12 @@ ProGeTestBenchGenerator::createProcArchVhdl(
 
     TCEString sourceFile = 
         Environment::dataDirPath("ProGe") + FileSystem::DIRECTORY_SEPARATOR +
-        "tb" + FileSystem::DIRECTORY_SEPARATOR + "proc_arch.vhdl.tmpl";
+        "tb" + FileSystem::DIRECTORY_SEPARATOR +
+        ((language_==VHDL)?"proc_arch.vhdl.tmpl":"proc_arch.v.tmpl");
 
     // change proc_arch.vhdl
     string procArch = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        "proc_arch.vhdl";
+        ((language_==VHDL)?"proc_arch.vhdl":"proc_arch.v");
 
     HDLTemplateInstantiator inst;
     inst.setEntityString(entityStr_);
@@ -365,18 +388,25 @@ ProGeTestBenchGenerator::createProcArchVhdl(
         throw error;
     }
 
-    startRE = std::string(".*component.") + entityStr_ + ".*";
-    endRE = std::string(".*end.component;.*");
-    if (!FileSystem::appendReplaceFile(procArch, startRE, block, endRE,
-        false)) {
+    if(language_==VHDL){
+        startRE = std::string(".*component.") + entityStr_ + ".*";
+        endRE = std::string(".*end.component;.*");
+        if (!FileSystem::appendReplaceFile(procArch, startRE, block, endRE,
+            false)) {
 
-        string eMsg = "Could not write toplevel to: " + procArch;
-        IOException error(__FILE__, __LINE__, __func__, eMsg);
-        throw error;
+            string eMsg = "Could not write toplevel to: " + procArch;
+            IOException error(__FILE__, __LINE__, __func__, eMsg);
+            throw error;
+        }
     }
-
-    startRE = std::string(".*core.:.") + entityStr_ + ".*";
-    endRE = ".*datamem.:.synch_dualport_sram.*";
+    
+    if(language_==VHDL){
+        startRE = std::string(".*core.:.") + entityStr_ + ".*";
+        endRE = ".*datamem.:.synch_dualport_sram.*";
+    }else{
+        startRE = entityStr_ + std::string(".*core.*");
+        endRE = ".*synch_dualport_sram.*";
+    }
     if (!FileSystem::appendReplaceFile(procArch, startRE, signalMappings, 
         endRE, false)) {
 
@@ -384,8 +414,6 @@ ProGeTestBenchGenerator::createProcArchVhdl(
         IOException error(__FILE__, __LINE__, __func__, eMsg);
         throw error;
     }
-
-    return;
 }
 
 /** 
@@ -415,7 +443,10 @@ ProGeTestBenchGenerator::getSignalMapping(
     
     // create fu signal name 
     string fuSignalName("fu" + sep);
-    fuSignalName.append(fuName + sep + epName + ((widthIsOne) ? "(0)" : ""));
+    if(language_==VHDL)
+        fuSignalName.append(fuName + sep + epName + ((widthIsOne) ? "(0)" : ""));
+    else
+        fuSignalName.append(fuName + sep + epName);
 
     // create memory signal name
     string memSignalName(memoryName + sep);
@@ -444,7 +475,10 @@ ProGeTestBenchGenerator::getSignalMapping(
         throw error;
     }
 
-    return string(fuSignalName + " => " + memSignalName);
+    if(language_==VHDL)
+        return string(fuSignalName + " => " + memSignalName);
+
+    return string("."+fuSignalName + "(" + memSignalName + ")");
 }
 
 /** 
@@ -460,37 +494,62 @@ ProGeTestBenchGenerator::createTBConstFile(
         const string dataWidth,
         const string addrWidth) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        "testbench_constants_pkg.vhdl";
+    ((language_==VHDL)?"testbench_constants_pkg.vhdl":"testbench_constants_pkg.vh");
 
     createFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    
-    stream << "package testbench_constants is" << endl
-           << "-- width of the data memory"    << endl
+    if(language_==VHDL){
+        stream << "package testbench_constants is" << endl
+               << "-- width of the data memory"    << endl
+               << "constant DMEMDATAWIDTH : positive := "
+               << ((dataWidth.empty())? "1" : dataWidth)<< ";" << endl
 
-           << ((dataWidth.empty()) ? "-- " : "")
-           << "constant DMEMDATAWIDTH : positive := " << dataWidth << ";" 
-           << endl
-           << "-- address width of the data memory" << endl
+               << "-- address width of the data memory" << endl
+               << "constant DMEMADDRWIDTH : positive := "
+               << ((addrWidth.empty()) ? "1" : addrWidth)<< ";" << endl
 
-           << ((addrWidth.empty()) ? "-- " : "")
-           << "constant DMEMADDRWIDTH : positive := " << addrWidth << ";" 
-           << endl
+               << "-- simulation run time" << endl
+               << "constant RUNTIME : time := 5234 * 10 ns;" << endl
 
-           << "-- simulation run time" << endl
-           << "constant RUNTIME : time := 5234 * 10 ns;" << endl
+               << "-- memory init files" << endl
+               << "constant DMEM_INIT_FILE : string := "
+               << ((dataWidth.empty()) ?
+                 "\"\";" :
+                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "dmem_init.img\";")
+               << endl
+               
+               << "constant IMEM_INIT_FILE : string := "
+               << ((addrWidth.empty()) ?
+                  "\"\";" :
+                  "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\";")
+               << endl
+               << "end testbench_constants;" << endl;
+    } else {
+        stream << "// width of the data memory"    << endl
+               << "parameter DMEMDATAWIDTH = "
+               << ((dataWidth.empty())? "1" : dataWidth)<< "," << endl
 
-           << "-- memory init files" << endl
-           << ((dataWidth.empty()) ? "-- " : "")
-           << "constant DMEM_INIT_FILE : string := " << "\"tb" 
-           << FileSystem::DIRECTORY_SEPARATOR << "dmem_init.img\";" << endl
-           
-           << ((addrWidth.empty()) ? "-- " : "")
-           << "constant IMEM_INIT_FILE : string := " << "\"tb" 
-           << FileSystem::DIRECTORY_SEPARATOR << "imem_init.img\";" << endl
-           << "end testbench_constants;" << endl;
+               << "// address width of the data memory" << endl
+               << "parameter DMEMADDRWIDTH = "
+               << ((addrWidth.empty()) ? "1" : addrWidth)<< "," << endl
 
+               << "// simulation run time" << endl
+               << "parameter RUNTIME = 5234*10,// ns" << endl
+
+               << "// memory init files" << endl
+               << "parameter DMEM_INIT_FILE = "
+               << ((dataWidth.empty()) ?
+                 "\"\"," :
+                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "dmem_init.img\",")
+               << endl
+               
+               << "parameter IMEM_INIT_FILE = "
+               << ((addrWidth.empty()) ?
+                  "\"\"" :
+                  "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\"")
+               << endl;
+    }
     stream.close();
 }
 
@@ -513,7 +572,7 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
     sourceDir = sourceDir + DS + "tb";
     std::list<string> foundSourceFiles;
 
-    string vhdlRegex = ".*\\.vhdl$";
+    string vhdlRegex = ((language_==VHDL)?".*\\.vhdl$":".*\\.v*$");
     FileSystem::findFromDirectory(vhdlRegex, sourceDir, foundSourceFiles);
     std::list<string>::iterator it = foundSourceFiles.begin();
     while (it != foundSourceFiles.end()) {
@@ -523,12 +582,17 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
 
     HDLTemplateInstantiator inst;
     inst.setEntityString(entityStr_);
+    
     inst.instantiateTemplateFile(
-        sourceDir + DS + "testbench.vhdl.tmpl", 
-        dstDirectory + DS + "testbench.vhdl");
-    inst.instantiateTemplateFile(
-        sourceDir + DS + "proc_ent.vhdl.tmpl", 
-        dstDirectory + DS + "proc_ent.vhdl");
+        sourceDir + DS + 
+        ((language_==VHDL)?"testbench.vhdl.tmpl":"testbench.v.tmpl"), 
+        dstDirectory + DS +
+        ((language_==VHDL)?"testbench.vhdl":"testbench.v"));
+        
+    if(language_==VHDL)
+        inst.instantiateTemplateFile(
+            sourceDir + DS + "proc_ent.vhdl.tmpl", 
+            dstDirectory + DS + "proc_ent.vhdl");
 
 }
 
