@@ -474,7 +474,7 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
             o << std::endl
               << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1], 8, (add ";
             o << ri->second[0];
-            for (int i = 1; i < ri->second.size(); i++) {
+            for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")> {" << std::endl
@@ -513,7 +513,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
             
             o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32], 32, (add ";
             o << ri->second[0];
-            for (int i = 1; i < ri->second.size(); i++) {
+            for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")>;" << std::endl;
@@ -527,7 +527,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         if (ri->first.find("R32") == 0) {
             o << "def " << ri->first << "IRegs : RegisterClass<\"TCE\", [i32], 32, (add ";
             o << ri->second[0];
-            for (int i = 1; i < ri->second.size(); i++) {
+            for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")>;" << std::endl;
@@ -544,7 +544,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
             
             o << "def " << ri->first << "FPRegs : RegisterClass<\"TCE\", [f32], 32, (add ";
             o << ri->second[0];
-            for (int i = 1; i < ri->second.size(); i++) {
+            for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")>;" << std::endl;

@@ -48,7 +48,8 @@ createProgramPartitionerPass() {
 }
 
 bool 
-ProgramPartitioner::doInitialization(llvm::Module &M) {
+ProgramPartitioner::doInitialization(llvm::Module& /*M*/) {
+    return false;
 }
 
 bool 
@@ -92,7 +93,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 
                    TODO: do it recursively until a root instruction or a partitioned 
                    instruction is found. */
-                for (int opr = 0; opr < mi.getNumOperands(); ++opr) {
+                for (unsigned opr = 0; opr < mi.getNumOperands(); ++opr) {
                     const llvm::MachineOperand& operand = mi.getOperand(opr);
                     if (!operand.isReg()) continue;
                     const llvm::MachineInstr* parent = 
@@ -127,5 +128,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 
 bool 
 ProgramPartitioner::doFinalization(llvm::Module& /*M*/) {
+    return false;
 }
 
