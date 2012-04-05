@@ -2475,7 +2475,8 @@ TDGen::generateVectorLoadStoreGenerator(std::ostream& os) {
     // vector store/load generation code
 
 
-    os << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc) const {" << std::endl;
+    os << "#include <stdio.h>" << std::endl 
+       << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc) const {" << std::endl;
     if (opNames_.find("STW2vr") != opNames_.end()) {
         os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::STW2vr;" << std::endl
            << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::STW2mr;" << std::endl;
@@ -2488,10 +2489,11 @@ TDGen::generateVectorLoadStoreGenerator(std::ostream& os) {
         os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr;" << std::endl
            << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr;" << std::endl;
     }
-    os << "assert(0&&\"storing given regclass to stack not supported\");"
-       << std::endl
-       << "} " << std::endl
-       << std::endl
+    os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
+        << "\tassert(0&&\"Storing given regclass to stack not supported. Add more registers?\");"
+        << std::endl
+        << "} " << std::endl
+        << std::endl
               
        << "int GeneratedTCEPlugin::getLoad(const TargetRegisterClass *rc) const {" << std::endl;
     if (opNames_.find("LDW2vr") != opNames_.end()) {

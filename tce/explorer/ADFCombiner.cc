@@ -53,22 +53,11 @@ using std::endl;
 
 /**
  * Explorer plugin that adds machine components to a given machine.
- *
- * Supported parameters:
- *  - node, first input architecture, will be copied multiple times
- *  - node_count, number of times the input architecture is copied to new one,
- *               default is 4
- *  - rf_size, the size of the register file connecting copied architectures,
- *              default is 4
- *  - rf_reads, number of register read ports in register file, default is 1 
- *  - rf_writes, number of register write ports in register file, default is 1
- *  - build_idf, if parameter is set the idf file is built, not set as default
- *  - extra, the other input architecture, will be copied just once
- *    If adf parameter is given the idf is built.
  */
 class ADFCombiner : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Explorer plugin that combines two machines"
-            " to produce larger machine.");
+    PLUGIN_DESCRIPTION(
+        "Explorer plugin that produces a clustered machine with N lanes/nodes "
+        "and an 'extras' node.");
 
     ADFCombiner(): DesignSpaceExplorerPlugin(), 
         node_("node.adf"),

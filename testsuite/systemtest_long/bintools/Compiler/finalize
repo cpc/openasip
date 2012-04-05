@@ -1,1 +1,3 @@
 rm -f OpenCL.testdesc.disabled
+rm -f data/{2,4,8}-way-clustered.adf
+

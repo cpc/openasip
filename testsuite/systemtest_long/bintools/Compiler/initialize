@@ -5,6 +5,10 @@ ln -sf ../../../../../tce/scheduler/testbench/Operations/ShiftRows.opb data/Shif
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/example1/data
 ln -sf ../../../../tce/scheduler/testbench/Operations OpenCL/oclAESGladman/data
 
+./create_clustered_tta.sh 2
+./create_clustered_tta.sh 4
+./create_clustered_tta.sh 8
+
 if `../../../../tce/src/bintools/Compiler/tcecc --supported-languages |grep -q "OpenCL C"`
 then
     rm -f OpenCL.testdesc.disabled
