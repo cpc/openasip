@@ -64,6 +64,7 @@ using namespace TTAMachine;
 const int DEFAULT_IMEMWIDTH_IN_MAUS = 1;
 const int PERIOD = 10;
 const string IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
+const string VER_IMEM_MAU_PKG = "imem_mau_pkg.vh";
 const string DECOMPRESSOR_FILE = "idecompressor.vhdl";
 
 const string TB_DIR = "tb";
@@ -233,7 +234,8 @@ parseParameter(
 
 
 void 
-createMauPkg(int imemMauWidth, string fileName, string entityNameStr) {
+createMauPkg(int language,
+    int imemMauWidth, string fileName, string entityNameStr) {
 
     string indentation = "   ";
  
@@ -246,14 +248,20 @@ createMauPkg(int imemMauWidth, string fileName, string entityNameStr) {
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
     std::ofstream stream(fileName.c_str());
-    
     string entityName = entityNameStr + "_imem_mau";
-
-    stream << "package " << entityName << " is" << endl
-           << indentation << "-- created by generatebits" << endl
-           << indentation << "constant IMEMMAUWIDTH : positive := "
-           << imemMauWidth << ";" << endl
-           << "end " << entityName << ";" << endl;
+    if(language==0){//vhdl
+        stream << "package " << entityName << " is" << endl
+               << indentation << "-- created by generatebits" << endl
+               << indentation << "constant IMEMMAUWIDTH : positive := "
+               << imemMauWidth << ";" << endl
+               << "end " << entityName << ";" << endl;
+    } else {
+        stream << "//package " << entityName << " is" << endl
+               << indentation  << "// created by generatebits" << endl
+               << indentation  << "parameter IMEMMAUWIDTH = "
+               << imemMauWidth << endl
+               << "//end " << entityName << ";" << endl;    
+    }
     stream.close();
 }
 
@@ -539,17 +547,29 @@ int main(int argc, char* argv[]) {
         }
         
         int compressedInstructionWidth = imageGenerator.imemMauWidth();
-        string imemMauPkg = IMEM_MAU_PKG;
         if (!progeOutputDir.empty()) {
-             string temp = 
-                 progeOutputDir + DIR_SEP + "vhdl" + DIR_SEP + IMEM_MAU_PKG;
+            string temp = 
+                progeOutputDir + DIR_SEP + "vhdl" + DIR_SEP + IMEM_MAU_PKG;
             if ( (FileSystem::fileExists(temp) 
                   &&FileSystem::fileIsWritable(temp)) 
                  || FileSystem::fileIsCreatable(temp)) {
-                imemMauPkg = temp;
+                //vhdl
+                createMauPkg(0,compressedInstructionWidth, temp, entityStr);
             }
+            temp = 
+                progeOutputDir + DIR_SEP + "verilog" + DIR_SEP + entityStr + 
+                "_" + VER_IMEM_MAU_PKG;
+            if ( (FileSystem::fileExists(temp) 
+                  &&FileSystem::fileIsWritable(temp)) 
+                 || FileSystem::fileIsCreatable(temp)) {
+                //verilog
+                createMauPkg(1,compressedInstructionWidth, temp, entityStr);
+            }
+        } else {//if none exist generate in current folder for both HDLs
+            createMauPkg(0,compressedInstructionWidth, IMEM_MAU_PKG, entityStr);//vhdl
+            createMauPkg(1,compressedInstructionWidth,
+                entityStr +"_"+ VER_IMEM_MAU_PKG, entityStr);//verilog
         }
-        createMauPkg(compressedInstructionWidth, imemMauPkg, entityStr);
 
         for (std::vector<Binary*>::iterator iter = tpefTable.begin();
              iter != tpefTable.end(); iter++) {

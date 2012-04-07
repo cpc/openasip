@@ -1,0 +1,111 @@
+// Copyright (c) 2002-2009 Tampere University of Technology.
+// Copyright (c) 2012 Vinogradov Viacheslav
+//
+// This file is part of TTA-Based Codesign Environment (TCE).
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// Description: architecture for processor with a core with single port data
+// memory/cache (structural) and with a core with dual-port data memory/cache
+// (structural_dp_dmem)
+//////////////////////////////////////////////////////////////////////////////
+// Title      : testbench for TTA processor
+//////////////////////////////////////////////////////////////////////////////
+// Description: Simply resets the processor and triggers execution
+//////////////////////////////////////////////////////////////////////////////
+// Revisions  :
+// 2012-04-04  1.0  Vinogradov 
+//////////////////////////////////////////////////////////////////////////////
+`timescale 1ns/1ns
+
+module testbench
+#(
+`include "testbench_constants_pkg.vh"
+,
+`include "ENTITY_STR_globals_pkg.vh"
+,
+`include "ENTITY_STR_imem_mau_pkg.vh"
+)
+    ();
+
+    reg clk;
+    reg rst_x;
+    wire[DMEMDATAWIDTH-1:0]    dmem_bit_wr_x;
+    wire dmem_wr_x;
+    wire dmem_en_x;
+    wire[DMEMDATAWIDTH-1:0]    dmem_data_in;
+    wire[DMEMADDRWIDTH-1:0]    dmem_addr;
+    wire[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0]   imem_bit_wr_x;
+    wire imem_wr_x;
+    wire imem_en_x;
+    wire[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0] imem_data;
+    wire[IMEMADDRWIDTH-1:0]    imem_addr;
+    wire dmem_busy;
+    wire imem_busy;
+    wire[DMEMDATAWIDTH-1:0]    data_out;
+    reg[IMEMADDRWIDTH-1:0]    pc_init;
+
+    initial
+        clk=1;
+        
+    always#(PERIOD/2) clk = ~clk;
+
+  assign dmem_bit_wr_x = {DMEMDATAWIDTH{1'b1}};
+  assign dmem_wr_x     = 1'b1;
+  assign dmem_en_x     = 1'b1;
+  assign dmem_data_in  = {DMEMDATAWIDTH{1'b0}};
+  assign dmem_addr     = {DMEMADDRWIDTH{1'b0}};
+
+  assign imem_bit_wr_x = {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b1}};
+  assign imem_wr_x = 1'b1;
+  assign imem_en_x = 1'b1;
+  assign imem_data = {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};
+  assign imem_addr = {IMEMADDRWIDTH{1'b0}};
+
+  initial
+  begin
+    rst_x=1'b0;
+    pc_init <= {IMEMADDRWIDTH{1'b0}};
+    #(PERIOD*3);
+    rst_x=1'b1;
+    #RUNTIME;
+    rst_x=1'b0;
+    #(PERIOD*3);
+    $finish;
+  end
+  
+  proc dut(
+    .clk           ( clk),
+    .rst_x         ( rst_x),
+    .dmem_ext_bit_wr_x ( dmem_bit_wr_x),
+    .dmem_ext_wr_x ( dmem_wr_x),
+    .dmem_ext_en_x ( dmem_en_x),
+    .dmem_ext_data ( dmem_data_in),
+    .dmem_ext_addr ( dmem_addr),
+    .data_out      ( data_out),
+    .imem_ext_bit_wr_x ( imem_bit_wr_x),
+    .imem_ext_wr_x ( imem_wr_x),
+    .imem_ext_en_x ( imem_en_x),
+    .imem_ext_data ( imem_data),
+    .imem_ext_addr ( imem_addr),
+    .dmem_busy     ( dmem_busy),
+    .imem_busy     ( imem_busy),
+    .pc_init       ( pc_init)
+    );
+
+endmodule

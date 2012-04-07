@@ -38,6 +38,7 @@
 
 #include "Socket.hh"
 #include "HDBTypes.hh"
+#include "ProGeTypes.hh"
 
 namespace TTAMachine {
 class Machine;
@@ -84,6 +85,7 @@ public:
      * @param generator The netlist generator that generated the netlist.
      */
     virtual void generate(
+        HDL language,
         const std::string& destinationDirectory,
         const NetlistGenerator& generator) = 0;
 

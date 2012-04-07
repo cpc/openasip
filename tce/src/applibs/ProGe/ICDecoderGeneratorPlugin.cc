@@ -132,8 +132,6 @@ ICDecoderGeneratorPlugin::parameterDescription(
             __FILE__, __LINE__, __func__, e.errorMessage());
     }
 }
-        
-
 
 /**
  * Sets the given parameter for the plugin.

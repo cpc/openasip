@@ -604,9 +604,10 @@ VHDLNetlistWriter::writePortMappings(
             continue;
         }
 
-        stream << indentation(1) << component.instanceName() << " : "
+        stream << indentation(1) << component.instanceName()
+               << "_" << i 
+               << " : "
                << component.moduleName() << endl;
-
         // create generic map
         if (component.parameterCount() > 0) {
             stream << indentation(2) << "generic map (" << endl;

@@ -1,0 +1,11 @@
+#!/bin/bash
+# Clean the created files
+
+rm -f data/tutorial.opb
+rm -f ./*.tpef
+rm -f ./*.bem
+rm -f ./*.img
+rm -rf vhdl_out*
+rm -rf ver_out*
+
+exit 0

@@ -148,20 +148,30 @@ begin  -- simulate
 
     if (init = true) then
       if (initialized = false) then
-        file_open(mem_init, INITFILENAME, read_mode);
         i := 0;
-        while (not endfile(mem_init) and i < mem_r'length) loop
-          readline(mem_init, line_in);
-          read(line_in, word_from_file, good);
-          assert good
-            report "Read error in memory initialization file"
-            severity failure;
-          mem_r(i) <= word_from_file;
-          i        := i+1;
-        end loop;
-        assert (not good)
-          report "Memory initialization succesful"
-          severity note;
+        if INITFILENAME/="" then      
+	        file_open(mem_init, INITFILENAME, read_mode);
+	        while (not endfile(mem_init) and i < mem_r'length) loop
+	          readline(mem_init, line_in);
+	          read(line_in, word_from_file, good);
+	          assert good
+	            report "Read error in memory initialization file"
+	            severity failure;
+	          mem_r(i) <= word_from_file;
+	          i:= i+1;
+	        end loop;
+	        assert (not good)
+	          report "Memory initialization succesful"
+	          severity note;
+	    else
+	        while (i < mem_r'length) loop
+	          mem_r(i) <= (others=>'0');
+	          i:= i+1;
+	        end loop;
+	        assert (false)
+	          report "Memory initialized to zeroes!"
+	          severity note;	        	    		    
+	    end if;
         initialized <= true;
       end if;
     end if;
