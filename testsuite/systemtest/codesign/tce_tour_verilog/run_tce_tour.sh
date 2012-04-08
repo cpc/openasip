@@ -85,7 +85,6 @@ test_success "Failed to generate custom vhdl bit images"
 $PIG -b $BEM2 -d -w 4 -p $PROG2 -x $VERILOG_OUT2 $MACH2
 test_success "Failed to generate custom verilog bit images"
 
-
 cd $VHDL_OUT1
 ./ghdl_compile.sh >& /dev/null
 test_success "Failed to compile original vhdl testbench"
@@ -120,4 +119,5 @@ exit 0
 
 fi
 fi
-exit 1
+#exit here means no ghdl or no iverilog were found, test skipped
+exit 0

@@ -26,7 +26,7 @@
  *
  * Implementation of VerilogNetlistWriter class based on VHDLNetlistWriter.cc
  *
- * @author Vinogradov Viacheslav 2012 (vinogradov.slava@gmail.com)
+ * @author Vinogradov Viacheslav 2012
  * @note rating: red
  */
 

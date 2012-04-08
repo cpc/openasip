@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  */
 
 #ifndef TTA_DEFAULT_DECODER_GENERATOR_HH

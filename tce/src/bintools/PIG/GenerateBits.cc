@@ -31,6 +31,7 @@
  * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 

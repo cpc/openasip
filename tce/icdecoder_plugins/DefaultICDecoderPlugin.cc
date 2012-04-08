@@ -27,6 +27,7 @@
  * Declaration and implementation of DefaultICDecoderPlugin class.
  *
  * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 

@@ -13,22 +13,22 @@
   </ic-decoder-plugin>
 
   <fu name="LSU">
-    <hdb-file>./mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
     <fu-id>2</fu-id>
   </fu>
 
   <fu name="ALU">
-    <hdb-file>./mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
     <fu-id>3</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>./mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
     <rf-id>1</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>./mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
     <rf-id>1</rf-id>
   </rf>
 

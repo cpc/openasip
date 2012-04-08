@@ -27,6 +27,7 @@
  * Declaration of ProGeScriptGenerator class.
  *
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Declaration of VerilogNetlistWriter class based on VHDLnetlistWriter
  *
- * @author Vinogradov Viacheslav 2012 (lasse.laasonen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav 2012
  * @note rating: red
  */
 

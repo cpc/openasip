@@ -27,6 +27,7 @@
  * Declaration of the data types used in ProGe.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
