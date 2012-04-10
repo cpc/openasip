@@ -35,6 +35,9 @@
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetMachine.hh"
 #include "hash_map.hh"
+#include "Application.hh"
+
+#include <llvm/Instruction.h>
 
 char ProgramPartitioner::ID = 0;    
 
@@ -55,7 +58,8 @@ ProgramPartitioner::doInitialization(llvm::Module& /*M*/) {
 bool 
 ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 #ifdef DEBUG_PROGRAM_PARTITIONER
-    std::cerr << "### Running ProgramPartitioner for " << MF.getFunction()->getName().str() << std::endl;
+    std::cerr << "### Running ProgramPartitioner for " 
+              << MF.getFunction()->getName().str() << std::endl;
 #endif
     const TCETargetMachine& targetMach = 
         dynamic_cast<const TCETargetMachine&>(
@@ -64,12 +68,18 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
     /* Partition only clustered machines with vector backend support for now. */
     if (targetMach.maxVectorSize() == 0) return false;
 
+#ifdef DEBUG_PROGRAM_PARTITIONER
+    PRINT_VAR(targetMach.maxVectorSize());
+#endif
+
     const TCETargetMachinePlugin& tmPlugin = 
-        dynamic_cast<const TCETargetMachinePlugin&>(targetMach.targetPlugin());
+        dynamic_cast<const TCETargetMachinePlugin&>(
+            targetMach.targetPlugin());
 
     llvm::MachineRegisterInfo& MRI = MF.getRegInfo();
 
     hash_map<const llvm::MachineInstr*, unsigned> partitions;
+
 
     for (MachineFunction::const_iterator i = MF.begin();
          i != MF.end(); i++) {
@@ -78,6 +88,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
              j != i->end(); j++) {
 
             const llvm::MachineInstr& mi = *j; 
+            
             if (partitions.find(&mi) != partitions.end())
                 continue; /* Already partitioned. */
             unsigned nodeIndex = UINT_MAX;
@@ -87,17 +98,22 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 #ifdef DEBUG_PROGRAM_PARTITIONER
                 std::cerr << "[EXTRACT lane " << nodeIndex << "] " << std::endl;
 #endif
-            } else {
-                /* Check if one of the parents of this instruction is already
-                   partitioned. Propagate its node index to the current instruction. 
+            } 
 
-                   TODO: do it recursively until a root instruction or a partitioned 
-                   instruction is found. */
+            if (nodeIndex == UINT_MAX) {
+                /* Check if one of the parents of this instruction is already
+                   partitioned. 
+
+                   TODO: do it recursively until a root instruction or 
+                   a partitioned instruction is found. */
                 for (unsigned opr = 0; opr < mi.getNumOperands(); ++opr) {
                     const llvm::MachineOperand& operand = mi.getOperand(opr);
                     if (!operand.isReg()) continue;
                     const llvm::MachineInstr* parent = 
                         MRI.getVRegDef(operand.getReg());
+
+                    // The matching instruction, if known.
+                    llvm::Instruction* instruction = NULL;
                     
                     if (parent == NULL) continue;
                     if (partitions.find(parent) == partitions.end()) continue;
@@ -105,6 +121,46 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                     break;
                 }
             }
+
+            if (nodeIndex == UINT_MAX && 
+                mi.memoperands_begin() != mi.memoperands_end()) {
+                /* Check if one of the parents of this is a instruction for
+                   which we can track the OpenCL work item id metadata. */
+                for (llvm::MachineInstr::mmo_iterator mmoIter = 
+                         mi.memoperands_begin();    
+                     mmoIter != mi.memoperands_end(); ++mmoIter) {
+
+                    llvm::MachineMemOperand* mo = *mmoIter;
+
+                    if (mo->getValue() == NULL ||
+                        !llvm::isa<const llvm::Instruction>(mo->getValue()))
+                        continue;
+                    // The matching instruction, if known.                    
+                    const llvm::Instruction* instruction = 
+                        llvm::cast<const llvm::Instruction>(mo->getValue());
+
+                    SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
+                    instruction->getAllMetadata(MDs);
+                    for (SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator
+                             MI = MDs.begin(), ME = MDs.end(); MI != ME; ++MI) {
+                        MDNode *md = MI->second;
+                        if (md->getNumOperands() < 5 || 
+                            !isa<llvm::MDString>(md->getOperand(0)))                            
+                            continue;
+                        MDString* name = cast<llvm::MDString>(md->getOperand(0));
+                        if (name->getString() != "WI_id") continue;
+                        ConstantInt* id_x = cast<llvm::ConstantInt>(md->getOperand(1));
+                        nodeIndex = 
+                            (unsigned)id_x->getValue().getZExtValue() % 
+                            targetMach.maxVectorSize();
+#ifdef DEBUG_PROGRAM_PARTITIONER
+                        std::cerr << "[FOUND OCL WI METADATA: " << nodeIndex << "]" << std::endl;
+#endif                   
+
+                    }
+                }
+            }
+
 
 #ifdef DEBUG_PROGRAM_PARTITIONER
             if (nodeIndex != UINT_MAX) {
@@ -142,8 +198,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 #endif
                 MRI.setRegClass(result.getReg(), nodeRegClass);
             }
-
-                                      
             
         }
     }
