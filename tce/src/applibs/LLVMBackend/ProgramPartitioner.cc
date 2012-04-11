@@ -112,9 +112,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                     const llvm::MachineInstr* parent = 
                         MRI.getVRegDef(operand.getReg());
 
-                    // The matching instruction, if known.
-                    llvm::Instruction* instruction = NULL;
-                    
                     if (parent == NULL) continue;
                     if (partitions.find(parent) == partitions.end()) continue;
                     nodeIndex = partitions[parent];
