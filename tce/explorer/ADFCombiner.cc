@@ -519,7 +519,11 @@ private:
                     "_" + Conversion::toString(j + 1);
                 int width = std::max(firstRF->width(), secondRF->width());
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
-                
+
+                // Copy guards from extras to neighbour connection buses.
+                for (unsigned int j = 0; j < guards.size(); j++) {
+                    guards[j]->copyTo(*newBus);
+                }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, secondRF, newBus, secondName);                
             }
