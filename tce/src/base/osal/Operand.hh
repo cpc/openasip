@@ -58,11 +58,13 @@ public:
         SINT_WORD,
         UINT_WORD,
         FLOAT_WORD,
-        DOUBLE_WORD
+        DOUBLE_WORD,
+        HALF_FLOAT_WORD
     };
 
     static const std::string SINT_WORD_STRING;
     static const std::string UINT_WORD_STRING;
+    static const std::string HALF_FLOAT_WORD_STRING;
     static const std::string FLOAT_WORD_STRING;
     static const std::string DOUBLE_WORD_STRING;
     static const std::string UNKNOWN_TYPE_STRING;

@@ -43,6 +43,7 @@ inline SimValue::SimValue() :
 
     value_.sIntWord = 0;
     value_.uIntWord = 0;
+    value_.halfFloatWordBits = 0;
     value_.floatWord = 0;
     value_.doubleWord = 0;
 }
@@ -57,6 +58,7 @@ inline SimValue::SimValue(int width) :
 
     value_.uIntWord = 0;
     value_.sIntWord = 0;
+    value_.halfFloatWordBits = 0;
     value_.floatWord = 0;
     value_.doubleWord = 0;
     setBitWidth(width);
@@ -130,6 +132,18 @@ SimValue::operator=(const SIntWord& source) {
 inline SimValue&
 SimValue::operator=(const UIntWord& source) {
     value_.uIntWord = source;
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type HalfFloatWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const HalfFloatWord& source) {
+    value_.halfFloatWordBits = source.getBinaryRep();
     return (*this);
 }
 
@@ -209,6 +223,22 @@ SimValue::operator+(const UIntWord& rightHand) {
 }
 
 /**
+ * Explicit addition operator to HalfFloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator+(const HalfFloatWord& rightHand) {
+    SimValue copy(*this);
+    copy = HalfFloatWord(value_.halfFloatWordBits) + rightHand;
+    return copy;
+}
+
+/**
  * Explicit addition operator to FloatWord type.
  *
  * These operators are defined to avoid ambiguous overload because of built-in
@@ -240,6 +270,21 @@ SimValue::operator+(const DoubleWord& rightHand) {
     return copy;
 }
 
+/**
+ * Explicit subtraction operator to HalfFloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator-(const HalfFloatWord& rightHand) {
+    SimValue copy(*this);
+    copy = HalfFloatWord(value_.halfFloatWordBits) - rightHand;
+    return copy;
+}
 
 /**
  * Explicit subtraction operator to SIntWord type.
@@ -306,6 +351,22 @@ SimValue::operator-(const DoubleWord& rightHand) {
 }
 
 /**
+ * Explicit division operator to HalfFloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator/(const HalfFloatWord& rightHand) {
+    SimValue copy(*this);
+    copy = HalfFloatWord(value_.halfFloatWordBits) / rightHand;
+    return copy;
+}
+
+/**
  * Explicit division operator to SIntWord type.
  *
  * These operators are defined to avoid ambiguous overload because of built-in
@@ -366,6 +427,22 @@ inline const SimValue
 SimValue::operator/(const DoubleWord& rightHand) {
     SimValue copy(*this);
     copy = value_.doubleWord / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiply operator to HalfFloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator*(const HalfFloatWord& rightHand) {
+    SimValue copy(*this);
+    copy = HalfFloatWord(value_.halfFloatWordBits) * rightHand;
     return copy;
 }
 

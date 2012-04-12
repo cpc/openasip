@@ -35,6 +35,7 @@
 #define TTA_SIM_VALUE_HH
 
 #include "BaseType.hh"
+#include "HalfFloatWord.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // SimValue
@@ -63,33 +64,39 @@ public:
 
     SimValue& operator=(const SIntWord& source);
     SimValue& operator=(const UIntWord& source);
+    SimValue& operator=(const HalfFloatWord& source);
     SimValue& operator=(const FloatWord& source);
     SimValue& operator=(const DoubleWord& source);
     SimValue& operator=(const SimValue& source);
 
     const SimValue operator+(const SIntWord& rightHand);
     const SimValue operator+(const UIntWord& rightHand);
+    const SimValue operator+(const HalfFloatWord& rightHand);
     const SimValue operator+(const FloatWord& rightHand);
     const SimValue operator+(const DoubleWord& rightHand);
 
     const SimValue operator-(const SIntWord& rightHand);
     const SimValue operator-(const UIntWord& rightHand);
+    const SimValue operator-(const HalfFloatWord& rightHand);
     const SimValue operator-(const FloatWord& rightHand);
     const SimValue operator-(const DoubleWord& rightHand);
 
     const SimValue operator/(const SIntWord& rightHand);
     const SimValue operator/(const UIntWord& rightHand);
+    const SimValue operator/(const HalfFloatWord& rightHand);
     const SimValue operator/(const FloatWord& rightHand);
     const SimValue operator/(const DoubleWord& rightHand);
 
     const SimValue operator*(const SIntWord& rightHand);
     const SimValue operator*(const UIntWord& rightHand);
+    const SimValue operator*(const HalfFloatWord& rightHand);
     const SimValue operator*(const FloatWord& rightHand);
     const SimValue operator*(const DoubleWord& rightHand);
 
     int operator==(const SimValue& rightHand) const;
     int operator==(const SIntWord& rightHand) const;
     int operator==(const UIntWord& rightHand) const;
+    int operator==(const HalfFloatWord& rightHand) const;
     int operator==(const FloatWord& rightHand) const;
     int operator==(const DoubleWord& rightHand) const;
 
@@ -100,11 +107,13 @@ public:
     UIntWord uIntWordValue() const;
     DoubleWord doubleWordValue() const;
     FloatWord floatWordValue() const;
+    HalfFloatWord halfFloatWordValue() const;
 
     /// These are public for fast access in the compiled simulation engine.
     union Value {
         UIntWord uIntWord;
         SIntWord sIntWord;
+        short halfFloatWordBits;
         FloatWord floatWord;
         DoubleWord doubleWord;
     };
