@@ -311,6 +311,7 @@ bool simulateTrigger( \
 #define UINT(OPERAND) (io[(OPERAND) - 1]->unsignedValue())
 #define FLT(OPERAND) (io[(OPERAND) - 1]->floatWordValue())
 #define DBL(OPERAND) (io[(OPERAND) - 1]->doubleWordValue())
+#define HFLT(OPERAND) (io[(OPERAND) -1]->halfFloatWordValue())
 
 /**
  * Operand accessor macro.

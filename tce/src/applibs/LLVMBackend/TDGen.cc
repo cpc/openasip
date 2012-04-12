@@ -1660,6 +1660,8 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "cfi") return "fp_to_sint %1%";
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
+    if (opName == "cfh") return "fp32_to_fp16 %1%";
+    if (opName == "chf") return "fp16_to_fp32 %1%";
 
     if (opName == "ldq") return "sextloadi8 %1%";
     if (opName == "ldqu") return "zextloadi8 %1%";
@@ -1774,6 +1776,9 @@ TDGen::llvmOperationName(const std::string& osalOperationName) {
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
+    if (opName == "cfh") return "fp32_to_fp16";
+    if (opName == "chf") return "fp16_to_fp32";
+
 
     if (opName == "ldq") return "sextloadi8";
     if (opName == "ldqu") return "zextloadi8";
@@ -2336,7 +2341,12 @@ TDGen::operandToString(
             msg += operandType;
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
-    } else if (operand.type() == Operand::FLOAT_WORD) {
+    } else if (operand.type() == Operand::FLOAT_WORD ||
+              operand.type() == Operand::HALF_FLOAT_WORD) {
+
+        // TODO: half float should have it's own branch here and 
+        // own registers?
+
         switch (operandType) {
         case 'i':
         case 'k':
@@ -2367,7 +2377,7 @@ TDGen::operandToString(
     } else {
         assert(false && "Unknown operand type.");
     }
-    abortWithError("Should not get here.");
+    abortWithError("Unknown operand type on osal? Should not get here.");
     return "";
 }
 

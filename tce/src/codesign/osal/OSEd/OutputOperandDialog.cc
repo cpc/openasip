@@ -79,11 +79,13 @@ OutputOperandDialog::OutputOperandDialog(
     outputTypes_.push_back(Operand::UINT_WORD_STRING);
     outputTypes_.push_back(Operand::FLOAT_WORD_STRING);
     outputTypes_.push_back(Operand::DOUBLE_WORD_STRING);
+    outputTypes_.push_back(Operand::HALF_FLOAT_WORD_STRING);
 
     operandTypes_.insert(operandPair(0, Operand::SINT_WORD));
     operandTypes_.insert(operandPair(1, Operand::UINT_WORD));
     operandTypes_.insert(operandPair(2, Operand::FLOAT_WORD));
     operandTypes_.insert(operandPair(3, Operand::DOUBLE_WORD));
+    operandTypes_.insert(operandPair(4, Operand::HALF_FLOAT_WORD));
 
     FindWindow(wxID_OK)->SetFocus();
 
@@ -172,6 +174,10 @@ OutputOperandDialog::onOk(wxCommandEvent&) {
             break;
         case Operand::DOUBLE_WORD:
             root->setAttribute(Operand::OPRND_TYPE, Operand::DOUBLE_WORD_STRING);
+            break;
+        case Operand::HALF_FLOAT_WORD:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::HALF_FLOAT_WORD_STRING);
             break;
         default:
             root->setAttribute(Operand::OPRND_TYPE, Operand::SINT_WORD_STRING);
