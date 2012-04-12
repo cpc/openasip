@@ -1,7 +1,0 @@
-<?php
-// short test description
-$test_description="Tce tour tutorial";
-
-// script to run the tour
-$test_bin="./run_tce_tour.sh";
-?>

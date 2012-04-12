@@ -27,6 +27,7 @@
  * Implementation of HDBToHtml class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -665,7 +666,11 @@ HDBToHtml::fuImplToHtml(RowID id, std::ostream& stream) {
                << "<td align=center>";
         if (file.format() == HDB::BlockImplementationFile::VHDL) {
             stream << "VHDL";
+        }else
+        if (file.format() == HDB::BlockImplementationFile::Verilog) {
+            stream << "Verilog";
         }
+
         stream << "</td></tr>" << endl;
     }
     stream << "</table><br><br>" << endl;
@@ -787,7 +792,11 @@ HDBToHtml::rfImplToHtml(RowID id, std::ostream& stream) {
                << "<td align=center>";
         if (file.format() == HDB::BlockImplementationFile::VHDL) {
             stream << "VHDL";
+        }else
+        if (file.format() == HDB::BlockImplementationFile::Verilog) {
+            stream << "Verilog";
         }
+
         stream << "</td></tr>" << endl;
     }
     stream << "</table><br><br>" << endl;

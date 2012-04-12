@@ -27,6 +27,7 @@
  * Declaration of GenerateProcessorDialog class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012  
  * @note rating: red
  */
 
@@ -90,7 +91,9 @@ private:
         ID_BEM_SAVE_PATH,
         ID_TARGET,
         ID_BROWSE_TARGET,
-        ID_LINE
+        ID_LINE,
+        ID_VHDL,
+        ID_VERILOG
     };
 
     DECLARE_EVENT_TABLE()

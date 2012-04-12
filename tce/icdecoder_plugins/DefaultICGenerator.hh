@@ -29,6 +29,7 @@
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012
  * @note rating: red
  */
 
@@ -38,6 +39,7 @@
 #include <map>
 
 #include "CentralizedControlICGenerator.hh"
+#include "ProGeTypes.hh"
 #include "HDBTypes.hh"
 #include "Socket.hh"
 #include "Machine.hh"
@@ -53,14 +55,16 @@ namespace ProGe {
 }
 
 /**
- * This class generates interconnection network in VHDL. The network uses
- * and-or buses.
+ * This class generates interconnection network in VHDL/Verilog.
+ * The network uses and-or buses.
  */
 class DefaultICGenerator : public CentralizedControlICGenerator {
 public:
     DefaultICGenerator(const TTAMachine::Machine& machine);
     virtual ~DefaultICGenerator();
-
+    
+    void SetHDL(ProGe::HDL language);
+    
     void addICToNetlist(
         const ProGe::NetlistGenerator& generator,
         ProGe::Netlist& netlist);
@@ -119,11 +123,13 @@ private:
     void createSignalsForIC(std::ostream& stream);
     void declareSocketEntities(std::ostream& stream) const;
     static void writeOutputSocketComponentDeclaration(
+        const ProGe::HDL language,
         int portConns,
         int segmentConns,
         int ind,
         std::ostream& stream);
     static void writeInputSocketComponentDeclaration(
+        const ProGe::HDL language,
         int segmentConns,
         int ind,
         std::ostream& stream);
@@ -175,6 +181,7 @@ private:
         TTAMachine::Socket::Direction direction);
 
     static std::string socketFileName(
+        const ProGe::HDL language,
         TTAMachine::Socket::Direction direction,
         int portConns,
         int segmentConns);
@@ -198,6 +205,7 @@ private:
     /// The starting cycle for bus tracing.
     unsigned int busTraceStartingCycle_;
     TCEString entityNameStr_;
+    ProGe::HDL  language_;
 };
 
 #endif

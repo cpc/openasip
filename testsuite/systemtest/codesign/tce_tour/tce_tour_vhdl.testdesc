@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="Tce tour tutorial (with VHDL generation)";
+
+// script to run the tour
+$test_bin="./run_tce_tour_vhdl.sh";
+?>

@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012
  * @note rating: red
  */
 
@@ -36,6 +37,7 @@
 
 #include <set>
 
+#include "ProGeTypes.hh"
 #include "TCEString.hh"
 #include "RFImplementationLocation.hh"
 
@@ -57,7 +59,8 @@ class BlockSourceCopier {
 public:
     BlockSourceCopier(
         const IDF::MachineImplementation& implementation,
-        TCEString entityStr);
+        TCEString entityStr,
+        const ProGe::HDL language);
     virtual ~BlockSourceCopier();
 
     void copyShared(const std::string& dstDirectory)
@@ -85,11 +88,12 @@ private:
     void setCopied(const std::string& file);
     bool isCopied(const std::string& file) const;
 
-    /// The IDF object model.
+	/// The IDF object model.
     const IDF::MachineImplementation& implementation_;
-    /// Copied files.
-    std::set<std::string> copiedFiles_;
     TCEString entityStr_;
+    const HDL language_;
+    /// Copied files.
+    std::set<std::string> copiedFiles_;    
 };
 }
 

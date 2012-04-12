@@ -27,6 +27,7 @@
  * Implementation of BlockImplementationFileDialog class.
  *
  * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -93,8 +94,11 @@ BlockImplementationFileDialog::onBrowse(wxCommandEvent&) {
 
     wxFileDialog dialog(
         this, _T("Choose a file"), defaultDir, _T(""),
-        _T("VHDL files (*.vhd;*.vhdl)|*.vhd;*.vhdl|All files (*.*)|*.*"),
+        _T("VHDL files (*.vhd;*.vhdl)|*.vhd;*.vhdl|Verilog files (*.v)|*.v| All files (*.*)|*.*"),
         (wxOPEN | wxFILE_MUST_EXIST));
+
+    wxChoice *hdl_type = (wxChoice *)FindWindow(ID_FORMAT);
+    dialog.SetFilterIndex(hdl_type->GetCurrentSelection());
 
     if (dialog.ShowModal() == wxID_OK) {
 
@@ -164,11 +168,7 @@ BlockImplementationFileDialog::onOK(wxCommandEvent&) {
     }
 
     file_.setPathToFile(WxConversion::toString(path_));
-    if (format_ == 0) {
-        file_.setFormat(HDB::BlockImplementationFile::VHDL);
-    } else {
-        assert(false);
-    }
+    file_.setFormat((HDB::BlockImplementationFile::Format)format_);
 
     EndModal(wxID_OK);
 }
@@ -198,9 +198,10 @@ BlockImplementationFileDialog::createContents(
 
     wxString strs6[] = 
     {
-        wxT("VHDL")
+        wxT("VHDL"),
+        wxT("Verilog")
     };
-    wxChoice *item6 = new wxChoice( parent, ID_FORMAT, wxDefaultPosition, wxSize(100,-1), 1, strs6, 0 );
+    wxChoice *item6 = new wxChoice( parent, ID_FORMAT, wxDefaultPosition, wxSize(100,-1), 2, strs6, 0 );
     item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );

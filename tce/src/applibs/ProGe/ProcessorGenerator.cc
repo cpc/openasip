@@ -30,6 +30,7 @@
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @author Pekka Jääskeläinen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -46,6 +47,7 @@
 #include "ProcessorGenerator.hh"
 #include "NetlistGenerator.hh"
 #include "ICDecoderGeneratorPlugin.hh"
+#include "VerilogNetlistWriter.hh"
 #include "VHDLNetlistWriter.hh"
 #include "BlockSourceCopier.hh"
 
@@ -135,9 +137,7 @@ ProcessorGenerator::generateProcessor(
     checkIULatencies(machine, implementation, plugin);
 
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
-    netlist_ = 
-        netlistGenerator.generate(
-            imemWidthInMAUs, entityStr_, warningStream);
+    netlist_ = netlistGenerator.generate(imemWidthInMAUs, entityStr_, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";
@@ -147,22 +147,21 @@ ProcessorGenerator::generateProcessor(
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    plugin.generate(pluginDstDir, netlistGenerator);
-
     NetlistWriter* writer;
-    if (language == VHDL) {
-        writer = new VHDLNetlistWriter(*netlist_);
-    } else {
-        assert(false);
-    }
-
     string topLevelDir = "";
-    if (language == VHDL) {
-        topLevelDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-            "vhdl";
+
+    if (language == ProGe::VHDL) {
+        writer = new VHDLNetlistWriter(*netlist_);
+        topLevelDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +"vhdl";
+    } else
+    if (language == ProGe::Verilog) {
+        writer = new VerilogNetlistWriter(*netlist_);
+        topLevelDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +"verilog";
     } else {
         assert(false);
     }
+    
+    plugin.generate(language, pluginDstDir, netlistGenerator);
 
     if (!FileSystem::fileExists(topLevelDir)) {
         bool directoryCreated = FileSystem::createDirectory(topLevelDir);
@@ -172,7 +171,6 @@ ProcessorGenerator::generateProcessor(
             throw IOException(__FILE__, __LINE__, __func__, errorMsg);
         }
     }
-
 
     writer->write(topLevelDir);
     delete writer;
@@ -188,16 +186,12 @@ ProcessorGenerator::generateProcessor(
         }
     }
 
-    BlockSourceCopier copier(implementation, entityStr_);
+    BlockSourceCopier copier(implementation, entityStr_,language);
     copier.copyShared(sharedDstDirectory);
     copier.copyProcessorSpecific(dstDirectory);
 
-    if (language == VHDL) {
-        generateGlobalsPackage(
-            machine, plugin.bem(), imemWidthInMAUs, topLevelDir);
-    } else {
-        assert(false);
-    }
+    generateGlobalsPackage(language,
+    machine, plugin.bem(), imemWidthInMAUs, topLevelDir);
 }
 
 /**
@@ -212,35 +206,49 @@ ProcessorGenerator::generateProcessor(
  */
 void
 ProcessorGenerator::generateGlobalsPackage(
+    HDL language,
     const TTAMachine::Machine& machine,
     const BinaryEncoding& bem,
     int imemWidthInMAUs,
     const std::string& dstDirectory)
     throw (IOException) {
 
-    string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        "globals_pkg.vhdl";
+    string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR
+        + entityName()+"_globals_pkg."+
+        ((language==ProGe::VHDL)?"vhdl":"vh");
+        
     bool created = FileSystem::createFile(dstFile);
     if (!created) {
         string errorMsg = "Unable to create file " + dstFile;
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
-
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    stream << "package " << entityStr_ << "_globals is" << endl;
-    stream << "  -- instruction width" << endl;
-    stream << "  constant INSTRUCTIONWIDTH : positive := " << bem.width()
-           << ";" << endl;
-    stream << "  -- address width of the instruction memory" << endl;
-    stream << "  constant IMEMADDRWIDTH : positive := "
-           << iMemAddressWidth(machine) << ";" << endl;
-    stream << "  -- width of the instruction memory in MAUs" << endl;
-    stream << "  constant IMEMWIDTHINMAUS : positive := " << imemWidthInMAUs
-           << ";" << endl;
-    stream << "  -- clock period" << endl;
-    stream << "  constant PERIOD : time := 10 ns;" << endl;
-    stream << "end " << entityStr_ << "_globals;" << endl;
-
+    
+    if (language==ProGe::VHDL){
+		stream << "package " << entityStr_ << "_globals is" << endl
+               << "  -- instruction width" << endl
+               << "  constant INSTRUCTIONWIDTH : positive := " << bem.width()
+               << ";" << endl
+               << "  -- address width of the instruction memory" << endl
+               << "  constant IMEMADDRWIDTH : positive := "
+               << iMemAddressWidth(machine) << ";" << endl
+               << "  -- width of the instruction memory in MAUs" << endl
+               << "  constant IMEMWIDTHINMAUS : positive := " << imemWidthInMAUs
+               << ";" << endl
+               << "  -- clock period" << endl
+               << "  constant PERIOD : time := 10 ns;" << endl
+               << "end " << entityStr_ << "_globals;" << endl;
+    }else {
+		stream << "// instruction width" << endl
+		       << "parameter INSTRUCTIONWIDTH = " << bem.width() << "," << endl
+		       << "// address width of the instruction memory" << endl
+		       << "parameter IMEMADDRWIDTH = " << iMemAddressWidth(machine)
+               << "," << endl
+		       << "// width of the instruction memory in MAUs" << endl
+		       << "parameter IMEMWIDTHINMAUS = " << imemWidthInMAUs << "," << endl
+		       << "// clock period" << endl
+		       << "parameter PERIOD = 10" << endl;//10 will equal 10ns
+    }
     stream.close();
 }
 

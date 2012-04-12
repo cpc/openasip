@@ -9,6 +9,7 @@ Software Requirements
 2. SQLite3 client
 3. GHDL (optional)
 4. Python 2.4 or newer
+5. Icarus Verilog
 
 1. Editline library
 
@@ -35,3 +36,8 @@ disabled.
 
 Scheduler test bench script is written in Python, so you need the Python
 interpreter installed in order to run the scheduler tests.
+
+5. Icarus Verilog (iverilog) is a free Verilog  compiler/simulator. This is
+used for the tests of verilog netlist generation against vhdl netlist by 
+running testbench for vhdl and verilog case and comparing bus activities.
+In case if ghdl or iverilog are not found in PATH tests would be skipped.

@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012
  * @note rating: red
  */
 
@@ -48,12 +49,14 @@
 #include "AssocTools.hh"
 #include "HDLTemplateInstantiator.hh"
 
+
 using namespace IDF;
 using namespace HDB;
 using std::string;
 using std::vector;
 
 static const std::string UTILITY_VHDL_FILE = "tce_util_pkg.vhdl";
+static const std::string UTILITY_VERILOG_FILE = "tce_util_pkg.vh";
 
 namespace ProGe {
 
@@ -62,8 +65,9 @@ namespace ProGe {
  */
 BlockSourceCopier::BlockSourceCopier(
     const IDF::MachineImplementation& implementation,
-    TCEString entityStr) :
-    implementation_(implementation), entityStr_(entityStr) {
+    TCEString entityStr,
+    const HDL language):
+    implementation_(implementation), entityStr_(entityStr), language_(language){
 }
 
 
@@ -120,10 +124,10 @@ BlockSourceCopier::copyShared(const std::string& dstDirectory)
 
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
     string sourceDir = Environment::dataDirPath("ProGe");
-    // copy the utility VHDL file
+    // copy the utility VHDL or Verilog files
     FileSystem::copy(
-        sourceDir + DS + UTILITY_VHDL_FILE,
-        dstDirectory + DS + "vhdl" + DS + UTILITY_VHDL_FILE);
+        sourceDir + DS + ((language_==VHDL)?UTILITY_VHDL_FILE:UTILITY_VERILOG_FILE),
+        dstDirectory + DS + ((language_==VHDL)?"vhdl":"verilog") + DS + ((language_==VHDL)?UTILITY_VHDL_FILE:UTILITY_VERILOG_FILE));
 }
 
 /**
@@ -164,8 +168,8 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
         FileSystem::copy(sourceFile, dstFile);
         } else {
         sourceFile = Environment::dataDirPath("ProGe") + DS +
-            "idecompressor.vhdl.tmpl";
-        string file = "idecompressor.vhdl";
+            ((language_==Verilog)?"idecompressor.v.tmpl":"idecompressor.vhdl.tmpl");
+        string file = ((language_==Verilog)?"idecompressor.v":"idecompressor.vhdl");
         dstFile = decompressorTargetDir + DS + file;
         inst.instantiateTemplateFile(sourceFile, dstFile);
     }
@@ -174,9 +178,9 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
     string ifetchTargetDir = decompressorTargetDir;
     assert(FileSystem::fileExists(ifetchTargetDir));
     string ifetchSrcFile = Environment::dataDirPath("ProGe") + DS +
-        "ifetch.vhdl.tmpl";
+        ((language_==Verilog)?"ifetch.v.tmpl":"ifetch.vhdl.tmpl");
     string ifetchDstFile = 
-        ifetchTargetDir + DS + "ifetch.vhdl";
+        ifetchTargetDir + DS + ((language_==Verilog)?"ifetch.v":"ifetch.vhdl");
 
     inst.instantiateTemplateFile(ifetchSrcFile, ifetchDstFile);
 
@@ -185,9 +189,9 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
     assert(FileSystem::fileExists(opcodesTargetDir));
     string opcodesSrcFile = 
         Environment::dataDirPath("ProGe") + DS + 
-        "gcu_opcodes_pkg.vhdl.tmpl";
+        ((language_==Verilog)?"gcu_opcodes_pkg.vh.tmpl":"gcu_opcodes_pkg.vhdl.tmpl");
     string opcodesDstFile = opcodesTargetDir + DS + 
-        "gcu_opcodes_pkg.vhdl";
+        ((language_==Verilog)?"gcu_opcodes_pkg.vh":"gcu_opcodes_pkg.vhdl");
     inst.instantiateTemplateFile(opcodesSrcFile, opcodesDstFile);
 }
 
@@ -241,23 +245,32 @@ BlockSourceCopier::copyFiles(
         BlockImplementationFile& file = implementation.file(i);
         vector<string> modulePaths = Environment::vhdlPaths(hdbFile);
 
-        string absoluteFile = 
-            FileSystem::findFileInSearchPaths(modulePaths, file.pathToFile());
+        string absoluteFile;
+		try {
+			absoluteFile = FileSystem::findFileInSearchPaths(modulePaths, file.pathToFile());
+        } catch (const Exception& e) {
+            string errorMsg = "Unable to find file mentioned in HDB->" + file.pathToFile() + ":\n";
+            errorMsg += e.errorMessage();
+            throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
+        }
 
         if (!isCopied(absoluteFile)) {
             string fileName = FileSystem::fileOfPath(absoluteFile);
             string targetDir, targetFile;
             string DS = FileSystem::DIRECTORY_SEPARATOR;
 
-            switch (file.format()) {
-            case BlockImplementationFile::VHDL:
+            if(language_== VHDL && (ProGe::HDL)file.format()==VHDL) {
                 targetDir = dstDirectory + DS + "vhdl";
-                targetFile = targetDir + DS + fileName;
-                break;
-            default: 
-                assert(false);
+            } else
+            if(language_== Verilog && (ProGe::HDL) file.format()==Verilog) {
+                targetDir = dstDirectory + DS + "verilog";
+            } else {
+                setCopied(absoluteFile);
+                continue;//next file for check
             }
-
+            
+            targetFile = targetDir + DS + fileName;
+            
             if (!FileSystem::fileExists(targetDir)) {
                 bool directoryCreated = 
                     FileSystem::createDirectory(targetDir);
@@ -292,6 +305,7 @@ void
 BlockSourceCopier::setCopied(const std::string& file) {
     copiedFiles_.insert(file);
 }
+
 
 
 /**

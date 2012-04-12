@@ -27,6 +27,7 @@
  * Declaration of BlockImplementationFile class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -44,7 +45,8 @@ class BlockImplementationFile {
 public:
     /// Format of the file.
     enum Format {
-        VHDL ///< VHDL file.
+        VHDL, ///< VHDL file.
+        Verilog ///< Verilog file.
     };
 
     BlockImplementationFile(const std::string& pathToFile, Format format);

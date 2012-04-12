@@ -3,12 +3,20 @@
 
 rm -f data/tutorial.opb
 rm -f start.adf
+rm -f start.bem
+rm -f start.tpef
+rm -f start*.img
 rm -f crc.tpef
 rm -f custom.tpef
 rm -f custom.bem
 rm -f custom_data.img
 rm -f custom.img
+
 rm -rf proge-output
+rm -rf ver_out1
+rm -rf ver_out2
+rm -rf vhdl_out1
+rm -rf vhdl_out2
 
 exit 0
 

@@ -27,6 +27,7 @@
  * Declaration and implementation of DefaultICDecoderPlugin class.
  *
  * @author Pekka Jääskeläinen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -58,11 +59,13 @@
 #include "ExecutionTrace.hh"
 
 #include "ICDecoderGeneratorPlugin.hh"
+#include "ProGeTypes.hh"
 #include "NetlistBlock.hh"
 #include "NetlistGenerator.hh"
 #include "Netlist.hh"
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
+#include "VerilogNetlistWriter.hh"
 
 #include "DefaultDecoderGenerator.hh"
 #include "DefaultICGenerator.hh"
@@ -881,7 +884,6 @@ private:
 
         return generateFanInFanOutCombinations(inputWidths, outputWidths);
     }
-        
 };
 ////////////////////////////////////////////////////////////////////////////
 // DefaultICDecoderGenerator
@@ -955,6 +957,7 @@ public:
      * @param generator The netlist generator that generated the netlist.
      */
     virtual void generate(
+        HDL language,
         const std::string& dstDirectory, 
         const NetlistGenerator& generator) 
         throw (Exception) {
@@ -967,10 +970,11 @@ public:
         }
 
         // generate the IC
+        icGenerator_->SetHDL(language);
         icGenerator_->generateInterconnectionNetwork(dstDirectory);
         // generate the decoder
-        decoderGenerator_->generateInstructionDecoder(
-            generator, dstDirectory);
+        decoderGenerator_->SetHDL(language);
+        decoderGenerator_->generateInstructionDecoder(generator, dstDirectory);
     }
 
 
@@ -1039,7 +1043,6 @@ private:
             }
         }
     }
-       
 
     /**
      * Converts the given direction to a string.
@@ -1074,7 +1077,6 @@ private:
         }
         return width;
     }
-            
     
     NetlistBlock* icBlock_;
     NetlistBlock* decoderBlock_;

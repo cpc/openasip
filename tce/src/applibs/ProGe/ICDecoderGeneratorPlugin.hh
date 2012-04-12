@@ -27,6 +27,7 @@
  * Declaration of ICDecoderGeneratorPlugin class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -38,6 +39,7 @@
 
 #include "Socket.hh"
 #include "HDBTypes.hh"
+#include "ProGeTypes.hh"
 
 namespace TTAMachine {
 class Machine;
@@ -84,6 +86,7 @@ public:
      * @param generator The netlist generator that generated the netlist.
      */
     virtual void generate(
+        HDL language,
         const std::string& destinationDirectory,
         const NetlistGenerator& generator) = 0;
 

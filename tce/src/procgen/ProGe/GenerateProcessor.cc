@@ -30,6 +30,7 @@
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @author Pekka Jaaskelainen 2011
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -99,7 +100,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     ProGeCmdLineOptions options;
     std::string outputDirectory = "";
     std::string sharedOutputDir = "";
-    ProGe::HDL language = ProGe::VHDL;
+    HDL language = VHDL;
     string entity = "";
 
     try {
@@ -170,7 +171,9 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
 
         if (hdl == "vhdl" || hdl == "") {
-            language = ProGe::VHDL;
+            language = VHDL;
+        } else if (hdl == "verilog") {
+           language = Verilog;
         } else {
             cerr << "Unknown HDL given: " << hdl << endl;
             return false;
@@ -196,7 +199,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
                 + FileSystem::DIRECTORY_SEPARATOR +
                 "tb";
         try {
-            ProGeUI::generateTestBench(testBenchDir, outputDirectory);
+            ProGeUI::generateTestBench(language,testBenchDir, outputDirectory);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
                     << "generate testbench." << std::endl;
@@ -205,7 +208,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         try {
             ProGeUI::generateScripts(
-                    outputDirectory, outputDirectory, sharedOutputDir,
+                    language,outputDirectory, outputDirectory, sharedOutputDir,
                     testBenchDir);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
@@ -217,6 +220,13 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     
     string integrator = options.integratorName();
     if (!integrator.empty()) {
+
+        if (language == Verilog) {
+            std::cerr << "Verilog is not yet supported by Platform Integrator"
+                      << std::endl;
+            return false;
+        }
+
         string progeOutDir = outputDirectory;
         if (!options.useAbsolutePaths()) {
             string cwd = FileSystem::currentWorkingDir();

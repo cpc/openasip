@@ -27,6 +27,7 @@
  * Declaration of ProGeScriptGenerator class.
  *
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
 
@@ -35,6 +36,7 @@
 
 #include <list>
 #include "Exception.hh"
+#include "ProGeTypes.hh"
 
 namespace IDF {
     class MachineImplementation;
@@ -48,6 +50,7 @@ namespace IDF {
 class ProGeScriptGenerator {
 public:
     ProGeScriptGenerator(
+        const ProGe::HDL language,
         const IDF::MachineImplementation& idf,
         const std::string& dstDir,
         const std::string& progeOutDir,
@@ -66,10 +69,16 @@ public:
     void generateGhdlCompile()
         throw (IOException);
 
+    void generateIverilogCompile()
+        throw (IOException);
+        
     void generateModsimSimulate()
         throw (IOException);
 
     void generateGhdlSimulate()
+        throw (IOException);
+        
+    void generateIverilogSimulate()
         throw (IOException);
 
 private:
@@ -80,7 +89,8 @@ private:
     void outputScriptCommands(
         std::ostream& stream,
         const std::list<std::string>& files,
-        const std::string& cmdPrefix);
+        const std::string& cmdPrefix,
+        const std::string& cmdPostfix);
     template<typename T>
     void findFiles(
         const std::string& perlre,
@@ -130,21 +140,23 @@ private:
     // directory used by ghdl/modelsim as work directory when compiling
     const std::string workDir_;
     const std::string vhdlDir_;
+    const std::string verDir_;
     const std::string gcuicDir_;
     const std::string tbDir_;
 
     // file names for scripts to be generated
     const std::string modsimCompileScriptName_;
     const std::string ghdlCompileScriptName_;
+    const std::string iverilogCompileScriptName_;
     const std::string modsimSimulateScriptName_;
     const std::string ghdlSimulateScriptName_;
+    const std::string iverilogSimulateScriptName_;
 
     // test bench name 
     const std::string testbenchName_;
-
     const std::string toplevelEntity_;
-
     const IDF::MachineImplementation& idf_;
+    const ProGe::HDL language_;
 };
 
 #include "ProGeScriptGenerator.icc"
