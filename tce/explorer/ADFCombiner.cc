@@ -219,16 +219,30 @@ private:
         TTAMachine::Machine* nodeMach,                
         TTAMachine::Machine* extraMach,          
         unsigned nodeCount) {
+
+        std::map<Bus*, std::pair<Bus*, int> > busMapping;
         // Order is important here!
         // When adding busses also socket will be created
         // and the RF and FU ports will be connected to them when adding.
         renameExtraUnits(finalMach);
         addAddressSpaces(finalMach, nodeMach);                        
-        addBuses(finalMach, nodeMach, nodeCount);                
+        addBuses(finalMach, nodeMach, nodeCount, busMapping);
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
         connectRegisterFiles(finalMach, nodeMach, extraMach, nodeCount);
+        addGuardsToBuses(busMapping);
     }
+
+    void addGuardsToBuses(std::map<Bus*, std::pair<Bus*, int> >& busMapping) {
+        for (std::map<Bus*, std::pair<Bus*, int> >::iterator i =
+                 busMapping.begin(); i != busMapping.end(); i++) {
+            TCEString nodeNamePrefix = "L_";
+            nodeNamePrefix << i->second.second << "_";
+
+            copyGuards(*(i->second.first), *(i->first), nodeNamePrefix);
+        }
+    }
+
 
     /**
      * Adds buses and sockets to the machine
@@ -239,7 +253,9 @@ private:
     
     void addBuses(
         TTAMachine::Machine* finalMach, 
-        TTAMachine::Machine* nodeMach, unsigned nodeCount) {
+        TTAMachine::Machine* nodeMach, 
+        unsigned nodeCount, 
+        std::map<Bus*, std::pair<Bus*, int> >& busMapping) {
         const Machine::SocketNavigator socketNav = nodeMach->socketNavigator();
         const TTAMachine::Machine::BusNavigator& busNav = 
         nodeMach->busNavigator();
@@ -250,11 +266,12 @@ private:
             for (int i = 0; i < busNav.count(); i++) {
                 TTAMachine::Bus* addBus = busNav.item(i)->copy();
                 TTAMachine::Bus* originalBus = busNav.item(i);
-                
+                busMapping[addBus] = std::pair<Bus*,int>(originalBus, j);
+
                 TCEString busName = 
                     originalBus->name() + "_connect_" + Conversion::toString(j);
                 addBus->setName(busName);
-                try {     
+                try {
                     finalMach->addBus(*addBus);
                 } catch (const ComponentAlreadyExists& e) {
                     TCEString msg = "ADFCombiner: Tried to add Bus with an "
@@ -858,6 +875,47 @@ private:
     TCEString getExtraComponentName(TCEString originalName) {
         return "EX_"  + originalName; 
     }    
+
+    void copyGuards(TTAMachine::Bus &originalBus, 
+               TTAMachine::Bus &addBus, const TCEString& prefix) {
+        for (int i = 0; i < originalBus.guardCount(); ++i) {
+            Guard* guard = originalBus.guard(i);
+            if (RegisterGuard* rg = dynamic_cast<RegisterGuard*>(guard)) {
+                TCEString rfName = prefix + rg->registerFile()->name();
+                int index = rg->registerIndex();
+                RegisterFile* rfNew = 
+                    addBus.machine()->registerFileNavigator().item(rfName);
+                if (rfNew == NULL) {
+                    std::cerr << "RF: " << rfName << " not found from mach!"
+                              << std::endl;
+                    continue;
+                }
+                new RegisterGuard(
+                    rg->isInverted(), *rfNew, index, addBus);
+            } else if (PortGuard* pg = dynamic_cast<PortGuard*>(guard)) {
+                FUPort* fuPort = pg->port();
+                FunctionUnit* fu = 
+                    static_cast<FunctionUnit*>(fuPort->parentUnit());
+                int index = -1;
+                for (int i = 0; i < fu->portCount(); i++) {
+                    if (fu->port(i) == fuPort) {
+                        index = i;
+                    }
+                }
+                assert(index != -1);
+                TCEString fuName = prefix + fu->name();
+                FunctionUnit* fuNew = 
+                    addBus.machine()->functionUnitNavigator().item(fuName);
+                if (fuNew == NULL) {
+                    std::cerr << "FU: " << fuName << " not found from mach!"
+                              << std::endl;
+                    continue;
+                }
+                FUPort* port = static_cast<FUPort*>(fuNew->port(index));
+                new PortGuard(pg->isInverted(), *port, addBus);
+            }
+        }
+    }
 };
 
 // parameters
