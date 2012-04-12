@@ -113,7 +113,7 @@ public:
     union Value {
         UIntWord uIntWord;
         SIntWord sIntWord;
-        short halfFloatWordBits;
+        uint16_t halfFloatWordBits;
         FloatWord floatWord;
         DoubleWord doubleWord;
     };
