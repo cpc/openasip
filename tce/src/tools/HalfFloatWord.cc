@@ -35,6 +35,8 @@
 // constructors
 HalfFloatWord::HalfFloatWord(uint16_t binaryRep) : binaryRep_(binaryRep) {}
 
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
 uint16_t
 HalfFloatWord::convertFloatToHalfWordRep(float value) {
     // TODO: this causes warning.
@@ -44,6 +46,8 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     binary16 |=(binary32 & 0x80000000) >> 16;
     return binary16;
 }
+
+#pragma GCC diagnostic warning "-Wstrict-aliasing"
 
 const HalfFloatWord& HalfFloatWord::operator=(float value) {
     binaryRep_ = convertFloatToHalfWordRep(value);
