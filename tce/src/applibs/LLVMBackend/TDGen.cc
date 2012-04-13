@@ -658,7 +658,7 @@ TDGen::writeVectorRegisterInfo(
                     aliasName << (width >> 1) << "_" << i; //Conversion::toString(i);
                 }
                 for (int j = 1; j < width; j++) {
-                    if (i+i >= regs32bit_.size()) {
+                    if (i+j >= regs32bit_.size()) {
                         ok = false;
                         break;
                     }                        
