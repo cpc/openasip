@@ -705,8 +705,11 @@ TDGen::writeVectorRegisterInfo(
                         o << "subvector" << (width >> 1) << "_" << laneIndex << " , "
                           << "subvector" << (width >> 1) << "_" << laneIndex + (width>>1);
                     }
+#ifdef LLVM_3_0
+                    o << "] in {" << std::endl;
+#else
                     o << "], CoveredBySubRegs = 1 in {" << std::endl;
-                        
+#endif
                     writeRegisterDef(
                         o, vecRegInfo, regName, 
                         TCEString("V") + Conversion::toString(width) + "I32",
