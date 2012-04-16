@@ -32,18 +32,21 @@
 #include "HalfFloatWord.hh"
 #include <cmath>
 
+union FloatConvUnion {
+    int i;
+    float f;
+};
+
 // constructors
 HalfFloatWord::HalfFloatWord(uint16_t binaryRep) : binaryRep_(binaryRep) {}
 
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-
 uint16_t
 HalfFloatWord::convertFloatToHalfWordRep(float value) {
-    // TODO: this causes warning.
-    int binary32 = *(reinterpret_cast<int*>(&value));
-    int binary16 = (binary32 & 0x007FFFFF) >> 13;
-    binary16 |=(binary32 & 0x0f800000) >> 13;
-    binary16 |=(binary32 & 0x80000000) >> 16;
+    FloatConvUnion u;
+    u.f = value;
+    int binary16 = (u.i & 0x007FFFFF) >> 13;
+    binary16 |=(u.i & 0x0f800000) >> 13;
+    binary16 |=(u.i & 0x80000000) >> 16;
     return binary16;
 }
 
@@ -61,12 +64,14 @@ HalfFloatWord::HalfFloatWord(float value) :
 HalfFloatWord::HalfFloatWord(const HalfFloatWord& hw) : 
     binaryRep_(hw.binaryRep_) {}
 
+#pragma GCC diagnostic ignored "-Wdiv-by-zero"
+
 HalfFloatWord::operator float() const {
     if (binaryRep_ == 0xFC00) {
-        return -1.0/0.0; // -inf;
+        return -1.0f/0.0f; // -inf;
     }
     if (binaryRep_ == 0x7C00) {
-        return 1.0/0.0; // inf;
+        return 1.0f/0.0f; // inf;
     }
 
     bool sgn = ((binaryRep_ & 0x8000) >> 15);
@@ -74,7 +79,7 @@ HalfFloatWord::operator float() const {
     int mant = binaryRep_ & 0x03FF;
 
     if (exp == 0x1F && mant != 0) {
-        return 0.0/0.0; // NaN
+        return 0.0f/0.0f; // NaN
     }
 
     float value = (exp == 0) ? mant : mant | 0x0400; // 1.x if not denormal
@@ -86,6 +91,9 @@ HalfFloatWord::operator float() const {
     }
     return value;
 }
+
+
+#pragma GCC diagnostic warning "-Wdiv-by-zero"
 
     // calculations
 HalfFloatWord HalfFloatWord::operator+ (const HalfFloatWord& right) const {
