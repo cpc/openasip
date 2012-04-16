@@ -111,6 +111,8 @@ public:
     virtual int getLoad(const TargetRegisterClass *rc) const;
     virtual int getStore(const TargetRegisterClass *rc) const;
 
+    virtual const llvm::TargetRegisterClass* extrasRegClass(
+        const llvm::TargetRegisterClass* current) const;
     virtual const llvm::TargetRegisterClass* nodeRegClass(
         unsigned nodeId, const llvm::TargetRegisterClass* current) const;
 private:
@@ -339,10 +341,20 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
 
 #include "TCEGenRegisterInfo.inc"
 
+/**
+ * Returns the specific register class representing registers belonging to 
+ * a "computation node" inside a clustered-TTA.
+ *
+ * This can be used to limit the registers to be allocated from a single
+ * node, thus also suggest scheduling the operations there. For data 
+ * parallel code.
+ *
+ * @param nodeId the ID of the node (starting from 0)
+ * @param current The "more general" register class to replace. 
+ */
 const llvm::TargetRegisterClass*
 GeneratedTCEPlugin::nodeRegClass(
     unsigned nodeId, const llvm::TargetRegisterClass* current) const {
-
 
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
@@ -368,6 +380,41 @@ GeneratedTCEPlugin::nodeRegClass(
     }
     return current;
 }
+
+/**
+ * Returns the specific register class representing registers belonging to 
+ * the "extras node" inside a clustered-TTA.
+ *
+ * @param current The "more general" register class to replace. 
+ */
+const llvm::TargetRegisterClass*
+GeneratedTCEPlugin::extrasRegClass(
+    const llvm::TargetRegisterClass* current) const {
+    const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
+
+    TCEString origRCName(current->getName());
+    for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
+        const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
+        TCEString RCName(regClass->getName());
+        if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
+            continue;
+        std::istringstream parser(origRCName);
+        char c;
+        int width;
+        TCEString suffix;
+        parser >> c;
+        parser >> width;
+        parser >> suffix;
+
+        TCEString wantedRegClassName;
+        wantedRegClassName << "R" << width << "_Ex" << suffix;
+
+        if (wantedRegClassName == RCName)
+            return regClass;
+    }
+    return current;
+}
+
 
 /**
  * Maps llvm register numbers to target RF names.

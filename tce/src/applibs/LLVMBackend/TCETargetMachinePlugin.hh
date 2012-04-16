@@ -111,6 +111,9 @@ namespace llvm {
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
 
+       /// Clustered-TTA-subtemplate related methods.
+       virtual const llvm::TargetRegisterClass* extrasRegClass(
+           const llvm::TargetRegisterClass* current) const = 0;
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 

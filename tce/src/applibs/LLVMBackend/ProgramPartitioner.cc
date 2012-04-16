@@ -44,6 +44,9 @@ char ProgramPartitioner::ID = 0;
 using namespace llvm;
 
 //#define DEBUG_PROGRAM_PARTITIONER
+// define this if in case the DLP-partitioner does not find 
+// a node id it should assign the registers to the EXTRAS node.
+//#define ASSIGN_UNKNOWN_TO_EXTRAS
 
 llvm::Pass* 
 createProgramPartitionerPass() {
@@ -158,7 +161,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                 }
             }
 
-
 #ifdef DEBUG_PROGRAM_PARTITIONER
             if (nodeIndex != UINT_MAX) {
                 std::cerr << "[NODE INDEX " << nodeIndex << "]: ";
@@ -187,7 +189,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
             if (nodeRegClass == NULL) {
 #ifdef DEBUG_PROGRAM_PARTITIONER
                 std::cerr << "[NO REG CLASS FOUND FOR THE NODE]" << std::endl;
-#endif                
+#endif
             } else {
 #ifdef DEBUG_PROGRAM_PARTITIONER
                 std::cerr << "[ASSIGNED REG CLASS " 
@@ -198,6 +200,45 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
             
         }
     }
+#ifdef ASSIGN_UNKNOWN_TO_EXTRAS
+#ifdef DEBUG_PROGRAM_PARTITIONER
+    std::cerr << "[setting the rest to EX]" << std::endl;
+#endif
+    /* Force the non-partitioned instructions to the
+       extras node. This should include sequential C code and
+       multi-WI address computations, branch condition code, 
+       etc. for OpenCL C code. */
+    for (MachineFunction::const_iterator i = MF.begin();
+         i != MF.end(); i++) {
+        
+        for (MachineBasicBlock::const_iterator j = i->begin();
+             j != i->end(); j++) {
+            const llvm::MachineInstr& mi = *j; 
+
+            if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
+                !mi.getOperand(0).isDef() || 
+                llvm::TargetRegisterInfo::isPhysicalRegister(mi.getOperand(0).getReg())) 
+                continue;
+            
+            if (partitions.find(&mi) != partitions.end())
+                continue; /* Partitioned. */
+            const llvm::MachineOperand& result = mi.getOperand(0);
+            const llvm::TargetRegisterClass* newRegClass =
+                tmPlugin.extrasRegClass(MRI.getRegClass(result.getReg()));
+#ifdef DEBUG_PROGRAM_PARTITIONER
+            std::cerr << "[ORIGINAL REG CLASS " 
+                      << MRI.getRegClass(result.getReg())->getName() 
+                      << "]" << std::endl;
+#endif
+            MRI.setRegClass(result.getReg(), newRegClass);
+#ifdef DEBUG_PROGRAM_PARTITIONER
+            mi.dump();
+            std::cerr << "[ASSIGNED REG CLASS " 
+                      << newRegClass->getName() << "]" << std::endl;
+#endif
+        }
+    }
+#endif
     return true;
 }
 
