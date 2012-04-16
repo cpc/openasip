@@ -62,12 +62,7 @@ BRANCH_DIR=$TCE_LLVM_BZR_ROOT
 cd "${BRANCH_DIR}/tce"
 ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 
-#export CXX="ccache g++${ALTGCC}"
-#export CC="ccache gcc${ALTGCC}"
-#export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-#export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-
-./gen_config.sh
+./autogen.sh
 
 tools/scripts/compiletest.sh > test.log
 

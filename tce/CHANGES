@@ -1,6 +1,12 @@
 1.6       unreleased
 ====================
 
+Notable changes and features
+----------------------------
+- ProGe: Experimental support for Verilog and a small Verilog hardware
+  database (mixed_hdl.hdb) supporting minimal.adf. Thanks to
+  Vinogradov Viacheslav for contributing this.
+
 Usability features
 ------------------
 - dumptpef -m has now more user friendly output. 
