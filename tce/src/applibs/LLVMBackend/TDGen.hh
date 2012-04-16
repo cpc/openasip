@@ -218,7 +218,7 @@ throw (InvalidData);
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
 
-    void generateVectorLoadStoreGenerator(std::ostream& os);
+    void generateLoadStoreCopyGenerator(std::ostream& os);
 
     const TTAMachine::Machine& mach_;
 

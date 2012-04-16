@@ -526,7 +526,8 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
 
     o << std::endl;
 
-    // All 32-bit regs.
+    // Register classes for all 32-bit registers.
+    // TODO: why are these needed? same as integer classes below?
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         // go through all 1-bit RF classes
@@ -542,9 +543,10 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     }
     o << std::endl;
     
+    // Integer register classes for 32-bit registers
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
-        // go through all 1-bit RF classes
+        // go through all 32-bit RF classes
         if (ri->first.find("R32") == 0) {
             o << "def " << ri->first << "IRegs : RegisterClass<\"TCE\", [i32], 32, (add ";
             o << ri->second[0];
@@ -556,11 +558,10 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     }
     o << std::endl;
 
-    // floating-point-versions of these
-
+    // Floating point register classes for 32-bit registers
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
-        // go through all 1-bit RF classes
+        // go through all 32-bit RF classes
         if (ri->first.find("R32") == 0) {
             
             o << "def " << ri->first << "FPRegs : RegisterClass<\"TCE\", [f32], 32, (add ";
@@ -1155,7 +1156,7 @@ TDGen::writeBackendCode(std::ostream& o) {
       << "int GeneratedTCEPlugin::maxVectorSize() const { return "
       << maxVectorSize_ << "; }" << std::endl;
 
-    generateVectorLoadStoreGenerator(o);
+    generateLoadStoreCopyGenerator(o);
 }
 
 /**
@@ -2484,44 +2485,105 @@ TDGen::canBeImmediate(
 }
 
 void
-TDGen::generateVectorLoadStoreGenerator(std::ostream& os) {
+TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     // vector store/load generation code
 
 
     os << "#include <stdio.h>" << std::endl 
-       << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc) const {" << std::endl;
+       << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc)"
+       << " const {" << std::endl;
+    
+    os << "\tif (rc == TCE::RARegRegisterClass) return TCE::STWRArr;"
+       << std::endl;
+
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        if (ri->first.find("R1") == 0) {
+            os << "\tif (rc == TCE::" << ri->first
+               << "RegsRegisterClass) return TCE::STQBrb;" << std::endl;
+        }
+        if (ri->first.find("R32") == 0) {
+            os << "\tif (rc == TCE::" << ri->first
+               << "RegsRegisterClass) return TCE::STWrr;" << std::endl;
+            
+            os << "\tif (rc == TCE::"  << ri->first
+               << "IRegsRegisterClass) return TCE::STWrr;" << std::endl;
+            
+            os << "\tif (rc == TCE::"  << ri->first
+               << "FPRegsRegisterClass) return TCE::STWfr;" << std::endl;
+        }
+    }
+    
     if (opNames_.find("STW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::STW2vr;" << std::endl
-           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::STW2mr;" << std::endl;
+        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::STW2vr;"
+           << std::endl
+           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::STW2mr;"
+           << std::endl;
     }
     if (opNames_.find("STW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::STW4vr;" << std::endl
-           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::STW4mr;" << std::endl;
+        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::STW4vr;"
+           << std::endl
+           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::STW4mr;"
+           << std::endl;
     }
     if (opNames_.find("STW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr;" << std::endl
-           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr;" << std::endl;
+        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr;"
+           << std::endl
+           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr;"
+           << std::endl;
     }
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
-        << "\tassert(0&&\"Storing given regclass to stack not supported. Add more registers?\");"
+        << "\tassert(0&&\"Storing given regclass to stack not supported. "
+        << "Bug in backend?\");"
         << std::endl
         << "} " << std::endl
         << std::endl
               
-       << "int GeneratedTCEPlugin::getLoad(const TargetRegisterClass *rc) const {" << std::endl;
+        << "int GeneratedTCEPlugin::getLoad(const TargetRegisterClass *rc)"
+        << " const {" << std::endl;
+
+    os << "\tif (rc == TCE::RARegRegisterClass) return TCE::LDWRAr;"
+       << std::endl;
+
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        if (ri->first.find("R1") == 0) {
+            os << "\tif (rc == TCE::" << ri->first
+               << "RegsRegisterClass) return TCE::LDQBr;" << std::endl;
+        }
+        if (ri->first.find("R32") == 0) {
+            os << "\tif (rc == TCE::" << ri->first
+               << "RegsRegisterClass) return TCE::LDWrr;" << std::endl;
+            
+            os << "\tif (rc == TCE::" << ri->first
+               << "IRegsRegisterClass) return TCE::LDWrr;" << std::endl;
+            
+            os << "\tif (rc == TCE::" << ri->first
+               << "FPRegsRegisterClass) return TCE::LDWfr;" << std::endl;
+        }
+    }
+
     if (opNames_.find("LDW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::LDW2vr;" << std::endl
-           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::LDW2mr;" << std::endl;
+        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::LDW2vr;"
+           << std::endl
+           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::LDW2mr;"
+           << std::endl;
     }
     if (opNames_.find("LDW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::LDW4vr;" << std::endl
-           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::LDW4mr;" << std::endl;
+        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::LDW4vr;"
+           << std::endl
+           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::LDW4mr;"
+           << std::endl;
     }
     if (opNames_.find("LDW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::LDW8vr;" << std::endl
-           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::LDW8mr;" << std::endl;
+        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::LDW8vr;"
+           << std::endl
+           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::LDW8mr;"
+           << std::endl;
     }
-    os << "\tassert(0&&\"loading from stack to given regclass not supported\");"
+    os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
+        << "\tassert(0&&\"loading from stack to given regclass not supported."
+        << " Bug in backend?\");"
        << std::endl
        << "} " << std::endl
        << std::endl;
