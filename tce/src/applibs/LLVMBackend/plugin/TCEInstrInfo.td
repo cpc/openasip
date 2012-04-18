@@ -320,112 +320,393 @@ def : Pat<(i1 (seteq R1Regs:$op1, R1Regs:$op2)), (XORbbj (XORbbb R1Regs:$op1, R1
 //def : Pat<(i1 (setne (trunc R32IRegs:$op1), R1Regs:$op2)), (XORrb R1Regs:$op1, R1Regs:$op2)>;
 //def : Pat<(i1 (seteq (trunc R1Regs:$op1), R1Regs:$op2)), (XORbj (XORrb R32IRegs:$op1, R1Regs:$op2), 1)>;
 
+// insert handled with insert_subreg
+def : Pat <(v2i32 (vector_insert (v2i32 V2R32IRegs:$vec), (i32 R32IRegs:$e), (i32 0))),
+    (v2i32 (INSERT_SUBREG (v2i32 V2R32IRegs:$vec), (i32 R32IRegs:$e), lane0))>;
+def : Pat <(v2i32 (vector_insert (v2i32 V2R32IRegs:$vec), (i32 R32IRegs:$e), (i32 1))),
+    (v2i32 (INSERT_SUBREG (v2i32 V2R32IRegs:$vec), (i32 R32IRegs:$e), lane1))>;
+def : Pat <(v2f32 (vector_insert (v2f32 V2R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 0))),
+    (v2f32 (INSERT_SUBREG (v2f32 V2R32FPRegs:$vec), (f32 R32FPRegs:$e), lane0))>;
+def : Pat <(v2f32 (vector_insert (v2f32 V2R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 1))),
+    (v2f32 (INSERT_SUBREG (v2f32 V2R32FPRegs:$vec), (f32 R32FPRegs:$e), lane1))>;
+
+def : Pat <(v4i32 (vector_insert (v4i32 V4R32IRegs:$vec), (i32 R32IRegs:$e), (i32 0))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), 
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$vec), subvector2_0)), 
+    (i32 R32IRegs:$e), lane0)), subvector2_0))>;
+
+def : Pat <(v4i32 (vector_insert (v4i32 V4R32IRegs:$vec), (i32 R32IRegs:$e), (i32 1))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), 
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$vec), subvector2_0)), 
+    (i32 R32IRegs:$e), lane1)), subvector2_0))>;
+
+def : Pat <(v4i32 (vector_insert (v4i32 V4R32IRegs:$vec), (i32 R32IRegs:$e), (i32 2))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), 
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$vec), subvector2_2)), 
+    (i32 R32IRegs:$e), lane2)), subvector2_2))>;
+
+def : Pat <(v4i32 (vector_insert (v4i32 V4R32IRegs:$vec), (i32 R32IRegs:$e), (i32 3))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), 
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$vec), subvector2_2)), 
+    (i32 R32IRegs:$e), lane3)), subvector2_2))>;
+
+def : Pat <(v4f32 (vector_insert (v4f32 V4R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 0))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec), 
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$vec), subvector2_0)), 
+    (f32 R32FPRegs:$e), lane0)), subvector2_0))>;
+
+def : Pat <(v4f32 (vector_insert (v4f32 V4R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 1))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec), 
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$vec), subvector2_0)), 
+    (f32 R32FPRegs:$e), lane1)), subvector2_0))>;
+
+def : Pat <(v4f32 (vector_insert (v4f32 V4R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 2))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec),
+    (v2f32 (INSERT_SUBREG
+    (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$vec), subvector2_2)),
+    (f32 R32FPRegs:$e), lane2)), subvector2_2))>;
+
+def : Pat <(v4f32 (vector_insert (v4f32 V4R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 3))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec),
+    (v2f32 (INSERT_SUBREG
+    (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$vec), subvector2_2)),
+    (f32 R32FPRegs:$e), lane3)), subvector2_2))>;
+
+
+// 8-way inserts
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 0))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)), subvector2_0)), 
+    (i32 R32IRegs:$e), lane0)), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 1))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)), subvector2_0)), 
+    (i32 R32IRegs:$e), lane1)), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 2))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)), subvector2_2)),
+    (i32 R32IRegs:$e), lane2)), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 3))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)), subvector2_2)),
+    (i32 R32IRegs:$e), lane3)), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 4))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)), subvector2_4)),
+    (i32 R32IRegs:$e), lane4)), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 5))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)), subvector2_4)),
+    (i32 R32IRegs:$e), lane5)), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 6))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)), subvector2_6)),
+    (i32 R32IRegs:$e), lane6)), subvector2_6)), subvector4_4))>;
+
+def : Pat <(v8i32 (vector_insert (v8i32 V8R32IRegs:$vec), (i32 R32IRegs:$e), (i32 7))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 (INSERT_SUBREG 
+    (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)), subvector2_6)),
+    (i32 R32IRegs:$e), lane7)), subvector2_6)), subvector4_4))>;
+
+// 8-way inserts fo FP
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 0))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)), subvector2_0)), 
+    (f32 R32FPRegs:$e), lane0)), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 1))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)), subvector2_0)), 
+    (f32 R32FPRegs:$e), lane1)), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 2))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)), subvector2_2)),
+    (f32 R32FPRegs:$e), lane2)), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 3))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)), subvector2_2)),
+    (f32 R32FPRegs:$e), lane3)), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 4))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)), subvector2_4)),
+    (f32 R32FPRegs:$e), lane4)), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 5))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)), subvector2_4)),
+    (f32 R32FPRegs:$e), lane5)), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 6))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)), subvector2_6)),
+    (f32 R32FPRegs:$e), lane6)), subvector2_6)), subvector4_4))>;
+
+def : Pat <(v8f32 (vector_insert (v8f32 V8R32FPRegs:$vec), (f32 R32FPRegs:$e), (i32 7))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 (INSERT_SUBREG 
+    (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)), subvector2_6)),
+    (f32 R32FPRegs:$e), lane7)), subvector2_6)), subvector4_4))>;
+
+// subvector inserts, 2->4
+def : Pat<(v4i32 (insert_subvector (v4i32 V4R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 0))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), subvector2_0))>;
+
+def : Pat<(v4i32 (insert_subvector (v4i32 V4R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 2))),
+    (v4i32 (INSERT_SUBREG (v4i32 V4R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), subvector2_2))>;
+
+def : Pat<(v4f32 (insert_subvector (v4f32 V4R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 0))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), subvector2_0))>;
+
+def : Pat<(v4f32 (insert_subvector (v4f32 V4R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 2))),
+    (v4f32 (INSERT_SUBREG (v4f32 V4R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), subvector2_2))>;
+
+// subvector inserts, 4->8
+def : Pat<(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v4i32 V4R32IRegs:$sv), (i32 0))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec), (v4i32 V4R32IRegs:$sv), subvector4_0))>;
+
+def : Pat<(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v4i32 V4R32IRegs:$sv), (i32 4))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec), (v4i32 V4R32IRegs:$sv), subvector4_4))>;
+
+def : Pat<(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v4f32 V4R32FPRegs:$sv), (i32 0))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec), (v4f32 V4R32FPRegs:$sv), subvector4_0))>;
+
+def : Pat<(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v4f32 V4R32FPRegs:$sv), (i32 2))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec), (v4f32 V4R32FPRegs:$sv), subvector4_4))>;
+
+// TODO: subvector inserts 2->8
+def : Pat <(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 0))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 V2R32IRegs:$sv), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 2))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_0)),
+    (v2i32 V2R32IRegs:$sv), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 4))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 V2R32IRegs:$sv), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8i32 (insert_subvector (v8i32 V8R32IRegs:$vec), (v2i32 V2R32IRegs:$sv), (i32 6))),
+    (v8i32 (INSERT_SUBREG (v8i32 V8R32IRegs:$vec),
+    (v4i32 (INSERT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$vec), subvector4_4)),
+    (v2i32 V2R32IRegs:$sv), subvector2_6)), subvector4_4))>;
+
+// subvector inserts for fp
+def : Pat <(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 0))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 V2R32FPRegs:$sv), subvector2_0)), subvector4_0))>;
+
+def : Pat <(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 2))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_0)),
+    (v2f32 V2R32FPRegs:$sv), subvector2_2)), subvector4_0))>;
+
+def : Pat <(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 4))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 V2R32FPRegs:$sv), subvector2_4)), subvector4_4))>;
+
+def : Pat <(v8f32 (insert_subvector (v8f32 V8R32FPRegs:$vec), (v2f32 V2R32FPRegs:$sv), (i32 6))),
+    (v8f32 (INSERT_SUBREG (v8f32 V8R32FPRegs:$vec),
+    (v4f32 (INSERT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$vec), subvector4_4)),
+    (v2f32 V2R32FPRegs:$sv), subvector2_6)), subvector4_4))>;
+
+
+
 // vector extract is done by just using the scalar subregister directly.
-def : Pat<(i32 (vector_extract (v2i32 V2I32Regs:$op1), 0)),
-        (i32 (EXTRACT_SUBREG (v2i32 V2I32Regs:$op1), lane0))>;
-def : Pat<(i32 (vector_extract (v2i32 V2I32Regs:$op1), (i32 1))),
-        (i32 (EXTRACT_SUBREG (v2i32 V2I32Regs:$op1), lane1))>;
-def : Pat<(f32 (vector_extract (v2f32 V2F32Regs:$op1), (i32 0))),
-        (f32 (EXTRACT_SUBREG (v2f32 V2F32Regs:$op1), lane0))>;
-def : Pat<(f32 (vector_extract (v2f32 V2F32Regs:$op1), (i32 1))),
-        (f32 (EXTRACT_SUBREG (v2f32 V2F32Regs:$op1), lane1))>;
+def : Pat<(i32 (vector_extract (v2i32 V2R32IRegs:$op1), 0)),
+        (i32 (EXTRACT_SUBREG (v2i32 V2R32IRegs:$op1), lane0))>;
+def : Pat<(i32 (vector_extract (v2i32 V2R32IRegs:$op1), (i32 1))),
+        (i32 (EXTRACT_SUBREG (v2i32 V2R32IRegs:$op1), lane1))>;
+def : Pat<(f32 (vector_extract (v2f32 V2R32FPRegs:$op1), (i32 0))),
+        (f32 (EXTRACT_SUBREG (v2f32 V2R32FPRegs:$op1), lane0))>;
+def : Pat<(f32 (vector_extract (v2f32 V2R32FPRegs:$op1), (i32 1))),
+        (f32 (EXTRACT_SUBREG (v2f32 V2R32FPRegs:$op1), lane1))>;
+
+
+// subregisters of subvectors used for extract
+def : Pat<(i32 (vector_extract (v4i32 V4R32IRegs:$op1), (i32 0))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_0)), lane0))>;
+def : Pat<(i32 (vector_extract (v4i32 V4R32IRegs:$op1), (i32 1))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_0)), lane1))>;
+def : Pat<(i32 (vector_extract (v4i32 V4R32IRegs:$op1), (i32 2))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_2)), lane2))>;
+def : Pat<(i32 (vector_extract (v4i32 V4R32IRegs:$op1), (i32 3))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_2)), lane3))>;
+
+
+// subregisters of subvectors of subvectors of subvectused for extract
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 0))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_0)), lane0))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 1))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_0)), lane1))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 2))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_2)), lane2))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 3))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_2)), lane3))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 4))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_4)), lane4))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 5))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_4)), lane5))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 6))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_6)), lane6))>;
+def : Pat<(i32 (vector_extract (v8i32 V8R32IRegs:$op1), (i32 7))),
+        (i32 (EXTRACT_SUBREG (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_6)), lane7))>;
+
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 0))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_0)), lane0))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 1))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_0)), lane1))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 2))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_2)), lane2))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 3))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_2)), lane3))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 4))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_4)), lane4))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 5))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_4)), lane5))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 6))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_6)), lane6))>;
+def : Pat<(f32 (vector_extract (v8f32 V8R32FPRegs:$op1), (i32 7))),
+        (f32 (EXTRACT_SUBREG (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_6)), lane7))>;
 
 // subvector extracts. not yet used for anything.
-def : Pat<(v2i32 (extract_subvector (v4i32 V4I32Regs:$op1), (i32 0))),
-        (v2i32 (EXTRACT_SUBREG (v4i32 V4I32Regs:$op1), subvector2_0))>;
-def : Pat<(v2i32 (extract_subvector (v4i32 V4I32Regs:$op1), (i32 2))),
-        (v2i32 (EXTRACT_SUBREG (v4i32 V4I32Regs:$op1), subvector2_2))>;
-def : Pat<(v2f32 (extract_subvector (v4f32 V4F32Regs:$op1), (i32 0))),
-        (v2f32 (EXTRACT_SUBREG (v4f32 V4F32Regs:$op1), subvector2_0))>;
-def : Pat<(v2f32 (extract_subvector (v4f32 V4F32Regs:$op1), (i32 2))),
-        (v2f32 (EXTRACT_SUBREG (v4f32 V4F32Regs:$op1), subvector2_2))>;
+def : Pat<(v2i32 (extract_subvector (v4i32 V4R32IRegs:$op1), (i32 0))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_0))>;
+def : Pat<(v2i32 (extract_subvector (v4i32 V4R32IRegs:$op1), (i32 2))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 V4R32IRegs:$op1), subvector2_2))>;
+def : Pat<(v2f32 (extract_subvector (v4f32 V4R32FPRegs:$op1), (i32 0))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$op1), subvector2_0))>;
+def : Pat<(v2f32 (extract_subvector (v4f32 V4R32FPRegs:$op1), (i32 2))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 V4R32FPRegs:$op1), subvector2_2))>;
 
-def : Pat<(v4i32 (extract_subvector (v8i32 V8I32Regs:$op1), (i32 0))),
-        (v4i32 (EXTRACT_SUBREG (v8i32 V8I32Regs:$op1), subvector4_0))>;
-def : Pat<(v4i32 (extract_subvector (v8i32 V8I32Regs:$op1), (i32 4))),
-        (v4i32 (EXTRACT_SUBREG (v8i32 V8I32Regs:$op1), subvector4_4))>;
-def : Pat<(v4f32 (extract_subvector (v8f32 V8F32Regs:$op1), (i32 0))),
-        (v4f32 (EXTRACT_SUBREG (v8f32 V8F32Regs:$op1), subvector4_0))>;
-def : Pat<(v4f32 (extract_subvector (v8f32 V8F32Regs:$op1), (i32 4))),
-        (v4f32 (EXTRACT_SUBREG (v8f32 V8F32Regs:$op1), subvector4_4))>;
+def : Pat<(v4i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 0))),
+        (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0))>;
+def : Pat<(v4i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 4))),
+        (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4))>;
+def : Pat<(v4f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 0))),
+        (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0))>;
+def : Pat<(v4f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 4))),
+        (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4))>;
 
-//def BROADCASTV2vrr : InstTCE<(outs V2I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e1),"",
-//[(set V2I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e1))]>;
+def : Pat<(v2i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 0))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_0))>;
+def : Pat<(v2i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 2))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_0)), subvector2_2))>;
+def : Pat<(v2i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 4))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_4))>;
+def : Pat<(v2i32 (extract_subvector (v8i32 V8R32IRegs:$op1), (i32 6))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 (EXTRACT_SUBREG (v8i32 V8R32IRegs:$op1), subvector4_4)), subvector2_6))>;
+
+def : Pat<(v2f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 0))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_0))>;
+def : Pat<(v2f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 2))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_0)), subvector2_2))>;
+def : Pat<(v2f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 4))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_4))>;
+def : Pat<(v2f32 (extract_subvector (v8f32 V8R32FPRegs:$op1), (i32 6))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 (EXTRACT_SUBREG (v8f32 V8R32FPRegs:$op1), subvector4_4)), subvector2_6))>;
+
+
+
+
+//def BROADCASTV2vrr : InstTCE<(outs V2R32IRegs:$res), (ins R32IRegs:$e1, R32IRegs:$e1),"",
+//[(set V2R32IRegs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e1))]>;
 
 // these breaks when this becomes xchg op
-def BUILDV2vrr : InstTCE<(outs V2I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e2),"",
-[(set V2I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2))]>;
+def BUILDV2vrr : InstTCE<(outs V2R32IRegs:$res), (ins R32IRegs:$e1, R32IRegs:$e2),"",
+[(set V2R32IRegs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2))]>;
 
-def BUILDV2mff : InstTCE<(outs V2F32Regs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2),"",
-[(set V2F32Regs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2))]>;
+def BUILDV2mff : InstTCE<(outs V2R32FPRegs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2),"",
+[(set V2R32FPRegs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2))]>;
 
-def BUILDV2vii : InstTCE<(outs V2I32Regs:$res), (ins i32imm:$e1, i32imm:$e2),"",
-[(set V2I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2)))]>;
+def BUILDV2vii : InstTCE<(outs V2R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2),"",
+[(set V2R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2)))]>;
 
-def BUILDV2mkk : InstTCE<(outs V2F32Regs:$res), (ins f32imm:$e1, f32imm:$e2),"",
-[(set V2F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2)))]>;
+def BUILDV2mkk : InstTCE<(outs V2R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2),"",
+[(set V2R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2)))]>;
 
-def INSERTV2vvri : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$vec, R32IRegs:$e, i32imm:$index), "", [(set V2I32Regs:$res, (vector_insert V2I32Regs:$vec, R32IRegs:$e, (i32 imm:$index)))]>;
 
-def INSERTV2mmfi : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$vec, R32FPRegs:$e, i32imm:$index), "", [(set V2F32Regs:$res, (vector_insert V2F32Regs:$vec, R32FPRegs:$e, (i32 imm:$index)))]>;
+def MOV2vv : InstTCE<(outs V2R32IRegs:$res), (ins V2R32IRegs:$src), "", []>;
+def MOV2mm : InstTCE<(outs V2R32FPRegs:$res), (ins V2R32FPRegs:$src), "", []>;
+def MOV4ww : InstTCE<(outs V4R32IRegs:$res), (ins V4R32IRegs:$src), "", []>;
+def MOV4nn : InstTCE<(outs V4R32FPRegs:$res), (ins V4R32FPRegs:$src), "", []>;
+def MOV8xx : InstTCE<(outs V8R32IRegs:$res), (ins V8R32IRegs:$src), "", []>;
+def MOV8oo : InstTCE<(outs V8R32FPRegs:$res), (ins V8R32FPRegs:$src), "", []>;
 
-def INSERTV2vvii : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V2I32Regs:$res, (vector_insert V2I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
+def BUILDV4wrrrr : InstTCE<(outs V4R32IRegs:$res), (ins R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4),"",
+[(set V4R32IRegs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4))]>;
 
-def INSERTV2mmki : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V2F32Regs:$res, (vector_insert V2F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
+def BUILDV4nffff : InstTCE<(outs V4R32FPRegs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4),"",
+[(set V4R32FPRegs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4))]>;
 
-def MOV2vv : InstTCE<(outs V2I32Regs:$res), (ins V2I32Regs:$src), "", []>;
-def MOV2mm : InstTCE<(outs V2F32Regs:$res), (ins V2F32Regs:$src), "", []>;
+def BUILDV4wiiii : InstTCE<(outs V4R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
+[(set V4R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
 
-def EXTRACT4rvi : InstTCE<(outs R32IRegs:$res), (ins V4I32Regs:$op1, i32imm:$index), "", [(set R32IRegs:$res, (vector_extract V4I32Regs:$op1, (i32 imm:$index)))]>;
+def BUILDV4nkkkk : InstTCE<(outs V4R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4),"",
+[(set V4R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4)))]>;
 
-def EXTRACT4fmi : InstTCE<(outs R32FPRegs:$res), (ins V4F32Regs:$op1, i32imm:$index), "", [(set R32FPRegs:$res, (vector_extract V4F32Regs:$op1, (i32 imm:$index)))]>;
 
-def BUILDV4wrrrr : InstTCE<(outs V4I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4),"",
-[(set V4I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4))]>;
+def BUILDV8xrrrrrrrr : InstTCE<(outs V8R32IRegs:$res), (ins R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4, R32IRegs:$e5, R32IRegs:$e6, R32IRegs:$e7, R32IRegs:$e8),"",
+[(set V8R32IRegs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4, R32IRegs:$e5, R32IRegs:$e6, R32IRegs:$e7, R32IRegs:$e8))]>;
 
-def BUILDV4nffff : InstTCE<(outs V4F32Regs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4),"",
-[(set V4F32Regs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4))]>;
+def BUILDV8xiiiiiiii : InstTCE<(outs V8R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
+[(set V8R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
 
-def BUILDV4wiiii : InstTCE<(outs V4I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
-[(set V4I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
+def BUILDV8okkkkkkkk : InstTCE<(outs V8R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4, f32imm:$e5, f32imm:$e6, f32imm:$e7, f32imm:$e8),"",
+[(set V8R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4), (f32 fpimm:$e5), (f32 fpimm:$e6), (f32 fpimm:$e7), (f32 fpimm:$e8)))]>;
 
-def BUILDV4nkkkk : InstTCE<(outs V4F32Regs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4),"",
-[(set V4F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4)))]>;
+def BUILDV8offffffff : InstTCE<(outs V8R32FPRegs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4, R32FPRegs:$e5, R32FPRegs:$e6, R32FPRegs:$e7, R32FPRegs:$e8),"",
+[(set V8R32FPRegs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4, R32FPRegs:$e5, R32FPRegs:$e6, R32FPRegs:$e7, R32FPRegs:$e8))]>;
 
-def INSERTV4wwri : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, R32IRegs:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, R32IRegs:$e, (i32 imm:$index)))]>;
-
-def INSERTV4nnfi : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$vec, R32FPRegs:$e, i32imm:$index), "", [(set V4F32Regs:$res, (vector_insert V4F32Regs:$vec, R32FPRegs:$e, (i32 imm:$index)))]>;
-
-def INSERTV4wwii : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V4I32Regs:$res, (vector_insert V4I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
-
-def INSERTV4nnki : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V4F32Regs:$res, (vector_insert V4F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
-
-def MOV4ww : InstTCE<(outs V4I32Regs:$res), (ins V4I32Regs:$src), "", []>;
-def MOV4nn : InstTCE<(outs V4F32Regs:$res), (ins V4F32Regs:$src), "", []>;
-
-def EXTRACT8rvi : InstTCE<(outs R32IRegs:$res), (ins V8I32Regs:$op1, i32imm:$index), "", [(set R32IRegs:$res, (vector_extract V8I32Regs:$op1, (i32 imm:$index)))]>;
-
-def EXTRACT8fmi : InstTCE<(outs R32FPRegs:$res), (ins V8F32Regs:$op1, i32imm:$index), "", [(set R32FPRegs:$res, (vector_extract V8F32Regs:$op1, (i32 imm:$index)))]>;
-
-def BUILDV8xrrrrrrrr : InstTCE<(outs V8I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4, R32IRegs:$e5, R32IRegs:$e6, R32IRegs:$e7, R32IRegs:$e8),"",
-[(set V8I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2, R32IRegs:$e3, R32IRegs:$e4, R32IRegs:$e5, R32IRegs:$e6, R32IRegs:$e7, R32IRegs:$e8))]>;
-
-def BUILDV8xiiiiiiii : InstTCE<(outs V8I32Regs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
-[(set V8I32Regs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
-
-def BUILDV8okkkkkkkk : InstTCE<(outs V8F32Regs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4, f32imm:$e5, f32imm:$e6, f32imm:$e7, f32imm:$e8),"",
-[(set V8F32Regs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4), (f32 fpimm:$e5), (f32 fpimm:$e6), (f32 fpimm:$e7), (f32 fpimm:$e8)))]>;
-
-def BUILDV8offffffff : InstTCE<(outs V8F32Regs:$res), (ins R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4, R32FPRegs:$e5, R32FPRegs:$e6, R32FPRegs:$e7, R32FPRegs:$e8),"",
-[(set V8F32Regs:$res, (build_vector R32FPRegs:$e1, R32FPRegs:$e2, R32FPRegs:$e3, R32FPRegs:$e4, R32FPRegs:$e5, R32FPRegs:$e6, R32FPRegs:$e7, R32FPRegs:$e8))]>;
-
-def INSERTV8xxri : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, R32IRegs:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, R32IRegs:$e, (i32 imm:$index)))]>;
-
-def INSERTV8oofi : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$vec, R32FPRegs:$e, i32imm:$index), "", [(set V8F32Regs:$res, (vector_insert V8F32Regs:$vec, R32FPRegs:$e, (i32 imm:$index)))]>;
-
-def INSERTV8xxii : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$vec, i32imm:$e, i32imm:$index), "", [(set V8I32Regs:$res, (vector_insert V8I32Regs:$vec, (i32 imm:$e), (i32 imm:$index)))]>;
-
-def INSERTV8ooki : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$vec, f32imm:$e, i32imm:$index), "", [(set V8F32Regs:$res, (vector_insert V8F32Regs:$vec, (f32 fpimm:$e), (i32 imm:$index)))]>;
-
-def MOV8xx : InstTCE<(outs V8I32Regs:$res), (ins V8I32Regs:$src), "", []>;
-def MOV8oo : InstTCE<(outs V8F32Regs:$res), (ins V8F32Regs:$src), "", []>;

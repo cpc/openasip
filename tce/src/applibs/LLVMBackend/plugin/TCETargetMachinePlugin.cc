@@ -210,15 +210,7 @@ GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
  */
 bool
 GeneratedTCEPlugin::isExtractElement(unsigned opc) const {
-    switch (opc) {
-    case TCE::EXTRACT4rvi:
-    case TCE::EXTRACT4fmi:
-    case TCE::EXTRACT8rvi:
-    case TCE::EXTRACT8fmi:
-        return true;
-    default:
-        return false;
-    }
+    // TODO: use subregisters (extract_subreg) instead.
     return false;
 }
 
@@ -293,14 +285,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::BUILDV2mff) return "_BUILD_2";
     if (opc == TCE::BUILDV2vii) return "_BUILD_2";
     if (opc == TCE::BUILDV2mkk) return "_BUILD_2";
-    if (opc == TCE::INSERTV2vvri) return "_INSERT_2";
-    if (opc == TCE::INSERTV2mmfi) return "_INSERT_2";
-    if (opc == TCE::INSERTV2vvii) return "_INSERT_2";
-    if (opc == TCE::INSERTV2mmki) return "_INSERT_2";
-    if (opc == TCE::EXTRACT4rvi) return "_EXTRACT_4";
-    if (opc == TCE::EXTRACT4fmi) return "_EXTRACT_4";
-    if (opc == TCE::EXTRACT8rvi) return "_EXTRACT_8";
-    if (opc == TCE::EXTRACT8fmi) return "_EXTRACT_8";
     if (opc == TCE::BUILDV4wrrrr) return "_BUILD_4";
     if (opc == TCE::BUILDV4nffff) return "_BUILD_4";
     if (opc == TCE::BUILDV4wiiii) return "_BUILD_4";
@@ -309,14 +293,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::BUILDV8offffffff) return "_BUILD_8";
     if (opc == TCE::BUILDV8xiiiiiiii) return "_BUILD_8";
     if (opc == TCE::BUILDV8okkkkkkkk) return "_BUILD_8";
-    if (opc == TCE::INSERTV4wwri) return "_INSERT_4";
-    if (opc == TCE::INSERTV4nnfi) return "_INSERT_4";
-    if (opc == TCE::INSERTV4wwii) return "_INSERT_4";
-    if (opc == TCE::INSERTV4nnki) return "_INSERT_4";
-    if (opc == TCE::INSERTV8xxri) return "_INSERT_8";
-    if (opc == TCE::INSERTV8oofi) return "_INSERT_8";
-    if (opc == TCE::INSERTV8xxii) return "_INSERT_8";
-    if (opc == TCE::INSERTV8ooki) return "_INSERT_8";
 
     if (opc == TCE::MOV2vv) return "_VECTOR_MOV_2";
     if (opc == TCE::MOV2mm) return "_VECTOR_MOV_2";

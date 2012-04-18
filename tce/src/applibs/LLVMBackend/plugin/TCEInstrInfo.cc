@@ -244,22 +244,22 @@ void TCEInstrInfo::copyPhysReg(
     } else if (TCE::R32FPRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF32ff), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V2I32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V2R32IRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV2vv), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V2F32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V2R32FPRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV2mm), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V4I32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V4R32IRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV4ww), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V4F32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V4R32FPRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV4nn), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V8I32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V8R32IRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV8xx), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V8F32RegsRegisterClass->contains(destReg, srcReg)) {
+    } else if (TCE::V8R32FPRegsRegisterClass->contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV8oo), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
     } else {

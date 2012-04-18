@@ -254,13 +254,13 @@ TDGen::writeRegisterClasses(std::ostream& o) {
         o << "class R1_L_" << i << "<string n, list<Register> aliases> : R1<n, aliases>{}" << std::endl;
     }
 
-    o << "class V2I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
+    o << "class V2R32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
-    o << "class V4I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
+    o << "class V4R32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
-    o << "class V8I32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
+    o << "class V8R32<string n, list<Register> aliases> : TCEVectorReg<n, aliases> {"
       << "}" << std::endl;
 
     o << std::endl;
@@ -533,7 +533,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         // go through all 1-bit RF classes
         if (ri->first.find("R32") == 0) {
             
-            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32], 32, (add ";
+            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32,f32], 32, (add ";
             o << ri->second[0];
             for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
@@ -638,7 +638,7 @@ TDGen::writeVectorRegisterInfo(
     std::ostream& o, int width) {
 
     std::string vectorRegsAll;
-    std::string vectorRegsLowLane;
+    std::vector<std::string> vectorRegs(8);
 
     if (width <= maxVectorSize_) {
         for (unsigned i = 3; i < regs32bit_.size(); i++) {
@@ -690,12 +690,10 @@ TDGen::writeVectorRegisterInfo(
                         vectorRegsAll = regName;
                     }
 
-                    if (laneIndex == 0) {
-                        if (vectorRegsLowLane != "") {
-                            vectorRegsLowLane += ", " + regName;
-                        } else {
-                            vectorRegsLowLane = regName;
-                        }
+                    if (vectorRegs[laneIndex] == "") {
+                        vectorRegs[laneIndex] = regName;
+                    } else {
+                        vectorRegs[laneIndex] += ", " +regName;
                     }
 
                     RegInfo vecRegInfo = { vecRegRfName, regIndex };
@@ -713,7 +711,7 @@ TDGen::writeVectorRegisterInfo(
 #endif
                     writeRegisterDef(
                         o, vecRegInfo, regName, 
-                        TCEString("V") + Conversion::toString(width) + "I32",
+                        TCEString("V") + Conversion::toString(width) + "R32",
                         aliasName, GPR);
 
                     o << "}" << std::endl;
@@ -723,57 +721,85 @@ TDGen::writeVectorRegisterInfo(
             }
         }
     }
-    TCEString regClassBase("V"); regClassBase << width;
-    TCEString regClassBaseI = regClassBase + "I32";
-    TCEString regClassBaseF = regClassBase + "F32";
-    
+    TCEString regClassBase("V"); regClassBase << width << "R32";
+
+    bool hasAllVectorRegs = true;
+    for (int i = 0; i < 8; i+=width) {
+        if (vectorRegs[i] == "") {
+            hasAllVectorRegs = false;
+        }
+    }
+
     // only low lane ones are really used for data(ie. first element in lane 0)
-    if (vectorRegsLowLane == "") {
+    if (!hasAllVectorRegs) {
         RegInfo reg = {TCEString("dummyvec") + Conversion::toString(width), 0};
-        TCEString nameI("V"); nameI << width << "I32DUMMY" ;
-        writeRegisterDef(o, reg, nameI, regClassBaseI, "", RESERVED);
-        o << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width
-          << "i32], 32, (add V" << width << "I32DUMMY)> ;"
-          << std::endl;
+        TCEString nameI("V"); nameI << width << "R32DUMMY" ;
+        writeRegisterDef(o, reg, nameI, regClassBase, "", RESERVED);
+    }
 
-        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width
-          << "f32], 32, (add V" << width << "I32DUMMY)> ;"
-          << std::endl << std::endl;
-    } 
-    else {
-        o << std::endl
-          << "def " << regClassBaseI << "Regs : RegisterClass<\"TCE\", [v" << width
-          << "i32], 32, (add "
-          << vectorRegsLowLane << ")> ;" << std::endl;
+    for (int i = 0; i < 8; i+=width) {
+        if (vectorRegs[i] == "") {
+            o << "def " << regClassBase << "_L_" << i
+              << "Regs : RegisterClass<\"TCE\", [v" << width
+              << "i32, v" << width << "f32], " << 32 * width
+              << ", (add V" << width << "R32DUMMY)> ;" << std::endl;
+            
+            o << "def " << regClassBase << "_L_" << i
+              << "IRegs : RegisterClass<\"TCE\", [v" << width
+              << "i32], " << 32 * width  << ", (add V" << width << "R32DUMMY)> ;"
+              << std::endl;
 
-        o << "def " << regClassBaseF << "Regs : RegisterClass<\"TCE\", [v" << width
-          << "f32], 32, (add "
-          << vectorRegsLowLane << ")> ;" << std::endl << std::endl;
+            o << "def " << regClassBase << "_L_" << i
+              << "FPRegs : RegisterClass<\"TCE\", [v" << width
+              << "f32], " << 32 * width  << ", (add V" << width << "R32DUMMY)> ;"
+              << std::endl << std::endl;
+        } else {
+            o << "def " << regClassBase << "_L_" << i
+              << "Regs : RegisterClass<\"TCE\", [v" << width
+              << "i32, v" << width << "f32], " << 32 * width
+              << ", (add " << vectorRegs[i] << ")>;" << std::endl;
+
+            o << "def " << regClassBase << "_L_" << i
+              << "IRegs : RegisterClass<\"TCE\", [v" << width
+              << "i32], " << 32 * width << ", (add " << vectorRegs[i] << ")>;"
+              << std::endl;
+
+            o << "def " << regClassBase << "_L_" << i
+              << "FPRegs : RegisterClass<\"TCE\", [v" << width
+              << "f32], " << 32 * width << ", (add " << vectorRegs[i] << ")>;"
+              << std::endl << std::endl;
+        }
     }
 
     // add class of all vector lanes, also ones whose lanes don't match
     // for example 2-wide vector consisting of lanes 2 and 3.
     if (vectorRegsAll == "") {
         // dummy already written, no need to write again.
+        o << "def " << regClassBase << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "i32, v" << width << "f32], " << 32 * width
+          << ", (add V" << width << "R32DUMMY)> ;" << std::endl;
 
-        o << "def " << regClassBaseI << "RegsAll : RegisterClass<\"TCE\", [v" << width
-          << "i32], 32, (add V" << width << "I32DUMMY)> ;"
-          << std::endl;
+        o << "def " << regClassBase << "IRegs : RegisterClass<\"TCE\", [v" << width
+          << "i32], " << 32 * width << ", (add V" << width
+          << "R32DUMMY)> ;" << std::endl;
 
-        o << "def " << regClassBaseF << "RegsAll : RegisterClass<\"TCE\", [v" << width
-          << "f32], 32, (add V" << width << "I32DUMMY)> ;"
+        o << "def " << regClassBase << "FPRegs : RegisterClass<\"TCE\", [v" << width
+          << "f32], " << 32 * width << ", (add V" << width << "R32DUMMY)> ;"
           << std::endl << std::endl;
     } 
     else {
-        o << "def " << regClassBaseI << "RegsAll : RegisterClass<\"TCE\", [v" << width
-          << "i32], 32, (add "
+        o << "def " << regClassBase << "Regs : RegisterClass<\"TCE\", [v" << width
+          << "i32, v" << width << "f32], " << 32 * width << ", (add "
           << vectorRegsAll << ")> ;" << std::endl;
 
-        o << "def " << regClassBaseF << "RegsAll : RegisterClass<\"TCE\", [v" << width
-          << "f32], 32, (add "
+        o << "def " << regClassBase << "IRegs : RegisterClass<\"TCE\", [v" << width
+          << "i32], " << 32 * width << ", (add "
+          << vectorRegsAll << ")> ;" << std::endl;
+
+        o << "def " << regClassBase << "FPRegs : RegisterClass<\"TCE\", [v" << width
+          << "f32], " << 32 * width << ", (add "
           << vectorRegsAll << ")> ;" << std::endl << std::endl;
     }
-
 }
 
 /**
@@ -1378,17 +1404,17 @@ TDGen::writeVectorStoreDefs(
     std::ostream& o,
     Operation& op, int vectorLen) {
 
-    o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "I32Regs:$data),"
-      << "\"\", [(store V" << vectorLen << "I32Regs:$data, ADDRrr:$addr)]>;" << std::endl;
+    o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRrr:$addr)]>;" << std::endl;
 
-    o << "def STW" << vectorLen << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "I32Regs:$data),"
-      << "\"\", [(store V" << vectorLen << "I32Regs:$data, ADDRri:$addr)]>;" << std::endl;
+    o << "def STW" << vectorLen << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRri:$addr)]>;" << std::endl;
 
-    o << "def STW" << vectorLen << "mr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "F32Regs:$data),"
-      << "\"\", [(store V" << vectorLen << "F32Regs:$data, ADDRrr:$addr)]>;" << std::endl;
+    o << "def STW" << vectorLen << "mr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32FPRegs:$data),"
+      << "\"\", [(store V" << vectorLen << "R32FPRegs:$data, ADDRrr:$addr)]>;" << std::endl;
 
-    o << "def STW" << vectorLen << "mi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "F32Regs:$data),"
-      << "\"\", [(store V" << vectorLen << "F32Regs:$data, ADDRri:$addr)]>;" << std::endl;
+    o << "def STW" << vectorLen << "mi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32FPRegs:$data),"
+      << "\"\", [(store V" << vectorLen << "R32FPRegs:$data, ADDRri:$addr)]>;" << std::endl;
 
     opNames_[op.name() + "vr"] = op.name();
     opNames_[op.name() + "vi"] = op.name();
@@ -1402,17 +1428,17 @@ TDGen::writeVectorLoadDefs(
     std::ostream& o,
     Operation& op, int vectorLen) {
 
-    o << "def LDW" << vectorLen << "vr : InstTCE<(outs V" << vectorLen << "I32Regs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "I32Regs:$data, (load ADDRrr:$addr))]>;" << std::endl;
+    o << "def LDW" << vectorLen << "vr : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMrr:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (load ADDRrr:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "vi : InstTCE<(outs V" << vectorLen << "I32Regs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "I32Regs:$data, (load ADDRri:$addr))]>;" << std::endl;
+    o << "def LDW" << vectorLen << "vi : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMri:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (load ADDRri:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "mr : InstTCE<(outs V" << vectorLen << "F32Regs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "F32Regs:$data, (load ADDRrr:$addr))]>;" << std::endl;
+    o << "def LDW" << vectorLen << "mr : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMrr:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (load ADDRrr:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "mi : InstTCE<(outs V" << vectorLen << "F32Regs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "F32Regs:$data, (load ADDRri:$addr))]>;" << std::endl;
+    o << "def LDW" << vectorLen << "mi : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMri:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (load ADDRri:$addr))]>;" << std::endl;
 
     opNames_[op.name() + "vr"] = op.name();
     opNames_[op.name() + "vi"] = op.name();
@@ -2334,11 +2360,11 @@ TDGen::operandToString(
         case 'b':
             return "R1Regs:$op" + Conversion::toString(idx);
         case 'v':
-            return "V2I32Regs:$op" + Conversion::toString(idx);
+            return "V2R32IRegs:$op" + Conversion::toString(idx);
         case 'w':
-            return "V4I32Regs:$op" + Conversion::toString(idx);
+            return "V4R32IRegs:$op" + Conversion::toString(idx);
         case 'x':
-            return "V8I32Regs:$op" + Conversion::toString(idx);
+            return "V8R32IRegs:$op" + Conversion::toString(idx);
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";
@@ -2363,11 +2389,11 @@ TDGen::operandToString(
         case 'f':
             return "R32FPRegs:$op" + Conversion::toString(idx);
         case 'm':
-            return "V2F32Regs:$op" + Conversion::toString(idx);
+            return "V2R32FPRegs:$op" + Conversion::toString(idx);
         case 'n':
-            return "V4F32Regs:$op" + Conversion::toString(idx);
+            return "V4R32FPRegs:$op" + Conversion::toString(idx);
         case 'o':
-            return "V8F32Regs:$op" + Conversion::toString(idx);
+            return "V8R32FPRegs:$op" + Conversion::toString(idx);
 
         default:
             std::string msg = 
@@ -2515,21 +2541,21 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     }
     
     if (opNames_.find("STW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == TCE::V2R32IRegsRegisterClass) return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == TCE::V2R32FPRegsRegisterClass) return TCE::STW2mr;"
            << std::endl;
     }
     if (opNames_.find("STW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::STW4vr;"
+        os << "\tif (rc == TCE::V4R32IRegsRegisterClass) return TCE::STW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::STW4mr;"
+           << "\tif (rc == TCE::V4R32FPRegsRegisterClass) return TCE::STW4mr;"
            << std::endl;
     }
     if (opNames_.find("STW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::STW8vr;"
+        os << "\tif (rc == TCE::V8R32IRegsRegisterClass) return TCE::STW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::STW8mr;"
+           << "\tif (rc == TCE::V8R32FPRegsRegisterClass) return TCE::STW8mr;"
            << std::endl;
     }
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
@@ -2564,15 +2590,15 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     }
 
     if (opNames_.find("LDW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2I32RegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == TCE::V2R32IRegsRegisterClass) return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2F32RegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == TCE::V2R32FPRegsRegisterClass) return TCE::LDW2mr;"
            << std::endl;
     }
     if (opNames_.find("LDW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4I32RegsRegisterClass) return TCE::LDW4vr;"
+        os << "\tif (rc == TCE::V4R32IRegsRegisterClass) return TCE::LDW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4F32RegsRegisterClass) return TCE::LDW4mr;"
+           << "\tif (rc == TCE::V4R32FPRegsRegisterClass) return TCE::LDW4mr;"
            << std::endl;
     }
     if (opNames_.find("LDW8vr") != opNames_.end()) {

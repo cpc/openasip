@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
 #include <assert.h>
@@ -487,12 +487,12 @@ TCETargetLowering::TCETargetLowering(
         switch (tm_.maxVectorSize()) {
         default: // more than 8? 
         case 8:
-            addRegisterClass(MVT::v8i32, TCE::V8I32RegsRegisterClass);
-            addRegisterClass(MVT::v8f32, TCE::V8F32RegsRegisterClass);
+            addRegisterClass(MVT::v8i32, TCE::V8R32IRegsRegisterClass);
+            addRegisterClass(MVT::v8f32, TCE::V8R32FPRegsRegisterClass);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v8i32, Expand);
 //            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
@@ -512,19 +512,19 @@ TCETargetLowering::TCETargetLowering(
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v8f32, Expand);
 //            setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
 
         case 4:
-            addRegisterClass(MVT::v4i32, TCE::V4I32RegsRegisterClass);
-            addRegisterClass(MVT::v4f32, TCE::V4F32RegsRegisterClass);
+            addRegisterClass(MVT::v4i32, TCE::V4R32IRegsRegisterClass);
+            addRegisterClass(MVT::v4f32, TCE::V4R32FPRegsRegisterClass);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4i32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v4i32, Expand);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
@@ -534,20 +534,20 @@ TCETargetLowering::TCETargetLowering(
             setTruncStoreAction(MVT::v4i32, MVT::v4i16, Expand);
 
             // TODO: the expanded code is suboptimal for subvectors
-            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4f32, Expand);
+            setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4f32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v4f32, Expand);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4f32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
 
         case 2:
-            addRegisterClass(MVT::v2i32, TCE::V2I32RegsRegisterClass);
-            addRegisterClass(MVT::v2f32, TCE::V2F32RegsRegisterClass);
+            addRegisterClass(MVT::v2i32, TCE::V2R32IRegsRegisterClass);
+            addRegisterClass(MVT::v2f32, TCE::V2R32FPRegsRegisterClass);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2i32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v2i32, Expand);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
@@ -558,16 +558,11 @@ TCETargetLowering::TCETargetLowering(
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Expand);
-            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Expand);
+            setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::CONCAT_VECTORS, MVT::v2f32, Expand);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Expand);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
-#if 0
-            setOperationAction(ISD::ADD, MVT::v2f32, Expand);
-            setOperationAction(ISD::ADD, MVT::v2i32, Expand);
-            setOperationAction(ISD::MUL, MVT::v2i32, Expand);
-#endif
         case 1:
             break;
         }
