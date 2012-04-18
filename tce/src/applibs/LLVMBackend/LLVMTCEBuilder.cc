@@ -1790,7 +1790,14 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-    assert(mi->getNumOperands() == 2); // src, dst
+    if (mi->getNumOperands() > 2) {
+        for (int i = 2; i < mi->getNumOperands(); i++) {
+            assert(mi->getOperand(i).isImplicit());
+        }
+    }
+
+    assert(mi->getNumOperands() >= 2); // src, dst
+
     const MachineOperand& dst = mi->getOperand(0);
     const MachineOperand& src = mi->getOperand(1);
     TTAProgram::Move* move = createMove(src, dst);
@@ -2099,11 +2106,16 @@ LLVMTCEBuilder::emitInlineAsm(
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
         if (mo.isImm() || mo.isGlobal() || mo.isUse()) {
+            // implicit usage of whole vector when one element used.
             if (useOps.empty()) {
+                // ignore implicit defs that are too many.
+                if (mo.isImplicit()) {
+                    continue;
+                }
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
                           << "operation '" << opName << "'." << std::endl;
-
+                mi->dump();
                 assert(false);
             }
             src = createTerminal(mo);

@@ -211,8 +211,6 @@ GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
 bool
 GeneratedTCEPlugin::isExtractElement(unsigned opc) const {
     switch (opc) {
-    case TCE::EXTRACT2rvi:
-    case TCE::EXTRACT2fmi:
     case TCE::EXTRACT4rvi:
     case TCE::EXTRACT4fmi:
     case TCE::EXTRACT8rvi:
@@ -291,8 +289,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
 
-    if (opc == TCE::EXTRACT2rvi) return "_EXTRACT_2";
-    if (opc == TCE::EXTRACT2fmi) return "_EXTRACT_2";
     if (opc == TCE::BUILDV2vrr) return "_BUILD_2";
     if (opc == TCE::BUILDV2mff) return "_BUILD_2";
     if (opc == TCE::BUILDV2vii) return "_BUILD_2";

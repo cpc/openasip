@@ -3,6 +3,7 @@
 //
 // Author: Veli-Pekka Jääskeläinen 2007 (vjaaskel@cs.tut.fi)
 // Author: Mikael Lepistö 2009 (mikael.lepisto@tut.fi)
+// Author: Heikki Kultala 2012 (heikki.kultala@tut.fi)
 //
 
 
@@ -319,15 +320,39 @@ def : Pat<(i1 (seteq R1Regs:$op1, R1Regs:$op2)), (XORbbj (XORbbb R1Regs:$op1, R1
 //def : Pat<(i1 (setne (trunc R32IRegs:$op1), R1Regs:$op2)), (XORrb R1Regs:$op1, R1Regs:$op2)>;
 //def : Pat<(i1 (seteq (trunc R1Regs:$op1), R1Regs:$op2)), (XORbj (XORrb R32IRegs:$op1, R1Regs:$op2), 1)>;
 
+// vector extract is done by just using the scalar subregister directly.
+def : Pat<(i32 (vector_extract (v2i32 V2I32Regs:$op1), 0)),
+        (i32 (EXTRACT_SUBREG (v2i32 V2I32Regs:$op1), lane0))>;
+def : Pat<(i32 (vector_extract (v2i32 V2I32Regs:$op1), (i32 1))),
+        (i32 (EXTRACT_SUBREG (v2i32 V2I32Regs:$op1), lane1))>;
+def : Pat<(f32 (vector_extract (v2f32 V2F32Regs:$op1), (i32 0))),
+        (f32 (EXTRACT_SUBREG (v2f32 V2F32Regs:$op1), lane0))>;
+def : Pat<(f32 (vector_extract (v2f32 V2F32Regs:$op1), (i32 1))),
+        (f32 (EXTRACT_SUBREG (v2f32 V2F32Regs:$op1), lane1))>;
 
-// vector extracts and inserts
-def EXTRACT2rvi : InstTCE<(outs R32IRegs:$res), (ins V2I32Regs:$op1, i32imm:$index), "", [(set R32IRegs:$res, (vector_extract V2I32Regs:$op1, (i32 imm:$index)))]>;
-def EXTRACT2fmi : InstTCE<(outs R32FPRegs:$res), (ins V2F32Regs:$op1, i32imm:$index), "", [(set R32FPRegs:$res, (vector_extract V2F32Regs:$op1, (i32 imm:$index)))]>;
+// subvector extracts. not yet used for anything.
+def : Pat<(v2i32 (extract_subvector (v4i32 V4I32Regs:$op1), (i32 0))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 V4I32Regs:$op1), subvector2_0))>;
+def : Pat<(v2i32 (extract_subvector (v4i32 V4I32Regs:$op1), (i32 2))),
+        (v2i32 (EXTRACT_SUBREG (v4i32 V4I32Regs:$op1), subvector2_2))>;
+def : Pat<(v2f32 (extract_subvector (v4f32 V4F32Regs:$op1), (i32 0))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 V4F32Regs:$op1), subvector2_0))>;
+def : Pat<(v2f32 (extract_subvector (v4f32 V4F32Regs:$op1), (i32 2))),
+        (v2f32 (EXTRACT_SUBREG (v4f32 V4F32Regs:$op1), subvector2_2))>;
 
+def : Pat<(v4i32 (extract_subvector (v8i32 V8I32Regs:$op1), (i32 0))),
+        (v4i32 (EXTRACT_SUBREG (v8i32 V8I32Regs:$op1), subvector4_0))>;
+def : Pat<(v4i32 (extract_subvector (v8i32 V8I32Regs:$op1), (i32 4))),
+        (v4i32 (EXTRACT_SUBREG (v8i32 V8I32Regs:$op1), subvector4_4))>;
+def : Pat<(v4f32 (extract_subvector (v8f32 V8F32Regs:$op1), (i32 0))),
+        (v4f32 (EXTRACT_SUBREG (v8f32 V8F32Regs:$op1), subvector4_0))>;
+def : Pat<(v4f32 (extract_subvector (v8f32 V8F32Regs:$op1), (i32 4))),
+        (v4f32 (EXTRACT_SUBREG (v8f32 V8F32Regs:$op1), subvector4_4))>;
 
 //def BROADCASTV2vrr : InstTCE<(outs V2I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e1),"",
 //[(set V2I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e1))]>;
 
+// these breaks when this becomes xchg op
 def BUILDV2vrr : InstTCE<(outs V2I32Regs:$res), (ins R32IRegs:$e1, R32IRegs:$e2),"",
 [(set V2I32Regs:$res, (build_vector R32IRegs:$e1, R32IRegs:$e2))]>;
 
