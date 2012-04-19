@@ -242,29 +242,36 @@ namespace llvm {
             std::string name;
             //llvm::Constant* initializer;
             unsigned address;
+            unsigned addressSpaceId;
             unsigned alignment;
             unsigned size;
             bool initialize;
         };
+
+        typedef std::map<TTAMachine::AddressSpace*, TTAProgram::DataMemory*>
+        DataMemIndex;
+
         void initMembers();
 
         void emitDataDef(const DataDef& def);
 
         unsigned createDataDefinition(
-            unsigned& addr,  const Constant* cv);
+            int addressSpaceId, unsigned& addr,  const Constant* cv);
 
         void createIntDataDefinition(
-            unsigned& addr, const llvm::ConstantInt* ci,
+            int addressSpaceId, unsigned& addr, const llvm::ConstantInt* ci,
             bool isPointer = false);
 
         void createFPDataDefinition(
-           unsigned& addr, const llvm::ConstantFP* cfp);
+            int addressSpaceId, unsigned& addr, const llvm::ConstantFP* cfp);
 
         void createGlobalValueDataDefinition(
-            unsigned& addr, const GlobalValue* gv, int offset = 0);
+            int addressSpaceId, unsigned& addr, const GlobalValue* gv, 
+            int offset = 0);
 
         void createExprDataDefinition(
-            unsigned& addr, const ConstantExpr* gv, int offset = 0);
+            int addressSpaceId, unsigned& addr, const ConstantExpr* gv, 
+            int offset = 0);
 
         TTAProgram::Terminal* createAddrTerminal(
             const MachineOperand& base, const MachineOperand& offset);
@@ -342,15 +349,21 @@ namespace llvm {
         
         bool isBaseOffsetMemOperation(const Operation& operation) const;
 
-         // Create MoveNodes before calling DDGBuilder.
-         virtual void createMoveNode(
-         	ProgramOperationPtr& po,
-             TTAProgram::Move& m,
-             bool isDestination) {}
-        int addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
+        // Create MoveNodes before calling DDGBuilder.
+        virtual void createMoveNode(
+            ProgramOperationPtr& po,
+            TTAProgram::Move& m,
+            bool isDestination) {}
+
+        unsigned addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
+        TTAMachine::AddressSpace& addressSpaceById(unsigned id);
+        unsigned& dataEnd(TTAMachine::AddressSpace& aSpace);
 
         void addCandidateLSUAnnotations(
-            int asNum, TTAProgram::Move* move);
+            unsigned asNum, TTAProgram::Move* move);
+
+        TTAProgram::DataMemory&
+        dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace);
 
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
@@ -363,14 +376,18 @@ namespace llvm {
         TTAMachine::AddressSpace* instrAddressSpace_;
 
         /// The default data memory address space (address space 0).
-        TTAMachine::AddressSpace* dataAddressSpace_;
+        TTAMachine::AddressSpace* defaultDataAddressSpace_;
 
         /// Set to true in case this machine has more than one data
         /// address spaces.
         bool multiDataMemMachine_;
 
+#if 0
         /// Data memory initializations.
         TTAProgram::DataMemory* dmem_;
+#endif
+        DataMemIndex dmemIndex_;
+        
 
         /// Data definitions.
         std::vector<DataDef> data_;
@@ -401,7 +418,12 @@ namespace llvm {
         
         std::map<unsigned, unsigned> currentFnCP_;
 
+        /// The first position after the last data in the given address space.
+        std::map<TTAMachine::AddressSpace*, unsigned> dataEnds_;
+
+#if 0        
         unsigned end_;
+#endif
 
         /// set to true in case at least one 'noalias' attribute (from
         /// the use of 'restricted' pointers) has been found

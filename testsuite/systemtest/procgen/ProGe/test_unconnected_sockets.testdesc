@@ -2,7 +2,7 @@
 // file: test_unconnected_sockets.testdesc
 
 // short test description
-$test_description="Testing that unconnected sockets are removed during processor generation"
+$test_description="Testing that unconnected sockets are removed during processor generation";
 // the binary being tested
 $test_bin="./run_test_unconnected_sockets.sh";
 // arguments given to the program

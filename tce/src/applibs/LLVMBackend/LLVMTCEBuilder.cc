@@ -81,6 +81,7 @@
 #include "GlobalScope.hh"
 #include "InstructionReferenceManager.hh"
 #include "HWOperation.hh"
+#include "AssocTools.hh"
 
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>
@@ -149,8 +150,6 @@ LLVMTCEBuilder::initMembers() {
     prog_ = NULL;
     mach_ = NULL; 
     mang_ = NULL; 
-    dmem_ = NULL; 
-    end_ = 0;
     noAliasFound_ = false; 
     multiAddrSpacesFound_ = false;
     multiDataMemMachine_ = false;
@@ -230,20 +229,20 @@ LLVMTCEBuilder::initDataSections() {
     for (int i = 0; i < nav.count(); i++) {
         if (nav.item(i) != instrAddressSpace_) {
             if (!multiDataMemMachine_ || addressSpaceId(*nav.item(i)) == 0) {
-                dataAddressSpace_ = nav.item(i);
+                defaultDataAddressSpace_ = nav.item(i);
                 break;
             }
         }
     }
 
-    if (dataAddressSpace_ == NULL) {
+    if (defaultDataAddressSpace_ == NULL) {
         std::cerr << "ERROR: Unable to determine the default data address space."
                   << std::endl;
         abort();
     } else {
         if (Application::verboseLevel() > 0 && multiDataMemMachine_) {
             Application::logStream()
-                << "using '" << dataAddressSpace_->name() 
+                << "using '" << defaultDataAddressSpace_->name() 
                 << "' as the default data address space" 
                 << std::endl;
         }
@@ -256,6 +255,8 @@ LLVMTCEBuilder::initDataSections() {
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
+
+#if 0
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
 
@@ -268,6 +269,7 @@ LLVMTCEBuilder::initDataSections() {
     if (end_ == 0) {
         end_ += 4;
     }
+#endif
 
     const TargetData* td = tm_->getTargetData();
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
@@ -303,6 +305,8 @@ LLVMTCEBuilder::initDataSections() {
         DataDef def;
         def.name = name;
         def.address = 0;
+        def.addressSpaceId = 
+            cast<PointerType>(gv.getType())->getAddressSpace();
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
@@ -324,56 +328,66 @@ LLVMTCEBuilder::initDataSections() {
     // Map initialized data to memory.
     for (unsigned i = 0; i < data_.size(); i++) {
 
+        TTAMachine::AddressSpace& aSpace = 
+            addressSpaceById(data_[i].addressSpaceId);
+
+        unsigned& dataEndPos = dataEnd(aSpace);
+        TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
         // padding
         unsigned pad = 0;
-        while ((end_ + pad) % data_[i].alignment != 0) pad++;
+        while ((dataEndPos + pad) % data_[i].alignment != 0) pad++;
         if (pad > 0) {
             std::vector<MinimumAddressableUnit> zeros(pad, 0);
-            TTAProgram::Address address(end_, *dataAddressSpace_);
-            dmem_->addDataDefinition(
+            TTAProgram::Address address(dataEndPos, aSpace);
+            dmem.addDataDefinition(
                 new TTAProgram::DataDefinition(address, zeros));
-
-            end_ += pad;
+            dataEndPos += pad;
         }
 
-        dataLabels_[data_[i].name] = end_;
-        data_[i].address = end_;
+        dataLabels_[data_[i].name] = dataEndPos;
+        data_[i].address = dataEndPos;
 
         // Add data label.
-        TTAProgram::Address addr(end_, *dataAddressSpace_);
+        TTAProgram::Address addr(dataEndPos, aSpace);
         TTAProgram::DataLabel* label =
             new TTAProgram::DataLabel(data_[i].name, addr, gscope);
 
         gscope.addDataLabel(label);
 
-
-        end_ += data_[i].size;
+        dataEndPos += data_[i].size;
     }
 
     // Map uninitialized data to memory.
     for (unsigned i = 0; i < udata_.size(); i++) {
 
+        TTAMachine::AddressSpace& aSpace = 
+            addressSpaceById(udata_[i].addressSpaceId);
+
+        unsigned& dataEndPos = dataEnd(aSpace);
+        TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
         // padding
         unsigned pad = 0;
-        while ((end_ + pad) % udata_[i].alignment != 0) pad++;
+        while ((dataEndPos + pad) % udata_[i].alignment != 0) pad++;
         if (pad > 0) {
-            TTAProgram::Address address(end_, *dataAddressSpace_);
-            dmem_->addDataDefinition(
+            TTAProgram::Address address(dataEndPos, aSpace);
+            dmem.addDataDefinition(
                 new TTAProgram::DataDefinition(address, pad));
 
-            end_ += pad;
+            dataEndPos += pad;
         }
 
-        udata_[i].address = end_;
-        dataLabels_[udata_[i].name] = end_;
+        udata_[i].address = dataEndPos;
+        dataLabels_[udata_[i].name] = dataEndPos;
 
         // Add data label.
-        TTAProgram::Address addr(end_, *dataAddressSpace_);
+        TTAProgram::Address addr(dataEndPos, aSpace);
         TTAProgram::DataLabel* label =
             new TTAProgram::DataLabel(udata_[i].name, addr, gscope);
 
         gscope.addDataLabel(label);
-        end_ += udata_[i].size;
+        dataEndPos += udata_[i].size;
     }
 }
 
@@ -399,6 +413,10 @@ LLVMTCEBuilder::doInitialization(Module& m) {
 void
 LLVMTCEBuilder::emitDataDef(const DataDef& def) {
 
+    TTAMachine::AddressSpace& aSpace = 
+        addressSpaceById(def.addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
     if (!def.initialize) {
 
         if (def.address % def.alignment != 0) {
@@ -409,8 +427,8 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
             assert(false);
         }
 
-        TTAProgram::Address addr(def.address, *dataAddressSpace_);
-        dmem_->addDataDefinition(
+        TTAProgram::Address addr(def.address, aSpace);
+        dmem.addDataDefinition(
             new TTAProgram::DataDefinition(addr, def.size));
 
         return;
@@ -435,7 +453,7 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
 #ifndef NDEBUG
         unsigned paddedAddr =
 #endif
-        createDataDefinition(addr, var->getInitializer());
+        createDataDefinition(def.addressSpaceId, addr, var->getInitializer());
         assert(paddedAddr == def.address);
     }
 }
@@ -449,7 +467,7 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
  */
 unsigned
 LLVMTCEBuilder::createDataDefinition(
-    unsigned& addr, const Constant* cv) {
+    int addressSpaceId, unsigned& addr, const Constant* cv) {
 
     const TargetData* td = tm_->getTargetData();
     unsigned sz = td->getTypeStoreSize(cv->getType());
@@ -458,11 +476,15 @@ LLVMTCEBuilder::createDataDefinition(
     unsigned pad = 0;
     while ((addr + pad) % align != 0) pad++;
 
+    TTAMachine::AddressSpace& aSpace = 
+        addressSpaceById(addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
     // Pad with zeros to correct alignment.
     if (pad > 0) {
         std::vector<MinimumAddressableUnit> zeros(pad, 0);
-        TTAProgram::Address address(addr, *dataAddressSpace_);
-        dmem_->addDataDefinition(
+        TTAProgram::Address address(addr, aSpace);
+        dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, zeros));
 
         addr += pad;
@@ -482,8 +504,8 @@ LLVMTCEBuilder::createDataDefinition(
             maus.push_back(0);
         }
 
-        TTAProgram::Address address(addr, *dataAddressSpace_);
-        dmem_->addDataDefinition(
+        TTAProgram::Address address(addr, aSpace);
+        dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, maus));
 
         addr += sz;
@@ -499,32 +521,33 @@ LLVMTCEBuilder::createDataDefinition(
 
 #ifndef NDEBUG
             unsigned dataAddr = createDataDefinition(
-		addr, cast<Constant>(cv->getOperand(i)));
+                addressSpaceId, addr, cast<Constant>(cv->getOperand(i)));
             // First element of structured data should be in the paddedAddr.
             assert (i > 0 || dataAddr == paddedAddr);
 #else
-            createDataDefinition(addr, cast<Constant>(cv->getOperand(i)));
+            createDataDefinition(
+                addressSpaceId, addr, cast<Constant>(cv->getOperand(i)));
 #endif
         }
     } else if (const ConstantInt* ci = dyn_cast<ConstantInt>(cv)) {
-        createIntDataDefinition(addr, ci);
+        createIntDataDefinition(addressSpaceId, addr, ci);
     } else if (const ConstantFP* cfp = dyn_cast<ConstantFP>(cv)) {
-        createFPDataDefinition(addr, cfp);
+        createFPDataDefinition(addressSpaceId, addr, cfp);
     } else if (const GlobalValue* gv = dyn_cast<GlobalValue>(cv)) {
-        createGlobalValueDataDefinition(addr, gv);
+        createGlobalValueDataDefinition(addressSpaceId, addr, gv);
     } else if (const ConstantExpr* ce = dyn_cast<ConstantExpr>(cv)) {
-        createExprDataDefinition(addr, ce);
+        createExprDataDefinition(addressSpaceId, addr, ce);
 #ifndef LLVM_3_0
     } else if (const ConstantDataArray* cda = dyn_cast<ConstantDataArray>(cv)){
 	for (unsigned int i = 0; i < cda->getNumElements(); i++) {
-	    createDataDefinition(addr, cda->getElementAsConstant(i));
+	    createDataDefinition(
+            addressSpaceId, addr, cda->getElementAsConstant(i));
 	}
 #endif
     } else {
-	cv->dump();
+        cv->dump();
         abortWithError("Unknown cv type.");
     }
-
     return paddedAddr;
 }
 
@@ -537,7 +560,8 @@ LLVMTCEBuilder::createDataDefinition(
  */
 void
 LLVMTCEBuilder::createIntDataDefinition(
-    unsigned& addr, const ConstantInt* ci, bool isPointer) {
+    int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
+    bool isPointer) {
 
     assert(addr % (tm_->getTargetData()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
@@ -555,7 +579,11 @@ LLVMTCEBuilder::createIntDataDefinition(
 //        std::cerr << "## int with size " << sz << "!" << std::endl;
     }
 
-    TTAProgram::Address start(addr, *dataAddressSpace_);
+    TTAMachine::AddressSpace& aSpace = 
+        addressSpaceById(addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
+    TTAProgram::Address start(addr, aSpace);
 
     // FIXME: Assuming 8bit MAU.
     union {
@@ -573,7 +601,7 @@ LLVMTCEBuilder::createIntDataDefinition(
         new TTAProgram::DataDefinition(start, maus);
 
     addr += def->size();
-    dmem_->addDataDefinition(def);
+    dmem.addDataDefinition(def);
 }
 
 
@@ -582,12 +610,16 @@ LLVMTCEBuilder::createIntDataDefinition(
  */
 void
 LLVMTCEBuilder::createFPDataDefinition(
-    unsigned& addr, const ConstantFP* cfp) {
+    int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
     assert(addr % (tm_->getTargetData()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
 
-    TTAProgram::Address start(addr, *dataAddressSpace_);
+    TTAMachine::AddressSpace& aSpace = 
+        addressSpaceById(addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
+    TTAProgram::Address start(addr, aSpace);
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
@@ -626,7 +658,7 @@ LLVMTCEBuilder::createFPDataDefinition(
         assert(false && "Unknown floating point typeID!");
     }
     addr += def->size();
-    dmem_->addDataDefinition(def);
+    dmem.addDataDefinition(def);
 }
 
 
@@ -638,7 +670,7 @@ LLVMTCEBuilder::createFPDataDefinition(
  */
 void
 LLVMTCEBuilder::createGlobalValueDataDefinition(
-    unsigned& addr, const GlobalValue* gv, int offset) {
+    int addressSpaceId, unsigned& addr, const GlobalValue* gv, int offset) {
 
     assert(addr % POINTER_SIZE == 0 &&
            "Invalid alignment for gv reference!");
@@ -653,7 +685,11 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
     mang_->getNameWithPrefix(Buffer, gv, false);
     TCEString label(Buffer.c_str());
 
-    TTAProgram::Address start(addr, *dataAddressSpace_);
+    TTAMachine::AddressSpace& aSpace = 
+        addressSpaceById(addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
+    TTAProgram::Address start(addr, aSpace);
 
     TTAProgram::DataDefinition* def = NULL;
     if (codeLabels_.find(label) != codeLabels_.end()) {
@@ -668,14 +704,14 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
         def = new TTAProgram::DataInstructionAddressDef(start, sz, ref);
     } else if (dataLabels_.find(label) != dataLabels_.end()) {
         TTAProgram::Address ref(
-            (dataLabels_[label] + offset), *dataAddressSpace_);
+            (dataLabels_[label] + offset), aSpace);
 
         def = new TTAProgram::DataAddressDef(start, sz, ref);
     } else {
         assert(false && "Global value label not found!");
     }
     addr += def->size();
-    dmem_->addDataDefinition(def);
+    dmem.addDataDefinition(def);
 }
 
 /**
@@ -687,7 +723,7 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
  */
 void
 LLVMTCEBuilder::createExprDataDefinition(
-    unsigned& addr, const ConstantExpr* ce, int offset) {
+    int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
     assert(addr % (tm_->getTargetData()->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");
@@ -703,41 +739,47 @@ LLVMTCEBuilder::createExprDataDefinition(
             ptr->getType(), idxVec);
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
-            createGlobalValueDataDefinition(addr, gv, ptrOffset);
+            createGlobalValueDataDefinition(
+                addressSpaceId, addr, gv, ptrOffset);
         } else if (const ConstantExpr* ce =
                    dyn_cast<ConstantExpr>(ptr)) {
-            createExprDataDefinition(addr, ce, ptrOffset);
+            createExprDataDefinition(
+                addressSpaceId, addr, ce, ptrOffset);
         } else {
             assert(false && "Unsuported getElementPtr target!");
         }
     } else if (opcode == Instruction::BitCast) {
         const Constant* ptr = ce->getOperand(0);
         if (const ConstantExpr* ce  = dyn_cast<ConstantExpr>(ptr)) {
-            createExprDataDefinition(addr, ce, offset);
+            createExprDataDefinition(
+                addressSpaceId, addr, ce, offset);
         } else if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
-            createGlobalValueDataDefinition(addr, gv, offset);
+            createGlobalValueDataDefinition(
+                addressSpaceId, addr, gv, offset);
         } else {
             assert(offset == 0);
 #ifndef NDEBUG
-            unsigned dataAddr = createDataDefinition(addr, ptr);
+            unsigned dataAddr = 
+                createDataDefinition(
+                    addressSpaceId, addr, ptr);
             // Data should have been padded already:
             assert(dataAddr == addr);
 #else
-            createDataDefinition(addr, ptr);
+            createDataDefinition(addressSpaceId, addr, ptr);
 #endif
         }
     } else if (opcode == Instruction::IntToPtr) {
         assert(offset == 0);
         const ConstantInt* ci = dyn_cast<ConstantInt>(ce->getOperand(0));
         assert(ci != NULL);
-        createIntDataDefinition(addr, ci, true);
+        createIntDataDefinition(addressSpaceId, addr, ci, true);
     } else if (opcode == Instruction::PtrToInt) {
         assert(offset == 0);
         // Data should have been padded already:
 #ifndef NDEBUG
         unsigned dataAddr = 
 #endif
-        createDataDefinition(addr, ce->getOperand(0));
+        createDataDefinition(addressSpaceId, addr, ce->getOperand(0));
         assert(dataAddr == addr);
     } else if (opcode == Instruction::Add) {
         assert(false && "NOT IMPLEMENTED");
@@ -907,16 +949,22 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
         emitDataDef(udata_[i]);
     }
 
-    // Create new _end symbol at the end of the data memory definitions.
+    TTAMachine::AddressSpace& aSpace = addressSpaceById(0);  
+    unsigned& dataEndPos = dataEnd(aSpace);
+
+    // Create new _end symbol at the end of the data memory definitions of
+    // the default address space. This is used by malloc() to determine the
+    // beginning of the heap.
     DataDef def;
     def.name = END_SYMBOL_NAME;
-    def.address = end_;
+    def.address = dataEndPos;
+    def.addressSpaceId = 0;
     def.alignment = 1;
     def.size = 1;
     def.initialize = false;
     emitDataDef(def);
 
-    TTAProgram::Address endAddr(end_, *dataAddressSpace_);
+    TTAProgram::Address endAddr(dataEndPos, aSpace);
     TTAProgram::DataLabel* label = new TTAProgram::DataLabel(
         END_SYMBOL_NAME, endAddr, prog_->globalScope());
 
@@ -926,15 +974,18 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
     unsigned i = 0;
     for (; i < endReferences_.size(); i++) {
         SimValue endLoc(32);
-        endLoc = end_;
+        endLoc = dataEndPos;
         TTAProgram::TerminalAddress* ea =
-            new TTAProgram::TerminalAddress(endLoc, *dataAddressSpace_);
+            new TTAProgram::TerminalAddress(endLoc, aSpace);
 
         endReferences_[i]->setSource(ea);
     }
 
-    prog_->addDataMemory(dmem_);
-
+    for (DataMemIndex::const_iterator i = dmemIndex_.begin(); 
+         i != dmemIndex_.end(); ++i) {
+        prog_->addDataMemory((*i).second);
+    }
+    
     // Fix references to basic blocks.
     std::map<TTAProgram::TerminalInstructionAddress*,
         std::string>::iterator mbbRefIter =
@@ -993,6 +1044,7 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
             prog_->instructionVector();
         for (TTAProgram::Program::InstructionVector::const_iterator i = 
                  instrs.begin(); i != instrs.end(); ++i) {
+            if ((*i)->moveCount() == 0) continue;
             TTAProgram::Move& m = (*i)->move(0);
             TTAProgram::Terminal& t = m.destination();
             if (t.isFUPort() && !t.isRA() &&
@@ -1002,7 +1054,7 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
                 std::cerr
                     << "The program refers to multiple data address spaces, "
                     << "the machine contains multiple data address spaces and "
-                    << "ambigious memory accessing move '" << m.toString()
+                    << "an ambigious memory accessing move '" << m.toString()
                     << "' found." << std::endl;
                 abort();
             }
@@ -1694,15 +1746,21 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         ref << mo.getIndex();
         return createSymbolReference(ref);    
     } else if (mo.isGlobal()) {
+        unsigned aSpaceId = 
+            cast<PointerType>(mo.getGlobal()->getType())->getAddressSpace();
+
+        TTAMachine::AddressSpace& aSpace = 
+            addressSpaceById(aSpaceId);
+
         SmallString<256> Buffer;
         mang_->getNameWithPrefix(Buffer, mo.getGlobal(), false);
         TCEString name(Buffer.c_str());
+
         if (name == END_SYMBOL_NAME) {
             return createSymbolReference(name);
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
             SimValue address(dataLabels_[name] + mo.getOffset(), 32);
-            return new TTAProgram::TerminalAddress(
-                address, *dataAddressSpace_);
+            return new TTAProgram::TerminalAddress(address, aSpace);
 
         } else {
             // TODO: this lacks offset??
@@ -1803,7 +1861,7 @@ LLVMTCEBuilder::createSymbolReference(const TCEString& name) {
 /**
  * Emits data definitions for a function constant pool.
  *
- * The constant pool is appended to the end of the data memory.
+ * The constant pool is appended to the end of the default data memory.
  *
  * @param mcp Constant pool to emit.
  */
@@ -1814,9 +1872,11 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
 
     const std::vector<MachineConstantPoolEntry>& cp = mcp.getConstants();
 
+    unsigned& dataEndPos = dataEnd(addressSpaceById(0));      
     for (unsigned i = 0, e = cp.size(); i != e; ++i) {
         assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
-        currentFnCP_[i] = createDataDefinition(end_, cp[i].Val.ConstVal);
+        currentFnCP_[i] = 
+            createDataDefinition(0, dataEndPos, cp[i].Val.ConstVal);
     }
 }
 
@@ -2057,7 +2117,7 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
 
-    unsigned ival = (dataAddressSpace_->end() & 0xfffffff8);
+    unsigned ival = (addressSpaceById(0).end() & 0xfffffff8);
     SimValue val(ival, 32);
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
@@ -3152,8 +3212,10 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
 /**
  * Returns the numerical id (corresponding to the one used in the 
  * address_space attribute) of the given ADF address space.
+ *
+ * @todo In the future, the aSpace can map to multiple address space ids.
  */
-int 
+unsigned
 LLVMTCEBuilder::addressSpaceId(TTAMachine::AddressSpace& aSpace) const {
     std::string asName = aSpace.name();
     std::string::iterator iter;
@@ -3167,12 +3229,69 @@ LLVMTCEBuilder::addressSpaceId(TTAMachine::AddressSpace& aSpace) const {
 }
 
 /**
+ * Returns the numerical id (corresponding to the one used in the 
+ * address_space attribute) of the given ADF address space.
+ *
+ * @todo In the future, the aSpace can map to multiple address space ids.
+ */
+TTAMachine::AddressSpace&
+LLVMTCEBuilder::addressSpaceById(unsigned id) {
+
+    const TTAMachine::Machine::AddressSpaceNavigator asNav =
+        mach_->addressSpaceNavigator();
+    if (!multiDataMemMachine_)
+        return *defaultDataAddressSpace_;
+    for (int i = 0; i < asNav.count(); i++) {
+        TTAMachine::AddressSpace& aSpace = *asNav.item(i);
+        if (addressSpaceId(aSpace) == id)
+            return aSpace;
+    }
+    Application::logStream()
+        << "Address space '" << id << "' not found." << std::endl;
+    abort();
+}
+
+
+/**
+ * Returns the position after the highest written data symbol for the
+ * given address space.
+ */
+unsigned&
+LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
+    if (!AssocTools::containsKey(dataEnds_, &aSpace)) {
+        unsigned end = aSpace.start();
+        /* Avoid placing data to address 0, as it may break some null pointer
+           tests. Waste a valuable word of memory. Add a dummy word to prevent 
+           writing bytes to 1,2,3 addresses and thus then reading valid data 
+           from 0. */
+        if (end == 0) {
+            end = 4;
+        }
+        dataEnds_[&aSpace] = end;
+
+    }
+    return dataEnds_[&aSpace];   
+}
+
+/**
+ * Returns the "layout array" for the data memory of the given address
+ * space.
+ */
+TTAProgram::DataMemory&
+LLVMTCEBuilder::dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace) {
+    if (!AssocTools::containsKey(dmemIndex_, &aSpace)) {
+        dmemIndex_[&aSpace] = new TTAProgram::DataMemory(aSpace);
+    }
+    return *dmemIndex_[&aSpace];
+}
+
+/**
  * Adds annotations to the given move that limit the choice of the
  * load-store unit to only those that support the given address space.
  */
 void 
 LLVMTCEBuilder::addCandidateLSUAnnotations(
-    int asNum, TTAProgram::Move* move) {
+    unsigned asNum, TTAProgram::Move* move) {
 
     bool foundLSU = false;
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
