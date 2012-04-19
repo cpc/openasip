@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of AddressSpace class.
  *
  * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
  * @note rating: red
  */
@@ -39,6 +40,7 @@
 #include "Application.hh"
 #include "Machine.hh"
 #include "ObjectState.hh"
+#include "AssocTools.hh"
 
 using std::string;
 using boost::format;
@@ -50,6 +52,7 @@ const string AddressSpace::OSNAME_ADDRESS_SPACE = "adress_space";
 const string AddressSpace::OSKEY_WIDTH = "width";
 const string AddressSpace::OSKEY_MIN_ADDRESS = "min_a";
 const string AddressSpace::OSKEY_MAX_ADDRESS = "max_a";
+const string AddressSpace::OSKEY_NUMERICAL_ID = "numerical-id";
 
 /**
  * Constructor.
@@ -105,6 +108,24 @@ AddressSpace::AddressSpace(const ObjectState* state, Machine& owner)
     Component(state), width_(0), minAddress_(0), maxAddress_(0) {
 
     loadState(state);
+
+    for (IDSet::const_iterator i = numericalIds_.begin(); 
+         i != numericalIds_.end(); ++i) {
+        unsigned id = (*i);
+        TTAMachine::Machine::AddressSpaceNavigator nav = owner.addressSpaceNavigator();
+        for (int asi = 0; asi < nav.count(); ++asi) {
+            AddressSpace& otherAS = *nav.item(asi);
+            if (otherAS.hasNumericalId(id)) {
+                throw ObjectStateLoadingException(
+                    __FILE__, __LINE__, __func__,
+                    (boost::format(
+                        "Address space '%s' has the same numerical "
+                        "id %d as '%s'.") %
+                     otherAS.name() % id % name()).str());                
+            }
+        }
+    }
+
     try {
         setMachine(owner);
     } catch (ComponentAlreadyExists&) {
@@ -332,10 +353,37 @@ AddressSpace::loadState(const ObjectState* state)
         unsigned int maxAddress = state->unsignedIntAttribute(
             OSKEY_MAX_ADDRESS);
         setAddressBounds(minAddress, maxAddress);
+
+        for (int i = 0; i < state->childCount(); i++) {
+            ObjectState* child = state->child(i);
+            if (child->name() == OSKEY_NUMERICAL_ID) {
+                addNumericalId(child->intValue());
+            }
+        }
+
     } catch (Exception& e) {
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName,
                                           e.errorMessage());
     }
 }
+
+/**
+ * Adds a numerical address space id that should be mapped to this
+ * address space.
+ *
+ * Numerical IDs are referred to from programs, i.e., by means of the
+ * __attribute__((address_space(N)). Single ADF address space can map
+ * multiple program address spaces.
+ */
+void
+AddressSpace::addNumericalId(unsigned id) {
+    numericalIds_.insert(id);
+}
+
+bool
+AddressSpace::hasNumericalId(unsigned id) const {
+    return AssocTools::containsKey(numericalIds_, id);
+}
+
 
 }

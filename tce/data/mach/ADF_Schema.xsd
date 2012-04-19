@@ -255,11 +255,15 @@
 <!-- ===== ADDRESS SPACE ================================================== -->
 
 <xs:complexType name="address-space-type">
-    <xs:all>
+    <xs:sequence>
         <xs:element name="width" type="xs:positiveInteger"/>
         <xs:element name="min-address" type="xs:nonNegativeInteger"/>
         <xs:element name="max-address" type="xs:positiveInteger"/>
-    </xs:all>
+        <!-- The numerical id (from C __attribute__((address_space(N)),
+             can be multiple ids. 0 is reserved for the default address space. -->
+        <xs:element name="numerical-id" type="xs:nonNegativeInteger"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
     <xs:attribute name="name" type="attribute-type" use="required"/>
 </xs:complexType>
 

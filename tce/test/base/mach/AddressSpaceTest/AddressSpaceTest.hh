@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * A test suite for AddressSpace.
  *
  * @author Andrea Cilio 2003 (a.cilio-no.spam-et.tudelft.nl)
+ * @author Pekka J‰‰skel‰inen 2010
  */
 
 #ifndef AddressSpaceTest_HH
@@ -184,13 +185,21 @@ AddressSpaceTest::testObjectStateLoadingErrors() {
     Machine mach;
 
     serializer.setSourceFile(INVALID_MIN_ADDRESS);
-    ObjectState* machState = serializer.readState();
+    ObjectState* machState = NULL;
+    machState = serializer.readState();
     TS_ASSERT_THROWS(mach.loadState(machState), ObjectStateLoadingException);
     delete machState;
 
     serializer.setSourceFile(VALID);
-    machState = serializer.readState();
+    CATCH_ANY(machState = serializer.readState());
     TS_ASSERT_THROWS_NOTHING(mach.loadState(machState));
+
+    AddressSpace& as = *mach.addressSpaceNavigator().item(0);
+
+    TS_ASSERT(as.hasNumericalId(0));
+    TS_ASSERT(!as.hasNumericalId(1));
+    TS_ASSERT(as.hasNumericalId(2));
+    
     delete machState;
 }
                              

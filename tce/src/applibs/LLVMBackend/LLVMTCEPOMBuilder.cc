@@ -26,8 +26,8 @@
  *
  * Implementation of LLVMTCEPOMBuilder class.
  *
- * @author Pekka J√§√§skel√§inen 2010-2011
- * @note reting: red
+ * @author Pekka J‰‰skel‰inen 2010-2012
+ * @note rating: red
  */
 #include "LLVMTCEPOMBuilder.hh"
 

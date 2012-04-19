@@ -35,6 +35,7 @@
 #define TTA_ADDRESS_SPACE_HH
 
 #include <string>
+#include <set>
 
 #include "MachinePart.hh"
 
@@ -69,6 +70,9 @@ public:
     virtual void setAddressBounds(unsigned int start, unsigned int end)
         throw (OutOfRange);
 
+    virtual void addNumericalId(unsigned id);
+    virtual bool hasNumericalId(unsigned id) const;
+
     virtual void setMachine(Machine& mach)
         throw (ComponentAlreadyExists);
     virtual void unsetMachine();
@@ -85,14 +89,23 @@ public:
     static const std::string OSKEY_MIN_ADDRESS;
     /// ObjectState attribute key for maximum address.
     static const std::string OSKEY_MAX_ADDRESS;
+    static const std::string OSKEY_SHARED_MEMORY;
+    static const std::string OSKEY_NUMERICAL_ID;
 
 private:
+    typedef std::set<unsigned> IDSet;
     /// Bit width of the minimum addressable word.
     int width_;
     /// Lowest address in the address space.
     unsigned int minAddress_;
     /// Highest address in the address space.
     unsigned int maxAddress_;
+    /// The numerical ids mapped to this address space.
+    IDSet numericalIds_;
+    /// True in case this address space maps to a memory that is shared
+    /// across all the cores in the multicore.
+    bool shared_;
+    
 };
 }
 

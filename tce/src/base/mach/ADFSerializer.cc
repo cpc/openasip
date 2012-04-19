@@ -64,7 +64,6 @@ const string MDF_VERSION_NUMBER = "1.7";
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
 const string ALWAYS_WRITE_BACK_RESULTS = "always-write-back-results";
 const string FUNCTION_UNITS_ORDERED = "fu-ordered";
-
 const string BUS = "bus";
 const string BUS_NAME = "name";
 const string BUS_WIDTH = "width";
@@ -154,6 +153,7 @@ const string AS_NAME = "name";
 const string AS_WIDTH = "width";
 const string AS_MIN_ADDRESS = "min-address";
 const string AS_MAX_ADDRESS = "max-address";
+const string AS_NUMERICAL_ID = "numerical-id";
 
 const string CONTROL_UNIT = "global-control-unit";
 const string CU_NAME = "name";
@@ -811,7 +811,7 @@ ADFSerializer::immediateUnitToMDF(const ObjectState* iuState,
  * AddressSpace::saveState.
  *
  * @param asState Root node of the ObjectState tree created by
- *                AddressSPace::saveState.
+ *                AddressSpace::saveState.
  * @return The newly created ObjectState tree.
  */
 ObjectState*
@@ -837,6 +837,16 @@ ADFSerializer::addressSpaceToMDF(const ObjectState* asState) {
     as->addChild(maxAddress);
     maxAddress->setValue(
         asState->stringAttribute(AddressSpace::OSKEY_MAX_ADDRESS));
+
+    // the numerical ids
+    for (int i = 0; i < asState->childCount(); i++) {
+        ObjectState* child = asState->child(i);
+        if (child->name() == AddressSpace::OSKEY_NUMERICAL_ID) {
+            ObjectState* idObj = new ObjectState(AS_NUMERICAL_ID, as);
+            idObj->setValue(child->intValue());
+            as->addChild(idObj);
+        }
+    }
 
     return as;
 }
@@ -1347,6 +1357,17 @@ ADFSerializer::addressSpaceToMachine(const ObjectState* asState) {
     as->setAttribute(
         AddressSpace::OSKEY_MAX_ADDRESS, maxAddress->stringValue());
 
+    // the numerical ids
+    for (int i = 0; i < asState->childCount(); i++) {
+        ObjectState* child = asState->child(i);
+        if (child->name() == AS_NUMERICAL_ID) {
+            ObjectState* idObj = 
+                new ObjectState(AddressSpace::OSKEY_NUMERICAL_ID, as);
+            idObj->setValue(child->intValue());
+            as->addChild(idObj);
+        }
+    }
+    
     return as;
 }
 

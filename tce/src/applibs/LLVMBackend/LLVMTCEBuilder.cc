@@ -228,7 +228,7 @@ LLVMTCEBuilder::initDataSections() {
 
     for (int i = 0; i < nav.count(); i++) {
         if (nav.item(i) != instrAddressSpace_) {
-            if (!multiDataMemMachine_ || addressSpaceId(*nav.item(i)) == 0) {
+            if (!multiDataMemMachine_ || nav.item(i)->hasNumericalId(0)) {
                 defaultDataAddressSpace_ = nav.item(i);
                 break;
             }
@@ -3209,45 +3209,22 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
     return NULL;
 }
 
-/**
- * Returns the numerical id (corresponding to the one used in the 
- * address_space attribute) of the given ADF address space.
- *
- * @todo In the future, the aSpace can map to multiple address space ids.
- */
-unsigned
-LLVMTCEBuilder::addressSpaceId(TTAMachine::AddressSpace& aSpace) const {
-    std::string asName = aSpace.name();
-    std::string::iterator iter;
-    int num = 0;
-    for(iter = asName.begin(); iter < asName.end(); iter++) {
-        if(isdigit(*iter)) {
-            num = num * 10 + (*iter - '0');
-        } 
-    }
-    return num;
-}
-
-/**
- * Returns the numerical id (corresponding to the one used in the 
- * address_space attribute) of the given ADF address space.
- *
- * @todo In the future, the aSpace can map to multiple address space ids.
- */
 TTAMachine::AddressSpace&
 LLVMTCEBuilder::addressSpaceById(unsigned id) {
 
-    const TTAMachine::Machine::AddressSpaceNavigator asNav =
-        mach_->addressSpaceNavigator();
     if (!multiDataMemMachine_)
         return *defaultDataAddressSpace_;
+
+    const TTAMachine::Machine::AddressSpaceNavigator asNav =
+        mach_->addressSpaceNavigator();
     for (int i = 0; i < asNav.count(); i++) {
         TTAMachine::AddressSpace& aSpace = *asNav.item(i);
-        if (addressSpaceId(aSpace) == id)
+        if (aSpace.hasNumericalId(id))
             return aSpace;
     }
     Application::logStream()
-        << "Address space '" << id << "' not found." << std::endl;
+        << "Address space with numerical id " << id << " not found." 
+        << std::endl;
     abort();
 }
 
@@ -3258,7 +3235,7 @@ LLVMTCEBuilder::addressSpaceById(unsigned id) {
  */
 unsigned&
 LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
-    if (!AssocTools::containsKey(dataEnds_, &aSpace)) {
+    if (!MapTools::containsKey(dataEnds_, &aSpace)) {
         unsigned end = aSpace.start();
         /* Avoid placing data to address 0, as it may break some null pointer
            tests. Waste a valuable word of memory. Add a dummy word to prevent 
@@ -3279,7 +3256,7 @@ LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
  */
 TTAProgram::DataMemory&
 LLVMTCEBuilder::dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace) {
-    if (!AssocTools::containsKey(dmemIndex_, &aSpace)) {
+    if (!MapTools::containsKey(dmemIndex_, &aSpace)) {
         dmemIndex_[&aSpace] = new TTAProgram::DataMemory(aSpace);
     }
     return *dmemIndex_[&aSpace];
@@ -3299,7 +3276,7 @@ LLVMTCEBuilder::addCandidateLSUAnnotations(
     for (int i = 0; i < fuNav.count(); i++) {
         const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
         if (fu.hasAddressSpace()) {
-            if (addressSpaceId(*fu.addressSpace()) == asNum) {
+            if (fu.addressSpace()->hasNumericalId(asNum)) {
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
                     ANN_CANDIDATE_UNIT_DST, fu.name());

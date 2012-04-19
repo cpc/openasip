@@ -6,6 +6,8 @@
     <width>32</width>
     <min-address>20</min-address>
     <max-address>23</max-address>
+    <numerical-id>0</numerical-id>
+    <numerical-id>2</numerical-id>
 </address-space>
 
 </adf>

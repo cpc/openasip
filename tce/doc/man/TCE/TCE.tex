@@ -2387,6 +2387,87 @@ To get some idea of the performance possibilities of the machine,
 one assembly code has 52 instructions and it runs the DCT8x8 in
 3298 cycles.
 
+\section{Using multiple memories from C code}
+
+TCE supports accessing multiple address spaces from C code via the
+\_\_attribute\_\_((address\_space(N)) extension. The numerical id from
+the attribute is used to connect the memory reference to the ADF 
+address space using the XML element \textbf{numerical-id}. There can be
+one or more numerical ids mapped to a single ADF address space.
+
+The following is from an ADF with three separate data address spaces with
+numerical ids 0, 1, and 2. The numerical id 0 is reserved for the default 
+data address space which stores the stack, heap and the global constant 
+data.
+
+\begin{verbatim}
+   <address-space name="data">
+    <width>8</width>
+    <min-address>0</min-address>
+    <max-address>16777215</max-address>
+    <numerical-id>0</numerical-id>
+  </address-space>
+
+  <address-space name="data1">
+    <width>8</width>
+    <min-address>0</min-address>
+    <max-address>65535</max-address>
+    <numerical-id>1</numerical-id>
+  </address-space>
+
+  <address-space name="data2">
+    <width>8</width>
+    <min-address>0</min-address>
+    <max-address>16383</max-address>
+    <numerical-id>2</numerical-id>
+  </address-space>
+\end{verbatim}
+
+The address spaces can be referred to from the C program with code
+like this:
+
+\begin{verbatim}
+#include <stdio.h>
+
+#define ASIZE 4
+
+volatile int space0[ASIZE] __attribute__((address_space(0)));
+volatile int space0_1[ASIZE] __attribute__((address_space(0)));
+volatile int space1[ASIZE] __attribute__((address_space(1)));
+volatile int space1_1[ASIZE] __attribute__((address_space(1)));
+volatile int space2[ASIZE] __attribute__((address_space(2)));
+volatile int space2_1[ASIZE] __attribute__((address_space(2)));
+
+int main() {
+    int i = 0;
+
+    /* The start addresses of the tables should overlap as
+       they are allocated in different address spaces. */
+    iprintf("space0@%x space0_1@%x space1@%x space1_1@%x space2@%x space2_1@%x\n",
+            (unsigned)space0, (unsigned)space0_1, (unsigned)space1, (unsigned)space1_1,
+            (unsigned)space2, (unsigned)space2_1);
+
+    return 0;
+}
+\end{verbatim}
+
+The effect of having multiple disjoint address spaces is visible when 
+simulating the code as the arrays allocated to the different memories share 
+the same addresses but different storage:
+
+\begin{verbatim}
+space0@a84 space0_1@a94 space1@4 space1_1@14 space2@4 space2_1@14
+\end{verbatim}
+
+The space0 array is stored in the default address space. In the beginning
+of the default address space there is usually some global data for 
+some C library functions
+such as the iprintf or the emulation library, thus ending up with the
+start address of 0xa84 for the array0. For the extra address spaces
+1 and 2, the arrays start from 4 which is the first valid storage address in
+those address spaces. Storing data to address 0 is not done to avoid 
+problems with NULL pointers pointing to valid data (in this case space1 and
+space2 would have been stored at address 0 = NULL).
 
 \section{Running TTA on FPGA}
 \label{sec:fpgatutorial}

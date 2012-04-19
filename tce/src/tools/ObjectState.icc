@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,11 +27,14 @@
  * Inline implementation of ObjectState class.
  *
  * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note reviewed 8 Jun 2004 by tr, jm, am, ll
  * @note rating: red
  */
 
 #include "Conversion.hh"
+#include "TCEString.hh"
+#include <boost/format.hpp>
 
 /**
  * Returns the parent of the ObjectState instance.
@@ -166,8 +169,18 @@ ObjectState::boolValue() const
     try {
         intValue = this->intValue();
     } catch (const NumberFormatException& exception) {
-        const std::string procName = "ObjectState::boolValue";
-        throw TypeMismatch(__FILE__, __LINE__, procName);
+        TCEString strValue = this->stringValue();
+        strValue = strValue.lower();
+        if (strValue == "false") {
+            return false;
+        } else if (strValue == "true") {
+            return true;
+        } else {
+            throw TypeMismatch(
+                __FILE__, __LINE__, __func__,
+                (boost::format("Cannot convert '%s' to a boolean.") %
+                 strValue).str());
+        }
     }
 
     return intValue;

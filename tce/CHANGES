@@ -6,6 +6,8 @@ Notable changes and features
 - ProGe: Experimental support for Verilog and a small Verilog hardware
   database (mixed_hdl.hdb) supporting minimal.adf. Thanks to
   Vinogradov Viacheslav for contributing this.
+- Support for the address_space attribute to allow using multiple
+  separate memories from C code.
 
 Usability features
 ------------------
@@ -41,8 +43,7 @@ Code generator improvements
 - Compiler can now make floating point constant values to be used from
   immediates instead of always putting them to constant pool.
 - No longer floating point aliases for 32-bit registers on llvm backend;
-  The same registers now belong to both i32 and f32 register classes.
-  
+  The same registers now belong to both i32 and f32 register classes. 
 
 Bugfixes
 --------
