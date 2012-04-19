@@ -2602,9 +2602,9 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << std::endl;
     }
     if (opNames_.find("LDW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8I32RegsRegisterClass) return TCE::LDW8vr;"
+        os << "\tif (rc == TCE::V8R32IRegsRegisterClass) return TCE::LDW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8F32RegsRegisterClass) return TCE::LDW8mr;"
+           << "\tif (rc == TCE::V8R32FPRegsRegisterClass) return TCE::LDW8mr;"
            << std::endl;
     }
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
