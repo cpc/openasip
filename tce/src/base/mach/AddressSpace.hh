@@ -89,7 +89,6 @@ public:
     static const std::string OSKEY_MIN_ADDRESS;
     /// ObjectState attribute key for maximum address.
     static const std::string OSKEY_MAX_ADDRESS;
-    static const std::string OSKEY_SHARED_MEMORY;
     static const std::string OSKEY_NUMERICAL_ID;
 
 private:
@@ -102,10 +101,6 @@ private:
     unsigned int maxAddress_;
     /// The numerical ids mapped to this address space.
     IDSet numericalIds_;
-    /// True in case this address space maps to a memory that is shared
-    /// across all the cores in the multicore.
-    bool shared_;
-    
 };
 }
 

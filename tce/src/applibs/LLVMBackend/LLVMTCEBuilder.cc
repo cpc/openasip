@@ -2208,8 +2208,10 @@ LLVMTCEBuilder::emitInlineAsm(
 
     const UniversalFunctionUnit& fu = UniversalMachine::instance().universalFunctionUnit();
     if (!fu.hasOperation(opName)) {
-        std::cerr << "ERROR: Custom operation '" << opName << "' not found."
-                  << std::endl;        
+        std::cerr 
+            << "ERROR: Explicitly executed operation '" 
+            << opName << "' not found."
+            << std::endl;        
         assert(false);
     }
 
@@ -2220,6 +2222,11 @@ LLVMTCEBuilder::emitInlineAsm(
     std::vector<TTAProgram::Instruction*> resultMoves;
     ExecutionPipeline::OperandSet useOps = op->pipeline()->readOperands();
     ExecutionPipeline::OperandSet defOps = op->pipeline()->writtenOperands();
+
+
+    OperationPool pool;
+    const Operation& operation = pool.operation(opName.c_str());
+    int inputOperand = 0;
 
     // go through the operands (0 is the chain, 1 is the asm string)
     for (unsigned o = 3; o < mi->getNumOperands(); o++) {
@@ -2248,6 +2255,7 @@ LLVMTCEBuilder::emitInlineAsm(
             src = createTerminal(mo);
             dst = new TTAProgram::TerminalFUPort(*op, (*useOps.begin()));
             useOps.erase(useOps.begin());
+            ++inputOperand;
         } else {
             if (defOps.empty()) {
                 std::cerr << std::endl;
@@ -2268,6 +2276,12 @@ LLVMTCEBuilder::emitInlineAsm(
 
         if (mo.isImm() || mo.isGlobal() || mo.isUse()) {
             operandMoves.push_back(instr);
+
+            // Custom memory accessing operation? Assume absolute addr for now.
+            if (operation.operand(inputOperand).isAddress()) {
+                debugDataToAnnotations(mi, move);
+                addPointerAnnotations(mi, move);
+            }
         } else {
             resultMoves.push_back(instr);
         }

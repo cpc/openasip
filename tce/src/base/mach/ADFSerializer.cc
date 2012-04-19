@@ -844,10 +844,8 @@ ADFSerializer::addressSpaceToMDF(const ObjectState* asState) {
         if (child->name() == AddressSpace::OSKEY_NUMERICAL_ID) {
             ObjectState* idObj = new ObjectState(AS_NUMERICAL_ID, as);
             idObj->setValue(child->intValue());
-            as->addChild(idObj);
         }
     }
-
     return as;
 }
 

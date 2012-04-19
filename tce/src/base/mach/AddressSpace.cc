@@ -319,7 +319,13 @@ AddressSpace::saveState() const {
 
     // set max address
     as->setAttribute(OSKEY_MAX_ADDRESS, maxAddress_);
-
+    
+    for (IDSet::const_iterator i = numericalIds_.begin(); 
+         i != numericalIds_.end(); ++i) {
+        ObjectState* child = new ObjectState(OSKEY_NUMERICAL_ID, as);
+        child->setValue((int)(*i));
+    }
+    
     return as;
 }
 

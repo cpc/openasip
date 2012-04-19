@@ -47,7 +47,7 @@ using std::string;
  */
 ObjectState::ObjectState(const std::string& name, ObjectState* parent) :
     name_(name), value_(""), parent_(parent) {
-    if(parent != NULL) {
+    if (parent != NULL) {
         parent->addChild(this);
     }
 }
@@ -360,7 +360,6 @@ ObjectState::addChild(ObjectState* child) {
     children_.push_back(child);
     child->parent_ = this;
 }
-
 
 /**
  * Removes the given child object.
