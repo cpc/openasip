@@ -53,6 +53,7 @@ namespace llvm {
    class FunctionPass;
    class TCETargetMachine;
    class TargetRegisterClass;
+   class MachineInstr;
    class TCETargetMachinePlugin {
     public:
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL) {};
@@ -80,7 +81,7 @@ namespace llvm {
        virtual bool hasOperation(TCEString operationName) const = 0;
        /// Returns the opcode for the given osal operation, undefined if not found.
        virtual unsigned opcode(TCEString operationName) const = 0;
-       virtual bool isExtractElement(unsigned opc) const = 0;
+       virtual unsigned int extractElementLane(const MachineInstr& mi) const = 0;
 
        /// Returns pointer to xml string of the target machine .adf
        virtual const std::string* adfXML() = 0;

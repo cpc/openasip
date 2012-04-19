@@ -79,7 +79,7 @@ public:
     virtual std::string rfName(unsigned dwarfRegNum);
     virtual unsigned registerIndex(unsigned dwarfRegNum);
 
-    bool isExtractElement(unsigned opc) const;
+    unsigned int extractElementLane(const llvm::MachineInstr&) const;
 
     virtual std::string operationName(unsigned opc);
 
@@ -208,10 +208,18 @@ GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
  * Returns true in case the given opc is for an extract element
  * operation.
  */
-bool
-GeneratedTCEPlugin::isExtractElement(unsigned opc) const {
+unsigned int
+GeneratedTCEPlugin::extractElementLane(const llvm::MachineInstr& mi) const {
     // TODO: use subregisters (extract_subreg) instead.
-    return false;
+    if (mi.getDesc().getOpcode() == TCE::COPY) {
+        assert(mi.getNumOperands() >= 2);
+        const MachineOperand& src = mi.getOperand(1);
+        int subreg = src.getSubReg();
+        if (subreg > 0 && subreg < 9) {
+            return subreg -1;
+        }
+    }
+    return UINT_MAX;
 }
 
 /**

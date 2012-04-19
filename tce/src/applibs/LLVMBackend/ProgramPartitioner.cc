@@ -46,7 +46,7 @@ using namespace llvm;
 //#define DEBUG_PROGRAM_PARTITIONER
 // define this if in case the DLP-partitioner does not find 
 // a node id it should assign the registers to the EXTRAS node.
-//#define ASSIGN_UNKNOWN_TO_EXTRAS
+#define ASSIGN_UNKNOWN_TO_EXTRAS
 
 llvm::Pass* 
 createProgramPartitionerPass() {
@@ -94,10 +94,10 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
             
             if (partitions.find(&mi) != partitions.end())
                 continue; /* Already partitioned. */
-            unsigned nodeIndex = UINT_MAX;
-            if (tmPlugin.isExtractElement(mi.getDesc().getOpcode())) {
-                assert(mi.getNumOperands() >= 3 && mi.getOperand(2).isImm());
-                nodeIndex = (unsigned)mi.getOperand(2).getImm();
+            unsigned nodeIndex = tmPlugin.extractElementLane(mi);
+            if (nodeIndex != UINT_MAX) {
+                std::cout << "Got extract subreg: " << nodeIndex  << std::endl;
+                mi.dump();
 #ifdef DEBUG_PROGRAM_PARTITIONER
                 std::cerr << "[EXTRACT lane " << nodeIndex << "] " << std::endl;
 #endif
