@@ -777,7 +777,7 @@
 
   <register-file name="RF">
     <type>normal</type>
-    <size>5</size>
+    <size>6</size>
     <width>32</width>
     <max-reads>1</max-reads>
     <max-writes>1</max-writes>
