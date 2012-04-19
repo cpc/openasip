@@ -1811,8 +1811,11 @@ namespace {
 	  LSV->getOperand(1)->getType() == HSV->getOperand(1)->getType() &&
 	  LSV->getOperand(2)->getType() == HSV->getOperand(2)->getType()) {
 	  if (LSV->getOperand(0) == HSV->getOperand(0) &&
-	    LSV->getOperand(1) == HSV->getOperand(1)) {
-            return LSV->getOperand(0);
+	      LSV->getOperand(1) == HSV->getOperand(1)) {
+              if (LSV->getOperand(0)->getType()->getVectorNumElements() ==
+                  2 * LSV->getOperand(2)->getType()->getVectorNumElements()) {
+                  return LSV->getOperand(0);
+              }
 	  }
           Value* res = CommonShuffleSource(LSV, HSV, o);
           if (res)
