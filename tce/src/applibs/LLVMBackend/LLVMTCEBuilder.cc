@@ -225,6 +225,7 @@ LLVMTCEBuilder::initDataSections() {
         mach_->addressSpaceNavigator();
 
     multiDataMemMachine_ = nav.count() > 2;
+    defaultDataAddressSpace_ = NULL;
 
     for (int i = 0; i < nav.count(); i++) {
         if (nav.item(i) != instrAddressSpace_) {

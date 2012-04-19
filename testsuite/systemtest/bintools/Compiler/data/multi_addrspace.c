@@ -6,12 +6,16 @@
 
 #define ASIZE 4
 
-volatile int space0[ASIZE] __attribute__((address_space(0)));
-volatile int space0_1[ASIZE] __attribute__((address_space(0)));
-volatile int space1[ASIZE] __attribute__((address_space(1)));
-volatile int space1_1[ASIZE] __attribute__((address_space(1)));
-volatile int space2[ASIZE] __attribute__((address_space(2)));
-volatile int space2_1[ASIZE] __attribute__((address_space(2)));
+#define memory_0 __attribute__((address_space(0))) 
+#define memory_1 __attribute__((address_space(1))) 
+#define memory_2 __attribute__((address_space(2))) 
+
+memory_0 volatile int space0[ASIZE];
+memory_0 volatile int space0_1[ASIZE];
+memory_1 volatile int space1[ASIZE];
+memory_1 volatile int space1_1[ASIZE];
+memory_2 volatile int space2[ASIZE];
+memory_2 volatile int space2_1[ASIZE];
 
 int main() {
     int i = 0;
