@@ -347,6 +347,10 @@ namespace llvm {
          	ProgramOperationPtr& po,
              TTAProgram::Move& m,
              bool isDestination) {}
+        int addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
+
+        void addCandidateLSUAnnotations(
+            int asNum, TTAProgram::Move* move);
 
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
@@ -357,7 +361,13 @@ namespace llvm {
         llvm::Module* mod_;
 
         TTAMachine::AddressSpace* instrAddressSpace_;
+
+        /// The default data memory address space (address space 0).
         TTAMachine::AddressSpace* dataAddressSpace_;
+
+        /// Set to true in case this machine has more than one data
+        /// address spaces.
+        bool multiDataMemMachine_;
 
         /// Data memory initializations.
         TTAProgram::DataMemory* dmem_;
@@ -397,7 +407,7 @@ namespace llvm {
         /// the use of 'restricted' pointers) has been found
         bool noAliasFound_;
         /// set to true in case at least one non-default address space
-        /// memory access has been found
+        /// memory access has been found in the generated code
         bool multiAddrSpacesFound_;
 
         /// List of machine functions collected from runForMachineFunction.

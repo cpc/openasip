@@ -153,6 +153,7 @@ LLVMTCEBuilder::initMembers() {
     end_ = 0;
     noAliasFound_ = false; 
     multiAddrSpacesFound_ = false;
+    multiDataMemMachine_ = false;
     spillMoveCount_ = 0;
     dataInitialized_ = false;
 }
@@ -224,18 +225,28 @@ LLVMTCEBuilder::initDataSections() {
     const TTAMachine::Machine::AddressSpaceNavigator nav =
         mach_->addressSpaceNavigator();
 
+    multiDataMemMachine_ = nav.count() > 2;
+
     for (int i = 0; i < nav.count(); i++) {
         if (nav.item(i) != instrAddressSpace_) {
-            dataAddressSpace_ = nav.item(i);
-            break;
+            if (!multiDataMemMachine_ || addressSpaceId(*nav.item(i)) == 0) {
+                dataAddressSpace_ = nav.item(i);
+                break;
+            }
         }
     }
 
     if (dataAddressSpace_ == NULL) {
-        std::cerr << "ERROR: Unable to determine data address space."
+        std::cerr << "ERROR: Unable to determine the default data address space."
                   << std::endl;
-
-        assert(false);
+        abort();
+    } else {
+        if (Application::verboseLevel() > 0 && multiDataMemMachine_) {
+            Application::logStream()
+                << "using '" << dataAddressSpace_->name() 
+                << "' as the default data address space" 
+                << std::endl;
+        }
     }
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
@@ -808,6 +819,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             // Pseudo instructions:
             if (instr == NULL) continue;
 
+
             // If there was any empty basic blocks before this instruction,
             // set the basic blocks to point the next available (this)
             // instruction.
@@ -966,6 +978,36 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
     // Add stackpointer initialization.
     emitSPInitialization();
 
+    /* In case both the program and the machine use multiple
+       data address spaces, ensure all memory operations are
+       annotated with the candidate LSUs. In this scenario
+       no memory operation is freely schedulable to any LSU otherwise
+       random memory accesses happen.
+
+       In case the machine contains only a single data address space,
+       all accesses (regardless of their id in the code) are mapped to
+       it so the annotations are not needed.
+    */
+    if (multiAddrSpacesFound_ && multiDataMemMachine_) {
+        TTAProgram::Program::InstructionVector instrs = 
+            prog_->instructionVector();
+        for (TTAProgram::Program::InstructionVector::const_iterator i = 
+                 instrs.begin(); i != instrs.end(); ++i) {
+            TTAProgram::Move& m = (*i)->move(0);
+            TTAProgram::Terminal& t = m.destination();
+            if (t.isFUPort() && !t.isRA() &&
+                t.hintOperation().operand(t.operationIndex()).isAddress() &&
+                !m.hasAnnotations(
+                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
+                std::cerr
+                    << "The program refers to multiple data address spaces, "
+                    << "the machine contains multiple data address spaces and "
+                    << "ambigious memory accessing move '" << m.toString()
+                    << "' found." << std::endl;
+                abort();
+            }
+        }
+    }
     return false;
 }
 
@@ -1018,6 +1060,7 @@ LLVMTCEBuilder::emitInstruction(
     }	
 
     std::string opName = "";
+
     bool hasGuard = false;
     bool trueGuard = true;
     if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) != NULL) {
@@ -1348,7 +1391,7 @@ LLVMTCEBuilder::isBaseOffsetMemOperation(const Operation& operation) const {
 }
 
 /**
- * Adds annotations to a pointer register Move that assist the
+ * Adds annotations to a pointer-register move to assist the
  * TCE-side alias analysis.
  */
 void
@@ -1356,7 +1399,18 @@ LLVMTCEBuilder::addPointerAnnotations(
     const llvm::MachineInstr* mi, TTAProgram::Move* move) {
      
     // copy some pointer data to Move annotations
+#if 0
+    if (mi->memoperands_begin() == mi->memoperands_end()) {
+        Application::logStream() << "move " << move->toString()
+                                 << " does not have mem operands!"
+                                 << std::endl;
+        mi->dump();
+    }
+#endif
 
+    int addrSpaceId = 0;
+    // TODO: why this is a loop actually?? It only handles a single 
+    // Move anyways --Pekka
     for (MachineInstr::mmo_iterator i = mi->memoperands_begin();
          i != mi->memoperands_end(); i++) {
         
@@ -1367,6 +1421,7 @@ LLVMTCEBuilder::addPointerAnnotations(
             continue;
             
         const llvm::Value* memOpValue = (*i)->getValue();
+
         if (memOpValue != NULL) {
             std::string pointerName = "";
             // can we get the name right away or have to through
@@ -1470,10 +1525,13 @@ LLVMTCEBuilder::addPointerAnnotations(
                 move->addAnnotation(pointerAnn); 
             }
 
-            int addrSpaceId =
+            addrSpaceId =
                 cast<PointerType>(memOpValue->getType())->
                 getAddressSpace();
+
             if (addrSpaceId != 0) {
+                // this annotation is used only for alias analysis as
+                // the address spaces are assumed to be always disjoint
                 std::string addressSpace =
                     (boost::format("%d") % addrSpaceId).str();
                 TTAProgram::ProgramAnnotation progAnnotation(
@@ -1483,6 +1541,15 @@ LLVMTCEBuilder::addPointerAnnotations(
                 multiAddrSpacesFound_ = true;
             }                
         }
+    }
+    if (multiDataMemMachine_) {
+        // annotate all memory moves with FU candidate sets
+        // so the memory operations are assigned to the correct
+        // load-store units in the multimemory machine     
+ 
+        // for stack accesses, there is no LLVM pointer info in which
+        // case we add the default addr space id 0 
+        addCandidateLSUAnnotations(addrSpaceId, move);
     }
 }
 
@@ -1509,7 +1576,6 @@ LLVMTCEBuilder::debugDataToAnnotations(
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
-
             // handle file+line number debug info
             if (!dl.isUnknown()) {
 		
@@ -1530,7 +1596,8 @@ LLVMTCEBuilder::debugDataToAnnotations(
                        
                 if (sourceFileName != "") {
                     TTAProgram::ProgramAnnotation progAnnotation(
-                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_PATH, 
+                        TTAProgram::ProgramAnnotation::
+                        ANN_DEBUG_SOURCE_CODE_PATH, 
                         sourceFileName);
                     move->addAnnotation(progAnnotation); 
                 }
@@ -3080,4 +3147,52 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
         }
     }
     return NULL;
+}
+
+/**
+ * Returns the numerical id (corresponding to the one used in the 
+ * address_space attribute) of the given ADF address space.
+ */
+int 
+LLVMTCEBuilder::addressSpaceId(TTAMachine::AddressSpace& aSpace) const {
+    std::string asName = aSpace.name();
+    std::string::iterator iter;
+    int num = 0;
+    for(iter = asName.begin(); iter < asName.end(); iter++) {
+        if(isdigit(*iter)) {
+            num = num * 10 + (*iter - '0');
+        } 
+    }
+    return num;
+}
+
+/**
+ * Adds annotations to the given move that limit the choice of the
+ * load-store unit to only those that support the given address space.
+ */
+void 
+LLVMTCEBuilder::addCandidateLSUAnnotations(
+    int asNum, TTAProgram::Move* move) {
+
+    bool foundLSU = false;
+    const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+        mach_->functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+        if (fu.hasAddressSpace()) {
+            if (addressSpaceId(*fu.addressSpace()) == asNum) {
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::
+                    ANN_CANDIDATE_UNIT_DST, fu.name());
+                move->addAnnotation(progAnnotation);
+                foundLSU = true;
+            }
+        }
+    }
+    if (!foundLSU) {
+        Application::logStream()
+            << "ERROR: no candidate LSU found for address space id " 
+            << asNum << std::endl;
+        abort();
+    }
 }
