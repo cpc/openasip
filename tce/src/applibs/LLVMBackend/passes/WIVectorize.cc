@@ -795,10 +795,10 @@ namespace {
             return false;
 	MDNode* mi = I->getMetadata("wi");
 	MDNode* mj = J->getMetadata("wi");
-	assert(mi->getNumOperands() == 5);
-	assert(mj->getNumOperands() == 5);
+	assert(mi->getNumOperands() == 6);
+	assert(mj->getNumOperands() == 6);
 	int differs = 0;
-	for (unsigned int i = 1; i < mi->getNumOperands(); i++) {
+	for (unsigned int i = 2; i < mi->getNumOperands() -1; i++) {
 	  ConstantInt *CI = dyn_cast<ConstantInt>(mi->getOperand(i));
 	  ConstantInt *CJ = dyn_cast<ConstantInt>(mj->getOperand(i));
 	  if (CI->getValue() != CJ->getValue()) {
@@ -809,8 +809,9 @@ namespace {
 	  // Same work item triplet
 	  return false;
 	}
-	ConstantInt *CI = dyn_cast<ConstantInt>(mi->getOperand(4));
-	ConstantInt *CJ = dyn_cast<ConstantInt>(mj->getOperand(4));
+	// Operand 5 is instruction line
+	ConstantInt *CI = dyn_cast<ConstantInt>(mi->getOperand(5));
+	ConstantInt *CJ = dyn_cast<ConstantInt>(mj->getOperand(5));
 	if (CI->getValue() != CJ->getValue()) {
 	  // different line in the original work item
 	  // we do not want to vectorize operations that do not match
