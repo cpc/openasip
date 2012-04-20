@@ -145,6 +145,17 @@ class VectorLSGenerator : public DesignSpaceExplorerPlugin {
                     "out" + Conversion::toString(i), 32, *lsUnit, false, false);                
             assert(outPort->isOpcodeSetting() == false);                
         }
+        TTAMachine::FUPort* inPort =
+            new TTAMachine::FUPort(
+               "in_extra" + Conversion::toString(2), 32, *lsUnit, false, false);
+        assert(inPort->isOpcodeSetting() == false);
+        TTAMachine::FUPort* outPort =
+            new TTAMachine::FUPort(
+               "out_extra" + Conversion::toString(1), 32, *lsUnit, false, false);                
+        assert(outPort->isOpcodeSetting() == false);                
+        
+        // Adds aditional read and write port for use with scalar load
+        // and stores from the extras
         
         OperationPool pool;
         OperationIndex& index = pool.index();    
@@ -162,9 +173,21 @@ class VectorLSGenerator : public DesignSpaceExplorerPlugin {
                     if (!lsUnit->hasOperation(opName) && 
                         op.numberOfInputs() <= nodeCount_ +1 &&
                         op.numberOfOutputs() <= nodeCount_) {
-                        addOperation(*lsUnit, op);
+                        addOperation(*lsUnit, op, false);
                     }
                 }
+                if (op.usesMemory() && opName == "LDW" &&
+                    op.numberOfInputs() == 1 &&
+                    op.numberOfOutputs() == 1 &&
+                    !lsUnit->hasOperation(opName)) {
+                    addOperation(*lsUnit, op, true);                    
+                }
+                if (op.usesMemory() && opName == "STW" &&
+                    op.numberOfInputs() == 2 &&
+                    op.numberOfOutputs() == 0 &&
+                    !lsUnit->hasOperation(opName)) {                
+                    addOperation(*lsUnit, op, true);                    
+                }                
             }
         }
         
@@ -220,7 +243,9 @@ private:
      * Adds operation to function unit, sets the port bindings and pipeline
      * parameters.
      */
-    void addOperation(TTAMachine::FunctionUnit& lsUnit, Operation& op) {
+    void addOperation(
+        TTAMachine::FunctionUnit& lsUnit, Operation& op, bool scalar) {
+        
         TTAMachine::HWOperation* hwOp = 
             new TTAMachine::HWOperation(op.name(), lsUnit); 
         TTAMachine::ExecutionPipeline* pipeline = hwOp->pipeline();
@@ -228,6 +253,20 @@ private:
         // Specificly define the triggering port
         hwOp->bindPort(1, *lsUnit.operationPort("in1t"));          
         pipeline->addPortRead(1,0,1);
+        if (scalar) {
+            if (op.numberOfInputs() == 2) {
+                // this is stw operation
+                hwOp->bindPort(2, *lsUnit.operationPort("in_extra2"));
+                pipeline->addPortRead(2, 0, 1);
+            }
+            if (op.numberOfOutputs() == 1) {
+                // this is ldw operation
+                hwOp->bindPort(2, *lsUnit.operationPort("out_extra1"));
+                pipeline->addPortWrite(2, 2, 1);
+            }
+            assert(hwOp->isBound(*lsUnit.operationPort("in1t")));            
+            return;
+        }
         // Add other inputs, after triggering port.
         for (int i = 1; i < op.numberOfInputs(); i++) {
             hwOp->bindPort(

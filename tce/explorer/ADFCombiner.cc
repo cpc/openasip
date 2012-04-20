@@ -666,7 +666,7 @@ private:
     }
     /**
      * If extra has LSU that is not connected to any of the buses,
-     * treat is as a vector LSU and connect address write port to extra
+     * treat it as a vector LSU and connect address write port to extra
      * and data ports to respective number of nodes.
      */
     void connectVectorLSU(
@@ -679,6 +679,8 @@ private:
             finalMach->functionUnitNavigator();
         TTAMachine::FunctionUnit* vectorLSU = NULL;
         TTAMachine::FUPort* trigger = NULL;
+        TTAMachine::FUPort* inExtra = NULL;
+        TTAMachine::FUPort* outExtra = NULL;
         int triggerIndex = -1;
         int outputPortCount = 0;
         for (int i = 0; i < finalNav.count(); i++) {
@@ -706,6 +708,8 @@ private:
                     // Find equivalends in final architecture
                     vectorLSU = fu;                                    
                     trigger = vectorLSU->operationPort(triggerIndex);
+                    inExtra = vectorLSU->operationPort("in_extra2");
+                    outExtra = vectorLSU->operationPort("out_extra1");
                     break;
                 } else {
                     verboseLog("Candidate for Vector LSU does not have "
@@ -721,7 +725,16 @@ private:
         
         assert(trigger != NULL);
         TTAMachine::Socket* triggerSocket = 
-            new TTAMachine::Socket("vectorLSU_" + trigger->name());                
+            new TTAMachine::Socket("vectorLSU_" + trigger->name());  
+        TTAMachine::Socket* inExtraSocket = NULL;
+        if (inExtra)
+            inExtraSocket =
+                new TTAMachine::Socket("vectorLSU_" + inExtra->name());  
+        TTAMachine::Socket* outExtraSocket = NULL;                
+        if (outExtra)
+            outExtraSocket =
+                new TTAMachine::Socket("vectorLSU_" + outExtra->name());  
+                          
         try {     
             finalMach->addSocket(*triggerSocket);
         } catch (const ComponentAlreadyExists& e) {
@@ -731,8 +744,31 @@ private:
             throw Exception(
                 __FILE__, __LINE__, __func__, msg);                            
         }        
-        
         trigger->attachSocket(*triggerSocket);
+        if (inExtra) {
+            try {
+                finalMach->addSocket(*inExtraSocket);            
+            } catch (const ComponentAlreadyExists& e) {
+                TCEString msg = 
+                    "ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + inExtraSocket->name() +")";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);                            
+            }        
+            inExtra->attachSocket(*inExtraSocket);
+        }
+        if (outExtra) {
+            try {
+                finalMach->addSocket(*outExtraSocket);
+            } catch (const ComponentAlreadyExists& e) {
+                TCEString msg = 
+                "ADFCombiner: Tried to add Socket with "
+                " an already existing name (" + outExtraSocket->name() +")";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);                            
+            }        
+            outExtra->attachSocket(*outExtraSocket);
+        }        
         
         const TTAMachine::Machine::BusNavigator& extraBusNav = 
             extraMach->busNavigator();
@@ -743,9 +779,17 @@ private:
         // Connect trigger socket to all the buses in extra.
         for (int i = 0; i < extraBusNav.count(); i++) {
             TCEString busName = extraBusNav.item(i)->name();
-            triggerSocket->attachBus(*finalBusNav.item(busName)->segment(0));                            
+            triggerSocket->attachBus(*finalBusNav.item(busName)->segment(0));
+            if (inExtra)
+                inExtraSocket->attachBus(*finalBusNav.item(busName)->segment(0));                            
+            if (outExtra)
+                outExtraSocket->attachBus(*finalBusNav.item(busName)->segment(0));            
         }
         triggerSocket->setDirection(Socket::INPUT);    
+        if (inExtra)
+            inExtraSocket->setDirection(Socket::INPUT);
+        if (outExtra)
+            outExtraSocket->setDirection(Socket::OUTPUT);
         
 
         for (int j = 0; j < vectorLSU->operationCount(); j++) {
@@ -761,7 +805,7 @@ private:
                 readOperandSet.begin();
             for (; it != readOperandSet.end(); it++) {
                 TTAMachine::Port* port = operation->port(*it);               
-                if (port != trigger) {
+                if (port != trigger && port != inExtra) {
                     // Trigger is already connected to extra, we just connect
                     // rest of writing ports.
                     TCEString socketName = "vectorLSU_" + port->name();
@@ -812,7 +856,9 @@ private:
             it = writeOperandSet.begin();
             
             for (; it != writeOperandSet.end(); it++) {
-                TTAMachine::Port* port = operation->port(*it);               
+                TTAMachine::Port* port = operation->port(*it);  
+                if (port == outExtra)
+                    continue;
                 assert(port != trigger);
                 TCEString socketName = "vectorLSU_" + port->name();
                 TTAMachine::Socket* outputSocket = NULL;                        
