@@ -96,8 +96,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                 continue; /* Already partitioned. */
             unsigned nodeIndex = tmPlugin.extractElementLane(mi);
             if (nodeIndex != UINT_MAX) {
-                std::cout << "Got extract subreg: " << nodeIndex  << std::endl;
-                mi.dump();
 #ifdef DEBUG_PROGRAM_PARTITIONER
                 std::cerr << "[EXTRACT lane " << nodeIndex << "] " << std::endl;
 #endif
