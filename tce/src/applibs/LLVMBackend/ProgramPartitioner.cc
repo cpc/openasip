@@ -177,6 +177,8 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
             if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
                 !mi.getOperand(0).isDef()) continue;
             const llvm::MachineOperand& result = mi.getOperand(0);
+            if (llvm::TargetRegisterInfo::isPhysicalRegister(
+                    mi.getOperand(0).getReg())) continue;
             const llvm::TargetRegisterClass* nodeRegClass = 
                 tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
 #ifdef DEBUG_PROGRAM_PARTITIONER
