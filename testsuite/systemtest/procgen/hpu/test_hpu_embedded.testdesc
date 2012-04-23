@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="half-precision FPUs by generating and simulating a processor";
+// the binary being tested
+$test_bin="./run_hpu_embedded_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

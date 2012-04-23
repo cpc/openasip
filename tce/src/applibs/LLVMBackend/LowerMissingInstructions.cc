@@ -249,6 +249,34 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["ORDF.i32"].push_back("i32.fcmp.ord.f32.f32");
         footprints["UORDF.i1"].push_back("i1.fcmp.uno.f32.f32");
         footprints["UORDF.i32"].push_back("i32.fcmp.uno.f32.f32");
+        
+        //Half-float support
+        
+        footprints["CHF.i32"].push_back("f32.fp16_to_fp32.i32");
+        footprints["CFH.i32"].push_back("i32.fp32_to_fp16.f32");
+        
+        /*footprints["ADDH.i32"].push_back("f16.fadd.f16.f16");
+        footprints["SUBH.i32"].push_back("f16.fsub.f16.f16");
+        footprints["NEGH.i32"].push_back("f16.fneg.f16");
+        footprints["MULH.i32"].push_back("f16.fmul.f16.f16");
+        footprints["DIVH.i32"].push_back("f16.fdiv.f16.f16");
+        footprints["SQRTH.i32"].push_back("f16.sqrt.f16");
+
+        footprints["CHI.i32"].push_back("i32.fptosi.f16");
+        footprints["CHIU.i32"].push_back("i32.fptoui.f16");
+        footprints["CIH.i32"].push_back("f16.sitofp.i32");
+        footprints["CIHU.i32"].push_back("f16.uitofp.i32");
+
+        footprints["CHI.i16"].push_back("i16.fptosi.f16");
+        footprints["CHIU.i16"].push_back("i16.fptoui.f16");
+        footprints["CIH.i16"].push_back("f16.sitofp.i16");
+        footprints["CIHU.i16"].push_back("f16.uitofp.i16");
+
+        footprints["CHI.i8"].push_back("i8.fptosi.f16");
+        footprints["CHIU.i8"].push_back("i8.fptoui.f16");
+        footprints["CIH.i8"].push_back("f16.sitofp.i8");
+        footprints["CIHU.i8"].push_back("f16.uitofp.i8");*/
+        
 
         init = false;                
     }

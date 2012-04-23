@@ -107,7 +107,7 @@ private:
     /// Input types
     std::vector<std::string> inputTypes_;
 
-    Operand::OperandType operandTypes_[4];
+    Operand::OperandType operandTypes_[5];
     
     DECLARE_EVENT_TABLE()
 };

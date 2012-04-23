@@ -44,6 +44,7 @@ namespace TCEISD {
         SELECT_I16,
         SELECT_I32,
         SELECT_I64,
+        SELECT_F16,
         SELECT_F32,
         SELECT_F64,
 

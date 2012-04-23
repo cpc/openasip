@@ -222,6 +222,7 @@ TDGen::writeRegisterInfo(std::ostream& o)
     writeRARegisterInfo(o);
     write1bitRegisterInfo(o);
     write32bitRegisterInfo(o);
+    //write16bitRegisterInfo(o);
     writeVectorRegisterInfo(o);
 
     return true;
@@ -243,6 +244,13 @@ TDGen::writeRegisterClasses(std::ostream& o) {
       << "}" << std::endl;
     if (hasExIntRegs_) {
         o << "class R32_Ex<string n, list<Register> aliases> : R32<n, aliases> {}"
+          << std::endl;
+    }
+    
+    o << "class R16<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+    if (hasExIntRegs_) {
+        o << "class R16_Ex<string n, list<Register> aliases> : R16<n, aliases> {}"
           << std::endl;
     }
 
@@ -413,7 +421,7 @@ void TDGen::analyzeRegisters(RegsToProcess regsToProcess) {
             std::vector<RegInfo>* ri = NULL;
             if (width == 64) ri = &regs64bit_;
             else if (width == 32) ri = &regs32bit_;
-            else if (width == 16) ri = &regs16bit_;
+            //else if (width == 16) ri = &regs16bit_;
             else if (width == 8) ri = &regs8bit_;
             else if (width == 1) ri = &regs1bit_;
             else {
@@ -576,6 +584,73 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     o << std::endl;
 }
 
+
+/**
+ * Writes 16-bit register definitions to the output stream.
+ */
+void
+TDGen::write16bitRegisterInfo(std::ostream& o) {
+
+    // --- Hardcoded reserved registers. ---
+    writeRegisterDef(o, regs16bit_[0], "HIRES0", "R16", "", RESULT);
+
+    // -------------------------------------
+    
+    for (unsigned i = 1; i < regs16bit_.size(); i++) {
+        std::string regName = "H" + Conversion::toString(i);
+        writeRegisterDef(o, regs16bit_[i], regName, "R16", "", GPR);
+    }
+
+    o << std::endl;
+
+    // All 16-bit regs.
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R16") == 0) {
+            
+            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i16], 32, (add ";
+            o << ri->second[0];
+            for (unsigned i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+    o << std::endl;
+    
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R16") == 0) {
+            o << "def " << ri->first << "IRegs : RegisterClass<\"TCE\", [i16], 32, (add ";
+            o << ri->second[0];
+            for (unsigned i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+    o << std::endl;
+
+    // floating-point-versions of these
+
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 1-bit RF classes
+        if (ri->first.find("R16") == 0) {
+            
+            o << "def " << ri->first << "FPRegs : RegisterClass<\"TCE\", [f16], 32, (add ";
+            o << ri->second[0];
+            for (unsigned i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+
+    o << std::endl;
+}
 
 /**
  * Writes 64-bit register definitions to the output stream.
@@ -1510,7 +1585,8 @@ TDGen::writeOperationDef(
 char 
 TDGen::operandChar(Operand& operand) {
     if (operand.type() != Operand::UINT_WORD &&
-        operand.type() != Operand::SINT_WORD) {
+        operand.type() != Operand::SINT_WORD &&
+        operand.type() != Operand::HALF_FLOAT_WORD) {
         return 'f';
     } else {
         return 'r';
@@ -1690,8 +1766,9 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "cfi") return "fp_to_sint %1%";
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
-    if (opName == "cfh") return "fp32_to_fp16 %1%";
-    if (opName == "chf") return "fp16_to_fp32 %1%";
+
+    //if (opName == "cfh") return "fp32_to_fp16 %1%";
+    //if (opName == "chf") return "fp16_to_fp32 %1%";
 
     if (opName == "ldq") return "sextloadi8 %1%";
     if (opName == "ldqu") return "zextloadi8 %1%";
@@ -1806,9 +1883,9 @@ TDGen::llvmOperationName(const std::string& osalOperationName) {
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
-    if (opName == "cfh") return "fp32_to_fp16";
-    if (opName == "chf") return "fp16_to_fp32";
-
+    
+    //if (opName == "cfh") return "fp32_to_fp16";
+    //if (opName == "chf") return "fp16_to_fp32";
 
     if (opName == "ldq") return "sextloadi8";
     if (opName == "ldqu") return "zextloadi8";
@@ -2339,7 +2416,8 @@ TDGen::operandToString(
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
     } else if (operand.type() == Operand::SINT_WORD ||
-               operand.type() == Operand::UINT_WORD) {
+               operand.type() == Operand::UINT_WORD ||
+               operand.type() == Operand::HALF_FLOAT_WORD ) {
 
         // imm
         switch (operandType) {
@@ -2401,7 +2479,10 @@ TDGen::operandToString(
             msg += operandType;
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
-    } else if (operand.type() == Operand::DOUBLE_WORD) {
+    } /*else if (operand.type() == Operand::HALF_FLOAT_WORD) {
+        // TODO: immediate check??
+        return "R32IRegs:$op" + Conversion::toString(idx);
+    }*/ else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??
         return "F64Regs:$op" + Conversion::toString(idx);
     } else {

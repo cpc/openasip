@@ -851,6 +851,8 @@ llvmOperandType(Operand::OperandType type) {
         return "i32";
     case Operand::UINT_WORD:
         return "i32";
+    case Operand::HALF_FLOAT_WORD:
+        return "i32";
     case Operand::FLOAT_WORD:
         return "f32";
     case Operand::DOUBLE_WORD:

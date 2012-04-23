@@ -330,6 +330,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                 regParams++;
             } 
             break;
+        case MVT::f16:
         case MVT::f32:
             ArgsSize += 4;
             break;
@@ -383,6 +384,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                 std::make_pair(ArgRegs[RegsToPass.size()], Val));
         }
         break;
+    case MVT::f16:
     case MVT::f32:
         ObjSize = 4;
         ValToStore = Val;
@@ -639,6 +641,11 @@ TCETargetLowering::TCETargetLowering(
 
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+    
+    
+    
+    setOperationAction(ISD::FP32_TO_FP16, MVT::i32, Legal);
+    setOperationAction(ISD::FP32_TO_FP16, MVT::f32, Legal);
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
@@ -704,6 +711,7 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     case TCEISD::SELECT_I16: return "TCEISD::SELECT_I16";
     case TCEISD::SELECT_I32: return "TCEISD::SELECT_I32";
     case TCEISD::SELECT_I64: return "TCEISD::SELECT_I64";
+    case TCEISD::SELECT_F16: return "TCEISD::SELECT_F16";
     case TCEISD::SELECT_F32: return "TCEISD::SELECT_F32";
     case TCEISD::SELECT_F64: return "TCEISD::SELECT_F64";
     }

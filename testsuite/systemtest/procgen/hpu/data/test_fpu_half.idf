@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>/home/tivi/tce/tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="LSU">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>380</fu-id>
+  </fu>
+
+  <fu name="stdout">
+    <hdb-file>./data/custom.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="invsqrth">
+    <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>5</fu-id>
+  </fu>
+
+  <fu name="addh_subh">
+    <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>8</fu-id>
+  </fu>
+
+  <fu name="absh_negh_eqh_neh_lth_leh_geh_gth">
+    <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>4</fu-id>
+  </fu>
+
+  <fu name="cfh_chf">
+    <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>6</fu-id>
+  </fu>
+
+  <fu name="mulh_squareh">
+    <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>9</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>
