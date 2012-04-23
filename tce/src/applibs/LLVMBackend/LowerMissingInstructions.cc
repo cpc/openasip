@@ -252,8 +252,8 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         
         //Half-float support
         
-        footprints["CHF.i32"].push_back("f32.fp16_to_fp32.i32");
-        footprints["CFH.i32"].push_back("i32.fp32_to_fp16.f32");
+        //footprints["CHF.i32"].push_back("f32.fp16_to_fp32.i32");
+        //footprints["CFH.i32"].push_back("i32.fp32_to_fp16.f32");
         
         /*footprints["ADDH.i32"].push_back("f16.fadd.f16.f16");
         footprints["SUBH.i32"].push_back("f16.fsub.f16.f16");
