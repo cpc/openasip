@@ -257,6 +257,7 @@ const string CmdOutput::OUTPUT_FORMAT_INT_SIGNED = "signed";
 const string CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED = "unsigned";
 const string CmdOutput::OUTPUT_FORMAT_DOUBLE = "double";
 const string CmdOutput::OUTPUT_FORMAT_FLOAT = "float";
+const string CmdOutput::OUTPUT_FORMAT_HALF = "half";
 const string CmdOutput::OUTPUT_FORMAT_BIN = "bin";
 const string CmdOutput::OUTPUT_FORMAT_HEX = "hex";
 
@@ -307,6 +308,7 @@ CmdOutput::execute(const std::vector<DataObject>& arguments)
         outputFormat == OUTPUT_FORMAT_INT_UNSIGNED ||
         outputFormat == OUTPUT_FORMAT_DOUBLE ||
         outputFormat == OUTPUT_FORMAT_FLOAT ||
+        outputFormat == OUTPUT_FORMAT_HALF ||
         outputFormat == OUTPUT_FORMAT_BIN ||
         outputFormat == OUTPUT_FORMAT_HEX) {
 
@@ -349,6 +351,7 @@ CmdOutput::helpText() const {
         OUTPUT_FORMAT_INT_UNSIGNED + "|" +
         OUTPUT_FORMAT_DOUBLE + "|" +
         OUTPUT_FORMAT_FLOAT + "|" +
+        OUTPUT_FORMAT_HALF + "|" +
         OUTPUT_FORMAT_BIN + "|" +
         OUTPUT_FORMAT_HEX + "}";
 }
@@ -490,6 +493,10 @@ TesterContext::toOutputFormat(SimValue* value) {
         FloatWord floatWord = value->floatWordValue();
         output = Conversion::toString(floatWord);
 
+    }else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_HALF) {
+        HalfFloatWord halfFloatWord = value->halfFloatWordValue();
+        output = Conversion::toString(FloatWord(float(halfFloatWord)));
+        
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_BIN) {
         output = Conversion::toBinString(value->intValue());
 

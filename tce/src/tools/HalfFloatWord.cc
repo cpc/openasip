@@ -47,6 +47,7 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     int binary16 = (u.i & 0x007FFFFF) >> 13;
     binary16 |=(u.i & 0x0f800000) >> 13;
     binary16 |=(u.i & 0x80000000) >> 16;
+    binary16 ^= (1<<14); // 1000XXXX => 1XXXX , 0111XXX => 0XXXX
     return binary16;
 }
 
@@ -77,6 +78,15 @@ HalfFloatWord::operator float() const {
     bool sgn = ((binaryRep_ & 0x8000) >> 15);
     int exp = (binaryRep_ & 0x7C00) >> 10;
     int mant = binaryRep_ & 0x03FF;
+    
+    /*if( exp & 16 ) { // 1XXXX => 1000XXXX
+        exp &= 15;
+        exp |= 8 << 4;
+    }
+    else { // 0XXXX => 0111XXXX
+        exp &= 15;
+        exp |= 7 << 4;
+    }*/
 
     if (exp == 0x1F && mant != 0) {
         return 0.0f/0.0f; // NaN

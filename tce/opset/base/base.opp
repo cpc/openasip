@@ -1027,9 +1027,6 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </in>
     <out id="3" type="HalfFloatWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(addh, IO(1), IO(2), IO(3));
-    </trigger-semantics>
-    <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
       EXEC_OPERATION(chf, IO(2), t2);
@@ -1965,6 +1962,15 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <outputs>1</outputs>
     <in id="1" type="HalfFloatWord"/>
     <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(mulf, t1, t1, t2);
+      EXEC_OPERATION(cfh, t2, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
+</trigger-semantics>
   </operation>
   
   <operation>
