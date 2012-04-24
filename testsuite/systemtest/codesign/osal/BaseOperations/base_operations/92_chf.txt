@@ -1,0 +1,5 @@
+!output float
+chf 14336
+chf 15360
+chf 16384
+chf 16640

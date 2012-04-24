@@ -1,0 +1,3 @@
+!output half
+invsqrth 15360
+invsqrth 17408

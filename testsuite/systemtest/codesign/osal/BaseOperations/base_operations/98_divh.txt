@@ -1,0 +1,3 @@
+!output half
+divh 16640 14336
+divh 15872 16384

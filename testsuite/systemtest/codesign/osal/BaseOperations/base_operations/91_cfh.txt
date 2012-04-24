@@ -1,0 +1,4 @@
+!output half
+cfh 2.f
+cfh 37.f
+cfh 0.75f
