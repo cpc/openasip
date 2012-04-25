@@ -4,6 +4,9 @@
 #define N 2
 
 
+class half;
+half mac( const half& a, const half& b, const half& c );
+
 class half {
 public:
     inline half() {
@@ -114,9 +117,23 @@ public:
         return result;
     }
     
+    friend half mac( const half& a, const half& b, const half& c );
+    friend half msu( const half& a, const half& b, const half& c );
 private:
     int data;
 };
+
+half mac( const half& a, const half& b, const half& c ) {
+    half result;
+    _TCE_MACH( a.data, b.data, c.data, result.data );
+    return result;
+}
+
+half msu( const half& a, const half& b, const half& c ) {
+    half result;
+    _TCE_MSUH( a.data, b.data, c.data, result.data );
+    return result;
+}
 
 inline void test( int a ) {
     if( a ) {
@@ -198,9 +215,21 @@ main() {
     test( ( half(100.f).invsqrt() - half(0.1f) ).abs() < 0.01 );
     _TCE_STDOUT('\n'); 
     
-    // Pipeline behavior
+    // Multiply-accumulate
     
     _TCE_STDOUT('6'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    test( mac( half( 3.f ), half(3.f), half(3.f) ) == half(12.f) );
+    test( mac( half( 3.f ), half(4.f), half(4.f) ) == half(19.f) );
+    test( msu( half( 3.f ), half(3.f), half(3.f) ) == half(-6.f) );
+    test( msu( half( 3.f ), half(4.f), half(4.f) ) == half(-13.f) );
+    _TCE_STDOUT('\n'); 
+    
+    // Pipeline behavior
+    // TODO mac
+    
+    _TCE_STDOUT('7'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     half imm1( 0.5f );

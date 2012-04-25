@@ -52,6 +52,11 @@
     <fu-id>9</fu-id>
   </fu>
 
+  <fu name="mach_msuh">
+    <hdb-file>/home/tivi/tce/tce/hdb/fpu_half.hdb</hdb-file>
+    <fu-id>11</fu-id>
+  </fu>
+
   <rf name="RF">
     <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>

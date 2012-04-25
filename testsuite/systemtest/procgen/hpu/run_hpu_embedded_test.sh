@@ -13,7 +13,7 @@ RUNCYCLES=3000
 RUNTIME=${RUNCYCLES}0
 
 # Compile program
-$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.cpp || exit 1
+$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.cpp --bottom-up-scheduler || exit 1
 
 # Check that there are no emulation functions
 $DISASM -o temp.txt $ADF $TPEF || exit 1
@@ -31,7 +31,7 @@ cd $PDIR || exit 1
 # change the simulation time
 eval "sed -i 's/5234/${RUNCYCLES}/g' tb/testbench_constants_pkg.vhdl"
 ./ghdl_compile.sh >& /dev/null ||  exit 1
-eval "./testbench --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
+eval "./testbench --assert-level=none --vcd=wave.vcd --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
 
 # Print simulation output
 cat printchar_output.txt

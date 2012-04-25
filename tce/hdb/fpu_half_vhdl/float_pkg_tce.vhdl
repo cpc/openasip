@@ -706,13 +706,14 @@ ENTITY normalization IS
   GENERIC (
     exp_w      : integer := float_exponent_width;
     frac_w     : integer := float_fraction_width;
+    in_exp_w     : integer := float_exponent_width;
     guard_bits : integer := float_guard_bits
     );
   PORT (
 
     sign : in std_ulogic;
     round_guard : in std_ulogic;
-    exp_in : in signed(exp_w DOWNTO 0);
+    exp_in : in signed(in_exp_w DOWNTO 0);
     frac_in : in unsigned(frac_w+1+guard_bits DOWNTO 0);
     res_out : OUT float(exp_w DOWNTO -frac_w)
     );

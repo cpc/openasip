@@ -1110,6 +1110,62 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>MACH</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3, t4, t5;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(chf, IO(3), t3);
+      EXEC_OPERATION(mulf, t2, t3, t4);
+      EXEC_OPERATION(addf, t1, t4, t5);
+      EXEC_OPERATION(cfh, t5, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MSUH</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3, t4, t5;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(chf, IO(3), t3);
+      EXEC_OPERATION(mulf, t2, t3, t4);
+      EXEC_OPERATION(subf, t1, t4, t5);
+      EXEC_OPERATION(cfh, t5, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>EQH</name>
     <description/>
     <inputs>2</inputs>
