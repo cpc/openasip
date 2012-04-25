@@ -48,6 +48,7 @@
 #include "OperationPool.hh"
 #include "OperationIndex.hh"
 #include "Operation.hh"
+#include "MathTools.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;
@@ -124,7 +125,9 @@ class VectorLSGenerator : public DesignSpaceExplorerPlugin {
 
             
         TTAMachine::FUPort* trigger = 
-            new TTAMachine::FUPort("in1t", addrSpace->width(), *lsUnit, true, true);
+            new TTAMachine::FUPort("in1t", 
+                MathTools::requiredBits(addrSpace->end()), 
+                *lsUnit, true, true);
         assert(trigger->isTriggering());
         int width = (nodeCount_ >= 8) ? 8 : 
             (nodeCount_ >= 4) ? 4 : 
