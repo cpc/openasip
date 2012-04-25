@@ -147,7 +147,7 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                             continue;
                         MDString* name = cast<llvm::MDString>(md->getOperand(0));
                         if (name->getString() != "WI_id") continue;
-                        ConstantInt* id_x = cast<llvm::ConstantInt>(md->getOperand(1));
+                        ConstantInt* id_x = cast<llvm::ConstantInt>(md->getOperand(2));
                         nodeIndex = 
                             (unsigned)id_x->getValue().getZExtValue() % 
                             targetMach.maxVectorSize();
@@ -177,6 +177,8 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
             if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
                 !mi.getOperand(0).isDef()) continue;
             const llvm::MachineOperand& result = mi.getOperand(0);
+            if (llvm::TargetRegisterInfo::isPhysicalRegister(
+                    mi.getOperand(0).getReg())) continue;
             const llvm::TargetRegisterClass* nodeRegClass = 
                 tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
 #ifdef DEBUG_PROGRAM_PARTITIONER

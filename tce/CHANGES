@@ -3,6 +3,10 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.1. 
+  LLVM 3.0 might still work but is unsupported and some features
+  do not work with llvm 3.0.
+  Dropped support for LLVM 2.9.
 - ProGe: Experimental support for Verilog and a small Verilog hardware
   database (mixed_hdl.hdb) supporting minimal.adf. Thanks to
   Vinogradov Viacheslav for contributing this.

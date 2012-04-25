@@ -289,16 +289,10 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
 
-    if (opc == TCE::BUILDV2vrr) return "_BUILD_2";
-    if (opc == TCE::BUILDV2mff) return "_BUILD_2";
     if (opc == TCE::BUILDV2vii) return "_BUILD_2";
     if (opc == TCE::BUILDV2mkk) return "_BUILD_2";
-    if (opc == TCE::BUILDV4wrrrr) return "_BUILD_4";
-    if (opc == TCE::BUILDV4nffff) return "_BUILD_4";
     if (opc == TCE::BUILDV4wiiii) return "_BUILD_4";
     if (opc == TCE::BUILDV4nkkkk) return "_BUILD_4";
-    if (opc == TCE::BUILDV8xrrrrrrrr) return "_BUILD_8";
-    if (opc == TCE::BUILDV8offffffff) return "_BUILD_8";
     if (opc == TCE::BUILDV8xiiiiiiii) return "_BUILD_8";
     if (opc == TCE::BUILDV8okkkkkkkk) return "_BUILD_8";
 

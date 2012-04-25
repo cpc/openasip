@@ -913,6 +913,7 @@ close $cycle_file
             #command += ";cp " + seqProgramName + " ../program.bc"
 
             if verboseOutput:
+                print "Compiling from sources:"
                 print command;
 
             exitOk, stdoutContents, stderrContents = runWithTimeout(command, schedulingTimeoutSec)
@@ -933,6 +934,9 @@ close $cycle_file
                     return False
                 self.seqCycleCount = self.lastStats.cycleCount
             
+        else:
+            print "src dir does not contain Makefile. Cannot build from src."
+            return False
         return True
         
     def run(self):
@@ -962,12 +966,17 @@ close $cycle_file
 
         # Recompile and set names for test programs.
         if recompile:
-            allPassed = allPassed and self.verifyCompiler(extraCompileFlags)
+            srcCompileOk = self.verifyCompiler(extraCompileFlags)
+            allPassed = allPassed and srcCompileOk
 
-            if useLLVM:
-                seqProgFile = "generated_program.bc"
+            if srcCompileOk == False:
+                print ("Source compilation failed.")
+                return False
             else:
-                seqProgFile = "generated_seq_program"
+                if useLLVM:
+                    seqProgFile = "generated_program.bc"
+                else:
+                    seqProgFile = "generated_seq_program"
         
         if configFileDefined:
             for arch in self.architectures:
