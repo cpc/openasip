@@ -164,9 +164,9 @@ BEGIN
             mac_in_sub <= t1opcode(0);
             mac_in_a <= to_float( t1trun );
             if( o1load = '1' ) then
-                mac_in_b <= to_float(o2trun);
+                mac_in_b <= to_float(o1trun);
             else
-                mac_in_b <= to_float(o2tempdata);
+                mac_in_b <= to_float(o1tempdata);
             end if;
             if( o2load = '1' ) then
                 mac_in_c <= to_float(o2trun);

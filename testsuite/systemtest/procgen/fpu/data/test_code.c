@@ -53,7 +53,7 @@ main(void) {
     // * Generic tests. These should succeed with f.ex. half-floats even if the others fail.
     // *
     //_TCE_STDOUT('\n'); 
-    _TCE_STDOUT('1'); 
+    /*_TCE_STDOUT('1'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     
@@ -395,21 +395,34 @@ main(void) {
     // * 
     // * Multiply-accumulate tests
     // *
-    
+    */
     _TCE_STDOUT('\n'); 
     _TCE_STDOUT('9'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
-    float a_ = 10.f, b_ = 10.f, c_ = 10.f;
     float d_;
     
-    _TCE_MACF( a_, b_, c_, d_ );
+    a = 10.f; b = 20.f; c = 30.f;
+    
+    _TCE_MACF( a, b, c, d_ );
+    
+    test( d_ == 610.f );
+    
+    _TCE_MSUF( a, b, c, d_ );
+    
+    test( d_ == -590.f );
+    
+    a = 10.f, b = 10.f, c = 10.f;
+    
+    _TCE_MACF( a, b, c, d_ );
     
     test( d_ == 110.f );
     
-    _TCE_MSUF( a_, b_, c_, d_ );
+    _TCE_MSUF( a, b, c, d_ );
     
     test( d_ == -90.f );
+    
+    
     
     _TCE_STDOUT('\n'); 
     
