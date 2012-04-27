@@ -40,6 +40,13 @@
 #include "TCESubtarget.hh"
 #include "TCEISelLowering.hh"
 
+// subvector lane indeces need this with llvm 3.0 to
+// make the plugin compile
+#ifdef LLVM_3_0
+#define GET_REGINFO_HEADER
+#include "TCEGenRegisterInfo.inc"
+#endif
+
 using namespace llvm;
 
 class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
