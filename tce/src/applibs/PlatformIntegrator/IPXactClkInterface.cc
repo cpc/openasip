@@ -36,15 +36,15 @@ const TCEString IPXactClkInterface::DEFAULT_INSTANCE_NAME = "clk_in";
 const TCEString IPXactClkInterface::TTA_CLK_PORT = "clk";
 const TCEString IPXactClkInterface::SPIRIT_CLK_PORT = "CLK";
 
-const TCEString IPXactClkInterface::VENDOR = "spiritconsortium.org";
-const TCEString IPXactClkInterface::LIBRARY ="busdef.clock";
-const TCEString IPXactClkInterface::NAME ="clock";
+const TCEString IPXactClkInterface::VENDOR = "TUT";
+const TCEString IPXactClkInterface::LIBRARY ="ip.hwp.interface";
+const TCEString IPXactClkInterface::NAME ="clock.busdef";
 const TCEString IPXactClkInterface::BUS_VERSION = "1.0";
 const TCEString IPXactClkInterface::ABS_VENDOR =
     IPXactClkInterface::VENDOR;
 const TCEString IPXactClkInterface::ABS_LIBRARY = 
     IPXactClkInterface::LIBRARY;
-const TCEString IPXactClkInterface::ABS_NAME = "clock_rtl";
+const TCEString IPXactClkInterface::ABS_NAME = "clock.absDef";
 const TCEString IPXactClkInterface::ABS_VERSION =
     IPXactClkInterface::BUS_VERSION;
 

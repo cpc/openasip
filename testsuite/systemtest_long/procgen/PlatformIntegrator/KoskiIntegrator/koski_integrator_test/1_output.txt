@@ -1,12 +1,10 @@
-Warning: Processor Generator failed to generate testbench.
-External port name didn't match any: dmem1_data_in
 <spirit:component xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1.5">
-      <spirit:busType spirit:library="busdef.clock" spirit:name="clock" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
-      <spirit:busType spirit:library="busdef.reset" spirit:name="reset" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
-      <spirit:busType spirit:library="ip.hwp.communication.hibi" spirit:name="hibi_ip_r4.busdef" spirit:vendor="TUT" spirit:version="3.0"/>
-      <spirit:abstractionType spirit:library="busdef.clock" spirit:name="clock_rtl" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:library="busdef.reset" spirit:name="reset_rtl" spirit:vendor="spiritconsortium.org" spirit:version="1.0"/>
-      <spirit:abstractionType spirit:library="ip.hwp.communication.hibi" spirit:name="hibi_ip_r4.absdef" spirit:vendor="TUT" spirit:version="3.0"/>
+      <spirit:busType spirit:library="ip.hwp.interface" spirit:name="clock.busdef" spirit:vendor="TUT" spirit:version="1.0"/>
+      <spirit:busType spirit:library="ip.hwp.interface" spirit:name="reset.busdef" spirit:vendor="TUT" spirit:version="1.0"/>
+      <spirit:busType spirit:library="ip.hwp.communication" spirit:name="hibi_ip_r4.busdef" spirit:vendor="TUT" spirit:version="2.0"/>
+      <spirit:abstractionType spirit:library="ip.hwp.interface" spirit:name="clock.absDef" spirit:vendor="TUT" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:library="ip.hwp.interface" spirit:name="reset.absDef" spirit:vendor="TUT" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:library="ip.hwp.communication" spirit:name="hibi_ip_r4.absdef" spirit:vendor="TUT" spirit:version="2.0"/>
 Component signal mappings
 24
 Bus signal mappings
