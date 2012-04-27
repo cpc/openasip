@@ -3,7 +3,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>DefaultICDecoderPlugin.so</file>
+    <file>../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
     <parameter name="bustrace">
       <value>yes</value>
     </parameter>
@@ -55,6 +55,11 @@
   <fu name="stdout">
     <hdb-file>./custom.hdb</hdb-file>
     <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="macf_msuf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>21</fu-id>
   </fu>
 
   <rf name="RF">

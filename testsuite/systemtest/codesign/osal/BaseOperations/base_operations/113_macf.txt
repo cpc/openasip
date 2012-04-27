@@ -1,0 +1,2 @@
+!output float
+macf 10.f 20.f 30.f

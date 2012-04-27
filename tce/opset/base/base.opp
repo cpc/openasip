@@ -1164,6 +1164,56 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(cfh, t5, IO(4));
     </trigger-semantics>
   </operation>
+  
+  
+  <operation>
+    <name>MACF</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="FloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulf, IO(2), IO(3), t1);
+      EXEC_OPERATION(addf, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MSUF</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="FloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulf, IO(2), IO(3), t1);
+      EXEC_OPERATION(subf, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
 
   <operation>
     <name>EQH</name>
