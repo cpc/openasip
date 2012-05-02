@@ -194,7 +194,7 @@ TCETargetMachine::addInstSelector(
 bool
 TCEPassConfig::addInstSelector() 
 {
-    PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+    PM->add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
     return false;
 }
 
@@ -224,18 +224,18 @@ TCETargetMachine::addPreISel(
 
 bool
 TCEPassConfig::addPreRegAlloc() {
-    PM.add(createProgramPartitionerPass());
+    PM->add(createProgramPartitionerPass());
     return false;
 }
 
 bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
-    PM.add(createLowerMissingInstructionsPass(
+    PM->add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
     
     if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
-        PM.add(createLinkBitcodePass(
+        PM->add(createLinkBitcodePass(
                    *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
 
@@ -246,8 +246,11 @@ TCEPassConfig::addPreISel() {
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 
         // createStandardLTOPasses function. (do not add memcpyopt or dce!)
+#ifdef LLVM_3_0
         PM.add(createInternalizePass(true));
-        
+#else
+        PM->add(createInternalizePass(true));
+#endif
         // TODO: find out which optimizations are beneficial here..
         //PM.add(createIPSCCPPass());
         //PM.add(createGlobalOptimizerPass());
