@@ -266,7 +266,7 @@ namespace {
 
     Value *getReplacementInput(LLVMContext& Context, Instruction *I,
                      ValueVector *vec, unsigned o);
-    Value* CommonShuffleSource(Instruction *I, Instruction *J, unsigned o);
+    Value* CommonShuffleSource(Instruction *I, Instruction *J);
     void getReplacementInputsForPair(LLVMContext& Context, Instruction *I,
                      Instruction *J, SmallVector<Value *, 3> &ReplacedOperands,
                      bool &FlipMemInputs);
@@ -307,10 +307,10 @@ namespace {
                      Instruction *&InsertionPt,
                      Instruction *I, Instruction *J);
     
-    bool doInitialization(Module& m) {
+    bool doInitialization(Module& /*m*/) {
       return false;
     }
-    bool doFinalization(Module& m) {
+    bool doFinalization(Module& /*m*/) {
       return false;
     }
     virtual bool runOnFunction(Function &Func) {
@@ -690,13 +690,12 @@ namespace {
   }
   // This function implements vectorization iteration on the provided
   // basic block. It returns true if the block is changed.
-  bool WIVectorize::vectorizeVectors(BasicBlock &BB) {
-    bool ShouldContinue;
+  bool WIVectorize::vectorizeVectors(BasicBlock &BB) {    
     BasicBlock::iterator Start = BB.getFirstInsertionPt();
 
     std::vector<Value *> VectorizableInsts;
     ValueVectorMap CandidateVectors;
-    ShouldContinue = getCandidateVectors(BB, Start, CandidateVectors,
+    getCandidateVectors(BB, Start, CandidateVectors,
                                          VectorizableInsts);
     if (VectorizableInsts.empty()) return false;
 
@@ -1087,7 +1086,7 @@ namespace {
   // output of PI or PJ.
   void WIVectorize::computePairsConnectedTo(
                       std::multimap<Value *, Value *> &CandidatePairs,
-                      std::vector<Value *> &PairableInsts,
+                      std::vector<Value *>& /*PairableInsts*/,
                       std::multimap<ValuePair, ValuePair> &ConnectedPairs,
                       ValuePair P) {
     // For each possible pairing for this variable, look at the uses of
@@ -1158,7 +1157,7 @@ namespace {
   void WIVectorize::buildDepMap(
                       BasicBlock &BB,
                       std::multimap<Value *, Value *> &CandidatePairs,
-                      std::vector<Value *> &PairableInsts,
+                      std::vector<Value *>& /*PairableInsts*/,
                       DenseSet<ValuePair> &PairableInstUsers) {
     DenseSet<Value *> IsInPair;
     for (std::multimap<Value *, Value *>::iterator C = CandidatePairs.begin(),
@@ -1263,10 +1262,10 @@ namespace {
   // pair J at the root.
   void WIVectorize::buildInitialTreeFor(
                       std::multimap<Value *, Value *> &CandidatePairs,
-                      std::vector<Value *> &PairableInsts,
+                      std::vector<Value *>& /*PairableInsts*/,
                       std::multimap<ValuePair, ValuePair> &ConnectedPairs,
-                      DenseSet<ValuePair> &PairableInstUsers,
-                      DenseMap<Value *, Value *> &ChosenPairs,
+                      DenseSet<ValuePair>& /*PairableInstUsers*/,
+                      DenseMap<Value *, Value *>& /*ChosenPairs*/,
                       DenseMap<ValuePair, size_t> &Tree, ValuePair J) {
     // Each of these pairs is viewed as the root node of a Tree. The Tree
     // is then walked (depth-first). As this happens, we keep track of
@@ -1318,8 +1317,8 @@ namespace {
   // Given some initial tree, prune it by removing conflicting pairs (pairs
   // that cannot be simultaneously chosen for vectorization).
   void WIVectorize::pruneTreeFor(
-                      std::multimap<Value *, Value *> &CandidatePairs,
-                      std::vector<Value *> &PairableInsts,
+                      std::multimap<Value *, Value *> &/*CandidatePairs*/,
+                      std::vector<Value *> &/*PairableInsts*/,
                       std::multimap<ValuePair, ValuePair> &ConnectedPairs,
                       DenseSet<ValuePair> &PairableInstUsers,
                       std::multimap<ValuePair, ValuePair> &PairableInstUserMap,
@@ -1618,8 +1617,8 @@ namespace {
 
   // Returns the value that is to be used as the pointer input to the vector
   // instruction that fuses I with J.
-  Value *WIVectorize::getReplacementPointerInput(LLVMContext& Context,
-                     Instruction *I, ValueVector *vec, unsigned o) {
+  Value *WIVectorize::getReplacementPointerInput(LLVMContext& /*Context*/,
+                     Instruction *I, ValueVector */*vec*/, unsigned o) {
     Value *IPtr, *JPtr;
     unsigned IAlignment, JAlignment;
     int64_t OffsetInElmts;
@@ -1627,12 +1626,12 @@ namespace {
                           OffsetInElmts);
 
     // The pointer value is taken to be the one with the lowest offset.
-    Value *VPtr;
+    /*Value *VPtr;
     if (OffsetInElmts > 0) {
       VPtr = IPtr;
     } else {
       VPtr = JPtr;
-    }
+    }*/
 
     Type *ArgType = cast<PointerType>(IPtr->getType())->getElementType();
     Type *VArgType = getVecTypeForVector(ArgType);
@@ -1644,7 +1643,7 @@ namespace {
   }
   // Returns the value that is to be used as the pointer input to the vector
   // instruction that fuses I with J.
-  Value *WIVectorize::getReplacementPointerInput(LLVMContext& Context,
+  Value *WIVectorize::getReplacementPointerInput(LLVMContext& /*Context*/,
                      Instruction *I, Instruction *J, unsigned o,
                      bool &FlipMemInputs) {
     Value *IPtr, *JPtr;
@@ -1773,7 +1772,7 @@ namespace {
     return BV2;
   }
 
-  Value *WIVectorize::CommonShuffleSource(Instruction *I, Instruction *J, unsigned o) {
+  Value *WIVectorize::CommonShuffleSource(Instruction *I, Instruction *J) {
       DenseMap<Value*, Value*>::iterator vi = storedSources.find(I);
       DenseMap<Value*, Value*>::iterator vj = storedSources.find(J);
       if (vi != storedSources.end() 
@@ -1838,10 +1837,10 @@ namespace {
                 // This is case where single value of input vector is replicated
                 // to whole output. Eventually should turn to buildvector MI.
                 if (identical) {
-                    unsigned numElem = 
+                    int numElem = 
                         cast<VectorType>(VArgType)->getNumElements();
                     std::vector<Constant*> Mask(numElem);      
-                    for (unsigned v = 0; v < numElem; ++v)
+                    for (int v = 0; v < numElem; ++v)
                         Mask[v] = 
                             ConstantInt::get(Type::getInt32Ty(Context), start);   
                             
@@ -1860,7 +1859,7 @@ namespace {
                 }
               }
 	  }
-          Value* res = CommonShuffleSource(LSV, HSV, o);
+          Value* res = CommonShuffleSource(LSV, HSV);
           if (res) {
               return res;	  
           }
@@ -2087,7 +2086,6 @@ namespace {
           AA->replaceWithNewValue(tmp, K);
       }
     } else {
-      Type *IType = I->getType();      
 
         Instruction* K1 = ExtractElementInst::Create(K, CV0,
                                           getReplacementName(K, false, 1));
@@ -2189,7 +2187,7 @@ namespace {
   }
 
   // Move all uses of the function I (including pairing-induced uses) after J.
-  bool WIVectorize::canMoveUsesOfIAfterJ(BasicBlock &BB,
+  bool WIVectorize::canMoveUsesOfIAfterJ(BasicBlock &/*BB*/,
                      std::multimap<Value *, Value *> &LoadMoveSet,
                      Instruction *I, Instruction *J) {
     // Skip to the first instruction past I.
@@ -2208,7 +2206,7 @@ namespace {
   }
 
   // Move all uses of the function I (including pairing-induced uses) after J.
-  void WIVectorize::moveUsesOfIAfterJ(BasicBlock &BB,
+  void WIVectorize::moveUsesOfIAfterJ(BasicBlock &/*BB*/,
                      std::multimap<Value *, Value *> &LoadMoveSet,
                      Instruction *&InsertionPt,
                      Instruction *I, Instruction *J) {
@@ -2237,7 +2235,7 @@ namespace {
   // pair member.  These loads depend on the first instruction, I, and so need
   // to be moved after J (the second instruction) when the pair is fused.
   void WIVectorize::collectPairLoadMoveSet(BasicBlock &BB,
-                     DenseMap<Value *, Value *> &ChosenPairs,
+                     DenseMap<Value *, Value *> &/*ChosenPairs*/,
                      std::multimap<Value *, Value *> &LoadMoveSet,
                      Instruction *I) {
     // Skip to the first instruction past I.
