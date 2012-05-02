@@ -1346,6 +1346,12 @@ TDGen::writeOperationDefs(
             writeOperationDef(o, op, "ooo", attrs, "_VECTOR_8_");
         }
 
+        if (createDefaultOperandTypeString(op) == "ff") {
+            writeOperationDef(o, op, "mm", attrs, "_VECTOR_2_");            
+            writeOperationDef(o, op, "nn", attrs, "_VECTOR_4_");
+            writeOperationDef(o, op, "oo", attrs, "_VECTOR_8_");
+        }
+
         // int-to-float conversions. also vector versions of those
         if (createDefaultOperandTypeString(op) == "fr") {
             writeOperationDef(o, op, "mv", attrs, "_VECTOR_2_");            
