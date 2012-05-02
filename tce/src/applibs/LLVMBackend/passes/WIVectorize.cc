@@ -960,7 +960,7 @@ namespace {
     BasicBlock::iterator E = BB.end();
     if (Start == E) return false;
 
-    bool ShouldContinue = false, IAfterStart = false;
+    bool IAfterStart = false;
     
     for (BasicBlock::iterator I = Start++; I != E; ++I) {
       if (I == Start) IAfterStart = true;
@@ -1748,8 +1748,6 @@ namespace {
       = dyn_cast<ExtractElementInst>(L->getOperand(o));
     
     if (LEE) {
-      VectorType *EEType = cast<VectorType>(LEE->getOperand(0)->getType());
-      unsigned LowIndx = cast<ConstantInt>(LEE->getOperand(1))->getZExtValue();
       return LEE->getOperand(0);
     }
     
@@ -2034,8 +2032,7 @@ namespace {
                      ValueVector* vec, Instruction *K,
                      Instruction *&InsertionPt,
                      ValueVector *newVec) {
-    Value *CV0 = ConstantInt::get(Type::getInt32Ty(Context), 0);
-    Value *CV1 = ConstantInt::get(Type::getInt32Ty(Context), 1);
+    Value *CV0 = ConstantInt::get(Type::getInt32Ty(Context), 0);    
     newVec->clear();
     if (isa<StoreInst>(I)) {
       AA->replaceWithNewValue(I, K);
@@ -2045,8 +2042,7 @@ namespace {
           AA->replaceWithNewValue(tmp, K);
       }
     } else {
-      Type *IType = I->getType();
-      Type *VType = getVecTypeForVector(IType);
+      Type *IType = I->getType();      
 
         Instruction* K1 = ExtractElementInst::Create(K, CV0,
                                           getReplacementName(K, false, 1));
