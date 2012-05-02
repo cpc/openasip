@@ -222,8 +222,10 @@ main() {
     _TCE_STDOUT(' '); 
     test( mac( half( 3.f ), half(3.f), half(3.f) ) == half(12.f) );
     test( mac( half( 3.f ), half(4.f), half(4.f) ) == half(19.f) );
+    test( mac( half( 1.f ), half(2.f), half(3.f) ) == half(7.f) );
     test( msu( half( 3.f ), half(3.f), half(3.f) ) == half(-6.f) );
     test( msu( half( 3.f ), half(4.f), half(4.f) ) == half(-13.f) );
+    test( msu( half( 1.f ), half(2.f), half(3.f) ) == half(-5.f) );
     _TCE_STDOUT('\n'); 
     
     // Pipeline behavior
