@@ -339,10 +339,10 @@ GeneratedTCEPlugin::nodeRegClass(
         if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
             continue;
         std::istringstream parser(origRCName);
-        char c;
+        char c2;
         int width;
         TCEString suffix;
-        parser >> c;
+        parser >> c2;
         parser >> width;
         parser >> suffix;
 
@@ -373,10 +373,10 @@ GeneratedTCEPlugin::extrasRegClass(
         if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
             continue;
         std::istringstream parser(origRCName);
-        char c;
+        char c2;
         int width;
         TCEString suffix;
-        parser >> c;
+        parser >> c2;
         parser >> width;
         parser >> suffix;
 
