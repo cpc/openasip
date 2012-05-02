@@ -529,7 +529,8 @@ namespace {
                             node2->getNumIncomingValues())
                             continue;
                         
-                        for (int i = 0; i < node->getNumIncomingValues(); i++) {
+                        for (unsigned int i = 0; 
+                             i < node->getNumIncomingValues(); i++) {
                             Value* v1 = node->getIncomingValue(i);
                             Value* v2 = node2->getIncomingValue(i);
                             if (node->getIncomingBlock(i) != 
@@ -579,7 +580,7 @@ namespace {
             PHINode* phi = PHINode::Create(VType, orig->getNumIncomingValues(),
                     getReplacementName(orig, false,0), orig);
             // Add incoming pairs to the phi node.
-            for (int i = 0; i < orig->getNumIncomingValues(); i++) {
+            for (unsigned int i = 0; i < orig->getNumIncomingValues(); i++) {
                 Value* inc = orig->getIncomingValue(i);
                 BasicBlock* BB = orig->getIncomingBlock(i);
                 DenseMap<Value*, Value*>::iterator iter = 
@@ -608,7 +609,7 @@ namespace {
             SE->forgetValue(orig);
             orig->eraseFromParent();
             Instruction* ins = other;
-            for (int i = 0; i < v.size(); i++) {
+            for (unsigned int i = 0; i < v.size(); i++) {
                 X = ConstantInt::get(Type::getInt32Ty(Context), i+1);            
                 Instruction* other = ExtractElementInst::Create(phi, X,
                                             getReplacementName(phi, false, i+1));
@@ -959,7 +960,7 @@ namespace {
     BasicBlock::iterator E = BB.end();
     if (Start == E) return false;
 
-    bool ShouldContinue = false, IAfterStart = false;
+    bool IAfterStart = false;
     
     for (BasicBlock::iterator I = Start++; I != E; ++I) {
       if (I == Start) IAfterStart = true;
@@ -1747,8 +1748,6 @@ namespace {
       = dyn_cast<ExtractElementInst>(L->getOperand(o));
     
     if (LEE) {
-      VectorType *EEType = cast<VectorType>(LEE->getOperand(0)->getType());
-      unsigned LowIndx = cast<ConstantInt>(LEE->getOperand(1))->getZExtValue();
       return LEE->getOperand(0);
     }
     
@@ -2033,19 +2032,17 @@ namespace {
                      ValueVector* vec, Instruction *K,
                      Instruction *&InsertionPt,
                      ValueVector *newVec) {
-    Value *CV0 = ConstantInt::get(Type::getInt32Ty(Context), 0);
-    Value *CV1 = ConstantInt::get(Type::getInt32Ty(Context), 1);
+    Value *CV0 = ConstantInt::get(Type::getInt32Ty(Context), 0);    
     newVec->clear();
     if (isa<StoreInst>(I)) {
       AA->replaceWithNewValue(I, K);
-      for (int i = 0; i < vec->size(); i++) {
+      for (unsigned int i = 0; i < vec->size(); i++) {
           Value* v = (*vec)[i];
           Instruction* tmp = cast<Instruction>(v);
           AA->replaceWithNewValue(tmp, K);
       }
     } else {
-      Type *IType = I->getType();
-      Type *VType = getVecTypeForVector(IType);
+      Type *IType = I->getType();      
 
         Instruction* K1 = ExtractElementInst::Create(K, CV0,
                                           getReplacementName(K, false, 1));
@@ -2054,7 +2051,7 @@ namespace {
         K1->insertAfter(K); 
         newVec->push_back(K1);
         Instruction* ins = K1;
-        for (int i = 0; i < vec->size(); i++) {
+        for (unsigned int i = 0; i < vec->size(); i++) {
             Value *X = ConstantInt::get(Type::getInt32Ty(Context), i+1);            
             Instruction* other = ExtractElementInst::Create(K, X,
                                         getReplacementName(K, false, i+1));
@@ -2261,7 +2258,7 @@ namespace {
         DEBUG(dbgs() << "WIV: initial: \n" << BB << "\n");
         for (ValueVectorMap::iterator it = ChosenVectors.begin();
              it != ChosenVectors.end(); it++) {
-            for (int i = 0; i < (*it).second->size(); i++) {
+            for (unsigned int i = 0; i < (*it).second->size(); i++) {
                 ValueVector& v = *(*it).second;
                 v[i]->dump();
             }
@@ -2313,7 +2310,7 @@ namespace {
             if (!isa<StoreInst>(I)) {
                 I->replaceAllUsesWith((newVec)[0]);
                 AA->replaceWithNewValue(I, (newVec)[0]);        
-                for (int i = 0; i < vec.size(); i++) {
+                for (unsigned int i = 0; i < vec.size(); i++) {
                     vec[i]->replaceAllUsesWith((newVec)[i+1]);        
                     AA->replaceWithNewValue(vec[i], (newVec)[i+1]);
                 }
@@ -2323,7 +2320,7 @@ namespace {
 
             SE->forgetValue(I);
             I->eraseFromParent();            
-            for (int i = 0; i < vec.size(); i++) { 
+            for (unsigned int i = 0; i < vec.size(); i++) { 
                 Instruction* ins = cast<Instruction>(vec[i]);
                 SE->forgetValue(ins);                
                 ins->eraseFromParent();

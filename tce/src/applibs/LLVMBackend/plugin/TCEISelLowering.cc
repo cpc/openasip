@@ -640,11 +640,6 @@ TCETargetLowering::TCETargetLowering(
 
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
-    
-    
-    
-    setOperationAction(ISD::FP32_TO_FP16, MVT::i32, Legal);
-    setOperationAction(ISD::FP32_TO_FP16, MVT::f32, Legal);
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
 

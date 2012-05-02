@@ -36,15 +36,15 @@ const TCEString IPXactResetInterface::DEFAULT_INSTANCE_NAME = "rst_n";
 const TCEString IPXactResetInterface::TTA_RESET_PORT = "rstx";
 const TCEString IPXactResetInterface::SPIRIT_RESET_PORT = "RESETn";
 
-const TCEString IPXactResetInterface::VENDOR = "spiritconsortium.org";
-const TCEString IPXactResetInterface::LIBRARY ="busdef.reset";
-const TCEString IPXactResetInterface::NAME ="reset";
+const TCEString IPXactResetInterface::VENDOR = "TUT";
+const TCEString IPXactResetInterface::LIBRARY ="ip.hwp.interface";
+const TCEString IPXactResetInterface::NAME ="reset.busdef";
 const TCEString IPXactResetInterface::BUS_VERSION = "1.0";
 const TCEString IPXactResetInterface::ABS_VENDOR =
     IPXactResetInterface::VENDOR;
 const TCEString IPXactResetInterface::ABS_LIBRARY = 
     IPXactResetInterface::LIBRARY;
-const TCEString IPXactResetInterface::ABS_NAME = "reset_rtl";
+const TCEString IPXactResetInterface::ABS_NAME = "reset.absDef";
 const TCEString IPXactResetInterface::ABS_VERSION =
     IPXactResetInterface::BUS_VERSION;
 

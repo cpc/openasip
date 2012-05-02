@@ -276,7 +276,6 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["CHIU.i8"].push_back("i8.fptoui.f16");
         footprints["CIH.i8"].push_back("f16.sitofp.i8");
         footprints["CIHU.i8"].push_back("f16.uitofp.i8");*/
-        
 
         init = false;                
     }

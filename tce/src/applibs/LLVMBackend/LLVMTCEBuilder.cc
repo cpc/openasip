@@ -1919,7 +1919,7 @@ LLVMTCEBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() > 2) {
-        for (int i = 2; i < mi->getNumOperands(); i++) {
+        for (unsigned int i = 2; i < mi->getNumOperands(); i++) {
             assert(mi->getOperand(i).isImplicit());
         }
     }

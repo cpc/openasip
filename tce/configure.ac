@@ -395,6 +395,36 @@ CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
 
 ####################################################################
 #
+# Python 2.x for the tcecc compiler driver script.
+#
+####################################################################
+AC_MSG_CHECKING(for python binary)
+AC_MSG_RESULT([])
+for python in python2.9 python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python; do
+AC_CHECK_PROGS(PYTHON_BIN, [$python])
+ax_python_bin=$PYTHON_BIN
+if test x$ax_python_bin != x; then
+   break;
+fi
+done
+
+if test x$PYTHON_BIN == x; then
+   AC_MSG_ERROR([Python 2.x not found.])
+fi
+
+PYTHON_VERSION=`$PYTHON_BIN --version 2>&1 | cut -d ' ' -f 2 | cut -d '.' -f 1,2`
+
+case "$PYTHON_VERSION" in
+     2.*)
+     AC_DEFINE([PYTHON_2], [], "Using Python 2.x")
+     ;;
+     *)
+     AC_MSG_NOTICE([Python version: $PYTHON_VERSION])
+     AC_MSG_ERROR([Python 2.x not found.])
+esac
+
+####################################################################
+#
 # LLVM is needed for the LLVM-based compiler.
 #
 # If not found, LLVM-based compiler is disabled and TTA programs can

@@ -226,6 +226,7 @@ TCETargetMachine::addPreISel(
 bool
 TCEPassConfig::addPreRegAlloc() {
     PM.add(createProgramPartitionerPass());
+    return false;
 }
 
 bool

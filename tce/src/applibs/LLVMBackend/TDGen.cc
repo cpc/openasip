@@ -222,7 +222,6 @@ TDGen::writeRegisterInfo(std::ostream& o)
     writeRARegisterInfo(o);
     write1bitRegisterInfo(o);
     write32bitRegisterInfo(o);
-    //write16bitRegisterInfo(o);
     writeVectorRegisterInfo(o);
 
     return true;

@@ -103,9 +103,9 @@ InputOperandDialog::InputOperandDialog(
 
     operandTypes_[0] = Operand::SINT_WORD;
     operandTypes_[1] = Operand::UINT_WORD;
-    operandTypes_[2] = Operand::FLOAT_WORD;;
+    operandTypes_[2] = Operand::FLOAT_WORD;
     operandTypes_[3] = Operand::DOUBLE_WORD;
-    operandTypes_[4] = Operand::HALF_FLOAT_WORD;;
+    operandTypes_[4] = Operand::HALF_FLOAT_WORD;
 
     updateTypes(operand_->type());
 

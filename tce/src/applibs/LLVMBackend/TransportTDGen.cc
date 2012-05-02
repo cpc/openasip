@@ -580,11 +580,11 @@ TransportTDGen::writeRegisterInfo() {
                 for (int op = 0; op < fu.operationCount(); ++op) {
                     if (op > 0) f << ", ";            
                     TCEString operationName = fu.operation(op)->name();
-                    Operation& op = opPool.operation(operationName.c_str());
+                    Operation& opr = opPool.operation(operationName.c_str());
                     f << underScoredPortName(port, operationName);
                     maxOperandCount = std::max(
                         maxOperandCount, 
-                        op.numberOfInputs() + op.numberOfOutputs());
+                        opr.numberOfInputs() + opr.numberOfOutputs());
                     triggerPorts[fu.name()] = &port;
                 }
             } else {

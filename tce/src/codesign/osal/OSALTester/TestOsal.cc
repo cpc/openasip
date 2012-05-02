@@ -493,7 +493,7 @@ TesterContext::toOutputFormat(SimValue* value) {
         FloatWord floatWord = value->floatWordValue();
         output = Conversion::toString(floatWord);
 
-    }else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_HALF) {
+    } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_HALF) {
         HalfFloatWord halfFloatWord = value->halfFloatWordValue();
         output = Conversion::toString(FloatWord(float(halfFloatWord)));
         

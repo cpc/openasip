@@ -38,9 +38,9 @@ using ProGe::NetlistPort;
 
 const TCEString IPXactHibiInterface::DEFAULT_INSTANCE_NAME = "hibi_p";
 const TCEString IPXactHibiInterface::VENDOR = "TUT";
-const TCEString IPXactHibiInterface::LIBRARY ="ip.hwp.communication.hibi";
+const TCEString IPXactHibiInterface::LIBRARY ="ip.hwp.communication";
 const TCEString IPXactHibiInterface::NAME ="hibi_ip_r4.busdef";
-const TCEString IPXactHibiInterface::BUS_VERSION = "3.0";
+const TCEString IPXactHibiInterface::BUS_VERSION = "2.0";
 const TCEString IPXactHibiInterface::ABS_VENDOR =
     IPXactHibiInterface::VENDOR;
 const TCEString IPXactHibiInterface::ABS_LIBRARY = 
