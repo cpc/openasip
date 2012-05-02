@@ -1811,14 +1811,59 @@ namespace {
 	  LSV->getOperand(2)->getType() == HSV->getOperand(2)->getType()) {
 	  if (LSV->getOperand(0) == HSV->getOperand(0) &&
 	      LSV->getOperand(1) == HSV->getOperand(1)) {
-              if (LSV->getOperand(0)->getType()->getVectorNumElements() ==
-                  2 * LSV->getOperand(2)->getType()->getVectorNumElements()) {
-                  return LSV->getOperand(0);
+              if (LSV->getOperand(2)->getType()->getVectorNumElements() ==
+                  HSV->getOperand(2)->getType()->getVectorNumElements()) {
+                int elems = LSV->getOperand(2)->getType()->getVectorNumElements();
+                bool continous = true;    
+                bool identical = true;
+                int start = cast<ShuffleVectorInst>(LSV)->getMaskValue(0);
+                for (int i = 0; i < elems; i++) {
+                    int m = cast<ShuffleVectorInst>(LSV)->getMaskValue(i);
+                    if (m != i) 
+                        continous = false;
+                    if (m != start)
+                        identical = false;
+                    int n = cast<ShuffleVectorInst>(HSV)->getMaskValue(i);
+                    if (n != i + elems)
+                        continous = false;
+                    if (n != start)
+                        identical = false;
+                }
+                // This is the case where both sources come from same value and
+                // are in order. e.g. 0,1,2,3,4,5,6,7, as produced when
+                // replacing outputs of vector operation.
+                if (continous) {
+                    return LSV->getOperand(0);
+                }
+                // This is case where single value of input vector is replicated
+                // to whole output. Eventually should turn to buildvector MI.
+                if (identical) {
+                    unsigned numElem = 
+                        cast<VectorType>(VArgType)->getNumElements();
+                    std::vector<Constant*> Mask(numElem);      
+                    for (unsigned v = 0; v < numElem; ++v)
+                        Mask[v] = 
+                            ConstantInt::get(Type::getInt32Ty(Context), start);   
+                            
+                    Instruction *BV = new ShuffleVectorInst(
+                            (start < numElem/2) ? 
+                                LSV->getOperand(0): 
+                                LSV->getOperand(1),
+                            UndefValue::get(LSV->getOperand(0)->getType()),
+                            ConstantVector::get(Mask),
+                            getReplacementName(I, true, o));                    
+                    if (LSV->getMetadata("wi") != NULL) {
+                        BV->setMetadata("wi", LSV->getMetadata("wi"));
+                    }
+                    BV->insertBefore(J);
+                    return BV;                
+                }
               }
 	  }
           Value* res = CommonShuffleSource(LSV, HSV, o);
-          if (res)
+          if (res) {
               return res;	  
+          }
       }
       InsertElementInst *LIN
 	= dyn_cast<InsertElementInst>(L->getOperand(o));
@@ -2019,7 +2064,7 @@ namespace {
         ReplacedOperands[o] = Intrinsic::getDeclaration(M,
           (Intrinsic::ID) IID, VArgType);
         continue;
-      }/* else if (isa<ShuffleVectorInst>(I) && o == NumOperands-1) {
+      } /*else if (isa<ShuffleVectorInst>(I) && o == NumOperands-1) {
         ReplacedOperands[o] = getReplacementShuffleMask(Context, I, J);
         continue;
       }*/
