@@ -405,13 +405,13 @@
   <function-unit name="invsqrth">
     <port name="in1">
       <connects-to>sqrtf_i1</connects-to>
-      <width>32</width>
+      <width>16</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="out1">
       <connects-to>sqrtf_o1</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <operation>
       <name>invsqrth</name>
@@ -434,17 +434,17 @@
   <function-unit name="addh_subh">
     <port name="in1t">
       <connects-to>addf_subf_i1</connects-to>
-      <width>32</width>
+      <width>16</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
       <connects-to>addf_subf_i2</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <port name="out1">
       <connects-to>addf_subf_o1</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <operation>
       <name>addh</name>
@@ -492,17 +492,17 @@
   <function-unit name="mulh_squareh">
     <port name="in1t">
       <connects-to>mulf_i1</connects-to>
-      <width>32</width>
+      <width>16</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
       <connects-to>mulf_i2</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <port name="out1">
       <connects-to>mulf_o1</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <operation>
       <name>mulh</name>
@@ -545,17 +545,17 @@
   <function-unit name="absh_negh_eqh_neh_lth_leh_geh_gth">
     <port name="in1t">
       <connects-to>absf_negf_eqf_nef_ltf_lef_gef_gtf_i1</connects-to>
-      <width>32</width>
+      <width>16</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="out1">
       <connects-to>absf_negf_eqf_nef_ltf_lef_gef_gtf_o1</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <port name="in2">
       <connects-to>absf_negf_eqf_nef_ltf_lef_gef_gtf_i2</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <operation>
       <name>absh</name>
@@ -1045,21 +1045,21 @@
   <function-unit name="mach_msuh">
     <port name="P1">
       <connects-to>mach_i1</connects-to>
-      <width>32</width>
+      <width>16</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="P2">
       <connects-to>mach_i2</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <port name="P3">
       <connects-to>mach_i3</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <port name="P4">
       <connects-to>mach_o1</connects-to>
-      <width>32</width>
+      <width>16</width>
     </port>
     <operation>
       <name>mach</name>
