@@ -24,7 +24,9 @@ use work.fixed_float_types.all;
 ENTITY fpmac32 IS
   GENERIC(
     dataw : integer := 32;
-    busw : integer := 32
+    busw : integer := 32;
+    ew    : integer := 8;
+    mw   : integer := 23 
     );
   PORT (
     clk      : IN std_logic;
@@ -46,8 +48,6 @@ END fpmac32;
 
 ARCHITECTURE rtl OF fpmac32 IS
 
-  CONSTANT exp_w : INTEGER := float_exponent_width;  --exponent width
-  CONSTANT frac_w : INTEGER := float_fraction_width; --fractional width
   CONSTANT guard_bits : INTEGER := float_guard_bits; --guard bits for extra
                                                      --precision
   COMPONENT fpmac_block
@@ -57,14 +57,14 @@ ARCHITECTURE rtl OF fpmac32 IS
       guard : integer := float_guard_bits);
 
     PORT (
-      a_in           : IN  float(exp_w DOWNTO -frac_w);
-      b_in           : IN  float(exp_w DOWNTO -frac_w);
-      c_in           : IN  float(exp_w DOWNTO -frac_w);
+      a_in           : IN  float(ew DOWNTO -mw);
+      b_in           : IN  float(ew DOWNTO -mw);
+      c_in           : IN  float(ew DOWNTO -mw);
       sub_in     : in std_ulogic;
       sign        : OUT std_ulogic;
       round_guard : OUT std_ulogic;
-      exp_out     : OUT signed(exp_w+1 DOWNTO 0);
-      frac_out    : OUT unsigned(frac_w+1+guard_bits DOWNTO 0);
+      exp_out     : OUT signed(ew+1 DOWNTO 0);
+      frac_out    : OUT unsigned(mw+1+guard_bits DOWNTO 0);
 
       clk      : IN std_logic;
       rstx     : IN std_logic;
@@ -74,9 +74,9 @@ ARCHITECTURE rtl OF fpmac32 IS
 
   COMPONENT normalization
     GENERIC (
-      in_exp_w     : integer := exp_w+1;
-      exp_w      : integer := exp_w;
-      frac_w     : integer := frac_w;
+      in_exp_w     : integer := ew+1;
+      exp_w      : integer := ew;
+      frac_w     : integer := mw;
       guard_bits : integer := guard_bits
       );
     PORT (
@@ -84,44 +84,44 @@ ARCHITECTURE rtl OF fpmac32 IS
       sign : in std_ulogic;
       round_guard : in std_ulogic;
       exp_in : in signed(in_exp_w DOWNTO 0);
-      frac_in : in unsigned(frac_w+1+guard_bits DOWNTO 0);
-      res_out : OUT float(exp_w DOWNTO -frac_w)
+      frac_in : in unsigned(mw+1+guard_bits DOWNTO 0);
+      res_out : OUT float(ew DOWNTO -mw)
       );
   END COMPONENT;
   
   SIGNAL enable_r   : std_logic;
   SIGNAL enable_r2  : std_logic;
-  SIGNAL mac_in_a   : float(exp_w DOWNTO -frac_w);
-  SIGNAL mac_in_b   : float(exp_w DOWNTO -frac_w);
-  SIGNAL mac_in_c   : float(exp_w DOWNTO -frac_w);
+  SIGNAL mac_in_a   : float(ew DOWNTO -mw);
+  SIGNAL mac_in_b   : float(ew DOWNTO -mw);
+  SIGNAL mac_in_c   : float(ew DOWNTO -mw);
   SIGNAL mac_in_sub : std_logic;
-  SIGNAL o1tempdata : std_logic_vector(exp_w + frac_w downto 0);
-  SIGNAL o2tempdata : std_logic_vector(exp_w + frac_w downto 0);
-  SIGNAL add_out    : float(exp_w DOWNTO -frac_w);
+  SIGNAL o1tempdata : std_logic_vector(ew + mw downto 0);
+  SIGNAL o2tempdata : std_logic_vector(ew + mw downto 0);
+  SIGNAL add_out    : float(ew DOWNTO -mw);
   
   SIGNAL fp_op_r : STD_LOGIC_vector(0 DOWNTO 0);
   SIGNAL sign_out_add : std_ulogic;
   SIGNAL round_guard_out_add : std_ulogic;
-  SIGNAL exp_out_add : signed(exp_w+1 DOWNTO 0);
-  SIGNAL frac_out_add : unsigned(frac_w+1+guard_bits DOWNTO 0);
+  SIGNAL exp_out_add : signed(ew+1 DOWNTO 0);
+  SIGNAL frac_out_add : unsigned(mw+1+guard_bits DOWNTO 0);
   SIGNAL sign_norm : std_ulogic;
   SIGNAL round_guard_norm : std_ulogic;
-  SIGNAL exp_in_norm : signed(exp_w+1 DOWNTO 0);
-  SIGNAL frac_in_norm : unsigned(frac_w+1+guard_bits DOWNTO 0);
-  SIGNAL res_out_norm : float(exp_w DOWNTO -frac_w);
+  SIGNAL exp_in_norm : signed(ew+1 DOWNTO 0);
+  SIGNAL frac_in_norm : unsigned(mw+1+guard_bits DOWNTO 0);
+  SIGNAL res_out_norm : float(ew DOWNTO -mw);
 
   -- Truncated t1data, o1data, r1data with shorter word lengths 
-  signal t1trun : std_logic_vector(exp_w + frac_w downto 0);
-  signal o1trun : std_logic_vector(exp_w + frac_w downto 0);
-  signal o2trun : std_logic_vector(exp_w + frac_w downto 0);
-  signal r1trun : std_logic_vector(exp_w + frac_w downto 0);
+  signal t1trun : std_logic_vector(ew + mw downto 0);
+  signal o1trun : std_logic_vector(ew + mw downto 0);
+  signal o2trun : std_logic_vector(ew + mw downto 0);
+  signal r1trun : std_logic_vector(ew + mw downto 0);
 
 BEGIN  
  
   macer : fpmac_block
     GENERIC MAP(
-      exp_w => exp_w,
-      frac_w => frac_w,
+      exp_w => ew,
+      frac_w => mw,
       guard => guard_bits)
     PORT MAP (
       a_in        => mac_in_a,
@@ -139,9 +139,9 @@ BEGIN
 
   normalize : normalization
     GENERIC MAP(
-      exp_w => exp_w,
-      in_exp_w => exp_w+1,
-      frac_w => frac_w,
+      exp_w => ew,
+      in_exp_w => ew+1,
+      frac_w => mw,
       guard_bits => guard_bits)
     PORT MAP (
       sign        => sign_norm,
@@ -151,11 +151,11 @@ BEGIN
       res_out     => res_out_norm);
 
   -- Must use internally smaller word length
-  t1trun <= t1data(exp_w + frac_w downto 0);
-  o1trun <= o1data(exp_w + frac_w downto 0);
-  o2trun <= o2data(exp_w + frac_w downto 0);
-  r1data(exp_w + frac_w downto 0) <= r1trun;
-  r1data(busw-1 downto exp_w + frac_w + 1) <= (others => '0');
+  t1trun <= t1data(ew + mw downto 0);
+  o1trun <= o1data(ew + mw downto 0);
+  o2trun <= o2data(ew + mw downto 0);
+  r1data(ew + mw downto 0) <= r1trun;
+  r1data(busw-1 downto ew + mw + 1) <= (others => '0');
 
   fpu: PROCESS (clk, rstx)
   BEGIN  -- PROCESS fpu

@@ -235,8 +235,8 @@ entity fp_invsqrt is
 generic(
     busw     : integer := 16;
     dataw    : integer := 16;
-    exp_w    : integer := 5;
-    frac_w   : integer := 10 
+    ew    : integer := 5;
+    mw   : integer := 10 
 );
 
 port(
@@ -253,20 +253,20 @@ architecture rtl_invsqrt of fp_invsqrt is
 
    component invsqrt 
       port(
-         sum       :in  float(exp_w downto -frac_w); 
-         inv_sqrt  :out float(exp_w downto -frac_w) 
+         sum       :in  float(ew downto -mw); 
+         inv_sqrt  :out float(ew downto -mw) 
       );  
    end component;
  
-   signal t1reg           : float(exp_w downto -frac_w);
-   signal r0reg           : float(exp_w downto -frac_w);
+   signal t1reg           : float(ew downto -mw);
+   signal r0reg           : float(ew downto -mw);
    signal control         : std_logic;
    signal result_en_reg   : std_logic; 
    
    -- Truncated t1data, o1data, r1data with shorter word lengths 
-   signal t1trun : std_logic_vector(exp_w + frac_w downto 0);
-   --signal o1trun : std_logic_vector(exp_w + frac_w downto 0);
-   signal r1trun : std_logic_vector(exp_w + frac_w downto 0);
+   signal t1trun : std_logic_vector(ew + mw downto 0);
+   --signal o1trun : std_logic_vector(ew + mw downto 0);
+   signal r1trun : std_logic_vector(ew + mw downto 0);
 
 begin 
   
@@ -279,10 +279,10 @@ begin
   control <= t1load;
   
   -- Must use internally smaller word length
-  t1trun <= t1data(exp_w + frac_w downto 0);
-  --o1trun <= o1data(exp_w + frac_w downto 0);
-  r0data(exp_w + frac_w downto 0) <= r1trun;
-  r0data(busw-1 downto exp_w + frac_w + 1) <= (others => '0');
+  t1trun <= t1data(ew + mw downto 0);
+  --o1trun <= o1data(ew + mw downto 0);
+  r0data(ew + mw downto 0) <= r1trun;
+  r0data(busw-1 downto ew + mw + 1) <= (others => '0');
   
   regs: process(clk, rstx)
   begin 
@@ -291,7 +291,7 @@ begin
      elsif(clk'event and clk = '1') then -- rising clock edge
         if(glock = '0') then 
            if(control = '1') then  
-              t1reg <= to_float(t1data(exp_w+frac_w downto 0));
+              t1reg <= to_float(t1data(ew+mw downto 0));
            end if;
         
         

@@ -53,7 +53,7 @@ main(void) {
     // * Generic tests. These should succeed with f.ex. half-floats even if the others fail.
     // *
     //_TCE_STDOUT('\n'); 
-    /*_TCE_STDOUT('1'); 
+    _TCE_STDOUT('1'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     
@@ -395,7 +395,7 @@ main(void) {
     // * 
     // * Multiply-accumulate tests
     // *
-    */
+    
     _TCE_STDOUT('\n'); 
     _TCE_STDOUT('9'); 
     _TCE_STDOUT(':'); 
