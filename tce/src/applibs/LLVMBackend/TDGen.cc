@@ -2156,7 +2156,7 @@ TDGen::emulatingOpNodeLLVMName(
                 if (t != NULL) {
                     int strIndex = t->operandIndex() -1 -
                         op.numberOfInputs();
-                    assert(operandTypes.length() > strIndex &&
+                    assert((int)operandTypes.length() > strIndex &&
                            strIndex >= 0);
                     if (c != 0 && c != operandTypes[strIndex]) {
                         throw InvalidData(__FILE__,__LINE__,__func__,
@@ -2209,7 +2209,7 @@ TDGen::emulatingOpNodeLLVMName(
                         assert (t != NULL);
                         int strIndex = t->operandIndex() -1 + 
                             op.numberOfOutputs();
-                        assert(operandTypes.length() > strIndex &&
+                        assert((int)operandTypes.length() > strIndex &&
                                strIndex > 0);
                         operationName += operandTypes[strIndex];
                     }
