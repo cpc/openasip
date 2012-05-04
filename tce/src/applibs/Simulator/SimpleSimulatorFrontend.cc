@@ -34,6 +34,21 @@
 #include "DetailedOperationSimulator.hh"
 
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
+    TCEString machineFile) {
+    simFront_ = new SimulatorFrontend();
+    try {
+        simFront_->loadMachine(machineFile);
+    } catch (Exception& e) {
+        std::cerr 
+            << e.errorMessage() + " in " +   
+            e.fileName() + ":" +
+            e.procedureName() + ":" 
+            << e.lineNum() << std::endl;
+        abort();
+    }
+}
+
+SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile, TCEString programFile) {
     simFront_ = new SimulatorFrontend();
     try {
@@ -57,6 +72,16 @@ void
 SimpleSimulatorFrontend::step() {
     if (!simFront_->hasSimulationEnded())
         simFront_->step();
+}
+
+const TTAMachine::Machine& 
+SimpleSimulatorFrontend::machine() const {
+    return simFront_->machine();
+}
+
+MemorySystem&
+SimpleSimulatorFrontend::memorySystem() {
+    return simFront_->memorySystem();
 }
 
 /**

@@ -95,6 +95,9 @@
 #include "CompiledSimUtilizationStats.hh"
 #include "SimulationEventHandler.hh"
 #include "MachineInfo.hh"
+#include "DirectAccessMemory.hh"
+#include "IdealSRAM.hh"
+#include "MemoryProxy.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -120,8 +123,9 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
-    memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
-    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false) {
+    memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0),     
+    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false),
+    memorySystem_(NULL) {
 
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
@@ -224,6 +228,9 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     delete simCon_;
     simCon_ = NULL;
 
+    delete memorySystem_;
+    memorySystem_ = NULL;
+
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (compiledSimulation_ == true && 
@@ -232,6 +239,7 @@ SimulatorFrontend::loadMachine(const Machine& machine)
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
+    initializeMemorySystem();
 }
 
 /**
@@ -527,6 +535,9 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
     delete simCon_;
     simCon_ = NULL;
 
+    delete memorySystem_;
+    memorySystem_ = NULL;
+
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (compiledSimulation_ == true && 
@@ -535,6 +546,7 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
+    initializeMemorySystem();
 }
 
 /**
@@ -606,7 +618,7 @@ SimulatorFrontend::initializeSimulation() {
         simCon_ = 
             new SimulationController(
                 *this, *currentMachine_, *currentProgram_, 
-                fuResourceConflictDetection_, memoryAccessTracking_);
+                fuResourceConflictDetection_);
         machineState_ = 
             &(dynamic_cast<SimulationController*>(simCon_)->machineState());
     }
@@ -1570,6 +1582,53 @@ SimulatorFrontend::finishSimulation() {
 
 }
 
+/**
+ * Initializes the memory system according to the address spaces in the
+ * loaded machine.
+ */
+void 
+SimulatorFrontend::initializeMemorySystem() {
+
+    assert (currentMachine_ != NULL);
+    const Machine& machine = *currentMachine_;
+    memorySystem_ = new MemorySystem(machine);
+    // create a memory system for the loaded machine by going
+    // through all address spaces in the machine and create a memory model 
+    // for each of them, except for the one of GCU's
+    Machine::AddressSpaceNavigator nav = machine.addressSpaceNavigator();
+
+    
+    std::string controlUnitASName = "";
+    if (machine.controlUnit() != NULL &&
+        machine.controlUnit()->hasAddressSpace()) {
+        controlUnitASName = machine.controlUnit()->addressSpace()->name();
+    }
+
+    for (int i = 0; i < nav.count(); ++i) {
+        const AddressSpace& space = *nav.item(i);
+
+        if (space.name() == controlUnitASName)
+            continue;
+        Memory* mem = NULL;
+
+        if (compiledSimulation_) {
+            mem = new DirectAccessMemory(
+                space.start(), space.end(), space.width());
+        } else {
+            mem = new IdealSRAM(
+                space.start(), space.end(), space.width());
+        }
+            
+        // If memory tracking is enabled, memories are wrapped by a proxy
+        // that tracks memory access.
+        if (memoryAccessTracking_) {
+            mem = new MemoryProxy(*this, mem);
+        }
+        memorySystem_->addAddressSpace(space, mem);
+    }
+}
+
+
 /** 
  * Kills the currently running simulation.
  *
@@ -1907,8 +1966,8 @@ SimulatorFrontend::stopPointManager() {
  */
 MemorySystem&
 SimulatorFrontend::memorySystem() {
-    assert(simCon_ != NULL);
-    return simCon_->memorySystem();
+    assert(memorySystem_ != NULL);
+    return *memorySystem_;
 }
 
 /**

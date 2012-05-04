@@ -255,6 +255,7 @@ protected:
         throw (IOException);
     void initializeDataMemories();
     void initializeDisassembler() const;
+    void initializeMemorySystem();
     bool hasStopReason(StopReason reason) const;
 
     void startTimer();
@@ -362,5 +363,7 @@ protected:
     /// True in case the compilation simulation should not cleanup at
     /// destruction the engine source files.
     bool leaveCompiledDirty_;
+    /// The simulation models of the memories in the currently loaded machine.
+    MemorySystem* memorySystem_;
 };
 #endif

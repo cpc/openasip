@@ -44,6 +44,7 @@
 #include "StringTools.hh"
 #include "ResourceVector.hh"
 #include "ResourceVectorSet.hh"
+#include "CIStringSet.hh"
 
 using std::string;
 using boost::format;

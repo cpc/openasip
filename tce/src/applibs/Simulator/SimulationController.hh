@@ -48,9 +48,7 @@ public:
         SimulatorFrontend& frontend,
         const TTAMachine::Machine& machine, 
         const TTAProgram::Program& program,
-        bool fuResourceConflictDetection = true,
-        bool memoryAccessTracking = false,
-        bool directAccessMemory = false);
+        bool fuResourceConflictDetection = true);
 
     virtual ~SimulationController();
 

@@ -38,6 +38,10 @@
 class SimulatorFrontend;
 class OperationExecutor;
 class DetailedOperationSimulator;
+class MemorySystem;
+namespace TTAMachine {
+    class Machine;
+}
 
 /**
  * Simplified simulator frontend e.g. for calling from system level simulators
@@ -46,11 +50,16 @@ class DetailedOperationSimulator;
  */
 class SimpleSimulatorFrontend {
 public:
+    SimpleSimulatorFrontend(TCEString machineFile);
     SimpleSimulatorFrontend(TCEString machineFile, TCEString programFile);
     virtual ~SimpleSimulatorFrontend();
     void step();
     virtual void setOperationSimulator(
         const TCEString& fuName, DetailedOperationSimulator& sim);
+
+    MemorySystem& memorySystem();
+
+    const TTAMachine::Machine& machine() const;
 
 private:
     SimulatorFrontend* simFront_;
