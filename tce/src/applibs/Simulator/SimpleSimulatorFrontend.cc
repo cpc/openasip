@@ -74,6 +74,16 @@ SimpleSimulatorFrontend::step() {
         simFront_->step();
 }
 
+void
+SimpleSimulatorFrontend::run() {
+    simFront_->run();
+}
+
+void
+SimpleSimulatorFrontend::loadProgram(const std::string& fileName) {
+    simFront_->loadProgram(fileName);
+}
+
 const TTAMachine::Machine& 
 SimpleSimulatorFrontend::machine() const {
     return simFront_->machine();
