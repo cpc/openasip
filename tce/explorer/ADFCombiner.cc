@@ -550,15 +550,18 @@ private:
                 }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
-                
-                width = std::max(lastRF->width(), extraRF->width());
-                busName = "connect_" + extraName + "_" + lastName;
-                newBus = createBus(finalMach, busName, width);
-                for (unsigned int j = 0; j < guards.size(); j++) {
-                    guards[j]->copyTo(*newBus);
-                }                
-                createPortsAndSockets(finalMach, lastRF, newBus, lastName);
-                createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
+                // In case we only one node, there is no need to bidirectional
+                // connection
+                if (firstName != lastName) {
+                    width = std::max(lastRF->width(), extraRF->width());
+                    busName = "connect_" + extraName + "_" + lastName;
+                    newBus = createBus(finalMach, busName, width);
+                    for (unsigned int j = 0; j < guards.size(); j++) {
+                        guards[j]->copyTo(*newBus);
+                    }                
+                    createPortsAndSockets(finalMach, lastRF, newBus, lastName);
+                    createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
+                }
             }                
         }        
     }
