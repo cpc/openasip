@@ -1182,6 +1182,10 @@ if options.adf_file != "":
 
     command += " --bypass-distance=%d" % options.bypass_distance
     command += " --bypass-distance-nodre=%d" % options.bypass_distance_nodre
+    if poclInstalled:
+        (exitCode, output) = runCommandBuffered("pkg-config pocl --variable=libdir", False)
+        if exitCode == 0:
+            command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so" 
 
     command += (" -a " + options.adf_file +
                 " -o " + outFile +

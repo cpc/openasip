@@ -500,8 +500,23 @@ LLVMBackend::compile(
 
     // inlined from old, removed addPassesToEmitFileFinish();
 //    setCodeModelForStatic();
+    // Add alias analysis pass that is distributed with pocl library.
+    if (options_->isWorkItemAAFileDefined()) {
+        FunctionPass* (*creator)();
+        std::string file = options_->workItemAAFile();
+        try {
+            pluginTool_.importSymbol(
+                "create_workitem_aa_plugin", creator, file);       
+        } catch(Exception& e) {
+            std::string msg = std::string() +
+                "Unable to load plugin file '" +
+                file + "'. Error: " + e.errorMessageStack();
+            IOException ne(__FILE__, __LINE__, __func__, msg);
+            throw ne;
+        }
+        Passes.add(creator());
+    }
     Passes.add(createGCInfoDeleter());
-
     if (ipData_ != NULL) {
         // Stack pointer datum.
         RegDatum* spReg = new RegDatum;
