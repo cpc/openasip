@@ -1534,11 +1534,11 @@
     </operation>
     <operation>
       <name>stw4</name>
-      <bind name="1">iX</bind>
-      <bind name="2">iY</bind>
-      <bind name="3">iZ</bind>
-      <bind name="4">iW</bind>
-      <bind name="5">iAddr</bind>
+      <bind name="1">iAddr</bind>
+      <bind name="2">iX</bind>
+      <bind name="3">iY</bind>
+      <bind name="4">iZ</bind>
+      <bind name="5">iW</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
