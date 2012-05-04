@@ -143,7 +143,7 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         RowID confID = dsdb.addConfiguration(conf);
         
         // If requested, adds wide load/store unit
-        if (vectorLSU_) {
+        if (vectorLSU_ && nodeCount_ > 1) {
             DesignSpaceExplorerPlugin* lsuAdd =
                 DesignSpaceExplorer::loadExplorerPlugin(
                 "VectorLSGenerator", &db());    
