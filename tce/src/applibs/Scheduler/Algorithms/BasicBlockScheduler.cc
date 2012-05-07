@@ -553,116 +553,89 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
              % moves.toString()).str());
     }
 
-    int counter = 0;
 
-    // Loops till all moveNodes are scheduled or "timeouts"
-    // remove timeout when software bypassing is tested and guaranteed to work
-    // TODO: remove this kind of kludges. They just await for code that
-    // breaks them.
-    while (unscheduledMoves != scheduledMoves && counter < 2) {
-        // try to schedule all input moveNodes, also find trigger
-        for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
-            MoveNode& moveNode = moves.node(moveIndex);
-            // skip the result reads
-            if (!moveNode.isDestinationOperation()) {
-                continue;
-            }
-
-            if (moveNode.isScheduled()) {
-                if (moveNode.move().destination().isTriggering()) {
-                    trigger = &moveNode;
-                }
-                continue;
-            }
-
-            // in case the operand move requires register copies due to
-            // missing connectivity, schedule them first
-            scheduleInputOperandTempMoves(moveNode, moveNode);            
-            scheduleMove(moveNode, cycle);
-
-            if (moveNode.isScheduled()) {
-                lastOperandCycle =
-                    std::max(lastOperandCycle, moveNode.cycle());
-                if (moveNode.move().destination().isTriggering()) {
-                    trigger = &moveNode;
-                }
-            } else {
-                unscheduleInputOperandTempMoves(moveNode);
-            }
+    // try to schedule all input moveNodes, except trigger
+    for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
+        MoveNode& moveNode = moves.node(moveIndex);
+        // skip the result reads
+        if (!moveNode.isDestinationOperation()) {
+            continue;
         }
-        // Tests if all input moveNodes were scheduled
-        // If trigger is earlier then some operand reschedule
-        scheduledMoves = 0;
-        earliestScheduledOperand = INT_MAX;
-        for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
-            MoveNode& moveNode = moves.node(moveIndex);
-            // skip the result reads
-            if (!moveNode.isDestinationOperation()) {
-                continue;
-            }
-            // If trigger is too early, try to reschedule it
-            if (moveNode.isScheduled() &&
-                moveNode.move().destination().isTriggering()) {
+        
+        if (moveNode.isScheduled()) {
+            earliestScheduledOperand =
+                std::min(earliestScheduledOperand, moveNode.cycle());
+            if (moveNode.move().destination().isTriggering()) {
                 trigger = &moveNode;
-
-                int triggerMinCycle = lastOperandCycle;
-                if (ddg_->hasNode(moveNode)) {
-                    // handle moving fu deps. 
-                    // they may move trigger to later time.
-                    ddg_->moveFUDependenciesToTrigger(*trigger);
-                    int triggerEarliest = ddg_->earliestCycle(*trigger);
-                    triggerMinCycle = 
-                        std::max(triggerEarliest, triggerMinCycle);
-                }
-                
-                // triger is later than operand OR some new fu dep edges
-                // make trigger's earliestcycle later.
-                if (moveNode.cycle() < triggerMinCycle) {
-                    unschedule(moveNode);
-                    unscheduleInputOperandTempMoves(moveNode);
-
-                    scheduleInputOperandTempMoves(moveNode, moveNode);
-                    scheduleMove(moveNode, std::max(cycle, triggerMinCycle));
-                    if (!moveNode.isScheduled()) {
-                        unscheduleInputOperandTempMoves(moveNode);
-                    }
-                }
             }
-            if (moveNode.isScheduled()) {
+            continue;
+        }
+        
+        // in case the operand move requires register copies due to
+        // missing connectivity, schedule them first
+        scheduleInputOperandTempMoves(moveNode, moveNode);
+        scheduleMove(moveNode, cycle);
+        
+        if (moveNode.isScheduled()) {
+            earliestScheduledOperand =
+                std::min(earliestScheduledOperand, moveNode.cycle());
+            if (moveNode.move().destination().isTriggering()) {
+                trigger = &moveNode;
+                earliestScheduledOperand =
+                    std::min(earliestScheduledOperand, moveNode.cycle());
+            } else {
                 lastOperandCycle =
                     std::max(lastOperandCycle, moveNode.cycle());
-                earliestScheduledOperand =
-                        std::min(earliestScheduledOperand, moveNode.cycle());
-                scheduledMoves++;
             }
-        }
-
-        // Some moveNodes were not scheduled
-        // unschedule all and try with higher start cycle
-        if (scheduledMoves != unscheduledMoves) {
-            for (int i = 0; i < moves.nodeCount(); i++){
-                MoveNode& moveNode = moves.node(i);
-
-                if (moveNode.isScheduled() &&
-                    moveNode.isDestinationOperation()) {
-                    unschedule(moveNode);
-                    unscheduleInputOperandTempMoves(moveNode);
-                }
-            }
-            scheduledMoves = 0;
         } else {
-            // every operand is scheduled, we can return quickly
-            return earliestScheduledOperand;
+            // Movenode scheduling failed.
+            unscheduleInputOperandTempMoves(moveNode);
+            // try to unschedule trigger and then schedule this operand.
+            if (trigger != NULL && trigger->isScheduled()) {
+                unschedule(*trigger);
+                unscheduleInputOperandTempMoves(*trigger);
+                scheduleInputOperandTempMoves(moveNode, moveNode);
+                scheduleMove(moveNode, cycle);
+                if (!moveNode.isScheduled()) {
+                // if still failed return -1
+                    unscheduleInputOperandTempMoves(moveNode);
+                    // but make sure high-level loop advances some more cycles
+                    if (earliestScheduledOperand != INT_MAX) {
+                        cycle = earliestScheduledOperand;
+                    }
+                    return -1;
+                }
+                earliestScheduledOperand =
+                    std::min(earliestScheduledOperand, moveNode.cycle());
+                lastOperandCycle =
+                    std::max(lastOperandCycle, moveNode.cycle());
+            } else {
+                // failed even though no trigger scheduled.
+                // but make sure high-level loop advances some more cycles
+                if (earliestScheduledOperand != INT_MAX) {
+                    cycle = earliestScheduledOperand;
+                }
+                return -1;
+            }
         }
-        cycle = std::max(cycle, earliestScheduledOperand) + 1;
-        counter++;
     }
-    // If loop timeouts we get here
-    if (scheduledMoves != unscheduledMoves) {
-        return -1;
-    } else {
-        return earliestScheduledOperand;
+
+    // if trigger unscheduled, schedule it again.
+    assert(trigger != NULL);
+    if (!trigger->isScheduled()) {
+        scheduleInputOperandTempMoves(*trigger, *trigger);
+        scheduleMove(*trigger, lastOperandCycle);
+        
+        if (!trigger->isScheduled()) {
+            // trigger scheduling failed.
+            unscheduleInputOperandTempMoves(*trigger);
+            return -1;
+        }
+        earliestScheduledOperand =
+            std::min(earliestScheduledOperand, trigger->cycle());
     }
+    
+    return earliestScheduledOperand;
 }
 
 /**

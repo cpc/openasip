@@ -65,6 +65,7 @@ Bugfixes
   operation with some dags.
 - compatibility fix for Fedora 16's default libedit 
   (thanks to Vinogradov Viacheslav)
+- tcecc: Scheduling of operations with more than 2 inputs sometimes failed.
 
 1.5    December 2011
 ====================
