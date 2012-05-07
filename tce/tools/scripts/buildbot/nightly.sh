@@ -23,39 +23,6 @@
 
 BRANCH_DIR=$PWD
 
-function check_llvm_gcc_sources {
-    if [ ! -e "${LLVM_GCC_SOURCES}" ]; then
-        echo "LLVM-GCC source directory: ${LLVM_GCC_SOURCES}, was not found and no tce-llvm-gcc could not be compiled. Unpack correct sources of your llvm version e.g. http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz for llvm-2.5." >&2
-        exit 1
-    fi
-}
-
-# build & install llvm-frontend from scratch (from rnc.sh)
-function install_llvm-frontend {
-
-    SOURCE_DIR=${BRANCH_DIR}/tce-llvm-gcc
-    BUILD_DIR=${BRANCH_DIR}/tce-llvm-gcc/build_dir
-
-    export MAKEFLAGS=-j1
-    export CXX="g++${ALTGCC}"
-    export CXXFLAGS="-O2"
-    export CFLAGS="-O2"
-    export CC="gcc${ALTGCC}"
-
-
-    cd ${SOURCE_DIR} || return 1
-    autoreconf >& compile.log || return 1
-
-    # remove build dir
-    rm -rf ${BUILD_DIR}
-    mkdir -p ${BUILD_DIR}
-    cd ${BUILD_DIR} || return 1
-    ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} --with-llvm-gcc-sources=${LLVM_GCC_SOURCES} >& compile.log || return 1
-
-    make -s 1>> compile.log 2>> compile.log || return 1
-    rm -rf ${LLVM_FRONTEND_DIR}
-    make install >& compile.log || return 1
-}
 
 # TODO: support for altgcc
 function start_compiletest {
@@ -69,7 +36,7 @@ function start_compiletest {
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
 
-    ./autogen.sh >& /dev/null
+    ./autogen.sh >& bb_autogen.log
 
     if [ -x gen_llvm_shared_lib.sh ]
     then
@@ -82,10 +49,9 @@ function start_compiletest {
 }
 
 # supercomplex main program
-export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
+export PATH=$LLVM_DIR/bin:$PATH
 export LD_LIBRARY_PATH=$LLVM_DIR/lib:$LD_LIBRARY_PATH
-#check_llvm_gcc_sources
-#install_llvm-frontend
+
 start_compiletest
 
 # ugly way to determine whether compiletest succeeded or not :)

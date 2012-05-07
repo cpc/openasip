@@ -472,7 +472,7 @@ function change_compiler_env {
 function reconfigure {
     push_dir
 
-    autoreconf > /dev/null 2>&1 && ./configure $CONFIGURE_SWITCHES \
+    ./autogen.sh > /dev/null 2>&1 && ./configure $CONFIGURE_SWITCHES \
         $TCE_CONFIGURE_SWITCHES 1> /dev/null 2> $TEMP_FILE
 
     if [ "x$cleanupBeforeCompile" = "xyes" ]; then
