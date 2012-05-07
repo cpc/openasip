@@ -1425,7 +1425,9 @@ cd newlib-1.17.0;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option -Wno-literal-range -Wno-pointer-sign -Wno-return-type -Wno-implicit-function-declaration -Wno-unused-value" \
+CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
+-Wno-literal-range -Wno-pointer-sign -Wno-return-type \
+-Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \
 CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
