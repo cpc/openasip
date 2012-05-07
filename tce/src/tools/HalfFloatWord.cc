@@ -32,6 +32,14 @@
 #include "HalfFloatWord.hh"
 #include <cmath>
 
+#ifndef INFINITY
+#define INFINITY 1.0/0.0
+#endif
+
+#ifndef NAN
+#define NAN 0.0/0.0
+#endif
+
 union FloatConvUnion {
     int i;
     float f;
@@ -68,10 +76,10 @@ HalfFloatWord::HalfFloatWord(const HalfFloatWord& hw) :
 
 HalfFloatWord::operator float() const {
     if (binaryRep_ == 0xFC00) {
-        return -1.0f/0.0f; // -inf;
+        return -INFINITY;
     }
     if (binaryRep_ == 0x7C00) {
-        return 1.0f/0.0f; // inf;
+        return INFINITY;
     }
 
     bool sgn = ((binaryRep_ & 0x8000) >> 15);
@@ -79,7 +87,7 @@ HalfFloatWord::operator float() const {
     int mant = binaryRep_ & 0x03FF;
 
     if (exp == 0x1F && mant != 0) {
-        return 0.0f/0.0f; // NaN
+        return NAN;
     }
 
     float value = (exp == 0) ? mant : mant | 0x0400; // 1.x if not denormal
