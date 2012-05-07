@@ -36,7 +36,6 @@
 #include "MemorySystem.hh"
 #include "Machine.hh"
 #include "IdealSRAM.hh"
-#include "DirectAccessMemory.hh"
 #include "ControlUnit.hh"
 #include "MemoryProxy.hh"
 #include "UniversalMachine.hh"
@@ -47,6 +46,7 @@
 #include "ExecutableInstruction.hh"
 #include "Program.hh"
 #include "Instruction.hh"
+#include "SimulatorFrontend.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -65,28 +65,19 @@ using namespace TTAProgram;
 TTASimulationController::TTASimulationController(
     SimulatorFrontend & frontend,
     const Machine& machine, 
-    const Program& program,
-    bool memoryAccessTracking,
-    bool directAccessMemory) :
+    const Program& program) :
     frontend_(frontend),
     sourceMachine_(machine), program_(program),
-    memorySystem_(0),             
     state_(STA_INITIALIZING), clockCount_(0), 
     initialPC_( program.entryAddress().location()),  
     automaticFinishImpossible_(true),
-    memoryTracking_(memoryAccessTracking),
-    firstIllegalInstructionIndex_(UINT_MAX),
-    directAccessMemory_(directAccessMemory) {
-
-    initializeMemorySystem(machine);
+    firstIllegalInstructionIndex_(UINT_MAX) {
 }
 
 /**
  * Destructor.
  */
 TTASimulationController::~TTASimulationController() {
-    delete memorySystem_;
-    memorySystem_ = NULL;
 }
 
 /**
@@ -179,8 +170,7 @@ TTASimulationController::clockCount() const {
  */
 MemorySystem& 
 TTASimulationController::memorySystem() {
-    assert(memorySystem_ != NULL);
-    return *memorySystem_;
+    return frontend_.memorySystem();
 }
     
 /**
@@ -207,52 +197,6 @@ TTASimulationController::frontend() {
 bool
 TTASimulationController::automaticFinishImpossible() const {
     return automaticFinishImpossible_;
-}
-
-/**
- * Initializes the memory system according to the address spaces in the
- * given machine.
- *
- * @param machine Machine of which memory system to initialize.
- */
-void 
-TTASimulationController::initializeMemorySystem(
-    const TTAMachine::Machine& machine) {
-
-    memorySystem_ = new MemorySystem(machine);
-    // create a memory system for the loaded machine by going
-    // through all address spaces in the machine and create a memory model 
-    // for each of them, except for the one of GCU's
-    Machine::AddressSpaceNavigator nav = machine.addressSpaceNavigator();
-
-    
-    std::string controlUnitASName = "";
-    if (machine.controlUnit()->hasAddressSpace()) {
-        controlUnitASName = machine.controlUnit()->addressSpace()->name();
-    }
-
-    for (int i = 0; i < nav.count(); ++i) {
-        const AddressSpace& space = *nav.item(i);
-
-        if (space.name() == controlUnitASName)
-            continue;
-        Memory* mem = NULL;
-
-        if (directAccessMemory_) {
-            mem = new DirectAccessMemory(
-                space.start(), space.end(), space.width());
-        } else {
-            mem = new IdealSRAM(
-                space.start(), space.end(), space.width());
-        }
-            
-        // If memory tracking is enabled, memories are wrapped by a proxy
-        // that tracks memory access.
-        if (memoryTracking_) {
-            mem = new MemoryProxy(frontend(), mem);
-        }
-        memorySystem_->addAddressSpace(space, mem);
-    }
 }
 
 /**

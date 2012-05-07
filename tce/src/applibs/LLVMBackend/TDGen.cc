@@ -1420,6 +1420,12 @@ TDGen::writeOperationDefs(
             writeOperationDef(o, op, "ooo", attrs, "_VECTOR_8_");
         }
 
+        if (createDefaultOperandTypeString(op) == "ff") {
+            writeOperationDef(o, op, "mm", attrs, "_VECTOR_2_");            
+            writeOperationDef(o, op, "nn", attrs, "_VECTOR_4_");
+            writeOperationDef(o, op, "oo", attrs, "_VECTOR_8_");
+        }
+
         // int-to-float conversions. also vector versions of those
         if (createDefaultOperandTypeString(op) == "fr") {
             writeOperationDef(o, op, "mv", attrs, "_VECTOR_2_");            
@@ -2226,7 +2232,7 @@ TDGen::emulatingOpNodeLLVMName(
                 if (t != NULL) {
                     int strIndex = t->operandIndex() -1 -
                         op.numberOfInputs();
-                    assert(operandTypes.length() > strIndex &&
+                    assert((int)operandTypes.length() > strIndex &&
                            strIndex >= 0);
                     if (c != 0 && c != operandTypes[strIndex]) {
                         throw InvalidData(__FILE__,__LINE__,__func__,
@@ -2279,7 +2285,7 @@ TDGen::emulatingOpNodeLLVMName(
                         assert (t != NULL);
                         int strIndex = t->operandIndex() -1 + 
                             op.numberOfOutputs();
-                        assert(operandTypes.length() > strIndex &&
+                        assert((int)operandTypes.length() > strIndex &&
                                strIndex > 0);
                         operationName += operandTypes[strIndex];
                     }

@@ -81,7 +81,6 @@ using namespace TTAProgram;
  * @param memSys Memory system.
  * @param fuResourceConflictDetection Should the model detect FU resource
  * conflicts.
- * @param memoryAccessTracking Sets memory access tracking on and off.
  * @exception Exception Exceptions while building the simulation models
  * are thrown forward.
  */
@@ -89,11 +88,8 @@ SimulationController::SimulationController(
     SimulatorFrontend& frontend,
     const Machine& machine, 
     const Program& program,
-    bool fuResourceConflictDetection,
-    bool memoryAccessTracking,
-    bool directAccessMemory) :
-    TTASimulationController(
-        frontend, machine, program, memoryAccessTracking, directAccessMemory),
+    bool fuResourceConflictDetection) :
+    TTASimulationController(frontend, machine, program),
     machineState_(NULL), gcu_(NULL) {
 
     MachineStateBuilder builder;
@@ -101,32 +97,20 @@ SimulationController::SimulationController(
     if (fuResourceConflictDetection)
         buildFUResourceConflictDetectors(machine);
 
-    try {
-        machineState_ = builder.build(
-            machine, *memorySystem_, fuConflictDetectors_);
-        // set the real time clock source to be the simulation
-        // cycle counter
-        for (int i = 0; i < machineState_->FUStateCount(); ++i) {
-            FUState& fuState = machineState_->fuState(i);
-            fuState.context().setCycleCountVariable(clockCount_);
-        }        
-    } catch (const IllegalMachine& e) {
-        delete memorySystem_;
-        memorySystem_ = NULL;
-        throw e;
-    }
+    machineState_ = builder.build(
+        machine, frontend.memorySystem(), fuConflictDetectors_);
+    // set the real time clock source to be the simulation
+    // cycle counter
+    for (int i = 0; i < machineState_->FUStateCount(); ++i) {
+        FUState& fuState = machineState_->fuState(i);
+        fuState.context().setCycleCountVariable(clockCount_);
+    }        
     assert(machineState_ != NULL);
     
     gcu_ = &machineState_->gcuState();
 
-    try {
-        SimProgramBuilder programBuilder;
-        instructionMemory_ = programBuilder.build(program, *machineState_);
-    } catch (const Exception& e) {
-        delete memorySystem_;
-        memorySystem_ = NULL;
-        throw IllegalProgram(__FILE__, __LINE__, __func__, e.errorMessage());
-    }
+    SimProgramBuilder programBuilder;
+    instructionMemory_ = programBuilder.build(program, *machineState_);
 
     findExitPoints(program, machine);
     reset();
@@ -183,7 +167,7 @@ SimulationController::simulateCycle() {
         if (!gcu_->isIdle())
             gcu_->endClock();
 
-        memorySystem_->advanceClockOfAllMemories();
+        memorySystem().advanceClockOfAllMemories();
         machineState_->advanceClockOfAllFUStates();
 
         for (std::size_t i = 0; i < conflictDetectorVector_.size(); ++i) {

@@ -495,7 +495,7 @@ TCETargetLowering::TCETargetLowering(
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8i32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8i32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
@@ -515,7 +515,7 @@ TCETargetLowering::TCETargetLowering(
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8f32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v8f32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
@@ -527,7 +527,7 @@ TCETargetLowering::TCETargetLowering(
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4i32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4i32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
@@ -538,7 +538,7 @@ TCETargetLowering::TCETargetLowering(
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4f32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4f32, Expand);
+            setOperationAction(ISD::CONCAT_VECTORS, MVT::v4f32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
@@ -549,7 +549,6 @@ TCETargetLowering::TCETargetLowering(
 
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v2i32, Expand);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
@@ -559,7 +558,7 @@ TCETargetLowering::TCETargetLowering(
 
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
-            setOperationAction(ISD::CONCAT_VECTORS, MVT::v2f32, Expand);
+
 
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);

@@ -1205,24 +1205,6 @@ CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
 $BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
 
-# Check for OpenCL support.
-
-# Check that the pocl-standalone script is found in PATH.
-AC_CHECK_PROG(POCL_FOUND_IN_PATH, pocl-standalone, "1", "0")
-
-if test x"$LLVM_VERSION" != x2.9 -a $POCL_FOUND_IN_PATH == "1"
-then
-
-AC_SUBST([OPENCL_ENABLED], ["1"])
-OPENCL=true
-
-else
-
-AC_SUBST([OPENCL_ENABLED], ["0"])
-OPENCL=false
-
-fi
-
 if test -d test
 then
 # Write out a file with flags for unit test Makefiles.
@@ -1443,7 +1425,9 @@ cd newlib-1.17.0;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option -Wno-literal-range -Wno-pointer-sign -Wno-return-type -Wno-implicit-function-declaration -Wno-unused-value" \
+CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
+-Wno-literal-range -Wno-pointer-sign -Wno-return-type \
+-Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \
 CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
@@ -1503,13 +1487,6 @@ then
 else
   echo "libedit not found. BaseLineReader will be used as LineReader."
   echo "NOTE: libedit might require 'libtermcap' in some systems."
-fi
-
-if test x"$OPENCL" = xtrue;
-then
-  echo "Found pocl. Standalone OpenCL C compilation enabled."
-else
-  echo "Pocl not found. Standalone OpenCL C compilation disabled."
 fi
 
 if test x"$LLVM_VERSION" = x

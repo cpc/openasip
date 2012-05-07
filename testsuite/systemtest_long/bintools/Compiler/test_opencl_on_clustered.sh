@@ -3,8 +3,16 @@
 tce_build_root=$PWD/../../../../tce/src
 . ../../../../testsuite/tce_src_paths.sh
 
-../../../../tce/src/bintools/Compiler/tcecc --clear-plugin-cache
-../../../../tce/src/bintools/Compiler/tcecc -loclhost-sa -a data/2-way-clustered.adf --vectorize --vectorize-mem-only -DVERIFICATION\
-    --vector-backend --swfp -O3 -o prog OpenCL/example1/src/{kernel.cl,main.cpp}
-ttasim -a data/2-way-clustered.adf -p prog --no-debugmode
+for way in 2 4 8;
+do
 
+./create_clustered_tta.sh $way
+
+echo "Cluster nodes: $way "
+prog=`mktemp`
+tcecc -loclhost-sa -a data/$way-way-clustered.adf --vectorize --vectorize-mem-only -DVERIFICATION\
+    --vector-backend --swfp -O3 -o $prog OpenCL/example1/src/{kernel.cl,main.cpp}
+ttasim -a data/$way-way-clustered.adf -p $prog --no-debugmode
+rm $prog
+
+done

@@ -45,7 +45,8 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \
 	CompiledSimulation.hh CompiledSimulation.icc \
-	SimulatorConstants.hh tce_systemc.hh 
+	SimulatorConstants.hh tce_systemc.hh MemorySystem.hh \
+	MemorySystem.icc
 
 # Headers required by the SystemC wrapper.
 include_HEADERS += SimpleSimulatorFrontend.hh DetailedOperationSimulator.hh \

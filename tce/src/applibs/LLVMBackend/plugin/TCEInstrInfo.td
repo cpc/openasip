@@ -669,6 +669,35 @@ def : Pat <(v8f32 (build_vector (f32 R32FPRegs:$e1), (f32 R32FPRegs:$e2), (f32 R
         (f32 R32FPRegs:$e8), lane7))>;
 
 
+// do concat vectors also through subvectors
+def concat_vectors : SDNode<"ISD::CONCAT_VECTORS", SDTypeProfile<1,2,[]>,[]>;
+
+def : Pat<(v4i32 (concat_vectors (v2i32 V2R32IRegs:$v1), (v2i32 V2R32IRegs:$v2))),
+    (v4i32 (INSERT_SUBREG
+        (v4i32 (INSERT_SUBREG (v4i32 (IMPLICIT_DEF)),
+            (v2i32 V2R32IRegs:$v1), subvector2_0)),
+        (v2i32 V2R32IRegs:$v2), subvector2_2))>;
+
+def : Pat<(v4f32 (concat_vectors (v2f32 V2R32FPRegs:$v1), (v2f32 V2R32FPRegs:$v2))),
+    (v4f32 (INSERT_SUBREG
+        (v4f32 (INSERT_SUBREG (v4f32 (IMPLICIT_DEF)),
+            (v2f32 V2R32FPRegs:$v1), subvector2_0)),
+        (v2f32 V2R32FPRegs:$v2), subvector2_2))>;
+
+def : Pat<(v8i32 (concat_vectors (v4i32 V4R32IRegs:$v1), (v4i32 V4R32IRegs:$v2))),
+    (v8i32 (INSERT_SUBREG
+        (v8i32 (INSERT_SUBREG (v8i32 (IMPLICIT_DEF)),
+            (v4i32 V4R32IRegs:$v1), subvector4_0)),
+        (v4i32 V4R32IRegs:$v2), subvector4_4))>;
+
+def : Pat<(v8f32 (concat_vectors (v4f32 V4R32FPRegs:$v1), (v4f32 V4R32FPRegs:$v2))),
+    (v8f32 (INSERT_SUBREG
+        (v8f32 (INSERT_SUBREG (v8f32 (IMPLICIT_DEF)),
+            (v4f32 V4R32FPRegs:$v1), subvector4_0)),
+        (v4f32 V4R32FPRegs:$v2), subvector4_4))>;
+
+
+
 // vector extract is done by just using the scalar subregister directly.
 def : Pat<(i32 (vector_extract (v2i32 V2R32IRegs:$op1), 0)),
         (i32 (EXTRACT_SUBREG (v2i32 V2R32IRegs:$op1), lane0))>;

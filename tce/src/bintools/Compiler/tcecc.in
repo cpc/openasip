@@ -1,7 +1,7 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2002-2011 Tampere University of Technology.
+# Copyright (c) 2002-2012 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -24,7 +24,7 @@
 # IN THE SOFTWARE.
 #
 # @author 2006-2009 Veli-Pekka Jääskeläinen
-# @author 2006-2011 Pekka Jääskeläinen
+# @author 2006-2012 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -100,8 +100,19 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
        Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD,
              stderr=stderrFD, close_fds=False)
     return process.wait()
-    
 
+poclInstalled = None 
+poclVersion = None   
+def isOpenCLEnabled():
+    global poclInstalled
+    if poclInstalled is not None: return poclInstalled
+    (exitCode, output) = runCommandBuffered("pkg-config pocl --modversion", False)
+    if exitCode != 0:
+        poclInstalled = False
+    else:
+        poclInstalled = True
+        poclVersion = output
+    return poclInstalled
 
 def loadTextData(file_name):
     """Loads the given data file and returns it as a string."""
@@ -166,7 +177,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     # list of valid suffixes
     knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
-    if @OPENCL_ENABLED@:
+    if isOpenCLEnabled():
         knownSuffices.append(".cl")
 
     linkList = []
@@ -826,7 +837,7 @@ p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False
 "Output LLVM bitcode. Does not pass the linked bitcode to the "\
 "code generator to produce target specific TTA code.")
 
-if @OPENCL_ENABLED@:
+if isOpenCLEnabled():
     p.add_option('--opencl-max-parallel-wi-count',
              type="int", action="store",
              dest='opencl_max_parallel_wi_count', default=8,
@@ -901,7 +912,7 @@ if options.clear_cache:
 
 if options.list_langs:
     supported_languages = ["ISO C99 (c)", "C++ (c++)"]
-    if @OPENCL_ENABLED@:
+    if isOpenCLEnabled():
         supported_languages.append("OpenCL C (cl)")
     print "\n".join(supported_languages)
     sys.exit(0)
@@ -1171,6 +1182,10 @@ if options.adf_file != "":
 
     command += " --bypass-distance=%d" % options.bypass_distance
     command += " --bypass-distance-nodre=%d" % options.bypass_distance_nodre
+    if poclInstalled:
+        (exitCode, output) = runCommandBuffered("pkg-config pocl --variable=libdir", False)
+        if exitCode == 0:
+            command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so" 
 
     command += (" -a " + options.adf_file +
                 " -o " + outFile +

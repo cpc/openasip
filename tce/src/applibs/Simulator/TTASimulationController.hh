@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -81,9 +81,7 @@ public:
     TTASimulationController(
         SimulatorFrontend & frontend,
         const TTAMachine::Machine& machine, 
-        const TTAProgram::Program& program,
-        bool memoryAccessTracking,
-        bool directAccessMemory);
+        const TTAProgram::Program& program);
 
     virtual ~TTASimulationController();
 
@@ -138,17 +136,12 @@ protected:
     /// The container type for reasons why simulation stop was requested.
     typedef std::set<StopReason> StopReasonContainer;
     
-    virtual void initializeMemorySystem(const TTAMachine::Machine& machine);
-
     /// Reference to the simulator frontend
     SimulatorFrontend& frontend_;
     /// The source Machine Object Model.
     const TTAMachine::Machine& sourceMachine_;
     /// Program object model of the simulated program.
     const TTAProgram::Program& program_;
-   
-     /// The memory system
-    MemorySystem* memorySystem_;
         
     /// Flag indicating that simulation should stop.
     bool stopRequested_;
@@ -165,13 +158,9 @@ protected:
     InstructionAddress initialPC_;
     /// If this is true, simulation cannot be finished automatically.
     mutable bool automaticFinishImpossible_;
-    /// True if memory access tracking is enabled.
-    bool memoryTracking_;
     /// The index of the first illegal instruction in the instruction
     /// sequence.
     mutable InstructionAddress firstIllegalInstructionIndex_;
-    /// If direct access memory is used.
-    bool directAccessMemory_;
 };
 
 #endif

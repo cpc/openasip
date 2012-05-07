@@ -66,6 +66,7 @@ const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
 
 const std::string LLVMTCECmdLineOptions::ENABLE_VECTOR_BACKEND = 
     "vector-backend";
+const std::string LLVMTCECmdLineOptions::WORK_ITEM_AA_FILE = "wi-aa-filename";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -164,6 +165,12 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new StringCmdLineOptionParser(
             SWL_TEMP_DIR, 
             "The temporary directory to use for files needed during the code generation."));
+
+    addOption(
+        new StringCmdLineOptionParser(
+            WORK_ITEM_AA_FILE, 
+            "The filename with Work Item Alias Analysis - this is filled automatically "
+            "if tcecc finds path to installed pocl."));
 
     addOption(
 	new BoolCmdLineOptionParser(
@@ -358,4 +365,14 @@ LLVMTCECmdLineOptions::tempDir() const {
 bool
 LLVMTCECmdLineOptions::useVectorBackend() const {
     return findOption(ENABLE_VECTOR_BACKEND)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::isWorkItemAAFileDefined() const {
+    return findOption(WORK_ITEM_AA_FILE)->isDefined();
+}
+
+std::string
+LLVMTCECmdLineOptions::workItemAAFile() const {
+    return findOption(WORK_ITEM_AA_FILE)->String();
 }

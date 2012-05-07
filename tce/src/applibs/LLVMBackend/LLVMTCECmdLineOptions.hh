@@ -81,6 +81,9 @@ public:
     bool useRecursiveBUScheduler() const;
 
     bool useOldBackendSources() const;
+    
+    bool isWorkItemAAFileDefined() const;
+    std::string workItemAAFile() const;
 
     TCEString tempDir() const;    
 
@@ -123,6 +126,7 @@ private:
     static const std::string SWL_USE_OLD_BACKEND_SOURCES;
     static const std::string SWL_TEMP_DIR;
     static const std::string ENABLE_VECTOR_BACKEND;
+    static const std::string WORK_ITEM_AA_FILE;
     static const std::string USAGE;
 };
 
