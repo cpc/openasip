@@ -35,6 +35,9 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	MoveNode.cc MoveNodeSet.cc ProgramOperation.cc TerminalProgramOperation.cc \
 	TerminalInstructionReference.cc
 
+include_HEADERS = Program.hh Address.hh Address.icc GlobalScope.hh Scope.hh \
+	DataLabel.hh Label.hh 
+
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${LIB_TOOLS_DIR} -I${LIB_MACH_DIR} -I${LIB_OSAL_DIR} \

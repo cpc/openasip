@@ -79,9 +79,25 @@ SimpleSimulatorFrontend::run() {
     simFront_->run();
 }
 
+/**
+ * Stops the current simulation.
+ *
+ * This produces the same kind of stop as if the user pressed ctrl-c in 
+ * the ttasim.
+ */
+void
+SimpleSimulatorFrontend::stop() {
+    simFront_->prepareToStop(SRE_USER_REQUESTED);
+}
+
 void
 SimpleSimulatorFrontend::loadProgram(const std::string& fileName) {
     simFront_->loadProgram(fileName);
+}
+
+bool
+SimpleSimulatorFrontend::isRunning() const {
+    return simFront_->isSimulationRunning();
 }
 
 const TTAMachine::Machine& 
