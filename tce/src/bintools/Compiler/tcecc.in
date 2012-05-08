@@ -151,7 +151,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
         # Types of warnings supported by the compiler:
         white_list = []
         if options.use_clang:
-            white_list = ['no-unknown-warning-option',
+            white_list = ['no-empty-body',
+                          'no-dangling-else',
+                          'no-unknown-warning-option',
                           'no-bad-literal',
                           'no-literal-range',
                           'no-pointer-sign',

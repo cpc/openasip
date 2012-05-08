@@ -53,8 +53,13 @@ public:
     SimpleSimulatorFrontend(TCEString machineFile);
     SimpleSimulatorFrontend(TCEString machineFile, TCEString programFile);
     virtual ~SimpleSimulatorFrontend();
+
     void step();
     void run();
+    void stop();
+
+    bool isRunning() const;
+
     virtual void setOperationSimulator(
         const TCEString& fuName, DetailedOperationSimulator& sim);
 

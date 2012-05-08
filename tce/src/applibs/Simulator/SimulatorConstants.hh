@@ -50,9 +50,6 @@
 /// The default command log file name.
 #define SIM_DEFAULT_COMMAND_LOG ".ttasim-history"
 
-/// The current version of the Command Line Interface application.
-#define SIM_CLI_VERSION "1.0"
-
 /// The full title name of the CLI application
 #define SIM_CLI_TITLE "ttasim - TCE Simulator command line interface"
 
