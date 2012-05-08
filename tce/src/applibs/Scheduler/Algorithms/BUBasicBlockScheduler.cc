@@ -61,6 +61,7 @@
 #include "RegisterRenamer.hh"
 #include "HWOperation.hh"
 #include "MachineConnectivityCheck.hh"
+#include "Operation.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -225,7 +226,9 @@ BUBasicBlockScheduler::handleDDG(
             std::endl << "This may break delay slot filler!" <<
             std::endl << " rm largest: " << rm_->largestCycle() <<
             " end cycle: " << endCycle_ << std::endl;
+        abortWithError("Should not happen!");
     }
+    
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -857,8 +860,7 @@ BUBasicBlockScheduler::scheduleMove(
             % moveNode.toString()).str());
     }
     // Find out the cycle when execution of operation actually ends.
-    // Only needed for ProgramOperations without result reads, like store.
-#if 0
+    // Only use for operations that uses internal pipeline after the result read.
     if (moveNode.isDestinationOperation()) {
 
         const Operation& op = moveNode.destinationOperation().operation();
@@ -868,15 +870,11 @@ BUBasicBlockScheduler::scheduleMove(
         unsigned int epEndCycle = moveNode.cycle() + hwop.latency();
         // The pipeline will end after current the final cycle,
         // have to scheduler earlier.
-        if (epEndCycle > endCycle_) {
-            debugLog("Unassigning move " + moveNode.toString() + " " +
-                Conversion::toString(moveNode.cycle()) + " " +
-                Conversion::toString(hwop.latency()) + " " +
-                Conversion::toString(endCycle_));
+        if (epEndCycle > endCycle_ && 
+            moveNode.destinationOperation().outputMoveCount() > 0) {
             rm_->unassign(moveNode);
         }
     }
-#endif
 }
 
 /**
