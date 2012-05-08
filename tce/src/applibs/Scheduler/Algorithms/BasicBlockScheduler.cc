@@ -525,8 +525,6 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
         cycle = std::min(cycle, earliest);
     }
 
-    int scheduledMoves = 0;
-
     if (firstToSchedule != NULL) {
         // start cycle could be null if there was problem scheduling
         // all input temp operands
