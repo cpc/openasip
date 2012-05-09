@@ -68,6 +68,8 @@ public:
     void loadProgram(const std::string& fileName);
     const TTAMachine::Machine& machine() const;
 
+    SimulatorFrontend& frontend() { return *simFront_; }
+
 private:
     SimulatorFrontend* simFront_;
 };

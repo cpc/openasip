@@ -240,8 +240,8 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
     reader_->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
 
     // handler for catching ctrl-c from the user (stops simulation)
-    SigINTHandler ctrlcHandler(simFront_);
-    Application::setSignalHandler(SIGINT, ctrlcHandler);
+    SigINTHandler* ctrlcHandler = new SigINTHandler(simFront_);
+    Application::setSignalHandler(SIGINT, *ctrlcHandler);
 
     options_ = NULL;
     if (Application::cmdLineOptions() != NULL) {
