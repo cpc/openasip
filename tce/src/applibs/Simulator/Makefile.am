@@ -40,13 +40,14 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
 	OperationIDIndex.cc CompiledSimUtilizationStats.cc \
-	SimpleSimulatorFrontend.cc ExecutingOperation.cc
+	SimpleSimulatorFrontend.cc ExecutingOperation.cc SimulatorCLI.cc \
+	SimulatorCmdLineOptions.cc
 
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \
 	CompiledSimulation.hh CompiledSimulation.icc \
 	SimulatorConstants.hh tce_systemc.hh MemorySystem.hh \
-	MemorySystem.icc
+	MemorySystem.icc SimulatorCLI.hh
 
 # Headers required by the SystemC wrapper.
 include_HEADERS += SimpleSimulatorFrontend.hh DetailedOperationSimulator.hh \
