@@ -271,8 +271,7 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
     }
 
     /// Catch runtime errors and print them out to the simulator console.
-    RuntimeErrorReporter* errorReporter_ = 
-        new RuntimeErrorReporter(simFront_);
+    new RuntimeErrorReporter(simFront_);
 }
 
 SimulatorCLI::~SimulatorCLI() {
