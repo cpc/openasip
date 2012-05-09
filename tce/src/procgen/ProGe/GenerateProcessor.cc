@@ -228,9 +228,11 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
 
         string progeOutDir = outputDirectory;
+        string sharedOutDir = sharedOutputDir;
         if (!options.useAbsolutePaths()) {
             string cwd = FileSystem::currentWorkingDir();
             FileSystem::relativeDir(cwd, progeOutDir);
+            FileSystem::relativeDir(cwd, sharedOutDir);
         }
 
         string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
@@ -244,8 +246,9 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         
         try {
             ProGeUI::integrateProcessor(
-                std::cout, std::cerr, progeOutDir, integrator, entity,
-                program, devFamily, imem, dmem, language, fmax);
+                std::cout, std::cerr, progeOutDir, sharedOutDir,
+                integrator, entity, program, devFamily, imem, dmem,
+                language, fmax);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.procedureName() << ": "

@@ -431,6 +431,7 @@ ProGeUI::integrateProcessor(
     std::ostream& warningStream,
     std::ostream& errorStream,
     std::string progeOutDir,
+    std::string sharedOutputDir,
     const std::string& platformIntegrator,
     const std::string& coreEntityName,
     const std::string& programName,
@@ -477,6 +478,11 @@ ProGeUI::integrateProcessor(
     }
     if (!deviceFamily.empty()) {
         integrator->setDeviceFamily(deviceFamily);
+    }
+
+    if (FileSystem::absolutePathOf(sharedOutputDir) != 
+        FileSystem::absolutePathOf(progeOutDir)) {
+        integrator->setSharedOutputDir(sharedOutputDir);
     }
 
     NetlistBlock& ttaToplevel = generator_.netlist()->topLevelBlock();

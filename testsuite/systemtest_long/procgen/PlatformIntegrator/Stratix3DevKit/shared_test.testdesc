@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="Stratix3DevKit integrator with separate shared hdl directory";
+// the binary being tested
+$test_bin="./run_shared.sh";
+// arguments given to the program
+$bin_args="";
+?>

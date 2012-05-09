@@ -107,6 +107,7 @@ protected:
         std::ostream& warningStream,
         std::ostream& errorStream,
         std::string progeOutDir,
+        std::string sharedOutputDir,
         const std::string& platformIntegrator,
         const std::string& coreEntityName,
         const std::string& programName,
