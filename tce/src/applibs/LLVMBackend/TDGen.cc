@@ -1339,7 +1339,7 @@ TDGen::writeOperationDefs(
             char floatChar = 'm' + i;
             char intChar = 'v' + i;
             TCEString s = createDefaultOperandTypeString(op);
-            for (int j = 0; j < s.length(); j++) {
+            for (unsigned int j = 0; j < s.length(); j++) {
                 if (s[j] == 'r') {
                     s[j] = intChar;
                 } else if (s[j] == 'f') {
