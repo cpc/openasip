@@ -44,6 +44,122 @@
 #include "SimulatorToolbox.hh"
 
 /**
+ * A handler class for Ctrl-c signal.
+ *
+ * Stops the simulation (if it's running).
+ */
+class SigINTHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SigINTHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Stops the simulation.
+     */
+    virtual void execute(int /*data*/, siginfo_t* /*info*/) {
+        target_.prepareToStop(SRE_USER_REQUESTED);
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
+ * A handler class for SIGFPE signal
+ *
+ * Stops the simulation (if it's running). Used for catching
+ * errors from the simulated program in the compiled simulation
+ * engine.
+ */
+class SigFPEHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SigFPEHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
+     */
+    virtual void execute(int, siginfo_t *info) {
+        std::string msg("Unknown floating point exception");
+        
+        if (info->si_code == FPE_INTDIV) {
+            msg = "integer division by zero";
+        } else if (info->si_code == FPE_FLTDIV) {
+            msg = "floating-point division by zero";
+        } else if (info->si_code == FPE_INTOVF) {
+            msg = "integer overflow";
+        } else if (info->si_code == FPE_FLTOVF) {
+            msg = "floating-point overflow";
+        } else if (info->si_code == FPE_FLTUND) {
+            msg = "floating-point underflow";
+        } else if (info->si_code == FPE_FLTRES) {
+            msg = "floating-point inexact result";
+        } else if (info->si_code == FPE_FLTINV) {
+            msg = "invalid floating-point operation";
+        } else if (info->si_code == FPE_FLTSUB) {
+            msg = " Subscript out of range";
+        }
+    
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
+        target_.reportSimulatedProgramError(
+            SimulatorFrontend::RES_FATAL, msg);
+       
+        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
+ * A handler class for SIGSEGV signal
+ *
+ * Stops the simulation (if it's running). Used for catching
+ * errors from the simulated program in the compiled simulation
+ * engine.
+ */
+class SigSegvHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SigSegvHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
+     */
+    virtual void execute(int, siginfo_t*) {
+        std::string msg("Invalid memory reference");
+             
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
+        target_.reportSimulatedProgramError(
+            SimulatorFrontend::RES_FATAL, msg);
+       
+        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
  * Main function.
  *
  * Parses the command line and figures out whether to start the interactive
@@ -73,14 +189,14 @@ int main(int argc, char* argv[]) {
     
     simFront.reset(new SimulatorFrontend(options->fastSimulationEngine()));
     
-    SimulatorCLI cli(*simFront);
+    SimulatorCLI* cli = new SimulatorCLI(*simFront);
 
     // check if there is an initialization file in user's home dir and 
     // execute it
     const std::string personalInitScript =
         FileSystem::homeDirectory() + DIR_SEPARATOR + SIM_INIT_FILE_NAME;
     if (FileSystem::fileExists(personalInitScript)) {
-        cli.interpreter().processScriptFile(personalInitScript);
+        cli->interpreter().processScriptFile(personalInitScript);
     }   
     
     std::string machineToLoad = options->machineFile();
@@ -98,26 +214,50 @@ int main(int argc, char* argv[]) {
     const std::string currentDirInitScript =
         FileSystem::currentWorkingDir() + DIR_SEPARATOR + SIM_INIT_FILE_NAME;
     if (FileSystem::fileExists(currentDirInitScript)) {
-        cli.interpreter().processScriptFile(currentDirInitScript);
+        cli->interpreter().processScriptFile(currentDirInitScript);
     }
 
     if (machineToLoad != "") {
-        cli.interpreteAndPrintResults(std::string("mach " ) + machineToLoad);
+        cli->interpreteAndPrintResults(std::string("mach " ) + machineToLoad);
     }
 
     if (programToLoad != "") {
-        cli.interpreteAndPrintResults(std::string("prog " ) + programToLoad);
+        cli->interpreteAndPrintResults(std::string("prog " ) + programToLoad);
         if (scriptString == "") {
             // by default, if program is given, start simulation immediately
-            cli.interpreteAndPrintResults("run");
+            cli->interpreteAndPrintResults("run");
         }
     }
 
     if (scriptString != "") {
-        cli.interpreteAndPrintResults(scriptString);
+        cli->interpreteAndPrintResults(scriptString);
     }
 
-    if (options->debugMode()) cli.run();   
+    if (options->debugMode()) {
+        // handler for catching ctrl-c from the user (stops simulation)
+        SigINTHandler* ctrlcHandler = new SigINTHandler(*simFront);
+        Application::setSignalHandler(SIGINT, *ctrlcHandler);
 
+        if (options->fastSimulationEngine()) {
+
+            /* Catch errors caused by the simulated program
+               in compiled simulation these show up as normal
+               signals as the simulation code is native code we are 
+               running in the simulation process. */
+            SigFPEHandler fpeHandler(*simFront);
+            SigSegvHandler segvHandler(*simFront);
+            Application::setSignalHandler(SIGFPE, fpeHandler);
+            Application::setSignalHandler(SIGSEGV, segvHandler);
+        }
+
+        cli->run();   
+
+        Application::restoreSignalHandler(SIGINT);
+        if (options->fastSimulationEngine()) {
+            Application::restoreSignalHandler(SIGFPE);
+            Application::restoreSignalHandler(SIGSEGV);
+        }        
+    }
+    delete cli;
     return EXIT_SUCCESS;
 }

@@ -39,6 +39,7 @@ class SimulatorFrontend;
 class OperationExecutor;
 class DetailedOperationSimulator;
 class MemorySystem;
+class Listener;
 namespace TTAMachine {
     class Machine;
 }
@@ -59,6 +60,7 @@ public:
     void stop();
 
     bool isRunning() const;
+    bool hadRuntimeError() const;
 
     virtual void setOperationSimulator(
         const TCEString& fuName, DetailedOperationSimulator& sim);
@@ -69,6 +71,9 @@ public:
     const TTAMachine::Machine& machine() const;
 
     SimulatorFrontend& frontend() { return *simFront_; }
+
+    virtual bool registerEventListener(int event, Listener* listener);
+    virtual bool unregisterEventListener(int event, Listener* listener);
 
 private:
     SimulatorFrontend* simFront_;

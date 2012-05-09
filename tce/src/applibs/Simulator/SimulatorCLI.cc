@@ -46,122 +46,6 @@
 #include "TCEString.hh"
 
 /**
- * A handler class for Ctrl-c signal.
- *
- * Stops the simulation (if it's running).
- */
-class SigINTHandler : public Application::UnixSignalHandler {
-public:
-    /**
-     * Constructor.
-     *
-     * @param target The target SimulatorFrontend instance.
-     */
-    SigINTHandler(SimulatorFrontend& target) : target_(target) {
-    }
-
-    /**
-     * Stops the simulation.
-     */
-    virtual void execute(int /*data*/, siginfo_t* /*info*/) {
-        target_.prepareToStop(SRE_USER_REQUESTED);
-    }
-private:
-    /// Simulator frontend to use when stopping the simulation.
-    SimulatorFrontend& target_;
-};
-
-/**
- * A handler class for SIGFPE signal
- *
- * Stops the simulation (if it's running). Used for catching
- * errors from the simulated program in the compiled simulation
- * engine.
- */
-class SigFPEHandler : public Application::UnixSignalHandler {
-public:
-    /**
-     * Constructor.
-     *
-     * @param target The target SimulatorFrontend instance.
-     */
-    SigFPEHandler(SimulatorFrontend& target) : target_(target) {
-    }
-
-    /**
-     * Terminates the simulation.
-     * 
-     * @exception SimulationExecutionError thrown always
-     */
-    virtual void execute(int, siginfo_t *info) {
-        std::string msg("Unknown floating point exception");
-        
-        if (info->si_code == FPE_INTDIV) {
-            msg = "integer division by zero";
-        } else if (info->si_code == FPE_FLTDIV) {
-            msg = "floating-point division by zero";
-        } else if (info->si_code == FPE_INTOVF) {
-            msg = "integer overflow";
-        } else if (info->si_code == FPE_FLTOVF) {
-            msg = "floating-point overflow";
-        } else if (info->si_code == FPE_FLTUND) {
-            msg = "floating-point underflow";
-        } else if (info->si_code == FPE_FLTRES) {
-            msg = "floating-point inexact result";
-        } else if (info->si_code == FPE_FLTINV) {
-            msg = "invalid floating-point operation";
-        } else if (info->si_code == FPE_FLTSUB) {
-            msg = " Subscript out of range";
-        }
-    
-        target_.prepareToStop(SRE_RUNTIME_ERROR);
-        target_.reportSimulatedProgramError(
-            SimulatorFrontend::RES_FATAL, msg);
-       
-        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
-    }
-private:
-    /// Simulator frontend to use when stopping the simulation.
-    SimulatorFrontend& target_;
-};
-
-/**
- * A handler class for SIGSEGV signal
- *
- * Stops the simulation (if it's running). Used for catching
- * errors from the simulated program in the compiled simulation
- * engine.
- */
-class SigSegvHandler : public Application::UnixSignalHandler {
-public:
-    /**
-     * Constructor.
-     *
-     * @param target The target SimulatorFrontend instance.
-     */
-    SigSegvHandler(SimulatorFrontend& target) : target_(target) {
-    }
-
-    /**
-     * Terminates the simulation.
-     * 
-     * @exception SimulationExecutionError thrown always
-     */
-    virtual void execute(int, siginfo_t*) {
-        std::string msg("Invalid memory reference");
-             
-        target_.prepareToStop(SRE_RUNTIME_ERROR);
-        target_.reportSimulatedProgramError(
-            SimulatorFrontend::RES_FATAL, msg);
-       
-        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
-    }
-private:
-    /// Simulator frontend to use when stopping the simulation.
-    SimulatorFrontend& target_;
-};
-
-/**
  * Class that catches simulated program runtime error events and prints
  * the error reports to stderr.
  */
@@ -189,8 +73,6 @@ public:
     /**
      * Handles the runtime error event by printing and error report to
      * stderr and stopping simulation in case it's a fatal error.
-     *
-     * @todo TextGenerator.
      */
     virtual void handleEvent() {
         size_t minorErrors = target_.programErrorReportCount(
@@ -239,10 +121,6 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
     reader_->initialize(SIM_COMMAND_PROMPT);
     reader_->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
 
-    // handler for catching ctrl-c from the user (stops simulation)
-    SigINTHandler* ctrlcHandler = new SigINTHandler(simFront_);
-    Application::setSignalHandler(SIGINT, *ctrlcHandler);
-
     options_ = NULL;
     if (Application::cmdLineOptions() != NULL) {
         options_ = dynamic_cast<SimulatorCmdLineOptions*>(
@@ -258,20 +136,10 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
             new CompiledSimInterpreter(
                 Application::argc(), Application::argv(),
                 *context_, *reader_);
-
-        /* Catch errors caused by the simulated program
-           in compiled simulation these show up as normal
-           signals as the simulation code is native code we are 
-           running in the simulation process. */
-        SigFPEHandler fpeHandler(simFront_);
-        SigSegvHandler segvHandler(simFront_);
-    
-        Application::setSignalHandler(SIGFPE, fpeHandler);
-        Application::setSignalHandler(SIGSEGV, segvHandler);
     }
 
     /// Catch runtime errors and print them out to the simulator console.
-    new RuntimeErrorReporter(simFront_);
+    errorReporter_ = new RuntimeErrorReporter(simFront_);
 }
 
 SimulatorCLI::~SimulatorCLI() {
@@ -285,11 +153,8 @@ SimulatorCLI::~SimulatorCLI() {
     delete context_;
     context_ = NULL;
 
-    Application::restoreSignalHandler(SIGINT);
-    if (options_ != NULL && options_->fastSimulationEngine()) {
-        Application::restoreSignalHandler(SIGFPE);
-        Application::restoreSignalHandler(SIGSEGV);
-    }
+    delete errorReporter_;
+    errorReporter_ = NULL;
 }
 
 /**

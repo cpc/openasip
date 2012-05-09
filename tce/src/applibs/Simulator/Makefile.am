@@ -51,7 +51,7 @@ include_HEADERS = \
 
 # Headers required by the SystemC wrapper.
 include_HEADERS += SimpleSimulatorFrontend.hh DetailedOperationSimulator.hh \
-	ExecutingOperation.hh
+	ExecutingOperation.hh SimulationEventHandler.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
