@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.6-pre}
-\ver{27}
+\ver{28}
 \firstday{2006-10-25}
-\lastday{2011-12-02}
+\lastday{2012-05-11}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -6870,14 +6870,16 @@ the application directory.
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
-program.bc & The application byte code.\\
+program.bc & The program byte code (produced using ``tcecc --emit-llvm'').\\
 description.txt & The application description.\\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
 "until 0" command.\\
-correct\_simulation\_output & Correct output of the simulation used in
-verifying.\\
-max\_runtime & The applications maximum runtime.\\
+correct\_simulation\_output & Correct standard output of the simulation used in
+verifying. If you use this verification method, you need to add verification 
+printouts to your code or the simulation script and produce this file from a
+successful run.\\
+max\_runtime & The applications maximum runtime (as an ascii number in nanoseconds).\\
 setup.sh & Simulation setup script, if something needs to be done before
 simulation.\\
 verify.sh & Simulation verify script for additional verifying of the
