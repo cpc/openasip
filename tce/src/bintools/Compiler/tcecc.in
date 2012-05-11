@@ -953,7 +953,8 @@ else:
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
-runningInstalled = 'src/bintools/Compiler' not in scriptDir
+runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
+     os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
 
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
