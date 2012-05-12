@@ -1414,6 +1414,16 @@ ControlFlowGraph::copyToProcedure(
         irm = &program_->instructionReferenceManager();
         assert(irm != NULL);
     }
+    if (!firstBBN->isNormalBB()) {
+        std::cerr << "First Basic block is not normal basic block. "
+                  << "This is propably due function that is completely empty,"
+                  <<  " not containg even return jump. The cause of this "
+                  << "might be LLVM optimizing away code it considers dead."
+                  << std::endl
+                  << "Control flow graph written to empty_fn.dot" 
+                  << std::endl;
+        writeToDotFile("empty_fn.dot");
+    }        
     assert(firstBBN->isNormalBB());
 
     // procedure should not have any references.
