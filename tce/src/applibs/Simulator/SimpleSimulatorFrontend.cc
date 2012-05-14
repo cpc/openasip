@@ -38,6 +38,7 @@
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile) {
     simFront_ = new SimulatorFrontend();
+    simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);
     } catch (Exception& e) {

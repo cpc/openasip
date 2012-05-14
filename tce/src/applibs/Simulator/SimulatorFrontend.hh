@@ -232,6 +232,9 @@ public:
     bool memoryAccessTracking() const;
     void finishSimulation();
 
+    void setZeroFillMemoriesOnReset(bool val) 
+        { zeroFillMemoriesOnReset_ = val; }
+
     CycleCount lastRunCycleCount() const;
 
     SimulationEventHandler& eventHandler();
@@ -365,5 +368,7 @@ protected:
     bool leaveCompiledDirty_;
     /// The simulation models of the memories in the currently loaded machine.
     MemorySystem* memorySystem_;
+    /// Set to true in case the memories should be set to zero at reset.
+    bool zeroFillMemoriesOnReset_;
 };
 #endif

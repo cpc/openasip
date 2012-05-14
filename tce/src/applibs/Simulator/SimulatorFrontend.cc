@@ -123,9 +123,9 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
-    memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0),     
+    memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0),
     lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false),
-    memorySystem_(NULL) {
+    memorySystem_(NULL), zeroFillMemoriesOnReset_(true) {
 
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
@@ -414,7 +414,8 @@ SimulatorFrontend::initializeDataMemories() {
         return;
 
     simCon_->memorySystem().resetAllMemories();
-    simCon_->memorySystem().fillAllMemoriesWithZero();
+    if (zeroFillMemoriesOnReset_)
+        simCon_->memorySystem().fillAllMemoriesWithZero();
 
     const int dataSections = currentProgram_->dataMemoryCount();
 
