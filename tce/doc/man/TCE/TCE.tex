@@ -3585,9 +3585,10 @@ compiled to a shared object file and copied to appropriate
 directory. Then it can be given as command line parameter to the
 generator.
 
-\subsection{Platform Integrator}
+\section{Platform Integrator}
 
-Processor Generator supports automated integration of TTA cores to different
+Platform Integrator is a part of the Processor Generator tool. Platform
+Integrator supports automated integration of TTA cores to different
 FPGA platforms. The main use case for platform integrator is to
 create IP-components out of TTAs for SoC designs for vendor-specific system
 level design flows. In addition, standalone processor integration to FPGA
@@ -3651,24 +3652,27 @@ data memory. HDL files created by Platform Integrator be stored to directory
 proge-output/platform and project files etc. are written to current working
 directory.
 
-\subsection{Supported Platforms}
+\section{Supported Platforms}
 
 This section introduces the Platform Integrators which are shipped with TCE.
+
+\subsection{Altera based devices}
+
+Notice that TCE does not contain the vendor specific IP components such as
+on-chip memory components. In order to simulate and synthesize the hardware
+you need to have Altera Quartus~II software and libraries installed.
 
 \subsubsection{Stratix2DSP}
 \label{stratix2dspIntegrator}
 
-Stratix2DSP integrator is targeted to integrate TTA core onto a Stratix~II
-DSP Pro board with EP2S180F1020C3 FPGA device. This integrator requires that
-Altera Quartus~II has been installed and the executables are found from the PATH.
-The integrator automatically invokes 'qmegawiz' program to generate onchip
-memories.
-
-By default, integrator maps the processor clock signal (clk) to FPGA pin AM17
-which provides 100 MHz clock signal from an oscillator. Reset signal (rstx),
-which is active low, is mapped to FPGA pin J13 which is connected SW7/USER\_PB
-pushbutton on the FPGA board. Pin J13 will be connected to ground when this
-button is pressed down thus reseting the processor.
+Stratix2DSP integrator is targeted to integrate TTA core onto a
+Stratix~II DSP Pro board with EP2S180F1020C3 FPGA device. By default,
+integrator maps the processor clock signal (clk) to FPGA pin AM17
+which provides 100 MHz clock signal from an oscillator. Reset signal
+(rstx), which is active low, is mapped to FPGA pin AG18 which is
+connected SW8/CPU RESET pushbutton on the FPGA board. Pin AG18 will be
+connected to ground when this button is pressed down thus reseting the
+processor.
 
 Interfacing to FPGA board components can be done by using function units
 stored in stratixII.hdb. External ports of these function units will be
@@ -3757,14 +3761,62 @@ project files. Command is then \\
 
 \end{enumerate}
 
+\subsubsection{Stratix3DevKit}
+\label{stratix3devkitIntegrator}
+
+Stratix3DevKit integrates a TTA core onto the Stratix III FPGA
+Development Kit board from Altera with an EP3SL150F1152C2 FPGA
+device. Default clock signal is routed to 125 MHz oscillator connected
+to pin B16. Active low reset is connected to CPU RESET button on pin
+AP5.
+
+Board specific function units are stored in stratixIII.hdb. For
+successfull integration, you must select the Load Store Unit from this
+HDB. This integrator will create project files for Altera Quartus~II
+software in the same manner as Stratix2DSP integrator (see
+subsection~\ref{stratix2dspIntegrator}).
+
+Available instruction memory types are:
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}%
+                     @{}p{.80\textwidth}}
+
+\textbf{Mem Type} &\textbf{Description} \\
+\hline
+onchip & Instruction memory is reserved from FPGAs internal memory blocks and
+the memory contents will be automatically instantiated during FPGA programming.
+Designer must ensure that instruction memory contents will fit on the FPGA.
+Otherwise synthesis process will fail. \\
+vhdl\_array & Instruction memory is written as a vhdl ROM array and it is
+synthesized into the design. Increased synthesis time can be expected when this
+memory type is used. Updating instruction memory requires resynthesis.
+\end{longtable}
+\end{center}
+
+Available data memory types are:
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}%
+                     @{}p{.80\textwidth}}
+
+\textbf{Mem Type} &\textbf{Description} \\
+\hline
+none & Indicates that the processor doesn't have a load store unit or that the
+integrator shouldn't try to make memory connections. \\
+
+onchip & Data memory is reserved from FPGA's internal memory
+blocks. Memory contents will be initialized during FPGA
+programming. When this option is used, load store unit implementation
+must be selected as fu\_onchip\_ram\_lsu\_with\_bytemask (FU entry ID
+1) which is stored in stratixIII.hdb.
+\end{longtable}
+\end{center}
+
 
 \subsubsection{AvalonIntegrator}
 
 AvalonIntegrator can be used to create an Altera SOPC Builder component from
 TTA processor which includes a function unit that implements Avalon Memory
-Mapped Master interface. This integrator requires that Altera Quartus~II has
-been installed and the executables are found from PATH. The integrator
-automatically invokes 'qmegawiz' program to generate onchip memories.
+Mapped Master interface.
 
 Function units which implement the Avalon Memory Mapped Master interface are stored
 in avalon.hdb. There are two ways of interfacing with the Avalon bus:
@@ -3871,11 +3923,11 @@ Memory Mapped Master interfaces.
 
 \subsubsection{KoskiIntegrator}
 
-Koski Integrator can be used to create a Koski toolset compatible IP blocks from
-TTA processors. The integrated TTA must have an function unit that interfaces with HiBi
-bus to be compatible with this integrator. Currently this integrator only works
-with Altera FPGAs and requires Quartus~II toolset to be installed and found
-from PATH.
+Koski Integrator can be used to create a Koski/Kactus2 toolset
+compatible IP blocks from TTA processors. The integrated TTA must have
+an function unit that interfaces with HiBi bus to be compatible with
+this integrator. Currently this integrator only works with Altera
+FPGA devices.
 
 HiBi compatible load store unit can be found from hibi\_adapter.hdb. Currently
 it is the only function unit shipped with TCE which implements the HiBi interface.

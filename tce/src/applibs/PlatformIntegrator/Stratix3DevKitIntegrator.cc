@@ -180,11 +180,11 @@ Stratix3DevKitIntegrator::printInfo(std::ostream& stream) const {
          << "Integrator name: Stratix3DevKit" << std::endl
          << "---------------------------------" << std::endl
          << "Integrates TTA core to Altera Stratix III Development Kit"
-         << std::endl << "with EP3SL150F1152C2 device." << std::endl
+         << std::endl << "with" << DEVICE_NAME_ << " device." << std::endl
          << "Creates project files for QuartusII v8.0 program." << std::endl
          << "Supported instruction memory types are 'onchip' and 'vhdl_array."
          << std::endl
-         << "Supported data memory types are 'onchip' and 'sram'."
+         << "Supported data memory type is 'onchip'."
          << std::endl
          << "Default clock frequency is 125 MHz." << std::endl
          << "Active low reset is connected to CPU RESET button."
