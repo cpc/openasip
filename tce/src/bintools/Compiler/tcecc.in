@@ -57,7 +57,6 @@ options = None
 newlib_libdir = ""
 newlib_includes = ""
 lowerintrinsicsplugin=""
-wivectorizeplugin=""
 
 def handler(signum, frame):
     cleanup(tempDir)
@@ -497,16 +496,6 @@ def optimizeBytecode(inFile, fileNamePrefix):
         optSwitches = (default_opts + "-disable-internalize ") 
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
-
-    if "@LLVM_VERSION@" != "3.0":
-        if options.vectorize:
-            extra_opts = " -load=" + wivectorizeplugin + " -wi-vectorize"
-            extra_opts += " -wi-vectorize-vector-width=" + str(options.vector_width)
-            extra_opts += " -basicaa -tbaa -instcombine -gvn"
-            optSwitches += extra_opts
-
-        if options.vectorize_mem_only:
-            optSwitches += " -wi-vectorize-mem-ops-only"
         
     if options.extra_llvm_opts != "":
         extra_opts = options.extra_llvm_opts.split(',')
@@ -813,21 +802,6 @@ p.add_option('--vector-backend', action='store_true', dest='vector_backend', def
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
 
-if "@LLVM_VERSION@" != "3.0":
-    p.add_option('--vectorize', action='store_true', dest='vectorize', default=False,
-             help=\
-    """Call work item vectorizer. This requires metadata support from pocl.""")
-
-    p.add_option('--vectorize-mem-only', action='store_true', dest='vectorize_mem_only',
-            default=False,
-             help=\
-    """Vectorize only memory operations.""")
-
-    p.add_option('--vector-width', type="int", action='store', dest='vector_width', 
-            default=8,
-             help=\
-    """Number of lanes for vectorizer.""")
-
 p.add_option('--print-resource-constraints', action='store_true',
              dest='print_resource_constraints', default=False,
              help=\
@@ -958,7 +932,6 @@ runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
 
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
-    wivectorizeplugin = os.path.join(tceprefix,"lib/tce/WIVectorize.so")
     newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
     newlib_includes = "-I " + os.path.join(tceprefix,"tce-llvm/include") + " "
     bclib_includes = "" # same as newlib_includes
@@ -974,7 +947,6 @@ if runningInstalled:
 else:
     srcRoot = "@abs_top_srcdir@"
     lowerintrinsicsplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
-    wivectorizeplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/WIVectorize.so")    
     newlib_libdir = os.path.join("@abs_top_builddir@","newlib-1.17.0/tce-llvm/newlib")
     newlib_includes = ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
                        " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +

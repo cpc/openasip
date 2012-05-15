@@ -501,12 +501,13 @@ case "$LLVM_VERSION" in
    ;;
      3.0*)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
-     AM_CONDITIONAL(LLVM_VECTORIZE, false)
+   ;;
+     3.1*)
+     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
    ;;
      *svn)
-     AC_DEFINE([LLVM_3_1], [], "Using LLVM svn (upcoming 3.1)")     
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.1)")
-     AM_CONDITIONAL(LLVM_VECTORIZE, true)
+     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
    ;;   
      *)
    AC_MSG_NOTICE(
