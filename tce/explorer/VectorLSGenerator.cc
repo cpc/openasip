@@ -165,27 +165,29 @@ class VectorLSGenerator : public DesignSpaceExplorerPlugin {
         for (int m = 0; m < index.moduleCount(); m++) {        
             OperationModule& module = index.module(m);        
             for (int i = 0; i < index.operationCount(module); i++) {
-                std::string opName = index.operationName(i, module);            
+                TCEString opName = index.operationName(i, module);            
                 Operation& op = pool.operation(opName.c_str());
                 // Creates HWOperations for memory access operations with
                 // number as suffix. ATM this means vector operation.
                 if (op.usesMemory() && 
-                    (StringTools::endsWith(opName,"2") ||
-                    StringTools::endsWith(opName,"4") ||
-                    StringTools::endsWith(opName,"8"))) {
+                    (opName.endsWith("2") ||
+                    opName.endsWith("4") ||
+                    opName.endsWith("8"))) {
                     if (!lsUnit->hasOperation(opName) && 
                         op.numberOfInputs() <= nodeCount_ +1 &&
                         op.numberOfOutputs() <= nodeCount_) {
                         addOperation(*lsUnit, op, false);
                     }
                 }
-                if (op.usesMemory() && opName == "LDW" &&
+                if (op.usesMemory() && 
+                    opName.startsWith("LD") &&
                     op.numberOfInputs() == 1 &&
                     op.numberOfOutputs() == 1 &&
                     !lsUnit->hasOperation(opName)) {
                     addOperation(*lsUnit, op, true);                    
                 }
-                if (op.usesMemory() && opName == "STW" &&
+                if (op.usesMemory() && 
+                    opName.startsWith("ST") &&
                     op.numberOfInputs() == 2 &&
                     op.numberOfOutputs() == 0 &&
                     !lsUnit->hasOperation(opName)) {                
