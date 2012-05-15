@@ -59,6 +59,9 @@ def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
 def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
+def fp32_to_fp16 : SDNode<"ISD::FP32_TO_FP16" , SDTypeProfile<1,1,[]>,[]>;
+def fp16_to_fp32 : SDNode<"ISD::FP16_TO_FP32" , SDTypeProfile<1,1,[]>,[]>;
+
 
 
 // =========================
