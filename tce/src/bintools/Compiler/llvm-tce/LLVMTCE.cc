@@ -169,7 +169,7 @@ main(int argc, char* argv[]) {
     
     // All emulation code which cannot be linked in before last global dce is
     // executed, for emulation of instructions which are generated during 
-    // lowering. Un necessary functions are optimized by MachineDCE pass.
+    // lowering. Unnecessary functions are removed by the MachineDCE pass.
     std::string emulationCode;    
     if (options->isStandardEmulationLibDefined()) {
         emulationCode = options->standardEmulationLib();

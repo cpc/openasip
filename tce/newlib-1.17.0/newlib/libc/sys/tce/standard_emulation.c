@@ -130,6 +130,7 @@ __mulsi3(uint32 a, uint32 b) {
     return res;
 }
 
+#if 0
 /////////////////////////////////////////////////
 //
 // add memcpy, memset and memmove functions back 
@@ -424,7 +425,7 @@ memset(m, c, n)
     
     return m;
 }
-
+#endif
 /**************************************************************************
  **
  ** Disabled 64bit support functions.
