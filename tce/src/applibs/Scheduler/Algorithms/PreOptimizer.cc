@@ -163,13 +163,28 @@ PreOptimizer::tryToOptimizeAddressReg(
     return true;
 }
 
+/**
+ * Tries to remove unnecessary guard value xor befre condutional jump.
+ *
+ * Tries to remove xor operation which is used for
+ * converting false boolean value into true boolean value
+ * which is then used for jump. 
+ * The xor operation is removed and jump predicate reversed.
+ *
+ * @param ddg The datadependence graph of the whole function
+ * @param po ProgramOperation which is a xor operation
+ * @param irm instructionreferencemanager of the program.
+ *
+ * @return Basic block whose output edge predicates need to be
+ * reversed of cfg or NULL if no need to change cfg.
+ */
 
 TTAProgram::CodeSnippet*
 PreOptimizer::tryToRemoveXor(
     DataDependenceGraph& ddg, ProgramOperation& po,
     TTAProgram::InstructionReferenceManager* irm) {
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
-        return false;
+        return NULL;
     }
     // check that it's or by 1.
     MoveNode& operand1 = po.inputMove(0);
