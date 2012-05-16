@@ -33,7 +33,6 @@
 #include "ImmediateControlField.hh"
 #include "BinaryEncoding.hh"
 #include "MoveSlot.hh"
-#include "NullMoveSlot.hh"
 #include "NullInstructionField.hh"
 #include "MathTools.hh"
 #include "MapTools.hh"

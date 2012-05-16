@@ -86,7 +86,6 @@
 #include "CodeLabel.hh"
 #include "DataLabel.hh"
 #include "Immediate.hh"
-#include "NullBinary.hh"
 #include "TerminalImmediate.hh"
 #include "DataMemory.hh"
 #include "DataDefinition.hh"
@@ -97,7 +96,6 @@
 #include "MathTools.hh"
 
 using TPEF::Binary;
-using TPEF::NullBinary;
 using TPEF::Section;
 using TPEF::NullSection;
 using TPEF::StringSection;
@@ -684,7 +682,7 @@ ProgramWriter::IMMEDIATE_ADDRESS_WIDTH = WORD_BITWIDTH;
  */
 ProgramWriter::ProgramWriter(
     const Program& prog):
-    prog_(prog), tpef_(NullBinary::instance()) {
+    prog_(prog) {
 }
 
 

@@ -202,7 +202,7 @@ private:
     /// Program that is written to TPEF.
     const Program& prog_;
     /// Created TPEF binary.
-    const TPEF::Binary& tpef_;
+    //    const TPEF::Binary& tpef_;
 
     /// Map that contains created address spaces
     mutable std::map<const TTAMachine::AddressSpace*, 

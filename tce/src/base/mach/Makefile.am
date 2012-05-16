@@ -9,7 +9,7 @@ libmach_la_SOURCES =							     \
 	ADFSerializer.cc MachineTester.cc MachineTestReportTextGenerator.cc  \
 	MachineTestReporter.cc MOMTextGenerator.cc ImmediateSlot.cc          \
 	ADFSerializerTextGenerator.cc BaseFUPort.cc RFPort.cc                \
-        SpecialRegisterPort.cc NullAddressSpace.cc NullBus.cc                \
+        SpecialRegisterPort.cc NullAddressSpace.cc \
 	NullInstructionTemplate.cc  \
         NullRegisterFile.cc NullMachine.cc          \
 	DummyMachineTester.cc
@@ -37,7 +37,7 @@ libmach_la_SOURCES += \
 	ExecutionPipeline.hh ControlUnit.hh \
 	Connection.hh FUPort.hh \
 	Socket.hh BaseRegisterFile.hh \
-	NullBus.hh TemplateSlot.hh \
+	TemplateSlot.hh \
 	SpecialRegisterPort.hh ImmediateSlot.hh \
 	Unit.hh RFPort.hh \
 	PipelineElement.hh AddressSpace.hh \
@@ -67,7 +67,7 @@ include_HEADERS = \
 	ExecutionPipeline.hh ControlUnit.hh \
 	Connection.hh FUPort.hh \
 	Socket.hh BaseRegisterFile.hh \
-	NullBus.hh TemplateSlot.hh \
+	TemplateSlot.hh \
 	SpecialRegisterPort.hh ImmediateSlot.hh \
 	Unit.hh RFPort.hh \
 	PipelineElement.hh AddressSpace.hh \

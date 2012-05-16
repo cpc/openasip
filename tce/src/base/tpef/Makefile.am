@@ -32,7 +32,7 @@ libtpef_la_SOURCES = AOutDataSectionReader.cc AOutReader.cc \
 	TPEFSymbolSectionWriter.cc Locator.cc \
 	TPEFTools.cc ProcedSymElement.cc DebugSection.cc \
 	DebugElement.cc DebugStabElem.cc TPEFDebugSectionWriter.cc \
-	TPEFDebugSectionReader.cc NullBinary.cc
+	TPEFDebugSectionReader.cc
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
@@ -87,7 +87,7 @@ libtpef_la_SOURCES += \
 	AOutStringSectionReader.hh SectionIdReplacer.hh \
 	TPEFRelocSectionWriter.hh DebugElement.hh \
 	TPEFSectionReader.hh TPEFHeaders.hh \
-	NullBinary.hh TPEFResourceSectionReader.hh \
+	TPEFResourceSectionReader.hh \
 	DataSymElement.hh TPEFLineNumSectionReader.hh \
 	TPEFWriter.hh Section.hh \
 	TPEFReader.hh AOutSectionReader.hh \

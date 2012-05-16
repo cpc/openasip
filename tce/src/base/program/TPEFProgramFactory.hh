@@ -121,7 +121,7 @@ protected:
     
     Terminal* createTerminal(
         const TPEF::ResourceSection &resources,
-        const TTAMachine::Bus &aBus,
+        const TTAMachine::Bus *aBus,
         TTAMachine::Socket::Direction direction,
         TPEF::MoveElement::FieldType type,
         Byte unitId,

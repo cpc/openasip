@@ -71,7 +71,6 @@
 #include "InstructionReference.hh"
 #include "RelocSection.hh"
 #include "ProcedSymElement.hh"
-#include "NullBus.hh"
 #include "Immediate.hh"
 #include "NullInstructionTemplate.hh"
 #include "DataMemory.hh"
@@ -541,12 +540,12 @@ TPEFProgramFactory::createInstruction(
             try {
                 // create source terminal
                 source = createTerminal(
-                    resources, bus, Socket::OUTPUT, move->sourceType(),
+                    resources, &bus, Socket::OUTPUT, move->sourceType(),
                     move->sourceUnit(), move->sourceIndex(), &immElements);
 
                 // and destination terminal
                 destination = createTerminal(
-                    resources, bus, Socket::INPUT, move->destinationType(),
+                    resources, &bus, Socket::INPUT, move->destinationType(),
                     move->destinationUnit(), move->destinationIndex());
 
                 // create guard if move is guarded
@@ -673,7 +672,7 @@ TPEFProgramFactory::createInstruction(
         Byte iUnitID = imm->destinationUnit();
 
         Terminal* destination = createTerminal(
-            resources, NullBus::instance(), Socket::INPUT,
+            resources, NULL, Socket::INPUT,
             MoveElement::MF_IMM, iUnitID, imm->destinationIndex());
 
         ImmediateUnit& immUnit(findImmediateUnit(resources, iUnitID));
@@ -740,7 +739,7 @@ TPEFProgramFactory::createInstruction(
  */
 Terminal*
 TPEFProgramFactory::createTerminal(
-    const ResourceSection& resources, const Bus& aBus,
+    const ResourceSection& resources, const Bus* aBus,
     Socket::Direction direction, MoveElement::FieldType type, Byte unitId,
     HalfWord index, const ImmediateMap* immediateMap) const {
 
@@ -758,7 +757,7 @@ TPEFProgramFactory::createTerminal(
         return new TerminalRegister(*immUnit.port(0), index);
     }
 
-    CacheKey cacheKey(aBus, direction, type, unitId, index);
+    CacheKey cacheKey(*aBus, direction, type, unitId, index);
 
     Terminal* returnValue = getFromCache(cacheKey);
 
@@ -784,7 +783,7 @@ TPEFProgramFactory::createTerminal(
 
             if (imm->isInline()) {
 
-                int immWidth = aBus.immediateWidth();
+                int immWidth = aBus->immediateWidth();
                 SimValue simValue(immWidth);
                 simValue = imm->word();
                                 
@@ -917,7 +916,7 @@ TPEFProgramFactory::createTerminal(
             } else {
                 // special register or plain port reference
                 BaseFUPort& port = dynamic_cast<BaseFUPort&>(
-                    findPort(aBus, functionUnit, tpefOpName));
+                    findPort(*aBus, functionUnit, tpefOpName));
 
                 returnValue = new TerminalFUPort(port);
             }
