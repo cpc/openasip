@@ -15,8 +15,7 @@ DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
 
 bin_PROGRAMS = ttasim ttasim-tandem
 
-ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc \
-  SimulatorCmdLineOptions.hh
+ttasim_SOURCES = TTASim.cc 
 ttasim_LDADD = ../../libtce.la 
 
 ttasim_tandem_SOURCES = TTASimTandem.cc 

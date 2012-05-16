@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * The command line version of the TTA Simulator.
  *
- * @author Pekka J‰‰skel‰inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2012 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -36,22 +36,12 @@
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 
-#include "SimulatorInterpreter.hh"
-#include "SimulatorInterpreterContext.hh"
 #include "SimulatorCmdLineOptions.hh"
-#include "SimulatorConstants.hh"
-#include "SimulatorToolbox.hh"
-#include "LineReader.hh"
-#include "LineReaderFactory.hh"
-#include "SimulatorConstants.hh"
-#include "StringTools.hh"
-#include "Application.hh"
-#include "Exception.hh"
-#include "Listener.hh"
-#include "Informer.hh"
-#include "SimulationEventHandler.hh"
+#include "SimulatorFrontend.hh"
 #include "FileSystem.hh"
-#include "CompiledSimInterpreter.hh"
+#include "SimulatorInterpreter.hh"
+#include "SimulatorCLI.hh"
+#include "SimulatorToolbox.hh"
 
 /**
  * A handler class for Ctrl-c signal.
@@ -170,89 +160,6 @@ private:
 };
 
 /**
- * Class that catches simulated program runtime error events and prints
- * the error reports to stderr.
- */
-class RuntimeErrorReporter : public Listener {
-public:
-    /**
-     * Constructor.
-     *
-     * Registers itself to the SimulationEventHandler to listen to 
-     * runtime error events.
-     *
-     * @param target The target SimulatorFrontend instance.
-     */
-    RuntimeErrorReporter(SimulatorFrontend& target) : 
-        Listener(), target_(target) {
-        target.eventHandler().registerListener(
-            SimulationEventHandler::SE_RUNTIME_ERROR, this);
-    }
-    
-    virtual ~RuntimeErrorReporter() {
-        target_.eventHandler().unregisterListener(
-            SimulationEventHandler::SE_RUNTIME_ERROR, this);
-    }
-
-    /**
-     * Handles the runtime error event by printing and error report to
-     * stderr and stopping simulation in case it's a fatal error.
-     *
-     * @todo TextGenerator.
-     */
-    virtual void handleEvent() {
-        size_t minorErrors = target_.programErrorReportCount(
-            SimulatorFrontend::RES_MINOR);
-        size_t fatalErrors = target_.programErrorReportCount(
-            SimulatorFrontend::RES_FATAL);
-        InstructionAddress currentPC = target_.programCounter();
-        InstructionAddress lastPC = target_.lastExecutedInstruction();
-
-        if (minorErrors > 0) {
-            for (size_t i = 0; i < minorErrors; ++i) {
-                std::cerr << "warning: runtime error: "
-                          << target_.programErrorReport(
-                              SimulatorFrontend::RES_MINOR, i)
-                          << std::endl;
-            }
-        }
-
-        if (fatalErrors > 0) {
-            for (size_t i = 0; i < fatalErrors; ++i) {
-                std::cerr << "error: runtime error: "
-                          << target_.programErrorReport(
-                              SimulatorFrontend::RES_FATAL, i) 
-                          << std::endl;
-            }
-            target_.prepareToStop(SRE_RUNTIME_ERROR);
-        }
-        std::cerr 
-            << "Current PC: " << currentPC << " last PC: " << lastPC
-            << std::endl;
-        target_.clearProgramErrorReports();
-    }
-
-private:
-    /// Simulator frontend to use.
-    SimulatorFrontend& target_;
-};
-
-/**
- * Executes the given script string in the script interpreter and
- * prints out possible results.
- *
- * @param interpreter Interpreter to use.
- * @param scriptString Script string to execute.
- */
-void 
-interpreteAndPrintResults(
-    SimulatorInterpreter& interpreter, const std::string& scriptString) {
-    interpreter.interpret(scriptString);
-    if (interpreter.result().size() > 0)
-        std::cout << interpreter.result() << std::endl;
-}
-
-/**
  * Main function.
  *
  * Parses the command line and figures out whether to start the interactive
@@ -264,15 +171,15 @@ interpreteAndPrintResults(
  */
 int main(int argc, char* argv[]) {
 
-    Application::initialize();    
+    Application::initialize(argc, argv);
     
     boost::shared_ptr<SimulatorFrontend> simFront;
-    boost::shared_ptr<SimulatorInterpreter> interpreter;
     /// @todo: read command line options and initialize the 
     /// simulator (frontend) using the given values.
-    SimulatorCmdLineOptions options;
+    SimulatorCmdLineOptions* options = new SimulatorCmdLineOptions;
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
+        Application::setCmdLineOptions(options);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
@@ -280,49 +187,23 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     
-    simFront.reset(new SimulatorFrontend(options.fastSimulationEngine()));
+    simFront.reset(new SimulatorFrontend(options->fastSimulationEngine()));
     
-    SimulatorInterpreterContext context(*simFront);
-    LineReader* reader = LineReaderFactory::lineReader();
-    assert(reader != NULL);
-    reader->initialize(SIM_COMMAND_PROMPT);
-    reader->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
-
-    // handler for catching ctrl-c from the user (stops simulation)
-    SigINTHandler ctrlcHandler(*simFront);
-    Application::setSignalHandler(SIGINT, ctrlcHandler);
-
-    if (!options.fastSimulationEngine()) {
-        interpreter.reset(new SimulatorInterpreter(
-            argc, argv, context, *reader));
-    } else {
-        interpreter.reset(new CompiledSimInterpreter(
-            argc, argv, context, *reader));
-
-        /* Catch errors caused by the simulated program
-           in compiled simulation these show up as normal
-           signals as the simulation code is native code we are 
-           running in the simulation process. */
-        SigFPEHandler fpeHandler(*simFront);
-        SigSegvHandler segvHandler(*simFront);
-    
-        Application::setSignalHandler(SIGFPE, fpeHandler);
-        Application::setSignalHandler(SIGSEGV, segvHandler);
-    }
+    SimulatorCLI* cli = new SimulatorCLI(*simFront);
 
     // check if there is an initialization file in user's home dir and 
     // execute it
     const std::string personalInitScript =
         FileSystem::homeDirectory() + DIR_SEPARATOR + SIM_INIT_FILE_NAME;
     if (FileSystem::fileExists(personalInitScript)) {
-        interpreter->processScriptFile(personalInitScript);
+        cli->interpreter().processScriptFile(personalInitScript);
     }   
     
-    std::string machineToLoad = options.machineFile();
-    std::string programToLoad = options.programFile();
-    const std::string scriptString = options.scriptString();
+    std::string machineToLoad = options->machineFile();
+    std::string programToLoad = options->programFile();
+    const std::string scriptString = options->scriptString();
     
-    if (options.numberOfArguments() != 0) {
+    if (options->numberOfArguments() != 0) {
         std::cerr << SimulatorToolbox::textGenerator().text(
             Texts::TXT_ILLEGAL_ARGUMENTS).str() << std::endl;
         return EXIT_FAILURE;
@@ -333,62 +214,50 @@ int main(int argc, char* argv[]) {
     const std::string currentDirInitScript =
         FileSystem::currentWorkingDir() + DIR_SEPARATOR + SIM_INIT_FILE_NAME;
     if (FileSystem::fileExists(currentDirInitScript)) {
-        interpreter->processScriptFile(currentDirInitScript);
+        cli->interpreter().processScriptFile(currentDirInitScript);
     }
 
-    bool interactiveMode = options.debugMode();
-
-    /// Catch runtime errors and print them out to the simulator console.
-    RuntimeErrorReporter errorReporter(*simFront);
-
     if (machineToLoad != "") {
-        interpreteAndPrintResults(
-            *interpreter, std::string("mach " ) + machineToLoad);
+        cli->interpreteAndPrintResults(std::string("mach " ) + machineToLoad);
     }
 
     if (programToLoad != "") {
-        interpreteAndPrintResults(
-            *interpreter, std::string("prog " ) + programToLoad);
+        cli->interpreteAndPrintResults(std::string("prog " ) + programToLoad);
         if (scriptString == "") {
             // by default, if program is given, start simulation immediately
-            interpreteAndPrintResults(*interpreter, "run");
+            cli->interpreteAndPrintResults("run");
         }
     }
 
     if (scriptString != "") {
-        interpreteAndPrintResults(*interpreter, scriptString);
-    }
-    
-    std::string command = "";
-    
-    while (interactiveMode && !interpreter->isQuitCommandGiven()) {
-        try {
-            command = reader->readLine();
-        } catch (const EndOfFile&) {
-            // execute the actual interpreter quit command in case user
-            // pressed ctrl-d or the input file ended, to make sure
-            // all uninitialization routines are executed correctly
-            interpreter->interpret(SIM_INTERP_QUIT_COMMAND);
-            std::cout << interpreter->result() << std::endl;
-            break;
-        }
-        command = StringTools::trim(command);
-        if (command == "") {
-            continue;
-        }
-        interpreter->interpret(command);
-        if (interpreter->result().size() > 0)
-            std::cout << interpreter->result() << std::endl;	
+        cli->interpreteAndPrintResults(scriptString);
     }
 
-    delete reader;
-    reader = NULL;
+    if (options->debugMode()) {
+        // handler for catching ctrl-c from the user (stops simulation)
+        SigINTHandler* ctrlcHandler = new SigINTHandler(*simFront);
+        Application::setSignalHandler(SIGINT, *ctrlcHandler);
 
-    Application::restoreSignalHandler(SIGINT);
-    if (options.fastSimulationEngine()) {
-        Application::restoreSignalHandler(SIGFPE);
-        Application::restoreSignalHandler(SIGSEGV);
+        if (options->fastSimulationEngine()) {
+
+            /* Catch errors caused by the simulated program
+               in compiled simulation these show up as normal
+               signals as the simulation code is native code we are 
+               running in the simulation process. */
+            SigFPEHandler fpeHandler(*simFront);
+            SigSegvHandler segvHandler(*simFront);
+            Application::setSignalHandler(SIGFPE, fpeHandler);
+            Application::setSignalHandler(SIGSEGV, segvHandler);
+        }
+
+        cli->run();   
+
+        Application::restoreSignalHandler(SIGINT);
+        if (options->fastSimulationEngine()) {
+            Application::restoreSignalHandler(SIGFPE);
+            Application::restoreSignalHandler(SIGSEGV);
+        }        
     }
-    
+    delete cli;
     return EXIT_SUCCESS;
 }

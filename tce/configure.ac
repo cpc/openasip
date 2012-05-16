@@ -12,6 +12,15 @@ REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo "-r" | tr -d 
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 
+# TCE 1.1 = 1:0:0
+# TCE 1.2 = 2:0:0 (unsure if 100% API compatible with 1.1)
+# TCE 1.3 = 3:0:0 (some API changes at least in the simulator)
+# TCE 1.4 = 4:0:0
+# TCE 1.5 = 5:0:0
+# TCE 1.6 = 6:0:0
+AC_SUBST([LIB_VERSION], ["6:0:0"])
+
+
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
 # directory.
@@ -492,12 +501,13 @@ case "$LLVM_VERSION" in
    ;;
      3.0*)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
-     AM_CONDITIONAL(LLVM_VECTORIZE, false)
+   ;;
+     3.1*)
+     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
    ;;
      *svn)
-     AC_DEFINE([LLVM_3_1], [], "Using LLVM svn (upcoming 3.1)")     
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.1)")
-     AM_CONDITIONAL(LLVM_VECTORIZE, true)
+     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
    ;;   
      *)
    AC_MSG_NOTICE(

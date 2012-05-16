@@ -87,6 +87,9 @@ std::map<int, Application::UnixSignalHandler*> Application::signalHandlers_;
 int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
 CmdLineOptions* Application::cmdLineOptions_ = NULL;
 
+int Application::argc_;
+char** Application::argv_;
+
 /**
  * Initializes the state data needed by the application services.
  */
@@ -128,6 +131,13 @@ Application::initialize() {
     }
 
     initialized_ = true;
+}
+
+void
+Application::initialize(int argc, char* argv[]) {
+    Application::initialize();
+    argc_ = argc;
+    argv_ = argv;
 }
 
 /**

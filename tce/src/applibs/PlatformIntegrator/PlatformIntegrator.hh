@@ -143,6 +143,11 @@ public:
     const ProGe::NetlistBlock& toplevelBlock() const;
 
     /**
+     * Set proge share output directory if it differs from ProGe output dir
+     */
+    void setSharedOutputDir(const TCEString& sharedDir);
+
+    /**
      * Returns the platform integrator output path string. Might not exist.
      *
      * @return Platform Integrator output path
@@ -306,6 +311,7 @@ private:
     ProGe::HDL hdl_;
     
     TCEString progeOutputDir_;
+    TCEString sharedOutputDir_;
     TCEString coreEntityName_;
     TCEString outputDir_;
     TCEString programName_;

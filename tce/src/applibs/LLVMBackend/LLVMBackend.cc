@@ -504,6 +504,7 @@ LLVMBackend::compile(
     if (options_->isWorkItemAAFileDefined()) {
         FunctionPass* (*creator)();
         std::string file = options_->workItemAAFile();
+        bool foundAA = true;
         try {
             pluginTool_.importSymbol(
                 "create_workitem_aa_plugin", creator, file);       
@@ -511,10 +512,18 @@ LLVMBackend::compile(
             std::string msg = std::string() +
                 "Unable to load plugin file '" +
                 file + "'. Error: " + e.errorMessageStack();
-            IOException ne(__FILE__, __LINE__, __func__, msg);
-            throw ne;
+            if (Application::verboseLevel() > 0) {
+                Application::logStream()
+                    << msg << std::endl;
+                Application::logStream() << 
+                    "Most likely too old version of POCL. \
+                    TCE will continue without work item alias analysis." << 
+                    std::endl;
+            }
+            foundAA = false;
         }
-        Passes.add(creator());
+        if (foundAA)
+            Passes.add(creator());
     }
     Passes.add(createGCInfoDeleter());
     if (ipData_ != NULL) {

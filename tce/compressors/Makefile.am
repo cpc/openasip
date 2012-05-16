@@ -29,7 +29,7 @@ AM_CPPFLAGS = \
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
-	${EDITLINE_LD_FLAGS}
+	${EDITLINE_LD_FLAGS} -module -version-info ${LIB_VERSION}
 
 
 all-local: ${pkglib_LTLIBRARIES}

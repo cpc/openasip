@@ -150,6 +150,7 @@ int
 main() {
     
     // Absolute value, negation
+    
     _TCE_STDOUT('1'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
@@ -226,6 +227,8 @@ main() {
     test( msu( half( 3.f ), half(3.f), half(3.f) ) == half(-6.f) );
     test( msu( half( 3.f ), half(4.f), half(4.f) ) == half(-13.f) );
     test( msu( half( 1.f ), half(2.f), half(3.f) ) == half(-5.f) );
+    test( mac( half( 32768.f ), half(0.125f), half(0.125f) ) == half(32768.f) );
+    test( msu( half( 32768.f ), half(0.125f), half(0.125f) ) == half(32752.f) ); //Round to zero
     _TCE_STDOUT('\n'); 
     
     // Pipeline behavior

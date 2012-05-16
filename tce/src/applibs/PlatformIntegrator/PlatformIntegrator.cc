@@ -88,11 +88,12 @@ PlatformIntegrator::PlatformIntegrator(
     const MemInfo& imem,
     MemType dmemType): 
     machine_(machine), idf_(idf), netlist_(new ProGe::Netlist()), hdl_(hdl),
-    progeOutputDir_(progeOutputDir), coreEntityName_(coreEntityName),
-    outputDir_(outputDir), programName_(programName),
-    targetFrequency_(targetClockFreq), warningStream_(warningStream),
-    errorStream_(errorStream), ttaCore_(NULL), imem_(imem), 
-    dmemType_(dmemType), dmem_(), lsus_(), clkPort_(NULL), resetPort_(NULL) {
+    progeOutputDir_(progeOutputDir), sharedOutputDir_(""), 
+    coreEntityName_(coreEntityName), outputDir_(outputDir),
+    programName_(programName), targetFrequency_(targetClockFreq),
+    warningStream_(warningStream), errorStream_(errorStream), ttaCore_(NULL),
+    imem_(imem), dmemType_(dmemType), dmem_(), lsus_(), clkPort_(NULL),
+    resetPort_(NULL) {
 
     netlist_->setCoreEntityName(coreEntityName_);
    
@@ -152,6 +153,16 @@ PlatformIntegrator::outputFilePath(
     }
     
     return pathToFile;
+}
+
+
+void
+PlatformIntegrator::setSharedOutputDir(const TCEString& sharedDir) {
+
+    if (FileSystem::absolutePathOf(sharedDir) != 
+        FileSystem::absolutePathOf(progeOutputDir_)) {
+        sharedOutputDir_ = sharedDir;
+    }
 }
 
 
@@ -217,6 +228,21 @@ PlatformIntegrator::progeOutputHdlFiles(
     } catch (FileNotFound& e) {
         errorStream() << "Error: " << e.errorMessage() << std::endl;
         throw e;
+    }
+
+    if (!sharedOutputDir_.empty()) {
+        try {
+            std::string sharedVhdl =
+                sharedOutputDir_ + FileSystem::DIRECTORY_SEPARATOR + "vhdl";
+            std::vector<std::string> sharedFiles = 
+                FileSystem::directoryContents(sharedVhdl, makeAbsolute);
+            for (unsigned int i = 0; i < sharedFiles.size(); i++) {
+                files.push_back(sharedFiles.at(i));
+            }
+        } catch (FileNotFound& e) {
+            errorStream() << "Error: " << e.errorMessage() << std::endl;
+            throw e;
+        }
     }
 }
 

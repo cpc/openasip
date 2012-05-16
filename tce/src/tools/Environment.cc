@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,7 +43,7 @@
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2007,2010,2011
+ * @author Pekka J‰‰skel‰inen 2007,2010-2012
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
@@ -874,7 +874,11 @@ Environment::tceCompiler() {
         std::string srcPath =
             string(TCE_SRC_ROOT) + "/src/bintools/Compiler/tcecc";
 
-        if (FileSystem::fileExists(srcPath))
+        std::string llvmTceSrcPath =
+            string(TCE_SRC_ROOT) + "/src/bintools/Compiler/llvm-tce/llvm-tce";
+
+        if (FileSystem::fileExists(srcPath) &&
+            FileSystem::fileExists(llvmTceSrcPath))
             return srcPath;
     } 
     std::string path =

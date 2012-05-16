@@ -1407,30 +1407,20 @@ TDGen::writeOperationDefs(
             operandTypes[0] = 'b';
             writeOperationDefs(o, op, operandTypes, attrs);
         } 
-        
-        if (createDefaultOperandTypeString(op) == "rrr") {
-            writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
-            writeOperationDef(o, op, "www", attrs, "_VECTOR_4_");
-            writeOperationDef(o, op, "xxx", attrs, "_VECTOR_8_");
-        }
-        // TODO.. this may be problematic, same reg class for vec and normal?
-        if (createDefaultOperandTypeString(op) == "fff") {
-            writeOperationDef(o, op, "mmm", attrs, "_VECTOR_2_");            
-            writeOperationDef(o, op, "nnn", attrs, "_VECTOR_4_");
-            writeOperationDef(o, op, "ooo", attrs, "_VECTOR_8_");
-        }
 
-        if (createDefaultOperandTypeString(op) == "ff") {
-            writeOperationDef(o, op, "mm", attrs, "_VECTOR_2_");            
-            writeOperationDef(o, op, "nn", attrs, "_VECTOR_4_");
-            writeOperationDef(o, op, "oo", attrs, "_VECTOR_8_");
-        }
-
-        // int-to-float conversions. also vector versions of those
-        if (createDefaultOperandTypeString(op) == "fr") {
-            writeOperationDef(o, op, "mv", attrs, "_VECTOR_2_");            
-            writeOperationDef(o, op, "nw", attrs, "_VECTOR_4_");
-            writeOperationDef(o, op, "ox", attrs, "_VECTOR_8_");
+        // create vector versions.
+        for (int i = 0, w = 2; i < 3; i++, w<<=1) {
+            char floatChar = 'm' + i;
+            char intChar = 'v' + i;
+            TCEString s = createDefaultOperandTypeString(op);
+            for (unsigned int j = 0; j < s.length(); j++) {
+                if (s[j] == 'r') {
+                    s[j] = intChar;
+                } else if (s[j] == 'f') {
+                    s[j] = floatChar;
+                }
+            }
+            writeOperationDef(o, op, s , attrs, TCEString("_VECTOR_") + Conversion::toString(w) + "_");
         }
     }
 }

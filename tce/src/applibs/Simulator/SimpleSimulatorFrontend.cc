@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,16 +26,19 @@
  *
  * Implementation of SimpleSimulatorFrontend class.
  *
- * @author Pekka Jääskeläinen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2010,2012 (pjaaskel-no.spam-cs.tut.fi)
  */
 #include "SimpleSimulatorFrontend.hh"
 #include "SimulatorFrontend.hh"
 #include "MachineState.hh"
 #include "DetailedOperationSimulator.hh"
+#include "Listener.hh"
+#include "SimulationEventHandler.hh"
 
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile) {
     simFront_ = new SimulatorFrontend();
+    simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);
     } catch (Exception& e) {
@@ -100,6 +103,12 @@ SimpleSimulatorFrontend::isRunning() const {
     return simFront_->isSimulationRunning();
 }
 
+bool
+SimpleSimulatorFrontend::hadRuntimeError() const {
+    return simFront_->stopReasonCount() >= 1 &&
+        simFront_->stopReason(0) == SRE_RUNTIME_ERROR;
+}
+
 const TTAMachine::Machine& 
 SimpleSimulatorFrontend::machine() const {
     return simFront_->machine();
@@ -128,4 +137,15 @@ SimpleSimulatorFrontend::setOperationSimulator(
             << e.lineNum() << std::endl;
         abort();
     }
+}
+
+bool
+SimpleSimulatorFrontend::registerEventListener(int event, Listener* listener) {
+    return simFront_->eventHandler().registerListener(event, listener);
+}
+
+bool
+SimpleSimulatorFrontend::unregisterEventListener(
+    int event, Listener* listener) {
+    return simFront_->eventHandler().unregisterListener(event, listener);
 }

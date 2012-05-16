@@ -51,7 +51,7 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 # TCE 1.5 = 5:0:0
 
 AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
-	${EDITLINE_LD_FLAGS} -module -version-info 5:0:0
+	${EDITLINE_LD_FLAGS} -module -version-info ${LIB_VERSION}
 
 all-local: ${pkglib_LTLIBRARIES}
 # Create links to the .so to the current directory just to make 

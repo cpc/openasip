@@ -311,6 +311,11 @@ TCETargetMachine::missingOperations() {
 TargetPassConfig* 
 TCETargetMachine::createPassConfig(
     PassManagerBase &PM) {
-    return new TCEPassConfig(this, PM, plugin_);
+    TCEPassConfig *tpc;
+    tpc =  new TCEPassConfig(this, PM, plugin_);
+    // TODO: is this false by default if not set?
+    // false seems to give slightly better performance than true.
+    tpc->setEnableTailMerge(false);
+    return tpc;
 }
 #endif

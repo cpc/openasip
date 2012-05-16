@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -32,7 +32,7 @@
  * exceptions and "control-c", SIGFPE and SIGSEGV signal handling.
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005-2012 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_APPLICATION_HH
@@ -135,6 +135,7 @@ class CmdLineOptions;
 
 class Application {
 public:
+	static void initialize(int argc, char* argv[]);
     static void initialize();
     static void finalize();
 
@@ -165,6 +166,8 @@ public:
 
     static void setCmdLineOptions(CmdLineOptions* options_);
     static CmdLineOptions* cmdLineOptions();
+    static int argc() { return argc_; }
+    static char** argv() { return argv_; }
 
     /**
      * An interface for classes that can receive notification when a Unix
@@ -217,6 +220,10 @@ private:
 
     /// Holds command line options passed to program
     static CmdLineOptions* cmdLineOptions_;
+
+    /// The original argc and argv given to the main program, if applicable.
+    static int argc_;
+    static char** argv_;
 };
 
 #endif
