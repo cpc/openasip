@@ -167,7 +167,7 @@ SimulationController::simulateCycle() {
         if (!gcu_->isIdle())
             gcu_->endClock();
 
-        memorySystem().advanceClockOfAllMemories();
+        memorySystem().advanceClockOfLocalMemories();
         machineState_->advanceClockOfAllFUStates();
 
         for (std::size_t i = 0; i < conflictDetectorVector_.size(); ++i) {

@@ -259,6 +259,14 @@
         <xs:element name="width" type="xs:positiveInteger"/>
         <xs:element name="min-address" type="xs:nonNegativeInteger"/>
         <xs:element name="max-address" type="xs:positiveInteger"/>
+
+        <!-- This is relevant only with multicore. In case shared=true the memory this
+             address space maps to is shared between all the cores (or some of the cores
+             in a heterogeneous simulation). Otherwise, the memory is private to each 
+             core. -->
+        <xs:element name="shared-memory" type="xs:boolean" 
+                    minOccurs="0" maxOccurs="1" default="false"/>
+
         <!-- The numerical id (from C __attribute__((address_space(N)),
              can be multiple ids. 0 is reserved for the default address space. -->
         <xs:element name="numerical-id" type="xs:nonNegativeInteger"

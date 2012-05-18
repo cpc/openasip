@@ -199,6 +199,7 @@ AddressSpaceTest::testObjectStateLoadingErrors() {
     TS_ASSERT(as.hasNumericalId(0));
     TS_ASSERT(!as.hasNumericalId(1));
     TS_ASSERT(as.hasNumericalId(2));
+    TS_ASSERT(as.isShared());
     
     delete machState;
 }

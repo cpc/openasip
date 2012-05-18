@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of MemorySystem class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2009-2010
  * @note rating: red
  */
 
@@ -39,6 +39,7 @@
 #include "Memory.hh"
 #include "MapTools.hh"
 #include "Application.hh"
+#include "SequenceTools.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -53,12 +54,22 @@ MemorySystem::MemorySystem(const Machine& machine) :
 }
 
 /**
+ * Deletes all shared memory instances.
+ *
+ * Must be called only once for all MemorySystems sharing the memories.
+ */
+void
+MemorySystem::deleteSharedMemories() {
+    SequenceTools::deleteAllItems(sharedMemories_);
+}
+
+/**
  * Destructor.
  *
  * Deletes all the Memory instances.
  */
 MemorySystem::~MemorySystem() {
-    MapTools::deleteAllValues(memories_);
+    SequenceTools::deleteAllItems(localMemories_);
 }
 
 /**
@@ -67,11 +78,13 @@ MemorySystem::~MemorySystem() {
  * @param as AddressSpace to be added.
  * @param mem Memory to be added. Becomes property of the MemorySystem,
  *            that is, MemorySystems is responsible for deallocating it.
+ * @param shared If the given Memory instace is shared by multiple 
+ *               MemorySystems (cores).
  * @exception IllegalRegistration If the AddressSpace does not belong to the
  *                                target machine.
  */
 void
-MemorySystem::addAddressSpace(const AddressSpace& as, Memory* mem)
+MemorySystem::addAddressSpace(const AddressSpace& as, Memory* mem, bool shared)
     throw (IllegalRegistration) {
 
     Machine::AddressSpaceNavigator nav = machine_->addressSpaceNavigator();
@@ -81,7 +94,49 @@ MemorySystem::addAddressSpace(const AddressSpace& as, Memory* mem)
     }
 
     memories_[&as] = mem;
+
+    if (shared) {
+        sharedMemories_.push_back(mem);
+    } else {
+        localMemories_.push_back(mem);
+    }
     memoryList_.push_back(mem);
+}
+
+bool
+MemorySystem::hasMemory(const TCEString& aSpaceName) const {
+    MemoryMap::const_iterator iter = memories_.begin();
+    while (iter != memories_.end()) {
+        const AddressSpace& space = *((*iter).first);
+        if (space.name() == aSpaceName) {
+            return true;
+        }
+        ++iter;
+    }
+    return false;
+}
+
+/**
+ * In case two TTA simulation models share memories in an heterogeneous
+ * multicore simulation, this method should be called after initializing
+ * the simulation frontends between all such  pairs to fix the memory model 
+ * references to point to the same memory model.
+ *
+ * The matching is done by the address space name. The shared address
+ * space must have the 'shared' attribute set.
+ *
+ * @fixme An untested method.
+ */
+void
+MemorySystem::shareMemoriesWith(MemorySystem& other) {
+    for (int i = 0; i < other.memoryCount(); ++i) {
+        const AddressSpace& as = other.addressSpace(i);
+        if (!as.isShared() || !hasMemory(as.name())) continue;
+
+        Machine::AddressSpaceNavigator nav = machine_->addressSpaceNavigator();
+        AddressSpace* thisAS = nav.item(as.name());
+        memories_[&as] = &other.memory(i);
+    }
 }
 
 /**
@@ -93,19 +148,12 @@ MemorySystem::addAddressSpace(const AddressSpace& as, Memory* mem)
  * @return Memory bound to AddressSpace.
  * @exception InstanceNotFound If no memory is bound to the given 
  *                             AddressSpace.
- * @todo These methods need to be changed to compare with the AS attributes
- *       not with AS pointer!
  */
 Memory&
 MemorySystem::memory(const AddressSpace& as) 
     throw (InstanceNotFound) {
 
-    MemoryMap::const_iterator iter = memories_.find(&as);
-    if (iter == memories_.end()) {
-        string msg = "No memory found for address space " + as.name();
-        throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
-    }
-    return *((*iter).second);
+    return memory(as.name());
 }
 
 /**
@@ -130,7 +178,7 @@ MemorySystem::memory(const std::string& addressSpaceName)
         }
         ++iter;
     }
-    string msg = "No memory found for address space " + addressSpaceName;
+    string msg = "No memory model found for address space " + addressSpaceName;
     throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
 }
 
@@ -159,7 +207,7 @@ MemorySystem::memoryConst(const AddressSpace& as) const
 }
 
 /**
- * Returns the count of Memory instances in the memory system.
+ * Returns the count of Memory instances in this memory system.
  *
  * @return The count of Memory instances.
  */
