@@ -168,6 +168,7 @@ SimulationController::simulateCycle() {
             gcu_->endClock();
 
         memorySystem().advanceClockOfLocalMemories();
+        memorySystem().advanceClockOfSharedMemories();
         machineState_->advanceClockOfAllFUStates();
 
         for (std::size_t i = 0; i < conflictDetectorVector_.size(); ++i) {

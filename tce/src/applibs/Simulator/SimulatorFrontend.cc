@@ -1630,7 +1630,7 @@ SimulatorFrontend::initializeMemorySystem() {
         if (memoryAccessTracking_) {
             mem = new MemoryProxy(*this, mem);
         }
-        memorySystem_->addAddressSpace(space, mem, false);
+        memorySystem_->addAddressSpace(space, mem, shared);
     }
 }
 

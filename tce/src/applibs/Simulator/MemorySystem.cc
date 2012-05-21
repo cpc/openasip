@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,11 +27,12 @@
  * Definition of MemorySystem class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005,2009-2010
+ * @author Pekka J‰‰skel‰inen 2005,2009-2012
  * @note rating: red
  */
 
 #include <string>
+#include <algorithm>
 
 #include "MemorySystem.hh"
 #include "Machine.hh"
@@ -70,6 +71,7 @@ MemorySystem::deleteSharedMemories() {
  */
 MemorySystem::~MemorySystem() {
     SequenceTools::deleteAllItems(localMemories_);
+    SequenceTools::deleteAllItems(replacedSharedMemories_);
 }
 
 /**
@@ -129,13 +131,28 @@ MemorySystem::hasMemory(const TCEString& aSpaceName) const {
  */
 void
 MemorySystem::shareMemoriesWith(MemorySystem& other) {
-    for (int i = 0; i < other.memoryCount(); ++i) {
+    for (std::size_t i = 0; i < other.memoryCount(); ++i) {
         const AddressSpace& as = other.addressSpace(i);
         if (!as.isShared() || !hasMemory(as.name())) continue;
 
         Machine::AddressSpaceNavigator nav = machine_->addressSpaceNavigator();
         AddressSpace* thisAS = nav.item(as.name());
-        memories_[&as] = &other.memory(i);
+        /// remove the replaced memory as it should not be controlled
+        /// by this MemorySystem anymore
+        memoryList_.erase(
+            std::find(
+                memoryList_.begin(), memoryList_.end(), 
+                memories_[thisAS]));
+
+        sharedMemories_.erase(
+            std::find(
+                sharedMemories_.begin(), sharedMemories_.end(),
+                memories_[thisAS]));
+
+        replacedSharedMemories_.push_back(memories_[thisAS]);
+
+        memories_[thisAS] = &other.memory(i);
+
     }
 }
 

@@ -110,6 +110,9 @@ private:
     MemoryContainer sharedMemories_;
     /// All private/local memories used by a single core only.
     MemoryContainer localMemories_;
+    /// Shared memories which have been replaced with a shared memory
+    /// from another core. Just for garbage removal.
+    MemoryContainer replacedSharedMemories_;
 };
 #include "MemorySystem.icc"
 
