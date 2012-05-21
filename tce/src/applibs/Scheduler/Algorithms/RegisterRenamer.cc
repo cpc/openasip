@@ -350,7 +350,7 @@ RegisterRenamer::findPartiallyUsedRegistersBeforeCycle(
             machine_.registerFileNavigator().item(rfName);
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
         if (ddg_->lastRegisterCycle(*rf, regIndex) < earliestCycle && 
-            rf->width() >= bitWidth) {
+            rf->width() == bitWidth) {
             availableRegs.insert(*i);
         }
     }
@@ -373,7 +373,7 @@ RegisterRenamer::findPartiallyUsedRegistersAfterCycle(
             machine_.registerFileNavigator().item(rfName);
         unsigned int regIndex = atoi(i->substr(i->find('.')+1).c_str());
         if (ddg_->firstRegisterCycle(*rf, regIndex) > latestCycle && 
-            rf->width() >= bitWidth) {
+            rf->width() == bitWidth) {
             availableRegs.insert(*i);
         }
     }
@@ -392,7 +392,7 @@ RegisterRenamer::findFreeRegisters(
         TCEString rfName = i->substr(0, i->find('.'));
         TTAMachine::RegisterFile* rf = 
             machine_.registerFileNavigator().item(rfName);
-        if (rf->width() >= bitWidth) {
+        if (rf->width() == bitWidth) {
             availableRegs.insert(*i);
         }
     }
@@ -968,7 +968,7 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
         machine_.registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
         TTAMachine::RegisterFile* rf = rfNav.item(i);
-        if (rf->width() < bitwidth) {
+        if (rf->width() != bitwidth) {
             continue;
         }
         std::set<const TTAMachine::Port*> writePorts = 

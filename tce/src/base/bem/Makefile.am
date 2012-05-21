@@ -49,7 +49,7 @@ libbem_la_SOURCES += \
 	FUGuardEncoding.hh NullDestinationField.hh \
 	GuardField.hh SlotField.hh \
 	ImmediateEncoding.hh NullInstructionField.hh \
-	NullMoveSlot.hh NullBridgeEncoding.hh \
+	NullBridgeEncoding.hh \
 	GPRGuardEncoding.hh InstructionField.hh \
 	GuardEncoding.hh BEMSerializer.hh \
 	SocketEncoding.hh ImmediateSlotField.hh \

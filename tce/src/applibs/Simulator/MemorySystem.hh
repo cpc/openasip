@@ -27,7 +27,7 @@
  * Declaration of MemorySystem class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -41,6 +41,7 @@
 #include "Exception.hh"
 
 class Memory;
+class TCEString;
 
 namespace TTAMachine {
     class Machine;
@@ -48,21 +49,25 @@ namespace TTAMachine {
 }
 
 /**
- * Binds AddressSpace instances to Memory instances.
+ * The collection of memory simulation models seen by a single core.
  */
 class MemorySystem {
 public:
     explicit MemorySystem(const TTAMachine::Machine& machine);
     virtual ~MemorySystem();
 
-    void addAddressSpace(const TTAMachine::AddressSpace& as, Memory* mem)
+    void addAddressSpace(
+        const TTAMachine::AddressSpace& as, 
+        Memory* mem,
+        bool shared=true)
         throw (IllegalRegistration);
+
     Memory& memory(const TTAMachine::AddressSpace& as)
         throw (InstanceNotFound);
-    Memory& memory(const std::string& addressSpaceName)
+    const Memory& memoryConst(const TTAMachine::AddressSpace& as) const
         throw (InstanceNotFound);
 
-    const Memory& memoryConst(const TTAMachine::AddressSpace& as) const
+    Memory& memory(const std::string& addressSpaceName)
         throw (InstanceNotFound);
 
     unsigned int memoryCount() const;
@@ -73,9 +78,15 @@ public:
     const TTAMachine::AddressSpace& addressSpace(const std::string& name)
         throw (InstanceNotFound);
 
-    void advanceClockOfAllMemories();
+    void shareMemoriesWith(MemorySystem& other);
+
+    void advanceClockOfLocalMemories();
+    void advanceClockOfSharedMemories();
     void resetAllMemories();
     void fillAllMemoriesWithZero();
+    void deleteSharedMemories();
+
+    bool hasMemory(const TCEString& aSpaceName) const;
 
 private:
     /// Copying not allowed.
@@ -93,9 +104,15 @@ private:
     const TTAMachine::Machine* machine_;
     /// Contains all memories indexed by AddressSpaces.
     MemoryMap memories_;
-
-    /// List of the memories for faster traversal.
+    /// List of all the memories for faster traversal.
     MemoryContainer memoryList_;
+    /// All memories shared between multiple cores.
+    MemoryContainer sharedMemories_;
+    /// All private/local memories used by a single core only.
+    MemoryContainer localMemories_;
+    /// Shared memories which have been replaced with a shared memory
+    /// from another core. Just for garbage removal.
+    MemoryContainer replacedSharedMemories_;
 };
 #include "MemorySystem.icc"
 

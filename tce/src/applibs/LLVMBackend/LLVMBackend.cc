@@ -502,7 +502,7 @@ LLVMBackend::compile(
 //    setCodeModelForStatic();
     // Add alias analysis pass that is distributed with pocl library.
     if (options_->isWorkItemAAFileDefined()) {
-        FunctionPass* (*creator)();
+        ImmutablePass* (*creator)();
         std::string file = options_->workItemAAFile();
         bool foundAA = true;
         try {

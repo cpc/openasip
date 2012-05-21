@@ -33,15 +33,30 @@
 #include "Memory.hh"
 
 /**
- * Advances the clock of all the memories in the memory system.
+ * Advances the clock of all the shared memories in the memory system.
+ *
+ * Should be called only once per shared memory instance per simulated 
+ * cycle.
  */
 inline void 
-MemorySystem::advanceClockOfAllMemories() {
-    for (size_t i = 0; i < memoryList_.size(); ++i) {
-        Memory* mem = memoryList_.at(i);
+MemorySystem::advanceClockOfSharedMemories() {
+    for (size_t i = 0; i < sharedMemories_.size(); ++i) {
+        Memory* mem = sharedMemories_.at(i);
         mem->advanceClock();
     }
 }
+
+/**
+ * Advances the clock of all the local memories in the memory system.
+ */
+inline void 
+MemorySystem::advanceClockOfLocalMemories() {
+    for (size_t i = 0; i < localMemories_.size(); ++i) {
+        Memory* mem = localMemories_.at(i);
+        mem->advanceClock();
+    }
+}
+
 
 /**
  * Resets all the memories in the memory system.

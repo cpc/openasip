@@ -38,6 +38,7 @@
 #include "ControlUnit.hh"
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
+#include "AssocTools.hh"
 #include "Machine.hh"
 #include "ObjectState.hh"
 #include "AssocTools.hh"
@@ -52,6 +53,7 @@ const string AddressSpace::OSNAME_ADDRESS_SPACE = "adress_space";
 const string AddressSpace::OSKEY_WIDTH = "width";
 const string AddressSpace::OSKEY_MIN_ADDRESS = "min_a";
 const string AddressSpace::OSKEY_MAX_ADDRESS = "max_a";
+const string AddressSpace::OSKEY_SHARED_MEMORY = "shared-memory";
 const string AddressSpace::OSKEY_NUMERICAL_ID = "numerical-id";
 
 /**
@@ -105,7 +107,8 @@ AddressSpace::AddressSpace(
  */
 AddressSpace::AddressSpace(const ObjectState* state, Machine& owner)
     throw (ObjectStateLoadingException) :
-    Component(state), width_(0), minAddress_(0), maxAddress_(0) {
+    Component(state), width_(0), minAddress_(0), maxAddress_(0), 
+    shared_(true) {
 
     loadState(state);
 
@@ -320,6 +323,10 @@ AddressSpace::saveState() const {
     // set max address
     as->setAttribute(OSKEY_MAX_ADDRESS, maxAddress_);
     
+    if (!shared_) {
+        as->setAttribute(OSKEY_SHARED_MEMORY, shared_);
+    }
+
     for (IDSet::const_iterator i = numericalIds_.begin(); 
          i != numericalIds_.end(); ++i) {
         ObjectState* child = new ObjectState(OSKEY_NUMERICAL_ID, as);
@@ -359,6 +366,11 @@ AddressSpace::loadState(const ObjectState* state)
         unsigned int maxAddress = state->unsignedIntAttribute(
             OSKEY_MAX_ADDRESS);
         setAddressBounds(minAddress, maxAddress);
+
+        if (state->hasAttribute(OSKEY_SHARED_MEMORY)) {
+            setShared(          
+                state->boolAttribute(OSKEY_SHARED_MEMORY));
+        }
 
         for (int i = 0; i < state->childCount(); i++) {
             ObjectState* child = state->child(i);

@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2003-08-28
+-- Last update: 2012-05-18
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Logical functional unit for TTA
@@ -98,15 +98,17 @@ entity fu_and_ior_always_2 is
     o1data   : in  std_logic_vector(dataw-1 downto 0);
     o1load   : in  std_logic;
     r1data   : out std_logic_vector(busw-1 downto 0);
-    glock      : in std_logic;
+    glock    : in  std_logic;
     rstx     : in  std_logic;
-    clk      : in  std_logic );
+    clk      : in  std_logic);
 end fu_and_ior_always_2;
 
 
 architecture rtl of fu_and_ior_always_2 is
   
   component and_ior_arith
+    generic (
+      dataw : integer := 32);
     port(
       T1    : in  std_logic_vector(dataw-1 downto 0);
       T1opc : in  std_logic_vector(0 downto 0);
@@ -126,6 +128,8 @@ architecture rtl of fu_and_ior_always_2 is
 begin
   
   fu_arch : and_ior_arith
+    generic map (
+      dataw => dataw)
     port map(
       T1    => t1reg,
       T1opc => T1opc_reg,
@@ -143,37 +147,38 @@ begin
       r1reg     <= (others => '0');
       
     elsif clk'event and clk = '1' then  -- rising clock edge
-if (glock='0') then
+      if (glock = '0') then
 
-      case control is
-        when "11" =>
-          o1reg     <= o1data;
-          t1reg     <= t1data;
-          t1opc_reg <= t1opcode;
-        when "10" =>
-          o1reg <= o1data;
-        when "01" => 
-          t1reg     <= t1data;
-          t1opc_reg <= t1opcode;
-        when others => null;
-      end case;
+        case control is
+          when "11" =>
+            o1reg     <= o1data;
+            t1reg     <= t1data;
+            t1opc_reg <= t1opcode;
+          when "10" =>
+            o1reg <= o1data;
+          when "01" =>
+            t1reg     <= t1data;
+            t1opc_reg <= t1opcode;
+          when others => null;
+        end case;
 
-      -- update result only when new operation was triggered
-      -- This should save power when clock gating is enabled
-      result_en_reg <= t1load;
+        -- update result only when new operation was triggered
+        -- This should save power when clock gating is enabled
+        result_en_reg <= t1load;
 
-      if result_en_reg = '1' then
-        r1reg <= r1;
+        if result_en_reg = '1' then
+          r1reg <= r1;
+        end if;
+
       end if;
-
-end if;
     end if;
   end process regs;
 
   r1data <= sxt(r1reg, busw);
-  --r1data <= r1;
   
 end rtl;
+
+
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
@@ -190,14 +195,16 @@ entity fu_and_ior_always_1 is
     o1data   : in  std_logic_vector(dataw-1 downto 0);
     o1load   : in  std_logic;
     r1data   : out std_logic_vector(busw-1 downto 0);
-    glock      : in std_logic;
+    glock    : in  std_logic;
     rstx     : in  std_logic;
-    clk      : in  std_logic );
+    clk      : in  std_logic);
 end fu_and_ior_always_1;
 
 architecture rtl of fu_and_ior_always_1 is
   
   component and_ior_arith
+    generic (
+      dataw : integer := 32);
     port(
       T1    : in  std_logic_vector(dataw-1 downto 0);
       T1opc : in  std_logic_vector(0 downto 0);
@@ -215,6 +222,8 @@ architecture rtl of fu_and_ior_always_1 is
 begin
   
   fu_arch : and_ior_arith
+    generic map (
+      dataw => dataw)
     port map(
       T1    => t1reg,
       T1opc => T1opc_reg,
@@ -232,27 +241,27 @@ begin
       o1temp    <= (others => '0');
       
     elsif clk'event and clk = '1' then  -- rising clock edge
-if (glock='0') then
+      if (glock = '0') then
 
-      case control is
-        when "11" =>
-          o1reg     <= o1data;
-          o1temp    <= o1data;
-          t1reg     <= t1data;
-          t1opc_reg <= t1opcode;
-        when "10" =>
-          o1temp <= o1data;
-        when "01" => 
-          o1reg     <= o1temp;
-          t1reg     <= t1data;
-          t1opc_reg <= t1opcode;
-        when others => null;
-      end case;
+        case control is
+          when "11" =>
+            o1reg     <= o1data;
+            o1temp    <= o1data;
+            t1reg     <= t1data;
+            t1opc_reg <= t1opcode;
+          when "10" =>
+            o1temp <= o1data;
+          when "01" =>
+            o1reg     <= o1temp;
+            t1reg     <= t1data;
+            t1opc_reg <= t1opcode;
+          when others => null;
+        end case;
 
-end if;
+      end if;
     end if;
   end process regs;
 
-  r1data <= r1;
+  r1data <= sxt(r1, busw);
   
 end rtl;

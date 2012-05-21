@@ -295,7 +295,8 @@ TDGen::analyzeRegisters() {
 
             if (rg != NULL) {
                 RegInfo reg = {
-                    rg->registerFile()->name(), rg->registerIndex() };
+                    rg->registerFile()->name(),
+                    (unsigned)rg->registerIndex() };
 
                 guardedRegs_.insert(reg);
             }
@@ -453,7 +454,7 @@ void TDGen::analyzeRegisters(RegsToProcess regsToProcess) {
             }
 
             if (currentIdx < lastIdx) {
-                RegInfo reg = {rf->name(), currentIdx};
+                RegInfo reg = {rf->name(), (unsigned)currentIdx};
                 if (width != 1) {
                     // if has guard, set as 1-bit reg
                     if (guardedRegs_.find(reg) == guardedRegs_.end()) {

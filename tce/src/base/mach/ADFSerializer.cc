@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of ADFSerializer class.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläine 2004-2012
  * @note reviewed 15 Jun 2004 by pj, vpj, ml, ll
  * @note rating: red
  */
@@ -154,6 +155,7 @@ const string AS_WIDTH = "width";
 const string AS_MIN_ADDRESS = "min-address";
 const string AS_MAX_ADDRESS = "max-address";
 const string AS_NUMERICAL_ID = "numerical-id";
+const string AS_SHARED_MEMORY = "shared-memory";
 
 const string CONTROL_UNIT = "global-control-unit";
 const string CU_NAME = "name";
@@ -838,6 +840,13 @@ ADFSerializer::addressSpaceToMDF(const ObjectState* asState) {
     maxAddress->setValue(
         asState->stringAttribute(AddressSpace::OSKEY_MAX_ADDRESS));
 
+    if (asState->hasAttribute(AddressSpace::OSKEY_SHARED_MEMORY)) {
+        ObjectState* shared = new ObjectState(AS_SHARED_MEMORY);
+        as->addChild(shared);
+        shared->setValue(
+            asState->boolAttribute(AddressSpace::OSKEY_SHARED_MEMORY));
+    }
+
     // the numerical ids
     for (int i = 0; i < asState->childCount(); i++) {
         ObjectState* child = asState->child(i);
@@ -1354,6 +1363,12 @@ ADFSerializer::addressSpaceToMachine(const ObjectState* asState) {
     ObjectState* maxAddress = asState->childByName(AS_MAX_ADDRESS);
     as->setAttribute(
         AddressSpace::OSKEY_MAX_ADDRESS, maxAddress->stringValue());
+
+    if (asState->hasChild(AS_SHARED_MEMORY)) {
+        ObjectState* shared = asState->childByName(AS_SHARED_MEMORY);
+        as->setAttribute(
+            AddressSpace::OSKEY_SHARED_MEMORY, shared->boolValue());
+    }
 
     // the numerical ids
     for (int i = 0; i < asState->childCount(); i++) {

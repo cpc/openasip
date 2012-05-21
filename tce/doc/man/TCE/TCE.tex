@@ -29,7 +29,7 @@
 \title{TTA-based Co-design Environment v1.6-pre}
 \ver{28}
 \firstday{2006-10-25}
-\lastday{2012-05-11}
+\lastday{2012-05-18}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -2799,6 +2799,346 @@ command is then:
 %Yet to be written.
 
 
+\section{How to print from Altera FPGAs}
+
+TCE comes with a special function unit which enables character output
+from Altera FPGAs. This SFU utilizes Altera JTAG UART IP core and
+nios2-terminal host program for this functionality. Neither of them
+are included in TCE so you need the appropriate Altera software and
+libraries (namely Quartus~II and Nios~II EDS) in order to use the
+printing capability.
+
+\subsection{Hello World 2.0}
+
+If you haven't already downloaded the tutorial file package, you should
+download it now from:
+
+\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
+
+Then unpack it to a working directory and cd to tce\_tutorials/fpga\_stdout
+
+Let's begin by examining our tutorial architecture. Open the given test.adf
+architecture in ProDe:
+
+\shellcmd{prode test.adf \&}
+
+As you can see, the architecture includes IO function unit which implements the
+STDOUT operation. In addition the architecture also has a timer function unit
+which we will also be used in this tutorial.
+
+\subsubsection{Examine the first version}
+
+Open source code file \file{std\_print.c} in your preferred text
+editor. As you can see, the code includes \file{stdio.h} and uses
+\textit{printf()} for printing ``Hello World!''. Furthermore,
+operation RTC is used to measure how long the printing takes and this
+time is then printed at the end of the program. Writing value ``0'' to
+the RTC resets the real time clock in timer FU. When the RTC is
+invoked with a non-zero value, the current time is written to the
+given variable (in this case to variable ``timestamp''). RTC counts
+the time in milliseconds and by default, the instruction set simulator
+assumes clock frequency of 100 MHz.
+
+Now compile the source code with the following command:
+
+\shellcmd{tcecc -O0 -{}-swfp -a test.adf -o std\_print.tpef std\_print.c}
+
+The compilation command contains a few flags that should be explained
+in more detail. Let's first look into the \textit{-{}-swfp} flag: this
+tells the compiler to link the program with the floating point
+emulation library. Floating point support is needed because
+\textit{printf()} function includes support for printing floating
+point values and our architecture does not contain floating point
+function units. To emphasize the lesson of this tutorial it is
+important that you compile the code without optimizations i.e. with
+\textit{-O0} flag. Otherwise our witty compiler will optimize the
+first \textit{printf()} call (which just prints a constant character
+string) into inlined \_TCE\_STDOUT operations.
+
+After compiling, execute the program in the instruction set simulator:
+
+\shellcmd{ttasim -a test.adf -p std\_print.tpef}
+
+You should see the printed text in your terminal. By the time of
+writing this tutorial, the duration of the ``Hello World'' printing
+with \textit{printf()} took 61 ms (time may vary depending on the TCE
+version).
+
+But speaking of the lesson, execute the following command to examine
+the minimum memory consumption of this program:
+
+\shellcmd{dumptpef -m std\_print.tpef}
+
+As you should notice, the instruction count is high (around 45 000 at
+the time of writing this tutorial) on this simple sequential TTA
+architecture with optimizations disabled. Major part of the
+instructions are spent on the \textit{printf()} and floating point
+emulation functions.
+
+First step in reducing the instruction count is to use
+\textit{iprintf()} instead of \textit{printf()}. Function
+\textit{iprintf()} is a simplified version of \textit{printf()} which
+drops the support for printing floating points. In our test case we
+don't need to print floats, so open the source code file
+\file{std\_print.c} in your preferred text editor and change the two
+\textit{printf()} calls to \textit{iprintf()}. Alternatively, you can
+do this with program \textit{sed}:
+
+\shellcmd{sed -i 's|printf|iprintf|g' std\_print.c}
+
+Now recompile the program and check the instruction count:
+
+\shellcmd{tcecc -O0 -a test.adf -o std\_print.tpef std\_print.c}
+
+\shellcmd{dumptpef -m std\_print.tpef}
+
+You should see a significant drop in the instruction count. If you
+simulate the new program, you notice no difference in the behavior
+(except that the measured time might be a bit lower).
+
+\subsubsection{Light weight printing}
+
+TCE includes a Light Weigth PRinting (lwpr) library to provide small
+and simple functions for printing strings and integers for further
+reducing the instruction count overhead of print support. Take a look
+at the source code file \file{lightweight\_print.c} to see how these
+functions are used. The library is included with header \file{lwpr.h}.
+Function \textit{lwpr\_print\_str()} is utilized to output strings and
+function \textit{lwpr\_print\_int()} is used for printing
+integers. There is also function for printing integers in hexadecimal
+format called \textit{lwpr\_print\_hex()}, but it is not used in this
+tutorial.
+
+Compile the new code to see the difference of using lwpr:
+
+\shellcmd{tcecc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
+
+Notice the new compilation flag \textit{-llwpr} for including the light
+weight printing library.
+
+First, check the instruction count with:
+
+\shellcmd{dumptpef -m lightweight\_print.tpef}
+
+You should notice that the instruction count has dropped dramatically
+and also the initialized data memory is a lot smaller that previously.
+
+Next, simulate program:
+
+\shellcmd{ttasim -a test.adf -p lightweight\_print.tpef}
+
+Printed text is the same as previously except that the measured duration
+has dropped significantly.
+
+\subsection{FPGA execution}
+
+Next step is to get the program running on an FPGA. Prerequisite for
+this step is that you have Altera Quartus~II and nios2-terminal
+programs installed and you have a Stratix II DSP FPGA board. But don't
+worry if you don't have this specific board, this tutorial can be
+completed with other Altera FPGA boards as well. In case you are using
+alternative board you must do a few manual changes before synthesizing and
+executing the design. Disclaimer: we assume no liability in case you
+fry your FPGA :)
+
+\subsubsection{Preparations}
+
+Before starting to generate the processor we first must adjust the
+address space sizes of the architecture. In order to do this, open the
+architecture in ProDe and open the address space dialog (\textit{Edit
+  -> Address Spaces...}).
+
+\shellcmd{prode test.adf \&}
+
+Adjust both the data and instruction address space to be 10 bits
+wide. This should be enough for our application according to the
+\textit{dumptpef} output.
+
+Next recompile the application so it adapts to the new address space
+sizes:
+
+\shellcmd{tcecc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
+
+If you wish you can execute the program with ttasim to verify that it
+still works after the address space sizes changed.
+
+Before generating the processor, you must also select the RF and FU
+implementations. If you wish to skip this step, you can use the given
+IDF by renaming it: 
+
+\shellcmd{mv preselected.idf test.idf}
+
+Then move on to section~\ref{tut:fpga_stdout_gen_proc}. If you choose
+to learn and do this step manually, keep following the
+instructions. In case you don't already have the architecture open, do
+it now:
+
+\shellcmd{prode test.adf \&}
+
+Then select \textit{Tools -> Processor Implementation...} to open the
+implementation dialog. First select the Register Files implementations
+from the \file{asic\_130nm\_1.5V.hdb}. It doesn't matter which
+implementation you choose for this tutorial.
+
+After selecting RFs, click open the Function Unit tab. Now you must
+choose the implementations carefully:
+
+\begin{enumerate}
+\item%
+\textbf{LSU:} Change the HDB to \file{stratixII.hdb} (don't worry if you are
+using another Altera FPGA) and select the
+fu\_lsu\_with\_bytemask\_always\_3.
+
+\item%
+\textbf{ALU:} Change the HDB back to \file{asic\_130nm\_1.5V.hdb} and
+select any available implemenation.
+
+\item%
+\textbf{IO:} Change the HDB to \file{altera\_jtag\_uart.hdb} and select
+altera\_jtag\_uart\_stdout\_always\_1 as the implementation.
+
+\item%
+\textbf{TIMER:} Change the HDB again to \file{stratixII.hdb} and select
+the timer implementation with id 5. This implementation is for 100 MHz
+clock frequency (you can check it by opening the stratixII.hdb with
+hdbeditor and examining the generic parameters).
+\end{enumerate}
+
+Rememeber to \textbf{save IDF} before closing the dialog.
+
+
+\subsubsection{Generate the processor}
+\label{tut:fpga_stdout_gen_proc}
+
+Now we will use the Platform Integrator feature (see section
+\ref{sec:platformIntegrator} for more information) of ProGe. Execute
+the following command to generate the processor implementation:
+
+\shellcmd{generateprocessor -i test.idf -o proge-out -g Stratix2DSP 
+-d onchip -f onchip \\ -p lightweight\_print.tpef -e hello\_tta test.adf}
+
+The new flag \textit{-g} commands to use Stratix II DSP board Platform
+Integrator and \textit{-d} and \textit{-f} tells the Platform
+Integrator to implement instruction and data memory as FPGA onchip
+memory. Flag \textit{-p} defines the name of the program we want to
+execute on the processor (it is just needed for naming the memory
+initialization files) and flag \textit{-e} defines the toplevel entity
+name for our processor.
+
+Next, generate the memory images from the tpef program:
+
+\shellcmd{generatebits -d -w 4 -f mif -o mif -x proge-out
+-p lightweight\_print.tpef -e hello\_tta test.adf}
+
+Important flags to notice here are the \textit{-x} which tells where
+the HDL files generated by ProGe are stored and \textit{-e} which
+defines the toplevel entity name (must be the same you gave to
+ProGe). Data and instruction memory image formats are defined as
+\textit{mif} (Altera's memory initialization format for onchip
+memories).
+
+
+\subsubsection{Modifications for using alternative Altera FPGA boards}
+
+If you are using the Stratix II DSP FPGA board you can skip this
+section. Otherwise you \textbf{must} complete the tasks described here
+to get the processor running on your alternative FPGA.
+
+\paragraph{HDL changes}
+
+Open file \file{proge-out/platform/hello\_tta\_toplevel.vhdl} in your
+preferred text editor. Change the value of the toplevel generic
+\textit{dev\_family\_g} according to your FPGA. For example if you are
+using Altera DE2 board with a Cyclone II FPGA, change the string from
+``Stratix II'' to ``Cyclone II''. Save the file before exit.
+
+\paragraph{Changes to Quartus~II project files}
+
+Open file \file{hello\_tta\_toplevel.qsf} in your preferred text
+editor. You \textbf{must} locate and change the following settings
+according to the FPGA board you are using (all the examples are given
+for the DE2 board for illustrative purposes):
+
+\begin{enumerate}
+\item%
+\textbf{FAMILY:} Set the FPGA device family string according to your
+FPGA. Example: ``Cyclone II''
+
+\item%
+\textbf{DEVICE:} Set the specific FPGA device name according to your
+FPGA. Example: EP2C35F672C6
+
+\item%
+\textbf{FMAX\_REQUIREMENT:} Set the target clock frequency according to
+the oscillator you are using to drive clock signal. Example: ``50
+MHz''
+
+\item%
+\textbf{Pin assignments:} Change the pin assignments for clk and rstx
+accorind to your FPGA board. Reset signal \textit{rstx} is active low
+so take this into consideration in the pin mapping. Example: PIN\_N2
+-to clk (50 MHz oscillator to clk signal) and PIN\_G26 -to rstx (push
+button KEY0 to rstx)
+\end{enumerate}
+
+\subsubsection{Synthesize and execute}
+
+Synthesize the processor simply by executing the generated script:
+
+\shellcmd{./quartus\_synthesize.sh}
+
+Assuming that your FPGA is set up, on and properly connected via USB
+Blaster to your PC, you can program the FPGA with the following script:
+
+\shellcmd{./quartus\_program\_fpga.sh}
+
+Or if you prefer, you can also use the graphical Quartus programmer
+tool for FPGA programming.
+
+After the programmer has finished, open \textit{nios2-terminal}
+program in order to capture the printed characters:
+
+\shellcmd{nios2-terminal -i 0}
+
+After the connection is open and program starts to run, you will the
+see the characters printed to the terminal. Notice that the measured
+printing time may vary according to your FPGA board and clock
+frequency as the timer implementation was set for 100 MHz clock.
+
+\subsection{Caveats in printing from FPGA}
+
+There are few caveats in printing from FPGA you should be aware
+of. First of all the transfer speed between the host PC and FPGA is
+finite and in order to avoid extra stalls the STDOUT FU uses a
+character buffer. When this buffer is full, the TTA processor pipeline
+is stalled until there is space again in the buffer. This happens
+especially when the nios2-terminal is not open i.e. there's no host
+process to clear the buffer. In otherwords, if your application uses
+STDOUT you must open nios2-terminal with the correct instance number
+to avoid the execution getting stuck.
+
+Because of the stalling behavior you should avoid print during
+profiling as the results may be affected. You should not print during
+the execution of timing critical code as the real time characteristics
+cannot be guaranteed due to the possibility of stalls.
+
+
+\subsection{Summary}
+
+This tutorial illustrated how to print from Altera FPGAs. In addition
+this tutorial discussed different ways to print from C code and
+demonstrated their impact on the instruction count.
+
+For demonstrational purposes all the compilations were done without
+optimizations. However, in case optimizations are applied,
+\textit{printf()} or \textit{iprintf()} may sometimes produce the
+smallest code overhead when printing \textbf{only constant strings}.
+This is possible when the compiler is able to reduce the function call
+into direct \_TCE\_STDOUT macro calls and fill NOP slots with the
+STDOUT operations. But in general it is advisable to use light weight
+printing library functions whenever applicable.
+
+
 \section{Designing Floating-point Processors with TCE}
 
 TCE supports single and half precision floating-point calculations. Single-precision calculations
@@ -3669,6 +4009,7 @@ directory. Then it can be given as command line parameter to the
 generator.
 
 \section{Platform Integrator}
+\label{sec:platformIntegrator}
 
 Platform Integrator is a part of the Processor Generator tool. Platform
 Integrator supports automated integration of TTA cores to different

@@ -526,7 +526,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     verbose = options.verbose
 
     # if software floatingpoint should be lowered, link the emulation functions in
-    emulationLib = os.path.join(newlib_libdir,"float_emulation.o") + " "
+    emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
     linkedName = fileNamePrefix + "_libemul.bc"
         
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
@@ -1151,7 +1151,10 @@ if options.adf_file != "":
         command += " --recursive-scheduler"
         
     if options.pom_builder or options.scheduler_config is not None:
-        print >> sys.stderr, "Deprecation warning: The old builder is going to be removed from TCE soon. Please use the default builder and report the possible bugs found in it."
+        print >> sys.stderr, \
+            "Deprecation warning: The old builder is going to be removed " +\
+            "from TCE very soon. Please use the default builder and report the " +\
+            "possible bugs found in it."
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 

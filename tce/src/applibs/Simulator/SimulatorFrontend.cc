@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Implementation of SimulatorFrontend class
  *
- * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010-2012 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */
@@ -1610,6 +1610,12 @@ SimulatorFrontend::initializeMemorySystem() {
 
         if (space.name() == controlUnitASName)
             continue;
+
+        /// if shared, assume the external initializer initializes the shared 
+        /// memory model to the rest of the MemorySystems before starting 
+        /// the simulation
+        const bool shared = space.isShared();
+
         Memory* mem = NULL;
 
         if (compiledSimulation_) {
@@ -1619,13 +1625,12 @@ SimulatorFrontend::initializeMemorySystem() {
             mem = new IdealSRAM(
                 space.start(), space.end(), space.width());
         }
-            
         // If memory tracking is enabled, memories are wrapped by a proxy
         // that tracks memory access.
         if (memoryAccessTracking_) {
             mem = new MemoryProxy(*this, mem);
         }
-        memorySystem_->addAddressSpace(space, mem);
+        memorySystem_->addAddressSpace(space, mem, shared);
     }
 }
 

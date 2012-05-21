@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of AddressSpace class.
  *
  * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
  * @note rating: red
  */
@@ -72,6 +73,8 @@ public:
 
     virtual void addNumericalId(unsigned id);
     virtual bool hasNumericalId(unsigned id) const;
+    virtual void setShared(bool shared) { shared_ = shared; }
+    virtual bool isShared() const { return shared_; }
 
     virtual void setMachine(Machine& mach)
         throw (ComponentAlreadyExists);
@@ -89,6 +92,7 @@ public:
     static const std::string OSKEY_MIN_ADDRESS;
     /// ObjectState attribute key for maximum address.
     static const std::string OSKEY_MAX_ADDRESS;
+    static const std::string OSKEY_SHARED_MEMORY;
     static const std::string OSKEY_NUMERICAL_ID;
 
 private:
@@ -101,6 +105,10 @@ private:
     unsigned int maxAddress_;
     /// The numerical ids mapped to this address space.
     IDSet numericalIds_;
+    /// True in case this address space maps to a memory that is shared
+    /// across all the cores in the multicore.
+    bool shared_;
+    
 };
 }
 
