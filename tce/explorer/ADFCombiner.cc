@@ -65,7 +65,7 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         extra_("extra.adf"),
         buildIDF_(false),
         vectorLSU_(false),
-        addressSpace_("data") {
+        addressSpaces_("data") {
 
         // compulsory parameters
         // no compulsory parameters
@@ -77,8 +77,8 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         addParameter(ExtraPN_, STRING, false, extra_);
         addParameter(BuildIDFPN_, BOOL, false, Conversion::toString(buildIDF_));
         addParameter(VectorLSUPN_, BOOL, false, 
-            Conversion::toString(vectorLSU_));        
-        addParameter(AddressSpacePN_, STRING, false, addressSpace_);        
+            Conversion::toString(vectorLSU_));   
+        addParameter(AddressSpacesPN_, STRING, false, addressSpaces_);        
     }
 
     virtual bool requiresStartingPointArchitecture() const { return false; }
@@ -150,12 +150,18 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
                 
             lsuAdd->giveParameter("node_count", Conversion::toString(nodeCount_));            
             lsuAdd->giveParameter(
-                "address_space", Conversion::toString(addressSpace_));        
+                "address_spaces", Conversion::toString(addressSpaces_));        
             std::vector<RowID> addedLSUConf = 
                 lsuAdd->explore(confID);   
                 
             finalMach = dsdb.architecture(addedLSUConf.back());
-            connectVectorLSU(finalMach, nodeMach, extraMach, nodeCount_);
+            
+            bool connectAgain = false;
+            // Connect vector units, one at a time.
+            do {
+                connectAgain = 
+                    connectVectorLSU(finalMach, nodeMach, extraMach, nodeCount_);
+            } while (connectAgain);
             
             conf.architectureID = dsdb.addArchitecture(*finalMach);
             confID = dsdb.addConfiguration(conf);       
@@ -186,7 +192,7 @@ private:
     static const TCEString ExtraPN_;
     static const TCEString BuildIDFPN_;
     static const TCEString VectorLSUPN_;
-    static const TCEString AddressSpacePN_;    
+    static const TCEString AddressSpacesPN_;    
     
     
     TCEString node_;
@@ -194,7 +200,7 @@ private:
     TCEString extra_;
     bool buildIDF_;
     bool vectorLSU_;
-    TCEString addressSpace_;
+    TCEString addressSpaces_;
 
     /**
      * Reads the parameters given to the plugin.
@@ -204,8 +210,8 @@ private:
         readOptionalParameter(NodeCountPN_, nodeCount_);        
         readOptionalParameter(ExtraPN_, extra_);
         readOptionalParameter(BuildIDFPN_, buildIDF_);
-        readOptionalParameter(VectorLSUPN_, vectorLSU_);        
-        readOptionalParameter(AddressSpacePN_, addressSpace_);        
+        readOptionalParameter(VectorLSUPN_, vectorLSU_);     
+        readOptionalParameter(AddressSpacesPN_, addressSpaces_);        
     }
 
     
@@ -672,7 +678,7 @@ private:
      * treat it as a vector LSU and connect address write port to extra
      * and data ports to respective number of nodes.
      */
-    void connectVectorLSU(
+    bool connectVectorLSU(
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach, 
         TTAMachine::Machine* extraMach, 
@@ -721,22 +727,22 @@ private:
             }
         }
         if (vectorLSU == NULL) {
-            // No vector LSU found, nothing to do here.
-            std::cerr << " did not find the lsu " << std::endl;
-            return;
+            // No unconnected vector LSU found, nothing to do here.
+            return false;
         }
         
         assert(trigger != NULL);
+        TCEString prefix = vectorLSU->name();
         TTAMachine::Socket* triggerSocket = 
-            new TTAMachine::Socket("vectorLSU_" + trigger->name());  
+            new TTAMachine::Socket(prefix + "_" + trigger->name());  
         TTAMachine::Socket* inExtraSocket = NULL;
         if (inExtra)
             inExtraSocket =
-                new TTAMachine::Socket("vectorLSU_" + inExtra->name());  
+                new TTAMachine::Socket(prefix + "_" + inExtra->name());  
         TTAMachine::Socket* outExtraSocket = NULL;                
         if (outExtra)
             outExtraSocket =
-                new TTAMachine::Socket("vectorLSU_" + outExtra->name());  
+                new TTAMachine::Socket(prefix + "_" + outExtra->name());  
                           
         try {     
             finalMach->addSocket(*triggerSocket);
@@ -811,11 +817,11 @@ private:
                 if (port != trigger && port != inExtra) {
                     // Trigger is already connected to extra, we just connect
                     // rest of writing ports.
-                    TCEString socketName = "vectorLSU_" + port->name();
+                    TCEString socketName = prefix + "_" + port->name();
                     TTAMachine::Socket* inputSocket = NULL;                        
                     if (!finalMach->socketNavigator().hasItem(socketName)) {
                         inputSocket = 
-                            new TTAMachine::Socket("vectorLSU_" + port->name());                
+                            new TTAMachine::Socket(prefix + "_" + port->name());                
                         try {     
                             finalMach->addSocket(*inputSocket);
                         } catch (const ComponentAlreadyExists& e) {
@@ -863,11 +869,11 @@ private:
                 if (port == outExtra)
                     continue;
                 assert(port != trigger);
-                TCEString socketName = "vectorLSU_" + port->name();
+                TCEString socketName = prefix + "_" + port->name();
                 TTAMachine::Socket* outputSocket = NULL;                        
                 if (!finalMach->socketNavigator().hasItem(socketName)) {
                     outputSocket = 
-                        new TTAMachine::Socket("vectorLSU_" + port->name());                
+                        new TTAMachine::Socket(prefix + "_" + port->name());                
                     try {     
                         finalMach->addSocket(*outputSocket);
                     } catch (const ComponentAlreadyExists& e) {
@@ -904,7 +910,8 @@ private:
                 }
                 outputSocket->setDirection(Socket::OUTPUT);                                                                    
             }
-        }                            
+        } 
+        return true;
     }
     void renameExtraUnits(TTAMachine::Machine* finalMach) {
         const TTAMachine::Machine::FunctionUnitNavigator& finalNav =
@@ -977,7 +984,7 @@ const TCEString ADFCombiner::NodeCountPN_("node_count");
 const TCEString ADFCombiner::ExtraPN_("extra");
 const TCEString ADFCombiner::BuildIDFPN_("build_idf");
 const TCEString ADFCombiner::VectorLSUPN_("vector_lsu");
-const TCEString ADFCombiner::AddressSpacePN_("address_space");
+const TCEString ADFCombiner::AddressSpacesPN_("address_spaces");
 
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ADFCombiner)
