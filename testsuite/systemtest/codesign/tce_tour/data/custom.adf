@@ -98,38 +98,6 @@
     <guard>
       <always-true/>
     </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
-    </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
@@ -141,41 +109,6 @@
 
   <bus name="B0_3">
     <width>32</width>
-    <guard>
-      <always-true/>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <simple-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>BOOL</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
-    </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>

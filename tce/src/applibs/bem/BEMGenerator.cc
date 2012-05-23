@@ -283,19 +283,34 @@ BEMGenerator::addLongImmDstRegisterFields(BinaryEncoding& bem) const {
 void
 BEMGenerator::addSubfields(MoveSlot& slot) const {
     
+    string busName = slot.name();
+    Machine::BusNavigator busNav = machine_->busNavigator();
+    assert(busNav.hasItem(busName));
+    Bus* bus = busNav.item(busName);
+
     DestinationField* dField = new DestinationField(
         BinaryEncoding::LEFT, slot);
     SourceField* sField = new SourceField(BinaryEncoding::LEFT, slot);
-    GuardField* gField = new GuardField(slot);
+    GuardField* gField = NULL;
         
     addEncodings(*dField); // destination field
     addEncodings(*sField); // source field
-    addEncodings(*gField); // guard field
+
+    // we need guard field only if we have >1 guard.
+    if (bus->guardCount() > 1) {
+        gField = new GuardField(slot);
+        addEncodings(*gField); // guard field
+    }
     
     // adds extra bits to guard field (any field is probably ok) if needed.
     // extra bits added so that long immediate fits to the slot.
     int longImmWidth = maxLongImmSlotWidth(slot);
     if (longImmWidth > slot.width()) {
+        // if no guard field, create it so that it can be enlarged.
+        if (gField == NULL) {
+            gField = new GuardField(slot);
+            addEncodings(*gField); // guard field
+        }
         gField->setExtraBits((longImmWidth - slot.width()) + 
             gField->extraBits());
     }

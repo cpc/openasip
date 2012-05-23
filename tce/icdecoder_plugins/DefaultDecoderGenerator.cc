@@ -858,25 +858,26 @@ DefaultDecoderGenerator::writeLongImmediateTagSignal(
 void
 DefaultDecoderGenerator::writeSquashSignals(
     std::ostream& stream) const {
-    if(language_==VHDL){
-        stream << indentation(1) << "-- squash signals" << endl;
-        for (int i = 0; i < bem_.moveSlotCount(); i++) {
-            MoveSlot& slot = bem_.moveSlot(i);
+
+    TCEString comment = language_ == VHDL ? "-- " : "// ";
+    Machine::BusNavigator busNav = machine_.busNavigator();
+    stream << indentation(1) << comment << "squash signals" << endl;
+    for (int i = 0; i < busNav.count(); i++) {
+        Bus* bus = busNav.item(i);
+        stream << indentation(1);
+        if (language_ == VHDL) {
+            stream << "signal " << squashSignal(bus->name())
+                   << " : std_logic;" << endl;
+        } else {
+            assert(bem_.hasMoveSlot(bus->name()));
+            MoveSlot& slot = bem_.moveSlot(bus->name());
             if (slot.hasGuardField()) {
-                stream << indentation(1) << "signal " 
-                       << squashSignal(slot.name()) << " : std_logic;" 
-                       << endl;
+                stream << "reg ";
+            } else {
+                // Declare guard signal as wire for constant assignment
+                stream << "wire ";
             }
-        }
-    } else {
-        stream << indentation(1) << "// squash signals" << endl;
-        for (int i = 0; i < bem_.moveSlotCount(); i++) {
-            MoveSlot& slot = bem_.moveSlot(i);
-            if (slot.hasGuardField()) {
-                stream << indentation(1) << "reg " 
-                       << squashSignal(slot.name()) << ";" 
-                       << endl;
-            }
+            stream << squashSignal(bus->name()) << ";" << endl;
         }
     }
 }
@@ -1338,6 +1339,13 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
                 stream << indentation(2) << "end if;" << endl;
             }
             stream << indentation(1) << "end process;" << endl << endl;
+        } else {
+            // the bus contains always true guard so squash has static value
+            // Synthesis software should optimize it away
+            string squashName = squashSignal(bus.name());
+            stream << indentation(1) << "-- generate signal " << squashName
+                   << endl;
+            stream << indentation(1) << squashName << " <= '0';" << endl;
         }
     } else {
         assert(bem_.hasMoveSlot(bus.name()));
@@ -1428,7 +1436,15 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
                    << " <= 1'b0;" << endl;
             stream << indentation(indLevel-1) << "endcase" << endl;
             stream << indentation(1) << "end" << endl << endl;
-        }    
+        } else {
+            // the bus contains always true guard so squash has static value
+            // Synthesis software should optimize it away
+            string squashName = squashSignal(bus.name());
+            stream << indentation(1) << "// generate signal " << squashName
+                   << endl;
+            stream << indentation(1) << "assign " << squashName
+                   << " = 1'b0;" << endl;
+        }
     }
 }
 
