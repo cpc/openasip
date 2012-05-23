@@ -1176,6 +1176,7 @@ if options.adf_file != "":
         if options.verbose:
             exitWithError(exitCode, "Error while compiling " + command + "\n")
         else:
+            cleanup(tempDir)
             sys.exit(exitCode)
 
 #### Cleanup trashes
