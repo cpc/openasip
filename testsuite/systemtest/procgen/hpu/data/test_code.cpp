@@ -113,7 +113,8 @@ public:
     
     inline half square() const {
         half result;
-        _TCE_SQUAREH( data, result.data );
+        //_TCE_SQUAREH( data, result.data );
+        _TCE_MULH( data, data, result.data );
         return result;
     }
     
