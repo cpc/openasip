@@ -305,7 +305,8 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
                 // symbol not found error from other errors, thus this will 
                 // probably always throw SymbolNotFound in case the symbol
                 // could not be loaded for any reason
-                string message = "Symbol not found";
+                string message = "Symbol not found: ";
+                message += symbolName;
                 throw SymbolNotFound(__FILE__, __LINE__, __func__, message);
             } else {
                 throw DynamicLibraryException(

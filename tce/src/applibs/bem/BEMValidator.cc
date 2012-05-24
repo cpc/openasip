@@ -388,7 +388,7 @@ BEMValidator::checkGuardField(const TTAMachine::Bus& bus) {
 
     MoveSlot& slot = bem_.moveSlot(bus.name());
 
-    if (bus.guardCount() == 0) {
+    if (bus.guardCount() < 2) {
         return;
     } else if (!slot.hasGuardField()) {
         format errorMsg("Move slot %1% does not contain guard field.");

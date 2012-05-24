@@ -104,9 +104,8 @@ Move Slot: B3
 Position: 72
 Width: 13
 
-| grd field: 0 | src field: 9 | dst field: 4 |
+| src field: 9 | dst field: 4 |
 
-Guard field encodings:
 
 Source field encodings:
 101XXXXXX : NOP
@@ -128,9 +127,8 @@ Move Slot: B4
 Position: 85
 Width: 10
 
-| grd field: 0 | src field: 9 | dst field: 1 |
+| src field: 9 | dst field: 1 |
 
-Guard field encodings:
 
 Source field encodings:
 101XXXXXX : NOP
@@ -150,9 +148,8 @@ Move Slot: B5
 Position: 95
 Width: 12
 
-| grd field: 0 | src field: 9 | dst field: 3 |
+| src field: 9 | dst field: 3 |
 
-Guard field encodings:
 
 Source field encodings:
 10XXXXXXX : NOP
@@ -202,9 +199,8 @@ Move Slot: B7
 Position: 139
 Width: 10
 
-| grd field: 0 | src field: 9 | dst field: 1 |
+| src field: 9 | dst field: 1 |
 
-Guard field encodings:
 
 Source field encodings:
 11XXXXXXX : NOP
@@ -256,9 +252,8 @@ Move Slot: B9
 Position: 181
 Width: 11
 
-| grd field: 0 | src field: 9 | dst field: 2 |
+| src field: 9 | dst field: 2 |
 
-Guard field encodings:
 
 Source field encodings:
 101XXXXXX : NOP

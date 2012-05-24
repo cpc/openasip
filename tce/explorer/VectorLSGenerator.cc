@@ -61,22 +61,22 @@ using std::endl;
  * Supported parameters:
  *  - node_count, number of times the input architecture is copied to new one,
  *               default is 4.
- *  - address_space, name of the address space that created LSU will use, 
- *               default is 'data'
+ *  - address_spaces, semicolon separated names of the address spaces for which
+ *               the LSUs will be created, default is 'data'
  */
 class VectorLSGenerator : public DesignSpaceExplorerPlugin {
     PLUGIN_DESCRIPTION("Explorer plugin that creates wide load/store unit.");
 
     VectorLSGenerator(): DesignSpaceExplorerPlugin(), 
         nodeCount_(4),
-        addressSpace_("data") {
+        addressSpaces_("data") {
 
 
         // parameters that have a default value
         addParameter(NodeCountPN_, UINT, false, 
             Conversion::toString(nodeCount_));        
-        addParameter(AddressSpacePN_, STRING, false, 
-            addressSpace_);        
+        addParameter(AddressSpacesPN_, STRING, false, 
+            addressSpaces_);        
         
     }
 
@@ -105,108 +105,41 @@ class VectorLSGenerator : public DesignSpaceExplorerPlugin {
             throw Exception(
                 __FILE__, __LINE__, __func__, e.errorMessageStack());            
         }
+        
         const TTAMachine::Machine::AddressSpaceNavigator& addrNav = 
             mach->addressSpaceNavigator();
         TTAMachine::AddressSpace* addrSpace = NULL;
-        for (int i = 0; i < addrNav.count(); i++) {
-            if (addrNav.item(i)->name() == addressSpace_) {
-                addrSpace = addrNav.item(i);
-                break;
-            }                
-        }
-        if (addrSpace == NULL) {
-            TCEString msg = "Original architecture does not have \"" 
-                + addressSpace_ +"\" address space. Not adding Vector LSU.";
-            throw Exception(
-                __FILE__, __LINE__, __func__, msg);                        
-        }
-        TTAMachine::FunctionUnit* lsUnit = 
-            new TTAMachine::FunctionUnit("VectorLSU");
-
-            
-        TTAMachine::FUPort* trigger = 
-            new TTAMachine::FUPort("in1t", 
-                MathTools::requiredBits(addrSpace->end()), 
-                *lsUnit, true, true);
-        assert(trigger->isTriggering());
-        int width = (nodeCount_ >= 8) ? 8 : 
-            (nodeCount_ >= 4) ? 4 : 
-            (nodeCount_ >= 2) ? 2 : 0;
-        if (width == 0) {
-            TCEString msg = "No reason for creating wide LSU since number" 
-                " of nodes in cluster is just " + Conversion::toString(nodeCount_);
-            throw Exception(
-                __FILE__, __LINE__, __func__, msg);                                    
-        }
-        for (int i = 1; i <= width; i++) {
-            TTAMachine::FUPort* inPort =
-                new TTAMachine::FUPort(
-                    "in" + Conversion::toString(i+1), 32, *lsUnit, false, false);
-            assert(inPort->isOpcodeSetting() == false);
-            TTAMachine::FUPort* outPort =
-                new TTAMachine::FUPort(
-                    "out" + Conversion::toString(i), 32, *lsUnit, false, false);                
-            assert(outPort->isOpcodeSetting() == false);                
-        }
-        TTAMachine::FUPort* inPort =
-            new TTAMachine::FUPort(
-               "in_extra" + Conversion::toString(2), 32, *lsUnit, false, false);
-        assert(inPort->isOpcodeSetting() == false);
-        TTAMachine::FUPort* outPort =
-            new TTAMachine::FUPort(
-               "out_extra" + Conversion::toString(1), 32, *lsUnit, false, false);                
-        assert(outPort->isOpcodeSetting() == false);                
-        
-        // Adds aditional read and write port for use with scalar load
-        // and stores from the extras
-        
-        OperationPool pool;
-        OperationIndex& index = pool.index();    
-        for (int m = 0; m < index.moduleCount(); m++) {        
-            OperationModule& module = index.module(m);        
-            for (int i = 0; i < index.operationCount(module); i++) {
-                TCEString opName = index.operationName(i, module);            
-                Operation& op = pool.operation(opName.c_str());
-                // Creates HWOperations for memory access operations with
-                // number as suffix. ATM this means vector operation.
-                if (op.usesMemory() && 
-                    (opName.endsWith("2") ||
-                    opName.endsWith("4") ||
-                    opName.endsWith("8"))) {
-                    if (!lsUnit->hasOperation(opName) && 
-                        op.numberOfInputs() <= nodeCount_ +1 &&
-                        op.numberOfOutputs() <= nodeCount_) {
-                        addOperation(*lsUnit, op, false);
-                    }
-                }
-                if (op.usesMemory() && 
-                    opName.startsWith("LD") &&
-                    op.numberOfInputs() == 1 &&
-                    op.numberOfOutputs() == 1 &&
-                    !lsUnit->hasOperation(opName)) {
-                    addOperation(*lsUnit, op, true);                    
-                }
-                if (op.usesMemory() && 
-                    opName.startsWith("ST") &&
-                    op.numberOfInputs() == 2 &&
-                    op.numberOfOutputs() == 0 &&
-                    !lsUnit->hasOperation(opName)) {                
-                    addOperation(*lsUnit, op, true);                    
-                }                
+        std::vector<TCEString> addressSpaces = 
+            StringTools::chopString(addressSpaces_, ";");
+        for (unsigned int i = 0; i < addressSpaces.size(); i++) {
+            if (!addrNav.hasItem(addressSpaces[i])) {
+                TCEString msg = "Original architecture does not have \"" 
+                    + addressSpaces[i] +"\" address space. Not adding Vector LSU.";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);                        
             }
-        }
-        
-        try {
-            mach->addFunctionUnit(*lsUnit);
-        } catch (const Exception& e) {
-            throw Exception(
-                __FILE__, __LINE__, __func__, e.errorMessageStack());                                    
-        }
-        try {
-            lsUnit->setAddressSpace(addrSpace);
-        } catch (const Exception& e) {
-            throw Exception(
-                __FILE__, __LINE__, __func__, e.errorMessageStack());                                                
+
+            addrSpace = addrNav.item(addressSpaces[i]);
+            
+            if (addrSpace == NULL) {
+            }
+            TTAMachine::FunctionUnit* lsUnit = 
+                new TTAMachine::FunctionUnit("VectorLSU_" + addrSpace->name());
+
+            createVectorLSU(*lsUnit, *addrSpace);
+            
+            try {
+                mach->addFunctionUnit(*lsUnit);
+            } catch (const Exception& e) {
+                throw Exception(
+                    __FILE__, __LINE__, __func__, e.errorMessageStack());                                    
+            }
+            try {
+                lsUnit->setAddressSpace(addrSpace);
+            } catch (const Exception& e) {
+                throw Exception(
+                    __FILE__, __LINE__, __func__, e.errorMessageStack());                                                
+            }
         }
         
         DSDBManager::MachineConfiguration tempConf;
@@ -232,17 +165,17 @@ private:
     ComponentImplementationSelector selector_;
     
     static const TCEString NodeCountPN_;    
-    static const TCEString AddressSpacePN_;       
+    static const TCEString AddressSpacesPN_;       
     
     int nodeCount_;    
-    TCEString addressSpace_;
+    TCEString addressSpaces_;
 
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
         readOptionalParameter(NodeCountPN_, nodeCount_);
-        readOptionalParameter(AddressSpacePN_, addressSpace_);                
+        readOptionalParameter(AddressSpacesPN_, addressSpaces_);                
     }
     /**
      * Adds operation to function unit, sets the port bindings and pipeline
@@ -286,10 +219,92 @@ private:
         }
         assert(hwOp->isBound(*lsUnit.operationPort("in1t")));
     }
+    
+    /**
+     * Create single instance of vector load store unit, starting from empty
+     * unit.
+     */
+    void createVectorLSU(
+        TTAMachine::FunctionUnit& lsUnit, 
+        TTAMachine::AddressSpace& addrSpace) {
+        
+        TTAMachine::FUPort* trigger = 
+            new TTAMachine::FUPort("in1t", 
+                MathTools::requiredBits(addrSpace.end()), 
+                lsUnit, true, true);
+        assert(trigger->isTriggering());
+        int width = (nodeCount_ >= 8) ? 8 : 
+            (nodeCount_ >= 4) ? 4 : 
+            (nodeCount_ >= 2) ? 2 : 0;
+        if (width == 0) {
+            TCEString msg = "No reason for creating wide LSU since number" 
+                " of nodes in cluster is just " + Conversion::toString(nodeCount_);
+            throw Exception(
+                __FILE__, __LINE__, __func__, msg);                                    
+        }
+        for (int i = 1; i <= width; i++) {
+            TTAMachine::FUPort* inPort =
+                new TTAMachine::FUPort(
+                    "in" + Conversion::toString(i+1), 32, lsUnit, false, false);
+            assert(inPort->isOpcodeSetting() == false);
+            TTAMachine::FUPort* outPort =
+                new TTAMachine::FUPort(
+                    "out" + Conversion::toString(i), 32, lsUnit, false, false);                
+            assert(outPort->isOpcodeSetting() == false);                
+        }
+        TTAMachine::FUPort* inPort =
+            new TTAMachine::FUPort(
+               "in_extra" + Conversion::toString(2), 32, lsUnit, false, false);
+        assert(inPort->isOpcodeSetting() == false);
+        TTAMachine::FUPort* outPort =
+            new TTAMachine::FUPort(
+               "out_extra" + Conversion::toString(1), 32, lsUnit, false, false);                
+        assert(outPort->isOpcodeSetting() == false);                
+        
+        // Adds aditional read and write port for use with scalar load
+        // and stores from the extras
+        
+        OperationPool pool;
+        OperationIndex& index = pool.index();    
+        for (int m = 0; m < index.moduleCount(); m++) {        
+            OperationModule& module = index.module(m);        
+            for (int i = 0; i < index.operationCount(module); i++) {
+                TCEString opName = index.operationName(i, module);            
+                Operation& op = pool.operation(opName.c_str());
+                // Creates HWOperations for memory access operations with
+                // number as suffix. ATM this means vector operation.
+                if (op.usesMemory() && 
+                    (opName.endsWith("2") ||
+                    opName.endsWith("4") ||
+                    opName.endsWith("8"))) {
+                    if (!lsUnit.hasOperation(opName) && 
+                        op.numberOfInputs() <= nodeCount_ +1 &&
+                        op.numberOfOutputs() <= nodeCount_) {
+                        addOperation(lsUnit, op, false);
+                    }
+                }
+                if (op.usesMemory() && 
+                    opName.startsWith("LD") &&
+                    op.numberOfInputs() == 1 &&
+                    op.numberOfOutputs() == 1 &&
+                    !lsUnit.hasOperation(opName)) {
+                    addOperation(lsUnit, op, true);                    
+                }
+                if (op.usesMemory() && 
+                    opName.startsWith("ST") &&
+                    op.numberOfInputs() == 2 &&
+                    op.numberOfOutputs() == 0 &&
+                    !lsUnit.hasOperation(opName)) {                
+                    addOperation(lsUnit, op, true);                    
+                }                
+            }
+        }
+        
+    }
 };
 
 // parameters
 const TCEString VectorLSGenerator::NodeCountPN_("node_count");
-const TCEString VectorLSGenerator::AddressSpacePN_("address_space");
+const TCEString VectorLSGenerator::AddressSpacesPN_("address_spaces");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(VectorLSGenerator)

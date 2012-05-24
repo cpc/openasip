@@ -2392,7 +2392,8 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitReadSP(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-    if (mi->getNumOperands() != 3) {
+    if (mi->getNumOperands() != 5) {
+        mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".read_sp\"");
     }
@@ -2414,7 +2415,7 @@ LLVMTCEBuilder::emitReadSP(
     TTAProgram::Terminal* srcTerminal =
         codeGenerator.createTerminalRegister(sp, false);
 
-    const MachineOperand& dest = mi->getOperand(2);
+    const MachineOperand& dest = mi->getOperand(3);
     // Save SP at the first position in the buffer.
     TTAProgram::Terminal* destTerminal = createTerminal(dest);
 
@@ -2489,14 +2490,14 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitSetjmp(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-    if (mi->getNumOperands() != 5) {
+    if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".setjmp"""
             << std::endl;
         assert(false);
     }
 
-    const MachineOperand& val = mi->getOperand(2);
-    const MachineOperand& env = mi->getOperand(4);
+    const MachineOperand& val = mi->getOperand(3);
+    const MachineOperand& env = mi->getOperand(5);
 
     // Get the stack pointer. It will be used as index into
     // the buffer.
@@ -2710,14 +2711,14 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitLongjmp(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
-    if (mi->getNumOperands() != 5) {
+    if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".longjmp"""
             << std::endl;
         assert(false);
     }
 
-    const MachineOperand& env = mi->getOperand(2);
-    const MachineOperand& val = mi->getOperand(4);
+    const MachineOperand& env = mi->getOperand(3);
+    const MachineOperand& val = mi->getOperand(5);
 
     // Get the stack pointer. It will be used as index into
     // the buffer.

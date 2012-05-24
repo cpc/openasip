@@ -26,4 +26,16 @@ IDF=`ls *.idf`
 if [ ! "${IDF}" = "2.idf" ]; then
     echo "Creation of IDF file failed. ${IDF}"
 fi
-rm -rf 2.adf 2.idf
+
+# Try to create two vector load store units (reuse instructions address space :)
+${EXPLORE_BIN} -e ADFCombiner -u node=${MINIMAL_ADF_PATH} -u extra=${MINIMAL_ADF_PATH} -u node_count=${NODE_COUNT} -u vector_lsu=true -u address_spaces="data;instructions"  test.dsdb 1>/dev/null
+
+"${EXPLORE_BIN}" -w 4 test.dsdb 1>/dev/null
+
+DATA_LSU="$(grep 'function-unit name=\"VectorLSU_' 4.adf|wc -l)"
+if [ ! "$DATA_LSU" -eq 2 ]; then
+    echo "Incorrect number of vector load store units created."
+fi
+
+rm 2.adf 2.idf
+rm 4.adf

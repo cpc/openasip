@@ -7655,18 +7655,18 @@ node & node.adf & The architecture of \textit{node} that will be replicated. \\
 extra & extra.adf & The architecture which will be added just once. \\
 build\_idf & false & If defined, ADFCombiner will try to create .idf definition file. \\
 vector\_lsu & false & If defined, the VectorLSGenerator plugin will be called to create wide load store unit. \\
-address\_space & data & The name of address space to be used by generated wide load store unit. \\ 
+address\_spaces & data & The semicolon separated list of address space names to be used by generated wide load store units (one unit per address space). \\ 
 \end{tabular}\\
 
 Example of creating architecture with eight clusters, eight wide load and store,  without creating implementation
 definition file:
 
-\shellcmd{explore -e ADFCombiner -u node=myNode.adf -u extra=myExtra.adf -u node\_count=8 -u vector\_lsu=true test.dsdb}
+\shellcmd{explore -e ADFCombiner -u node=myNode.adf -u extra=myExtra.adf -u node\_count=8 -u vector\_lsu=true -u address\_spaces="local;global" test.dsdb}
 
 If successful, explorer will print out configuration number of architecture created in test.dsdb.
 The created architecture can be written to architecture file with:
 
-\shellcmd{explore -w 1 test.dsdb}
+\shellcmd{explore -w 2 test.dsdb}
 
 Example of creating architecture with four clusters with implementation
 definition file:
@@ -7677,7 +7677,7 @@ definition file:
 If successful, explorer will print out configuration number of architecture created in test.dsdb.
 The created architecture and implementation definition file can be written to architecture file with:
 
-\shellcmd{explore -w 1 test.dsdb}
+\shellcmd{explore -w 2 test.dsdb}
 
 
 \chapter{FREQUENTLY ASKED QUESTIONS}
