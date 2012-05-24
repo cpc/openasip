@@ -85,7 +85,8 @@ libtcellvmbackend_la_SOURCES += \
 	TCETargetMachine.hh LLVMTCEScheduler.hh \
 	LLVMTCEBuilder.hh LLVMBackend.hh \
 	TCEMCAsmInfo.hh TCESubtarget.hh \
-	LLVMPOMBuilder.hh TransportTDGen.hh \
-	TDGen.hh TCETargetMachinePlugin.hh \
-	LLVMTCEPOMBuilder.hh LLVMTCECmdLineOptions.hh 
+	ProgramPartitioner.hh LLVMPOMBuilder.hh \
+	TransportTDGen.hh TDGen.hh \
+	TCETargetMachinePlugin.hh LLVMTCEPOMBuilder.hh \
+	LLVMTCECmdLineOptions.hh 
 ## headers end

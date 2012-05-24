@@ -31,35 +31,6 @@ dist-hook:
 
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
-## headers start
-libmach_la_SOURCES += \
-	HWOperation.hh DummyMachineTester.hh \
-	ExecutionPipeline.hh ControlUnit.hh \
-	Connection.hh FUPort.hh \
-	Socket.hh BaseRegisterFile.hh \
-	TemplateSlot.hh \
-	SpecialRegisterPort.hh ImmediateSlot.hh \
-	Unit.hh RFPort.hh \
-	PipelineElement.hh AddressSpace.hh \
-	Port.hh Bus.hh \
-	Guard.hh MOMTextGenerator.hh \
-	InstructionTemplate.hh ADFSerializer.hh \
-	MachineTester.hh NullMachine.hh \
-	FunctionUnit.hh MachinePart.hh \
-	ADFSerializerTextGenerator.hh Bridge.hh \
-	Segment.hh MachineTestReporter.hh \
-	BaseFUPort.hh ImmediateUnit.hh \
-	MachineTestReportTextGenerator.hh NullInstructionTemplate.hh \
-	RegisterFile.hh NullRegisterFile.hh \
-	NullAddressSpace.hh Machine.hh \
-	Socket.icc TemplateSlot.icc \
-	Guard.icc PipelineElement.icc \
-	Segment.icc Machine.icc \
-	BaseRegisterFile.icc ControlUnit.icc \
-	Connection.icc Port.icc \
-	Bridge.icc MachinePart.icc 
-## headers end
-
 ## Install all headers of the mach library so it can be used from 
 ## external projects.
 include_HEADERS = \
@@ -88,3 +59,32 @@ include_HEADERS = \
 	BaseRegisterFile.icc ControlUnit.icc \
 	Connection.icc Port.icc \
 	Bridge.icc MachinePart.icc 
+
+## headers start
+libmach_la_SOURCES += \
+	HWOperation.hh DummyMachineTester.hh \
+	ExecutionPipeline.hh ControlUnit.hh \
+	Connection.hh FUPort.hh \
+	Socket.hh BaseRegisterFile.hh \
+	TemplateSlot.hh SpecialRegisterPort.hh \
+	ImmediateSlot.hh Unit.hh \
+	RFPort.hh PipelineElement.hh \
+	AddressSpace.hh Port.hh \
+	Bus.hh Guard.hh \
+	MOMTextGenerator.hh InstructionTemplate.hh \
+	ADFSerializer.hh MachineTester.hh \
+	NullMachine.hh FunctionUnit.hh \
+	MachinePart.hh ADFSerializerTextGenerator.hh \
+	Bridge.hh Segment.hh \
+	MachineTestReporter.hh BaseFUPort.hh \
+	ImmediateUnit.hh MachineTestReportTextGenerator.hh \
+	NullInstructionTemplate.hh RegisterFile.hh \
+	NullRegisterFile.hh NullAddressSpace.hh \
+	Machine.hh Socket.icc \
+	TemplateSlot.icc Guard.icc \
+	PipelineElement.icc Segment.icc \
+	Machine.icc BaseRegisterFile.icc \
+	ControlUnit.icc Connection.icc \
+	Port.icc Bridge.icc \
+	MachinePart.icc 
+## headers end

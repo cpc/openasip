@@ -38,5 +38,6 @@ libresourcemodel_la_SOURCES += \
 	SegmentResource.hh BusResource.hh \
 	ExecutionPipelineResource.hh FUResource.hh \
 	IUResource.hh SchedulingResource.hh \
-	InputPSocketResource.hh SchedulingResource.icc 
+	InputPSocketResource.hh ExecutionPipelineResourceTable.hh \
+	ExecutionPipelineResourceTable.icc SchedulingResource.icc 
 ## headers end

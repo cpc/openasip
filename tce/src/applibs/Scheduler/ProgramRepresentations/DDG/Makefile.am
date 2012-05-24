@@ -45,6 +45,6 @@ libddg_la_SOURCES += \
 	LLVMAliasAnalyzer.hh MemoryAliasAnalyzer.hh \
 	DataDependenceEdge.hh DataDependenceGraph.hh \
 	LLVMTCEDataDependenceGraphBuilder.hh MoveNodeUse.hh \
-	LiveRangeData.hh FalseAliasAnalyzer.hh LiveRange.hh \
-	MoveNodeUse.icc 
+	LiveRangeData.hh LiveRange.hh \
+	FalseAliasAnalyzer.hh MoveNodeUse.icc 
 ## headers end
