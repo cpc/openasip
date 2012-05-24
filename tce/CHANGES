@@ -1,10 +1,15 @@
-1.6       unreleased
+1.7       unreleased
+====================
+
+
+1.6         May 2012 
 ====================
 
 Notable changes and features
 ----------------------------
-- Support for LLVM 3.1. 
-  LLVM 3.0 might still work but is unsupported and some features
+- Support for LLVM 3.1.
+
+  LLVM 3.0 *might* still work but is unsupported and some features
   do not work with llvm 3.0.
   Dropped support for LLVM 2.9.
 - ProGe: Experimental support for Verilog and a small Verilog hardware
@@ -38,7 +43,7 @@ Code generator improvements
   This is however not yet used to reduce number of register-to-registe copies
   on sparsely connected machines.
 - Added experimental support for combining multiple TCE registers into 
-  vector registers, and emiting incoming llvm vector instructions using these.
+  vector registers and emiting incoming llvm vector instructions using these.
   Allows using wide loads (ldw2, ldw4, ldw4) and stores(stw2, stw4, stw8)
   to load and store these vectors. This can be enabled with parameter
   --vector backend. This feature requires certain register file names,
@@ -51,8 +56,8 @@ Code generator improvements
 - No longer floating point aliases for 32-bit registers on llvm backend;
   The same registers now belong to both i32 and f32 register classes. 
 
-Bugfixes
---------
+Noteble bugfixes
+----------------
 - tcecc: Missing antidependence edges could cause broken schedule when
   bypasser used on partially connected machines.
 - ttasim: Try to simulate machines with unconnected ports (only a warning
