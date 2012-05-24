@@ -231,7 +231,8 @@ private:
         // When adding busses also socket will be created
         // and the RF and FU ports will be connected to them when adding.
         renameExtraUnits(finalMach);
-        addAddressSpaces(finalMach, nodeMach);                        
+        addAddressSpaces(finalMach, nodeMach);
+        addAddressSpaces(finalMach, extraMach);                        
         addBuses(finalMach, nodeMach, nodeCount, busMapping);
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
@@ -467,11 +468,10 @@ private:
         for (int i = 0; i < ANav.count(); i++) {
             TTAMachine::AddressSpace* origA = ANav.item(i);
             if (!finalMach->addressSpaceNavigator().hasItem(origA->name())) {            
-                // Creating address space registers it.
+                ObjectState* origState = origA->saveState();
+                // Creating address space registers it.                
                 TTAMachine::AddressSpace* aSpace = 
-                    new TTAMachine::AddressSpace(
-                        origA->name(), origA->width(), origA->start(), 
-                        origA->end(), *finalMach);
+                    new TTAMachine::AddressSpace(origState, *finalMach);
                 assert(
                     finalMach->addressSpaceNavigator().hasItem(aSpace->name()));
             }

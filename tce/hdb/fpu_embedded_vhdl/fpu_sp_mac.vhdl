@@ -18,7 +18,6 @@ use work.fixed_pkg.all;
 use work.float_pkg.all;
 use work.fixed_float_types.all;
 
-
 -- r1 = t1 + o1*o2
 
 ENTITY fpmac32 IS
