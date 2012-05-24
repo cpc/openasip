@@ -2475,10 +2475,7 @@ TDGen::operandToString(
             msg += operandType;
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
-    } /*else if (operand.type() == Operand::HALF_FLOAT_WORD) {
-        // TODO: immediate check??
-        return "R32IRegs:$op" + Conversion::toString(idx);
-    }*/ else if (operand.type() == Operand::DOUBLE_WORD) {
+    } else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??
         return "F64Regs:$op" + Conversion::toString(idx);
     } else {

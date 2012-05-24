@@ -26,7 +26,7 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.6-pre}
+\title{TTA-based Co-design Environment v1.7-pre}
 \ver{28}
 \firstday{2006-10-25}
 \lastday{2012-05-18}
@@ -3228,6 +3228,18 @@ Single-precision fused multiply-accumulator.
 
 Parameters are ordered so that MACF(a,b,c,d) is equal to d=a+b*c and MSUF(a,b,c,d) to d=a-b*c. Special case handling is not yet supported.
 
+\item[fpu\_sp\_mac\_v2]
+
+Supported operations:         macf, msuf, addf, subf, mulf
+
+Latency:             6
+
+Single-precision fused multiply-accumulator. Performs addition/subtraction by multiplying by 1,
+and multiplication by adding 0. fpu\_sp\_mac\_v2 will replace fpu\_sp\_mac completely if benchmarking shows it
+to be reasonably fast.
+
+Parameters are ordered so that MACF(a,b,c,d) is equal to d=a+b*c and MSUF(a,b,c,d) to d=a-b*c.
+
 \item[fpu\_sp\_sqrt]
 
 Supported operations:         sqrtf
@@ -3308,6 +3320,18 @@ Half-precision fused multiply-accumulator.
 
 Parameters are ordered so that MACH(a,b,c,d) is equal to d=a+b*c and MSUH(a,b,c,d) to d=a-b*c.
 
+\item[fpmac\_v2]
+
+Supported operations:         mach, msuh, addh, subh, mulh
+
+Latency:             3
+
+Half-precision fused multiply-accumulator. Performs addition/subtraction by multiplying by 1,
+and multiplication by adding 0. fpmac\_v2 will replace fpmac completely if benchmarking shows it
+to be reasonably fast.
+
+Parameters are ordered so that MACH(a,b,c,d) is equal to d=a+b*c and MSUH(a,b,c,d) to d=a-b*c.
+
 
 \item[fp\_invsqrt]
 
@@ -3319,18 +3343,18 @@ Half-precision fast inverse square root using Newton's iteration.
 
 \item[fpu\_hp\_compare]
 
-Supported operations:         absf, negf, eqf, nef, gtf, gef, ltf, lef
+Supported operations:         absh, negh, eqh, neh, gth, geh, lth, leh
 
 Latency:             1
 
-A half-precision floating-point comparator. Also includes the absolute value and negation operations.
+Half-precision floating-point comparator. Also includes the absolute value and negation operations.
 
 \end{description}
 
 
 \subsection{Benchmark results}
 
-The single-precision FPUs have been benchmarked on the FPGAs Stratix II EP2S180F1020C3 and 
+Most of the single-precision FPUs have been benchmarked on the FPGAs Stratix II EP2S180F1020C3 and 
 Stratix III EP3SL340H1152C2. As a baseline, a simple TTA processor 
 was synthesized that had enough functionality to support an empty C program. 
 After this, each of the FPUs was added to the baseline processor and synthesized. 

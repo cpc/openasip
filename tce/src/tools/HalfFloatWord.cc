@@ -86,15 +86,6 @@ HalfFloatWord::operator float() const {
     bool sgn = ((binaryRep_ & 0x8000) >> 15);
     int exp = (binaryRep_ & 0x7C00) >> 10;
     int mant = binaryRep_ & 0x03FF;
-    
-    /*if( exp & 16 ) { // 1XXXX => 1000XXXX
-        exp &= 15;
-        exp |= 8 << 4;
-    }
-    else { // 0XXXX => 0111XXXX
-        exp &= 15;
-        exp |= 7 << 4;
-    }*/
 
     if (exp == 0x1F && mant != 0) {
         return NAN;
