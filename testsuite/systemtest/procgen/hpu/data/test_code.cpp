@@ -31,11 +31,6 @@ public:
     inline void operator=( const half& a ) {
         data = a.data;
     }   
-    /*inline explicit operator float() const {
-        float f;
-        _TCE_CHF( data, f );
-        return f;
-    }*/
     inline half operator+( const half& a ) const {
         half result;
         _TCE_ADDH( data, a.data, result.data );
