@@ -2,10 +2,10 @@ pkglibdir = ${prefix}/share/tce/codecompressors/base
 pkglib_LTLIBRARIES = InstructionDictionary.la MoveSlotDictionary.la
 
 InstructionDictionary_la_SOURCES = InstructionDictionary.cc
-InstructionDictionary_la_LDFLAGS = -module
+InstructionDictionary_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 MoveSlotDictionary_la_SOURCES = MoveSlotDictionary.cc
-MoveSlotDictionary_la_LDFLAGS = -module
+MoveSlotDictionary_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 
 PROJECT_ROOT = $(top_srcdir)
