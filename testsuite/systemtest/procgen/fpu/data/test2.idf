@@ -48,7 +48,7 @@
   </fu>
 
   <fu name="macf_msuf_addf_mulf_subf">
-    <hdb-file>/home/tivi/tce/tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>23</fu-id>
   </fu>
 
