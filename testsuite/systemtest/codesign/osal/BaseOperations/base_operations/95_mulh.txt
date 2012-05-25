@@ -1,0 +1,3 @@
+!output half
+mulh 16640 14336
+mulh 16640 16384

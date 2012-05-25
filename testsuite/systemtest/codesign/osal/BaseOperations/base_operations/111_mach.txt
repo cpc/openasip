@@ -1,0 +1,2 @@
+!output half
+mach 16896 16896 16896

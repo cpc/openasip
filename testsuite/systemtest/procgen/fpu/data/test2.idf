@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="LSU">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="sqrtf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>11</fu-id>
+  </fu>
+
+  <fu name="absf_negf_eqf_nef_ltf_lef_gef_gtf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>17</fu-id>
+  </fu>
+
+  <fu name="cfi_cfiu_cif_cifu">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>16</fu-id>
+  </fu>
+
+  <fu name="divf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>19</fu-id>
+  </fu>
+
+  <fu name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>380</fu-id>
+  </fu>
+
+  <fu name="stdout">
+    <hdb-file>./custom.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="macf_msuf_addf_mulf_subf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>23</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>

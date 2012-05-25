@@ -1,0 +1,3 @@
+!output half
+negh 19392
+negh 52160

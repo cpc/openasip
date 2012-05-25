@@ -1,0 +1,2 @@
+!output float
+msuf 10.f 20.f 30.f

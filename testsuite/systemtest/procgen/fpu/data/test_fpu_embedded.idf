@@ -57,6 +57,11 @@
     <fu-id>1</fu-id>
   </fu>
 
+  <fu name="macf_msuf">
+    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <fu-id>21</fu-id>
+  </fu>
+
   <rf name="RF">
     <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>

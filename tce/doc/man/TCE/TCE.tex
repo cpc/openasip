@@ -613,6 +613,8 @@ the format.
   Single-precision (32-bit) floating-point word in IEEE-754 format.
 \item[DoubleWord] %
   Double-precision (64-bit) floating-point word in IEEE-754 format.
+\item[HalfWord] %
+  Half-precision (16-bit) floating-point word in IEEE-754 format.
 \end{description}
 
 \paragraph{Access to operation inputs and outputs.}
@@ -3139,9 +3141,10 @@ printing library functions whenever applicable.
 
 \section{Designing Floating-point Processors with TCE}
 
-TCE supports single precision floating-point calculations. They can be performed by using the 
-\emph{float} datatype in C code, or by using macros from \emph{tceops.h}, such 
-as \emph{\_TCE\_FADD}.
+TCE supports single and half precision floating-point calculations. Single-precision calculations
+can be performed by using the \emph{float} datatype in C code, or by using macros from 
+\emph{tceops.h}, such as \emph{\_TCE\_ADDF}. 
+
 If the compilation target architecture does not support these operations, 
 they can be emulated using integer arithmetic in software. Passing the switch \emph{--swfp} 
 to tcecc enables the software emulation library linkage.
@@ -3185,9 +3188,9 @@ The TCE Processor Simulator uses IEEE-compliant floats. With a processor simulat
 synthesized on actual hardware, the calculation results are thus slightly different from the 
 ones from Processor Simulator.
 
-\subsection{Function Units}
+\subsection{Single-precision Function Units}
 
-The emph{fpu\_embedded} function units are described in detail below.
+The emph{fpu\_embedded} and emph{fpu\_half} function units are described in detail below.
 
 
 \begin{description}
@@ -3197,7 +3200,7 @@ Supported operations: addf, subf
 
 Latency: 5
 
-A straightforward floating-point adder.
+Straightforward floating-point adder.
 
  \item[fpu\_sp\_mul]
 
@@ -3205,7 +3208,7 @@ Supported operations:         mulf
 
 Latency:             5
 
-A straightforward floating-point multiplier.
+Straightforward floating-point multiplier.
 
 \item[fpu\_sp\_div]
 
@@ -3213,7 +3216,29 @@ Supported operations:         divf
 
 Latency:             15 (mw/2+3)
 
-A radix-4 floating-point divider.
+Radix-4 floating-point divider.
+
+\item[fpu\_sp\_mac]
+
+Supported operations:         macf, msuf
+
+Latency:             6
+
+Single-precision fused multiply-accumulator.
+
+Parameters are ordered so that MACF(a,b,c,d) is equal to d=a+b*c and MSUF(a,b,c,d) to d=a-b*c. Special case handling is not yet supported.
+
+\item[fpu\_sp\_mac\_v2]
+
+Supported operations:         macf, msuf, addf, subf, mulf
+
+Latency:             6
+
+Single-precision fused multiply-accumulator. Performs addition/subtraction by multiplying by 1,
+and multiplication by adding 0. fpu\_sp\_mac\_v2 will replace fpu\_sp\_mac completely if benchmarking shows it
+to be reasonably fast.
+
+Parameters are ordered so that MACF(a,b,c,d) is equal to d=a+b*c and MSUF(a,b,c,d) to d=a-b*c.
 
 \item[fpu\_sp\_sqrt]
 
@@ -3221,7 +3246,7 @@ Supported operations:         sqrtf
 
 Latency:             26 (mw+3)
 
-A floating-point square root FU, using Hain's algorithm.
+Floating-point square root FU, using Hain's algorithm.
 
 Note that the C standard function sqrt does not take advantage of hardware acceleration; the
 \emph{\_TCE\_SQRTF} macro must be used instead.
@@ -3240,14 +3265,96 @@ Supported operations:         absf, negf, eqf, nef, gtf, gef, ltf, lef
 
 Latency:             1
 
-A floating-point comparator. Also supports the absolute value and negation operations, which are extremely simple with floating points (the former sets the sign bit to 0, the latter negates it).
+A floating-point comparator. Also includes the cheap absolute value and negation operations.
+
+
+\end{description}
+
+\subsection{Half-precision Support}
+
+A set of half-precision arithmetic units is included with tce in \emph{PREFIX/share/tce/hdb/fpu\_half.hdb}. In C and C++,
+half-precision operations an only be invoked with \emph{tceops.h} macros. It may be helpful to define a \emph{half}
+class with overloaded operators to wrap the macros. The test case \emph{testsuite/systemtest/proge/hpu} is written
+using such a class. There is ongoing work to add acceleration for the \emph{half} datatype in OpenCL.
+
+Like their single-precision counterparts, the half-precision FPUs round to zero and lack support for denormal numbers.
+In addition, they do not yet handle special cases such as INFs and NaNs.
+
+\subsection{Half-precision Function Units}
+
+The emph{fpu\_half} function units are described in detail below.
+
+\begin{description}
+
+\item[fpu\_chf\_cfh]
+
+Supported operations: cfh, chf
+
+Latency: 1
+
+Converter between half-precision and single-precision floating points.
+
+\item[fpadd\_fpsub]
+
+Supported operations: addh, subh
+
+Latency: 1
+
+Straightforward half-precision floating-point adder.
+
+\item[fpmul]
+
+Supported operations:         mulh, squareh
+
+Latency:             2
+
+Straightforward half-precision floating-point multiplier. Also supports a square-taking operation.
+
+\item[fpmac]
+
+Supported operations:         mach, msuh
+
+Latency:             3
+
+Half-precision fused multiply-accumulator.
+
+Parameters are ordered so that MACH(a,b,c,d) is equal to d=a+b*c and MSUH(a,b,c,d) to d=a-b*c.
+
+\item[fpmac\_v2]
+
+Supported operations:         mach, msuh, addh, subh, mulh
+
+Latency:             3
+
+Half-precision fused multiply-accumulator. Performs addition/subtraction by multiplying by 1,
+and multiplication by adding 0. fpmac\_v2 will replace fpmac completely if benchmarking shows it
+to be reasonably fast.
+
+Parameters are ordered so that MACH(a,b,c,d) is equal to d=a+b*c and MSUH(a,b,c,d) to d=a-b*c.
+
+
+\item[fp\_invsqrt]
+
+Supported operations: invsqrth
+
+Latency:             5
+
+Half-precision fast inverse square root using Newton's iteration.
+
+\item[fpu\_hp\_compare]
+
+Supported operations:         absh, negh, eqh, neh, gth, geh, lth, leh
+
+Latency:             1
+
+Half-precision floating-point comparator. Also includes the absolute value and negation operations.
 
 \end{description}
 
 
 \subsection{Benchmark results}
 
-The FPUs have been benchmarked on the FPGAs Stratix II EP2S180F1020C3 and 
+Most of the single-precision FPUs have been benchmarked on the FPGAs Stratix II EP2S180F1020C3 and 
 Stratix III EP3SL340H1152C2. As a baseline, a simple TTA processor 
 was synthesized that had enough functionality to support an empty C program. 
 After this, each of the FPUs was added to the baseline processor and synthesized. 
@@ -3286,10 +3393,10 @@ Latency & 5 & 5 & 26 & 4 & 1 & 15 & - \\\cline{1-8}
 
 \subsection{Alternative bit widths}
 
-The fpu\_embedded Function Units have mantissa width and exponent width as generic 
+The \emph{fpu\_embedded} Function Units have mantissa width and exponent width as generic 
 parameters, so they can be used for float widths other than the IEEE single precision. 
-The FPUs are likely prohibitively slow for double-precision calculation, but 
-half-precision floats should be usable.
+The FPUs are likely prohibitively slow for double-precision computation, and the \emph{fpu\_half} units
+should be better fit for half-precision.
 
 The parameters are \emph{mw} and \emph{ew} for all FUs. In addition, the float-int converter FU 
 \emph{fpu\_sp\_conv} has a parameter \emph{intw}, which decides the width of the integer to be 
@@ -7890,7 +7997,7 @@ used, the result is undefined.
 
 \subsection{Floating Point Support}
 
-The simulator supports both the single (32 bits) and double
+The simulator supports the half (16 bits), single (32 bits) and double
 (64 bits) precision floating point types. However, at this time only
 single precision float operations (ADDF, MULF, etc.) are selected 
 automatically when starting from C/C++ code. Currently, the compiler 

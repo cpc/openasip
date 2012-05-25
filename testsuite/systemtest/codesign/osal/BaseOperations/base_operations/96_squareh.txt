@@ -1,0 +1,4 @@
+!output half
+squareh 16384
+squareh 14336
+squareh 16640

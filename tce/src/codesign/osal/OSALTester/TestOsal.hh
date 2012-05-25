@@ -121,6 +121,7 @@ public:
     static const std::string OUTPUT_FORMAT_INT_UNSIGNED;
     static const std::string OUTPUT_FORMAT_DOUBLE;
     static const std::string OUTPUT_FORMAT_FLOAT;
+    static const std::string OUTPUT_FORMAT_HALF;
     static const std::string OUTPUT_FORMAT_BIN;
     static const std::string OUTPUT_FORMAT_HEX;
 

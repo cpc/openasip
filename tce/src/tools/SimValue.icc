@@ -624,3 +624,14 @@ inline FloatWord
 SimValue::floatWordValue() const {
     return value_.floatWord;
 }
+
+/**
+ * Returns the FloatWord member of the Value union.
+ *
+ * @return FloatWord value of the SimValue.
+ */
+inline HalfFloatWord
+SimValue::halfFloatWordValue() const {
+    return HalfFloatWord(value_.halfFloatWordBits);
+}
+

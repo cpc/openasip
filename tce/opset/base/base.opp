@@ -635,6 +635,29 @@
   </operation>
 
   <operation>
+    <name>NEGH</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(negf, t1, t2);
+      EXEC_OPERATION(cfh, t2, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(negh, IO(1), IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue tmp;
+      EXEC_OPERATION(subh, IO(1), IO(1), tmp);
+      EXEC_OPERATION(subh, tmp, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>MUL</name>
     <description/>
     <inputs>2</inputs>
@@ -860,7 +883,7 @@
       SimValue t1,t2;
       EXEC_OPERATION(eqf, IO(1), IO(2), t1);
       EXEC_OPERATION(gtf, IO(2), IO(1), t2);
-      EXEC_OPERATIOM(ior, t1, t2, IO(3));
+      EXEC_OPERATION(ior, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -987,10 +1010,363 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       SimValue t1,t2;
       EXEC_OPERATION(eqf, IO(1), IO(2), t1);
       EXEC_OPERATION(gtf, IO(2), IO(1), t2);
-      EXEC_OPERATIOM(ior, t1, t2, IO(3));
+      EXEC_OPERATION(ior, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
+  
+  
+  <operation>
+    <name>ADDH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(addf, t1, t2, t3);
+      EXEC_OPERATION(cfh, t3, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SUBH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(subf, t1, t2, t3);
+      EXEC_OPERATION(cfh, t3, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(subh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(mulf, t1, t2, t3);
+      EXEC_OPERATION(cfh, t3, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(mulh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIVH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(divf, t1, t2, t3);
+      EXEC_OPERATION(cfh, t3, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(divh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MACH</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3, t4, t5;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(chf, IO(3), t3);
+      EXEC_OPERATION(mulf, t2, t3, t4);
+      EXEC_OPERATION(addf, t1, t4, t5);
+      EXEC_OPERATION(cfh, t5, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MSUH</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3, t4, t5;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(chf, IO(3), t3);
+      EXEC_OPERATION(mulf, t2, t3, t4);
+      EXEC_OPERATION(subf, t1, t4, t5);
+      EXEC_OPERATION(cfh, t5, IO(4));
+    </trigger-semantics>
+  </operation>
+  
+  
+  <operation>
+    <name>MACF</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="FloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulf, IO(2), IO(3), t1);
+      EXEC_OPERATION(addf, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MSUF</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in id="3" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out id="4" type="FloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulf, IO(2), IO(3), t1);
+      EXEC_OPERATION(subf, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
+
+  <operation>
+    <name>EQH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(eqf, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(eqh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(nef, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(neh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(gtf, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(gth, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GEH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(gef, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(geh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gth, IO(1), IO(2), t1);
+      EXEC_OPERATION(eqh, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(ltf, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(lth, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(gth, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LEH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <in id="2" type="HalfFloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(lef, t1, t2, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(leh, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(eqh, IO(1), IO(2), t1);
+      EXEC_OPERATION(gth, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  
   <operation>
     <name>CFI</name>
     <description/>
@@ -1062,6 +1438,102 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(cdf, IO(1), IO(2));
     </trigger-semantics>
   </operation>
+  
+  
+  
+  
+  <operation>
+    <name>CHI</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(cfi, t1, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(chi, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CHIU</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(cfiu, t1, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(chiu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CIH</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(cif, IO(1), t1);
+      EXEC_OPERATION(cfh, t1, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(cih, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CIHU</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(cifu, IO(1), t1);
+      EXEC_OPERATION(cfh, t1, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(cihu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CHF</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(chf, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CFH</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cfh, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+  
 
   <operation>
     <name>ROTL</name>
@@ -1105,6 +1577,24 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <out id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(absf, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ABSH</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(absf, t1, t2);
+      EXEC_OPERATION(cfh, t2, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(absh, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1422,6 +1912,42 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <out id="2" type="FloatWord"/>
   </operation>
 
+  <operation>
+    <name>INVSQRTH</name>
+    <description>Performs a inverse square root of a half-precision floating point.
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(sqrtf, t1, t2);
+      EXEC_OPERATION(divf, 1065353216, t2, t3);
+      EXEC_OPERATION(cfh, t3, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SQUAREH</name>
+    <description>Computes the square of a half-precision floating point.
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(mulf, t1, t1, t2);
+      EXEC_OPERATION(cfh, t2, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
+</trigger-semantics>
+  </operation>
+  
   <operation>
     <name>LEDS</name>
     <description>Control leds by writing a bit pattern. Bit 1 switches a led on and 0 switches off.</description>

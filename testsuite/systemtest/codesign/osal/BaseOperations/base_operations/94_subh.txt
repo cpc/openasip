@@ -1,0 +1,3 @@
+!output half
+subh 16640 14336
+subh 14336 16384

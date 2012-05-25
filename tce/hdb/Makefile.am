@@ -16,6 +16,8 @@ nobase_base_DATA = $(srcdir)/asic_130nm_1.5V.hdb \
                    $(srcdir)/stream_vhdl/* \
                    $(srcdir)/fpu_embedded.hdb \
                    $(srcdir)/fpu_embedded_vhdl/* \
+                   $(srcdir)/fpu_half.hdb \
+                   $(srcdir)/fpu_half_vhdl/* \
                    $(srcdir)/altera_jtag_uart.hdb \
                    $(srcdir)/altera_jtag_uart_vhdl/* \
                    $(srcdir)/stratixIII.hdb \

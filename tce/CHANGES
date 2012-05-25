@@ -1,6 +1,9 @@
 1.7       unreleased
 ====================
 
+Notable changes and features
+----------------------------
+- Support for half-precision floats.
 
 1.6         May 2012 
 ====================
