@@ -44,6 +44,9 @@ namespace TTAMachine {
     class Machine;
 }
 
+namespace TTAProgram {
+    class Program;
+}
 /**
  * Simplified simulator frontend e.g. for calling from system level simulators
  * without needing to include the huge SimulatorFrontend.hh with lots of
@@ -69,6 +72,7 @@ public:
 
     void loadProgram(const std::string& fileName);
     const TTAMachine::Machine& machine() const;
+    const TTAProgram::Program& program() const;
 
     SimulatorFrontend& frontend() { return *simFront_; }
 

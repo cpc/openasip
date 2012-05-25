@@ -114,6 +114,11 @@ SimpleSimulatorFrontend::machine() const {
     return simFront_->machine();
 }
 
+const TTAProgram::Program& 
+SimpleSimulatorFrontend::program() const {
+    return simFront_->program();
+}
+
 MemorySystem&
 SimpleSimulatorFrontend::memorySystem() {
     return simFront_->memorySystem();
