@@ -4,6 +4,6 @@ rm -fr proge-output
 
 ghdl_bin=$(which ghdl 2> /dev/null)
 if [ "x${ghdl_bin}" == "x" ]; then
-    touch test_fpu_embedded.testdesc.disabled
+    touch test_hpu_embedded.testdesc.disabled
 fi
 
