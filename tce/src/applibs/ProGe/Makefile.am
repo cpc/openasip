@@ -39,8 +39,8 @@ libproge_la_SOURCES += \
 	PortConnectionProperty.hh ProGeTypes.hh \
 	NetlistGenerator.hh ProGeScriptGenerator.hh \
 	HDLTemplateInstantiator.hh NetlistPort.hh \
-	ProcessorGenerator.hh BlockSourceCopier.hh \
-	NetlistBlock.hh Netlist.hh \
-	VerilogNetlistWriter.hh VHDLNetlistWriter.hh VirtualNetlistBlock.hh \
-	ProGeScriptGenerator.icc 
+	VerilogNetlistWriter.hh ProcessorGenerator.hh \
+	BlockSourceCopier.hh NetlistBlock.hh \
+	Netlist.hh VHDLNetlistWriter.hh \
+	VirtualNetlistBlock.hh ProGeScriptGenerator.icc 
 ## headers end

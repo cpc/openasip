@@ -49,13 +49,13 @@ libbem_la_SOURCES += \
 	FUGuardEncoding.hh NullDestinationField.hh \
 	GuardField.hh SlotField.hh \
 	ImmediateEncoding.hh NullInstructionField.hh \
-	NullBridgeEncoding.hh \
-	GPRGuardEncoding.hh InstructionField.hh \
-	GuardEncoding.hh BEMSerializer.hh \
-	SocketEncoding.hh ImmediateSlotField.hh \
-	SocketCodeTable.hh UnconditionalGuardEncoding.hh \
-	ImmediateControlField.hh NullGPRGuardEncoding.hh \
-	BEMTextGenerator.hh NullNOPEncoding.hh \
-	Encoding.hh BinaryEncoding.hh \
-	MoveSlot.hh NullIUPortCode.hh 
+	NullBridgeEncoding.hh GPRGuardEncoding.hh \
+	InstructionField.hh GuardEncoding.hh \
+	BEMSerializer.hh SocketEncoding.hh \
+	ImmediateSlotField.hh SocketCodeTable.hh \
+	UnconditionalGuardEncoding.hh ImmediateControlField.hh \
+	NullGPRGuardEncoding.hh BEMTextGenerator.hh \
+	NullNOPEncoding.hh Encoding.hh \
+	BinaryEncoding.hh MoveSlot.hh \
+	NullIUPortCode.hh 
 ## headers end

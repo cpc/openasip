@@ -59,16 +59,16 @@ include_HEADERS = InterPassDatum.hh
 libscheduleralgorithms_la_SOURCES += \
 	ProcedurePass.hh LinearScanAllocatorCore.hh \
 	CycleLookBackSoftwareBypasser.hh SequentialScheduler.hh \
-	DSFillerModule.hh InterPassData.hh \
-	RegisterCopyAdder.hh CopyingDelaySlotFiller.hh \
-	SchedulerPass.hh PreOptimizer.hh \
-	BasicBlockPass.hh ResourceConstraintAnalyzer.hh \
-	BypasserModule.hh DDGPass.hh \
-	RegisterMap.hh AddressSpaceMapper.hh \
-	PreBypassBasicBlockScheduler.hh SoftwareBypasser.hh \
-	ControlFlowGraphPass.hh SimpleGuardAllocatorCore.hh \
-	ProgramPass.hh RegisterRenamer.hh \
-	BBSchedulerController.hh BasicBlockScheduler.hh \
-	InterPassDatum.hh BUBasicBlockScheduler.hh \
-    BypassingBUBasicBlockScheduler.hh
+	BypassingBUBasicBlockScheduler.hh DSFillerModule.hh \
+	InterPassData.hh RegisterCopyAdder.hh \
+	CopyingDelaySlotFiller.hh SchedulerPass.hh \
+	PreOptimizer.hh BasicBlockPass.hh \
+	ResourceConstraintAnalyzer.hh BypasserModule.hh \
+	DDGPass.hh RegisterMap.hh \
+	AddressSpaceMapper.hh PreBypassBasicBlockScheduler.hh \
+	SoftwareBypasser.hh ControlFlowGraphPass.hh \
+	SimpleGuardAllocatorCore.hh ProgramPass.hh \
+	RegisterRenamer.hh BBSchedulerController.hh \
+	BUBasicBlockScheduler.hh BasicBlockScheduler.hh \
+	InterPassDatum.hh 
 ## headers end
