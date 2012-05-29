@@ -252,7 +252,7 @@ class TestCompiler(TCETestCase):
                                (self.get_minimalStdoutADF(),
                                 tpef_file_name, self.ocl_kernel_fn, self.ocl_host_fn),
                                20*60)
-        self.assertEquals(stdout, "")
+        self.assertEquals(stdout, "You are compiling OpenCL code with software floating point emulation.\nExpect abysmal peformance.\n")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)
 
