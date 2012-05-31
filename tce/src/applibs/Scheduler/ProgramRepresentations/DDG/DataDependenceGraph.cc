@@ -1669,6 +1669,16 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
         ProgramOperationPtr srcOp = sourceNode.sourceOperationPtr();
         srcOp->addOutputNode(userNode);
         userNode.setSourceOperationPtr(srcOp);
+
+        // set fu annotations
+        for (int j = 0; j < sourceNode.move().annotationCount(); j++) {
+            TTAProgram::ProgramAnnotation anno = sourceNode.move().annotation(j);
+            if (anno.id() == TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC) {
+                userNode.move().setAnnotation(
+                    TTAProgram::ProgramAnnotation(
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, anno.payload()));
+            }
+        }
     } else {
         // bypassing from stupid reg-to-itself needs extra handling.
         if (sourceNode.move().source().equals(
@@ -1796,6 +1806,9 @@ DataDependenceGraph::unMerge(MoveNode &sourceNode, MoveNode& mergedNode) {
         ProgramOperation& srcOp = mergedNode.sourceOperation();
         srcOp.removeOutputNode(mergedNode);
         mergedNode.unsetSourceOperation();
+
+	// unset fu annotations
+	mergedNode.move().removeAnnotations(TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC);
     }
 
     // All incoming RAW and operation dependencies were created by
