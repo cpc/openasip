@@ -251,11 +251,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     if options.adf_file == "":
                         exitWithError(1, "ADF file required when compiling OpenCL kernels.")
                     
-                    extra_flag = ""
+                    extra_flags = ""
                     if options.soft_float:
-                        extra_flag = " POCL_VECTORIZE_NO_FP=1 "
+                        extra_flags += " POCL_VECTORIZE_NO_FP=1 "
                         print "You are compiling OpenCL code with software floating point emulation!"
                         print "Expect abysmal peformance!"
+                    
+                    if not options.vector_backend:
+                        extra_flags += " POCL_VECTORIZE_WORK_GROUPS=0 "
 
                     input_file = baseName + suffix
                     oclextgen = os.path.join(tceOclExtGenDir, "tceoclextgen") + " "  + options.adf_file
@@ -279,7 +282,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
                     runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s tce-tut-llvm -fasm -include %s" ' % (tripleOption, device_header[1])) + \
                                "%s pocl-standalone -t tce -h %s -o %s %s" % \
-                               (extra_flag, cpp_trampoline, kernel_bc, input_file), verbose, 
+                               (extra_flags, cpp_trampoline, kernel_bc, input_file), verbose, 
                                echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
