@@ -87,23 +87,23 @@ libtpef_la_SOURCES += \
 	AOutStringSectionReader.hh SectionIdReplacer.hh \
 	TPEFRelocSectionWriter.hh DebugElement.hh \
 	TPEFSectionReader.hh TPEFHeaders.hh \
-	TPEFResourceSectionReader.hh \
-	DataSymElement.hh TPEFLineNumSectionReader.hh \
-	TPEFWriter.hh Section.hh \
-	TPEFReader.hh AOutSectionReader.hh \
-	RelocSection.hh Swapper.hh \
-	DebugStabElem.hh TPEFStringSectionReader.hh \
-	SafePointable.hh TPEFASpaceSectionWriter.hh \
-	NoTypeSymElement.hh TPEFDataSectionWriter.hh \
-	LineNumProcedure.hh BinaryStream.hh \
-	ImmediateElement.icc RelocSection.icc \
-	BinaryStream.icc ASpaceElement.icc \
-	SymbolElement.icc Section.icc \
-	SafePointer.icc MoveElement.icc \
-	Binary.icc Chunk.icc \
-	LineNumElement.icc RelocElement.icc \
-	LineNumProcedure.icc Swapper.icc \
-	BasicElement.icc AOutReader.icc \
-	AOutRelocationSectionReader.icc ResourceElement.icc \
-	InstructionElement.icc ReferenceKey.icc 
+	TPEFResourceSectionReader.hh DataSymElement.hh \
+	TPEFLineNumSectionReader.hh TPEFWriter.hh \
+	Section.hh TPEFReader.hh \
+	AOutSectionReader.hh RelocSection.hh \
+	Swapper.hh DebugStabElem.hh \
+	TPEFStringSectionReader.hh SafePointable.hh \
+	TPEFASpaceSectionWriter.hh NoTypeSymElement.hh \
+	TPEFDataSectionWriter.hh LineNumProcedure.hh \
+	BinaryStream.hh ImmediateElement.icc \
+	RelocSection.icc BinaryStream.icc \
+	ASpaceElement.icc SymbolElement.icc \
+	Section.icc SafePointer.icc \
+	MoveElement.icc Binary.icc \
+	Chunk.icc LineNumElement.icc \
+	RelocElement.icc LineNumProcedure.icc \
+	Swapper.icc BasicElement.icc \
+	AOutReader.icc AOutRelocationSectionReader.icc \
+	ResourceElement.icc InstructionElement.icc \
+	ReferenceKey.icc 
 ## headers end

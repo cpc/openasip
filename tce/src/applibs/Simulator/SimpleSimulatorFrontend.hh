@@ -33,6 +33,8 @@
 #ifndef TTA_SIMPLE_SIMULATOR_FRONTEND
 #define TTA_SIMPLE_SIMULATOR_FRONTEND
 
+#include <stdint.h>
+
 #include "TCEString.hh"
 
 class SimulatorFrontend;
@@ -61,6 +63,8 @@ public:
     void step();
     void run();
     void stop();
+
+    uint64_t cycleCount();
 
     bool isRunning() const;
     bool hadRuntimeError() const;

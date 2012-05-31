@@ -154,3 +154,8 @@ SimpleSimulatorFrontend::unregisterEventListener(
     int event, Listener* listener) {
     return simFront_->eventHandler().unregisterListener(event, listener);
 }
+
+uint64_t
+SimpleSimulatorFrontend::cycleCount() {
+    return simFront_->cycleCount();
+}

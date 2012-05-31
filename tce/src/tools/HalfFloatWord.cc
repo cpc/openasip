@@ -48,6 +48,9 @@ union FloatConvUnion {
 // constructors
 HalfFloatWord::HalfFloatWord(uint16_t binaryRep) : binaryRep_(binaryRep) {}
 
+// constructors
+HalfFloatWord::HalfFloatWord() : binaryRep_(0) {}
+
 uint16_t
 HalfFloatWord::convertFloatToHalfWordRep(float value) {
     FloatConvUnion u;
@@ -63,6 +66,11 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
 
 const HalfFloatWord& HalfFloatWord::operator=(float value) {
     binaryRep_ = convertFloatToHalfWordRep(value);
+    return *this;
+}
+
+const HalfFloatWord& HalfFloatWord::operator=(const HalfFloatWord& hf) {
+    binaryRep_ = hf.binaryRep_;
     return *this;
 }
 

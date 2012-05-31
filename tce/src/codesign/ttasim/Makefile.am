@@ -35,6 +35,4 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 ## headers start
-ttasim_SOURCES += \
-	SimulatorCmdLineOptions.hh 
 ## headers end

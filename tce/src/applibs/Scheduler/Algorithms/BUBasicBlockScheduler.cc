@@ -173,7 +173,7 @@ BUBasicBlockScheduler::handleDDG(
                 scheduleMove(firstMove, endCycle_);
                 notifyScheduled(moves, selector);                
             } else {
-                int tmp;
+                int tmp = endCycle_;
                 if (bypassNode(firstMove,tmp) && dre_ 
                     &&!ddg_->resultUsed(firstMove)) {
                     // No need to schedule original move any more
