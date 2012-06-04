@@ -746,7 +746,7 @@ case $host_os in
     DO_WX_COMPILE=false
     AC_MSG_NOTICE(
     [
-    wxWidgets present on Mac OSX is not compatible with the TCE 1.2.
+    wxWidgets present on Mac OSX is not compatible with the TCE 1.6.
     ])    
     ;;
    *)
