@@ -42,7 +42,7 @@ cd ..
 ./finalize
 ADF=data/test2.adf
 IDF=$(echo $ADF | sed 's/.adf/.idf/')
-$TCECC -O1 -a $ADF -o $TPEF --bottom-up-scheduler -k result data/test_code.c || exit 1
+$TCECC -O1 -a $ADF -o $TPEF --bottom-up-scheduler -k result data/test_code_2.c || exit 1
 $DISASM -o temp.txt $ADF $TPEF || exit 1
 grep emulate temp.txt
 rm temp.txt
@@ -50,6 +50,6 @@ $PROGE -t -i $IDF -o $PDIR $ADF
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF #>& /dev/null
 cd $PDIR || exit 1
 eval "sed -i 's/5234/${RUNCYCLES}/g' tb/testbench_constants_pkg.vhdl"
-./ghdl_compile.sh >& /dev/null ||  exit 1
+./ghdl_compile.sh >& /dev/null || exit 1
 eval "./testbench --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
 cat printchar_output.txt

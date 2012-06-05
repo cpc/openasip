@@ -42,7 +42,7 @@ ADF=data/test2.adf
 IDF=$(echo $ADF | sed 's/.adf/.idf/')
 cd ..
 ./finalize
-$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.cpp --bottom-up-scheduler || exit 1
+$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code_2.cpp --bottom-up-scheduler || exit 1
 $DISASM -o temp.txt $ADF $TPEF || exit 1
 grep emulate temp.txt
 rm temp.txt

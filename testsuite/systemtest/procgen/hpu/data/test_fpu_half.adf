@@ -236,34 +236,6 @@
     </writes-to>
   </socket>
 
-  <socket name="mach_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="mach_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="mach_i3">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="mach_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <function-unit name="LSU">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
@@ -1035,78 +1007,6 @@
         </reads>
         <writes name="2">
           <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="mach_msuh">
-    <port name="P1">
-      <connects-to>mach_i1</connects-to>
-      <width>16</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="P2">
-      <connects-to>mach_i2</connects-to>
-      <width>16</width>
-    </port>
-    <port name="P3">
-      <connects-to>mach_i3</connects-to>
-      <width>16</width>
-    </port>
-    <port name="P4">
-      <connects-to>mach_o1</connects-to>
-      <width>16</width>
-    </port>
-    <operation>
-      <name>mach</name>
-      <bind name="1">P1</bind>
-      <bind name="2">P2</bind>
-      <bind name="3">P3</bind>
-      <bind name="4">P4</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="4">
-          <start-cycle>2</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>msuh</name>
-      <bind name="1">P1</bind>
-      <bind name="2">P2</bind>
-      <bind name="3">P3</bind>
-      <bind name="4">P4</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="4">
-          <start-cycle>2</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
