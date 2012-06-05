@@ -363,7 +363,7 @@ switchblockInt(block);
 /*----------------------------------------------------------------------------*/
 
 
-__attribute__((reqd_work_group_size(64, 1, 1)))
+__attribute__((reqd_work_group_size(2, 1, 1)))
 __kernel void Encrypt(__global const unsigned int* g_idata, __global unsigned int* g_odata, __global unsigned int* encrypt_key, __global unsigned int* _Alogtable, __global unsigned int* _Logtable, __global unsigned int* _Sen, __global unsigned int* _Sde) {
     
   unsigned int tid = get_global_id(0);  
