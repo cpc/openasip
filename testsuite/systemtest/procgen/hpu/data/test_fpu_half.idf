@@ -3,7 +3,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>/home/tivi/tce/tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>DefaultICDecoderPlugin.so</file>
     <parameter name="bustrace">
       <value>yes</value>
     </parameter>
