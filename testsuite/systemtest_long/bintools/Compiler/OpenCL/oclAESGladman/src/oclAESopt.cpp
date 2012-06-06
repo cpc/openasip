@@ -27,8 +27,8 @@ const char* clSourcefile = "AES.cl";
 #define FILE_SIZE 4 // KB
 // Not configurable
 #define NUM_THREADS FILE_SIZE*1024/16
-#define LOCAL_WORK_SIZE NUM_THREADS/NUM_GROUPS
-
+//#define LOCAL_WORK_SIZE NUM_THREADS/NUM_GROUPS
+#define LOCAL_WORK_SIZE 2
 
 
 unsigned char encryption_key_c[] = "1234567890abcdef";

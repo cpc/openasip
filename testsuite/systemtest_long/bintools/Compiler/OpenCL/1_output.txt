@@ -1,3 +1,5 @@
+You are compiling OpenCL code with software floating point emulation!
+Expect abysmal peformance!
 result[0]: (0.000000, 0.000000, 0.000000, 0.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 0.000000 OK
 result[1]: (1.000000, 1.000000, 1.000000, 1.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 10.000000 OK
 result[2]: (2.000000, 2.000000, 2.000000, 2.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 20.000000 OK
@@ -15,10 +17,12 @@ result[13]: (13.000000, 13.000000, 13.000000, 13.000000) dot (1.000000, 2.000000
 result[14]: (14.000000, 14.000000, 14.000000, 14.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 140.000000 OK
 result[15]: (15.000000, 15.000000, 15.000000, 15.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 150.000000 OK
 
+You are compiling OpenCL code with software floating point emulation!
+Expect abysmal peformance!
 Launching the kernel.
 NUM_THREADS = 256
 NUM_GROUPS = 4
-LOCAL_WORK_SIZE = 64
+LOCAL_WORK_SIZE = 2
 FILE SIZE = 4 KB
 Results read back.
 
@@ -28,6 +32,8 @@ Results OK!!!
 Starting Cleanup...
 
 
+You are compiling OpenCL code with software floating point emulation!
+Expect abysmal peformance!
 result[0]: (0.000000, 0.000000, 0.000000, 0.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 0.000000 OK
 result[1]: (1.000000, 1.000000, 1.000000, 1.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 10.000000 OK
 result[2]: (2.000000, 2.000000, 2.000000, 2.000000) dot (1.000000, 2.000000, 3.000000, 4.000000) = 20.000000 OK

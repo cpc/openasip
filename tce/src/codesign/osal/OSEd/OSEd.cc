@@ -92,8 +92,11 @@ OSEd::OnInit() {
     try {
         options_->loadState(serializer.readState());
     } catch (const Exception& e) {
-        cerr << e.errorMessage() << endl
-             << "Default options will be used." << endl;
+        cerr << "Config file not found, default options will be used." << endl
+             << "OseD may use the editor in your $EDITOR or $VISUAL"
+             << " environmental variable." << endl
+             << "If these point to some non-graphical editor, "
+             << "please change the editor from settings." << endl;
         createDefaultOptions();
     }
 

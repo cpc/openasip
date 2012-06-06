@@ -543,7 +543,8 @@ AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"],
 AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
 AC_SUBST([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"])
-AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
+#This is defined by llvm-config.h:
+#AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
 AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
 AC_SUBST([LLVM_BINDIR], ["$LLVM_BINDIR"])
 AC_SUBST([LLVM_CONFIG], ["$llvmConf"])
@@ -747,7 +748,7 @@ case $host_os in
     DO_WX_COMPILE=false
     AC_MSG_NOTICE(
     [
-    wxWidgets present on Mac OSX is not compatible with the TCE 1.2.
+    wxWidgets present on Mac OSX is not compatible with the TCE 1.6.
     ])    
     ;;
    *)

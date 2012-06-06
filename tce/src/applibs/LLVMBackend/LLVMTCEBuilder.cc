@@ -1112,6 +1112,10 @@ LLVMTCEBuilder::emitInstruction(
         return NULL;
     }	
 
+    if (opc == TargetOpcode::KILL) {
+        return false;
+    }
+
     std::string opName = "";
 
     bool hasGuard = false;
