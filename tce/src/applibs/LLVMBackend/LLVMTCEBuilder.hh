@@ -365,6 +365,9 @@ namespace llvm {
         TTAProgram::DataMemory&
         dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace);
 
+	void copyFUAnnotations(
+	    const std::vector<TTAProgram::Instruction*>& operandMoves, TTAProgram::Move& move) const;
+
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
 

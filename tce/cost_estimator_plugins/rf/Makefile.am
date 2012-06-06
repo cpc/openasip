@@ -2,10 +2,10 @@ pkglibdir = ${prefix}/share/tce/cost_estimator_plugins/rf
 pkglib_LTLIBRARIES = StrictMatchRFEstimator.la InterpolatingRFEstimator.la
 
 StrictMatchRFEstimator_la_SOURCES = StrictMatchRFEstimator.cc
-StrictMatchRFEstimator_la_LDFLAGS = -module
+StrictMatchRFEstimator_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 InterpolatingRFEstimator_la_SOURCES = InterpolatingRFEstimator.cc
-InterpolatingRFEstimator_la_LDFLAGS = -module
+InterpolatingRFEstimator_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

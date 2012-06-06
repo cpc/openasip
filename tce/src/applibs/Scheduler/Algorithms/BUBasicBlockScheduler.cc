@@ -1269,7 +1269,6 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
         for (OrderedSet::iterator it = destinations.begin(); 
             it != destinations.end(); it++) {
             if (!ddg_->guardsAllowBypass(moveNode, **it)) {
-                std::cerr << "\t\tguardsnotallowbypass" << std::endl;
                 continue;
             }
             MoveNode* temp = succeedingTempMove(moveNode);                         

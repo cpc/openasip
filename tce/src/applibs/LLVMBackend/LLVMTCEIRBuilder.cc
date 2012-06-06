@@ -686,6 +686,10 @@ LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
         return false;
     }	
 
+    if (opDesc->getOpcode() == TargetOpcode::KILL) {
+        return false;
+    }
+
     std::string opName = operationName(instr);
 
     // Pseudo instructions don't require any actual instructions.

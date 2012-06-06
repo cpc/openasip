@@ -4,10 +4,10 @@ pkglibdir = ${prefix}/share/tce/cost_estimator_plugins/fu
 pkglib_LTLIBRARIES = StrictMatchFUEstimator.la InterpolatingFUEstimator.la
 
 StrictMatchFUEstimator_la_SOURCES = StrictMatchFUEstimator.cc
-StrictMatchFUEstimator_la_LDFLAGS = -module
+StrictMatchFUEstimator_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 InterpolatingFUEstimator_la_SOURCES = InterpolatingFUEstimator.cc
-InterpolatingFUEstimator_la_LDFLAGS = -module
+InterpolatingFUEstimator_la_LDFLAGS = -module -version-info ${LIB_VERSION}
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
