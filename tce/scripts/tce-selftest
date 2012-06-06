@@ -204,6 +204,8 @@ class TestCompiler(TCETestCase):
         os.write(fd, opencl_example_host)
         os.close(fd)
 
+        self.runWithTimeout("tcecc --clear-plugin-cache", 1)
+
     def tearDown(self):
         os.unlink(self.hello_world_file)
         os.unlink(self.ocl_kernel_fn)
