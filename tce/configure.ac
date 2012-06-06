@@ -554,8 +554,8 @@ AC_DEFINE_UNQUOTED([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"],
 AC_DEFINE_UNQUOTED([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"],
                    [LLVM linkage flags.])
 
-AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
-                   [Directory containing LLVM headers.])
+#AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
+#                   [Directory containing LLVM headers.])
 
 AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
                    [Directory containing LLVM libraries.])
