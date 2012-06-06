@@ -393,6 +393,37 @@ main(void) {
     test( uni.df == 0.f );
     
     
+    // * 
+    // * Multiply-accumulate tests
+    // *
+    
+    _TCE_STDOUT('\n'); 
+    _TCE_STDOUT('9'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    float d_;
+    
+    a = 10.f; b = 20.f; c = 30.f;
+    
+    _TCE_MACF( a, b, c, d_ );
+    
+    test( d_ == 610.f );
+    
+    _TCE_MSUF( a, b, c, d_ );
+    
+    test( d_ == -590.f );
+    
+    a = 10.f, b = 10.f, c = 10.f;
+    
+    _TCE_MACF( a, b, c, d_ );
+    
+    test( d_ == 110.f );
+    
+    _TCE_MSUF( a, b, c, d_ );
+    
+    test( d_ == -90.f );
+    
+    
     
     _TCE_STDOUT('\n'); 
     

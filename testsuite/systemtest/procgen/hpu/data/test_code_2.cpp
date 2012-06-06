@@ -212,10 +212,23 @@ main() {
     test( ( half(100.f).invsqrt() - half(0.1f) ).abs() < 0.01 );
     _TCE_STDOUT('\n'); 
     
+    // Multiply-accumulate
+    
+    _TCE_STDOUT('6'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    test( mac( half( 3.f ), half(3.f), half(3.f) ) == half(12.f) );
+    test( mac( half( 3.f ), half(4.f), half(4.f) ) == half(19.f) );
+    test( mac( half( 1.f ), half(2.f), half(3.f) ) == half(7.f) );
+    test( msu( half( 3.f ), half(3.f), half(3.f) ) == half(-6.f) );
+    test( msu( half( 3.f ), half(4.f), half(4.f) ) == half(-13.f) );
+    test( msu( half( 1.f ), half(2.f), half(3.f) ) == half(-5.f) );
+    _TCE_STDOUT('\n'); 
+    
     // Pipeline behavior
     // TODO mac
     
-    _TCE_STDOUT('6'); 
+    _TCE_STDOUT('7'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     half imm1( 0.5f );
