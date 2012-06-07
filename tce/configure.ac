@@ -543,9 +543,9 @@ AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"],
 AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
 AC_SUBST([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"])
-#This is defined by llvm-config.h:
+#These are defined by llvm-config.h:
 #AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
-AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
+#AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
 AC_SUBST([LLVM_BINDIR], ["$LLVM_BINDIR"])
 AC_SUBST([LLVM_CONFIG], ["$llvmConf"])
 
@@ -555,11 +555,12 @@ AC_DEFINE_UNQUOTED([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"],
 AC_DEFINE_UNQUOTED([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"],
                    [LLVM linkage flags.])
 
-AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
-                   [Directory containing LLVM headers.])
-
-AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
-                   [Directory containing LLVM libraries.])
+#These are defined by llvm-config.h:
+#AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
+#                   [Directory containing LLVM headers.])
+#
+#AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
+#                   [Directory containing LLVM libraries.])
 
 AM_CONDITIONAL(LLVM, test x$LLVM_VERSION != x)
 

@@ -1387,13 +1387,13 @@ LLVMTCEBuilder::emitInstruction(
         }
     }
 
-    for (int i = 0; i < resultMoves.size();i++) {
-	TTAProgram::Instruction& resultIns = *resultMoves[i];
-	for (int j = 0; j < resultIns.moveCount(); j++) {
-	    TTAProgram::Move& resultMove = resultIns.move(j);
-	// if some operand was mem operand, copy the addr space annotations from that operand
-	    copyFUAnnotations(operandMoves, resultMove);
-	}
+    for (unsigned int i = 0; i < resultMoves.size();i++) {
+        TTAProgram::Instruction& resultIns = *resultMoves[i];
+        for (int j = 0; j < resultIns.moveCount(); j++) {
+            TTAProgram::Move& resultMove = resultIns.move(j);
+            // if some operand was mem operand, copy the addr space annotations from that operand
+            copyFUAnnotations(operandMoves, resultMove);
+        }
     }
     // Return the first instruction of the whole operation.
     TTAProgram::Instruction* first = NULL;
@@ -1443,17 +1443,20 @@ LLVMTCEBuilder::emitInstruction(
 
 void
 LLVMTCEBuilder::copyFUAnnotations(
-    const std::vector<TTAProgram::Instruction*>& operandMoves, TTAProgram::Move& move) const {
-    for (int i = 0; i < operandMoves.size(); i++) {
-	TTAProgram::Move& operandMove = operandMoves[i]->move(0);
-	for (int j = 0; j < operandMove.annotationCount(); j++) {
-	    TTAProgram::ProgramAnnotation anno = operandMove.annotation(j);
-	    if (anno.id() == TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST) {
-		move.setAnnotation(
-		    TTAProgram::ProgramAnnotation(
-			TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, anno.payload()));
-	    }
-	}
+    const std::vector<TTAProgram::Instruction*>& operandMoves, 
+    TTAProgram::Move& move) const {
+    for (unsigned int i = 0; i < operandMoves.size(); i++) {
+        TTAProgram::Move& operandMove = operandMoves[i]->move(0);
+        for (int j = 0; j < operandMove.annotationCount(); j++) {
+            TTAProgram::ProgramAnnotation anno = operandMove.annotation(j);
+            if (anno.id() == 
+                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST) {
+                move.setAnnotation(
+                    TTAProgram::ProgramAnnotation(
+                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC,
+                        anno.payload()));
+            }
+        }
     }
 }
 
