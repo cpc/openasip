@@ -1,5 +1,5 @@
-1.6         May 2012 
-====================
+1.6         June 2012 
+=====================
 
 Notable changes and features
 ----------------------------
@@ -10,7 +10,7 @@ Notable changes and features
   Dropped support for LLVM 2.9.
 - ProGe: Experimental support for Verilog and a small Verilog hardware
   database (mixed_hdl.hdb) supporting minimal.adf. Thanks to
-  Vinogradov Viacheslav for contributing this.
+  Vinogradov Viacheslav for contributing this!
 - Support for the address_space attribute to allow using multiple
   separate memories from C code.
 - Simplified C++ interface to the processor simulation engine for making it
