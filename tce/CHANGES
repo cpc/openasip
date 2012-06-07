@@ -41,7 +41,7 @@ Experimental features
   registers and mapping the incoming LLVM vector regs to them.
   Allows using wide loads (ldw2, ldw4, ldw4) and stores (stw2, stw4, stw8)
   to load and store these vectors. This can be enabled with parameter
-  --vector backend. This feature requires prededefined register file naming
+  --vector-backend. This feature requires prededefined register file naming
   to identify the "lanes", as generated with the ADFCombiner clustered machine
   generator plugin. Works only with LLVM 3.1.
 - Added experimental bottom-up-instruction scheduler. Can be enabled with
