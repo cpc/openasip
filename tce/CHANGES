@@ -20,8 +20,9 @@ Notable changes and features
   
 Usability features
 ------------------
-- dumptpef -m has now more user friendly output. 
-- OSAL files are searched also from environment variable TCE_OSAL_PATH
+- dumptpef -m has now more user friendly output (thanks to Kalle
+  Raiskila).
+- OSAL files are searched also from environment variable TCE_OSAL_PATH.
 
 Smaller features
 ----------------
