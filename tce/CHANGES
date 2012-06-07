@@ -15,7 +15,9 @@ Notable changes and features
   separate memories from C code.
 - Simplified C++ interface to the processor simulation engine for making it
   easier to build C++-based system simulation models.
-
+- ADFCombiner: an explorer plugin to generate clustered-style TTA
+  machines from two input ADFs.
+  
 Usability features
 ------------------
 - dumptpef -m has now more user friendly output. 
@@ -31,22 +33,26 @@ Smaller features
 - Allow program.ll (a fully linked LLVM assembly file) as an option for
   program.bc as an input file for the DSExplorer applications.
 
-Code generator improvements
----------------------------
+Experimental features
+---------------------
+- Support for vector input to the compiler. Code is generated from 
+  LLVM vector instructions by combining multiple TCE registers into vector 
+  registers and mapping the incoming LLVM vector regs to them.
+  Allows using wide loads (ldw2, ldw4, ldw4) and stores (stw2, stw4, stw8)
+  to load and store these vectors. This can be enabled with parameter
+  --vector backend. This feature requires prededefined register file naming
+  to identify the "lanes", as generated with the ADFCombiner clustered machine
+  generator plugin. Works only with LLVM 3.1.
+- Added experimental bottom-up-instruction scheduler. Can be enabled with
+  --bottom-up-scheduler command line parameter.
+
+Misc. code generator improvements
+---------------------------------
 - Immediates marked as rematerializable; This should reduce spilling as
   values that come from immediates are not spilled to stack.
 - Registers can now be renamed to different RF during scheduling.
   This is however not yet used to reduce number of register-to-registe copies
   on sparsely connected machines.
-- Added experimental support for combining multiple TCE registers into 
-  vector registers and emiting incoming llvm vector instructions using these.
-  Allows using wide loads (ldw2, ldw4, ldw4) and stores(stw2, stw4, stw8)
-  to load and store these vectors. This can be enabled with parameter
-  --vector backend. This feature requires certain register file names,
-  generated with ADFCombiner explorer plugin. 
-  This feature does not work with llvm-3.0.
-- Added experimental bottom-up-instruction scheduler. Can be enabled with
-  --bottom-up-scheduler command line parameter.
 - Compiler can now make floating point constant values to be used from
   immediates instead of always putting them to constant pool.
 - No longer floating point aliases for 32-bit registers on llvm backend;
