@@ -381,7 +381,7 @@
           <cycles>1</cycles>
         </reads>
         <writes name="2">
-          <start-cycle>4</start-cycle>
+          <start-cycle>1</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
