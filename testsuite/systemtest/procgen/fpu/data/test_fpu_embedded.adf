@@ -47,9 +47,45 @@
     </short-immediate>
   </bus>
 
+  <bus name="B2">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
+  <bus name="B3">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
   <socket name="lsu_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -59,11 +95,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="lsu_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -73,11 +125,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="RF_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -87,11 +155,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="bool_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -101,11 +185,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="gcu_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -115,11 +215,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="sqrtf_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -129,11 +245,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="addf_subf_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -143,11 +275,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="addf_subf_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -157,11 +305,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="mulf_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -171,11 +335,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="absf_negf_eqf_nef_ltf_lef_gef_gtf_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -185,11 +365,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="absf_negf_eqf_nef_ltf_lef_gef_gtf_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -199,11 +395,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="divf_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -213,11 +425,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -227,11 +455,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -241,11 +485,27 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="cfi_cfiu_cif_cifu_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -255,6 +515,44 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_1_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_1_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <function-unit name="LSU">
@@ -1113,6 +1411,20 @@
     </port>
     <port name="rd">
       <connects-to>bool_o1</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="RF_1">
+    <type>normal</type>
+    <size>16</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr">
+      <connects-to>RF_1_o1</connects-to>
+    </port>
+    <port name="rd">
+      <connects-to>RF_1_i1</connects-to>
     </port>
   </register-file>
 
