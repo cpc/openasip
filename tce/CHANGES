@@ -5,6 +5,13 @@ Notable changes and features
 ----------------------------
 - Support for half-precision floats.
 
+Usability features
+------------------
+- HDBEditor: Source files section of FU Implementation dialog has now 
+  Move Up/Move Down-buttons for rearranging the (compilation) order
+  of the files. Thanks to Antti Häyrinen for this contribution.
+
+
 1.6         May 2012 
 ====================
 

@@ -1,4 +1,4 @@
-/*
+ /*
     Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
@@ -26,7 +26,7 @@
  *
  * Implementation of FUImplementationDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -34,6 +34,9 @@
 #include <wx/listctrl.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
+
+#include <vector>
+#include <iostream>
 
 #include "FUImplementationDialog.hh"
 #include "FUImplementation.hh"
@@ -84,6 +87,9 @@ BEGIN_EVENT_TABLE(FUImplementationDialog, wxDialog)
 
     EVT_BUTTON(ID_ADD_SOURCE, FUImplementationDialog::onAddSourceFile)
     EVT_BUTTON(ID_DELETE_SOURCE, FUImplementationDialog::onDeleteSourceFile)
+    EVT_BUTTON(ID_MOVE_SOURCE_UP, FUImplementationDialog::onMoveSourceFileUp)
+    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, 
+	       FUImplementationDialog::onMoveSourceFileDown)
 
     EVT_LIST_ITEM_SELECTED(
         ID_ARCH_PORT_LIST, FUImplementationDialog::onArchPortSelection)
@@ -204,10 +210,12 @@ FUImplementationDialog::FUImplementationDialog(
     FindWindow(ID_EDIT_PARAMETER)->Disable();
     FindWindow(ID_DELETE_PARAMETER)->Disable();
 #ifdef ALLOW_OPCODE_EDITING
-     FindWindow(ID_SET_OPCODE)->Disable();
-     FindWindow(ID_CLEAR_OPCODE)->Disable();
+    FindWindow(ID_SET_OPCODE)->Disable();
+    FindWindow(ID_CLEAR_OPCODE)->Disable();
 #endif
     FindWindow(ID_DELETE_SOURCE)->Disable();
+    FindWindow(ID_MOVE_SOURCE_UP)->Disable();
+    FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
 
     update();
 }
@@ -565,6 +573,8 @@ FUImplementationDialog::onParameterSelection(wxListEvent&) {
 }
 
 
+
+
 /**
  * Returns pointer to the architecture port selected in the architecture port
  * list.
@@ -724,6 +734,9 @@ FUImplementationDialog::onAddSourceFile(wxCommandEvent&) {
         delete file;
     }
 
+    FindWindow(ID_DELETE_SOURCE)->Disable();
+    FindWindow(ID_MOVE_SOURCE_UP)->Disable();
+    FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
 }
 
 /**
@@ -742,24 +755,120 @@ FUImplementationDialog::onDeleteSourceFile(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
     }
+
+    FindWindow(ID_DELETE_SOURCE)->Disable();
+    FindWindow(ID_MOVE_SOURCE_UP)->Disable();
+    FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
+    
     update();
 }
 
+/**
+ * Event handler for the move source file up button.
+ *
+ * Moves the selected source file up on the files list.
+ */
+void
+FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
+
+    if (implementation_.implementationFileCount() > 1) {
+        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::vector<std::string> pathToFileList;
+        int originalImplementationFileCount = 
+            implementation_.implementationFileCount();
+
+        for (int i = 0; i < originalImplementationFileCount; i++) {
+            HDB::BlockImplementationFile& file = implementation_.file(0);
+            pathToFileList.push_back(file.pathToFile());
+            implementation_.removeImplementationFile(file);
+        }
+        
+        for (int i = 1; i < pathToFileList.size(); i++) {
+            if(pathToFileList.at(i) == fileName) {
+                pathToFileList.erase(pathToFileList.begin() + i);
+                pathToFileList.insert(pathToFileList.begin() + i - 1, fileName);
+                break;
+            }
+        }
+        
+        for(int i = 0; i < pathToFileList.size(); i++) {
+            BlockImplementationFile* file =
+                new BlockImplementationFile(pathToFileList.at(i), 
+                                            BlockImplementationFile::VHDL);
+            implementation_.addImplementationFile(file);
+        }
+        
+        pathToFileList.clear();
+        update();
+
+        for (int i = 0; i < implementation_.implementationFileCount(); i++) {
+            if (implementation_.file(i).pathToFile() == fileName) {
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
+                                          wxLIST_STATE_SELECTED);
+            }
+        }
+    }
+}
+
+void
+FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
+    if (implementation_.implementationFileCount() > 1) {
+        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::vector<std::string> pathToFileList;
+        
+        int originalImplementationFileCount = 
+            implementation_.implementationFileCount();
+        
+        for (int i = 0; i < originalImplementationFileCount; i++) {
+            HDB::BlockImplementationFile& file = implementation_.file(0);
+            pathToFileList.push_back(file.pathToFile());
+            implementation_.removeImplementationFile(file);
+        }
+        
+        for (int i = 0; i < (pathToFileList.size() - 1); i++) {
+            if (pathToFileList.at(i) == fileName) {
+                pathToFileList.erase(pathToFileList.begin() + i);
+                pathToFileList.insert(pathToFileList.begin() + i + 1, fileName);
+                break;
+            }
+        }
+                
+        for(int i = 0; i < pathToFileList.size(); i++) {
+            BlockImplementationFile* file =
+                new BlockImplementationFile(pathToFileList.at(i), 
+                                            BlockImplementationFile::VHDL);
+            implementation_.addImplementationFile(file);
+        }
+        
+        pathToFileList.clear();
+        update();
+
+        for (int i = 0; i < implementation_.implementationFileCount(); i++) {
+            if (implementation_.file(i).pathToFile() == fileName) {
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
+                                          wxLIST_STATE_SELECTED);
+            }
+        }
+    }
+}
 
 /**
  * Event handler for the source file list selection changes.
  *
- * Updates delete source file button enabeld/disabled states.
+ * Updates delete source file and move up/down buttons enabled/disabled states.
  */
 void
 FUImplementationDialog::onSourceFileSelection(wxListEvent&) {
     if (WidgetTools::lcStringSelection(sourceList_, 0)  == "") {
         FindWindow(ID_DELETE_SOURCE)->Disable();
+        FindWindow(ID_MOVE_SOURCE_UP)->Disable();
+        FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
     } else {
         FindWindow(ID_DELETE_SOURCE)->Enable();
+        FindWindow(ID_MOVE_SOURCE_UP)->Enable();
+        FindWindow(ID_MOVE_SOURCE_DOWN)->Enable();
     }
 }
-
 
 /**
  * Event handler for the OK button.
@@ -881,11 +990,26 @@ FUImplementationDialog::createContents(
     item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticBox *item16 = new wxStaticBox( parent, -1, wxT("Source files:") );
+
     wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
 
-    wxListCtrl *item17 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxFlexGridSizer *item17_1 = new wxFlexGridSizer( 2, 0, 0 );
 
+    wxListCtrl *item17 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(250,140), wxLC_REPORT|wxSUNKEN_BORDER );
+    item17_1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item17_3 = new wxBoxSizer( wxVERTICAL );
+    
+    wxButton *item60 = new wxButton( parent, ID_MOVE_SOURCE_UP, wxT("‚ñ¥"), wxDefaultPosition, wxSize(20, 20), 0 );
+    item17_3->Add( item60, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item61 = new wxButton( parent, ID_MOVE_SOURCE_DOWN, wxT("‚ñæ"), wxDefaultPosition, wxSize(20, 20), 0 );
+    item17_3->Add( item61, 0, wxALIGN_CENTER|wxALL, 5 );
+    
+    item17_1->Add( item17_3, 0, wxALIGN_RIGHT|wxALIGN_CENTER, 5 );
+
+    item15->Add( item17_1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item19 = new wxButton( parent, ID_ADD_SOURCE, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );

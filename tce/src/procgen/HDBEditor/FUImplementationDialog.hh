@@ -82,7 +82,10 @@ private:
 
     void onSourceFileSelection(wxListEvent& event);
     void onAddSourceFile(wxCommandEvent& event);
-    void onDeleteSourceFile(wxCommandEvent& even);
+    void onDeleteSourceFile(wxCommandEvent& event);
+
+    void onMoveSourceFileUp(wxCommandEvent& event);
+    void onMoveSourceFileDown(wxCommandEvent& event);
 
 #ifdef ALLOW_OPCODE_EDITING
     void onOpcodeSelection(wxListEvent& event);
@@ -125,9 +128,11 @@ private:
         ID_OPCODE_PORT,
         ID_ARCH_PORT_LIST,
         ID_EDIT_ARCH_PORT,
-        ID_LINE
+        ID_LINE,
+        ID_MOVE_SOURCE_UP,
+        ID_MOVE_SOURCE_DOWN
     };
-
+    
     /// FU Implementation to modify.
     HDB::FUImplementation& implementation_;
     /// Function unit architecture the FUImplementation implements.
