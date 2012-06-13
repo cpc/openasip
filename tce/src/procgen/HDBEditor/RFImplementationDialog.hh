@@ -62,6 +62,8 @@ private:
     void onSourceFileSelection(wxListEvent& event);
     void onAddSourceFile(wxCommandEvent& event);
     void onDeleteSourceFile(wxCommandEvent& event);
+    void onMoveSourceFileUp(wxCommandEvent&);
+    void onMoveSourceFileDown(wxCommandEvent&);
 
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
@@ -88,6 +90,8 @@ private:
         ID_SOURCE_LIST,
         ID_ADD_SOURCE,
         ID_DELETE_SOURCE,
+        ID_MOVE_SOURCE_UP,
+        ID_MOVE_SOURCE_DOWN,
         ID_LINE
     };
 

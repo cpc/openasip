@@ -26,13 +26,15 @@
  *
  * Implementation of RFImplementationDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 #include <wx/statline.h>
+
+#include <vector>
 
 #include "RFImplementationDialog.hh"
 #include "RFImplementation.hh"
@@ -57,6 +59,9 @@ BEGIN_EVENT_TABLE(RFImplementationDialog, wxDialog)
     EVT_BUTTON(ID_DELETE_PORT, RFImplementationDialog::onDeletePort)
     EVT_BUTTON(ID_ADD_SOURCE, RFImplementationDialog::onAddSourceFile)
     EVT_BUTTON(ID_DELETE_SOURCE, RFImplementationDialog::onDeleteSourceFile)
+    EVT_BUTTON(ID_MOVE_SOURCE_UP, RFImplementationDialog::onMoveSourceFileUp)
+    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, 
+               RFImplementationDialog::onMoveSourceFileDown)
 
     EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)
 
@@ -104,7 +109,8 @@ RFImplementationDialog::RFImplementationDialog(
 
 
     // Set text field validators.
-    FindWindow(ID_NAME)->SetValidator(wxTextValidator(wxFILTER_ASCII, &name_));
+    FindWindow(ID_NAME)->SetValidator(
+        wxTextValidator(wxFILTER_ASCII, &name_));
     FindWindow(ID_CLK_PORT)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &clkPort_));
     FindWindow(ID_RESET_PORT)->SetValidator(
@@ -151,6 +157,9 @@ RFImplementationDialog::update() {
         wxString fileName = WxConversion::toWxString(
             implementation_.file(i).pathToFile());
         sourceList_->InsertItem(i, fileName);
+    }
+    if (implementation_.implementationFileCount() != 0) {
+        sourceList_->SetColumnWidth(0, wxLIST_AUTOSIZE);
     }
 
     wxListEvent dummy;
@@ -254,7 +263,8 @@ RFImplementationDialog::selectedPort() {
 /**
  * Event handler for the add source file button.
  *
- * Opens a source file dialog for adding a new implementation file to the list.
+ * Opens a source file dialog for adding a new implementation file 
+ * to the list.
  */
 void
 RFImplementationDialog::onAddSourceFile(wxCommandEvent&) {
@@ -293,6 +303,102 @@ RFImplementationDialog::onDeleteSourceFile(wxCommandEvent&) {
     update();
 }
 
+/**
+ * Event handler for the move source file up button.
+ *
+ * Moves the selected source file up on the files list.
+ */
+void
+RFImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
+
+    if (implementation_.implementationFileCount() > 1) {
+        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::vector<std::string> pathToFileList;
+        int originalImplementationFileCount = 
+            implementation_.implementationFileCount();
+
+        for (int i = 0; i < originalImplementationFileCount; i++) {
+            HDB::BlockImplementationFile& file = implementation_.file(0);
+            pathToFileList.push_back(file.pathToFile());
+            implementation_.removeImplementationFile(file);
+        }
+        
+        for (int i = 1; i < pathToFileList.size(); i++) {
+            if (pathToFileList.at(i) == fileName) {
+                pathToFileList.erase(pathToFileList.begin() + i);
+                pathToFileList.insert(
+                    pathToFileList.begin() + i - 1, fileName);
+                break;
+            }
+        }
+        
+        for (int i = 0; i < pathToFileList.size(); i++) {
+            BlockImplementationFile* file =
+                new BlockImplementationFile(pathToFileList.at(i), 
+                                            BlockImplementationFile::VHDL);
+            implementation_.addImplementationFile(file);
+        }
+        
+        pathToFileList.clear();
+        update();
+
+        for (int i = 0; i < implementation_.implementationFileCount(); i++) {
+            if (implementation_.file(i).pathToFile() == fileName) {
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
+                                          wxLIST_STATE_SELECTED);
+            }
+        }
+    }
+}
+
+/**
+ * Event handler for the move source file down button.
+ *
+ * Moves the selected source file down on the files list.
+ */
+void
+RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
+    if (implementation_.implementationFileCount() > 1) {
+        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::vector<std::string> pathToFileList;
+        
+        int originalImplementationFileCount = 
+            implementation_.implementationFileCount();
+        
+        for (int i = 0; i < originalImplementationFileCount; i++) {
+            HDB::BlockImplementationFile& file = implementation_.file(0);
+            pathToFileList.push_back(file.pathToFile());
+            implementation_.removeImplementationFile(file);
+        }
+        
+        for (int i = 0; i < (pathToFileList.size() - 1); i++) {
+            if (pathToFileList.at(i) == fileName) {
+                pathToFileList.erase(pathToFileList.begin() + i);
+                pathToFileList.insert(
+                    pathToFileList.begin() + i + 1, fileName);
+                break;
+            }
+        }
+                
+        for (int i = 0; i < pathToFileList.size(); i++) {
+            BlockImplementationFile* file =
+                new BlockImplementationFile(pathToFileList.at(i), 
+                                            BlockImplementationFile::VHDL);
+            implementation_.addImplementationFile(file);
+        }
+        
+        pathToFileList.clear();
+        update();
+
+        for (int i = 0; i < implementation_.implementationFileCount(); i++) {
+            if (implementation_.file(i).pathToFile() == fileName) {
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
+                                          wxLIST_STATE_SELECTED);
+            }
+        }
+    }
+}
+
 
 /**
  * Event handler for the source file list selection changes.
@@ -303,8 +409,12 @@ void
 RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
     if (WidgetTools::lcStringSelection(sourceList_, 0)  == "") {
         FindWindow(ID_DELETE_SOURCE)->Disable();
+        FindWindow(ID_MOVE_SOURCE_UP)->Disable();
+        FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
     } else {
         FindWindow(ID_DELETE_SOURCE)->Enable();
+        FindWindow(ID_MOVE_SOURCE_UP)->Enable();
+        FindWindow(ID_MOVE_SOURCE_DOWN)->Enable();
     }
 }
 
@@ -431,18 +541,32 @@ RFImplementationDialog::createContents(
     wxStaticBox *item26 = new wxStaticBox( parent, -1, wxT("Source files:") );
     wxStaticBoxSizer *item25 = new wxStaticBoxSizer( item26, wxVERTICAL );
 
-    wxListCtrl *item27 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(220,160), wxLC_REPORT|wxSUNKEN_BORDER );
-    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxFlexGridSizer *item27_1 = new wxFlexGridSizer( 2, 0, 0 );
+
+    wxListCtrl *item27 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(300, 150), wxLC_REPORT|wxSUNKEN_BORDER );
+    item27_1->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item27_2 = new wxBoxSizer( wxVERTICAL );
+    
+    wxButton *item60 = new wxButton( parent, ID_MOVE_SOURCE_UP, wxT("‚ñ¥"), wxDefaultPosition, wxSize(20, 20), 0 );
+    item27_2->Add( item60, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item61 = new wxButton( parent, ID_MOVE_SOURCE_DOWN, wxT("‚ñæ"), wxDefaultPosition, wxSize(20, 20), 0 );
+    item27_2->Add( item61, 0, wxALIGN_CENTER|wxALL, 5 );
+    
+    item27_1->Add( item27_2, 0, wxALIGN_RIGHT|wxALIGN_CENTER, 5 );
+
+    item25->Add( item27_1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item29 = new wxButton( parent, ID_ADD_SOURCE, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item30 = new wxButton( parent, ID_DELETE_SOURCE, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item25->Add( item28, 0, wxALIGN_CENTER, 5 );
+    item25->Add( item28, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 5 );
 
     item17->Add( item25, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
