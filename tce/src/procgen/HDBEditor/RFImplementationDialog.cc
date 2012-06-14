@@ -323,7 +323,7 @@ RFImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 1; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 1; i < pathToFileList.size(); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
                 pathToFileList.insert(
@@ -332,7 +332,7 @@ RFImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
             }
         }
         
-        for (int i = 0; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);
@@ -371,7 +371,7 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 0; i < (pathToFileList.size() - 1); i++) {
+        for (unsigned int i = 0; i < (pathToFileList.size() - 1); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
                 pathToFileList.insert(
@@ -380,7 +380,7 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
             }
         }
                 
-        for (int i = 0; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);

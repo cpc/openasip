@@ -1,4 +1,4 @@
- /*
+/*
     Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
@@ -787,7 +787,7 @@ FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 1; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 1; i < pathToFileList.size(); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
                 pathToFileList.insert(
@@ -796,7 +796,7 @@ FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
             }
         }
         
-        for (int i = 0; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);
@@ -836,7 +836,7 @@ FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 0; i < (pathToFileList.size() - 1); i++) {
+        for (unsigned int i = 0; i < (pathToFileList.size() - 1); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
                 pathToFileList.insert(
@@ -845,7 +845,7 @@ FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
             }
         }
                 
-        for(int i = 0; i < pathToFileList.size(); i++) {
+        for(unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);
