@@ -214,7 +214,23 @@ private:
         readOptionalParameter(AddressSpacesPN_, addressSpaces_);        
     }
 
+    typedef std::set<TTAMachine::Guard*, TTAMachine::MachinePart::Comparator>
+    GuardSet;
     
+    GuardSet
+    findGuards(TTAMachine::Machine* mach) {
+        GuardSet guards;
+        
+        const TTAMachine::Machine::BusNavigator& busNav = 
+            mach->busNavigator();
+        
+        for (int k = 0; k < busNav.count(); k++) {
+            for (int j = 0; j < busNav.item(k)->guardCount(); j++) {
+                guards.insert(busNav.item(k)->guard(j));
+            }
+        }
+        return guards;
+    }
     /**
      * Copies node.adf to the final machine nodeCount times.
      *
@@ -225,31 +241,45 @@ private:
         TTAMachine::Machine* nodeMach,                
         TTAMachine::Machine* extraMach,          
         unsigned nodeCount) {
-
+        
         std::map<Bus*, std::pair<Bus*, int> > busMapping;
         // Order is important here!
         // When adding busses also socket will be created
         // and the RF and FU ports will be connected to them when adding.
+
+        // find guards that have come from extras
+        GuardSet extrasGuards = findGuards(finalMach);
+
         renameExtraUnits(finalMach);
         addAddressSpaces(finalMach, nodeMach);
         addAddressSpaces(finalMach, extraMach);                        
         addBuses(finalMach, nodeMach, nodeCount, busMapping);
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
-        connectRegisterFiles(finalMach, nodeMach, extraMach, nodeCount);
-        addGuardsToBuses(busMapping);
+        connectRegisterFiles(
+            finalMach, nodeMach, extraMach, nodeCount, extrasGuards);
+        addGuardsToBuses(busMapping, extrasGuards);
     }
 
-    void addGuardsToBuses(std::map<Bus*, std::pair<Bus*, int> >& busMapping) {
+    void 
+    addGuardsToBuses(std::map<Bus*, std::pair<Bus*, int> >& busMapping,
+                     GuardSet& extrasGuards) {
         for (std::map<Bus*, std::pair<Bus*, int> >::iterator i =
                  busMapping.begin(); i != busMapping.end(); i++) {
             TCEString nodeNamePrefix = "L_";
             nodeNamePrefix << i->second.second << "_";
-
+            
             copyGuards(*(i->second.first), *(i->first), nodeNamePrefix);
+            
+            for (GuardSet::iterator j = extrasGuards.begin();
+                 j != extrasGuards.end(); j++) {
+                if (!i->first->hasGuard(**j)) {
+                    (*j)->copyTo(*i->first);
+                }
+            }
         }
     }
-
+    
 
     /**
      * Adds buses and sockets to the machine
@@ -484,7 +514,9 @@ private:
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach, 
         TTAMachine::Machine* extraMach,
-        unsigned nodeCount) {
+        unsigned nodeCount,
+        std::set<TTAMachine::Guard*, TTAMachine::MachinePart::Comparator>
+        extrasGuards) {
         
         const TTAMachine::Machine::RegisterFileNavigator& nodeNav =
             nodeMach->registerFileNavigator();
@@ -496,21 +528,7 @@ private:
             extraMach->busNavigator();
         const TTAMachine::Machine::BusNavigator& finalBusNav = 
             finalMach->busNavigator();
-            
-        std::vector <TTAMachine::Guard*> guards;
-        for (int k = 0; k < busNav.count(); k++) {
-            for (int j = 0; j < busNav.item(k)->guardCount(); j++) {
-                bool duplicit = false;
-                for (unsigned int i = 0; i < guards.size(); i++) {
-                    if (guards[i]->isEqual(*finalBusNav.item(k)->guard(j))) {
-                        duplicit = true;
-                    }
-                }
-                if (duplicit == false) {
-                    guards.push_back(finalBusNav.item(k)->guard(j));
-                }
-            }
-        }
+
         for (int i = 0; i < nodeNav.count(); i++) {
             TCEString rfName = nodeNav.item(i)->name();            
             // Connect register file between neighbouring node
@@ -527,8 +545,11 @@ private:
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
 
                 // Copy guards from extras to neighbour connection buses.
-                for (unsigned int j = 0; j < guards.size(); j++) {
-                    guards[j]->copyTo(*newBus);
+                for (GuardSet::iterator j = extrasGuards.begin();
+                     j != extrasGuards.end(); j++) {
+                    if (!newBus->hasGuard(**j)) {
+                        (*j)->copyTo(*newBus);
+                    }
                 }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, secondRF, newBus, secondName);                
@@ -551,8 +572,11 @@ private:
                 int width = std::max(firstRF->width(), extraRF->width());
                 TCEString busName = "connect_" + extraName + "_" + firstName;
                 TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
-                for (unsigned int j = 0; j < guards.size(); j++) {
-                    guards[j]->copyTo(*newBus);
+                for (GuardSet::iterator j = extrasGuards.begin();
+                     j != extrasGuards.end(); j++) {
+                    if (!newBus->hasGuard(**j)) {
+                        (*j)->copyTo(*newBus);
+                    }
                 }
                 createPortsAndSockets(finalMach, firstRF, newBus, firstName);
                 createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
@@ -562,8 +586,11 @@ private:
                     width = std::max(lastRF->width(), extraRF->width());
                     busName = "connect_" + extraName + "_" + lastName;
                     newBus = createBus(finalMach, busName, width);
-                    for (unsigned int j = 0; j < guards.size(); j++) {
-                        guards[j]->copyTo(*newBus);
+                    for (GuardSet::iterator j = extrasGuards.begin(); 
+                         j != extrasGuards.end(); j++) {
+                        if (!newBus->hasGuard(**j)) {
+                            (*j)->copyTo(*newBus);
+                        }
                     }                
                     createPortsAndSockets(finalMach, lastRF, newBus, lastName);
                     createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
