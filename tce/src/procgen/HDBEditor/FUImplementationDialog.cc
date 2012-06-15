@@ -1,4 +1,4 @@
- /*
+/*
     Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
@@ -97,9 +97,11 @@ BEGIN_EVENT_TABLE(FUImplementationDialog, wxDialog)
         ID_ARCH_PORT_LIST, FUImplementationDialog::onArchPortSelection)
 
     EVT_LIST_ITEM_SELECTED(
-        ID_EXTERNAL_PORT_LIST, FUImplementationDialog::onExternalPortSelection)
+        ID_EXTERNAL_PORT_LIST, 
+        FUImplementationDialog::onExternalPortSelection)
     EVT_LIST_ITEM_DESELECTED(
-        ID_EXTERNAL_PORT_LIST, FUImplementationDialog::onExternalPortSelection)
+        ID_EXTERNAL_PORT_LIST, 
+        FUImplementationDialog::onExternalPortSelection)
 
     EVT_LIST_ITEM_SELECTED(
         ID_PARAMETER_LIST, FUImplementationDialog::onParameterSelection)
@@ -190,7 +192,8 @@ FUImplementationDialog::FUImplementationDialog(
 
 
     // Set text field validators.
-    FindWindow(ID_NAME)->SetValidator(wxTextValidator(wxFILTER_ASCII, &name_));
+    FindWindow(ID_NAME)->SetValidator(
+        wxTextValidator(wxFILTER_ASCII, &name_));
     FindWindow(ID_OPCODE_PORT)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &opcodePort_));
     FindWindow(ID_CLK_PORT)->SetValidator(
@@ -772,7 +775,8 @@ void
 FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
 
     if (implementation_.implementationFileCount() > 1) {
-        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::string fileName = 
+            WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
         int originalImplementationFileCount = 
             implementation_.implementationFileCount();
@@ -783,15 +787,16 @@ FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 1; i < pathToFileList.size(); i++) {
-            if(pathToFileList.at(i) == fileName) {
+        for (unsigned int i = 1; i < pathToFileList.size(); i++) {
+            if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(pathToFileList.begin() + i - 1, fileName);
+                pathToFileList.insert(
+                    pathToFileList.begin() + i - 1, fileName);
                 break;
             }
         }
         
-        for(int i = 0; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);
@@ -810,10 +815,16 @@ FUImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
     }
 }
 
+/**
+ * Event handler for the move source file down button.
+ *
+ * Moves the selected source file down on the files list.
+ */
 void
 FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
     if (implementation_.implementationFileCount() > 1) {
-        std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
+        std::string fileName = 
+            WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
         
         int originalImplementationFileCount = 
@@ -825,15 +836,16 @@ FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
             implementation_.removeImplementationFile(file);
         }
         
-        for (int i = 0; i < (pathToFileList.size() - 1); i++) {
+        for (unsigned int i = 0; i < (pathToFileList.size() - 1); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(pathToFileList.begin() + i + 1, fileName);
+                pathToFileList.insert(
+                    pathToFileList.begin() + i + 1, fileName);
                 break;
             }
         }
                 
-        for(int i = 0; i < pathToFileList.size(); i++) {
+        for (unsigned int i = 0; i < pathToFileList.size(); i++) {
             BlockImplementationFile* file =
                 new BlockImplementationFile(pathToFileList.at(i), 
                                             BlockImplementationFile::VHDL);
@@ -855,7 +867,8 @@ FUImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
 /**
  * Event handler for the source file list selection changes.
  *
- * Updates delete source file and move up/down buttons enabled/disabled states.
+ * Updates delete source file and move up/down buttons enabled/disabled 
+ * states.
  */
 void
 FUImplementationDialog::onSourceFileSelection(wxListEvent&) {
@@ -995,7 +1008,7 @@ FUImplementationDialog::createContents(
 
     wxFlexGridSizer *item17_1 = new wxFlexGridSizer( 2, 0, 0 );
 
-    wxListCtrl *item17 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(250,140), wxLC_REPORT|wxSUNKEN_BORDER );
+    wxListCtrl *item17 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(300,150), wxLC_REPORT|wxSUNKEN_BORDER );
     item17_1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item17_3 = new wxBoxSizer( wxVERTICAL );
