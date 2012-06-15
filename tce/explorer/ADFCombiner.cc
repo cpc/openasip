@@ -524,10 +524,6 @@ private:
             finalMach->registerFileNavigator();
         const TTAMachine::Machine::RegisterFileNavigator& extraNav =
             extraMach->registerFileNavigator();
-        const TTAMachine::Machine::BusNavigator& busNav = 
-            extraMach->busNavigator();
-        const TTAMachine::Machine::BusNavigator& finalBusNav = 
-            finalMach->busNavigator();
 
         for (int i = 0; i < nodeNav.count(); i++) {
             TCEString rfName = nodeNav.item(i)->name();            
