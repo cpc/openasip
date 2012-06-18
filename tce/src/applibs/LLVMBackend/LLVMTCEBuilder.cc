@@ -1113,7 +1113,7 @@ LLVMTCEBuilder::emitInstruction(
     }	
 
     if (opc == TargetOpcode::KILL) {
-        return false;
+        return NULL;
     }
 
     std::string opName = "";
