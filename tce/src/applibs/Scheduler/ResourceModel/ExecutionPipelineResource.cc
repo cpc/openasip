@@ -1524,6 +1524,7 @@ void
 ExecutionPipelineResource::clear() {
     SchedulingResource::clear();
     fuExecutionPipeline_.clear();
+    fuExecutionPipeline_.resize(0);
     resultWriten_.clear();
     resultRead_.clear();
     operandsWriten_.clear();
