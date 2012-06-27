@@ -1,0 +1,3 @@
+!output float
+minf 10.f 5.f
+minf 4.f 8.f

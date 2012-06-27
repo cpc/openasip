@@ -28,33 +28,35 @@ use IEEE.std_logic_1164.all;
 -- is copy-pasted from a FU in the included asic hdb,
 -- so as to get the control part right.
 
-package halffloat_compare_opcodes is
-  constant OPC_ABSH  : std_logic_vector(2 downto 0) := "000";
-  constant OPC_EQH  : std_logic_vector(2 downto 0) := "001";
-  constant OPC_GEH  : std_logic_vector(2 downto 0) := "010";
-  constant OPC_GTH  : std_logic_vector(2 downto 0) := "011";
-  constant OPC_LEH  : std_logic_vector(2 downto 0) := "100";
-  constant OPC_LTH  : std_logic_vector(2 downto 0) := "101";
-  constant OPC_NEGH  : std_logic_vector(2 downto 0) := "110";
-  constant OPC_NEH  : std_logic_vector(2 downto 0) := "111";
-end halffloat_compare_opcodes;
+package float_compare_minmax_opcodes is
+  constant OPC_ABSF  : std_logic_vector(3 downto 0) := "0000";
+  constant OPC_EQF  : std_logic_vector(3 downto 0) := "0001";
+  constant OPC_GEF  : std_logic_vector(3 downto 0) := "0010";
+  constant OPC_GTF  : std_logic_vector(3 downto 0) := "0011";
+  constant OPC_LEF  : std_logic_vector(3 downto 0) := "0100";
+  constant OPC_LTF  : std_logic_vector(3 downto 0) := "0101";
+  constant OPC_MAXF  : std_logic_vector(3 downto 0) := "0110";
+  constant OPC_MINF  : std_logic_vector(3 downto 0) := "0111";
+  constant OPC_NEF  : std_logic_vector(3 downto 0) := "1000";
+  constant OPC_NEGF  : std_logic_vector(3 downto 0) := "1001";
+end float_compare_minmax_opcodes;
 
 
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.halffloat_compare_opcodes.all;
+use work.float_compare_minmax_opcodes.all;
 
-entity fpu_hp_compare is
+entity fpu_sp_compare_minmax is
   
   generic (
-    busw : integer := 16;
-    mw   : integer := 10;
-    ew   : integer := 5);
+    busw : integer := 32;
+    mw   : integer := 23;
+    ew   : integer := 8);
 
   port (
     t1data   : in  std_logic_vector(busw-1 downto 0);
-    t1opcode : in  std_logic_vector(2 downto 0);
+    t1opcode : in  std_logic_vector(3 downto 0);
     t1load   : in  std_logic;
 
     o1data   : in  std_logic_vector(busw-1 downto 0);
@@ -66,14 +68,14 @@ entity fpu_hp_compare is
     rstx     : in  std_logic;
     glock    : in  std_logic
     );
-end fpu_hp_compare;
+end fpu_sp_compare_minmax;
 
 
-architecture rtl of fpu_hp_compare is
+architecture rtl of fpu_sp_compare_minmax is
 
 
   signal t1reg   : std_logic_vector (busw-1 downto 0);
-  signal opc1reg : std_logic_vector (2 downto 0);
+  signal opc1reg : std_logic_vector (3 downto 0);
   signal o1reg   : std_logic_vector (busw-1 downto 0);
   signal o1temp  : std_logic_vector (busw-1 downto 0);
   signal r1      : std_logic_vector (busw-1 downto 0);
@@ -102,13 +104,13 @@ begin
             o1reg   <= o1data;
             o1temp  <= o1data;
             t1reg   <= t1data;
-            opc1reg <= t1opcode(2 downto 0);
+            opc1reg <= t1opcode(3 downto 0);
           when "10" =>
             o1temp <= o1data;
           when "01" =>
             o1reg   <= o1temp;
             t1reg   <= t1data;
-            opc1reg <= t1opcode(2 downto 0);
+            opc1reg <= t1opcode(3 downto 0);
           when others => null;
         end case;
       end if;
@@ -166,30 +168,40 @@ begin
   COMPARE_LOGIC : process( o1reg, t1reg, opc1reg, eq, gt )
   begin
     case opc1reg is 
-      when OPC_ABSH =>
-        r1( busw-1 downto mw+ew+1 ) <= (others=>'0');
+      when OPC_ABSF =>
         r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
         r1( mw+ew ) <= '0';
-      when OPC_NEGH =>
-        r1( busw-1 downto mw+ew+1 ) <= (others=>'0');
+      when OPC_NEGF =>
         r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
         r1( mw+ew ) <= not t1reg( mw+ew );
-      when OPC_EQH =>
+      when OPC_MINF =>
+        if gt = '0' then
+          r1 <= t1reg;
+        else
+          r1 <= o1reg;
+        end if;
+      when OPC_MAXF =>
+        if gt = '0' then
+          r1 <= o1reg;
+        else
+          r1 <= t1reg;
+        end if;
+      when OPC_EQF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= eq;
-      when OPC_NEH =>
+      when OPC_NEF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= not eq;
-      when OPC_LTH =>
+      when OPC_LTF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= not (eq or gt);
-      when OPC_LEH =>
+      when OPC_LEF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= not gt;
-      when OPC_GTH =>
+      when OPC_GTF =>
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= gt;
-      when others => -- OPC_GEH
+      when others => -- OPC_GEF
         r1( busw-1 downto 1 ) <= (others=>'0');
         r1( 0 ) <= eq or gt;
       --when others => 

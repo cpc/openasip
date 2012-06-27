@@ -22,32 +22,42 @@
     <fu-id>16</fu-id>
   </fu>
 
-  <fu name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <fu-id>380</fu-id>
-  </fu>
-
   <fu name="stdout">
     <hdb-file>./custom.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 
-  <fu name="macf_msuf_addf_mulf_subf">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
-    <fu-id>23</fu-id>
+  <fu name="abs_and_ior_xor">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>345</fu-id>
   </fu>
 
-  <fu name="absf_negf_eqf_nef_ltf_lef_gef_gtf_minf_maxf">
+  <fu name="sxhw">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="sxqw">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>83</fu-id>
+  </fu>
+
+  <fu name="shl_shr_shru">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>46</fu-id>
+  </fu>
+
+  <fu name="eq_gt_gtu">
+    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>37</fu-id>
+  </fu>
+
+  <fu name="macf_addf_subf_mulf_eqf_shr_shl_gtf_ltf_add_mul_mac_sub_eq_gt_lt">
     <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
-    <fu-id>29</fu-id>
+    <fu-id>30</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>958</rf-id>
-  </rf>
-
-  <rf name="RF_1">
     <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>
   </rf>

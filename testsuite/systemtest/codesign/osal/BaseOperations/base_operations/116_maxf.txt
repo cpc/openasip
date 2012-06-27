@@ -1,0 +1,3 @@
+!output float
+maxf 5.f 10.f
+maxf 8.f 4.f

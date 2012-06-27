@@ -49,6 +49,7 @@ main(void) {
     float df;
     } uni;
     
+    
     // *
     // * Generic tests. These should succeed with f.ex. half-floats even if the others fail.
     // *
@@ -56,6 +57,13 @@ main(void) {
     _TCE_STDOUT('1'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
+    
+    
+    i = 312;
+    a = (float)i;
+    i = 13;
+    b = (float)i;
+    
     
     i = 13;
     a = (float)i;
@@ -87,6 +95,9 @@ main(void) {
     a = 12.f;
     _TCE_CFI( a, i );
     test( i == 12 );
+    a = 12.f;
+    _TCE_CFI( a, i );
+    test( i != 13 );
     
     a = -12.f;
     _TCE_CFI( a, i );
@@ -110,12 +121,20 @@ main(void) {
     _TCE_CFIU( c, ui );
     test( ui == 0x80000000 );
     
+    c = -2.f; // Negative float -> unsigned int = zero
+    // TODO is this correct IEEE behavior?
+    ui = (unsigned int)c;
+    // Undefined!
+    //test( ui == 0 );
+    
+    
+#if 0
     
     // *
     // * ABSF, NEGF tests
     // *
     _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('3'); 
+    _TCE_STDOUT('4'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     a=-2.f;
@@ -132,7 +151,7 @@ main(void) {
     
     a = -b;
     test( a == -2.f );
-    
+#endif  
     
     // *
     // * Adder tests
@@ -140,7 +159,7 @@ main(void) {
   
     //_TCE_STDOUT('\n'); 
     _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('4'); 
+    _TCE_STDOUT('3'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     
@@ -189,7 +208,7 @@ main(void) {
     // * Comparator tests
     // *
     _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('5'); 
+    _TCE_STDOUT('4'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     
@@ -204,10 +223,12 @@ main(void) {
     test( !i );
     
     //NEF
+#if 0
     _TCE_NEF( a, b, i );
     test( i );
     _TCE_NEF( b, c, i );
     test( !i );
+#endif
     
     //LTF
     _TCE_LTF( a, b, i );
@@ -220,7 +241,7 @@ main(void) {
     test( i );
     _TCE_GTF( a, b, i );
     test( !i );
-    
+#if 0
     //GEF
     _TCE_GEF( b, c, i );
     test( i );
@@ -232,6 +253,7 @@ main(void) {
     test( i ); 
     _TCE_LEF( c, a, i );
     test( !i ); 
+#endif
     
     a=2.f;
     b=4.f;    
@@ -243,7 +265,7 @@ main(void) {
     // * Multiplier tests
     // *
     _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('6'); 
+    _TCE_STDOUT('5'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     
@@ -284,14 +306,15 @@ main(void) {
     b=0.5f;
     _TCE_MULF( uni.df, b, uni.df );
     //test( uni.df == 0.f );
-    
+  
     
     // * 
     // * Multiply-accumulate tests
     // *
     
+    
     _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('7'); 
+    _TCE_STDOUT('6'); 
     _TCE_STDOUT(':'); 
     _TCE_STDOUT(' '); 
     float d_;
@@ -302,9 +325,9 @@ main(void) {
     
     test( d_ == 610.f );
     
-    _TCE_MSUF( a, b, c, d_ );
+    //_TCE_MSUF( a, b, c, d_ );
     
-    test( d_ == -590.f );
+    //test( d_ == -590.f );
     
     a = 10.f, b = 10.f, c = 10.f;
     
@@ -312,39 +335,11 @@ main(void) {
     
     test( d_ == 110.f );
     
-    _TCE_MSUF( a, b, c, d_ );
+    //_TCE_MSUF( a, b, c, d_ );
     
-    test( d_ == -90.f );
+    //test( d_ == -90.f );
     
     
-    // *
-    // * Minmax tests
-    // *
-    _TCE_STDOUT('\n'); 
-    _TCE_STDOUT('8'); 
-    _TCE_STDOUT(':'); 
-    _TCE_STDOUT(' '); 
-    
-    a=2.f;
-    b=4.f;
-    _TCE_MAXF( a, b, c );
-    test( b == c );
-    _TCE_MAXF( b, a, c );
-    test( b == c );
-    _TCE_MINF( a, b, c );
-    test( a == c );
-    _TCE_MINF( b, a, c );
-    test( a == c );
-    a=-4.f;
-    b=5.f;
-    _TCE_MAXF( a, b, c );
-    test( b == c );
-    _TCE_MAXF( b, a, c );
-    test( b == c );
-    _TCE_MINF( a, b, c );
-    test( a == c );
-    _TCE_MINF( b, a, c );
-    test( a == c );
     
     _TCE_STDOUT('\n'); 
     

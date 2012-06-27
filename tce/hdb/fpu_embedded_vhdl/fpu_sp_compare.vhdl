@@ -152,10 +152,10 @@ begin
     --  eq <= '1';
     --els
     if( signa = '0' and signb = '1' ) then
-      gt <= '0';
+      gt <= '1';
       eq <= '0';
     elsif( signa = '1' and signb = '0' ) then
-      gt <= '1';
+      gt <= '0';
       eq <= '0';
     elsif( signa = '1' and signb = '1' ) then
       gt <= not absgt;
