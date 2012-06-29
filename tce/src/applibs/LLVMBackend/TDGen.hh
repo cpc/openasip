@@ -134,12 +134,13 @@ protected:
     void writeVectorRegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o, int width);
 
-    void writeOperationDefs(std::ostream& o, Operation& op);
+    void writeOperationDefs(std::ostream& o, Operation& op, bool skipPattern);
 
     void writeOperationDef(
         std::ostream& o, Operation& op, 
         const std::string& operandTypes,
         const std::string& attrs,
+        bool skipPattern,
         std::string backendPrefix = "");
 
     std::string emulatingOpNodeLLVMName(
@@ -205,6 +206,7 @@ throw (InvalidData);
         std::ostream& o, Operation& op, 
         const std::string& operandTypes,
         const std::string& attrs,
+        bool skipPattern,
         std::string backendPrefix = "");
 
   void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
@@ -217,6 +219,8 @@ throw (InvalidData);
 
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
+
+    void createMinMaxGenerator(std::ostream& os);
 
     void generateLoadStoreCopyGenerator(std::ostream& os);
 

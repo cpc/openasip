@@ -1,0 +1,1 @@
+test min and max instructions

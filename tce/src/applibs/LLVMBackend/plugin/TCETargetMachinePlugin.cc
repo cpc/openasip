@@ -111,6 +111,11 @@ public:
     virtual int getLoad(const TargetRegisterClass *rc) const;
     virtual int getStore(const TargetRegisterClass *rc) const;
 
+    virtual int getMinOpcode(llvm::SDNode* n) const;
+    virtual int getMaxOpcode(llvm::SDNode* n) const;
+    virtual int getMinuOpcode(llvm::SDNode* n) const;
+    virtual int getMaxuOpcode(llvm::SDNode* n) const;
+
     virtual const llvm::TargetRegisterClass* extrasRegClass(
         const llvm::TargetRegisterClass* current) const;
     virtual const llvm::TargetRegisterClass* nodeRegClass(

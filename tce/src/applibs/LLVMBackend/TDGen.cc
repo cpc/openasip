@@ -1009,6 +1009,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             requiredOps.erase(r);
         }
         Operation& op = opPool.operation((*iter).c_str());
+        bool skipPattern = false;
 
         if (&op == &NullOperation::instance()) {
             continue;
@@ -1033,23 +1034,28 @@ TDGen::writeInstrInfo(std::ostream& os) {
         // TODO: Allow multioutput (remove last or)
         if (!operationCanBeMatched(op)) {
             
+            // TODO: write opeation def without graphs
             if (&op != &NullOperation::instance()) {
+                skipPattern = true;
                 if (Application::verboseLevel() > 0) {
                     Application::logStream() 
-                        << "Skipped writing operation definition for " 
+                        << "Skipped writing operation pattern for " 
                         << op.name() << std::endl;
                 }
+            } else {
+                // NULL op - ignore
+                continue;
             }
-            continue;
         }
         
         // TODO: remove this. For now MIMO operation patterns are not 
         // supported by tablegen.
         if (op.numberOfOutputs() > 1) {
+            skipPattern = true;
             continue;
         }
 
-        writeOperationDefs(os, op);
+        writeOperationDefs(os, op, skipPattern);
     }
     
 
@@ -1258,6 +1264,7 @@ TDGen::writeBackendCode(std::ostream& o) {
       << maxVectorSize_ << "; }" << std::endl;
 
     generateLoadStoreCopyGenerator(o);
+    createMinMaxGenerator(o);
 }
 
 /**
@@ -1318,7 +1325,8 @@ TDGen::writeTopLevelTD(std::ostream& o) {
 void
 TDGen::writeOperationDefs(
     std::ostream& o,
-    Operation& op) {
+    Operation& op,
+    bool skipPattern) {
 
     std::string attrs;
 
@@ -1342,10 +1350,10 @@ TDGen::writeOperationDefs(
 
     // no bool outs for some operatios
     if (op.name() == "CFI" || op.name() == "CFIU") {
-        writeOperationDef(o, op, "rf", attrs);
-        writeOperationDef(o, op, "vm", attrs, "_VECTOR_2_");
-        writeOperationDef(o, op, "wn", attrs, "_VECTOR_4_");
-        writeOperationDef(o, op, "xo", attrs, "_VECTOR_8_");
+        writeOperationDef(o, op, "rf", attrs, skipPattern);
+        writeOperationDef(o, op, "vm", attrs, skipPattern, "_VECTOR_2_");
+        writeOperationDef(o, op, "wn", attrs, skipPattern, "_VECTOR_4_");
+        writeOperationDef(o, op, "xo", attrs, skipPattern, "_VECTOR_8_");
 
         return;
     }
@@ -1353,19 +1361,19 @@ TDGen::writeOperationDefs(
     // rotations are allways n x n -> n bits.
     if (op.name() == "ROTL" || op.name() == "ROTR" ||
         op.name() == "SHL" || op.name() == "SHR" || op.name() == "SHRU") {
-        writeOperationDefs(o, op, "rrr", attrs);
+        writeOperationDefs(o, op, "rrr", attrs, skipPattern);
 
-        writeOperationDef(o, op, "vvv", attrs, "_VECTOR_2_");
-        writeOperationDef(o, op, "www", attrs, "_VECTOR_4_");
-        writeOperationDef(o, op, "xxx", attrs, "_VECTOR_8_");
+        writeOperationDef(o, op, "vvv", attrs, skipPattern, "_VECTOR_2_");
+        writeOperationDef(o, op, "www", attrs, skipPattern, "_VECTOR_4_");
+        writeOperationDef(o, op, "xxx", attrs, skipPattern, "_VECTOR_8_");
         return;
     }
 
     if (op.name() == "SXHW" || op.name() == "SXQW") {
-        writeOperationDef(o, op, "rr", attrs);
-        writeOperationDef(o, op, "vv", attrs, "_VECTOR_2_");
-        writeOperationDef(o, op, "ww", attrs, "_VECTOR_4_");
-        writeOperationDef(o, op, "xx", attrs, "_VECTOR_8_");
+        writeOperationDef(o, op, "rr", attrs, skipPattern);
+        writeOperationDef(o, op, "vv", attrs, skipPattern, "_VECTOR_2_");
+        writeOperationDef(o, op, "ww", attrs, skipPattern, "_VECTOR_4_");
+        writeOperationDef(o, op, "xx", attrs, skipPattern, "_VECTOR_8_");
         return;
     }
 
@@ -1373,7 +1381,7 @@ TDGen::writeOperationDefs(
     if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "AND" ||
         op.name() == "ANDN" || op.name() == "ADD" || op.name() == "SUB") {
         
-        writeOperationDefs(o, op, "bbb", attrs);
+        writeOperationDefs(o, op, "bbb", attrs, skipPattern);
     }
 
     // store likes this. store immediate to immediate address
@@ -1385,7 +1393,7 @@ TDGen::writeOperationDefs(
              operand1.type() == Operand::SINT_WORD) &&
            (operand2.type() == Operand::UINT_WORD || 
             operand2.type() == Operand::SINT_WORD)) {
-            writeOperationDef(o, op, "ii", attrs);
+            writeOperationDef(o, op, "ii", attrs, skipPattern);
         }
     }
 
@@ -1396,7 +1404,7 @@ TDGen::writeOperationDefs(
     // TODO: this should be 2^n loop instead of n loop, to get
     // all permutations.
 
-    writeOperationDefs(o, op, operandTypes, attrs);
+    writeOperationDefs(o, op, operandTypes, attrs, skipPattern);
 
     // then with boolean outs, and vector versions.
     if (op.numberOfOutputs() == 1 && !op.readsMemory()) {
@@ -1406,7 +1414,7 @@ TDGen::writeOperationDefs(
 
             // 32  to 1-bit operations
             operandTypes[0] = 'b';
-            writeOperationDefs(o, op, operandTypes, attrs);
+            writeOperationDefs(o, op, operandTypes, attrs, skipPattern);
         } 
 
         // create vector versions.
@@ -1421,7 +1429,9 @@ TDGen::writeOperationDefs(
                     s[j] = floatChar;
                 }
             }
-            writeOperationDef(o, op, s , attrs, TCEString("_VECTOR_") + Conversion::toString(w) + "_");
+            writeOperationDef(
+                o, op, s , attrs, skipPattern, 
+                TCEString("_VECTOR_") + Conversion::toString(w) + "_");
         }
     }
 }
@@ -1436,10 +1446,10 @@ TDGen::writeOperationDefs(
 void
 TDGen::writeOperationDefs(
     std::ostream& o, Operation& op, const std::string& operandTypes,
-    const std::string& attrs, std::string backendPrefix) {
+    const std::string& attrs, bool skipPattern, std::string backendPrefix) {
 
     // first without imms.
-    writeOperationDef(o, op, operandTypes, attrs, backendPrefix);
+    writeOperationDef(o, op, operandTypes, attrs, skipPattern, backendPrefix);
 
     for (int i = 0; i < op.numberOfInputs(); i++) {
         bool canSwap = false;
@@ -1465,7 +1475,7 @@ TDGen::writeOperationDefs(
             default:
                 continue;
             }
-            writeOperationDef(o, op, opTypes, attrs, backendPrefix);
+            writeOperationDef(o, op, opTypes, attrs, skipPattern, backendPrefix);
         }
     }
 }
@@ -1533,7 +1543,7 @@ void
 TDGen::writeOperationDef(
     std::ostream& o,
     Operation& op, const std::string& operandTypes, const std::string& attrs,
-    std::string backendPrefix) {
+    bool skipPattern, std::string backendPrefix) {
     assert (operandTypes.size() > 0);
 
     
@@ -1543,13 +1553,15 @@ TDGen::writeOperationDef(
 
     asmstr = "\"\"";
     
-    if (llvmOperationPattern(op.name(),'r') != "" || 
-        op.dagCount() == 0) {
-        OperationDAG* trivial = createTrivialDAG(op);
-        pattern = operationPattern(op, *trivial, operandTypes);
-        delete trivial;
-    } else {
-        pattern = operationPattern(op, op.dag(0), operandTypes);
+    if (!skipPattern) {
+        if (llvmOperationPattern(op.name(),'r') != "" || 
+            op.dagCount() == 0) {
+            OperationDAG* trivial = createTrivialDAG(op);
+            pattern = operationPattern(op, *trivial, operandTypes);
+            delete trivial;
+        } else {
+            pattern = operationPattern(op, op.dag(0), operandTypes);
+        }
     }
     
     if (attrs != "") {
@@ -2757,4 +2769,46 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
        << std::endl
        << "} " << std::endl
        << std::endl;
+}
+
+void
+TDGen::createMinMaxGenerator(std::ostream& os) {
+
+    // MIN
+    os  << "int GeneratedTCEPlugin::getMinOpcode(SDNode* n) const {" << std::endl
+        << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+    if (opNames_.find("MINrrr") != opNames_.end()) {
+        os << "if (vt == MVT::i32) return TCE::MINrrr;" << std::endl;
+    }
+    if (opNames_.find("MINFfff") != opNames_.end()) {
+        os << "if (vt == MVT::f32) return TCE::MINFfff;" << std::endl;
+    }
+    os << "\treturn -1; " << std::endl << "}" << std::endl;
+
+    // MAX
+    os  << "int GeneratedTCEPlugin::getMaxOpcode(SDNode* n) const {" << std::endl
+        << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+    if (opNames_.find("MAXrrr") != opNames_.end()) {
+        os << "if (vt == MVT::i32) return TCE::MAXrrr;" << std::endl;
+    }
+    if (opNames_.find("MAXFfff") != opNames_.end()) {
+        os << "if (vt == MVT::f32) return TCE::MAXFfff;" << std::endl;
+    }
+    os << "\treturn -1; " << std::endl << "}" << std::endl;
+    
+    // MINU
+    os  << "int GeneratedTCEPlugin::getMinuOpcode(SDNode* n) const {" << std::endl;
+    if (opNames_.find("MINUrrr") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::i32) return TCE::MINUrrr;" << std::endl;
+    }
+    os << "\treturn -1; " << std::endl << "}" << std::endl;
+
+    // MAXU
+    os  << "int GeneratedTCEPlugin::getMaxuOpcode(SDNode* n) const {" << std::endl;
+    if (opNames_.find("MAXUrrr") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::i32) return TCE::MAXUrrr;" << std::endl;
+    }
+    os << "\treturn -1; " << std::endl << "}" << std::endl;
 }

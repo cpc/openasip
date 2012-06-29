@@ -191,6 +191,22 @@ namespace llvm {
             return plugin_->spDRegNum();
         }
 
+        int getMinOpcode(llvm::SDNode* n) {
+            return plugin_->getMinOpcode(n);
+        }
+
+        int getMinuOpcode(llvm::SDNode* n) {
+            return plugin_->getMinuOpcode(n);
+        }
+
+        int getMaxOpcode(llvm::SDNode* n) {
+            return plugin_->getMaxOpcode(n);
+        }
+
+        int getMaxuOpcode(llvm::SDNode* n) {
+            return plugin_->getMaxuOpcode(n);
+        }
+
         int maxVectorSize() const {
             return plugin_->maxVectorSize();
         }

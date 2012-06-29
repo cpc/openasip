@@ -54,6 +54,8 @@ namespace llvm {
    class TCETargetMachine;
    class TargetRegisterClass;
    class MachineInstr;
+   class SDNode;
+
    class TCETargetMachinePlugin {
     public:
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL) {};
@@ -109,6 +111,12 @@ namespace llvm {
        virtual int maxVectorSize() const = 0;
        /// Plugin needs target machine for TragetLowering generation
        virtual void registerTargetMachine(TCETargetMachine &tm) = 0;
+       // if not found, return -1;
+       virtual int getMinOpcode(llvm::SDNode* n) const = 0;
+       virtual int getMaxOpcode(llvm::SDNode* n) const = 0;
+       virtual int getMinuOpcode(llvm::SDNode* n) const = 0;
+       virtual int getMaxuOpcode(llvm::SDNode* n) const = 0;
+
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
 

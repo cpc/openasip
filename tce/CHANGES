@@ -11,6 +11,11 @@ Usability features
   Move Up/Move Down-buttons for rearranging the (compilation) order
   of the files. Thanks to Antti Häyrinen for this contribution.
 
+Code generator improvements
+---------------------------
+- min, minu, max, maxu, minf, maxf instruction support in codegen.
+  Now the compiler can actually use these instructions.
+  Currently these are used only for scalars, not yet for vectors.(TODO)
 
 1.6         June 2012 
 =====================

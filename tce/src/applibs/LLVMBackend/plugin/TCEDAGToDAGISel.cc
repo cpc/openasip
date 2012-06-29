@@ -66,6 +66,7 @@ public:
 private:
     llvm::TCETargetLowering& lowering_;
     const llvm::TCESubtarget& subtarget_;
+    llvm::TCETargetMachine* tm_;
 
     #include "TCEGenDAGISel.inc"
 };
@@ -76,7 +77,7 @@ private:
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
     SelectionDAGISel(tm), 
     lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())),
-    subtarget_(tm.getSubtarget<TCESubtarget>()) {
+    subtarget_(tm.getSubtarget<TCESubtarget>()), tm_(&tm) {
 }
 
 /**
@@ -147,8 +148,66 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                 TCE::MOVI32ri, dl, MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         }
-    }
+    } else if (n->getOpcode() == ISD::SELECT) {
+        SDValue cond = n->getOperand(0);
+        if (cond.getValueType() == MVT::i1) {
+            SDNode* node2 = dyn_cast<SDNode>(n->getOperand(0));
+            if (node2->getOpcode() == ISD::SETCC) {
+                SDValue val1 = n->getOperand(1);
+                SDValue val2 = n->getOperand(2);
+                
+                SDValue n2val1 = node2->getOperand(0);
+                SDValue n2val2 = node2->getOperand(1);
 
+                if (val1 == n2val1 && val2 == n2val2) {
+                    if (node2->hasOneUse()) {
+                        int opc;
+                        ISD::CondCode cc = cast<CondCodeSDNode>(
+                            node2->getOperand(2))->get();
+                        
+                        switch (cc) {
+                        case ISD::SETLT:
+                        case ISD::SETLE:
+                        case ISD::SETOLT:
+                        case ISD::SETOLE:
+                            opc = tm_->getMinOpcode(n);
+                            if (opc != -1) {
+                                return CurDAG->SelectNodeTo(
+                                    n,opc, MVT::i32, val1, val2);
+                            }
+                            break;
+                        case ISD::SETGT:
+                        case ISD::SETGE:
+                        case ISD::SETOGT:
+                        case ISD::SETOGE: // todo: what is ordered here? nan handling?
+                            opc = tm_->getMaxOpcode(n);
+                            if (opc != -1) {
+                                return CurDAG->SelectNodeTo(
+                                    n, opc, MVT::i32, val1, val2);
+                            }
+                            break;
+                        case ISD::SETULT:
+                        case ISD::SETULE:
+                            opc = tm_->getMinuOpcode(n);
+                            if (opc != -1) {
+                                return CurDAG->SelectNodeTo(
+                                    n, opc, MVT::i32, val1, val2);
+                            }
+                            break;
+                        case ISD::SETUGT:
+                        case ISD::SETUGE:
+                            opc = tm_->getMaxuOpcode(n);
+                            if (opc != -1) {
+                                return CurDAG->SelectNodeTo(
+                                    n, opc, MVT::i32, val1, val2);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
    
     SDNode* res =  SelectCode(n);
     return res;
