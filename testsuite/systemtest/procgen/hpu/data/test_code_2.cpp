@@ -115,6 +115,8 @@ public:
     
     friend half mac( const half& a, const half& b, const half& c );
     friend half msu( const half& a, const half& b, const half& c );
+    friend half max( const half& a, const half& b );
+    friend half min( const half& a, const half& b );
 private:
     int data;
 };
@@ -128,6 +130,19 @@ inline half mac( const half& a, const half& b, const half& c ) {
 inline half msu( const half& a, const half& b, const half& c ) {
     half result;
     _TCE_MSUH( a.data, b.data, c.data, result.data );
+    return result;
+}
+
+
+inline half max( const half& a, const half& b ) {
+    half result;
+    _TCE_MAXH( a.data, b.data, result.data );
+    return result;
+}
+
+inline half min( const half& a, const half& b ) {
+    half result;
+    _TCE_MINH( a.data, b.data, result.data );
     return result;
 }
 
@@ -257,6 +272,29 @@ main() {
     half d = imm2.invsqrt();
     half e = imm1.invsqrt();
     test( (a==c) && (a==e) && (b==d) ); 
+    
+    _TCE_STDOUT('\n');
+    
+    // Max, min
+    
+    _TCE_STDOUT('8'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    
+    a=half(2.f);
+    b=half(4.f);
+    test( max(a,b)==b );
+    test( max(b,a)==b );
+    test( min(a,b)==a );
+    test( min(b,a)==a );
+    
+    a=half(-4.f);
+    b=half(3.f);
+    test( max(a,b)==b );
+    test( max(b,a)==b );
+    test( min(a,b)==a );
+    test( min(b,a)==a );
+    
     _TCE_STDOUT('\n');
 }
                          

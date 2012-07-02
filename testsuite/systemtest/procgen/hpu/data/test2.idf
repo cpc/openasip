@@ -34,7 +34,7 @@
 
   <fu name="absh_negh_eqh_neh_lth_leh_geh_gth">
     <hdb-file>../../../../tce/hdb/fpu_half.hdb</hdb-file>
-    <fu-id>4</fu-id>
+    <fu-id>14</fu-id>
   </fu>
 
   <fu name="cfh_chf">

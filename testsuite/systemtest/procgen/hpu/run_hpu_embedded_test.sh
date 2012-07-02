@@ -13,6 +13,8 @@ TPEF=test_code.tpef
 RUNCYCLES=3000
 RUNTIME=${RUNCYCLES}0
 
+echo "Testing FPUs..."
+
 # Compile program
 $TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.cpp --bottom-up-scheduler || exit 1
 
@@ -36,6 +38,8 @@ eval "./testbench --assert-level=none --vcd=wave.vcd --stop-time=${RUNTIME}ns >&
 
 # Print simulation output
 cat printchar_output.txt
+
+echo "Testing FMA and minf/maxf..."
 
 # Do the same with MAC test
 ADF=data/test2.adf

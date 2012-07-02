@@ -1,0 +1,3 @@
+!output half
+maxh 17664 18688
+maxh 18432 17408
