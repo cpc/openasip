@@ -93,6 +93,14 @@ PreOptimizer::tryToOptimizeAddressReg(
     if (!result.move().destination().isGPR()) {
         return false;
     }
+
+    // do not put addresses to lane RF's
+    const TTAMachine::RegisterFile& rf =
+        result.move().destination().registerFile();
+    if (rf.name().find("L_") == 0) {
+        return false;
+    }
+
     MoveNode* src = NULL;
     // loop thru all inedges find who writes the address.
     for (DataDependenceGraph::EdgeSet::iterator i = iEdges.begin();
