@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -153,7 +153,7 @@ BUBasicBlockScheduler::handleDDG(
     // instructions into the beginning of basic block.    
     endCycle_ = INT_MAX/1000;
     BUMoveNodeSelector selector(ddg, targetMachine);
-
+    
     // register selector to renamer for notfications.
     if (renamer_ != NULL) {
         renamer_->setSelector(&selector);
@@ -312,7 +312,9 @@ BUBasicBlockScheduler::scheduleOperation(
                 bypassLate = false;
             } else {
                 // We will try to schedule results in earlier cycle
-                resultsStartCycle--;                
+                resultsStartCycle--;    
+                bypass = bypass_;
+                bypassLate = false;                                                
             }
                 
             continue;
@@ -345,6 +347,8 @@ BUBasicBlockScheduler::scheduleOperation(
                 resultsStartCycle--;                
                 maxResult--;                
                 resultsStartCycle = std::min(maxResult, resultsStartCycle);                                
+                bypass = bypass_;
+                bypassLate = false;                                                
             }
         }
     }
@@ -438,7 +442,9 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         trigger = findTrigger(po);
         if (trigger != NULL && !trigger->isScheduled()) {
             if (scheduleOperand(*trigger, cycle) == false) {
-                break;
+                cycle--;
+                counter++;
+                continue;
             }
             cycle = trigger->cycle();
 
@@ -554,7 +560,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                     "result move!") % moveNode.toString()).str());
             }
             if (bypass) {
-                int newMaximum = maxResultCycle;
+                int newMaximum = maxResultCycle + bypassDistance_;
                 bypassSuccess = bypassNode(moveNode, newMaximum);                
                 if (newMaximum != maxResultCycle) {
                     localMaximum = 
@@ -587,7 +593,8 @@ BUBasicBlockScheduler::scheduleResultReads(
                     moveNode, moveNode, tempRegLimitCycle);                
                 // If there was temporary result read scheduled, write needs
                 // to be at least one cycle earlier.                    
-                tempRegLimitCycle = std::min(tempRegLimitCycle -1, cycle);                
+                if (test != NULL && test->isScheduled())
+                    tempRegLimitCycle = std::min(test->cycle() -1, cycle);                
             }
             tempRegLimitCycle = 
                 (localMaximum != 0) 
@@ -601,13 +608,14 @@ BUBasicBlockScheduler::scheduleResultReads(
                 return -1;
             }            
             if (bypassLate) {     
-                int newMaximum = moveNode.cycle();
+                int newMaximum = moveNode.cycle() + bypassDistance_;
                 if (bypassNode(moveNode, newMaximum)) {
                     localMaximum = 
                         (localMaximum < newMaximum) ? newMaximum : localMaximum;
+                    localMaximum = (localMaximum > cycle) ? localMaximum : cycle;                        
                     int originalCycle = moveNode.cycle();
                     unschedule(moveNode);
-                    scheduleMove(moveNode, cycle);
+                    scheduleMove(moveNode, localMaximum);
                     if (!moveNode.isScheduled()) {
                         scheduleMove(moveNode, originalCycle);
                     }
@@ -719,7 +727,7 @@ BUBasicBlockScheduler::scheduleMove(
         if (renamer_ != NULL) {
             int latestFromTrigger =
                 (moveNode.isDestinationOperation()) ?
-                    moveNode.latestTriggerWriteCycle() : endCycle_;
+                    moveNode.latestTriggerWriteCycle() : latestCycle;
             int minRenamedEC = std::min(
                 latestFromTrigger, ddg_->latestCycle(
                     moveNode, INT_MAX, true)); // TODO: 0 or INT_MAX
@@ -821,7 +829,7 @@ BUBasicBlockScheduler::scheduleMove(
         }
         return;
     }    
-    /*if (moveNode.isSourceOperation() && !moveNode.isDestinationOperation()) {
+    if (moveNode.isSourceOperation() && !moveNode.isDestinationOperation()) {
         ProgramOperation& po = moveNode.sourceOperation();
         if (po.isAnyOutputAssigned()) {
             // Some of the output moves are already assigned, we try to 
@@ -850,7 +858,7 @@ BUBasicBlockScheduler::scheduleMove(
                 }
             }
         }
-    }*/
+    }
     rm_->assign(minCycle,  moveNode);
 
     if (!moveNode.isScheduled()) {
@@ -947,9 +955,12 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
                 tempMove1->move().destination().index());
         if (firstWrite != NULL && firstWrite->isScheduled())
             firstWriteCycle = firstWrite->cycle();
+        scheduleResultReadTempMoves(*tempMove1, resultRead, firstWriteCycle);   
+        if (tempMove2 != NULL)
+            firstWriteCycle = tempMove2->cycle() -1;        
     }
-    scheduleResultReadTempMoves(*tempMove1, resultRead, firstWriteCycle);
-    scheduleMove(*tempMove1, firstWriteCycle -1);
+
+    scheduleMove(*tempMove1, firstWriteCycle);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultRead].insert(tempMove1);
 
@@ -1132,7 +1143,7 @@ BUBasicBlockScheduler::scheduleOperand(MoveNode& node, int cycle) {
             node.move().source().index());
         if (firstWrite != NULL) {
             assert(firstWrite->isScheduled());
-            tempRegLimitCycle = firstWrite->cycle() -1;
+            tempRegLimitCycle = firstWrite->cycle();
         }
     }
     cycle = std::min(cycle, tempRegLimitCycle);
@@ -1262,6 +1273,8 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
     bool edgesCopied = false;    
     unsigned int bypassCount = 0;
     int localMaximum = 0;
+    if (!bypass_)
+        return false;    
     // First try to bypass all uses of the result
     OrderedSet destinations = 
         findBypassDestinations(moveNode, 1).first;
@@ -1284,10 +1297,10 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
                 continue;
             }
             assert((*it)->isScheduled());
-            int latestLimit = endCycle_;
-            int earliestLimit = 0;
-            int originalCycle = (*it)->cycle();                        
-            if ((*it)->isDestinationVariable()) {
+            int originalCycle = (*it)->cycle();                                    
+            int latestLimit = originalCycle + bypassDistance_;            
+            int earliestLimit = originalCycle - 2*bypassDistance_;             
+            if ((*it)->isDestinationVariable() && temp == (*it)) {
                 // If bypassing to temporary register
                 // missing edges in DDG could cause 
                 // overwrite of temporary value before it is 
@@ -1328,10 +1341,7 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
 
             bypassDestinations_[&moveNode].push_back(*it);       
             assert((*it)->isScheduled() == false);
-            int startCycle = 
-                std::min(originalCycle + bypassDistance_, 
-                latestLimit);
-            startCycle = std::min(startCycle, maxResultCycle);
+            int startCycle = std::min(latestLimit, maxResultCycle);
             scheduleMove(**it, startCycle);
 #ifdef DEBUG_BYPASS                        
             std::cerr << "\t\t\tCreated " << (*it)->toString()
