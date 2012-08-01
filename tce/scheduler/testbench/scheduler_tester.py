@@ -971,6 +971,7 @@ close $cycle_file
 
             if srcCompileOk == False:
                 print ("Source compilation failed.")
+                os.chdir(self.oldDir)
                 return False
             else:
                 if useLLVM:
@@ -982,6 +983,7 @@ close $cycle_file
             for arch in self.architectures:
                 allPassed = self.runWithArchitecture(arch, seqProgFile) and allPassed
                 if stopTestingAfterFailingTest and not allPassed:
+                    os.chdir(self.oldDir)
                     return False
 
         if not leaveDirty:            
