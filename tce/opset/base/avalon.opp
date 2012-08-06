@@ -22,7 +22,7 @@ Simulation model output always returns 0.</description>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="SIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
   </operation>
@@ -52,7 +52,7 @@ Simulation model output always returns 0.</description>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
   </operation>
@@ -97,7 +97,7 @@ Simulation model output always returns 0.</description>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
   </operation>
@@ -112,7 +112,7 @@ Simulation model output always returns 0.</description>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
   </operation>

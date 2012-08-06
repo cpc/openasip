@@ -59,7 +59,8 @@ public:
         UINT_WORD,
         FLOAT_WORD,
         DOUBLE_WORD,
-        HALF_FLOAT_WORD
+        HALF_FLOAT_WORD,
+        RAW_DATA
     };
 
     static const std::string SINT_WORD_STRING;
@@ -67,6 +68,7 @@ public:
     static const std::string HALF_FLOAT_WORD_STRING;
     static const std::string FLOAT_WORD_STRING;
     static const std::string DOUBLE_WORD_STRING;
+    static const std::string RAW_DATA_STRING;
     static const std::string UNKNOWN_TYPE_STRING;
     
     /// Object state name for operand id.

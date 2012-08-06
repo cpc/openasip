@@ -61,7 +61,12 @@ operandTypeCString(const Operand& operand) {
     case Operand::DOUBLE_WORD:
         return "double";
         break;
+    case Operand::RAW_DATA:
+        return "";
+        break;
     }
+    // TODO: how do halffloats work?
+    // does this break them?
     return "unsigned"; // a good guess ;)
 }
 
@@ -138,8 +143,11 @@ writeCustomOpMacro(
 
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
-        os << operandTypeCString(operand) << " __tce_op_output_" << out
-                << " = (" << operandTypeCString(operand) << ")0; ";
+        std::string operandTypeString = operandTypeCString(operand);
+        if (operandTypeString != "") {
+            os << operandTypeCString(operand) << " __tce_op_output_" << out
+               << " = (" << operandTypeCString(operand) << ")0; ";
+        }
     }
 
     std::string volatileKeyword = "";
@@ -163,9 +171,15 @@ writeCustomOpMacro(
     os << opName << "\":";
 
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+        const Operand& operand = op.output(out - 1);
+
         if (out > 1)
             os << ", ";
-        os << "\"=r\"(" << " __tce_op_output_" << out << ")";
+        if (operandTypeCString(operand) != "") {
+            os << "\"=r\"(" << " __tce_op_output_" << out << ")";
+        } else {
+            os << "\"=r\"(o" << out << ")";
+        }
     }
     os << ":";
 
@@ -174,15 +188,22 @@ writeCustomOpMacro(
 
         if (in > 1)
             os << ", ";
-        os << "\"ir\"((" << operandTypeCString(operand)
-                << ")(i" << in << "))";
+        if (operandTypeCString(operand) != "") {
+            os << "\"ir\"((" << operandTypeCString(operand)
+               << ")(i" << in << "))";
+        } else {
+            os << "\"ir\"(i" << in << ")";
+        }
     }
 
     os << "); ";
 
     // write the results from the temps to the output variables
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-        os << "o" << out << " = __tce_op_output_" << out << ";";
+        const Operand& operand = op.output(out - 1);
+        if (operandTypeCString(operand) != "") {
+            os << "o" << out << " = __tce_op_output_" << out << ";";
+        }
     }
 
     os << "} while(0) " << std::endl;

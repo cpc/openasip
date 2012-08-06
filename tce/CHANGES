@@ -4,6 +4,11 @@
 Notable changes and features
 ----------------------------
 - Support for half-precision floats.
+- Added a RawData data type to OSAL. This should be used as operand data type
+  for all load/store/io methods which just transfer raw data which can be of
+  any type. 
+  If using some other data type, data curruption may occur when calling
+  these operations as custom operations.
 
 Usability features
 ------------------

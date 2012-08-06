@@ -59,7 +59,7 @@
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -76,7 +76,7 @@
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -556,7 +556,7 @@
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -1703,7 +1703,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -1824,7 +1824,7 @@ When triggered with 0 writes a new sample to the output, if there are one ore mo
       <operation name="STREAM_IN_STATUS"/>
     </affects>
     <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <out id="2" type="RawData"/>
   </operation>
 
   <operation>
@@ -1843,7 +1843,7 @@ In case no room is available in the output buffer, causes a global lock.
     <affects>
       <operation name="STREAM_OUT_STATUS"/>
     </affects>
-    <in id="1" type="UIntWord"/>
+    <in id="1" type="RawData"/>
   </operation>
 
   <operation>
@@ -1892,8 +1892,8 @@ buffer is full.
     <affected-by>
       <operation name="STREAM_OUT"/>
     </affected-by>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in id="1" type="RawData"/>
+    <out id="2" type="RawData"/>
   </operation>
 
   <operation>
@@ -2044,16 +2044,16 @@ EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="UIntWord">
+    <out id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="UIntWord">
+    <out id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="UIntWord">
+    <out id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2076,16 +2076,16 @@ EXEC_OPERATION(ldw, tmp, IO(5));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="UIntWord">
+    <in id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="UIntWord">
+    <in id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="UIntWord">
+    <in id="5" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2111,10 +2111,10 @@ EXEC_OPERATION(stw, tmp, IO(5));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="UIntWord">
+    <out id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2134,10 +2134,10 @@ EXEC_OPERATION(ldw, tmp, IO(3));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="UIntWord">
+    <in id="3" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2160,28 +2160,28 @@ EXEC_OPERATION(stw, tmp, IO(3));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="UIntWord">
+    <in id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="UIntWord">
+    <in id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="UIntWord">
+    <in id="5" type="RawData">
       <mem-data/>
     </in>
-    <in id="6" type="UIntWord">
+    <in id="6" type="RawData">
       <mem-data/>
     </in>
-    <in id="7" type="UIntWord">
+    <in id="7" type="RawData">
       <mem-data/>
     </in>
-    <in id="8" type="UIntWord">
+    <in id="8" type="RawData">
       <mem-data/>
     </in>
-    <in id="9" type="UIntWord">
+    <in id="9" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2216,22 +2216,22 @@ EXEC_OPERATION(stw, tmp, IO(9));
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="UIntWord">
+    <out id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="UIntWord">
+    <out id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="UIntWord">
+    <out id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="UIntWord">
+    <out id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="UIntWord">
+    <out id="7" type="RawData">
       <mem-data/>
     </out>
     <out id="8" type="UIntWord">

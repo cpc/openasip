@@ -100,12 +100,14 @@ InputOperandDialog::InputOperandDialog(
     inputTypes_.push_back(Operand::FLOAT_WORD_STRING);
     inputTypes_.push_back(Operand::DOUBLE_WORD_STRING);
     inputTypes_.push_back(Operand::HALF_FLOAT_WORD_STRING);
+    inputTypes_.push_back(Operand::RAW_DATA_STRING);
 
     operandTypes_[0] = Operand::SINT_WORD;
     operandTypes_[1] = Operand::UINT_WORD;
     operandTypes_[2] = Operand::FLOAT_WORD;
     operandTypes_[3] = Operand::DOUBLE_WORD;
     operandTypes_[4] = Operand::HALF_FLOAT_WORD;
+    operandTypes_[5] = Operand::RAW_DATA;
 
     updateTypes(operand_->type());
 
@@ -322,6 +324,10 @@ InputOperandDialog::updateOperand() {
         case Operand::HALF_FLOAT_WORD:
             root->setAttribute(
                 Operand::OPRND_TYPE, Operand::HALF_FLOAT_WORD_STRING);
+            break;
+        case Operand::RAW_DATA:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::RAW_DATA_STRING);
             break;
         default:
             root->setAttribute(Operand::OPRND_TYPE, Operand::SINT_WORD_STRING);

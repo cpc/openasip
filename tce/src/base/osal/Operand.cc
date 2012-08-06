@@ -61,6 +61,7 @@ const std::string Operand::UINT_WORD_STRING = "UIntWord";
 const std::string Operand::FLOAT_WORD_STRING = "FloatWord";
 const std::string Operand::HALF_FLOAT_WORD_STRING = "HalfFloatWord";
 const std::string Operand::DOUBLE_WORD_STRING = "DoubleWord";
+const std::string Operand::RAW_DATA_STRING = "RawData";
 const std::string Operand::UNKNOWN_TYPE_STRING = "InvalidValue";
 
 /**
@@ -177,6 +178,9 @@ Operand::typeString() const {
         case HALF_FLOAT_WORD:
             return HALF_FLOAT_WORD_STRING;
             break;
+        case RAW_DATA:
+            return RAW_DATA_STRING;
+            break;
         default:
             return UNKNOWN_TYPE_STRING;
             break;
@@ -265,6 +269,8 @@ Operand::loadState(const ObjectState* state)
             type_ = DOUBLE_WORD;
         } else if (typeString.compare(HALF_FLOAT_WORD_STRING) == 0) {
             type_ = HALF_FLOAT_WORD;
+        } else if (typeString.compare(RAW_DATA_STRING) == 0) {
+            type_ = RAW_DATA;
         } else {
             string msg = "Invalid operand type: \"" + typeString + "\""; 
             throw Exception(__FILE__, __LINE__, method, msg);
@@ -353,6 +359,9 @@ Operand::saveState() const {
         break;
     case HALF_FLOAT_WORD:
         root->setAttribute(OPRND_TYPE, HALF_FLOAT_WORD_STRING);
+        break;
+    case RAW_DATA:
+        root->setAttribute(OPRND_TYPE, RAW_DATA_STRING);
         break;
     default:
         root->setAttribute(OPRND_TYPE, UNKNOWN_TYPE_STRING);        

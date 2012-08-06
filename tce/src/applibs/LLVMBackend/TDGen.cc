@@ -1427,9 +1427,12 @@ TDGen::writeOperationDefs(
         Operand& operand2 = op.operand(2);
         // TODO: add an else branch here for float immediates
         if ((operand1.type() == Operand::UINT_WORD || 
-             operand1.type() == Operand::SINT_WORD) &&
+             operand1.type() == Operand::SINT_WORD ||
+             operand1.type() == Operand::RAW_DATA) &&
            (operand2.type() == Operand::UINT_WORD || 
-            operand2.type() == Operand::SINT_WORD)) {
+            operand2.type() == Operand::SINT_WORD ||
+            operand2.type() == Operand::RAW_DATA)) {
+
             writeOperationDef(o, op, "ii", attrs, skipPattern);
         }
     }
@@ -1631,7 +1634,8 @@ char
 TDGen::operandChar(Operand& operand) {
     if (operand.type() != Operand::UINT_WORD &&
         operand.type() != Operand::SINT_WORD &&
-        operand.type() != Operand::HALF_FLOAT_WORD) {
+        operand.type() != Operand::HALF_FLOAT_WORD &&
+        operand.type() != Operand::RAW_DATA) {
         return 'f';
     } else {
         return 'r';
@@ -2313,7 +2317,8 @@ TDGen::emulatingOpNodeLLVMName(
                     if (dynamic_cast<ConstantNode*>(
                             &(dag.tailNode(edge)))) {
                         if (operand.type() == Operand::SINT_WORD ||
-                            operand.type() == Operand::UINT_WORD) {
+                            operand.type() == Operand::UINT_WORD ||
+                            operand.type() == Operand::RAW_DATA) {
                             operationName += 'i';
                         } else {
                             operationName += 'k';
@@ -2462,7 +2467,8 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::SINT_WORD ||
                operand.type() == Operand::UINT_WORD ||
-               operand.type() == Operand::HALF_FLOAT_WORD ) {
+               operand.type() == Operand::HALF_FLOAT_WORD ||
+               operand.type() == Operand::RAW_DATA) {
 
         // imm
         switch (operandType) {
