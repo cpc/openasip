@@ -2234,10 +2234,10 @@ EXEC_OPERATION(stw, tmp, IO(9));
     <out id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="UIntWord">
+    <out id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="UIntWord">
+    <out id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
