@@ -1,5 +1,5 @@
 SUBDIRS = DictionaryTool TPEFDumper PIG BEMGenerator Assembler \
-          Scheduler BEMViewer Disassembler
+          BEMViewer Disassembler
 
 if LLVM
     SUBDIRS += Compiler

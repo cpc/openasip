@@ -53,7 +53,6 @@
 #include "Segment.hh"
 #include "CostEstimates.hh"
 #include "Application.hh"
-#include "SchedulerFrontend.hh"
 #include "Procedure.hh"
 #include "MachineResourceModifier.hh"
 

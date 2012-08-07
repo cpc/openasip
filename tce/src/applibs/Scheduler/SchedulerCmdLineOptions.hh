@@ -48,8 +48,6 @@ public:
 
     bool isTargetADFDefined() const;
     std::string targetADF() const;
-    bool isConfigurationFileDefined() const;
-    std::string configurationFile() const;
     bool isOutputFileDefined() const;
     std::string outputFile() const;
     bool isVerboseSwitchDefined() const;
@@ -68,8 +66,6 @@ private:
 
     /// Long name of the ADF file parameter.
     static const std::string ADF_PARAM_NAME;
-    /// Long name of the configuration file parameter.
-    static const std::string CONF_PARAM_NAME;
     /// Long name of the output file parameter.
     static const std::string OUTPUT_PARAM_NAME;
     /// Description of the command line usage of the Scheduler.

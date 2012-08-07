@@ -93,8 +93,6 @@
 #include "LLVMPOMBuilder.hh"
 #include "Program.hh"
 #include "ADFSerializer.hh"
-#include "SchedulingPlan.hh"
-#include "SchedulerFrontend.hh"
 #include "MachineValidator.hh"
 #include "MachineValidatorResults.hh"
 #include "Instruction.hh"
@@ -573,56 +571,6 @@ LLVMBackend::compile(
     }
     return prog;
 }
-
-/**
- * Compiles bytecode for the given target machine and calls scheduler.
- *
- * @param bytecodeFile Full path to the llvm bytecode file to compile.
- * @param target Target machine to compile the bytecode for.
- * @param optLevel Optimization level.
- * @param plan Scheduling plan.
- * @param debug If true, enable LLVM debug printing.
- * @return Scheduled program.
- */
-TTAProgram::Program* 
-LLVMBackend::schedule(
-    const std::string& bytecodeFile,
-    const std::string& emulationBytecodeFile,
-    TTAMachine::Machine& target,
-    int optLevel,
-    bool debug,
-    SchedulingPlan* plan)
-    throw (Exception) {
-
-    InterPassData ipData;
-
-    TTAProgram::Program* prog = 
-        compile(
-            bytecodeFile, emulationBytecodeFile, target, optLevel, 
-            debug, &ipData);
-
-    // load default scheduler plan if no plan given
-    if (plan == NULL) {
-        try {
-            plan = 
-                SchedulingPlan::loadFromFile(
-                    Environment::defaultSchedulerConf());
-        } catch (const Exception& e) {
-            std::string msg = "Unable to load default scheduler config '" +
-                Environment::defaultSchedulerConf() + "'.";
-
-            IOException ne(__FILE__, __LINE__, __func__, msg);
-            ne.setCause(e);
-            throw ne;
-        }
-    }
-
-    SchedulerFrontend scheduler;
-    prog = scheduler.schedule(*prog, target, *plan, &ipData);
-
-    return prog;
-}
-
 
 /**
  * Creates TCETargetMachinePlugin for target architecture.

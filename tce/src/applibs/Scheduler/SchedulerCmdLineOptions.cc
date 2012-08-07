@@ -39,7 +39,6 @@ using std::cout;
 using std::endl;
 
 const std::string SchedulerCmdLineOptions::ADF_PARAM_NAME = "adf";
-const std::string SchedulerCmdLineOptions::CONF_PARAM_NAME = "config";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
 const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string SchedulerCmdLineOptions::SWL_RENAME_REGISTERS = "rename-registers";
@@ -63,9 +62,6 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
     StringCmdLineOptionParser* adfFile = new StringCmdLineOptionParser(
         ADF_PARAM_NAME, "The ADF file of the target architecture", "a");
     addOption(adfFile);
-    StringCmdLineOptionParser* confFile = new StringCmdLineOptionParser(
-        CONF_PARAM_NAME, "The configuration file", "c");
-    addOption(confFile);
     BoolCmdLineOptionParser* verboseSwitch = new BoolCmdLineOptionParser(
         VERBOSE_SWITCH, "The verbose switch", "v");
     addOption(verboseSwitch);
@@ -127,16 +123,6 @@ SchedulerCmdLineOptions::targetADF() const {
 }
 
 /**
- * Return true if the configuration file was defined in the command line.
- *
- * @return True if the configuration file was defined in the command line.
- */
-bool
-SchedulerCmdLineOptions::isConfigurationFileDefined() const {
-    return findOption(CONF_PARAM_NAME)->isDefined();
-}
-
-/**
  * Return true if the verbose switch was defined in the command line.
  *
  * @return True if the verbose switch was defined in the command line.
@@ -144,17 +130,6 @@ SchedulerCmdLineOptions::isConfigurationFileDefined() const {
 bool
 SchedulerCmdLineOptions::isVerboseSwitchDefined() const {
     return findOption(VERBOSE_SWITCH)->isDefined();
-}
-
-/**
- * Return the name of the configuration file.
- *
- * @return The name of the configuration file.
- * @exception NotAvailable if the configuration file was not defined.
- */
-std::string
-SchedulerCmdLineOptions::configurationFile() const {
-    return findOption(CONF_PARAM_NAME)->String();
 }
 
 /**

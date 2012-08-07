@@ -57,9 +57,6 @@ public:
     bool isOutputFileDefined() const;
     std::string outputFile() const;
 
-    bool isSchedulerConfigFileDefined() const;
-    std::string schedulerConfigFile() const;
-
     bool isStandardEmulationLibDefined() const;
     std::string standardEmulationLib() const;
 
@@ -104,8 +101,6 @@ private:
     static const std::string SWS_TARGET_MACHINE;
     static const std::string SWL_OUTPUT_FILE;
     static const std::string SWS_OUTPUT_FILE;
-    static const std::string SWL_SCHEDULER_CONFIG;
-    static const std::string SWS_SCHEDULER_CONFIG;
     static const std::string SWL_EMULATION_LIB;
     static const std::string SWS_EMULATION_LIB;
     static const std::string SWL_DEBUG_FLAG;

@@ -59,7 +59,6 @@ Options:
      for example, 'convolution,complex_multiply' matches both
      'DSPstone/fixed_point/{convolution,complex_multiply}' and
      'DSPstone/floating_point/{convolution,complex_multiply}'.
-  -c <conf-file> Use given scheduler configuration file
   -C Output in format suitable for copy-pasting to a spreadsheet (CSV).
   -d Leave the test directory dirty after a failed test (for inspecting
      what went wrong, etc.), that is, don't clean the produced files.
@@ -126,7 +125,6 @@ operationDir = os.path.normpath(rootDir + "/Operations")
 schedulerExe = os.path.normpath(rootDir + "/" + schedulerExe)
 simulatorExe = os.path.normpath(rootDir + "/" + simulatorExe)
 tceccExe = os.path.normpath(rootDir + "/" + tceccExe)
-schedulerConfDir = os.path.normpath(rootDir + "/../passes")
 testRootDir = "."
 
 # LLVM compiler can be enabled with switch '-x'
@@ -167,8 +165,6 @@ makeCommand = "SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS=" + \
 # List of architectures given in command line.
 cmdLineArchitectures = []
 
-configFileName = ""
-configFileDefined = True
 failureFound = False
 
 if len(allArchitectures) == 0:
@@ -177,22 +173,20 @@ if len(allArchitectures) == 0:
 
 def ParseCommandLine():
 
-    global configFileName, stopTestingAfterFailingTest, csvFormat, \
+    global stopTestingAfterFailingTest, csvFormat, \
            topStatsUpdates, baselineUpdate, verboseOutput, veryVerboseOutput, \
            saveParallelPrograms, \
            deleteOSALLink, outputOnlyIfFailure, architectures, \
-           recompile, leaveDirty, configFileDefined, latexTable, moreStats, \
-           normalOutput, testCaseFilters, useLLVM, schedulerConfDir, \
+           recompile, leaveDirty, latexTable, moreStats, \
+           normalOutput, testCaseFilters, useLLVM, \
            extraCompileFlags, compiledSimulation, worsenedIsErrorLimit,\
            loosenResults, testRootDir
 
-    configFileDefined = False
-        
     try:
         args_start = 1
             
         opts, args = getopt.getopt(\
-            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dlLi:e:", ["help"])
+            sys.argv[args_start:], "g:a:b:shtTvVCopqrxw:dlLi:e:", ["help"])
 
     except getopt.GetoptError, e:
         # print help information and exit:
@@ -214,9 +208,6 @@ def ParseCommandLine():
         elif o == "-V":
             verboseOutput = True
             veryVerboseOutput = True            
-        elif o == "-c":
-            configFileName = a
-            configFileDefined = True
         elif o == "-C":
             csvFormat = True
         elif o == "-p":
@@ -263,11 +254,6 @@ def ParseCommandLine():
     if args:
         usage()
         sys.exit(1)
-        
-
-    if len(configFileName) > 0 and configFileName[0] != '/':
-        configFileName = os.getcwd() + "/" + configFileName
-
 
     def file_readable(filename):
         return access(filename, R_OK)
@@ -276,29 +262,10 @@ def ParseCommandLine():
     exitOk, stdoutContents, stderrContents = \
             runWithTimeout(tceccExe + ' --clear-plugin-cache', 50)
     #print exitOk, stdoutContents, stderrContents
-    if not configFileDefined:
-        # Use the default scheduling configuration of the 'tcecc'.
-        if useLLVM == True:
-            defaultLLVMConf = schedulerConfDir + '/default_scheduler.conf'
-            if not file_readable(defaultLLVMConf):
-                print "Cannot open the scheduler conf for LLVM/TCE in '%s'" % defaultLLVMConf
-                sys.exit(3)
-            else:
-                configFileName = defaultLLVMConf
-                configFileDefined = True
-        else:
-            defaultConf = schedulerConfDir + '/old_gcc.conf'
-            if not file_readable(defaultConf):
-                print "Cannot open the default scheduler conf for old gcc frontend in '%s'" % defaultConf
-                sys.exit(3)
-            else:
-                configFileName = defaultConf
-                configFileDefined = True
 
-    else:
-        if not file_readable(configFileName):
-            print "Cannot open the given scheduler configuration file %s for reading." % configFileName
-            sys.exit(2)
+    if useLLVM == False:
+        print "Old scheduler not supported. Must use -x"
+        sys.exit(3)
     
     normalOutput = not latexTable and not csvFormat
         
@@ -641,22 +608,14 @@ class TestCase:
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
         global extraCompileFlags
 
-        if not useLLVM:
-            schedulingCommand = schedulerExe + \
-                            " -o " + dstProgFileName + \
-                            " -c " + configFileName + \
-                            " -a " + archFilename + \
-                            " " + seqProgFileName
-        else:
-            schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
-            if (leaveDirty):
-                schedulingCommand += '-d '
+        schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
+        if (leaveDirty):
+            schedulingCommand += '-d '
 
-            schedulingCommand += ' ' + extraCompileFlags;
-            schedulingCommand += " -o " + dstProgFileName + \
-                                " -s " + configFileName + \
-                                " -a " + archFilename + \
-                                " " + seqProgFileName
+        schedulingCommand += ' ' + extraCompileFlags;
+        schedulingCommand += " -o " + dstProgFileName + \
+                             " -a " + archFilename + \
+                             " " + seqProgFileName
                 
                 
         exitOk, stdoutContents, stderrContents = runWithTimeout(schedulingCommand, schedulingTimeoutSec)
@@ -944,7 +903,7 @@ close $cycle_file
 
         Returns true only if all tests passed.
         """
-        global extraCompileFlags, configFileDefined, latexTable, recompile, useLLVM, normalOutput
+        global extraCompileFlags, latexTable, recompile, useLLVM, normalOutput
 
         self.oldDir = os.getcwd()
         os.chdir(self.directory)
@@ -979,12 +938,12 @@ close $cycle_file
                 else:
                     seqProgFile = "generated_seq_program"
         
-        if configFileDefined:
-            for arch in self.architectures:
-                allPassed = self.runWithArchitecture(arch, seqProgFile) and allPassed
-                if stopTestingAfterFailingTest and not allPassed:
-                    os.chdir(self.oldDir)
-                    return False
+#        if configFileDefined:
+        for arch in self.architectures:
+            allPassed = self.runWithArchitecture(arch, seqProgFile) and allPassed
+            if stopTestingAfterFailingTest and not allPassed:
+                os.chdir(self.oldDir)
+                return False
 
         if not leaveDirty:            
             self.cleanupTestDirectory()
@@ -1001,7 +960,7 @@ close $cycle_file
         timeStamp = time.strftime("%d.%m.%y %H:%M")        
         lastRunWriter = csv.writer(__builtin__.open(self.directory + "/lastresults.csv", "w"))
         for arch in self.architectures:
-            lastRunWriter.writerow([arch, configFileName, timeStamp, "%.0f" %
+            lastRunWriter.writerow([arch, timeStamp, "%.0f" %
                                     self.results[arch][0]])       
 
         if (topStatsUpdates and self.improvedRuns) or baselineUpdate or loosenResults:
@@ -1021,11 +980,11 @@ close $cycle_file
                         # give headroom for worsening (useful e.g. when supporting two LLVM 
                         # versions)
                         if int(oldResult[-1]) < cycles:
-                            topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
+                            topStatsWriter.writerow([arch, timeStamp, "%.0f" % cycles])
                         else:
                             topStatsWriter.writerow([arch] + oldResult)
                     elif oldResult is None or int(oldResult[-1]) > cycles or baselineUpdate:
-                        topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
+                        topStatsWriter.writerow([arch, timeStamp, "%.0f" % cycles])
                     else:
                         topStatsWriter.writerow([arch] + oldResult)
                 else:
@@ -1115,9 +1074,6 @@ class Tester:
             print "----------------------"
             for testCase in self.testCases:            
                 print testCase.description + " cycle-count: " + str(testCase.seqCycleCount)
-
-        if configFileDefined == False:
-            return
         
         improved = 0
         worsened = 0

@@ -1,6 +1,6 @@
 <?php
 // short test description
-$bin_args = "-c ../../../../tce/scheduler/passes/sequential_tcecc_scheduler.conf -vxr -g \"-O0 --swfp -k_Output\" -a min_opset_io_16regs.adf ";
+$bin_args = "-vxr -g \"-O0 --swfp -k_Output\" -a min_opset_io_16regs.adf ";
 $test_description="Validating llvm-fronted: Compiling short test case sources with -O0";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
 ?>

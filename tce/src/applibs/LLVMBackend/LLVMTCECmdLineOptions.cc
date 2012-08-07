@@ -37,8 +37,6 @@ const std::string LLVMTCECmdLineOptions::SWL_TARGET_MACHINE = "adf";
 const std::string LLVMTCECmdLineOptions::SWS_TARGET_MACHINE = "a";
 const std::string LLVMTCECmdLineOptions::SWL_OUTPUT_FILE = "output";
 const std::string LLVMTCECmdLineOptions::SWS_OUTPUT_FILE = "o";
-const std::string LLVMTCECmdLineOptions::SWL_SCHEDULER_CONFIG = "config";
-const std::string LLVMTCECmdLineOptions::SWS_SCHEDULER_CONFIG = "c";
 const std::string LLVMTCECmdLineOptions::SWL_EMULATION_LIB = "emulation";
 const std::string LLVMTCECmdLineOptions::SWS_EMULATION_LIB = "e";
 const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
@@ -86,11 +84,6 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new StringCmdLineOptionParser(
             SWL_OUTPUT_FILE, "Output file name.",
             SWS_OUTPUT_FILE));
-
-    addOption(
-        new StringCmdLineOptionParser(
-            SWL_SCHEDULER_CONFIG, "Scheduler configuration file.",
-            SWS_SCHEDULER_CONFIG));
 
     addOption(
         new StringCmdLineOptionParser(
@@ -203,27 +196,6 @@ LLVMTCECmdLineOptions::machineFile() const {
 bool
 LLVMTCECmdLineOptions::isMachineFileDefined() const {
     return findOption(SWS_TARGET_MACHINE)->isDefined();
-}
-
-
-/**
- * Returns scheduler configuration file defined with the -c switch.
- *
- * @return Scheduler configuration file defined in the command line.
- */
-std::string
-LLVMTCECmdLineOptions::schedulerConfigFile() const {
-    return findOption(SWS_SCHEDULER_CONFIG)->String();
-}
-
-/**
- * Returns true if the scheduler config file is defined, false otherwise.
- *
- * @return True if the scheduler config file is defined.
- */
-bool
-LLVMTCECmdLineOptions::isSchedulerConfigFileDefined() const {
-    return findOption(SWS_SCHEDULER_CONFIG)->isDefined();
 }
 
 std::string

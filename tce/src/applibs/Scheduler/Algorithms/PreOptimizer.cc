@@ -34,7 +34,6 @@
  */
 
 #include "PreOptimizer.hh"
-#include "SchedulerCmdLineOptions.hh"
 #include "Procedure.hh"
 #include "Instruction.hh"
 #include "Move.hh"

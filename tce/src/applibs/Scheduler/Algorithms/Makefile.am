@@ -1,20 +1,18 @@
-SUBDIRS = StackFrameManagement
+SUBDIRS = 
 
 noinst_LTLIBRARIES = libscheduleralgorithms.la
 libscheduleralgorithms_la_SOURCES = BasicBlockScheduler.cc \
-AddressSpaceMapper.cc SimpleGuardAllocatorCore.cc RegisterMap.cc \
-LinearScanAllocatorCore.cc BasicBlockPass.cc RegisterCopyAdder.cc \
+BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
-DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
+DDGPass.cc CopyingDelaySlotFiller.cc \
 RegisterRenamer.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
 BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
 BUBasicBlockScheduler.cc BypassingBUBasicBlockScheduler.cc
 
 
-libscheduleralgorithms_la_LIBADD = \
-StackFrameManagement/libstackframemanagement.la
+libscheduleralgorithms_la_LIBADD = 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -32,7 +30,6 @@ PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 MACH_APPLIB_DIR = ${APPLIBS_DIR}/mach
-SFM_DIR = $(srcdir)/StackFrameManagement
 SELECTOR_DIR = ${APPLIBS_DIR}/Scheduler/Selector
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
@@ -41,7 +38,7 @@ LLVM_BACKEND_DIR = ${APPLIBS_DIR}/LLVMBackend
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${TOOLS_DIR} -I${POM_DIR} \
 	-I${OSAL_DIR} -I${MACH_DIR} -I${GRAPH_DIR} -I${SCHED_APPLIBS_DIR} \
 	-I${RESOURCE_MODEL_DIR} -I${RESOURCE_MANAGER_DIR} -I${CFG_DIR} \
-	-I${DDG_DIR} -I${PDG_DIR} -I${DISASM_DIR} -I${SELECTOR_DIR} -I${SFM_DIR} \
+	-I${DDG_DIR} -I${PDG_DIR} -I${DISASM_DIR} -I${SELECTOR_DIR} \
 	-I${UM_DIR} -I${MACH_APPLIB_DIR} -I${LLVM_BACKEND_DIR} \
 	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 
@@ -57,14 +54,14 @@ include_HEADERS = InterPassDatum.hh
 
 ## headers start
 libscheduleralgorithms_la_SOURCES += \
-	ProcedurePass.hh LinearScanAllocatorCore.hh \
+	ProcedurePass.hh \
 	CycleLookBackSoftwareBypasser.hh SequentialScheduler.hh \
-	BypassingBUBasicBlockScheduler.hh DSFillerModule.hh \
+	BypassingBUBasicBlockScheduler.hh \
 	InterPassData.hh RegisterCopyAdder.hh \
 	CopyingDelaySlotFiller.hh SchedulerPass.hh \
 	PreOptimizer.hh BasicBlockPass.hh \
-	ResourceConstraintAnalyzer.hh BypasserModule.hh \
-	DDGPass.hh RegisterMap.hh \
+	ResourceConstraintAnalyzer.hh \
+	DDGPass.hh \
 	AddressSpaceMapper.hh PreBypassBasicBlockScheduler.hh \
 	SoftwareBypasser.hh ControlFlowGraphPass.hh \
 	SimpleGuardAllocatorCore.hh ProgramPass.hh \

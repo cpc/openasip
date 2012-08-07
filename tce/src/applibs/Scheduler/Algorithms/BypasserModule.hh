@@ -37,11 +37,9 @@
 #ifndef TCE_BYPASSER_MODULE_HH
 #define TCE_BYPASSER_MODULE_HH
 
-#include "HelperSchedulerModule.hh"
-
 class SoftwareBypasser;
 
-class BypasserModule : public HelperSchedulerModule {
+class BypasserModule {
 public:
     virtual SoftwareBypasser& bypasser() = 0;
     virtual ~BypasserModule();

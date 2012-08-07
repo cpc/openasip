@@ -3,11 +3,7 @@ SUBDIRS = ProgramRepresentations ResourceModel ResourceManager Selector \
 
 noinst_LTLIBRARIES = libscheduler.la
 
-libscheduler_la_SOURCES = SchedulerFrontend.cc SchedulerCmdLineOptions.cc \
-	BaseSchedulerModule.cc StartableSchedulerModule.cc \
-	HelperSchedulerModule.cc SchedulerConfigurationSerializer.cc \
-	SchedulingPlan.cc SchedulerPluginLoader.cc 
-
+libscheduler_la_SOURCES = SchedulerCmdLineOptions.cc
 libscheduler_la_LIBADD = ProgramRepresentations/libprogramrepresentations.la \
 	ResourceModel/libresourcemodel.la \
 	ResourceManager/libresourcemanager.la \
@@ -41,9 +37,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libscheduler_la_SOURCES += \
-	BaseSchedulerModule.hh SchedulerFrontend.hh \
-	SchedulingPlan.hh PythonSchedulerModule.hh \
-	SchedulerConfigurationSerializer.hh SchedulerPluginLoader.hh \
-	SchedulerCmdLineOptions.hh StartableSchedulerModule.hh \
-	HelperSchedulerModule.hh 
+	SchedulerCmdLineOptions.hh 
 ## headers end

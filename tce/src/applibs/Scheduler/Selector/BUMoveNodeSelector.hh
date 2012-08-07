@@ -50,7 +50,6 @@
 #undef _GLIBCXX_DEBUG
 #endif
 
-#include "HelperSchedulerModule.hh"
 #include "MoveNodeSelector.hh"
 #include "ReadyMoveNodeGroupList.hh"
 
@@ -58,6 +57,10 @@ class DataDependenceGraph;
 
 namespace TTAProgram {
     class BasicBlock;
+}
+
+namespace TTAMachine {
+    class Machine;
 }
 
 /**

@@ -1293,10 +1293,8 @@ AC_CONFIG_FILES([
   src/bintools/BEMViewer/Makefile
   src/bintools/Assembler/Makefile
   src/bintools/Disassembler/Makefile
-  src/bintools/Scheduler/Makefile
   src/applibs/Scheduler/Selector/Makefile
   src/applibs/Scheduler/Algorithms/Makefile
-  src/applibs/Scheduler/Algorithms/StackFrameManagement/Makefile
   src/codesign/Makefile
   src/codesign/osal/Makefile
   src/codesign/osal/OSALBuilder/Makefile
@@ -1340,12 +1338,6 @@ AC_CONFIG_FILES([
   src/applibs/FSA/Makefile
   src/applibs/Explorer/Makefile
   scheduler/Makefile
-  scheduler/passes/Makefile
-  scheduler/passes/SequentialFirstFitResourceMapper/Makefile
-  scheduler/passes/LinearScanAllocator/Makefile
-  scheduler/passes/BasicBlockScheduler/Makefile
-  scheduler/passes/SequentialScheduler/Makefile
-  scheduler/passes/PreOptimizer/Makefile
   opset/Makefile
   opset/base/Makefile
   src/applibs/Scheduler/ProgramRepresentations/Makefile
@@ -1399,9 +1391,6 @@ AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin],
 
 AC_CONFIG_FILES([src/codesign/Estimator/buildestimatorplugin], 
                 [chmod +x src/codesign/Estimator/buildestimatorplugin])
-
-AC_CONFIG_FILES([src/bintools/Scheduler/buildschedulerpass], 
-                [chmod +x src/bintools/Scheduler/buildschedulerpass])
 
 AC_CONFIG_FILES([src/bintools/PIG/buildcompressor], 
                 [chmod +x src/bintools/PIG/buildcompressor])

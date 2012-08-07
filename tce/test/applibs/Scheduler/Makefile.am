@@ -1,4 +1,4 @@
-SUBDIRS = ProgramRepresentations Algorithms ResourceManager Selector
+SUBDIRS = ProgramRepresentations ResourceManager Selector
 
 clean_gcov:
 	@@(for dname in ${SUBDIRS}; do \

@@ -35,8 +35,6 @@
 #include "LLVMTCECmdLineOptions.hh"
 #include "Program.hh"
 #include "ADFSerializer.hh"
-#include "SchedulingPlan.hh"
-#include "SchedulerFrontend.hh"
 #include "FileSystem.hh"
 #include "InterPassData.hh"
 #include "Machine.hh"
@@ -122,21 +120,6 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    SchedulingPlan* plan = NULL;
-    if (options->isSchedulerConfigFileDefined()) {
-        std::string schedulerConf = options->schedulerConfigFile();
-
-        try {
-            plan = SchedulingPlan::loadFromFile(schedulerConf);
-        } catch (Exception& e) {
-            std::cerr << "Error loading scheduler configuration file '"
-                      << schedulerConf << "':" << std::endl
-                      << e.errorMessageStack() << std::endl;
-
-            return EXIT_FAILURE;
-        }
-    }
-   
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
     if (options->isOutputFileDefined()) {
@@ -183,23 +166,9 @@ main(int argc, char* argv[]) {
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 
-        if (plan != NULL) {
-            SchedulerFrontend scheduler;
-            TTAProgram::Program* prog;
-            prog = scheduler.schedule(*seqProg, *mach, *plan, ipData);
-
-            delete seqProg;
-            seqProg = NULL;
-
-            TTAProgram::Program::writeToTPEF(*prog, outputFileName);
-
-            delete prog;
-            prog = NULL;
-        } else {
-            TTAProgram::Program::writeToTPEF(*seqProg, outputFileName);
-            delete seqProg;
-            seqProg = NULL;
-        }
+        TTAProgram::Program::writeToTPEF(*seqProg, outputFileName);
+        delete seqProg;
+        seqProg = NULL;
 
         delete ipData;
         ipData = NULL;
@@ -213,8 +182,6 @@ main(int argc, char* argv[]) {
 
     delete mach;
     mach = NULL;
-    delete plan;
-    plan = NULL;
 
     return EXIT_SUCCESS;
 }

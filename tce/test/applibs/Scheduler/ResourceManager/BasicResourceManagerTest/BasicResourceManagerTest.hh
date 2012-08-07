@@ -40,7 +40,6 @@
 #include "CriticalPathBBMoveNodeSelector.hh"
 #include "ControlFlowGraph.hh"
 #include "UniversalMachine.hh"
-#include "SimpleGuardAllocatorCore.hh"
 #include "POMDisassembler.hh"
 #include "Terminal.hh"
 #include "MoveGuard.hh"
@@ -79,8 +78,6 @@ public:
     void testBuildAndDispose();
     void testBasicFunctionality();
     void testLongImmediates();
-    void testWholeProgramAssignmentFull();
-    void testWholeProgramAssignmentReduced();
     void testMissingConnection();
     void testRestorationOfResources();
     void testWAWEarliestLatestCycle();
@@ -88,9 +85,6 @@ public:
     void testLIMMPSocketReads();
     void testNoRegisterTriggerInvalidates();
 
-    void wholeProgramAssignment(
-        const std::string& adf,
-        const std::string& tpef);
 };
 
 
@@ -100,28 +94,6 @@ BasicResourceManagerTest::setUp() {
 
 void
 BasicResourceManagerTest::tearDown() {
-}
-
-
-/**
- * Tests the functionality by "scheduling" a whole program
- * using fully connected adf.
- */
-void
-BasicResourceManagerTest::testWholeProgramAssignmentFull() {
-    wholeProgramAssignment(
-        "data/10_bus_full_connectivity.adf",
-        "data/arrmul_reg_allocated_10_bus.tpef");
-}
-/**
- * Tests the functionality by "scheduling" a whole program
- * using adf with reduced connections.
- */
-void
-BasicResourceManagerTest::testWholeProgramAssignmentReduced() {
-    wholeProgramAssignment(
-        "data/10_bus_reduced_connectivity.adf",
-        "data/arrmul_reg_allocated_10_reduced_bus.tpef");
 }
 
 void
@@ -371,95 +343,6 @@ BasicResourceManagerTest::testBasicFunctionality() {
         std::cerr << e.errorMessage() <<" ";
         std::cerr << e.lineNum() << std::endl;
         TS_FAIL("testBasicFunctionality failed");
-    }
-}
-
-/**
- * Tests the functionality by "scheduling" a whole program.
- * adf and tpef passed as parameters from other tests.
- */
-void
-BasicResourceManagerTest::wholeProgramAssignment(
-    const std::string& adf,
-    const std::string& tpef) {
-    
-    try {
-        /// The tested input program with registers allocated.
-        TTAProgram::Program* srcProgram = NULL;
-        /// Target machine to schedule the program for.
-        TTAMachine::Machine* targetMachine = NULL;
-
-        CATCH_ANY(
-            targetMachine =
-            TTAMachine::Machine::loadFromADF(adf));
-
-        CATCH_ANY(
-            srcProgram =
-            TTAProgram::Program::loadFromUnscheduledTPEF(
-                tpef, *targetMachine));
-
-        int j = 0;
-        int minCycle=0;
-        int maxCycle=0;
-
-
-        // Loop through all procedures of program
-
-        for (j = 0; j < srcProgram->procedureCount(); j++) {
-            InterPassData interPassData;
-            TTAProgram::Procedure& procedure = srcProgram->procedure(j);
-            SimpleGuardAllocatorCore::allocateGuards(
-                procedure, *targetMachine, interPassData);
-            ControlFlowGraph cfg(procedure);
-            SimpleResourceManager* rm =
-                SimpleResourceManager::createRM(*targetMachine);
-            minCycle = maxCycle;
-            std::vector<CriticalPathBBMoveNodeSelector*> selectors;
-            // pick the basic block in order they are in graph
-            for (int k = 0; k < cfg.nodeCount(); k++) {
-                if (!cfg.node(k).isNormalBB()) {
-                    continue;
-                }
-                CriticalPathBBMoveNodeSelector* cpSelector = 
-                    new CriticalPathBBMoveNodeSelector(
-                        cfg.node(k).basicBlock(), *targetMachine);
-                
-                
-                selectors.push_back(cpSelector);
-                MoveNodeSelector& selector = *cpSelector;
-
-                int cycle = 0;
-                MoveNodeGroup moves;
-                while(1) {
-                    moves = selector.candidates();
-                    if (moves.nodeCount() == 0) {
-                    break;
-                    }
-                    if (minCycle < moves.earliestCycle()) {
-                        minCycle = moves.earliestCycle();
-                    }
-                    for (int i = 0; i < moves.nodeCount(); i++) {
-                        if (!moves.node(i).move().isUnconditional()) {
-                            TS_ASSERT(rm->hasGuard(moves.node(i)));
-                        }
-                        SCHEDULE(i,minCycle);
-                        if (maxCycle < moves.node(i).cycle()) {
-                            maxCycle = moves.node(i).cycle() + 1;
-                        }
-                    }
-                }
-            }
-            SequenceTools::deleteAllItems(selectors);
-            SimpleResourceManager::disposeRM(rm);
-        }
-        delete targetMachine;
-        delete srcProgram;
-    } catch (const Exception& e) {
-        std::cout << std::endl;
-        std::cout << e.fileName() << " " << e.procedureName() << " ";
-        std::cout << "Line: "<< e.lineNum() << std::endl;
-        std::cout << e.errorMessage() << std::endl;
-        TS_FAIL("wholeProgramAssignment FAILED!");
     }
 }
 

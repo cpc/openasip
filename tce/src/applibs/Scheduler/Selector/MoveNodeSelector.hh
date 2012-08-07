@@ -33,7 +33,6 @@
 #ifndef TTA_MOVE_NODE_SELECTOR_HH
 #define TTA_MOVE_NODE_SELECTOR_HH
 
-#include "HelperSchedulerModule.hh"
 #include "MoveNodeGroup.hh"
 
 /**
@@ -43,7 +42,7 @@
  * MoveNodeSelectors are responsible in maintaining the ready list and updating
  * it according to scheduling progress.
  */
-class MoveNodeSelector : public HelperSchedulerModule {
+class MoveNodeSelector {
 public:
     MoveNodeSelector();
     virtual ~MoveNodeSelector();
