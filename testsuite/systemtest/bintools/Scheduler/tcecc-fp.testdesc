@@ -2,6 +2,6 @@
 // short test description
 $test_description="floating point test cases with tcecc";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args = "-vrx -g \"-O3 -k_Output --swfp\" -e tests_fp ".
+$bin_args = "-vr -g \"-O3 -k_Output --swfp\" -e tests_fp ".
     "-a ti64x_subset.adf ";
 ?>

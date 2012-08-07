@@ -10,7 +10,7 @@ mach_mc=clustered_mul4-1mul_gal-1SS-mc.adf
 # Use qttasim if set to -q, otherwise empty
 #quick=-q
 tester="../../../../tce/scheduler/testbench/scheduler_tester.py"
-tester_args="-e OpenCL -vrx -w 0.0 -a $mach -a $mach_mc" #  crashes with AES, disabled for now
+tester_args="-e OpenCL -vr -w 0.0 -a $mach -a $mach_mc" #  crashes with AES, disabled for now
 parallel_wi=2
 
 function compile_opencl {
