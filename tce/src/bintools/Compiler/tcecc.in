@@ -581,11 +581,6 @@ p.add_option('-a', '--adf-file',
              help="Architecture which for program is scheduled after "
              "the compilation. Note that 'schedule' must be installed.")
 
-p.add_option('-s', '--scheduler-config',
-             type="string", action="store", metavar='file',
-             dest="scheduler_config", default=None,
-             help="Configure file for scheduling command.")
-
 p.add_option('-O', '--optimization-level',
              type="int", action="store", metavar='level',
              dest='optimization_level', default=3,
@@ -830,11 +825,6 @@ if isOpenCLEnabled():
    """The maximum number of work items that are compiled (unrolled) to 
 be executed in parallel.""")
 
-p.add_option('--old-builder', action='store_true', dest='pom_builder', 
-             default=False,
-             help=\
-"Use the old LLVM-TCE builder code to get code to TCE scheduler (deprecated).")
-
 p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler', 
              default=False,
              help=\
@@ -1073,24 +1063,6 @@ if options.adf_file != "":
     runCommand(lowerMemIntrinsicCommand(emulationLinkedFileName, toCodeGenFname),
                options.verbose, True)
 
-    if options.pom_builder and (options.sequential_schedule or options.optimization_level == 0):
-        scheduler_config_file_name = "sequential_tcecc_scheduler.conf"
-        if options.dump_ddgs or options.dump_ddgs_dot or options.dump_ddgs_xml:
-            exitWithError(1, 
-            "Error: Conflicting options. Dumping of DDGs is enabled only at optimization levels > 0.\n")
-    else:
-        scheduler_config_file_name = "default_scheduler.conf"        
-        
-    if not options.no_schedule and options.pom_builder and options.scheduler_config is None:
-        if runningInstalled:
-            options.scheduler_config = (tceprefix +
-                                        "/share/tce/scheduler/passes/" +
-                                        scheduler_config_file_name)
-        else:
-            options.scheduler_config = os.path.normpath("@abs_top_srcdir@" +
-                                                        "/scheduler/passes/" +
-                                                        scheduler_config_file_name)
-
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
         command = "@abs_top_builddir@" + "/src/bintools/Compiler/llvm-tce/llvm-tce"
@@ -1145,26 +1117,11 @@ if options.adf_file != "":
     else:
         command += " --no-kill-dead-results"
 
-    if not options.no_schedule and options.pom_builder:
-        # The new builder does not use scheduler configs,
-        # it calls the scheduler directly after getting
-        # the input from LLVM.
-        command += " -c " + options.scheduler_config
-
-    if options.pom_builder:
-        command += " --pom-builder"
-
     if options.bu_scheduler:
         command += " --bottom-up-scheduler"
     elif options.recursive_scheduler:
         command += " --recursive-scheduler"
         
-    if options.pom_builder or options.scheduler_config is not None:
-        print >> sys.stderr, \
-            "Deprecation warning: The old builder is going to be removed " +\
-            "from TCE very soon. Please use the default builder and report the " +\
-            "possible bugs found in it."
-
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 
     command += " --bypass-distance=%d" % options.bypass_distance
