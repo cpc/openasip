@@ -55,6 +55,10 @@ public:
     static ValueType valueForKey(const MapType& aMap, const KeyType& aKey)
         throw (KeyNotFound);
 
+    template <typename ValueType, typename MapType, typename KeyType>
+    static const ValueType valueForKeyNoThrow(const MapType& aMap, const KeyType& aKey)
+        throw (KeyNotFound);
+
     template <typename MapType>
     static void deleteAllValues(MapType& aMap);
 

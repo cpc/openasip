@@ -40,10 +40,9 @@
 #include <vector>
 #include <map>
 
-#include <boost/numeric/ublas/vector_sparse.hpp>
-
 #include "SchedulingResource.hh"
 #include "MoveNode.hh"
+#include "SparseVectorMap.hh"
 
 class DataDependenceGraph;
 class ExecutionPipelineResourceTable;
@@ -55,8 +54,6 @@ namespace TTAMachine {
     class FunctionUnit;
     class Port;
 }
-
-using namespace boost::numeric::ublas;
 
 /**
  * ExecutionPipelineResource keeps book of pipeline resource reservation
@@ -110,7 +107,7 @@ public:
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();
-    int size() const;
+    unsigned int size() const;
 private:
     struct ResultHelper {
         unsigned int realCycle;
@@ -132,14 +129,14 @@ private:
     ResourceReservationVector;
 
     /// Used for both result read and result written.
-    typedef mapped_vector<ResultHelperPair> ResultVector;
+    typedef SparseVector<ResultHelperPair> ResultVector;
 
     typedef std::map<const TTAMachine::Port*, ResultVector> ResultMap;
 
     /// Type for resource reservation table, resource vector x latency.
     /// Includes the ownerships of the reservation.
-    typedef mapped_vector<ResourceReservationVector> ResourceReservationTable;
-
+    typedef SparseVector<ResourceReservationVector> ResourceReservationTable;
+    
 
     //Copying forbidden
     ExecutionPipelineResource(const ExecutionPipelineResource&);
@@ -206,7 +203,7 @@ private:
 
     // Stores for every cycle the PO whose operand writes are in that cycle
     // these are modcycles, not real cycles
-    mapped_vector<std::pair<ProgramOperation*,ProgramOperation*> > 
+    SparseVector<std::pair<ProgramOperation*,ProgramOperation*> > 
         operandsWriten_;
     // Stores for each move a cycle in which the result is written to output
     // register of FU, this information is not available elsewhere

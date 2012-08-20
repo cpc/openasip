@@ -114,6 +114,30 @@ MapTools::valueForKey(const MapType& aMap, const KeyType& aKey)
 }
 
 /**
+ * Returns value requested by key.
+ *
+ * Does not create a new cell in case key was not found. Useful for methods
+ * that want to access a map in a const method.
+ *
+ * @param aMap The map to look in.
+ * @param aKey Key of to use for finding value.
+ * @return Value of requested key. empty (default constructor) if not found.
+ */
+template <typename ValueType, typename MapType, typename KeyType>
+const ValueType
+MapTools::valueForKeyNoThrow(const MapType& aMap, const KeyType& aKey)
+    throw (KeyNotFound) {
+
+    typename MapType::const_iterator valueToFind = aMap.find(aKey);
+
+    if (valueToFind == aMap.end()) {
+        return ValueType();
+    }
+
+    return (*valueToFind).second;
+}
+
+/**
  *
  * Deletes all values in a map and clears it.
  *

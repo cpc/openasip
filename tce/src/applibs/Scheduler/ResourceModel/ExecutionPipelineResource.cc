@@ -112,19 +112,23 @@ bool
 ExecutionPipelineResource::isInUse(const int cycle) const
     throw (Exception) {
 
-    int modCycle = instructionIndex(cycle);
+    unsigned int modCycle = instructionIndex(cycle);
 
-    int progOpCount = operandsWriten_.size();
-    if (modCycle < progOpCount && operandsWriten_[modCycle].first != NULL) {
+    unsigned int progOpCount = operandsWriten_.size();
+    if (modCycle < progOpCount && 
+        (MapTools::valueForKeyNoThrow
+         <std::pair<ProgramOperation*,ProgramOperation*> >(
+             operandsWriten_,modCycle)).first != NULL) {
         /// Some operand is already written in tested cycle
         return true;
     }
     for (ResultMap::const_iterator rri = resultRead_.begin(); 
          rri != resultRead_.end(); rri++) {
         const ResultVector& resultRead = rri->second;
-        int resultReadCount = resultRead.size();
+        unsigned int resultReadCount = resultRead.rbegin()->first;//.size();
         if (modCycle <  resultReadCount && 
-            resultRead[modCycle].first.po != NULL) {
+            (MapTools::valueForKeyNoThrow<ResultHelperPair>(
+                 resultRead, modCycle)).first.po != NULL) {
             /// Some result is already read in tested cycle
             return true;
         }
@@ -134,16 +138,20 @@ ExecutionPipelineResource::isInUse(const int cycle) const
         return false;
     }
     if (resources->numberOfResources() !=
-            fuExecutionPipeline_.ref(modCycle).size()) {
+        (MapTools::valueForKeyNoThrow<ResourceReservationVector>(
+             fuExecutionPipeline_, modCycle)).size()) {
         std::string msg = "Execution pipeline is missing resources!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
     for (unsigned int i = 0; i < resources->numberOfResources(); i++) {
-            if (fuExecutionPipeline_.ref(modCycle).size() == 0)
-                return false;
+        const ResourceReservationVector& rrv = 
+            MapTools::valueForKeyNoThrow<ResourceReservationVector>(
+                fuExecutionPipeline_, modCycle);
+        if (rrv.size() == 0) {
+            return false;
+        }
                 
-            ResourceReservation& rr = 
-                fuExecutionPipeline_.ref(modCycle)[i];
+        const ResourceReservation& rr = rrv[i];
 
         if (rr.first != NULL) {
             /// Some pipeline resource is already in use in tested cycle
@@ -162,9 +170,9 @@ ExecutionPipelineResource::isInUse(const int cycle) const
  */
 bool
 ExecutionPipelineResource::isAvailable(const int cycle) const {
-    int progOpCount = operandsWriten_.size();
+    unsigned int progOpCount = operandsWriten_.size();
 
-    int modCycle = instructionIndex(cycle);
+    unsigned int modCycle = instructionIndex(cycle);
 
     if (modCycle >= size()) {
         // Whole new operation will be in part of scope that is not
@@ -176,7 +184,10 @@ ExecutionPipelineResource::isAvailable(const int cycle) const {
     if (modCycle < progOpCount) {
         // Cycle is in range between 2 moves of same operation
         // we can not overwrite it!
-        ProgramOperation *po = operandsWriten_[modCycle].first;
+        ProgramOperation *po = 
+            (MapTools::valueForKeyNoThrow
+            <std::pair<ProgramOperation*,ProgramOperation*> >(
+                operandsWriten_,modCycle)).first;
         if (po != NULL) {
             // but if trigger conditional, may overwrite with 
             // operand with opposite guarded move.
@@ -190,19 +201,20 @@ ExecutionPipelineResource::isAvailable(const int cycle) const {
     for (unsigned int pI = 0; pI < resources->pipelineSize(); pI++) {
         foundConflict = false;
         for (unsigned int i = 0; i < resources->maximalLatency(); i++) {
-            if (int(instructionIndex(cycle + i)) >= size()) {
+            if (instructionIndex(cycle + i) >= size()) {
                 if (!foundConflict) {
                     return true;
                 }
             }
             for (unsigned int j = 0 ; j < resources->numberOfResources(); 
                  j++) {
-                if (fuExecutionPipeline_.ref(instructionIndex(cycle+i)).size()
-                    == 0)
+                const ResourceReservationVector& rrv = 
+                    MapTools::valueForKeyNoThrow<ResourceReservationVector>(
+                        fuExecutionPipeline_, instructionIndex(cycle+i));
+                if (rrv.size() == 0) 
                     continue;
                 
-                ResourceReservation& rr = 
-                    fuExecutionPipeline_.ref(instructionIndex(cycle+i))[j];
+                const ResourceReservation& rr = rrv[j];
                 if (resources->operationPipeline(pI, i, j) &&
                     (rr.first != NULL && rr.second != NULL)) {
                     foundConflict = true;
@@ -240,15 +252,17 @@ ExecutionPipelineResource::setResultWriten(
     unsigned int modCycle = instructionIndex(realCycle);
     unsigned int resCount = resultWriten.size();
 
+/*
     // create bookkeepping if does not exist
     if (resCount <= modCycle) {
-        resultWriten.resize(modCycle+1);
         resultWriten[modCycle] = 
             ResultHelperPair(
                 ResultHelper(modCycle, NULL,0),
                 ResultHelper(modCycle, NULL,0));
         
     }
+
+*/
 #if 0    
     for (unsigned int i = resCount; i <= modCycle; i++) {
         // Increase size of the vector
@@ -258,21 +272,18 @@ ExecutionPipelineResource::setResultWriten(
                 ResultHelper(i, NULL,0)));
     }
 #endif
-    if (resultWriten.ref(modCycle).first.po == NULL) {
-        resultWriten.ref(modCycle).first =
-            ResultHelper(realCycle, &po, 1);
+    ResultHelperPair& rhp = resultWriten[modCycle];
+    if (rhp.first.po == NULL) {
+        rhp.first = ResultHelper(realCycle, &po, 1);
     } else {
-        if (resultWriten.ref(modCycle).first.realCycle == realCycle &&
-            // add result to existing.
-            resultWriten.ref(modCycle).first.po == &po) {
-            resultWriten.ref(modCycle).first.count++;
+        if (rhp.first.realCycle == realCycle &&
+            rhp.first.po == &po) {
+            rhp.first.count++;
         } else {
-            if (resultWriten.ref(modCycle).second.po == NULL) {
-                // another op? (with opposite guard?
-                resultWriten.ref(modCycle).second =
-                    ResultHelper(realCycle, &po, 1);
+            if (rhp.second.po == NULL) {
+                rhp.second = ResultHelper(realCycle, &po, 1);
             } else {
-                resultWriten.ref(modCycle).second.count++;
+                rhp.second.count++;
             }
         }
     }
@@ -308,15 +319,19 @@ ExecutionPipelineResource::unsetResultWriten(
     unsigned int rrMod = instructionIndex(realCycle);
 
     ResultVector& resultWriten = resultWriten_[&port];
-    ResultHelperPair& rhp = resultWriten.ref(rrMod);
+    ResultHelperPair& rhp = resultWriten[rrMod];
     
     if (rhp.first.po == &po) {
         // Decrease counter of results written in
         rhp.first.count--;
         if (rhp.first.count == 0) {
-            // move second to first.
-            rhp.first = rhp.second;
-            rhp.second = ResultHelper(); // empty it.
+            if (rhp.second.count == 0) {
+                resultWriten.erase(rrMod);
+            } else {
+                // move second to first.
+                rhp.first = rhp.second;
+                rhp.second = ResultHelper(); // empty it.
+            }
         }
     } else {
         assert(rhp.second.po == &po);
@@ -385,7 +400,6 @@ ExecutionPipelineResource::assignSource(
     /// is scheduled
     unsigned int readCount = resultRead.size();
     if (readCount <= modCycle) {
-        resultRead.resize(modCycle + 1);
         resultRead[modCycle] =
             ResultHelperPair(
                  ResultHelper(modCycle, NULL, 0),
@@ -403,7 +417,7 @@ ExecutionPipelineResource::assignSource(
     // Record PO in cycle where result is read from output,
     // increase number of results read if same PO already reads something
     // in that cycle
-    ResultHelperPair& rhp = resultRead.ref(modCycle);
+    ResultHelperPair& rhp = resultRead[modCycle];
     if (rhp.first.po == NULL) {
         rhp.first = ResultHelper(cycle, pOp, 1);
     } else {
@@ -451,7 +465,6 @@ void
 ExecutionPipelineResource::assignDestination(
     const int cycle,
     MoveNode& node) {
-    unsigned int modCycle = instructionIndex(cycle);
     cachedSize_ = INT_MIN;
 
     if (!node.isDestinationOperation()) {
@@ -466,34 +479,22 @@ ExecutionPipelineResource::assignDestination(
     int firstCycle = 0;
     int lastCycle = 0;
     int triggering = 0;
-    unsigned int progOpCount = operandsWriten_.size();
     // If other operands of same PO were already written, returns
     // the range of cycles from first operand to last operand
 
     findRange(cycle, node, firstCycle, lastCycle, triggering);
-    int modLastCycle = instructionIndex(lastCycle);
-    if (progOpCount < modCycle) {
-        operandsWriten_.resize(modCycle);
-    }
-    if (unsigned(modLastCycle) >= operandsWriten_.size()) {
-        operandsWriten_.resize(
-            modLastCycle + 1);
-    }
-    if (modLastCycle != lastCycle) {
-        operandsWriten_.resize(initiationInterval_);
-    }
 
     for (int i = firstCycle; i <= lastCycle; i++) {
         /// Test some other PO does not write operands in a requested range
         unsigned int modi = instructionIndex(i); 
-        assert(operandsWriten_.size() >= modi);
-        ProgramOperation* oldPO = operandsWriten_.ref(modi).first;
+
+        ProgramOperation* oldPO = operandsWriten_[modi].first;
         if (oldPO != &pOp && oldPO != NULL) {
             MoveNode* oldTrigger = oldPO->triggeringMove();
             
             if (oldTrigger != NULL && !exclusiveMoves(oldTrigger, &node, i)) {
                 std::string msg =  name() + " had previous operation ";
-                msg += operandsWriten_.ref(modi).first->toString() + " in cycle " ;
+                msg += operandsWriten_[modi].first->toString() + " in cycle " ;
                 msg += Conversion::toString(modi);
                 msg += " other trigger: ";
                 msg += oldTrigger->toString();
@@ -508,11 +509,11 @@ ExecutionPipelineResource::assignDestination(
 
                 // Marks all the cycles in range with PO
                 // which is writing operands
-                operandsWriten_.ref(modi).second = &pOp;
+                operandsWriten_[modi].second = &pOp;
             } 
         } else {
             // Marks all the cycles in range with PO that is writing operands
-            operandsWriten_.ref(modi).first = &pOp;
+            operandsWriten_[modi].first = &pOp;
         }
     }
 
@@ -530,29 +531,18 @@ ExecutionPipelineResource::assignDestination(
     }
     int pIndex = resources->operationIndex(opName);
 
-    unsigned int fuEpSize = fuExecutionPipeline_.size();
-    // add empty lines until one BEFORE cycle we want to assign
-    if (modCycle >= fuEpSize) {
-        fuExecutionPipeline_.resize(modCycle);
-    }
-    fuEpSize = fuExecutionPipeline_.size();
 
     for (unsigned int i = 0; i < resources->maximalLatency(); i++) {
-        if (instructionIndex(cycle + i) >= fuEpSize) {
-            // cycle is beyond size() so we add line to it.
-            fuExecutionPipeline_.resize(instructionIndex(cycle + i) + 1);
-            fuEpSize = instructionIndex(cycle+i) + 1;
-        }
 
         // then we can insert the resource usage.
         for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
-            if (fuExecutionPipeline_.ref(instructionIndex(cycle + i)).size()
+            if (fuExecutionPipeline_[instructionIndex(cycle + i)].size()
                 == 0) {
-                fuExecutionPipeline_.ref(instructionIndex(cycle+i)) =
+                fuExecutionPipeline_[instructionIndex(cycle+i)] =
                     ResourceReservationVector(resources->numberOfResources());
             }
             ResourceReservation& rr = 
-                fuExecutionPipeline_.ref(instructionIndex(cycle+i))[j];
+                fuExecutionPipeline_[instructionIndex(cycle+i)][j];
             if (resources->operationPipeline(pIndex,i,j)) {
                 if (rr.first != NULL) {
                     assert(rr.second == NULL && "Resource already in use?");
@@ -623,17 +613,21 @@ ExecutionPipelineResource::unassignSource(
             
             // assert fail is much nicer than unknown exception.
             assert(modCycle < (int)resultRead.size());
-            ResultHelperPair& resultReadPair = resultRead.ref(modCycle);
+            ResultHelperPair& resultReadPair = resultRead[modCycle];
                 
             if (resultReadPair.first.po == &po) {
                 /// Remove record or decrease count of result read moves
                 resultReadPair.first.count--;
                 if (resultReadPair.first.count == 0) {
-                    resultReadPair.first = resultReadPair.second;
-                    
-                    resultReadPair.second.count = 0;
-                    resultReadPair.second.realCycle = modCycle;
-                    resultReadPair.second.po = NULL;
+                    if (resultReadPair.second.count == 0) {
+                        // erase from the bookkeeping, this is empty.
+                        resultRead.erase(modCycle);
+                    } else {
+                        resultReadPair.first = resultReadPair.second;
+                        resultReadPair.second.count = 0;
+                        resultReadPair.second.realCycle = modCycle;
+                        resultReadPair.second.po = NULL;
+                    }
                 }
             } else {
                 if (resultReadPair.second.po == &po) {
@@ -718,39 +712,21 @@ ExecutionPipelineResource::unassignDestination(
         if (lastCycle >= firstCycle) {
             for (int i = lastCycle; i >= firstCycle; i--) {
                 unsigned int modi = instructionIndex(i);
-                if (operandsWriten_.ref(modi).first == pOp) {
-                    if (operandsWriten_.ref(modi).second == NULL) {
-                        operandsWriten_.ref(modi).first = NULL;
-                        if (ii == INT_MAX && 
-                            modi == operandsWriten_.size() - 1) {
-                            operandsWriten_.erase_element(modi);
-                        }
+                if (operandsWriten_[modi].first == pOp) {
+                    if (operandsWriten_[modi].second == NULL) {
+                        operandsWriten_.erase(modi);
                     } else {
-                        operandsWriten_.ref(modi).first = 
-                            operandsWriten_.ref(modi).second;
-                        operandsWriten_.ref(modi).second = NULL;
+                        operandsWriten_[modi].first = 
+                            operandsWriten_[modi].second;
+                        operandsWriten_[modi].second = NULL;
                     }
                 } else {
-                    if (operandsWriten_.ref(modi).second == pOp) {
-                        operandsWriten_.ref(modi).second = NULL;
+                    if (operandsWriten_[modi].second == pOp) {
+                        operandsWriten_[modi].second = NULL;
                     }
                 }
             }
         }
-    }
-
-    // Cleanup the operands vector from the end of the scope
-    int maxOperandsWrite = operandsWriten_.size() -1;
-    // If there are no destination nodes assigned any more
-    // the operandsWriten_ should be empty as well
-    // no point looking for the maximum operand write cycle then.
-    if (assignedDestinationNodes_.size() > 0) {
-        if (ii == INT_MAX) {
-            maxOperandsWrite = (*assignedDestinationNodes_.rbegin()).first;
-            operandsWriten_.resize(maxOperandsWrite + 1);
-        }
-    } else {
-            operandsWriten_.resize(0);
     }
 
     if (!node.move().destination().isTriggering()) {
@@ -786,9 +762,9 @@ ExecutionPipelineResource::unassignDestination(
     for (unsigned int i = 0; i < resources->maximalLatency(); i++) {
         for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
             assert(
-                fuExecutionPipeline_.ref(instructionIndex(cycle+i)).size() != 0);
+                fuExecutionPipeline_[instructionIndex(cycle+i)].size() != 0);
             ResourceReservation& rr = 
-                fuExecutionPipeline_.ref(instructionIndex(cycle+i))[j];
+                fuExecutionPipeline_[instructionIndex(cycle+i)][j];
             if (rr.first == &node) {
                 assert(resources->operationPipeline(
                     resources->operationIndex(opName),i,j) &&
@@ -955,11 +931,17 @@ ExecutionPipelineResource::canAssignDestination(
 
         if (modi < progOpCount) {
             // check if some other operation writes operand this cycle.
-            ProgramOperation* oldPO = operandsWriten_[modi].first;
+            const ProgramOperation* oldPO = 
+                (MapTools::valueForKeyNoThrow
+                 <std::pair<ProgramOperation*,ProgramOperation*> >(
+                     operandsWriten_, modi)).first;
             // if already 2 ops do it, can never fit 3rd
             if (oldPO != pOp && oldPO != NULL) {
-                if (operandsWriten_[modi].second != NULL &&
-                    operandsWriten_[modi].second != pOp) {
+                std::pair<ProgramOperation*,ProgramOperation*> ow =
+                    MapTools::valueForKeyNoThrow<
+                    std::pair<ProgramOperation*,ProgramOperation*> >(
+                        operandsWriten_,modi);
+                if (ow.second != NULL && ow.second != pOp) {
                     return false;
                 }
 
@@ -1063,11 +1045,14 @@ ExecutionPipelineResource::canAssignDestination(
         }
 
         for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
-            if (fuExecutionPipeline_.ref(modci).size() == 0)
+            ResourceReservationVector& rrv =
+                fuExecutionPipeline_[modci];
+            
+            if (rrv.size() == 0) {
                 continue;
+            }
                 
-            ResourceReservation& rr = 
-                fuExecutionPipeline_.ref(modci)[j];
+            ResourceReservation& rr = rrv[j];
 
             // is this resource needed by this operation?
             if (resources->operationPipeline(pIndex,i,j)) {
@@ -1095,7 +1080,7 @@ ExecutionPipelineResource::canAssignDestination(
         for (unsigned int j = 0; j < resources->numberOfResources(); j++) {
             if (assigned[i][j]) {
                 ResourceReservation& rr = 
-                    fuExecutionPipeline_.ref(instructionIndex(cycle+i))[j];
+                    fuExecutionPipeline_[instructionIndex(cycle+i)][j];
                 // clear the usage.
                 if (rr.first == &node) {
                     assert(rr.second == NULL);
@@ -1164,7 +1149,7 @@ ExecutionPipelineResource::validateRelatedGroups() {
  *
  * @return Number of cycles in pipeline.
  */
-int
+unsigned int
 ExecutionPipelineResource::size() const {
 
 #if 0
@@ -1195,11 +1180,14 @@ ExecutionPipelineResource::size() const {
     // Don't go bellow smallest known assigned node
     for (int i = length; i >= stoppingCycle; i--) {
         for (unsigned int j = 0; j < resources->numberOfResources(); j++) {
-            if (fuExecutionPipeline_.ref(i).size() == 0) {                
+            const ResourceReservationVector& rrv =
+                MapTools::valueForKeyNoThrow<ResourceReservationVector>(
+                    fuExecutionPipeline_,i);
+
+            if (rrv.size() == 0) {
                 continue;
             }
-            ResourceReservation& rr = 
-                fuExecutionPipeline_.ref(i)[j];
+            const ResourceReservation& rr = rrv[j];
             if (rr.first != NULL) {
                 cachedSize_ = i + 1;
                 return i + 1;
@@ -1312,7 +1300,7 @@ ExecutionPipelineResource::highestKnownCycle() const {
             maximum = maxResults;
         }
         // size returns count of cycle, max cycle address needs -1
-        return std::max(maximum, size() - 1);
+        return std::max(maximum, (int)(size()) - 1);
     } else {
         int highest = -1;
         int min = INT_MAX;        
@@ -1330,7 +1318,9 @@ ExecutionPipelineResource::highestKnownCycle() const {
             const ResultVector& resultWriten = rwi->second;
                 
             for (int i = resultWriten.size() -1; i >= min; i--) {
-                const ResultHelperPair& rhp = resultWriten[i];
+                const ResultHelperPair& rhp = 
+                    MapTools::valueForKeyNoThrow<ResultHelperPair>(
+                        resultWriten,i);
                 if (rhp.first.po != NULL) {
                     if (int(rhp.first.realCycle) > highest) {
                         highest = rhp.first.realCycle;
@@ -1347,7 +1337,9 @@ ExecutionPipelineResource::highestKnownCycle() const {
              rri != resultRead_.end(); rri++) {
             const ResultVector& resultRead = rri->second;
             for (int i = resultRead.size() -1; i >= min ; i--) {
-                const ResultHelperPair& rrp = resultRead[i];
+                const ResultHelperPair& rrp = 
+                    MapTools::valueForKeyNoThrow<ResultHelperPair>(
+                        resultRead,i);
                 if (rrp.first.po != NULL) {
                     if (int(rrp.first.realCycle) > highest) {
                         highest = rrp.first.realCycle;
@@ -1416,7 +1408,8 @@ ExecutionPipelineResource::nextResultCycle(
             }
         }
         
-        const ResultHelperPair& rhp = resultWriten[modi];
+        const ResultHelperPair& rhp = 
+            MapTools::valueForKeyNoThrow<ResultHelperPair>(resultWriten,modi);
         if (rhp.first.count != 0) {
             assert(rhp.first.po != NULL);
             if (rhp.first.po != sourcePo &&
@@ -1524,7 +1517,6 @@ void
 ExecutionPipelineResource::clear() {
     SchedulingResource::clear();
     fuExecutionPipeline_.clear();
-    fuExecutionPipeline_.resize(0);
     resultWriten_.clear();
     resultRead_.clear();
     operandsWriten_.clear();
@@ -1628,7 +1620,8 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                 continue;
             }
         }
-        const ResultHelperPair& resultReadPair = resultRead[modi];
+        const ResultHelperPair& resultReadPair = 
+            MapTools::valueForKeyNoThrow<ResultHelperPair>(resultRead, modi);
         if (resultReadPair.first.count > 0) {
             // same operation reading result again. cannot fail.
             if (resultReadPair.first.po == &po) {

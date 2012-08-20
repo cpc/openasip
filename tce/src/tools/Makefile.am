@@ -67,6 +67,7 @@ libtcetools_la_SOURCES += \
 	VectorTools.hh AssocTools.hh \
 	MapTools.hh Application.hh \
 	PagedArray.hh DataObject.hh \
+	SparseVectorMap.hh \
 	TCEString.icc AssocTools.icc \
 	CmdLineOptionParser.icc SetTools.icc \
 	ContainerTools.icc ObjectState.icc \

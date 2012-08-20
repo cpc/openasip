@@ -35,7 +35,6 @@
 
 #include <iostream>
 
-#include "MapTools.hh"
 #include "TCEString.hh"
 
 namespace TTAMachine {
