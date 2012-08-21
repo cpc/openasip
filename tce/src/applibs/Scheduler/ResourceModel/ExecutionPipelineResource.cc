@@ -250,28 +250,7 @@ ExecutionPipelineResource::setResultWriten(
     ResultVector& resultWriten = resultWriten_[&port];
 
     unsigned int modCycle = instructionIndex(realCycle);
-    unsigned int resCount = resultWriten.size();
 
-/*
-    // create bookkeepping if does not exist
-    if (resCount <= modCycle) {
-        resultWriten[modCycle] = 
-            ResultHelperPair(
-                ResultHelper(modCycle, NULL,0),
-                ResultHelper(modCycle, NULL,0));
-        
-    }
-
-*/
-#if 0    
-    for (unsigned int i = resCount; i <= modCycle; i++) {
-        // Increase size of the vector
-        resultWriten.push_back(
-            ResultHelperPair(
-                ResultHelper(i, NULL,0),
-                ResultHelper(i, NULL,0)));
-    }
-#endif
     ResultHelperPair& rhp = resultWriten[modCycle];
     if (rhp.first.po == NULL) {
         rhp.first = ResultHelper(realCycle, &po, 1);
