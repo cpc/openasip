@@ -441,7 +441,12 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
-    command = "llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles
+
+    if not runningInstalled:
+        command = "@abs_top_builddir@" + "/src/ext/llvm-ld/tce-llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles        
+    else:
+        command = "tce-llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles
+
     for name in linkFiles:
         command += " " + name
 

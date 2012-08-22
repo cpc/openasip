@@ -189,19 +189,19 @@ TCETargetMachine::addInstSelector(
 /**
  * Creates an instruction selector instance.
  *
- * @param pm Function pass manager to add isel pass.
- * @param fast Not used.
- */                                     
+ */
 bool
 TCEPassConfig::addInstSelector() 
 {
+#ifdef LLVM_3_1
     PM->add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+#else
+    PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+#endif
     return false;
 }
 
-
-
-#endif
+#endif //LLVM_3_0
 
 
 /**
@@ -225,13 +225,18 @@ TCETargetMachine::addPreISel(
 
 bool
 TCEPassConfig::addPreRegAlloc() {
+#ifdef LLVM_3_1
     PM->add(createProgramPartitionerPass());
+#else
+    PM.add(createProgramPartitionerPass());
+#endif
     return false;
 }
 
 bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
+#ifdef LLVM_3_1
     PM->add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
     
@@ -239,6 +244,15 @@ TCEPassConfig::addPreISel() {
         PM->add(createLinkBitcodePass(
                    *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
+#else
+    PM.add(createLowerMissingInstructionsPass(
+               *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
+    
+    if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
+        PM.add(createLinkBitcodePass(
+                   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
+    }
+#endif
 
     CodeGenOpt::Level OptLevel = getOptLevel();
 
@@ -247,7 +261,7 @@ TCEPassConfig::addPreISel() {
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 
         // createStandardLTOPasses function. (do not add memcpyopt or dce!)
-#ifdef LLVM_3_0
+#ifndef LLVM_3_1
         PM.add(createInternalizePass(true));
 #else
         PM->add(createInternalizePass(true));

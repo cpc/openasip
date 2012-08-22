@@ -497,18 +497,15 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.9*)
-     AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
-   ;;
-     3.0*)
+     3.0)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
    ;;
-     3.1*)
+     3.1)
      AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
    ;;
      *svn)
-     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
+     AC_DEFINE([LLVM_3_2], [], "Using LLVM svn (upcoming 3.2)")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.2)")
    ;;   
      *)
    AC_MSG_NOTICE(
@@ -1427,7 +1424,7 @@ cd newlib-1.17.0;
 #$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
-AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+AS_FOR_TARGET=llvm-as LD_FOR_TARGET=`pwd`/../src/ext/llvm-ld/tce-llvm-ld \
 CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
 -Wno-literal-range -Wno-pointer-sign -Wno-return-type \
 -Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \

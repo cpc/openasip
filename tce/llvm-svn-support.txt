@@ -1,4 +1,6 @@
-tce-devel r1523:
-llvm-trunk r152016-r153800 work. (except 152019-152099 and 152202-152222 do not work)
+tce-devel r1693:
+llvm-trunk r155147 work.
 
 Notes:
+
+r155221 changes version number from 3.1 to 3.2
