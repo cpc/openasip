@@ -1369,6 +1369,7 @@ AC_CONFIG_FILES([
   bclib/saocl/Makefile 
   bclib/include/Makefile
   bclib/include/CL/Makefile
+  src/ext/llvm-ld/Makefile
 ])
 
 ## The test Makefile generation will be removed automatically 

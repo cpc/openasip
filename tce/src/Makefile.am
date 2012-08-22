@@ -1,4 +1,4 @@
-SUBDIRS = base tools applibs . bintools procgen codesign 
+SUBDIRS = base tools applibs . bintools procgen codesign ext/llvm-ld
 
 lib_LTLIBRARIES = libtce.la
 
