@@ -406,7 +406,7 @@ static int GenerateNative(const std::string &OutputFilename,
 
 /// EmitShellScript - Output the wrapper file that invokes the JIT on the LLVM
 /// bitcode file for the program.
-static void EmitShellScript(char **argv, Module *M) {
+static void EmitShellScript(char **, Module *M) {
   if (Verbose)
     errs() << "Emitting Shell Script\n";
 #if defined(_WIN32)
