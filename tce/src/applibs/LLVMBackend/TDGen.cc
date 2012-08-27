@@ -2643,83 +2643,97 @@ void
 TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     // vector store/load generation code
 
+#ifdef LLVM_3_1
+    TCEString prefix = "";
+    TCEString rcpf = "RegsRegisterClass";
+    TCEString rapf = "TCE::RARegRegisterClass";
+
+#else
+    TCEString prefix = "&"; // address of -operator
+    TCEString rcpf = "RegsRegClass";
+    TCEString rapf = "TCE::RARegRegClass";
+#endif
 
     os << "#include <stdio.h>" << std::endl 
        << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc)"
        << " const {" << std::endl;
     
-    os << "\tif (rc == TCE::RARegRegisterClass) return TCE::STWRArr;"
+    os << "\tif (rc == " << prefix << rapf
+       << ") return TCE::STWRArr;"
        << std::endl;
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
-            os << "\tif (rc == TCE::" << ri->first
-               << "RegsRegisterClass) return TCE::STQBrb;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << rcpf << ") return TCE::STQBrb;" << std::endl;
         }
         if (ri->first.find("R32") == 0) {
-            os << "\tif (rc == TCE::" << ri->first
-               << "RegsRegisterClass) return TCE::STWrr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << rcpf << ") return TCE::STWrr;" << std::endl;
             
-            os << "\tif (rc == TCE::"  << ri->first
-               << "IRegsRegisterClass) return TCE::STWrr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::"  << ri->first
+               << "I" << rcpf << ") return TCE::STWrr;" << std::endl;
             
-            os << "\tif (rc == TCE::"  << ri->first
-               << "FPRegsRegisterClass) return TCE::STWfr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::"  << ri->first
+               << "FP" << rcpf << ") return TCE::STWfr;" << std::endl;
         }
     }
     
     if (opNames_.find("STW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2R32IRegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf 
+           << ") return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32FPRegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf 
+           << ") return TCE::STW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_0IRegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf 
+           << ") return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_0FPRegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::STW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_2IRegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_2FPRegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::STW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_4IRegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_4FPRegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::STW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_6IRegsRegisterClass) return TCE::STW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::STW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_6FPRegsRegisterClass) return TCE::STW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::STW2mr;"
            << std::endl;
     }
     if (opNames_.find("STW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4R32IRegsRegisterClass) return TCE::STW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::STW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32FPRegsRegisterClass) return TCE::STW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::STW4mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V4R32_L_0IRegsRegisterClass) return TCE::STW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::STW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32_L_0FPRegsRegisterClass) return TCE::STW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::STW4mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V4R32_L_4IRegsRegisterClass) return TCE::STW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::STW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32_L_4FPRegsRegisterClass) return TCE::STW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::STW4mr;"
            << std::endl;
     }
     if (opNames_.find("STW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8R32IRegsRegisterClass) return TCE::STW8vr;"
+        os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::STW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8R32FPRegsRegisterClass) return TCE::STW8mr;"
+           << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::STW8mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V8R32_L_0IRegsRegisterClass) return TCE::STW8vr;"
+        os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::STW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8R32_L_0FPRegsRegisterClass) return TCE::STW8mr;"
+           << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::STW8mr;"
            << std::endl;
     }
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
@@ -2732,78 +2746,78 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
         << "int GeneratedTCEPlugin::getLoad(const TargetRegisterClass *rc)"
         << " const {" << std::endl;
 
-    os << "\tif (rc == TCE::RARegRegisterClass) return TCE::LDWRAr;"
+    os << "\tif (rc == " << prefix << rapf << ") return TCE::LDWRAr;"
        << std::endl;
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
-            os << "\tif (rc == TCE::" << ri->first
-               << "RegsRegisterClass) return TCE::LDQBr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << rcpf <<") return TCE::LDQBr;" << std::endl;
         }
         if (ri->first.find("R32") == 0) {
-            os << "\tif (rc == TCE::" << ri->first
-               << "RegsRegisterClass) return TCE::LDWrr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << rcpf << ") return TCE::LDWrr;" << std::endl;
             
-            os << "\tif (rc == TCE::" << ri->first
-               << "IRegsRegisterClass) return TCE::LDWrr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << "I" << rcpf << ") return TCE::LDWrr;" << std::endl;
             
-            os << "\tif (rc == TCE::" << ri->first
-               << "FPRegsRegisterClass) return TCE::LDWfr;" << std::endl;
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << "FP" << rcpf << ") return TCE::LDWfr;" << std::endl;
         }
     }
 
     if (opNames_.find("LDW2vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V2R32IRegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf << ") return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32FPRegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf << ") return TCE::LDW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_0IRegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf << ") return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_0FPRegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::LDW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_2IRegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_2FPRegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::LDW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_4IRegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_4FPRegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::LDW2mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V2R32_L_6IRegsRegisterClass) return TCE::LDW2vr;"
+        os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::LDW2vr;"
            << std::endl
-           << "\tif (rc == TCE::V2R32_L_6FPRegsRegisterClass) return TCE::LDW2mr;"
+           << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::LDW2mr;"
            << std::endl;
     }
     if (opNames_.find("LDW4vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V4R32IRegsRegisterClass) return TCE::LDW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::LDW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32FPRegsRegisterClass) return TCE::LDW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::LDW4mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V4R32_L_0IRegsRegisterClass) return TCE::LDW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::LDW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32_L_0FPRegsRegisterClass) return TCE::LDW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::LDW4mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V4R32_L_4IRegsRegisterClass) return TCE::LDW4vr;"
+        os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::LDW4vr;"
            << std::endl
-           << "\tif (rc == TCE::V4R32_L_4FPRegsRegisterClass) return TCE::LDW4mr;"
+           << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::LDW4mr;"
            << std::endl;
     }
     if (opNames_.find("LDW8vr") != opNames_.end()) {
-        os << "\tif (rc == TCE::V8R32IRegsRegisterClass) return TCE::LDW8vr;"
+        os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::LDW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8R32FPRegsRegisterClass) return TCE::LDW8mr;"
+           << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::LDW8mr;"
            << std::endl;
 
-        os << "\tif (rc == TCE::V8R32_L_0IRegsRegisterClass) return TCE::LDW8vr;"
+        os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::LDW8vr;"
            << std::endl
-           << "\tif (rc == TCE::V8R32_L_0FPRegsRegisterClass) return TCE::LDW8mr;"
+           << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::LDW8mr;"
            << std::endl;
     }
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl

@@ -437,7 +437,8 @@ LLVMBackend::compile(
   Options.PrintMachineCode = false; //PrintCode;
   Options.NoFramePointerElim = false; // DisableFPElim;
   Options.NoFramePointerElimNonLeaf = false; //DisableFPElimNonLeaf;
-  Options.NoExcessFPPrecision = true; //DisableExcessPrecision;
+  // TODO: just commented this out..
+//  Options.NoExcessFPPrecision = true; //DisableExcessPrecision;
   Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
   Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
   Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;

@@ -193,7 +193,7 @@ TCETargetMachine::addInstSelector(
 bool
 TCEPassConfig::addInstSelector() 
 {
-#ifdef LLVM_3_1
+#ifndef LLVM_3_0
     PM->add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
 #else
     PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
@@ -225,7 +225,7 @@ TCETargetMachine::addPreISel(
 
 bool
 TCEPassConfig::addPreRegAlloc() {
-#ifdef LLVM_3_1
+#ifndef LLVM_3_0
     PM->add(createProgramPartitionerPass());
 #else
     PM.add(createProgramPartitionerPass());
@@ -236,7 +236,7 @@ TCEPassConfig::addPreRegAlloc() {
 bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
-#ifdef LLVM_3_1
+#ifndef LLVM_3_0
     PM->add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
     
@@ -261,7 +261,7 @@ TCEPassConfig::addPreISel() {
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 
         // createStandardLTOPasses function. (do not add memcpyopt or dce!)
-#ifndef LLVM_3_1
+#ifdef LLVM_3_0
         PM.add(createInternalizePass(true));
 #else
         PM->add(createInternalizePass(true));

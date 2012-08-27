@@ -1,6 +1,5 @@
-tce-devel r1693:
-llvm-trunk r155147 work.
+tce-devel r1695:
+llvm-trunk r156034 works, but one test fails due warning.
 
 Notes:
 
-r155221 changes version number from 3.1 to 3.2
