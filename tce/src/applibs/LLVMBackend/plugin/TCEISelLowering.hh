@@ -100,6 +100,8 @@ namespace llvm {
         
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
 
+
+#if (defined(LLVM_3_0) || defined(LLVM_3_1))
         virtual SDValue
         LowerCall(SDValue Chain, SDValue Callee,
                   CallingConv::ID CallConv, bool isVarArg,
@@ -112,6 +114,11 @@ namespace llvm {
                   const SmallVectorImpl<ISD::InputArg> &Ins,
                   DebugLoc dl, SelectionDAG &DAG,
                   SmallVectorImpl<SDValue> &InVals) const;
+#else // LLVM 3.2+
+        virtual SDValue
+        LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                  SmallVectorImpl<SDValue> &InVals) const;
+#endif
         
         virtual SDValue
         LowerReturn(SDValue Chain,

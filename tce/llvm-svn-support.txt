@@ -1,5 +1,7 @@
 tce-devel r1695:
-llvm-trunk r156034 works, but one test fails due warning.
+llvm-trunk r158000 works, but one test fails due warning. opencl also fails?
 
 Notes:
+
+clang r155502 added some internal math routines that cause warnings.
 

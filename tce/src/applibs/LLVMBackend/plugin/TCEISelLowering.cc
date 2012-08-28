@@ -300,6 +300,7 @@ TCETargetLowering::LowerFormalArguments(
     return Chain;
 }
 
+#if (defined(LLVM_3_0) || defined(LLVM_3_1))
 SDValue
 TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
@@ -312,6 +313,23 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) const {
+#else
+SDValue
+TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                             SmallVectorImpl<SDValue> &InVals) const {
+
+    SelectionDAG &DAG                     = CLI.DAG;
+    DebugLoc &dl                          = CLI.DL;
+    SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
+    SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
+    SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
+    SDValue Chain                         = CLI.Chain;
+    SDValue Callee                        = CLI.Callee;
+    bool &isTailCall                      = CLI.IsTailCall;
+    CallingConv::ID CallConv              = CLI.CallConv;
+    bool isVarArg                         = CLI.IsVarArg;
+#endif
+
 
 
     // we do not yet support tail call optimization.
@@ -745,6 +763,7 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
                   DAG.getExternalSymbol("_exit", getPointerTy()),
                   Args, DAG, dl);
 #else
+#ifdef LLVM_3_1
     std::pair<SDValue, SDValue> CallResult =
       LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
                   false, false, false, false, 0, CallingConv::C,
@@ -753,6 +772,19 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
                   /*isReturnValueUsed=*/true,                  
                   DAG.getExternalSymbol("_exit", getPointerTy()),
                   Args, DAG, dl);
+#else
+    TargetLowering::CallLoweringInfo CLI(Op->getOperand(0),
+                                         Type::getVoidTy(*DAG.getContext()),
+                                         false, false, false, false, 
+                                         0, CallingConv::C, false,
+                                         true, /* does not ret */
+                                         /*isReturnValueUsed=*/true,
+                                         DAG.getExternalSymbol(
+                                             "_exit", getPointerTy()),
+                                         Args, DAG, dl);
+        std::pair<SDValue, SDValue> CallResult =
+            LowerCallTo(CLI);
+#endif
 #endif
     return CallResult.second;
 
