@@ -1,4 +1,4 @@
-tce-devel r1695:
+tce-devel r1697:
 llvm-trunk r158000 works, but one test fails due warning. opencl also fails?
 
 Notes:

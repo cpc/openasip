@@ -2025,13 +2025,8 @@ ControlFlowGraph::buildMBBFromBB(
                 Application::logStream() << hwop->name() << " ";
 #endif
 
-#ifdef LLVM_2_9
-                const llvm::TargetInstrDesc& tid =
-                    findLLVMTargetInstrDesc(hwop->name(), tii);
-#else
                 const llvm::MCInstrDesc& tid =
                     findLLVMTargetInstrDesc(hwop->name(), tii);
-#endif
                 mi = mbb.getParent()->CreateMachineInstr(
                     tid, llvm::DebugLoc());
                 
@@ -2086,15 +2081,9 @@ ControlFlowGraph::buildMBBFromBB(
                         // label instructions
                         tpos_.insert(std::make_pair(tpo.programOperation(), symbol));
                     } else if (terminal->isImmediate()) {
-#ifndef LLVM_2_9
                         if (!mi->getDesc().isReturn() ||
                             !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
-#else
-                        if (!mi->getDesc().isReturn() ||
-                            !(static_cast<const llvm::LLVMTargetMachine&>(mbb.getParent()->getTarget()).getTargetTriple().find("cellspu") == 0)){
-#endif
-
-                             mi->addOperand(
+                            mi->addOperand(
                                  llvm::MachineOperand::CreateImm(
                                  terminal->value().intValue()));
                         }                                                    
@@ -2111,13 +2100,8 @@ ControlFlowGraph::buildMBBFromBB(
                         // LLVM register index starts from 1, 
                         // we count register from 0
                         // thus add 1 to get correct data to the LLVM
-#ifndef LLVM_2_9
                         if (!mi->getDesc().isReturn() ||
                             !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
-#else
-                        if (!mi->getDesc().isReturn() ||
-                            !(static_cast<const llvm::LLVMTargetMachine&>(mbb.getParent()->getTarget()).getTargetTriple().find("cellspu") == 0)){
-#endif
                                 mi->addOperand(
                                     llvm::MachineOperand::CreateReg(
                                     terminal->index() + 1, isDef, isImp));                            

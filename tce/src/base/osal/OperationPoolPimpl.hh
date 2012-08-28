@@ -43,13 +43,8 @@ class OperationBehaviorProxy;
 class OperationIndex;
 class Operation;
 namespace llvm {
-#ifdef LLVM_2_9
-    class TargetInstrDesc;
-    class TargetInstrInfo;
-#else
     class MCInstrDesc;
     class MCInstrInfo;
-#endif
 }
 
 /**
@@ -65,15 +60,9 @@ public:
 
     static void cleanupCache();
 
-#ifdef LLVM_2_9
-    static void setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid) {
-        llvmTargetInstrInfo_ = tid;
-    }
-#else
     static void setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid) {
         llvmTargetInstrInfo_ = tid;
     }
-#endif
 private:
     OperationPoolPimpl();
     
@@ -84,11 +73,7 @@ private:
     OperationPoolPimpl(const OperationPoolPimpl&);
     /// Assignment not allowed.
     OperationPoolPimpl& operator=(const OperationPoolPimpl&);
-#ifdef LLVM_2_9
-    Operation* loadFromLLVM(const llvm::TargetInstrDesc& tid);
-#else
     Operation* loadFromLLVM(const llvm::MCInstrDesc& tid);
-#endif
     /// Operation pool uses this to load behavior models of the operations.
     static OperationBehaviorLoader* loader_;
     /// Indexed table used to find out which operation module contains the
@@ -104,11 +89,7 @@ private:
     /// If this is set, OSAL data is loaded from the TargetInstrInfo
     /// instead of .opp XML files. Used when calling the TCE scheduler from
     /// non-TTA LLVM targets.
-#ifdef LLVM_2_9
-    static const llvm::TargetInstrInfo* llvmTargetInstrInfo_;
-#else
     static const llvm::MCInstrInfo* llvmTargetInstrInfo_;
-#endif
 };
 
 #endif

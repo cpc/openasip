@@ -35,6 +35,7 @@
 
 #include <llvm/Target/TargetLowering.h>
 #include "TCEPlugin.hh"
+#include "tce_config.h"
 
 namespace TCEISD {
     enum {

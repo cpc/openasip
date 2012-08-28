@@ -114,14 +114,7 @@ OperationPool::index() {
  * Used to force loading of OSAL data straight from LLVM backend data 
  * instead of the .opp XML files.
  */
-#ifdef LLVM_2_9
-void
-OperationPool::setLLVMTargetInstrInfo(const llvm::TargetInstrInfo* tid) {
-    OperationPoolPimpl::setLLVMTargetInstrInfo(tid);
-}
-#else
 void
 OperationPool::setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid) {
     OperationPoolPimpl::setLLVMTargetInstrInfo(tid);
 }
-#endif
