@@ -284,6 +284,7 @@ LLVMTCEBuilder::initDataSections() {
         TCEString name(Buffer.c_str());
         
         const llvm::GlobalValue& gv = *i;
+        unsigned int gvAlign = gv.getAlignment();
 
         if (gv.hasSection() && gv.getSection() == "llvm.metadata") {
             // do not write debug constants to the data section
@@ -308,7 +309,7 @@ LLVMTCEBuilder::initDataSections() {
         def.address = 0;
         def.addressSpaceId = 
             cast<PointerType>(gv.getType())->getAddressSpace();
-        def.alignment = td->getPrefTypeAlignment(type);
+        def.alignment = std::max(gvAlign,td->getPrefTypeAlignment(type));
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
