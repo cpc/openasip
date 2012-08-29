@@ -1,3 +1,5 @@
 8
+192
 Variable a is correctly aligned!
+Variable b is correctly aligned!
 
