@@ -137,25 +137,45 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                     const llvm::Instruction* instruction = 
                         llvm::cast<const llvm::Instruction>(mo->getValue());
 
-                    SmallVector<std::pair<unsigned, MDNode *>, 4> MDs;
-                    instruction->getAllMetadata(MDs);
-                    for (SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator
-                             MI = MDs.begin(), ME = MDs.end(); MI != ME; ++MI) {
-                        MDNode *md = MI->second;
-                        if (md->getNumOperands() < 5 || 
-                            !isa<llvm::MDString>(md->getOperand(0)))                            
-                            continue;
-                        MDString* name = cast<llvm::MDString>(md->getOperand(0));
-                        if (name->getString() != "WI_id") continue;
-                        ConstantInt* id_x = cast<llvm::ConstantInt>(md->getOperand(2));
-                        nodeIndex = 
-                            (unsigned)id_x->getValue().getZExtValue() % 
-                            targetMach.maxVectorSize();
-#ifdef DEBUG_PROGRAM_PARTITIONER
-                        std::cerr << "[FOUND OCL WI METADATA: " << nodeIndex << "]" << std::endl;
-#endif                   
-
+                    if (!instruction->getMetadata("wi")) {
+                        continue;
                     }
+                    MDNode *md = instruction->getMetadata("wi");
+                    ConstantInt* id_x = NULL;
+                    if (llvm::isa<MDNode>(md->getOperand(2))) {
+                        // new wi metadata format is:
+                        // operand 0 - WI_id
+                        // operand 1 - MDNode with region id
+                        // operand 2 - MDNode with XYZ coordinates
+                        MDNode *xyz = dyn_cast<MDNode>(md->getOperand(2));                                                
+                        // New XYZ metadata format from pocl
+                        // operand 0 - WI_xyz
+                        // operand 1 - x coordinate
+                        // operand 2 - y coordinate
+                        // operand 3 - z coordinate
+                        // pick X coordinate                         
+                        id_x = 
+                            cast<llvm::ConstantInt>(xyz->getOperand(1));                        
+                    } else {
+                        // old metadata format was
+                        // operand 0 - WI_id
+                        // operand 1 - region id
+                        // operand 2 - x coordinate
+                        // operand 3 - y coordinate
+                        // operand 4 - z coordinate
+                        // operand 5 - instruction number
+                        id_x = 
+                            cast<llvm::ConstantInt>(md->getOperand(2));                                                
+                    }
+                    if (id_x == NULL)
+                        continue;
+                    nodeIndex = 
+                        (unsigned)id_x->getValue().getZExtValue() % 
+                        targetMach.maxVectorSize();                    
+#ifdef DEBUG_PROGRAM_PARTITIONER
+                    std::cerr << "[FOUND OCL WI METADATA: " << 
+                        nodeIndex << "]" << std::endl;
+#endif                   
                 }
             }
 
