@@ -42,7 +42,6 @@ const std::string LLVMTCECmdLineOptions::SWS_EMULATION_LIB = "e";
 const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
 const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
-const std::string LLVMTCECmdLineOptions::SWL_EXPERIMENTAL_REGALLOC = "experimental-ra";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string LLVMTCECmdLineOptions::DISABLE_LLVMAA = "disable-llvmaa";
 const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
@@ -93,10 +92,6 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new IntegerCmdLineOptionParser(
             SWL_OPT_LEVEL, "Optimization level (0-2)",
             SWS_OPT_LEVEL));
-
-    addOption(
-        new BoolCmdLineOptionParser(
-            SWL_EXPERIMENTAL_REGALLOC, "Use TCE's experimenal register allocator"));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -258,11 +253,6 @@ LLVMTCECmdLineOptions::debugFlag() const {
         return true;
     }
     return false;
-}
-
-bool
-LLVMTCECmdLineOptions::useExperimentalRegAllocator() const {
-    return findOption(SWL_EXPERIMENTAL_REGALLOC)->isDefined();
 }
 
 bool

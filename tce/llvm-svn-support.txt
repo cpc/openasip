@@ -1,7 +1,7 @@
-tce-devel r1697:
-llvm-trunk r158000 works, but one test fails due warning. opencl also fails?
+tce-devel r1704:
+llvm-trunk r158500-r158750 works?
+opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
 
-clang r155502 added some internal math routines that cause warnings.
 
