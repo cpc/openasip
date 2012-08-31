@@ -22,6 +22,12 @@ Code generator improvements
   Now the compiler can actually use these instructions.
   Currently these are used only for scalars, not yet for vectors.(TODO)
 
+Bugfixes
+--------
+- __attribute__((aligned)) now works for global variables.
+- register to itself move as only instruction in llvm bb could cause
+  tce compiler to fail.
+
 1.6         June 2012 
 =====================
 

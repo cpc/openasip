@@ -424,6 +424,8 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 bb = &bbn->basicBlock();
             }
         }
+
+        assert(bb->instructionCount() != 0);
 //        ddgBuilder_->constructIndividualBB(REGISTERS_AND_PROGRAM_OPERATIONS);
 
     }
@@ -696,6 +698,14 @@ LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
     // Pseudo instructions don't require any actual instructions.
     if (opName == "PSEUDO") {
         return false;
+    }
+
+    if (opName == "MOVE") {
+        const MachineOperand& dst = instr.getOperand(0);
+        const MachineOperand& src = instr.getOperand(1);
+        if (dst.isReg() && src.isReg() && dst.getReg() == src.getReg()) {
+            return false;
+        }
     }
     return true;
 }
