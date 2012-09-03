@@ -1,7 +1,9 @@
-tce-devel r1704:
-llvm-trunk r158500-r158750 works?
+tce-devel r1705:
+llvm-trunk r158500-r159348 works?
 opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
+
+159349 de-virtualized DIScope class. this break linking of TCE.
 
 
