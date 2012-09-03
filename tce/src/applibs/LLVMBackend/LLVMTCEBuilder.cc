@@ -95,7 +95,11 @@
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
+#if (defined(LLVM_3_0) || defined(LLVM_3_1))
 #include <llvm/Analysis/DebugInfo.h>
+#else
+#include <llvm/DebugInfo.h>
+#endif
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 
@@ -1671,9 +1675,10 @@ LLVMTCEBuilder::debugDataToAnnotations(
                 // inspired from lib/codegen/MachineInstr.cpp
                 const LLVMContext &Ctx = 
                     mi->getParent()->getParent()->getFunction()->getContext();
-                DIScope scope(dl.getScope(Ctx));
+                // TODO: something broken with DIScope
+                DIScope discope(dl.getScope(Ctx));
                 sourceLineNumber = dl.getLine();
-                sourceFileName = static_cast<TCEString>(scope.getFilename());
+                sourceFileName = static_cast<TCEString>(discope.getFilename());
 
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 

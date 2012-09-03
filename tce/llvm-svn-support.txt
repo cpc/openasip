@@ -1,9 +1,14 @@
 tce-devel r1705:
-llvm-trunk r158500-r159348 works?
+llvm-trunk r159312-r159349 works?
 opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
 
-159349 de-virtualized DIScope class. this break linking of TCE.
+159349 changed some DIScope interfaces.
+
+this broke linking of TCE when wrong header path was used(old header)
+
+Denbench uses tce-llvm-ld from install location 
+- may break when not installed, or old version installed.
 
 
