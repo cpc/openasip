@@ -454,7 +454,8 @@ LLVMBackend::compile(
   Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
   Options.StackAlignmentOverride = false; //OverrideStackAlignment;
   Options.RealignStack = false; //EnableRealignStack;
-  Options.DisableJumpTables = false; //DisableSwitchTables;
+//TODO: new llvm removed/renamed this
+//  Options.DisableJumpTables = false; //DisableSwitchTables;
 //  Options.TrapFuncName = TrapFuncName;
   Options.EnableSegmentedStacks = false; //SegmentedStacks;
 

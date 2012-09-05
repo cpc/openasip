@@ -1,12 +1,13 @@
-tce-devel r1705:
-llvm-trunk r159312-r159349 works?
+tce-devel r1708:
+llvm-trunk r159312-r159910 works.
 opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
 
-159349 changed some DIScope interfaces.
+160000 fails on some changed interface.
 
-this broke linking of TCE when wrong header path was used(old header)
+159950: opt: Attributes.cpp:317: llvm::AttrListPtr llvm::AttrListPtr::removeAttr(unsigned int, llvm::Attributes) const: Assertion `!(Attrs & Attribute::Alignment) && "Attempt to exclude alignment!"' failed.
+
 
 Denbench uses tce-llvm-ld from install location 
 - may break when not installed, or old version installed.

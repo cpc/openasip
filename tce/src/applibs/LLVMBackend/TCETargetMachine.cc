@@ -194,7 +194,11 @@ bool
 TCEPassConfig::addInstSelector() 
 {
 #ifndef LLVM_3_0
+#ifdef LLVM_3_1
     PM->add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+#else
+    addPass(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
+#endif
 #else
     PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
 #endif
@@ -225,10 +229,10 @@ TCETargetMachine::addPreISel(
 
 bool
 TCEPassConfig::addPreRegAlloc() {
-#ifndef LLVM_3_0
+#ifdef LLVM_3_1
     PM->add(createProgramPartitionerPass());
 #else
-    PM.add(createProgramPartitionerPass());
+    addPass(createProgramPartitionerPass());
 #endif
     return false;
 }
@@ -237,6 +241,7 @@ bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
 #ifndef LLVM_3_0
+#ifdef LLVM_3_1
     PM->add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
     
@@ -244,6 +249,16 @@ TCEPassConfig::addPreISel() {
         PM->add(createLinkBitcodePass(
                    *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
+#else // 3.2 or newer
+    addPass(createLowerMissingInstructionsPass(
+                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
+    
+    if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
+        addPass(createLinkBitcodePass(
+                  *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
+    }
+#endif
+
 #else
     PM.add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
@@ -264,7 +279,11 @@ TCEPassConfig::addPreISel() {
 #ifdef LLVM_3_0
         PM.add(createInternalizePass(true));
 #else
+#ifdef LLVM_3_1
         PM->add(createInternalizePass(true));
+#else
+        addPass(createInternalizePass(true));
+#endif
 #endif
         // TODO: find out which optimizations are beneficial here..
         //PM.add(createIPSCCPPass());
