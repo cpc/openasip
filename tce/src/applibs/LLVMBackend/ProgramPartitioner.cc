@@ -110,9 +110,13 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
                 for (unsigned opr = 0; opr < mi.getNumOperands(); ++opr) {
                     const llvm::MachineOperand& operand = mi.getOperand(opr);
                     if (!operand.isReg()) continue;
-                    const llvm::MachineInstr* parent = 
-                        MRI.getVRegDef(operand.getReg());
 
+                    llvm::MachineRegisterInfo::def_iterator di = 
+                        MRI.def_begin(operand.getReg());
+                    if (di.atEnd()) continue;
+                    const llvm::MachineInstr* parent = &*di;
+
+                    // TODO: is this NULL check anymore necessary?
                     if (parent == NULL) continue;
                     if (partitions.find(parent) == partitions.end()) continue;
                     nodeIndex = partitions[parent];
