@@ -43,7 +43,7 @@
 #include <iterator>
 #include <sstream>
 
-#include "hash_map.hh"
+//#include "hash_map.hh"
 #include "Application.hh"
 #include "ReferenceKey.hh"
 #include "Exception.hh" // IllegalParameters, UnresolvedReference
