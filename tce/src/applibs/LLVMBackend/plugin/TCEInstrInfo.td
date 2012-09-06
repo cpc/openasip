@@ -674,6 +674,31 @@ def : Pat <(v8f32 (build_vector (f32 R32FPRegs:$e1), (f32 R32FPRegs:$e2), (f32 R
 
 // do concat vectors also through subvectors
 def concat_vectors : SDNode<"ISD::CONCAT_VECTORS", SDTypeProfile<1,2,[]>,[]>;
+def concat_vectors4 : SDNode<"ISD::CONCAT_VECTORS", SDTypeProfile<1,4,[]>,[]>;
+
+
+def : Pat<(v8i32 (concat_vectors4 (v2i32 V2R32IRegs:$v1), (v2i32 V2R32IRegs:$v2),
+(v2i32 V2R32IRegs:$v3), (v2i32 V2R32IRegs:$v4))),
+    (v8i32 (INSERT_SUBREG
+        (v8i32 (INSERT_SUBREG 
+            (v8i32 (INSERT_SUBREG
+                (v8i32 (INSERT_SUBREG (v8i32 (IMPLICIT_DEF)),
+            (v2i32 V2R32Regs:$v1), subvector2_0)),
+        (v2i32 V2R32Regs:$v2), subvector2_2)),
+    (v2i32 V2R32Regs:$v3), subvector2_4)),
+(v2i32 V2R32Regs:$v4), subvector2_6))>;
+    
+def : Pat<(v8f32 (concat_vectors4 (v2f32 V2R32FPRegs:$v1), 
+    (v2f32 V2R32FPRegs:$v2), (v2f32 V2R32FPRegs:$v3), (v2f32 V2R32FPRegs:$v4))),
+    (v8f32 (INSERT_SUBREG
+        (v8f32 (INSERT_SUBREG 
+            (v8f32 (INSERT_SUBREG
+                (v8f32 (INSERT_SUBREG (v8f32 (IMPLICIT_DEF)),
+            (v2f32 V2R32FPRegs:$v1), subvector2_0)),
+        (v2f32 V2R32FPRegs:$v2), subvector2_2)),
+    (v2f32 V2R32FPRegs:$v3), subvector2_4)),
+(v2f32 V2R32FPRegs:$v4), subvector2_6)) >;
+
 
 def : Pat<(v4i32 (concat_vectors (v2i32 V2R32IRegs:$v1), (v2i32 V2R32IRegs:$v2))),
     (v4i32 (INSERT_SUBREG
