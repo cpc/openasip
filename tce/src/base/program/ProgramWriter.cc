@@ -675,6 +675,9 @@ TPEFResourceUpdater::immediateUnit(const ImmediateUnit& immUnit) {
 const HalfWord
 ProgramWriter::IMMEDIATE_ADDRESS_WIDTH = WORD_BITWIDTH;
 
+const int
+ProgramWriter::MAX_SIMM_WIDTH = 32;
+
 /**
  * Constructor.
  *
@@ -1032,8 +1035,14 @@ ProgramWriter::createCodeSection(
                         int fieldWidth = progMove.bus().immediateWidth();
 
                         if (progMove.bus().signExtends()) {
+                            // Interpret as signed and sign extend if needed
+                            int svalue = static_cast<int>(uvalue);
+                            if (fieldWidth < MAX_SIMM_WIDTH) {
+                                svalue = MathTools::signExtendTo(
+                                    svalue, fieldWidth);
+                            }
                             requiredBits = 
-                                MathTools::requiredBitsSigned(uvalue);
+                                MathTools::requiredBitsSigned(svalue);
                         } else {
                             requiredBits = 
                                 MathTools::requiredBits(uvalue);

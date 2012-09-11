@@ -213,6 +213,9 @@ private:
     /// Default widt that is used as address width of relocations of immediate
     /// elements. This should be fixed by checking width from bus or template.
     static const HalfWord IMMEDIATE_ADDRESS_WIDTH;
+
+    /// Maximum width for short immediates
+    static const int MAX_SIMM_WIDTH;
 };
 
 }
