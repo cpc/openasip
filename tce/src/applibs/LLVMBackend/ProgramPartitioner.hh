@@ -60,6 +60,7 @@
 
 #include "llvm/ADT/StringMap.h"
 
+#include "hash_map.hh"
 
 struct ProgramPartitioner : public llvm::MachineFunctionPass {
     static char ID;
@@ -68,7 +69,11 @@ struct ProgramPartitioner : public llvm::MachineFunctionPass {
     virtual bool doInitialization(llvm::Module &M);
     virtual bool runOnMachineFunction(llvm::MachineFunction &MF);
     virtual bool doFinalization(llvm::Module &M);
-
+    virtual bool findNodeIndex(
+        const llvm::MachineInstr &I, 
+        hash_map<const llvm::MachineInstr*, unsigned>& partitions,
+        llvm::MachineFunction& MF,
+        unsigned int& index);
     virtual const char *getPassName() const {
         return "TCE: program variables to register file partitioner";
     }
