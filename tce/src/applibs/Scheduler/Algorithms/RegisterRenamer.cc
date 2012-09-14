@@ -341,6 +341,7 @@ RegisterRenamer::findPartiallyUsedRegistersBeforeCycle(
 
     std::set<TCEString> regs = onlyMidPartiallyUsedRegs_;
     AssocTools::append(onlyBeginPartiallyUsedRegs_, regs);
+    AssocTools::append(usedGPRs_, regs);
 
     for (std::set<TCEString>::iterator i = regs.begin(); 
          i != regs.end(); i++) {
@@ -364,6 +365,7 @@ RegisterRenamer::findPartiallyUsedRegistersAfterCycle(
 
     std::set<TCEString> regs = onlyMidPartiallyUsedRegs_;
     AssocTools::append(onlyEndPartiallyUsedRegs_, regs);
+    AssocTools::append(usedGPRs_, regs);
 
     for (std::set<TCEString>::iterator i = regs.begin(); 
          i != regs.end(); i++) {
