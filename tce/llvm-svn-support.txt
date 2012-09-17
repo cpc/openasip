@@ -1,10 +1,10 @@
-tce-devel r1708:
-llvm-trunk r159312-r159910 works.
+tce-devel r1711:
+llvm-trunk r159312-r162000 works.
 opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
 
-160000 fails on some changed interface.
+r163000: pocl breaks, breaking opencl test.
 
 159950: opt: Attributes.cpp:317: llvm::AttrListPtr llvm::AttrListPtr::removeAttr(unsigned int, llvm::Attributes) const: Assertion `!(Attrs & Attribute::Alignment) && "Attempt to exclude alignment!"' failed.
 
