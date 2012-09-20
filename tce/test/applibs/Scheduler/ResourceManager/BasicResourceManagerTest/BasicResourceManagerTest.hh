@@ -402,9 +402,9 @@ BasicResourceManagerTest::testRestorationOfResources() {
     bus = &moves.node(0).move().bus();
 
     TTAProgram::ProgramAnnotation srcCandidate1(
-        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, "fu15");
+        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC, "fu15");
     TTAProgram::ProgramAnnotation dstCandidate1(
-        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST, "fu15");
+        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST, "fu15");
 
     // It's an add operation (from the root of DDG). Test
     // the unit candidate set feature, by forcing the unit selection
@@ -704,7 +704,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         // fu selection logic changed. use annotation to force original
         // fu selection.
         TTAProgram::ProgramAnnotation dstCandidate15(
-            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST, 
+            TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST, 
             "fu15");
         node1->move().addAnnotation(dstCandidate15);
         node2->move().addAnnotation(dstCandidate15);
