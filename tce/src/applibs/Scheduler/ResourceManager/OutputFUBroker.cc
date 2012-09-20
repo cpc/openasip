@@ -50,6 +50,7 @@
 #include "OutputPSocketResource.hh"
 #include "ResourceManager.hh"
 #include "Move.hh"
+#include "MachineConnectivityCheck.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -176,22 +177,17 @@ OutputFUBroker::allAvailableResources(
 
     // check if the move has a candidate FU set which limits the
     // choice of FU for the node
-    std::set<std::string> candidateFUs;
-    if (node.move().hasAnnotations(
-            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC)) {
+    std::set<TCEString> candidateFUs;
+    std::set<TCEString> allowedFUs;
 
-        const int annotationCount =
-            node.move().annotationCount(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC);
-        for (int i = 0; i < annotationCount; ++i) {
-            std::string candidateFU =
-                node.move().annotation(
-                    i, TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC).
-                stringValue();
-
-            candidateFUs.insert(candidateFU);
-        }
-    }
+    // TODO: why is this in loop for operands but not in loop for results?
+    // do multiple return values break or work?
+    MachineConnectivityCheck::addAnnotatedFUs(
+        candidateFUs, node.move(),
+        TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC);
+    MachineConnectivityCheck::addAnnotatedFUs(
+        allowedFUs, node.move(),
+        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
 
     // find units that support operation and are available at given cycle
     while (resIter != resMap_.end()) {
@@ -205,6 +201,12 @@ OutputFUBroker::allAvailableResources(
             ++resIter;
             continue;
         }
+        if (allowedFUs.size() > 0 &&
+            !AssocTools::containsKey(allowedFUs, unit->name())) {
+            ++resIter;
+            continue;
+        }
+
         if (unit->hasOperation(op.name())) {
             OutputFUResource& fuRes =
                 static_cast<OutputFUResource&>(*resourceOf(*unit));

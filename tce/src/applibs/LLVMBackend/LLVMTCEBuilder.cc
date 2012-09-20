@@ -1056,7 +1056,7 @@ LLVMTCEBuilder::doFinalization(Module& /* m */) {
             if (t.isFUPort() && !t.isRA() &&
                 t.hintOperation().operand(t.operationIndex()).isAddress() &&
                 !m.hasAnnotations(
-                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
                 std::cerr
                     << "The program refers to multiple data address spaces, "
                     << "the machine contains multiple data address spaces and "
@@ -1455,10 +1455,10 @@ LLVMTCEBuilder::copyFUAnnotations(
         for (int j = 0; j < operandMove.annotationCount(); j++) {
             TTAProgram::ProgramAnnotation anno = operandMove.annotation(j);
             if (anno.id() == 
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST) {
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) {
                 move.setAnnotation(
                     TTAProgram::ProgramAnnotation(
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC,
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
                         anno.payload()));
             }
         }
@@ -2356,7 +2356,7 @@ LLVMTCEBuilder::emitInlineAsm(
         if (addressedOp) {
             for (int j = 0; j < operandMoves[i]->moveCount(); j++) {
                 TTAProgram::ProgramAnnotation dstCandidate(
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST,
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
                         addressedFU);
                 operandMoves[i]->move(0).addAnnotation(dstCandidate);
             }
@@ -2368,7 +2368,7 @@ LLVMTCEBuilder::emitInlineAsm(
         if (addressedOp) {
             for (int j = 0; j < resultMoves[i]->moveCount(); j++) {
                 TTAProgram::ProgramAnnotation srcCandidate(
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC,
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
                         addressedFU);
                 resultMoves[i]->move(0).addAnnotation(srcCandidate);
             }
@@ -3318,7 +3318,7 @@ LLVMTCEBuilder::addCandidateLSUAnnotations(
             if (fu.addressSpace()->hasNumericalId(asNum)) {
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
-                    ANN_CANDIDATE_UNIT_DST, fu.name());
+                    ANN_ALLOWED_UNIT_DST, fu.name());
                 move->addAnnotation(progAnnotation);
                 foundLSU = true;
             }

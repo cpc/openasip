@@ -1966,7 +1966,7 @@ RegisterCopyAdder::addCandidateSetAnnotations(
              i != candidates.end(); ++i) {
             std::string candidateFU = (*i);
             TTAProgram::ProgramAnnotation dstCandidate(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST, 
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST, 
                 candidateFU);
             m.move().addAnnotation(dstCandidate);
         }
@@ -1980,7 +1980,7 @@ RegisterCopyAdder::addCandidateSetAnnotations(
              i != candidates.end(); ++i) {
             std::string candidateFU = (*i);
             TTAProgram::ProgramAnnotation srcCandidate(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, 
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC, 
                 candidateFU);
             m.move().addAnnotation(srcCandidate);
         }

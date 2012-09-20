@@ -55,6 +55,7 @@
 #include "TerminalFUPort.hh"
 #include "MoveNodeSet.hh"
 #include "InputPSocketResource.hh"
+#include "MachineConnectivityCheck.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -233,7 +234,8 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         }
     }
 
-    std::set<std::string> candidateFUs;        
+    std::set<TCEString> candidateFUs;
+    std::set<TCEString> allowedFUs;
     // not all nodes have dest operation info set as the RM can be called
     // for single moves 
     if (node.isDestinationOperation()) {
@@ -242,23 +244,12 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         ProgramOperation& destOp = node.destinationOperation();
         for (int in = 0; in < destOp.inputMoveCount(); ++in) {
             MoveNode& n = destOp.inputMove(in);
-            if (n.move().hasAnnotations(
-                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
-                
-                const int annotationCount =
-                    n.move().annotationCount(
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
-                for (int i = 0; i < annotationCount; ++i) {
-                    std::string candidateFU =
-                        n.move().annotation(
-                            i, 
-                            TTAProgram::ProgramAnnotation::
-                            ANN_CANDIDATE_UNIT_DST).
-                        stringValue();
-                    debugLogRM(TCEString("Added candidate FU ") + candidateFU);
-                    candidateFUs.insert(candidateFU);
-                }
-            } 
+            MachineConnectivityCheck::addAnnotatedFUs(
+                candidateFUs, n.move(),
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+            MachineConnectivityCheck::addAnnotatedFUs(
+                allowedFUs, n.move(),
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
         }
     }
     
@@ -289,6 +280,15 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
             debugLogRM(
                 TCEString("skipped ") << unit->name() << " because it was not "
                 " in the candidate set.");
+            ++resIter;
+            continue;
+        }
+
+        if (allowedFUs.size() > 0 &&
+            !AssocTools::containsKey(allowedFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was not "
+                " in the allowed set.");
             ++resIter;
             continue;
         }

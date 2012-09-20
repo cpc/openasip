@@ -829,8 +829,9 @@ CopyingDelaySlotFiller::getMove(Move& old) {
         if (oldMN.isSourceOperation()) {
             assert(source.isFUPort());
             std::string fuName = source.functionUnit().name();
+	    //TODO: which is the correct annotation here?
             TTAProgram::ProgramAnnotation srcUnit(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, 
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC, 
                 fuName);
             newMove->setAnnotation(srcUnit);
 
@@ -852,8 +853,9 @@ CopyingDelaySlotFiller::getMove(Move& old) {
             assert(dest.isFUPort());
 
             std::string fuName = dest.functionUnit().name();
+	    //TODO: which is the correct annotation here?
             TTAProgram::ProgramAnnotation dstUnit(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST, 
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST, 
                 fuName);
             newMove->setAnnotation(dstUnit);
 

@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "MachineCheck.hh"
+#include "ProgramAnnotation.hh"
 
 class TCEString;
 class MoveNode;
@@ -186,6 +187,9 @@ public:
 
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();
+
+    static void addAnnotatedFUs(std::set<TCEString>& candidateFUs, const TTAProgram::Move& m, 
+	TTAProgram::ProgramAnnotation::Id id);
 
 protected:
     MachineConnectivityCheck(const std::string& shortDesc_);

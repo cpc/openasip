@@ -936,22 +936,11 @@ MachineConnectivityCheck::busConnectedToAnyFU(
 
     // check if the move has a candidate FU set which limits the
     // choice of FU for the node
-    std::set<std::string> candidateFUs;
+    std::set<TCEString> candidateFUs;
+    std::set<TCEString> allowedFUs;
 
-    if (move.hasAnnotations(
-            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
-
-        const int annotationCount =
-            move.annotationCount(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
-        for (int i = 0; i < annotationCount; ++i) {
-            std::string candidateFU =
-                move.annotation(
-                    i, TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST).
-                stringValue();
-            candidateFUs.insert(candidateFU);
-        }
-    }
+    addAnnotatedFUs(candidateFUs, move, TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+    addAnnotatedFUs(allowedFUs, move, TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
 
     TTAMachine::ControlUnit* gcu = bus.machine()->controlUnit();
     if (candidateFUs.empty() || AssocTools::containsKey(
@@ -966,11 +955,16 @@ MachineConnectivityCheck::busConnectedToAnyFU(
         bus.machine()->functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-        if (candidateFUs.empty() || AssocTools::containsKey(
+        if (!candidateFUs.empty() && !AssocTools::containsKey(
                 candidateFUs,fu.name())) {
-            if (busConnectedToFU(bus, fu, opName, opIndex)) {
+	    continue;
+	}
+        if (!allowedFUs.empty() && !AssocTools::containsKey(
+                allowedFUs,fu.name())) {
+	    continue;
+	}
+        if (busConnectedToFU(bus, fu, opName, opIndex)) {
                 return true;
-            }
         }
     }
     return false;
@@ -1047,21 +1041,37 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
                 }
             }
         }
-        
-        if (node.move().hasAnnotations(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
-            const int annotationCount =
-                node.move().annotationCount(
-                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
-            for (int i = 0; i < annotationCount; ++i) {
-                allowedFUNames.insert(
-                    node.move().annotation(
-                        i, 
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST).
-                    stringValue());
-            }
+
+        std::set<TCEString> candidateFUs;
+        std::set<TCEString> allowedFUs;
+	
+        addAnnotatedFUs(candidateFUs, node.move(), 
+	    TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+        addAnnotatedFUs(allowedFUs, node.move(),
+ 	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+
+	if (!candidateFUs.empty()) {
+	    if (allowedFUNames.empty()) {
+		allowedFUNames = candidateFUs;
+	    } else {
+		std::set<TCEString> tmp;
+		SetTools::intersection(allowedFUNames, candidateFUs,tmp);
+		allowedFUNames = tmp;
+	    }
+
         }
 
+	if (!allowedFUs.empty()) {
+	    if (allowedFUNames.empty()) {
+		allowedFUNames = allowedFUs;
+	    } else {
+		std::set<TCEString> tmp;
+		SetTools::intersection(allowedFUNames, allowedFUs,tmp);
+		allowedFUNames = tmp;
+	    }
+
+        }
+        
         for (int i = 0; i <= nav.count(); i++) {
             TTAMachine::FunctionUnit* fu;
             if (i == nav.count()) { // GCU is not on fu navigator
@@ -1138,27 +1148,22 @@ MachineConnectivityCheck::findPossibleSourcePorts(
             mach.functionUnitNavigator();
         ProgramOperation& po = node.sourceOperation();
 
-        std::set<TCEString> allowedFUNames;
-        if (node.move().hasAnnotations(
-                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC)) {
-            const int annotationCount =
-                node.move().annotationCount(
-                    TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC);
-            
-            for (int i = 0; i < annotationCount; ++i) {
-                allowedFUNames.insert(
-                    node.move().annotation(
-                        i, 
-                        TTAProgram::ProgramAnnotation::
-                        ANN_CANDIDATE_UNIT_SRC).
-                    stringValue());
-            }
-        }
+        std::set<TCEString> candidateFUs;
+        std::set<TCEString> allowedFUs;
+	
+        addAnnotatedFUs(candidateFUs, node.move(), 
+	    TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC);
+        addAnnotatedFUs(allowedFUs, node.move(),
+ 	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
 
         for (int i = 0; i < nav.count(); i++) {
             TTAMachine::FunctionUnit* fu = nav.item(i);
-            if (!allowedFUNames.empty() && !AssocTools::containsKey(
-                    allowedFUNames, fu->name())) {
+            if (!allowedFUs.empty() && !AssocTools::containsKey(
+                    allowedFUs, fu->name())) {
+                continue;
+            }
+            if (!candidateFUs.empty() && !AssocTools::containsKey(
+                    candidateFUs, fu->name())) {
                 continue;
             }
             
@@ -1271,6 +1276,21 @@ MachineConnectivityCheck::canTransportMove(
 
     return MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
         moveNode, destinationPorts);
+}
+
+void
+MachineConnectivityCheck::addAnnotatedFUs(std::set<TCEString>& candidateFUs, 
+	const TTAProgram::Move& m, 
+	TTAProgram::ProgramAnnotation::Id id) {
+
+     const int annotationCount =
+                    m.annotationCount(id);
+                for (int i = 0; i < annotationCount; ++i) {
+                    std::string candidateFU =
+                        m.annotation(i, id).stringValue();
+                    candidateFUs.insert(candidateFU);
+                }
+
 }
 
 /* These are static */

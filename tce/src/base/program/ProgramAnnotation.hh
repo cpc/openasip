@@ -108,8 +108,11 @@ public:
         /// payload data string. Naturally, there can be multiple annotations
         /// of the same type to define multiple candidates for choosing
         /// the unit for source/destination.
-        ANN_CANDIDATE_UNIT_SRC          = 0x00030000,///<Src. unit candidate
-        ANN_CANDIDATE_UNIT_DST          = 0x00030001,///<Dst. unit candidate
+        ANN_ALLOWED_UNIT_SRC          = 0x00030000,///<Src. unit candidate
+        ANN_ALLOWED_UNIT_DST          = 0x00030001,///<Dst. unit candidate
+
+        ANN_CONN_CANDIDATE_UNIT_SRC          = 0x00030004,///<Src. unit candidate
+        ANN_CONN_CANDIDATE_UNIT_DST          = 0x00030005,///<Dst. unit candidate
 
         /// A reg to reg move that was added because of missing connectivity 
         /// between the original target and destination (a temp move).

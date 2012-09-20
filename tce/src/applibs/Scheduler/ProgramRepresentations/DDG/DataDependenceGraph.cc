@@ -1673,10 +1673,10 @@ DataDependenceGraph::mergeAndKeep(MoveNode& sourceNode, MoveNode& userNode) {
         // set fu annotations
         for (int j = 0; j < sourceNode.move().annotationCount(); j++) {
             TTAProgram::ProgramAnnotation anno = sourceNode.move().annotation(j);
-            if (anno.id() == TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC) {
+            if (anno.id() == TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC) {
                 userNode.move().setAnnotation(
                     TTAProgram::ProgramAnnotation(
-                        TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC, anno.payload()));
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC, anno.payload()));
             }
         }
     } else {
@@ -1808,7 +1808,7 @@ DataDependenceGraph::unMerge(MoveNode &sourceNode, MoveNode& mergedNode) {
         mergedNode.unsetSourceOperation();
 
 	// unset fu annotations
-	mergedNode.move().removeAnnotations(TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_SRC);
+	mergedNode.move().removeAnnotations(TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
     }
 
     // All incoming RAW and operation dependencies were created by
