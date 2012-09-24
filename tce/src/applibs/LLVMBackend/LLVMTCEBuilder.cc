@@ -2297,6 +2297,10 @@ LLVMTCEBuilder::emitInlineAsm(
             ++inputOperand;
         } else {
             if (defOps.empty()) {
+                // ignore implicit defs that are too many.
+                if (mo.isImplicit()) {
+                    continue;
+                }
                 std::cerr << std::endl;
                 std::cerr << "ERROR: Too many output operands for custom "
                           << "operation '" << opName << "'." << std::endl;
