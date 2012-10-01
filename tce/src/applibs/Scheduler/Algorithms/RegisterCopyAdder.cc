@@ -109,8 +109,10 @@ RegisterCopyAdder::requiredRegisterCopiesForEachFU(
 
         std::string operationName = programOperation.operation().name();
         if (unit.hasOperation(operationName)) {
-            registerCopiesRequired[&unit] = 
-                addRegisterCopies(programOperation, unit).count_;
+	    if (isAllowedUnit(unit, programOperation)) {
+		registerCopiesRequired[&unit] = 
+		    addRegisterCopies(programOperation, unit).count_;
+	    }
         }
     }
 
@@ -2096,6 +2098,61 @@ RegisterCopyAdder::findTempRegisters(
     ipd.setDatum("SCRATCH_REGISTERS", tempRegData);
 }
 
+bool
+RegisterCopyAdder::isAllowedUnit(
+    const TTAMachine::FunctionUnit& fu, const ProgramOperation& po) {
+    
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+	TTAProgram::ProgramAnnotation::Id annoId = 
+	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST;
+
+	std::set<TCEString> allowedUnits;
+
+	const TTAProgram::Move& move = po.inputMove(i).move();
+	const int annotationCount = move.annotationCount(annoId);
+
+	bool annoFound = false;
+	for (int j = 0; j < annotationCount; j++) {
+	    annoFound = true;
+	    std::string allowedFUName =
+		move.annotation(j, annoId).stringValue();
+	    allowedUnits.insert(allowedFUName);
+	}
+	if (annoFound) {
+	    if (AssocTools::containsKey(allowedUnits, fu.name())) {
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+    }
+
+    for (int i = 0; i < po.outputMoveCount(); i++) {
+	TTAProgram::ProgramAnnotation::Id annoId = 
+	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC;
+
+	std::set<TCEString> allowedUnits;
+	
+	TTAProgram::Move& move = po.outputMove(i).move();
+	const int annotationCount =
+	    move.annotationCount(annoId);
+	bool annoFound = false;
+	for (int j = 0; j < annotationCount; j++) {
+	    annoFound = true;
+	    std::string allowedFUName =
+		move.annotation(j, annoId).stringValue();
+	    allowedUnits.insert(allowedFUName);
+	}
+	if (annoFound) {
+	    if (AssocTools::containsKey(allowedUnits, fu.name())) {
+		return true;
+	    } else {
+		return false;
+	    }
+	}
+    }
+    return true;
+}
 
 /**
  * Constructor.

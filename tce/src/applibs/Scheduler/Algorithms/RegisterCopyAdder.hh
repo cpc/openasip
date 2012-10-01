@@ -138,6 +138,10 @@ public:
         bool bottomUpScheduling);
 
 private:
+    bool isAllowedUnit(
+	const TTAMachine::FunctionUnit& fu,
+	const ProgramOperation& po);
+
     AddedRegisterCopies addRegisterCopies(
         ProgramOperation& programOperation,
         const TTAMachine::FunctionUnit& fu,
