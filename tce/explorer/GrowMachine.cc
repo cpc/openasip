@@ -107,7 +107,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             adf = dsdb.architecture(configuration.architectureID);
         } catch (const KeyNotFound& e) {
             debugLog(std::string("Fetching architecture from DSDB failed in "
-                     "GrowMachine plugin. ")
+                     "GrowMachine. ")
                      + e.errorMessage() + std::string(" ")
                      + e.errorMessageStack());
             result.push_back(configurationID);
@@ -125,14 +125,14 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
         try {
             bool estimate = false;
             if (!explorer.evaluate(startConf, estimates, estimate)) {
-                debugLog(std::string("Evaluate failed in GrowMachine plugin."));
+                debugLog(std::string("Evaluate failed in GrowMachine."));
                 result.push_back(configurationID);
                 delete adf;
                 adf = NULL;
                 return result;
             }
         } catch (const Exception& e) {
-            debugLog(std::string("Error in GrowMachine plugin: ")
+            debugLog(std::string("Error in GrowMachine: ")
                     + e.errorMessage() + std::string(" ")
                     + e.errorMessageStack());
             result.push_back(configurationID);
@@ -147,7 +147,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
 
         if (cycleCounts.size() < 1) {
             std::ostringstream msg(std::ostringstream::out);
-            msg << "GrowMachine Plugin Error: Couldn't evaluate cycle "
+            msg << "GrowMachine error: Couldn't evaluate cycle "
                 << "counts for applications, correct_simulation_output"
                 << " probably missing." << std::endl;
             verboseLog(msg.str());
@@ -173,7 +173,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             try {
                 // These parameters passed to the modifier can be changed.
                 // They tell how many units of same type are added each time.
-                modifier.addBusesByAmount(4, *adf);
+                modifier.addBusesByAmount(8, *adf);
                 modifier.increaseAllRFsThatDiffersByAmount(1, *adf);
                 modifier.increaseAllFUsThatDiffersByAmount(1, *adf);
                 // @TODO immediate unit addition
@@ -203,9 +203,9 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                         }
                     }
 
-                    if (Application::verboseLevel() > 2) {
+                    if (Application::verboseLevel() > 0) {
                         std::ostringstream msg(std::ostringstream::out);
-                        msg << "GrowMachine plugin produced config: "
+                        msg << "GrowMachine produced config: "
                             << confID << ", with cycle count: " 
                             << currentMinCycles << " (" 
                             << calculateImprovement(currentMinCycles, 
@@ -230,7 +230,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                 }
 
             } catch (const Exception& e) {
-                debugLog(std::string("Error in GrowMachine plugin: ")
+                debugLog(std::string("Error in GrowMachine: ")
                         + e.errorMessage() + std::string(" ")
                         + e.errorMessageStack());
                 result.push_back(configurationID);

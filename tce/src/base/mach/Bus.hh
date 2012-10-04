@@ -62,6 +62,7 @@ public:
         throw (ObjectStateLoadingException);
     virtual ~Bus();
     virtual Bus* copy() const;
+    virtual void copyGuardsTo(Bus& other) const;
 
     virtual int position() const
         throw (NotAvailable);

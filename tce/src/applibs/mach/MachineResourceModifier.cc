@@ -80,43 +80,22 @@ MachineResourceModifier::addBusesByAmount(
 
         while (numberToAdd > 0) {
             if (addedBuses < busesToAdd) {
-                ObjectState* newBusState = (*iter).second->saveState();
-                TTAMachine::Bus* newBus = new TTAMachine::Bus(newBusState);
-                delete newBusState;
-                newBusState = NULL;
+                TTAMachine::Bus& original = *(*iter).second;
+                TTAMachine::Bus* newBus = original.copy();
 
                 int busNum = 0;
-                std::string busBaseName = "bus";
+                std::string busBaseName = original.name();
                 TTAMachine::Machine::BusNavigator busNavigator = 
                     mach.busNavigator();
                 while (busNavigator.hasItem(
                            busBaseName + Conversion::toString(busNum))) {
                     busNum++;
                 }
+
                 newBus->setName(busBaseName + Conversion::toString(busNum));
                 mach.addBus(*newBus);
 
-                // copy guards to the new bus
-                for (int i = 0; i < (*iter).second->guardCount(); i++) {
-                    ObjectState* guardState = 
-                        (*iter).second->guard(i)->saveState();
-                    if (guardState->name() == 
-                        RegisterGuard::OSNAME_REGISTER_GUARD) {
-                        
-                        // RegisterGuard* guard =
-                        new RegisterGuard(guardState, *newBus);
-                    } else if (guardState->name() == 
-                               PortGuard::OSNAME_PORT_GUARD) {
-                        
-                        //PortGuard* guard =
-                        new PortGuard(guardState, *newBus);
-                    } else if (guardState->name() ==
-                               UnconditionalGuard::OSNAME_UNCONDITIONAL_GUARD) {
-                        
-                        //UnconditionalGuard* guard =
-                        new UnconditionalGuard(guardState, *newBus);
-                    }
-                }
+                original.copyGuardsTo(*newBus);
                 // Fully connect the machine.
                 FullyConnectedCheck check;
                 check.fix(mach);
@@ -125,7 +104,6 @@ MachineResourceModifier::addBusesByAmount(
             numberToAdd--;
         }
     }
-    AssocTools::deleteAllValues(busMap);
 }
 
 /**
@@ -184,7 +162,6 @@ MachineResourceModifier::reduceBuses(
         }
         iter++;
     }
-    AssocTools::deleteAllValues(busMap);
 }
 
 
@@ -315,7 +292,7 @@ MachineResourceModifier::analyzeBuses(
         busMap.insert(
             std::pair<double, TTAMachine::Bus*>(
                 Conversion::toDouble(counter) / 
-                Conversion::toDouble(busNavigator.count()), bus->copy()));
+                Conversion::toDouble(busNavigator.count()), bus));
         checkedBuses.insert(i);
     }
 

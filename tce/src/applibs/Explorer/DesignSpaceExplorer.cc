@@ -349,10 +349,11 @@ DesignSpaceExplorer::schedule(
     std::string tceccCommand = tceccPath + " "  
         + compilerOptions + " --no-link -a " + adf + " -o " 
         + tpef + " " + bytecodeFile + " --no-plugin-cache 2>&1";
-    
-    Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
 
     const bool debug = Application::verboseLevel() > 0;
+
+    Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
+
     if (debug && tceccOutputLines.size() > 0) {
         for (unsigned int i = 0; i < tceccOutputLines.size(); ++i) {
             std::cout << tceccOutputLines.at(i) << std::endl;
@@ -361,7 +362,13 @@ DesignSpaceExplorer::schedule(
     
     // check if tcecc produced any tpef output
     if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
-        FileSystem::removeFileOrDirectory(tmpDir);            
+        if (debug) {
+            std::cout << "failed command: " << tceccCommand << std::endl
+                      << "temporary directory left for inspection at: " 
+                      << tmpDir << std::endl;
+        } else {
+            FileSystem::removeFileOrDirectory(tmpDir);            
+        }
         return NULL;    
     } 
     

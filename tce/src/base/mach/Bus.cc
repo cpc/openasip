@@ -1192,9 +1192,17 @@ Bus*
 Bus::copy() const {
     ObjectState* newBusState = saveState();
     Bus* newBus = new Bus(newBusState);
+
     delete newBusState;
     newBusState = NULL;
     return newBus;
+}
+
+void
+Bus::copyGuardsTo(Bus& other) const {
+    for (int i = 0; i < guardCount(); ++i) {
+        guard(i)->copyTo(other);
+    }        
 }
 
 }
