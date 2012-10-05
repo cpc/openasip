@@ -34,6 +34,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <memory>
 
 #include "DesignSpaceExplorerPlugin.hh"
 #include "MachineConnectivityCheck.hh"
@@ -400,8 +401,8 @@ private:
         DSDBManager::MachineConfiguration bestConf = startConf;
 
         if (tryAllFirst) {
-            TTAMachine::Machine* currentMachine = 
-                db().architecture(bestConf.architectureID);
+            std::auto_ptr<TTAMachine::Machine> currentMachine(
+                db().architecture(bestConf.architectureID));
             for (std::vector<const TTAMachine::Connection*>::iterator 
                      connI = connections.begin(); connI != connections.end();
                  ++connI) {
@@ -417,15 +418,16 @@ private:
             bool success = evaluate(conf, estimates, false);
             float worsening = averageWorsening(confId);
             if (success) {
+                std::auto_ptr<TTAMachine::Machine> arch
+                    (db().architecture(
+                        db().configuration(confId).architectureID));
                 if (worsening <= ccWorseningThreshold_) {
                     results.push_back(confId);
                     TCEString s;
                     s << "removing all connections was within threshold: #" 
                       << confId << " avg worsening: ";
                     s << (int)worsening << "% " << " total connections: "
-                      << MachineConnectivityCheck::totalConnectionCount(
-                          *db().architecture(
-                              db().configuration(confId).architectureID));
+                      << MachineConnectivityCheck::totalConnectionCount(*arch);
                     verboseLog(s);
                     return results;
                 } else {
@@ -434,9 +436,7 @@ private:
                       << "threshold: #" 
                       << confId << " avg worsening: ";
                     s << (int)worsening << "% " << " total connections: "
-                      << MachineConnectivityCheck::totalConnectionCount(
-                          *db().architecture(
-                              db().configuration(confId).architectureID));
+                      << MachineConnectivityCheck::totalConnectionCount(*arch);
                     s << "\n";
                     s << "trying all connections one by one";
                     verboseLog(s);

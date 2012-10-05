@@ -163,6 +163,11 @@ SimulatorFrontend::~SimulatorFrontend() {
     lastTraceDB_ = NULL;
     delete eventHandler_;
     eventHandler_ = NULL;
+    delete simCon_;
+    simCon_ = NULL;
+    delete memorySystem_;
+    memorySystem_ = NULL;
+
     clearProgramErrorReports();
 }
 
