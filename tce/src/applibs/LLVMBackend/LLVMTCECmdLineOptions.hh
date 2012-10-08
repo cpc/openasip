@@ -26,11 +26,10 @@
  *
  * Declaration of LLVMTCECmdLineOptions class.
  *
- * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2010-2012
  * @note rating: red
  */
-
 
 #ifndef LLVM_TCE_CMD_LINE_OPTIONS_HH
 #define LLVM_TCE_CMD_LINE_OPTIONS_HH
@@ -78,6 +77,8 @@ public:
     bool isWorkItemAAFileDefined() const;
     std::string workItemAAFile() const;
 
+    bool analyzeInstructionPatterns() const;
+
     TCEString tempDir() const;    
 
     virtual bool dumpDDGsDot() const;
@@ -117,6 +118,7 @@ private:
     static const std::string ENABLE_VECTOR_BACKEND;
     static const std::string WORK_ITEM_AA_FILE;
     static const std::string USAGE;
+    static const std::string SWL_ANALYZE_INSTRUCTION_PATTERNS;
 };
 
 #endif

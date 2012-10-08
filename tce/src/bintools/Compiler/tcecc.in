@@ -794,6 +794,10 @@ p.add_option('--vector-backend', action='store_true', dest='vector_backend', def
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
 
+p.add_option('--analyze-instruction-patterns', action='store_true', dest='analyze_ipatterns', default=False,
+             help=\
+"""Analyzes the instruction patterns seen by the instruction selector.""")
+
 p.add_option('--print-resource-constraints', action='store_true',
              dest='print_resource_constraints', default=False,
              help=\
@@ -1097,6 +1101,9 @@ if options.adf_file != "":
     if options.vector_backend:
         command += " --vector-backend"
         
+    if options.analyze_ipatterns:
+        command += " --analyze-instruction-patterns"
+
     if options.kill_dead_results:
         command += " --kill-dead-results"
     else:

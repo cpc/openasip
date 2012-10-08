@@ -3225,7 +3225,7 @@ LLVMTCEBuilder::result() throw (NotAvailable) {
 }
 
 /**
- * Creates a registergaurd to given guard register.
+ * Creates a register guard to given guard register.
  */
 TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
     const TTAProgram::Terminal* terminal, bool trueOrFalse) {

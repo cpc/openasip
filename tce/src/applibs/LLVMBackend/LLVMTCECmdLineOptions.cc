@@ -26,7 +26,7 @@
  *
  * Implementation of LLVMTCECmdLineOptions class.
  *
- * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2008-2012
  * @note rating: red
  */
@@ -57,6 +57,9 @@ const std::string LLVMTCECmdLineOptions::SWL_RECURSIVE_BU_SCHEDULER =
     "recursive-scheduler";
 const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES = 
     "use-old-backend-src";
+
+const std::string LLVMTCECmdLineOptions::SWL_ANALYZE_INSTRUCTION_PATTERNS = 
+    "analyze-instruction-patterns";
 
 const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
 
@@ -155,9 +158,14 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             "if tcecc finds path to installed pocl."));
 
     addOption(
-	new BoolCmdLineOptionParser(
-	    ENABLE_VECTOR_BACKEND,
-	    "Enable backend support for vector registers split between multiple RF's"));
+        new BoolCmdLineOptionParser(
+            ENABLE_VECTOR_BACKEND,
+            "Enable backend support for vector registers split between multiple RF's"));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_ANALYZE_INSTRUCTION_PATTERNS,
+            "Analyze the instruction patterns after instruction selection."));
 }
 
 /**
@@ -327,3 +335,9 @@ std::string
 LLVMTCECmdLineOptions::workItemAAFile() const {
     return findOption(WORK_ITEM_AA_FILE)->String();
 }
+
+bool
+LLVMTCECmdLineOptions::analyzeInstructionPatterns() const {
+    return findOption(SWL_ANALYZE_INSTRUCTION_PATTERNS)->isDefined();
+}
+

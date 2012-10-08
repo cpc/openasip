@@ -48,6 +48,8 @@
 
 #include <iostream>
 
+#include "LLVMTCECmdLineOptions.hh"
+
 using namespace llvm;
 
 
@@ -58,6 +60,7 @@ namespace llvm {
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
 Pass* createProgramPartitionerPass();
+Pass* createInstructionPatternAnalyzer();
 
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
@@ -170,22 +173,6 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     plugin_->registerTargetMachine(*this);
 }
 
-#ifdef LLVM_3_0
-/**
- * Creates an instruction selector instance.
- *
- * @param pm Function pass manager to add isel pass.
- * @param fast Not used.
- */                                     
-bool
-TCETargetMachine::addInstSelector(
-    PassManagerBase& pm, CodeGenOpt::Level /* OptLevel */) 
-{
-    pm.add(plugin_->createISelPass(this));
-    return false;
-}
-
-#else
 /**
  * Creates an instruction selector instance.
  *
@@ -193,20 +180,13 @@ TCETargetMachine::addInstSelector(
 bool
 TCEPassConfig::addInstSelector() 
 {
-#ifndef LLVM_3_0
 #ifdef LLVM_3_1
     PM->add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
 #else
     addPass(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
 #endif
-#else
-    PM.add(plugin_->createISelPass(static_cast<TCETargetMachine*>(TM)));
-#endif
     return false;
 }
-
-#endif //LLVM_3_0
-
 
 /**
  * Some extra passes needed by TCE
@@ -214,33 +194,27 @@ TCEPassConfig::addInstSelector()
  * @param pm Function pass manager to add isel pass.
  * @param fast Not used.
  */                                     
-#ifdef LLVM_3_0 
-bool
-TCETargetMachine::addPreISel(
-    PassManagerBase& PM, CodeGenOpt::Level OptLevel) {
-    // lower floating point stuff.. maybe could use plugin as param instead machine...    
-    PM.add(createLowerMissingInstructionsPass(*ttaMach_));
-    
-    if (emulationModule_ != NULL) {
-        PM.add(createLinkBitcodePass(*emulationModule_));
-    }
-
-#else
-
 bool
 TCEPassConfig::addPreRegAlloc() {
+    LLVMTCECmdLineOptions *options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
 #ifdef LLVM_3_1
     PM->add(createProgramPartitionerPass());
+
+    if (options != NULL && options->analyzeInstructionPatterns())
+        PM->add(createInstructionPatternAnalyzer());
 #else
     addPass(createProgramPartitionerPass());
+    if (options != NULL && options->analyzeInstructionPatterns())
+        addPass(createInstructionPatternAnalyzer());
 #endif
     return false;
 }
 
+
 bool
 TCEPassConfig::addPreISel() {
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
-#ifndef LLVM_3_0
 #ifdef LLVM_3_1
     PM->add(createLowerMissingInstructionsPass(
                *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
@@ -249,6 +223,7 @@ TCEPassConfig::addPreISel() {
         PM->add(createLinkBitcodePass(
                    *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
+
 #else // 3.2 or newer
     addPass(createLowerMissingInstructionsPass(
                 *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
@@ -259,53 +234,17 @@ TCEPassConfig::addPreISel() {
     }
 #endif
 
-#else
-    PM.add(createLowerMissingInstructionsPass(
-               *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
-    
-    if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
-        PM.add(createLinkBitcodePass(
-                   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
-    }
-#endif
-
     CodeGenOpt::Level OptLevel = getOptLevel();
 
-#endif
     // if llvm-tce opt level is -O2 or -O3
     if (OptLevel != CodeGenOpt::None) {
         // get some pass lists from llvm/Support/StandardPasses.h from 
         // createStandardLTOPasses function. (do not add memcpyopt or dce!)
-#ifdef LLVM_3_0
-        PM.add(createInternalizePass(true));
-#else
 #ifdef LLVM_3_1
         PM->add(createInternalizePass(true));
 #else
         addPass(createInternalizePass(true));
 #endif
-#endif
-        // TODO: find out which optimizations are beneficial here..
-        //PM.add(createIPSCCPPass());
-        //PM.add(createGlobalOptimizerPass());
-        //PM.add(createConstantMergePass());
-        //PM.add(createDeadArgEliminationPass());
-        //PM.add(createInstructionCombiningPass());
-        //PM.add(createFunctionInliningPass());
-        //PM.add(createPruneEHPass());   // Remove dead EH info.
-        //PM.add(createGlobalOptimizerPass());
-        //PM.add(createArgumentPromotionPass());
-        //PM.add(createInstructionCombiningPass());
-        //PM.add(createJumpThreadingPass());
-        //PM.add(createScalarReplAggregatesPass());
-        //PM.add(createFunctionAttrsPass()); // Add nocapture.
-        //PM.add(createGlobalsModRefPass()); // IP alias analysis.
-        //PM.add(createLICMPass());      // Hoist loop invariants.
-        //PM.add(createGVNPass());       // Remove redundancies.
-        //PM.add(createDeadStoreEliminationPass());
-        //PM.add(createInstructionCombiningPass());
-        //PM.add(createJumpThreadingPass());
-        // PM.add(createCFGSimplificationPass()); 
     }
     
     // NOTE: This must be added before Machine function analysis pass..
@@ -339,8 +278,6 @@ TCETargetMachine::missingOperations() {
     return &missingOps_;
 }
 
-#ifndef LLVM_3_0
-
 TargetPassConfig* 
 TCETargetMachine::createPassConfig(
     PassManagerBase &PM) {
@@ -351,4 +288,3 @@ TCETargetMachine::createPassConfig(
     tpc->setEnableTailMerge(false);
     return tpc;
 }
-#endif

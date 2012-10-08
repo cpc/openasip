@@ -5,11 +5,11 @@ pkglib_LTLIBRARIES = LLVMTCEPOMBuilder.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
-	LLVMTCEBuilder.cc ProgramPartitioner.cc \
+	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc TransportTDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc
+	LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc MachineInstrDDG.cc
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 
@@ -54,6 +54,8 @@ CXXFLAGS=-Wno-unused-parameter
 
 # Static sources for target machine plugins.
 include_HEADERS = \
+ CG/CompGraphEdge.hh CG/CompGraphNode.hh \
+ CG/ComputationGraph.hh CG/ComputationGraphsManager.hh \
  plugin/TCEDAGToDAGISel.cc \
  plugin/TCEDAGToDAGISel.hh \
  plugin/TCEInstrFormats.td \
