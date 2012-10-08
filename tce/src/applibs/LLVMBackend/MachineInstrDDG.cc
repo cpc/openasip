@@ -162,37 +162,9 @@ MachineInstrDDG::MachineInstrDDG(
             connectNodes(*source, *dest, *edge);
         }
     }
-    CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
-    LLVMTCECmdLineOptions* options = 
-        dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
-    if (options != NULL && options->dumpDDGsDot()) {
-        writeToDotFile(mf.getFunction()->getName().str() + "_middg.dot");
-    }    
-
-    if (options != NULL && options->printResourceConstraints()) {
-        Application::logStream() 
-            << mf.getFunction()->getName().str() 
-            << " MachineInstrDDG critical path length: "
-            << height()
-            << std::endl;
-    }
 }
 
 MachineInstrDDG::~MachineInstrDDG() {
-    CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
-    LLVMTCECmdLineOptions* options = 
-        dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
-    if (options != NULL && options->dumpDDGsDot()) {
-        writeToDotFile(mf_.getFunction()->getName().str() + "_middg-final.dot");
-    }    
-
-    if (options != NULL && options->printResourceConstraints()) {
-        Application::logStream() 
-            << mf_.getFunction()->getName().str() 
-            << " final MachineInstrDDG critical path length: "
-            << height()
-            << std::endl;
-    }
 }
 
 
@@ -418,3 +390,35 @@ MachineInstrDDG::assignPhysReg(Register vreg, Register physReg) {
     }
 }
 
+std::string 
+MIDDGNode::dotString() const { 
+    const llvm::TargetInstrInfo *TII = 
+        machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
+
+    // If it's a custom operation call, try to figure out
+    // the called operation name and use it instead as the
+    // node label.
+    TCEString opName;
+    if (mi_->isInlineAsm()) {
+        unsigned numDefs = 0;
+        while (mi_->getOperand(numDefs).isReg() &&
+               mi_->getOperand(numDefs).isDef())
+            ++numDefs;
+        opName = mi_->getOperand(numDefs).getSymbolName();
+    } else {
+        opName = TII->getName(mi_->getOpcode());
+    }
+
+    // Clean up the operand type string encoded as 
+    // lower case letter at the end of the string.
+    TCEString upper = opName.upper();
+    TCEString cleaned;
+    for (size_t i = 0; i < opName.size(); ++i) {
+        if (upper[i] == opName[i])
+            cleaned += opName[i];
+        else
+            break;
+    }
+
+    return (boost::format("label=\"%s\"") % cleaned).str();
+}

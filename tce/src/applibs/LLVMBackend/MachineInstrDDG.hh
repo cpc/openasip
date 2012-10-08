@@ -65,12 +65,7 @@ struct MIDDGNode : public GraphNode {
     const llvm::MachineInstr* machineInstr() const { return mi_; }
     int sequentialAddress() const { return address_; }
 
-    std::string dotString() const { 
-        const llvm::TargetInstrInfo *TII = 
-            machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
-        return (boost::format("label=%s") % 
-                TII->getName(mi_->getOpcode())).str();
-    }
+    std::string dotString() const;
 
 private:
     const llvm::MachineInstr* mi_;
@@ -182,9 +177,7 @@ private:
     const bool onlyTrueDeps_;
 
     llvm::MachineFunction& mf_;
-#ifndef LLVM_2_7
     const llvm::TargetRegisterInfo* regInfo_;
-#endif
 };
 
 #endif
