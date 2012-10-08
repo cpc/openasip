@@ -2226,7 +2226,7 @@ LLVMTCEBuilder::emitInlineAsm(
         std::getline(iss, addressedFU, '.');
         std::getline(iss, opName, '.');
         if (!mach_->functionUnitNavigator().hasItem(addressedFU)) {
-            std::cerr << "ERROR: Fonction Unit '" << addressedFU
+            std::cerr << "ERROR: Function Unit '" << addressedFU
                     << "' not found."
                     << std::endl;
             assert(false);
