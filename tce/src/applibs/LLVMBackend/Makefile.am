@@ -54,8 +54,6 @@ CXXFLAGS=-Wno-unused-parameter
 
 # Static sources for target machine plugins.
 include_HEADERS = \
- CG/CompGraphEdge.hh CG/CompGraphNode.hh \
- CG/ComputationGraph.hh CG/ComputationGraphsManager.hh \
  plugin/TCEDAGToDAGISel.cc \
  plugin/TCEDAGToDAGISel.hh \
  plugin/TCEInstrFormats.td \
