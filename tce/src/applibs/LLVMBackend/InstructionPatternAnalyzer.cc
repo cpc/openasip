@@ -46,6 +46,7 @@ char InstructionPatternAnalyzer::ID = 0;
 bool
 InstructionPatternAnalyzer::runOnMachineFunction(llvm::MachineFunction &F) {
     MachineInstrDDG ddg(F);
+    ddg.computeOptimalSchedule();
     ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.dot");
     return false;
 }

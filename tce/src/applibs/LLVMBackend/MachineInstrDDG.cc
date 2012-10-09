@@ -42,6 +42,9 @@
 #include "AssocTools.hh"
 #include "Application.hh"
 #include "LLVMTCECmdLineOptions.hh"
+#include "TCETargetMachine.hh"
+#include "OperationPool.hh"
+#include "Operation.hh"
 
 #include <utility>
 
@@ -57,7 +60,8 @@ MachineInstrDDG::MachineInstrDDG(
     bool onlyTrueDeps) :
     BoostGraph<MIDDGNode, MIDDGEdge>(
         std::string(mf.getFunction()->getName().str()) + "_middg", true),
-    onlyTrueDeps_(onlyTrueDeps), mf_(mf), regInfo_(mf_.getTarget().getRegisterInfo()) {
+    onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
+    regInfo_(mf_.getTarget().getRegisterInfo()) {
     int instructions = 0;
     for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
          bbi != mf.end(); ++bbi) {
@@ -332,6 +336,141 @@ MachineInstrDDG::preceedingNodeUsesOrDefinesReg(
 
 
 /**
+ * Computes optimal top-down schedule assuming infinite resources and that
+ * each operation completes in one cycle.
+ */
+void
+MachineInstrDDG::computeOptimalSchedule() {
+    smallestCycle_ = 0;
+    largestCycle_ = 0;
+    schedule_.clear();
+    for (int nc = 0; nc < nodeCount(); ++nc) {
+        MIDDGNode& n = node(nc);
+        int cycle = maxSourceDistance(n);
+        n.setOptimalCycle(cycle);
+        largestCycle_ = std::max(cycle, largestCycle_);
+        schedule_[cycle].push_back(&n);
+    }
+}
+
+TCEString
+MachineInstrDDG::dotString() const {
+    std::ostringstream s;
+    s << "digraph " << name() << " {" << std::endl;
+
+    const bool scheduled = nodeCount() > 1 && node(0).optimalCycle() != -1;
+    
+    if (scheduled) {
+        // print the "time line" to visualize the schedule
+        s << "\t{" << std::endl
+          << "\t\tnode [shape=plaintext];" << std::endl
+          << "\t\t";
+        const int smallest = smallestCycle_;
+        const int largest = largestCycle_;
+        for (int c = smallest; c <= largest; ++c) {
+            s << "\"cycle " << c << "\" -> ";
+        }
+        s << "\"cycle " << largest + 1 << "\"; " 
+          << std::endl << "\t}" << std::endl;
+    
+        // print the nodes that have cycles
+        for (int c = smallest; c <= largest; ++c) {
+            std::list<MIDDGNode*> ops = schedule_[c];
+            if (ops.size() > 0) {
+                s << "\t{ rank = same; \"cycle " << c << "\"; ";
+                for (std::list<MIDDGNode*>::iterator i = ops.begin(); 
+                     i != ops.end(); ++i) {
+                    MIDDGNode& n = **i;        
+                    s << "n" << n.nodeID() << "; ";
+                }
+                s << "}" << std::endl;
+            }        
+        }
+
+
+        typedef std::map<TCEString, int> OpCountMap;
+        // Count how many times each operation could be potentially
+        // executed in parallel in an optimal schedule. This can direct
+        // the intial architecture design.
+        OpCountMap maxParallelOps;
+        // The operation mix. I.e., the static occurence of operations
+        // in the code.
+        OpCountMap operationMix;
+
+        for (int c = smallest; c <= largest; ++c) {
+            std::list<MIDDGNode*> ops = schedule_[c];
+            if (ops.size() == 0) continue;
+
+            std::map<TCEString, int> parallelOpsAtCycle;
+            for (std::list<MIDDGNode*>::iterator i = ops.begin(); 
+                 i != ops.end(); ++i) {
+                MIDDGNode& n = **i;        
+                const llvm::TCETargetMachine& tm = 
+                    dynamic_cast<const llvm::TCETargetMachine&>(
+                        mf_.getTarget());
+                TCEString opName = n.osalOperationName();
+                if (opName == "" || opName == "?jump") continue;
+                operationMix[opName]++;
+                parallelOpsAtCycle[opName]++;
+            }
+
+            for (OpCountMap::const_iterator i = parallelOpsAtCycle.begin();
+                 i != parallelOpsAtCycle.end(); ++i) {
+                TCEString opName = (*i).first;
+                int count = (*i).second;
+                maxParallelOps[opName] = 
+                    std::max(maxParallelOps[opName], count);
+            }
+        }
+
+        const int COL_WIDTH = 14;
+        // print statistics of the graph as a comment
+        s << "/* statistics: " << std::endl << std::endl;
+        s << std::setw(COL_WIDTH) << std::right << "virtual regs: ";
+        s << definers_.size() << std::endl << std::endl;
+        s << std::setw(COL_WIDTH) << std::right << "operation stats: ";
+        s << std::endl << std::endl;
+        
+        for (OpCountMap::const_iterator i = maxParallelOps.begin();
+             i != maxParallelOps.end(); ++i) {
+            TCEString opName = (*i).first;
+            int parCount = (*i).second;
+            int total = operationMix[opName];
+            s << std::setw(COL_WIDTH) << std::right << opName + ": ";
+            s << std::setw(COL_WIDTH) << std::right << total;
+            s << " total, " << std::setw(COL_WIDTH) << std::right 
+              << parCount << " at most in parallel" << std::endl;
+        }
+        s << "*/" << std::endl;
+    }
+    // first print all the nodes and their properties
+    for (int i = 0; i < nodeCount(); ++i) {
+        Node& n = node(i);
+        s << "\tn" << n.nodeID()
+          << " [" << n.dotString();
+        if (isInCriticalPath(n))
+            s << ",shape=box,color=\"red\"";
+        s  << "]; " << std::endl;
+    }
+
+    // edges
+    for (int count = edgeCount(), i = 0; i < count ; ++i) {
+        Edge& e = edge(i);
+        Node& tail = tailNode(e);
+        Node& head = headNode(e);
+
+        s << "\tn" << tail.nodeID() << " -> n" 
+          << head.nodeID() << "[" 
+          << e.dotString() << "];" << std::endl;
+    }
+
+    s << "}" << std::endl;   
+
+    return s.str();    
+
+}
+
+/**
  * Assigns the given physical register to the given virtual register.
  *
  * Does not yet add false dependence edges, just updates the last
@@ -390,8 +529,15 @@ MachineInstrDDG::assignPhysReg(Register vreg, Register physReg) {
     }
 }
 
-std::string 
-MIDDGNode::dotString() const { 
+/**
+ * Try to figure out the name of the instruction opcode in OSAL,
+ * if available.
+ *
+ * If the operation with the produced name is not found in OSAL,
+ * llvm: is prepended to the name string.
+ */
+TCEString
+MIDDGNode::osalOperationName() const {
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
 
@@ -420,5 +566,15 @@ MIDDGNode::dotString() const {
             break;
     }
 
-    return (boost::format("label=\"%s\"") % cleaned).str();
+    OperationPool ops;
+    Operation& operation = ops.operation(cleaned.c_str());
+    if (operation.isNull())
+        return TCEString("llvm:") + opName;
+
+    return cleaned;
+}
+
+std::string 
+MIDDGNode::dotString() const { 
+    return (boost::format("label=\"%s\"") % osalOperationName()).str();
 }

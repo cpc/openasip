@@ -49,7 +49,7 @@ namespace llvm {
 }
 
 struct MIDDGNode : public GraphNode {
-    MIDDGNode() : GraphNode(), mi_(NULL), address_(-1) {}
+    MIDDGNode() : GraphNode(), mi_(NULL), address_(-1), optimalCycle_(-1) {}
     MIDDGNode(const llvm::MachineInstr& mi, int sequentialAddress) : 
         GraphNode(), mi_(&mi), address_(sequentialAddress) {}
 
@@ -66,10 +66,14 @@ struct MIDDGNode : public GraphNode {
     int sequentialAddress() const { return address_; }
 
     std::string dotString() const;
+    TCEString osalOperationName() const;
 
+    void setOptimalCycle(int cycle) { optimalCycle_ = cycle; }
+    int optimalCycle() const { return optimalCycle_; }
 private:
     const llvm::MachineInstr* mi_;
     int address_;
+    int optimalCycle_;
 };
 
 struct MIDDGEdge : public GraphEdge {
@@ -153,6 +157,10 @@ public:
         const MIDDGNode& node, 
         Register physReg) const;
 
+    void computeOptimalSchedule();
+
+    TCEString dotString() const;
+
 private:
     typedef std::map<Register, MIDDGNode*> DefinerMap;
     typedef std::map<Register, NodeSet> UserMap;
@@ -175,6 +183,11 @@ private:
 
     // do not add any false deps in case this is true
     const bool onlyTrueDeps_;
+
+    // in case a schedule has been computed, these contain the limits
+    int smallestCycle_;
+    int largestCycle_;
+    mutable std::map<int, std::list<MIDDGNode*> > schedule_;
 
     llvm::MachineFunction& mf_;
     const llvm::TargetRegisterInfo* regInfo_;
