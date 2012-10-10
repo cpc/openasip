@@ -461,7 +461,10 @@ MachineInstrDDG::dotString() const {
 
         s << "\tn" << tail.nodeID() << " -> n" 
           << head.nodeID() << "[" 
-          << e.dotString() << "];" << std::endl;
+          << e.dotString();
+        if (isInCriticalPath(tail) && isInCriticalPath(head))
+            s << ",color=red";
+        s << "];" << std::endl;
     }
 
     s << "}" << std::endl;   
