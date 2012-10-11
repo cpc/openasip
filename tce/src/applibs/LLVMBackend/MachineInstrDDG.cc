@@ -405,9 +405,6 @@ MachineInstrDDG::dotString() const {
             for (std::list<MIDDGNode*>::iterator i = ops.begin(); 
                  i != ops.end(); ++i) {
                 MIDDGNode& n = **i;        
-                const llvm::TCETargetMachine& tm = 
-                    dynamic_cast<const llvm::TCETargetMachine&>(
-                        mf_.getTarget());
                 TCEString opName = n.osalOperationName();
                 if (opName == "" || opName == "?jump") continue;
                 operationMix[opName]++;
