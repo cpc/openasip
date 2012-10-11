@@ -1068,8 +1068,6 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </trigger-semantics>
   </operation>
 
-  
-  
   <operation>
     <name>ADDH</name>
     <description/>
@@ -1218,8 +1216,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(cfh, t5, IO(4));
     </trigger-semantics>
   </operation>
-  
-  
+
   <operation>
     <name>MACF</name>
     <description/>
@@ -1267,8 +1264,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(subf, IO(1), t1, IO(4));
     </trigger-semantics>
   </operation>
-  
-  
+
   <operation>
     <name>MAC</name>
     <description/>
@@ -1292,7 +1288,6 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(add, t1, IO(1), IO(4));
     </trigger-semantics>
   </operation>
-
 
   <operation>
     <name>EQH</name>
@@ -1445,7 +1440,6 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </trigger-semantics>
   </operation>
 
-  
   <operation>
     <name>CFI</name>
     <description/>
@@ -1517,10 +1511,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(cdf, IO(1), IO(2));
     </trigger-semantics>
   </operation>
-  
-  
-  
-  
+
   <operation>
     <name>CHI</name>
     <description/>
@@ -1612,7 +1603,6 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(cfh, IO(1), IO(2));
     </trigger-semantics>
   </operation>
-  
 
   <operation>
     <name>ROTL</name>
@@ -2026,7 +2016,7 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
 </trigger-semantics>
   </operation>
-  
+
   <operation>
     <name>LEDS</name>
     <description>Control leds by writing a bit pattern. Bit 1 switches a led on and 0 switches off.</description>
@@ -2256,6 +2246,684 @@ EXEC_OPERATION(add, tmp, 4, tmp);
 EXEC_OPERATION(ldw, tmp, IO(8));
 EXEC_OPERATION(add, tmp, 4, tmp);
 EXEC_OPERATION(ldw, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BCAST2</name>
+    <description>Copies data to two outputs</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <in id="1" type="RawData"/>
+    <out id="2" type="RawData"/>
+    <out id="3" type="RawData"/>
+  </operation>
+
+  <operation>
+    <name>BCAST4</name>
+    <description>Copies data to two outputs</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <in id="1" type="RawData"/>
+    <out id="2" type="RawData"/>
+    <out id="3" type="RawData"/>
+    <out id="4" type="RawData"/>
+    <out id="5" type="RawData"/>
+  </operation>
+
+  <operation>
+    <name>BCAST8</name>
+    <description>Copies data to two outputs</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <in id="1" type="RawData"/>
+    <out id="2" type="RawData"/>
+    <out id="3" type="RawData"/>
+    <out id="4" type="RawData"/>
+    <out id="5" type="RawData"/>
+    <out id="6" type="RawData"/>
+    <out id="7" type="RawData"/>
+    <out id="8" type="RawData"/>
+    <out id="9" type="RawData"/>
+  </operation>
+
+  <operation>
+    <name>LDH2</name>
+    <description>Reads two half words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldh, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDHU2</name>
+    <description>Reads two half words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldhu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDH4</name>
+    <description>Reads four half words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldh, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDHU4</name>
+    <description>Reads four half words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldhu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDH8</name>
+    <description>Reads eight half words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="6" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="7" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="8" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="9" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldh, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldh, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDHU8</name>
+    <description>Reads eight half words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="6" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="7" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="8" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="9" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldhu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(ldhu, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQ2</name>
+    <description>Reads two quarter words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQU2</name>
+    <description>Reads two quarter words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldqu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQ4</name>
+    <description>Reads four quarter words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQU4</name>
+    <description>Reads four quarter words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>4</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldqu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQ8</name>
+    <description>Reads eight quarter words from memory with sign extension</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="6" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="7" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="8" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="9" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldq, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQU8</name>
+    <description>Reads eight quarter words from memory with zero extension</description>
+    <inputs>1</inputs>
+    <outputs>8</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="3" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="4" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="5" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="6" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="7" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="8" type="RawData">
+      <mem-data/>
+    </out>
+    <out id="9" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(ldqu, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(ldqu, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STH2</name>
+    <description>Stores two half words to memory</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(sth, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(3));
+</trigger-semantics>
+  </operation>
+
+<operation>
+    <name>STH4</name>
+    <description>Stores four half words to memory</description>
+    <inputs>5</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="4" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="5" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(sth, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+<operation>
+    <name>STH8</name>
+    <description>Stores eight half words to memory</description>
+    <inputs>9</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="4" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="5" type="RawData">
+      <mem-data/>
+    </in>
+     <in id="6" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="7" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="8" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="9" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(sth, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 2, tmp);
+EXEC_OPERATION(sth, tmp, IO(9));
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STQ2</name>
+    <description>Stores two quarter words to memory</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(3));
+</trigger-semantics>
+  </operation>
+
+<operation>
+    <name>STQ4</name>
+    <description>Stores four quarter words to memory</description>
+    <inputs>5</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="4" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="5" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(5));
+</trigger-semantics>
+  </operation>
+
+<operation>
+    <name>STQ8</name>
+    <description>Stores eight quarter words to memory</description>
+    <inputs>9</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="3" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="4" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="5" type="RawData">
+      <mem-data/>
+    </in>
+     <in id="6" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="7" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="8" type="RawData">
+      <mem-data/>
+    </in>
+    <in id="9" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>SimValue tmp;
+EXEC_OPERATION(stq, IO(1), IO(2));
+EXEC_OPERATION(add, IO(1), 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(3));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(4));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(5));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(6));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(7));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(8));
+EXEC_OPERATION(add, tmp, 1, tmp);
+EXEC_OPERATION(stq, tmp, IO(9));
 </trigger-semantics>
   </operation>
 

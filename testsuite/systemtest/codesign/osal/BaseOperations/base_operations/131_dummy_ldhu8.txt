@@ -1,0 +1,2 @@
+# ldhu8 tested with sth8
+ldh8 0x00

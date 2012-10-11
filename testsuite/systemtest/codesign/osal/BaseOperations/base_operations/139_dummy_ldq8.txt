@@ -1,0 +1,2 @@
+# ldq8 tested with stq8
+ldq8 0x00

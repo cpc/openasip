@@ -1,0 +1,3 @@
+bcast2 1
+bcast2 100
+bcast2 -5

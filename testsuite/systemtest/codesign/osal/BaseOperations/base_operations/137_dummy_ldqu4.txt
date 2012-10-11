@@ -1,0 +1,2 @@
+# ldqu4 tested with stq4
+ldqu4 0x00

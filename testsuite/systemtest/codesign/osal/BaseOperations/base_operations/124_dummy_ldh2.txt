@@ -1,0 +1,2 @@
+# ldh2 tested with sth2
+ldh2 0x00

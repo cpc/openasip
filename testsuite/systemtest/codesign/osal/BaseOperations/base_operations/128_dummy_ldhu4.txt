@@ -1,0 +1,2 @@
+# ldhu4 tested with sth4
+ldhu4 0x00
