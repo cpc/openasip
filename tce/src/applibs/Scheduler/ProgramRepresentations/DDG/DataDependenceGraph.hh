@@ -334,6 +334,8 @@ public:
         return registerAntidependenceLevel_ >= INTRA_BB_ANTIDEPS;
     }
 
+    bool isNotAvoidable(const DataDependenceEdge& edge) const;
+
 private:
     bool rWawRawEdgesOutUncond(MoveNode& mn);
     int rAntiEdgesIn(MoveNode& mn);

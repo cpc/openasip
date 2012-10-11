@@ -2766,11 +2766,14 @@ DataDependenceGraph::trueDependenceGraph(
         MoveNode& tail = node(i);
         for (int e = 0; e < subGraph->outDegree(tail);) {
             DataDependenceEdge& edge = subGraph->outEdge(tail,e);
-            if ((ignoreMemDeps && 
-                 edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) ||
-                (edge.isFalseDep() && 
-                 (removeMemAntideps || 
-                  edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER))) {
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+                isNotAvoidable(edge)) {
+                e++;
+                continue;
+            }
+            // consider the memory dependencies
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
+                (ignoreMemDeps || (edge.isFalseDep() && removeMemAntideps))) {
                 subGraph->dropEdge(edge);
             } else {
                 e++;
@@ -4442,4 +4445,55 @@ DataDependenceGraph::removeOutgoingGuardWarEdges(MoveNode& node) {
             ei++;
         }
     }
+}
+
+/**
+ * Returns true in case the given dependency cannot be (currently) avoided by 
+ * techniques such as register renaming or speculation.
+ *
+ * If the edge is "avoidable", it doesn't meen it always is. E.g., sometimes
+ * the register renamer can find a better register to remove the dependency, 
+ * sometimes it cannot. That is, this method returns true only if it's *certain*
+ * we cannot do anything about the dependency with the current compiler backend 
+ * or by, e.g., adding more registers to the machine.
+ */
+bool
+DataDependenceGraph::isNotAvoidable(const DataDependenceEdge& edge) const {
+
+    if (!edge.isFalseDep()) return true;
+    MoveNode& tail = tailNode(edge);
+    MoveNode& head = headNode(edge);
+
+    /* The control dependency caused antidep case. In case the antidep
+       overwrites the register with a different predicate than the other,
+       it is not possible to simply rename the other register, but, e.g.,
+       speculative execution has to be added with a final write to the
+       original register.
+
+       Example:
+
+       a) p1: foo -> r1
+       b) p1: r1 -> X
+       c) p2: foo -> r1
+       d) p2 r1 -> Y jne
+       e) r1 -> foo
+
+       In case p2 = !p1 then we can parallelize freely. In case
+       p2 = p1 then we can parallelize after a reg rename of r1.
+       Otherwise, speculative or similar transformation has to be
+       done, which currently is not supported by tcecc.
+    */
+    if ((edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) &&        
+        (!tail.move().isUnconditional() && !head.move().isUnconditional()) &&
+        !(tail.move().guard().guard().isEqual(head.move().guard().guard()) ||
+          tail.move().guard().guard().isOpposite(head.move().guard().guard())))
+        return true;
+
+    if ((edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) &&        
+        (tail.move().isUnconditional() && !head.move().isUnconditional() ||
+         !tail.move().isUnconditional() && head.move().isUnconditional()))
+        return true;
+    
+        
+    return false;
 }
