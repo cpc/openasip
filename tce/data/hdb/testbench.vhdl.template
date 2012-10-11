@@ -132,6 +132,11 @@ begin
 
     -- Initialize the clock signal.
     %9% <= '0';
+
+    -- Reset active to initialize regs
+    %10% <= '0';
+    wait for 1 ns;
+    
     -- Release reset.
     %10% <= '1';
     -- Global lock off.
