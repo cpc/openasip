@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of data dependence graph class
  *
  * @author Heikki Kultala 2006-2010 (heikki.kultala-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J‰‰skel‰inen 2010-2012
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
 
  * @note rating: red
@@ -4490,8 +4490,8 @@ DataDependenceGraph::isNotAvoidable(const DataDependenceEdge& edge) const {
         return true;
 
     if ((edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) &&        
-        (tail.move().isUnconditional() && !head.move().isUnconditional() ||
-         !tail.move().isUnconditional() && head.move().isUnconditional()))
+        ((tail.move().isUnconditional() && !head.move().isUnconditional()) ||
+         (!tail.move().isUnconditional() && head.move().isUnconditional())))
         return true;
     
         
