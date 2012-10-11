@@ -26,6 +26,8 @@ Misc. smaller improvements
 --------------------------
 - GrowMachine explorer now copies the guards when it duplicates
   buses. 
+- Several vector operations such as vector load/stores added to the
+  base operation set.
 
 Bugfixes
 --------
