@@ -223,23 +223,22 @@ writeCustomOpMacros(std::ostream& os) {
     for (int m = 0; m < index.moduleCount(); m++) {
         OperationModule& mod = index.module(m);
         try {
-            index.operationCount(mod);
-        } catch (const Exception& e) {
-            Application::logStream()
-                << e.errorMessage() << std::endl;
-            continue;
-        }
-        for (int o = 0; o < index.operationCount(mod); o++) {
+            for (int o = 0; o < index.operationCount(mod); o++) {
 
-            std::string opName = index.operationName(o, mod);
-            const Operation& op = pool.operation(opName.c_str());
-            if (operations.count(opName) > 0) {
-                continue;
+                std::string opName = index.operationName(o, mod);
+                const Operation& op = pool.operation(opName.c_str());
+                if (operations.count(opName) > 0) {
+                    continue;
+                }
+                operations.insert(opName);
+
+                writeCustomOpMacro(os, opName, op, false);
+                writeCustomOpMacro(os, opName, op, true);
             }
-            operations.insert(opName);
-
-            writeCustomOpMacro(os, opName, op, false);
-            writeCustomOpMacro(os, opName, op, true);
+        } catch (const Exception& e) {
+            Application::errorStream()
+                << "ERROR: " << e.errorMessage() << std::endl;
+            continue;
         }
     }
 }
