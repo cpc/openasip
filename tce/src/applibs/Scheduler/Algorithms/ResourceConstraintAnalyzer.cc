@@ -53,14 +53,21 @@
 bool
 ResourceConstraintAnalyzer::analyze() {
 
+    origDDG_.setProgramOperationNodes(true);
     optimalScheduleResourceUsage(origDDG_, graphName_);  
 
     origDDG_.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
     DataDependenceGraph* criticalPath = origDDG_.criticalPathGraph();
+    criticalPath->setProgramOperationNodes(true);
     origDDG_.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
 
     optimalScheduleResourceUsage(*criticalPath, graphName_ + ".critical_path");  
     delete criticalPath; criticalPath = NULL;
+
+    DataDependenceGraph* memDeps = origDDG_.memoryDependenceGraph();
+    memDeps->setProgramOperationNodes(true);
+    memDeps->writeToDotFile(graphName_ + ".mem_deps.dot");
+    delete memDeps; memDeps = NULL;
 
     return true;
 #if 0

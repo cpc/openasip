@@ -79,6 +79,7 @@ DataDependenceGraph::DataDependenceGraph(
     bool noLoopEdges) :
     BoostGraph<MoveNode, DataDependenceEdge>(name, !noLoopEdges), 
     allParamRegs_(allParamRegs), cycleGrouping_(true), 
+    dotProgramOperationNodes_(false),
     machine_(NULL), delaySlots_(0), ownedBBN_(ownedBBN),
     procedureDDG_(containsProcedure), 
     registerAntidependenceLevel_(antidependenceLevel),
@@ -221,11 +222,17 @@ DataDependenceGraph::programOperation(int index) {
     return *programOperations_.at(index);
 }
 
+const ProgramOperation& 
+DataDependenceGraph::programOperationConst(int index) const {
+    return *programOperations_.at(index);
+}
+
+
 /**
  * Returns the number of programoperations in this ddg.
  */
 int 
-DataDependenceGraph::programOperationCount() {
+DataDependenceGraph::programOperationCount() const {
     return programOperations_.size();
 }
 
@@ -1387,7 +1394,7 @@ DataDependenceGraph::dotString() const {
     std::ostringstream s;
     s << "digraph " << name() << " {" << std::endl;
     
-    if (cycleGrouping_&& !procedureDDG_) {
+    if (cycleGrouping_ && !procedureDDG_ && !dotProgramOperationNodes_) {
         // print the "time line"
         s << "\t{" << std::endl
           << "\t\tnode [shape=plaintext];" << std::endl
@@ -1419,6 +1426,11 @@ DataDependenceGraph::dotString() const {
     for (int i = 0; i < nodeCount(); ++i) {
         Node& n = node(i);
 
+        // in PONode mode, print the node for a single move only if
+        // it doesn't belong to an operation
+        if (dotProgramOperationNodes_ && n.isOperationMove()) 
+            continue;
+
         TCEString nodeStr(n.dotString());
         if (false && isInCriticalPath(n)) {
             // convert critical path node shapes to invtriangle to make
@@ -1431,6 +1443,9 @@ DataDependenceGraph::dotString() const {
         s << "\tn" << n.nodeID() << " [" << nodeStr << "]; " << std::endl;
     }
 
+    typedef std::set<ProgramOperation*> POSet;
+    POSet programOps;
+
     // edges. optimized low-level routines.
     typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
     EdgeIterPair edges = boost::edges(graph_);
@@ -1440,8 +1455,39 @@ DataDependenceGraph::dotString() const {
         Node& tail = *graph_[boost::source(ed, graph_)];
         Node& head = *graph_[boost::target(ed, graph_)];
 
-        s << "\tn" << tail.nodeID() 
-          << " -> n" << head.nodeID() << "[";
+        
+        if (dotProgramOperationNodes_ && 
+            e.edgeReason() == DataDependenceEdge::EDGE_OPERATION)
+            continue;
+        TCEString tailNodeId;
+        TCEString headNodeId;
+
+        if (dotProgramOperationNodes_ && tail.isOperationMove()) {
+            if (tail.isSourceOperation()) {
+                tailNodeId << "po" << tail.sourceOperation().poId();
+                programOps.insert(&tail.sourceOperation());
+            } else {
+                tailNodeId << "po" << tail.destinationOperation().poId();
+                programOps.insert(&tail.destinationOperation());
+            }
+        } else {
+            tailNodeId << "n" << tail.nodeID();
+        }
+
+        if (dotProgramOperationNodes_ && head.isOperationMove()) {
+            if (head.isSourceOperation()) {
+                headNodeId << "po" << head.sourceOperation().poId();
+                programOps.insert(&head.sourceOperation());
+            } else {
+                headNodeId << "po" << head.destinationOperation().poId();
+                programOps.insert(&head.destinationOperation());
+            }
+        } else {
+            headNodeId << "n" << head.nodeID();
+        }
+        
+        s << "\t" << tailNodeId
+          << " -> " << headNodeId << "[";
 
         if (e.isFalseDep()) {
             s << "color=\"red\", ";
@@ -1467,6 +1513,25 @@ DataDependenceGraph::dotString() const {
             }
         }
     }
+
+    if (dotProgramOperationNodes_) {
+        for (POSet::iterator i = programOps.begin(); 
+             i != programOps.end(); ++i) {
+            const ProgramOperation& po = **i;
+            TCEString label;
+
+            for (std::size_t i = 0; i < po.inputMoveCount(); ++i) {
+                label += po.inputMove(i).toString() + "\\n";
+            }
+            label += "\\n";
+            for (std::size_t i = 0; i < po.outputMoveCount(); ++i) {
+                label += po.outputMove(i).toString() + "\\n";
+            }
+            s << "\tpo" << po.poId() << " [label=\"" 
+              << label << "\",shape=box];" << std::endl;
+        }
+    }
+
     s << "}" << std::endl;   
 
     return s.str();    
@@ -2801,6 +2866,51 @@ DataDependenceGraph::criticalPathGraph() {
     for (int i = 0; i < nodeCount(); ++i) {
         if (isInCriticalPath(node(i)))
             nodes.insert(&node(i));
+    }
+    constructSubGraph(*subGraph, nodes);
+
+    return subGraph;
+}
+
+/**
+ * Returns a version of the graph with only nodes and edges that 
+ * present memory dependencies.
+ */
+DataDependenceGraph*
+DataDependenceGraph::memoryDependenceGraph() {
+    DataDependenceGraph* subGraph = 
+        new DataDependenceGraph(
+            allParamRegs_, "memory DDG",
+            registerAntidependenceLevel_, NULL, false, false);
+
+    if (machine_ != NULL)
+        subGraph->setMachine(*machine_);
+    
+    NodeSet nodes;
+    for (int i = 0; i < nodeCount(); ++i) {
+
+        MoveNode& mn = node(i);
+        EdgeSet outEdg = outEdges(mn);
+        bool found = false;
+        for (EdgeSet::iterator ei = outEdg.begin(); ei != outEdg.end(); ei++) {
+            Edge& edge = **ei;
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
+                nodes.insert(&node(i));
+                found = true;
+                break;
+            }
+        }
+
+        if (found) continue;
+        EdgeSet inEdg = inEdges(mn);
+        for (EdgeSet::iterator ei = inEdg.begin(); ei != inEdg.end(); ei++) {
+            Edge& edge = **ei;
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
+                nodes.insert(&node(i));
+                break;
+            }
+        }
+
     }
     constructSubGraph(*subGraph, nodes);
 

@@ -108,8 +108,9 @@ public:
     BasicBlockNode& getBasicBlockNode(MoveNode& mn);
     void setBasicBlockNode(const MoveNode& mn, BasicBlockNode& bbn);
 
-    int programOperationCount();
+    int programOperationCount() const;
     ProgramOperation& programOperation(int index);
+    const ProgramOperation& programOperationConst(int index) const;
 
     DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn) const;
     DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn) const;
@@ -198,7 +199,9 @@ public:
     /// Dot printing related methods
     virtual TCEString dotString() const;
     virtual void setCycleGrouping(bool flag);
-
+    virtual void setProgramOperationNodes(bool flag) {
+        dotProgramOperationNodes_ = flag;
+    }
     // XML dumping
     void writeToXMLFile(std::string fileName) const;
 
@@ -243,6 +246,7 @@ public:
     DataDependenceGraph* trueDependenceGraph(
         bool removeMemAntideps=true, bool ignoreMemDeps=false);
     DataDependenceGraph* criticalPathGraph();
+    DataDependenceGraph* memoryDependenceGraph();
 
     MoveNode& nodeOfMove(TTAProgram::Move& move) throw (InstanceNotFound);
 
@@ -364,6 +368,9 @@ private:
     /// Dot printing related variables.
     /// Group the printed MoveNodes according to their cycles.
     bool cycleGrouping_;
+    /// The moves belonging to the same program operation
+    /// are merged to a single node. Reduces the complexity of the graph.
+    bool dotProgramOperationNodes_;
 
     // Machine related variables. 
     const TTAMachine::Machine* machine_;
