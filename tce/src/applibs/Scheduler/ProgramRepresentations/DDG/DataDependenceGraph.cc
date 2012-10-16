@@ -1520,11 +1520,11 @@ DataDependenceGraph::dotString() const {
             const ProgramOperation& po = **i;
             TCEString label;
 
-            for (std::size_t i = 0; i < po.inputMoveCount(); ++i) {
+            for (int i = 0; i < po.inputMoveCount(); ++i) {
                 label += po.inputMove(i).toString() + "\\n";
             }
             label += "\\n";
-            for (std::size_t i = 0; i < po.outputMoveCount(); ++i) {
+            for (int i = 0; i < po.outputMoveCount(); ++i) {
                 label += po.outputMove(i).toString() + "\\n";
             }
             s << "\tpo" << po.poId() << " [label=\"" 
