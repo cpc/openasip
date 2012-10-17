@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Definition of ResourceConstraintAnalyzer class.
  *
- * @author Pekka J‰‰skel‰inen 2010-2011
+ * @author Pekka J‰‰skel‰inen 2010-2012
  * @note rating: red
  */
 
@@ -371,6 +371,19 @@ ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
         s << std::setw(COL_WIDTH) << std::right 
           << count << std::endl;
     }
+
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
+
+    s << std::endl << "### moves not at the earliest cycles:" << std::endl << std::endl;
+    for (int i = 0; i < ddg.nodeCount(); ++i) {
+        MoveNode& n = ddg.node(i);
+        // Constant writes always report 0 for the src distance. 
+        if (n.isSourceConstant()) continue; 
+        int ddgEarliest = ddg.maxSourceDistance(n);
+        if (n.cycle() > ddgEarliest)
+            s << n.toString() << " (" << n.cycle() << " > " << ddgEarliest << ")" << std::endl;
+    }
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
 
     s << std::endl << "*/" << std::endl << std::endl;
 

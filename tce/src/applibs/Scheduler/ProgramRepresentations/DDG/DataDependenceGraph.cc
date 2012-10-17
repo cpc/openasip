@@ -345,7 +345,6 @@ DataDependenceGraph::earliestCycle(
         }
             
 
-        /// @todo Consider the latency for result read move!
         if (tail.isScheduled()) {
             int latency = 1;
             int effTailCycle = tail.cycle();
@@ -356,7 +355,12 @@ DataDependenceGraph::earliestCycle(
             if (edge.headPseudo()) {
                 effTailCycle -= delaySlots_;
             } else {
-                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                /// @todo clean this up: should be the same code as the edgeWeight 
+                /// when EWH_REAL is used.
+                if (edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION &&
+                    moveNode.isSourceOperation() && tail.inSameOperation(moveNode)) {
+                    effTailCycle += getOperationLatency(edge.data());
+                } else if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
 
                     // ignore reg antidep? then skip over this edge.
                     if (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER
@@ -1499,7 +1503,7 @@ DataDependenceGraph::dotString() const {
     }
 
     // implicit operand to trigger edges
-    for (int i = 0; i < nodeCount(); ++i) {
+    for (int i = 0; i < nodeCount() && !dotProgramOperationNodes_; ++i) {
         Node& n = node(i);
         if (n.isMove() && n.move().isTriggering() &&
             n.isDestinationOperation()) {
@@ -1520,13 +1524,21 @@ DataDependenceGraph::dotString() const {
             const ProgramOperation& po = **i;
             TCEString label;
 
-            for (int i = 0; i < po.inputMoveCount(); ++i) {
+            int lineNo = -1;
+
+            for (std::size_t i = 0; i < po.inputMoveCount(); ++i) {
                 label += po.inputMove(i).toString() + "\\n";
+                if (po.inputMove(i).move().hasSourceLineNumber())
+                    lineNo = po.inputMove(i).move().sourceLineNumber();
             }
             label += "\\n";
-            for (int i = 0; i < po.outputMoveCount(); ++i) {
+            for (std::size_t i = 0; i < po.outputMoveCount(); ++i) {
                 label += po.outputMove(i).toString() + "\\n";
             }
+
+            if (lineNo != -1)
+                label << "src line: " << lineNo << "\\n";
+
             s << "\tpo" << po.poId() << " [label=\"" 
               << label << "\",shape=box];" << std::endl;
         }
@@ -2982,7 +2994,6 @@ DataDependenceGraph::createSubgraph(
     }
     return createSubgraph(moveNodes, includeLoops);
 }
-
 
 /**
  *
