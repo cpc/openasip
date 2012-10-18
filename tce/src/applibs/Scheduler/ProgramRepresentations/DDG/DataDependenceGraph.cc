@@ -1526,13 +1526,13 @@ DataDependenceGraph::dotString() const {
 
             int lineNo = -1;
 
-            for (std::size_t i = 0; i < po.inputMoveCount(); ++i) {
+            for (int i = 0; i < po.inputMoveCount(); ++i) {
                 label += po.inputMove(i).toString() + "\\n";
                 if (po.inputMove(i).move().hasSourceLineNumber())
                     lineNo = po.inputMove(i).move().sourceLineNumber();
             }
             label += "\\n";
-            for (std::size_t i = 0; i < po.outputMoveCount(); ++i) {
+            for (int i = 0; i < po.outputMoveCount(); ++i) {
                 label += po.outputMove(i).toString() + "\\n";
             }
 
