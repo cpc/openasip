@@ -478,12 +478,11 @@ RFTestbenchGenerator::createStimulus() {
                 string opcodePort = inputOpcodePorts_.at(nopPortIndex);
                 inputOpcode[opcodePort].push_back(opcode);
                 string loadPort = inputLoadPorts_.at(nopPortIndex);
-                
                 inputLoad[loadPort].push_back(load);
 
                 // round robin
-                nopPortIndex++;
-                nopPortIndex = nopPortIndex % rfArch_->writePortCount();
+                wrPortIndex++;
+                wrPortIndex = wrPortIndex % rfArch_->writePortCount();
             }
         }
     }
@@ -502,7 +501,6 @@ RFTestbenchGenerator::createStimulus() {
             string opcodePort = inputOpcodePorts_.at(j);
             inputOpcode[opcodePort].push_back(opcode);
             string loadPort = inputLoadPorts_.at(j);
-            
             inputLoad[loadPort].push_back(load);
         }
         // write output load signals
