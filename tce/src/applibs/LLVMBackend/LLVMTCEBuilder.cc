@@ -1565,7 +1565,34 @@ LLVMTCEBuilder::addPointerAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_OPENCL_WORK_ITEM_ID, id);
-                    move->addAnnotation(progAnnotation);                                                 
+                    move->addAnnotation(progAnnotation); 
+                    // In case the memory operand is BitCastInst, we may be
+                    // looking at the vector memory access.
+                    // Find the type of the accessed element and if it is 
+                    // vector add second annotation marking the last work
+                    // it id the vector is accessing.
+                    // Without this information there DDGBuilder can not
+                    // correctly create edges.
+                    if (isa<BitCastInst>(originMemOpValue)) {
+                        llvm::Type* type = 
+                            dyn_cast<BitCastInst>(originMemOpValue)->getDestTy();
+                        if (type->isPointerTy()) {
+                            llvm::Type* typeElem = 
+                                cast<PointerType>(type)->getElementType();
+                            if (typeElem->isVectorTy()) {
+                                int numElems = 
+                                    cast<VectorType>(typeElem)->getNumElements();
+                                int idLast = (CZ->getZExtValue() & 0x0FF)
+                                        | ((CY->getZExtValue() & 0x0FF) << 8)
+                                        | (((CX->getZExtValue() 
+                                            + numElems) & 0x0FF) << 16);
+                                TTAProgram::ProgramAnnotation progAnnotation(
+                                    TTAProgram::ProgramAnnotation::
+                                    ANN_OPENCL_WORK_ITEM_ID_LAST, idLast);
+                                move->addAnnotation(progAnnotation);    
+                            }
+                        }
+                    }                                                
                 }
                     
                 if (isa<Argument>(originMemOpValue) && 

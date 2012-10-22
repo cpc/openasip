@@ -144,8 +144,13 @@ public:
            Thus, the maximum allowed WI "offset" is (255, 255, 255). */
 
         ANN_OPENCL_WORK_ITEM_ID        =  0x00050000,
-
-        ANN_JUMP_TO_NEXT                = 0x00500001,
+        // In case of vector memory access, the work item id from the
+        // memory access is for the first of the work items in the vector
+        // access. Also the last of the work item ID in the vector access is
+        // necessary.
+        ANN_OPENCL_WORK_ITEM_ID_LAST        =  0x00050001,
+        
+        ANN_JUMP_TO_NEXT                = 0x00500002,
 
         /// An instruction annotated with this annotation is the first
         /// instruction of a basic block in a loop with the 
