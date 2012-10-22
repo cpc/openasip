@@ -1548,21 +1548,24 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TCEString currentPointerName = 
 		    (std::string)originMemOpValue->getName();
 
-                // the OpenCL work item pointer variables start with __wi_,
-                // annotate the move with the work item offset so we can
-                // use it in AA
-                if (currentPointerName.startsWith("__wi_") &&
-                    currentPointerName.size() > 16) {
-                    int x, y, z;
-                    sscanf(
-                        currentPointerName.c_str(), 
-                        "__wi_%03d_%03d_%03d", &x, &y, &z);
-
-                    int id = (z & 0x0FF) | ((y & 0x0FF) << 8) | ((x & 0x0FF) << 16);
+                // Query metadata of the memory operands to find work item
+                // identifiers for OpenCL memory operands.
+                if (dyn_cast<Instruction>(originMemOpValue) &&
+                    dyn_cast<Instruction>(originMemOpValue)->getMetadata("wi")) {
+                    const MDNode* md = 
+                        cast<Instruction>(originMemOpValue)->getMetadata("wi");
+                    const MDNode* XYZ= dyn_cast<MDNode>(md->getOperand(2));
+                    assert(XYZ->getNumOperands() == 4);                
+                    ConstantInt *CX = dyn_cast<ConstantInt>(XYZ->getOperand(1));
+                    ConstantInt *CY = dyn_cast<ConstantInt>(XYZ->getOperand(2));
+                    ConstantInt *CZ = dyn_cast<ConstantInt>(XYZ->getOperand(3));
+                    int id = (CZ->getZExtValue() & 0x0FF)
+                            | ((CY->getZExtValue() & 0x0FF) << 8)
+                            | ((CX->getZExtValue() & 0x0FF) << 16);
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_OPENCL_WORK_ITEM_ID, id);
-                    move->addAnnotation(progAnnotation);                     
+                    move->addAnnotation(progAnnotation);                                                 
                 }
                     
                 if (isa<Argument>(originMemOpValue) && 
