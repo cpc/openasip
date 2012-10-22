@@ -28,6 +28,7 @@ Misc. smaller improvements
   buses. 
 - Several vector operations such as vector load/stores added to the
   base operation set.
+- Compiler compiles big basic blocks faster.
 
 Bugfixes
 --------

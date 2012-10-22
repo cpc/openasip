@@ -1158,19 +1158,23 @@ ExecutionPipelineResource::size() const {
     }
     // Don't go bellow smallest known assigned node
     for (int i = length; i >= stoppingCycle; i--) {
-        for (unsigned int j = 0; j < resources->numberOfResources(); j++) {
-            const ResourceReservationVector& rrv =
-                MapTools::valueForKeyNoThrow<ResourceReservationVector>(
-                    fuExecutionPipeline_,i);
+	ResourceReservationTable::const_iterator iter =
+	    fuExecutionPipeline_.find(i);
+	if (iter == fuExecutionPipeline_.end()) {
+	    continue;
+	} else {
+	    const ResourceReservationVector& rrv = iter->second;
+	    if (rrv.size() == 0) {
+		continue;
+	    }
 
-            if (rrv.size() == 0) {
-                continue;
-            }
-            const ResourceReservation& rr = rrv[j];
-            if (rr.first != NULL) {
-                cachedSize_ = i + 1;
-                return i + 1;
-            }
+	    for (unsigned int j = 0; j < resources->numberOfResources(); j++) {
+		const ResourceReservation& rr = rrv[j];
+		if (rr.first != NULL) {
+		    cachedSize_ = i + 1;
+		    return i + 1;
+		}
+	    }
         }
     }
     cachedSize_ = 0;
