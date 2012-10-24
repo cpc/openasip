@@ -195,6 +195,10 @@ private:
         const HDB::FUEntry* fuEntry) const;
     unsigned int calculateAddressWidth(TTAMachine::FunctionUnit const* fu) const;
 
+    TCEString checkInstanceName(
+        const TCEString& baseInstanceName, 
+        const TCEString& moduleName) const;
+
     static int opcodePortWidth(
         const HDB::FUEntry& fu, std::ostream& warningStream)
         throw (InvalidData);

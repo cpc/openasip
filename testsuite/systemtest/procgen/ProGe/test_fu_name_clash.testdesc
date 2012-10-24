@@ -1,0 +1,10 @@
+<?php
+// file: test_fu_name_clash.testdesc
+
+// short test description
+$test_description="Testing that ProGe does not create FU instance with the same name as the implementation";
+// the binary being tested
+$test_bin="./run_test_fu_name_clash.sh";
+// arguments given to the program
+$bin_args="";
+?>

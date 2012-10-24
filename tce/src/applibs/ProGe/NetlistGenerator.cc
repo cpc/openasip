@@ -117,6 +117,8 @@ const string FU_NAME_PREFIX = "fu_";
 const string RF_NAME_PREFIX = "rf_";
 const string IU_NAME_PREFIX = "iu_";
 
+const TCEString INSTANCE_SUFFIX = "_instance";
+
 const int DEF_IMEMADDRWIDTH = 16;
 const int DEF_IMEMWIDTH = 16;
 
@@ -811,8 +813,9 @@ NetlistGenerator::addFUToNetlist(
     FUArchitecture& architecture = entry->architecture();
     const FunctionUnit* adfFU = machine_.functionUnitNavigator().item(
         location.unitName());
-    string instanceName = FU_NAME_PREFIX + location.unitName();
-    string moduleName = fuImplementation.moduleName();
+    TCEString instanceName = FU_NAME_PREFIX + location.unitName();
+    TCEString moduleName = fuImplementation.moduleName();
+    instanceName = checkInstanceName(instanceName, moduleName);
     NetlistBlock* block = new NetlistBlock(
         moduleName, instanceName, netlist);
     netlist.topLevelBlock().addSubBlock(block);
@@ -1108,8 +1111,9 @@ NetlistGenerator::addBaseRFToNetlist(
 
     RFImplementation& implementation = entry->implementation();
     RFArchitecture& architecture = entry->architecture();
-    string instanceName = blockNamePrefix + location.unitName();
-    string moduleName = implementation.moduleName();
+    TCEString instanceName = blockNamePrefix + location.unitName();
+    TCEString moduleName = implementation.moduleName();
+    instanceName = checkInstanceName(instanceName, moduleName);
     NetlistBlock* block = new NetlistBlock(
         moduleName, instanceName, netlist);
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
@@ -1647,6 +1651,27 @@ NetlistGenerator::instructionMemory(const TTAMachine::Machine& machine)
     }
 
     return *iMem;
+}
+
+/**
+ * Return fixed instance name if instance name is equal to module name.
+ *
+ * @param baseInstanceName Default name for a component instance
+ * @param moduleName Name for the component module defined in HDB
+ * @return Instance name differing from the module name.
+ */
+TCEString
+NetlistGenerator::checkInstanceName(
+    const TCEString& baseInstanceName, 
+    const TCEString& moduleName) const {
+    
+    TCEString newInstanceName;
+    if (baseInstanceName.lower() == moduleName.lower()) {
+        newInstanceName = baseInstanceName + INSTANCE_SUFFIX;
+    } else {
+        newInstanceName = baseInstanceName;
+    }
+    return newInstanceName;
 }
 
 } // namespace ProGe
