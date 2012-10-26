@@ -36,6 +36,7 @@
 //#include "ExplorerConstants.hh"
 #include "CmdLineOptions.hh"
 #include "ExplorerCmdLineOptions.hh"
+#include "TCEString.hh"
 #include "tce_config.h"
 
 /// Long switch string for giving an explorer plugin to be used.
@@ -591,9 +592,12 @@ ExplorerCmdLineOptions::compilerOptions() const {
  */
 std::string
 ExplorerCmdLineOptions::compilerOptionsString() const {
-    if (compilerOptions()) {
-        return findOption(SWL_COMPILER_OPTIONS)->String(1);
-    } else {
-        return "";
+
+    if (!compilerOptions()) return "";
+
+    TCEString optsString;
+    for (int i = 0; i < findOption(SWL_COMPILER_OPTIONS)->listSize(); ++i) {
+        optsString << findOption(SWL_COMPILER_OPTIONS)->String(i + 1) << " ";
     }
+    return optsString;
 }

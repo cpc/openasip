@@ -3,12 +3,11 @@
 
 Notable changes and features
 ----------------------------
-- Support for half-precision floats.
+- Initial support for half-precision floats.
 - Added a RawData data type to OSAL. This should be used as operand data type
   for all load/store/io methods which just transfer raw data which can be of
-  any type. 
-  If using some other data type, data curruption may occur when calling
-  these operations as custom operations.
+  any type.  If using some other data type, data curruption may occur when 
+  calling these operations as custom operations.
 
 Usability features
 ------------------
@@ -20,7 +19,7 @@ Code generator improvements
 ---------------------------
 - min, minu, max, maxu, minf, maxf instruction support in codegen.
   Now the compiler can actually use these instructions.
-  Currently these are used only for scalars, not yet for vectors.(TODO)
+  Currently these are used only for scalars, not yet for vectors.
 
 Misc. smaller improvements
 --------------------------
@@ -35,6 +34,8 @@ Bugfixes
 - __attribute__((aligned)) now works for global variables.
 - register to itself move as only instruction in llvm bb could cause
   tce compiler to fail.
+- explorer: The -f switch to pass compiler options to exploration took only
+  the first argument. Now takes the whole command line (-e'-a -b -c').
 
 1.6         June 2012 
 =====================

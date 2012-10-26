@@ -509,8 +509,8 @@ StringListOptionValue::stringValue(int index) const
     throw (WrongSubclass, OutOfRange) {
 
     if (index < 0 || static_cast<unsigned>(index) > values_.size() - 1) {
-	string procName = "StringListOptionValue::stringValue";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        string procName = "StringListOptionValue::stringValue";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return values_[index];
 }
