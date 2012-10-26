@@ -35,7 +35,7 @@ Bugfixes
 - register to itself move as only instruction in llvm bb could cause
   tce compiler to fail.
 - explorer: The -f switch to pass compiler options to exploration took only
-  the first argument. Now takes the whole command line (-e'-a -b -c').
+  the first argument. Now takes the whole command line (e.g.: -f'-a -b -c').
 
 1.6         June 2012 
 =====================
