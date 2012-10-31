@@ -40,6 +40,7 @@
 #include <set>
 #include <string>
 #include "Exception.hh"
+#include "TCEString.hh"
 
 class Operation;
 class Operand;
@@ -209,9 +210,13 @@ throw (InvalidData);
         bool skipPattern,
         std::string backendPrefix = "");
 
-  void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
+    void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
 
-  void  writeVectorLoadDefs(std::ostream& o, Operation& op, int vectorLen);
+    void  writeVectorLoadDefs(
+	std::ostream& o, 
+	Operation& op, 
+	const TCEString& loadPatternName, 
+	int vectorLen);
 
     std::string subPattern(
 	const Operation& op,

@@ -1064,7 +1064,35 @@ TDGen::writeInstrInfo(std::ostream& os) {
         if (op.name() == "LDW2" || op.name() == "LDW4" || op.name() == "LDW8") {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
-            writeVectorLoadDefs(os, op, vectorWidth);
+            writeVectorLoadDefs(os, op, TCEString("load"), vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "LDH2" || op.name() == "LDH4" || op.name() == "LDH8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorLoadDefs(os, op, TCEString("sextloadvi16"), vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "LDHU2" || op.name() == "LDHU4" || op.name() == "LDHU8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(4));
+            // vector store
+            writeVectorLoadDefs(os, op, TCEString("zextloadvi16"), vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "LDQ2" || op.name() == "LDQ4" || op.name() == "LDQ8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorLoadDefs(os, op, TCEString("sextloadvi8"), vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "LDQU2" || op.name() == "LDQU4" || op.name() == "LDQU8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(4));
+            // vector store
+            writeVectorLoadDefs(os, op, TCEString("zextloadvi8"), vectorWidth);
             continue;
         }
         
@@ -1547,19 +1575,19 @@ TDGen::writeVectorStoreDefs(
 void 
 TDGen::writeVectorLoadDefs(
     std::ostream& o,
-    Operation& op, int vectorLen) {
+    Operation& op, const TCEString& loadPatternName, int vectorLen) {
 
-    o << "def LDW" << vectorLen << "vr : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (load ADDRrr:$addr))]>;" << std::endl;
+    o << "def " << op.name() << "vr : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMrr:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (" << loadPatternName << " ADDRrr:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "vi : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (load ADDRri:$addr))]>;" << std::endl;
+    o << "def "<< op.name() << "vi : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMri:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (" << loadPatternName << " ADDRri:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "mr : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (load ADDRrr:$addr))]>;" << std::endl;
+    o << "def " << op.name() << "mr : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMrr:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (" << loadPatternName << " ADDRrr:$addr))]>;" << std::endl;
 
-    o << "def LDW" << vectorLen << "mi : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (load ADDRri:$addr))]>;" << std::endl;
+    o << "def " << op.name()  << "mi : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMri:$addr),"
+      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (" << loadPatternName << " ADDRri:$addr))]>;" << std::endl;
 
     opNames_[op.name() + "vr"] = op.name();
     opNames_[op.name() + "vi"] = op.name();
