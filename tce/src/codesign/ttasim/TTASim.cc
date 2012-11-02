@@ -191,6 +191,24 @@ int main(int argc, char* argv[]) {
     
     SimulatorCLI* cli = new SimulatorCLI(*simFront);
 
+    if (options->debugMode()) {
+        // handler for catching ctrl-c from the user (stops simulation)
+        SigINTHandler* ctrlcHandler = new SigINTHandler(*simFront);
+        Application::setSignalHandler(SIGINT, *ctrlcHandler);
+
+        if (options->fastSimulationEngine()) {
+
+            /* Catch errors caused by the simulated program
+               in compiled simulation these show up as normal
+               signals as the simulation code is native code we are 
+               running in the simulation process. */
+            SigFPEHandler fpeHandler(*simFront);
+            SigSegvHandler segvHandler(*simFront);
+            Application::setSignalHandler(SIGFPE, fpeHandler);
+            Application::setSignalHandler(SIGSEGV, segvHandler);
+        }
+    }
+
     // check if there is an initialization file in user's home dir and 
     // execute it
     const std::string personalInitScript =
@@ -233,25 +251,9 @@ int main(int argc, char* argv[]) {
         cli->interpreteAndPrintResults(scriptString);
     }
 
-    if (options->debugMode()) {
-        // handler for catching ctrl-c from the user (stops simulation)
-        SigINTHandler* ctrlcHandler = new SigINTHandler(*simFront);
-        Application::setSignalHandler(SIGINT, *ctrlcHandler);
-
-        if (options->fastSimulationEngine()) {
-
-            /* Catch errors caused by the simulated program
-               in compiled simulation these show up as normal
-               signals as the simulation code is native code we are 
-               running in the simulation process. */
-            SigFPEHandler fpeHandler(*simFront);
-            SigSegvHandler segvHandler(*simFront);
-            Application::setSignalHandler(SIGFPE, fpeHandler);
-            Application::setSignalHandler(SIGSEGV, segvHandler);
-        }
-
+    
+    if (options->debugMode()) {        
         cli->run();   
-
         Application::restoreSignalHandler(SIGINT);
         if (options->fastSimulationEngine()) {
             Application::restoreSignalHandler(SIGFPE);
