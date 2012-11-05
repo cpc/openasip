@@ -19,7 +19,6 @@ Code generator improvements
 ---------------------------
 - min, minu, max, maxu, minf, maxf instruction support in codegen.
   Now the compiler can actually use these instructions.
-  Currently these are used only for scalars, not yet for vectors.
 
 Misc. smaller improvements
 --------------------------
@@ -36,6 +35,15 @@ Bugfixes
   tce compiler to fail.
 - explorer: The -f switch to pass compiler options to exploration took only
   the first argument. Now takes the whole command line (e.g.: -f'-a -b -c').
+- multiple address spaces with reduced connectivity could cause broken
+  code to be generated or compiler to abort.
+
+Misc
+----
+- Removed the deprecated schedule binary and the old scheduler configuration
+  file framework.
+  Now programs are always compiled with tcecc and all compiler options are
+  given as command line parameters.
 
 1.6         June 2012 
 =====================

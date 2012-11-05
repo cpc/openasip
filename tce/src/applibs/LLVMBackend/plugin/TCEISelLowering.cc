@@ -930,3 +930,9 @@ TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
   return 1;
 }
+
+bool
+TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+}

@@ -128,6 +128,8 @@ namespace llvm {
                     const SmallVectorImpl<SDValue> &OutVals,
                     DebugLoc dl, SelectionDAG &DAG) const;
 
+	virtual bool allowsUnalignedMemoryAccesses(EVT VT) const;
+
         // ----------------------------------------------------
         //
         //  Below here TCE specific stuff is added, which is not copied from Sparc
