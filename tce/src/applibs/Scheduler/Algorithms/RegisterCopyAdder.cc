@@ -158,6 +158,9 @@ RegisterCopyAdder::addMinimumRegisterCopies(
          i != registerCopiesRequired.end(); ++i) {
 
         const TTAMachine::FunctionUnit* u = (*i).first;
+        if (!isAllowedUnit(*u, programOperation)) {
+            continue;
+        }    
         int copies = (*i).second;
         if (copies < min) {
             min = copies;
@@ -176,7 +179,7 @@ RegisterCopyAdder::addMinimumRegisterCopies(
         // return empty
         return AddedRegisterCopies();
 
-    } else if (min < INT_MAX) {
+    } else if (unit != NULL && min < INT_MAX) {
         // add register copies as if the operation was assigned to that FU
             AddedRegisterCopies copies = 
                 addRegisterCopies(programOperation, *unit, false, ddg, min);
@@ -1945,6 +1948,9 @@ RegisterCopyAdder::addCandidateSetAnnotations(
          i != registerCopiesRequired.end(); ++i) {
 
         const TTAMachine::FunctionUnit* u = (*i).first;
+        if (!isAllowedUnit(*u, programOperation)) {
+            continue;
+        }    
         if (registerCopiesRequired[u] > 0) {
             allGoodFUCandidates = false;
         } else {
@@ -2102,6 +2108,7 @@ bool
 RegisterCopyAdder::isAllowedUnit(
     const TTAMachine::FunctionUnit& fu, const ProgramOperation& po) {
     
+    bool result = true;
     for (int i = 0; i < po.inputMoveCount(); i++) {
 	TTAProgram::ProgramAnnotation::Id annoId = 
 	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST;
@@ -2119,10 +2126,8 @@ RegisterCopyAdder::isAllowedUnit(
 	    allowedUnits.insert(allowedFUName);
 	}
 	if (annoFound) {
-	    if (AssocTools::containsKey(allowedUnits, fu.name())) {
-		return true;
-	    } else {
-		return false;
+	    if (!AssocTools::containsKey(allowedUnits, fu.name())) {
+            result = false;
 	    }
 	}
     }
@@ -2144,14 +2149,12 @@ RegisterCopyAdder::isAllowedUnit(
 	    allowedUnits.insert(allowedFUName);
 	}
 	if (annoFound) {
-	    if (AssocTools::containsKey(allowedUnits, fu.name())) {
-		return true;
-	    } else {
-		return false;
-	    }
+	    if (!AssocTools::containsKey(allowedUnits, fu.name())) {
+            result = false;
+        }
 	}
     }
-    return true;
+    return result;
 }
 
 /**

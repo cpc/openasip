@@ -1456,7 +1456,7 @@ LLVMTCEBuilder::copyFUAnnotations(
             TTAProgram::ProgramAnnotation anno = operandMove.annotation(j);
             if (anno.id() == 
                 TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) {
-                move.setAnnotation(
+                move.addAnnotation(
                     TTAProgram::ProgramAnnotation(
                         TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
                         anno.payload()));
