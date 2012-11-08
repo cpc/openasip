@@ -1,13 +1,10 @@
-tce-devel r1711:
-llvm-trunk r159312-r162000 works.
+tce-devel r1752:
+llvm-trunk r159312-r164000 works.
 opencl needs LD_LIBRARY_PATH to be set to llvm lib.
 
 Notes:
 
-r163000: pocl breaks, breaking opencl test.
-
-159950: opt: Attributes.cpp:317: llvm::AttrListPtr llvm::AttrListPtr::removeAttr(unsigned int, llvm::Attributes) const: Assertion `!(Attrs & Attribute::Alignment) && "Attempt to exclude alignment!"' failed.
-
+pocl requires newer llvm-3.2 version, pocl test breaks.
 
 Denbench uses tce-llvm-ld from install location 
 - may break when not installed, or old version installed.
