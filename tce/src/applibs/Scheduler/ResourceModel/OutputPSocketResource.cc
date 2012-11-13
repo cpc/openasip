@@ -38,6 +38,7 @@
 #include "MoveGuard.hh"
 #include "Guard.hh"
 #include "Terminal.hh"
+#include "Port.hh"
 
 /**
  * Constructor.
@@ -136,7 +137,8 @@ OutputPSocketResource::canAssign(const int cycle, const MoveNode& node)
             const TTAMachine::Port* storedP =
                 MapTools::valueForKey<const TTAMachine::Port*>(
                     storedPorts_, instructionIndex(cycle));
-            if (&mNode.move().source().port() != storedP) {
+            if (mNode.move().source().port().parentUnit() != 
+                storedP->parentUnit()) {                
                 return false;
             }
         }
@@ -152,8 +154,10 @@ OutputPSocketResource::canAssign(const int cycle, const MoveNode& node)
                 MoveNode* mn = *it;
                 if (node.move().isUnconditional() || 
                     mn->move().isUnconditional()) {
-                    if (!node.move().source().equals(
-                            mn->move().source())) {
+                    if (node.move().source().port().parentUnit() !=
+                        mn->move().source().port().parentUnit() ||
+                            node.move().source().index() !=
+                            mn->move().source().index()) {
                         return false;
                     } else {
                         continue;

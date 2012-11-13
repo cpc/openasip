@@ -50,6 +50,7 @@
 #include "SequenceTools.hh"
 #include "TemplateSlot.hh"
 #include "TerminalImmediate.hh"
+#include "UniversalMachine.hh"
 
 using std::string;
 using std::set;
@@ -151,6 +152,13 @@ BusBroker::allAvailableResources(
     const Port* dstPort = &move.destination().port();
     Socket* inputSocket = dstPort->inputSocket();
 
+    // In case bus was already assigned previously, pick only relevant resource.
+    UniversalMachine& um = UniversalMachine::instance();
+    BusResource* preassignedBus = NULL;
+    if (&move.bus() != &um.universalBus()) {
+        preassignedBus = dynamic_cast<BusResource*>(resourceOf(move.bus()));
+    }
+
     if (inputSocket == NULL) {
         string unit = dstPort->parentUnit()->name();
         string port = dstPort->name();
@@ -196,7 +204,9 @@ BusBroker::allAvailableResources(
             ShortImmPSocketResource& immRes = findImmResource(*busRes);
             if (canTransportImmediate(node, immRes) &&
                 busRes->canAssign(cycle, node, immRes, *iPSocket)) {
-                candidates.insert(*busRes);
+                if (preassignedBus == NULL ||
+                    busRes == preassignedBus)
+                    candidates.insert(*busRes);
             }
             resIter++;
         }
@@ -234,7 +244,9 @@ BusBroker::allAvailableResources(
             BusResource* busRes =
                 static_cast<BusResource*>((*resIter).second);
             if (busRes->canAssign(cycle, node, *oPSocket, *iPSocket)) {
-                candidates.insert(*busRes);
+                if (preassignedBus == NULL ||
+                    busRes == preassignedBus)
+                    candidates.insert(*busRes);
             }
             resIter++;
         }

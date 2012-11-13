@@ -323,7 +323,11 @@ BasicResourceManagerTest::testBasicFunctionality() {
         SCHEDULE(0,0);
         SCHEDULE(1,0);
         SCHEDULE(2,1);
-        TS_ASSERT(moves.node(2).cycle() != 1);
+        // First move of this operation reads same register
+        // as a move already scheduled, using same port.
+        // This work in same cycle on different
+        // busses
+        TS_ASSERT(moves.node(2).cycle() == 1);
 
         // Last move - the call
         moves = selector.candidates();
