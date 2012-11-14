@@ -164,7 +164,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     displayedCount = newDisplayedCount;
     lastDisplayedAddress = newDisplayedAddress;
 
-    Memory* memory = NULL;
+    MemorySystem::MemoryPtr memory;
 
     size_t MAUSize = 8;
 
@@ -176,7 +176,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
         MAUSize = 
             simulatorFrontend().memorySystem().addressSpace(0).width();
-        memory = &simulatorFrontend().memorySystem().memory(0);
+        memory = simulatorFrontend().memorySystem().memory(0);
     } else {
         /// must have the address space defined
         if (addressSpaceName == "") {
@@ -191,7 +191,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
                 addressSpace(addressSpaceName).width();
 
             memory = 
-                &simulatorFrontend().memorySystem().memory(addressSpaceName);
+                simulatorFrontend().memorySystem().memory(addressSpaceName);
         } catch (const InstanceNotFound&) {
             interpreter()->setError(
                 SimulatorToolbox::textGenerator().text(

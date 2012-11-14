@@ -44,6 +44,7 @@
 #include "MachineTestReporter.hh"
 #include "Application.hh"
 #include "ContainerTools.hh"
+#include "AssocTools.hh"
 
 using std::string;
 using std::set;
@@ -91,6 +92,7 @@ Socket::Socket(const ObjectState* state)
  */
 Socket::~Socket() {
     unsetMachine();
+    AssocTools::deleteAllItems(busses_);
 }
 
 

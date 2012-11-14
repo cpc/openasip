@@ -165,6 +165,8 @@ SimulatorFrontend::~SimulatorFrontend() {
     eventHandler_ = NULL;
     delete simCon_;
     simCon_ = NULL;
+    if (memorySystem_ != NULL)
+        memorySystem_->deleteSharedMemories();
     delete memorySystem_;
     memorySystem_ = NULL;
 
@@ -434,7 +436,7 @@ SimulatorFrontend::initializeDataMemories() {
                 data.addressSpace().name();
 
             try {
-                Memory& dataMemory =
+                MemorySystem::MemoryPtr dataMemory =
                     simCon_->memorySystem().memory(addressSpaceName);
 
                 const AddressSpace& addressSpace =
@@ -463,7 +465,7 @@ SimulatorFrontend::initializeDataMemories() {
                             " is out of address space bounds.");
                     } 
                     for (int m = 0; m < def.size(); m++) {
-                        dataMemory.write(
+                        dataMemory->write(
                             startAddress.location() + m, def.MAU(m));
                     }
                 }
@@ -1621,19 +1623,22 @@ SimulatorFrontend::initializeMemorySystem() {
         /// the simulation
         const bool shared = space.isShared();
 
-        Memory* mem = NULL;
+        MemorySystem::MemoryPtr mem;
 
         if (compiledSimulation_) {
-            mem = new DirectAccessMemory(
-                space.start(), space.end(), space.width());
+            mem = MemorySystem::MemoryPtr(
+                new DirectAccessMemory(
+                    space.start(), space.end(), space.width()));
         } else {
-            mem = new IdealSRAM(
-                space.start(), space.end(), space.width());
+            mem = MemorySystem::MemoryPtr(
+                new IdealSRAM(
+                    space.start(), space.end(), space.width()));
         }
         // If memory tracking is enabled, memories are wrapped by a proxy
         // that tracks memory access.
         if (memoryAccessTracking_) {
-            mem = new MemoryProxy(*this, mem);
+            mem = MemorySystem::MemoryPtr(
+                new MemoryProxy(*this, mem.get()));
         }
         memorySystem_->addAddressSpace(space, mem, shared);
     }

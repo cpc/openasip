@@ -314,7 +314,7 @@ LLVMBackend::compile(
     }
    
     // Create target machine plugin.
-    TCETargetMachinePlugin* plugin = createPlugin(target);
+    std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
 
     TTAProgram::Program* result = NULL;
     try {
@@ -323,9 +323,6 @@ LLVMBackend::compile(
             compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
                     ipData);
     } catch (...) {
-        delete plugin;
-        plugin = NULL;
-
         // delete the backend plugin if we don't want to save it
         // Let's hope this doesn't crash as the plugin is loaded to the
         // current process. TCETargetMachinePlugin dtor should unload it.
@@ -338,9 +335,6 @@ LLVMBackend::compile(
         
         throw;
     }
-
-    delete plugin;
-    plugin = NULL;
 
     // delete the backend plugin if we don't want to save it
     // Let's hope this doesn't crash as the plugin is loaded to the

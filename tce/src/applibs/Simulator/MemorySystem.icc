@@ -32,6 +32,8 @@
 
 #include "Memory.hh"
 
+using namespace boost;
+
 /**
  * Advances the clock of all the shared memories in the memory system.
  *
@@ -41,7 +43,7 @@
 inline void 
 MemorySystem::advanceClockOfSharedMemories() {
     for (size_t i = 0; i < sharedMemories_.size(); ++i) {
-        Memory* mem = sharedMemories_.at(i);
+        shared_ptr<Memory> mem = sharedMemories_.at(i);
         mem->advanceClock();
     }
 }
@@ -52,7 +54,7 @@ MemorySystem::advanceClockOfSharedMemories() {
 inline void 
 MemorySystem::advanceClockOfLocalMemories() {
     for (size_t i = 0; i < localMemories_.size(); ++i) {
-        Memory* mem = localMemories_.at(i);
+        shared_ptr<Memory> mem = localMemories_.at(i);
         mem->advanceClock();
     }
 }
@@ -66,7 +68,7 @@ MemorySystem::advanceClockOfLocalMemories() {
 inline void 
 MemorySystem::resetAllMemories() {
     for (size_t i = 0; i < memoryList_.size(); ++i) {
-        Memory* mem = memoryList_.at(i);
+        shared_ptr<Memory> mem = memoryList_.at(i);
         mem->reset();
     }
 }
@@ -80,7 +82,7 @@ MemorySystem::resetAllMemories() {
 inline void 
 MemorySystem::fillAllMemoriesWithZero() {
     for (size_t i = 0; i < memoryList_.size(); ++i) {
-        Memory* mem = memoryList_.at(i);
+        shared_ptr<Memory> mem = memoryList_.at(i);
         mem->fillWithZeros();
     }
 }

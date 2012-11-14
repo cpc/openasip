@@ -194,10 +194,10 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
             
-            TTAProgram::Program* scheduledProgram =
-                schedule(applicationFile, *adf);
+            std::auto_ptr<TTAProgram::Program> scheduledProgram(
+                schedule(applicationFile, *adf));
 
-            if (scheduledProgram == NULL) {
+            if (scheduledProgram.get() == NULL) {
                 dsdb_->setUnschedulable((*i), configuration.architectureID);
                 delete adf;
                 adf = NULL;
@@ -243,8 +243,6 @@ DesignSpaceExplorer::evaluate(
                     idf = NULL;
                     delete adf;
                     adf = NULL;
-                    delete scheduledProgram;
-                    scheduledProgram = NULL;
                     return false;
                 }
                 //std::cerr << "DEBUG: simulation OK" << std::endl;
@@ -268,8 +266,6 @@ DesignSpaceExplorer::evaluate(
                     (*i), configuration.implementationID, programEnergy);
                 result.setEnergy(*scheduledProgram, programEnergy);
             }
-            delete scheduledProgram;
-            scheduledProgram = NULL;
             delete traceDB;
             traceDB = NULL;
         }

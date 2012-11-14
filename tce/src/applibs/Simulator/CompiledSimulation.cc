@@ -40,7 +40,6 @@
 #include "SimulationEventHandler.hh"
 #include "CompiledSimSymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
-#include "MemorySystem.hh"
 #include "CompiledSimulationPimpl.hh"
 #include "ControlUnit.hh"
 #include "CompiledSimCodeGenerator.hh"
@@ -49,6 +48,7 @@
 #include "FileSystem.hh"
 #include "Program.hh"
 #include "Move.hh"
+#include "MemorySystem.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -414,9 +414,9 @@ CompiledSimulation::FUMemory(const char* FUName) const {
         machine_.functionUnitNavigator().item(FUName)->addressSpace() != NULL);
     return 
         dynamic_cast<DirectAccessMemory&>(
-            memorySystem()->memory(
+            *memorySystem()->memory(
                 *machine_.functionUnitNavigator().item(
-                    FUName)->addressSpace()));
+                    FUName)->addressSpace()).get());
 }
 
 /**

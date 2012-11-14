@@ -96,16 +96,16 @@ ProximMemoryWindow::loadMemory(const AddressSpace& as) {
 
     MemorySystem& memorySystem = simulator_->memorySystem();
 
-    Memory& mem = memorySystem.memory(as);
+    MemorySystem::MemoryPtr mem = memorySystem.memory(as);
 
     if (memoryControl_ == NULL) {
         memoryControl_ =
-            new MemoryControl(this, &mem);
+            new MemoryControl(this, mem.get());
         sizer_->Add(memoryControl_, 1, wxGROW);
         sizer_->Layout();
         Fit();
     } else {
-        memoryControl_->setMemory(&mem);
+        memoryControl_->setMemory(mem.get());
     }
     
     wxString asInfo = WxConversion::toWxString(as.name());
@@ -191,7 +191,7 @@ ProximMemoryWindow::onSimulationStop(const SimulatorEvent&) {
 
     MemorySystem& memorySystem = simulator_->memorySystem();
     MemoryProxy* mem = dynamic_cast<MemoryProxy*>(
-        &memorySystem.memory(asChoice_->GetSelection()));
+        memorySystem.memory(asChoice_->GetSelection()).get());
 
     if (mem != NULL) {
 

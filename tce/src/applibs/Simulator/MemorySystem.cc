@@ -61,7 +61,7 @@ MemorySystem::MemorySystem(const Machine& machine) :
  */
 void
 MemorySystem::deleteSharedMemories() {
-    SequenceTools::deleteAllItems(sharedMemories_);
+    sharedMemories_.clear();
 }
 
 /**
@@ -70,8 +70,8 @@ MemorySystem::deleteSharedMemories() {
  * Deletes all the Memory instances.
  */
 MemorySystem::~MemorySystem() {
-    SequenceTools::deleteAllItems(localMemories_);
-    SequenceTools::deleteAllItems(replacedSharedMemories_);
+    localMemories_.clear();
+    replacedSharedMemories_.clear();
 }
 
 /**
@@ -86,7 +86,7 @@ MemorySystem::~MemorySystem() {
  *                                target machine.
  */
 void
-MemorySystem::addAddressSpace(const AddressSpace& as, Memory* mem, bool shared)
+MemorySystem::addAddressSpace(const AddressSpace& as, MemoryPtr mem, bool shared)
     throw (IllegalRegistration) {
 
     Machine::AddressSpaceNavigator nav = machine_->addressSpaceNavigator();
@@ -151,7 +151,7 @@ MemorySystem::shareMemoriesWith(MemorySystem& other) {
 
         replacedSharedMemories_.push_back(memories_[thisAS]);
 
-        memories_[thisAS] = &other.memory(i);
+        memories_[thisAS] = other.memory(i);
 
     }
 }
@@ -166,7 +166,7 @@ MemorySystem::shareMemoriesWith(MemorySystem& other) {
  * @exception InstanceNotFound If no memory is bound to the given 
  *                             AddressSpace.
  */
-Memory&
+MemorySystem::MemoryPtr
 MemorySystem::memory(const AddressSpace& as) 
     throw (InstanceNotFound) {
 
@@ -182,14 +182,14 @@ MemorySystem::memory(const AddressSpace& as)
  * @return Memory bound to AddressSpace.
  * @exception InstanceNotFound If no memory is found with the name.
  */
-Memory& 
+MemorySystem::MemoryPtr
 MemorySystem::memory(const std::string& addressSpaceName)
     throw (InstanceNotFound) {
 
     MemoryMap::const_iterator iter = memories_.begin();
     while (iter != memories_.end()) {
         const AddressSpace& space = *((*iter).first);
-        Memory& mem = *((*iter).second);
+        MemoryPtr mem = ((*iter).second);
         if (space.name() == addressSpaceName) {
             return mem;
         }
@@ -211,7 +211,7 @@ MemorySystem::memory(const std::string& addressSpaceName)
  * @todo These methods need to be changed to compare with the AS attributes
  *       not with AS pointer!
  */
-const Memory&
+const MemorySystem::MemoryPtr
 MemorySystem::memoryConst(const AddressSpace& as) const
     throw (InstanceNotFound) {
 
@@ -220,7 +220,7 @@ MemorySystem::memoryConst(const AddressSpace& as) const
         string msg = "No memory found for address space " + as.name();
         throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
     }
-    return *((*iter).second);
+    return ((*iter).second);
 }
 
 /**
@@ -239,7 +239,7 @@ MemorySystem::memoryCount() const {
  * @return The Memory instance.
  * @exception OutOfRange if i is out of bounds.
  */
-Memory&
+MemorySystem::MemoryPtr
 MemorySystem::memory(unsigned int i) 
     throw (OutOfRange) {
 
@@ -256,7 +256,7 @@ MemorySystem::memory(unsigned int i)
         ++iter;
         ++foundCount;
     }
-    return *((*iter).second);
+    return ((*iter).second);
 }
 
 /**

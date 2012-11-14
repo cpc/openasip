@@ -37,6 +37,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 #include "Exception.hh"
 
@@ -53,25 +54,27 @@ namespace TTAMachine {
  */
 class MemorySystem {
 public:
+    typedef boost::shared_ptr<Memory> MemoryPtr;
+
     explicit MemorySystem(const TTAMachine::Machine& machine);
     virtual ~MemorySystem();
 
     void addAddressSpace(
         const TTAMachine::AddressSpace& as, 
-        Memory* mem,
+        MemoryPtr mem,
         bool shared=true)
         throw (IllegalRegistration);
 
-    Memory& memory(const TTAMachine::AddressSpace& as)
+    MemoryPtr memory(const TTAMachine::AddressSpace& as)
         throw (InstanceNotFound);
-    const Memory& memoryConst(const TTAMachine::AddressSpace& as) const
+    const MemoryPtr memoryConst(const TTAMachine::AddressSpace& as) const
         throw (InstanceNotFound);
 
-    Memory& memory(const std::string& addressSpaceName)
+    MemoryPtr memory(const std::string& addressSpaceName)
         throw (InstanceNotFound);
 
     unsigned int memoryCount() const;
-    Memory& memory(unsigned int i)
+    MemoryPtr memory(unsigned int i)
         throw (OutOfRange);
     const TTAMachine::AddressSpace& addressSpace(unsigned int i)        
         throw (OutOfRange);
@@ -95,10 +98,10 @@ private:
     MemorySystem& operator=(const MemorySystem&);
 
     /// Maps address spaces to memory instances.
-    typedef std::map<const TTAMachine::AddressSpace*, Memory*> MemoryMap;
+    typedef std::map<const TTAMachine::AddressSpace*, MemoryPtr> MemoryMap;
 
     /// Container for memory instances for faster traversal.
-    typedef std::vector<Memory*> MemoryContainer;
+    typedef std::vector<MemoryPtr> MemoryContainer;
 
     /// Machine in which MemorySystem belongs to.
     const TTAMachine::Machine* machine_;

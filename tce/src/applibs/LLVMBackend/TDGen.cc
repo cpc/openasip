@@ -69,7 +69,8 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
  * @param mach Machine to generate plugin for.
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
-    mach_(mach), dregNum_(0), maxVectorSize_(1), highestLaneInt_(-1), highestLaneBool_(-1) {
+    mach_(mach), dregNum_(0), maxVectorSize_(1), highestLaneInt_(-1), 
+    highestLaneBool_(-1) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
 }
 

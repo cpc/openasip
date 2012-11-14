@@ -215,8 +215,8 @@ MachineStateBuilder::buildMachineState(
         FUState* state = NULL;
         if (unit->addressSpace() != NULL) {
             try {
-                Memory& memory = memSys.memory(*unit->addressSpace());
-                state = new MemoryAccessingFUState(unit->name(), memory);
+                MemorySystem::MemoryPtr memory = memSys.memory(*unit->addressSpace());
+                state = new MemoryAccessingFUState(unit->name(), *memory.get());
             } catch (const Exception& i) {
                 string msg = "Problems building machine state: " +
                     i.errorMessage();
