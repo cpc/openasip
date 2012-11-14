@@ -32,7 +32,7 @@
 
 #include "Memory.hh"
 
-using namespace boost;
+using boost::shared_ptr;
 
 /**
  * Advances the clock of all the shared memories in the memory system.
