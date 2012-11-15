@@ -538,6 +538,7 @@ TCETargetLowering::TCETargetLowering(
 
 	    // try to use signext or anyext for ext.
             setLoadExtAction(ISD::EXTLOAD, MVT::v8i8, Promote);
+            setLoadExtAction(ISD::EXTLOAD, MVT::v8i16, Promote);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Legal);
@@ -568,6 +569,7 @@ TCETargetLowering::TCETargetLowering(
 
 	    // try to use signext or anyext for ext.
             setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
+            setLoadExtAction(ISD::EXTLOAD, MVT::v4i16, Promote);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
@@ -596,7 +598,8 @@ TCETargetLowering::TCETargetLowering(
 
 	    // try to use signext or anyext for ext.
             setLoadExtAction(ISD::EXTLOAD, MVT::v2i8, Promote);
-
+            setLoadExtAction(ISD::EXTLOAD, MVT::v2i16, Promote);
+            
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
 
