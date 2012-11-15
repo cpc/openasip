@@ -1073,6 +1073,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
             writeVectorLoadDefs(os, op, TCEString("sextloadvi16"), vectorWidth);
+	    writeVectorAnyextPattern(os, op, TCEString("extloadvi16"), vectorWidth);
             continue;
         }
 
@@ -1087,6 +1088,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
             writeVectorLoadDefs(os, op, TCEString("sextloadvi8"), vectorWidth);
+	    writeVectorAnyextPattern(os, op, TCEString("extloadvi8"), vectorWidth);
             continue;
         }
 
@@ -1600,6 +1602,23 @@ TDGen::writeVectorLoadDefs(
 
 }
 
+void TDGen::writeVectorAnyextPattern(
+    std::ostream& o,
+    Operation& op, const TCEString& loadPatternName, int vectorLen) {
+    TCEString vregi = "V"; vregi << vectorLen << "R32IRegs";
+    TCEString vregfp = "V"; vregfp << vectorLen << "R32FPRegs";
+    o << "def : Pat<(v" << vectorLen << "i32 (" << loadPatternName << " ADDRrr:$addr)), (" << 
+                              op.name() << "vr ADDRrr:$addr)>;" << std::endl;
+
+    o << "def : Pat<(v" << vectorLen << "i32 (" << loadPatternName << " ADDRri:$addr)), (" << 
+                              op.name() << "vr ADDRri:$addr)>;" << std::endl;
+
+    o << "def : Pat<(v" << vectorLen << "f32 (" << loadPatternName << " ADDRrr:$addr)), (" << 
+                              op.name() << "mr ADDRrr:$addr)>;" << std::endl;
+
+    o << "def : Pat<(v" << vectorLen << "f32 (" << loadPatternName << " ADDRri:$addr)), (" << 
+                              op.name() << "mi ADDRri:$addr)>;" << std::endl;
+}
 
 /**
  * Writes a single operation def for single operation.

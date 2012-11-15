@@ -212,6 +212,10 @@ throw (InvalidData);
 
     void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
 
+    void writeVectorAnyextPattern(
+       std::ostream& o,
+       Operation& op, const TCEString& loadPatternName, int vectorLen);
+
     void  writeVectorLoadDefs(
 	std::ostream& o, 
 	Operation& op, 
