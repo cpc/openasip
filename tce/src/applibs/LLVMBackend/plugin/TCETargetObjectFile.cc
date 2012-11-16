@@ -2,7 +2,6 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
 #include "llvm/MC/MCSectionELF.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Support/CommandLine.h"
 

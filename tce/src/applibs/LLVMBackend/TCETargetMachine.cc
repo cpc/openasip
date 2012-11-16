@@ -107,7 +107,7 @@ TCETargetMachine::TCETargetMachine(
 #endif
 
       Subtarget(TT,FS),
-      DataLayout(
+      DL(
         "E-p:32:32:32"
         "-a0:0:32"
         "-i1:8:8"

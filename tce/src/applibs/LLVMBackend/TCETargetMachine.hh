@@ -143,8 +143,14 @@ namespace llvm {
         }
 
         virtual const TargetData* getTargetData() const {
-            return &DataLayout;
+            return &DL;
         }
+
+#ifndef LLVM_3_1
+        virtual const DataLayout* getDataLayout() const { 
+            return &DL; 
+        }
+#endif
 
         virtual const TargetFrameLowering* getFrameLowering() const {
             return plugin_->getFrameLowering();
@@ -227,7 +233,7 @@ namespace llvm {
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
         TCESubtarget        Subtarget;
-        const TargetData    DataLayout; // Calculates type size & alignment
+        const TargetData    DL; // Calculates type size & alignment
         
         TCESelectionDAGInfo tsInfo;
         TCETargetMachinePlugin* plugin_;
