@@ -34,7 +34,6 @@
 
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFunctionAnalysis.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Function.h"
 
 using namespace llvm;

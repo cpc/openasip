@@ -27,7 +27,6 @@
 #include "llvm/Module.h"
 #include "llvm/PassManager.h"
 #include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileUtilities.h"
@@ -40,6 +39,21 @@
 #include <memory>
 #include <cstring>
 using namespace llvm;
+
+#include "tce_config.h"
+
+#ifdef LLVM_3_1
+
+#include "llvm/Target/TargetData.h"
+
+#else
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#endif
+
+
 
 // Rightly this should go in a header file but it just seems such a waste.
 namespace llvm {

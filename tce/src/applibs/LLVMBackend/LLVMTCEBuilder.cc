@@ -91,7 +91,6 @@
 #include <llvm/CodeGen/MachineConstantPool.h>
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
@@ -113,12 +112,28 @@
 
 #include "tce_config.h"
 
+
+#ifdef LLVM_3_1
+
+#include "llvm/Target/TargetData.h"
+
+#else
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#endif
+
+
 #define TYPE_CONST
 #include <llvm/MC/MCInstrDesc.h>
 
 #include <llvm/ADT/SmallString.h>
 
 #define END_SYMBOL_NAME "_end"
+
+
+
 
 using namespace TTAMachine;
 using namespace llvm;
@@ -259,7 +274,11 @@ LLVMTCEBuilder::initDataSections() {
     MCContext* ctx = 
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
+#ifdef LLVM_3_1
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
+#else
+    mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
+#endif
 
 #if 0
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
@@ -276,7 +295,11 @@ LLVMTCEBuilder::initDataSections() {
     }
 #endif
 
+#ifdef LLVM_3_1
     const TargetData* td = tm_->getTargetData();
+#else
+    const TargetData* td = tm_->getDataLayout();
+#endif
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
@@ -475,7 +498,11 @@ unsigned
 LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv) {
 
+#ifdef LLVM_3_1
     const TargetData* td = tm_->getTargetData();
+#else
+    const TargetData* td = tm_->getDataLayout();
+#endif
     unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
 
@@ -569,8 +596,13 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
+#ifdef LLVM_3_1
     assert(addr % (tm_->getTargetData()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
+#else
+    assert(addr % (tm_->getDataLayout()->getABITypeAlignment(ci->getType()))
+           == 0 && "Invalid alignment for constant int!");
+#endif
 
     std::vector<MinimumAddressableUnit> maus;
 
@@ -618,8 +650,13 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
+#ifdef LLVM_3_1
     assert(addr % (tm_->getTargetData()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
+#else
+    assert(addr % (tm_->getDataLayout()->getABITypeAlignment(cfp->getType()))
+           == 0 && "Invalid alignment for constant fp!");
+#endif
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
@@ -629,7 +666,11 @@ LLVMTCEBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
+#ifdef LLVM_3_1
     unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#endif
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -683,7 +724,11 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     TYPE_CONST Type* type = gv->getType();
 
+#ifdef LLVM_3_1
     unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#endif
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
@@ -731,10 +776,14 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
-    assert(addr % (tm_->getTargetData()->getABITypeAlignment(ce->getType()))
-           == 0 && "Invalid alignment for constant expr!");
-
+#ifdef LLVM_3_1
     const TargetData* td = tm_->getTargetData();
+#else
+    const TargetData* td = tm_->getDataLayout();
+#endif
+
+    assert(addr % (td->getABITypeAlignment(ce->getType()))
+           == 0 && "Invalid alignment for constant expr!");
 
     unsigned opcode = ce->getOpcode();
     if (opcode == Instruction::GetElementPtr) {

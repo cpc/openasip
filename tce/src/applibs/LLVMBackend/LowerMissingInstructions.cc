@@ -49,7 +49,6 @@
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
 #include "llvm/ADT/Statistic.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Support/Compiler.h"
 
 #include "llvm/Support/CallSite.h"

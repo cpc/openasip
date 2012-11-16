@@ -243,7 +243,7 @@ TCEPassConfig::addPreISel() {
 #ifdef LLVM_3_1
         PM->add(createInternalizePass(true));
 #else
-        addPass(createInternalizePass(true));
+        addPass(createInternalizePass());
 #endif
     }
     

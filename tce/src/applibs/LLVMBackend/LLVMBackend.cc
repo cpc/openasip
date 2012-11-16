@@ -38,7 +38,6 @@
 #include <llvm/Analysis/Dominators.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/PassManager.h>
-#include <llvm/Target/TargetData.h>
 #include <llvm/Pass.h>
 //#include <llvm/ModuleProvider.h>
 #include <llvm/LLVMContext.h>
@@ -110,6 +109,17 @@
 using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
+
+#ifdef LLVM_3_1
+
+#include "llvm/Target/TargetData.h"
+
+#else
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#endif
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -482,7 +492,11 @@ LLVMBackend::compile(
 //    ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     
+#ifdef LLVM_3_1
     const TargetData *TD = targetMachine->getTargetData();
+#else
+    const TargetData *TD = targetMachine->getDataLayout();
+#endif
     assert(TD);
 
     Passes.add(new TargetData(*TD));

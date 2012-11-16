@@ -39,13 +39,24 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Pass.h"
 #include "llvm/Intrinsics.h"
 #include "llvm/CodeGen/IntrinsicLowering.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/LLVMContext.h"
+
+#include "tce_config.h"
+
+#ifdef LLVM_3_1
+
+#include "llvm/Target/TargetData.h"
+
+#else
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#endif
 
 using namespace llvm;
 

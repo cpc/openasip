@@ -126,7 +126,11 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     } else {
         MCContext* ctx = new MCContext(
 	    *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
+#ifdef LLVM_3_1
         mang_ = new llvm::Mangler(*ctx, *tm_->getTargetData()); 
+#else
+        mang_ = new llvm::Mangler(*ctx, *tm_->getDataLayout()); 
+#endif
     }
 
     // omit empty functions..

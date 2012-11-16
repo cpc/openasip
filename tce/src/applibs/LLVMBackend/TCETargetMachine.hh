@@ -36,7 +36,6 @@
 #include <set>
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
@@ -49,9 +48,19 @@
 #endif
 #include "tce_config.h"
 
-#ifndef LLVM_3_0
 #include "llvm/CodeGen/Passes.h"
+
+#ifdef LLVM_3_1
+
+#include "llvm/Target/TargetData.h"
+
+#else
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
 #endif
+
 
 namespace TTAMachine {
     class Machine;
