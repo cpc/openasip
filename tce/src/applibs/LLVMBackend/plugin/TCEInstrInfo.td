@@ -62,7 +62,35 @@ def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
 def fp32_to_fp16 : SDNode<"ISD::FP32_TO_FP16" , SDTypeProfile<1,1,[]>,[]>;
 def fp16_to_fp32 : SDNode<"ISD::FP16_TO_FP32" , SDTypeProfile<1,1,[]>,[]>;
 
+def truncstorev2i8 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v2i8;
+}]>;
 
+def truncstorev2i16 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v2i16;
+}]>;
+
+def truncstorev4i8 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v4i8;
+}]>;
+
+def truncstorev4i16 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v4i16;
+}]>;
+
+def truncstorev8i8 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v8i8;
+}]>;
+
+def truncstorev8i16 : PatFrag<(ops node:$val, node:$ptr),
+                           (truncstore node:$val, node:$ptr), [{
+  return cast<StoreSDNode>(N)->getMemoryVT() == MVT::v8i16;
+}]>;
 
 // =========================
 //  Pseudo instructions
