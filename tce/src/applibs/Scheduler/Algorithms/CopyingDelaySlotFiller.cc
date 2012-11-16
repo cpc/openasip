@@ -698,9 +698,11 @@ CopyingDelaySlotFiller::tryToAssignNodes(
                                 assert(operMn.isDestinationOperation());
 
                                 if (!rm.canAssign(mnCycle, operMn)) {
+				    unassignTempAssigns(tempAssigns, rm);
                                     return false;
                                 } else {
                                     rm.assign(mnCycle, operMn);
+
                                     // need to be removed at end
                                     tempAssigns.push_back(&operMn);
                                 }
@@ -721,16 +723,13 @@ CopyingDelaySlotFiller::tryToAssignNodes(
                             assert(resMn.isSourceOperation());
                             
                             if (!rm.canAssign(mnCycle, resMn)) {
+				unassignTempAssigns(tempAssigns, rm);
                                 return false;
                             }
                         }
                         // now we have to unassign all temporarily assigned
                         // movenodes.
-                        for (std::list<MoveNode*>::iterator iter =
-                                 tempAssigns.begin(); 
-                             iter != tempAssigns.end(); iter++) {
-                            rm.unassign(**iter);
-                        }
+			unassignTempAssigns(tempAssigns, rm);
                     }
                 }
             } else {
@@ -739,6 +738,15 @@ CopyingDelaySlotFiller::tryToAssignNodes(
         }
     }
     return true;
+}
+
+void CopyingDelaySlotFiller::unassignTempAssigns(const std::list<MoveNode*>& tempAssigns, ResourceManager& rm) {
+						 
+    for (std::list<MoveNode*>::const_iterator iter =
+	     tempAssigns.begin(); 
+	 iter != tempAssigns.end(); iter++) {
+	rm.unassign(**iter);
+    }
 }
 
 
@@ -910,6 +918,7 @@ void CopyingDelaySlotFiller::loseCopies() {
     // actually delete the movenodes.
     for (std::list<MoveNode*>::iterator i = toDeleteNodes.begin();
          i != toDeleteNodes.end(); i++) {
+	assert (!(**i).isScheduled());
         delete *i;
     }
     

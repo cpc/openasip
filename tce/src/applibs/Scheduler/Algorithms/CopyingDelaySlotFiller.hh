@@ -116,6 +116,9 @@ private:
         MoveNodeListVector& moves, int slotsToFill, int firstCycleToFill, 
         ResourceManager& rm, int nextBBStart);
 
+    void unassignTempAssigns(
+	const std::list<MoveNode*>& tempAssigns, ResourceManager& rm);
+
     MoveNode& getMoveNode(MoveNode& old);
     ProgramOperationPtr getProgramOperationPtr(ProgramOperationPtr old);
     TTAProgram::Move& getMove(TTAProgram::Move& old);
