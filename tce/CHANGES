@@ -37,6 +37,8 @@ Bugfixes
   the first argument. Now takes the whole command line (e.g.: -f'-a -b -c').
 - multiple address spaces with reduced connectivity could cause broken
   code to be generated or compiler to abort.
+- Operations with more than 3 inputs could cause usage of freed memory,
+  causing compiler failures
 
 Misc
 ----

@@ -210,7 +210,11 @@ throw (InvalidData);
         bool skipPattern,
         std::string backendPrefix = "");
 
-    void  writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
+    void writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
+
+    void writeVectorTruncStoreDefs(
+	std::ostream& o,
+	Operation& op, int bitsize, int vectorLen);
 
     void writeVectorAnyextPattern(
        std::ostream& o,

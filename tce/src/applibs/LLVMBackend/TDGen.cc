@@ -1063,6 +1063,20 @@ TDGen::writeInstrInfo(std::ostream& os) {
             continue;
         }
 
+        if (op.name() == "STH2" || op.name() == "STH4" || op.name() == "STH8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorTruncStoreDefs(os, op, 16, vectorWidth);
+            continue;
+        }
+
+        if (op.name() == "STQ2" || op.name() == "STQ4" || op.name() == "STQ8") {
+            int vectorWidth = Conversion::toInt(op.name().substr(3));
+            // vector store
+            writeVectorTruncStoreDefs(os, op, 8, vectorWidth);
+            continue;
+        }
+
         if (op.name() == "LDW2" || op.name() == "LDW4" || op.name() == "LDW8") {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
@@ -1559,7 +1573,7 @@ TDGen::writeVectorStoreDefs(
 
     o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
       << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRrr:$addr)]>;" << std::endl;
-
+    
     o << "def STW" << vectorLen << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
       << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRri:$addr)]>;" << std::endl;
 
@@ -1573,8 +1587,23 @@ TDGen::writeVectorStoreDefs(
     opNames_[op.name() + "vi"] = op.name();
     opNames_[op.name() + "mr"] = op.name();
     opNames_[op.name() + "mi"] = op.name();
-
 }
+
+void 
+TDGen::writeVectorTruncStoreDefs(
+    std::ostream& o,
+    Operation& op, int bitsize, int vectorLen) {
+
+    o << "def " << op.name() << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", [(truncstorev" << vectorLen << "i" << bitsize <<" V" << vectorLen << "R32IRegs:$data, ADDRrr:$addr)]>;" << std::endl;
+    
+    o << "def " << op.name() << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", [(truncstorev" << vectorLen << "i" << bitsize << " V" << vectorLen << "R32IRegs:$data, ADDRri:$addr)]>;" << std::endl;
+
+    opNames_[op.name() + "vr"] = op.name();
+    opNames_[op.name() + "vi"] = op.name();
+}
+
 
 void 
 TDGen::writeVectorLoadDefs(

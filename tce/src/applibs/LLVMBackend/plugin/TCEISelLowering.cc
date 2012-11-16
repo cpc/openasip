@@ -533,9 +533,6 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
 
-            setTruncStoreAction(MVT::v8i32, MVT::v8i8, Expand);
-            setTruncStoreAction(MVT::v8i32, MVT::v8i16, Expand);
-
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8f32, Legal);
@@ -560,8 +557,8 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
 
-            setTruncStoreAction(MVT::v4i32, MVT::v4i8, Expand);
-            setTruncStoreAction(MVT::v4i32, MVT::v4i16, Expand);
+	    // try to use signext or anyext for ext.
+	    //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
@@ -585,9 +582,6 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
 
-            setTruncStoreAction(MVT::v2i32, MVT::v2i8, Expand);
-            setTruncStoreAction(MVT::v2i32, MVT::v2i16, Expand);
-            
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
 
