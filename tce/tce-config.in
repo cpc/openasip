@@ -4,7 +4,7 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 exec_prefix_set=no
 
-tcl_ldflags="@TCL_LD_FLAGS@"
+tcl_ldflags="@TCL_LIBDIR@ @TCL_LD_FLAGS@"
 
 editline_ldflags="@EDITLINE_LD_FLAGS@"
 editline_includes="@EDITLINE_INCLUDES@"
