@@ -39,6 +39,8 @@ Bugfixes
   code to be generated or compiler to abort.
 - Operations with more than 3 inputs could cause usage of freed memory,
   causing compiler failures
+- TCEFU macros did not work correctly with memory operations,
+  the operation could end up in wrong LSU.
 
 Misc
 ----

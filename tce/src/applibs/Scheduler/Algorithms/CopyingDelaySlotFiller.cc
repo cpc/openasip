@@ -918,7 +918,7 @@ void CopyingDelaySlotFiller::loseCopies() {
     // actually delete the movenodes.
     for (std::list<MoveNode*>::iterator i = toDeleteNodes.begin();
          i != toDeleteNodes.end(); i++) {
-	assert (!(**i).isScheduled());
+        assert (!(*i)->isScheduled());
         delete *i;
     }
     

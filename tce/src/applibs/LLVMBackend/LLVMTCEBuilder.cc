@@ -2437,24 +2437,28 @@ LLVMTCEBuilder::emitInlineAsm(
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         proc->add(operandMoves[i]);
         if (addressedOp) {
-            for (int j = 0; j < operandMoves[i]->moveCount(); j++) {
-                TTAProgram::ProgramAnnotation dstCandidate(
-                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
-                        addressedFU);
-                operandMoves[i]->move(0).addAnnotation(dstCandidate);
-            }
+            // remove other allowed fu annotations, they are not allowed
+            operandMoves[i]->move(0).removeAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+            
+            TTAProgram::ProgramAnnotation dstCandidate(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+                addressedFU);
+            operandMoves[i]->move(0).addAnnotation(dstCandidate);
         }
     }
 
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         proc->add(resultMoves[i]);
         if (addressedOp) {
-            for (int j = 0; j < resultMoves[i]->moveCount(); j++) {
-                TTAProgram::ProgramAnnotation srcCandidate(
-                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
-                        addressedFU);
-                resultMoves[i]->move(0).addAnnotation(srcCandidate);
-            }
+            // remove other allowed fu annotations, they are not allowed
+            resultMoves[i]->move(0).removeAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
+
+            TTAProgram::ProgramAnnotation srcCandidate(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
+                addressedFU);
+            resultMoves[i]->move(0).addAnnotation(srcCandidate);
         }
     }    
     return first;
