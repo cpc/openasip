@@ -300,28 +300,32 @@ ProgramPartitioner::findNodeIndex(
 
     /* TODO: Use the partition's register class instead of the super class to force
         the instruction's regs to be allocated from the partition. */
-    if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
-        !mi.getOperand(0).isDef()) return false;
-    const llvm::MachineOperand& result = mi.getOperand(0);
-    if (llvm::TargetRegisterInfo::isPhysicalRegister(
-            mi.getOperand(0).getReg())) return false;
-    const llvm::TargetRegisterClass* nodeRegClass = 
-        tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
+    for (unsigned int i = 0; i < mi.getNumOperands(); i++) {
+        if (mi.getOperand(i).isReg() && 
+            mi.getOperand(i).isDef()) {
+            
+            const llvm::MachineOperand& result = mi.getOperand(i);
+            if (llvm::TargetRegisterInfo::isPhysicalRegister(
+                    mi.getOperand(i).getReg())) continue;
+            const llvm::TargetRegisterClass* nodeRegClass = 
+                tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
 #ifdef DEBUG_PROGRAM_PARTITIONER
-    std::cerr << "[ORIGINAL REG CLASS " 
-                << MRI.getRegClass(result.getReg())->getName() 
-                << "]" << std::endl;
+            std::cerr << "[ORIGINAL REG CLASS " 
+                        << MRI.getRegClass(result.getReg())->getName() 
+                        << "]" << std::endl;
 #endif
-    if (nodeRegClass == NULL) {
+            if (nodeRegClass == NULL) {
 #ifdef DEBUG_PROGRAM_PARTITIONER
-        std::cerr << "[NO REG CLASS FOUND FOR THE NODE]" << std::endl;
+                std::cerr << "[NO REG CLASS FOUND FOR THE NODE]" << std::endl;
 #endif
-    } else {
+            } else {
 #ifdef DEBUG_PROGRAM_PARTITIONER
-        std::cerr << "[ASSIGNED REG CLASS " 
-                    << nodeRegClass->getName() << "]" << std::endl;
+                std::cerr << "[ASSIGNED REG CLASS " 
+                            << nodeRegClass->getName() << "]" << std::endl;
 #endif
-        MRI.setRegClass(result.getReg(), nodeRegClass);
+                MRI.setRegClass(result.getReg(), nodeRegClass);
+            }
+        }
     }
     return true;
 }
