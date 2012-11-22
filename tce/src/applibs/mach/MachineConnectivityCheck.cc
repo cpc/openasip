@@ -1138,7 +1138,7 @@ std::set<const TTAMachine::Port*>
 MachineConnectivityCheck::findPossibleSourcePorts(
     const TTAMachine::Machine& mach, const MoveNode& node) {
     std::set<const TTAMachine::Port*> res;
-    if (node.isScheduled() && !node.isSourceVariable()) {
+    if (node.isScheduled() && !node.isSourceConstant()) {
         res.insert(&node.move().source().port());
         return res;
     }
