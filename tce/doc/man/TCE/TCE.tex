@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.7-pre}
-\ver{28}
+\ver{29}
 \firstday{2006-10-25}
-\lastday{2012-05-18}
+\lastday{2012-11-28}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -857,20 +857,30 @@ The TTA template supports two ways of transporting program constants in
 instructions. \textit{Short immediates} are encoded in the move slot's
 source field, and thus consume a part of a single move slot. The constants
 transported in the source field are usually relatively small in size. 
+
 Wider constants can be transported by means of so called \textit{long 
 immediates}. Long immediates can be defined using a 
-parameter called \textit{instruction template}. The idea is that
-each TTA instruction is connected to a single instruction template which 
-defines the move slots that contain pieces of a long immediate, if any. 
+an ADF parameter called \textit{instruction template}. The instruction
+template defines which slots are used for pieces of the instruction
+template or for defining the transports (moves).
 The slots cannot be used for
 regular data transports when they are used for transporting pieces of
-a long immediate. An instruction containing a long immediate also provides
-a target to which the long immediate must be transported. The target is so 
-called \textit{immediate unit} which is written directly from the control 
-unit, not through the transport buses. The immediate unit is like
+a long immediate. 
+
+An instruction template defining a long immediate also provides
+a target to which the long immediate must be transported. The target register
+resides in a so called \textit{immediate unit} which is written directly 
+from the control unit, not through the transport buses. The immediate unit is like
 a register file expect that it contains only read ports and is written
 only by the instruction decoder in the control unit when it detects an 
 instruction with a long immediate.
+
+Thus, in order to support the special long immediate encoding, one has
+to add a) an instruction template that supports transporting the pieces
+of the immediate using full move slots b) at least one long immediate
+unit (a read-only register file) to which the instruction writes the
+immediates and of which registers the immediates can be read to the
+datapath.
 
 \subsection{Operations, Function Units, and Operand Bindings}
 
