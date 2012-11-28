@@ -138,22 +138,18 @@ not usable for day-to-day OpenCL programming but is a work in progress.
 If you want to compile the support, for example, to help in implementing 
 the missing features, read on.
 
-The OpenCL support uses the pocl project. In order to build TCE with the 
+The OpenCL support uses the pocl project. In order to use TCE with the 
 OpenCL support, install pocl so it can be found in your PATH and
 PKG_CONFIG_PATH. You can get it from http://launchpad.net/pocl.
-
-After installing pocl, configure and build TCE normally. At the end of 
-the configure script execution you are notified in case the support could 
-be enabled. You can also verify it by running 'tcecc --supported-languages'
-which should then list OpenCL C.
-
-Known unsupported language features:
-
-- automatic local variables
-- probably something else we haven't bumped into yet
+The tcecc compiler driver detects at runtime if you have pocl installed and
+enables the OpenCL C compilation feature. You can verify this by 
+running 'tcecc --supported-languages' which should list 'OpenCL C'.
 
 See the TCE User Manual for more information on using the OpenCL in
-"offline mode".
+"offline mode". The another option is to use the 'ttasim' driver of
+pocl to simulate a host-device setup where the device is a TTA core
+(simulated using the ttasim engine). Refer to the pocl documentation on
+how to use it.
 
 optional: Compiling the tce-llvm-gcc compiler
 ---------------------------------------------
