@@ -1830,17 +1830,10 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
     const llvm::MCInstrInfo& tii) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
-#ifdef LLVM_3_0
-        const llvm::MCInstrDesc& tid = tii.get(opc);
-        if (name.ciEqual(tid.getName()))
-            return tid;
-#else
-	if (name.ciEqual(tii.getName(opc))) {
-	    return tii.get(opc);
-	}
-#endif
+        if (name.ciEqual(tii.getName(opc))) {
+            return tii.get(opc);
+        }
     }
-    abort();
     abortWithError(TCEString("Could not find ") << name << " in the TII.");
 }
 
@@ -2021,14 +2014,21 @@ ControlFlowGraph::buildMBBFromBB(
             } else {
                 const TTAMachine::HWOperation* hwop = 
                     (*startedOps.find(*boi)).second;
+                assert(hwop->name() != "");
 #ifdef DEBUG_POM_TO_MI
-                Application::logStream() << hwop->name() << " ";
+                Application::logStream() << "hwop: '" << hwop->name() << "' " << std::endl;
 #endif
 
                 const llvm::MCInstrDesc& tid =
                     findLLVMTargetInstrDesc(hwop->name(), tii);
                 mi = mbb.getParent()->CreateMachineInstr(
                     tid, llvm::DebugLoc());
+
+#ifdef DEBUG_POM_TO_MI
+                Application::logStream() << "MI: "; 
+                mi->dump();
+#endif
+
                 
                 std::vector<TTAProgram::Terminal*>& opr = operands[hwop];
 
@@ -2088,7 +2088,9 @@ ControlFlowGraph::buildMBBFromBB(
                                  terminal->value().intValue()));
                         }                                                    
                     } else if (terminal->isGPR()) {
-                        bool isDef = false;  // TODO: in case it's an output, it's a def
+                        // in case it's an output, it's a def, the outputs are always the
+                        // first operands in the LLVM instruction
+                        bool isDef = counter < tid.getNumDefs();
                         bool isImp = false;
                         // RET on spu seems to have implicit operand
                         // TODO: implement real implicit property to OSAL
@@ -2101,9 +2103,9 @@ ControlFlowGraph::buildMBBFromBB(
                         // we count register from 0
                         // thus add 1 to get correct data to the LLVM
                         if (!mi->getDesc().isReturn() ||
-                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
-                                mi->addOperand(
-                                    llvm::MachineOperand::CreateReg(
+                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")) {
+                            mi->addOperand(
+                                llvm::MachineOperand::CreateReg(
                                     terminal->index() + 1, isDef, isImp));                            
                         }
 
