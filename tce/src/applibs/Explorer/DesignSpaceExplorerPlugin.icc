@@ -48,14 +48,16 @@ DesignSpaceExplorerPlugin::description() const {
  */
 inline void
 DesignSpaceExplorerPlugin::addParameter(
-    std::string name, 
+    TCEString name, 
     ExplorerPluginParameterType type, 
     bool compulsory, 
-    std::string defaultValue) {
+    TCEString defaultValue, 
+    TCEString description) {
 
     parameters_.insert(Parameter(name, 
         ExplorerPluginParameter(
-            name, type, compulsory, defaultValue)));
+            name, type, compulsory, defaultValue,
+            description)));
 }
 
 

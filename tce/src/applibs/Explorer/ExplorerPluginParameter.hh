@@ -34,8 +34,7 @@
 #define TTA_EXPLORER_PLUGIN_PARAMETER_HH
 
 
-#include <string>
-
+#include "TCEString.hh"
 #include "Exception.hh"
     
 enum ExplorerPluginParameterType { INT, UINT, STRING, BOOL };
@@ -50,29 +49,33 @@ public:
         const std::string& name, 
         ExplorerPluginParameterType type,
         bool compulsory,
-        const std::string& value);
+        const TCEString value,
+        const TCEString description="");
 
     virtual ~ExplorerPluginParameter();
 
-    std::string name() const;
-    std::string value() const;
+    TCEString name() const;
+    TCEString value() const;
+    TCEString description() const { return description_; }
     void setValue(const std::string& value);
 
     ExplorerPluginParameterType type() const;
-    std::string typeAsString() const;
+    TCEString typeAsString() const;
 
     bool isCompulsory() const;
     bool isSet() const;
 
 private:
     /// Parameter name
-    std::string name_;
+    TCEString name_;
     /// Parameter type
     ExplorerPluginParameterType type_;
     /// Is parameter compulsory
     bool compulsory_;
     /// The value of the parameter as a string, empty if none set.
-    std::string value_;
+    TCEString value_;
+    /// The description (help text).
+    TCEString description_;
 };
 
 #endif

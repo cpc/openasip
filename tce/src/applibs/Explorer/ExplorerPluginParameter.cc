@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  * Implementation of ExplorerPluginParameter class.
  *
  * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2012
  * @note rating: red
  */
 
@@ -39,12 +40,15 @@
 /**
  * The constructor.
  */
-ExplorerPluginParameter::ExplorerPluginParameter(
-    const std::string& name, 
-    ExplorerPluginParameterType type,
-    bool compulsory,
-    const std::string& value): 
-    name_(name), type_(type), compulsory_(compulsory), value_(value) {
+ExplorerPluginParameter::
+    ExplorerPluginParameter(
+        const std::string& name, 
+        ExplorerPluginParameterType type,
+        bool compulsory,
+        const TCEString value,
+        const TCEString description) : 
+        name_(name), type_(type), compulsory_(compulsory), value_(value), 
+        description_(description) {
 }
 
 
@@ -55,12 +59,7 @@ ExplorerPluginParameter::~ExplorerPluginParameter() {
 }
 
 
-/**
- * Returns the value of the parameter as a string.
- *
- * @return The value of the parameter as a string.
- */
-std::string
+TCEString
 ExplorerPluginParameter::value() const {
     return value_;
 }
@@ -83,7 +82,7 @@ ExplorerPluginParameter::setValue(const std::string& value) {
  *
  * @return Name of the parameter as a string.
  */
-std::string
+TCEString
 ExplorerPluginParameter::name() const {
     return name_;
 }
@@ -105,7 +104,7 @@ ExplorerPluginParameter::type() const {
  *
  * @return ExplorerPluginParameterType as a string.
  */
-std::string
+TCEString
 ExplorerPluginParameter::typeAsString() const {
     switch (type_) {
         case UINT:

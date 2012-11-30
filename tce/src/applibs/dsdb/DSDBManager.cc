@@ -1764,7 +1764,6 @@ DSDBManager::paretoSetConnectivityAndCycles(RowID application) const {
         application = *ids.begin();
     } 
 
-
     ParetoSetConnectivityAndCycles paretoSet;
 
     // make the SQL query to obtain IDs.

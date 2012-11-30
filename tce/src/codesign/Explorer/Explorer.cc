@@ -309,38 +309,43 @@ printPluginParamInfo(DesignSpaceExplorerPlugin& plugin) {
     using std::setw;
     DesignSpaceExplorerPlugin::ParameterMap pm = plugin.parameters();
     DesignSpaceExplorerPlugin::PMCIt it = pm.begin();
-    cout << "| Parameter name |      Type       | Default value | Description " << endl
-         << "-----------------------------------------------------------------" << endl;
     cout.flags(std::ios::left);
-    int fw = 18;
+    cout << setw(30) << "parameter name " << setw(15) << "type" << "default value" << endl;
+    cout << "-----------------------------------------------------------------------------" << endl;
     while (it != pm.end()) {
-        cout << setw(fw) << it->first;
+        cout << setw(30) << it->first << setw(15);
         switch (it->second.type()) {
             case UINT:
-                cout << setw(fw) << "unsigned int"; 
+                cout << "unsigned int"; 
                 break;
             case INT:
-                cout << setw(fw) << "int"; 
+                cout << "int"; 
                 break;
             case STRING:
-                cout << setw(fw) << "string"; 
+                cout << "string"; 
                 break;
             case BOOL:
-                cout << setw(fw) << "boolean"; 
+                cout << "boolean"; 
                 break;
             default:
-                cout << setw(fw) << "unknown type"; 
+                cout << "unknown type"; 
         }
         if (!it->second.isCompulsory()) {
             if (it->second.type() == BOOL) {
-                cout << setw(fw) << 
+                cout << 
                     (it->second.value() == "1" || it->second.value() == "true"
                      ? "true" : "false"); 
             } else {
-                cout << setw(fw) << it->second.value();
+                cout << it->second.value();
             }
         }
         cout << std::endl;
+        if (it->second.description().size() > 0) {
+            cout << std::endl;
+            cout << it->second.description();
+            cout << std::endl;
+            cout << std::endl;
+        }
         ++it; 
     }
 }

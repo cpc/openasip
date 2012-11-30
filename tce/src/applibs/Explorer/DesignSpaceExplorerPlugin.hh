@@ -90,10 +90,11 @@ public:
     ParameterMap parameters() const;
     
     inline void addParameter(
-        std::string name, 
+        TCEString name, 
         ExplorerPluginParameterType type, 
         bool compulsory = true, 
-        std::string defaultValue = "");
+        TCEString defaultValue = "",
+        TCEString description = "");
 
     template <typename T>
     void readCompulsoryParameter(const std::string paramName, T& param) const

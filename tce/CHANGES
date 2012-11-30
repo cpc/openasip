@@ -22,6 +22,12 @@ Misc. smaller improvements
 - tcecc --analyze-instruction-patterns dumps the operation graph just
   after instruction selection. This is helpful in finding custom operation
   candidates that are automatically selectable.
+- ConnectionSweeper now starts from the loosest worsening threshold
+  and makes it gradually more strict. This leads to finding the
+  least-connected machines first. Also the default sweep mode is
+  more coarse grained: it tries to remove all connections (RF or
+  bypasses) of a bus at once, not one by one.
+- explore: can now list plugin parameter descriptions (-p).
 
 Code generator improvements
 ---------------------------

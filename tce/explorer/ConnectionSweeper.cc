@@ -97,8 +97,15 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
         "connections with least effect to the cycle count first.");
 
     ConnectionSweeper() : DesignSpaceExplorerPlugin() {
-        // parameters that have a default value
-        addParameter(ccWorseningThresholdPN_, UINT, false, "50");
+
+        addParameter(ccWorseningThresholdPN_, UINT, false, "50",
+                     "Limit the reduction when the cycle count "
+                     "drops more than this limit (%).");
+        addParameter(allOrNothingPN_, BOOL, false, "true",
+                     "Do not consider single connections. Just try to remove "
+                     "all of the bypass or RF connections at once. If fails, "
+                     "leave them all. Leads quicker to symmetric reduced "
+                     "connectivity machines.");
     }
 
     virtual bool requiresStartingPointArchitecture() const { return true; }
@@ -146,16 +153,14 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
         std::vector<RowID> result;
 
         // sweep through the buses, the register file connections first
+        // start from the biggest allowed worsening threshold to find
+        // the machines with minimal connections first
         const int thresholdStep = 
             std::max(maxCcWorseningThreshold_ / 4, (unsigned)1);
-        for (ccWorseningThreshold_ = thresholdStep; 
-             ccWorseningThreshold_ <= maxCcWorseningThreshold_;
-             ccWorseningThreshold_ == maxCcWorseningThreshold_ ?
-                 ccWorseningThreshold_++ :
-                 ccWorseningThreshold_ = 
-                 std::min(
-                     ccWorseningThreshold_ + thresholdStep,
-                     maxCcWorseningThreshold_)) {
+        for (ccWorseningThreshold_ = maxCcWorseningThreshold_;
+             ccWorseningThreshold_ > 0;
+             ccWorseningThreshold_ = 
+                 std::max(0, (int)ccWorseningThreshold_ - thresholdStep)) {
             TCEString s;
             s << "### Testing max worsening threshold "
               << ccWorseningThreshold_ << "% of "
@@ -167,7 +172,7 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
             std::list<RowID> rfSweepResults = 
                 sweepRFs(startPointConfigurationID);
 
-            if (rfSweepResults.size() == 0) continue;
+            if (rfSweepResults.size() == 0) break;
 
             RowID bestFromRFSweep = rfSweepResults.front();
             result.insert(result.begin(), bestFromRFSweep);
@@ -177,7 +182,7 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
 
             std::list<RowID> bypassSweepResults = 
                 sweepBypasses(bestFromRFSweep);
-            if (bypassSweepResults.size() == 0) continue;
+            if (bypassSweepResults.size() == 0) break;
 
             RowID bestFromBPSweep = rfSweepResults.front();
             result.insert(result.begin(), bestFromBPSweep);
@@ -245,8 +250,12 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
                 }
             }
 
-            std::list<RowID> newConfs = 
-                removeLeastNecessaryConnections(connections, bestConf, true);
+            std::list<RowID> newConfs = removeAllConnections(connections, bestConf);
+
+            if (!allOrNothing_ && newConfs.size() == 0) {
+                verboseLog("trying the connections one-by-one\n");
+                removeLeastNecessaryConnections(connections, bestConf);
+            }
 
             if (newConfs.size() > 0) {
                 bestConf = db().configuration(newConfs.front());
@@ -322,8 +331,13 @@ class ConnectionSweeper : public DesignSpaceExplorerPlugin {
                 if (!rfConnection) connections.push_back(&conn);
             }
 
-            std::list<RowID> newConfs = 
-                removeLeastNecessaryConnections(connections, bestConf, true);
+
+            std::list<RowID> newConfs = removeAllConnections(connections, bestConf);
+
+            if (!allOrNothing_ && newConfs.size() == 0) {
+                verboseLog("trying the connections one-by-one\n");
+                removeLeastNecessaryConnections(connections, bestConf);
+            }
 
             if (newConfs.size() > 0) {
                 bestConf = db().configuration(newConfs.front());
@@ -343,18 +357,24 @@ private:
     std::map<RowID, ClockCycleCount> origCycles_;
     // parameter name variables
     static const std::string ccWorseningThresholdPN_;
+    static const std::string allOrNothingPN_;
     // the max cycle count worsening threshold in percentages in comparison to
     // the fully connected architecture
     unsigned int maxCcWorseningThreshold_;
     // the current threshold
     unsigned int ccWorseningThreshold_;
-
+    // from the set of connections, tries to remove all of them or none
+    // should lead to quick results with relatively symmetric connectivity
+    // machines
+    bool allOrNothing_;
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
         readOptionalParameter(
             ccWorseningThresholdPN_, maxCcWorseningThreshold_);
+        readOptionalParameter(
+            allOrNothingPN_, allOrNothing_);
     }
     
     /**
@@ -382,6 +402,60 @@ private:
         return avgWorsening;
     }
 
+
+    std::list<RowID>
+    removeAllConnections(
+        std::vector<const TTAMachine::Connection*> connections,
+        const DSDBManager::MachineConfiguration& startConf) {
+
+        std::list<RowID> results;
+
+        std::auto_ptr<TTAMachine::Machine> currentMachine(
+            db().architecture(startConf.architectureID));
+        for (std::vector<const TTAMachine::Connection*>::iterator 
+                 connI = connections.begin(); connI != connections.end();
+             ++connI) {
+            const TTAMachine::Connection* conn = *connI;
+            removeConnection(*currentMachine, *conn);
+        }
+
+        DSDBManager::MachineConfiguration conf;
+        conf.architectureID = db().addArchitecture(*currentMachine);
+        RowID confId = db().addConfiguration(conf);
+        conf = db().configuration(confId);
+        CostEstimates estimates;
+        bool success = evaluate(conf, estimates, false);
+        float worsening = averageWorsening(confId);
+        if (success) {
+            std::auto_ptr<TTAMachine::Machine> arch
+                (db().architecture(
+                    db().configuration(confId).architectureID));
+            if (worsening <= ccWorseningThreshold_) {
+                results.push_back(confId);
+                TCEString s;
+                s << "removing all connections was within threshold: #" 
+                  << confId << " avg worsening: ";
+                s << (int)worsening << "% " << " total connections: "
+                  << MachineConnectivityCheck::totalConnectionCount(*arch);
+                verboseLog(s);
+            } else {
+                TCEString s;
+                s << "removing all connections was not within the "
+                  << "threshold: #" 
+                  << confId << " avg worsening: ";
+                s << (int)worsening << "% " << " total connections: "
+                  << MachineConnectivityCheck::totalConnectionCount(*arch);
+                s << "\n";
+                verboseLog(s);                    
+            }
+        } else {
+            TCEString s;
+            s << "removing all connections led to unschedulable program\n";
+            verboseLog(s);
+        }
+        return results;
+    }
+
     /**
      * Removes the connections in the given set that affect the cycle count
      * the least until the worsening threshold is reached or in case the
@@ -394,61 +468,10 @@ private:
     std::list<RowID>
     removeLeastNecessaryConnections(
         std::vector<const TTAMachine::Connection*> connections,
-        const DSDBManager::MachineConfiguration& startConf,
-        bool tryAllFirst) {
+        const DSDBManager::MachineConfiguration& startConf) {
 
         std::list<RowID> results;
         DSDBManager::MachineConfiguration bestConf = startConf;
-
-        if (tryAllFirst) {
-            std::auto_ptr<TTAMachine::Machine> currentMachine(
-                db().architecture(bestConf.architectureID));
-            for (std::vector<const TTAMachine::Connection*>::iterator 
-                     connI = connections.begin(); connI != connections.end();
-                 ++connI) {
-                const TTAMachine::Connection* conn = *connI;
-                removeConnection(*currentMachine, *conn);
-            }
-
-            DSDBManager::MachineConfiguration conf;
-            conf.architectureID = db().addArchitecture(*currentMachine);
-            RowID confId = db().addConfiguration(conf);
-            conf = db().configuration(confId);
-            CostEstimates estimates;
-            bool success = evaluate(conf, estimates, false);
-            float worsening = averageWorsening(confId);
-            if (success) {
-                std::auto_ptr<TTAMachine::Machine> arch
-                    (db().architecture(
-                        db().configuration(confId).architectureID));
-                if (worsening <= ccWorseningThreshold_) {
-                    results.push_back(confId);
-                    TCEString s;
-                    s << "removing all connections was within threshold: #" 
-                      << confId << " avg worsening: ";
-                    s << (int)worsening << "% " << " total connections: "
-                      << MachineConnectivityCheck::totalConnectionCount(*arch);
-                    verboseLog(s);
-                    return results;
-                } else {
-                    TCEString s;
-                    s << "removing all connections was not within the "
-                      << "threshold: #" 
-                      << confId << " avg worsening: ";
-                    s << (int)worsening << "% " << " total connections: "
-                      << MachineConnectivityCheck::totalConnectionCount(*arch);
-                    s << "\n";
-                    s << "trying all connections one by one";
-                    verboseLog(s);
-                    
-                }
-            } else {
-                TCEString s;
-                s << "removing all connections led to unschedulable program, ";
-                s << "trying all connections one by one";
-                verboseLog(s);
-            }
-        }
 
         bool couldRemove = true;
         while (couldRemove) {
@@ -538,5 +561,8 @@ private:
 // parameter names
 const std::string 
 ConnectionSweeper::ccWorseningThresholdPN_("cc_worsening_threshold");
+const std::string 
+ConnectionSweeper::allOrNothingPN_("all_or_nothing_mode");
+
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ConnectionSweeper)
