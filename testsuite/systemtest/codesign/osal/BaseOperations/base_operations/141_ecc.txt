@@ -1,0 +1,9 @@
+ecc 0
+!advanceclock
+ecc 1
+!advanceclock
+ecc 0
+!advanceclock
+ecc 1
+!quit
+

@@ -2737,7 +2737,7 @@ EXEC_OPERATION(sth, tmp, IO(3));
 </trigger-semantics>
   </operation>
 
-<operation>
+  <operation>
     <name>STH4</name>
     <description>Stores four half words to memory</description>
     <inputs>5</inputs>
@@ -2769,7 +2769,7 @@ EXEC_OPERATION(sth, tmp, IO(5));
 </trigger-semantics>
   </operation>
 
-<operation>
+  <operation>
     <name>STH8</name>
     <description>Stores eight half words to memory</description>
     <inputs>9</inputs>
@@ -2790,7 +2790,7 @@ EXEC_OPERATION(sth, tmp, IO(5));
     <in id="5" type="RawData">
       <mem-data/>
     </in>
-     <in id="6" type="RawData">
+    <in id="6" type="RawData">
       <mem-data/>
     </in>
     <in id="7" type="RawData">
@@ -2843,7 +2843,7 @@ EXEC_OPERATION(stq, tmp, IO(3));
 </trigger-semantics>
   </operation>
 
-<operation>
+  <operation>
     <name>STQ4</name>
     <description>Stores four quarter words to memory</description>
     <inputs>5</inputs>
@@ -2875,7 +2875,7 @@ EXEC_OPERATION(stq, tmp, IO(5));
 </trigger-semantics>
   </operation>
 
-<operation>
+  <operation>
     <name>STQ8</name>
     <description>Stores eight quarter words to memory</description>
     <inputs>9</inputs>
@@ -2896,7 +2896,7 @@ EXEC_OPERATION(stq, tmp, IO(5));
     <in id="5" type="RawData">
       <mem-data/>
     </in>
-     <in id="6" type="RawData">
+    <in id="6" type="RawData">
       <mem-data/>
     </in>
     <in id="7" type="RawData">
@@ -2925,6 +2925,29 @@ EXEC_OPERATION(stq, tmp, IO(8));
 EXEC_OPERATION(add, tmp, 1, tmp);
 EXEC_OPERATION(stq, tmp, IO(9));
 </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ECC</name>
+    <description>Execution cycle counter. Free running counter that counts execution cycles i.e. cycles when reset and global lock are not active. Handy for profiling hardware execution.
+ISS behavior will return the current cycle count.
+Input operand is discarded.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>LCC</name>
+    <description>Lock cycle counter. Free running counter that count global lock cycles. On hardware, reset most probably zeroes the counter. ISS behavior will always return zero. Handy for profiling hardware execution.
+Input operand is discarded.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
   </operation>
 
 </osal>
