@@ -1,0 +1,10 @@
+<?php
+// file: test_lsu_port.testdesc
+
+// short test description
+$test_description="Testing that ProGe fixes LSU address port width according to ADF AS settings";
+// the binary being tested
+$test_bin="./run_test_lsu_port.sh";
+// arguments given to the program
+$bin_args="";
+?>

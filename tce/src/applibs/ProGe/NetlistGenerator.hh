@@ -199,6 +199,8 @@ private:
         const TCEString& baseInstanceName, 
         const TCEString& moduleName) const;
 
+    bool isLSU(const TTAMachine::FunctionUnit& fu) const;
+
     static int opcodePortWidth(
         const HDB::FUEntry& fu, std::ostream& warningStream)
         throw (InvalidData);

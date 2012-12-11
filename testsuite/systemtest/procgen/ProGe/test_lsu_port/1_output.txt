@@ -1,0 +1,8 @@
+package tta0_params is
+  constant fu_LSU_addrw : integer := 12;
+  constant fu_LSU_1_addrw_g : integer := 20;
+  constant fu_LSU_2_muistinleveys : integer := 21;
+  constant fu_LSU_3_addrw : integer := 12;
+  constant fu_LSU_4_addrw_g : integer := 20;
+  constant fu_LSU_5_muistinleveys : integer := 21;
+end tta0_params;

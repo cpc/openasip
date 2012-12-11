@@ -4,6 +4,7 @@ rm -fr proge-output
 rm -fr proge-output-sockets
 rm -fr shared-vhdl
 rm -rf ./proge-output-funame
+rm -rf ./proge-output-lsuport
 rm -f funame_test_data.img funame_test.img funame_test.tpef
 
 

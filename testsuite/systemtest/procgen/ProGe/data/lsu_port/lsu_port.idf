@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="LSU">
+    <hdb-file>data/lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="LSU_1">
+    <hdb-file>data/lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>2</fu-id>
+  </fu>
+
+  <fu name="LSU_2">
+    <hdb-file>data/lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>3</fu-id>
+  </fu>
+
+  <fu name="LSU_3">
+    <hdb-file>data/lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="LSU_4">
+    <hdb-file>lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>2</fu-id>
+  </fu>
+
+  <fu name="LSU_5">
+    <hdb-file>lsu_port/lsu_test.hdb</hdb-file>
+    <fu-id>3</fu-id>
+  </fu>
+
+  <fu name="ALU">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>375</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>

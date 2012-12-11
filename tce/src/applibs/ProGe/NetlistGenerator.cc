@@ -133,7 +133,6 @@ const std::string NetlistGenerator::DECODER_PC_LOAD_PORT = "pc_load";
 const std::string NetlistGenerator::DECODER_PC_OPCODE_PORT = "pc_opcode";
 const std::string NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT = "lock_r";
 const std::string NetlistGenerator::DECODER_LOCK_REQ_IN_PORT = "lock";
-const std::string NetlistGenerator::ADDR_WIDTH = "addrw";
 
 /**
  * Constructor. Records the input parameters for later operation.
@@ -837,19 +836,26 @@ NetlistGenerator::addFUToNetlist(
                  i++) {       
                 FUPortImplementation& port =
                     fuImplementation.architecturePort(i);
-                if (paramName == ADDR_WIDTH && adfFU->hasAddressSpace()) {
-                    int ASWidth = calculateAddressWidth(adfFU);
-                    block->setParameter(
-                        paramName, paramType, 
-                        Conversion::toString(ASWidth));
-                    // set the width to ADF port
+                
+                // Special case if the FU is an LSU and it has parametrizable
+                // address width. This sets the ADF port width according to
+                // address space width in ADF
+                if (adfFU->hasAddressSpace() && isLSU(*adfFU)) {
                     FUPort& adfPort = findCorrespondingPort(
                         *adfFU, architecture.architecture(),
                         port.architecturePort());
-                    adfPort.setWidth(ASWidth);
-                    parameterResolved = true;
-                    break;
-                }                
+                    // Assume address port is the triggering port
+                    if (adfPort.isTriggering()) {
+                        int ASWidth = calculateAddressWidth(adfFU);
+                        block->setParameter(
+                            paramName, paramType, 
+                            Conversion::toString(ASWidth));
+                        // Fix the FU port width
+                        adfPort.setWidth(ASWidth);
+                        parameterResolved = true;
+                        break;
+                    }
+                }
                 if (port.widthFormula() == paramName) {
                     try {
                         FUPort& adfPort = findCorrespondingPort(
@@ -1672,6 +1678,34 @@ NetlistGenerator::checkInstanceName(
         newInstanceName = baseInstanceName;
     }
     return newInstanceName;
+}
+
+/**
+ * (Ugly) heursitics for identifying an LSU. 
+ *
+ * If it has an address space and implements a memory operation, it is an LSU
+ *
+ * @param fu Function unit to be tested
+ * @return Is the fu an LSU
+ */
+bool
+NetlistGenerator::isLSU(const TTAMachine::FunctionUnit& fu) const {
+
+    if (!fu.hasAddressSpace()) {
+        return false;
+    }
+    
+    const int opCount = 10;
+    TCEString ops[opCount] = 
+        {"ldw","ldh","ldq","ldw2","ldw4","stw","sth","stq","stw2","stw4"};
+    bool foundOp = false;
+    for (int i = 0; i < opCount; i++) {
+        if (fu.hasOperationLowercase(ops[i])) {
+            foundOp = true;
+            break;
+        }
+    }
+    return foundOp;
 }
 
 } // namespace ProGe
