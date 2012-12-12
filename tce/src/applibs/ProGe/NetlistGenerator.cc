@@ -832,10 +832,10 @@ NetlistGenerator::addFUToNetlist(
         if (paramValue == "" || isParameterizable(paramName, entry)) {
             bool parameterResolved = false;
             // find the port which uses this parameter
-            for (int i = 0; i < fuImplementation.architecturePortCount();
-                 i++) {       
+            for (int j = 0; j < fuImplementation.architecturePortCount();
+                 j++) {       
                 FUPortImplementation& port =
-                    fuImplementation.architecturePort(i);
+                    fuImplementation.architecturePort(j);
                 
                 // Special case if the FU is an LSU and it has parametrizable
                 // address width. This sets the ADF port width according to
@@ -845,7 +845,8 @@ NetlistGenerator::addFUToNetlist(
                         *adfFU, architecture.architecture(),
                         port.architecturePort());
                     // Assume address port is the triggering port
-                    if (adfPort.isTriggering()) {
+                    if (adfPort.isTriggering() 
+                        && port.widthFormula() == paramName) {
                         int ASWidth = calculateAddressWidth(adfFU);
                         block->setParameter(
                             paramName, paramType, 
