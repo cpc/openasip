@@ -39,6 +39,11 @@
 #include "InterPassData.hh"
 #include "Machine.hh"
 
+#ifndef LLVM_3_1
+#define __STDC_LIMIT_MACROS
+#include "llvm/Support/CommandLine.h"
+#endif
+
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
 const int DEFAULT_OPT_LEVEL = 2;
 
@@ -161,6 +166,11 @@ main(int argc, char* argv[]) {
     // ---- Run compiler ----
     try {
         InterPassData* ipData = new InterPassData;
+
+	#ifndef LLVM_3_1
+	const char* argv[] = {"llvm-tce", "--no-stack-coloring"};
+	llvm::cl::ParseCommandLineOptions(2, argv, "llvm linker\n");
+	#endif
         
         LLVMBackend compiler(useInstalledVersion, options->tempDir());
         TTAProgram::Program* seqProg =
