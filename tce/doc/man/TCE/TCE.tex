@@ -43,10 +43,27 @@
 \chapter{INTRODUCTION}
 
 \section{Document Overview}
-
 This is the user manual for TTA Codesign Environment (TCE). The document
 describes the usage of all the tools in the toolset, and the most common
 design flows in the form of tutorials. 
+
+Fig.\ref{fig:flow} shows a simplified overview of TCE. Toolset handles
+applications written in C/C++ and OpenCL. User can easily configure
+Transport-Triggered Architecture (TTA) processor, compile the SW,
+analyze the performance, and generate VHDL. The generated
+application-specific processor VHDL can be synthesized for example to
+FPGA. Then, user can modify the application and upload new program
+image to continue development.
+
+Processor configuration, compilation, and simulation can be carried
+out in the order of minutes and hence most of the time can be reserved
+to applciation development. It is fast to iterate over new TTA
+configurations, e.g. change the number and type of function units;
+configure internal buses, register files, and memory interfaces; or
+develop special function units.  The resource utilization of TTA is
+usually approx. 1000-5000 LUTs (look-up tables) which means that
+modern FPGA's can easily include several TTAs. Operating frequency
+matches the processors developed by FPGA vendors, e.g. 200 MHz.
 
 Chapter~\ref{chapter:tceFlow} provides an overview to the TCE
 processor design flow, and Chapter~\ref{chapter:tutorials} contains
@@ -147,7 +164,8 @@ the generation of the final outputs: the processor description and the
 program bit image.
 
 \begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
+\centerline{
+\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
 \caption{The Initial Inputs for TCE Design Flow.}
 \label{fig:design_flow_initial}
 \end{figure}
