@@ -55,6 +55,8 @@ Bugfixes
   the operation could end up in wrong LSU.
 - Major simulator memory leaks fixed. Now very long automated DS explorations
   are feasible again.
+- Failed bypassing could cause compiler to fail on sparsely connected
+  machines.
 
 Misc
 ----

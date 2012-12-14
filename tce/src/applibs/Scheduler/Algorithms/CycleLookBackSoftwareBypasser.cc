@@ -257,6 +257,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
             // dead if there are some other edges we don't do anything
             // Resuls is positively death
             // we need to properly get rid of it
+            sourceBuses_[&source] = &source.move().bus();
             rm.unassign(source);
         }
 
@@ -284,9 +285,12 @@ CycleLookBackSoftwareBypasser::bypassNode(
                 // Cannot return to original position. getting problematic.
                 // return source to it's position
                 if (sourceRemoved) {
+                    assert(sourceBuses_[&source] != NULL);
+                    source.move().setBus(*sourceBuses_[&source]);
                     assert(rm.canAssign(sourceCycle, source));
                     rm.assign(sourceCycle, source);
                     sourceCycles_.erase(&source);
+                    sourceBuses_.erase(&source);
                 }
                 // Try if we can assign it to some earlier place.
                 ddgCycle = ddg.earliestCycle(moveNode);
@@ -311,6 +315,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
                 assert(rm.canAssign(sourceCycle, source));
                 rm.assign(sourceCycle, source);
                 sourceCycles_.erase(&source);
+                sourceBuses_.erase(&source);
             }
             return 0;
         }
@@ -558,9 +563,13 @@ CycleLookBackSoftwareBypasser::removeBypass(
                 sourceCycles_.find(tempSource);
             if (cycleIter != sourceCycles_.end()) {
                 if (restoreSource) {
-                    rm.assign(cycleIter->second, *tempSource);
+                    assert(sourceBuses_[tempSource] != NULL);
+                    tempSource->move().setBus(*sourceBuses_[tempSource]);
+                    assert(rm.canAssign(cycleIter->second, *tempSource));
+                    rm.assign(cycleIter->second, *tempSource); // fails here. somebody else uses the bus?
                 }
                 sourceCycles_.erase(cycleIter);
+                sourceBuses_.erase(tempSource);
             }
         }
         ddg.unMerge(*tempSource, moveNode);
@@ -748,6 +757,7 @@ void
 CycleLookBackSoftwareBypasser::clearCaches(DataDependenceGraph& ddg,
     bool removeDeletedResults) {
     storedSources_.clear();
+    sourceBuses_.clear();
     if (removeDeletedResults) {
         // TODO: somebody should also delete these
         for (DataDependenceGraph::NodeSet::iterator i = removedNodes_.begin();

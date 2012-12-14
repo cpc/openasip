@@ -39,6 +39,9 @@
 #include "SoftwareBypasser.hh"
 #include "DataDependenceGraph.hh"
 
+namespace TTAMachine {
+    class Bus;
+}
 class MoveNodeSelector;
 class MoveNode;
 /**
@@ -104,8 +107,9 @@ private:
     // First is bypassed node, second is original source
     std::map<MoveNode*, MoveNode*, MoveNode::Comparator> storedSources_;
     
-    // cycles of source nodes so that they can be reassigned.
+    // cycles and buses of source nodes so that they can be reassigned.
     std::map<MoveNode*, int> sourceCycles_;
+    std::map<MoveNode*, TTAMachine::Bus*> sourceBuses_;
 
     std::map<MoveNode*, MoveNode*, MoveNode::Comparator> removedStoredSources_;
 
