@@ -40,8 +40,10 @@
 #include "Machine.hh"
 
 #ifndef LLVM_3_1
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
-#include "llvm/Support/CommandLine.h"
+#endif
+#include <llvm/Support/CommandLine.h>
 #endif
 
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
