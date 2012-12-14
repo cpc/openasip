@@ -37,7 +37,7 @@
 \maketitle
 
 % Table of contents
-\tableofcontents
+%%\tableofcontents
 
 % Document text
 \chapter{INTRODUCTION}
@@ -47,13 +47,21 @@ This is the user manual for TTA Codesign Environment (TCE). The document
 describes the usage of all the tools in the toolset, and the most common
 design flows in the form of tutorials. 
 
-Fig.\ref{fig:flow} shows a simplified overview of TCE. Toolset handles
+Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. Toolset handles
 applications written in C/C++ and OpenCL. User can easily configure
 Transport-Triggered Architecture (TTA) processor, compile the SW,
 analyze the performance, and generate VHDL. The generated
 application-specific processor VHDL can be synthesized for example to
 FPGA. Then, user can modify the application and upload new program
 image to continue development.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/tce_overview}
+    \caption{Overview of TTA Co-design Environment (TCE).}
+    \label{fig:tce_overview}
+  \end{center}
+\end{figure}
 
 
 Processor configuration, compilation, and simulation can be carried
@@ -65,6 +73,8 @@ develop special function units.  The resource utilization of TTA is
 usually approx. 1000-5000 LUTs (look-up tables) which means that
 modern FPGA's can easily include several TTAs. Operating frequency
 matches the processors developed by FPGA vendors, e.g. 200 MHz.
+
+\section{Document Overview}
 
 Chapter~\ref{chapter:tceFlow} provides an overview to the TCE
 processor design flow, and Chapter~\ref{chapter:tutorials} contains
@@ -101,9 +111,10 @@ XML & Extensible Markup Language. \\
 \section{Typographic Conventions Used in the Document}
 
 \begin{center}
-\begin{tabular}{|p{0.30\textwidth}|p{0.63\textwidth}|}
+\begin{tabular}{p{0.30\textwidth}|p{0.63\textwidth}}
 \hline
 \textbf{Style} &\textbf{Purpose}\\
+\hline
 \hline
 \emph{italic}     & parameter names in running text\\
 \hline
@@ -115,6 +126,8 @@ XML & Extensible Markup Language. \\
 \file{file name}   & file and directory names in running text\\
 \hline
 \textbf{bold}     & Shorthand name of a TCE application.\\
+\hline
+\shellcmd{courier}     & UNIX commands\\
 \hline
 \end{tabular}
 \end{center}
@@ -128,7 +141,7 @@ XML & Extensible Markup Language. \\
 The main goal for the TTA Codesign Environment (TCE) is to provide a reliable
 and effective toolset for designing programmable application specific
 processors, and generate machine code for them from applications written 
-in high-level languages.
+in high-level languages, such as C++ or OpenCL.
 
 In addition, TCE provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
@@ -155,66 +168,325 @@ codesign.
 
 % ISO C99 if LLVM/TCE is used
 
-The main phases in the design flow of TCE are illustrated in the following
-figures. Figure~\ref{fig:design_flow_initial} depicts the initial
-inputs to TCE, Figure~\ref{fig:design_flow_exploration} the design space 
+The main phases in the TCE are illustrated in
+Figure~\ref{fig:tce_flow}.
+
+
+%%% !!! EXPLAIN THE PHASES !!!
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/tce_flow}
+    \caption{Overview of TTA Co-design Environment (TCE). 
+	}
+    \label{fig:tce_flow}
+  \end{center}
+\end{figure}
+
+
+\begin{table}
+  \begin{center}
+    \caption {Summary of TCE tools}
+    \label {tab:filetypes}
+    \begin{tabular}{l | l | l | l  l}
+      \hline
+      Tool & Purpose & Type & Produced by & Used by\\
+      \hline
+      \hline
+      ProDe & Define FUs, registers, intercconects of TTA core& GUI & Prode & Tcecc\\
+      Tcecc & Compile SW & Cmd line & & \\
+      Proxim & Simulate TTA core & GUI & & \\
+      Proge & Generate VHDL & cmd line & & \\
+      Pig & Generate program image & cmd & & \\
+      K2-int & Generate IP-XACT& cmd& & \\
+      Synthesis & Convert VHDL to netlist and program FPGA & GUI & & \\
+      Simulation & Simulate VHDL & GUI& & \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+
+%!!! Nää kuvat itse asiassa vain vaikeuttavat ymmärtämistä. Ne pitää
+%joko poistaa tai yksinkertaistaa
+%\begin{figure}[p]
+%\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
+%\caption{The Initial Inputs for TCE Design Flow.}
+%\label{fig:design_flow}	
+%\end{figure}
+
+%\begin{figure}[p]
+%\centerline{\psfig{figure=eps/design_flow_exploration.eps,
+%width=1.0\textwidth}}
+%\caption{Design Space Exploration.}
+%\label{fig:design_flow_exploration}
+%\end{figure}
+
+%Fig.~\ref{fig:rpode} shows mode detailed view of TCE flow.
+%\begin{figure}
+%  \begin{center}
+%    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
+%    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+%    \caption{Detailed TCE flow. Insert figure from page 3 of tce\_tour.ppt here}
+%    \label{fig:flow}
+%  \end{center}
+%\end{figure}
+
+
+\section{The TTA Processor Template of TCE}
+\label{section:template}
+
+The processor template from which the application specific processors
+designed with TCE are defined from is called Transport Triggered 
+Architecture (TTA). For a detailed description behind the TTA philosophy, 
+refer to \cite{HCorp97}.
+This section describes certain aspects of the TTA template used in the TCE
+toolset that might not be very clear.
+
+%%% !!! INSERT BASIC EXPLANATION OF TTA HERE, INCL. 1-2 FIGURES
+
+\begin{figure}
+  \begin{center}
+%    %\includegraphics[width=10cm]{epssrc/tce_overview.pdf}
+    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{TTA basic principle}
+    \label{fig:tta1}
+  \end{center}
+\end{figure}
+
+\begin{table}
+  \begin{center}
+    \caption {Configurable aspects of TTA}
+    \label {tab:filetypes}
+    \begin{tabular}{l | l | l }
+      \hline
+      Property & Values & Example  \\
+      \hline
+      \hline
+      Functional unit & Type, count & 3x ALU, 1x MUL, 1x LDST\\
+      Register file (RF)  & \# registers, \#RFs, \#pors & 2x 16 x 32b registers, 1 read +1 write port \\
+      Internal buses & \#buses, \#sockets to FUS and RFs & 6 buses, total of 15 write and 16 read sockers\\
+      Memoery interfaces & \#couns & 2 SRAM ports w/ 32b data, 32b addr \\
+      Number of cores & \#TTAs & 16 identical TTAs \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\begin{figure}
+  \begin{center}
+    %\includegraphics[width=10cm]{epssrc/tce_overview.pdf}
+    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{Other TTA basic principles}
+    \label{fig:tta2}
+  \end{center}
+\end{figure}
+
+
+\subsection{Immediates/Constants}
+
+The TTA template supports two ways of transporting program constants in
+instructions. \textit{Short immediates} are encoded in the move slot's
+source field, and thus consume a part of a single move slot. The constants
+transported in the source field are usually relatively small in size. 
+
+Wider constants can be transported by means of so called \textit{long 
+immediates}. Long immediates can be defined using a 
+an ADF parameter called \textit{instruction template}. The instruction
+template defines which slots are used for pieces of the instruction
+template or for defining the transports (moves).
+The slots cannot be used for
+regular data transports when they are used for transporting pieces of
+a long immediate. 
+
+An instruction template defining a long immediate also provides
+a target to which the long immediate must be transported. The target register
+resides in a so called \textit{immediate unit} which is written directly 
+from the control unit, not through the transport buses. The immediate unit is like
+a register file expect that it contains only read ports and is written
+only by the instruction decoder in the control unit when it detects an 
+instruction with a long immediate.
+
+Thus, in order to support the special long immediate encoding, one has
+to add a) an instruction template that supports transporting the pieces
+of the immediate using full move slots b) at least one long immediate
+unit (a read-only register file) to which the instruction writes the
+immediates and of which registers the immediates can be read to the
+datapath.
+
+\subsection{Operations, Function Units, and Operand Bindings}
+
+Due to the way TCE abstracts operations and function units, an
+additional concept of \textit{operand binding} is needed to 
+connect the two in processor designs.
+
+Operations in TCE are defined in a separate database 
+(OSAL, Section~\ref{section:osal}) in order to allow defining a reusable
+database of ``operation semantics''. The operations are
+used in processor designs by adding \textit{function units} (FU) that implement
+the wanted operations. Operands of the operations can be
+mapped to different ports of the implementing FU, which affects 
+programming of the  processor. Mapping of operation operands
+to the FU ports must be therefore described by the processor designer
+explicitly.
+
+\textbf{Example.} Designer adds an FU called 'ALU' which implements
+operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
+'in2t' (triggering), and an output port called 'out'. A logical binding of 
+the 'ADD' and 'SUB' operands to ALU ports is the following:
+
+\begin{verbatim}
+ ADD.1 (the first input operand) bound to ALU.in1
+ ADD.2 (the second input operand) bound to ALU.in2t
+ ADD.3 (the output operand) bound to ALU.out
+
+ SUB.1 (the first input operand) bound to ALU.in1
+ SUB.2 (the second input operand) bound to ALU.in2t
+ SUB.3 (the output operand) bound to ALU.out
+\end{verbatim}
+
+However, operation 'NOT', that is, the bitwise negation has only one input
+thus it must be bound to port 'FU.in2t' so it can be triggered:
+
+\begin{verbatim}
+ NOT.1 bound to ALU.in2t
+ NOT.2 (the output operand) bound to ALU.out
+\end{verbatim}
+
+Because we have a choice in how we bind the 'ADD' and 'SUB' input operands,
+the binding has to be explicit in the architecture definition. The operand
+binding described above defines architecturally different TTA function unit
+from the following:
+
+\begin{verbatim}
+ SUB.2 bound to ALU.in1
+ SUB.1 bound to ALU.in2t
+ SUB.3 bound to ALU.out
+\end{verbatim}
+
+With the rest of the operands bound similarly as in the first example.
+
+Due to the differing 'SUB' input bindings one cannot run code scheduled
+for the previous processor on a machine with an ALU with the latter 
+operand bindings. This small detail is important to understand when 
+designing more complex FUs, with multiple operations with different number of 
+operands of varying size, but is usually transparent to the basic user of 
+TCE.
+
+Reasons for wanting to fine tune the operand bindings might include using
+input ports of a smaller width for some operation operands. For example, the 
+width of the address operands in memory accessing operations of a load store 
+unit is often smaller than the data width. Similarly, the second operand of
+a shift operation that defines the number of bits to shift requires less
+bits than the shifted data operand.
+
+% !!!!!!! FOR EACH TOOL DESCRIBE:
+% The main purpose of existence. The main use cases.
+% ALL features and how to use them in case of command line tools.
+% In GUIs, describe only the most unclear parts (esp. in ProDe).
+
+
+\subsection{Datapath Connectivity Levels}
+\label{ConnectivityLevels}
+The datapath interconnection network of TTAs is visible to the programmer.
+This enables full customization of the connectivity, making it possible to
+remove connections that are rarely, if at all, used by the programs the
+processor at hand is designed to run. However, less connections the machine
+has, more challenging it becomes to automatically produce efficient code
+for it. This section describes the different TTA ``connectivity levels'' and
+their support in the TCE design flow.
+
+The currently identified and supported connectivity levels are, in the order of 
+descending level of connectivity, as follows:
+\begin{enumerate}
+
+\item Fully Connected. Completely connected interconnection network ``matrix''.
+All bus-socket and socket-port connections are there. There is a shortcut for
+creating this type of connectivity in the ProDe tool.
+
+The easy target for the high-level language compiler tcecc. However, not
+a realistic design usually due to its high implementation costs.
+
+\item Directly Reachable. The connectivity has been reduced. However, there is
+still at least one direct connection from each function unit (FU) or register file 
+(RF) output to all inputs.
+
+An easy target for tcecc.
+
+\item Fully RF connected. All FUs are connected to all RFs. That is, you can 
+read and write any general purpose register (GPR) from any FU with a single
+move. However, some or all bypass connections between FUs might be missing.
+
+An easy target for tcecc. However, reduction of bypass connections means
+that less software bypassing can be done.
+
+\item Reachable. All FUs are connected to at least one RF and all RFs (and thus
+other FUs) can be reached via one or more additional register copy moves. 
+
+Compilation is fully supported starting from HLL. The Number of copies not 
+limited by tcecc. However, this often results in suboptimal code due to the
+additional register copies which introduce additional moves, consume registers, and
+produce dependencies to the code which hinder parallelism.
+
+\item RF disconnected. Some FUs are not connected to any RF or there are 
+``separated islands'' without connectivity to other ``islands''.
+
+Not supported by tcecc. However, any connectivity type is supported by the
+assembler. Thus, one can resort to manual TTA assembly programming.
+
+\end{enumerate}
+
+
+\section{Sub-phases of the flow}
+
+%%% !!! INSERT BASIC EXPLANATION !!!
+
+\begin{figure}
+  \centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
+  }}
+  \caption{Processor Configuration Selection.}
+  \label{fig:design_flow_selection}
+\end{figure}
+
+\begin{figure}
+  \centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
+  \caption{Code Generation and Analysis.}
+  \label{fig:design_flow_codegen}
+\end{figure}
+
+\begin{figure}
+  \centerline{\psfig{figure=eps/design_flow_generation.eps,
+      width=0.85\textwidth}}
+  \caption{Processor and Program Image Generation.}
+  \label{fig:design_flow_generation}
+\end{figure}
+
+Figure~\ref{fig:design_flow_exploration} the design space 
 exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
 configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
 code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
 the generation of the final outputs: the processor description and the 
 program bit image.
 
-\begin{figure}[p]
-\centerline{
-\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
-\caption{The Initial Inputs for TCE Design Flow.}
-\label{fig:design_flow_initial}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_exploration.eps,
-width=1.0\textwidth}}
-\caption{Design Space Exploration.}
-\label{fig:design_flow_exploration}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
-}}
-\caption{Processor Configuration Selection.}
-\label{fig:design_flow_selection}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
-\caption{Code Generation and Analysis.}
-\label{fig:design_flow_codegen}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_generation.eps,
-width=0.85\textwidth}}
-\caption{Processor and Program Image Generation.}
-\label{fig:design_flow_generation}
-\end{figure}
-
 
 \section{Main File Formats}
 \label{section:fileFormats}
 
-This chapter gives an overview of files and databases manipulated by TCE
-applications and accessible to users of the toolset.  
+This chapter gives an overview of files and databases manipulated by
+TCE applications and accessible to users of the toolset. Most files
+are XML so user can easily access them, if needed.
 
 \subsection{Architecture Definition File (ADF)}
 \label{sec:adf}
 
 Filename extension: .adf
 
-Machine Architecture Definition File (ADF) is a file format
-for defining target processor architectures.  ADF is a minimal specification
-of the target processor architecture, meaning that only the information
-needed  to generate valid programs for the processor is stored, nothing
-else. 
+Machine Architecture Definition File (ADF) is a file format for
+defining target processor architectures, e.g. which function units are
+used and how they are connected.  ADF is a minimal specification of
+the target processor architecture, meaning that only the information
+needed to generate valid programs for the processor is stored, nothing
+else.
 
 \subsection{Hardware Database (HDB)}
 \label{section:hdb}
@@ -230,7 +502,7 @@ include data of each implementation needed by the cost estimation
 algorithms.
 
 TCE ships with an example HDB that includes implementations for several
-function units and register files, and cost data for the default
+function units and register files in VHDL, and cost data for the default
 interpolating cost estimation plugin.
 
 \subsection{Implementation Definition File (IDF)}
@@ -239,10 +511,10 @@ interpolating cost estimation plugin.
 Filename extension:  .idf
 
 Describes which implementations to use for each component in the
-architecture (defined in an ADF file). Using this information it is possible
+architecture. Hence, this links ADF file to HDB. Using this information it is possible
 to fetch correct hardware description language
 (HDL) files from the hardware block library for cost estimation and processor 
-generation. 
+generation.
 
 \subsection{Binary Encoding Map}
 \label{sec:bem}
@@ -860,168 +1132,33 @@ their characteristics. Files that define each tested configuration (ADF and
 IDF) are stored in the database as well. 
 
 
-\section{Notes About the Processor Template of TCE}
-\label{section:template}
 
-The processor template from which the application specific processors
-designed with TCE are defined from is called Transport Triggered 
-Architecture (TTA). For a detailed description behind the TTA philosophy, 
-refer to \cite{HCorp97}.
-This section describes certain aspects of the TTA template used in the TCE
-toolset that might not be very clear.
+\subsection{Summary of file types}
+\label{sec:summary}
 
-\subsection{Immediates/Constants}
-
-The TTA template supports two ways of transporting program constants in
-instructions. \textit{Short immediates} are encoded in the move slot's
-source field, and thus consume a part of a single move slot. The constants
-transported in the source field are usually relatively small in size. 
-
-Wider constants can be transported by means of so called \textit{long 
-immediates}. Long immediates can be defined using a 
-an ADF parameter called \textit{instruction template}. The instruction
-template defines which slots are used for pieces of the instruction
-template or for defining the transports (moves).
-The slots cannot be used for
-regular data transports when they are used for transporting pieces of
-a long immediate. 
-
-An instruction template defining a long immediate also provides
-a target to which the long immediate must be transported. The target register
-resides in a so called \textit{immediate unit} which is written directly 
-from the control unit, not through the transport buses. The immediate unit is like
-a register file expect that it contains only read ports and is written
-only by the instruction decoder in the control unit when it detects an 
-instruction with a long immediate.
-
-Thus, in order to support the special long immediate encoding, one has
-to add a) an instruction template that supports transporting the pieces
-of the immediate using full move slots b) at least one long immediate
-unit (a read-only register file) to which the instruction writes the
-immediates and of which registers the immediates can be read to the
-datapath.
-
-\subsection{Operations, Function Units, and Operand Bindings}
-
-Due to the way TCE abstracts operations and function units, an
-additional concept of \textit{operand binding} is needed to 
-connect the two in processor designs.
-
-Operations in TCE are defined in a separate database 
-(OSAL, Section~\ref{section:osal}) in order to allow defining a reusable
-database of ``operation semantics''. The operations are
-used in processor designs by adding \textit{function units} (FU) that implement
-the wanted operations. Operands of the operations can be
-mapped to different ports of the implementing FU, which affects 
-programming of the  processor. Mapping of operation operands
-to the FU ports must be therefore described by the processor designer
-explicitly.
-
-\textbf{Example.} Designer adds an FU called 'ALU' which implements
-operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
-'in2t' (triggering), and an output port called 'out'. A logical binding of 
-the 'ADD' and 'SUB' operands to ALU ports is the following:
-
-\begin{verbatim}
- ADD.1 (the first input operand) bound to ALU.in1
- ADD.2 (the second input operand) bound to ALU.in2t
- ADD.3 (the output operand) bound to ALU.out
-
- SUB.1 (the first input operand) bound to ALU.in1
- SUB.2 (the second input operand) bound to ALU.in2t
- SUB.3 (the output operand) bound to ALU.out
-\end{verbatim}
-
-However, operation 'NOT', that is, the bitwise negation has only one input
-thus it must be bound to port 'FU.in2t' so it can be triggered:
-
-\begin{verbatim}
- NOT.1 bound to ALU.in2t
- NOT.2 (the output operand) bound to ALU.out
-\end{verbatim}
-
-Because we have a choice in how we bind the 'ADD' and 'SUB' input operands,
-the binding has to be explicit in the architecture definition. The operand
-binding described above defines architecturally different TTA function unit
-from the following:
-
-\begin{verbatim}
- SUB.2 bound to ALU.in1
- SUB.1 bound to ALU.in2t
- SUB.3 bound to ALU.out
-\end{verbatim}
-
-With the rest of the operands bound similarly as in the first example.
-
-Due to the differing 'SUB' input bindings one cannot run code scheduled
-for the previous processor on a machine with an ALU with the latter 
-operand bindings. This small detail is important to understand when 
-designing more complex FUs, with multiple operations with different number of 
-operands of varying size, but is usually transparent to the basic user of 
-TCE.
-
-Reasons for wanting to fine tune the operand bindings might include using
-input ports of a smaller width for some operation operands. For example, the 
-width of the address operands in memory accessing operations of a load store 
-unit is often smaller than the data width. Similarly, the second operand of
-a shift operation that defines the number of bits to shift requires less
-bits than the shifted data operand.
-
-% !!!!!!! FOR EACH TOOL DESCRIBE:
-% The main purpose of existence. The main use cases.
-% ALL features and how to use them in case of command line tools.
-% In GUIs, describe only the most unclear parts (esp. in ProDe).
-
-
-\subsection{Datapath Connectivity Levels}
-\label{ConnectivityLevels}
-The datapath interconnection network of TTAs is visible to the programmer.
-This enables full customization of the connectivity, making it possible to
-remove connections that are rarely, if at all, used by the programs the
-processor at hand is designed to run. However, less connections the machine
-has, more challenging it becomes to automatically produce efficient code
-for it. This section describes the different TTA ``connectivity levels'' and
-their support in the TCE design flow.
-
-The currently identified and supported connectivity levels are, in the order of 
-descending level of connectivity, as follows:
-\begin{enumerate}
-
-\item Fully Connected. Completely connected interconnection network ``matrix''.
-All bus-socket and socket-port connections are there. There is a shortcut for
-creating this type of connectivity in the ProDe tool.
-
-The easy target for the high-level language compiler tcecc. However, not
-a realistic design usually due to its high implementation costs.
-
-\item Directly Reachable. The connectivity has been reduced. However, there is
-still at least one direct connection from each function unit (FU) or register file 
-(RF) output to all inputs.
-
-An easy target for tcecc.
-
-\item Fully RF connected. All FUs are connected to all RFs. That is, you can 
-read and write any general purpose register (GPR) from any FU with a single
-move. However, some or all bypass connections between FUs might be missing.
-
-An easy target for tcecc. However, reduction of bypass connections means
-that less software bypassing can be done.
-
-\item Reachable. All FUs are connected to at least one RF and all RFs (and thus
-other FUs) can be reached via one or more additional register copy moves. 
-
-Compilation is fully supported starting from HLL. The Number of copies not 
-limited by tcecc. However, this often results in suboptimal code due to the
-additional register copies which introduce additional moves, consume registers, and
-produce dependencies to the code which hinder parallelism.
-
-\item RF disconnected. Some FUs are not connected to any RF or there are 
-``separated islands'' without connectivity to other ``islands''.
-
-Not supported by tcecc. However, any connectivity type is supported by the
-assembler. Thus, one can resort to manual TTA assembly programming.
-
-\end{enumerate}
+\begin{table}
+  \begin{center}
+    \caption {Summary of file types}
+    \label {tab:filetypes}
+    \begin{tabular}{l | l | l | l  l}
+      \hline
+      Postfix & Purpose & Format & Produced by & Used by\\
+      \hline
+      \hline
+      adf & Architectur description & XML & Prode & Tcecc\\
+      idf & Architectur description & XML & & \\
+      hdb & & & & \\
+      bem & & & & \\
+      tpef & & & & \\
+      opp & & & & \\
+      oc & & & & \\
+      odb & & & & \\
+      tracedb & & & & \\
+      ExpRepDb & & & & \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
 
 
 \chapter{TUTORIALS AND HOW-TOS}
@@ -1042,7 +1179,17 @@ The tutorial file package is available at:
 
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
 
-Unpack it to a working directory and cd to tce\_tutorials/tce\_tour.
+Fetch and unpack it to a working directory and then enter the directory:
+
+\shellcmd{wget http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz}
+
+\shellcmd{tar -xzcf http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz}
+
+\shellcmd {cd to tce\_tutorials/tce\_tour}
+
+\shellcmd {ls -la}
+
+\shellcmd { --- Insert ls -la output here ---}
 
 \subsection{The Sample Application}
 
@@ -1088,17 +1235,29 @@ ADF file which is your starting point architecture:
 
 \shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 
-Take a look at the starting point architecture using the graphical Processor
-Designer (ProDe, Section~\ref{sec:prode}) tool. Then Start ProDe with:
+You can view at the starting point architecture using the graphical Processor
+Designer (ProDe, Section~\ref{sec:prode}) tool:
 
 \shellcmd{prode start.adf \&}
 
-If you have GHDL installed in your system and you want to simulate the
-generated processor I suggest you to decrease the amount of memory in the
-processor. Otherwise the GHDL generated testbench might consume tremendous
-amount of memory on your computer. To do this select Edit -> Address Spaces
-in ProDe. Then edit the bit widths of data and instruction address spaces and
-set them to 15 bits which should be plenty for our case.
+Fig.~\ref{fig:rpode} shows how Prode should look like.
+\begin{figure}
+  \begin{center}
+    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
+    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{Processor Designer (prode) when minimal ADF is opened}
+    \label{fig:prode}
+  \end{center}
+\end{figure}
+
+If you want later to simulate the generated processor using GHDL, we
+suggest you to decrease the amount of memory in the processor already
+now. Otherwise the GHDL executing the generated testbench might
+consume tremendous amount of memory on your computer. To do this
+select
+\textit{Edit -> Address Spaces} in ProDe. Then edit the bit widths of
+data and instruction address spaces and set them to 15 bits which
+should be plenty for our case.
 
 
 \subsection{Evaluating the Starting Point Architecture}
@@ -1126,6 +1285,15 @@ The simulator will load the architecture definition and the program and wait
 for commands. To execute the program click ``Run''. Simulator will then execute
 the program code and display the cycle count in the bottom bar of the
 simulator. Write down this cycle count for future comparison.
+Fig.~\ref{fig:rpode} shows how Proxim should look like.
+\begin{figure}
+  \begin{center}
+    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
+    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{Processor Simulator (proxim) when minimal ADF and crc.tpef are opened}
+    \label{fig:proxim}
+  \end{center}
+\end{figure}
 
 You can check the result straight from the processor's memory by writing this
 command to the command line at the bottom of the simulator:

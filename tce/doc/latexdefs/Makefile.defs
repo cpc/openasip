@@ -65,7 +65,10 @@ $(DOC_NAME).html: $(DOC_NAME).dvi
 		$(DOC_NAME).tex
 
 $(DOC_NAME).pdf: $(DOC_NAME).dvi
-	${DVI2PDF} -o $(DOC_NAME).pdf $(DOC_NAME).dvi
+	#${DVI2PDF} -o $(DOC_NAME).pdf $(DOC_NAME).dvi
+	dvips -o ${DOC_NAME}.ps ${DOC_NAME}.dvi
+	ps2pdf -dPDFSETTINGS=/printer $(DOC_NAME).ps $(DOC_NAME).pdf
+
 
 $(DOC_NAME).dvi: tce.cls tcedocs.cls algorithm.sty algorithmic.sty \
 	fig $(BBLFILE) *.tex
