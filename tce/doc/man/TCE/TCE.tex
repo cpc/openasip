@@ -63,16 +63,24 @@ image to continue development.
   \end{center}
 \end{figure}
 
+Application-specific instruction-set processor (ASIP) is a
+programmable processor which is tailored to certain application
+(domain). Hence, it can outperform general-purpose processors in terms
+of performance, area, and power. On the other hand, programmability
+and powerful ASIP-tools should provide increased productivity in
+comparison to hardwired accelerator IP blocks, which do offer the
+highest performance.
 
-Processor configuration, compilation, and simulation can be carried
-out in the order of minutes and hence most of the time can be reserved
-to applciation development. It is fast to iterate over new TTA
-configurations, e.g. change the number and type of function units;
-configure internal buses, register files, and memory interfaces; or
-develop special function units.  The resource utilization of TTA is
-usually approx. 1000-5000 LUTs (look-up tables) which means that
-modern FPGA's can easily include several TTAs. Operating frequency
-matches the processors developed by FPGA vendors, e.g. 200 MHz.
+With TCE, TTA ASIP configuration, SW compilation, and simulation can
+be carried out in the order of minutes and hence most of the time can
+be reserved to applciation development. It is fast to iterate over new
+TTA configurations, e.g. change the number and type of function units
+(FU); configure internal buses, register files (RF), and memory
+interfaces; or develop special function units.  The resource
+utilization of TTA is usually approx. 1000-5000 LUTs (look-up tables)
+which means that modern FPGA's can easily include several
+TTAs. Operating frequency matches the processors developed by FPGA
+vendors, e.g. 200 MHz.
 
 \section{Document Overview}
 
@@ -82,6 +90,10 @@ tutorials for several common TCE use cases. These should be sufficient
 for starting to use the TCE toolset.  The rest of the chapters
 describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
+
+Many people have contributed to this document, most notably Pekka
+Jääskeläinen, Otto Esko, Heikki Kultala, and Vladimir Guzma.
+
 
 \section{Acronyms, Abbreviations and Definitions}
 \begin{tabular}[h]{p{0.15\textwidth}p{0.80\textwidth}}
@@ -136,71 +148,91 @@ XML & Extensible Markup Language. \\
 \chapter{TCE DESIGN FLOW}
 \label{chapter:tceFlow}
 
-\section{Overview}
+%\section{Overview}
 
-The main goal for the TTA Codesign Environment (TCE) is to provide a reliable
-and effective toolset for designing programmable application specific
-processors, and generate machine code for them from applications written 
-in high-level languages, such as C++ or OpenCL.
+The main goal for the TTA Codesign Environment (TCE) is to provide a
+reliable and effective toolset for designing programmable application
+specific processors, and generate machine code for them from
+applications written in high-level languages, such as C++ or OpenCL.
+\begin{figure}
+  \begin{center} \includegraphics[width=10cm]{eps/tce_flow}
+  \caption{Overview of TTA Co-design Environment (TCE). } 
+  \label{fig:tce_flow} \end{center}
+\end{figure}
 
 In addition, TCE provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
-The TCE design flow starts from an application described in a high level
-language (currently the C language). The LLVM compiler framework~\cite{llvm-home-page} is used to
-compile the application to 'bitcode', the intermediate representation of
-LLVM. The resulting bitcode is then compiled and scheduled to a particular
-TTA processor  by TCE. Traditional compiler optimizations are done in LLVM
-before bitcode generation, so it is possible to utilize the same bitcode file
+The TCE design flow starts from an application described in a high
+level language (currently the C language). The LLVM compiler
+framework~\cite{llvm-home-page} is used to compile the application to
+'bitcode', the intermediate representation of LLVM. The resulting
+bitcode is then compiled and scheduled to a particular TTA processor
+by TCE. Traditional compiler optimizations are done in LLVM before
+bitcode generation, so it is possible to utilize the same bitcode file
 when exploring different TTA processors for running an application.
 
-The initial software development phase is intended 
-to be separate from the actual codesign flow of TCE. That is, the program is 
-expected to be implemented and tested natively (on a workstation PC) before 
+The initial software development phase is intended to be separate from
+the actual codesign flow of TCE. That is, the program is expected to
+be implemented and tested natively (on a workstation PC) before
 ``porting'' it to the TTA/TCE platform. The porting includes ensuring
-that TTA/TCE runs the program correctly, and optimizing the hardware together
-with the software by modifying the resources and architecture of the processor
-to fit  the application
-at hand -- a process called hardware/software 
-codesign.
+that TTA/TCE runs the program correctly, and optimizing the hardware
+together with the software by modifying the resources and architecture
+of the processor to fit the application at hand -- a process called
+hardware/software codesign.
 
 % ISO C99 if LLVM/TCE is used
 
 The main phases in the TCE are illustrated in
-Figure~\ref{fig:tce_flow}.
+Figure~\ref{fig:tce_flow} and listed in Table~\ref{table:phases}
+First, user implements the software based on requirements. Then, he
+designs a processor with graphical tool - or selects some existing TTA
+- compiles and simulates the SW. Both compiler are simulator are
+\textit{retargetable} so they need an architectre definition as 
+input in addition to SW source codes. Simulator Proxim produces
+statistics about cycle counts and utilization of function unit, so
+that user can iterate the SW of TTA HW until results are satiscatory.
 
+Once the perforamnce requirement is met, user selects real
+implementation for each fucntion units. This is needed becauase on
+might have many implementations for one FU in the HW database,
+e.g. separately for different FPGA families or ASIC. Then, processor
+generator ProGe produces synthesizable VHDL, which instantiates all
+FUS and interconnection network, and program image generator (Pig)
+converts the compiled SW binary into format that can be loaded into
+embedded memory of an FPGA. Final step of TCE, is the platform
+integration which interfaces the TTA with the memory components of
+FPGA board and creates s synthesis settings. Moreover, integrator
+packetizes the TTA (and optionally also the SW) into easily re-usable
+format. In practice, this means generating IP-XACT documents which
+describe the details in XML.
+
+Synthesing and simulating the VHDL are done with 3rd party tools, such
+as Altera's Quartus and Mentor Graphics' Modelsim.
 
 %%% !!! EXPLAIN THE PHASES !!!
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=10cm]{eps/tce_flow}
-    \caption{Overview of TTA Co-design Environment (TCE). 
-	}
-    \label{fig:tce_flow}
-  \end{center}
-\end{figure}
 
 
 \begin{table}
   \begin{center}
     \caption {Summary of TCE tools}
-    \label {tab:filetypes}
-    \begin{tabular}{l | l | l | l  l}
+    \label {tab:phases}
+    \begin{tabular}{l | l | l | l }
       \hline
-      Tool & Purpose & Type & Produced by & Used by\\
+      Tool & Purpose & Type & Output file(s)\\
       \hline
       \hline
-      ProDe & Define FUs, registers, intercconects of TTA core& GUI & Prode & Tcecc\\
-      Tcecc & Compile SW & Cmd line & & \\
-      Proxim & Simulate TTA core & GUI & & \\
-      Proge & Generate VHDL & cmd line & & \\
-      Pig & Generate program image & cmd & & \\
-      K2-int & Generate IP-XACT& cmd& & \\
-      Synthesis & Convert VHDL to netlist and program FPGA & GUI & & \\
-      Simulation & Simulate VHDL & GUI& & \\
+      ProDe & Define FUs, registers, intercconects of TTA core& GUI & .adf \\
+      Tcecc & Compile SW & Cmd line &  \\
+      Proxim & Simulate TTA core & GUI &  report \\
+      Proge & Generate VHDL & cmd line &  VHDL \\
+      Pig & Generate program image & cmd & .mif \\
+      K2-int & Generate IP-XACT& cmd &  .xml \\
+      Synthesis & Convert VHDL to netlist and program FPGA & GUI &  e.g. .sof\\
+      Simulation & Simulate VHDL & GUI &  report, .wave \\
       \hline
     \end{tabular}
   \end{center}
@@ -240,19 +272,52 @@ The processor template from which the application specific processors
 designed with TCE are defined from is called Transport Triggered 
 Architecture (TTA). For a detailed description behind the TTA philosophy, 
 refer to \cite{HCorp97}.
-This section describes certain aspects of the TTA template used in the TCE
-toolset that might not be very clear.
+
+TTA is based on VLIW (very long instruction word) processor paradigm
+but solves its major bottlenecks: the complexity of register file (RF)
+and pipeline bypass network. However, TTA is \textit{statically
+scheduled} at compile time and supports \textit{instrcution-level
+parallelism} (ILP) like VLIW. Instructions can be tens or hundreds of
+bits wide. TTA has multiple internal \textit{function units} (FUs) and
+interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
+
+The term transport-triggered means that instrcution words control the
+transfers on the interconncetion network and the FUs execution is
+triggered when data is transferred to specific \textit{trigger}
+input. In an instrcution there is one \textit{slot} for each bus. For
+example, \textit{``FU0.out0 -> LSU.trig''} moves data from the output
+of function unit $0$ to the trigger input of load-store unit
+(LSU). After that LSU starts execution, for example writing that data
+to external memory. User is not expected to write TTA assembly which
+might be tedious. However, move instructions are very handy for the
+compiler which can do various neat optimizations and scale with the
+machine.
 
 %%% !!! INSERT BASIC EXPLANATION OF TTA HERE, INCL. 1-2 FIGURES
 
 \begin{figure}
-  \begin{center}
-%    %\includegraphics[width=10cm]{epssrc/tce_overview.pdf}
-    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
-    \caption{TTA basic principle}
-    \label{fig:tta1}
+  \begin{center} 
+  \includegraphics[width=0.75\textwidth]{eps/tta.eps}
+  %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}} 
+	\caption{TTA basic principle} 
+	\label{fig:tta1} 
   \end{center}
 \end{figure}
+
+In basic case, all FU inputs and output are registers which relieves
+the pressure on the register file. Moreover, there can be several
+small register file instead one centralized one and controlling the
+individual moves allows bypassing the register file(s) (data goes from
+FU to another). The transport paradigm is also beneficial because it
+allows easy scalability of the architecture and compiler, as well as
+supports varying pipeline depths at FUs. At the same time, the nubmer
+of FU inputs and outputs is not restrcited, unlike in most processor
+templates which support mostly just instrcutions with 2 inputa and
+1-ouput value. User can also create a \textit{special function unit}
+(SFU) which can have arbitrarily many I/O. An SFU is a powerful way of
+enhancing the performance of certain applications.
+
+
 
 \begin{table}
   \begin{center}
@@ -263,32 +328,46 @@ toolset that might not be very clear.
       Property & Values & Example  \\
       \hline
       \hline
-      Functional unit & Type, count & 3x ALU, 1x MUL, 1x LDST\\
-      Register file (RF)  & \# registers, \#RFs, \#pors & 2x 16 x 32b registers, 1 read +1 write port \\
-      Internal buses & \#buses, \#sockets to FUS and RFs & 6 buses, total of 15 write and 16 read sockers\\
-      Memoery interfaces & \#couns & 2 SRAM ports w/ 32b data, 32b addr \\
-      Number of cores & \#TTAs & 16 identical TTAs \\
+      Functional unit     & Type, count                       & 3x ALU, 1x MUL, 1x LSU\\
+      Register file (RF)  & \# registers, \#RFs, \#pors       & 2x 16 x 32b registers, 1 read +1 write port \\
+      Internal buses      & \#buses, \#sockets to FUS and RFs & 6 buses, total of 15 write and 16 read sockers\\
+      Memory interfaces   & \#couns                           & 2xLSU for SRAM w/ 32b data \& 32b addr \\
+      Special FU          & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
+      Number of cores     & \#TTAs                            & 16 identical TTAs \\
       \hline
     \end{tabular}
   \end{center}
 \end{table}
 
-\begin{figure}
-  \begin{center}
-    %\includegraphics[width=10cm]{epssrc/tce_overview.pdf}
-    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
-    \caption{Other TTA basic principles}
-    \label{fig:tta2}
-  \end{center}
-\end{figure}
+The basic exploration of TTA could be as follows. Start with a
+``basic'' TTA and measure the cycle counts nad FU utilization using
+Proxim. Add lots of resources, expecially those types that were
+heavily utilized in basic case, and make the interconnection fully
+connected. This will yield a very large TTA in terms of HW resources
+but also the one with lowest cycle count. In mnay cases, user can
+achieve 2-5x speedup in terms of cycle count. The next step is to
+reduce the FUs and interconnection buses and sockets to obtain
+reasonbaly sized machine. If that proves difficult, one can start
+planning an SFU. 
 
+Fortunately, TCE makes it easy. User can define a fraction of code
+(e.g. the bottleneck function) to executed by SFU, even if such unit
+has not been implemented yet. User just tells the compiler how many
+clock cycles the special function takes, compiles and repeat the
+simulation. This way it is easy to seek for the most potential
+functions. Once such has been identified, user can start actually
+impleenting it in VHDL.
+
+The rest of this section describes certain detailed aspects of the TTA
+template used in the TCE toolset that might not be very clear.
 
 \subsection{Immediates/Constants}
 
-The TTA template supports two ways of transporting program constants in
-instructions. \textit{Short immediates} are encoded in the move slot's
-source field, and thus consume a part of a single move slot. The constants
-transported in the source field are usually relatively small in size. 
+The TTA template supports two ways of transporting program constants
+in instructions, such as \textit{``add value+5''}. \textit{Short
+immediates} are encoded in the move slot's source field, and thus
+consume a part of a single move slot. The constants transported in the
+source field are usually relatively small in size.
 
 Wider constants can be transported by means of so called \textit{long 
 immediates}. Long immediates can be defined using a 
@@ -305,7 +384,7 @@ resides in a so called \textit{immediate unit} which is written directly
 from the control unit, not through the transport buses. The immediate unit is like
 a register file expect that it contains only read ports and is written
 only by the instruction decoder in the control unit when it detects an 
-instruction with a long immediate.
+instruction with a long immediate (see Fig.~\ref{fig:tta1}.
 
 Thus, in order to support the special long immediate encoding, one has
 to add a) an instruction template that supports transporting the pieces
@@ -366,7 +445,7 @@ from the following:
 
 With the rest of the operands bound similarly as in the first example.
 
-Due to the differing 'SUB' input bindings one cannot run code scheduled
+Due to the differing 'SUB' input bindings, one cannot run code scheduled
 for the previous processor on a machine with an ALU with the latter 
 operand bindings. This small detail is important to understand when 
 designing more complex FUs, with multiple operations with different number of 
@@ -388,13 +467,15 @@ bits than the shifted data operand.
 
 \subsection{Datapath Connectivity Levels}
 \label{ConnectivityLevels}
-The datapath interconnection network of TTAs is visible to the programmer.
-This enables full customization of the connectivity, making it possible to
-remove connections that are rarely, if at all, used by the programs the
-processor at hand is designed to run. However, less connections the machine
-has, more challenging it becomes to automatically produce efficient code
-for it. This section describes the different TTA ``connectivity levels'' and
-their support in the TCE design flow.
+The datapath interconnection network of TTAs is visible to the
+programmer (i.e. the compiler in practice).  This enables full
+customization of the connectivity, making it possible to remove
+connections that are rarely, if at all, used by the programs the
+processor at hand is designed to run. This offers notable saving in
+therm HW area. However, less connections the machine has, more
+challenging it becomes to automatically produce efficient code for
+it. This section describes the different TTA ``connectivity levels''
+and their support in the TCE design flow.
 
 The currently identified and supported connectivity levels are, in the order of 
 descending level of connectivity, as follows:
@@ -437,44 +518,51 @@ assembler. Thus, one can resort to manual TTA assembly programming.
 \end{enumerate}
 
 
-\section{Sub-phases of the flow}
 
-%%% !!! INSERT BASIC EXPLANATION !!!
-
-\begin{figure}
-  \centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
-  }}
-  \caption{Processor Configuration Selection.}
-  \label{fig:design_flow_selection}
-\end{figure}
-
-\begin{figure}
-  \centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
-  \caption{Code Generation and Analysis.}
-  \label{fig:design_flow_codegen}
-\end{figure}
-
-\begin{figure}
-  \centerline{\psfig{figure=eps/design_flow_generation.eps,
-      width=0.85\textwidth}}
-  \caption{Processor and Program Image Generation.}
-  \label{fig:design_flow_generation}
-\end{figure}
-
-Figure~\ref{fig:design_flow_exploration} the design space 
-exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
-configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
-code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
-the generation of the final outputs: the processor description and the 
-program bit image.
 
 
 \section{Main File Formats}
 \label{section:fileFormats}
 
-This chapter gives an overview of files and databases manipulated by
+This chapter gives an overview of 8 file and database types manipulated by
 TCE applications and accessible to users of the toolset. Most files
 are XML so user can easily access them, if needed.
+
+There a 3 kind of files:
+\begin{enumerate}
+ \item HW definitions
+ \item SW definitions
+ \item simulation and exploration results
+\end{enumerate}
+
+%%% !!! INSERT BASIC EXPLANATION !!!
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
+%  }}
+%  \caption{Processor Configuration Selection.}
+%  \label{fig:design_flow_selection}
+%\end{figure}
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
+%  \caption{Code Generation and Analysis.}
+%  \label{fig:design_flow_codegen}
+%\end{figure}
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_generation.eps,
+%      width=0.85\textwidth}}
+%  \caption{Processor and Program Image Generation.}
+%  \label{fig:design_flow_generation}
+%\end{figure}
+
+%Figure~\ref{fig:design_flow_exploration} the design space 
+%exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
+%configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
+%code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
+%the generation of the final outputs: the processor description and the 
+%program bit image.
 
 \subsection{Architecture Definition File (ADF)}
 \label{sec:adf}
@@ -534,6 +622,24 @@ partially scheduled, and scheduled TTA programs. TPEF supports auxiliary
 sections for storing additional information related to
 the program, such as execution profiles, machine resource data, and target
 address space definitions.
+
+
+\subsection{Simulation Trace Database}
+\label{sec:tracedb}
+
+Filename extension: .tracedb
+
+Stores data collected from simulations and used by instruction scheduler
+(profiling data) and cost estimator (utilization statistics, etc.).
+
+\subsection{Exploration Result Database}
+\label{sec:expresdb}
+
+Exploration Result Database (ExpResDB) contains the configurations that have
+been evaluated during exploration (manual or automatic) and a summary of
+their characteristics. Files that define each tested configuration (ADF and
+IDF) are stored in the database as well. 
+
 
 \subsection{Operation Set Abstraction Layer (OSAL) Files}
 \label{section:osal}
@@ -1113,23 +1219,6 @@ to define the memory access behavior:
   Writes \emph{count} units of data in variable \emph{data} to 
   the \emph{address}.
 \end{description}
-
-
-\subsection{Simulation Trace Database}
-\label{sec:tracedb}
-
-Filename extension: .tracedb
-
-Stores data collected from simulations and used by instruction scheduler
-(profiling data) and cost estimator (utilization statistics, etc.).
-
-\subsection{Exploration Result Database}
-\label{sec:expresdb}
-
-Exploration Result Database (ExpResDB) contains the configurations that have
-been evaluated during exploration (manual or automatic) and a summary of
-their characteristics. Files that define each tested configuration (ADF and
-IDF) are stored in the database as well. 
 
 
 
