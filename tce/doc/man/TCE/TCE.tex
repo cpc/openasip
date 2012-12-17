@@ -37,7 +37,7 @@
 \maketitle
 
 % Table of contents
-%%\tableofcontents
+\tableofcontents
 
 % Document text
 \chapter{INTRODUCTION}
@@ -148,7 +148,6 @@ XML & Extensible Markup Language. \\
 \chapter{TCE DESIGN FLOW}
 \label{chapter:tceFlow}
 
-%\section{Overview}
 
 The main goal for the TTA Codesign Environment (TCE) is to provide a
 reliable and effective toolset for designing programmable application
@@ -165,6 +164,7 @@ experimenting with new ideas for Transport Triggered Architectures (TTAs),
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
+\section{Flow Overview}
 The main phases in the TCE are illustrated in
 Figure~\ref{fig:tce_flow} and listed in Table~\ref{table:phases} The
 TCE design flow starts from an application described in a high level
@@ -210,6 +210,9 @@ the SW) into easily re-usable format. In practice, this means
 generating IP-XACT documents which describe the details in XML.
 Synthesing and simulating the VHDL are done with 3rd party tools, such
 as Altera's Quartus and Mentor Graphics' Modelsim.
+
+More details about phases are given in Chapters \ref{sec:prode} - 
+\ref{section:codesign}.
 
 \begin{table}
   \begin{center}
@@ -263,7 +266,7 @@ as Altera's Quartus and Mentor Graphics' Modelsim.
 %\end{figure}
 
 
-\section{The TTA Processor Template of TCE}
+\section{The TTA Processor Template}
 \label{section:template}
 
 The processor template from which the application specific processors
