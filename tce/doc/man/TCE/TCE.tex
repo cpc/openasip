@@ -42,7 +42,7 @@
 % Document text
 \chapter{INTRODUCTION}
 
-\section{Document Overview}
+%\section{Document Overview}
 This is the user manual for TTA Codesign Environment (TCE). The document
 describes the usage of all the tools in the toolset, and the most common
 design flows in the form of tutorials. 
@@ -165,35 +165,34 @@ experimenting with new ideas for Transport Triggered Architectures (TTAs),
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
-The TCE design flow starts from an application described in a high
-level language (currently the C language). The LLVM compiler
-framework~\cite{llvm-home-page} is used to compile the application to
-'bitcode', the intermediate representation of LLVM. The resulting
-bitcode is then compiled and scheduled to a particular TTA processor
-by TCE. Traditional compiler optimizations are done in LLVM before
-bitcode generation, so it is possible to utilize the same bitcode file
-when exploring different TTA processors for running an application.
-
-The initial software development phase is intended to be separate from
-the actual codesign flow of TCE. That is, the program is expected to
-be implemented and tested natively (on a workstation PC) before
-``porting'' it to the TTA/TCE platform. The porting includes ensuring
-that TTA/TCE runs the program correctly, and optimizing the hardware
-together with the software by modifying the resources and architecture
-of the processor to fit the application at hand -- a process called
-hardware/software codesign.
-
-% ISO C99 if LLVM/TCE is used
-
 The main phases in the TCE are illustrated in
-Figure~\ref{fig:tce_flow} and listed in Table~\ref{table:phases}
-First, user implements the software based on requirements. Then, he
-designs a processor with graphical tool - or selects some existing TTA
-- compiles and simulates the SW. Both compiler are simulator are
+Figure~\ref{fig:tce_flow} and listed in Table~\ref{table:phases} The
+TCE design flow starts from an application described in a high level
+language (currently the C language).  The initial software development
+phase is intended to be separate from the actual codesign flow of
+TCE. That is, the program is expected to be implemented and tested
+natively (on a workstation PC) before ``porting'' it to the TTA/TCE
+platform. The porting includes ensuring that TTA/TCE runs the program
+correctly, and optimizing the hardware together with the software by
+modifying the resources and architecture of the processor to fit the
+application at hand -- a process called hardware/software codesign.
+
+Once the user has implemented the software based on requirements, he
+designs a TTA processor with graphical tool - or selects some existing
+TTA - compiles and simulates the SW. Both compiler are simulator are
 \textit{retargetable} so they need an architectre definition as 
 input in addition to SW source codes. Simulator Proxim produces
 statistics about cycle counts and utilization of function unit, so
 that user can iterate the SW of TTA HW until results are satiscatory.
+
+The LLVM compiler framework~\cite{llvm-home-page} is used to compile
+the application to 'bitcode', the intermediate representation of
+LLVM. The resulting bitcode is then compiled and scheduled to a
+particular TTA processor by TCE. Traditional compiler optimizations
+are done in LLVM before bitcode generation, so it is possible to
+utilize the same bitcode file when exploring different TTA processors
+for running an application.
+% ISO C99 if LLVM/TCE is used
 
 Once the perforamnce requirement is met, user selects real
 implementation for each fucntion units. This is needed becauase on
@@ -202,37 +201,36 @@ e.g. separately for different FPGA families or ASIC. Then, processor
 generator ProGe produces synthesizable VHDL, which instantiates all
 FUS and interconnection network, and program image generator (Pig)
 converts the compiled SW binary into format that can be loaded into
-embedded memory of an FPGA. Final step of TCE, is the platform
-integration which interfaces the TTA with the memory components of
-FPGA board and creates s synthesis settings. Moreover, integrator
-packetizes the TTA (and optionally also the SW) into easily re-usable
-format. In practice, this means generating IP-XACT documents which
-describe the details in XML.
+embedded memory of an FPGA.
 
+Final step of TCE, is the platform integration which interfaces the
+TTA with the memory components of FPGA board and creates s synthesis
+settings. Moreover, integrator packetizes the TTA (and optionally also
+the SW) into easily re-usable format. In practice, this means
+generating IP-XACT documents which describe the details in XML.
 Synthesing and simulating the VHDL are done with 3rd party tools, such
 as Altera's Quartus and Mentor Graphics' Modelsim.
 
-%%% !!! EXPLAIN THE PHASES !!!
-
-
-
 \begin{table}
   \begin{center}
-    \caption {Summary of TCE tools}
+    \caption {Summary of tools. Some of the tools have grahical
+    user interface (GUI) and others executed from the command
+    prompt.}
     \label {tab:phases}
     \begin{tabular}{l | l | l | l }
       \hline
       Tool & Purpose & Type & Output file(s)\\
       \hline
       \hline
-      ProDe & Define FUs, registers, intercconects of TTA core& GUI & .adf \\
-      Tcecc & Compile SW & Cmd line &  \\
-      Proxim & Simulate TTA core & GUI &  report \\
-      Proge & Generate VHDL & cmd line &  VHDL \\
-      Pig & Generate program image & cmd & .mif \\
-      K2-int & Generate IP-XACT& cmd &  .xml \\
-      Synthesis & Convert VHDL to netlist and program FPGA & GUI &  e.g. .sof\\
-      Simulation & Simulate VHDL & GUI &  report, .wave \\
+      ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
+      Tcecc                & Compile SW                                       & cmd  &  \\
+      Proxim               & Simulate TTA core                                & GUI  &  report \\
+      Proge                & Generate VHDL                                    & cmd  &  VHDL \\
+      Pig                  & Generate program image                           & cmd  & .mif \\
+      Platform integrator  & Interface with memories, generate IP-XACT        & cmd  &  .xml \\
+      \hline
+      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  &  e.g. .sof\\
+      S3rd party imulation & Simulate VHDL                                    & G/c  &  report, .wave \\
       \hline
     \end{tabular}
   \end{center}
@@ -299,7 +297,7 @@ machine.
   \begin{center} 
   \includegraphics[width=0.75\textwidth]{eps/tta.eps}
   %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}} 
-	\caption{TTA basic principle} 
+	\caption{TTA basic structure} 
 	\label{fig:tta1} 
   \end{center}
 \end{figure}
@@ -328,12 +326,12 @@ enhancing the performance of certain applications.
       Property & Values & Example  \\
       \hline
       \hline
-      Functional unit     & Type, count                       & 3x ALU, 1x MUL, 1x LSU\\
-      Register file (RF)  & \# registers, \#RFs, \#pors       & 2x 16 x 32b registers, 1 read +1 write port \\
-      Internal buses      & \#buses, \#sockets to FUS and RFs & 6 buses, total of 15 write and 16 read sockers\\
-      Memory interfaces   & \#couns                           & 2xLSU for SRAM w/ 32b data \& 32b addr \\
-      Special FU          & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
       Number of cores     & \#TTAs                            & 16 identical TTAs \\
+      Functional unit     & Type, count                       & 3x ALU, 2x LSU, 1x MUL, 1x ctrl...\\
+      Register file (RF)  & \# registers, \#RFs, \#ports, type& 16x 32b RF 2x rd + 2x wr ports, 16x 1b boolean RF...  \\
+      Internal buses      & \#buses, \#sockets                & 5 buses, total of 43 write and 44 read sockets\\
+      Memory interfaces   & Count, type                       & 2x LSU for SRAM w/ 32b data \& 32b addr \\
+      Special FU          & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
       \hline
     \end{tabular}
   \end{center}
@@ -357,6 +355,27 @@ clock cycles the special function takes, compiles and repeat the
 simulation. This way it is easy to seek for the most potential
 functions. Once such has been identified, user can start actually
 impleenting it in VHDL.
+
+Multicore TTA is a rather new feature in TCE and illustrated in
+Fig.~\ref{fig:tta2}. User can easily instantiate multiple identical
+TTAs and each core has its private, local memory. They share one or
+multiple data memories and an instrcution memory. The stack and heap
+could reside in shared memory which would simplify compiler
+development but that would lead to poor performance unless cocherent
+data cache were used. Therefore, TCE places stack and heap into local
+memory, and only explicitly shared variables into shared memory, as
+shown in Fig.~\ref{fig:tta2}.
+
+
+\begin{figure}
+  \begin{center} 
+  \includegraphics[width=0.5\textwidth]{eps/tta2.eps}
+  %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}} 
+	\caption{Multicore-TTA in which the stack and heap are 
+                 located on the local memory of a core.} 
+	\label{fig:tta1} 
+  \end{center}
+\end{figure}
 
 The rest of this section describes certain detailed aspects of the TTA
 template used in the TCE toolset that might not be very clear.
@@ -530,9 +549,9 @@ are XML so user can easily access them, if needed.
 
 There a 3 kind of files:
 \begin{enumerate}
- \item HW definitions
- \item SW definitions
- \item simulation and exploration results
+ \item HW definitions: adf, hdb, and idf
+ \item SW definitions: bem, tpef, opp, cc, opb
+ \item Simulation and exploration data: set of files above
 \end{enumerate}
 
 %%% !!! INSERT BASIC EXPLANATION !!!
@@ -571,17 +590,48 @@ Filename extension: .adf
 
 Machine Architecture Definition File (ADF) is a file format for
 defining target processor architectures, e.g. which function units are
-used and how they are connected.  ADF is a minimal specification of
-the target processor architecture, meaning that only the information
-needed to generate valid programs for the processor is stored, nothing
-else.
+used and how they are connected.  ADF is created with ProDE and is a
+minimal specification of the target processor architecture, meaning
+that only the information needed to generate valid programs for the
+processor is stored, nothing else.
+
+The XML snippet below gives an idea of ADF.
+\begin{verbatim}
+<adf version="1.7">
+
+  <bus name="B1">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    ...
+  <socket name="alu_comp_i1">
+    <reads-from>
+      <bus>B1</bus>
+    ...
+  <function-unit name="alu_comp">
+    <port name="in1t">
+      <connects-to>alu_comp_i1</connects-to>
+      <width>32</width>
+      <triggers/>
+    ...
+    <operation>
+      <name>add</name>
+      <bind name="1">in1t</bind>
+      ...
+  <register-file name="RF">
+    <type>normal</type>
+    ...
+  <address-space name="data">
+    <width>8</width>
+    ...
+\end{verbatim}
 
 \subsection{Hardware Database (HDB)}
 \label{section:hdb}
 % Describe what is shipped by default in TCE
 Filename extension: .hdb
 
-Hardware Database (HDB) is the main database used by the
+Hardware Database (HDB) is the main SQLite database used by the
 Processor Generator and the Cost Estimator.  The data stored in HDB consist
 of hardware description language definitions (HDL) of TTA components
 (function units, register files, buses and sockets) and metadata that
@@ -599,10 +649,23 @@ interpolating cost estimation plugin.
 Filename extension:  .idf
 
 Describes which implementations to use for each component in the
-architecture. Hence, this links ADF file to HDB. Using this information it is possible
-to fetch correct hardware description language
-(HDL) files from the hardware block library for cost estimation and processor 
-generation.
+architecture. Hence, this links ADF file to HDB. Using this
+information it is possible to fetch correct hardware description
+language (HDL) files from the hardware block library for cost
+estimation and processor generation.
+
+The XML snippet below gives an idea of IDF.
+\begin{verbatim}
+ <adf-implementation>
+  ...
+  <fu name="LSU">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+  ...
+\end{verbatim}
+
+
 
 \subsection{Binary Encoding Map}
 \label{sec:bem}
@@ -617,11 +680,29 @@ image (Section~\ref{sec:db_bim}) from TPEF program data.
 
 Filename extension: .tpef
 
-TTA Program Exchange Format (TPEF) is a file format for storing unscheduled,
-partially scheduled, and scheduled TTA programs. TPEF supports auxiliary
-sections for storing additional information related to
-the program, such as execution profiles, machine resource data, and target
-address space definitions.
+TTA Program Exchange Format (TPEF) is a file format for storing
+unscheduled, partially scheduled, and scheduled TTA programs. TPEF
+supports auxiliary sections for storing additional information related
+to the program, such as execution profiles, machine resource data, and
+target address space definitions.
+
+
+\subsection{Operation Set Abstraction Layer (OSAL) Files}
+\label{section:osal}
+% Describe what is shipped by default in TCE
+Filename extension: .opp, .cc, .opb
+
+OSAL stores the simulation behavior and static properties of operations in
+function units.
+
+Simulation behavior of function unit operations is described by implementing
+simulation functions which can be plugged in to the simulator run time.
+
+The .opp file is an XML file for defining the static properties of
+operations (for example, how many inputs and outputs an operation has). The
+.cc is the C++ source file that defines the behavior model for a set of
+operations. The .opb is the plugin module compiled from the .cc.
+
 
 
 \subsection{Simulation Trace Database}
@@ -641,613 +722,38 @@ their characteristics. Files that define each tested configuration (ADF and
 IDF) are stored in the database as well. 
 
 
-\subsection{Operation Set Abstraction Layer (OSAL) Files}
-\label{section:osal}
-% Describe what is shipped by default in TCE
-Filename extension: .opp, .cc, .opb
-
-OSAL stores the simulation behavior and static properties of operations in
-function units.
-
-Simulation behavior of function unit operations is described by implementing
-simulation functions which can be plugged in to the simulator run time.
-
-The .opp file is an XML file for defining the static properties of
-operations (for example, how many inputs and outputs an operation has). The
-.cc is the C++ source file that defines the behavior model for a set of
-operations. The .opb is the plugin module compiled from the .cc.
-
-Operations are divided in ``operation modules''. For example, `base' module,
-included in the TCE distribution, contains all the operations available 
-to the front end compiler's code generation.
-
-An operation in OSAL is defined by its properties
-and its behavior.  The properties defined by OSAL do not restrict in any
-way the hardware implementation.  For example, latency, bit width or the
-fact that reading the result of an operation can lock the processor are
-properties of the implementation, and are not defined in OSAL module.
-
-\subsubsection{Operation Properties}
-\label{ssec:operation-properties}
-
-The following properties define a TTA operation in TCE:
-
-\begin{itemize}
-\item name (unique string)
-\item description (string)
-\item number of inputs (integer)
-\item number of outputs (integer)
-\item accesses memory (yes/no)
-%\item can cause trap (yes/no)
-\item has side effects (yes/no)
-\item clocked (yes/no)
-\item affected-by (set of operations)
-\item affects (set of operations)
-\end{itemize}
-
-\paragraph{operation name}
-The operation name is a string of characters starting with a character in
-set [A-Z\_] and followed by one or more character in set [0-9A-Z\_] 
-(i.e.\ lowercase letters are not allowed).  All
-names of operations of the database must be unique. Different data bases 
-can contain operations with equal names. 
-
-\paragraph{operation description}
-Optional description of the operation.
-
-\paragraph{inputs}
-Number of inputs of the operation. The number of inputs is a
-nonnegative integer. It must be positive if the number of outputs is
-zero.
-
-\paragraph{outputs}
-
-Number of outputs of the operation. The number of outputs is a
-nonnegative integer. It must be positive if the number of inputs is
-zero.
-
-\paragraph{reads/writes-memory}
-
-Indicates that this operation can access memory.  Normally, memory access is
-also implied from the properties `mem-address' and `mem-data' of operation
-inputs (or the `mem-data' property of operation outputs).  However, it is
-possible to define operations that perform \emph{invisible} accesses to
-memory, whereby no input or output is related to the memory access itself.
-That is, neither the address nor the data moved into or out of memory is
-explicitly specified by the operation.  In these operations, memory accesses
-occur as a side effect, and none of the inputs or outputs have
-memory-related properties.  To avoid potential errors, the memory property
-must be specified explicitly even when it is implied by some of the inputs
-or outputs of the operation.  See sections on input and output declarations,
-below.
-
-\paragraph{clocked}
-Clocked attribute indicates that the operation can change its state
-synchronously with clock signal and independently from its input.
-
-\paragraph{side-effect}
-
-Indicates that two subsequent executions of this operation with the same
-input values may generate different output values.  An operation marked with
-``side-effect'' is an operation which writes some state data, affecting
-further executions of the same operation and other operations sharing
-that same state data. The other operations that read or write
-the same state data written by an operation marked with ``side-effect'' 
-must be marked ``affected-by'' that operation (see later for an example).
-
-Note: only operations that write the state should marked to
-have ``side-effects''. Operations that only read the state data do not
-have side effects and may be reordered more freely by the compiler.
-
-\paragraph{affected-by}
-
-In case an operation reads or writes state data written by another 
-operation sharing the same state data (that is marked with the
-``side-effect'' property), the operation should be marked ``affected-by''
-that operation. 
-
-This property restricts the compiler's reordering optimizations 
-from moving operations that read or write state data above an operation
-that also writes the same data, which would result in potentially
-producing wrong results from the execution.
-
-\paragraph{affects}
-
-This is an optional convenience property that allows defining
-the state data dependency the other way around. If an operation
-is listed in the ``affects'' list it means that the operation
-is writing state data that is read or written by the affected operation.
-
-Note: it is not necessary that, if operation A `affects' operation B, then B
-must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
-B, it is not needed that B must contain A in its `affects' list. This
-allows, for example, a user to add new operations that share state with 
-the base operations shipped with TCE, without needing to modify the base
-operations.
-
-\paragraph{An example of defining multiple operations that share the
-same state.} A common use case for multiple operations that share
-state data is a case where one or more operations initialize an
-internal register file in an FU and one or more operations use the
-data in the register file to compute their results.
-
-For example, INIT\_RF could initialize the internal register
-file with the given number. This operation should be marked
-``side-effects''. Let's say that another two operations COMPUTE\_X and
-COMPUTE\_Y only read the internal RF data, thus they can be freely
-reordered by the computer with each other in the program code in case
-there are no other dependencies. As they only read the state data,
-they don't have and visible side effects, thus they should not
-be marked with the ``side-effects'' property. However, as they read
-the data written by the INIT\_RF operation, both operations should
-be marked to be ``affected-by'' the INIT\_RF.
-
-\subsubsection{Operation Input Properties}
-\label{ssec:opinput-properties}
-
-Each input of an operation requires an independent declaration of its
-properties.  An operation input is completely defined by the following
-properties:
-\begin{itemize}
-\item identification number (integer)
-\item memory address (yes/no)
-\item memory data (yes/no)
-\item can be swapped (set of integers)
-\end{itemize}
-
-\paragraph{identification number}
-Integer number in the range [1,N] where N is the number of inputs as defined
-in section~\ref{ssec:operation-properties} of operation declaration.  If N
-is zero, then no input declarations can be specified. TCE does not currently
-allow operations with zero inputs to be defined.
-
-\paragraph{can-swap}
-A list of identification numbers.  All the inputs listed can be swapped with
-this input.  The identification number of this input definition is not
-allowed in the list.  The can-swap property is commutative, thus any of the
-listed inputs is implicitly `can-swap' with this input and all the other
-inputs listed.  The can-swap declaration need not be symmetrical, but it is
-not an error if the implied declaration is also specified.
-
-\paragraph{mem-address}
-Optional.  Indicates that the input is used to compute (affects the value
-of) the memory address accessed by this operation.
-
-\paragraph{mem-data}
-Optional.  Indicates that the input is used to compute (affects the value
-of) the data word written to memory by this operation.  This property
-implies that the operation writes to memory.
-
-\subsubsection{Operation Output Properties}
-\label{ssec:opoutput-properties}
-
-Note: it is not an error if a program, before instruction scheduling,
-contains an operation where one of the output moves is missing. If all
-output moves of an operation are missing, then the only useful work that can
-be performed by the operation is state change.
-
-\paragraph{mem-data}
-Optional.  Indicates that the output contains a value that depends on a
-data word read from memory by this operation.  This property implies that
-the operation reads data from memory.
-
-\subsubsection{Operation DAG}
-\label{ssec:operation-dag}
-
-The semantics of an operation may be modeled with a simple dag-based language.
-This can be used to both simulate the operation without writing the 
-simulation code, and to allow the compiler to automatically use custom
-operations.
-
-The optional field to describe the Operation DAGs is 
-\textit{trigger-semantics}. It contains description of the operation 
-semantics as a directed acyclic graph (DAG). 
-
-The OperationDAG language description is given as the content of this element.
-The OperationDAG language has the following syntax:
-
-All commands end in semicolon.
-
-\begin{description}
-
-\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
-  Creates a temporary variables with given name. Usage examples:
-
-SimValue temp;
-
-SimValue temp1, temp2;
-
-\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
- Calls another operation with the given operand values. 
-
-The input values can be either temporary variables, inputs to the operation
-whose semantics is being modeled, or integer constants.
-
-The output value can be either temporary variables or outputs of the operation
-whose semantics is being modelled.
-
-Operands of the modeled operation are referred with name IO(<number>) 
-where 1 is first input operand, 2 second input operand, and after input 
-operands come output operands. 
-
-Temporary values are referred by their name, and integer constants are given
-in decimal format.
-
-Example OperationDAG of the ADDSUB operation:
-
-\begin{verbatim}
-     <trigger-semantics>
-       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
-       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
-     </trigger-semantics>
-\end{verbatim}
-
-
-\end{description}
-
-
-\subsubsection{Operation Behavior}
-\label{ssec:operation-behavior}
-
-To be complete, the model of an operation needs to describe the
-behavior of the operation. The behavior is specified in a restricted
-form of C++, the source language of the TCE toolset, augmented with
-macro definitions.  This definition is used for simulating the
-operation in the instruction set simulator of TCE.
-
-\paragraph{Definition of Operation Behavior}
-
-Operation behavior simulation functions are entered inside an operation
-behavior definition block. There are two kinds of such blocks: one for
-operations with no state, and one for operations with state.
-
-\begin{description}
-\item[OPERATION(\emph{operationName})] %
-  Starts an operation behavior definition block for an operation with name 
-  \emph{operationName}. Operations defined with this statement do not 
-  contain state. Operation names must be written in upper case letters!
-\item[END\_OPERATION(\emph{operationName})] %
-  End an operation behavior definition block for an operation with no state.
-  \emph{operationName} has to be exactly the same as it was entered in the
-  block start statement \verb|OPERATION()|.
-\item[OPERATION\_WITH\_STATE(\emph{operationName}, \emph{stateName})] %
-  Starts an operation behavior definition block for an operation with state.
-  \emph{operationName} contains the name of the operation, \emph{stateName}
-  name of the state. DEFINE\_STATE() definition for the \emph{stateName}
-must 
-  occur before this statement in the definition file. Operation and state
-  names must be written in upper case letters!
-\item[END\_OPERATION\_WITH\_STATE(\emph{operationName})] %
-  Ends an operation behavior definition block for an operation with state.
-  \emph{operationName} has to be exactly the same as it was entered in the
-  block start statement \verb|OPERATION_WITH_STATE()|.
-\end{description}
-
-The main emulation  function definition block is given as:
-\begin{description}
-\item[TRIGGER ... END\_TRIGGER;] %
-  Main emulation function.
-
-% \item[LATE\_RESULT ... END\_LATE\_RESULT;] %
-%   Function that emulates late-coming results.
-\end{description}
-
-% Only the first definition is mandatory.  The LATE\_RESULT definition allows 
-% the user to define operations with complex, nondeterministic behavior.
-
-The bodies of the function definitions are written in the operation behavior
-language, described in Section~\ref{ssec:behaviour-commands}.
-
-\paragraph{Operations with state.}
-
-To define the behavior of an operation with state it is necessary to
-declare the state object of the operation.  An operation state declaration
-is introduced by the special statement \verb#DEFINE_STATE()#.  See
-Section~\ref{ssec:behaviour-commands} for a description of this and related
-statements. State must be declared before it is used in operation behavior
-definition. 
-
-A target processor may contain several \emph{implementations} of the
-same operation.  These implementations are called Hardware Operations and
-are described in~\cite{ADF-specs}.
-%
-Each Hardware Operation instance belongs to a different function unit and is
-independent from other instances.
-%
-When an operation has state, each of its Hardware Operations uses a
-different, independent instance of the state class (one for each function
-unit that implements that operation).
-
-An operation state object is unambiguously associated with an operation (or
-a
-group of operations, in case the state is shared among several) by means of
-its name, which should be unique across all the operation definitions.%
-\note{see issue \ref{sec:state-name}}
-
-Operation state can be accessed in the code that implements the behavior of
-the operation by means of a \verb#STATE# expression.  The fields of the
-state object are accessed with the dot operator, as in C++.  See
-Section~\ref{ssec:behaviour-commands} for a complete description of this
-statement.
-
-\paragraph{Main emulation function.}
-The behavior model of an operation must include a function that, given a
-set of input operand values and, optionally, an operation state instance,
-produces one or more output values that the operation would produce.
-
-The definition of an emulation function is introduced by the statement
-\verb#TRIGGER# and is terminated by the statement \verb#END_TRIGGER;#.  
-
-An emulation function is expected to read all the inputs of its operation
-and to update the operation outputs with any new result value that can be
-computed before returning.
-
-\subsubsection{Behavior Description language}
-\label{ssec:behaviour-commands}
-
-The behavior of operations and the information contents of operation state
-objects are defined by means of the behavior description language.
-
-The emulation functions that model operation behavior are written in C++
-with some restrictions.
-The  OSAL behavior definition
-language augments the C++ language with a number of statements.  For
-example, 
-control may exit the definition body at any moment by using a special 
-statement, a set of statements is provided to refer to operation inputs
-and 
-outputs, and a statement is provided to access the memory model.
-
-\paragraph{Base data types.}
-The behavior description language defines a number of base data
-types.  These types should be used to implement the operation behavior
-instead of the C base data types, because they guarantee the bit width and
-the format.
-\begin{description}
-\item[IntWord] %
-  Unsigned integer 32-bit word.
-\item[FloatWord] %
-  Single-precision (32-bit) floating-point word in IEEE-754 format.
-\item[DoubleWord] %
-  Double-precision (64-bit) floating-point word in IEEE-754 format.
-\item[HalfWord] %
-  Half-precision (16-bit) floating-point word in IEEE-754 format.
-\end{description}
-
-\paragraph{Access to operation inputs and outputs.}
-Inputs and outputs of operations (henceforth referred to as
-\emph{terminals}, when a distinction is not needed) are referred to by a
-unique number.  The inputs are assigned a number starting from 1 for the
-first input.  The first output is assigned the number $n+1$, where $n$ is
-the number of inputs of the operations, the second $n+2$, and so on.
-
-Two sets of expressions are used when accessing terminals. The value of
-an input terminal
-can be read as an unsigned integer, a signed integer, a single precision 
-floating point number, or
-a double precision floating point number using the following expressions:
-\begin{description}
-\item[UINT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  IntWord, which is an unsigned integer of 32 bits maximum length.
-\item[INT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  SIntWord, which is a signed integer of 32 bits maximum length.
-\item[FLT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  \emph{FloatWord}.
-\item[DBL(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  \emph{DoubleWord}.
-\end{description}
-
-Output terminals can be written using the following expression:
-\begin{description}
-\item[IO(\emph{number})] %
-   Treats the terminal denoted by \emph{number} as an output terminal.
-   The actual bit pattern (signed, unsigned or floating point) written to
-   the output terminal is determined by the right hand expression
-   assigned to the IO() expression.
-\end{description}
-
-Since the behavior of certain operations may depend in non-trivial ways on
-the bit width of the terminals of a given implementation, it is sometimes
-necessary to know the bit width of every terminal.  The expression
-\begin{description}
-\item[BWIDTH(\emph{number})]
-\end{description}
-returns the bit width of the terminal denoted by \emph{number} in the
-implementation of the calling client.
-
-Bit width of the operands can be extended using two different expressions.
-
-\begin{description}
-\item[SIGN\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
-  Sign extends the given integer from \emph{sourceWidth} to 32 bits.
- 
-  Sign extension means that the sign bit of the source word is duplicated
-  to the extra bits provided by the wider target destination word.
-
-  For example a sign extension from 1001b (4 bits) to 8 bits provides
-  the result 1111 1001b.
-
-\item[ZERO\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
-  Zero extends the given integer from \emph{sourceWidth} to 32 bits.
-
-  Zero extension means that the extra bits of the wider target destination
-  word are set to zero. 
-
-  For example a zero extension from 1001b (4 bits) to 8 bits provides
-  the result 0000 1001b.
-
-\end{description}
-
-\emph{Example.} The following code implements the behavior of an accumulate
-operation with one input and one output, where the result value is saturated
-to the ``all 1's'' bit pattern if it exceeds the range that can be expressed
-by the output:
-\begin{verbatim}
-  STATE.accumulator += INT(1);
-  IntWord maxVal = (1 << BWIDTH(2)) - 1;
-  IO(2) = (STATE.accumulator <= maxVal ? STATE.accumulator : maxVal);
-\end{verbatim}
-
-\paragraph{Definition of operation state.}
-Operation state consists of a data structure.  Its value
-is shared by one or more operations, and it is introduced by the statement
-\begin{description}
-\item[DEFINE\_STATE(\emph{name})]
-\end{description}
-where \emph{name} is a string that identifies this type of operation state.
-This statement is followed by a list of data type fields. The state name
-string must be generated with the following regular expression:
-\begin{quote}
-  [A-Z][0-9A-Z\_]*
-\end{quote}
-Note that only upper case letters are allowed.
-
-A state definition block is terminated by the statement
-\begin{description}
-\item[END\_DEFINE\_STATE]
-\end{description}
-
-\emph{Example.} The following declaration defines an operation state class
-identified by the name string ``BLISS'', consisting of one integer word, one
-floating-point word and a flag:
-\begin{verbatim}
-DEFINE_STATE(BLISS) 
-  IntWord data1;
-  FloatWord floatData;
-  bool errorOccurred;
-END_DEFINE_STATE;
-\end{verbatim}
-
-%% These were already defined a couple a pages before:
-% The data type IntWord represents a 32-bit integer number; the data type
-% FloatWord represents a 32-bit floating-point IEEE-754 number.
-
-Some operation state definitions may require that the data is initialized to
-a predefined state, or even that dynamic data structures are allocated when
-the operation state object is created. In these cases, the user is required
-to provide an initialization definition inside the state definition block.
-\begin{description}
-\item[INIT\_STATE(\emph{name})]%
-  Introduces the code that initializes the operation state.
-\item[END\_INIT\_STATE]%
-  Terminates the block that contains the initialization code.
-\end{description}
-
-Some state definitions may contain resources that need to be released when the
-state model is destroyed. For example, state may contain dynamically
-allocated data or files that need to be closed. In these cases, the user
-must define a function that is called when the state is deallocated. This
-function is defined by a finalization definition block, which must be
-defined inside the state definition block.
-\begin{description}
-\item[FINALIZE\_STATE(\emph{name})]%
-  Introduces the code that finalizes the operation state, that is,
-  deallocates the dynamic data contained in an operation state object.
-\item[END\_FINALIZE\_STATE]%
-  Terminates the block that contains finalisation code.
-\end{description}
-
-The state model provides two special definition blocks to support emulation
-of operation behaviour.
-
-\begin{description}
-\item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
-  In case the model of operations state is synchronous, this definition can
-  be used to specify activity that occurs ``in the raising edge of the clock
-  signal'', that is, at the end of a simulation cycle. The C `return'
-  statement can used to return from this function.
-\end{description}
-
-\paragraph{Access to operation state.}
-Operation state is denoted by a unique name string and is accessed by means
-of the statement
-\begin{description}
-\item[STATE]
-\end{description}
-
-Typically, an operation state data structure consists of several fields,
-which are accessed using the dot operator of C++.  For example, the
-expression \verb#STATE.floatData# in a simulation function refers to the
-field \verb#floatData# of the state object assigned to the operation
-being defined.  The precise format of an
-operation state structure is defined by means of the \verb#DEFINE_STATE()#
-statement, and it is specific for an operation. State must be defined before it
-can be used in an operation definition.
-
-\paragraph{Access to control registers.}
-Operations that can modify the program control flow can access the program
-counter register and the return address of the target processor by means of
-the following expressions:
-\begin{description}
-\item[PROGRAM\_COUNTER] %
-\item[RETURN\_ADDRESS] %
-\end{description}
-Not all operations can access the control registers.  Only operations
-implemented on a Global Control Unit (see~\cite{ADF-specs}) provide the
-necessary data.  It is an error to use \verb#PROGRAM_COUNTER# or
-\verb#RETURN_ADDRESS# in operations that are not implemented on a Global
-Control Unit.
-
-\paragraph{Context Identification}
-
-Each operation context can be identified with a single integer which
-can be accessed with \verb#CONTEXT_ID#.
-
-\paragraph{Returning from operation behavior emulation functions.}
-Normally, an emulation function returns control to the caller when control
-flows out of the definition body.  To return immediately, from an arbitrary
-point in the definition body, the following normal C++ return 
-statement can be used. The return value is boolean indicating the success
-of the operation execution. In pratice, 'true' is always returned:
-\verb|return true;|.
-
-\paragraph{Memory Interface.}
-
-The memory interface of OSAL is very simplified allowing easy modeling of
-data memory accessing operations. The following keywords are used
-to define the memory access behavior:
-
-\begin{description}
-\item[MEMORY.read(address, count, target)]%
-  Reads \emph{count} units of data from the \emph{address} to the variable
-  \emph{target}.
-\item[MEMORY.write(address, count, data)]%
-  Writes \emph{count} units of data in variable \emph{data} to 
-  the \emph{address}.
-\end{description}
-
-
 
 \subsection{Summary of file types}
 \label{sec:summary}
 
-\begin{table}
+Table~\ref{tab:files} summarizes briefly the most common TCE file types.
+
+\begin{table}[b]
   \begin{center}
     \caption {Summary of file types}
-    \label {tab:filetypes}
-    \begin{tabular}{l | l | l | l  l}
+    \label {tab:files}
+    \begin{tabular}{l | l | l }
       \hline
-      Postfix & Purpose & Format & Produced by & Used by\\
+      Postfix  & Purpose                                    & Format \\
       \hline
       \hline
-      adf & Architectur description & XML & Prode & Tcecc\\
-      idf & Architectur description & XML & & \\
-      hdb & & & & \\
-      bem & & & & \\
-      tpef & & & & \\
-      opp & & & & \\
-      oc & & & & \\
-      odb & & & & \\
-      tracedb & & & & \\
-      ExpRepDb & & & & \\
+      adf      & Architecture   description                 & XML \\
+      idf      & Implementation description                 & XML \\
+      hdb      & HW database                                & SQLite \\
+      \hline
+      bem      & Binary encoding map                        &  \\
+      tpef     & TTA program exchange format                &  \\
+      opp      & Input and outputs of a operation           & XML \\
+      oc       & Behavior of an operation                   & C++\\
+      odb      & Operation database                         &  \\
+      \hline
+      tracedb  & Set simulation and cost extimation results & various \\
+      ExpRepDb & Set of sxplored TTA configurations         & various \\
       \hline
     \end{tabular}
   \end{center}
 \end{table}
+
 
 
 \chapter{TUTORIALS AND HOW-TOS}
@@ -2357,6 +1863,8 @@ the STDOUT function unit, which you can use:
 cp $(tce-config --prefix)/share/tce/data/mach/minimal_with_stdout.adf .
 tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
+
+%$ this dollar sign ``closes'' the equation, so syntax highlight works correctly
 
 It should compile without errors. Beware: the compilation can take
 a while on a slower machine. This is because \textit{printf()} 
@@ -4185,6 +3693,572 @@ blanks.
 
 For any line entered by the user, the Tester responds with a text line
 containing the results computed by the operation.
+
+
+\section{OSAL files}
+
+Operations are divided in ``operation modules''. For example, `base' module,
+included in the TCE distribution, contains all the operations available 
+to the front end compiler's code generation.
+
+An operation in OSAL is defined by its properties
+and its behavior.  The properties defined by OSAL do not restrict in any
+way the hardware implementation.  For example, latency, bit width or the
+fact that reading the result of an operation can lock the processor are
+properties of the implementation, and are not defined in OSAL module.
+
+\subsubsection{Operation Properties}
+\label{ssec:operation-properties}
+
+The following properties define a TTA operation in TCE:
+
+\begin{itemize}
+\item name (unique string)
+\item description (string)
+\item number of inputs (integer)
+\item number of outputs (integer)
+\item accesses memory (yes/no)
+%\item can cause trap (yes/no)
+\item has side effects (yes/no)
+\item clocked (yes/no)
+\item affected-by (set of operations)
+\item affects (set of operations)
+\end{itemize}
+
+\paragraph{operation name}
+The operation name is a string of characters starting with a character in
+set [A-Z\_] and followed by one or more character in set [0-9A-Z\_] 
+(i.e.\ lowercase letters are not allowed).  All
+names of operations of the database must be unique. Different data bases 
+can contain operations with equal names. 
+
+\paragraph{operation description}
+Optional description of the operation.
+
+\paragraph{inputs}
+Number of inputs of the operation. The number of inputs is a
+nonnegative integer. It must be positive if the number of outputs is
+zero.
+
+\paragraph{outputs}
+
+Number of outputs of the operation. The number of outputs is a
+nonnegative integer. It must be positive if the number of inputs is
+zero.
+
+\paragraph{reads/writes-memory}
+
+Indicates that this operation can access memory.  Normally, memory access is
+also implied from the properties `mem-address' and `mem-data' of operation
+inputs (or the `mem-data' property of operation outputs).  However, it is
+possible to define operations that perform \emph{invisible} accesses to
+memory, whereby no input or output is related to the memory access itself.
+That is, neither the address nor the data moved into or out of memory is
+explicitly specified by the operation.  In these operations, memory accesses
+occur as a side effect, and none of the inputs or outputs have
+memory-related properties.  To avoid potential errors, the memory property
+must be specified explicitly even when it is implied by some of the inputs
+or outputs of the operation.  See sections on input and output declarations,
+below.
+
+\paragraph{clocked}
+Clocked attribute indicates that the operation can change its state
+synchronously with clock signal and independently from its input.
+
+\paragraph{side-effect}
+
+Indicates that two subsequent executions of this operation with the same
+input values may generate different output values.  An operation marked with
+``side-effect'' is an operation which writes some state data, affecting
+further executions of the same operation and other operations sharing
+that same state data. The other operations that read or write
+the same state data written by an operation marked with ``side-effect'' 
+must be marked ``affected-by'' that operation (see later for an example).
+
+Note: only operations that write the state should marked to
+have ``side-effects''. Operations that only read the state data do not
+have side effects and may be reordered more freely by the compiler.
+
+\paragraph{affected-by}
+
+In case an operation reads or writes state data written by another 
+operation sharing the same state data (that is marked with the
+``side-effect'' property), the operation should be marked ``affected-by''
+that operation. 
+
+This property restricts the compiler's reordering optimizations 
+from moving operations that read or write state data above an operation
+that also writes the same data, which would result in potentially
+producing wrong results from the execution.
+
+\paragraph{affects}
+
+This is an optional convenience property that allows defining
+the state data dependency the other way around. If an operation
+is listed in the ``affects'' list it means that the operation
+is writing state data that is read or written by the affected operation.
+
+Note: it is not necessary that, if operation A `affects' operation B, then B
+must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
+B, it is not needed that B must contain A in its `affects' list. This
+allows, for example, a user to add new operations that share state with 
+the base operations shipped with TCE, without needing to modify the base
+operations.
+
+\paragraph{An example of defining multiple operations that share the
+same state.} A common use case for multiple operations that share
+state data is a case where one or more operations initialize an
+internal register file in an FU and one or more operations use the
+data in the register file to compute their results.
+
+For example, INIT\_RF could initialize the internal register
+file with the given number. This operation should be marked
+``side-effects''. Let's say that another two operations COMPUTE\_X and
+COMPUTE\_Y only read the internal RF data, thus they can be freely
+reordered by the computer with each other in the program code in case
+there are no other dependencies. As they only read the state data,
+they don't have and visible side effects, thus they should not
+be marked with the ``side-effects'' property. However, as they read
+the data written by the INIT\_RF operation, both operations should
+be marked to be ``affected-by'' the INIT\_RF.
+
+\subsubsection{Operation Input Properties}
+\label{ssec:opinput-properties}
+
+Each input of an operation requires an independent declaration of its
+properties.  An operation input is completely defined by the following
+properties:
+\begin{itemize}
+\item identification number (integer)
+\item memory address (yes/no)
+\item memory data (yes/no)
+\item can be swapped (set of integers)
+\end{itemize}
+
+\paragraph{identification number}
+Integer number in the range [1,N] where N is the number of inputs as defined
+in section~\ref{ssec:operation-properties} of operation declaration.  If N
+is zero, then no input declarations can be specified. TCE does not currently
+allow operations with zero inputs to be defined.
+
+\paragraph{can-swap}
+A list of identification numbers.  All the inputs listed can be swapped with
+this input.  The identification number of this input definition is not
+allowed in the list.  The can-swap property is commutative, thus any of the
+listed inputs is implicitly `can-swap' with this input and all the other
+inputs listed.  The can-swap declaration need not be symmetrical, but it is
+not an error if the implied declaration is also specified.
+
+\paragraph{mem-address}
+Optional.  Indicates that the input is used to compute (affects the value
+of) the memory address accessed by this operation.
+
+\paragraph{mem-data}
+Optional.  Indicates that the input is used to compute (affects the value
+of) the data word written to memory by this operation.  This property
+implies that the operation writes to memory.
+
+\subsubsection{Operation Output Properties}
+\label{ssec:opoutput-properties}
+
+Note: it is not an error if a program, before instruction scheduling,
+contains an operation where one of the output moves is missing. If all
+output moves of an operation are missing, then the only useful work that can
+be performed by the operation is state change.
+
+\paragraph{mem-data}
+Optional.  Indicates that the output contains a value that depends on a
+data word read from memory by this operation.  This property implies that
+the operation reads data from memory.
+
+\subsubsection{Operation DAG}
+\label{ssec:operation-dag}
+
+The semantics of an operation may be modeled with a simple dag-based language.
+This can be used to both simulate the operation without writing the 
+simulation code, and to allow the compiler to automatically use custom
+operations.
+
+The optional field to describe the Operation DAGs is 
+\textit{trigger-semantics}. It contains description of the operation 
+semantics as a directed acyclic graph (DAG). 
+
+The OperationDAG language description is given as the content of this element.
+The OperationDAG language has the following syntax:
+
+All commands end in semicolon.
+
+\begin{description}
+
+\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
+  Creates a temporary variables with given name. Usage examples:
+
+SimValue temp;
+
+SimValue temp1, temp2;
+
+\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
+ Calls another operation with the given operand values. 
+
+The input values can be either temporary variables, inputs to the operation
+whose semantics is being modeled, or integer constants.
+
+The output value can be either temporary variables or outputs of the operation
+whose semantics is being modelled.
+
+Operands of the modeled operation are referred with name IO(<number>) 
+where 1 is first input operand, 2 second input operand, and after input 
+operands come output operands. 
+
+Temporary values are referred by their name, and integer constants are given
+in decimal format.
+
+Example OperationDAG of the ADDSUB operation:
+
+\begin{verbatim}
+     <trigger-semantics>
+       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
+       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
+     </trigger-semantics>
+\end{verbatim}
+
+
+\end{description}
+
+
+\subsubsection{Operation Behavior}
+\label{ssec:operation-behavior}
+
+To be complete, the model of an operation needs to describe the
+behavior of the operation. The behavior is specified in a restricted
+form of C++, the source language of the TCE toolset, augmented with
+macro definitions.  This definition is used for simulating the
+operation in the instruction set simulator of TCE.
+
+\paragraph{Definition of Operation Behavior}
+
+Operation behavior simulation functions are entered inside an operation
+behavior definition block. There are two kinds of such blocks: one for
+operations with no state, and one for operations with state.
+
+\begin{description}
+\item[OPERATION(\emph{operationName})] %
+  Starts an operation behavior definition block for an operation with name 
+  \emph{operationName}. Operations defined with this statement do not 
+  contain state. Operation names must be written in upper case letters!
+\item[END\_OPERATION(\emph{operationName})] %
+  End an operation behavior definition block for an operation with no state.
+  \emph{operationName} has to be exactly the same as it was entered in the
+  block start statement \verb|OPERATION()|.
+\item[OPERATION\_WITH\_STATE(\emph{operationName}, \emph{stateName})] %
+  Starts an operation behavior definition block for an operation with state.
+  \emph{operationName} contains the name of the operation, \emph{stateName}
+  name of the state. DEFINE\_STATE() definition for the \emph{stateName}
+must 
+  occur before this statement in the definition file. Operation and state
+  names must be written in upper case letters!
+\item[END\_OPERATION\_WITH\_STATE(\emph{operationName})] %
+  Ends an operation behavior definition block for an operation with state.
+  \emph{operationName} has to be exactly the same as it was entered in the
+  block start statement \verb|OPERATION_WITH_STATE()|.
+\end{description}
+
+The main emulation  function definition block is given as:
+\begin{description}
+\item[TRIGGER ... END\_TRIGGER;] %
+  Main emulation function.
+
+% \item[LATE\_RESULT ... END\_LATE\_RESULT;] %
+%   Function that emulates late-coming results.
+\end{description}
+
+% Only the first definition is mandatory.  The LATE\_RESULT definition allows 
+% the user to define operations with complex, nondeterministic behavior.
+
+The bodies of the function definitions are written in the operation behavior
+language, described in Section~\ref{ssec:behaviour-commands}.
+
+\paragraph{Operations with state.}
+
+To define the behavior of an operation with state it is necessary to
+declare the state object of the operation.  An operation state declaration
+is introduced by the special statement \verb#DEFINE_STATE()#.  See
+Section~\ref{ssec:behaviour-commands} for a description of this and related
+statements. State must be declared before it is used in operation behavior
+definition. 
+
+A target processor may contain several \emph{implementations} of the
+same operation.  These implementations are called Hardware Operations and
+are described in~\cite{ADF-specs}.
+%
+Each Hardware Operation instance belongs to a different function unit and is
+independent from other instances.
+%
+When an operation has state, each of its Hardware Operations uses a
+different, independent instance of the state class (one for each function
+unit that implements that operation).
+
+An operation state object is unambiguously associated with an operation (or
+a
+group of operations, in case the state is shared among several) by means of
+its name, which should be unique across all the operation definitions.%
+\note{see issue \ref{sec:state-name}}
+
+Operation state can be accessed in the code that implements the behavior of
+the operation by means of a \verb#STATE# expression.  The fields of the
+state object are accessed with the dot operator, as in C++.  See
+Section~\ref{ssec:behaviour-commands} for a complete description of this
+statement.
+
+\paragraph{Main emulation function.}
+The behavior model of an operation must include a function that, given a
+set of input operand values and, optionally, an operation state instance,
+produces one or more output values that the operation would produce.
+
+The definition of an emulation function is introduced by the statement
+\verb#TRIGGER# and is terminated by the statement \verb#END_TRIGGER;#.  
+
+An emulation function is expected to read all the inputs of its operation
+and to update the operation outputs with any new result value that can be
+computed before returning.
+
+\subsubsection{Behavior Description language}
+\label{ssec:behaviour-commands}
+
+The behavior of operations and the information contents of operation state
+objects are defined by means of the behavior description language.
+
+The emulation functions that model operation behavior are written in C++
+with some restrictions.
+The  OSAL behavior definition
+language augments the C++ language with a number of statements.  For
+example, 
+control may exit the definition body at any moment by using a special 
+statement, a set of statements is provided to refer to operation inputs
+and 
+outputs, and a statement is provided to access the memory model.
+
+\paragraph{Base data types.}
+The behavior description language defines a number of base data
+types.  These types should be used to implement the operation behavior
+instead of the C base data types, because they guarantee the bit width and
+the format.
+\begin{description}
+\item[IntWord] %
+  Unsigned integer 32-bit word.
+\item[FloatWord] %
+  Single-precision (32-bit) floating-point word in IEEE-754 format.
+\item[DoubleWord] %
+  Double-precision (64-bit) floating-point word in IEEE-754 format.
+\item[HalfWord] %
+  Half-precision (16-bit) floating-point word in IEEE-754 format.
+\end{description}
+
+\paragraph{Access to operation inputs and outputs.}
+Inputs and outputs of operations (henceforth referred to as
+\emph{terminals}, when a distinction is not needed) are referred to by a
+unique number.  The inputs are assigned a number starting from 1 for the
+first input.  The first output is assigned the number $n+1$, where $n$ is
+the number of inputs of the operations, the second $n+2$, and so on.
+
+Two sets of expressions are used when accessing terminals. The value of
+an input terminal
+can be read as an unsigned integer, a signed integer, a single precision 
+floating point number, or
+a double precision floating point number using the following expressions:
+\begin{description}
+\item[UINT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  IntWord, which is an unsigned integer of 32 bits maximum length.
+\item[INT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  SIntWord, which is a signed integer of 32 bits maximum length.
+\item[FLT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  \emph{FloatWord}.
+\item[DBL(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  \emph{DoubleWord}.
+\end{description}
+
+Output terminals can be written using the following expression:
+\begin{description}
+\item[IO(\emph{number})] %
+   Treats the terminal denoted by \emph{number} as an output terminal.
+   The actual bit pattern (signed, unsigned or floating point) written to
+   the output terminal is determined by the right hand expression
+   assigned to the IO() expression.
+\end{description}
+
+Since the behavior of certain operations may depend in non-trivial ways on
+the bit width of the terminals of a given implementation, it is sometimes
+necessary to know the bit width of every terminal.  The expression
+\begin{description}
+\item[BWIDTH(\emph{number})]
+\end{description}
+returns the bit width of the terminal denoted by \emph{number} in the
+implementation of the calling client.
+
+Bit width of the operands can be extended using two different expressions.
+
+\begin{description}
+\item[SIGN\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
+  Sign extends the given integer from \emph{sourceWidth} to 32 bits.
+ 
+  Sign extension means that the sign bit of the source word is duplicated
+  to the extra bits provided by the wider target destination word.
+
+  For example a sign extension from 1001b (4 bits) to 8 bits provides
+  the result 1111 1001b.
+
+\item[ZERO\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
+  Zero extends the given integer from \emph{sourceWidth} to 32 bits.
+
+  Zero extension means that the extra bits of the wider target destination
+  word are set to zero. 
+
+  For example a zero extension from 1001b (4 bits) to 8 bits provides
+  the result 0000 1001b.
+
+\end{description}
+
+\emph{Example.} The following code implements the behavior of an accumulate
+operation with one input and one output, where the result value is saturated
+to the ``all 1's'' bit pattern if it exceeds the range that can be expressed
+by the output:
+\begin{verbatim}
+  STATE.accumulator += INT(1);
+  IntWord maxVal = (1 << BWIDTH(2)) - 1;
+  IO(2) = (STATE.accumulator <= maxVal ? STATE.accumulator : maxVal);
+\end{verbatim}
+
+\paragraph{Definition of operation state.}
+Operation state consists of a data structure.  Its value
+is shared by one or more operations, and it is introduced by the statement
+\begin{description}
+\item[DEFINE\_STATE(\emph{name})]
+\end{description}
+where \emph{name} is a string that identifies this type of operation state.
+This statement is followed by a list of data type fields. The state name
+string must be generated with the following regular expression:
+\begin{quote}
+  [A-Z][0-9A-Z\_]*
+\end{quote}
+Note that only upper case letters are allowed.
+
+A state definition block is terminated by the statement
+\begin{description}
+\item[END\_DEFINE\_STATE]
+\end{description}
+
+\emph{Example.} The following declaration defines an operation state class
+identified by the name string ``BLISS'', consisting of one integer word, one
+floating-point word and a flag:
+\begin{verbatim}
+DEFINE_STATE(BLISS) 
+  IntWord data1;
+  FloatWord floatData;
+  bool errorOccurred;
+END_DEFINE_STATE;
+\end{verbatim}
+
+%% These were already defined a couple a pages before:
+% The data type IntWord represents a 32-bit integer number; the data type
+% FloatWord represents a 32-bit floating-point IEEE-754 number.
+
+Some operation state definitions may require that the data is initialized to
+a predefined state, or even that dynamic data structures are allocated when
+the operation state object is created. In these cases, the user is required
+to provide an initialization definition inside the state definition block.
+\begin{description}
+\item[INIT\_STATE(\emph{name})]%
+  Introduces the code that initializes the operation state.
+\item[END\_INIT\_STATE]%
+  Terminates the block that contains the initialization code.
+\end{description}
+
+Some state definitions may contain resources that need to be released when the
+state model is destroyed. For example, state may contain dynamically
+allocated data or files that need to be closed. In these cases, the user
+must define a function that is called when the state is deallocated. This
+function is defined by a finalization definition block, which must be
+defined inside the state definition block.
+\begin{description}
+\item[FINALIZE\_STATE(\emph{name})]%
+  Introduces the code that finalizes the operation state, that is,
+  deallocates the dynamic data contained in an operation state object.
+\item[END\_FINALIZE\_STATE]%
+  Terminates the block that contains finalisation code.
+\end{description}
+
+The state model provides two special definition blocks to support emulation
+of operation behaviour.
+
+\begin{description}
+\item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
+  In case the model of operations state is synchronous, this definition can
+  be used to specify activity that occurs ``in the raising edge of the clock
+  signal'', that is, at the end of a simulation cycle. The C `return'
+  statement can used to return from this function.
+\end{description}
+
+\paragraph{Access to operation state.}
+Operation state is denoted by a unique name string and is accessed by means
+of the statement
+\begin{description}
+\item[STATE]
+\end{description}
+
+Typically, an operation state data structure consists of several fields,
+which are accessed using the dot operator of C++.  For example, the
+expression \verb#STATE.floatData# in a simulation function refers to the
+field \verb#floatData# of the state object assigned to the operation
+being defined.  The precise format of an
+operation state structure is defined by means of the \verb#DEFINE_STATE()#
+statement, and it is specific for an operation. State must be defined before it
+can be used in an operation definition.
+
+\paragraph{Access to control registers.}
+Operations that can modify the program control flow can access the program
+counter register and the return address of the target processor by means of
+the following expressions:
+\begin{description}
+\item[PROGRAM\_COUNTER] %
+\item[RETURN\_ADDRESS] %
+\end{description}
+Not all operations can access the control registers.  Only operations
+implemented on a Global Control Unit (see~\cite{ADF-specs}) provide the
+necessary data.  It is an error to use \verb#PROGRAM_COUNTER# or
+\verb#RETURN_ADDRESS# in operations that are not implemented on a Global
+Control Unit.
+
+\paragraph{Context Identification}
+
+Each operation context can be identified with a single integer which
+can be accessed with \verb#CONTEXT_ID#.
+
+\paragraph{Returning from operation behavior emulation functions.}
+Normally, an emulation function returns control to the caller when control
+flows out of the definition body.  To return immediately, from an arbitrary
+point in the definition body, the following normal C++ return 
+statement can be used. The return value is boolean indicating the success
+of the operation execution. In pratice, 'true' is always returned:
+\verb|return true;|.
+
+\paragraph{Memory Interface.}
+
+The memory interface of OSAL is very simplified allowing easy modeling of
+data memory accessing operations. The following keywords are used
+to define the memory access behavior:
+
+\begin{description}
+\item[MEMORY.read(address, count, target)]%
+  Reads \emph{count} units of data from the \emph{address} to the variable
+  \emph{target}.
+\item[MEMORY.write(address, count, data)]%
+  Writes \emph{count} units of data in variable \emph{data} to 
+  the \emph{address}.
+\end{description}
 
 \section{OSAL search paths}
 \label{sec:osalpaths}
