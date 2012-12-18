@@ -24,7 +24,7 @@ digraph "TCE flow" {
 	label ="tools";
 	tcecc  [shape="Mrecord", label="Retargerable compiler \n (tcecc/LLVM)"];
 	prode  [shape="Mrecord", label="Processoor designer tool \n (prode)"];
-	proxim [shape="Mrecord", label="Retargerable simulator \n (proxim)"];
+	proxim [shape="Mrecord", label="Retargerable simulator \n (proxim, ttasim)"];
 	proge  [shape="Mrecord", label="Processor generator \n (proge)"];
 	pig  [shape="Mrecord", label="Program image generator \n (pig, opt. compression)"];
 	pli  [shape="Mrecord", label="Platform integrator \n (?)"];

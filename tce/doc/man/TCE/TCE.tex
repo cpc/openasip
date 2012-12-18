@@ -37,7 +37,7 @@
 \maketitle
 
 % Table of contents
-\tableofcontents
+%\tableofcontents
 
 % Document text
 \chapter{INTRODUCTION}
@@ -226,11 +226,16 @@ More details about phases are given in Chapters \ref{sec:prode} -
       \hline
       \hline
       ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
-      Tcecc                & Compile SW                                       & cmd  &  \\
-      Proxim               & Simulate TTA core                                & GUI  &  report \\
-      Proge                & Generate VHDL                                    & cmd  &  VHDL \\
-      Pig                  & Generate program image                           & cmd  & .mif \\
-      Platform integrator  & Interface with memories, generate IP-XACT        & cmd  &  .xml \\
+      Tcecc                & Compile SW                                       & cmd  & .tpef      \\
+      Proxim               & Simulate TTA core                                & GUI  & report \\
+      ttasim               & Simulate TTA core                                & cmd  & report \\
+      osed                 & opetaion set editor                              & GUI  & operation db \\
+      hdbeditor            & HW databse editor                                & GUI  & HW db  \\
+      \hline
+      Proge                & Generate VHDL                                    & GUI  & VHDL \\
+      generateprocessor    & Same as Proge                                    & cmd  & VHDL \\     	
+      Pig                  & Generate program image                           & cmd  & .mif  \\
+      Platform integrator  & Interface with memories, generate IP-XACT        & cmd  & .xml \\
       \hline
       3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  &  e.g. .sof\\
       S3rd party imulation & Simulate VHDL                                    & G/c  &  report, .wave \\
@@ -270,9 +275,10 @@ More details about phases are given in Chapters \ref{sec:prode} -
 \label{section:template}
 
 The processor template from which the application specific processors
-designed with TCE are defined from is called Transport Triggered 
-Architecture (TTA). For a detailed description behind the TTA philosophy, 
-refer to \cite{HCorp97}.
+designed with TCE are defined from is called Transport Triggered
+Architecture (TTA). For a detailed description behind the TTA
+philosophy, refer to \cite{HCorp97}. A short introduction is presented
+in \cite{boutellier11}.
 
 TTA is based on VLIW (very long instruction word) processor paradigm
 but solves its major bottlenecks: the complexity of register file (RF)
@@ -282,7 +288,7 @@ parallelism} (ILP) like VLIW. Instructions can be tens or hundreds of
 bits wide. TTA has multiple internal \textit{function units} (FUs) and
 interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
 
-The term transport-triggered means that instrcution words control the
+The term transport-triggered means that instruction words control the
 transfers on the interconncetion network and the FUs execution is
 triggered when data is transferred to specific \textit{trigger}
 input. In an instrcution there is one \textit{slot} for each bus. For
@@ -416,20 +422,19 @@ immediates and of which registers the immediates can be read to the
 datapath.
 
 \subsection{Operations, Function Units, and Operand Bindings}
-
 Due to the way TCE abstracts operations and function units, an
 additional concept of \textit{operand binding} is needed to 
 connect the two in processor designs.
 
-Operations in TCE are defined in a separate database 
-(OSAL, Section~\ref{section:osal}) in order to allow defining a reusable
-database of ``operation semantics''. The operations are
-used in processor designs by adding \textit{function units} (FU) that implement
-the wanted operations. Operands of the operations can be
-mapped to different ports of the implementing FU, which affects 
-programming of the  processor. Mapping of operation operands
-to the FU ports must be therefore described by the processor designer
-explicitly.
+Operations in TCE are defined in a separate database (OSAL,
+Sections~\ref{section:osal} and \ref{section:osal_details} ) in order
+to allow defining a reusable database of ``operation semantics''. The
+operations are used in processor designs by adding \textit{function
+units} (FU) that implement the wanted operations. Operands of the
+operations can be mapped to different ports of the implementing FU,
+which affects programming of the processor. Mapping of operation
+operands to the FU ports must be therefore described by the processor
+designer explicitly.
 
 \textbf{Example.} Designer adds an FU called 'ALU' which implements
 operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
@@ -702,10 +707,11 @@ Simulation behavior of function unit operations is described by implementing
 simulation functions which can be plugged in to the simulator run time.
 
 The .opp file is an XML file for defining the static properties of
-operations (for example, how many inputs and outputs an operation has). The
-.cc is the C++ source file that defines the behavior model for a set of
-operations. The .opb is the plugin module compiled from the .cc.
-
+operations (for example, how many inputs and outputs an operation
+has). The .cc is the C++ source file that defines the behavior model
+for a set of operations. The .opb is the plugin module compiled from
+the .cc.  OSAL is quite complex and further details are presented in
+Section \ref{section:osal_details}
 
 
 \subsection{Simulation Trace Database}
@@ -762,6 +768,11 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
 \chapter{TUTORIALS AND HOW-TOS}
 \label{chapter:tutorials}
 
+This section presents 11 tutorials convering the basics, printing and
+streaming I/O, floating-point computation, parallel assembly, multiple
+memories, FPGA considerations, and multicore-TTA with OpenCL.
+
+Let's start with the simplest one.
 
 \section{TCE Tour}
 \label{sec:tcetour}
@@ -771,7 +782,7 @@ example application. It starts from C code and ends up with VHDL of the
 processor and a bit image of the parallel program. This tutorial will also
 explain how to accelerate an algorithm by customizing the instruction
 set, i.e.\ by using custom operations. The total time  to go through
-the tutorial is about 2 to 3 hours.
+the tutorial is about $2-3$ hours.
 
 The tutorial file package is available at:
 
@@ -779,29 +790,43 @@ The tutorial file package is available at:
 
 Fetch and unpack it to a working directory and then enter the directory:
 
-\shellcmd{wget http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz}
+\begin{verbatim}
+> wget http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz
+> tar -xzcf http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz
+> cd to tce\_tutorials/tce\_tour
+> ls -la
 
-\shellcmd{tar -xzcf http://tce.cs.tut.fi/tutorial\_files/tce\_tutorials.tar.gz}
+total 84
+drwxr-xr-x 3 tce tce  4096 2010-05-28 11:40 .
+drwx------ 7 tce tce  4096 2012-05-18 13:22 ..
+-rw------- 1 tce tce  5913 2010-03-08 20:01 crc.c
+-rw------- 1 tce tce  1408 2008-11-07 11:35 crc.h
+-rw------- 1 tce tce  3286 2008-11-07 11:35 crcTable.dat
+-rw-r--r-- 1 tce tce  2345 2010-03-08 13:04 custom_operation_behavior.cc
+-rw-r--r-- 1 tce tce   855 2010-05-28 11:41 custom_operations.idf
+-rw------- 1 tce tce  1504 2010-03-08 20:01 main.c
+-rw-r--r-- 1 tce tce 45056 2010-03-10 16:09 tour_example.hdb
+drwxr-xr-x 2 tce tce  4096 2010-05-28 11:40 tour_vhdl
+\end{verbatim}
 
-\shellcmd {cd to tce\_tutorials/tce\_tour}
-
-\shellcmd {ls -la}
-
-\shellcmd { --- Insert ls -la output here ---}
 
 \subsection{The Sample Application}
 
-The test application counts a 32-bit CRC (Cyclic Redundant Check). The C code
-implementation is written by Michael Barr and it is published under Public
-Domain. The implementation consists of two different version of crc, but we will
-be using the fast version only.
+The test application counts a 32-bit CRC (Cyclic Redundant Check)
+check value for each block of data, in this case 10 bytes. The C code
+implementation is written by Michael Barr and it is published under
+Public Domain. The implementation consists of two different version of
+crc, but we will be using the fast version only.
 
-The program consists of two separate files: \file{main.c} contains the simple main
-function and \file{crc.c} contains the actual implementation. Open \file{crc.c} in
-your preferred editor and take a look at the code. The
-main difference between the crcSlow and crcFast implementations is that 
-crcFast exploits precalculated table values. This is a quite usual method of
-algorithm optimization.
+The program consists of two separate files: \file{main.c} contains the
+simple main function and \file{crc.c} contains the actual
+implementation. Open \file{crc.c} in your preferred editor and take a
+look at the code. Algorithm performs modulo-2 division, a byte at a
+time, reflects the input data (MSB becomes LSB) depending on the
+previous remainder, and XORs the remainder with a predefined
+polynomial (32-bit constant). The main difference between the crcSlow
+and crcFast implementations is that crcFast exploits precalculated
+table values. This is a quite usual method of algorithm optimization.
 
 % \subsection{Generating LLVM Bitcode}
 % 
@@ -817,7 +842,7 @@ algorithm optimization.
 % generated program in order to access them by name in the simulator.
 
 \subsection{Starting Point Processor Architecture}
-
+\label{ssec:start_point}
 We use the {\em minimal architecture} as the starting point. File
 \file{minimal.adf} describes a minimalistic architecture containing
 just enough resources that the TCE compiler can still compile programs for it. 
@@ -828,67 +853,75 @@ implementation of the processor automatically later in the tutorial.
 % design all the components from scratch in order to evaluate the architecture
 % without actually implementing the components in VHDL.
 
-Copy the \file{minimal.adf} included in TCE distribution to a new
-ADF file which is your starting point architecture:
+Copy the \file{minimal.adf} included in TCE distribution to a new ADF
+file which is your starting point architecture. You can view it using the
+graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
+\begin{verbatim}
+cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf
+prode start.adf \&}
+\end{verbatim}
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
-
-You can view at the starting point architecture using the graphical Processor
-Designer (ProDe, Section~\ref{sec:prode}) tool:
-
-\shellcmd{prode start.adf \&}
-
-Fig.~\ref{fig:rpode} shows how Prode should look like.
+Fig.~\ref{fig:rpode} shows how Prode should look like. There is 1 bus
+and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
+1 LSU.
 \begin{figure}
   \begin{center}
-    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
-    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \includegraphics[width=10cm]{eps/prode_scrshot}
+    %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
     \caption{Processor Designer (prode) when minimal ADF is opened}
     \label{fig:prode}
   \end{center}
 \end{figure}
 
-If you want later to simulate the generated processor using GHDL, we
+You'll learn how to edit the TTA with ProDe later in this tutorial.
+
+If you want later to simulate the generated processor using GHDL
+(Section \ref{ssec:tcetour_final_products}), we
 suggest you to decrease the amount of memory in the processor already
 now. Otherwise the GHDL executing the generated testbench might
 consume tremendous amount of memory on your computer. To do this
 select
 \textit{Edit -> Address Spaces} in ProDe. Then edit the bit widths of
-data and instruction address spaces and set them to 15 bits which
+data and instruction address spaces and set them to $15$ bits which
 should be plenty for our case.
 
 
 \subsection{Evaluating the Starting Point Architecture}
-
+\label{ssec:eval_start}
 Now we want to know how well the starting point architecture executes our
 program. We must compile the source code for our starting point architecture.
 This can be done with command:
 
 \shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result main.c crc.c}
 
-This will produce a parallel program called \file{crc.tpef} that can be
-executed with the processor design \file{start.adf}.  The parallel
-program is now tied to a specified architecture, so it can only be executed
-on that architecture. The switch -k was used to tell the
-compiler to keep the \textit{result} symbol in the generated program in order
-to access them by name in the simulator later on.
+In addition to source codes, the compiler needs the TTA architecture
+definition. It will produce a parallel program called
+\file{crc.tpef} which is tied to the specified architecture
+\file{start.adf} and can only be executed on that architecture. The
+switch $-k$ tells the compiler to keep the
+\textit{result} symbol (line 29 of main.c) also in the generated
+program in order to access it by name in the simulator later on.
 
-After successfully compiling the program we can now simulate it. Let's use
-graphical user interface version of the simulator called Proxim
-(Section~\ref{section:proxim}). You can start it with:
+Successful compilation does not print anything and we can now simulate
+the program. Let's use graphical user interface version of the
+simulator called Proxim (Section~\ref{section:proxim}):
 
 \shellcmd{proxim start.adf crc.tpef \&}
 
-The simulator will load the architecture definition and the program and wait
-for commands. To execute the program click ``Run''. Simulator will then execute
-the program code and display the cycle count in the bottom bar of the
-simulator. Write down this cycle count for future comparison.
-Fig.~\ref{fig:rpode} shows how Proxim should look like.
+The simulator will load the architecture definition and the program
+and wait for commands. Proxim shows one line per instruction. Minimal
+TTA has only bus and hence there is only instrecution slot
+(column). The total number of instructions is about $1~200$.
+
+Execute the program by clicking ``Run'' and Proxim should look like
+Fig.~\ref{fig:rpode}.  Write down this cycle count in the bottom bar
+of the simulator, you can use Table~\ref{tab:cyclecounts}. for future comparison.
 \begin{figure}
   \begin{center}
-    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
-    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
-    \caption{Processor Simulator (proxim) when minimal ADF and crc.tpef are opened}
+    \includegraphics[width=10cm]{eps/proxim_scrshot.eps}
+    %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{Processor Simulator (proxim) when minimal ADF 
+             and crc.tpef are opened and simulated.}
     \label{fig:proxim}
   \end{center}
 \end{figure}
@@ -905,36 +938,205 @@ Processor resource utilization data can be viewed with command:
 \shellcmd{info proc stats}
 
 This will output a lot of information  like the utilization of transport buses,
-register files and function units.
+register files and function units:
 
-Proxim can also show othes various pieces of information about the program's execution and
-its processor resource utilization. For example to check the utilization of the resources of our
-architecture, select \textit{View>Machine Window} from the top menu. 
-The parts of the processor that are utilized
-the most are visualized with darker red color.
+\begin{verbatim}
+utilizations
+------------
+buses:
+B1              87.7559% (4415 writes)
+
+sockets:
+lsu_i1          17.4319% (877 writes)
+lsu_o1          10.4949% (528 writes)
+...
+
+operations executed in function units:
+LSU:
+...
+TOTAL           17.4319% (877 triggers)
+
+ALU:
+...
+TOTAL           25.2037% (1268 triggers)
+...
+
+register accesses:
+RF:
+0               855 reads,     0 guard reads,      1 writes       
+...
+
+\end{verbatim}
+
+
+
+Proxim can also show othes various pieces of information about the
+program's execution and its processor resource utilization. For
+example to check the utilization of the resources of our architecture,
+select \textit{View>Machine Window} from the top menu. The parts of
+the processor that are utilized the most are visualized with darker
+red color.
 
 % Next, check the profiling data to see which instructions were executed the
 % most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
 % Now the disassembly window has the most executed instructions highlighted.
 % You should be able to spot the main loop of the program easily.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{eps/proxim_util.eps}
+    %\makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+    \caption{Processor Simulator (proxim) shows the utilizations of each FU and bus.}
+    \label{fig:proxim}
+  \end{center}
+\end{figure}
 
 
-\subsection{Accelerating the Algorithm}
+\begin{table}
+  \begin{center}
+    \caption {Cycle counts in different TTA configurations. You'll fill this during the tutorial}
+    \label {tab:cyclecounts}
+    \begin{tabular}{l  l |  l l }
+      \hline
+      ADF & Cycle count & Section(s) &  Comment\\
+      \hline
+      \hline
+      start.adf            &  & \ref{ssec:eval_start} & \\ %
+      \hline
+      large.adf            &  & \ref{ssec:large} & start +3 buses \\ % 2383 cycles
+      large.adf            &  & -''-             & start +3 buses  +RF \\% 935 cycles
+      large.adf            &  & -''-             & start +3 buses  +RF + new ALU \\ % 778 cycles
+      % large.adf          &  & -''-             & start +3 buses + new ALU \\ %  2188 cycles
+      \hline
+      custom.adf           &  & \ref{ssec:anal_custom} - \ref{ssec:tcetour_final_products} \\ % 958 cycles
+      \hline
+      large\_custom.adf    &  & \ref{ssec:large_custom} \\ % 100 cycles! wow!
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
 
+
+
+There are 3 basic ways to accelerate computation in TTAs:
+\begin{enumerate}
+\item Modify the algorithm itself. Beyond the scope of this tutorial.
+\item Add more basic resources (FUs, RFs, buses) to TTA
+\item Add custom operation(s) to TTA
+\end{enumerate}
+
+
+\subsection{Increasing performance by adding resources}
+\label{ssec:large}
+As the current architecture is minimalistic we can increase the performance
+even further by adding resources to the processor.
+
+\paragraph{Transport buses.} 
+The architecture has only one transport bus, thus the compiler can't exploit 
+any instruction level parallelism. Let's start architecture customization by 
+adding another transport bus. After this there can be 2 moves per clock cycle. 
+First copy the current architecture:
+
+\shellcmd{cp start.adf large.adf}
+%\shellcmd{cp custom.adf modified.adf}
+
+and open the new architecture in ProDe:
+
+\shellcmd{prode large.adf \&}
+%\shellcmd{prode modified.adf \&}
+
+A new transport bus can be added simply by selecting the current bus and
+pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
+Add 3 more buses. After you have added the buses you have to connect it to the
+sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
+Save the architecture, recompile the source code for the new architecture
+and simulate.
+
+\shellcmd{tcecc -O3 -a large.adf -o crc.tpef -k result crc.c main.c}
+%\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc\_with\_custom\_op.c main.c}
+
+\shellcmd{ttasim -a large.adf -p crc.tpef}
+%\shellcmd{ttasim -a modified.adf -p crc.tpef}
+
+Now when you check the cycle count from the simulator:
+
+\shellcmd{info proc cycles}
+
+You might see a significant drop in cycles. 
+% approx 50% reduction to 2383 cycles
+Also check the processor utilization statistics from the simulator
+with command:
+
+\shellcmd{info proc stats}
+
+\paragraph{Register files.}
+
+From the previous simulator statistics you can see from ``operations'' table
+that there are a lot of load and store operations being executed. As the
+architecture has only 5 general purpose registers this tells us that there
+are a lot of register spilling to memory. Let's try how the amount of registers affect
+the cycle count. There are two options how we can add registers. We can either
+increase the number of registers in a register file or add a new register file.
+
+Let's try the latter option because this way we increase the number of registers
+that can be accessed simultaneously on one clock cycle. This can be done by
+selecting the RF and using copy and paste. Then connect it to the IC.
+Simulation statistics should indicate performance increase. As expected, the
+number of load and store opertations decreased. But notice also that the number
+of add operations decreased quite a lot. The reason is simple: addition is used
+to calculate stack memory addresses for the spilled registers.
+% over 50% further reduction to 935 cycles
+
+\paragraph{Function units.}
+Next subject for the bottleneck is the ALU as now all the basic operations
+are performed in a single function unit. From the simulator statistics you can
+see that logical operations and addition are quite heavily utilized. Instead
+of duplicating the ALU let's add more specific FUs from the Hardware Database.
+Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
+operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
+add(1) and click ``Add''. Close the dialog, connect the function units and save the
+architecture. Recompile and simulate to see the effect on cycle count.
+% about 20 further reduction to 778 cycles
+
+The architecture could be still modified even further to drop the cycle count
+but let's settle for this now and move on to custom operations. 
+
+
+\subsection{Analyzing the Custom Operation}
+\label{ssec:anal_custom}
+%\subsection{Accelerating the CRC Algorithm}
 Custom operations implement application specific functionality in TTA
-processors. In this part of the tutorial we accelerate the CRC computation
-by adding a custom operation to the starting point processor design.
+processors. This part of the tutorial teaches how to accelerate the
+CRC computation by adding a custom operation to the starting point
+processor design.
 
-\subsubsection{Evaluating Custom Operation Candidates}
+%\subsubsection{Evaluating Custom Operation Candidates}
 
-First of all, it is quite simple and efficient to implement CRC calculation
-entirely on hardware. Naturally, using the whole CRC function as a custom
-operation would be quite pointless and the benefits of using a processor
-based implementation would get smaller. Instead, we will consentrate
-on trying to accelerate smaller parts of the algorithm, picking a custom
-operation that is potentially useful also for other algorithms than CRC.
+First of all, it is quite simple and efficient to implement CRC
+calculation entirely on hardware. Naturally, using the whole CRC
+function as a custom operation would be quite pointless and the
+benefits of using a processor based implementation would get
+smaller. Instead, we will here consentrate on trying to accelerate
+smaller parts of the algorithm, which is the most useful way for most
+algorithms.
 
-\subsubsection{Finding the Bottlenecks}
+ The steps needed for custom opeation are:
+\begin{enumerate}
+\item Analyze the code for bottlenecks
+
+\item Speculatively add a new module and operation to operation 
+databse with Osed. Define the behavior of new operation (copy-paste
+from original code and add few macros). Optionally, you can also
+simulate the new operation. Bind the new operation to a new function
+unit in ProDe
+
+\item Modify your source code so that it utilizes the new 
+operation and simulate. Go back to step 2 if you wish to explore other
+operations
+
+\item Create VHDL for the operation and add it to HDB. 
+\item Finally, generate VHDL for the TTA and run Platform integrator.
+\end{enumerate}
+%\subsubsection{Finding the Bottlenecks}
 
 % The first thing to do when trying to optimize code is to profile the execution.
 % In Proxim you can trace the most executed instructions (see section
@@ -947,103 +1149,133 @@ operation that is potentially useful also for other algorithms than CRC.
 % Refer to section \ref{sec:traces} for further
 % information.
 
-In this case finding the operation to be optimized is quite obvious if you
-look at function crcFast(). It consists of a for-loop in which the 
-function reflect() is called through the macro REFLECT\_DATA. If you look at 
-the actual function you can see that it is quite simple to implement on 
-hardware, but requires many instructions if done with basic operations in
-software. The function ``reflects'' the bit pattern around the middle point like
-a mirror. For example,
-the bit pattern \textbf{0101 0100} would look like this after reflection:
-\textbf{0010 1010}. The main complexity of the function is that the bit pattern width is not
-fixed. Fortunately, the width cannot be arbitrary. If you examine the
-crcFast()-function and the reflect macros you can spot that function reflect() is
-only called with 8 and 32 bit widths (unsigned char and 'crc' which is an unsigned long).
+Finding the operation to be optimized is quite obvious in this case if
+you look at function crcFast(). It consists of a for-loop in which the
+function reflect() is called through the macro REFLECT\_DATA. If you
+look at the actual function (shown also in Fig.~\ref{fig_reflect} you
+can see that it is quite simple to implement on hardware, but requires
+many instructions if done with basic operations in software. The
+function ``reflects'' the bit pattern around the middle point like a
+mirror. For example, the bit pattern \textbf{1101 0010} becomes
+\textbf{0100 1011}. The main complexity of the function is that the bit 
+pattern width is not fixed. Fortunately, the width cannot be
+arbitrary. If you examine the crcFast()-function and the reflect
+macros you can spot that function reflect() is only called with 8 and
+32 bit widths (unsigned char and 'crc' which is an unsigned long).
 
-\subsection{Analyzing the Custom Operation}
+%\subsection{Analyzing the Custom Operation}
 
-A great advantage of TCE is that the operation semantics, 
-processor architecture and implementation are separate abstractions. 
-How this affects designing custom operations is that you can
-simulate your design by simply defining the simulation behaviour of 
-the operation and setting the latency of the operation to the processor
-architecture definition. This is nice as you
-do not need an actual hardware implementation of the operation at this point
-of the design, but
-can evaluate different custom operation possibilities at the architectural
-level. However, this brings up an awkward question: how to determine 
-the latency of the operation? Unrealistic or too pessimistic 
-latency estimates can produce inaccurate performance results and bias 
-the analysis.
+A great advantage of TCE is that the operation semantics, processor
+architecture, and implementation are separate abstractions. This
+simplifies designing custom operations since you can simulate your
+design by simply defining the simulation behaviour of the operation
+and setting the latency of the operation to the processor architecture
+definition. This is nice as you do not need an actual hardware
+implementation of the operation at this point of the design, but can
+evaluate different custom operation possibilities at the architectural
+level. However, this brings up an awkward question: how to determine
+the latency of the operation? Unrealistic or too pessimistic latency
+estimates can produce inaccurate performance results and bias the
+analysis.
 
 One approach to the problem is to take an educated guess and simulate
-some test cases with different custom operation latencies. This way you can
-determine a latency range in which the custom operation would accelerate your
-application to the satisfactory level. After this you can scetch how the
-operation could be implemented in hardware, or consult someone knowledgeable 
-in hardware design to figure out whether the custom operation is 
-implementable within the latency constraint.
+some test cases with different custom operation latencies. This way
+you can determine a latency range in which the custom operation would
+accelerate your application to the satisfactory level. For example,
+custom operation with 1 cycle delay might give $3x$ speedup but $10$
+cycles gives just 3\%.  After this you can sketch how the operation
+could be implemented in hardware, or consult someone knowledgeable in
+hardware design to figure out whether the custom operation can be
+reasonably implemented within the latency constraint.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflect}
+  \caption{Reflect function of CRC} 
+  \label{fig:reflect} \end{center}
+\end{figure}
 
 Another approach is to try and determine the latency by examining the
-operation itself and considering how it could be implemented. This approach
-requires some insight in digital design.
+operation itself and considering how it could be implemented. This
+approach requires some insight in digital design.
 
-Besides latency you should also consider the size of the custom function unit.
-It will consume extra die area, but the size limit is always case-specific. For
-accurate size estimation you need to have the actual implementation and synthesis.
+Besides latency you should also consider the size of the custom
+function unit.  It will consume extra die area, but the size limit is
+always case-specific, especially when area taken by memories is
+accounted. Accurate size estimation requires the actual HW
+implementation and synthesis.
 
-Let us consider the reflect function. If we had fixed width we could implement
-the reflect by hard wiring (and registering the output) because the operation
-only moves bits to other locations in the word. This could be done easily in one clock cycle. But we
-need two different bit widths so things would be a bit more complicated. We
-could design the hardware in such way that it has two operations: one for 8-bit
-data and another for 32-bit data. On hardware one way to implement this is to
-have 32-bit wide crosswiring and register the output. In this case the 8-bit
-value would be reflected to the 8 MSB bits of the 32-bit wiring. Then we need
-to move the 8 MSB bits to the LSB end and zero the rest. This moving can be
-implemented using multiplexers. So concerning the latency this can all be done
-easily within one clock cycle as there is not much logic needed.
+Let us consider the reflect function. If we had fixed width we could
+implement the reflect by hard wiring (and registering the output)
+because the operation only moves bits to other locations in the
+word. This could be done easily in one clock cycle, as in right side
+of Fig.~\ref{fig:reflect}. But we need two different bit widths so it
+is somewhat more complicated. We could design the HW in such way that
+it has two operations: one for 8-bit data and another for 32-bit
+data. One way to implement this is to have 32-bit wide crosswiring and
+register the output. The 8-bit value would be reflected to the 8 MSB
+bits of the 32-bit wiring. Then we need to move the 8 MSB bits to the
+LSB end and set restto zero. This moving can be implemented using
+multiplexers. So concerning the latency this can all be done easily
+within one clock cycle as there is not much logic needed.
+
+
+
 
 \subsection{Creating the Custom Operation}
 \label{section:customOperations}
 % includes adding a FU that implements the custom operation to HDB and
 % adding the operation to OSAL
 
-Now we have decided the operation to be accelerated and its latency. Next we
-will create a function unit implementing the operation and add it to our
-processor design. First, a description of
-the semantics of the new operation must be added at least to Operation Set
-Abstraction Layer (Section~\ref{section:osal}). OSAL stores the semantic
-properties of the operation, which includes the simulation behavior, operand
-count etc., but not the latency. OSAL definitions can be added by using the
+Now we have decided the operation to be accelerated and its
+latency.
+
+
+Next we will create a function unit implementing the
+operation and add it to our processor design. First, a description of
+the semantics of the new operation must be added at least to Operation
+Set Abstraction Layer (Sections~\ref{section:osal} and
+\ref{section:osal_details}). OSAL stores the semantic properties of
+the operation, which includes the simulation behavior, operand count
+etc., but not the latency. OSAL definitions can be added by using the
 OSAL GUI, \emph{OSEd} (Section~\ref{sec:osed}).
 
-If processors that use the custom operation are to be synthesized or simulated
-at the VHDL level, at least one function unit implementing
-the operation should be added to the
-Hardware Database (Section~\ref{section:hdb}). Cost data of the function unit
-needs to be added to the cost database if cost estimates of a processor
-containing the custom function unit are wanted. In this tutorial we add the
-FU implementation for our custom operation so the processor implementation can
-be generated, but omit the cost data required for the cost estimation.
+Synthesis or simulation at the VHDL level requires that at least one
+function unit implementing the operation must be added to the Hardware
+Database (Section~\ref{section:hdb}).  In this tutorial we add the FU
+implementation for our custom operation so the processor
+implementation can be generated, but omit the cost data required for
+the cost estimation. In general case, cost data should be added to
+cost database as well.
 
 \paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
 
-OSEd is started with the command 'osed'.
+OSEd is started with the command 
 
-Create a new operation module, which is a container for a set of operations.
-You can add a new module in any of the predefined search paths, provided
-that you have sufficient file system access on the chosen directory.
+\shellcmd{osed \&}
+
+Create a new operation module, which is a container for a set of
+operations.  You can add a new module in any of the predefined search
+paths, provided that you have sufficient file system access
+permissions.
 
 For example, choose directory `/home/\emph{user}/.tce/opset/custom', where
 \emph{user} is the name of the user account being used for the tutorial.
 This directory is intended for the custom operations defined by the
 current user, and should always have sufficient access rights.
 
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/osed}
+  \caption{Operation Set Editor when adding new operation REFLECT32.} 
+  \label{fig:osed} \end{center}
+\end{figure}
+
+
 \begin{enumerate}
 \item%
-  Right-click on a path name in the left area of the main window.  A
-  drop-down menu appears below the mouse pointer.
+  Click the root in the left area of the main window which opens list
+  of paths. Right-click on a path name
+  `/home/\emph{user}/.tce/opset/custom'. A drop-down menu appears
+  below the mouse pointer.
 \item%
   Select \textbf{Add module} menu item. 
 \item%
@@ -1074,17 +1306,17 @@ definitions to the newly created operation module.
   up. Press \emph{Yes} to confirm the action. The operation definition is
   now added to the module.
 \item%
-  Then repeat the steps for operation `REFLECT32'
+  Then repeat the steps for operation `REFLECT32', as shown in Fig.~\ref{fig:osed}
 \end{enumerate}
 
 \paragraph{Defining the simulation behaviour of the operations} The new operations
-REFLECT8 and REFLECT32 do not yet have simulation behavior models, so we
-cannot simulate programs that use these operations with the TCE processor
-simulator. Open again the operation property dialog by right-clicking REFLECT8,
-then choosing \emph{Modify properties}. Now press the \emph{Open} button to
-open an empty behavior source file for the module. Copy-paste (or type if you
-have the time!) the following code in the editor window (you can copy
-most of this code from the crc.c reflect function):
+REFLECT8 and REFLECT32 do not yet have simulation behavior models, so
+we cannot simulate programs that use these operations with the TCE
+processor simulator. Open again the operation property dialog by
+right-clicking REFLECT8, then choosing \emph{Modify properties}. Now
+press the \emph{Open} button at the bottom to open an empty behavior
+source file for the module. Copy-paste (or type if you have the time!) 
+the following code in the editor window:
 
 \begin{verbatim}
 #include "OSAL.hh"
@@ -1151,19 +1383,22 @@ OPERATION(REFLECT32)
  END_OPERATION(REFLECT32)
 \end{verbatim}
 
-This code has the behaviours for the both operations. These behavior definitions
-reflect the input operand integer (with id 1) and writes the result to the
-''output operand`` (with id 2) which is the first output and signals the simulator
-that all results are computed successfully.
+This code has the behaviours for the both operations. These behavior
+definitions reflect the input operand integer (id 1, assigned to
+variable 'data') and writes the result to the ''output operand`` ( id
+2, assigned from variable 'reflection') which is the first output and
+signals the simulator that all results are computed successfully.
 
-Open file \file{crc.c} in your preferred editor. Compare the behaviour definition
-of reflect operations and the original reflect-function. The function is mostly
-similar except for parameter passing. On the custom hardware operation behavior definition
-the data is read from the function unit input ports and written to output ports and 
-the nBits-value is determined from the operation code (REFLECT8 or REFLECT32). 
+Open file \file{crc.c} in your preferred editor. Compare the behaviour
+definition of reflect operations and the original
+reflect-function. The function is mostly similar except for parameter
+passing and adding few macros added, such as OPERATION(), TRIGGER,
+IO(2) etc. Custom hardware operation behavior reads data from the
+function unit's input ports and writes to output ports. The value of
+nBits is determined from the operation code (REFLECT8 or REFLECT32).
 
-Save the code and close the editor. REFLECT8 and REFLECT32 operations now have 
-TCE simulator behaviour models.
+Save the code and close the editor. REFLECT8 and REFLECT32 operations
+now have TCE simulator behaviour models.
 
 \paragraph{Compiling operation behavior.} REFLECT-operations have been
 added to the test module. Before we can simulate the behavior of our
@@ -1184,8 +1419,8 @@ module that the simulator can call.
 
 After the operation simulation model has been added and compiled the operation
 can be simulated. But for the sake of speed up we will skip the operation
-simulation here. However if you are interested in the operation simulation,
-see chapter~\ref{sec:osed}
+simulation here. Interested readers are referred to Section~\ref{sec:osed}
+You can close osed now.
 
 %  Simulation section removed
 % \begin{enumerate}
@@ -1236,6 +1471,12 @@ Open the copy in ProDe:
 
 \shellcmd{prode custom.adf \&}
 
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflecter}
+  \caption{Adding operation REFLECT8 to a new function unit in ProDe} 
+  \label{fig:reflecter} \end{center}
+\end{figure}
+
 Then:
 \begin{enumerate}
 \item%
@@ -1248,27 +1489,28 @@ triggering (\textit{Click the port named trigger->Edit->Check dialog
 it is written to.
 \item%
 Add the operation ''REFLECT8`` we defined to the FU: \textit{Add from
-opset>REFLECT8>OK} and set the latency to 1. Click on the REFLECT8 operation and
-ensure that the operation input is bound to the input ports and the output
-is bound to the output port. Check that the operand usage is in such a way that
-input is read at cycle 0 and the result is written at the end of the 
-cycle (can be read from the FU on the next cycle). Thus, the latency of
-the operation is 1 clock cycles.
+opset>REFLECT8>OK} and set the latency to 1. Click on the REFLECT8
+operation and ensure that the operation input is bound to the input
+ports and the output is bound to the output port. Check that the
+operand usage is in such a way that input is read at cycle 0 and the
+result is written at the end of the cycle (can be read from the FU on
+the next cycle), as in Fig.~\ref{fig:reflecter}. Thus, the latency of the
+operation is 1 clock cycles.
 \item%
 Repeat the previous step for operation ''REFLECT32``
 \item%
-Now an FU that supports the custom operations has been added to the architecture. 
-Next, fully connect the machine to connect the
-FU to the rest of the architecture. This can be done by selecting
-\textit{Tools->Fully Connect IC}. Save the architecture description by clicking Save.
+Now an FU that supports the custom operations has been added to the
+architecture. Next, connect the FU to the rest of the
+architecture. This can be most easliy done by selecting
+\textit{Tools->Fully Connect IC} which connects all FUs to all the buses. Save the architecture description by clicking Save.
 \end{enumerate}
 
 
 \subsection{Use the custom operation in C code.}
 
-To get some benefits from the added custom hardware,
-we must use it from the C code. This is done by replacing
-a C statement with a custom operation invocation. 
+To get some benefits from the added custom hardware, we must use it
+from the C code. This is done by replacing a C statement with a custom
+operation invocation.
 
 Let us first backup the original C code.
 
@@ -1314,9 +1556,9 @@ These will help in using the reflect FU macro.
 
 Take a look at the REFLECT\_DATA and REFLECT\_REMAINDER macros. The first one
 has got a magic number 8 and ``variable'' X is the data. This is used in the
-for-loop.
+for-loop of crcFast().
 
-In the for-loop the input data of reflect function is read from message[].
+The input data of reflect function is read from array message[] in the for-loop the.
 Let us modify this so that at the beginning of the loop the input data is
 read to the input variable. Then we will use the \_TCE\_REFLECT8 macro to run
 the custom operations, and finally replace the REFLECT\_DATA macro with the
@@ -1372,13 +1614,15 @@ Load architecture and program and run the simulation
 
 Verify that the result is the same as before (\textit{x /u w result}). It
 should be the same as earlier (\textbf{0x62488e82}).
-Check the cycle count \textit{info proc cycles} and compare it to the cycle 
+Check the cycle count \textit{info proc cycles}  % about 958 cycles
+and compare it to the cycle 
 count of the version which does not use a custom operation. You should see 
 a very noticeable drop compared to the starting point architecture without
-the custom operations. Write this cycle count down for a later step.
+the custom operations. Write this cycle count down for a later step and quit ttasim.
 
-The simulator execution also created a file \file{crc\_with\_custom\_op.tpef.bustrace}
-which contains the bus trace.
+The simulator execution also created a file
+\file{crc\_with\_custom\_op.tpef.bustrace} which contains the bus
+trace.
 
 \end{enumerate}
 
@@ -1400,18 +1644,25 @@ Start HDBEditor (see Section~\ref{sec:hdbedit}):
 TCE needs some data of the FU implementation in order to be able to 
 automatically generate processors that include the FU. \\
 \begin{enumerate}
- \item%
-Create a new hdb and name it tour.hdb. Add the ''reflecter`` function
-unit from \file{custom.adf} file  (\textit{edit->add->FU architecture from ADF}).
-You can leave the ''parametrized width`` and ''guard support`` unchecked.
-Then define implementation for the added function unit entry \textit{right 
-click reflect -> Add implementation....}\\
+ \item% Create a new hdb and name it tour.hdb. Add the ''reflecter``
+ function unit from \file{custom.adf} file (\textit{edit->add->FU
+ architecture from ADF}).  You can leave the checkboxes ''parametrized
+ width`` and ''guard support`` unchecked, which is the default.  Then
+ define implementation for the added function unit entry \textit{right
+ click reflect -> Add implementation....}\\
 
 \item%
 Open file \file{tour\_vhdl/reflect.vhdl} that was provided in the tutorial
 package with the editor  you prefer, and take a look. This is an example
 implementation of  a TTA function unit performing the custom 'reflect8'
 and 'reflect32' operations.
+
+%!!! VHDL needs comments and a header !!!
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/hdbeditor_scrshot}
+  \caption{Adding the implementation of custom operations to HW database} 
+  \label{fig:hdbed} \end{center}
+\end{figure}
 
 \item%
 The HDB implementation dialog needs the following information from the VHDL:\\
@@ -1421,10 +1672,11 @@ The HDB implementation dialog needs the following information from the VHDL:\\
 Name the implemention after the top level entity: ``fu\_reflect''.
 
 By examining the VHDL code you can easily spot the clock port (clk),
-reset (rstx) and global lock port (glock). Operation code (opcode) port is
-t1opcode. Write these into the appropriate text boxes. You do not have to fill
-the Global lock req. port field because the function unit does not need to
-cause a global lock to the processor during its execution.
+reset (rstx) and global lock port (glock). Operation code (opcode)
+port is t1opcode. Write these into the appropriate text boxes. You do
+not have to fill the Global lock req. port field because the function
+unit does not stall, i.e. does not request a global lock to the
+processor during its execution.
 
 \textbf{2. Opcodes.}
 
@@ -1433,11 +1685,11 @@ has operation code ``0'' and REFLECT8 has operation code ``1''.
 
 The operation codes must be always numbered according to the alphabetical order of 
 the OSAL operation names, starting at 0. For example, in this case REFLECT32 is 
-earlier than REFLECT8 in the alphabetical order.
+earlier than REFLECT8 in the alphabetical order (i.e. 3 becomes before 8).
 
 \textbf{3. Parameters.}
 
-Parameters can be found from the VHDL file. On top of the file there is one
+Parameters can be found from the VHDL generics. On top of the file there is one
 parameter: busw. It tells the width of the transport bus and thus the maximum
 width of input and output operands.
 
@@ -1451,9 +1703,10 @@ architectural description of the FU and the VHDL implementation.
 Each input data port in the FU is accompanied with a load port that
 controls the updating of the FU input port registers.
 
-Choose a port in the Architecture ports dialog and click edit.
-Name of the architecture port p1 is t1data and load port is t1load.
-Width formula is the parameter busw.
+Choose a port in the Architecture ports dialog and click edit.  Name
+of the architecture port p1 is t1data (as in VHDL) and associated load
+port is t1load.  Width formula is the parameter busw. No guard port is
+needed in this case.
 
 Name the output port (p2) to r1data and the width formula is now busw
 because the output port writes to the bus.
@@ -1466,7 +1719,7 @@ files must be added in the compilation order (see section \ref{sec:hdbedit}).
 But now we have only one source file so we can simply add it without
 considering the compilation order (Add -> Browse -> tour\_vhdl/reflect.vhdl).
 
-Now you are done with adding the FU implementation. Click OK.
+Now you are done with adding the FU implementation, see Fig.~\ref{fig:hdbed}. Click OK.
 
 \end{enumerate}
 
@@ -1605,26 +1858,39 @@ Click ``Save IDF...''
 
 
 \paragraph{Generate the VHDL for the processor using Processor Generator
-(ProGe).} 
+(ProGe).}
 
 You can start processor generation from ProDe's implementation selection dialog:
 Click ``Generate Processor''. For Binary Encoding Map: Select the
-``Generate new''. In the target directory click ``Browse'' and create a new
+``Generate new'', see Fig.~\ref{fig:proge} 
+
+In the target directory click ``Browse'' and create a new
 directory \file{proge-output} and select it. Then click OK to create the
 processor.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/proge_scrshot}
+  \caption{Generating TTA VHDL with ProGe} 
+  \label{fig:proge} \end{center}
+\end{figure}
+
 
 Or alternatively execute ProGe from command line:
 
 \shellcmd{generateprocessor -t -i custom.idf -o proge-output
 custom.adf}
 
-Now directory \file{proge-output} includes the VHDL implementation of the
-designed processor except for the instruction memory width package which will
-be created by Program Image Generator. You can take a look what the directory
-includes, how the RF and FU implementations are collected up under
+Flag $-t$ generates a testbench, $-i$ defines the implementation file,
+and $-o$ the output directory.  Now directory \file{proge-output}
+includes the VHDL implementation of the designed processor except for
+the instruction memory width package which will be created by Program
+Image Generator. You can take a look what the directory includes, how
+the RF and FU implementations are collected up under
 \file{vhdl} subdir and the interconnection network has been generated to
-connect the units (the \file{gcu\_ic} subdir). The \file{tb} subdir contains
-testbench files for the processor core.
+connect the units (the \file{gcu\_ic} subdir). The \file{tb} subdir
+contains testbench files for the processor core. Moreover, there are 4
+shell scripts for compiling and simulating the VHDL codes in Modelsim
+and GHDL.
 
 \paragraph{Generate instruction memory bit image using Program Image Generator.}
 
@@ -1632,6 +1898,11 @@ Finally, to get our shiny new processor some bits to chew on,
 we use generatebits to create instruction memory and data memory images:
 
 \shellcmd{generatebits -d -w 4 -p crc\_with\_custom\_op.tpef -x proge-output custom.adf} 
+
+Flag $-d$ creates data images, $-w 4$ set data memory width 4 MAUs
+(memory addressable units, bytes in this case), $p$ defines the
+program, $-x$ defines the HDL directory, and adf is give without a
+flag.
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
 image in ``ascii 0/1'' format. Each line in that file represents a single
@@ -1665,89 +1936,60 @@ Then compile and simulate the testbench:
 
 \shellcmd{./ghdl\_simulate.sh}
 
-This will take some time as the bus trace writing is enabled. The simulation
-produces file ``bus.dump''. As the testbench is ran for constant amount of
-cycles we need to get the relevant part out of the bus dump for
+Compilation gives a couple of warnings from Synopsys' std\_arith
+package but that should do no harm.  Simulation will take some time as
+the bus trace writing is enabled. If you did not change the memory
+widths in Prode (Section~\ref{ssec:start_point} ), the simulation will crash and print
+``Killed''. There will be many warnings at $0 ns$ due uninitialized
+signals but you can ignore them. 
+
+Aftern simulation, you should see a message
+\shellcmd{./testbench:info: simulation stopped by --stop-time}
+The simulation produces file ``bus.dump'' which looks like this:
+\begin{verbatim}
+           0 |            0 | 
+           1 |            4 | 
+           2 |        32760 | 
+           3 |           24 | 
+           ...
+\end{verbatim}
+
+
+As the testbench is ran for constant amount of cycles we
+need to get the relevant part out of the bus dump for
 verification. This can be done with command:
 
 \shellcmd{head -n <number of cycles> bus.dump > sim.dump}
 
-where the <number of cycles> is the number of cycles in the previous ttasim
-execution. Then compare the trace dumps from the VHDL simulation and the
-architecture simulation:
+where the <number of cycles> is the number of cycles in the previous
+ttasim execution (same as line ocunt in
+crc\_with\_custom\_op.tpef.bustrace). Then compare the trace dumps
+from the VHDL simulation and the architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
-If the command does not print anything the dumps were equal.
+If the command does not print anything the dumps were equal and GHDL
+simulation matches the ttasim. Now you have succesfully added a custom
+operation, verified it, and gained notably performance increase. Well
+done!
 
 
-\subsection{Increasing performance by adding resources}
+\subsection{Adding custom operation to large TTA}
+\label{ssec:large_custom}
 
-As the current architecture is minimalistic we can increase the performance
-even further by adding resources to the processor.
+As a final step, let us add the custom operation to the large TTA.
+\shellcmd{cp large.adf large\_custom.adf}
 
-\paragraph{Transport buses.} 
-The architecture has only one transport bus, thus the compiler can't exploit 
-any instruction level parallelism. Let's start architecture customization by 
-adding another transport bus. After this there can be 2 moves per clock cycle. 
-First copy the current architecture:
+\shellcmd{prode large\_custom.adf}
 
-\shellcmd{cp custom.adf modified.adf}
+Open also custom.adf. Copy-paste the REFLECTER unit from it to large\_custom.adf. Fully connect the IC and save.
 
-and open the new architecture in ProDe:
+\shellcmd{tcecc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef. -k result crc\_with\_custom\_op.c main.c}
 
-\shellcmd{prode modified.adf \&}
+\shellcmd {ttasim}
 
-A new transport bus can be added simply by selecting the current bus and
-pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
-Add 3 more buses. After you have added the buses you have to connect it to the
-sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
-Save the architecture, recompile the source code for the new architecture
-and simulate.
-
-\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc\_with\_custom\_op.c main.c}
-
-\shellcmd{ttasim -a modified.adf -p crc.tpef}
-
-Now when you check the cycle count from the simulator:
-
-\shellcmd{info proc cycles}
-
-You might see a significant drop in cycles. Also check the processor 
-utilization statistics from the simulator with command:
-
-\shellcmd{info proc stats}
-
-\paragraph{Register files.}
-
-From the previous simulator statistics you can see from ``operations'' table
-that there are a lot of load and store operations being executed. As the
-architecture has only 5 general purpose registers this tells us that there
-are a lot of register spilling to memory. Let's try how the amount of registers affect
-the cycle count. There are two options how we can add registers. We can either
-increase the number of registers in a register file or add a new register file.
-
-Let's try the latter option because this way we increase the number of registers
-that can be accessed simultaneously on one clock cycle. This can be done by
-selecting the RF and using copy and paste. Then connect it to the IC.
-Simulation statistics should indicate performance increase. As expected, the
-number of load and store opertations decreased. But notice also that the number
-of add operations decreased quite a lot. The reason is simple: addition is used
-to calculate stack memory addresses for the spilled registers.
-
-\paragraph{Function units.}
-Next subject for the bottleneck is the ALU as now all the basic operations
-are performed in a single function unit. From the simulator statistics you can
-see that logical operations and addition are quite heavily utilized. Instead
-of duplicating the ALU let's add more specific FUs from the Hardware Database.
-Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
-operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
-add(1) and click ``Add''. Close the dialog, connect the function units and save the
-architecture. Recompile and simulate to see the effect on cycle count.
-
-The architecture could be still modified even further to drop the cycle count
-but let's settle for this now. 
-
+Load large\_custom.adf and crc\_with\_custom\_op.tpef and
+simulate. Voila! Now you have a lightning fast TTA. % 100 cycles
 
 \subsection{Final Words}
 
@@ -3699,7 +3941,7 @@ containing the results computed by the operation.
 
 
 \section{OSAL files}
-
+\label{section:osal_details}
 Operations are divided in ``operation modules''. For example, `base' module,
 included in the TCE distribution, contains all the operations available 
 to the front end compiler's code generation.
