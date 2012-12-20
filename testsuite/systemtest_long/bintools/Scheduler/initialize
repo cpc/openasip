@@ -1,5 +1,10 @@
 spu_gcc=`which spu-gcc`
 
+# The PS3 installation got broken so the tests do not work there.
+
+touch tcecc-spu.testdesc.disabled
+exit 1
+
 if test -z "$spu_gcc" -o -z "$PS3_IP_ADDR";
 then
     touch tcecc-spu.testdesc.disabled
