@@ -57,7 +57,9 @@ Bugfixes
   are feasible again.
 - Failed bypassing could cause compiler to fail on sparsely connected
   machines.
-
+- signed immediate with equal amount of bits to insruction address space
+  (1 too few becauses of the sign bit) could cause broken code
+  (negative jump addresses) to be generated
 Misc
 ----
 - Removed the deprecated schedule binary and the old scheduler configuration

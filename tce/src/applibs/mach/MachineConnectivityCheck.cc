@@ -826,7 +826,9 @@ MachineConnectivityCheck::requiredImmediateWidth(
                 mach.addressSpaceNavigator();
             for (int i = 0; i < asNav.count(); i++) {
                 if (asNav.item(i) != &instrAS) {
-                    return MathTools::requiredBits(asNav.item(i)->end());
+                    return signExtension ?
+			MathTools::requiredBitsSigned(asNav.item(i)->end()):
+			MathTools::requiredBits(asNav.item(i)->end());
                 }
             }
             assert(false && "No data address space found!");
@@ -836,7 +838,9 @@ MachineConnectivityCheck::requiredImmediateWidth(
     }
     if (source.isInstructionAddress() || source.isBasicBlockReference()) {
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
-        return MathTools::requiredBits(as.end());
+        return signExtension ? 
+	    MathTools::requiredBitsSigned(as.end()): 
+	    MathTools::requiredBits(as.end());
     }
 
     int bits = -1;
