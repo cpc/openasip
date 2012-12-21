@@ -833,7 +833,9 @@ MachineConnectivityCheck::requiredImmediateWidth(
             }
             assert(false && "No data address space found!");
         } else {
-            return MathTools::requiredBits(instrAS.end());
+	    return signExtension ?
+		MathTools::requiredBitsSigned (instrAS.end()):
+		MathTools::requiredBits(instrAS.end());
         }
     }
     if (source.isInstructionAddress() || source.isBasicBlockReference()) {
