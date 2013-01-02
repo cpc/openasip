@@ -312,6 +312,8 @@ CycleLookBackSoftwareBypasser::bypassNode(
 
             // return source to it's position
             if (sourceRemoved) {
+                assert(sourceBuses_[&source] != NULL);
+                source.move().setBus(*sourceBuses_[&source]);
                 assert(rm.canAssign(sourceCycle, source));
                 rm.assign(sourceCycle, source);
                 sourceCycles_.erase(&source);

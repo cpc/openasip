@@ -68,6 +68,18 @@ Misc
   file framework. Now programs are always compiled with tcecc and all 
   compiler options are given as command line parameters.
 
+Known problems
+--------------
+- If more than one read port or more than one write port of some RF
+  is connected to same bus, but there are other buses which connect only
+  either of those ports, loading the compiled program may fail or hang.
+  Either reduce connections so that all buses connect to maximum of
+  only one read port of any RF and one write port of any RF
+  (may still have connections to many ports in different RF's)
+  OR add connections so that all buses
+  that connect to some read port or some write ports in some RF connect to 
+  all read or write ports.
+  
 1.6         June 2012 
 =====================
 
