@@ -28,6 +28,8 @@ Misc. smaller improvements
   more coarse grained: it tries to remove all connections (RF or
   bypasses) of a bus at once, not one by one.
 - explore: can now list plugin parameter descriptions (-p).
+- Parts of the TCE User Manual revised by Erno Salminen. Thanks to Erno
+  for his contributions.
 
 Code generator improvements
 ---------------------------

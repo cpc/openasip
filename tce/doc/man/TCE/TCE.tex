@@ -29,7 +29,7 @@
 \title{TTA-based Co-design Environment v1.7-pre}
 \ver{29}
 \firstday{2006-10-25}
-\lastday{2012-11-28}
+\lastday{2013-01-02}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -42,11 +42,52 @@
 % Document text
 \chapter{INTRODUCTION}
 
-\section{Document Overview}
+%\section{Document Overview}
+This is the user manual for TTA Co-design Environment (TCE)
+\cite{tcewww}
+\cite{lptce1}
+%\cite{lptce}. 
+The document describes the all the
+tools in the toolset, and the most common use cases in the form of
+tutorials.
 
-This is the user manual for TTA Codesign Environment (TCE). The document
-describes the usage of all the tools in the toolset, and the most common
-design flows in the form of tutorials. 
+Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. Toolset handles
+applications written in C/C++ and OpenCL. User can easily configure
+Transport-Triggered Architecture (TTA) processor, compile the SW,
+analyze the performance, and generate VHDL. The generated
+application-specific processor VHDL can be synthesized for example to
+FPGA. Then, user can modify the application and upload new program
+image to continue development.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/tce_overview}
+    \caption{Overview of TTA Co-design Environment (TCE).}
+    \label{fig:tce_overview}
+  \end{center}
+\end{figure}
+
+Application-specific instruction-set processor (ASIP) is a
+programmable processor which is tailored to certain application
+(domain). Hence, it can outperform general-purpose processors in terms
+of performance, area, and power. On the other hand, programmability
+and powerful ASIP-tools should provide increased productivity in
+comparison to hardwired accelerator IP blocks, which do offer the
+highest performance.
+
+With TCE, TTA ASIP configuration, SW compilation, and simulation can
+be carried out in the order of minutes and hence most of the time can
+be reserved to application and architecture co-development. It is fast
+to iterate over new TTA configurations, e.g. change the number and
+type of function units (FU), configure interconnection network (IC),
+register files (RF), and memory interfaces; or develop special
+function units.  Simple TTA designs with support for a couple of
+parallel arithmetic operations consume in the order of
+approx. 1000-5000 LUTs (look-up tables) which means that modern FPGA's
+can easily include several or even tens of TTAs. Operating frequency
+matches the processors developed by FPGA vendors, e.g. nearly 200 MHz.
+
+\section{Document Overview}
 
 Chapter~\ref{chapter:tceFlow} provides an overview to the TCE
 processor design flow, and Chapter~\ref{chapter:tutorials} contains
@@ -54,6 +95,11 @@ tutorials for several common TCE use cases. These should be sufficient
 for starting to use the TCE toolset.  The rest of the chapters
 describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
+
+Many people have contributed to this document, most notably Pekka
+J‰‰skel‰inen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
+Salminen.
+
 
 \section{Acronyms, Abbreviations and Definitions}
 \begin{tabular}[h]{p{0.15\textwidth}p{0.80\textwidth}}
@@ -72,7 +118,7 @@ LLVM & Low Level Virtual Machine \\
 MAU & Minimum Addressable Unit\\
 PIG & Program Image Generator\\
 SQL & Structured Query Language.\\
-TCE & TTA Codesign Environment.\\
+TCE & TTA Co-design Environment.\\
 TPEF & TTA Program Exchange Format \\
 TraceDB & Execution Trace Database. \\
 TTA & Transport Triggered Architecture.\\
@@ -83,13 +129,14 @@ XML & Extensible Markup Language. \\
 \section{Typographic Conventions Used in the Document}
 
 \begin{center}
-\begin{tabular}{|p{0.30\textwidth}|p{0.63\textwidth}|}
+\begin{tabular}{p{0.30\textwidth}|p{0.63\textwidth}}
 \hline
 \textbf{Style} &\textbf{Purpose}\\
 \hline
+\hline
 \emph{italic}     & parameter names in running text\\
 \hline
-[brackets]       & bibliographic references\\
+[brackets]        & bibliographic references\\
 \hline
 `single quoted'   & keywords or literal strings in running
                     text\\
@@ -98,6 +145,8 @@ XML & Extensible Markup Language. \\
 \hline
 \textbf{bold}     & Shorthand name of a TCE application.\\
 \hline
+\shellcmd{courier}     & UNIX commands\\
+\hline
 \end{tabular}
 \end{center}
 
@@ -105,767 +154,265 @@ XML & Extensible Markup Language. \\
 \chapter{TCE DESIGN FLOW}
 \label{chapter:tceFlow}
 
-\section{Overview}
 
-The main goal for the TTA Codesign Environment (TCE) is to provide a reliable
-and effective toolset for designing programmable application specific
-processors, and generate machine code for them from applications written 
-in high-level languages.
+The main goal for the TTA Co-design Environment (TCE) is to provide a
+reliable and effective toolset for designing programmable application
+specific processors, and generate machine code for them from
+applications written in high-level languages, such as C, C++ or
+OpenCL.
+\begin{figure}
+  \begin{center} \includegraphics[width=10cm]{eps/tce_flow}
+  \caption{Overview of TTA Co-design Environment (TCE). } 
+  \label{fig:tce_flow} \end{center}
+\end{figure}
 
 In addition, TCE provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
-The TCE design flow starts from an application described in a high level
-language (currently the C language). The LLVM compiler framework~\cite{llvm-home-page} is used to
-compile the application to 'bitcode', the intermediate representation of
-LLVM. The resulting bitcode is then compiled and scheduled to a particular
-TTA processor  by TCE. Traditional compiler optimizations are done in LLVM
-before bitcode generation, so it is possible to utilize the same bitcode file
-when exploring different TTA processors for running an application.
+\section{Flow Overview}
 
-The initial software development phase is intended 
-to be separate from the actual codesign flow of TCE. That is, the program is 
-expected to be implemented and tested natively (on a workstation PC) before 
-``porting'' it to the TTA/TCE platform. The porting includes ensuring
-that TTA/TCE runs the program correctly, and optimizing the hardware together
-with the software by modifying the resources and architecture of the processor
-to fit  the application
-at hand -- a process called hardware/software 
-codesign.
+The main phases in the TCE are illustrated in
+Figure~\ref{fig:tce_flow} and listed in Table~\ref{tab:phases} The
+TCE design flow starts from an application described in a high level
+language (currently the C language).  The initial software development
+phase is intended to be separate from the actual co-design flow of
+TCE. That is, the program is expected to be implemented and tested
+natively (on a workstation PC) before ``porting'' it to the TTA/TCE
+platform. The porting includes ensuring that TTA/TCE runs the program
+correctly, and optimizing the hardware together with the software by
+modifying the resources and architecture of the processor to fit the
+application at hand -- a process called hardware/software co-design.
 
+Once the user has implemented the software based on requirements, he
+designs a TTA processor with graphical tool - or selects some existing
+TTA - compiles and simulates the SW. Both compiler are simulator are
+\textit{retargetable} so they need an architectre definition as 
+input in addition to SW source codes. Simulator Proxim produces
+statistics about cycle counts and utilization of function unit, so
+that user can iterate the SW of TTA HW until results are satiscatory.
+
+The LLVM compiler framework~\cite{llvm-home-page} is used to compile
+the application to 'bitcode', the intermediate representation of
+LLVM. The resulting bitcode is then compiled and scheduled to a
+particular TTA processor by TCE. Traditional compiler optimizations
+are done in LLVM before bitcode generation, so it is possible to
+utilize the same bitcode file when exploring different TTA processors
+for running an application.
 % ISO C99 if LLVM/TCE is used
 
-The main phases in the design flow of TCE are illustrated in the following
-figures. Figure~\ref{fig:design_flow_initial} depicts the initial
-inputs to TCE, Figure~\ref{fig:design_flow_exploration} the design space 
-exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
-configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
-code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
-the generation of the final outputs: the processor description and the 
-program bit image.
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
-\caption{The Initial Inputs for TCE Design Flow.}
-\label{fig:design_flow_initial}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_exploration.eps,
-width=1.0\textwidth}}
-\caption{Design Space Exploration.}
-\label{fig:design_flow_exploration}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
-}}
-\caption{Processor Configuration Selection.}
-\label{fig:design_flow_selection}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
-\caption{Code Generation and Analysis.}
-\label{fig:design_flow_codegen}
-\end{figure}
-
-\begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_generation.eps,
-width=0.85\textwidth}}
-\caption{Processor and Program Image Generation.}
-\label{fig:design_flow_generation}
-\end{figure}
-
-
-\section{Main File Formats}
-\label{section:fileFormats}
-
-This chapter gives an overview of files and databases manipulated by TCE
-applications and accessible to users of the toolset.  
-
-\subsection{Architecture Definition File (ADF)}
-\label{sec:adf}
-
-Filename extension: .adf
-
-Machine Architecture Definition File (ADF) is a file format
-for defining target processor architectures.  ADF is a minimal specification
-of the target processor architecture, meaning that only the information
-needed  to generate valid programs for the processor is stored, nothing
-else. 
-
-\subsection{Hardware Database (HDB)}
-\label{section:hdb}
-% Describe what is shipped by default in TCE
-Filename extension: .hdb
-
-Hardware Database (HDB) is the main database used by the
-Processor Generator and the Cost Estimator.  The data stored in HDB consist
-of hardware description language definitions (HDL) of TTA components
-(function units, register files, buses and sockets) and metadata that
-describe certain parameters used in implementations. In addition, HDB may
-include data of each implementation needed by the cost estimation
-algorithms.
-
-TCE ships with an example HDB that includes implementations for several
-function units and register files, and cost data for the default
-interpolating cost estimation plugin.
-
-\subsection{Implementation Definition File (IDF)}
-\label{sec:idf}
-
-Filename extension:  .idf
-
-Describes which implementations to use for each component in the
-architecture (defined in an ADF file). Using this information it is possible
-to fetch correct hardware description language
-(HDL) files from the hardware block library for cost estimation and processor 
-generation. 
-
-\subsection{Binary Encoding Map}
-\label{sec:bem}
-
-Filename extension: .bem 
-
-Provides enough information to produce an executable uncompressed bit
-image (Section~\ref{sec:db_bim}) from TPEF program data.
-
-\subsection{TTA Program Exchange Format (TPEF)}
-\label{section:TPEF}
-
-Filename extension: .tpef
-
-TTA Program Exchange Format (TPEF) is a file format for storing unscheduled,
-partially scheduled, and scheduled TTA programs. TPEF supports auxiliary
-sections for storing additional information related to
-the program, such as execution profiles, machine resource data, and target
-address space definitions.
-
-\subsection{Operation Set Abstraction Layer (OSAL) Files}
-\label{section:osal}
-% Describe what is shipped by default in TCE
-Filename extension: .opp, .cc, .opb
-
-OSAL stores the simulation behavior and static properties of operations in
-function units.
-
-Simulation behavior of function unit operations is described by implementing
-simulation functions which can be plugged in to the simulator run time.
-
-The .opp file is an XML file for defining the static properties of
-operations (for example, how many inputs and outputs an operation has). The
-.cc is the C++ source file that defines the behavior model for a set of
-operations. The .opb is the plugin module compiled from the .cc.
-
-Operations are divided in ``operation modules''. For example, `base' module,
-included in the TCE distribution, contains all the operations available 
-to the front end compiler's code generation.
-
-An operation in OSAL is defined by its properties
-and its behavior.  The properties defined by OSAL do not restrict in any
-way the hardware implementation.  For example, latency, bit width or the
-fact that reading the result of an operation can lock the processor are
-properties of the implementation, and are not defined in OSAL module.
-
-\subsubsection{Operation Properties}
-\label{ssec:operation-properties}
-
-The following properties define a TTA operation in TCE:
-
-\begin{itemize}
-\item name (unique string)
-\item description (string)
-\item number of inputs (integer)
-\item number of outputs (integer)
-\item accesses memory (yes/no)
-%\item can cause trap (yes/no)
-\item has side effects (yes/no)
-\item clocked (yes/no)
-\item affected-by (set of operations)
-\item affects (set of operations)
-\end{itemize}
-
-\paragraph{operation name}
-The operation name is a string of characters starting with a character in
-set [A-Z\_] and followed by one or more character in set [0-9A-Z\_] 
-(i.e.\ lowercase letters are not allowed).  All
-names of operations of the database must be unique. Different data bases 
-can contain operations with equal names. 
-
-\paragraph{operation description}
-Optional description of the operation.
-
-\paragraph{inputs}
-Number of inputs of the operation. The number of inputs is a
-nonnegative integer. It must be positive if the number of outputs is
-zero.
-
-\paragraph{outputs}
-
-Number of outputs of the operation. The number of outputs is a
-nonnegative integer. It must be positive if the number of inputs is
-zero.
-
-\paragraph{reads/writes-memory}
-
-Indicates that this operation can access memory.  Normally, memory access is
-also implied from the properties `mem-address' and `mem-data' of operation
-inputs (or the `mem-data' property of operation outputs).  However, it is
-possible to define operations that perform \emph{invisible} accesses to
-memory, whereby no input or output is related to the memory access itself.
-That is, neither the address nor the data moved into or out of memory is
-explicitly specified by the operation.  In these operations, memory accesses
-occur as a side effect, and none of the inputs or outputs have
-memory-related properties.  To avoid potential errors, the memory property
-must be specified explicitly even when it is implied by some of the inputs
-or outputs of the operation.  See sections on input and output declarations,
-below.
-
-\paragraph{clocked}
-Clocked attribute indicates that the operation can change its state
-synchronously with clock signal and independently from its input.
-
-\paragraph{side-effect}
-
-Indicates that two subsequent executions of this operation with the same
-input values may generate different output values.  An operation marked with
-``side-effect'' is an operation which writes some state data, affecting
-further executions of the same operation and other operations sharing
-that same state data. The other operations that read or write
-the same state data written by an operation marked with ``side-effect'' 
-must be marked ``affected-by'' that operation (see later for an example).
-
-Note: only operations that write the state should marked to
-have ``side-effects''. Operations that only read the state data do not
-have side effects and may be reordered more freely by the compiler.
-
-\paragraph{affected-by}
-
-In case an operation reads or writes state data written by another 
-operation sharing the same state data (that is marked with the
-``side-effect'' property), the operation should be marked ``affected-by''
-that operation. 
-
-This property restricts the compiler's reordering optimizations 
-from moving operations that read or write state data above an operation
-that also writes the same data, which would result in potentially
-producing wrong results from the execution.
-
-\paragraph{affects}
-
-This is an optional convenience property that allows defining
-the state data dependency the other way around. If an operation
-is listed in the ``affects'' list it means that the operation
-is writing state data that is read or written by the affected operation.
-
-Note: it is not necessary that, if operation A `affects' operation B, then B
-must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
-B, it is not needed that B must contain A in its `affects' list. This
-allows, for example, a user to add new operations that share state with 
-the base operations shipped with TCE, without needing to modify the base
-operations.
-
-\paragraph{An example of defining multiple operations that share the
-same state.} A common use case for multiple operations that share
-state data is a case where one or more operations initialize an
-internal register file in an FU and one or more operations use the
-data in the register file to compute their results.
-
-For example, INIT\_RF could initialize the internal register
-file with the given number. This operation should be marked
-``side-effects''. Let's say that another two operations COMPUTE\_X and
-COMPUTE\_Y only read the internal RF data, thus they can be freely
-reordered by the computer with each other in the program code in case
-there are no other dependencies. As they only read the state data,
-they don't have and visible side effects, thus they should not
-be marked with the ``side-effects'' property. However, as they read
-the data written by the INIT\_RF operation, both operations should
-be marked to be ``affected-by'' the INIT\_RF.
-
-\subsubsection{Operation Input Properties}
-\label{ssec:opinput-properties}
-
-Each input of an operation requires an independent declaration of its
-properties.  An operation input is completely defined by the following
-properties:
-\begin{itemize}
-\item identification number (integer)
-\item memory address (yes/no)
-\item memory data (yes/no)
-\item can be swapped (set of integers)
-\end{itemize}
-
-\paragraph{identification number}
-Integer number in the range [1,N] where N is the number of inputs as defined
-in section~\ref{ssec:operation-properties} of operation declaration.  If N
-is zero, then no input declarations can be specified. TCE does not currently
-allow operations with zero inputs to be defined.
-
-\paragraph{can-swap}
-A list of identification numbers.  All the inputs listed can be swapped with
-this input.  The identification number of this input definition is not
-allowed in the list.  The can-swap property is commutative, thus any of the
-listed inputs is implicitly `can-swap' with this input and all the other
-inputs listed.  The can-swap declaration need not be symmetrical, but it is
-not an error if the implied declaration is also specified.
-
-\paragraph{mem-address}
-Optional.  Indicates that the input is used to compute (affects the value
-of) the memory address accessed by this operation.
-
-\paragraph{mem-data}
-Optional.  Indicates that the input is used to compute (affects the value
-of) the data word written to memory by this operation.  This property
-implies that the operation writes to memory.
-
-\subsubsection{Operation Output Properties}
-\label{ssec:opoutput-properties}
-
-Note: it is not an error if a program, before instruction scheduling,
-contains an operation where one of the output moves is missing. If all
-output moves of an operation are missing, then the only useful work that can
-be performed by the operation is state change.
-
-\paragraph{mem-data}
-Optional.  Indicates that the output contains a value that depends on a
-data word read from memory by this operation.  This property implies that
-the operation reads data from memory.
-
-\subsubsection{Operation DAG}
-\label{ssec:operation-dag}
-
-The semantics of an operation may be modeled with a simple dag-based language.
-This can be used to both simulate the operation without writing the 
-simulation code, and to allow the compiler to automatically use custom
-operations.
-
-The optional field to describe the Operation DAGs is 
-\textit{trigger-semantics}. It contains description of the operation 
-semantics as a directed acyclic graph (DAG). 
-
-The OperationDAG language description is given as the content of this element.
-The OperationDAG language has the following syntax:
-
-All commands end in semicolon.
-
-\begin{description}
-
-\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
-  Creates a temporary variables with given name. Usage examples:
-
-SimValue temp;
-
-SimValue temp1, temp2;
-
-\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
- Calls another operation with the given operand values. 
-
-The input values can be either temporary variables, inputs to the operation
-whose semantics is being modeled, or integer constants.
-
-The output value can be either temporary variables or outputs of the operation
-whose semantics is being modelled.
-
-Operands of the modeled operation are referred with name IO(<number>) 
-where 1 is first input operand, 2 second input operand, and after input 
-operands come output operands. 
-
-Temporary values are referred by their name, and integer constants are given
-in decimal format.
-
-Example OperationDAG of the ADDSUB operation:
-
-\begin{verbatim}
-     <trigger-semantics>
-       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
-       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
-     </trigger-semantics>
-\end{verbatim}
-
-
-\end{description}
-
-
-\subsubsection{Operation Behavior}
-\label{ssec:operation-behavior}
-
-To be complete, the model of an operation needs to describe the
-behavior of the operation. The behavior is specified in a restricted
-form of C++, the source language of the TCE toolset, augmented with
-macro definitions.  This definition is used for simulating the
-operation in the instruction set simulator of TCE.
-
-\paragraph{Definition of Operation Behavior}
-
-Operation behavior simulation functions are entered inside an operation
-behavior definition block. There are two kinds of such blocks: one for
-operations with no state, and one for operations with state.
-
-\begin{description}
-\item[OPERATION(\emph{operationName})] %
-  Starts an operation behavior definition block for an operation with name 
-  \emph{operationName}. Operations defined with this statement do not 
-  contain state. Operation names must be written in upper case letters!
-\item[END\_OPERATION(\emph{operationName})] %
-  End an operation behavior definition block for an operation with no state.
-  \emph{operationName} has to be exactly the same as it was entered in the
-  block start statement \verb|OPERATION()|.
-\item[OPERATION\_WITH\_STATE(\emph{operationName}, \emph{stateName})] %
-  Starts an operation behavior definition block for an operation with state.
-  \emph{operationName} contains the name of the operation, \emph{stateName}
-  name of the state. DEFINE\_STATE() definition for the \emph{stateName}
-must 
-  occur before this statement in the definition file. Operation and state
-  names must be written in upper case letters!
-\item[END\_OPERATION\_WITH\_STATE(\emph{operationName})] %
-  Ends an operation behavior definition block for an operation with state.
-  \emph{operationName} has to be exactly the same as it was entered in the
-  block start statement \verb|OPERATION_WITH_STATE()|.
-\end{description}
-
-The main emulation  function definition block is given as:
-\begin{description}
-\item[TRIGGER ... END\_TRIGGER;] %
-  Main emulation function.
-
-% \item[LATE\_RESULT ... END\_LATE\_RESULT;] %
-%   Function that emulates late-coming results.
-\end{description}
-
-% Only the first definition is mandatory.  The LATE\_RESULT definition allows 
-% the user to define operations with complex, nondeterministic behavior.
-
-The bodies of the function definitions are written in the operation behavior
-language, described in Section~\ref{ssec:behaviour-commands}.
-
-\paragraph{Operations with state.}
-
-To define the behavior of an operation with state it is necessary to
-declare the state object of the operation.  An operation state declaration
-is introduced by the special statement \verb#DEFINE_STATE()#.  See
-Section~\ref{ssec:behaviour-commands} for a description of this and related
-statements. State must be declared before it is used in operation behavior
-definition. 
-
-A target processor may contain several \emph{implementations} of the
-same operation.  These implementations are called Hardware Operations and
-are described in~\cite{ADF-specs}.
-%
-Each Hardware Operation instance belongs to a different function unit and is
-independent from other instances.
-%
-When an operation has state, each of its Hardware Operations uses a
-different, independent instance of the state class (one for each function
-unit that implements that operation).
-
-An operation state object is unambiguously associated with an operation (or
-a
-group of operations, in case the state is shared among several) by means of
-its name, which should be unique across all the operation definitions.%
-\note{see issue \ref{sec:state-name}}
-
-Operation state can be accessed in the code that implements the behavior of
-the operation by means of a \verb#STATE# expression.  The fields of the
-state object are accessed with the dot operator, as in C++.  See
-Section~\ref{ssec:behaviour-commands} for a complete description of this
-statement.
-
-\paragraph{Main emulation function.}
-The behavior model of an operation must include a function that, given a
-set of input operand values and, optionally, an operation state instance,
-produces one or more output values that the operation would produce.
-
-The definition of an emulation function is introduced by the statement
-\verb#TRIGGER# and is terminated by the statement \verb#END_TRIGGER;#.  
-
-An emulation function is expected to read all the inputs of its operation
-and to update the operation outputs with any new result value that can be
-computed before returning.
-
-\subsubsection{Behavior Description language}
-\label{ssec:behaviour-commands}
-
-The behavior of operations and the information contents of operation state
-objects are defined by means of the behavior description language.
-
-The emulation functions that model operation behavior are written in C++
-with some restrictions.
-The  OSAL behavior definition
-language augments the C++ language with a number of statements.  For
-example, 
-control may exit the definition body at any moment by using a special 
-statement, a set of statements is provided to refer to operation inputs
-and 
-outputs, and a statement is provided to access the memory model.
-
-\paragraph{Base data types.}
-The behavior description language defines a number of base data
-types.  These types should be used to implement the operation behavior
-instead of the C base data types, because they guarantee the bit width and
-the format.
-\begin{description}
-\item[IntWord] %
-  Unsigned integer 32-bit word.
-\item[FloatWord] %
-  Single-precision (32-bit) floating-point word in IEEE-754 format.
-\item[DoubleWord] %
-  Double-precision (64-bit) floating-point word in IEEE-754 format.
-\item[HalfWord] %
-  Half-precision (16-bit) floating-point word in IEEE-754 format.
-\end{description}
-
-\paragraph{Access to operation inputs and outputs.}
-Inputs and outputs of operations (henceforth referred to as
-\emph{terminals}, when a distinction is not needed) are referred to by a
-unique number.  The inputs are assigned a number starting from 1 for the
-first input.  The first output is assigned the number $n+1$, where $n$ is
-the number of inputs of the operations, the second $n+2$, and so on.
-
-Two sets of expressions are used when accessing terminals. The value of
-an input terminal
-can be read as an unsigned integer, a signed integer, a single precision 
-floating point number, or
-a double precision floating point number using the following expressions:
-\begin{description}
-\item[UINT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  IntWord, which is an unsigned integer of 32 bits maximum length.
-\item[INT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  SIntWord, which is a signed integer of 32 bits maximum length.
-\item[FLT(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  \emph{FloatWord}.
-\item[DBL(\emph{number})] %
-  Treats the input terminal denoted by \emph{number} as a number of type
-  \emph{DoubleWord}.
-\end{description}
-
-Output terminals can be written using the following expression:
-\begin{description}
-\item[IO(\emph{number})] %
-   Treats the terminal denoted by \emph{number} as an output terminal.
-   The actual bit pattern (signed, unsigned or floating point) written to
-   the output terminal is determined by the right hand expression
-   assigned to the IO() expression.
-\end{description}
-
-Since the behavior of certain operations may depend in non-trivial ways on
-the bit width of the terminals of a given implementation, it is sometimes
-necessary to know the bit width of every terminal.  The expression
-\begin{description}
-\item[BWIDTH(\emph{number})]
-\end{description}
-returns the bit width of the terminal denoted by \emph{number} in the
-implementation of the calling client.
-
-Bit width of the operands can be extended using two different expressions.
-
-\begin{description}
-\item[SIGN\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
-  Sign extends the given integer from \emph{sourceWidth} to 32 bits.
- 
-  Sign extension means that the sign bit of the source word is duplicated
-  to the extra bits provided by the wider target destination word.
-
-  For example a sign extension from 1001b (4 bits) to 8 bits provides
-  the result 1111 1001b.
-
-\item[ZERO\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
-  Zero extends the given integer from \emph{sourceWidth} to 32 bits.
-
-  Zero extension means that the extra bits of the wider target destination
-  word are set to zero. 
-
-  For example a zero extension from 1001b (4 bits) to 8 bits provides
-  the result 0000 1001b.
-
-\end{description}
-
-\emph{Example.} The following code implements the behavior of an accumulate
-operation with one input and one output, where the result value is saturated
-to the ``all 1's'' bit pattern if it exceeds the range that can be expressed
-by the output:
-\begin{verbatim}
-  STATE.accumulator += INT(1);
-  IntWord maxVal = (1 << BWIDTH(2)) - 1;
-  IO(2) = (STATE.accumulator <= maxVal ? STATE.accumulator : maxVal);
-\end{verbatim}
-
-\paragraph{Definition of operation state.}
-Operation state consists of a data structure.  Its value
-is shared by one or more operations, and it is introduced by the statement
-\begin{description}
-\item[DEFINE\_STATE(\emph{name})]
-\end{description}
-where \emph{name} is a string that identifies this type of operation state.
-This statement is followed by a list of data type fields. The state name
-string must be generated with the following regular expression:
-\begin{quote}
-  [A-Z][0-9A-Z\_]*
-\end{quote}
-Note that only upper case letters are allowed.
-
-A state definition block is terminated by the statement
-\begin{description}
-\item[END\_DEFINE\_STATE]
-\end{description}
-
-\emph{Example.} The following declaration defines an operation state class
-identified by the name string ``BLISS'', consisting of one integer word, one
-floating-point word and a flag:
-\begin{verbatim}
-DEFINE_STATE(BLISS) 
-  IntWord data1;
-  FloatWord floatData;
-  bool errorOccurred;
-END_DEFINE_STATE;
-\end{verbatim}
-
-%% These were already defined a couple a pages before:
-% The data type IntWord represents a 32-bit integer number; the data type
-% FloatWord represents a 32-bit floating-point IEEE-754 number.
-
-Some operation state definitions may require that the data is initialized to
-a predefined state, or even that dynamic data structures are allocated when
-the operation state object is created. In these cases, the user is required
-to provide an initialization definition inside the state definition block.
-\begin{description}
-\item[INIT\_STATE(\emph{name})]%
-  Introduces the code that initializes the operation state.
-\item[END\_INIT\_STATE]%
-  Terminates the block that contains the initialization code.
-\end{description}
-
-Some state definitions may contain resources that need to be released when the
-state model is destroyed. For example, state may contain dynamically
-allocated data or files that need to be closed. In these cases, the user
-must define a function that is called when the state is deallocated. This
-function is defined by a finalization definition block, which must be
-defined inside the state definition block.
-\begin{description}
-\item[FINALIZE\_STATE(\emph{name})]%
-  Introduces the code that finalizes the operation state, that is,
-  deallocates the dynamic data contained in an operation state object.
-\item[END\_FINALIZE\_STATE]%
-  Terminates the block that contains finalisation code.
-\end{description}
-
-The state model provides two special definition blocks to support emulation
-of operation behaviour.
-
-\begin{description}
-\item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
-  In case the model of operations state is synchronous, this definition can
-  be used to specify activity that occurs ``in the raising edge of the clock
-  signal'', that is, at the end of a simulation cycle. The C `return'
-  statement can used to return from this function.
-\end{description}
-
-\paragraph{Access to operation state.}
-Operation state is denoted by a unique name string and is accessed by means
-of the statement
-\begin{description}
-\item[STATE]
-\end{description}
-
-Typically, an operation state data structure consists of several fields,
-which are accessed using the dot operator of C++.  For example, the
-expression \verb#STATE.floatData# in a simulation function refers to the
-field \verb#floatData# of the state object assigned to the operation
-being defined.  The precise format of an
-operation state structure is defined by means of the \verb#DEFINE_STATE()#
-statement, and it is specific for an operation. State must be defined before it
-can be used in an operation definition.
-
-\paragraph{Access to control registers.}
-Operations that can modify the program control flow can access the program
-counter register and the return address of the target processor by means of
-the following expressions:
-\begin{description}
-\item[PROGRAM\_COUNTER] %
-\item[RETURN\_ADDRESS] %
-\end{description}
-Not all operations can access the control registers.  Only operations
-implemented on a Global Control Unit (see~\cite{ADF-specs}) provide the
-necessary data.  It is an error to use \verb#PROGRAM_COUNTER# or
-\verb#RETURN_ADDRESS# in operations that are not implemented on a Global
-Control Unit.
-
-\paragraph{Context Identification}
-
-Each operation context can be identified with a single integer which
-can be accessed with \verb#CONTEXT_ID#.
-
-\paragraph{Returning from operation behavior emulation functions.}
-Normally, an emulation function returns control to the caller when control
-flows out of the definition body.  To return immediately, from an arbitrary
-point in the definition body, the following normal C++ return 
-statement can be used. The return value is boolean indicating the success
-of the operation execution. In pratice, 'true' is always returned:
-\verb|return true;|.
-
-\paragraph{Memory Interface.}
-
-The memory interface of OSAL is very simplified allowing easy modeling of
-data memory accessing operations. The following keywords are used
-to define the memory access behavior:
-
-\begin{description}
-\item[MEMORY.read(address, count, target)]%
-  Reads \emph{count} units of data from the \emph{address} to the variable
-  \emph{target}.
-\item[MEMORY.write(address, count, data)]%
-  Writes \emph{count} units of data in variable \emph{data} to 
-  the \emph{address}.
-\end{description}
-
-
-\subsection{Simulation Trace Database}
-\label{sec:tracedb}
-
-Filename extension: .tracedb
-
-Stores data collected from simulations and used by instruction scheduler
-(profiling data) and cost estimator (utilization statistics, etc.).
-
-\subsection{Exploration Result Database}
-\label{sec:expresdb}
-
-Exploration Result Database (ExpResDB) contains the configurations that have
-been evaluated during exploration (manual or automatic) and a summary of
-their characteristics. Files that define each tested configuration (ADF and
-IDF) are stored in the database as well. 
-
-
-\section{Notes About the Processor Template of TCE}
+Once the performance requirement is met, the user maps the
+architectural resources i.e. function units and register files, to
+their respective RTL implementations which are stored in Hardware
+Databases (HDB). The distinction between architectural models and
+component implementations makes it possible to have several
+implementations, each e.g. targeted for different FPGA families or
+ASIC technologies, stored in HDBs. Ideally, changing the target
+platform might only require changes to the implementation mapping
+without any changes to the architecture.
+
+After the implementation mapping, the Processor Generator (ProGe) can
+produce synthesizable HDL, which instantiates all FUS and creates the
+interconnection network and control unit, which is responsible of
+fetching, decoding and issuing instructions. ProGe tool also includes
+a platform integrator feature which can interface the TTA with memory
+components of an FPGA board and create synthesis settings. Moreover,
+the platform integrator can packetize the TTA (and optionally also the
+SW) into easily re-usable format. In practice, this means generating
+IP-XACT documents which describe the details in XML. Synthesing and
+simulating the HDL are done with 3rd party tools, such as Altera's
+Quartus and Mentor Graphics' Modelsim.
+
+Finally, Program Image Generator (PIG) is utilized to convert the the
+compiled SW format into actual binaries. PIG supports various
+different output formats ranging from plain binary format to FPGA
+vendor specific embedded RAM formats.
+
+More details about the tools and design phases are given in Chapters
+\ref{sec:prode} - \ref{section:codesign}. The TCE tour tutorial in
+section~\ref{sec:tcetour} gives a hands on approach to the design
+flow.
+
+\begin{table}
+  \begin{center}
+    \caption {Summary of tools. Some of the tools have grahical
+    user interface (GUI) and others executed from the command
+    prompt.}
+    \label {tab:phases}
+    \begin{tabular}{l | l | l | l }
+      \hline
+      Tool & Purpose & Type & Output file(s)\\
+      \hline
+      \hline
+      ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
+      Tcecc                & Compile SW                                       & cmd  & .tpef \\
+      Proxim               & Simulate TTA core                                & GUI  & report \\
+      ttasim               & Simulate TTA core                                & cmd  & report \\
+      osed                 & opetaion set editor                              & GUI  & operation db \\
+      hdbeditor            & HW databse editor                                & GUI  & HW db  \\
+      \hline
+      Proge                & Generate VHDL                                    & GUI  & VHDL \\
+      generateprocessor    & Same as Proge                                    & cmd  & VHDL \\     	
+      Pig                  & Generate program image                           & cmd  & .mif  \\
+      Platform integrator  & Interface with memories, generate IP-XACT        & cmd  & .xml \\
+      \hline
+      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  &  e.g. .sof\\
+      S3rd party imulation & Simulate VHDL                                    & G/c  &  report, .wave \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+% From Erno:
+%!!! N‰‰ kuvat itse asiassa vain vaikeuttavat ymm‰rt‰mist‰. Ne pit‰‰
+%joko poistaa tai yksinkertaistaa
+%\begin{figure}[p]
+%\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
+%\caption{The Initial Inputs for TCE Design Flow.}
+%\label{fig:design_flow}	
+%\end{figure}
+
+%\begin{figure}[p]
+%\centerline{\psfig{figure=eps/design_flow_exploration.eps,
+%width=1.0\textwidth}}
+%\caption{Design Space Exploration.}
+%\label{fig:design_flow_exploration}
+%\end{figure}
+
+%Fig.~\ref{fig:prode} shows mode detailed view of TCE flow.
+%\begin{figure}
+%  \begin{center}
+%    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
+%    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
+%    \caption{Detailed TCE flow. Insert figure from page 3 of tce\_tour.ppt here}
+%    \label{fig:flow}
+%  \end{center}
+%\end{figure}
+
+
+\section{The TTA Processor Template}
 \label{section:template}
 
 The processor template from which the application specific processors
-designed with TCE are defined from is called Transport Triggered 
-Architecture (TTA). For a detailed description behind the TTA philosophy, 
-refer to \cite{HCorp97}.
-This section describes certain aspects of the TTA template used in the TCE
-toolset that might not be very clear.
+designed with TCE are defined from is called Transport Triggered
+Architecture (TTA). For a detailed description behind the TTA
+philosophy, refer to \cite{HCorp97}. A short introduction is presented
+in \cite{boutellier11}.
+
+TTA is based on VLIW (Very Long Instruction Word) processor paradigm
+but solves its major bottlenecks: the complexity of register file (RF)
+and pipeline bypass network. However, TTA is \textit{statically
+scheduled} at compile time and supports \textit{instruction-level
+parallelism} (ILP) like VLIW. Instructions can be tens or hundreds of
+bits wide. TTA has multiple internal \textit{function units} (FUs) and
+interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
+
+The term transport-triggered means that instruction words control the
+operand transfers on the interconnection network and the operation
+execution happens as a side effect of these transfers. An operation is
+triggered to execute when a data operand is transferred to a specific
+\textit{trigger} input port of an FU. In the instructions there is one
+\textit{slot} for each transport bus. For example, \textit{``FU0.out0
+  -> LSU.trig.stw''} moves data from the output port $0$ of function
+unit $0$ to the trigger input port of load-store unit (LSU). After
+that the LSU starts executing the triggered operation, in this case
+store word to memory. User is not expected to write TTA assembly which
+might be tedious. However, move instructions are very handy for the
+compiler which can do various neat optimizations and scale with the
+machine.
+
+%%% !!! INSERT BASIC EXPLANATION OF TTA HERE, INCL. 1-2 FIGURES
+
+\begin{figure}
+  \begin{center} 
+  \includegraphics[width=0.75\textwidth]{eps/tta.eps}
+	\caption{TTA basic structure} 
+	\label{fig:tta1} 
+  \end{center}
+\end{figure}
+
+In basic case, all FU input and output ports are registers which
+relieves the pressure on the register file. Thanks to the programming
+model, operands can be bypassed directly from one FU to another. This
+is called software bypassing. Additionally, if the bypassed operand is
+not needed by anyone else there is no need to write the operand to a
+register file. This optimization technique is called dead result
+elimination. Combining software bypassing with dead result elimination
+helps to reduce register file traffic.  Moreover, the TTA paradigm
+gives freedom for partitioning register files. For example, there can
+be several small and simple register files instead one centralized
+multiported RF.
+
+The transport paradigm is also beneficial because it allows easy
+scalability of the architecture and compiler, as well as supports
+varying pipeline depths at FUs. At the same time, the number of FU
+inputs and outputs is not restricted, unlike in most processor
+templates which support mostly just instructions with 2 inputs and 1
+output value. User can also create instruction set extensions with a
+\textit{special function unit} (SFU) which can have arbitrary number
+of I/O operands. Instruction set extension is a powerful way of
+enhancing the performance of certain applications.
+
+\begin{table}
+  \begin{center}
+    \caption {Configurable aspects of TTA}
+    \label {tab:filetypes}
+    \begin{tabular}{l | l | l }
+      \hline
+      Property & Values & Example  \\
+      \hline
+      \hline
+      Functional unit         & Type, count                         & 3x ALU, 2x LSU, 1x MUL, 1x ctrl...\\
+      Register file (RF)      & \# registers, \#RFs, \#ports, width & 16x 32b RF 2x rd + 2x wr ports, 16x 1b boolean RF \\
+      Interconnection network & \#buses, \#sockets                & 5 buses, total of 43 write and 44 read sockets\\
+      Memory interfaces       & Count, type                       & 2x LSU for SRAM w/ 32b data \& 32b addr \\
+      Special FU              & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+The basic exploration of TTA could be as follows. Start with a
+``basic'' TTA and measure the cycle counts and FU utilization using
+Proxim. Add lots of resources, especially those types that were
+heavily utilized in basic case, and make the interconnection fully
+connected. This will yield a very large TTA in terms of HW resources
+but also the one with lowest cycle count. In many cases, user can
+achieve 2-5x speedup in terms of cycle count. The next step is to
+reduce the FUs and the connectivity of the interconnection network to
+obtain reasonably sized machine. If that proves difficult, one can
+start planning an SFU.
+
+Fortunately, TCE makes it easy. User can define a fraction of code
+(e.g. the bottleneck function) to executed by an SFU, even if such
+unit has not been implemented yet. User only has to define the
+operation behavior in C/C++ and tell the compiler how many clock
+cycles the custom operation execution takes and then compile and
+repeat the simulation. This way it is easy to seek for the most
+potential custom operations as well as test different execution
+latencies for the custom operations. Once a suitable custom operation
+has been identified, user can start actually implementing it in VHDL.
+
+The rest of this section describes certain detailed aspects of the TTA
+template used in the TCE toolset that might not be very clear.
 
 \subsection{Immediates/Constants}
 
-The TTA template supports two ways of transporting program constants in
-instructions. \textit{Short immediates} are encoded in the move slot's
-source field, and thus consume a part of a single move slot. The constants
-transported in the source field are usually relatively small in size. 
+The TTA template supports two ways of transporting program constants
+in instructions, such as \textit{``add value+5''}. \textit{Short
+  immediates} are encoded in the move slot's source field, and thus
+consume a part of a single move slot. The constants transported in the
+source field should usually be relatively small in size, otherwise the
+width of a move slot is dominated by the immediate field.
 
-Wider constants can be transported by means of so called \textit{long 
-immediates}. Long immediates can be defined using a 
-an ADF parameter called \textit{instruction template}. The instruction
-template defines which slots are used for pieces of the instruction
-template or for defining the transports (moves).
-The slots cannot be used for
-regular data transports when they are used for transporting pieces of
-a long immediate. 
+Wider constants can be transported by means of so called \textit{long
+  immediates}. Long immediates can be defined using an ADF parameter
+called \textit{instruction template}. The instruction template defines
+which slots are used for pieces of the instruction template or for
+defining the transports (moves).  The slots cannot be used for regular
+data transports when they are used for transporting pieces of a long
+immediate.
 
 An instruction template defining a long immediate also provides
 a target to which the long immediate must be transported. The target register
@@ -873,7 +420,7 @@ resides in a so called \textit{immediate unit} which is written directly
 from the control unit, not through the transport buses. The immediate unit is like
 a register file expect that it contains only read ports and is written
 only by the instruction decoder in the control unit when it detects an 
-instruction with a long immediate.
+instruction with a long immediate (see Fig.~\ref{fig:tta1}.
 
 Thus, in order to support the special long immediate encoding, one has
 to add a) an instruction template that supports transporting the pieces
@@ -883,20 +430,19 @@ immediates and of which registers the immediates can be read to the
 datapath.
 
 \subsection{Operations, Function Units, and Operand Bindings}
-
 Due to the way TCE abstracts operations and function units, an
 additional concept of \textit{operand binding} is needed to 
 connect the two in processor designs.
 
-Operations in TCE are defined in a separate database 
-(OSAL, Section~\ref{section:osal}) in order to allow defining a reusable
-database of ``operation semantics''. The operations are
-used in processor designs by adding \textit{function units} (FU) that implement
-the wanted operations. Operands of the operations can be
-mapped to different ports of the implementing FU, which affects 
-programming of the  processor. Mapping of operation operands
-to the FU ports must be therefore described by the processor designer
-explicitly.
+Operations in TCE are defined in a separate database (OSAL,
+Sections~\ref{section:osal} and \ref{section:osal_details} ) in order
+to allow defining a reusable database of ``operation semantics''. The
+operations are used in processor designs by adding \textit{function
+units} (FU) that implement the wanted operations. Operands of the
+operations can be mapped to different ports of the implementing FU,
+which affects programming of the processor. Mapping of operation
+operands to the FU ports must be therefore described by the processor
+designer explicitly.
 
 \textbf{Example.} Designer adds an FU called 'ALU' which implements
 operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
@@ -934,7 +480,7 @@ from the following:
 
 With the rest of the operands bound similarly as in the first example.
 
-Due to the differing 'SUB' input bindings one cannot run code scheduled
+Due to the differing 'SUB' input bindings, one cannot run code scheduled
 for the previous processor on a machine with an ALU with the latter 
 operand bindings. This small detail is important to understand when 
 designing more complex FUs, with multiple operations with different number of 
@@ -956,13 +502,15 @@ bits than the shifted data operand.
 
 \subsection{Datapath Connectivity Levels}
 \label{ConnectivityLevels}
-The datapath interconnection network of TTAs is visible to the programmer.
-This enables full customization of the connectivity, making it possible to
-remove connections that are rarely, if at all, used by the programs the
-processor at hand is designed to run. However, less connections the machine
-has, more challenging it becomes to automatically produce efficient code
-for it. This section describes the different TTA ``connectivity levels'' and
-their support in the TCE design flow.
+The datapath interconnection network of TTAs is visible to the
+programmer (i.e. the compiler in practice).  This enables full
+customization of the connectivity, making it possible to remove
+connections that are rarely, if at all, used by the programs the
+processor at hand is designed to run. This offers notable saving in
+the HW area. However, the less connections the machine has, the more
+challenging it becomes to automatically produce efficient code for
+it. This section describes the different TTA ``connectivity levels''
+and their support in the TCE design flow.
 
 The currently identified and supported connectivity levels are, in the order of 
 descending level of connectivity, as follows:
@@ -1005,9 +553,247 @@ assembler. Thus, one can resort to manual TTA assembly programming.
 \end{enumerate}
 
 
+
+
+
+\section{Main File Formats}
+\label{section:fileFormats}
+
+The flow consists of many separate tools and information is exchanged
+with files.  This chapter gives an overview of 8 file and database
+types manipulated by TCE applications and accessible to users of the
+toolset, architecture definition .adf and SW binary
+.tpef being the most important ones. Many files are XML so
+user can easily access them, if needed.
+
+There a 3 kind of files:
+
+\begin{enumerate}
+ \item HW definitions: adf, hdb, and idf
+ \item SW definitions: tpef, bem, opp, cc, opb
+ \item Simulation and exploration data: dsdb, set of the files above
+\end{enumerate}
+
+%%% !!! INSERT BASIC EXPLANATION !!!
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_selection.eps,width=0.35\textwidth
+%  }}
+%  \caption{Processor Configuration Selection.}
+%  \label{fig:design_flow_selection}
+%\end{figure}
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_codegen.eps,width=0.6\textwidth}}
+%  \caption{Code Generation and Analysis.}
+%  \label{fig:design_flow_codegen}
+%\end{figure}
+
+%\begin{figure}
+%  \centerline{\psfig{figure=eps/design_flow_generation.eps,
+%      width=0.85\textwidth}}
+%  \caption{Processor and Program Image Generation.}
+%  \label{fig:design_flow_generation}
+%\end{figure}
+
+%Figure~\ref{fig:design_flow_exploration} the design space 
+%exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
+%configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
+%code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
+%the generation of the final outputs: the processor description and the 
+%program bit image.
+
+\subsection{Architecture Definition File (ADF)}
+\label{sec:adf}
+
+Filename extension: .adf
+
+Machine Architecture Definition File (ADF) is a file format for
+defining target processor architectures, e.g. which function units are
+used and how they are connected \cite{ADF-specs}.  ADF is created with
+ProDE and is a minimal specification of the target processor
+architecture, meaning that only the information needed to generate
+valid programs for the processor is stored, but nothing else. This
+file is needed by many tools, such as tcecc, ttasim, and ProGe.
+
+The XML snippet below gives an idea of ADF.
+\begin{verbatim}
+<adf version="1.7">
+
+  <bus name="B1">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    ...
+  <socket name="alu_comp_i1">
+    <reads-from>
+      <bus>B1</bus>
+    ...
+  <function-unit name="alu_comp">
+    <port name="in1t">
+      <connects-to>alu_comp_i1</connects-to>
+      <width>32</width>
+      <triggers/>
+    ...
+    <operation>
+      <name>add</name>
+      <bind name="1">in1t</bind>
+      ...
+  <register-file name="RF">
+    <type>normal</type>
+    ...
+  <address-space name="data">
+    <width>8</width>
+    ...
+\end{verbatim}
+
+\subsection{TTA Program Exchange Format (TPEF)}
+\label{section:TPEF}
+
+Filename extension: .tpef
+
+TTA Program Exchange Format (TPEF) is a file format for storing
+compiled TTA programs which can be either unscheduled, partially
+scheduled, or scheduled
+\cite{TPEF-specs}. TPEF supports auxiliary sections for storing
+additional information related to the program, such as execution
+profiles, machine resource data, and target address space definitions.
+This file is needed, e.g.  by ttasim and Pig.
+
+\subsection{Hardware Database (HDB)}
+\label{section:hdb}
+% Describe what is shipped by default in TCE
+Filename extension: .hdb
+
+Hardware Database (HDB) is the main SQLite database used by the
+Processor Generator and the Cost Estimator.  The data stored in HDB consist
+of hardware description language definitions (HDL) of TTA components
+(function units, register files, buses and sockets) and metadata that
+describe certain parameters used in implementations. In addition, HDB may
+include data of each implementation needed by the cost estimation
+algorithms.
+
+TCE ships with an example HDB that includes implementations for several
+function units and register files in VHDL, and cost data for the default
+interpolating cost estimation plugin. 
+
+\subsection{Implementation Definition File (IDF)}
+\label{sec:idf}
+
+Filename extension:  .idf
+
+Describes which implementations to use for each component in the
+architecture. Hence, this links ADF file to HDB. Using this
+information it is possible to fetch correct hardware description
+language (HDL) files from the hardware block library for cost
+estimation and processor generation. This file is needed, e.g. by
+PIG.
+
+
+The XML snippet below gives an idea of IDF.
+\begin{verbatim}
+ <adf-implementation>
+  ...
+  <fu name="LSU">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+  ...
+\end{verbatim}
+
+
+
+\subsection{Binary Encoding Map}
+\label{sec:bem}
+
+Filename extension: .bem 
+
+Provides enough information to produce an executable uncompressed bit
+image 
+%(Section~\ref{sec:db_bim}) 
+from TPEF program data.
+
+
+\subsection{Operation Set Abstraction Layer (OSAL) Files}
+\label{section:osal}
+% Describe what is shipped by default in TCE
+Filename extension: .opp, .cc, .opb
+
+OSAL stores the simulation behavior and static properties of operations in
+function units.
+
+Simulation behavior of function unit operations is described by implementing
+simulation functions which can be plugged in to the simulator run time.
+
+The .opp file is an XML file for defining the static properties of
+operations (for example, how many inputs and outputs an operation
+has). The .cc is the C++ source file that defines the behavior model
+for a set of operations. The .opb is the plugin module compiled from
+the .cc.  OSAL is quite complex and further details are presented in
+Section \ref{section:osal_details}
+
+
+\subsection{Simulation Trace Database}
+\label{sec:tracedb}
+
+Filename extension: .tracedb
+
+Stores data collected from simulations and used by instruction scheduler
+(profiling data) and cost estimator (utilization statistics, etc.).
+
+\subsection{Exploration Result Database}
+\label{sec:expresdb}
+
+Filename extension: .dsdb
+
+Exploration Result Database (ExpResDB) contains the configurations that have
+been evaluated during exploration (manual or automatic) and a summary of
+their characteristics. Files that define each tested configuration (ADF and
+IDF) are stored in the database as well. 
+
+
+
+\subsection{Summary of file types}
+\label{sec:summary}
+
+Table~\ref{tab:files} summarizes briefly the most common TCE file types.
+
+\begin{table}[b]
+  \begin{center}
+    \caption {Summary of file types}
+    \label {tab:files}
+    \begin{tabular}{l | l | l }
+      \hline
+      Postfix  & Purpose                                    & Format \\
+      \hline
+      \hline
+      adf      & Architecture   description                 & XML \\
+      idf      & Implementation description                 & XML \\
+      hdb      & HW database                                & SQLite \\
+      \hline
+      tpef     & TTA program exchange format                & bin \\
+      bem      & Binary encoding map                        & bin \\
+      opp      & Operation properties                       & XML \\
+      cc       & Behavior of an operation                   & C++\\
+      opb      & Compiled operation behavior                & bin \\
+      \hline
+      tracedb  & Database of simulation and cost estimation results     & SQLite \\
+      dsdb     & Database of exploration results and TTA configurations & SQLite \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+
+
 \chapter{TUTORIALS AND HOW-TOS}
 \label{chapter:tutorials}
 
+This section presents 11 tutorials covering the basics, printing and
+streaming I/O, floating-point computation, parallel assembly, multiple
+memories, FPGA considerations and TTA with OpenCL.
+
+Let's start with the simplest one.
 
 \section{TCE Tour}
 \label{sec:tcetour}
@@ -1017,27 +803,51 @@ example application. It starts from C code and ends up with VHDL of the
 processor and a bit image of the parallel program. This tutorial will also
 explain how to accelerate an algorithm by customizing the instruction
 set, i.e.\ by using custom operations. The total time  to go through
-the tutorial is about 2 to 3 hours.
+the tutorial is about $2-3$ hours.
 
 The tutorial file package is available at:
 
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
 
-Unpack it to a working directory and cd to tce\_tutorials/tce\_tour.
+Fetch and unpack it to a working directory and then enter the directory:
+
+\begin{verbatim}
+> wget http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz
+> tar -xzf tce_tutorials.tar.gz
+> cd tce_tutorials/tce_tour
+> ls -la
+
+total 84
+drwxr-xr-x 3 tce tce  4096 2010-05-28 11:40 .
+drwx------ 7 tce tce  4096 2012-05-18 13:22 ..
+-rw------- 1 tce tce  5913 2010-03-08 20:01 crc.c
+-rw------- 1 tce tce  1408 2008-11-07 11:35 crc.h
+-rw------- 1 tce tce  3286 2008-11-07 11:35 crcTable.dat
+-rw-r--r-- 1 tce tce  2345 2010-03-08 13:04 custom_operation_behavior.cc
+-rw-r--r-- 1 tce tce   855 2010-05-28 11:41 custom_operations.idf
+-rw------- 1 tce tce  1504 2010-03-08 20:01 main.c
+-rw-r--r-- 1 tce tce 45056 2010-03-10 16:09 tour_example.hdb
+drwxr-xr-x 2 tce tce  4096 2010-05-28 11:40 tour_vhdl
+\end{verbatim}
+
 
 \subsection{The Sample Application}
 
-The test application counts a 32-bit CRC (Cyclic Redundant Check). The C code
-implementation is written by Michael Barr and it is published under Public
-Domain. The implementation consists of two different version of crc, but we will
-be using the fast version only.
+The test application counts a 32-bit CRC (Cyclic Redundant Check)
+check value for a block of data, in this case 10 bytes. The C code
+implementation is written by Michael Barr and it is published under
+Public Domain. The implementation consists of two different version of
+crc, but we will be using the fast version only.
 
-The program consists of two separate files: \file{main.c} contains the simple main
-function and \file{crc.c} contains the actual implementation. Open \file{crc.c} in
-your preferred editor and take a look at the code. The
-main difference between the crcSlow and crcFast implementations is that 
-crcFast exploits precalculated table values. This is a quite usual method of
-algorithm optimization.
+The program consists of two separate files: \file{main.c} contains the
+simple main function and \file{crc.c} contains the actual
+implementation. Open \file{crc.c} in your preferred editor and take a
+look at the code. Algorithm performs modulo-2 division, a byte at a
+time, reflects the input data (MSB becomes LSB) depending on the
+previous remainder, and XORs the remainder with a predefined
+polynomial (32-bit constant). The main difference between the crcSlow
+and crcFast implementations is that crcFast exploits a precalculated
+lookup table. This is a quite usual method of algorithm optimization.
 
 % \subsection{Generating LLVM Bitcode}
 % 
@@ -1053,7 +863,7 @@ algorithm optimization.
 % generated program in order to access them by name in the simulator.
 
 \subsection{Starting Point Processor Architecture}
-
+\label{ssec:start_point}
 We use the {\em minimal architecture} as the starting point. File
 \file{minimal.adf} describes a minimalistic architecture containing
 just enough resources that the TCE compiler can still compile programs for it. 
@@ -1064,49 +874,74 @@ implementation of the processor automatically later in the tutorial.
 % design all the components from scratch in order to evaluate the architecture
 % without actually implementing the components in VHDL.
 
-Copy the \file{minimal.adf} included in TCE distribution to a new
-ADF file which is your starting point architecture:
+Copy the \file{minimal.adf} included in TCE distribution to a new ADF
+file which is your starting point architecture. You can view it using the
+graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
 
 \shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 
-Take a look at the starting point architecture using the graphical Processor
-Designer (ProDe, Section~\ref{sec:prode}) tool. Then Start ProDe with:
-
 \shellcmd{prode start.adf \&}
 
-If you have GHDL installed in your system and you want to simulate the
-generated processor I suggest you to decrease the amount of memory in the
-processor. Otherwise the GHDL generated testbench might consume tremendous
-amount of memory on your computer. To do this select Edit -> Address Spaces
-in ProDe. Then edit the bit widths of data and instruction address spaces and
-set them to 15 bits which should be plenty for our case.
+Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
+and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
+1 LSU.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/prode_scrshot}
+    \caption{Processor Designer (prode) when minimal ADF is opened}
+    \label{fig:prode}
+  \end{center}
+\end{figure}
+
+You'll learn how to edit the TTA with ProDe later in this tutorial.
+
+If you want later to simulate the generated processor using GHDL
+(Section \ref{ssec:tcetour_final_products}), you should decrease the
+amount of memory in the processor already now. Otherwise the GHDL
+executing the generated testbench might consume tremendous amount of
+memory on your computer and even crash. Select
+\textit{Edit -> Address Spaces} in ProDe. Then edit the bit widths of
+data and instruction address spaces and set them to $15$ bits which
+should be plenty for our case.
 
 
-\subsection{Evaluating the Starting Point Architecture}
-
-Now we want to know how well the starting point architecture executes our
-program. We must compile the source code for our starting point architecture.
-This can be done with command:
+\subsection{Compiling and simulating}
+\label{ssec:eval_start}
+Now we want to know how well the starting point architecture executes
+our program. We must compile the source code for this architecture
+with command:
 
 \shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result main.c crc.c}
 
-This will produce a parallel program called \file{crc.tpef} that can be
-executed with the processor design \file{start.adf}.  The parallel
-program is now tied to a specified architecture, so it can only be executed
-on that architecture. The switch -k was used to tell the
-compiler to keep the \textit{result} symbol in the generated program in order
-to access them by name in the simulator later on.
+In addition to source codes, the compiler needs the TTA architecture
+definition \file{start.adf}. It will produce a parallel program called
+\file{crc.tpef} which can only be executed on this architecture. The
+switch $-k$ tells the compiler to keep the \textit{result} symbol
+(variable on line 29 of main.c) also in the generated program in order
+to access the variable contents by name in the simulator later on.
 
-After successfully compiling the program we can now simulate it. Let's use
-graphical user interface version of the simulator called Proxim
-(Section~\ref{section:proxim}). You can start it with:
+Successful compilation does not print anything and we can now simulate
+the program. Let's use graphical user interface version of the
+simulator called Proxim (Section~\ref{section:proxim}):
 
 \shellcmd{proxim start.adf crc.tpef \&}
 
-The simulator will load the architecture definition and the program and wait
-for commands. To execute the program click ``Run''. Simulator will then execute
-the program code and display the cycle count in the bottom bar of the
-simulator. Write down this cycle count for future comparison.
+The simulator will load the architecture definition and the program
+and wait for commands. Proxim shows one line per instruction. Minimal
+TTA has only bus and hence there is only instrecution slot
+(column). The total number of instructions is about $1~200$.
+
+Execute the program by clicking ``Run'' and Proxim should look like
+Fig.~\ref{fig:prode}.  Write down this cycle count in the bottom bar
+of the simulator, you can use Table~\ref{tab:cyclecounts}. for future comparison.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/proxim_scrshot.eps}
+    \caption{Processor Simulator (proxim) when minimal ADF 
+             and crc.tpef are opened and simulated.}
+    \label{fig:proxim}
+  \end{center}
+\end{figure}
 
 You can check the result straight from the processor's memory by writing this
 command to the command line at the bottom of the simulator:
@@ -1120,36 +955,211 @@ Processor resource utilization data can be viewed with command:
 \shellcmd{info proc stats}
 
 This will output a lot of information  like the utilization of transport buses,
-register files and function units.
+register files and function units:
 
-Proxim can also show othes various pieces of information about the program's execution and
-its processor resource utilization. For example to check the utilization of the resources of our
-architecture, select \textit{View>Machine Window} from the top menu. 
-The parts of the processor that are utilized
-the most are visualized with darker red color.
+\begin{verbatim}
+utilizations
+------------
+buses:
+B1              87.7559% (4415 writes)
+
+sockets:
+lsu_i1          17.4319% (877 writes)
+lsu_o1          10.4949% (528 writes)
+...
+
+operations executed in function units:
+LSU:
+...
+TOTAL           17.4319% (877 triggers)
+
+ALU:
+...
+TOTAL           25.2037% (1268 triggers)
+...
+
+register accesses:
+RF:
+0               855 reads,     0 guard reads,      1 writes       
+...
+
+\end{verbatim}
+
+
+
+Proxim can also show othes various pieces of information about the
+program's execution and its processor resource utilization. For
+example to check the utilization of the resources of our architecture,
+select \textit{View>Machine Window} from the top menu. The parts of
+the processor that are utilized the most are visualized with darker
+red color.
 
 % Next, check the profiling data to see which instructions were executed the
 % most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
 % Now the disassembly window has the most executed instructions highlighted.
 % You should be able to spot the main loop of the program easily.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{eps/proxim_util.eps}
+    \caption{Processor Simulator (proxim) shows the utilizations of each FU and bus.}
+    \label{fig:proxim_util}
+  \end{center}
+\end{figure}
 
 
-\subsection{Accelerating the Algorithm}
+\begin{table}[b]
+  \begin{center}
+    \caption {Cycle counts in different TTA configurations. You'll fill this during the tutorial}
+    \label {tab:cyclecounts}
+    \begin{tabular}{l  l r |  l l }
+      \hline
+          &             & Approx. relative &            &          \\
+      ADF & Cycle count & cycle count      & Section(s) &  Comment \\
+      \hline
+      \hline
+      start.adf            &  & $1~~$  & \ref{ssec:eval_start} & \\ % % 5031 cycles
+      \hline
+      large.adf            &  & $1/2~$ & \ref{ssec:large} & start + 3 buses \\ % 2383 cycles
+      large.adf            &  & $1/5~$ & -''-             & start + 3 buses + RF \\% 935 cycles
+      large.adf            &  & $1/6~$ & -''-             & start + 3 buses + RF + new ALU \\ % 778 cycles
+      \hline
+      custom.adf           &  & $1/5~$ & \ref{ssec:anal_custom} - \ref{ssec:tcetour_final_products} \\ % 958 cycles
+      \hline
+      large\_custom.adf    &  & $1/50$ & \ref{ssec:large_custom} \\ % 100 cycles! wow!
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
 
+
+
+There are 3 basic ways to accelerate computation in TTAs:
+\begin{enumerate}
+\item Modify the algorithm itself. Beyond the scope of this tutorial.
+\item Add more basic resources (FUs, RFs, buses) to TTA
+\item Add custom operation(s) to TTA
+\end{enumerate}
+
+
+\subsection{Increasing performance by adding resources}
+\label{ssec:large}
+As the current architecture is minimalistic we can increase the performance
+even further by adding resources to the processor.
+
+\paragraph{Transport buses.} 
+The architecture has only one transport bus, thus the compiler can't exploit 
+any instruction level parallelism. Let's start the architecture customization by 
+adding another transport bus. After this there can be 2 moves per clock cycle. 
+First copy the current architecture:
+
+\shellcmd{cp start.adf large.adf}
+
+and open the new architecture in ProDe:
+
+\shellcmd{prode large.adf \&}
+
+A new transport bus can be added simply by selecting the current bus and
+pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
+Add 3 more buses. After you have added the buses you have to connect it to the
+sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
+Save the architecture, recompile the source code for the new architecture:
+
+\shellcmd{tcecc -O3 -a large.adf -o crc.tpef -k result crc.c main.c}
+
+This time simulate the program using the command line instruction set simulator:
+
+\shellcmd{ttasim -a large.adf -p crc.tpef}
+
+The command will load the architecture and program and execute
+it. Once the simulation is finished, you should see the ttasim command prompt:
+
+\begin{verbatim}
+> ttasim -a large.adf -p crc.tpef
+
+(ttasim) 
+\end{verbatim}
+
+Now when you check the cycle count from the simulator:
+
+\shellcmd{info proc cycles}
+
+You might see a significant drop in cycles. 
+% approx 50% reduction to 2383 cycles
+Also check the processor utilization statistics from the simulator
+with command:
+
+\shellcmd{info proc stats}
+
+\paragraph{Register files.}
+
+From the previous simulator statistics you can see from ``operations'' table
+that there are a lot of load and store operations being executed. As the
+architecture has only 5 general purpose registers this tells us that there
+are a lot of register spilling to memory. Let's try how the amount of registers affect
+the cycle count. There are two options how we can add registers. We can either
+increase the number of registers in a register file or add a new register file.
+
+Let's try the latter option because this way we increase the number of registers
+that can be accessed simultaneously on one clock cycle. This can be done by
+selecting the RF and using copy and paste. Then connect it to the IC.
+Simulation statistics should indicate performance increase. As expected, the
+number of load and store opertations decreased. But notice also that the number
+of add operations decreased quite a lot. The reason is simple: addition is used
+to calculate stack memory addresses for the spilled registers.
+% over 50% further reduction to 935 cycles
+
+\paragraph{Function units.}
+Next subject for the bottleneck is the ALU as now all the basic operations
+are performed in a single function unit. From the simulator statistics you can
+see that logical operations and addition are quite heavily utilized. Instead
+of duplicating the ALU let's add more specific FUs from the Hardware Database.
+Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
+operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
+add(1) and click ``Add''. Close the dialog, connect the function units and save the
+architecture. Recompile and simulate to see the effect on cycle count.
+% about 20 further reduction to 778 cycles
+
+The architecture could be still modified even further to drop the cycle count
+but let's settle for this now and move on to custom operations. 
+
+
+\subsection{Analyzing the Potential Custom Operations}
+\label{ssec:anal_custom}
+%\subsection{Accelerating the CRC Algorithm}
 Custom operations implement application specific functionality in TTA
-processors. In this part of the tutorial we accelerate the CRC computation
-by adding a custom operation to the starting point processor design.
+processors. This part of the tutorial teaches how to accelerate the
+CRC computation by adding a custom operation to the starting point
+processor design.
 
-\subsubsection{Evaluating Custom Operation Candidates}
+%\subsubsection{Evaluating Custom Operation Candidates}
 
-First of all, it is quite simple and efficient to implement CRC calculation
-entirely on hardware. Naturally, using the whole CRC function as a custom
-operation would be quite pointless and the benefits of using a processor
-based implementation would get smaller. Instead, we will consentrate
-on trying to accelerate smaller parts of the algorithm, picking a custom
-operation that is potentially useful also for other algorithms than CRC.
+First of all, it is quite simple and efficient to implement CRC
+calculation entirely on hardware. Naturally, using the whole CRC
+function as a custom operation would be quite pointless and the
+benefits of using a processor based implementation would get
+smaller. Instead, we will concentrate on trying to accelerate
+smaller parts of the algorithm, which is the most useful way for most
+algorithms.
 
-\subsubsection{Finding the Bottlenecks}
+ The steps needed for custom opeation are:
+\begin{enumerate}
+\item Analyze the code for bottlenecks
+
+\item Speculatively add a new module and operation to operation
+  database with Osed. Define the behavior ofthe new operation
+  (copy-paste from original code and add few macros). Optionally, you
+  can also simulate the operation behavior. Bind the new operation to
+  a new function unit in ProDe
+
+\item Modify your source code so that it utilizes the new operation
+  and simulate. Go back to step 2 if you wish to explore other
+  operations
+
+\item Create VHDL for the operation and add it to HDB.
+ 
+\item Finally, generate HDL implementation of the TTA with ProGe.
+\end{enumerate}
+%\subsubsection{Finding the Bottlenecks}
 
 % The first thing to do when trying to optimize code is to profile the execution.
 % In Proxim you can trace the most executed instructions (see section
@@ -1162,103 +1172,134 @@ operation that is potentially useful also for other algorithms than CRC.
 % Refer to section \ref{sec:traces} for further
 % information.
 
-In this case finding the operation to be optimized is quite obvious if you
-look at function crcFast(). It consists of a for-loop in which the 
-function reflect() is called through the macro REFLECT\_DATA. If you look at 
-the actual function you can see that it is quite simple to implement on 
-hardware, but requires many instructions if done with basic operations in
-software. The function ``reflects'' the bit pattern around the middle point like
-a mirror. For example,
-the bit pattern \textbf{0101 0100} would look like this after reflection:
-\textbf{0010 1010}. The main complexity of the function is that the bit pattern width is not
-fixed. Fortunately, the width cannot be arbitrary. If you examine the
-crcFast()-function and the reflect macros you can spot that function reflect() is
-only called with 8 and 32 bit widths (unsigned char and 'crc' which is an unsigned long).
+Finding the operation to be optimized is quite obvious in this case if
+you look at function crcFast(). It consists of a for-loop in which the
+function reflect() is called through the macro REFLECT\_DATA. If you
+look at the actual function (shown also in Fig.~\ref{fig:reflect} you
+can see that it is quite simple to implement on hardware, but requires
+many instructions if done with basic operations in software. The
+function ``reflects'' the bit pattern around the middle point like a
+mirror. For example, the bit pattern \textbf{1101 0010} becomes
+\textbf{0100 1011}. The main complexity of the function is that the bit 
+pattern width is not fixed. Fortunately, the width cannot be
+arbitrary. If you examine the crcFast()-function and the reflect
+macros you can spot that function reflect() is only called with 8 and
+32 bit widths (unsigned char and 'crc' which is an unsigned long).
 
-\subsection{Analyzing the Custom Operation}
+%\subsection{Analyzing the Custom Operation}
 
-A great advantage of TCE is that the operation semantics, 
-processor architecture and implementation are separate abstractions. 
-How this affects designing custom operations is that you can
-simulate your design by simply defining the simulation behaviour of 
-the operation and setting the latency of the operation to the processor
-architecture definition. This is nice as you
-do not need an actual hardware implementation of the operation at this point
-of the design, but
-can evaluate different custom operation possibilities at the architectural
-level. However, this brings up an awkward question: how to determine 
-the latency of the operation? Unrealistic or too pessimistic 
-latency estimates can produce inaccurate performance results and bias 
-the analysis.
+A great advantage of TCE is that the operation semantics, processor
+architecture, and implementation are separate abstractions. This
+simplifies designing custom operations since you can simulate your
+design by simply defining the simulation behaviour of the operation
+and setting the latency of the operation to the processor architecture
+definition. This is nice as you do not need an actual hardware
+implementation of the operation at this point of the design, but can
+evaluate different custom operation possibilities at the architectural
+level. However, this brings up an awkward question: how to determine
+the latency of the operation? Unrealistic or too pessimistic latency
+estimates can produce inaccurate performance results and bias the
+analysis.
 
 One approach to the problem is to take an educated guess and simulate
-some test cases with different custom operation latencies. This way you can
-determine a latency range in which the custom operation would accelerate your
-application to the satisfactory level. After this you can scetch how the
-operation could be implemented in hardware, or consult someone knowledgeable 
-in hardware design to figure out whether the custom operation is 
-implementable within the latency constraint.
+some test cases with different custom operation latencies. This way
+you can determine a latency range in which the custom operation would
+accelerate your application to the satisfactory level. For example,
+custom operation with 1 cycle delay might give $3x$ speedup but $10$
+cycles gives just 3\%.  After this you can sketch how the operation
+could be implemented in hardware, or consult someone knowledgeable in
+hardware design to figure out whether the custom operation can be
+reasonably implemented within the latency constraint.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflect}
+  \caption{Reflect function of CRC} 
+  \label{fig:reflect} \end{center}
+\end{figure}
 
 Another approach is to try and determine the latency by examining the
-operation itself and considering how it could be implemented. This approach
-requires some insight in digital design.
+operation itself and considering how it could be implemented. This
+approach requires some insight in digital design.
 
-Besides latency you should also consider the size of the custom function unit.
-It will consume extra die area, but the size limit is always case-specific. For
-accurate size estimation you need to have the actual implementation and synthesis.
+Besides latency you should also consider the size of the custom
+function unit.  It will consume extra die area, but the size limit is
+always case-specific, especially when area taken by memories is
+accounted. Accurate size estimation requires the actual HW
+implementation and synthesis.
 
-Let us consider the reflect function. If we had fixed width we could implement
-the reflect by hard wiring (and registering the output) because the operation
-only moves bits to other locations in the word. This could be done easily in one clock cycle. But we
-need two different bit widths so things would be a bit more complicated. We
-could design the hardware in such way that it has two operations: one for 8-bit
-data and another for 32-bit data. On hardware one way to implement this is to
-have 32-bit wide crosswiring and register the output. In this case the 8-bit
-value would be reflected to the 8 MSB bits of the 32-bit wiring. Then we need
-to move the 8 MSB bits to the LSB end and zero the rest. This moving can be
-implemented using multiplexers. So concerning the latency this can all be done
-easily within one clock cycle as there is not much logic needed.
+Let us consider the reflect function. If we had fixed width we could
+implement the reflect by hard wiring (and registering the output)
+because the operation only moves bits to other locations in the
+word. This could be done easily in one clock cycle, as in right side
+of Fig.~\ref{fig:reflect}. But we need two different bit widths so it
+is somewhat more complicated. We could design the HW in such way that
+it has two operations: one for 8-bit data and another for 32-bit
+data. One way to implement this is to have 32-bit wide crosswiring and
+register the output. The 8-bit value would be reflected to the 8 MSB
+bits of the 32-bit wiring. Then we need to move the 8 MSB bits to the
+LSB end and set restto zero. This moving can be implemented using
+multiplexers. So concerning the latency this can all be done easily
+within one clock cycle as there is not much logic needed.
+
+
+
 
 \subsection{Creating the Custom Operation}
 \label{section:customOperations}
 % includes adding a FU that implements the custom operation to HDB and
 % adding the operation to OSAL
 
-Now we have decided the operation to be accelerated and its latency. Next we
-will create a function unit implementing the operation and add it to our
-processor design. First, a description of
-the semantics of the new operation must be added at least to Operation Set
-Abstraction Layer (Section~\ref{section:osal}). OSAL stores the semantic
-properties of the operation, which includes the simulation behavior, operand
-count etc., but not the latency. OSAL definitions can be added by using the
+Now we have decided the operation to be accelerated and its
+latency.
+
+
+Next we will create a function unit implementing the
+operation and add it to our processor design. First, a description of
+the semantics of the new operation must be added at least to Operation
+Set Abstraction Layer (Sections~\ref{section:osal} and
+\ref{section:osal_details}). OSAL stores the semantic properties of
+the operation, which includes the simulation behavior, operand count
+etc., but not the latency. OSAL definitions can be added by using the
 OSAL GUI, \emph{OSEd} (Section~\ref{sec:osed}).
 
-If processors that use the custom operation are to be synthesized or simulated
-at the VHDL level, at least one function unit implementing
-the operation should be added to the
-Hardware Database (Section~\ref{section:hdb}). Cost data of the function unit
-needs to be added to the cost database if cost estimates of a processor
-containing the custom function unit are wanted. In this tutorial we add the
-FU implementation for our custom operation so the processor implementation can
-be generated, but omit the cost data required for the cost estimation.
+Synthesis or simulation at the VHDL level requires that at least one
+function unit implementing the operation must be added to the Hardware
+Database (Section~\ref{section:hdb}).  In this tutorial we add the FU
+implementation for our custom operation so the processor
+implementation can be generated, but omit the cost data required for
+the cost estimation. In general case, cost data should be added to
+cost database as well.
 
 \paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
 
-OSEd is started with the command 'osed'.
+OSEd is started with the command 
 
-Create a new operation module, which is a container for a set of operations.
-You can add a new module in any of the predefined search paths, provided
-that you have sufficient file system access on the chosen directory.
+\shellcmd{osed \&}
 
-For example, choose directory `/home/\emph{user}/.tce/opset/custom', where
-\emph{user} is the name of the user account being used for the tutorial.
-This directory is intended for the custom operations defined by the
-current user, and should always have sufficient access rights.
+Create a new operation module, which is a container for a set of
+operations.  You can add a new module in any of the predefined search
+paths, provided that you have sufficient file system access
+permissions.
+
+For example, choose directory
+\file{/home/\emph{user}/.tce/opset/custom}, where \emph{user} is the
+name of the user account being used for the tutorial.  This directory
+is intended for the custom operations defined by the current user, and
+should always have sufficient access rights.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/osed}
+  \caption{Operation Set Editor when adding new operation REFLECT32.} 
+  \label{fig:osed} \end{center}
+\end{figure}
+
 
 \begin{enumerate}
 \item%
-  Right-click on a path name in the left area of the main window.  A
-  drop-down menu appears below the mouse pointer.
+  Click the root in the left area of the main window which opens list
+  of paths. Right-click on a path name
+  \file{/home/\emph{user}/.tce/opset/custom}. A drop-down menu appears
+  below the mouse pointer.
 \item%
   Select \textbf{Add module} menu item. 
 \item%
@@ -1289,17 +1330,17 @@ definitions to the newly created operation module.
   up. Press \emph{Yes} to confirm the action. The operation definition is
   now added to the module.
 \item%
-  Then repeat the steps for operation `REFLECT32'
+  Then repeat the steps for operation `REFLECT32', as shown in Fig.~\ref{fig:osed}
 \end{enumerate}
 
 \paragraph{Defining the simulation behaviour of the operations} The new operations
-REFLECT8 and REFLECT32 do not yet have simulation behavior models, so we
-cannot simulate programs that use these operations with the TCE processor
-simulator. Open again the operation property dialog by right-clicking REFLECT8,
-then choosing \emph{Modify properties}. Now press the \emph{Open} button to
-open an empty behavior source file for the module. Copy-paste (or type if you
-have the time!) the following code in the editor window (you can copy
-most of this code from the crc.c reflect function):
+REFLECT8 and REFLECT32 do not yet have simulation behavior models, so
+we cannot simulate programs that use these operations with the TCE
+processor simulator. Open again the operation property dialog by
+right-clicking REFLECT8, then choosing \emph{Modify properties}. Now
+press the \emph{Open} button at the bottom to open an empty behavior
+source file for the module. Copy-paste (or type if you have the time!) 
+the following code in the editor window:
 
 \begin{verbatim}
 #include "OSAL.hh"
@@ -1366,19 +1407,22 @@ OPERATION(REFLECT32)
  END_OPERATION(REFLECT32)
 \end{verbatim}
 
-This code has the behaviours for the both operations. These behavior definitions
-reflect the input operand integer (with id 1) and writes the result to the
-''output operand`` (with id 2) which is the first output and signals the simulator
-that all results are computed successfully.
+This code has the behaviours for the both operations. These behavior
+definitions reflect the input operand integer (id 1, assigned to
+variable 'data') and writes the result to the ''output operand`` (id
+2, assigned from variable 'reflection') which is the first output and
+signals the simulator that all results are computed successfully.
 
-Open file \file{crc.c} in your preferred editor. Compare the behaviour definition
-of reflect operations and the original reflect-function. The function is mostly
-similar except for parameter passing. On the custom hardware operation behavior definition
-the data is read from the function unit input ports and written to output ports and 
-the nBits-value is determined from the operation code (REFLECT8 or REFLECT32). 
+Open file \file{crc.c} in your preferred editor. Compare the behaviour
+definition of reflect operations and the original
+reflect-function. The function is mostly similar except for parameter
+passing and adding few macros added, such as OPERATION(), TRIGGER,
+IO(2) etc. Custom hardware operation behavior reads data from the
+function unit's input ports and writes to output ports. The value of
+nBits is determined from the operation code (REFLECT8 or REFLECT32).
 
-Save the code and close the editor. REFLECT8 and REFLECT32 operations now have 
-TCE simulator behaviour models.
+Save the code and close the editor. REFLECT8 and REFLECT32 operations
+now have TCE simulator behaviour models.
 
 \paragraph{Compiling operation behavior.} REFLECT-operations have been
 added to the test module. Before we can simulate the behavior of our
@@ -1399,8 +1443,8 @@ module that the simulator can call.
 
 After the operation simulation model has been added and compiled the operation
 can be simulated. But for the sake of speed up we will skip the operation
-simulation here. However if you are interested in the operation simulation,
-see chapter~\ref{sec:osed}
+simulation here. Interested readers are referred to Section~\ref{sec:osed}
+You can close osed now.
 
 %  Simulation section removed
 % \begin{enumerate}
@@ -1451,39 +1495,48 @@ Open the copy in ProDe:
 
 \shellcmd{prode custom.adf \&}
 
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflecter}
+  \caption{Adding operation REFLECT8 to a new function unit in ProDe} 
+  \label{fig:reflecter} \end{center}
+\end{figure}
+
 Then:
 \begin{enumerate}
 \item%
-Add a new function unit to the design, right click the canvas and select:
-\textit{Add>Function Unit}. Name the FU ''REFLECTER``. Add one input
-port (named as trigger) and an output port (output1) to the FU in
-the Function unit dialog. Set the input port (trigger)
-triggering (\textit{Click the port named trigger->Edit->Check dialog 
-''triggers``}). This port starts the execution of the operation when
-it is written to.
+  Add a new function unit to the design, right click the canvas and
+  select: \textit{Add>Function Unit}. Name the FU ''REFLECTER``. Add
+  one input port (named as trigger) and an output port (output1) to
+  the FU in the Function unit dialog. Set the input port (trigger)
+  triggering (\textit{Click the port named trigger->Edit->Check dialog
+    ''triggers``}). This port starts the execution of the operation
+  when it is written to.
 \item%
-Add the operation ''REFLECT8`` we defined to the FU: \textit{Add from
-opset>REFLECT8>OK} and set the latency to 1. Click on the REFLECT8 operation and
-ensure that the operation input is bound to the input ports and the output
-is bound to the output port. Check that the operand usage is in such a way that
-input is read at cycle 0 and the result is written at the end of the 
-cycle (can be read from the FU on the next cycle). Thus, the latency of
-the operation is 1 clock cycles.
+  Add the operation ''REFLECT8`` we defined to the FU: \textit{Add
+    from opset>REFLECT8>OK} and set the latency to 1. Click on the
+  REFLECT8 operation and ensure that the operation input is bound to
+  the input ports and the output is bound to the output port. Check
+  that the operand usage is in such a way that input is read at cycle
+  0 and the result is written at the end of the cycle (can be read
+  from the FU on the next cycle), as in
+  Fig.~\ref{fig:reflecter}. Thus, the latency of the operation is 1
+  clock cycles.
 \item%
-Repeat the previous step for operation ''REFLECT32``
+  Repeat the previous step for operation ''REFLECT32``
 \item%
-Now an FU that supports the custom operations has been added to the architecture. 
-Next, fully connect the machine to connect the
-FU to the rest of the architecture. This can be done by selecting
-\textit{Tools->Fully Connect IC}. Save the architecture description by clicking Save.
+  Now an FU that supports the custom operations has been added to the
+  architecture. Next, connect the FU to the rest of the
+  architecture. This can be most easliy done by selecting
+  \textit{Tools->Fully Connect IC} which connects all FUs to all the
+  buses. Save the architecture description by clicking Save.
 \end{enumerate}
 
 
 \subsection{Use the custom operation in C code.}
 
-To get some benefits from the added custom hardware,
-we must use it from the C code. This is done by replacing
-a C statement with a custom operation invocation. 
+To get some benefits from the added custom hardware, we must use it
+from the C code. This is done by replacing a C statement with a custom
+operation invocation.
 
 Let us first backup the original C code.
 
@@ -1529,9 +1582,9 @@ These will help in using the reflect FU macro.
 
 Take a look at the REFLECT\_DATA and REFLECT\_REMAINDER macros. The first one
 has got a magic number 8 and ``variable'' X is the data. This is used in the
-for-loop.
+for-loop of crcFast().
 
-In the for-loop the input data of reflect function is read from message[].
+The input data of reflect function is read from array message[] in the for-loop the.
 Let us modify this so that at the beginning of the loop the input data is
 read to the input variable. Then we will use the \_TCE\_REFLECT8 macro to run
 the custom operations, and finally replace the REFLECT\_DATA macro with the
@@ -1587,17 +1640,19 @@ Load architecture and program and run the simulation
 
 Verify that the result is the same as before (\textit{x /u w result}). It
 should be the same as earlier (\textbf{0x62488e82}).
-Check the cycle count \textit{info proc cycles} and compare it to the cycle 
+Check the cycle count \textit{info proc cycles}  % about 958 cycles
+and compare it to the cycle 
 count of the version which does not use a custom operation. You should see 
 a very noticeable drop compared to the starting point architecture without
-the custom operations. Write this cycle count down for a later step.
+the custom operations. Write this cycle count down for a later step and quit ttasim.
 
-The simulator execution also created a file \file{crc\_with\_custom\_op.tpef.bustrace}
-which contains the bus trace.
+The simulator execution also created a file
+\file{crc\_with\_custom\_op.tpef.bustrace} which contains the bus
+trace.
 
 \end{enumerate}
 
-\subsection{Adding an implementation of the FU to the hardware database
+\subsection{Adding HDL implementation of the FU to the hardware database
 (HDB).}
 \label{par:AddToHDB}
 
@@ -1615,18 +1670,25 @@ Start HDBEditor (see Section~\ref{sec:hdbedit}):
 TCE needs some data of the FU implementation in order to be able to 
 automatically generate processors that include the FU. \\
 \begin{enumerate}
- \item%
-Create a new hdb and name it tour.hdb. Add the ''reflecter`` function
-unit from \file{custom.adf} file  (\textit{edit->add->FU architecture from ADF}).
-You can leave the ''parametrized width`` and ''guard support`` unchecked.
-Then define implementation for the added function unit entry \textit{right 
-click reflect -> Add implementation....}\\
+ \item% Create a new hdb and name it tour.hdb. Add the ''reflecter``
+ function unit from \file{custom.adf} file (\textit{edit->add->FU
+ architecture from ADF}).  You can leave the checkboxes ''parametrized
+ width`` and ''guard support`` unchecked, which is the default.  Then
+ define implementation for the added function unit entry \textit{right
+ click reflect -> Add implementation....}\\
 
 \item%
 Open file \file{tour\_vhdl/reflect.vhdl} that was provided in the tutorial
 package with the editor  you prefer, and take a look. This is an example
 implementation of  a TTA function unit performing the custom 'reflect8'
 and 'reflect32' operations.
+
+%!!! VHDL needs comments and a header !!!
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/hdbeditor_scrshot}
+  \caption{Adding the implementation of custom operations to HW database} 
+  \label{fig:hdbed} \end{center}
+\end{figure}
 
 \item%
 The HDB implementation dialog needs the following information from the VHDL:\\
@@ -1636,10 +1698,11 @@ The HDB implementation dialog needs the following information from the VHDL:\\
 Name the implemention after the top level entity: ``fu\_reflect''.
 
 By examining the VHDL code you can easily spot the clock port (clk),
-reset (rstx) and global lock port (glock). Operation code (opcode) port is
-t1opcode. Write these into the appropriate text boxes. You do not have to fill
-the Global lock req. port field because the function unit does not need to
-cause a global lock to the processor during its execution.
+reset (rstx) and global lock port (glock). Operation code (opcode)
+port is t1opcode. Write these into the appropriate text boxes. You do
+not have to fill the Global lock req. port field because the function
+unit does not stall, i.e. does not request a global lock to the
+processor during its execution.
 
 \textbf{2. Opcodes.}
 
@@ -1648,11 +1711,11 @@ has operation code ``0'' and REFLECT8 has operation code ``1''.
 
 The operation codes must be always numbered according to the alphabetical order of 
 the OSAL operation names, starting at 0. For example, in this case REFLECT32 is 
-earlier than REFLECT8 in the alphabetical order.
+earlier than REFLECT8 in the alphabetical order (i.e. 3 becomes before 8).
 
 \textbf{3. Parameters.}
 
-Parameters can be found from the VHDL file. On top of the file there is one
+Parameters can be found from the VHDL generics. On top of the file there is one
 parameter: busw. It tells the width of the transport bus and thus the maximum
 width of input and output operands.
 
@@ -1666,9 +1729,10 @@ architectural description of the FU and the VHDL implementation.
 Each input data port in the FU is accompanied with a load port that
 controls the updating of the FU input port registers.
 
-Choose a port in the Architecture ports dialog and click edit.
-Name of the architecture port p1 is t1data and load port is t1load.
-Width formula is the parameter busw.
+Choose a port in the Architecture ports dialog and click edit.  Name
+of the architecture port p1 is t1data (as in VHDL) and associated load
+port is t1load.  Width formula is the parameter busw. No guard port is
+needed in this case.
 
 Name the output port (p2) to r1data and the width formula is now busw
 because the output port writes to the bus.
@@ -1681,49 +1745,15 @@ files must be added in the compilation order (see section \ref{sec:hdbedit}).
 But now we have only one source file so we can simply add it without
 considering the compilation order (Add -> Browse -> tour\_vhdl/reflect.vhdl).
 
-Now you are done with adding the FU implementation. Click OK.
+Now you are done with adding the FU implementation, see Fig.~\ref{fig:hdbed}. Click OK.
 
 \end{enumerate}
 
-\subsection{Generating the Final Products}
+\subsection{Generating the VHDL and memory images}
 \label{ssec:tcetour_final_products}
 
 In this step we generate the VHDL implementation of the processor, and the
 bit image of the parallel program.
-
-% \paragraph{Preparations for verification}
-% 
-% Before continuing any further remove the IO-function unit from the
-% architecture as it is not implemented on hardware. Use Prode to
-% delete the FU:
-% 
-% \shellcmd{prode custom.adf \&}
-% 
-% Save the architecture and compile the program without -D\_DEBUG option.
-% 
-% \shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
-% \shellcmd{\ \ crc\_with\_custom\_op.c main.c}
-% 
-% Next we need to generate bus trace from the instruction set simulator so we can
-% verify the RTL simulation. Launch ttasim:
-% 
-% \shellcmd{ttasim}
-% 
-% Set bus trace option on:
-% 
-% \shellcmd{setting bus\_trace 1}
-% 
-% and then load architecture and program:
-% 
-% \shellcmd{mach custom.adf}
-% 
-% \shellcmd{prog crc\_with\_custom\_op.tpef}
-% 
-% \shellcmd{run}
-% 
-% and after simulation check the cycle count and write it down. You can now quit
-% the simulator. The simulator execution created file
-% \file{crc\_with\_custom\_op.tpef.bustrace} which contains the bus trace.
 
 \paragraph{Select Function Unit Implementations}
 
@@ -1745,6 +1775,7 @@ bit image of the parallel program.
 % one move slot, the instruction word width is more than 40 bits. The size can
 % be reduced with instruction compression and smaller immediate width, 
 % which is skipped in the tutorial.
+
 You can either use the given \file{custom\_operations.idf} included in the
 tutorial files or select the implementations yourself. If you use the given
 file replace \file{custom.idf} with \file{custom\_operations.idf} in the
@@ -1820,26 +1851,39 @@ Click ``Save IDF...''
 
 
 \paragraph{Generate the VHDL for the processor using Processor Generator
-(ProGe).} 
+(ProGe).}
 
 You can start processor generation from ProDe's implementation selection dialog:
 Click ``Generate Processor''. For Binary Encoding Map: Select the
-``Generate new''. In the target directory click ``Browse'' and create a new
+``Generate new'', see Fig.~\ref{fig:proge} 
+
+In the target directory click ``Browse'' and create a new
 directory \file{proge-output} and select it. Then click OK to create the
 processor.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/proge_scrshot}
+  \caption{Generating TTA VHDL with ProGe} 
+  \label{fig:proge} \end{center}
+\end{figure}
+
 
 Or alternatively execute ProGe from command line:
 
 \shellcmd{generateprocessor -t -i custom.idf -o proge-output
 custom.adf}
 
-Now directory \file{proge-output} includes the VHDL implementation of the
-designed processor except for the instruction memory width package which will
-be created by Program Image Generator. You can take a look what the directory
-includes, how the RF and FU implementations are collected up under
+Flag $-t$ generates a testbench, $-i$ defines the implementation file,
+and $-o$ the output directory.  Now directory \file{proge-output}
+includes the VHDL implementation of the designed processor except for
+the instruction memory width package which will be created by Program
+Image Generator. You can take a look what the directory includes, how
+the RF and FU implementations are collected up under
 \file{vhdl} subdir and the interconnection network has been generated to
-connect the units (the \file{gcu\_ic} subdir). The \file{tb} subdir contains
-testbench files for the processor core.
+connect the units (the \file{gcu\_ic} subdir). The \file{tb} subdir
+contains testbench files for the processor core. Moreover, there are 4
+shell scripts for compiling and simulating the VHDL codes in Modelsim
+and GHDL.
 
 \paragraph{Generate instruction memory bit image using Program Image Generator.}
 
@@ -1847,6 +1891,11 @@ Finally, to get our shiny new processor some bits to chew on,
 we use generatebits to create instruction memory and data memory images:
 
 \shellcmd{generatebits -d -w 4 -p crc\_with\_custom\_op.tpef -x proge-output custom.adf} 
+
+Flag $-d$ creates data images, $-w 4$ set data memory width 4 MAUs
+(Minimum Addressable Units, bytes in this case), $-p$ defines the
+program, $-x$ defines the HDL directory, and adf is give without a
+flag.
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
 image in ``ascii 0/1'' format. Each line in that file represents a single
@@ -1880,108 +1929,93 @@ Then compile and simulate the testbench:
 
 \shellcmd{./ghdl\_simulate.sh}
 
-This will take some time as the bus trace writing is enabled. The simulation
-produces file ``bus.dump''. As the testbench is ran for constant amount of
-cycles we need to get the relevant part out of the bus dump for
+Compilation gives a couple of warnings from Synopsys' std\_arith
+package but that should do no harm.  Simulation will take some time as
+the bus trace writing is enabled. If you did not change the memory
+widths in Prode (Section~\ref{ssec:start_point} ), the simulation will crash and print
+``Killed''. There will be many warnings at $0 ns$ due uninitialized
+signals but you can ignore them. 
+
+Aftern simulation, you should see a message
+\shellcmd{./testbench:info: simulation stopped by --stop-time}
+The simulation produces file ``bus.dump'' which looks like this:
+\begin{verbatim}
+           0 |            0 | 
+           1 |            4 | 
+           2 |        32760 | 
+           3 |           24 | 
+           ...
+\end{verbatim}
+
+
+As the testbench is ran for constant amount of cycles we
+need to get the relevant part out of the bus dump for
 verification. This can be done with command:
 
 \shellcmd{head -n <number of cycles> bus.dump > sim.dump}
 
-where the <number of cycles> is the number of cycles in the previous ttasim
-execution. Then compare the trace dumps from the VHDL simulation and the
-architecture simulation:
+where the <number of cycles> is the number of cycles in the previous
+ttasim execution (same as line ocunt in
+crc\_with\_custom\_op.tpef.bustrace). Then compare the trace dumps
+from the VHDL simulation and the architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
-If the command does not print anything the dumps were equal.
+If the command does not print anything the dumps were equal and GHDL
+simulation matches the ttasim. Now you have succesfully added a custom
+operation, verified it, and gained notably performance increase. Well
+done!
 
 
-\subsection{Increasing performance by adding resources}
+\subsection{Further acceleration by adding custom operation to large TTA}
+\label{ssec:large_custom}
 
-As the current architecture is minimalistic we can increase the performance
-even further by adding resources to the processor.
+As a final step, let us add the custom operation to the large TTA.
 
-\paragraph{Transport buses.} 
-The architecture has only one transport bus, thus the compiler can't exploit 
-any instruction level parallelism. Let's start architecture customization by 
-adding another transport bus. After this there can be 2 moves per clock cycle. 
-First copy the current architecture:
+\shellcmd{cp large.adf large\_custom.adf}
 
-\shellcmd{cp custom.adf modified.adf}
+\shellcmd{prode large\_custom.adf}
 
-and open the new architecture in ProDe:
+%% Copy-paste between ProDe windows might be a bit fragile..
+%
+%Open also custom.adf. Copy-paste the REFLECTER unit from it to
+%large\_custom.adf. Fully connect the IC, as in
+%Fig.\ref{fig:prode_largecustom} and save.
 
-\shellcmd{prode modified.adf \&}
+Add the reflecter FU from the tour.hdb like done earlier. Fully
+connect the IC, as in Fig.\ref{fig:prode_largecustom} and save.
 
-A new transport bus can be added simply by selecting the current bus and
-pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
-Add 3 more buses. After you have added the buses you have to connect it to the
-sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
-Save the architecture, recompile the source code for the new architecture
-and simulate.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/prode_largecustom}
+    \caption{Processor Designer (prode) with large\_custom.adf}
+    \label{fig:prode_largecustom}
+  \end{center}
+\end{figure}
 
-\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc\_with\_custom\_op.c main.c}
 
-\shellcmd{ttasim -a modified.adf -p crc.tpef}
+\shellcmd{tcecc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef. -k result crc\_with\_custom\_op.c main.c}
 
-Now when you check the cycle count from the simulator:
+\shellcmd{ttasim -a large\_custom.adf -p crc\_with\_custom\_op.tpef}
 
 \shellcmd{info proc cycles}
 
-You might see a significant drop in cycles. Also check the processor 
-utilization statistics from the simulator with command:
-
-\shellcmd{info proc stats}
-
-\paragraph{Register files.}
-
-From the previous simulator statistics you can see from ``operations'' table
-that there are a lot of load and store operations being executed. As the
-architecture has only 5 general purpose registers this tells us that there
-are a lot of register spilling to memory. Let's try how the amount of registers affect
-the cycle count. There are two options how we can add registers. We can either
-increase the number of registers in a register file or add a new register file.
-
-Let's try the latter option because this way we increase the number of registers
-that can be accessed simultaneously on one clock cycle. This can be done by
-selecting the RF and using copy and paste. Then connect it to the IC.
-Simulation statistics should indicate performance increase. As expected, the
-number of load and store opertations decreased. But notice also that the number
-of add operations decreased quite a lot. The reason is simple: addition is used
-to calculate stack memory addresses for the spilled registers.
-
-\paragraph{Function units.}
-Next subject for the bottleneck is the ALU as now all the basic operations
-are performed in a single function unit. From the simulator statistics you can
-see that logical operations and addition are quite heavily utilized. Instead
-of duplicating the ALU let's add more specific FUs from the Hardware Database.
-Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
-operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
-add(1) and click ``Add''. Close the dialog, connect the function units and save the
-architecture. Recompile and simulate to see the effect on cycle count.
-
-The architecture could be still modified even further to drop the cycle count
-but let's settle for this now. 
-
+Voila! Now you have a lightning fast TTA. % 100 cycles
 
 \subsection{Final Words}
 
-This tutorial is now finished. Now you should know how to make and use your
-own custom operations, how to customize the processor architecture and
-generate the processor implementation along with its instruction memory bit
-image.
+This tutorial is now finished. Now you should know how to customize
+the processor architecture by adding resources and custom operations,
+as well as generate the processor implementation and its instruction
+memory bit image.
 
-In this tutorial we used a ``minimalistic'' processor architecture as our
-starting point. The machine had only one transport bus and 5 registers so it
-could not fully exploit the parallel capabilities of TTA.  Then we added two
-simple custom operations to the starting point architecture and saw a huge
-improvement in cycle count. Then we increased resources in the processor and
-the cycle count dropped even further.
-
-If you have interest you can also add more resources to the starting point
-architecture and see how good cycle counts you can get out of it without
-using custom operations!
-
+This tutorial used a ``minimalistic'' processor architecture as our
+starting point. The machine had only 1 transport bus and 5 registers
+so it could not fully exploit the parallel capabilities of TTA.  Then
+we increased resources in the processor and the cycle count dropped to
+half. Adding 2 simple custom operations to the starting point
+architecture gives a similar speedup and in large machine the speedup
+in cyclecount is about $50x$.
 
 \section{From C to VHDL as Quickly as Possible}
 \label{section:fromCtoVHDL}
@@ -2081,6 +2115,8 @@ the STDOUT function unit, which you can use:
 cp $(tce-config --prefix)/share/tce/data/mach/minimal_with_stdout.adf .
 tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
+
+%$ this dollar sign ``closes'' the equation, so syntax highlight works correctly
 
 It should compile without errors. Beware: the compilation can take
 a while on a slower machine. This is because \textit{printf()} 
@@ -3909,6 +3945,572 @@ blanks.
 
 For any line entered by the user, the Tester responds with a text line
 containing the results computed by the operation.
+
+
+\section{OSAL files}
+\label{section:osal_details}
+Operations are divided in ``operation modules''. For example, `base' module,
+included in the TCE distribution, contains all the operations available 
+to the front end compiler's code generation.
+
+An operation in OSAL is defined by its properties
+and its behavior.  The properties defined by OSAL do not restrict in any
+way the hardware implementation.  For example, latency, bit width or the
+fact that reading the result of an operation can lock the processor are
+properties of the implementation, and are not defined in OSAL module.
+
+\subsection{Operation Properties}
+\label{ssec:operation-properties}
+
+The following properties define a TTA operation in TCE:
+
+\begin{itemize}
+\item name (unique string)
+\item description (string)
+\item number of inputs (integer)
+\item number of outputs (integer)
+\item accesses memory (yes/no)
+%\item can cause trap (yes/no)
+\item has side effects (yes/no)
+\item clocked (yes/no)
+\item affected-by (set of operations)
+\item affects (set of operations)
+\end{itemize}
+
+\paragraph{operation name}
+The operation name is a string of characters starting with a character in
+set [A-Z\_] and followed by one or more character in set [0-9A-Z\_] 
+(i.e.\ lowercase letters are not allowed).  All
+names of operations of the database must be unique. Different data bases 
+can contain operations with equal names. 
+
+\paragraph{operation description}
+Optional description of the operation.
+
+\paragraph{inputs}
+Number of inputs of the operation. The number of inputs is a
+nonnegative integer. It must be positive if the number of outputs is
+zero.
+
+\paragraph{outputs}
+
+Number of outputs of the operation. The number of outputs is a
+nonnegative integer. It must be positive if the number of inputs is
+zero.
+
+\paragraph{reads/writes-memory}
+
+Indicates that this operation can access memory.  Normally, memory access is
+also implied from the properties `mem-address' and `mem-data' of operation
+inputs (or the `mem-data' property of operation outputs).  However, it is
+possible to define operations that perform \emph{invisible} accesses to
+memory, whereby no input or output is related to the memory access itself.
+That is, neither the address nor the data moved into or out of memory is
+explicitly specified by the operation.  In these operations, memory accesses
+occur as a side effect, and none of the inputs or outputs have
+memory-related properties.  To avoid potential errors, the memory property
+must be specified explicitly even when it is implied by some of the inputs
+or outputs of the operation.  See sections on input and output declarations,
+below.
+
+\paragraph{clocked}
+Clocked attribute indicates that the operation can change its state
+synchronously with clock signal and independently from its input.
+
+\paragraph{side-effect}
+
+Indicates that two subsequent executions of this operation with the same
+input values may generate different output values.  An operation marked with
+``side-effect'' is an operation which writes some state data, affecting
+further executions of the same operation and other operations sharing
+that same state data. The other operations that read or write
+the same state data written by an operation marked with ``side-effect'' 
+must be marked ``affected-by'' that operation (see later for an example).
+
+Note: only operations that write the state should marked to
+have ``side-effects''. Operations that only read the state data do not
+have side effects and may be reordered more freely by the compiler.
+
+\paragraph{affected-by}
+
+In case an operation reads or writes state data written by another 
+operation sharing the same state data (that is marked with the
+``side-effect'' property), the operation should be marked ``affected-by''
+that operation. 
+
+This property restricts the compiler's reordering optimizations 
+from moving operations that read or write state data above an operation
+that also writes the same data, which would result in potentially
+producing wrong results from the execution.
+
+\paragraph{affects}
+
+This is an optional convenience property that allows defining
+the state data dependency the other way around. If an operation
+is listed in the ``affects'' list it means that the operation
+is writing state data that is read or written by the affected operation.
+
+Note: it is not necessary that, if operation A `affects' operation B, then B
+must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
+B, it is not needed that B must contain A in its `affects' list. This
+allows, for example, a user to add new operations that share state with 
+the base operations shipped with TCE, without needing to modify the base
+operations.
+
+\paragraph{An example of defining multiple operations that share the
+same state.} A common use case for multiple operations that share
+state data is a case where one or more operations initialize an
+internal register file in an FU and one or more operations use the
+data in the register file to compute their results.
+
+For example, INIT\_RF could initialize the internal register
+file with the given number. This operation should be marked
+``side-effects''. Let's say that another two operations COMPUTE\_X and
+COMPUTE\_Y only read the internal RF data, thus they can be freely
+reordered by the computer with each other in the program code in case
+there are no other dependencies. As they only read the state data,
+they don't have and visible side effects, thus they should not
+be marked with the ``side-effects'' property. However, as they read
+the data written by the INIT\_RF operation, both operations should
+be marked to be ``affected-by'' the INIT\_RF.
+
+\subsection{Operation Input Properties}
+\label{ssec:opinput-properties}
+
+Each input of an operation requires an independent declaration of its
+properties.  An operation input is completely defined by the following
+properties:
+\begin{itemize}
+\item identification number (integer)
+\item memory address (yes/no)
+\item memory data (yes/no)
+\item can be swapped (set of integers)
+\end{itemize}
+
+\paragraph{identification number}
+Integer number in the range [1,N] where N is the number of inputs as defined
+in section~\ref{ssec:operation-properties} of operation declaration.  If N
+is zero, then no input declarations can be specified. TCE does not currently
+allow operations with zero inputs to be defined.
+
+\paragraph{can-swap}
+A list of identification numbers.  All the inputs listed can be swapped with
+this input.  The identification number of this input definition is not
+allowed in the list.  The can-swap property is commutative, thus any of the
+listed inputs is implicitly `can-swap' with this input and all the other
+inputs listed.  The can-swap declaration need not be symmetrical, but it is
+not an error if the implied declaration is also specified.
+
+\paragraph{mem-address}
+Optional.  Indicates that the input is used to compute (affects the value
+of) the memory address accessed by this operation.
+
+\paragraph{mem-data}
+Optional.  Indicates that the input is used to compute (affects the value
+of) the data word written to memory by this operation.  This property
+implies that the operation writes to memory.
+
+\subsection{Operation Output Properties}
+\label{ssec:opoutput-properties}
+
+Note: it is not an error if a program, before instruction scheduling,
+contains an operation where one of the output moves is missing. If all
+output moves of an operation are missing, then the only useful work that can
+be performed by the operation is state change.
+
+\paragraph{mem-data}
+Optional.  Indicates that the output contains a value that depends on a
+data word read from memory by this operation.  This property implies that
+the operation reads data from memory.
+
+\subsection{Operation DAG}
+\label{ssec:operation-dag}
+
+The semantics of an operation may be modeled with a simple dag-based language.
+This can be used to both simulate the operation without writing the 
+simulation code, and to allow the compiler to automatically use custom
+operations.
+
+The optional field to describe the Operation DAGs is 
+\textit{trigger-semantics}. It contains description of the operation 
+semantics as a directed acyclic graph (DAG). 
+
+The OperationDAG language description is given as the content of this element.
+The OperationDAG language has the following syntax:
+
+All commands end in semicolon.
+
+\begin{description}
+
+\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
+  Creates a temporary variables with given name. Usage examples:
+
+SimValue temp;
+
+SimValue temp1, temp2;
+
+\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
+ Calls another operation with the given operand values. 
+
+The input values can be either temporary variables, inputs to the operation
+whose semantics is being modeled, or integer constants.
+
+The output value can be either temporary variables or outputs of the operation
+whose semantics is being modelled.
+
+Operands of the modeled operation are referred with name IO(<number>) 
+where 1 is first input operand, 2 second input operand, and after input 
+operands come output operands. 
+
+Temporary values are referred by their name, and integer constants are given
+in decimal format.
+
+Example OperationDAG of the ADDSUB operation:
+
+\begin{verbatim}
+     <trigger-semantics>
+       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
+       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
+     </trigger-semantics>
+\end{verbatim}
+
+
+\end{description}
+
+
+\subsection{Operation Behavior}
+\label{ssec:operation-behavior}
+
+To be complete, the model of an operation needs to describe the
+behavior of the operation. The behavior is specified in a restricted
+form of C++, the source language of the TCE toolset, augmented with
+macro definitions.  This definition is used for simulating the
+operation in the instruction set simulator of TCE.
+
+\paragraph{Definition of Operation Behavior}
+
+Operation behavior simulation functions are entered inside an operation
+behavior definition block. There are two kinds of such blocks: one for
+operations with no state, and one for operations with state.
+
+\begin{description}
+\item[OPERATION(\emph{operationName})] %
+  Starts an operation behavior definition block for an operation with name 
+  \emph{operationName}. Operations defined with this statement do not 
+  contain state. Operation names must be written in upper case letters!
+\item[END\_OPERATION(\emph{operationName})] %
+  End an operation behavior definition block for an operation with no state.
+  \emph{operationName} has to be exactly the same as it was entered in the
+  block start statement \verb|OPERATION()|.
+\item[OPERATION\_WITH\_STATE(\emph{operationName}, \emph{stateName})] %
+  Starts an operation behavior definition block for an operation with state.
+  \emph{operationName} contains the name of the operation, \emph{stateName}
+  name of the state. DEFINE\_STATE() definition for the \emph{stateName}
+must 
+  occur before this statement in the definition file. Operation and state
+  names must be written in upper case letters!
+\item[END\_OPERATION\_WITH\_STATE(\emph{operationName})] %
+  Ends an operation behavior definition block for an operation with state.
+  \emph{operationName} has to be exactly the same as it was entered in the
+  block start statement \verb|OPERATION_WITH_STATE()|.
+\end{description}
+
+The main emulation  function definition block is given as:
+\begin{description}
+\item[TRIGGER ... END\_TRIGGER;] %
+  Main emulation function.
+
+% \item[LATE\_RESULT ... END\_LATE\_RESULT;] %
+%   Function that emulates late-coming results.
+\end{description}
+
+% Only the first definition is mandatory.  The LATE\_RESULT definition allows 
+% the user to define operations with complex, nondeterministic behavior.
+
+The bodies of the function definitions are written in the operation behavior
+language, described in Section~\ref{ssec:behaviour-commands}.
+
+\paragraph{Operations with state.}
+
+To define the behavior of an operation with state it is necessary to
+declare the state object of the operation.  An operation state declaration
+is introduced by the special statement \verb#DEFINE_STATE()#.  See
+Section~\ref{ssec:behaviour-commands} for a description of this and related
+statements. State must be declared before it is used in operation behavior
+definition. 
+
+A target processor may contain several \emph{implementations} of the
+same operation.  These implementations are called Hardware Operations and
+are described in~\cite{ADF-specs}.
+%
+Each Hardware Operation instance belongs to a different function unit and is
+independent from other instances.
+%
+When an operation has state, each of its Hardware Operations uses a
+different, independent instance of the state class (one for each function
+unit that implements that operation).
+
+An operation state object is unambiguously associated with an operation (or
+a
+group of operations, in case the state is shared among several) by means of
+its name, which should be unique across all the operation definitions.%
+\note{see issue \ref{sec:state-name}}
+
+Operation state can be accessed in the code that implements the behavior of
+the operation by means of a \verb#STATE# expression.  The fields of the
+state object are accessed with the dot operator, as in C++.  See
+Section~\ref{ssec:behaviour-commands} for a complete description of this
+statement.
+
+\paragraph{Main emulation function.}
+The behavior model of an operation must include a function that, given a
+set of input operand values and, optionally, an operation state instance,
+produces one or more output values that the operation would produce.
+
+The definition of an emulation function is introduced by the statement
+\verb#TRIGGER# and is terminated by the statement \verb#END_TRIGGER;#.  
+
+An emulation function is expected to read all the inputs of its operation
+and to update the operation outputs with any new result value that can be
+computed before returning.
+
+\subsection{Behavior Description language}
+\label{ssec:behaviour-commands}
+
+The behavior of operations and the information contents of operation state
+objects are defined by means of the behavior description language.
+
+The emulation functions that model operation behavior are written in C++
+with some restrictions.
+The  OSAL behavior definition
+language augments the C++ language with a number of statements.  For
+example, 
+control may exit the definition body at any moment by using a special 
+statement, a set of statements is provided to refer to operation inputs
+and 
+outputs, and a statement is provided to access the memory model.
+
+\paragraph{Base data types.}
+The behavior description language defines a number of base data
+types.  These types should be used to implement the operation behavior
+instead of the C base data types, because they guarantee the bit width and
+the format.
+\begin{description}
+\item[IntWord] %
+  Unsigned integer 32-bit word.
+\item[FloatWord] %
+  Single-precision (32-bit) floating-point word in IEEE-754 format.
+\item[DoubleWord] %
+  Double-precision (64-bit) floating-point word in IEEE-754 format.
+\item[HalfWord] %
+  Half-precision (16-bit) floating-point word in IEEE-754 format.
+\end{description}
+
+\paragraph{Access to operation inputs and outputs.}
+Inputs and outputs of operations (henceforth referred to as
+\emph{terminals}, when a distinction is not needed) are referred to by a
+unique number.  The inputs are assigned a number starting from 1 for the
+first input.  The first output is assigned the number $n+1$, where $n$ is
+the number of inputs of the operations, the second $n+2$, and so on.
+
+Two sets of expressions are used when accessing terminals. The value of
+an input terminal
+can be read as an unsigned integer, a signed integer, a single precision 
+floating point number, or
+a double precision floating point number using the following expressions:
+\begin{description}
+\item[UINT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  IntWord, which is an unsigned integer of 32 bits maximum length.
+\item[INT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  SIntWord, which is a signed integer of 32 bits maximum length.
+\item[FLT(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  \emph{FloatWord}.
+\item[DBL(\emph{number})] %
+  Treats the input terminal denoted by \emph{number} as a number of type
+  \emph{DoubleWord}.
+\end{description}
+
+Output terminals can be written using the following expression:
+\begin{description}
+\item[IO(\emph{number})] %
+   Treats the terminal denoted by \emph{number} as an output terminal.
+   The actual bit pattern (signed, unsigned or floating point) written to
+   the output terminal is determined by the right hand expression
+   assigned to the IO() expression.
+\end{description}
+
+Since the behavior of certain operations may depend in non-trivial ways on
+the bit width of the terminals of a given implementation, it is sometimes
+necessary to know the bit width of every terminal.  The expression
+\begin{description}
+\item[BWIDTH(\emph{number})]
+\end{description}
+returns the bit width of the terminal denoted by \emph{number} in the
+implementation of the calling client.
+
+Bit width of the operands can be extended using two different expressions.
+
+\begin{description}
+\item[SIGN\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
+  Sign extends the given integer from \emph{sourceWidth} to 32 bits.
+ 
+  Sign extension means that the sign bit of the source word is duplicated
+  to the extra bits provided by the wider target destination word.
+
+  For example a sign extension from 1001b (4 bits) to 8 bits provides
+  the result 1111 1001b.
+
+\item[ZERO\_EXTEND(\emph{integer}, \emph{sourceWidth})]%
+  Zero extends the given integer from \emph{sourceWidth} to 32 bits.
+
+  Zero extension means that the extra bits of the wider target destination
+  word are set to zero. 
+
+  For example a zero extension from 1001b (4 bits) to 8 bits provides
+  the result 0000 1001b.
+
+\end{description}
+
+\emph{Example.} The following code implements the behavior of an accumulate
+operation with one input and one output, where the result value is saturated
+to the ``all 1's'' bit pattern if it exceeds the range that can be expressed
+by the output:
+\begin{verbatim}
+  STATE.accumulator += INT(1);
+  IntWord maxVal = (1 << BWIDTH(2)) - 1;
+  IO(2) = (STATE.accumulator <= maxVal ? STATE.accumulator : maxVal);
+\end{verbatim}
+
+\paragraph{Definition of operation state.}
+Operation state consists of a data structure.  Its value
+is shared by one or more operations, and it is introduced by the statement
+\begin{description}
+\item[DEFINE\_STATE(\emph{name})]
+\end{description}
+where \emph{name} is a string that identifies this type of operation state.
+This statement is followed by a list of data type fields. The state name
+string must be generated with the following regular expression:
+\begin{quote}
+  [A-Z][0-9A-Z\_]*
+\end{quote}
+Note that only upper case letters are allowed.
+
+A state definition block is terminated by the statement
+\begin{description}
+\item[END\_DEFINE\_STATE]
+\end{description}
+
+\emph{Example.} The following declaration defines an operation state class
+identified by the name string ``BLISS'', consisting of one integer word, one
+floating-point word and a flag:
+\begin{verbatim}
+DEFINE_STATE(BLISS) 
+  IntWord data1;
+  FloatWord floatData;
+  bool errorOccurred;
+END_DEFINE_STATE;
+\end{verbatim}
+
+%% These were already defined a couple a pages before:
+% The data type IntWord represents a 32-bit integer number; the data type
+% FloatWord represents a 32-bit floating-point IEEE-754 number.
+
+Some operation state definitions may require that the data is initialized to
+a predefined state, or even that dynamic data structures are allocated when
+the operation state object is created. In these cases, the user is required
+to provide an initialization definition inside the state definition block.
+\begin{description}
+\item[INIT\_STATE(\emph{name})]%
+  Introduces the code that initializes the operation state.
+\item[END\_INIT\_STATE]%
+  Terminates the block that contains the initialization code.
+\end{description}
+
+Some state definitions may contain resources that need to be released when the
+state model is destroyed. For example, state may contain dynamically
+allocated data or files that need to be closed. In these cases, the user
+must define a function that is called when the state is deallocated. This
+function is defined by a finalization definition block, which must be
+defined inside the state definition block.
+\begin{description}
+\item[FINALIZE\_STATE(\emph{name})]%
+  Introduces the code that finalizes the operation state, that is,
+  deallocates the dynamic data contained in an operation state object.
+\item[END\_FINALIZE\_STATE]%
+  Terminates the block that contains finalisation code.
+\end{description}
+
+The state model provides two special definition blocks to support emulation
+of operation behaviour.
+
+\begin{description}
+\item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
+  In case the model of operations state is synchronous, this definition can
+  be used to specify activity that occurs ``in the raising edge of the clock
+  signal'', that is, at the end of a simulation cycle. The C `return'
+  statement can used to return from this function.
+\end{description}
+
+\paragraph{Access to operation state.}
+Operation state is denoted by a unique name string and is accessed by means
+of the statement
+\begin{description}
+\item[STATE]
+\end{description}
+
+Typically, an operation state data structure consists of several fields,
+which are accessed using the dot operator of C++.  For example, the
+expression \verb#STATE.floatData# in a simulation function refers to the
+field \verb#floatData# of the state object assigned to the operation
+being defined.  The precise format of an
+operation state structure is defined by means of the \verb#DEFINE_STATE()#
+statement, and it is specific for an operation. State must be defined before it
+can be used in an operation definition.
+
+\paragraph{Access to control registers.}
+Operations that can modify the program control flow can access the program
+counter register and the return address of the target processor by means of
+the following expressions:
+\begin{description}
+\item[PROGRAM\_COUNTER] %
+\item[RETURN\_ADDRESS] %
+\end{description}
+Not all operations can access the control registers.  Only operations
+implemented on a Global Control Unit (see~\cite{ADF-specs}) provide the
+necessary data.  It is an error to use \verb#PROGRAM_COUNTER# or
+\verb#RETURN_ADDRESS# in operations that are not implemented on a Global
+Control Unit.
+
+\paragraph{Context Identification}
+
+Each operation context can be identified with a single integer which
+can be accessed with \verb#CONTEXT_ID#.
+
+\paragraph{Returning from operation behavior emulation functions.}
+Normally, an emulation function returns control to the caller when control
+flows out of the definition body.  To return immediately, from an arbitrary
+point in the definition body, the following normal C++ return 
+statement can be used. The return value is boolean indicating the success
+of the operation execution. In pratice, 'true' is always returned:
+\verb|return true;|.
+
+\paragraph{Memory Interface.}
+
+The memory interface of OSAL is very simplified allowing easy modeling of
+data memory accessing operations. The following keywords are used
+to define the memory access behavior:
+
+\begin{description}
+\item[MEMORY.read(address, count, target)]%
+  Reads \emph{count} units of data from the \emph{address} to the variable
+  \emph{target}.
+\item[MEMORY.write(address, count, data)]%
+  Writes \emph{count} units of data in variable \emph{data} to 
+  the \emph{address}.
+\end{description}
 
 \section{OSAL search paths}
 \label{sec:osalpaths}

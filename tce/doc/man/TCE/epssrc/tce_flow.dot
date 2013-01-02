@@ -1,0 +1,67 @@
+//
+// Purpose: The main phases of TCE design flow
+// Author: Erno Salminen
+// Date: 14.12.2012
+// Usage: dot -Teps tce_flow.dot -o tce_flow.eps
+//        Flag -T defines the type and -o defines the output file name
+//
+//
+
+digraph "TCE flow" {
+
+	requirements[shape="note"] 
+	requirements -> user;
+	user [shape="egg"];
+	user -> prode;
+
+	ccode [shape="note", label="HLL \n (C, C++, OpenCL)"];
+	user -> ccode;
+	ccode -> tcecc;
+
+	subgraph clusterTCE{
+	label="TCE";
+	subgraph clusterA{
+	label ="tools";
+	tcecc  [shape="Mrecord", label="Retargerable compiler \n (tcecc/LLVM)"];
+	prode  [shape="Mrecord", label="Processoor designer tool \n (prode)"];
+	proxim [shape="Mrecord", label="Retargerable simulator \n (proxim, ttasim)"];
+	proge  [shape="Mrecord", label="Processor generator \n (proge)"];
+	pig  [shape="Mrecord", label="Program image generator \n (pig, opt. compression)"];
+	pli  [shape="Mrecord", label="Platform integrator \n (?)"];
+	}
+
+	subgraph clusterB{
+	label ="";
+	hdb 	[shape="note", label="HW database \n (hdb)"];
+	plat 	[shape="note", label="Platform info \n (FPGA-specific)"];
+	}
+
+	report 	[shape="note", label="Feedback \n (cycle count, mem usage,)"];
+
+	prode -> tcecc;
+	tcecc -> proxim;
+	proxim -> proge;
+	proge -> pig;
+	proxim -> report;	
+	pig -> pli;
+	hdb -> proge;
+	plat -> pli;
+	
+	}
+
+
+	subgraph cluster3rd {
+	label="3rd party tools";
+	syn  [shape="Mrecord", label="FPGA synthesis tool \n (e.g Quartus)"];
+	sim  [shape="Mrecord", label="HDL simulation tool \n (e.g QHDL)"];
+	pli -> syn
+	pli -> sim;
+	qreport 	[shape="note", label="Report \n (FPGA resources, MHz)"];
+	syn -> qreport;
+	}
+
+
+	report -> user [label="feedback"];
+	//qreport -> user;
+
+}
