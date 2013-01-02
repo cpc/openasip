@@ -3,7 +3,7 @@
 
 Notable changes and features
 ----------------------------
-- Support for LLVM 3.2
+- Support for LLVM 3.2. Dropped support for LLVM 3.0.
 - Initial support for half-precision floats.
 - Added a RawData data type to OSAL. This should be used as operand data type
   for all load/store/io methods which just transfer raw data which can be of
