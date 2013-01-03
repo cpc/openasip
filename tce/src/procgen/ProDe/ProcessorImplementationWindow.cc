@@ -71,21 +71,25 @@ BEGIN_EVENT_TABLE(ProcessorImplementationWindow, wxDialog)
     EVT_LIST_DELETE_ITEM(ID_RF_LIST, ProcessorImplementationWindow::onRFSelection)
     EVT_LIST_ITEM_SELECTED(ID_RF_LIST, ProcessorImplementationWindow::onRFSelection)
     EVT_LIST_ITEM_DESELECTED(ID_RF_LIST, ProcessorImplementationWindow::onRFSelection)
+    EVT_LIST_ITEM_ACTIVATED(ID_RF_LIST, ProcessorImplementationWindow::onRFActivation)
 
     EVT_LIST_ITEM_FOCUSED(ID_IU_LIST, ProcessorImplementationWindow::onIUSelection)
     EVT_LIST_DELETE_ITEM(ID_IU_LIST, ProcessorImplementationWindow::onIUSelection)
     EVT_LIST_ITEM_SELECTED(ID_IU_LIST, ProcessorImplementationWindow::onIUSelection)
     EVT_LIST_ITEM_DESELECTED(ID_IU_LIST, ProcessorImplementationWindow::onIUSelection)
+    EVT_LIST_ITEM_ACTIVATED(ID_IU_LIST, ProcessorImplementationWindow::onIUActivation)
 
     EVT_LIST_ITEM_FOCUSED(ID_FU_LIST, ProcessorImplementationWindow::onFUSelection)
     EVT_LIST_DELETE_ITEM(ID_FU_LIST, ProcessorImplementationWindow::onFUSelection)
     EVT_LIST_ITEM_SELECTED(ID_FU_LIST, ProcessorImplementationWindow::onFUSelection)
     EVT_LIST_ITEM_DESELECTED(ID_FU_LIST, ProcessorImplementationWindow::onFUSelection)
+    EVT_LIST_ITEM_ACTIVATED(ID_FU_LIST, ProcessorImplementationWindow::onFUActivation)
 
     EVT_LIST_ITEM_FOCUSED(ID_PARAMETER_LIST, ProcessorImplementationWindow::onParameterSelection)
     EVT_LIST_DELETE_ITEM(ID_PARAMETER_LIST, ProcessorImplementationWindow::onParameterSelection)
     EVT_LIST_ITEM_SELECTED(ID_PARAMETER_LIST, ProcessorImplementationWindow::onParameterSelection)
     EVT_LIST_ITEM_DESELECTED(ID_PARAMETER_LIST, ProcessorImplementationWindow::onParameterSelection)
+
 
     EVT_BUTTON(ID_BROWSE_DECOMPRESSOR, ProcessorImplementationWindow::onBrowseDecompressor)
     EVT_BUTTON(ID_BROWSE_IC_DEC_PLUGIN, ProcessorImplementationWindow::onBrowseICDecPlugin)
@@ -309,20 +313,7 @@ ProcessorImplementationWindow::TransferDataToWindow() {
     return true;
 }
 
-/**
- * Event handler for the RF Select implementation button.
- */
-void
-ProcessorImplementationWindow::onSelectRFImplementation(wxCommandEvent&) {
-
-    long item = -1;
-    item = rfList_->GetNextItem(
-        item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-
-    if (item == -1) {
-        // No rf selected.
-        return;
-    }
+void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
 
     const RegisterFile& rf = *machine_.registerFileNavigator().item(item);
     if (impl_.hasRFImplementation(rf.name())) {
@@ -344,20 +335,34 @@ ProcessorImplementationWindow::onSelectRFImplementation(wxCommandEvent&) {
     TransferDataToWindow();
 }
 
+
 /**
- * Event handler for the IU Select implementation button.
+ * Event handler for the RF Select implementation button.
  */
 void
-ProcessorImplementationWindow::onSelectIUImplementation(wxCommandEvent&) {
-
+ProcessorImplementationWindow::onSelectRFImplementation(wxCommandEvent&) {
     long item = -1;
-    item = iuList_->GetNextItem(
+    item = rfList_->GetNextItem(
         item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
     if (item == -1) {
-        // No iu selected.
+        // No rf selected.
         return;
     }
+
+    handleSelectRFImplementation(item);
+}
+
+/**
+ * Event handler for the RF Select implementation button.
+ */
+void
+ProcessorImplementationWindow::onRFActivation(wxListEvent& e) {
+    handleSelectRFImplementation(e.GetIndex());
+}
+
+
+void ProcessorImplementationWindow::handleSelectIUImplementation(long item) {
 
     const ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(item);
     if (impl_.hasIUImplementation(iu.name())) {
@@ -381,19 +386,31 @@ ProcessorImplementationWindow::onSelectIUImplementation(wxCommandEvent&) {
 
 
 /**
- * Event handler for the FU Select implementation button.
+ * Event handler for the IU Select implementation button.
  */
 void
-ProcessorImplementationWindow::onSelectFUImplementation(wxCommandEvent&) {
-
+ProcessorImplementationWindow::onSelectIUImplementation(wxCommandEvent&) {
     long item = -1;
-    item = fuList_->GetNextItem(
+    item = iuList_->GetNextItem(
         item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
     if (item == -1) {
-        // No fu selected.
+        // No iu selected.
         return;
     }
+
+    handleSelectIUImplementation(item);
+}
+
+/**
+ * Event handler for the IU Select implementation doubleclick.
+ */
+void
+ProcessorImplementationWindow::onIUActivation(wxListEvent& e) {
+    handleSelectIUImplementation(e.GetIndex());
+}
+
+void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
 
     const FunctionUnit& fu = *machine_.functionUnitNavigator().item(item);
 
@@ -416,6 +433,31 @@ ProcessorImplementationWindow::onSelectFUImplementation(wxCommandEvent&) {
     TransferDataToWindow();
 }
 
+
+/**
+ * Event handler for the FU Select implementation button.
+ */
+void
+ProcessorImplementationWindow::onSelectFUImplementation(wxCommandEvent&) {
+    long item = -1;
+    item = fuList_->GetNextItem(
+        item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+
+    if (item == -1) {
+        // No fu selected.
+        return;
+    }
+
+    handleSelectFUImplementation(item);
+}
+
+/**
+ * Event handler for the FU Select implementation doubleclick.
+ */
+void
+ProcessorImplementationWindow::onFUActivation(wxListEvent& e) {
+    handleSelectFUImplementation(e.GetIndex());
+}
 
 /**
  * Event handler for the RF list selection changes.

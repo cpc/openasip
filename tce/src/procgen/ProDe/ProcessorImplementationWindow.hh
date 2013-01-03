@@ -61,14 +61,20 @@ public:
 
 private:
 
+    void handleSelectRFImplementation(long item);
     void onSelectRFImplementation(wxCommandEvent& event);
     void onRFSelection(wxListEvent& event);
+    void onRFActivation(wxListEvent& event);
 
+    void handleSelectIUImplementation(long item);
     void onSelectIUImplementation(wxCommandEvent& event);
     void onIUSelection(wxListEvent& event);
+    void onIUActivation(wxListEvent& event);
 
+    void handleSelectFUImplementation(long item);
     void onSelectFUImplementation(wxCommandEvent& event);
     void onFUSelection(wxListEvent& event);
+    void onFUActivation(wxListEvent& event);
 
     void onSetParameterValue(wxCommandEvent& event);
     void onBrowseDecompressor(wxCommandEvent& event);

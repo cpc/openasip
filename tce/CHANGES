@@ -41,6 +41,9 @@ Usability features
 - HDBEditor: Source files section of FU Implementation dialog has now 
   Move Up/Move Down-buttons for rearranging the (compilation) order
   of the files. Thanks to Antti Häyrinen for this contribution.
+- ProDE: Editing processor implementation allows double clicking on the
+  component lists to get to the "select component implementation" dialog,
+  no need to press the select FU/IU/RF buttons anymore
 
 Bugfixes
 --------
@@ -62,6 +65,7 @@ Bugfixes
 - signed immediate with equal amount of bits to insruction address space
   (1 too few becauses of the sign bit) could cause broken code
   (negative jump addresses) to be generated
+
 Misc
 ----
 - Removed the deprecated schedule binary and the old scheduler configuration
