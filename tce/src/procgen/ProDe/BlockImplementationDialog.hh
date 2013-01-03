@@ -57,6 +57,9 @@ private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void onBrowse(wxCommandEvent& event);
     void onImplSelection(wxListEvent& event);
+    void onImplActivation(wxListEvent& e);
+
+    void doOK();
     void onOK(wxCommandEvent& event);
     void onHDBSelection(wxCommandEvent& event);
 

@@ -60,8 +60,9 @@ BEGIN_EVENT_TABLE(BlockImplementationDialog, wxDialog)
     EVT_LIST_DELETE_ITEM(ID_LIST, BlockImplementationDialog::onImplSelection)
     EVT_LIST_ITEM_SELECTED(ID_LIST, BlockImplementationDialog::onImplSelection)
     EVT_LIST_ITEM_DESELECTED(ID_LIST, BlockImplementationDialog::onImplSelection)
-END_EVENT_TABLE()
-
+    EVT_LIST_ITEM_ACTIVATED(ID_LIST, BlockImplementationDialog::onImplActivation)
+END_EVENT_TABLE(
+)
 using namespace IDF;
 using namespace TTAMachine;
 using namespace HDB;
@@ -309,6 +310,16 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
     selection_ = hdbChoice_->GetSelection();
 }
 
+/**
+ * Do the things that are done to close the dialog on ok
+ */
+void 
+BlockImplementationDialog::doOK() {
+    impl_.setHDBFile(WxConversion::toString(hdbChoice_->GetStringSelection()));
+    int id = Conversion::toInt(WidgetTools::lcStringSelection(list_, 1));
+    impl_.setID(id);
+    EndModal(wxID_OK);
+}
 
 /**
  * Event handler for the OK button.
@@ -317,12 +328,18 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
  */
 void
 BlockImplementationDialog::onOK(wxCommandEvent&) {
-    impl_.setHDBFile(WxConversion::toString(hdbChoice_->GetStringSelection()));
-    int id = Conversion::toInt(WidgetTools::lcStringSelection(list_, 1));
-    impl_.setID(id);
-    EndModal(wxID_OK);
+    doOK();
 }
 
+/**
+ * Event handler for list activation OK button.
+ *
+ * Updates the UnitImplementationLocation object.
+ */
+void
+BlockImplementationDialog::onImplActivation(wxListEvent&) {
+    doOK();
+}
 
 /**
  * Creates the dialog widgets.

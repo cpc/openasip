@@ -43,7 +43,8 @@ Usability features
   of the files. Thanks to Antti Häyrinen for this contribution.
 - ProDE: Editing processor implementation allows double clicking on the
   component lists to get to the "select component implementation" dialog,
-  no need to press the select FU/IU/RF buttons anymore
+  no need to press the select FU/IU/RF buttons anymore. 
+  Also double clicking implementation in the dialog closes the dialog.
 
 Bugfixes
 --------
