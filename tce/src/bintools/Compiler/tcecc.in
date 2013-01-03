@@ -220,19 +220,24 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 if options.language != "":
                     extra_opts += "-x %s " % options.language
 
-                # After compilation all malloc instructions are lowered
-                # to function calls... if malloc function
-                # is implemented as a instruction in llvm assembler,
-                # it won't be linked to final binary from libc.a
-                # (ld knows how to select only needed parts from libc.a,
-                # even thoug it does it very badly, it shortens optimize time)
+                # Disable generation of fmuladd intrinsics automatically in
+                # case soft float is used. This causes problems because the
+                # intrinsics is lowered later after emulated instructions are
+                # figured after which it's too late to try to lower it to fmul + fadd or 
+                # fmac (which need to be emulated). This is not the best
+                # possible fix, but soft float should not be used for
+                # performance critical FP code anyways.
+
+                if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                    extra_opts += " -ffp-contract=off"
+
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
                         command =  ("clang -O%d %s tce-tut-llvm -emit-llvm -c "\
                                        "-I" + tmpDir +\
-                                       " " + compileFlags + baseName + suffix + " -o " +\
+                                       " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;" ) % \
                                        (options.frontend_optlevel, \
                                        tripleOption)
@@ -289,10 +294,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                             1, "Error while compiling the OpenCL C file %s.\n" % input_file)
 
                     def compile(input, output):
+                        extra_opts = ""
+                        if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                            extra_opts += "-ffp-contract=off"
+
                         command = ("clang %s tce-tut-llvm " + \
                                        "-emit-llvm -O3 "\
                                        "-fno-inline -c -I" + tmpDir +\
-                                       " " + input + \
+                                       " " + input + " " + extra_opts + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
                                        (tripleOption,  \
@@ -357,6 +366,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     input_file = baseName + suffix
                     
                     if options.use_clang:
+                        if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                            extra_opts += " -ffp-contract=off"
+
                         command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
                                     "-O%d "\
                                     "-fno-inline -c -I" + tmpDir + \
@@ -522,7 +534,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
     optSwitches += internalize_api_list
 
     outputName = fileNamePrefix + "_optimized.bc"
-        
+    
+    if options.soft_float and "@LLVM_VERSION@" != "3.1":
+        optSwitches += " -fp-contract=off "    
+
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
 
     exitCode = runCommand(command, verbose)
