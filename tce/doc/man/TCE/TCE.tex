@@ -245,20 +245,21 @@ flow.
       Tool & Purpose & Type & Output file(s)\\
       \hline
       \hline
-      ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
-      Tcecc                & Compile SW                                       & cmd  & .tpef \\
+      ProDe                & Create and modify TTA architectures              & GUI  & .adf \\
+      tcecc                & Compile SW                                       & cmd  & .tpef \\
       Proxim               & Simulate TTA core                                & GUI  & report \\
       ttasim               & Simulate TTA core                                & cmd  & report \\
-      osed                 & opetaion set editor                              & GUI  & operation db \\
-      hdbeditor            & HW databse editor                                & GUI  & HW db  \\
+      osed                 & operation set editor                             & GUI  & .cc, .opp, opb \\
+      hdbeditor            & HW database editor                               & GUI  & .hdb  \\
       \hline
-      Proge                & Generate VHDL                                    & GUI  & VHDL \\
-      generateprocessor    & Same as Proge                                    & cmd  & VHDL \\     	
-      Pig                  & Generate program image                           & cmd  & .mif  \\
-      Platform integrator  & Interface with memories, generate IP-XACT        & cmd  & .xml \\
+      ProGe                & Generate VHDL                                    & GUI  & VHDL \\
+      generateprocessor    & Same as ProGe                                    & cmd  & VHDL \\     	
+      PIG                  & Generate program image                           & cmd  & .img, .mif, .coe  \\
+      generatebits         & Same as PIG                                      & cmd  & .img, .mif, .coe  \\
+      Platform integrator  & Interface with memories etc., generate IP-XACT   & cmd  & VHDL, .xml \\
       \hline
-      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  &  e.g. .sof\\
-      S3rd party imulation & Simulate VHDL                                    & G/c  &  report, .wave \\
+      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  & e.g. .sof\\
+      3rd party Simulation & Simulate VHDL                                    & G/c  & report, .wave \\
       \hline
     \end{tabular}
   \end{center}
