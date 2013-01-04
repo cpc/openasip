@@ -66,6 +66,7 @@ private:
     void onSelectRFImplementation(wxCommandEvent& event);
     void onRFSelection(wxListEvent& event);
     void onRFActivation(wxListEvent& event);
+    void updateRFList(const std::string& rfName, int index);
 
     void handleSelectIUImplementation(long item);
     void onSelectIUImplementation(wxCommandEvent& event);
@@ -76,6 +77,7 @@ private:
     void onSelectFUImplementation(wxCommandEvent& event);
     void onFUSelection(wxListEvent& event);
     void onFUActivation(wxListEvent& event);
+    void updateFUList(const std::string& fuName, int index);
 
     void onSetParameterValue(wxCommandEvent& event);
     void onBrowseDecompressor(wxCommandEvent& event);

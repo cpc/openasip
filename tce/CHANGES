@@ -48,6 +48,8 @@ Usability features
 - ProDE: When editing processor implementation, pressing close button
   no longer loses all unsaved idf data. If there is unsaved data,
   it asks if the user wants to save the idf.
+- ProDE: Selecting implementation for FU or RF no longer causes the RF or FU
+  list to scroll to the beginning.
 - Pressing Close on OsED DAG editing dialog no longer loses unsaved data,
   it saves all unsaved data.
 

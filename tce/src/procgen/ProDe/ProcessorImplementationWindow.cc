@@ -313,6 +313,30 @@ ProcessorImplementationWindow::TransferDataToWindow() {
     return true;
 }
 
+/**
+ * Update the list of FU implementations for single RF
+ */
+void
+ProcessorImplementationWindow::updateRFList(const std::string& rfName, int index) {
+    const RFImplementationLocation rfImpl =
+        impl_.rfImplementation(rfName);
+    
+    string hdb;
+    int id = 0;
+    try {
+        hdb = rfImpl.hdbFile();
+        id = rfImpl.id();
+    } catch (FileNotFound& e) {
+        hdb = "Warning: " + e.errorMessage();
+    }
+    rfList_->SetItem(index, 1, WxConversion::toWxString(id));
+    rfList_->SetItem(index, 2, WxConversion::toWxString(hdb));
+}
+
+/**
+ * Call the dialog to select RF implementation and handle the return values
+ * of the dialog.
+ */
 void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
 
     const RegisterFile& rf = *machine_.registerFileNavigator().item(item);
@@ -322,6 +346,7 @@ void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
 
         if (dialog.ShowModal() == wxID_OK) {
             setDirty();
+            updateRFList(rf.name(), item);
         }
     } else {
         UnitImplementationLocation* location =
@@ -331,11 +356,11 @@ void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
         if (dialog.ShowModal() == wxID_OK) {
             impl_.addRFImplementation(location);
             setDirty();
+            updateRFList(rf.name(), item);
         } else {
             delete location;
         }
     }
-    TransferDataToWindow();
 }
 
 
@@ -416,6 +441,29 @@ ProcessorImplementationWindow::onIUActivation(wxListEvent& e) {
     handleSelectIUImplementation(e.GetIndex());
 }
 
+/**
+ * Update the list of FU implementations for single FU
+ */
+void ProcessorImplementationWindow::updateFUList(const std::string& fuName, int index) {
+    const FUImplementationLocation fuImpl =
+        impl_.fuImplementation(fuName);
+    
+    string hdb;
+    int id = 0;
+    try {
+        hdb = fuImpl.hdbFile();
+        id = fuImpl.id();
+    } catch (FileNotFound& e) {
+        hdb = "Warning: " + e.errorMessage();
+    }
+    
+    fuList_->SetItem(index, 1, WxConversion::toWxString(id));
+    fuList_->SetItem(index, 2, WxConversion::toWxString(hdb));
+}
+
+/** 
+ * Handle calling of the implementation selection dialog and it's return value
+ */
 void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
 
     const FunctionUnit& fu = *machine_.functionUnitNavigator().item(item);
@@ -426,6 +474,7 @@ void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
 
         if (dialog.ShowModal() == wxID_OK) {
             setDirty();
+            updateFUList(fu.name(), item);
         }
     } else {
         UnitImplementationLocation* location =
@@ -435,11 +484,11 @@ void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
         if (dialog.ShowModal() == wxID_OK) {
             impl_.addFUImplementation(location);
             setDirty();
+            updateFUList(fu.name(), item);
         } else {
             delete location;
         }
     }
-    TransferDataToWindow();
 }
 
 
