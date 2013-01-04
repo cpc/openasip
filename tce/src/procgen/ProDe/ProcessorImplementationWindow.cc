@@ -306,9 +306,7 @@ ProcessorImplementationWindow::TransferDataToWindow() {
                 _T("Unable to set decompressor block file:\n");
 
             WarningDialog dialog(this, message);
-            if (dialog.ShowModal() == wxID_OK) {
-                setDirty();
-            }
+            dialog.ShowModal();
         }
     }
 
