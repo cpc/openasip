@@ -72,6 +72,7 @@ private:
     void onOK(wxCommandEvent& event);
     void onCancel(wxCommandEvent& event);
 
+    void doSaveDAG(int index);
     void onSaveDAG(wxCommandEvent& event);
     void onUndoDAG(wxCommandEvent& event);
     void onDeleteDAG(wxCommandEvent& event);

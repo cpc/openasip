@@ -369,6 +369,9 @@ OperationDAGDialog::updateDAG() {
  */
 void 
 OperationDAGDialog::onOK(wxCommandEvent&) {
+    for (int i = 0; i < operation_->dagCount(); i++) {
+        doSaveDAG(i);
+    }
     EndModal(wxID_OK);
 }
 
@@ -382,17 +385,8 @@ OperationDAGDialog::onCancel(wxCommandEvent&) {
     EndModal(wxID_CANCEL);
 }
 
-/**
- * Handles the event when Save button is pushed.
- */
 void
-OperationDAGDialog::onSaveDAG(wxCommandEvent&) {
-    if(operation_ == NULL) {
-        return;
-    }
-
-    int index = dagIndex_->GetSelection();
-
+OperationDAGDialog::doSaveDAG(int index) {
     std::string code("");
     wxString wxTemp;
 
@@ -418,6 +412,21 @@ OperationDAGDialog::onSaveDAG(wxCommandEvent&) {
     updateIndex();
     dagIndex_->SetSelection(index);
     updateDAG();
+}
+
+/**
+ * Handles the event when Save button is pushed.
+ */
+void
+OperationDAGDialog::onSaveDAG(wxCommandEvent&) {
+    if(operation_ == NULL) {
+        return;
+    }
+
+    int index = dagIndex_->GetSelection();
+
+    doSaveDAG(index);
+
     FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
     FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
     FindWindow(ID_DELETE_DAG_BUTTON)->Enable();
