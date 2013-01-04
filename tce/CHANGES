@@ -45,6 +45,9 @@ Usability features
   component lists to get to the "select component implementation" dialog,
   no need to press the select FU/IU/RF buttons anymore. 
   Also double clicking implementation in the dialog closes the dialog.
+- ProDE: When editing processor implementation, pressing close button
+  no longer loses all unsaved idf data. If there is unsaved data,
+  it asks if the user wants to save the idf.
 
 Bugfixes
 --------

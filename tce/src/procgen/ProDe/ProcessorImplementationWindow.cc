@@ -115,7 +115,7 @@ ProcessorImplementationWindow::ProcessorImplementationWindow(
     wxDialog(parent, -1, _T("Processor Implementation"),
              wxDefaultPosition, wxDefaultSize,
              wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    machine_(machine), impl_(impl), plugin_(NULL) {
+    machine_(machine), impl_(impl), plugin_(NULL), dirtyData_(false) {
 
     createContents(this, true, true);
     SetMinSize(wxSize(600, 500));
@@ -306,7 +306,9 @@ ProcessorImplementationWindow::TransferDataToWindow() {
                 _T("Unable to set decompressor block file:\n");
 
             WarningDialog dialog(this, message);
-            dialog.ShowModal();
+            if (dialog.ShowModal() == wxID_OK) {
+                setDirty();
+            }
         }
     }
 
@@ -320,7 +322,9 @@ void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
         BlockImplementationDialog dialog(
             this, rf, impl_.rfImplementation(rf.name()));
 
-        dialog.ShowModal();
+        if (dialog.ShowModal() == wxID_OK) {
+            setDirty();
+        }
     } else {
         UnitImplementationLocation* location =
             new RFImplementationLocation("", -1, rf.name());
@@ -328,6 +332,7 @@ void ProcessorImplementationWindow::handleSelectRFImplementation(long item) {
         BlockImplementationDialog dialog(this, rf, *location);
         if (dialog.ShowModal() == wxID_OK) {
             impl_.addRFImplementation(location);
+            setDirty();
         } else {
             delete location;
         }
@@ -369,7 +374,9 @@ void ProcessorImplementationWindow::handleSelectIUImplementation(long item) {
         BlockImplementationDialog dialog(
             this, iu, impl_.iuImplementation(iu.name()));
 
-        dialog.ShowModal();
+        if (dialog.ShowModal() == wxID_OK) {
+            setDirty();
+        }
     } else {
         UnitImplementationLocation* location =
             new RFImplementationLocation("", -1, iu.name());
@@ -377,6 +384,7 @@ void ProcessorImplementationWindow::handleSelectIUImplementation(long item) {
         BlockImplementationDialog dialog(this, iu, *location);
         if (dialog.ShowModal() == wxID_OK) {
             impl_.addIUImplementation(location);
+            setDirty();
         } else {
             delete location;
         }
@@ -418,7 +426,9 @@ void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
         BlockImplementationDialog dialog(
             this, fu, impl_.fuImplementation(fu.name()));
 
-        dialog.ShowModal();
+        if (dialog.ShowModal() == wxID_OK) {
+            setDirty();
+        }
     } else {
         UnitImplementationLocation* location =
             new FUImplementationLocation("", -1, fu.name());
@@ -426,6 +436,7 @@ void ProcessorImplementationWindow::handleSelectFUImplementation(long item) {
         BlockImplementationDialog dialog(this, fu, *location);
         if (dialog.ShowModal() == wxID_OK) {
             impl_.addFUImplementation(location);
+            setDirty();
         } else {
             delete location;
         }
@@ -587,16 +598,28 @@ ProcessorImplementationWindow::onLoadIDF(wxCommandEvent&) {
  */
 void
 ProcessorImplementationWindow::onClose(wxCommandEvent&) {
+    if (dirtyData_) {
+        wxString message = _T("Save before exit?\n");
+
+        wxMessageDialog dialog(this, message, message, wxYES|wxCANCEL|wxNO);
+        int rv = dialog.ShowModal();
+        switch(rv) {
+        case wxID_NO:
+            break;
+        case wxID_YES:
+            doSaveIDF();
+            return;
+        case wxID_CANCEL:
+        default:
+            return;
+        }
+    }
     Close();
 }
 
 
-/**
- * Event handler for the Save IDF button.
- */
 void
-ProcessorImplementationWindow::onSaveIDF(wxCommandEvent&) {
-
+ProcessorImplementationWindow::doSaveIDF() {
     wxString message = _T("Save implementation.");
     wxString defaultDir = _T(".");
 
@@ -622,6 +645,7 @@ ProcessorImplementationWindow::onSaveIDF(wxCommandEvent&) {
             IDFSerializer serializer;
             serializer.setDestinationFile(path);
             serializer.writeMachineImplementation(impl_);
+            setDirty(false);
         } catch (Exception& e) {
             wxString message = _T("Error writing '");
             message.Append(WxConversion::toWxString(path));
@@ -633,6 +657,15 @@ ProcessorImplementationWindow::onSaveIDF(wxCommandEvent&) {
     }
 }
 
+
+
+/**
+ * Event handler for the Save IDF button.
+ */
+void
+ProcessorImplementationWindow::onSaveIDF(wxCommandEvent&) {
+    doSaveIDF();
+}
 
 /**
  * Event handler for the decompressor block Browse... button.
@@ -646,6 +679,7 @@ ProcessorImplementationWindow::onBrowseDecompressor(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
+        setDirty(true);
         string decompressorFile =
             WxConversion::toString(dialog.GetPath());
 
@@ -668,6 +702,7 @@ ProcessorImplementationWindow::onBrowseICDecPlugin(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
+        setDirty(true);
         string pluginFile =
             WxConversion::toString(dialog.GetPath());
 
@@ -706,6 +741,7 @@ ProcessorImplementationWindow::onBrowseICHDB(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
+        setDirty(true);
         string hdbFile = WxConversion::toString(dialog.GetPath());
         impl_.setICDecoderHDB(hdbFile);         
     }

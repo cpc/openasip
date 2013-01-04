@@ -59,6 +59,7 @@ public:
 
     virtual ~ProcessorImplementationWindow();
 
+    void setDirty(bool dirty = true) { dirtyData_ = dirty; }
 private:
 
     void handleSelectRFImplementation(long item);
@@ -91,6 +92,7 @@ private:
     void onSaveIDF(wxCommandEvent& event);
     void onClose(wxCommandEvent& event);
     void onGenerateProcessor(wxCommandEvent& event);
+    void doSaveIDF();
 
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     wxSizer* functionUnitPage(
@@ -151,8 +153,10 @@ private:
         ID_TEXT,
         ID_LINE
     };
+    
+    bool dirtyData_;
 
-    DECLARE_EVENT_TABLE()
+    DECLARE_EVENT_TABLE()        
 };
 
 #endif
