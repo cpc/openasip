@@ -16,8 +16,8 @@ CHANGES file for a more thorough change listing.
 
 Acknowledgements
 ----------------
-Many thanks to PhD Erno Salminen for his improvements on the TCE User
-Manual and to Antti Häyrinen for his first code contributions to this
+Many thanks to Dr. Erno Salminen for his improvements on the TCE User
+Manual, and to Antti Häyrinen for his first code contributions to this
 release. Keep them coming!
 
 We'd like to thank the Radio Implementation Research Team from Nokia

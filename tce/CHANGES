@@ -1,14 +1,10 @@
-1.7       unreleased
+1.7     January 2013
 ====================
 
 Notable changes and features
 ----------------------------
 - Support for LLVM 3.2. Dropped support for LLVM 3.0.
 - Initial support for half-precision floats.
-- Added a RawData data type to OSAL. This should be used as operand data type
-  for all load/store/io methods which just transfer raw data which can be of
-  any type.  If using some other data type, data curruption may occur when 
-  calling these operations as custom operations.
 - OpenCL host-tta-device mode simulation using pocl's ttasim driver.
 
 Misc. smaller improvements
@@ -18,7 +14,7 @@ Misc. smaller improvements
 - Several vector operations such as vector load/stores added to the
   base operation set.
 - Added support for vectors of 8- and 16-bit numbers in the vector backend.
-- Compiler compiles big basic blocks faster.
+- tcecc now compiles big basic blocks faster.
 - tcecc --analyze-instruction-patterns dumps the operation graph just
   after instruction selection. This is helpful in finding custom operation
   candidates that are automatically selectable.
@@ -28,33 +24,38 @@ Misc. smaller improvements
   more coarse grained: it tries to remove all connections (RF or
   bypasses) of a bus at once, not one by one.
 - explore: can now list plugin parameter descriptions (-p).
-- Parts of the TCE User Manual revised by Erno Salminen. Thanks to Erno
+- Parts of the user manual revised by Dr. Erno Salminen. Thanks to Erno
   for his contributions.
+- Added a RawData data type to OSAL. This should be used as operand data type
+  for all load/store/io methods which just transfer raw data which can be of
+  any type.  If using some other data type, data curruption may occur when 
+  calling these operations as custom operations.
 
 Code generator improvements
 ---------------------------
-- min, minu, max, maxu, minf, maxf instruction support in codegen.
-  Now the compiler can use these instructions automatically.
+- min, minu, max, maxu, minf, maxf support in codegen.
+  Now the compiler can use these operations automatically, if
+  available in the architecture.
 
 Usability features
 ------------------
 - HDBEditor: Source files section of FU Implementation dialog has now 
   Move Up/Move Down-buttons for rearranging the (compilation) order
   of the files. Thanks to Antti Häyrinen for this contribution.
-- ProDE: Editing processor implementation allows double clicking on the
+- ProDe: Editing processor implementation allows double clicking on the
   component lists to get to the "select component implementation" dialog,
   no need to press the select FU/IU/RF buttons anymore. 
   Also double clicking implementation in the dialog closes the dialog.
-- ProDE: When editing processor implementation, pressing close button
+- ProDe: When editing processor implementation, pressing close button
   no longer loses all unsaved idf data. If there is unsaved data,
   it asks if the user wants to save the idf.
-- ProDE: Selecting implementation for FU or RF no longer causes the RF or FU
+- ProDe: Selecting implementation for FU or RF no longer causes the RF or FU
   list to scroll to the beginning.
 - Pressing Close on OsED DAG editing dialog no longer loses unsaved data,
   it saves all unsaved data.
 
-Bugfixes
---------
+Major bugfixes
+--------------
 - __attribute__((aligned)) now works for global variables.
 - register to itself move as only instruction in llvm bb could cause
   tce compiler to fail.
@@ -74,23 +75,22 @@ Bugfixes
   (1 too few becauses of the sign bit) could cause broken code
   (negative jump addresses) to be generated
 
-Misc
-----
+Misc.
+-----
 - Removed the deprecated schedule binary and the old scheduler configuration
   file framework. Now programs are always compiled with tcecc and all 
   compiler options are given as command line parameters.
 
 Known problems
 --------------
-- If more than one read port or more than one write port of some RF
+- If more than one read port or more than one write port of an RF
   is connected to same bus, but there are other buses which connect only
   either of those ports, loading the compiled program may fail or hang.
-  Either reduce connections so that all buses connect to maximum of
-  only one read port of any RF and one write port of any RF
-  (may still have connections to many ports in different RF's)
-  OR add connections so that all buses
-  that connect to some read port or some write ports in some RF connect to 
-  all read or write ports.
+  Workaround: either reduce connections so that all buses connect to 
+  a maximum of only one read port of any RF and one write port of any RF
+  (it may still have connections to many ports in different RF's), or 
+  add connections so that all buses that connect to some read port or some 
+  write ports in some RF connect to  all read or write ports.
   
 1.6         June 2012 
 =====================
