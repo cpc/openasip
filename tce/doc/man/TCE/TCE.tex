@@ -1,4 +1,4 @@
-% Copyright (c) 2002-2010 Tampere University of Technology.
+% Copyright (c) 2002-2013 Tampere University of Technology.
 %
 % This file is part of TTA-Based Codesign Environment (TCE).
 % 
@@ -29,7 +29,7 @@
 \title{TTA-based Co-design Environment v1.7-pre}
 \ver{29}
 \firstday{2006-10-25}
-\lastday{2013-01-02}
+\lastday{2013-01-04}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -47,17 +47,16 @@ This is the user manual for TTA Co-design Environment (TCE)
 \cite{tcewww}
 \cite{lptce1}
 %\cite{lptce}. 
-The document describes the all the
-tools in the toolset, and the most common use cases in the form of
-tutorials.
+The document describes all the tools in the toolset, and the most common use 
+cases in the form of tutorials.
 
-Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. Toolset handles
-applications written in C/C++ and OpenCL. User can easily configure
-Transport-Triggered Architecture (TTA) processor, compile the SW,
-analyze the performance, and generate VHDL. The generated
-application-specific processor VHDL can be synthesized for example to
-FPGA. Then, user can modify the application and upload new program
-image to continue development.
+Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. TCE supports
+programs written in C/C++ and OpenCL. User can easily design new customized
+Transport-Triggered Architecture (TTA) processors, compile the program,
+analyze the performance, and generate HDL implementations of the designed
+processors. The generated application-specific processor HDL can be 
+synthesized for example to an FPGA chip. Then, user can modify the 
+application and upload new program image to continue development.
 
 \begin{figure}
   \begin{center}
@@ -70,22 +69,24 @@ image to continue development.
 Application-specific instruction-set processor (ASIP) is a
 programmable processor which is tailored to certain application
 (domain). Hence, it can outperform general-purpose processors in terms
-of performance, area, and power. On the other hand, programmability
-and powerful ASIP-tools should provide increased productivity in
-comparison to hardwired accelerator IP blocks, which do offer the
+of performance, area, and power. On the other hand, the programmability
+and the powerful ASIP tools should provide increased productivity in
+comparison to fixed function accelerator implementations, which offer the
 highest performance.
 
 With TCE, TTA ASIP configuration, SW compilation, and simulation can
 be carried out in the order of minutes and hence most of the time can
 be reserved to application and architecture co-development. It is fast
-to iterate over new TTA configurations, e.g. change the number and
+to iterate over new TTA configurations, e.g., change the number and
 type of function units (FU), configure interconnection network (IC),
-register files (RF), and memory interfaces; or develop special
-function units.  Simple TTA designs with support for a couple of
+register files (RF), or experiment with special function units 
+(custom operations).  
+
+Simple TTA designs with support for a couple of
 parallel arithmetic operations consume in the order of
-approx. 1000-5000 LUTs (look-up tables) which means that modern FPGA's
-can easily include several or even tens of TTAs. Operating frequency
-matches the processors developed by FPGA vendors, e.g. nearly 200 MHz.
+approx. 1000-5000 LUTs (look-up tables), which means that modern FPGA's
+can easily include even tens of TTA cores. The operating clock frequency can
+be optimized to match the soft cores offered by FPGA vendors.
 
 \section{Document Overview}
 
@@ -186,12 +187,12 @@ modifying the resources and architecture of the processor to fit the
 application at hand -- a process called hardware/software co-design.
 
 Once the user has implemented the software based on requirements, he
-designs a TTA processor with graphical tool - or selects some existing
-TTA - compiles and simulates the SW. Both compiler are simulator are
+designs a TTA processor with a graphical tool, or selects an existing
+TTA, and compiles and simulates the SW. Both compiler are simulator are
 \textit{retargetable} so they need an architectre definition as 
-input in addition to SW source codes. Simulator Proxim produces
-statistics about cycle counts and utilization of function unit, so
-that user can iterate the SW of TTA HW until results are satiscatory.
+input in addition to SW source codes. The instruction set simulator (Proxim
+or ttasim) produces statistics about cycle counts and utilization of function 
+unit, to assist in iteration of the SW of TTA HW until results are satiscatory.
 
 The LLVM compiler framework~\cite{llvm-home-page} is used to compile
 the application to 'bitcode', the intermediate representation of
@@ -218,48 +219,46 @@ interconnection network and control unit, which is responsible of
 fetching, decoding and issuing instructions. ProGe tool also includes
 a platform integrator feature which can interface the TTA with memory
 components of an FPGA board and create synthesis settings. Moreover,
-the platform integrator can packetize the TTA (and optionally also the
-SW) into easily re-usable format. In practice, this means generating
+the platform integrator can ``package'' the TTA (and optionally also the
+SW) into an easily re-usable format. In practice, this means generating
 IP-XACT documents which describe the details in XML. Synthesing and
 simulating the HDL are done with 3rd party tools, such as Altera's
 Quartus and Mentor Graphics' Modelsim.
 
-Finally, Program Image Generator (PIG) is utilized to convert the the
+Finally, Program Image Generator (PIG) is utilized to convert the 
 compiled SW format into actual binaries. PIG supports various
 different output formats ranging from plain binary format to FPGA
 vendor specific embedded RAM formats.
 
 More details about the tools and design phases are given in Chapters
 \ref{sec:prode} - \ref{section:codesign}. The TCE tour tutorial in
-section~\ref{sec:tcetour} gives a hands on approach to the design
+section~\ref{sec:tcetour} provides a hands-on introduction to the design
 flow.
 
 \begin{table}
   \begin{center}
     \caption {Summary of tools. Some of the tools have grahical
-    user interface (GUI) and others executed from the command
-    prompt.}
+    user interface (GUI) and others executed from the shell command
+    line (CLI).}
     \label {tab:phases}
     \begin{tabular}{l | l | l | l }
       \hline
       Tool & Purpose & Type & Output file(s)\\
       \hline
       \hline
-      ProDe                & Create and modify TTA architectures              & GUI  & .adf \\
-      tcecc                & Compile SW                                       & cmd  & .tpef \\
-      Proxim               & Simulate TTA core                                & GUI  & report \\
-      ttasim               & Simulate TTA core                                & cmd  & report \\
-      osed                 & operation set editor                             & GUI  & .cc, .opp, opb \\
-      hdbeditor            & HW database editor                               & GUI  & .hdb  \\
+      ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
+      tcecc                & Compile software                                 & CLI  & .tpef \\
+      Proxim               & Simulate TTA cores (architectural level)         & GUI  & report \\
+      ttasim               & Simulate TTA cores (architectural level)         & CLI  & report \\
+      OSEd                 & Operation Set Abstraction Layer database editor  & GUI  & operation db \\
+      HDBEditor            & HW implementation database editor                & GUI  & HDB  \\
       \hline
-      ProGe                & Generate VHDL                                    & GUI  & VHDL \\
-      generateprocessor    & Same as ProGe                                    & cmd  & VHDL \\     	
-      PIG                  & Generate program image                           & cmd  & .img, .mif, .coe  \\
-      generatebits         & Same as PIG                                      & cmd  & .img, .mif, .coe  \\
-      Platform integrator  & Interface with memories etc., generate IP-XACT   & cmd  & VHDL, .xml \\
+      ProGe / generateprocessor             & Generate HDL                                     & CLI (and a GUI in ProDe) & VHDL or Verilog \\
+      PIG / generatebits   & Generate program image                           & CLI  & e.g. .mif  \\
+      Platform integrator  & Interface with memories, generate IP-XACT        & CLI  & e.g. .xml, project files \\
       \hline
-      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/c  & e.g. .sof\\
-      3rd party Simulation & Simulate VHDL                                    & G/c  & report, .wave \\
+      3rd party Synthesis  & Convert VHDL to netlist and program FPGA         & G/C  &  e.g. .sof\\
+      3rd party Simulation & Simulate VHDL                                    & G/C  &  report, .wave \\
       \hline
     \end{tabular}
   \end{center}
@@ -305,7 +304,7 @@ TTA is based on VLIW (Very Long Instruction Word) processor paradigm
 but solves its major bottlenecks: the complexity of register file (RF)
 and pipeline bypass network. However, TTA is \textit{statically
 scheduled} at compile time and supports \textit{instruction-level
-parallelism} (ILP) like VLIW. Instructions can be tens or hundreds of
+parallelism} (ILP) like VLIW. TTA instructions are commonly hundreds of
 bits wide. TTA has multiple internal \textit{function units} (FUs) and
 interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
 
@@ -357,7 +356,7 @@ enhancing the performance of certain applications.
 
 \begin{table}
   \begin{center}
-    \caption {Configurable aspects of TTA}
+    \caption {Configurable aspects of the TCE's TTA template}
     \label {tab:filetypes}
     \begin{tabular}{l | l | l }
       \hline
@@ -393,7 +392,7 @@ cycles the custom operation execution takes and then compile and
 repeat the simulation. This way it is easy to seek for the most
 potential custom operations as well as test different execution
 latencies for the custom operations. Once a suitable custom operation
-has been identified, user can start actually implementing it in VHDL.
+has been identified, user can start actually implementing it in an HDL.
 
 The rest of this section describes certain detailed aspects of the TTA
 template used in the TCE toolset that might not be very clear.
@@ -609,13 +608,13 @@ There a 3 kind of files:
 
 Filename extension: .adf
 
-Machine Architecture Definition File (ADF) is a file format for
+Architecture Definition File (ADF) is a file format for
 defining target processor architectures, e.g. which function units are
-used and how they are connected \cite{ADF-specs}.  ADF is created with
-ProDE and is a minimal specification of the target processor
-architecture, meaning that only the information needed to generate
-valid programs for the processor is stored, but nothing else. This
-file is needed by many tools, such as tcecc, ttasim, and ProGe.
+used and how they are connected \cite{ADF-specs}.  ADF can be created with
+ProDe manually or, e.g., by automated design space exploration tools. ADF 
+is a specification of the target ``processor architecture'', meaning that only 
+the information needed to generate valid programs for the processor is stored, 
+but nothing else. This file is needed by many tools, such as tcecc, ttasim, and ProGe.
 
 The XML snippet below gives an idea of ADF.
 \begin{verbatim}
@@ -684,11 +683,12 @@ interpolating cost estimation plugin.
 Filename extension:  .idf
 
 Describes which implementations to use for each component in the
-architecture. Hence, this links ADF file to HDB. Using this
+architecture. Hence, this links architectural components described in 
+ADF files to implementation alternatives stored in HDB. Using this
 information it is possible to fetch correct hardware description
 language (HDL) files from the hardware block library for cost
-estimation and processor generation. This file is needed, e.g. by
-PIG.
+estimation and processor generation. This file is needed, by
+ProGe and PIG.
 
 
 The XML snippet below gives an idea of IDF.
@@ -720,8 +720,8 @@ from TPEF program data.
 % Describe what is shipped by default in TCE
 Filename extension: .opp, .cc, .opb
 
-OSAL stores the simulation behavior and static properties of operations in
-function units.
+OSAL stores the simulation behavior and static properties of operations 
+that can be added to the function units in the designed processors.
 
 Simulation behavior of function unit operations is described by implementing
 simulation functions which can be plugged in to the simulator run time.
@@ -731,7 +731,7 @@ operations (for example, how many inputs and outputs an operation
 has). The .cc is the C++ source file that defines the behavior model
 for a set of operations. The .opb is the plugin module compiled from
 the .cc.  OSAL is quite complex and further details are presented in
-Section \ref{section:osal_details}
+Section~\ref{section:osal_details}.
 
 
 \subsection{Simulation Trace Database}
@@ -768,14 +768,14 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
       Postfix  & Purpose                                    & Format \\
       \hline
       \hline
-      adf      & Architecture   description                 & XML \\
-      idf      & Implementation description                 & XML \\
+      adf      & Architecture description                 & XML \\
+      idf      & Implementation/microarchitecture description & XML \\
       hdb      & HW database                                & SQLite \\
       \hline
       tpef     & TTA program exchange format                & bin \\
       bem      & Binary encoding map                        & bin \\
       opp      & Operation properties                       & XML \\
-      cc       & Behavior of an operation                   & C++\\
+      cc       & Simulation behavior of an operation                   & C++\\
       opb      & Compiled operation behavior                & bin \\
       \hline
       tracedb  & Database of simulation and cost estimation results     & SQLite \\
@@ -786,13 +786,12 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
 \end{table}
 
 
-
 \chapter{TUTORIALS AND HOW-TOS}
 \label{chapter:tutorials}
 
 This section presents 11 tutorials covering the basics, printing and
 streaming I/O, floating-point computation, parallel assembly, multiple
-memories, FPGA considerations and TTA with OpenCL.
+memories, FPGA considerations and programming TTAs using OpenCL C.
 
 Let's start with the simplest one.
 
@@ -803,7 +802,7 @@ This tutorial goes through most of the tools in TCE using a fairly simple
 example application. It starts from C code and ends up with VHDL of the
 processor and a bit image of the parallel program. This tutorial will also
 explain how to accelerate an algorithm by customizing the instruction
-set, i.e.\ by using custom operations. The total time  to go through
+set, i.e., by using custom operations. The total time to go through
 the tutorial is about $2-3$ hours.
 
 The tutorial file package is available at:
@@ -955,8 +954,8 @@ Processor resource utilization data can be viewed with command:
 
 \shellcmd{info proc stats}
 
-This will output a lot of information  like the utilization of transport buses,
-register files and function units:
+This will output a lot of information like the utilization of transport buses,
+register files and function units, for example: 
 
 \begin{verbatim}
 utilizations
@@ -986,7 +985,8 @@ RF:
 
 \end{verbatim}
 
-
+Your output may vary depending on the compiler version, the optimizations
+used and your architecture.
 
 Proxim can also show othes various pieces of information about the
 program's execution and its processor resource utilization. For
@@ -1147,7 +1147,7 @@ algorithms.
 \item Analyze the code for bottlenecks
 
 \item Speculatively add a new module and operation to operation
-  database with Osed. Define the behavior ofthe new operation
+  database with OSEd. Define the behavior of the new operation
   (copy-paste from original code and add few macros). Optionally, you
   can also simulate the operation behavior. Bind the new operation to
   a new function unit in ProDe
