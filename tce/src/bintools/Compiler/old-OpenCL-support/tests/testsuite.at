@@ -1,8 +1,0 @@
-AT_INIT([standalone tests])
-
-m4_include([region_splitting.at])
-m4_include([context.at])
-m4_include([warp_generation.at])
-m4_include([loop_generation.at])
-m4_include([loop_and_warp.at])
-m4_include([opencl.at])
