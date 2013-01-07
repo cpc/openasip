@@ -44,38 +44,38 @@ tce_version_string.h: ../../../.bzr/branch/last-revision
 
 ## headers start
 libtcetools_la_SOURCES += \
-	SequenceTools.hh CmdLineParser.hh \
-	RelationalDBConnection.hh HalfFloatWord.hh \
-	MathTools.hh PluginTools.hh \
-	ContainerTools.hh SQLite.hh \
-	OptionValue.hh ObjectState.hh \
-	Serializable.hh Listener.hh \
-	hash_set.hh SQLiteConnection.hh \
-	CmdLineOptions.hh BitMatrix.hh \
-	XMLSerializer.hh Exception.hh \
-	SetTools.hh CIStringSet.hh \
-	SimValue.hh Environment.hh \
-	RelationalDBQueryResult.hh TCEString.hh \
-	DOMBuilderErrorHandler.hh SQLiteQueryResult.hh \
-	DBTypes.hh Informer.hh \
-	StringTools.hh Conversion.hh \
-	TextGenerator.hh ConfigurationFile.hh \
-	CmdLineOptionParser.hh FileSystem.hh \
-	Options.hh BaseType.hh \
-	Serializer.hh ProcessorConfigurationFile.hh \
-	hash_map.hh RelationalDB.hh \
-	VectorTools.hh AssocTools.hh \
-	MapTools.hh Application.hh \
-	PagedArray.hh DataObject.hh \
-	SparseVectorMap.hh \
-	TCEString.icc AssocTools.icc \
-	CmdLineOptionParser.icc SetTools.icc \
-	ContainerTools.icc ObjectState.icc \
-	CmdLineParser.icc DataObject.icc \
-	SimValue.icc SequenceTools.icc \
-	Exception.icc MathTools.icc \
-	MapTools.icc BitMatrix.icc \
-	FileSystem.icc VectorTools.icc \
-	PagedArray.icc PluginTools.icc \
-	Informer.icc Conversion.icc 
+	BitMatrix.hh RelationalDBQueryResult.hh \
+	MathTools.hh OptionValue.hh \
+	CIStringSet.hh hash_set.hh \
+	DOMBuilderErrorHandler.hh VectorTools.hh \
+	StringTools.hh Serializer.hh \
+	PluginTools.hh SequenceTools.hh \
+	PagedArray.hh HalfFloatWord.hh \
+	SQLiteQueryResult.hh Exception.hh \
+	SparseVectorMap.hh ConfigurationFile.hh \
+	CmdLineOptionParser.hh ProcessorConfigurationFile.hh \
+	RelationalDB.hh DBTypes.hh \
+	ContainerTools.hh TextGenerator.hh \
+	SimValue.hh hash_map.hh \
+	SQLite.hh XMLSerializer.hh \
+	SetTools.hh SQLiteConnection.hh \
+	TCEString.hh DataObject.hh \
+	Serializable.hh ObjectState.hh \
+	Application.hh MapTools.hh \
+	Options.hh CmdLineOptions.hh \
+	Conversion.hh RelationalDBConnection.hh \
+	FileSystem.hh Environment.hh \
+	Informer.hh Listener.hh \
+	CmdLineParser.hh BaseType.hh \
+	AssocTools.hh CmdLineOptionParser.icc \
+	Exception.icc SimValue.icc \
+	DataObject.icc PluginTools.icc \
+	MapTools.icc MathTools.icc \
+	CmdLineParser.icc SequenceTools.icc \
+	PagedArray.icc ObjectState.icc \
+	AssocTools.icc FileSystem.icc \
+	ContainerTools.icc BitMatrix.icc \
+	TCEString.icc SetTools.icc \
+	Informer.icc VectorTools.icc \
+	Conversion.icc 
 ## headers end

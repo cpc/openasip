@@ -19,8 +19,8 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libassembler_la_SOURCES += \
-	LabelManager.hh MachineResourceManager.hh \
-	CodeSectionCreator.hh AssemblerParser.hh \
-	Assembler.hh ParserStructs.hh \
-	DataSectionCreator.hh 
+	Assembler.hh DataSectionCreator.hh \
+	AssemblerParser.hh MachineResourceManager.hh \
+	LabelManager.hh CodeSectionCreator.hh \
+	ParserStructs.hh 
 ## headers end

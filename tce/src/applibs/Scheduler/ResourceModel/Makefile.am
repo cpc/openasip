@@ -32,12 +32,12 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libresourcemodel_la_SOURCES += \
-	OutputPSocketResource.hh PSocketResource.hh \
-	OutputFUResource.hh ITemplateResource.hh \
-	InputFUResource.hh ShortImmPSocketResource.hh \
-	SegmentResource.hh BusResource.hh \
-	ExecutionPipelineResource.hh FUResource.hh \
-	IUResource.hh SchedulingResource.hh \
-	InputPSocketResource.hh ExecutionPipelineResourceTable.hh \
+	OutputPSocketResource.hh SchedulingResource.hh \
+	OutputFUResource.hh ExecutionPipelineResource.hh \
+	IUResource.hh PSocketResource.hh \
+	BusResource.hh InputFUResource.hh \
+	ITemplateResource.hh ExecutionPipelineResourceTable.hh \
+	ShortImmPSocketResource.hh SegmentResource.hh \
+	FUResource.hh InputPSocketResource.hh \
 	ExecutionPipelineResourceTable.icc SchedulingResource.icc 
 ## headers end

@@ -32,8 +32,8 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libimpltester_la_SOURCES += \
-	TestbenchGenerator.hh GhdlSimulator.hh \
+	ImplementationTester.hh ModelsimSimulator.hh \
+	GhdlSimulator.hh TestbenchGenerator.hh \
 	ImplementationSimulator.hh RFTestbenchGenerator.hh \
-	FUTestbenchGenerator.hh ImplementationTester.hh \
-	ModelsimSimulator.hh 
+	FUTestbenchGenerator.hh 
 ## headers end

@@ -34,14 +34,14 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libwxtoolkit_la_SOURCES += \
-	ConfirmDialog.hh MemoryControl.hh \
-	ErrorDialog.hh WxConversion.hh \
-	UserManualCmd.hh MemoryGridTable.hh \
-	HelpBrowser.hh MessageDialog.hh \
-	WidgetTools.hh NumberControl.hh \
-	GUITextGenerator.hh WarningDialog.hh \
-	EPSDC.hh CommandRegistry.hh \
-	GUICommand.hh MemoryValueDialog.hh \
-	InformationDialog.hh FocusTrackingTextCtrl.hh \
+	WarningDialog.hh MemoryControl.hh \
+	UserManualCmd.hh InformationDialog.hh \
+	WxConversion.hh EPSDC.hh \
+	ErrorDialog.hh MemoryValueDialog.hh \
+	MemoryGridTable.hh GUICommand.hh \
+	CommandRegistry.hh NumberControl.hh \
+	ConfirmDialog.hh GUITextGenerator.hh \
+	WidgetTools.hh MessageDialog.hh \
+	FocusTrackingTextCtrl.hh HelpBrowser.hh \
 	WxConversion.icc CommandRegistry.icc 
 ## headers end

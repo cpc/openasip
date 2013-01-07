@@ -19,6 +19,6 @@ dist-hook:
 
 ## headers start
 libapplibsprogram_la_SOURCES += \
-	StaticProgramAnalyzer.hh POMValidator.hh \
-	POMValidatorResults.hh 
+	POMValidator.hh POMValidatorResults.hh \
+	StaticProgramAnalyzer.hh 
 ## headers end

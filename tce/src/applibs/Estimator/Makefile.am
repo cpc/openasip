@@ -28,10 +28,10 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libestimator_la_SOURCES += \
-	FUCostEstimationPluginRegistry.hh CostEstimatorTypes.hh \
-	TransportPath.hh CostEstimationPluginRegistry.hh \
-	Estimator.hh ICDecoderCostEstimationPluginRegistry.hh \
-	FUCostEstimationPlugin.hh CostEstimationPlugin.hh \
-	RFCostEstimationPlugin.hh RFCostEstimationPluginRegistry.hh \
-	ICDecoderEstimatorPlugin.hh CostEstimationPluginRegistry.icc 
+	TransportPath.hh FUCostEstimationPlugin.hh \
+	RFCostEstimationPluginRegistry.hh Estimator.hh \
+	ICDecoderCostEstimationPluginRegistry.hh CostEstimationPlugin.hh \
+	RFCostEstimationPlugin.hh FUCostEstimationPluginRegistry.hh \
+	ICDecoderEstimatorPlugin.hh CostEstimatorTypes.hh \
+	CostEstimationPluginRegistry.hh CostEstimationPluginRegistry.icc 
 ## headers end

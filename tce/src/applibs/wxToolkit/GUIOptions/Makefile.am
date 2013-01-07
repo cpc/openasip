@@ -23,7 +23,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libguioptions_la_SOURCES += \
-	OptionsDialog.hh GUIOptionsSerializer.hh \
-	KeyboardShortcut.hh KeyboardShortcutDialog.hh \
-	GUIOptions.hh ToolbarButton.hh 
+	OptionsDialog.hh GUIOptions.hh \
+	ToolbarButton.hh KeyboardShortcutDialog.hh \
+	GUIOptionsSerializer.hh KeyboardShortcut.hh 
 ## headers end

@@ -15,5 +15,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libtracedb_la_SOURCES += \
-	ExecutionTrace.hh InstructionExecution.hh 
+	InstructionExecution.hh ExecutionTrace.hh 
 ## headers end

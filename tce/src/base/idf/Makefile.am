@@ -23,9 +23,9 @@ MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libidf_la_SOURCES += \
-	NullFUImplementationLocation.hh MachineImplementation.hh \
-	SocketImplementationLocation.hh BusImplementationLocation.hh \
-	NullRFImplementationLocation.hh NullUnitImplementationLocation.hh \
-	FUImplementationLocation.hh UnitImplementationLocation.hh \
-	RFImplementationLocation.hh IDFSerializer.hh 
+	UnitImplementationLocation.hh FUImplementationLocation.hh \
+	NullFUImplementationLocation.hh NullRFImplementationLocation.hh \
+	SocketImplementationLocation.hh RFImplementationLocation.hh \
+	MachineImplementation.hh BusImplementationLocation.hh \
+	NullUnitImplementationLocation.hh IDFSerializer.hh 
 ## headers end

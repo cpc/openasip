@@ -22,13 +22,13 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libinterpreter_la_SOURCES += \
-	ExpressionScript.hh ScriptInterpreter.hh \
-	TclConditionScript.hh CustomCommand.hh \
-	CmdHelp.hh ConditionScript.hh \
+	LineReaderFactory.hh CustomCommand.hh \
+	EditLineReader.hh InterpreterContext.hh \
+	TclConditionScript.hh TclInterpreter.hh \
+	Script.hh ExpressionScript.hh \
+	ScriptInterpreter.hh SimpleScriptInterpreter.hh \
 	LineReader.hh BaseLineReader.hh \
-	Script.hh SimpleScriptInterpreter.hh \
-	EditLineReader.hh LineReaderFactory.hh \
-	InterpreterContext.hh TclInterpreter.hh \
-	LineReader.icc Script.icc \
-	CustomCommand.icc 
+	CmdHelp.hh ConditionScript.hh \
+	Script.icc CustomCommand.icc \
+	LineReader.icc 
 ## headers end

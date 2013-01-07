@@ -23,8 +23,8 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libmemory_la_SOURCES += \
-	WriteRequest.hh DirectAccessMemory.hh \
-	Memory.hh IdealSRAM.hh \
-	MemoryContents.hh Memory.icc \
+	Memory.hh DirectAccessMemory.hh \
+	IdealSRAM.hh MemoryContents.hh \
+	WriteRequest.hh Memory.icc \
 	TargetMemory.icc 
 ## headers end
