@@ -41,6 +41,7 @@
 
 #include "TCEString.hh"
 #include "Exception.hh"
+#include "IndexBound.hh"
 
 class InstructionBitVector;
 class BitVector;
@@ -190,7 +191,7 @@ private:
                      const TTAProgram::Instruction*> RelocMap;
     /// Map type that maps Immediates to a vector of indexes.
     typedef std::map<const TTAProgram::Immediate*, 
-                     std::vector<unsigned int> > IndexTable;
+                     std::vector<IndexBound> > IndexTable;
     /// Map type for addresses of instructions.
     typedef std::map<const TTAProgram::Instruction*, unsigned int> 
     InstructionAddressMap;

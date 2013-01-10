@@ -27,7 +27,7 @@
  * Implementation of CodeCompressorPlugin class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2008 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -520,16 +520,12 @@ CodeCompressorPlugin::bemInstructionBits(
         const Immediate* immediate = (*iter).first;
         const Instruction* instruction = (*iter).second;
         assert(MapTools::containsKey(indexTable_, immediate));
-        vector<unsigned int> indexes = MapTools::valueForKey<
-            vector<unsigned int> >(indexTable_, immediate);
+        vector<IndexBound> indexes = MapTools::valueForKey<
+            vector<IndexBound> >(indexTable_, immediate);
         instructionBits->startSettingInstructionReference(*instruction);
-        for (vector<unsigned int>::const_iterator iter = indexes.begin();
+        for (vector<IndexBound>::const_iterator iter = indexes.begin();
              iter != indexes.end(); iter++) {
-            unsigned int index1 = *iter;
-            iter++;
-            assert(iter != indexes.end());
-            unsigned int index2 = *iter;
-            instructionBits->addIndexBoundsForReference(index1, index2);
+            instructionBits->addIndexBoundsForReference(*iter);
         }
     }
 
@@ -1138,8 +1134,9 @@ CodeCompressorPlugin::encodeLongImmediate(
                     break;
                 }
             }
+            unsigned int limmSlotWidth = iTemp.supportedWidth(slotName);
             int leftmostBitToEncode = 
-                rightmostBitToEncode + iTemp.supportedWidth(slotName) - 1;
+                rightmostBitToEncode + limmSlotWidth - 1;
             assert(leftmostBitToEncode >= rightmostBitToEncode);
             assert(
                 leftmostBitToEncode - rightmostBitToEncode < slotWidth);
@@ -1169,16 +1166,15 @@ CodeCompressorPlugin::encodeLongImmediate(
                 relocMap_.insert(
                     pair<const Immediate*, const Instruction*>(
                         &imm, &referenced));
-                vector<unsigned int> indexes;
+                vector<IndexBound> indices;
                 if (MapTools::containsKey(indexTable_, &imm)) {
-                    indexes = MapTools::valueForKey<vector<unsigned int> >(
+                    indices = MapTools::valueForKey<vector<IndexBound> >(
                         indexTable_, &imm);
-                } 
-                indexes.push_back(startIndex);
-                indexes.push_back(endIndex);
-                indexTable_.insert(
-                    pair<const Immediate*, vector<unsigned int> >(
-                        &imm, indexes));
+                }
+                IndexBound bounds(startIndex, endIndex, limmSlotWidth,
+                                  leftmostBitToEncode, rightmostBitToEncode);
+                indices.push_back(bounds);
+                indexTable_[&imm] = indices;
             }
 
             return;
@@ -1589,8 +1585,8 @@ CodeCompressorPlugin::encodeImmediateTerminal(
         Instruction& referenced = currentPOM_->instructionAt(immValue);
         assert(&referenced != &NullInstruction::instance());
         immediateBits.startSettingInstructionReference(referenced);
-        immediateBits.addIndexBoundsForReference(
-            0, immediateBits.size() - 1);
+        IndexBound simmBound(0, (immediateBits.size()-1));
+        immediateBits.addIndexBoundsForReference(simmBound);
     }
 
     // encode the source field

@@ -38,6 +38,7 @@
 
 #include "BitVector.hh"
 #include "Exception.hh"
+#include "IndexBound.hh"
 
 namespace TTAProgram {
     class Instruction;
@@ -60,7 +61,7 @@ public:
 
     void startSettingInstructionReference(
         const TTAProgram::Instruction& instruction);
-    void addIndexBoundsForReference(unsigned int start, unsigned int end);
+    void addIndexBoundsForReference(IndexBound bounds);
 
     void fixInstructionAddress(
         const TTAProgram::Instruction& instruction,
@@ -73,9 +74,8 @@ public:
         throw (OutOfRange);
     
 private:
-    /// A vector type that stores pairs of indexes.
-    typedef std::vector<std::pair<unsigned int, unsigned int> > 
-    IndexBoundTable;
+    /// A vector type that stores index bounds.
+    typedef std::vector<IndexBound> IndexBoundTable;
     /// A set type that stores IndexBoundTables.
     typedef std::set<IndexBoundTable*> IndexBoundSet;
     /// A map type that maps Instructions to IndexBoundSets.
