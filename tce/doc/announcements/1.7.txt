@@ -20,9 +20,10 @@ Many thanks to Dr. Erno Salminen for his improvements on the TCE User
 Manual, and to Antti Häyrinen for his first code contributions to this
 release. Keep them coming!
 
-We'd like to thank the Radio Implementation Research Team from Nokia
-Research Center which funded a significant part of the work for developing 
-this release. Much appreciated!
+We'd like to thank the Radio Implementation Research Team of Nokia
+Research Center and Academy of Finland (funding decision 253087)
+for financially supporting most of the work for developing this release. 
+Much appreciated!
 
 Links
 -----
