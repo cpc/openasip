@@ -20,6 +20,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libuniversalmachine_la_SOURCES += \
 	UniversalFUPort.hh SmartHWOperation.hh \
-	UniversalFunctionUnit.hh UniversalMachine.hh \
-	UnboundedRegisterFile.hh 
+	UnboundedRegisterFile.hh UniversalFunctionUnit.hh \
+	UniversalMachine.hh 
 ## headers end

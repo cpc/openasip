@@ -131,7 +131,6 @@ InstructionBitVector::pushBack(const InstructionBitVector& bits)
                      indexBoundSet->begin(); 
                  setIter != indexBoundSet->end(); setIter++) {
                 IndexBoundTable* table = *setIter;
-                
                 bitsCopy.fixBits(
                     *table, 
                     MapTools::valueForKey<unsigned int>(
@@ -180,14 +179,11 @@ InstructionBitVector::startSettingInstructionReference(
  * @param end The end index (included in the boundary).
  */
 void
-InstructionBitVector::addIndexBoundsForReference(
-    unsigned int start, 
-    unsigned int end) {
+InstructionBitVector::addIndexBoundsForReference(IndexBound bounds) {
 
     assert(currentTable_ != NULL);
-    assert(start <= end);
-    currentTable_->push_back(
-        std::pair<unsigned int, unsigned int>(start, end));
+    assert(bounds.slotStartIndex() <= bounds.slotEndIndex());
+    currentTable_->push_back(bounds);
 }
 
 
@@ -331,8 +327,8 @@ InstructionBitVector::addIndexBoundTables(
         
         for (IndexBoundTable::iterator iter = newTable->begin();
              iter != newTable->end(); iter++) {
-            (*iter).first += size();
-            (*iter).second += size();
+            (*iter).incrStartIndex(size());
+            (*iter).incrEndIndex(size());
         }
 
         to.insert(newTable);
@@ -353,7 +349,7 @@ InstructionBitVector::fixBits(
     const IndexBoundTable& indexes, 
     unsigned int value) 
     throw (OutOfRange) {
-
+    
     int requiredSize = MathTools::requiredBits(value);
     int availableSize = this->availableSize(indexes);
     if (requiredSize > availableSize) {
@@ -363,17 +359,28 @@ InstructionBitVector::fixBits(
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    int currentBit(0);
+    int currentBit = 0;
+    int stopBit = requiredSize;
 
     for (IndexBoundTable::const_reverse_iterator iter = indexes.rbegin();
          iter != indexes.rend(); iter++) {
 
-        unsigned int startIndex = (*iter).first;
-        unsigned int endIndex = (*iter).second;
+        const IndexBound& iBound = *iter;
 
+        unsigned int startIndex = iBound.slotStartIndex();
+        unsigned int endIndex = iBound.slotEndIndex();
+
+        if ((*iter).isLimmEncoded()) {
+            // Check limm slice indices and update iteration boundaries.
+            // LIMM is written from LSB to MSB. Start from the rightmost bit
+            // of *this* limm slot.
+            currentBit = iBound.limmRightIndex();
+            stopBit = iBound.limmLeftIndex();
+            assert((stopBit-currentBit) == (iBound.limmWidth()-1));
+        }
         for (unsigned int index = endIndex; index >= startIndex; index--) {
             // Rewrite with new value required bits, zero the higher ones
-            if (currentBit <= requiredSize) {
+            if (currentBit <= stopBit) {
                 operator[](index) = MathTools::bit(value, currentBit);
             } else {
                 operator[](index) = false;
@@ -392,10 +399,11 @@ InstructionBitVector::fixBits(
  */
 unsigned int
 InstructionBitVector::availableSize(const IndexBoundTable& indexes) {
+
     unsigned int size(0);
     for (IndexBoundTable::const_iterator iter = indexes.begin();
          iter != indexes.end(); iter++) {
-        size += (*iter).second - (*iter).first + 1;
+        size += (*iter).slotEndIndex() - (*iter).slotStartIndex() + 1;
     }
     return size;
 }

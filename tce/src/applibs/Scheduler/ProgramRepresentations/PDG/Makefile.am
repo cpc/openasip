@@ -31,5 +31,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libprogramdependencegraph_la_SOURCES += \
 	ProgramGraph.hh ProgramDependenceGraph.hh \
-	ProgramDependenceNode.hh ProgramDependenceEdge.hh 
+	ProgramDependenceEdge.hh ProgramDependenceNode.hh 
 ## headers end

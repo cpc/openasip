@@ -35,6 +35,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libcfg_la_SOURCES += \
-	CFGStatistics.hh ControlFlowGraph.hh \
-	ControlFlowEdge.hh BasicBlockNode.hh 
+	ControlFlowGraph.hh ControlFlowEdge.hh \
+	CFGStatistics.hh BasicBlockNode.hh 
 ## headers end

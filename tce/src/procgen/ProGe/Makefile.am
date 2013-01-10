@@ -62,6 +62,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 generateprocessor_SOURCES += \
-	GenerateProcessor.hh ProGeCmdLineOptions.hh \
-	TTAUnitTesterCmdLineOptions.hh TTAUnitTester.hh 
+	TTAUnitTesterCmdLineOptions.hh GenerateProcessor.hh \
+	ProGeCmdLineOptions.hh TTAUnitTester.hh 
 ## headers end

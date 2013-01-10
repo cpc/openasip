@@ -24,9 +24,9 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libgraph_la_SOURCES += \
-	GraphUtilities.hh Graph.hh \
-	GraphEdge.hh BoostGraph.hh \
-	GraphNode.hh Graph.icc \
-	GraphUtilities.icc BoostGraph.icc \
-	GraphNode.icc 
+	GraphNode.hh GraphUtilities.hh \
+	GraphEdge.hh Graph.hh \
+	BoostGraph.hh GraphNode.icc \
+	GraphUtilities.icc Graph.icc \
+	BoostGraph.icc 
 ## headers end

@@ -41,8 +41,8 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libexplorer_la_SOURCES += \
-	DesignSpaceExplorer.hh CostEstimates.hh \
-	ExplorerPluginParameter.hh ExplorerCmdLineOptions.hh \
-	ComponentImplementationSelector.hh FrequencySweep.hh \
+	FrequencySweep.hh CostEstimates.hh \
+	ExplorerCmdLineOptions.hh ExplorerPluginParameter.hh \
+	ComponentImplementationSelector.hh DesignSpaceExplorer.hh \
 	DesignSpaceExplorerPlugin.hh DesignSpaceExplorerPlugin.icc 
 ## headers end

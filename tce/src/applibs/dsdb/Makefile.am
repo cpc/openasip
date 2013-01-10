@@ -20,5 +20,5 @@ dist-hook:
 
 ## headers start
 libdsdb_la_SOURCES += \
-	TestApplication.hh DSDBManager.hh 
+	DSDBManager.hh TestApplication.hh 
 ## headers end

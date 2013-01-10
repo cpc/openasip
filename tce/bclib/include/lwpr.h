@@ -46,7 +46,7 @@ void lwpr_print_int(int n);
 /**
  * Prints an integer as a hexadecimal.
  */
-void lwpr_print_hex(int n);
+void lwpr_print_hex(unsigned int n);
 
 /**
  * Prints newline

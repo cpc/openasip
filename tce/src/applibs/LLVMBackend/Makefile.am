@@ -81,12 +81,13 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libtcellvmbackend_la_SOURCES += \
-	TCETargetSelectionDAGInfo.hh LLVMTCEIRBuilder.hh \
-	TCETargetMachine.hh LLVMTCEScheduler.hh \
-	LLVMTCEBuilder.hh LLVMBackend.hh \
-	TCEMCAsmInfo.hh TCESubtarget.hh \
-	ProgramPartitioner.hh LLVMPOMBuilder.hh \
-	TransportTDGen.hh TDGen.hh \
-	TCETargetMachinePlugin.hh LLVMTCEPOMBuilder.hh \
-	LLVMTCECmdLineOptions.hh 
+	TCESubtarget.hh TCETargetMachinePlugin.hh \
+	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
+	MachineInstrDDG.hh ProgramPartitioner.hh \
+	TransportTDGen.hh TCETargetSelectionDAGInfo.hh \
+	LLVMTCEIRBuilder.hh LLVMBackend.hh \
+	TDGen.hh LLVMTCEScheduler.hh \
+	InstructionPatternAnalyzer.hh TCETargetMachine.hh \
+	LLVMPOMBuilder.hh LLVMTCEBuilder.hh \
+	TCEMCAsmInfo.hh 
 ## headers end

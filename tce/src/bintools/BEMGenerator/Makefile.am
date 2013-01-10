@@ -48,5 +48,5 @@ CLEANFILES = createbem-static
 
 ## headers start
 createbem_SOURCES += \
-	BEMGeneratorCmdLineOptions.hh BEMGeneratorCLITextGenerator.hh 
+	BEMGeneratorCLITextGenerator.hh BEMGeneratorCmdLineOptions.hh 
 ## headers end

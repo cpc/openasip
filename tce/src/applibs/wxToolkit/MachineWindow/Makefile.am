@@ -41,33 +41,33 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libmachinewindow_la_SOURCES += \
-	EditPolicy.hh SegmentFactory.hh \
-	UnknownSocketFigure.hh EditPolicyFactory.hh \
-	TriggeringPortFigure.hh MachineCanvasTool.hh \
-	Request.hh RootEditPart.hh \
-	RFFactory.hh SocketBusConnFactory.hh \
-	BusChainFigure.hh BidirBridgeFigure.hh \
+	EditPolicyFactory.hh BridgeFactory.hh \
+	BusChainFigure.hh Request.hh \
+	BusFactory.hh SocketPortConnFactory.hh \
+	ContentsFigure.hh BidirBridgeFigure.hh \
+	ConnectionFigure.hh MachineCanvasTool.hh \
+	MachineEditPartFactory.hh UnknownSocketFigure.hh \
+	ConnectionFactory.hh SocketContainerFigure.hh \
+	EditPart.hh ConnectionEditPart.hh \
+	UnitContainerFigure.hh FUFactory.hh \
+	SegmentFigure.hh SocketBusConnFactory.hh \
+	SocketBusConnFigure.hh IUFactory.hh \
+	EditPolicy.hh InputSocketFigure.hh \
+	RFFactory.hh EditPartFactory.hh \
 	GCUFactory.hh ComponentCommand.hh \
-	UnitPortFactory.hh UnitPortFigure.hh \
-	MachineCanvasOptions.hh Figure.hh \
-	BridgeFactory.hh IUFactory.hh \
-	MachineCanvas.hh SelectionFigure.hh \
-	SocketFactory.hh EditPart.hh \
-	OutputSocketFigure.hh UnitContainerFigure.hh \
-	ConnectionFactory.hh ConnectionFigure.hh \
-	BusFactory.hh SocketContainerFigure.hh \
-	MoveFigure.hh Factory.hh \
-	FUFactory.hh UnitFigure.hh \
-	ConnectionEditPart.hh SocketPortConnFigure.hh \
-	ContentsFigure.hh BridgeFigure.hh \
-	SocketBusConnFigure.hh InputSocketFigure.hh \
-	EditPartFactory.hh MachineEditPartFactory.hh \
-	SegmentFigure.hh MachineCanvasLayoutConstraints.hh \
-	BusFigure.hh BusContainerFigure.hh \
-	SocketPortConnFactory.hh EditPolicy.icc \
-	RootEditPart.icc EditPartFactory.icc \
-	ConnectionEditPart.icc Request.icc \
-	SegmentFigure.icc Figure.icc \
-	ConnectionFigure.icc EditPolicyFactory.icc \
-	BridgeFigure.icc EditPart.icc 
+	Factory.hh TriggeringPortFigure.hh \
+	UnitPortFigure.hh MachineCanvas.hh \
+	BusContainerFigure.hh SegmentFactory.hh \
+	BridgeFigure.hh OutputSocketFigure.hh \
+	MachineCanvasOptions.hh MachineCanvasLayoutConstraints.hh \
+	SocketPortConnFigure.hh BusFigure.hh \
+	MoveFigure.hh UnitFigure.hh \
+	UnitPortFactory.hh Figure.hh \
+	SocketFactory.hh RootEditPart.hh \
+	SelectionFigure.hh BridgeFigure.icc \
+	Request.icc ConnectionFigure.icc \
+	Figure.icc EditPolicy.icc \
+	SegmentFigure.icc RootEditPart.icc \
+	EditPart.icc EditPartFactory.icc \
+	EditPolicyFactory.icc ConnectionEditPart.icc 
 ## headers end

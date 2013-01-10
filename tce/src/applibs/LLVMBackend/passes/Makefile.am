@@ -24,5 +24,5 @@ CXXFLAGS=-Wno-unused-parameter -g
 
 ## headers start
 LowerIntrinsics_la_SOURCES += \
-	MachineDCE.hh
+	MachineDCE.hh 
 ## headers end

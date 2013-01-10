@@ -32,6 +32,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libcdg_la_SOURCES += \
-	ControlDependenceGraph.hh ControlDependenceEdge.hh \
-	ControlDependenceNode.hh 
+	ControlDependenceGraph.hh ControlDependenceNode.hh \
+	ControlDependenceEdge.hh 
 ## headers end

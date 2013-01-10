@@ -34,13 +34,13 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libproge_la_SOURCES += \
-	ProGeUI.hh ICDecoderGeneratorPlugin.hh \
-	ProGeTestBenchGenerator.hh NetlistWriter.hh \
-	PortConnectionProperty.hh ProGeTypes.hh \
-	NetlistGenerator.hh ProGeScriptGenerator.hh \
-	HDLTemplateInstantiator.hh NetlistPort.hh \
-	VerilogNetlistWriter.hh ProcessorGenerator.hh \
+	ProGeUI.hh VerilogNetlistWriter.hh \
+	HDLTemplateInstantiator.hh NetlistGenerator.hh \
 	BlockSourceCopier.hh NetlistBlock.hh \
-	Netlist.hh VHDLNetlistWriter.hh \
-	VirtualNetlistBlock.hh ProGeScriptGenerator.icc 
+	NetlistPort.hh VHDLNetlistWriter.hh \
+	ICDecoderGeneratorPlugin.hh ProcessorGenerator.hh \
+	PortConnectionProperty.hh Netlist.hh \
+	ProGeTestBenchGenerator.hh ProGeTypes.hh \
+	VirtualNetlistBlock.hh NetlistWriter.hh \
+	ProGeScriptGenerator.hh ProGeScriptGenerator.icc 
 ## headers end

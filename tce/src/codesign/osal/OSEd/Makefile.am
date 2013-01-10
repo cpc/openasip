@@ -66,24 +66,24 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 osed_SOURCES += \
-	OSEdAboutDialog.hh OSEdAddModuleCmd.hh \
-	OSEdListener.hh OSEdTreeView.hh \
-	MemoryDialog.hh OSEdMemoryCmd.hh \
-	OSEdModifyBehaviorCmd.hh AddModuleDialog.hh \
-	OSEdPropertiesCmd.hh CommandThread.hh \
-	SimulationInfoDialog.hh OSEdMainFrame.hh \
-	OSEdConstants.hh OSEdOptions.hh \
-	OSEdOptionsCmd.hh OutputOperandDialog.hh \
-	SimulateDialog.hh OSEdOptionsSerializer.hh \
-	OperationContainer.hh OSEdAddOperationCmd.hh \
-	OperationPropertyDialog.hh InputOperandDialog.hh \
-	DropDownMenu.hh OSEdSimulateCmd.hh \
-	OSEdBuildAllCmd.hh OSEdUserManualCmd.hh \
-	OSEdInfoView.hh ResultDialog.hh \
-	OSEdQuitCmd.hh OSEdBuildCmd.hh \
-	OSEdRemoveOperationCmd.hh OSEdRemoveModuleCmd.hh \
-	OperationDAGDialog.hh OSEdAboutCmd.hh \
-	OSEdOptionsDialog.hh OSEdTextGenerator.hh \
-	OSEd.hh DialogPosition.hh \
-	OSEdInformer.hh 
+	SimulateDialog.hh OSEdOptionsDialog.hh \
+	OSEdMainFrame.hh OperationDAGDialog.hh \
+	OutputOperandDialog.hh OSEdRemoveOperationCmd.hh \
+	OSEdQuitCmd.hh ResultDialog.hh \
+	OSEdListener.hh DialogPosition.hh \
+	OSEdAddModuleCmd.hh OSEdOptions.hh \
+	OSEdOptionsCmd.hh OSEdBuildCmd.hh \
+	OSEdInfoView.hh OSEdAboutDialog.hh \
+	OSEdRemoveModuleCmd.hh AddModuleDialog.hh \
+	InputOperandDialog.hh OSEdConstants.hh \
+	OSEdBuildAllCmd.hh MemoryDialog.hh \
+	OSEdPropertiesCmd.hh OSEdInformer.hh \
+	OSEd.hh OSEdOptionsSerializer.hh \
+	DropDownMenu.hh OSEdAboutCmd.hh \
+	OperationPropertyDialog.hh OSEdTextGenerator.hh \
+	OperationContainer.hh OSEdUserManualCmd.hh \
+	OSEdAddOperationCmd.hh OSEdMemoryCmd.hh \
+	OSEdTreeView.hh CommandThread.hh \
+	SimulationInfoDialog.hh OSEdModifyBehaviorCmd.hh \
+	OSEdSimulateCmd.hh 
 ## headers end

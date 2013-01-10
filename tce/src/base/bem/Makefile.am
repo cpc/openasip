@@ -36,26 +36,26 @@ MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libbem_la_SOURCES += \
-	SourceField.hh NullImmediateEncoding.hh \
-	FUPortCode.hh NullFUGuardEncoding.hh \
-	DestinationField.hh PortCode.hh \
-	NullGuardField.hh NOPEncoding.hh \
-	NullRFPortCode.hh RFPortCode.hh \
-	BridgeEncoding.hh BEMTester.hh \
-	NullSourceField.hh NullUnconditionalGuardEncoding.hh \
-	NullFUPortCode.hh NullSocketEncoding.hh \
-	NullImmediateControlField.hh NullSocketCodeTable.hh \
-	LImmDstRegisterField.hh IUPortCode.hh \
-	FUGuardEncoding.hh NullDestinationField.hh \
-	GuardField.hh SlotField.hh \
-	ImmediateEncoding.hh NullInstructionField.hh \
-	NullBridgeEncoding.hh GPRGuardEncoding.hh \
-	InstructionField.hh GuardEncoding.hh \
-	BEMSerializer.hh SocketEncoding.hh \
-	ImmediateSlotField.hh SocketCodeTable.hh \
-	UnconditionalGuardEncoding.hh ImmediateControlField.hh \
-	NullGPRGuardEncoding.hh BEMTextGenerator.hh \
-	NullNOPEncoding.hh Encoding.hh \
-	BinaryEncoding.hh MoveSlot.hh \
-	NullIUPortCode.hh 
+	NullDestinationField.hh SourceField.hh \
+	NullGuardField.hh SlotField.hh \
+	NullImmediateControlField.hh GPRGuardEncoding.hh \
+	RFPortCode.hh NullGPRGuardEncoding.hh \
+	ImmediateEncoding.hh LImmDstRegisterField.hh \
+	SocketCodeTable.hh InstructionField.hh \
+	NullFUPortCode.hh MoveSlot.hh \
+	NOPEncoding.hh BinaryEncoding.hh \
+	FUGuardEncoding.hh BEMTester.hh \
+	BEMTextGenerator.hh Encoding.hh \
+	UnconditionalGuardEncoding.hh NullSocketCodeTable.hh \
+	NullFUGuardEncoding.hh BridgeEncoding.hh \
+	GuardEncoding.hh NullNOPEncoding.hh \
+	NullSocketEncoding.hh NullSourceField.hh \
+	BEMSerializer.hh GuardField.hh \
+	NullInstructionField.hh FUPortCode.hh \
+	NullBridgeEncoding.hh PortCode.hh \
+	SocketEncoding.hh NullIUPortCode.hh \
+	NullUnconditionalGuardEncoding.hh NullRFPortCode.hh \
+	NullImmediateEncoding.hh ImmediateControlField.hh \
+	IUPortCode.hh ImmediateSlotField.hh \
+	DestinationField.hh 
 ## headers end

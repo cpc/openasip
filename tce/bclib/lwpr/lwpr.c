@@ -62,10 +62,23 @@ void lwpr_print_int(int n) {
 }
 
 __attribute__((noinline))
-void lwpr_print_hex(int n) {
+void lwpr_print_hex(unsigned int n) {
      int i, sign, size;
      char s[50];
-     const char* hexdigits = "0123456789abcdef";
+     char hexdigits[16];
+     char ch;
+
+     // create hex string
+     ch = '0';
+     for (i = 0; i < 10; i++) {
+         hexdigits[i] = ch;
+         ch++;
+     }
+     ch = 'a';
+     for (i = 10; i < 16; i++) {
+         hexdigits[i] = ch;
+         ch++;
+     }
  
      i = 0;
      do {       /* generate digits in reverse order */

@@ -5,7 +5,7 @@ libpig_la_SOURCES = AsciiImageWriter.cc \
 	ProgramImageGenerator.cc RawImageWriter.cc \
 	AsciiProgramImageWriter.cc ArrayProgramImageWriter.cc \
 	ArrayImageWriter.cc MifImageWriter.cc VhdlProgramImageWriter.cc \
-	VhdlImageWriter.cc CoeImageWriter.cc
+	VhdlImageWriter.cc CoeImageWriter.cc IndexBound.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -37,13 +37,13 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libpig_la_SOURCES += \
-	InstructionBitVector.hh PIGTextGenerator.hh \
-	VhdlImageWriter.hh ArrayImageWriter.hh \
-	CoeImageWriter.hh RawImageWriter.hh \
-	AsciiImageWriter.hh AsciiProgramImageWriter.hh \
-	VhdlProgramImageWriter.hh DefaultCompressor.hh \
-	BitVector.hh ProgramImageGenerator.hh \
-	MifImageWriter.hh BitImageWriter.hh \
-	CodeCompressor.hh ArrayProgramImageWriter.hh \
-	CodeCompressorPlugin.hh 
+	ArrayProgramImageWriter.hh ProgramImageGenerator.hh \
+	AsciiImageWriter.hh DefaultCompressor.hh \
+	AsciiProgramImageWriter.hh VhdlProgramImageWriter.hh \
+	ArrayImageWriter.hh RawImageWriter.hh \
+	BitVector.hh PIGTextGenerator.hh \
+	VhdlImageWriter.hh CodeCompressorPlugin.hh \
+	BitImageWriter.hh CoeImageWriter.hh \
+	CodeCompressor.hh MifImageWriter.hh \
+	InstructionBitVector.hh IndexBound.hh
 ## headers end

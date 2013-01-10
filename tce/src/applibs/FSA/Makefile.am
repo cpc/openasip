@@ -19,5 +19,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libfsa_la_SOURCES += \
-	FiniteStateAutomaton.hh FUFiniteStateAutomaton.hh 
+	FUFiniteStateAutomaton.hh FiniteStateAutomaton.hh 
 ## headers end

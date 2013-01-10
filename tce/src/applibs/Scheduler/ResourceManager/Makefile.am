@@ -36,13 +36,13 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libresourcemanager_la_SOURCES += \
-	BrokerDirector.hh OutputFUBroker.hh \
-	ResourceManager.hh BusBroker.hh \
 	SimpleBrokerDirector.hh ITemplateBroker.hh \
-	ResourceBuildDirector.hh ResourceBroker.hh \
-	ExecutionPipelineBroker.hh PendingAssignment.hh \
-	IUBroker.hh SegmentBroker.hh \
-	ResourceMapper.hh InputFUBroker.hh \
-	SimpleResourceManager.hh InputPSocketBroker.hh \
-	OutputPSocketBroker.hh AssignmentPlan.hh 
+	BrokerDirector.hh AssignmentPlan.hh \
+	ResourceBuildDirector.hh OutputFUBroker.hh \
+	OutputPSocketBroker.hh InputFUBroker.hh \
+	IUBroker.hh ResourceManager.hh \
+	ExecutionPipelineBroker.hh BusBroker.hh \
+	SimpleResourceManager.hh ResourceMapper.hh \
+	InputPSocketBroker.hh ResourceBroker.hh \
+	PendingAssignment.hh SegmentBroker.hh 
 ## headers end

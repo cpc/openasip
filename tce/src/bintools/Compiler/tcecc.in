@@ -176,6 +176,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
     for i in options.isystem_cc_switches:
         compileFlags += "-isystem" + i + " "
 
+    compileFlags += "-Qunused-arguments "
     # list of valid suffixes
     knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
     if isOpenCLEnabled():

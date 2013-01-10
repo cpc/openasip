@@ -27,15 +27,15 @@ dist-hook:
 
 ## headers start
 libhdb_la_SOURCES += \
-	FUArchitecture.hh RFPortImplementation.hh \
-	FUPortImplementation.hh HWBlockImplementation.hh \
-	CachedHDBManager.hh RFEntry.hh \
-	RFArchitecture.hh HDBEntry.hh \
-	HDBManager.hh PortImplementation.hh \
-	CostEstimationData.hh BlockImplementationFile.hh \
-	HWBlockArchitecture.hh FUEntry.hh \
-	RFImplementation.hh FUImplementation.hh \
-	HDBRegistry.hh HDBTester.hh \
-	HDBTypes.hh FUExternalPort.hh \
-	CostFunctionPlugin.hh CostEstimationData.icc 
+	HWBlockArchitecture.hh HWBlockImplementation.hh \
+	RFPortImplementation.hh FUExternalPort.hh \
+	CachedHDBManager.hh FUPortImplementation.hh \
+	HDBTypes.hh FUImplementation.hh \
+	BlockImplementationFile.hh RFArchitecture.hh \
+	HDBManager.hh FUEntry.hh \
+	RFEntry.hh CostFunctionPlugin.hh \
+	CostEstimationData.hh HDBTester.hh \
+	RFImplementation.hh HDBRegistry.hh \
+	PortImplementation.hh FUArchitecture.hh \
+	HDBEntry.hh CostEstimationData.icc 
 ## headers end

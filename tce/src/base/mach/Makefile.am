@@ -62,29 +62,29 @@ include_HEADERS = \
 
 ## headers start
 libmach_la_SOURCES += \
-	HWOperation.hh DummyMachineTester.hh \
-	ExecutionPipeline.hh ControlUnit.hh \
-	Connection.hh FUPort.hh \
-	Socket.hh BaseRegisterFile.hh \
-	TemplateSlot.hh SpecialRegisterPort.hh \
-	ImmediateSlot.hh Unit.hh \
-	RFPort.hh PipelineElement.hh \
-	AddressSpace.hh Port.hh \
+	AddressSpace.hh Socket.hh \
+	DummyMachineTester.hh ImmediateUnit.hh \
+	RegisterFile.hh Machine.hh \
 	Bus.hh Guard.hh \
-	MOMTextGenerator.hh InstructionTemplate.hh \
-	ADFSerializer.hh MachineTester.hh \
-	NullMachine.hh FunctionUnit.hh \
-	MachinePart.hh ADFSerializerTextGenerator.hh \
-	Bridge.hh Segment.hh \
-	MachineTestReporter.hh BaseFUPort.hh \
-	ImmediateUnit.hh MachineTestReportTextGenerator.hh \
-	NullInstructionTemplate.hh RegisterFile.hh \
-	NullRegisterFile.hh NullAddressSpace.hh \
-	Machine.hh Socket.icc \
+	NullMachine.hh BaseRegisterFile.hh \
+	ImmediateSlot.hh NullRegisterFile.hh \
+	ControlUnit.hh HWOperation.hh \
+	Port.hh PipelineElement.hh \
+	ADFSerializerTextGenerator.hh InstructionTemplate.hh \
+	TemplateSlot.hh MOMTextGenerator.hh \
+	NullInstructionTemplate.hh MachineTester.hh \
+	BaseFUPort.hh ADFSerializer.hh \
+	ExecutionPipeline.hh FunctionUnit.hh \
+	Unit.hh NullAddressSpace.hh \
+	Connection.hh FUPort.hh \
+	RFPort.hh Bridge.hh \
+	SpecialRegisterPort.hh MachineTestReportTextGenerator.hh \
+	Segment.hh MachinePart.hh \
+	MachineTestReporter.hh ControlUnit.icc \
+	PipelineElement.icc Machine.icc \
 	TemplateSlot.icc Guard.icc \
-	PipelineElement.icc Segment.icc \
-	Machine.icc BaseRegisterFile.icc \
-	ControlUnit.icc Connection.icc \
-	Port.icc Bridge.icc \
-	MachinePart.icc 
+	Bridge.icc Connection.icc \
+	Segment.icc Port.icc \
+	Socket.icc MachinePart.icc \
+	BaseRegisterFile.icc 
 ## headers end

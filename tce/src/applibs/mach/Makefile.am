@@ -35,17 +35,17 @@ dist-hook:
 
 ## headers start
 libapplibsmach_la_SOURCES += \
-	MachineCheckResults.hh MachineValidator.hh \
-	FUReservationTableIndex.hh MachineResourceModifier.hh \
-	ProgrammabilityValidator.hh ProgrammabilityValidatorResults.hh \
-	CollisionMatrix.hh RegisterQuantityCheck.hh \
-	MachineValidatorResults.hh ResourceVector.hh \
-	ReservationTable.hh MachineCheckSuite.hh \
-	MinimalOpSetCheck.hh FUCollisionMatrixIndex.hh \
-	BasicMachineCheckSuite.hh MachineCheck.hh \
-	MachineInfo.hh OperationBindingCheck.hh \
-	FullyConnectedCheck.hh MachineConnectivityCheck.hh \
-	AddressSpaceCheck.hh RFPortCheck.hh \
-	ResourceVectorSet.hh FUValidator.hh \
+	MachineCheckSuite.hh MachineConnectivityCheck.hh \
+	FUCollisionMatrixIndex.hh ResourceVectorSet.hh \
+	RFPortCheck.hh BasicMachineCheckSuite.hh \
+	MachineCheckResults.hh ResourceVector.hh \
+	FUValidator.hh FUReservationTableIndex.hh \
+	OperationBindingCheck.hh RegisterQuantityCheck.hh \
+	MachineInfo.hh AddressSpaceCheck.hh \
+	FullyConnectedCheck.hh ProgrammabilityValidator.hh \
+	CollisionMatrix.hh ProgrammabilityValidatorResults.hh \
+	MinimalOpSetCheck.hh MachineValidatorResults.hh \
+	MachineValidator.hh MachineResourceModifier.hh \
+	MachineCheck.hh ReservationTable.hh \
 	ReservationTable.icc 
 ## headers end

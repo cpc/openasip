@@ -41,10 +41,10 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libddg_la_SOURCES += \
-	DataDependenceGraphBuilder.hh ConstantAliasAnalyzer.hh \
-	LLVMAliasAnalyzer.hh MemoryAliasAnalyzer.hh \
-	DataDependenceEdge.hh DataDependenceGraph.hh \
-	LLVMTCEDataDependenceGraphBuilder.hh MoveNodeUse.hh \
-	LiveRangeData.hh LiveRange.hh \
-	FalseAliasAnalyzer.hh MoveNodeUse.icc 
+	DataDependenceGraph.hh FalseAliasAnalyzer.hh \
+	DataDependenceEdge.hh DataDependenceGraphBuilder.hh \
+	MemoryAliasAnalyzer.hh LLVMTCEDataDependenceGraphBuilder.hh \
+	ConstantAliasAnalyzer.hh LLVMAliasAnalyzer.hh \
+	MoveNodeUse.hh LiveRange.hh \
+	LiveRangeData.hh MoveNodeUse.icc 
 ## headers end
