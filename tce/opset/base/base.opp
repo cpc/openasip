@@ -17,6 +17,36 @@
   </operation>
 
   <operation>
+    <name>SHL1ADD</name>
+    <description>Array indexing for 16-bit data types</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue shifted;
+      EXEC_OPERATION(shl, IO(1), 1, shifted);
+      EXEC_OPERATION(add, shifted, IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL2ADD</name>
+    <description>Array indexing for 32-bit data types</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue shifted;
+      EXEC_OPERATION(shl, IO(1), 2, shifted);
+      EXEC_OPERATION(add, shifted, IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>ADD</name>
     <description>Integer addition.</description>
     <inputs>2</inputs>
