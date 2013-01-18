@@ -217,6 +217,28 @@ TCETargetLowering::LowerFormalArguments(
             break;
         }
             
+        case MVT::f16: {
+            if (!Ins[i].Used) {                  // Argument is dead.
+                InVals.push_back(DAG.getUNDEF(ObjectVT));
+            } else {
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true);
+                SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#ifdef LLVM_3_0
+                SDValue Load = DAG.getLoad(MVT::f16, dl, Chain, FIPtr,
+                                           MachinePointerInfo(),
+                                           false, false, 0);
+#else
+                SDValue Load = DAG.getLoad(MVT::f16, dl, Chain, FIPtr,
+                                           MachinePointerInfo(),
+                                           false, false, false, 0);
+#endif
+                InVals.push_back(Load);
+            }
+            ArgOffset += 4;
+            break;
+        }
+            
         case MVT::f32: {
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
@@ -511,6 +533,7 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
     addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
+    addRegisterClass(MVT::f16, &TCE::R32HFPRegsRegClass);
 #endif
 
 #ifndef LLVM_3_0
@@ -664,6 +687,10 @@ TCETargetLowering::TCETargetLowering(
 
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+
+    setTruncStoreAction(MVT::f32, MVT::f16, Expand);
+    setLoadExtAction(ISD::EXTLOAD, MVT::f16, Expand);
+    
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
 

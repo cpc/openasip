@@ -551,6 +551,7 @@ OperationDAGConverter::createSimulationCode(
     opReplacements["CDF"] = "(FloatWord)";
     opReplacements["MOD"] = "%";
     opReplacements["MODU"] = "%";
+    opReplacements["MULH"] = "*";
 
     // Writes recursively all the DAG from node(0)
     // But this recursion does not work so added the loop

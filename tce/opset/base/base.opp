@@ -1209,6 +1209,11 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </in>
     <out id="4" type="HalfFloatWord"/>
     <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulh, IO(2), IO(3), t1);
+      EXEC_OPERATION(addh, IO(1), t1, IO(4));
+    </trigger-semantics>
+    <trigger-semantics>
       SimValue t1, t2, t3, t4, t5;
       EXEC_OPERATION(chf, IO(1), t1);
       EXEC_OPERATION(chf, IO(2), t2);
@@ -1236,6 +1241,11 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       </can-swap>
     </in>
     <out id="4" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mulh, IO(2), IO(3), t1);
+      EXEC_OPERATION(subh, IO(1), t1, IO(4));
+    </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2, t3, t4, t5;
       EXEC_OPERATION(chf, IO(1), t1);

@@ -56,9 +56,10 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     FloatConvUnion u;
     u.f = value;
     int binary16 = (u.i & 0x007FFFFF) >> 13;
-    binary16 |=(u.i & 0x0f800000) >> 13;
+    binary16 |=(u.i & 0x07800000) >> 13;
+    binary16 |=(u.i & 0x40000000) >> 16;
     binary16 |=(u.i & 0x80000000) >> 16;
-    binary16 ^= (1<<14); // 1000XXXX => 1XXXX , 0111XXX => 0XXXX
+    // TODO saturate overflows to inf
     return binary16;
 }
 

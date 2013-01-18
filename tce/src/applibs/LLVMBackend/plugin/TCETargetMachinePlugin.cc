@@ -251,6 +251,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     else if (opc == TCE::SELECT_I32ii) return SELECT;
 
     else if (opc == TCE::SELECT_F32) return SELECT;
+    else if (opc == TCE::SELECT_F16) return SELECT;
     else if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
@@ -267,6 +268,11 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOVI32I1rr) return MOVE;
     if (opc == TCE::MOVFI32rf) return MOVE;
     if (opc == TCE::MOVIF32fr) return MOVE;
+    if (opc == TCE::MOVF16hh) return MOVE;
+    if (opc == TCE::MOVF16hk) return MOVE;
+    if (opc == TCE::MOVFI16rh) return MOVE;
+    if (opc == TCE::MOVIF16hr) return MOVE;
+    if (opc == TCE::MOVF16hi) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 

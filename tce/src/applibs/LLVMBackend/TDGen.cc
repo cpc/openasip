@@ -223,6 +223,7 @@ TDGen::writeRegisterInfo(std::ostream& o)
    
     writeRARegisterInfo(o);
     write1bitRegisterInfo(o);
+    //write16bitRegisterInfo(o);
     write32bitRegisterInfo(o);
     writeVectorRegisterInfo(o);
 
@@ -543,7 +544,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         // go through all 1-bit RF classes
         if (ri->first.find("R32") == 0) {
             
-            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32,f32], 32, (add ";
+            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32,f32,f16], 32, (add ";
             o << ri->second[0];
             for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
@@ -582,6 +583,22 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
             o << ")>;" << std::endl;
         }
     }
+
+    // Half-float register classes for 32-bit registers (TODO: 16-bit registers also?)
+    for (RegClassMap::iterator ri = regsInClasses_.begin(); 
+         ri != regsInClasses_.end(); ri++) {
+        // go through all 32-bit RF classes
+        if (ri->first.find("R32") == 0) {
+            
+            o << "def " << ri->first << "HFPRegs : RegisterClass<\"TCE\", [f16], 32, (add ";
+            o << ri->second[0];
+            for (unsigned i = 1; i < ri->second.size(); i++) {
+                o << " , " << ri->second[i];
+            }
+            o << ")>;" << std::endl;
+        }
+    }
+    
 
     o << std::endl;
 }
@@ -862,6 +879,11 @@ TDGen::writeVectorRegisterInfo(
               << "FPRegs : RegisterClass<\"TCE\", [v" << vectorWidth
               << "f32], " << 32 * vectorWidth  << ", (add V" << vectorWidth << "R32DUMMY)> ;"
               << std::endl << std::endl;
+
+            /*o << "def " << regClassBase << "_L_" << i
+              << "HFPRegs : RegisterClass<\"TCE\", [v" << vectorWidth
+              << "f16], " << 32 * vectorWidth  << ", (add V" << vectorWidth << "R32DUMMY)> ;"
+              << std::endl << std::endl;*/
         } else {
             o << "def " << regClassBase << "_L_" << i
               << "Regs : RegisterClass<\"TCE\", [v" << vectorWidth
@@ -877,6 +899,11 @@ TDGen::writeVectorRegisterInfo(
               << "FPRegs : RegisterClass<\"TCE\", [v" << vectorWidth
               << "f32], " << 32 * vectorWidth << ", (add " << vectorRegs[i] << ")>;"
               << std::endl << std::endl;
+
+            /*o << "def " << regClassBase << "_L_" << i
+              << "HFPRegs : RegisterClass<\"TCE\", [v" << vectorWidth
+              << "f16], " << 32 * vectorWidth << ", (add " << vectorRegs[i] << ")>;"
+              << std::endl << std::endl;*/
         }
     }
 
@@ -1034,11 +1061,31 @@ TDGen::writeInstrInfo(std::ostream& os) {
        << "(ins MEMri:$op1, R32FPRegs:$op2), \"\"," 
        << "[(store R32FPRegs:$op2, ADDRri:$op1)]>;" << std::endl;
 
+    os << "def LDWhr : InstTCE<(outs R32HFPRegs:$op2), " 
+       << "(ins MEMrr:$op1), \"\", [(set R32HFPRegs:$op2, " 
+       << "(load ADDRrr:$op1))]>;" << std::endl;
+
+    os << "def LDWhi : InstTCE<(outs R32HFPRegs:$op2), " 
+       << "(ins MEMri:$op1), \"\", [(set R32HFPRegs:$op2, " 
+       << "(load ADDRri:$op1))]>;" << std::endl;
+
+    os << "def STWhr : InstTCE<(outs), " 
+       << "(ins MEMrr:$op1, R32HFPRegs:$op2), \"\"," 
+       << "[(store R32HFPRegs:$op2, ADDRrr:$op1)]>;" << std::endl;
+
+    os << "def STWhi : InstTCE<(outs), " 
+       << "(ins MEMri:$op1, R32HFPRegs:$op2), \"\"," 
+       << "[(store R32HFPRegs:$op2, ADDRri:$op1)]>;" << std::endl;
+
     opNames_["LDWfr"] = "LDW";
     opNames_["LDWfi"] = "LDW";
     opNames_["STWfr"] = "STW";
     opNames_["STWfi"] = "STW";
 
+    opNames_["LDWhr"] = "LDW";
+    opNames_["LDWhi"] = "LDW";
+    opNames_["STWhr"] = "STW";
+    opNames_["STWhi"] = "STW";
 
     OperationDAGSelector::OperationSet::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
@@ -1377,11 +1424,11 @@ TDGen::writeTopLevelTD(std::ostream& o) {
  * e
  * f = Float32 register
  * g
- * h
+ * h = Float16 register
  * i = Immediate integer
  * j = immediate boolean
  * k = immediate float?
- * l
+ * l = immediate float16?
  * m = float2 vec?
  * n = float4 vec?
  * o = float8 vec?
@@ -1504,20 +1551,25 @@ TDGen::writeOperationDefs(
         } 
 
         // create vector versions.
-        for (int i = 0, w = 2; i < 3; i++, w<<=1) {
-            char floatChar = 'm' + i;
-            char intChar = 'v' + i;
-            TCEString s = createDefaultOperandTypeString(op);
-            for (unsigned int j = 0; j < s.length(); j++) {
-                if (s[j] == 'r') {
-                    s[j] = intChar;
-                } else if (s[j] == 'f') {
-                    s[j] = floatChar;
+
+	// TODO: no half vectors yet, pending f16v4..f16v16 types in llvm.
+	if (outOperand.type() != Operand::HALF_FLOAT_WORD && 
+            op.operand(1).type() != Operand::HALF_FLOAT_WORD) { 
+            for (int i = 0, w = 2; i < 3; i++, w<<=1) {
+                char floatChar = 'm' + i;
+                char intChar = 'v' + i;
+                TCEString s = createDefaultOperandTypeString(op);
+                for (unsigned int j = 0; j < s.length(); j++) {
+                    if (s[j] == 'r') {
+                        s[j] = intChar;
+                    } else if (s[j] == 'f') {
+                        s[j] = floatChar;
+                    }
                 }
+                writeOperationDef(
+                    o, op, s , attrs, skipPattern, 
+                    TCEString("_VECTOR_") + Conversion::toString(w) + "_");
             }
-            writeOperationDef(
-                o, op, s , attrs, skipPattern, 
-                TCEString("_VECTOR_") + Conversion::toString(w) + "_");
         }
     }
 }
@@ -1557,6 +1609,9 @@ TDGen::writeOperationDefs(
                 break;
             case 'f':
                 c = 'k';
+                break;
+            case 'h':
+                c = 'l';
                 break;
             default:
                 continue;
@@ -1710,9 +1765,10 @@ TDGen::writeOperationDef(
  */
 char 
 TDGen::operandChar(Operand& operand) {
-    if (operand.type() != Operand::UINT_WORD &&
+    if (operand.type() == Operand::HALF_FLOAT_WORD ) {
+        return 'h';
+    } else if (operand.type() != Operand::UINT_WORD &&
         operand.type() != Operand::SINT_WORD &&
-        operand.type() != Operand::HALF_FLOAT_WORD &&
         operand.type() != Operand::RAW_DATA) {
         return 'f';
     } else {
@@ -1781,7 +1837,7 @@ TDGen::writeEmulationPattern(
             char inputType = operandChar(op.operand(i+1));
             if (immInput == i+1) {
                 // float imm operands not allowed
-                if (inputType == 'f') {
+                if (inputType == 'f' || inputType == 'h') {
                     ok = false;
                     break;
                 } else {
@@ -1894,8 +1950,31 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
 
-    //if (opName == "cfh") return "fp32_to_fp16 %1%";
-    //if (opName == "chf") return "fp16_to_fp32 %1%";
+    if (opName == "cfh") return "fround %1%";
+    if (opName == "chf") return "fextend %1%";
+
+    if (opName == "eqh") return "setoeq %1%, %2%";
+    if (opName == "neh") return "setone %1%, %2%";
+    if (opName == "lth") return "setolt %1%, %2%";
+    if (opName == "leh") return "setole %1%, %2%";
+    if (opName == "gth") return "setogt %1%, %2%";
+    if (opName == "geh") return "setoge %1%, %2%";
+
+    if (opName == "ordh") return "seto %1%, %2%";
+    if (opName == "uordh") return "setuo %1%, %2%";
+
+    if (opName == "addh") return "fadd %1%, %2%";
+    if (opName == "subh") return "fsub %1%, %2%";
+    if (opName == "mulh") return "fmul %1%, %2%";
+    if (opName == "divh") return "fdiv %1%, %2%";
+    if (opName == "absh") return "fabs %1%";
+    if (opName == "negh") return "fneg %1%";
+    if (opName == "sqrth") return "fsqrt %1%";
+
+    if (opName == "cih") return "sint_to_fp %1%";
+    if (opName == "chi") return "fp_to_sint %1%";
+    if (opName == "cihu") return "uint_to_fp %1%";
+    if (opName == "chiu") return "fp_to_uint %1%";
 
     if (opName == "ldq") return "sextloadi8 %1%";
     if (opName == "ldqu") return "zextloadi8 %1%";
@@ -2011,8 +2090,8 @@ TDGen::llvmOperationName(const std::string& osalOperationName) {
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
     
-    //if (opName == "cfh") return "fp32_to_fp16";
-    //if (opName == "chf") return "fp16_to_fp32";
+    if (opName == "cfh") return "fround";
+    if (opName == "chf") return "fextend";
 
     if (opName == "ldq") return "sextloadi8";
     if (opName == "ldqu") return "zextloadi8";
@@ -2545,7 +2624,6 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::SINT_WORD ||
                operand.type() == Operand::UINT_WORD ||
-               operand.type() == Operand::HALF_FLOAT_WORD ||
                operand.type() == Operand::RAW_DATA) {
 
         // imm
@@ -2578,11 +2656,7 @@ TDGen::operandToString(
             msg += operandType;
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
-    } else if (operand.type() == Operand::FLOAT_WORD ||
-              operand.type() == Operand::HALF_FLOAT_WORD) {
-
-        // TODO: half float should have it's own branch here and 
-        // own registers?
+    } else if (operand.type() == Operand::FLOAT_WORD ) {
 
         switch (operandType) {
         case 'i':
@@ -2605,6 +2679,33 @@ TDGen::operandToString(
         default:
             std::string msg = 
                 "invalid operation type for float operand:";
+            msg += operandType;
+            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+        }
+    } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
+
+        switch (operandType) {
+        case 'i':
+        case 'k':
+	case 'l':
+            if (match) {
+                return "f32imm:$op" + Conversion::toString(idx);
+            } else {
+                return "(f16 (fround (f32 fpimm:$op" + Conversion::toString(idx) + ")))";
+            }
+        case 'r':
+        case 'h':
+            return "R32HFPRegs:$op" + Conversion::toString(idx);
+        case 'm':
+            //return "V2R32HFPRegs:$op" + Conversion::toString(idx);
+        case 'n':
+            //return "V4R32HFPRegs:$op" + Conversion::toString(idx);
+        case 'o':
+            //return "V8R32HFPRegs:$op" + Conversion::toString(idx);
+
+        default:
+            std::string msg = 
+                "invalid operation type for half operand:";
             msg += operandType;
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         }
@@ -2755,6 +2856,9 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
                << "FP" << rcpf << ") return TCE::STWfr;" << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::"  << ri->first
+               << "HFP" << rcpf << ") return TCE::STWhr;" << std::endl;
         }
     }
     
@@ -2842,6 +2946,9 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
                << "FP" << rcpf << ") return TCE::LDWfr;" << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << "HFP" << rcpf << ") return TCE::LDWhr;" << std::endl;
         }
     }
 

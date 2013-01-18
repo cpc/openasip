@@ -138,6 +138,8 @@ std::string stringType(const Type* type) {
         return "i8";
     }  else if (type == Type::getInt1Ty(getGlobalContext())) {
         return "i1";
+    }  else if (type == Type::getHalfTy(getGlobalContext())) {
+	return "f16";
     }  else if (type == Type::getFloatTy(getGlobalContext())) {
         return "f32";
     }  else if (type == Type::getDoubleTy(getGlobalContext())) {
@@ -160,6 +162,8 @@ ARGLIST_CONST Type* getLLVMType(
         return llvmIntegerType;
     case Operand::FLOAT_WORD:
         return Type::getFloatTy(getGlobalContext());
+    case Operand::HALF_FLOAT_WORD:
+        return Type::getHalfTy(getGlobalContext());
     case Operand::DOUBLE_WORD:
         return Type::getDoubleTy(getGlobalContext());
     default:
@@ -193,6 +197,12 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
 //         footprints["MUL.i32"].push_back("i32.mul.i32.i32");
 //         footprints["MUL.i16"].push_back("i16.mul.i16.i16");
 //         footprints["MUL.i8"].push_back("i8.mul.i8.i8");
+        footprints["ADDH.i32"].push_back("f16.fadd.f16.f16");
+        footprints["SUBH.i32"].push_back("f16.fsub.f16.f16");
+        footprints["NEGH.i32"].push_back("f16.fneg.f16");
+        footprints["MULH.i32"].push_back("f16.fmul.f16.f16");
+        footprints["DIVH.i32"].push_back("f16.fdiv.f16.f16");
+        footprints["SQRTH.i32"].push_back("f16.sqrt.f16");
 
         footprints["ADDF.i32"].push_back("f32.fadd.f32.f32");
         footprints["SUBF.i32"].push_back("f32.fsub.f32.f32");

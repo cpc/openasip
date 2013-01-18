@@ -1,0 +1,436 @@
+diff --git a/include/clang/Basic/DiagnosticSemaKinds.td b/include/clang/Basic/DiagnosticSemaKinds.td
+index 6d7b52e..ef5f0af 100644
+--- a/include/clang/Basic/DiagnosticSemaKinds.td
++++ b/include/clang/Basic/DiagnosticSemaKinds.td
+@@ -413,6 +413,18 @@ def err_object_cannot_be_passed_returned_by_value : Error<
+   "; did you forget * in %1">;
+ def err_parameters_retval_cannot_have_fp16_type : Error<
+   "%select{parameters|function return value}0 cannot have __fp16 type; did you forget * ?">;
++def err_opencl_half_dereferencing : Error<
++  "dereferencing pointer to type 'half' (%0) is not allowed">;
++def err_opencl_cast_to_half : Error<"casting to type 'half' is not allowed">;
++def err_opencl_cast_from_half : Error<"casting from type 'half' is not allowed">;
++def err_opencl_half_declaration : Error<
++  "declaring variable of type 'half' is not allowed">;
++def err_opencl_half_array_declaration : Error<
++  "declaring variable of type 'half[]' is not allowed">;
++def err_opencl_half_argument : Error<
++  "declaring function argument of type 'half' is not allowed; did you forget * ?">;
++def err_opencl_half_return : Error<
++  "declaring function return value of type 'half' is not allowed; did you forget * ?">;
+ def warn_enum_value_overflow : Warning<"overflow in enumeration value">;
+ def warn_pragma_options_align_unsupported_option : Warning<
+   "unsupported alignment option in '#pragma options align'">;
+diff --git a/include/clang/Basic/LangOptions.def b/include/clang/Basic/LangOptions.def
+index fab17a2..69e7bed 100644
+--- a/include/clang/Basic/LangOptions.def
++++ b/include/clang/Basic/LangOptions.def
+@@ -111,6 +111,7 @@ LANGOPT(ShortEnums        , 1, 0, "short enum types")
+ 
+ LANGOPT(OpenCL            , 1, 0, "OpenCL")
+ LANGOPT(OpenCLVersion     , 32, 0, "OpenCL version")
++LANGOPT(NativeHalfType    , 1, 0, "Native half type support")
+ LANGOPT(CUDA              , 1, 0, "CUDA")
+ 
+ LANGOPT(AssumeSaneOperatorNew , 1, 1, "implicit __attribute__((malloc)) for C++'s new operators")
+diff --git a/lib/AST/ASTContext.cpp b/lib/AST/ASTContext.cpp
+index ad48dff..3e41956 100644
+--- a/lib/AST/ASTContext.cpp
++++ b/lib/AST/ASTContext.cpp
+@@ -3805,7 +3805,7 @@ QualType ASTContext::getFloatingTypeOfSizeWithinDomain(QualType Size,
+ 
+   assert(Domain->isRealFloatingType() && "Unknown domain!");
+   switch (EltRank) {
+-  case HalfRank: llvm_unreachable("Half ranks are not valid here");
++  case HalfRank:       return HalfTy;
+   case FloatRank:      return FloatTy;
+   case DoubleRank:     return DoubleTy;
+   case LongDoubleRank: return LongDoubleTy;
+diff --git a/lib/CodeGen/CGExprConstant.cpp b/lib/CodeGen/CGExprConstant.cpp
+index a17a436..54664e1 100644
+--- a/lib/CodeGen/CGExprConstant.cpp
++++ b/lib/CodeGen/CGExprConstant.cpp
+@@ -1125,7 +1125,8 @@ llvm::Constant *CodeGenModule::EmitConstantValue(const APValue &Value,
+   }
+   case APValue::Float: {
+     const llvm::APFloat &Init = Value.getFloat();
+-    if (&Init.getSemantics() == &llvm::APFloat::IEEEhalf)
++    if (&Init.getSemantics() == &llvm::APFloat::IEEEhalf &&
++         !Context.getLangOpts().NativeHalfType)
+       return llvm::ConstantInt::get(VMContext, Init.bitcastToAPInt());
+     else
+       return llvm::ConstantFP::get(VMContext, Init);
+diff --git a/lib/CodeGen/CGExprScalar.cpp b/lib/CodeGen/CGExprScalar.cpp
+index 1cccafe..4913467 100644
+--- a/lib/CodeGen/CGExprScalar.cpp
++++ b/lib/CodeGen/CGExprScalar.cpp
+@@ -549,9 +549,8 @@ Value *ScalarExprEmitter::EmitScalarConversion(Value *Src, QualType SrcType,
+ 
+   llvm::Type *SrcTy = Src->getType();
+ 
+-  // Floating casts might be a bit special: if we're doing casts to / from half
+-  // FP, we should go via special intrinsics.
+-  if (SrcType->isHalfType()) {
++  // If casting to/from storage-only half FP, use special intrinsics.
++  if (SrcType->isHalfType() && !CGF.getContext().getLangOpts().NativeHalfType) {
+     Src = Builder.CreateCall(CGF.CGM.getIntrinsic(llvm::Intrinsic::convert_from_fp16), Src);
+     SrcType = CGF.getContext().FloatTy;
+     SrcTy = CGF.FloatTy;
+@@ -621,7 +620,7 @@ Value *ScalarExprEmitter::EmitScalarConversion(Value *Src, QualType SrcType,
+   llvm::Type *ResTy = DstTy;
+ 
+   // Cast to half via float
+-  if (DstType->isHalfType())
++  if (DstType->isHalfType() && !CGF.getContext().getLangOpts().NativeHalfType)
+     DstTy = CGF.FloatTy;
+ 
+   if (isa<llvm::IntegerType>(SrcTy)) {
+@@ -1363,7 +1362,7 @@ ScalarExprEmitter::EmitScalarPrePostIncDec(const UnaryOperator *E, LValue LV,
+     // Add the inc/dec to the real part.
+     llvm::Value *amt;
+ 
+-    if (type->isHalfType()) {
++    if (type->isHalfType() && !CGF.getContext().getLangOpts().NativeHalfType) {
+       // Another special case: half FP increment should be done via float
+       value =
+     Builder.CreateCall(CGF.CGM.getIntrinsic(llvm::Intrinsic::convert_from_fp16),
+@@ -1385,7 +1384,7 @@ ScalarExprEmitter::EmitScalarPrePostIncDec(const UnaryOperator *E, LValue LV,
+     }
+     value = Builder.CreateFAdd(value, amt, isInc ? "inc" : "dec");
+ 
+-    if (type->isHalfType())
++    if (type->isHalfType() && !CGF.getContext().getLangOpts().NativeHalfType)
+       value =
+        Builder.CreateCall(CGF.CGM.getIntrinsic(llvm::Intrinsic::convert_to_fp16),
+                           value);
+diff --git a/lib/CodeGen/CodeGenTypes.cpp b/lib/CodeGen/CodeGenTypes.cpp
+index 9a78dae..94e6aaa 100644
+--- a/lib/CodeGen/CodeGenTypes.cpp
++++ b/lib/CodeGen/CodeGenTypes.cpp
+@@ -262,9 +262,12 @@ void CodeGenTypes::UpdateCompletedType(const TagDecl *TD) {
+ }
+ 
+ static llvm::Type *getTypeForFormat(llvm::LLVMContext &VMContext,
+-                                    const llvm::fltSemantics &format) {
+-  if (&format == &llvm::APFloat::IEEEhalf)
+-    return llvm::Type::getInt16Ty(VMContext);
++                                    const llvm::fltSemantics &format,
++                                    bool UseNativeHalf = false) {
++  if (&format == &llvm::APFloat::IEEEhalf) {
++    if (UseNativeHalf) return llvm::Type::getHalfTy(VMContext);
++    else return llvm::Type::getInt16Ty(VMContext);
++  }
+   if (&format == &llvm::APFloat::IEEEsingle)
+     return llvm::Type::getFloatTy(VMContext);
+   if (&format == &llvm::APFloat::IEEEdouble)
+@@ -343,18 +346,17 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
+       break;
+ 
+     case BuiltinType::Half:
+-      // Half is special: it might be lowered to i16 (and will be storage-only
+-      // type),. or can be represented as a set of native operations.
+-
+-      // FIXME: Ask target which kind of half FP it prefers (storage only vs
+-      // native).
+-      ResultType = llvm::Type::getInt16Ty(getLLVMContext());
++      // Half FP can either be storage-only (lowered to i16) or native.
++      ResultType = getTypeForFormat(getLLVMContext(),
++          Context.getFloatTypeSemantics(T),
++          Context.getLangOpts().NativeHalfType);
+       break;
+     case BuiltinType::Float:
+     case BuiltinType::Double:
+     case BuiltinType::LongDouble:
+       ResultType = getTypeForFormat(getLLVMContext(),
+-                                    Context.getFloatTypeSemantics(T));
++                                    Context.getFloatTypeSemantics(T),
++                                    /* UseNativeHalf = */ false);
+       break;
+ 
+     case BuiltinType::NullPtr:
+diff --git a/lib/Frontend/CompilerInvocation.cpp b/lib/Frontend/CompilerInvocation.cpp
+index d39679c..d8f727f 100644
+--- a/lib/Frontend/CompilerInvocation.cpp
++++ b/lib/Frontend/CompilerInvocation.cpp
+@@ -1830,6 +1830,7 @@ void CompilerInvocation::setLangDefaults(LangOptions &Opts, InputKind IK,
+     Opts.CXXOperatorNames = 1;
+     Opts.LaxVectorConversions = 0;
+     Opts.DefaultFPContract = 1;
++    Opts.NativeHalfType = 1;
+   }
+ 
+   if (LangStd == LangStandard::lang_cuda)
+diff --git a/lib/Sema/SemaCast.cpp b/lib/Sema/SemaCast.cpp
+index 8199751..1eca221 100644
+--- a/lib/Sema/SemaCast.cpp
++++ b/lib/Sema/SemaCast.cpp
+@@ -2029,6 +2029,21 @@ void CastOperation::CheckCStyleCast() {
+     }
+   }
+ 
++  if (Self.getLangOpts().OpenCL && !Self.getOpenCLOptions().cl_khr_fp16) {
++    if (DestType->isHalfType()) {
++      Self.Diag(SrcExpr.get()->getLocStart(), diag::err_opencl_cast_to_half)
++        << SrcExpr.get()->getSourceRange();
++      SrcExpr = ExprError();
++      return;
++    }
++    if (SrcExpr.get()->getType()->isHalfType()) {
++      Self.Diag(SrcExpr.get()->getLocStart(), diag::err_opencl_cast_from_half)
++        << SrcExpr.get()->getSourceRange();
++      SrcExpr = ExprError();
++      return;
++    }
++  }
++
+   // ARC imposes extra restrictions on casts.
+   if (Self.getLangOpts().ObjCAutoRefCount) {
+     checkObjCARCConversion(Sema::CCK_CStyleCast);
+diff --git a/lib/Sema/SemaDecl.cpp b/lib/Sema/SemaDecl.cpp
+index 3aae99a..4b708d1 100644
+--- a/lib/Sema/SemaDecl.cpp
++++ b/lib/Sema/SemaDecl.cpp
+@@ -4111,6 +4111,23 @@ Sema::ActOnVariableDeclarator(Scope *S, Declarator &D, DeclContext *DC,
+   assert(SCSpec != DeclSpec::SCS_typedef &&
+          "Parser allowed 'typedef' as storage class VarDecl.");
+   VarDecl::StorageClass SC = StorageClassSpecToVarDeclStorageClass(SCSpec);
++
++  if (getLangOpts().OpenCL && !getOpenCLOptions().cl_khr_fp16)
++  {
++    // If the cl_khr_fp16 extension is disabled, reject declaring variables
++    // of the half and half array type (OpenCL 1.1 6.1.1.1).
++    if (R->isHalfType()) {
++      Diag(D.getIdentifierLoc(), diag::err_opencl_half_declaration);
++      D.setInvalidType();
++    } else if (const ArrayType *ArrayTy =
++                 Context.getCanonicalType(R)->getAs<ArrayType>()) {
++      if (ArrayTy->getElementType()->isHalfType()) {
++        Diag(D.getIdentifierLoc(), diag::err_opencl_half_array_declaration);
++        D.setInvalidType();
++      }
++    }
++  }
++
+   if (SCSpec == DeclSpec::SCS_mutable) {
+     // mutable can only appear on non-static class members, so it's always
+     // an error here
+diff --git a/lib/Sema/SemaExpr.cpp b/lib/Sema/SemaExpr.cpp
+index 6a503ee..ade9fcb 100644
+--- a/lib/Sema/SemaExpr.cpp
++++ b/lib/Sema/SemaExpr.cpp
+@@ -521,9 +521,8 @@ ExprResult Sema::UsualUnaryConversions(Expr *E) {
+   QualType Ty = E->getType();
+   assert(!Ty.isNull() && "UsualUnaryConversions - missing type");
+ 
+-  // Half FP is a bit different: it's a storage-only type, meaning that any
+-  // "use" of it should be promoted to float.
+-  if (Ty->isHalfType())
++  // Half FP have to be promoted to float unless it is natively supported
++  if (Ty->isHalfType() && !getLangOpts().NativeHalfType)
+     return ImpCastExprToType(Res.take(), Context.FloatTy, CK_FloatingCast);
+ 
+   // Try to perform integral promotions if the object has a theoretically
+@@ -8093,6 +8092,13 @@ static QualType CheckIndirectionOperand(Sema &S, Expr *Op, ExprValueKind &VK,
+     return QualType();
+   }
+ 
++  if (Result->isHalfType()
++      && S.getLangOpts().OpenCL && !S.getOpenCLOptions().cl_khr_fp16) {
++    S.Diag(OpLoc, diag::err_opencl_half_dereferencing)
++      << OpTy << Op->getSourceRange();
++    return QualType();
++  }
++
+   // Dereferences are usually l-values...
+   VK = VK_LValue;
+ 
+@@ -8697,7 +8703,7 @@ ExprResult Sema::CreateBuiltinUnaryOp(SourceLocation OpLoc,
+     resultType = Input.get()->getType();
+ 
+     // Though we still have to promote half FP to float...
+-    if (resultType->isHalfType()) {
++    if (resultType->isHalfType() && !Context.getLangOpts().NativeHalfType) {
+       Input = ImpCastExprToType(Input.take(), Context.FloatTy, CK_FloatingCast).take();
+       resultType = Context.FloatTy;
+     }
+diff --git a/lib/Sema/SemaOverload.cpp b/lib/Sema/SemaOverload.cpp
+index a874489..c53960d 100644
+--- a/lib/Sema/SemaOverload.cpp
++++ b/lib/Sema/SemaOverload.cpp
+@@ -1794,7 +1794,8 @@ bool Sema::IsFloatingPointPromotion(QualType FromType, QualType ToType) {
+         return true;
+ 
+       // Half can be promoted to float.
+-      if (FromBuiltin->getKind() == BuiltinType::Half &&
++      if (!getLangOpts().NativeHalfType &&
++           FromBuiltin->getKind() == BuiltinType::Half &&
+           ToBuiltin->getKind() == BuiltinType::Float)
+         return true;
+     }
+diff --git a/lib/Sema/SemaType.cpp b/lib/Sema/SemaType.cpp
+index 20fe036..deef37d 100644
+--- a/lib/Sema/SemaType.cpp
++++ b/lib/Sema/SemaType.cpp
+@@ -1501,9 +1501,10 @@ QualType Sema::BuildFunctionType(QualType T,
+     return QualType();
+   }
+ 
+-  // Functions cannot return half FP.
+-  if (T->isHalfType()) {
+-    Diag(Loc, diag::err_parameters_retval_cannot_have_fp16_type) << 1 <<
++  // Functions cannot return half FP
++  // (unless in OpenCL with the cl_khr_fp16 extension enabled).
++  if (T->isHalfType() && !getOpenCLOptions().cl_khr_fp16) {
++    Diag(Loc, diag::err_opencl_half_return) <<
+       FixItHint::CreateInsertion(Loc, "*");
+     return QualType();
+   }
+@@ -1515,9 +1516,9 @@ QualType Sema::BuildFunctionType(QualType T,
+     if (ParamType->isVoidType()) {
+       Diag(Loc, diag::err_param_with_void_type);
+       Invalid = true;
+-    } else if (ParamType->isHalfType()) {
++    } else if (ParamType->isHalfType() && !getOpenCLOptions().cl_khr_fp16) {
+       // Disallow half FP arguments.
+-      Diag(Loc, diag::err_parameters_retval_cannot_have_fp16_type) << 0 <<
++      Diag(Loc, diag::err_opencl_half_argument) <<
+         FixItHint::CreateInsertion(Loc, "*");
+       Invalid = true;
+     }
+@@ -2320,9 +2321,9 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
+ 
+       // Do not allow returning half FP value.
+       // FIXME: This really should be in BuildFunctionType.
+-      if (T->isHalfType()) {
++      if (T->isHalfType() && !S.getOpenCLOptions().cl_khr_fp16) {
+         S.Diag(D.getIdentifierLoc(),
+-             diag::err_parameters_retval_cannot_have_fp16_type) << 1
++             diag::err_opencl_half_return) 
+           << FixItHint::CreateInsertion(D.getIdentifierLoc(), "*");
+         D.setInvalidType(true);
+       }
+@@ -2456,11 +2457,11 @@ static TypeSourceInfo *GetFullTypeForDeclarator(TypeProcessingState &state,
+               // Do not add 'void' to the ArgTys list.
+               break;
+             }
+-          } else if (ArgTy->isHalfType()) {
++          } else if (ArgTy->isHalfType() && !S.getOpenCLOptions().cl_khr_fp16) {
+             // Disallow half FP arguments.
+             // FIXME: This really should be in BuildFunctionType.
+             S.Diag(Param->getLocation(),
+-               diag::err_parameters_retval_cannot_have_fp16_type) << 0
++               diag::err_opencl_half_argument)
+             << FixItHint::CreateInsertion(Param->getLocation(), "*");
+             D.setInvalidType();
+           } else if (!FTI.hasPrototype) {
+diff --git a/test/CodeGenOpenCL/half.cl b/test/CodeGenOpenCL/half.cl
+new file mode 100644
+index 0000000..7ecae89
+--- /dev/null
++++ b/test/CodeGenOpenCL/half.cl
+@@ -0,0 +1,15 @@
++// RUN: %clang_cc1 %s -emit-llvm -o - | FileCheck %s
++
++#pragma OPENCL EXTENSION cl_khr_fp16 : enable
++
++
++half test()
++{
++   half x = 0.1f;
++   x+=2.0f;
++   x-=2.0f;
++   half y = x + x;
++   half z = y * 1.0f;
++   return z;
++// CHECK: half 0xH3260
++}
+diff --git a/test/Sema/fp16-sema.c b/test/Sema/fp16-sema.c
+index e678f9a..95f243e 100644
+--- a/test/Sema/fp16-sema.c
++++ b/test/Sema/fp16-sema.c
+@@ -1,17 +1,17 @@
+ // RUN: %clang_cc1 -fsyntax-only -verify %s
+ 
+ // Functions cannot have parameters of type __fp16.
+-extern void f (__fp16); // expected-error {{parameters cannot have __fp16 type; did you forget * ?}}
++extern void f (__fp16); // expected-error {{declaring function argument of type 'half' is not allowed}}
+ extern void g (__fp16 *);
+ 
+-extern void (*pf) (__fp16);  // expected-error {{parameters cannot have __fp16 type; did you forget * ?}}
++extern void (*pf) (__fp16);  // expected-error {{declaring function argument of type 'half' is not allowed}}
+ extern void (*pg) (__fp16*);
+ 
+-typedef void(*tf) (__fp16);  // expected-error {{parameters cannot have __fp16 type; did you forget * ?}}
++typedef void(*tf) (__fp16);  // expected-error {{declaring function argument of type 'half' is not allowed}}
+ typedef void(*tg) (__fp16*);
+ 
+ void kf(a)
+- __fp16 a; {  // expected-error {{parameters cannot have __fp16 type; did you forget * ?}}
++ __fp16 a; {  // expected-error {{declaring function argument of type 'half' is not allowed}}
+ }
+ 
+ void kg(a)
+@@ -19,12 +19,12 @@ void kg(a)
+ }
+ 
+ // Functions cannot return type __fp16.
+-extern __fp16 f1 (void); // expected-error {{function return value cannot have __fp16 type; did you forget * ?}}
++extern __fp16 f1 (void); // expected-error {{declaring function return value of type 'half' is not allowed}}
+ extern __fp16 *g1 (void);
+ 
+-extern __fp16 (*pf1) (void); // expected-error {{function return value cannot have __fp16 type; did you forget * ?}}
++extern __fp16 (*pf1) (void); // expected-error {{declaring function return value of type 'half' is not allowed}}
+ extern __fp16 *(*gf1) (void);
+ 
+-typedef __fp16 (*tf1) (void); // expected-error {{function return value cannot have __fp16 type; did you forget * ?}}
++typedef __fp16 (*tf1) (void); // expected-error {{declaring function return value of type 'half' is not allowed}}
+ typedef __fp16 *(*tg1) (void);
+ 
+diff --git a/test/SemaOpenCL/half.cl b/test/SemaOpenCL/half.cl
+new file mode 100644
+index 0000000..2e9de6a
+--- /dev/null
++++ b/test/SemaOpenCL/half.cl
+@@ -0,0 +1,42 @@
++// RUN: %clang_cc1 %s -verify -pedantic -fsyntax-only
++
++#pragma OPENCL EXTENSION cl_khr_fp16 : disable
++
++half half_disabled(half *p, // expected-error{{declaring function return value of type 'half' is not allowed}}
++                   half h)  // expected-error{{declaring function argument of type 'half' is not allowed}} 
++{
++  half a[2]; // expected-error{{declaring variable of type 'half[]' is not allowed}}
++  half b;    // expected-error{{declaring variable of type 'half' is not allowed}}
++
++  b = *p;    // expected-error{{dereferencing pointer to type 'half' ('half *') is not allowed}}
++  *p = b;    // expected-error{{dereferencing pointer to type 'half' ('half *') is not allowed}}
++
++  b = p[1];  // FIXME: should be forbidden
++  p[1] = b;  // FIXME: should be forbidden
++
++  float c = 1.0f;
++  b = (half) c;  // expected-error{{casting to type 'half' is not allowed}}
++  c = (float) h; // expected-error{{casting from type 'half' is not allowed}}
++
++  return h;
++}
++
++// Exactly the same as above but with the cl_khr_fp16 extension enabled.
++#pragma OPENCL EXTENSION cl_khr_fp16 : enable
++half half_enabled(half *p, half h)
++{
++  half a[2];
++  half b;
++
++  b = *p;
++  *p = b;
++
++  b = p[1];
++  p[1] = b;
++
++  float c = 1.0f;
++  b = (half) c;
++  c = (float) h;
++
++  return h;
++}

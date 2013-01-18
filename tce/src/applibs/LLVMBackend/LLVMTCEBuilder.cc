@@ -701,6 +701,26 @@ LLVMTCEBuilder::createFPDataDefinition(
             maus.push_back(u.bytes[sz - i - 1]);
         }
         def = new TTAProgram::DataDefinition(start, maus);
+    } else if (type->getTypeID() == Type::HalfTyID) {
+
+		APFloat apf = cfp->getValueAPF();
+		bool inexact;
+        apf.convert( APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+        APInt api = apf.bitcastToAPInt();
+        assert(sz == 2);
+        union {
+            uint64_t i;
+            char bytes[4];
+        } u;
+
+        u.i = api.getRawData()[0];
+		for (unsigned i = sz; i < 4; i++) {
+            maus.push_back(0);
+			}
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[sz - i - 1]);
+        }
+        def = new TTAProgram::DataDefinition(start, maus);
     } else {
         assert(false && "Unknown floating point typeID!");
     }
@@ -1826,10 +1846,18 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
 	return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
-        float fval = apf.convertToFloat();
-        SimValue val(32);
-        val.value_.floatWord = fval;
-        return new TTAProgram::TerminalImmediate(val);
+		if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
+			APInt api = apf.bitcastToAPInt();
+			uint16_t binary = (uint16_t)api.getRawData()[0];
+		    SimValue val(32);
+			val = HalfFloatWord( binary );
+        	return new TTAProgram::TerminalImmediate(val);
+		} else {
+        	float fval = apf.convertToFloat();
+        	SimValue val(32);
+        	val.value_.floatWord = fval;
+        	return new TTAProgram::TerminalImmediate(val);
+		}
     } else if (mo.isImm()) {
         int width = 32; // FIXME
         SimValue val(mo.getImm(), width);

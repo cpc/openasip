@@ -59,8 +59,6 @@ def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
 def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
-def fp32_to_fp16 : SDNode<"ISD::FP32_TO_FP16" , SDTypeProfile<1,1,[]>,[]>;
-def fp16_to_fp32 : SDNode<"ISD::FP16_TO_FP32" , SDTypeProfile<1,1,[]>,[]>;
 
 def truncstorev2i8 : PatFrag<(ops node:$val, node:$ptr),
                            (truncstore node:$val, node:$ptr), [{
@@ -111,6 +109,7 @@ def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
 // =========================
 
 // Immediate writes to register
+def f16imm   : Operand<f16>;
 let isReMaterializable = 1, isMoveImm = 1 in {
 
 def MOVI1ri : InstTCE<(outs R1Regs:$dst), (ins i1imm:$val),
@@ -124,11 +123,17 @@ def MOVI32ri : InstTCE<(outs R32IRegs:$dst), (ins i32imm:$src),
 def MOVF32fk : InstTCE<(outs R32FPRegs:$dst), (ins f32imm:$val),
 	           "$val -> $dst;",
                    [(set R32FPRegs:$dst, (f32 fpimm:$val))]>;
+def MOVF16hk : InstTCE<(outs R32HFPRegs:$dst), (ins f16imm:$val),
+	           "$src -> $dst;",
+                   [(set R32HFPRegs:$dst, (f16 fpimm:$val))]>;
 }
 
 // TODO: are these really ever used for anything? propably not?
 let isReMaterializable = 1, neverHasSideEffects = 1, isMoveImm = 1 in {
 def MOVF32fi : InstTCE<(outs R32FPRegs:$dst), (ins i32imm:$src),
+	           "$src -> $dst;",
+                   []>;
+def MOVF16hi : InstTCE<(outs R32HFPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
 }
@@ -154,11 +159,24 @@ def MOVFI32rf : InstTCE<(outs R32IRegs:$dst), (ins R32FPRegs:$src),
 def MOVIF32fr : InstTCE<(outs R32FPRegs:$dst), (ins R32IRegs:$src),
 	           "$src -> $dst;",
                    [(set R32FPRegs:$dst, (bitconvert R32IRegs:$src))]>;
-}
 
 def MOVF32ff : InstTCE<(outs R32FPRegs:$dst), (ins R32FPRegs:$src),
 	           "$src -> $dst;",
                    []>;
+
+def MOVF16hh : InstTCE<(outs R32HFPRegs:$dst), (ins R32HFPRegs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVFI16rh : InstTCE<(outs R32IRegs:$dst), (ins R32HFPRegs:$src),
+	           "$src -> $dst;",
+                   [(set R32IRegs:$dst, (bitconvert R32HFPRegs:$src))]>;
+
+def MOVIF16hr : InstTCE<(outs R32HFPRegs:$dst), (ins R32IRegs:$src),
+	           "$src -> $dst;",
+                   [(set R32HFPRegs:$dst, (bitconvert R32IRegs:$src))]>;
+}
+
 
 def NOP : InstTCE<(outs), (ins), "...;", []>;
 
@@ -283,6 +301,12 @@ def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
                           "# SELECT_F32 PSEUDO!",
                           [(set R32FPRegs:$dst, 
                             (select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;
+
+  def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),
+                          (ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),
+                          "# SELECT_F16 PSEUDO!",
+                          [(set R32HFPRegs:$dst, 
+                            (select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;
 
 
 // sign extension from i1 means 0 -> 0 , 1(true) -> -1

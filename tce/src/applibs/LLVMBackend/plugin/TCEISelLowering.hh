@@ -141,7 +141,7 @@ namespace llvm {
     public:        
         virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const;
         virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const {
-            if (VT==MVT::f32) {
+            if (VT==MVT::f32 || VT==MVT::f16) {
                 return true;
             }
             return false;
