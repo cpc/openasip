@@ -82,6 +82,8 @@ Major bugfixes
 - If long immediate template consisted of multiple slots, long immediate
   encoded instruction references were updated incorrectly to the
   instruction bit image during the image creation.
+- OSAL DAGs with constants work a bit better, smaller change
+  to get strange error of invalid pattern.
 
 Misc.
 -----
