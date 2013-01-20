@@ -48,6 +48,7 @@ class OperationDAG;
 class OperationNode;
 class OperationDAGNode;
 class TerminalNode;
+class ConstantNode;
 
 namespace TTAMachine {
     class Machine;
@@ -185,6 +186,12 @@ protected:
         bool emulationPattern,
         const std::string& operandTypes)
 throw (InvalidData);
+
+    std::string constantNodeString(
+        const Operation& op, 
+        const OperationDAG& dag,
+        const ConstantNode& node,
+        const std::string& operandTypes);
 
     std::string dagNodeToString(
         const Operation& op,

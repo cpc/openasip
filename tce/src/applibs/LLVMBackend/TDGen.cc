@@ -2388,12 +2388,120 @@ TDGen::dagNodeToString(
     // Constant values.
     const ConstantNode* cNode = dynamic_cast<const ConstantNode*>(&node);
     if (cNode != NULL) {
-        assert(dag.inDegree(*cNode) == 0);
-        return Conversion::toString(cNode->value());
+        return constantNodeString(op, dag, *cNode, operandTypes);
     }
 
     abortWithError("Unknown OperationDAG node type.");
     return "";
+}
+
+std::string 
+TDGen::constantNodeString(
+    const Operation& op, 
+    const OperationDAG& dag,
+    const ConstantNode& node,
+    const std::string& operandTypes) {
+
+    assert(dag.inDegree(node) == 0);
+    assert(dag.outDegree(node) == 1);
+    OperationDAGNode& succ = dag.headNode(dag.outEdge(node,0));
+    OperationNode* opn = dynamic_cast<OperationNode*>(&succ);
+    OperationDAG::NodeSet siblings = dag.predecessors(*opn);
+    for (OperationDAG::NodeSet::iterator i = siblings.begin();
+         i!= siblings.end(); i++) {
+        const TerminalNode* tNode = dynamic_cast<const TerminalNode*>(*i);
+        if (tNode != NULL) {
+            const Operand& operand = op.operand(tNode->operandIndex());
+            assert(operand.isInput());
+            char operandType = 
+                operandTypes[operand.index()-1 + op.numberOfOutputs()];
+            switch (operandType) {
+            case 'j':
+            case 'b':
+                return "(i1 " + Conversion::toString(node.value()) + ")";
+            case 'h':
+                return "(f16 " + Conversion::toString(node.value()) + ")";
+                // TODO: f16 vectors not yet implemented
+            case 'f':
+            case 'k':
+                return "(f32 " + Conversion::toString(node.value()) + ")";
+            case 'm':
+                return ("(v2f32 (build_vector (f32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            case 'n':
+                return ("(v4f32 (build_vector (f32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            case 'o':
+                return ("(v8f32 (build_vector (f32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        "),(f32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            case 'r':
+            case 'i':
+                return "(i32 " + Conversion::toString(node.value()) + ")";
+            case 'v':
+                return ("(v2i32 (build_vector (i32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            case 'w':
+                return ("(v4i32 (build_vector (i32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            case 'x':
+                return ("(v8i32 (build_vector (i32 " + 
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        "),(i32 " +
+                        Conversion::toString(node.value()) +
+                        ")))");
+            default:
+                break;
+            }
+        }
+    }
+    return Conversion::toString(node.value());
 }
 
 /**
@@ -2571,15 +2679,15 @@ TDGen::operationNodeToString(
             int dst = edge.dstOperand();
             if (dst == i) {
                 const OperationDAGNode& in = dag.tailNode(edge);
-		std::string dagNodeString =  dagNodeToString(
-            op, dag, in, emulationPattern, operandTypes);
-		try {
-		    pattern % dagNodeString;
-		} catch(...) {
-		    TCEString msg = "Boost format threw exception! ";
-		    msg << "Input format: " << operationPat;
-		    throw InvalidData(__FILE__, __LINE__, __func__, msg);
-		}
+                std::string dagNodeString =  dagNodeToString(
+                    op, dag, in, emulationPattern, operandTypes);
+                try {
+                    pattern % dagNodeString;
+                } catch(...) {
+                    TCEString msg = "Boost format threw exception! ";
+                    msg << "Input format: " << operationPat;
+                    throw InvalidData(__FILE__, __LINE__, __func__, msg);
+                }
             }
         }
     }
@@ -2689,6 +2797,7 @@ TDGen::operandToString(
         case 'k':
 	case 'l':
             if (match) {
+                // TODO: is this correct?
                 return "f32imm:$op" + Conversion::toString(idx);
             } else {
                 return "(f16 (fround (f32 fpimm:$op" + Conversion::toString(idx) + ")))";
