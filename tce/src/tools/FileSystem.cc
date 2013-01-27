@@ -41,7 +41,7 @@
 #include <unistd.h> // for truncate
 #include <sys/types.h> // for truncate
 
-#define BOOST_FILESYSTEM_VERSION 2
+#define BOOST_FILESYSTEM_VERSION 3
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -74,16 +74,16 @@ std::string
 FileSystem::directoryOfPath(const std::string fileName) {
 
     Path origString(fileName);
-    string file = origString.native_directory_string();
+    string file = origString.string();
     Path DS(DIRECTORY_SEPARATOR);
-    string::size_type lastPathPos = file.rfind(DS.native_directory_string());
+    string::size_type lastPathPos = file.rfind(DS.string());
     if (lastPathPos == string::npos) {
         return CURRENT_DIRECTORY;
     }
 
     string dirPath = file.substr(0, lastPathPos);
     Path path(dirPath);
-    return path.native_directory_string();
+    return path.string();
 }
 
 /**
@@ -98,7 +98,7 @@ FileSystem::fileOfPath(const std::string pathName) {
         return pathName;
     }
     Path origString(pathName);
-    string path = origString.native_directory_string();
+    string path = origString.string();
     Path DS(DIRECTORY_SEPARATOR);
     unsigned int index = path.find_last_of(DIRECTORY_SEPARATOR);
     return path.substr(index + 1);
@@ -167,7 +167,7 @@ FileSystem::currentWorkingDir() {
 
     delete[] buf;
     Path path(dirName);
-    return path.native_directory_string();
+    return path.string();
 }
 
 /**
@@ -228,10 +228,10 @@ FileSystem::expandTilde(const std::string& stringWithTilde) {
 bool
 FileSystem::isAbsolutePath(const std::string& pathName) {
     Path path(pathName);
-    string pathString = path.native_directory_string();
+    string pathString = path.string();
     Path DS(DIRECTORY_SEPARATOR);
     return pathString.substr(0, 1) ==
-        DS.native_directory_string() ? true : false;
+        DS.string() ? true : false;
 }
 
 /**
@@ -246,7 +246,7 @@ FileSystem::isAbsolutePath(const std::string& pathName) {
 bool
 FileSystem::isRelativePath(const std::string& pathName) {
     Path path(pathName);
-    string pathString = path.native_directory_string();
+    string pathString = path.string();
     return !isAbsolutePath(pathString) && !pathString.empty();
 }
 
@@ -304,7 +304,7 @@ FileSystem::absolutePathOf(const std::string& pathName) {
     }
     Path path(absolutePath);
     path.normalize();
-    return path.native_file_string();
+    return path.string();
 }
 
 /** 
@@ -350,10 +350,10 @@ FileSystem::createDirectory(const std::string& path) {
     }
     Path DS(DIRECTORY_SEPARATOR);
     Path orPath(path.substr(1));
-    string origPath = orPath.native_directory_string();
-    string currentPath = DS.native_directory_string();
+    string origPath = orPath.string();
+    string currentPath = DS.string();
     while (origPath.size() > 0) {
-        string::size_type pos = origPath.find(DS.native_directory_string());
+        string::size_type pos = origPath.find(DS.string());
         if (pos == string::npos) {
             currentPath += origPath;
             origPath = "";
@@ -370,7 +370,7 @@ FileSystem::createDirectory(const std::string& path) {
             // directory creation failed, probably because of lacking rights
             return false;
         }
-        currentPath += DS.native_directory_string();
+        currentPath += DS.string();
     }
     return true;
 }
@@ -410,7 +410,7 @@ bool
 FileSystem::createFile(const std::string& file) {
 
     Path filePath(file);
-    string fileName = filePath.native_directory_string();
+    string fileName = filePath.string();
 
     if (fileExists(file)) {
         return true;
@@ -545,9 +545,9 @@ FileSystem::directoryContents(
             for (boost::filesystem::directory_iterator iter(path); 
                  iter != end_iter; iter++) {
                 if (absolutePaths) {
-                    contents.push_back(absolutePathOf(iter->string()));
+                    contents.push_back(absolutePathOf(iter->path().string()));
                 } else {
-                    contents.push_back(iter->string());
+                    contents.push_back(iter->path().string());
                 }
 
             }
@@ -556,9 +556,9 @@ FileSystem::directoryContents(
                      boost::filesystem::current_path()); 
                  iter != end_iter; iter++) {
                 if (absolutePaths) {
-                    contents.push_back(absolutePathOf(iter->string()));
+                    contents.push_back(absolutePathOf(iter->path().string()));
                 } else {
-                    contents.push_back(iter->string());
+                    contents.push_back(iter->path().string());
                 }
             }
         }
@@ -590,11 +590,11 @@ FileSystem::directorySubTrees(const std::string& directory)
     
         for (directory_iterator itr(directory); itr != end_itr; ++itr) {
             if (is_directory(*itr) && exists(*itr) && 
-                (*itr).string().find(".") == string::npos) {
-                subTrees.push_back((*itr).string());
+                (*itr).path().string().find(".") == string::npos) {
+                subTrees.push_back((*itr).path().string());
                 
                 std::vector<std::string> subSubTrees = 
-                    directorySubTrees((*itr).string());
+                    directorySubTrees((*itr).path().string());
                     
                 for (size_t i = 0; i < subSubTrees.size(); ++i) {
                     subTrees.push_back(subSubTrees.at(i));
@@ -629,17 +629,17 @@ FileSystem::findFileInDirectoryTree(
     
     for (directory_iterator itr(startDirectory); itr != end_itr; ++itr) {
         if (is_directory(*itr)) {
-            Path p((*itr).string());
+            Path p((*itr).path().string());
             if (findFileInDirectoryTree(p, fileName, pathFound))
                 return true;
         }
 #if BOOST_VERSION >= 103600
-        else if (itr->filename() == fileName)
+        else if (itr->path().filename() == fileName)
 #else
         else if (itr->leaf() == fileName)
 #endif
         {
-            pathFound = Path((*itr).string());
+            pathFound = Path((*itr).path().string());
             return true;
         }
     }
@@ -724,7 +724,9 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     if (dstIt == dstEndIt) {
         toRelDir.clear();
         while (POIt != POEndIt) {
-            toRelDir.append(*POIt++);
+            std::string const tmp = POIt->string();
+            toRelDir.append(tmp);
+            POIt++;
             if (POIt != POEndIt) {
                 toRelDir.append(DIRECTORY_SEPARATOR);
             }
@@ -733,7 +735,9 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     } else { // if above
         std::string temp;
         while (POIt != POEndIt) {
-            temp.append(*POIt++);
+            std::string const tmp = POIt->string();
+            POIt++;
+            temp.append(tmp);
             if (POIt != POEndIt) {
                 temp.append(DIRECTORY_SEPARATOR);
             }
@@ -940,27 +944,11 @@ FileSystem::appendReplaceFile(
  * @param pathName String to be converted to path.
  */
 Path::Path(const std::string& pathName) :
-    boost::filesystem::path(pathName, Path::check) {
+    boost::filesystem::path(pathName) {
 }
 
 /**
  * Destructor.
  */
 Path::~Path() {
-}
-
-/**
- * Function for checking the correctness of path.
- *
- * @param name Name to be checked.
- * @return True if name is ok, false otherwise.
- */
-bool
-Path::check(const std::string& name) {
-    for (size_t i = 0; i < name.size(); i++) {
-        if (name[i] == '?' || name[i] == '*' || name[i] == '!') {
-            return false;
-        }
-    }
-    return true;
 }

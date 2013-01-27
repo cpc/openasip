@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#define BOOST_FILESYSTEM_VERSION 2
+#define BOOST_FILESYSTEM_VERSION 3
 
 #include <boost/filesystem/path.hpp>
 
@@ -167,8 +167,6 @@ class Path : public boost::filesystem::path {
 public:
     explicit Path(const std::string& pathName);
     virtual ~Path();
-private:
-    static bool check(const std::string& name);
 };
 
 #include "FileSystem.icc"
