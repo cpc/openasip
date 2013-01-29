@@ -76,13 +76,16 @@ namespace llvm {
        virtual unsigned registerIndex(unsigned dwarfRegNum) = 0;
 
        /// Returns operation name corresponding to llvm target opcode.
-       virtual std::string operationName(unsigned opc) = 0;
+       virtual std::string operationName(unsigned opc) const = 0;
        /// Returns true in case the target supports the given osal operation
 
        virtual bool hasOperation(TCEString operationName) const = 0;
        /// Returns the opcode for the given osal operation, undefined if not found.
        virtual unsigned opcode(TCEString operationName) const = 0;
        virtual unsigned int extractElementLane(const MachineInstr& mi) const = 0;
+
+       virtual int getTruePredicateOpcode(unsigned opc) const = 0;
+       virtual int getFalsePredicateOpcode(unsigned opc) const = 0;
 
        /// Returns pointer to xml string of the target machine .adf
        virtual const std::string* adfXML() = 0;

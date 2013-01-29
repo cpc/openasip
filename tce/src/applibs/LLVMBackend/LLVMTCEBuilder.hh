@@ -141,7 +141,8 @@ namespace llvm {
         void initDataSections();
 
         TTAProgram::Move* createMove(
-            const MachineOperand& src, const MachineOperand& dst);
+            const MachineOperand& src, const MachineOperand& dst,
+            TTAProgram::MoveGuard* guard);
 
         const TargetMachine& targetMachine() const { return *tm_; }
 
@@ -197,7 +198,8 @@ namespace llvm {
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         virtual TTAProgram::Instruction* emitMove(
-            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
+            bool conditional=false, bool trueGuard=true);
 
         void fixProgramOperationReferences();
 

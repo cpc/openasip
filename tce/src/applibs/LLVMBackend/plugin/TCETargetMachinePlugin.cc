@@ -81,7 +81,7 @@ public:
 
     unsigned int extractElementLane(const llvm::MachineInstr&) const;
 
-    virtual std::string operationName(unsigned opc);
+    virtual std::string operationName(unsigned opc) const;
 
     virtual bool hasOperation(TCEString operationName) const {
         return MapTools::containsValue(opNames_, operationName.upper());
@@ -90,6 +90,9 @@ public:
     virtual unsigned opcode(TCEString operationName) const {
         return MapTools::keyForValue<unsigned>(opNames_, operationName.upper());
     }
+
+    virtual int getTruePredicateOpcode(unsigned opc) const;
+    virtual int getFalsePredicateOpcode(unsigned opc) const;
 
     unsigned int raPortDRegNum();
     std::string dataASName();
@@ -124,6 +127,8 @@ private:
     void initialize();
     
     std::map<unsigned, TCEString> opNames_;
+    std::map<unsigned, unsigned> truePredOps_;
+    std::map<unsigned, unsigned> falsePredOps_;
     std::map<unsigned, TCEString> regNames_;
     std::map<unsigned, unsigned> regIndices_;
 
@@ -227,11 +232,29 @@ GeneratedTCEPlugin::extractElementLane(const llvm::MachineInstr& mi) const {
     return UINT_MAX;
 }
 
+int GeneratedTCEPlugin::getTruePredicateOpcode(unsigned opc) const {
+    std::map<unsigned int, unsigned int>::const_iterator i = truePredOps_.find(opc);
+    if (i == truePredOps_.end()) {
+	return -1;
+    } else {
+	return i->second;
+    }
+}
+
+int GeneratedTCEPlugin::getFalsePredicateOpcode(unsigned opc) const {
+    std::map<unsigned int, unsigned int>::const_iterator i = falsePredOps_.find(opc);
+    if (i == falsePredOps_.end()) {
+	return -1;
+    } else {
+	return i->second;
+    }
+}
+
 /**
  * Maps llvm target opcodes to target operation names.
  */
 std::string
-GeneratedTCEPlugin::operationName(unsigned opc) {
+GeneratedTCEPlugin::operationName(unsigned opc) const {
 
     const std::string MOVE = "MOVE";
     const std::string PSEUDO = "PSEUDO";
@@ -258,10 +281,19 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     else if (opc == TCE::NOP) return NOP;
 
     // Moves
+    if (opc == TCE::COPY) return MOVE;
     if (opc == TCE::MOVI1rr) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOVI1rr) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOVI1rr) return "!MOVE";
     if (opc == TCE::MOVI1ri) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOVI1ri) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOVI1ri) return "!MOVE";
     if (opc == TCE::MOVI32rr) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOVI32rr) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOVI32rr) return "!MOVE";
     if (opc == TCE::MOVI32ri) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOVI32ri) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOVI32ri) return "!MOVE";
     if (opc == TCE::MOVF32ff) return MOVE;
     if (opc == TCE::MOVF32fi) return MOVE;
     if (opc == TCE::MOVF32fk) return MOVE;
@@ -314,14 +346,15 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOV8xx) return "_VECTOR_MOV_8";
     if (opc == TCE::MOV8oo) return "_VECTOR_MOV_8";
 
-    if (opNames_.find(opc) == opNames_.end()) {
+    std::map<unsigned int, TCEString>::const_iterator i = opNames_.find(opc);
+    if (i == opNames_.end()) {
         std::cerr << "ERROR: Couldn't find operation with opc: " << opc
                   << std::endl;
         std::cerr << "Total ops: " << opNames_.size() << std::endl;
         abort();
+    } else {
+	return i->second;
     }
-
-    return opNames_[opc];
 }
 
 #include "TCEGenRegisterInfo.inc"

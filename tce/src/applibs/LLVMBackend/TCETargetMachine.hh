@@ -87,6 +87,8 @@ namespace llvm {
 	virtual bool addPreRegAlloc();
 	virtual bool addInstSelector();
 
+	virtual bool addPreSched2();
+
 	TCETargetMachinePlugin* plugin_;
     };
 #endif

@@ -116,9 +116,27 @@ def MOVI1ri : InstTCE<(outs R1Regs:$dst), (ins i1imm:$val),
 	           "$src -> $dst;",
                    [(set R1Regs:$dst, (i1 imm:$val))]>;
 
+def PRED_TRUE_MOVI1ri : InstTCE<(outs R1Regs:$dst), 
+    		   (ins R1Regs:$pred, i1imm:$val),
+	           "$src -> $dst;",
+                   []>;
+
+def PRED_FALSE_MOVI1ri : InstTCE<(outs R1Regs:$dst), 
+    		   (ins R1Regs:$pred, i1imm:$val),
+	           "$src -> $dst;",
+                   []>;
+
 def MOVI32ri : InstTCE<(outs R32IRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    [(set R32IRegs:$dst, (i32 imm:$src))]>;
+
+def PRED_TRUE_MOVI32ri : InstTCE<(outs R32IRegs:$dst), 
+    		       (ins R1Regs:$pred, i32imm:$src),
+	           	   "$src -> $dst;", []>;
+
+def PRED_FALSE_MOVI32ri : InstTCE<(outs R32IRegs:$dst), 
+    		       (ins R1Regs:$pred, i32imm:$src),
+	           	   "$src -> $dst;", []>;
 
 def MOVF32fk : InstTCE<(outs R32FPRegs:$dst), (ins f32imm:$val),
 	           "$val -> $dst;",
@@ -144,7 +162,28 @@ let isAsCheapAsAMove = 1 in {
 def MOVI1rr : InstTCE<(outs R1Regs:$dst), (ins R1Regs:$src),
 	           "$src -> $dst;",
                    []>;
+
+def PRED_TRUE_MOVI1rr : InstTCE<(outs R1Regs:$dst), 
+    (ins R1Regs:$pred, R1Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def PRED_FALSE_MOVI1rr : InstTCE<(outs R1Regs:$dst), 
+    (ins R1Regs:$pred, R1Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
 def MOVI32rr : InstTCE<(outs R32IRegs:$dst), (ins R32IRegs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def PRED_TRUE_MOVI32rr : InstTCE<(outs R32IRegs:$dst), 
+    (ins R1Regs:$pred, R32IRegs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def PRED_FALSE_MOVI32rr : InstTCE<(outs R32IRegs:$dst), 
+    (ins R1Regs:$pred, R32IRegs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -185,7 +224,19 @@ def NOP : InstTCE<(outs), (ins), "...;", []>;
 def ANDext : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$src, i32imm:$val),
 	"", []>;
 
+def PRED_TRUE_ANDext : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$pred, R1Regs:$src, i32imm:$val),
+	"", []>;
+
+def PRED_FALSE_ANDext : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$pred, R1Regs:$src, i32imm:$val),
+	"", []>;
+
 def XORbicmp: InstTCE<(outs R1Regs:$dst),(ins R1Regs:$src, i32imm:$val),
+    "", []>;
+
+def PRED_TRUE_XORbicmp: InstTCE<(outs R1Regs:$dst),(ins R1Regs:$pred, R1Regs:$src, i32imm:$val),
+    "", []>;
+
+def PRED_FALSE_XORbicmp: InstTCE<(outs R1Regs:$dst),(ins R1Regs:$pred, R1Regs:$src, i32imm:$val),
     "", []>;
 
 // (set R32IRegs:$dst, (zext R1Regs:$src))]>;
@@ -222,6 +273,37 @@ let isTerminator = 1, isBranch = 1 in {
 
     def TCEBR : InstTCE<(outs), (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
+
+// FP stores/loads
+
+    def LDWfr : InstTCE<(outs R32FPRegs:$op2),
+			(ins MEMrr:$op1), "", [(set R32FPRegs:$op2,
+						(load ADDRrr:$op1))]>;
+
+    def LDWfi : InstTCE<(outs R32FPRegs:$op2),
+			(ins MEMri:$op1), "", [(set R32FPRegs:$op2,
+						(load ADDRri:$op1))]>;
+
+    def STWfr : InstTCE<(outs), (ins MEMrr:$op1, R32FPRegs:$op2), "",
+			[(store R32FPRegs:$op2, ADDRrr:$op1)]>;
+    def STWfi : InstTCE<(outs), (ins MEMri:$op1, R32FPRegs:$op2), "",
+			[(store R32FPRegs:$op2, ADDRri:$op1)]>;
+
+// TODO: these should be LDH instead of LDW
+
+    def LDWhr : InstTCE<(outs R32HFPRegs:$op2), 
+			(ins MEMrr:$op1), "", [(set R32HFPRegs:$op2,
+						(load ADDRrr:$op1))]>;
+
+    def LDWhi : InstTCE<(outs R32HFPRegs:$op2), 
+			(ins MEMri:$op1), "", [(set R32HFPRegs:$op2,
+						(load ADDRri:$op1))]>;
+
+    def STWhr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
+			[(store R32HFPRegs:$op2, ADDRrr:$op1)]>;
+
+    def STWhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
+			[(store R32HFPRegs:$op2, ADDRri:$op1)]>;
 
 include "GenInstrInfo.td"
 
@@ -314,10 +396,18 @@ def: Pat <(i32 (sext R1Regs:$src)), (SUBrir 0, (ANDext R1Regs:$src,1))>;
 
 // boolean store and load
 def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,R1Regs:$op2), "", [(truncstorei8 R1Regs:$op2, ADDRrr:$op1)]>;
+def PRED_TRUE_STQBrb : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$op1,R1Regs:$op2), "", []>;
+def PRED_FALSE_STQBrb : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$op1,R1Regs:$op2), "", []>;
 def STQBib : InstTCE<(outs), (ins MEMri:$op1,R1Regs:$op2), "", [(truncstorei8 R1Regs:$op2, ADDRri:$op1)]>;
+def PRED_TRUE_STQBib : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$op1,R1Regs:$op2), "", []>;
+def PRED_FALSE_STQBib : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$op1,R1Regs:$op2), "", []>;
 
 def STQBrj : InstTCE<(outs), (ins MEMrr:$op1,i1imm:$op2), "", [(truncstorei8 (i1 imm:$op2), ADDRrr:$op1)]>;
+def PRED_TRUE_STQBrj : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$op1,i1imm:$op2), "", []>;
+def PRED_FALSE_STQBrj : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$op1,i1imm:$op2), "", []>;
 def STQBij : InstTCE<(outs), (ins MEMri:$op1,i1imm:$op2), "", [(truncstorei8 (i1 imm:$op2), ADDRri:$op1)]>;
+def PRED_TRUE_STQBij : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$op1,i1imm:$op2), "", []>;
+def PRED_FALSE_STQBij : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$op1,i1imm:$op2), "", []>;
 
 def : Pat<(store R1Regs:$src, ADDRrr:$addr), (STQBrb ADDRrr:$addr, R1Regs:$src)>;
 def : Pat<(store R1Regs:$src, ADDRri:$addr), (STQBib ADDRri:$addr, R1Regs:$src)>;

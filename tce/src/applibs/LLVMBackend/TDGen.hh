@@ -217,6 +217,11 @@ throw (InvalidData);
         bool skipPattern,
         std::string backendPrefix = "");
 
+    void writeVectorStoreDefs(std::ostream& o,
+			      const TCEString& opName,
+			      const TCEString& opNameSuffix, bool addrImm,
+			      const TCEString& dataType);
+
     void writeVectorStoreDefs(std::ostream& o, Operation& op, int vectorLen);
 
     void writeVectorTruncStoreDefs(
@@ -227,7 +232,16 @@ throw (InvalidData);
        std::ostream& o,
        Operation& op, const TCEString& loadPatternName, int vectorLen);
 
-    void  writeVectorLoadDefs(
+    void writeVectorLoadDefs(std::ostream& o, const TCEString& opName, const TCEString& opNameSuffix, bool addrImm,
+			     const TCEString& resultType, const TCEString& loadPatternName);
+
+/*
+    void writeVectorLoadDefs(
+	std::ostream& o, std::string& opNameLLVM,
+	bool addrImm,
+	const TCEString& resultType);
+*/
+    void writeVectorLoadDefs(
 	std::ostream& o, 
 	Operation& op, 
 	const TCEString& loadPatternName, 
@@ -269,6 +283,9 @@ throw (InvalidData);
     std::vector<std::string> gprRegNames_;
 
     std::map<std::string, std::string> opNames_;
+
+    std::map<std::string, std::string> truePredOps_;
+    std::map<std::string, std::string> falsePredOps_;
 
     int maxVectorSize_;
 

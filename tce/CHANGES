@@ -1,6 +1,10 @@
 1.8       unreleased
 ====================
 
+Code generator improvements
+---------------------------
+- If conversion enabled in llvm side of the compiler backend.
+
 [changes starting from 2013-01-07]
 
 1.7     January 2013

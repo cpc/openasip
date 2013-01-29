@@ -1043,40 +1043,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
     }
 
-    // add the floating point load and store patterns first so they will
-    // be selected instead of i32 ldw/stw to avoid dummy castings
-    os << "def LDWfr : InstTCE<(outs R32FPRegs:$op2), " 
-       << "(ins MEMrr:$op1), \"\", [(set R32FPRegs:$op2, " 
-       << "(load ADDRrr:$op1))]>;" << std::endl;
-
-    os << "def LDWfi : InstTCE<(outs R32FPRegs:$op2), " 
-       << "(ins MEMri:$op1), \"\", [(set R32FPRegs:$op2, " 
-       << "(load ADDRri:$op1))]>;" << std::endl;
-
-    os << "def STWfr : InstTCE<(outs), " 
-       << "(ins MEMrr:$op1, R32FPRegs:$op2), \"\"," 
-       << "[(store R32FPRegs:$op2, ADDRrr:$op1)]>;" << std::endl;
-
-    os << "def STWfi : InstTCE<(outs), " 
-       << "(ins MEMri:$op1, R32FPRegs:$op2), \"\"," 
-       << "[(store R32FPRegs:$op2, ADDRri:$op1)]>;" << std::endl;
-
-    os << "def LDWhr : InstTCE<(outs R32HFPRegs:$op2), " 
-       << "(ins MEMrr:$op1), \"\", [(set R32HFPRegs:$op2, " 
-       << "(load ADDRrr:$op1))]>;" << std::endl;
-
-    os << "def LDWhi : InstTCE<(outs R32HFPRegs:$op2), " 
-       << "(ins MEMri:$op1), \"\", [(set R32HFPRegs:$op2, " 
-       << "(load ADDRri:$op1))]>;" << std::endl;
-
-    os << "def STWhr : InstTCE<(outs), " 
-       << "(ins MEMrr:$op1, R32HFPRegs:$op2), \"\"," 
-       << "[(store R32HFPRegs:$op2, ADDRrr:$op1)]>;" << std::endl;
-
-    os << "def STWhi : InstTCE<(outs), " 
-       << "(ins MEMri:$op1, R32HFPRegs:$op2), \"\"," 
-       << "[(store R32HFPRegs:$op2, ADDRri:$op1)]>;" << std::endl;
-
     opNames_["LDWfr"] = "LDW";
     opNames_["LDWfi"] = "LDW";
     opNames_["STWfr"] = "STW";
@@ -1086,6 +1052,20 @@ TDGen::writeInstrInfo(std::ostream& os) {
     opNames_["LDWhi"] = "LDW";
     opNames_["STWhr"] = "STW";
     opNames_["STWhi"] = "STW";
+
+    // some global/address immediate if conversion fails
+    // so commented out
+    truePredOps_["MOVI32rr"] = "PRED_TRUE_MOVI32rr";
+    falsePredOps_["MOVI32rr"] = "PRED_FALSE_MOVI32rr";
+    truePredOps_["MOVI1rr"] = "PRED_TRUE_MOVI1rr";
+    falsePredOps_["MOVI1rr"] = "PRED_FALSE_MOVI1rr";
+
+//    truePredOps_["MOVI32ri"] = "PRED_TRUE_MOVI32ri";
+//    falsePredOps_["MOVI32ri"] = "PRED_FALSE_MOVI32ri";
+//    truePredOps_["MOVI1ri"] = "PRED_TRUE_MOVI1ri";
+//    falsePredOps_["MOVI1ri"] = "PRED_FALSE_MOVI1ri";
+
+
 
     OperationDAGSelector::OperationSet::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
@@ -1135,7 +1115,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
             writeVectorLoadDefs(os, op, TCEString("sextloadvi16"), vectorWidth);
-	    writeVectorAnyextPattern(os, op, TCEString("extloadvi16"), vectorWidth);
+            writeVectorAnyextPattern(os, op, TCEString("extloadvi16"), vectorWidth);
             continue;
         }
 
@@ -1150,7 +1130,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             int vectorWidth = Conversion::toInt(op.name().substr(3));
             // vector store
             writeVectorLoadDefs(os, op, TCEString("sextloadvi8"), vectorWidth);
-	    writeVectorAnyextPattern(os, op, TCEString("extloadvi8"), vectorWidth);
+            writeVectorAnyextPattern(os, op, TCEString("extloadvi8"), vectorWidth);
             continue;
         }
 
@@ -1287,6 +1267,18 @@ TDGen::writeBackendCode(std::ostream& o) {
         o << "    opNames_[TCE::" << (*iter).first
           << "] = \"" << (*iter).second
           << "\";" << std::endl;
+    }
+
+    for (iter = truePredOps_.begin(); iter != truePredOps_.end(); iter++) {
+	o << "    truePredOps_[TCE::" << (*iter).first
+	  << "] = TCE::" << (*iter).second
+	  << ";" << std::endl;
+    }
+
+    for (iter = falsePredOps_.begin(); iter != falsePredOps_.end(); iter++) {
+	o << "    falsePredOps_[TCE::" << (*iter).first
+	  << "] = TCE::" << (*iter).second
+	  << ";" << std::endl;
     }
 
     // Register names & indices
@@ -1621,10 +1613,58 @@ TDGen::writeOperationDefs(
     }
 }
 
+void TDGen::writeVectorStoreDefs(std::ostream& o, const TCEString& opName, const TCEString& opNameSuffix, bool addrImm,
+				 const TCEString& dataType) {
+
+    TCEString addrType;
+    TCEString addrTypePat;
+    TCEString opNameLLVM = opName + opNameSuffix;
+
+    if (addrImm) {
+        addrType = "MEMri";
+        addrTypePat = "ADDRri";
+    } else {
+        addrType = "MEMrr";
+        addrTypePat = "ADDRrr";
+    }
+
+    o << "def " << opNameLLVM << " : InstTCE<(outs), (ins " << addrType << ":$addr, " << dataType << ":$data),"
+      << "\"\", [(store " << dataType << ":$data, " << addrTypePat << ":$addr)]>;" << std::endl;
+
+    o << "def PRED_TRUE_" << opNameLLVM << " : InstTCE<(outs), (ins R1Regs:$pred, " 
+      << addrType << ":$addr, " << dataType << ":$data),"
+      << "\"\", []>;" << std::endl;
+
+    o << "def PRED_FALSE_" << opNameLLVM << " : InstTCE<(outs), (ins R1Regs:$pred, " 
+      << addrType << ":$addr, " << dataType << ":$data),"
+      << "\"\", []>;" << std::endl;
+
+    opNames_[opNameLLVM] = opName;
+    opNames_["PRED_TRUE_" + opNameLLVM] = opName;
+    opNames_["PRED_FALSE_" + opNameLLVM] = opName;
+
+    truePredOps_[opNameLLVM] = "PRED_TRUE_" + opNameLLVM;
+    falsePredOps_[opNameLLVM] = "PRED_FALSE_" + opNameLLVM;
+}
+
+
 void 
 TDGen::writeVectorStoreDefs(
     std::ostream& o,
     Operation& op, int vectorLen) {
+
+
+    TCEString dataTypeInt = "V";
+    TCEString dataTypeFP = "V";
+    dataTypeInt << vectorLen << "R32IRegs";
+    dataTypeFP << vectorLen << "R32FPRegs";
+    
+    writeVectorStoreDefs(o, op.name(), "vr", false, dataTypeInt);//, loadPatternName);
+    writeVectorStoreDefs(o, op.name(), "vi", true, dataTypeInt);//, loadPatternName);
+    writeVectorStoreDefs(o, op.name(), "mr", false, dataTypeFP);//, loadPatternName);
+    writeVectorStoreDefs(o, op.name(), "mi", true, dataTypeFP);//, loadPatternName);
+
+/*
 
     o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
       << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRrr:$addr)]>;" << std::endl;
@@ -1642,6 +1682,7 @@ TDGen::writeVectorStoreDefs(
     opNames_[op.name() + "vi"] = op.name();
     opNames_[op.name() + "mr"] = op.name();
     opNames_[op.name() + "mi"] = op.name();
+*/
 }
 
 void 
@@ -1655,35 +1696,78 @@ TDGen::writeVectorTruncStoreDefs(
     o << "def " << op.name() << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
       << "\"\", [(truncstorev" << vectorLen << "i" << bitsize << " V" << vectorLen << "R32IRegs:$data, ADDRri:$addr)]>;" << std::endl;
 
+    o << "def PRED_TRUE_" << op.name() << "vr : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", []>;" << std::endl;
+    
+    o << "def PRED_TRUE_" << op.name() << "vi : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", []>;" << std::endl;
+
+    o << "def PRED_FALSE_" << op.name() << "vr : InstTCE<(outs), (ins R1Regs:$pred, MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", []>;" << std::endl;
+    
+    o << "def PRED_FALSE_" << op.name() << "vi : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
+      << "\"\", []>;" << std::endl;
+
     opNames_[op.name() + "vr"] = op.name();
     opNames_[op.name() + "vi"] = op.name();
+    opNames_["PRED_TRUE_" + op.name() + "vr"] = "?" + op.name();
+    opNames_["PRED_TRUE_" + op.name() + "vi"] = "?" + op.name();
+    opNames_["PRED_FALSE_" + op.name() + "vr"] = "!" + op.name();
+    opNames_["PRED_FALSE_" + op.name() + "vi"] = "!" + op.name();
+
+    truePredOps_[op.name() + "vr"] = "PRED_TRUE_" + op.name() + "vr";
+    falsePredOps_[op.name() + "vr"] = "PRED_FALSE_" + op.name() + "vr";
+
+    truePredOps_[op.name() + "vi"] = "PRED_TRUE_" + op.name() + "vi";
+    falsePredOps_[op.name() + "vi"] = "PRED_FALSE_" + op.name() + "vi";
 }
 
-
-void 
+void
 TDGen::writeVectorLoadDefs(
     std::ostream& o,
     Operation& op, const TCEString& loadPatternName, int vectorLen) {
+   
+    TCEString resultTypeInt = "V";
+    TCEString resultTypeFP = "V";
+    resultTypeInt << vectorLen << "R32IRegs";
+    resultTypeFP << vectorLen << "R32FPRegs";
+    
+    writeVectorLoadDefs(o, op.name(), "vr", false, resultTypeInt, loadPatternName);
+    writeVectorLoadDefs(o, op.name(), "vi", true, resultTypeInt, loadPatternName);
+    writeVectorLoadDefs(o, op.name(), "mr", false, resultTypeFP, loadPatternName);
+    writeVectorLoadDefs(o, op.name(), "mi", true, resultTypeFP, loadPatternName);
+}
 
-    o << "def " << op.name() << "vr : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (" << loadPatternName << " ADDRrr:$addr))]>;" << std::endl;
+void TDGen::writeVectorLoadDefs(std::ostream& o, const TCEString& opName, const TCEString& opNameSuffix, bool addrImm,
+				const TCEString& resultType, const TCEString& loadPatternName) {
 
-    o << "def "<< op.name() << "vi : InstTCE<(outs V" << vectorLen << "R32IRegs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32IRegs:$data, (" << loadPatternName << " ADDRri:$addr))]>;" << std::endl;
+    TCEString addrType;
+    TCEString addrTypePat;
+    TCEString opNameLLVM = opName + opNameSuffix;
 
-    o << "def " << op.name() << "mr : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMrr:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (" << loadPatternName << " ADDRrr:$addr))]>;" << std::endl;
+    if (addrImm) {
+        addrType = "MEMri";
+        addrTypePat = "ADDRri";
+    } else {
+        addrType = "MEMrr";
+        addrTypePat = "ADDRrr";
+    }
 
-    o << "def " << op.name()  << "mi : InstTCE<(outs V" << vectorLen << "R32FPRegs:$data), (ins MEMri:$addr),"
-      << "\"\", [(set V" << vectorLen << "R32FPRegs:$data, (" << loadPatternName << " ADDRri:$addr))]>;" << std::endl;
+    o << "def " << opNameLLVM << " : InstTCE<(outs " << resultType << ":$data), (ins " << addrType << ":$addr),"
+      << "\"\", [(set " << resultType << ":$data, (" << loadPatternName << " " << addrTypePat << ":$addr))]>;" << std::endl;
 
-    opNames_[op.name() + "vr"] = op.name();
-    opNames_[op.name() + "vi"] = op.name();
-    opNames_[op.name() + "mr"] = op.name();
-    opNames_[op.name() + "mi"] = op.name();
+    o << "def PRED_TRUE_" << opNameLLVM << " : InstTCE<(outs " << resultType << ":$data), (ins R1Regs:$pred, " << addrType << ":$addr),"
+      << "\"\", []>;" << std::endl;
 
+    o << "def PRED_FALSE_" << opNameLLVM << " : InstTCE<(outs " << resultType << ":$data), (ins R1Regs:$pred, " << addrType << ":$addr),"
+      << "\"\", []>;" << std::endl;
 
-//def LDW2r : InstTCE<(outs V2Regs:$op2), (ins MEMrr:$op1), "", [(set V2Regs:$op2, (load ADDRrr:$op1))]>;
+    opNames_[opNameLLVM] = opName;
+    opNames_["PRED_TRUE_" + opNameLLVM] = opName;
+    opNames_["PRED_FALSE_" + opNameLLVM] = opName;
+
+    truePredOps_[opNameLLVM] = "PRED_TRUE_" + opNameLLVM;
+    falsePredOps_[opNameLLVM] = "PRED_FALSE_" + opNameLLVM;
 
 }
 
@@ -1723,6 +1807,8 @@ TDGen::writeOperationDef(
     std::string outputs, inputs, asmstr, pattern;
     outputs = "(outs" + patOutputs(op, operandTypes) + ")";
     inputs = "(ins " + patInputs(op, operandTypes) + ")";
+    std::string predicatedInputs = 
+	"(ins R1Regs:$pred, " +patInputs(op, operandTypes)+ ")";
 
     asmstr = "\"\"";
     
@@ -1751,11 +1837,34 @@ TDGen::writeOperationDef(
       << asmstr << ", "
       << "[" << pattern << "]>;"
       << std::endl;
-    
+
+    // write predicated versions
+    o << "def PRED_TRUE_" << opcEnum << " : "
+      << "InstTCE<"
+      << outputs << ", "
+      << predicatedInputs << ", "
+      << asmstr << ", "
+      << "[]>;"
+      << std::endl;
+
+    // write predicated versions
+    o << "def PRED_FALSE_" << opcEnum << " : "
+      << "InstTCE<"
+      << outputs << ", "
+      << predicatedInputs << ", "
+      << asmstr << ", "
+      << "[]>;"
+      << std::endl;
+
     if (attrs != "") {
         o << "}" << std::endl;
     }        
     opNames_[opcEnum] = backendPrefix + op.name();
+    opNames_["PRED_TRUE_" + opcEnum] = "?" + backendPrefix + op.name();
+    opNames_["PRED_FALSE_" + opcEnum] = "!" + backendPrefix + op.name();
+
+    truePredOps_[opcEnum] = "PRED_TRUE_" + opcEnum;
+    falsePredOps_[opcEnum] = "PRED_FALSE_" + opcEnum;
 }
 
 /**

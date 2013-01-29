@@ -121,7 +121,36 @@ namespace llvm {
 	    bool allowModify = false)
             const;
 
+	virtual bool isPredicated(const MachineInstr *MI) const;
+	virtual bool isPredicable(MachineInstr *MI) const;
+	virtual bool PredicateInstruction(
+	    MachineInstr *mi,
+	    const SmallVectorImpl<MachineOperand> &cond) const;
+
+	virtual bool DefinesPredicate(MachineInstr *MI,
+				      std::vector<MachineOperand> &Pred) const;
+
+	virtual bool
+	SubsumesPredicate(const SmallVectorImpl<MachineOperand> &Pred1,
+			  const SmallVectorImpl<MachineOperand> &Pred2) const {
+	    return false;
+	}
+
+	virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
+					 unsigned ExtraPredCycles,
+					 const BranchProbability &Probability) const;
+	
+	virtual bool isProfitableToIfCvt(MachineBasicBlock &TMBB,
+					 unsigned NumTCycles, unsigned ExtraTCycles,
+					 MachineBasicBlock &FMBB,
+					 unsigned NumFCycles, unsigned ExtraFCycles,
+					 const BranchProbability &Probability) const;
+
+
+
     private:
+	int getMatchingCondBranchOpcode(int Opc, bool inverted) const;
+
         const TCERegisterInfo ri_;
         const TCETargetMachinePlugin* plugin_;
     };

@@ -408,3 +408,145 @@ TCEInstrInfo::AnalyzeBranch(
     // should never be here
     return true;
 }
+
+/*
+unsigned TCEInstrInfo::getInvertedPredicatedOpcode(const int Opc) const {
+    switch(Opc) {
+    default: llvm_unreachable("Unexpected predicated instruction");
+    }
+}
+*/
+bool 
+TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
+    // TODO: should be conditional move here..
+    if (mi->getOpcode() == TCE::RETL) {
+        return false;
+    }
+
+    TCEString opName = plugin_->operationName(mi->getOpcode());
+    return opName[0] == '?' || opName[0] == '!';
+}
+
+bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
+
+    if (mi->getOpcode() == TCE::COPY) {
+        return false;
+    }
+
+    // TODO: why is RETL not predicable?
+    if (mi->getOpcode() == TCE::RETL) {
+        return false;
+    }
+
+    if (isPredicated(mi)) {
+        return false;
+    }
+
+    if (getMatchingCondBranchOpcode(mi->getOpcode(),false) == -1) {
+        return false;
+    }
+
+    return true;
+}
+
+// todo: mostlly ripped from hexagon.
+// check the legal things
+bool TCEInstrInfo::PredicateInstruction(
+    MachineInstr *mi,
+    const SmallVectorImpl<MachineOperand> &cond) const {
+
+    int opc = mi->getOpcode();
+
+    assert (isPredicable(mi) && "Expected predicable instruction");
+    bool invertJump = (cond.size() >0 && cond[1].isImm() &&
+                       (cond[1].getImm() == 0));
+    
+    mi->setDesc(get(getMatchingCondBranchOpcode(opc, invertJump)));
+    //
+    // This assumes that the predicate is always the first operand
+    // in the set of inputs.
+    //
+    mi->addOperand(mi->getOperand(mi->getNumOperands()-1));
+    int oper;
+    // why -3 in hexagon?
+    for (oper = mi->getNumOperands() - 2; oper >= 0; --oper) {
+        MachineOperand mo = mi->getOperand(oper);
+	// todo: why this break in hexagon?
+        if ((mo.isReg() && !mo.isUse() && !mo.isImplicit())) {
+            break;
+        }
+
+        if (mo.isReg()) {
+            mi->getOperand(oper+1).ChangeToRegister(mo.getReg(), mo.isDef(),
+						    mo.isImplicit(), mo.isKill(),
+						    mo.isDead(), mo.isUndef(),
+						    mo.isDebug());
+        } else if (mo.isImm()) {
+            mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
+        } else if (mo.isGlobal()) {
+            // TODO: what to do here? 
+            llvm_unreachable("Unexpected operand type");
+            mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
+        } else {
+            llvm_unreachable("Unexpected operand type");
+        }
+    }
+
+    MachineOperand PredMO = cond[0];
+    mi->getOperand(oper+1).ChangeToRegister(PredMO.getReg(), PredMO.isDef(),
+                                            PredMO.isImplicit(), PredMO.isKill(),
+                                            PredMO.isDead(), PredMO.isUndef(),
+                                            PredMO.isDebug());
+    
+    return true;
+}
+
+
+int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
+    
+    if (!inv) {
+        return plugin_->getTruePredicateOpcode(opc);
+    } else {
+        return plugin_->getFalsePredicateOpcode(opc);
+    }
+}
+
+
+// mostly ripped from hexagon
+bool
+TCEInstrInfo::DefinesPredicate(MachineInstr *MI,
+			       std::vector<MachineOperand> &Pred) const {
+    for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
+	MachineOperand MO = MI->getOperand(oper);
+	if (MO.isReg() && MO.isDef()) {
+	    const TargetRegisterClass* RC = ri_.getMinimalPhysRegClass(MO.getReg());
+	    if (RC == &TCE::R1RegsRegClass) {
+		Pred.push_back(MO);
+		return true;
+	    }
+	}
+    }
+    return false;
+}
+
+bool
+TCEInstrInfo::
+isProfitableToIfCvt(MachineBasicBlock &MBB,
+                    unsigned NumCycles,
+                    unsigned ExtraPredCycles,
+                    const BranchProbability &Probability) const {
+    return true;
+}
+
+
+bool
+TCEInstrInfo::
+isProfitableToIfCvt(MachineBasicBlock &TMBB,
+                    unsigned NumTCycles,
+                    unsigned ExtraTCycles,
+                    MachineBasicBlock &FMBB,
+                    unsigned NumFCycles,
+                    unsigned ExtraFCycles,
+                    const BranchProbability &Probability) const {
+    return true;
+}

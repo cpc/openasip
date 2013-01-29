@@ -1213,10 +1213,6 @@ LLVMTCEBuilder::emitInstruction(
             return NULL;
         }
         
-        if (opName == "MOVE") {
-            return emitMove(mi, proc);
-        }
-
         if (opName[0] == '?') {
             hasGuard = true;
             opName = opName.substr(1);
@@ -1228,6 +1224,11 @@ LLVMTCEBuilder::emitInstruction(
             opName = opName.substr(1);
         }
 
+        if (opName == "MOVE") {
+	    return emitMove(mi, proc, hasGuard, trueGuard);
+	}
+
+	// TODO: guarded also for these
         if (opName == "INLINEASM") {
             return emitInlineAsm(mi, proc);
         }
@@ -1294,23 +1295,36 @@ LLVMTCEBuilder::emitInstruction(
     	<< mi->getNumOperands() << std::endl;
 #endif
     TTAProgram::MoveGuard* guard = NULL;
+    int guardOperandIndex = -1;
+
+    if (hasGuard) {
+	for (unsigned o = 0; o < mi->getNumOperands(); o++) {
+	    const MachineOperand& mo = mi->getOperand(o);
+	
+	    // Guarded operations have the guarded element as the first
+	    // operand.
+
+	    if (mo.isReg() && mo.isUse()) {
+		guardOperandIndex = o;
+		// Create move from the condition operand register to bool register
+		// which is used by the guard.
+		TTAProgram::Terminal *t = createTerminal(mo);
+		// inv guards not yet supported
+		guard = createGuard(t, trueGuard);
+		delete t;
+		assert(guard != NULL);
+		break;
+	    }
+	}
+    }
+
+
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
+	if (o == guardOperandIndex) {
+	    continue;
+	}
 
-        const MachineOperand& mo = mi->getOperand(o);
-
-        // Guarded operations have the guarded element as the first
-        // operand.
-        if (o == 0 && hasGuard) {
-            // Create move from the condition operand register to bool register
-            // which is used by the guard.
-            TTAProgram::Terminal *t = createTerminal(mo);
-            // inv guards not yet supported
-            guard = createGuard(t, trueGuard);
-            delete t;
-            assert(guard != NULL);
-            continue;
-        }
-
+	const MachineOperand& mo = mi->getOperand(o);
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
 
@@ -1392,8 +1406,10 @@ LLVMTCEBuilder::emitInstruction(
                 const MachineOperand& base = mo;
                 src = createTerminal(base);
                 dst = new TTAProgram::TerminalFUPort(op, inputOperand);
-
-                TTAProgram::Move* move = createMove(src, dst, bus, guard);
+                TTAProgram::MoveGuard* guardCopy = 
+                    guard == NULL ? NULL : guard->copy();
+		
+                TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
             
@@ -1412,9 +1428,8 @@ LLVMTCEBuilder::emitInstruction(
                     // create the offset operand move
                     src = createTerminal(offset);                
                     dst = new TTAProgram::TerminalFUPort(op, inputOperand);
-                    TTAProgram::MoveGuard* guardCopy = NULL;
-                    if (guard != NULL)
-                        guardCopy = guard->copy();
+                    TTAProgram::MoveGuard* guardCopy = 
+                        guard == NULL ? NULL : guard->copy();
                     
                     move = createMove(src, dst, bus, guardCopy);
                     instr = new TTAProgram::Instruction();
@@ -1427,7 +1442,10 @@ LLVMTCEBuilder::emitInstruction(
             } else {
                 src = createTerminal(mo);
                 dst = new TTAProgram::TerminalFUPort(op, inputOperand);
-                TTAProgram::Move* move = createMove(src, dst, bus, guard);
+                TTAProgram::MoveGuard* guardCopy = 
+                    guard == NULL ? NULL : guard->copy();
+
+                TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
 #ifdef DEBUG_LLVMTCEBUILDER
@@ -1449,7 +1467,10 @@ LLVMTCEBuilder::emitInstruction(
             src = new TTAProgram::TerminalFUPort(op, outputOperand);
             dst = createTerminal(mo);
 
-            TTAProgram::Move* move = createMove(src, dst, bus, guard);
+            TTAProgram::MoveGuard* guardCopy = 
+                guard == NULL ? NULL : guard->copy();
+
+            TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
             TTAProgram::Instruction* instr = new TTAProgram::Instruction();
             instr->addMove(move);
 #ifdef DEBUG_LLVMTCEBUILDER
@@ -1511,6 +1532,10 @@ LLVMTCEBuilder::emitInstruction(
         TTAProgram::Move& m = instr->move(0);
         proc->add(instr);
         createMoveNode(po, m, false);
+    }
+
+    if (guard != NULL) {
+	delete guard;
     }
     return first;
 }
@@ -2036,7 +2061,8 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
  */
 TTAProgram::Move*
 LLVMTCEBuilder::createMove(
-    const MachineOperand& src, const MachineOperand& dst) {
+    const MachineOperand& src, const MachineOperand& dst, 
+    TTAProgram::MoveGuard* guard) {
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
     
@@ -2047,7 +2073,7 @@ LLVMTCEBuilder::createMove(
 
     Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Move* move = createMove(
-        createTerminal(src), createTerminal(dst), bus);
+        createTerminal(src), createTerminal(dst), bus, guard);
 
     return move;
 }
@@ -2061,19 +2087,31 @@ LLVMTCEBuilder::createMove(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitMove(
-    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc, 
+    bool conditional, bool trueGuard) {
 
-    if (mi->getNumOperands() > 2) {
-        for (unsigned int i = 2; i < mi->getNumOperands(); i++) {
+    int operandCount = conditional ? 3 : 2;
+    if (mi->getNumOperands() > operandCount) {
+        for (unsigned int i = operandCount; i < mi->getNumOperands(); i++) {
             assert(mi->getOperand(i).isImplicit());
         }
     }
 
-    assert(mi->getNumOperands() >= 2); // src, dst
+    assert(mi->getNumOperands() >= operandCount); // src, dst
 
     const MachineOperand& dst = mi->getOperand(0);
-    const MachineOperand& src = mi->getOperand(1);
-    TTAProgram::Move* move = createMove(src, dst);
+    const MachineOperand& src = mi->getOperand(operandCount-1);
+    TTAProgram::MoveGuard* guard = NULL;
+    if (conditional) {
+        const MachineOperand& gmo = mi->getOperand(1);
+        assert (gmo.isReg() && gmo.isUse());
+        // Create move from the condition operand register to bool register
+        // which is used by the guard.
+        TTAProgram::Terminal *t = createTerminal(gmo);
+        // inv guards not yet supported
+        guard = createGuard(t, trueGuard);
+    }
+    TTAProgram::Move* move = createMove(src, dst, guard);
 
     if (move == NULL) {
         return NULL;

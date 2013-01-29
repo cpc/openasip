@@ -288,3 +288,8 @@ TCETargetMachine::createPassConfig(
     tpc->setEnableTailMerge(false);
     return tpc;
 }
+
+bool TCEPassConfig::addPreSched2() {
+    addPass(&IfConverterID);
+    return true;
+}
