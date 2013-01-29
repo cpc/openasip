@@ -600,6 +600,9 @@ class TestCase:
         if (leaveDirty):
             schedulingCommand += '-d '
 
+        if (veryVerboseOutput):
+            schedulingCommand += ' -v '
+
         schedulingCommand += ' ' + extraCompileFlags;
         schedulingCommand += " -o " + dstProgFileName + \
                              " -a " + archFilename + \
@@ -620,6 +623,10 @@ class TestCase:
             self.testFailed("compilation error", errmsg)
             return False
         
+
+        if veryVerboseOutput and len(errmsg) > 0:
+            sys.stdout.write("[" + errmsg + "]\n")
+
         return True
 
     def simulate(self, archFilename, progFilename):
