@@ -1320,9 +1320,9 @@ LLVMTCEBuilder::emitInstruction(
 
 
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
-	if (o == guardOperandIndex) {
-	    continue;
-	}
+        if ((int)o == guardOperandIndex) {
+            continue;
+        }
 
 	const MachineOperand& mo = mi->getOperand(o);
         TTAProgram::Terminal* src = NULL;
@@ -2090,7 +2090,7 @@ LLVMTCEBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc, 
     bool conditional, bool trueGuard) {
 
-    int operandCount = conditional ? 3 : 2;
+    unsigned int operandCount = conditional ? 3 : 2;
     if (mi->getNumOperands() > operandCount) {
         for (unsigned int i = operandCount; i < mi->getNumOperands(); i++) {
             assert(mi->getOperand(i).isImplicit());
