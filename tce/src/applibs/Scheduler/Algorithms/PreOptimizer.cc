@@ -212,7 +212,8 @@ PreOptimizer::tryToRemoveXor(
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
-        if (!edge.guardUse()) {
+        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW && 
+            !edge.guardUse()) {
             ok = false;
             break;
         }
@@ -258,6 +259,9 @@ PreOptimizer::tryToRemoveXor(
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
+        if (edge.dependenceType() != DataDependenceEdge::DEP_RAW) {
+            continue;
+        }
         MoveNode& head = ddg.headNode(edge);
         TTAProgram::Move& guardUseMove = head.move();
         assert(!guardUseMove.isUnconditional());
