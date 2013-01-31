@@ -458,7 +458,7 @@ bool TCEInstrInfo::PredicateInstruction(
     int opc = mi->getOpcode();
 
     assert (isPredicable(mi) && "Expected predicable instruction");
-    bool invertJump = (cond.size() >0 && cond[1].isImm() &&
+    bool invertJump = (cond.size() >1 && cond[1].isImm() &&
                        (cond[1].getImm() == 0));
     
     mi->setDesc(get(getMatchingCondBranchOpcode(opc, invertJump)));
