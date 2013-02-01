@@ -4,6 +4,8 @@
 Code generator improvements
 ---------------------------
 - If conversion enabled in llvm side of the compiler backend.
+- Post-pass operand sharing removes some unnecessary operand writes
+  after instruction scheduler. Does not improve performance, only saves power.
 
 [changes starting from 2013-01-07]
 
