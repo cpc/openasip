@@ -159,18 +159,33 @@ end abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shl1add_shl2add_shr_shru
 
 
 architecture comb of abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
-
+  signal add_op1    : std_logic_vector(dataw-1 downto 0);
+  signal add_result : std_logic_vector(dataw-1 downto 0)
 begin
 
-  process (A,B,OPC)
+  process (A,OPC)
+  begin
+    case OPC is
+      when ADD_OPC =>
+        add_op1 <= A;
+      when SHL1ADD_OPC =>
+        add_op1 <= A(dataw-2 downto 0)&'0';
+      when SHL2ADD_OPC =>
+        add_op1 <= A(dataw-3 downto 0)&'00';
+    end case;
+  end process;
+
+  add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
+
+  process (A,B,OPC, add_result)
   begin  -- process
     case OPC is
       when ADD_OPC =>
-         R  <= std_logic_vector(ieee.numeric_std.signed(A) + ieee.numeric_std.signed(B));
+         R  <= add_result;
       when SHL1ADD_OPC =>
-         R  <= std_logic_vector(ieee.numeric_std.signed(A(dataw-2 downto 0)&'0') + ieee.numeric_std.signed(B));
+         R  <= add_result;
       when SHL2ADD_OPC =>
-         R  <= std_logic_vector(ieee.numeric_std.signed(A(dataw-3 downto 0)&"00") + ieee.numeric_std.signed(B));
+         R  <= add_result;
       when SUB_OPC => 
          R  <= std_logic_vector(ieee.numeric_std.signed(A) - ieee.numeric_std.signed(B));
       when EQ_OPC  =>
