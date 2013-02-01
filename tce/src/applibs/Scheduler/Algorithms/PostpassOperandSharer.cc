@@ -54,7 +54,7 @@ using TTAMachine::RegisterFile;
 
 void PostpassOperandSharer::handleBasicBlock(
     TTAProgram::BasicBlock& basicBlock,
-    const TTAMachine::Machine& targetMachine)
+    const TTAMachine::Machine&)
     throw (Exception) {
     for (int i = basicBlock.instructionCount()-1; i >= 0; i--) {
         Instruction& ins = basicBlock.instructionAtIndex(i);
