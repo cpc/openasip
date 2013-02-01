@@ -60,6 +60,8 @@
 #include "BasicBlock.hh"
 #include "Move.hh"
 #include "MapTools.hh"
+#include "PostpassOperandSharer.hh"
+
 
 #include <stdlib.h>
 #include <llvm/ADT/SmallString.h>
@@ -642,6 +644,9 @@ LLVMTCEIRBuilder::compileOptimized(
         dsf.fillDelaySlots(cfg, *ddg, *mach_, true);
     }
 
+    PostpassOperandSharer ppos(*ipData_);
+    ppos.handleControlFlowGraph(cfg, *mach_);
+
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg4.dot");
 #endif
@@ -882,5 +887,10 @@ LLVMTCEIRBuilder::createMoveNode(
         term.setProgramOperation(po);
     }
 }
+
+LLVMTCEIRBuilder::~LLVMTCEIRBuilder() {
+// uncomment to get operand sharing statistic prints
+//        PostpassOperandSharer::printStats();
+    }
 
 }

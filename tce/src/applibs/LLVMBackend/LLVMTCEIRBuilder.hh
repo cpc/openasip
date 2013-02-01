@@ -61,7 +61,7 @@ namespace llvm {
 
         bool writeMachineFunction(MachineFunction& mf);
 
-        virtual ~LLVMTCEIRBuilder() {}
+        virtual ~LLVMTCEIRBuilder();
 
         virtual bool doInitialization(Module& m );
         virtual bool doFinalization(Module& m );
