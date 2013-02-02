@@ -159,9 +159,20 @@ end abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shl1add_shl2add_shr_shru
 
 
 architecture comb of abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
-  signal add_op1    : std_logic_vector(dataw-1 downto 0);
-  signal add_result : std_logic_vector(dataw-1 downto 0);
+  signal add_op1       : std_logic_vector(dataw-1 downto 0);
+  signal add_result    : std_logic_vector(dataw-1 downto 0);
+  signal shift_result  : std_logic_vector(dataw-1 downto 0);
+  signal minmax_result : std_logic_vector(dataw-1 downto 0);
+  signal gt            : std_logic_vector(0 downto 0);
+  signal gtu           : std_logic_vector(0 downto 0);
+  signal eq            : std_logic_vector(0 downto 0);
+  signal cmp           : std_logic_vector(0 downto 0);
+  signal cmp_ext       : std_logic_vector(dataw-1 downto 0);
 begin
+  
+  gt  <= "1" when (ieee.numeric_std.signed(A) > ieee.numeric_std.signed(B)) else "0";
+  gtu <= "1" when (ieee.numeric_std.unsigned(A) > ieee.numeric_std.unsigned(B)) else "0";
+  eq  <= "1" when (A=B) else "0";
 
   process (A,OPC)
   begin
@@ -175,9 +186,32 @@ begin
     end case;
   end process;
 
-  add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
+  process (A,B,OPC, eq, gt, gtu)
+  begin
+    case OPC is
+      when EQ_OPC => 
+        cmp <= eq;
+      when GT_OPC => 
+        cmp <= gt;
+      when GTU_OPC => 
+        cmp <= gtu;
+      when MAX_OPC => 
+        cmp <= gt;
+      when MAXU_OPC => 
+        cmp <= gtu;
+      when MIN_OPC => 
+        cmp <= not gt;
+      when others => -- MINUOPC
+        cmp <= not gtu;
+    end case;
+  end process;
 
-  process (A,B,OPC, add_result)
+  minmax_result <= A when (cmp="1") else B;
+  add_result    <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
+  shift_result  <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+  cmp_ext       <= ext(cmp, R'length);
+
+  process (A,B,OPC, add_result, shift_result, minmax_result, cmp_ext)
   begin  -- process
     case OPC is
       when ADD_OPC =>
@@ -189,54 +223,26 @@ begin
       when SUB_OPC => 
          R  <= std_logic_vector(ieee.numeric_std.signed(A) - ieee.numeric_std.signed(B));
       when EQ_OPC  =>
-        if A = B then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;        
+        R <= cmp_ext;
+        --end if;        
       when GT_OPC =>
-        if ieee.numeric_std.signed(A) > ieee.numeric_std.signed(B) then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;        
+        R <= cmp_ext;
       when GTU_OPC =>
-        -- operation GTU;
-        if ieee.numeric_std.unsigned(A) > ieee.numeric_std.unsigned(B) then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;
+        R <= cmp_ext;
       when SHL_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when SHR_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when SHRU_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when MAX_OPC=>
-        if (ieee.numeric_std.signed(A) >= ieee.numeric_std.signed(B)) then
-          R <= A;
-        else
-          R <= B;
-        end if;
+        R <= minmax_result;
       when MAXU_OPC =>
-        if (ieee.numeric_std.unsigned(A) >= ieee.numeric_std.unsigned(B)) then
-          R <= A;
-        else
-          R <= B;
-        end if;
+        R <= minmax_result;
       when MIN_OPC =>
-        if (ieee.numeric_std.signed(A) <= ieee.numeric_std.signed(B)) then
-          R <= A;
-        else
-          R <= B;
-        end if;
+        R <= minmax_result;
       when MINU_OPC =>
-        if (ieee.numeric_std.unsigned(A) <= ieee.numeric_std.unsigned(B)) then
-          R <= A;
-        else
-          R <= B;
-        end if;
+        R <= minmax_result;
       when AND_OPC =>
         R <= A and B;
       when IOR_OPC =>
@@ -257,11 +263,7 @@ begin
         R <= SXT(A(dataw/2-1 downto 0), R'length);
         
       when others  =>
-        if A = B then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;
+        R <= cmp_ext;
     end case;
   end process;
 end comb;
