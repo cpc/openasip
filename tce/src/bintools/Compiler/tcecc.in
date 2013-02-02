@@ -439,31 +439,123 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
-    startFiles = os.path.join(newlib_libdir, "crt0.o ")
+    startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
 
     libNoSys = os.path.join(newlib_libdir,"libnosys.a")
     if not os.path.exists(libNoSys):
         libNoSys = ""
 
     # libm must be linked first to make sure that necessary parts of libc will be linkend in (e.g. errno)
-    endFiles = (os.path.join(newlib_libdir,"libm.a") + " " +
-                os.path.join(newlib_libdir,"libc.a") + " " +
-                libNoSys + " " +
-                os.path.join(newlib_libdir,"crtend.o") + " ")
+    endFiles = [os.path.join(newlib_libdir,"libm.a"),
+                os.path.join(newlib_libdir,"libc.a"),
+                libNoSys,
+                os.path.join(newlib_libdir,"crtend.o")]
+    endFiles.remove("")
+
+    linkFiles = startFiles + linkFiles + endFiles
 
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
 
-    if not runningInstalled:
-        command = "@abs_top_builddir@" + "/src/ext/llvm-ld/tce-llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles        
-    else:
-        command = "tce-llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles
+    libFiles = []
+
+    for name in linkFiles:
+        if name[-2:] == '.a' :
+            libFiles.append(name);
+
+	libDirName = fileNamePrefix + "_libs"
+
+    runCommand("mkdir " + libDirName, options.verbose, echoStderr=True)
+
+    for name in libFiles:
+        linkFiles.remove(name)
+        runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
+
+    for name in os.listdir(libDirName):
+        runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
+        runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
+        
+    defSyms=['llvm.dbg.declare']
+    undefSyms=[]
+
+    for name in linkFiles:
+        (exitCode, output) = runCommandBuffered("llvm-nm "+name, echoOutput=False)
+        for line in output.splitlines():
+            split = line.split()
+            if split[0]=='U':
+                if not split[1] in undefSyms:
+                    undefSyms.append(split[1])
+            elif split[0] in 'CDT':
+                if not split[1] in defSyms:
+                    defSyms.append(split[1])
+
+    for sym in defSyms:
+        if sym in undefSyms:
+            undefSyms.remove(sym)
+
+    # Recursively resolve undefined symbols by linking in .o files extracted from libraries
+    # which define those symbols.
+
+    if len(undefSyms) != 0:
+
+        # First cache all symbol data from all extracted libraries.
+        # (It takes much less time to run llvm-nm * once than to run on each file separately.)
+
+        defsymToLib={}
+        libToDefsyms={}
+        libToUndefsyms={}
+        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*", echoOutput=False)
+
+        file=""
+        tempDefsyms=[]
+        tempUndefsyms=[]
+        for line in output.splitlines():
+            if line=="":
+                continue
+            if line[-1]==':': #filename
+                file = line[:-1]
+                tempDefsyms=[]
+                tempUndefsyms=[]
+                libToDefsyms[file]=tempDefsyms
+                libToUndefsyms[file]=tempUndefsyms
+            else:
+                split = line.split();
+                if split[0]=='U':
+                    if not split[1] in undefSyms:
+                        tempUndefsyms.append(split[1])
+                elif split[0] in 'CDT':
+                    if not split[1] in defSyms:
+                        tempDefsyms.append(split[1])
+                        defsymToLib[ line.split()[1] ] = file
+
+        # Now recursively resolve symbols.
+
+        while len(undefSyms) != 0:
+            sym = undefSyms[0]
+            if not sym in defsymToLib:
+                undefSyms.remove(sym)
+                continue
+            lib = defsymToLib[sym]
+            if lib in linkFiles:
+                undefSyms.remove(sym)
+                continue
+            libDefsyms = libToDefsyms[lib]
+            libUndefsyms = libToUndefsyms[lib]
+            linkFiles.append(lib)
+            for sym in libDefsyms:
+                if not sym in defSyms:
+                    defSyms.append(sym)
+                if sym in undefSyms:
+                    undefSyms.remove(sym)
+            for sym in libUndefsyms:
+                if not sym in defSyms:
+                    undefSyms.append(sym)
+            
+    command = "llvm-link -o " + linkedFileName + ".bc " 
 
     for name in linkFiles:
         command += " " + name
-
-    command += " " + endFiles
 
     exitCode = runCommand(command, options.verbose, echoStderr=True)
     if exitCode != 0:

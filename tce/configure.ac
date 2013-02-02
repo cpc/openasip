@@ -1367,7 +1367,6 @@ AC_CONFIG_FILES([
   bclib/saocl/Makefile 
   bclib/include/Makefile
   bclib/include/CL/Makefile
-  src/ext/llvm-ld/Makefile
 ])
 
 ## The test Makefile generation will be removed automatically 
@@ -1423,9 +1422,9 @@ cd newlib-1.17.0;
 #CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 #CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 #$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
-RANLIB_FOR_TARGET=llvm-ranlib \
-NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
-AS_FOR_TARGET=llvm-as LD_FOR_TARGET=`pwd`/../src/ext/llvm-ld/tce-llvm-ld \
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
 CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
 -Wno-literal-range -Wno-pointer-sign -Wno-return-type \
 -Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \

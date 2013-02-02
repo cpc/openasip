@@ -990,7 +990,7 @@ OPERATION(INVSQRTH)
 TRIGGER
     HalfFloatWord in = HFLT(1);
     FloatWord infl(in);
-    FloatWord result( 1/sqrt(infl) );
+    FloatWord result(1 / sqrt(infl));
     IO(2) = HalfFloatWord(result);
 END_TRIGGER;
 
