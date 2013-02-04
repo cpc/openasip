@@ -167,7 +167,7 @@ architecture comb of abs_add_and_eq_gt_gtu_ior_neg_shl_shl1add_shl2add_shr_shru_
   signal gt           : std_logic;
   signal cmp_result   : std_logic_vector(dataw-1 downto 0);
 
-  signal shift_result : std_logic_vector(dataw downto 0);
+  signal shift_result : std_logic_vector(dataw-1 downto 0);
 begin
 
   process (A,OPC)
@@ -187,13 +187,13 @@ begin
 
   add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
 
-  sub_op1(R'length) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw-1)='1')) else
+  sub_op1(dataw) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw-1)='1')) else
                        A(A'length-1);
-  sub_op1(R'length) <= '0' when OPC=GTU_OPC else
+  sub_op1(dataw) <= '0' when OPC=GTU_OPC else
                        A(A'length-1) when (OPC=ABS_OPC and A(dataw-1)='1') else
                        B(B'length-1);
-  sub_op1    <= ext("0",A'length+1) when OPC=ABS_OPC else A; 
-  sub_op2    <= A when OPC=ABS_OPC else B; 
+  sub_op1(dataw-1 downto 0)    <= ext("0",A'length+1) when OPC=ABS_OPC else A; 
+  sub_op2(dataw-1 downto 0)    <= A when OPC=ABS_OPC else B; 
 
   sub_result_l <= std_logic_vector(ieee.numeric_std.signed(sub_op1) - ieee.numeric_std.signed(sub_op2));
   sub_result   <= sub_result(dataw-1 downto 0);
