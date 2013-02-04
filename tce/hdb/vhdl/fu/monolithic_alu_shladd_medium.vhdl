@@ -187,10 +187,10 @@ begin
 
   add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
 
-  sub_op1(R'length) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw)='1')) else
+  sub_op1(R'length) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw-1)='1')) else
                        A(A'length-1);
   sub_op1(R'length) <= '0' when OPC=GTU_OPC else
-                       A(A'length-1) when (OPC=ABS_OPC and A(dataw)='1') else
+                       A(A'length-1) when (OPC=ABS_OPC and A(dataw-1)='1') else
                        B(B'length-1);
   sub_op1    <= ext("0",A'length+1) when OPC=ABS_OPC else A; 
   sub_op2    <= A when OPC=ABS_OPC else B; 
