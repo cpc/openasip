@@ -154,8 +154,20 @@ end abs_add_and_eq_gt_gtu_ior_neg_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor
 
 
 architecture comb of abs_add_and_eq_gt_gtu_ior_neg_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
-  signal add_op1    : std_logic_vector(dataw-1 downto 0);
-  signal add_result : std_logic_vector(dataw-1 downto 0);
+  signal add_op1      : std_logic_vector(dataw-1 downto 0);
+  signal add_result   : std_logic_vector(dataw-1 downto 0);
+ 
+  signal sub_op1      : std_logic_vector(dataw downto 0);
+  signal sub_op2      : std_logic_vector(dataw downto 0);
+  signal sub_result_l : std_logic_vector(dataw downto 0);
+  signal sub_result   : std_logic_vector(dataw-1 downto 0);
+
+  signal eq           : std_logic;
+  signal lt           : std_logic;
+  signal gt           : std_logic;
+  signal cmp_result   : std_logic_vector(dataw-1 downto 0);
+
+  signal shift_result : std_logic_vector(dataw downto 0);
 begin
 
   process (A,OPC)
@@ -170,44 +182,54 @@ begin
     end case;
   end process;
 
+  -- Rewritten in a convoluted way in attempt to optimize.
+  -- See e.g. monolithic_alu for readable version.
+
   add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
 
-  process (A,B,OPC, add_result)
+  sub_op1(R'length) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw)='1')) else
+                       A(A'length-1);
+  sub_op1(R'length) <= '0' when OPC=GTU_OPC else
+                       A(A'length-1) when (OPC=ABS_OPC and A(dataw)='1') else
+                       B(B'length-1);
+  sub_op1    <= ext("0",A'length+1) when OPC=ABS_OPC else A; 
+  sub_op2    <= A when OPC=ABS_OPC else B; 
+
+  sub_result_l <= std_logic_vector(ieee.numeric_std.signed(sub_op1) - ieee.numeric_std.signed(sub_op2));
+  sub_result   <= sub_result(dataw-1 downto 0);
+
+  lt <= sub_result_l(R'length);
+  eq <= '1' when A=B else '0';
+  gt <= not( lt or eq );
+
+  cmp_result <= ext("0"&eq,R'length) when OPC=EQ_OPC else
+                ext("0"&gt,R'length);
+
+  shift_result <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+
+  process (A,B,OPC, add_result, sub_result, cmp_result, shift_result)
   begin  -- process
     case OPC is
       when ADD_OPC =>
-         R  <= add_result;
+        R  <= add_result;
       when SHL1ADD_OPC =>
-         R  <= add_result;
+        R  <= add_result;
       when SHL2ADD_OPC =>
-         R  <= add_result;
+        R  <= add_result;
       when SUB_OPC => 
-         R  <= std_logic_vector(ieee.numeric_std.signed(A) - ieee.numeric_std.signed(B));
+        R  <= sub_result;
       when EQ_OPC  =>
-        if A = B then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;        
+        R <= cmp_result;
       when GT_OPC =>
-        if ieee.numeric_std.signed(A) > ieee.numeric_std.signed(B) then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;        
+        R <= cmp_result;
       when GTU_OPC =>
-        -- operation GTU;
-        if ieee.numeric_std.unsigned(A) > ieee.numeric_std.unsigned(B) then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;
+        R <= cmp_result;
       when SHL_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when SHR_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when SHRU_OPC =>
-        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
+        R <= shift_result;
       when AND_OPC =>
         R <= A and B;
       when IOR_OPC =>
@@ -215,22 +237,11 @@ begin
       when XOR_OPC  =>
         R <= A xor B;        
       when ABS_OPC =>
-        if ieee.numeric_std.signed(A) < 0 then
-          R <= std_logic_vector(ieee.numeric_std.to_signed(0,R'length) - ieee.numeric_std.signed(A));             
-        else
-          R <= A;
-        end if;
+        R <= sub_result; 
       when SXQW_OPC =>
         R <= SXT(A(7 downto 0), R'length);
-      when SXHW_OPC =>
+      when others => -- SXHW_OPC
         R <= SXT(A(dataw/2-1 downto 0), R'length);
-        
-      when others  =>
-        if A = B then
-          R <= ext("1",R'length);
-        else
-          R <= ext("0",R'length);
-        end if;
     end case;
   end process;
 end comb;
