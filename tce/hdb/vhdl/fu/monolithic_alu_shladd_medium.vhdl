@@ -157,6 +157,7 @@ architecture comb of abs_add_and_eq_gt_gtu_ior_neg_shl_shl1add_shl2add_shr_shru_
   signal add_op1      : std_logic_vector(dataw-1 downto 0);
   signal add_result   : std_logic_vector(dataw-1 downto 0);
  
+  signal abs_sub      : std_logic;
   signal sub_op1      : std_logic_vector(dataw downto 0);
   signal sub_op2      : std_logic_vector(dataw downto 0);
   signal sub_result_l : std_logic_vector(dataw downto 0);
@@ -187,16 +188,15 @@ begin
 
   add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
 
-  sub_op1(dataw) <= '0' when (OPC=GTU_OPC or (OPC=ABS_OPC and A(dataw-1)='1')) else
-                       A(A'length-1);
   sub_op1(dataw) <= '0' when OPC=GTU_OPC else
-                       A(A'length-1) when (OPC=ABS_OPC and A(dataw-1)='1') else
+                       A(A'length-1);
+  sub_op2(dataw) <= '0' when OPC=GTU_OPC else
                        B(B'length-1);
-  sub_op1(dataw-1 downto 0)    <= ext("0",A'length+1) when OPC=ABS_OPC else A; 
-  sub_op2(dataw-1 downto 0)    <= A when OPC=ABS_OPC else B; 
+  sub_op1(dataw-1 downto 0)    <= A; 
+  sub_op2(dataw-1 downto 0)    <= B; 
 
   sub_result_l <= std_logic_vector(ieee.numeric_std.signed(sub_op1) - ieee.numeric_std.signed(sub_op2));
-  sub_result   <= sub_result(dataw-1 downto 0);
+  sub_result   <= sub_result_l(dataw-1 downto 0);
 
   lt <= sub_result_l(R'length);
   eq <= '1' when A=B else '0';
@@ -237,7 +237,11 @@ begin
       when XOR_OPC  =>
         R <= A xor B;        
       when ABS_OPC =>
-        R <= sub_result; 
+        if A(dataw-1)='1' then
+          R <= std_logic_vector( ieee.numeric_std.to_signed(1,dataw)+ieee.numeric_std.signed(not A) );
+        else
+          R <= A;
+        end if;
       when SXQW_OPC =>
         R <= SXT(A(7 downto 0), R'length);
       when others => -- SXHW_OPC

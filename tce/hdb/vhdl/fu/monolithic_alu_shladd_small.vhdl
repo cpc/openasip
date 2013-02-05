@@ -186,16 +186,16 @@ begin
   add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
 
   sub_op1(dataw) <= '0' when OPC=GTU_OPC else
-                       A(A'length-1);
-  sub_op1(dataw) <= '0' when OPC=GTU_OPC else
-                       B(B'length-1);
+                       A(dataw-1);
+  sub_op2(dataw) <= '0' when OPC=GTU_OPC else
+                       B(dataw-1);
   sub_op1(dataw-1 downto 0)    <= A; 
   sub_op2(dataw-1 downto 0)    <= B; 
 
   sub_result_l <= std_logic_vector(ieee.numeric_std.signed(sub_op1) - ieee.numeric_std.signed(sub_op2));
-  sub_result   <= sub_result(dataw-1 downto 0);
+  sub_result   <= sub_result_l(dataw-1 downto 0);
 
-  gt <= sub_result_l(R'length);
+  gt <= sub_result_l(dataw);
   eq <= '1' when A=B else '0';
 
   cmp_result <= ext("0"&eq,R'length) when OPC=EQ_OPC else
@@ -232,8 +232,6 @@ begin
         R <= A or B;
       when XOR_OPC  =>
         R <= A xor B;        
-      when ABS_OPC =>
-        R <= sub_result; 
       when SXQW_OPC =>
         R <= SXT(A(7 downto 0), R'length);
       when others => -- SXHW_OPC

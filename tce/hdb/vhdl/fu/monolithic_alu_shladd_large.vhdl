@@ -253,7 +253,7 @@ begin
         R <= std_logic_vector(ieee.numeric_std.to_signed(0,R'length) - ieee.numeric_std.signed(A));    
       when ABS_OPC =>
         if ieee.numeric_std.signed(A) < 0 then
-          R <= std_logic_vector(ieee.numeric_std.to_signed(0,R'length) - ieee.numeric_std.signed(A));             
+          R <= std_logic_vector(ieee.numeric_std.to_signed(0,R'length) - ieee.numeric_std.signed(A)); 
         else
           R <= A;
         end if;
