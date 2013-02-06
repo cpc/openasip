@@ -135,6 +135,10 @@ protected:
 
     MoveNode* succeedingTempMove(MoveNode& current);
 
+    int getTriggerOperand(
+        const Operation& operation, const TTAMachine::Machine& machine);
+
+    bool tryToSwitchInputs(ProgramOperation& op);
         
     MoveNode* findTrigger(ProgramOperation& po);
         

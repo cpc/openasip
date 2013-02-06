@@ -252,6 +252,11 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
         (moves.node(0).sourceOperation()):
         (moves.node(0).destinationOperation());
 
+    // may switch operands of commutative operations. Do it before
+    // regcopyadder because it's easier here.
+    // cooperation with regcopyadder might make it perform better though.
+    tryToSwitchInputs(po);
+
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
@@ -1370,3 +1375,119 @@ BasicBlockScheduler::findTriggerFromUnit(
 }
 
 
+/**
+ *
+ * Returns the operand which is triggering in all FU's which support
+ * the operation. If operation not found, is not gcu or 
+ * multiple FU's have different triggers, returns 0
+ */
+int
+BasicBlockScheduler::getTriggerOperand(
+    const Operation& operation,
+    const TTAMachine::Machine& machine) {
+ 
+    const TCEString& opName = operation.name();
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine.functionUnitNavigator();
+
+    int trigger = 0;
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+        if (fu.hasOperation(opName)) {
+            TTAMachine::HWOperation& hwop = *fu.operation(opName);
+            for (int j = 1; j <= operation.numberOfInputs(); j++) {
+                TTAMachine::FUPort& port = *hwop.port(j);
+                if (port.isTriggering()) {
+                    if (trigger == 0) {
+                        trigger = j;
+                    } else {
+                        if (trigger != j) {
+                            return 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return trigger;
+}
+
+/**
+ * If the operation is commutative, tries to change the operands so that
+ * the scheduler can schedule it better. 
+ *
+ * If the operation is not commutative, does nothing.
+ *
+ * Which is better depends lots on the code being compiled and architecture 
+ * which we are compiling for. 
+ * 
+ * Current implementation tries to make constants triggers,
+ * and if there are no constant inputs, try to also change inputs so
+ * that last ready operand becomes trigger if it's near,
+ * but first ready operand becomes trigger if it's further
+ * (allows better bypassing of other operands)
+ * This seems to work in practice
+ *
+ * @param po programoperation whose inputs to switch
+ * @return true if changed inputs, false if not.
+ */
+bool 
+BasicBlockScheduler::tryToSwitchInputs(ProgramOperation& po) {
+    const Operation& op = po.operation();
+    if (op.numberOfInputs() == 2 && op.canSwap(1, 2)) {
+        
+        int triggerOperand = getTriggerOperand(op, *targetMachine_);
+
+        if (triggerOperand != 0) {
+            MoveNode* latest = NULL;
+            int latestMinCycle = -1;
+            int firstMinCycle = INT_MAX;
+
+            //check all input moves.
+            for (int i = 0; i < po.inputMoveCount(); i++) {
+                MoveNode& node = po.inputMove(i);
+                // always make constants triggers.
+                // todo: shoudl do this only with short imms?
+                if (node.isSourceConstant()) {
+                    int operandIndex = 
+                        node.move().destination().operationIndex();
+                    if (operandIndex != triggerOperand) {
+                        po.switchInputs();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                int minCycle = ddg_->earliestCycle(
+                    node, rm_->initiationInterval(), false, false, true, true);
+                if (minCycle > latestMinCycle) {
+                    latest = &node;
+                    latestMinCycle = minCycle;
+                }
+                if (minCycle < firstMinCycle) {
+                    firstMinCycle = minCycle;
+                }
+            }
+
+            int lastOperand = latest->move().destination().operationIndex();
+
+            // don't change if min cycles of first and alst are equal.
+            if (latestMinCycle == firstMinCycle) {
+                return false;
+            }
+            if (latestMinCycle - firstMinCycle > 1) { // reverse logic if far.
+                if (lastOperand == triggerOperand) {
+                    po.switchInputs();
+                    return true;
+                }
+            } else {
+                if (lastOperand != triggerOperand) {
+                    po.switchInputs();
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
