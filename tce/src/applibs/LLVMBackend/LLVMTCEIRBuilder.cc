@@ -644,7 +644,7 @@ LLVMTCEIRBuilder::compileOptimized(
         dsf.fillDelaySlots(cfg, *ddg, *mach_, true);
     }
 
-    PostpassOperandSharer ppos(*ipData_);
+    PostpassOperandSharer ppos(*ipData_, irm);
     ppos.handleControlFlowGraph(cfg, *mach_);
 
 #ifdef WRITE_DDG_DOTS

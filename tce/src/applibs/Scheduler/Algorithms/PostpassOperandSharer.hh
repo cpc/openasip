@@ -41,14 +41,17 @@
 namespace TTAProgram {
     class BasicBlocK;
     class Move;
+    class InstructionReferenceManager;
 }
 
 class PostpassOperandSharer : 
     public BasicBlockPass, public ControlFlowGraphPass {
 
 public:
-    PostpassOperandSharer(InterPassData& ipd) : 
-        BasicBlockPass(ipd), ControlFlowGraphPass(ipd) {}
+    PostpassOperandSharer(
+        InterPassData& ipd, 
+        TTAProgram::InstructionReferenceManager& irm) : 
+        BasicBlockPass(ipd), ControlFlowGraphPass(ipd), irm_(&irm) {}
 
     virtual ~PostpassOperandSharer();
 
@@ -68,6 +71,7 @@ public:
         return "Post-pass that reduced redundant operand writes";
     }
 private:
+    TTAProgram::InstructionReferenceManager* irm_;
     static unsigned int moveCount_;
     static unsigned int operandCount_;
     static unsigned int removedOperands_;

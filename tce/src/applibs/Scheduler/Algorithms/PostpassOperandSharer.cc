@@ -44,6 +44,7 @@
 #include "Guard.hh"
 #include "MoveGuard.hh"
 #include "RegisterFile.hh"
+#include "InstructionReferenceManager.hh"
 
 using TTAProgram::Move;
 using TTAProgram::Instruction;
@@ -119,8 +120,9 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
     }
 
     int glat = move.guardLatency();
+    bool lastDueJump = false;
 
-    for (int i = insIndex -1; i >= 0; i--) {
+    for (int i = insIndex -1; i >= basicBlock.skippedFirstInstructions() && !lastDueJump; i--) {
 
         // first check guard writes..
         // if guard has longer latency than 1 , this has to go to previous
@@ -144,6 +146,9 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
         }
 
         Instruction& prevIns = basicBlock.instructionAtIndex(i);
+        if (irm_->hasReference(prevIns)) {
+            lastDueJump = true;
+        }
         // check that does not overwrite the source
         for (int j = 0; j < prevIns.moveCount(); j++) {
             Move& prevMove = prevIns.move(j);
