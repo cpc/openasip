@@ -2534,12 +2534,12 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                         HWOperation* operation = fu->operation(i);
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), operation->name());
-                        if( code.encoding() != opcode(*operation) ) {
+                        if (code.encoding() != opcode(*operation)) {
                             ordered=false;
                             break;
                         }
                     }
-                    if( !ordered || (gcu != NULL) ) {
+                    if (!ordered || (gcu != NULL)) {
                         stream << indentation(5) << "if (";
                         for (int i = 0; i < fu->operationCount(); i++) {
                             HWOperation* operation = fu->operation(i);
@@ -2550,7 +2550,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                             stream << indentation(6) 
                                    << fuLoadSignalName(fu->name(), port.name())
                                    << " <= '1';" << endl;
-                            if( gcu != NULL ) {
+                            if (gcu != NULL) {
                                 if (operation->name() == JUMP) {
                                     stream << indentation(5) 
                                            << fuOpcodeSignalName(fu->name())
@@ -2580,8 +2580,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                                << " <= '0';"
                                << endl;
                         stream << indentation(5) << "end if;" << endl;
-                    }
-                    else {
+                    } else {
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), fu->operation(0)->name());
                         SlotField* parent = enc.parent();
