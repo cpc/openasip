@@ -2525,46 +2525,91 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                 SocketCodeTable& scTable = enc.socketCodes();
                 if (port.isOpcodeSetting()) {
                     stream << ") then" << endl;
-                    stream << indentation(5) << "if (";
+                        
+                    ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
+
+                    // Check
+                    bool ordered=true;
                     for (int i = 0; i < fu->operationCount(); i++) {
                         HWOperation* operation = fu->operation(i);
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), operation->name());
-                        stream << portCodeCondition(VHDL,enc, code) << ") then"
-                               << endl;
-                        stream << indentation(6) 
-                               << fuLoadSignalName(fu->name(), port.name())
-                               << " <= '1';" << endl;
-                        ControlUnit* gcu = dynamic_cast<ControlUnit*>(fu);
-                        if (gcu != NULL) {
-                            if (operation->name() == JUMP) {
-                                stream << indentation(5) 
-                                       << fuOpcodeSignalName(fu->name())
-                                       << " <= IFE_JUMP;" << endl;
-                            } else if (operation->name() == CALL) {
-                                stream << indentation(5)
-                                       << fuOpcodeSignalName(fu->name())
-                                       << " <= IFE_CALL;" << endl;
-                            }
-                        } else {                            
-                            stream << indentation(6) 
-                                   << fuOpcodeSignalName(fu->name())
-                                   << " <= conv_std_logic_vector(" 
-                                   << opcode(*operation) << ", " 
-                                   << fuOpcodeSignalName(fu->name())
-                                   << "'length);"
-                                   << endl;
-                        }
-                        if (i+1 < fu->operationCount()) {
-                            stream << indentation(5) << "elsif (";
+                        if( code.encoding() != opcode(*operation) ) {
+                            ordered=false;
+                            break;
                         }
                     }
-                    stream << indentation(5) << "else" << endl;
-                    stream << indentation(6) 
-                           << fuLoadSignalName(fu->name(), port.name())
-                           << " <= '0';"
-                           << endl;
-                    stream << indentation(5) << "end if;" << endl;
+                    if( !ordered || (gcu != NULL) ) {
+                        stream << indentation(5) << "if (";
+                        for (int i = 0; i < fu->operationCount(); i++) {
+                            HWOperation* operation = fu->operation(i);
+                            FUPortCode& code = scTable.fuPortCode(
+                                fu->name(), port.name(), operation->name());
+                            stream << portCodeCondition(VHDL,enc, code) << ") then"
+                                   << endl;
+                            stream << indentation(6) 
+                                   << fuLoadSignalName(fu->name(), port.name())
+                                   << " <= '1';" << endl;
+                            if( gcu != NULL ) {
+                                if (operation->name() == JUMP) {
+                                    stream << indentation(5) 
+                                           << fuOpcodeSignalName(fu->name())
+                                           << " <= IFE_JUMP;" << endl;
+                                } else if (operation->name() == CALL) {
+                                    stream << indentation(5)
+                                           << fuOpcodeSignalName(fu->name())
+                                           << " <= IFE_CALL;" << endl;
+                                }
+                            }
+                            else {
+                                stream << indentation(6) 
+                                       << fuOpcodeSignalName(fu->name())
+                                       << " <= conv_std_logic_vector(" 
+                                       << opcode(*operation) << ", " 
+                                       << fuOpcodeSignalName(fu->name())
+                                       << "'length);"
+                                       << endl;
+                            }
+                            if (i+1 < fu->operationCount()) {
+                                stream << indentation(5) << "elsif (";
+                            }
+                        }
+                        stream << indentation(5) << "else" << endl;
+                        stream << indentation(6) 
+                               << fuLoadSignalName(fu->name(), port.name())
+                               << " <= '0';"
+                               << endl;
+                        stream << indentation(5) << "end if;" << endl;
+                    }
+                    else {
+                        FUPortCode& code = scTable.fuPortCode(
+                            fu->name(), port.name(), fu->operation(0)->name());
+                        SlotField* parent = enc.parent();
+                        string signalName;
+                        if (dynamic_cast<SourceField*>(parent) != NULL) {
+                            signalName = srcFieldSignal(parent->parent()->name());
+                        } else {
+                            signalName = dstFieldSignal(parent->parent()->name());
+                        }
+                    
+                        int codeStart;
+                        if (parent->componentIDPosition() == BinaryEncoding::RIGHT) {
+                            codeStart = enc.socketIDWidth() + code.indexWidth();
+                        } else {
+                            codeStart = code.indexWidth();
+                        }
+                        int codeEnd = codeStart + code.encodingWidth() - 1;
+                        assert(codeEnd >= codeStart);
+                        stream << indentation(5) 
+                               << fuLoadSignalName(fu->name(), port.name())
+                               << " <= '1';" << endl;
+                        stream << indentation(5)
+                               << fuOpcodeSignalName(fu->name())
+                               << " <= " << signalName
+                               << "(" << Conversion::toString(codeEnd) << " downto "
+                               << Conversion::toString(codeStart) << ")"
+                               << ";" << endl;
+                    }
                 } else {
                     FUPortCode& code = scTable.fuPortCode(
                         fu->name(), port.name());

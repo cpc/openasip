@@ -72,14 +72,14 @@ use IEEE.numeric_std.all;
 use work.util.all;
 use work.opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor.all;
 
-package shl_shr_shru_pkg is
+package shl_shr_shru_pkg_monolithic_alu_small is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc : std_logic_vector;dataw : integer; shiftw : integer) 
     return std_logic_vector;
-end shl_shr_shru_pkg;
+end shl_shr_shru_pkg_monolithic_alu_small;
 
-package body shl_shr_shru_pkg is
+package body shl_shr_shru_pkg_monolithic_alu_small is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc: std_logic_vector;dataw : integer; shiftw : integer) 
@@ -125,14 +125,14 @@ package body shl_shr_shru_pkg is
     end if;
     return y;
   end shift_func;
-end shl_shr_shru_pkg;
+end shl_shr_shru_pkg_monolithic_alu_small;
 
 library IEEE;
 use IEEE.numeric_std.all;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor.all;
-use work.shl_shr_shru_pkg.all;
+use work.shl_shr_shru_pkg_monolithic_alu_small.all;
 
 entity add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
   generic (
@@ -153,57 +153,52 @@ end add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith;
 
 
 architecture comb of add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
-  signal add_op1      : std_logic_vector(dataw-1 downto 0);
-  signal add_result   : std_logic_vector(dataw-1 downto 0);
+  signal add_op1      : std_logic_vector(dataw downto 0);
+  signal add_op2      : std_logic_vector(dataw downto 0);
+  signal add_op3      : std_logic_vector(0 downto 0);
  
-  signal sub_op1      : std_logic_vector(dataw downto 0);
-  signal sub_op2      : std_logic_vector(dataw downto 0);
-  signal sub_result_l : std_logic_vector(dataw downto 0);
-  signal sub_result   : std_logic_vector(dataw-1 downto 0);
+  signal add_result_l : std_logic_vector(dataw downto 0);
+  signal add_result   : std_logic_vector(dataw-1 downto 0);
 
+  signal sub_sel      : std_logic;
   signal eq           : std_logic;
   signal gt           : std_logic;
+  signal cmp          : std_logic;
   signal cmp_result   : std_logic_vector(dataw-1 downto 0);
 
   signal shift_result : std_logic_vector(dataw-1 downto 0);
 begin
 
-  process (A,OPC)
-  begin
-    case OPC is
-      when ADD_OPC =>
-        add_op1 <= A;
-      when SHL1ADD_OPC =>
-        add_op1 <= A(dataw-2 downto 0)&'0';
-      when others => -- SHL2ADD_OPC
-        add_op1 <= A(dataw-3 downto 0)&"00";
-    end case;
-  end process;
-
   -- Rewritten in a convoluted way in attempt to optimize.
   -- See e.g. monolithic_alu for readable version.
+  sub_sel <= '1' when OPC=SUB_OPC or OPC=GT_OPC or OPC=GTU_OPC else '0';
 
-  add_result <= std_logic_vector(ieee.numeric_std.signed(add_op1) + ieee.numeric_std.signed(B));
-
-  sub_op1(dataw) <= '0' when OPC=GTU_OPC else
+  add_op1(dataw-1 downto 0) <= 
+    A(dataw-3 downto 0)&"00" when OPC=SHL2ADD_OPC else
+    A(dataw-2 downto 0)&"0"  when OPC=SHL1ADD_OPC else
+    A;
+  add_op1(dataw) <= '0' when OPC=GTU_OPC else
                        A(dataw-1);
-  sub_op2(dataw) <= '0' when OPC=GTU_OPC else
-                       B(dataw-1);
-  sub_op1(dataw-1 downto 0)    <= A; 
-  sub_op2(dataw-1 downto 0)    <= B; 
 
-  sub_result_l <= std_logic_vector(ieee.numeric_std.signed(sub_op1) - ieee.numeric_std.signed(sub_op2));
-  sub_result   <= sub_result_l(dataw-1 downto 0);
+  add_op2(dataw-1 downto 0) <= not B when sub_sel='1' else B;
+  add_op2(dataw) <= '1' when OPC=GTU_OPC else
+                       not B(dataw-1);
 
-  gt <= sub_result_l(dataw);
+  add_op3 <= "1" when sub_sel='1' else "0";
+
+  add_result_l <= std_logic_vector(ieee.numeric_std.unsigned(add_op1) 
+    + ieee.numeric_std.unsigned(add_op2)
+    + ieee.numeric_std.unsigned(add_op3));
+  add_result   <= add_result_l(dataw-1 downto 0);
+
+  gt <= add_result_l(dataw);
   eq <= '1' when A=B else '0';
-
-  cmp_result <= ext("0"&eq,R'length) when OPC=EQ_OPC else
-                ext("0"&gt,R'length);
+  cmp <= eq when OPC=EQ_OPC else gt;
+  cmp_result <= ext("0"&cmp,R'length);
 
   shift_result <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
 
-  process (A,B,OPC, add_result, sub_result, cmp_result, shift_result)
+  process (A,B,OPC, add_result, cmp_result, shift_result)
   begin  -- process
     case OPC is
       when ADD_OPC =>
@@ -213,7 +208,7 @@ begin
       when SHL2ADD_OPC =>
         R  <= add_result;
       when SUB_OPC => 
-        R  <= sub_result;
+        R  <= add_result;
       when EQ_OPC  =>
         R <= cmp_result;
       when GT_OPC =>

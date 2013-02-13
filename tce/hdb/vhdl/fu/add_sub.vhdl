@@ -78,15 +78,11 @@ end add_sub_arith;
 
 architecture comb_if of add_sub_arith is
 
+  signal b_temp : std_logic_vector(dataw-1 downto 0);
 begin
-  process(A, B, opc)
-  begin
-    if opc = "0" then
-      S <= conv_std_logic_vector(signed(A) + signed(B), S'length);
-    else
-      S <= conv_std_logic_vector(signed(A) - signed(B), S'length);
-    end if;
-  end process;
+  b_temp <= not B when opc = "1" else B;
+  S <= conv_std_logic_vector( unsigned(A) + unsigned(b_temp) + unsigned(opc), S'length );
+
 end comb_if;
 
 -------------------------------------------------------------------------------

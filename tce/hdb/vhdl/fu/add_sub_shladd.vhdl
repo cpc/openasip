@@ -91,19 +91,19 @@ end add_sub_shladd_arith;
 
 architecture comb_if of add_sub_shladd_arith is
   signal add_op1 : std_logic_vector(dataw-1 downto 0);
+  signal add_op2 : std_logic_vector(dataw-1 downto 0);
+  signal add_op3 : std_logic_vector(0 downto 0);
 begin
   add_op1 <= A(dataw-2 downto 0)&'0'  when opc=SHL1ADD_OPC else
              A(dataw-3 downto 0)&"00" when opc=SHL2ADD_OPC else
              A;
 
-  process(A, B, opc, add_op1)
-  begin
-    if opc = SUB_OPC then
-      S <= conv_std_logic_vector(signed(A) - signed(B), S'length);
-    else -- ADD_OPC, SHL1ADD, SHL2ADD
-      S <= conv_std_logic_vector(signed(add_op1) + signed(B), S'length);
-    end if;
-  end process;
+  add_op2 <= not B when opc=SUB_OPC else
+             B;
+
+  add_op3 <= "1" when opc=SUB_OPC else "0";
+
+  S <= conv_std_logic_vector( unsigned(add_op1) + unsigned(add_op2) + unsigned(add_op3), S'length );
 end comb_if;
 
 -------------------------------------------------------------------------------
