@@ -41,6 +41,8 @@ Misc. smaller improvements
   for all load/store/io methods which just transfer raw data which can be of
   any type.  If using some other data type, data curruption may occur when 
   calling these operations as custom operations.
+- DefaultDecoderGenerator produces slightly smaller and faster decoders.
+- Added optimized ALUs to the asic_130nm_1.5V database.
 
 Code generator improvements
 ---------------------------

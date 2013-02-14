@@ -2534,7 +2534,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                         HWOperation* operation = fu->operation(i);
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), operation->name());
-                        if (code.encoding() != opcode(*operation)) {
+                        if ((int)(code.encoding()) != (int)(opcode(*operation))) {
                             ordered=false;
                             break;
                         }
