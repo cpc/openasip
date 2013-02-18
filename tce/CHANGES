@@ -7,6 +7,13 @@ Code generator improvements
 - Post-pass operand sharing removes some unnecessary operand writes
   after instruction scheduler. Does not improve performance, only saves power.
 
+Misc. smaller improvements
+--------------------------
+- Some ALU vhdl implementations in default HDB optimized to be smaller.
+- Instruction decoder optimized to be smaller and faster.
+- Added shl1add and shl2add operations for faster array indexing calculations
+  into base operation set and some ALU implementations.
+
 [changes starting from 2013-01-07]
 
 1.7     January 2013
