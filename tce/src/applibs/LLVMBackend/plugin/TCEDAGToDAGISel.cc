@@ -30,7 +30,11 @@
  * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Intrinsics.h>
+#else
+#include <llvm/IR/Intrinsics.h>
+#endif
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/raw_ostream.h>

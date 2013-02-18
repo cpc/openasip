@@ -41,13 +41,21 @@
 
 #define DEBUG_TYPE "lowermissing"
 
-#include "llvm/LLVMContext.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#include "llvm/LLVMContext.h"
 #include "llvm/Module.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
+#else
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Constants.h"
+#endif
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
 

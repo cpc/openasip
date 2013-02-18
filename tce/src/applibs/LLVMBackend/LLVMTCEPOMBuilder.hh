@@ -43,8 +43,11 @@
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
 #include <llvm/Target/Mangler.h>
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Constant.h>
-
+#else
+#include <llvm/IR/Constant.h>
+#endif
 #include <llvm/Transforms/IPO.h>
 
 #include "Exception.hh"

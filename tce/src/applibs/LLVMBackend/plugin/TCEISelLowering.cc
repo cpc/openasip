@@ -33,11 +33,18 @@
 
 #include <assert.h>
 #include <string>
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Function.h>
 #include <llvm/DerivedTypes.h>
-#include <llvm/Target/TargetLowering.h>
 #include <llvm/Intrinsics.h>
 #include <llvm/CallingConv.h>
+#else
+#include <llvm/IR/Function.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Intrinsics.h>
+#include <llvm/IR/CallingConv.h>
+#endif
+#include <llvm/Target/TargetLowering.h>
 #include <llvm/CodeGen/CallingConvLower.h>
 #include <llvm/CodeGen/SelectionDAG.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>

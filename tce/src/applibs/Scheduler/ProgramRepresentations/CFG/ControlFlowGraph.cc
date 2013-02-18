@@ -48,8 +48,13 @@
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Function.h>
 #include <llvm/Module.h>
+#else
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Module.h>
+#endif
 #include <llvm/MC/MCContext.h>
 #pragma GCC diagnostic warning "-Wunused-parameter"
 

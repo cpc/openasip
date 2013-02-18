@@ -505,8 +505,11 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
    ;;
      3.2*)
-     AC_DEFINE([LLVM_3_2], [], "Using LLVM svn (upcoming 3.2)")
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.2)")
+     AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
+   ;;
+     3.3*)
+     AC_DEFINE([LLVM_3_3], [], "Using LLVM svn (upcoming 3.3)")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.3)")
    ;;   
      *)
    AC_MSG_NOTICE(

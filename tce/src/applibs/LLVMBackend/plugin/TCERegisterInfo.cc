@@ -32,14 +32,19 @@
  */
 
 #include <assert.h>
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Type.h>
+#include <llvm/Function.h>
+#else
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Function.h>
+#endif
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/CodeGen/RegisterScavenging.h>
-#include <llvm/Function.h>
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"

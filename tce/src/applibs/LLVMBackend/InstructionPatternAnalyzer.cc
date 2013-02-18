@@ -34,8 +34,11 @@
 
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFunctionAnalysis.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Function.h"
-
+#else
+#include "llvm/IR/Function.h"
+#endif
 using namespace llvm;
 
 char InstructionPatternAnalyzer::ID = 0;

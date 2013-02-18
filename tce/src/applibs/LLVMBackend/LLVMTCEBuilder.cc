@@ -83,9 +83,15 @@
 #include "HWOperation.hh"
 #include "AssocTools.hh"
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Module.h>
+#else
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Module.h>
+#endif
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>

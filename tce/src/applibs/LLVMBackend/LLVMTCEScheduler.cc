@@ -30,7 +30,11 @@
  * @note rating: red
  */
 #include <llvm/CodeGen/MachineFunction.h>
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Function.h>
+#else
+#include <llvm/IR/Function.h>
+#endif
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 

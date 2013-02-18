@@ -32,7 +32,6 @@
  * @note rating: red
  */
 
-#include <llvm/Module.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
 #include <llvm/Analysis/Dominators.h>
@@ -40,7 +39,6 @@
 #include <llvm/PassManager.h>
 #include <llvm/Pass.h>
 //#include <llvm/ModuleProvider.h>
-#include <llvm/LLVMContext.h>
 
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
@@ -59,6 +57,14 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#include <llvm/Module.h>
+#include <llvm/LLVMContext.h>
+#else
+#include <llvm/IR/Module.h>
+#include <llvm/IR/LLVMContext.h>
+#endif
 
 #include <llvm/Bitcode/ReaderWriter.h>
 

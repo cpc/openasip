@@ -38,12 +38,22 @@
 #define TCE_PROGRAM_PARTITIONER_HH
 
 #include "llvm/CodeGen/Passes.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Constant.h"
 #include "llvm/Constants.h"
 #include "llvm/Instructions.h"
 #include "llvm/Function.h"
-#include "llvm/Pass.h"
 #include "llvm/Type.h"
+#include "llvm/Module.h"
+#else
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Module.h"
+#endif
+#include "llvm/Pass.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/Support/CFG.h"
@@ -54,7 +64,6 @@
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/Passes.h"
-#include "llvm/Module.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 

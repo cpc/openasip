@@ -35,7 +35,11 @@
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/Target/TargetRegisterInfo.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Function.h"
+#else
+#include "llvm/IR/Function.h"
+#endif
 
 #include "MachineInstrDDG.hh"
 

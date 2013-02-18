@@ -36,7 +36,11 @@
 #include "LLVMAliasAnalyzer.hh"
 
 #include <llvm/CodeGen/MachineInstr.h>
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Value.h>
+#else
+#include <llvm/IR/Value.h>
+#endif
 #include <llvm/CodeGen/MachineMemOperand.h>
 
 #include <llvm/Analysis/AliasAnalysis.h>

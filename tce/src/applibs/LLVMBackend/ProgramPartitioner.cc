@@ -37,7 +37,11 @@
 #include "hash_map.hh"
 #include "Application.hh"
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Instruction.h>
+#else
+#include <llvm/IR/Instruction.h>
+#endif
 
 char ProgramPartitioner::ID = 0;    
 

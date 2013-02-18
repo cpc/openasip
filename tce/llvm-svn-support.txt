@@ -1,12 +1,6 @@
-tce-devel r1752:
-llvm-trunk r159312-r164000 works.
-opencl needs LD_LIBRARY_PATH to be set to llvm lib.
-
-Notes:
-
-pocl requires newer llvm-3.2 version, pocl test breaks.
-
-Denbench uses tce-llvm-ld from install location 
-- may break when not installed, or old version installed.
-
-
+tce-devel r1849:
+llvm-trunk 173000:
+* denbench needs tce-llvm-ld
+* false positives:
+  * some andn operation matched twice instead of once
+  * ALU8 has more adds than the addresses ones.
