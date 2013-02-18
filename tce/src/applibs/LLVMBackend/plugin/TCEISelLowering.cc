@@ -33,6 +33,7 @@
 
 #include <assert.h>
 #include <string>
+#include "tce_config.h"
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Function.h>
 #include <llvm/DerivedTypes.h>

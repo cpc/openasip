@@ -30,6 +30,7 @@
  * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
+#include "tce_config.h"
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Intrinsics.h>
 #else

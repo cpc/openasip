@@ -1,4 +1,5 @@
 #include "TCETargetObjectFile.hh"
+#include "tce_config.h"
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"

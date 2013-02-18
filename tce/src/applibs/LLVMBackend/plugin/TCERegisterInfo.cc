@@ -32,6 +32,7 @@
  */
 
 #include <assert.h>
+#include "tce_config.h"
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
 #include <llvm/Type.h>
 #include <llvm/Function.h>
