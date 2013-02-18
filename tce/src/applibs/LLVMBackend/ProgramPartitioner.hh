@@ -38,6 +38,7 @@
 #define TCE_PROGRAM_PARTITIONER_HH
 
 #include "llvm/CodeGen/Passes.h"
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Constant.h"
 #include "llvm/Constants.h"

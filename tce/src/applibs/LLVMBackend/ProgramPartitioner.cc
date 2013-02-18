@@ -36,7 +36,7 @@
 #include "TCETargetMachine.hh"
 #include "hash_map.hh"
 #include "Application.hh"
-
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Instruction.h>
 #else

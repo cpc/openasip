@@ -30,6 +30,7 @@
  */
 
 #include "llvm/CodeGen/Passes.h"
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Module.h"
 #include "llvm/Constant.h"

@@ -43,6 +43,7 @@
 
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/LLVMContext.h"
 #include "llvm/Module.h"

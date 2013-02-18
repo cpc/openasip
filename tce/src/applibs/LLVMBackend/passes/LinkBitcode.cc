@@ -34,6 +34,7 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include "llvm/Module.h"
 #else

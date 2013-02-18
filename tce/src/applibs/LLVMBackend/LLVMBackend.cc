@@ -57,7 +57,7 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
-
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>

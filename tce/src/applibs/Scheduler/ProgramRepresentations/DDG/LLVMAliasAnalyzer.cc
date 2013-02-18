@@ -36,6 +36,7 @@
 #include "LLVMAliasAnalyzer.hh"
 
 #include <llvm/CodeGen/MachineInstr.h>
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Value.h>
 #else

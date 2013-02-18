@@ -30,6 +30,7 @@
  * @note rating: red
  */
 #include <llvm/CodeGen/MachineFunction.h>
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Function.h>
 #else
