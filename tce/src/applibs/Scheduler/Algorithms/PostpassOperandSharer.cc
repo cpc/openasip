@@ -53,6 +53,10 @@ using TTAMachine::Guard;
 using TTAMachine::RegisterGuard;
 using TTAMachine::RegisterFile;
 
+// this makes the code run slower but gives the trigger operand
+// statistics
+#define GET_BETTER_STATISTICS
+
 void PostpassOperandSharer::handleBasicBlock(
     TTAProgram::BasicBlock& basicBlock,
     const TTAMachine::Machine&)
@@ -86,11 +90,19 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
         registerReads_++;
     }
 
+#ifdef GET_BETTER_STATISTICS
+    if (!dest.isFUPort())
+    {
+        return false;
+    }
+#else
+
     if (!dest.isFUPort() ||
         dest.isTriggering() ||
         dest.isOpcodeSetting()) {
         return false;
     }
+#endif
 
     operandCount_++;
     if (src.isFUPort()) {
@@ -172,12 +184,6 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
             Move& prevMove = prevIns.move(j);
             Terminal& prevDest = prevMove.destination();
 
-            // TODO: check for overwriting reads to the src port
-            if (!prevDest.isFUPort() ||
-                prevDest.isTriggering() ||
-                prevDest.isOpcodeSetting()) {
-                continue;
-            }
             // write to same port..
             if (&prevDest.port() == &dest.port()) {
                 if (move.source().equals(prevMove.source())) {
@@ -189,6 +195,13 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
                               move.guard().guard())))) {
                         continue;
                     }
+                    
+                    if (prevDest.isTriggering() ||
+                        prevDest.isOpcodeSetting()) {
+                        triggerCannotRemove_++;
+                        return false;
+                    }
+                    
                     removedOperands_++;
                     return true;
                 } else {
@@ -206,12 +219,16 @@ void PostpassOperandSharer::printStats() {
     std::cerr << "PostpassOperandSharer statistics: " << std::endl 
               << "\tTotal moves: " << moveCount_ << std::endl
               << "\tTotal reg reads: " << registerReads_ << std::endl
-              << "\tTotal non-triggering operands: "<<operandCount_ 
+              << "\tTotal operands: "<<operandCount_ 
               << std::endl
-              << "\tRemoved operands: " << removedOperands_ << std::endl;
+              << "\tRemoved operands: " << removedOperands_ << std::endl
+              << "\tCannot share trigger count: " << triggerCannotRemove_ 
+              << std::endl;
+    
 }
 
 unsigned int PostpassOperandSharer::moveCount_ = 0;
 unsigned int PostpassOperandSharer::operandCount_ = 0;
 unsigned int PostpassOperandSharer::removedOperands_ = 0;
 unsigned int PostpassOperandSharer::registerReads_ = 0;
+unsigned int PostpassOperandSharer::triggerCannotRemove_ = 0;

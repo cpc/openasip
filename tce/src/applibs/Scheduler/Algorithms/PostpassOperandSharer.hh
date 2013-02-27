@@ -76,4 +76,5 @@ private:
     static unsigned int operandCount_;
     static unsigned int removedOperands_;
     static unsigned int registerReads_;
+    static unsigned int triggerCannotRemove_;
 };
