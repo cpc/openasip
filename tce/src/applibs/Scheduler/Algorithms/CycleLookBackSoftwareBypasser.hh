@@ -77,6 +77,8 @@ public:
     void setSelector(MoveNodeSelector* selector);
     
     virtual void clearCaches(DataDependenceGraph& ddg, bool removeDeadResults);
+
+    static void printStats();
 private:
     /// count of cycles before the operand write to look for the producer
     /// of the read value
@@ -119,8 +121,9 @@ private:
 
     MoveNodeSelector* selector_;
 
-    int bypassCount_;
-    int deadResultCount_;
+    static int bypassCount_;
+    static int deadResultCount_;
+    static int triggerAbortCount_;
 };
 
 #endif

@@ -61,7 +61,7 @@
 CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser() :
     cyclesToLookBack_(5), cyclesToLookBackNoDRE_(1),
     killDeadResults_(true), bypassFromRegs_(true), bypassToRegs_(true), 
-    selector_(NULL), bypassCount_(0), deadResultCount_(0) {
+    selector_(NULL) {
 
     SchedulerCmdLineOptions* opts = 
         dynamic_cast<SchedulerCmdLineOptions*>(Application::cmdLineOptions());
@@ -479,6 +479,7 @@ CycleLookBackSoftwareBypasser::bypass(
             int newCycle = rm.earliestCycle(lastOperandCycle, *trigger);
             int latestDDG = ddg.latestCycle(*trigger);
             if (newCycle == -1 || newCycle > latestDDG) {
+                triggerAbortCount_++;
                 // BBScheduler will call removeBypass
                 return -1;
             }
@@ -773,3 +774,15 @@ CycleLookBackSoftwareBypasser::clearCaches(DataDependenceGraph& ddg,
     removedNodes_.clear();
     removedStoredSources_.clear();
 }
+
+void
+CycleLookBackSoftwareBypasser::printStats() {
+    std::cerr << "Bypasser statistics: " << std::endl
+              << "\tBypasses: " << bypassCount_ << std::endl
+              << "\tKilled results: " << deadResultCount_ << std::endl
+              << "\tTrigger too early aborts: " << triggerAbortCount_ << std::endl;
+}
+
+int CycleLookBackSoftwareBypasser::bypassCount_ = 0;
+int CycleLookBackSoftwareBypasser::deadResultCount_ = 0;
+int CycleLookBackSoftwareBypasser::triggerAbortCount_ = 0;

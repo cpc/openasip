@@ -893,8 +893,16 @@ LLVMTCEIRBuilder::createMoveNode(
 }
 
 LLVMTCEIRBuilder::~LLVMTCEIRBuilder() {
-// uncomment to get operand sharing statistic prints
-//        PostpassOperandSharer::printStats();
-    }
 
+    LLVMTCECmdLineOptions* options = NULL;
+    if (Application::cmdLineOptions() != NULL) {
+        options = 
+            dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+        if (options->isVerboseSwitchDefined()) {
+            PostpassOperandSharer::printStats();
+            CycleLookBackSoftwareBypasser::printStats();
+        }
+    }
+}
 }
