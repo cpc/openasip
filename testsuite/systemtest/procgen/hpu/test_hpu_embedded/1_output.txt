@@ -14,3 +14,6 @@ Testing FMA and minf/maxf...
 6: OOOOOO
 7: OOO
 8: OOOOOOOO
+Testing SIMD2 half operations...
+1: OOOO
+2: OOOOOOOOOOOO

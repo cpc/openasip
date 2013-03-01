@@ -207,6 +207,8 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                                     n, opc, MVT::i32, val1, val2);
                             }
                             break;
+                        default:
+                            break;
                         }
                     }
                 }
