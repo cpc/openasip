@@ -524,7 +524,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
         defsymToLib={}
         libToDefsyms={}
         libToUndefsyms={}
-        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*.o", echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*", echoOutput=False)
 
         file=""
         tempDefsyms=[]
