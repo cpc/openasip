@@ -449,11 +449,11 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     endFiles = [os.path.join(newlib_libdir,"libm.a"),
                 os.path.join(newlib_libdir,"libc.a"),
                 libNoSys,
-                os.path.join(newlib_libdir,"crtend.o")]
+               os.path.join(newlib_libdir,"crtend.o")]
+
     endFiles.remove("")
 
-    linkFiles = startFiles + linkFiles + endFiles
-
+    linkFiles = linkFiles + endFiles
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
@@ -471,11 +471,30 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     for name in libFiles:
         linkFiles.remove(name)
         runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
-
+    
     for name in os.listdir(libDirName):
         runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
         runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
         
+    defSyms=['llvm.dbg.declare']
+    undefSyms=[]
+
+    # Kludge to support DENBench. Link crt0.o only if _start is undefined.
+
+    for name in linkFiles:
+        (exitCode, output) = runCommandBuffered("llvm-nm "+name, echoOutput=False)
+        for line in output.splitlines():
+            split = line.split()
+            if split[0]=='U':
+                if not split[1] in undefSyms:
+                    undefSyms.append(split[1])
+            elif split[0] in 'CDT':
+                if not split[1] in defSyms:
+                    defSyms.append(split[1])
+
+    if not '_start' in defSyms:
+	linkFiles = startFiles + linkFiles 
+
     defSyms=['llvm.dbg.declare']
     undefSyms=[]
 
@@ -505,7 +524,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
         defsymToLib={}
         libToDefsyms={}
         libToUndefsyms={}
-        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*", echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*.o", echoOutput=False)
 
         file=""
         tempDefsyms=[]
@@ -551,7 +570,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
             for sym in libUndefsyms:
                 if not sym in defSyms:
                     undefSyms.append(sym)
-            
+
     command = "llvm-link -o " + linkedFileName + ".bc " 
 
     for name in linkFiles:
