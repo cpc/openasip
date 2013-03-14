@@ -976,3 +976,766 @@ BEGIN  -- rtl
   END PROCESS;
 END rtl;
 
+
+
+-- File       : fpmac_stage1_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+  
+ENTITY fpmac_unpack_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      l                      : IN  float(exp_w DOWNTO -frac_w);
+      fractl_out             : OUT UNSIGNED (frac_w downto 0);
+      exponl_out             : OUT SIGNED  (exp_w-1 downto 0)
+  );
+END fpmac_unpack_block;
+
+ARCHITECTURE rtl OF fpmac_unpack_block IS
+BEGIN
+  stage : process( l )
+    variable fractional_a  : UNSIGNED (frac_w downto 0);
+    variable exponl        : SIGNED (exp_w-1 downto 0);
+
+  begin  -- multiply
+      --NO SUPPORT FOR DENORMALIZED NUMBERS HERE
+      --unpack input a
+      if ( or_reduce(unsigned(to_slv(l(exp_w-1 downto 0)))) /= '0') then      
+        fractional_a(frac_w-1 DOWNTO 0)  := UNSIGNED (to_slv(
+          l(-1 downto -frac_w)));
+        fractional_a(frac_w) := '1';
+        exponl := SIGNED(l(exp_w-1 DOWNTO 0));
+        exponl(exp_w-1) := NOT exponl(exp_w-1);
+      else
+        fractional_a := (others => '0');
+        exponl := (others => '1');
+        exponl(exp_w-1) := '0';
+        exponl := -exponl;
+      end if;
+
+      fractl_out <= (OTHERS => '0');
+      fractl_out(frac_w DOWNTO 0) <= fractional_a;
+      exponl_out <= exponl;
+  end process;
+END rtl;
+
+
+-- File       : fpmac_stage1_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+  
+ENTITY fpmac_stage1_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      l                      : IN  float(exp_w DOWNTO -frac_w);
+      r                      : IN  float(exp_w DOWNTO -frac_w);
+      fractl_out             : OUT UNSIGNED (frac_w downto 0);
+      fractr_out             : OUT UNSIGNED (frac_w downto 0);  -- fractions
+      exponl_out             : OUT SIGNED  (exp_w-1 downto 0);
+      exponr_out             : OUT SIGNED  (exp_w-1 downto 0) -- exponents
+  );
+END fpmac_stage1_block;
+
+ARCHITECTURE rtl OF fpmac_stage1_block IS
+BEGIN
+  stage : process( l, r )
+    variable fractional_a,
+             fractional_b              : UNSIGNED (frac_w downto 0);
+
+    variable exponl, exponr            : SIGNED (exp_w-1 downto 0);
+
+    variable fractc, fracts            : UNSIGNED (frac_w+1+guard downto 0);
+  begin  -- multiply
+      --NO SUPPORT FOR DENORMALIZED NUMBERS HERE
+      --unpack input a
+      if ( or_reduce(unsigned(to_slv(l(exp_w-1 downto 0)))) /= '0') then      
+        fractional_a(frac_w-1 DOWNTO 0)  := UNSIGNED (to_slv(
+          l(-1 downto -frac_w)));
+        fractional_a(frac_w) := '1';
+        exponl := SIGNED(l(exp_w-1 DOWNTO 0));
+        exponl(exp_w-1) := NOT exponl(exp_w-1);
+      else
+
+        fractional_a := (others => '0');
+        exponl := (others => '1');
+        exponl(exp_w-1) := '0';
+        exponl := -exponl;
+      end if;
+      --unpack input b
+      if(or_reduce(unsigned(to_slv(r(exp_w-1 downto 0)))) /= '0') then
+        fractional_b(frac_w-1 DOWNTO 0)  := UNSIGNED (to_slv(
+          r(-1 downto -frac_w)));
+        fractional_b(frac_w) := '1';
+        exponr := SIGNED(r(exp_w-1 DOWNTO 0));
+        exponr(exp_w-1) := NOT exponr(exp_w-1);
+      else
+        fractional_b := (others => '0');
+        exponr := (others => '1');
+        exponr(exp_w-1) := '0';
+        exponr := -exponr;
+      end if;
+
+      fractl_out <= (OTHERS => '0');
+      fractr_out <= (OTHERS => '0');
+      fractl_out(frac_w DOWNTO 0) <= fractional_a;
+      fractr_out(frac_w DOWNTO 0) <= fractional_b;
+      exponl_out <= exponl;
+      exponr_out <= exponr;
+  end process;
+END rtl;
+
+-- File       : fpmac_stage2_block_v2.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+  
+ENTITY fpmac_stage2_block_v0 IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      c               : IN  float(exp_w DOWNTO -frac_w);
+      fractl          : IN UNSIGNED (frac_w downto 0);
+      fractr          : IN UNSIGNED (frac_w downto 0);  -- fractions
+      exponl          : IN SIGNED (exp_w-1 downto 0);
+      exponr          : IN SIGNED (exp_w-1 downto 0); -- exponents
+      rfract_out          : OUT UNSIGNED ((2*(frac_w))+1 downto 0);
+      rexpon_out          : OUT SIGNED (exp_w+1 downto 0);
+      fractx_out          : OUT UNSIGNED (frac_w+guard downto 0);
+      exponc_out          : OUT SIGNED (exp_w-1 downto 0);
+      shiftx_out          : OUT SIGNED (exp_w+1 downto 0)  -- shift fractions
+  );
+END fpmac_stage2_block_v0;
+
+ARCHITECTURE rtl OF fpmac_stage2_block_v0 IS
+BEGIN
+  stage : process( c, fractl, fractr, exponl, exponr )
+    variable fractional_c              : UNSIGNED (frac_w downto 0);
+    variable fractx                    : UNSIGNED (frac_w+guard downto 0);
+    variable exponc                    : SIGNED (exp_w-1 downto 0); 
+    variable shiftx                    : SIGNED (exp_w+1 downto 0);  -- shift fractions
+    variable rexpon                    : SIGNED (exp_w+1 downto 0);
+  begin
+    --unpack input c
+    if(or_reduce(unsigned(to_slv(c(exp_w-1 downto 0)))) /= '0') then
+      fractional_c(frac_w-1 DOWNTO 0)  := UNSIGNED (to_slv(
+        c(-1 downto -frac_w)));
+      fractional_c(frac_w) := '1';
+      exponc := SIGNED(c(exp_w-1 DOWNTO 0));
+      exponc(exp_w-1) := NOT exponc(exp_w-1);
+    else
+      fractional_c := (others => '0');
+      exponc := (others => '1');
+      exponc(exp_w-1) := '0';
+      exponc := -exponc;
+    end if;
+    fractx := (OTHERS => '0');
+    fractx(frac_w+guard DOWNTO guard) := fractional_c;
+    
+    fractx_out <= fractx;
+    exponc_out <= exponc;
+    
+    rexpon := resize (exponl, rexpon_out'length) + exponr + 1;
+    
+    shiftx := rexpon - exponc;
+    
+    shiftx_out <= shiftx;
+
+    -- multiply
+    rfract_out <= fractl * fractr;        -- Multiply the fraction
+    -- add the exponents
+    rexpon_out <= rexpon;
+  end process;
+END rtl;
+
+-- File       : fpmac_stage2_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+  
+ENTITY fpmac_stage2_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      fractl          : IN UNSIGNED (frac_w downto 0);
+      fractr          : IN UNSIGNED (frac_w downto 0);  -- fractions
+      exponl          : IN SIGNED (exp_w-1 downto 0);
+      exponr          : IN SIGNED (exp_w-1 downto 0); -- exponents
+      rfract_out          : OUT UNSIGNED ((2*(frac_w))+1 downto 0);
+      rexpon_out          : OUT SIGNED (exp_w+1 downto 0)
+  );
+END fpmac_stage2_block;
+
+ARCHITECTURE rtl OF fpmac_stage2_block IS
+BEGIN
+  stage : process( fractl, fractr, exponl, exponr )
+  begin
+    -- multiply
+    rfract_out <= fractl * fractr;        -- Multiply the fraction
+    -- add the exponents
+    rexpon_out <= resize (exponl, rexpon_out'length) + exponr + 1;
+  end process;
+END rtl;
+
+-- File       : fpmac_stage2_asymmetric_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+  
+ENTITY fpmac_stage2_asymmetric_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    lfrac_w      : integer := float_fraction_width;
+    rfrac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      fractl          : IN UNSIGNED (lfrac_w-1 downto 0);
+      fractr          : IN UNSIGNED (rfrac_w-1 downto 0);  -- fractions
+      exponl          : IN SIGNED (exp_w-1 downto 0);
+      exponr          : IN SIGNED (exp_w-1 downto 0); -- exponents
+      rfract_out          : OUT UNSIGNED (lfrac_w+rfrac_w-1 downto 0);
+      rexpon_out          : OUT SIGNED (exp_w+1 downto 0)
+  );
+END fpmac_stage2_asymmetric_block;
+
+ARCHITECTURE rtl OF fpmac_stage2_asymmetric_block IS
+BEGIN
+  stage : process( fractl, fractr, exponl, exponr )
+  begin
+    -- multiply
+    rfract_out <= fractl * fractr;
+    -- add the exponents
+    rexpon_out <= resize (exponl, rexpon_out'length) + exponr + 1;
+  end process;
+END rtl;
+
+-- File       : fpmac_stage3_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+
+ENTITY fpmac_stage3_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      rfract          : IN UNSIGNED ((2*(frac_w))+1 downto 0);
+      rexpon          : IN SIGNED (exp_w+1 downto 0);
+      fractx          : IN UNSIGNED (frac_w+guard downto 0);
+      exponc          : IN SIGNED (exp_w-1 downto 0);  -- fractions
+
+      fractc_out      : OUT UNSIGNED (frac_w+1+guard downto 0);
+      fracts_out      : OUT UNSIGNED (frac_w+1+guard downto 0);
+      leftright_out   : OUT boolean;
+      round_guard_out : OUT std_ulogic;
+      exp_out         : OUT signed(exp_w+1 DOWNTO 0)
+  );
+END fpmac_stage3_block;
+
+ARCHITECTURE rtl OF fpmac_stage3_block IS
+BEGIN
+  stage : process( rfract, rexpon, fractx, exponc )
+    variable fractc, fracts            : UNSIGNED (frac_w+1+guard downto 0);
+    variable fractstmp                 : UNSIGNED (frac_w+1+guard downto 0);
+    variable fractlt                   : BOOLEAN;     -- 
+    variable exponeq                   : BOOLEAN;     -- 
+    variable exponlt                   : BOOLEAN;     -- 
+    variable overflow                  : BOOLEAN;     -- 
+    variable leftright                 : BOOLEAN;     -- left or right used
+    variable sticky                    : STD_ULOGIC;  -- Holds precision for rounding
+    variable rexpon2                   : SIGNED (exp_w+1 downto 0);  -- result exponent
+    variable shiftx_var                : SIGNED (rexpon'range);  -- shift fractions
+  begin
+    shiftx_var := rexpon-exponc;
+    overflow := shiftx_var < -frac_w or shiftx_var > fractx'high;
+    exponeq  := shiftx_var = 0;
+    exponlt  := shiftx_var < 0;
+    fractlt  := rfract (rfract'high downto rfract'high - fractc'length+1) < fractx;
+    leftright := not( exponlt or (exponeq and fractlt) );
+
+    -- A more IEEE-compliant fpu would need sticky bit computation here.
+    sticky    := '0';
+    
+    if leftright then
+      rexpon2   := rexpon;
+      fractc    := rfract (rfract'high downto rfract'high - fractc'length+1);
+      fractstmp := "0" & fractx;
+    else
+      rexpon2   := resize (exponc, rexpon2'length);
+      fractc    := "0" & fractx;
+      fractstmp := rfract (rfract'high downto rfract'high - fractc'length+1);
+    end if;
+    
+    if exponlt then
+      shiftx_var := - shiftx_var;
+    end if;
+    
+    if overflow then
+      fracts  := (others => '0');
+    else  
+      fracts := shift_right (fractstmp, to_integer(shiftx_var));
+    end if;
+
+    fractc_out <= fractc;
+    fracts_out <= fracts;
+    round_guard_out <= sticky;
+    exp_out <= rexpon2;
+    leftright_out <= leftright;
+  end process;
+END rtl;
+
+
+-- File       : fpmac_stage3_block_v0.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+
+ENTITY fpmac_stage3_block_v0 IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+      rfract          : IN UNSIGNED ((2*(frac_w))+1 downto 0);
+      rexpon          : IN SIGNED (exp_w+1 downto 0);
+      fractx          : IN UNSIGNED (frac_w+guard downto 0);
+      exponc          : IN SIGNED (exp_w-1 downto 0);  -- fractions
+      shiftx          : IN SIGNED (exp_w+1 downto 0);  -- shift fractions
+
+      fractc_out      : OUT UNSIGNED (frac_w+1+guard downto 0);
+      fracts_out      : OUT UNSIGNED (frac_w+1+guard downto 0);
+      leftright_out   : OUT boolean;
+      round_guard_out : OUT std_ulogic;
+      exp_out         : OUT signed(exp_w+1 DOWNTO 0)
+  );
+END fpmac_stage3_block_v0;
+
+ARCHITECTURE rtl OF fpmac_stage3_block_v0 IS
+BEGIN
+  stage : process( rfract, rexpon, fractx, exponc, shiftx )
+    variable fractc, fracts            : UNSIGNED (frac_w+1+guard downto 0);
+    variable fractstmp                 : UNSIGNED (frac_w+1+guard downto 0);
+    variable fractlt                   : BOOLEAN;     -- 
+    variable exponeq                   : BOOLEAN;     -- 
+    variable exponlt                   : BOOLEAN;     -- 
+    variable overflow                  : BOOLEAN;     -- 
+    variable leftright                 : BOOLEAN;     -- left or right used
+    variable sticky                    : STD_ULOGIC;  -- Holds precision for rounding
+    variable rexpon2                   : SIGNED (exp_w+1 downto 0);  -- result exponent
+    variable shiftx_var                : SIGNED (rexpon'range);  -- shift fractions
+  begin
+    shiftx_var := shiftx;
+    overflow := shiftx_var < -frac_w or shiftx_var > fractx'high;
+    exponeq  := shiftx_var = 0;
+    exponlt  := shiftx_var < 0;
+    fractlt  := rfract (rfract'high downto rfract'high - fractc'length+1) < fractx;
+    leftright := not( exponlt or (exponeq and fractlt) );
+
+    -- A more IEEE-compliant fpu would need sticky bit computation here.
+    sticky    := '0';
+    
+    if leftright then
+      rexpon2   := rexpon;
+      fractc    := rfract (rfract'high downto rfract'high - fractc'length+1);
+      fractstmp := "0" & fractx;
+    else
+      rexpon2   := resize (exponc, rexpon2'length);
+      fractc    := "0" & fractx;
+      fractstmp := rfract (rfract'high downto rfract'high - fractc'length+1);
+    end if;
+    
+    if exponlt then
+      shiftx_var := - shiftx_var;
+    end if;
+    
+    if overflow then
+      fracts  := (others => '0');
+    else  
+      fracts := shift_right (fractstmp, to_integer(shiftx_var));
+    end if;
+
+    fractc_out <= fractc;
+    fracts_out <= fracts;
+    round_guard_out <= sticky;
+    exp_out <= rexpon2;
+    leftright_out <= leftright;
+  end process;
+END rtl;
+
+-- File       : fpmac_stage4_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+
+ENTITY fpmac_stage4_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits);
+  PORT (
+    fractc          : IN UNSIGNED (frac_w+1+guard downto 0);
+    fracts          : IN UNSIGNED (frac_w+1+guard downto 0);
+    lsign           : IN std_ulogic;
+    rsign           : IN std_ulogic;
+    csign           : IN std_ulogic;
+    leftright       : in boolean;
+
+    sign_out        : OUT std_ulogic;
+    frac_out        : OUT unsigned(frac_w+1+guard DOWNTO 0)
+  );
+END fpmac_stage4_block;
+
+ARCHITECTURE rtl OF fpmac_stage4_block IS
+BEGIN
+  stage : process( fractc, fracts, lsign, rsign, csign, leftright )
+    variable fp_sign                   : STD_ULOGIC;  -- sign of result
+    variable ufract                    : UNSIGNED (frac_w+1+guard downto 0);  -- result fraction
+  begin
+    fp_sign := lsign xor rsign;
+    if fp_sign = to_X01(csign) then
+      ufract := fractc + fracts;
+      fp_sign := fp_sign;
+    else                              -- signs are different
+      ufract := fractc - fracts;      -- always positive result
+      if leftright then               -- Figure out which sign to use
+        fp_sign := fp_sign;
+      else
+        fp_sign := csign;
+      end if;
+    end if;
+
+    frac_out <= ufract;
+    sign_out <= fp_sign;
+  end process;
+END rtl;
+
+-- File       : fpmac_block.vhdl
+-- Author     : Timo Viitanen  <timo.2.viitanen@tut.fi>
+-- Company    :
+-- Created    : 2013/03/06
+
+--  Description: Floating point multiply-adder block
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.float_pkg_tce.all;
+
+-- a + m1*m2
+ENTITY fpmac_block IS
+  GENERIC (
+    exp_w       : integer := float_exponent_width;
+    frac_w      : integer := float_fraction_width;
+    guard       : integer := float_guard_bits;
+    bypass_2    : boolean := False;
+    bypass_3    : boolean := False;
+    bypass_4    : boolean := False;
+    bypass_5    : boolean := False);
+  PORT (
+
+    a_in        : IN  float(exp_w DOWNTO -frac_w);
+    m1_in       : IN  float(exp_w DOWNTO -frac_w);
+    m2_in       : IN  float(exp_w DOWNTO -frac_w);
+    res_out     : OUT float(exp_w DOWNTO -frac_w);
+    clk         : IN std_logic;
+    rstx        : IN std_logic;
+    glock       : IN std_logic
+    );
+END fpmac_block;
+
+ARCHITECTURE rtl OF fpmac_block IS
+  signal stage1_fractl, stage2_fractl : UNSIGNED (frac_w downto 0);
+  signal stage1_fractr, stage2_fractr : UNSIGNED (frac_w downto 0);
+  signal stage2_exponl, stage1_exponl : SIGNED (exp_w-1 downto 0);
+  signal stage2_exponr, stage1_exponr : SIGNED (exp_w-1 downto 0);
+  signal stage3_fractx, stage2_fractx : UNSIGNED (frac_w+guard downto 0);
+  signal stage3_exponc, stage2_exponc : SIGNED (exp_w-1 downto 0);
+  signal stage3_rfract, stage2_rfract : UNSIGNED ((2*(frac_w))+1 downto 0);
+  signal stage3_rexpon, stage2_rexpon : SIGNED (exp_w+1 downto 0);
+  signal stage4_fractc, stage3_fractc : UNSIGNED (frac_w+1+guard downto 0);
+  signal stage4_fracts, stage3_fracts : UNSIGNED (frac_w+1+guard downto 0);
+  
+  signal stage5_sign,  stage4_sign   : std_ulogic;
+  signal stage5_guard, stage4_guard, stage3_guard  : std_ulogic;
+  signal stage5_exp,   stage4_exp,   stage3_exp    : signed(exp_w+1 DOWNTO 0);
+  signal stage5_frac,  stage4_frac   : unsigned(frac_w+1+guard DOWNTO 0);
+
+  signal stage2_lsign, stage3_lsign, stage4_lsign : std_ulogic;
+  signal stage2_rsign, stage3_rsign, stage4_rsign : std_ulogic;
+  signal stage2_csign, stage3_csign, stage4_csign : std_ulogic;
+
+  signal stage3_leftright, stage4_leftright : boolean;
+
+  signal stage2_c : float(exp_w DOWNTO -frac_w);
+  
+BEGIN  -- rtl
+  
+  stage1_unpackl: entity work.fpmac_unpack_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+      l          => m1_in,
+      fractl_out => stage1_fractl,
+      exponl_out => stage1_exponl);
+      
+  stage1_unpackr: entity work.fpmac_unpack_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+      l          => m2_in,
+      fractl_out => stage1_fractr,
+      exponl_out => stage1_exponr );
+  
+  stage2: entity work.fpmac_stage2_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+      fractl     => stage2_fractl,
+      fractr     => stage2_fractr,
+      exponl     => stage2_exponl,
+      exponr     => stage2_exponr,
+      rfract_out => stage2_rfract,
+      rexpon_out => stage2_rexpon );
+      
+  stage2_unpackc: entity work.fpmac_unpack_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+      l          => stage2_c,
+      fractl_out => stage2_fractx,
+      exponl_out => stage2_exponc );
+  
+  stage3: entity work.fpmac_stage3_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+    rfract          => stage3_rfract,
+    rexpon          => stage3_rexpon,
+    fractx          => stage3_fractx,
+    exponc          => stage3_exponc,
+    fractc_out      => stage3_fractc,
+    fracts_out      => stage3_fracts,
+    leftright_out   => stage3_leftright,
+    round_guard_out => stage3_guard,
+    exp_out         => stage3_exp );
+  
+  stage4: entity work.fpmac_stage4_block(rtl)
+    GENERIC MAP(exp_w => exp_w, frac_w => frac_w, guard => guard)
+    PORT MAP (
+    fractc    => stage4_fractc,
+    fracts    => stage4_fracts,
+    lsign     => stage4_lsign,
+    rsign     => stage4_rsign,
+    csign     => stage4_csign,
+    leftright => stage4_leftright,
+    sign_out  => stage4_sign,
+    frac_out  => stage4_frac );
+    
+  res_out <=       normalize (fract       => stage5_frac,
+                              expon       => stage5_exp,
+                              sign        => stage5_sign,
+                              sticky      => stage5_guard,
+                              round_style => round_zero,
+                              denormalize => false,
+                              nguard      => guard);
+
+  regs: PROCESS (clk, rstx,
+                 stage1_fractl,stage1_fractr,stage1_exponl,stage1_exponr,
+                 m1_in, m2_in, a_in, a_in)
+  BEGIN
+    IF(rstx = '0') THEN  
+      
+      IF bypass_2 = False THEN
+        stage2_fractl <= (others=>'0');
+        stage2_fractr <= (others=>'0');
+        stage2_exponl <= (others=>'0');
+        stage2_exponr <= (others=>'0');
+          
+        stage2_lsign  <= '0';
+        stage2_rsign  <= '0';
+        stage2_csign  <= '0';
+          
+        stage2_c      <= (others=>'0');
+      END IF;
+      
+      IF bypass_3 = False THEN
+        stage3_rfract <= (others=>'0');
+        stage3_rexpon <= (others=>'0');
+  
+        stage3_lsign  <= '0';
+        stage3_rsign  <= '0';
+        stage3_csign  <= '0';
+      END IF;
+        
+        
+      IF bypass_4 = False THEN
+        stage4_fractc <= (others=>'0');
+        stage4_fracts <= (others=>'0');
+        stage4_leftright <= False;
+        
+        stage4_lsign  <= '0';
+        stage4_rsign  <= '0';
+        stage4_csign  <= '0';
+      END IF;
+      
+      IF bypass_5 = False THEN
+        stage5_sign   <= '0';
+        stage5_guard  <= '0';
+        stage5_exp    <= (others=>'0');
+        stage5_frac   <= (others=>'0');
+      END IF;
+
+    ELSIF(clk'event AND clk = '1') then
+      IF(glock = '0') then
+        IF bypass_2 = False THEN
+          stage2_fractl <= stage1_fractl;
+          stage2_fractr <= stage1_fractr;
+          stage2_exponl <= stage1_exponl;
+          stage2_exponr <= stage1_exponr;
+            
+          stage2_lsign  <= m1_in(m1_in'high);
+          stage2_rsign  <= m2_in(m2_in'high);
+          stage2_csign  <= a_in(a_in'high);
+            
+          stage2_c      <= a_in;
+        END IF;
+        IF bypass_3 = False THEN
+          stage3_rfract <= stage2_rfract;
+          stage3_rexpon <= stage2_rexpon;
+          stage3_fractx <= stage2_fractx;
+          stage3_exponc <= stage2_exponc;
+          
+          stage3_lsign  <= stage2_lsign;
+          stage3_rsign  <= stage2_rsign;
+          stage3_csign  <= stage2_csign;
+        END IF;
+        IF bypass_4 = False THEN
+          stage4_fractc    <= stage3_fractc;
+          stage4_fracts    <= stage3_fracts;
+          stage4_leftright <= stage3_leftright;
+          
+          stage4_lsign  <= stage3_lsign;
+          stage4_rsign  <= stage3_rsign;
+          stage4_csign  <= stage3_csign;
+          
+          stage4_guard  <= stage3_guard;
+          stage4_exp    <= stage3_exp;
+        END IF;
+        IF bypass_5 = False THEN
+          stage5_sign   <= stage4_sign;
+          stage5_guard  <= stage4_guard;
+          stage5_exp    <= stage4_exp;
+          stage5_frac   <= stage4_frac;
+        END IF;
+      END IF;
+    END IF;
+    IF bypass_2 = True THEN
+      stage2_fractl <= stage1_fractl;
+      stage2_fractr <= stage1_fractr;
+      stage2_exponl <= stage1_exponl;
+      stage2_exponr <= stage1_exponr;
+        
+      stage2_lsign  <= m1_in(m1_in'high);
+      stage2_rsign  <= m2_in(m2_in'high);
+      stage2_csign  <= a_in(a_in'high);
+        
+      stage2_c      <= a_in;
+    END IF;
+    IF bypass_3 = True THEN
+      stage3_rfract <= stage2_rfract;
+      stage3_rexpon <= stage2_rexpon;
+      stage3_fractx <= stage2_fractx;
+      stage3_exponc <= stage2_exponc;
+      
+      stage3_lsign  <= stage2_lsign;
+      stage3_rsign  <= stage2_rsign;
+      stage3_csign  <= stage2_csign;
+    END IF;
+    IF bypass_4 = True THEN
+      stage4_fractc <= stage3_fractc;
+      stage4_fracts <= stage3_fracts;
+      stage4_leftright <= stage3_leftright;
+      
+      stage4_lsign  <= stage3_lsign;
+      stage4_rsign  <= stage3_rsign;
+      stage4_csign  <= stage3_csign;
+
+      stage4_guard  <= stage3_guard;
+      stage4_exp    <= stage3_exp;
+    END IF;
+    IF bypass_5 = True THEN
+      stage5_sign   <= stage4_sign;
+      stage5_guard  <= stage4_guard;
+      stage5_exp    <= stage4_exp;
+      stage5_frac   <= stage4_frac;
+    END IF;
+  END PROCESS regs;
+
+END rtl;
+
+
+
+
