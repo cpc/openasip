@@ -879,7 +879,7 @@ LLVMTCEIRBuilder::createMoveNode(
 
     if (isDestination) {
         po->addInputNode(*mn);
-        mn->setDestinationOperationPtr(po);
+        mn->addDestinationOperationPtr(po);
         TTAProgram::TerminalFUPort& term =
             dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
         term.setProgramOperation(po);

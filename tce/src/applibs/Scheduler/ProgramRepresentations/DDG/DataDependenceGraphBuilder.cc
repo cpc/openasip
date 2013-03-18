@@ -334,6 +334,13 @@ DataDependenceGraphBuilder::findStaticRegisters(
                         break;
                     }
                     case ProgramAnnotation::ANN_REGISTER_IPARAM_READ: {
+/* this fixes one unit test silent breakage but another will then happen - unit test
+   tpef's seem to contain a bit broken code
+                        Terminal& src = move.source();
+                        if (!src.isGPR()) {
+                            break;
+                        }
+*/
                         TCEString reg = 
                             DisassemblyRegister::registerName(move.source());
                         registers[
@@ -789,7 +796,7 @@ DataDependenceGraphBuilder::processTriggerPO(
         assert(&dop == &po->operation());
         if (!po->isComplete()) {
             po->addInputNode(moveNode);
-            moveNode.setDestinationOperationPtr(po);
+            moveNode.addDestinationOperationPtr(po);
         }
         if (po->isReady()) {
             currentData_->destPending_ = ProgramOperationPtr();
@@ -816,7 +823,7 @@ DataDependenceGraphBuilder::processTriggerPO(
             po = tfpd.programOperation();
         } else {
             po = ProgramOperationPtr(new ProgramOperation(dop));
-            moveNode.setDestinationOperationPtr(po);
+            moveNode.addDestinationOperationPtr(po);
             po->addInputNode(moveNode);
         }
         if (dop.numberOfOutputs()) {
@@ -902,7 +909,7 @@ DataDependenceGraphBuilder::processOperand(
 
         if (!po->isComplete()) {
             po->addInputNode(moveNode);
-            moveNode.setDestinationOperationPtr(po);
+            moveNode.addDestinationOperationPtr(po);
         } else {
             // The MoveNode and the PO has been created before entering DDG
             // building (in LLVMTCEBuilder.cc).
@@ -918,7 +925,7 @@ DataDependenceGraphBuilder::processOperand(
         po = tfpd.programOperation();
     } else {
         po = ProgramOperationPtr(new ProgramOperation(dop));
-        moveNode.setDestinationOperationPtr(po);
+        moveNode.addDestinationOperationPtr(po);
         po->addInputNode(moveNode);
     }
     currentData_->destPending_ = po;

@@ -142,7 +142,7 @@ MoveNode::copy() {
 
     if (isDestinationOperation()) {
         destinationOperation().addInputNode(*newNode);
-        newNode->setDestinationOperationPtr(destinationOperationPtr());
+        newNode->addDestinationOperationPtr(destinationOperationPtr());
     }
     return newNode;
 }
@@ -462,8 +462,10 @@ MoveNode::unsetCycle()
  *
  * @param po Program operation that is destination of MoveNode
  */
-void MoveNode::setDestinationOperationPtr(ProgramOperationPtr po) {
-    dstOp_ = po;
+void MoveNode::addDestinationOperationPtr(ProgramOperationPtr po) {
+    // just to find problems from old code
+    assert (dstOps_.size() == 0);
+    dstOps_.push_back(po);
 }
 /**
  * Set a source of MoveNode to ProgramOperation
@@ -629,8 +631,27 @@ MoveNode::latestTriggerWriteCycle() const {
  * it's input moves.
  */
 void
-MoveNode::unsetDestinationOperation() {
-    dstOp_ = ProgramOperationPtr();
+MoveNode::clearDestinationOperation() {
+    dstOps_.clear();
+}
+
+/**
+ * Unsets destination operation.
+ *
+ * Does not ask the ProgramOperation to remove this MoveNode from
+ * it's input moves.
+ */
+void
+MoveNode::removeDestinationOperation(const ProgramOperation* ptr) {
+    for (std::vector<ProgramOperationPtr>::iterator i = dstOps_.begin();
+         i != dstOps_.end(); i++) {
+        if (((*i).get()) == ptr) {
+            dstOps_.erase(i);
+            return;
+        }
+    }
+    std::string msg = "Removed destination op not found in MoveNode";
+    throw InvalidData(__FILE__, __LINE__, __func__, msg);
 }
 
 /**

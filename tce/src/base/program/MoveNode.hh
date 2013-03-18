@@ -40,6 +40,7 @@
 #ifndef TTA_MOVE_NODE_HH
 #define TTA_MOVE_NODE_HH
 
+#include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include "Exception.hh"
@@ -71,6 +72,8 @@ public:
 
     bool isSourceOperation() const;
     inline bool isDestinationOperation() const;
+    inline unsigned int destinationOperationCount() const;
+
     bool isOperationMove() const;
 
     bool isSourceVariable() const;
@@ -95,18 +98,19 @@ public:
 
     Scope& scope();
     ProgramOperation& sourceOperation() const throw (InvalidData);
-    ProgramOperation& destinationOperation() const throw (InvalidData);
+    ProgramOperation& destinationOperation(unsigned int index=0) const throw (InvalidData);
     ProgramOperationPtr sourceOperationPtr() const throw (InvalidData);
-    ProgramOperationPtr destinationOperationPtr() const throw (InvalidData);
+    ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const throw (InvalidData);
 
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;
 
-    void setDestinationOperationPtr(ProgramOperationPtr po);
+    void addDestinationOperationPtr(ProgramOperationPtr po);
     void setSourceOperationPtr(ProgramOperationPtr po);
     void setMoveOwned();
 
-    void unsetDestinationOperation();
+    void clearDestinationOperation();
+    void removeDestinationOperation(const ProgramOperation* po);
     void unsetSourceOperation();
     void unsetMoveOwned();
 
@@ -131,8 +135,9 @@ private:
     /// Pointer to Move this node represents, Node itself do not change move
     const TTAProgram::Move* move_;
 
+    std::vector<ProgramOperationPtr> dstOps_;
+
     ProgramOperationPtr srcOp_;
-    ProgramOperationPtr dstOp_;
 
     /// Cycle in which the node is placed. Each cycle uniquely identifies an
     /// instruction slot within the current scheduling scope.

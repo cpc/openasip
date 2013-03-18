@@ -117,7 +117,7 @@ public:
 
     // Set initiation interval for resource
     void setInitiationInterval(unsigned int ii);
-    unsigned int initiationInterval();
+    unsigned int initiationInterval() const;
 
     friend class ResourceBroker;
 

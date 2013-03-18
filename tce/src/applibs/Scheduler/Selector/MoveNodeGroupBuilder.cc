@@ -157,7 +157,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                     mng->setProgramOperationPtr(po);
                 }
                 po->addInputNode(*moveNode);
-                moveNode->setDestinationOperationPtr(po);
+                moveNode->addDestinationOperationPtr(po);
                 mng->addNode(*moveNode);
                 if (dest.isTriggering()) {
                     untriggered[dest.functionUnit().name()] = ProgramOperationPtr();
@@ -197,7 +197,7 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
                 }
                 mng->addNode(*moveNode);
                 po->addInputNode(*moveNode);
-                moveNode->setDestinationOperationPtr(po);
+                moveNode->addDestinationOperationPtr(po);
                 if (dest.isTriggering()) {
                     untriggered[dest.functionUnit().name()] = ProgramOperationPtr();
                     triggered[dest.functionUnit().name()] = po;

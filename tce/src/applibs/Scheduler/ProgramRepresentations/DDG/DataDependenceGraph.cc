@@ -2446,9 +2446,11 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
         }
 
         if (node.isDestinationOperation()) {
-            ProgramOperation& dstOp = node.destinationOperation();
-            dstOp.removeInputNode(node);
-            node.unsetDestinationOperation();
+            for (int i = node.destinationOperationCount() - 1; i >= 0; i--) {
+                ProgramOperation& dstOp = node.destinationOperation(i);
+                dstOp.removeInputNode(node);
+            }
+            node.clearDestinationOperation();
         }
     }
     

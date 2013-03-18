@@ -249,7 +249,10 @@ CycleLookBackSoftwareBypasser::bypassNode(
         }
         // disable DRE if ii != 0
         // only kill if dest is op
-        if (killDeadResults_ && !ddg.resultUsed(source)) {
+
+        // >8058 fails
+        // >8059 works
+        if (killDeadResults_ && !ddg.resultUsed(source)) { // && source.nodeID() > 8058) {
             // if restoring lated
             sourceCycles_[&source] = sourceCycle;
             sourceRemoved = true;

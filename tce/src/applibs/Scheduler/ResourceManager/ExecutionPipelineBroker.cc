@@ -477,45 +477,33 @@ ExecutionPipelineBroker::latestFromDestination(
     // TODO: this not do full reuslt overwrite another tests.
     // It is however handled in canassign(). 
     // Doing it here would make scheduling faster.
-    if (!node.isDestinationOperation()) {
-        return cycle;
-    }
-    ProgramOperation& destOp = node.destinationOperation();
-    const MoveNode* triggerNode = NULL;
-    for (int i = 0; i < destOp.inputMoveCount(); i++) {
-        const MoveNode* tempNode = &destOp.inputMove(i);
-        if (tempNode->isScheduled() && tempNode != &node) {
-            if (tempNode->move().isTriggering()) {
-                triggerNode = tempNode;
+    int latest = cycle;
+    for (unsigned int j = 0; j < node.destinationOperationCount(); j++) {
+        ProgramOperation& destOp = node.destinationOperation(j);
+        for (int i = 0; i < destOp.inputMoveCount(); i++) {
+            const MoveNode* tempNode = &destOp.inputMove(i);
+            if (tempNode->isScheduled() && tempNode != &node) {
+                if (tempNode->move().isTriggering()) {
+                    latest = std::min(tempNode->cycle(), latest);
+                }
+            }
+        }
+
+        for (int i = 0; i < destOp.outputMoveCount(); i++) {
+            const MoveNode* tempNode = &destOp.outputMove(i);
+            if (tempNode->isScheduled() && tempNode != &node) {
+                const TTAMachine::HWOperation& hwop =
+                    *node.move().destination().functionUnit().operation(
+                        destOp.operation().name());
+                const int outputIndex =
+                    tempNode->move().source().operationIndex();
+                latest = std::min(latest,
+                                  tempNode->cycle() - hwop.latency(outputIndex));
             }
         }
     }
-    int maxTriggerCycle = INT_MAX;
-    for (int i = 0; i < destOp.outputMoveCount(); i++) {
-        const MoveNode* tempNode = &destOp.outputMove(i);
-        if (tempNode->isScheduled() && tempNode != &node) {
-            const TTAMachine::HWOperation& hwop =
-                *node.move().destination().functionUnit().operation(
-                    destOp.operation().name());
-            const int outputIndex =
-                tempNode->move().source().operationIndex();
-            maxTriggerCycle = std::min(maxTriggerCycle,
-                tempNode->cycle() - hwop.latency(outputIndex));
-        }
-    }
-    if (triggerNode != NULL) {
-        if (cycle < triggerNode->cycle()) {
-            return cycle;
-        }
-        return triggerNode->cycle();
-    }
-    if (maxTriggerCycle != INT_MAX) {
-        if (cycle < maxTriggerCycle) {
-            return cycle;
-        }
-        return maxTriggerCycle;
-    }
-    return cycle;
+
+    return latest;
 }
 /**
  * Returns earliest cycle, starting from given parameter and going towards
@@ -587,6 +575,36 @@ ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
 
     return std::max(minCycle, cycle);
 }
+
+// TODO: if some result scheudled?
+bool ExecutionPipelineBroker::isMoveTrigger(const MoveNode& node) const{
+    if (!node.isDestinationOperation()) {
+        return false;
+    }
+
+    for (unsigned int j = 0; j < node.destinationOperationCount(); j++) {
+//        const HWOperation* hwop = NULL;
+
+        // Test other inputs to the operation.
+        ProgramOperation& destOp = node.destinationOperation(j);
+        
+        for (int i = 0; i < destOp.inputMoveCount(); i++) {
+            const MoveNode* tempNode = &destOp.inputMove(i);
+            if (tempNode->isScheduled()) {
+                if (tempNode->move().isTriggering()) {
+                    if (tempNode != &node) {
+                        return false;
+                        break;
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Return earliest cycle, starting from given parameter and going towards
  * INT_MAX, in which the node can be scheduled. Taking into account
@@ -602,7 +620,6 @@ ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
  * @return The earliest cycle in which the MoveNode can be scheduled, -1 if
  * scheduling is not possible, 0 if destination is not FUPort
  */
-
 int
 ExecutionPipelineBroker::earliestFromDestination(
     int cycle,
@@ -612,61 +629,72 @@ ExecutionPipelineBroker::earliestFromDestination(
         return cycle;
     }
     const FunctionUnit* fu = NULL;
-    const HWOperation* hwop = NULL;
 
-    // Test other inputs to the operation.
-    ProgramOperation& destOp = node.destinationOperation();
     int minCycle = cycle;
-    for (int i = 0; i < destOp.inputMoveCount(); i++) {
-        const MoveNode* tempNode = &destOp.inputMove(i);
-        if (tempNode->isScheduled() && tempNode != &node) {
-            fu = &tempNode->move().destination().functionUnit();
-            hwop = fu->operation(destOp.operation().name());
-            if (node.move().isTriggering()) {
-                minCycle = std::max(tempNode->cycle(), minCycle);
+
+    bool triggers = isMoveTrigger(node);
+
+    for (unsigned int j = 0; j < node.destinationOperationCount(); j++) {
+        
+        const HWOperation* hwop = NULL;
+        // Test other inputs to the operation.
+        ProgramOperation& destOp = node.destinationOperation(j);
+        
+        for (int i = 0; i < destOp.inputMoveCount(); i++) {
+            const MoveNode* tempNode = &destOp.inputMove(i);
+            if (tempNode->isScheduled() && tempNode != &node) {
+                fu = &tempNode->move().destination().functionUnit();
+                hwop = fu->operation(destOp.operation().name());
+    
+                if (triggers) {
+                    // TODO: operand slack
+                    minCycle = std::max(tempNode->cycle(), minCycle);
+                }
+                if (tempNode->move().isTriggering()) {
+                    // TODO: operand slack
+                    int triggerCycle = tempNode->cycle();
+                    if (triggerCycle < cycle) {
+                        // trying to schedule operand after trigger
+                        debugLogRM("returning -1");
+                        return -1;
+                    }
+                }
             }
-            if (tempNode->move().isTriggering()) {
-                int triggerCycle = tempNode->cycle();
-                if (triggerCycle < cycle) {
-                // trying to schedule operand after trigger
+        }
+
+        // Then check the already scheduled results, do they limit the cycle
+        // where this can be scheduled.
+        int minResultCycle = INT_MAX;
+        for (int i = 0; i < destOp.outputMoveCount(); i++) {
+            const MoveNode* tempNode = &destOp.outputMove(i);
+            if (tempNode->isScheduled()) {
+                if (fu == NULL) {
+                    fu = &tempNode->move().source().functionUnit();
+                    hwop = fu->operation(destOp.operation().name());
+                }
+                const int outputIndex =
+                    tempNode->move().source().operationIndex();
+
+                // TODO: slack
+                
+                unsigned int latency = hwop->latency(outputIndex);
+                if (initiationInterval_ != 0 && latency >= initiationInterval_) {
                     debugLogRM("returning -1");
                     return -1;
                 }
-                return cycle;
+                minResultCycle =
+                    std::min(
+                        minResultCycle,
+                        tempNode->cycle() - hwop->latency(outputIndex));
             }
         }
+        if (minResultCycle < minCycle) {
+            // tested cycle is larger then last trigger cycle for results
+            // already scheduled
+            debugLogRM("returning -1");
+            return -1;
+        }  
     }
-
-    // Then check the already scheduled results, do they limit the cycle
-    // where this can be scheduled.
-    int minResultCycle = INT_MAX;
-    for (int i = 0; i < destOp.outputMoveCount(); i++) {
-        const MoveNode* tempNode = &destOp.outputMove(i);
-        if (tempNode->isScheduled()) {
-            if (fu == NULL) {
-                fu = &tempNode->move().source().functionUnit();
-                hwop = fu->operation(destOp.operation().name());
-            }
-            const int outputIndex =
-                tempNode->move().source().operationIndex();
-
-            unsigned int latency = hwop->latency(outputIndex);
-            if (initiationInterval_ != 0 && latency >= initiationInterval_) {
-                debugLogRM("returning -1");
-                return -1;
-            }
-            minResultCycle =
-                std::min(
-                    minResultCycle,
-                    tempNode->cycle() - hwop->latency(outputIndex));
-        }
-    }
-    if (minResultCycle < minCycle) {
-        // tested cycle is larger then last trigger cycle for results
-        // already scheduled
-        debugLogRM("returning -1");
-        return -1;
-    }  
 
     return minCycle;
 }

@@ -385,7 +385,7 @@ SchedulingResource::setInitiationInterval(unsigned int ii)
  * @return initiation interval
  */
 unsigned int
-SchedulingResource::initiationInterval()
+SchedulingResource::initiationInterval() const
 {
     return initiationInterval_;
 }

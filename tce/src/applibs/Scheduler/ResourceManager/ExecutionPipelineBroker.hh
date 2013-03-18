@@ -72,6 +72,8 @@ public:
     void setDDG(const DataDependenceGraph* ddg);
 
 private:
+    bool isMoveTrigger(const MoveNode& node) const;
+
     /// Map to link FU's and pipelines.
     typedef std::map<SchedulingResource*, const TTAMachine::FunctionUnit*>
         FUPipelineMap;

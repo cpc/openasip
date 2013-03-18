@@ -45,7 +45,19 @@ MoveNode::isDestinationOperation() const {
     if (move_ == NULL) {
         return false;
     }
-    return dstOp_.get() != NULL;
+    return dstOps_.size() != 0;
+}
+
+/**
+ * Tells how many operations this movenode is an operand to(operand sharing)
+ *
+ */
+inline unsigned int
+MoveNode::destinationOperationCount() const {
+    if (move_ == NULL) {
+        return 0;
+    }
+    return dstOps_.size();
 }
 
 /**
@@ -93,21 +105,25 @@ MoveNode::isMove() const {
  *     input.
  */
 inline ProgramOperation&
-MoveNode::destinationOperation() const
+MoveNode::destinationOperation(unsigned int index) const
     throw(InvalidData) {
 
-    return *destinationOperationPtr().get();
+    return *dstOps_[index].get();
 }
 
 inline ProgramOperationPtr
-MoveNode::destinationOperationPtr() const
+MoveNode::destinationOperationPtr(unsigned int index) const
     throw(InvalidData) {
 
     if (!isDestinationOperation()){
         std::string msg = "MoveNode destination is not Operation.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
-        return dstOp_;
+        if (index >= dstOps_.size()) {
+            std::string msg = "MoveNode does not have dst Operation of index" + index;
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
+        }
+        return dstOps_[index];
     }
 }
 

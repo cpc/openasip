@@ -51,6 +51,9 @@ public:
             return 0;
         }
     }
+    size_t number_of_elements() const {
+        return std::map<unsigned int, ValueType>::size();
+    }
 };
 
 #endif

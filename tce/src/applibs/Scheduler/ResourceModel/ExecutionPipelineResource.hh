@@ -102,6 +102,9 @@ public:
         const MoveNode& node, const TTAMachine::Port& port,
         const MoveNode* trigger, int triggerCycle) const;
 
+    bool operandsOverwritten(
+        int triggerCycle, const MoveNode& trigger) const;
+
     void clear();
     void setDDG(const DataDependenceGraph* ddg);
 protected:
@@ -118,7 +121,15 @@ private:
             realCycle(rc), po(p), count(c) {}
     };
 
+    struct OperandUseHelper {
+        unsigned int realCycle;
+        const ProgramOperation* po;
+        OperandUseHelper(): realCycle(0), po(NULL){}
+        OperandUseHelper(int rc, const ProgramOperation* p): realCycle(rc), po(p){}
+    };
+
     typedef std::pair<ResultHelper,ResultHelper> ResultHelperPair;
+    typedef std::pair<OperandUseHelper,OperandUseHelper> OperandUsePair;
 
     typedef std::pair<const MoveNode*,const MoveNode*> ResourceReservation;
 
@@ -132,6 +143,15 @@ private:
     typedef SparseVector<ResultHelperPair> ResultVector;
 
     typedef std::map<const TTAMachine::Port*, ResultVector> ResultMap;
+       
+    typedef std::pair<MoveNode*,MoveNode*> MoveNodePtrPair;
+
+    typedef SparseVector<MoveNodePtrPair> OperandWriteVector;
+    typedef SparseVector<OperandUsePair> OperandUseVector;
+
+    typedef std::map<const TTAMachine::Port*, OperandUseVector> OperandUseMap;
+    typedef std::map<const TTAMachine::Port*, OperandWriteVector> 
+    OperandWriteMap;
 
     /// Type for resource reservation table, resource vector x latency.
     /// Includes the ownerships of the reservation.
@@ -147,6 +167,7 @@ private:
     void findRange(
         const int cycle,
         const MoveNode& node,
+        int popIndex,
         int& first,
         int& last,
         int& triggering) const;
@@ -171,11 +192,52 @@ private:
         const ProgramOperation& po, 
         unsigned int triggerCycle);
 
+    void setOperandUsed(
+        const TTAMachine::Port& port, 
+        unsigned int realCycle, 
+        const ProgramOperation& po);
+
+    void setOperandsUsed(
+        const ProgramOperation& po, 
+        unsigned int triggerCycle);
+
+    void unsetOperandUsed(
+        const TTAMachine::Port& port, unsigned int realCycle, 
+        const ProgramOperation& po);
+
+    void unsetOperandsUsed(
+        const ProgramOperation& po, 
+        unsigned int triggerCycle);
+
+    const TTAMachine::Port& operandPort(const MoveNode& mn) const;
+
+    bool operandOverwritten(
+        int operandWriteCycle, int triggerCycle, const ProgramOperation& po, const MoveNode& operand, const MoveNode& trigger) const;
+
+    bool operandOverwritten(const MoveNode& mn, int cycle) const;
+
+
     bool testTriggerResult(const MoveNode& trigger, int cycle) const;
     bool resultAllowedAtCycle(
         int resultCycle, const ProgramOperation& po, 
         const TTAMachine::Port& resultPort,
         const MoveNode& trigger, int triggerCycle) const;
+
+    bool resourcesAllowTrigger(int cycle, const MoveNode& move) const;
+
+    bool operandAllowedAtCycle(
+        const TTAMachine::Port& port, const MoveNode& mn, int cycle) const;
+
+    bool checkOperandAllowed(
+        const TTAMachine::Port& port, 
+        int operandWriteCycle, 
+        const OperandUseHelper &operandUse,
+        unsigned int operandUseModCycle) const;
+
+    bool triggerTooEarly(const MoveNode& trigger, int cycle) const;
+
+    bool operandTooLate(const MoveNode& node, int cycle) const;
+    
 
     const TTAMachine::Port& resultPort(const MoveNode& mn) const;
 
@@ -195,16 +257,16 @@ private:
 	const MoveNode& node,
 	ProgramOperation* operation)const;
 #endif
+
+    OperandWriteMap operandsWriten_;
+    OperandUseMap operandsUsed_;
+
     // counts number of results that are ready in that cycle
     ResultMap resultWriten_;
     // Stores PO for each "result read" move a cycle in which it was read,
     // counts number of reads in given cycle
     ResultMap resultRead_;
 
-    // Stores for every cycle the PO whose operand writes are in that cycle
-    // these are modcycles, not real cycles
-    SparseVector<std::pair<ProgramOperation*,ProgramOperation*> > 
-        operandsWriten_;
     // Stores for each move a cycle in which the result is written to output
     // register of FU, this information is not available elsewhere
     // these are real cycles.
@@ -218,6 +280,9 @@ private:
 
     const DataDependenceGraph* ddg_;
     const TTAMachine::FunctionUnit& fu_;
+    
+    // TODO: is this needed or not?
+    const TTAMachine::Port* triggerPort_;
 };
 
 #endif

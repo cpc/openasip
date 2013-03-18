@@ -776,8 +776,10 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
             assert(newMN->isSourceOperation());
         }
         if (old.isDestinationOperation()) {
-            newMN->setDestinationOperationPtr(
-                getProgramOperationPtr(old.destinationOperationPtr()));
+            for (unsigned int i = 0; i < old.destinationOperationCount(); i++) {
+                newMN->addDestinationOperationPtr(
+                    getProgramOperationPtr(old.destinationOperationPtr(i)));
+            }
             assert(newMN->isDestinationOperation());
         }
         return *newMN;

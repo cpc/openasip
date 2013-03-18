@@ -646,9 +646,9 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
                 new ProgramOperation(
                     node1->move().destination().hintOperation()));
         po1->addInputNode(*node1);
-        node1->setDestinationOperationPtr(po1);
+        node1->addDestinationOperationPtr(po1);
         po1->addInputNode(*node2);
-        node2->setDestinationOperationPtr(po1);
+        node2->addDestinationOperationPtr(po1);
         po1->addOutputNode(*node3);
         node3->setSourceOperationPtr(po1);
         TS_ASSERT_EQUALS(node1->isMoveOwned(), false);
@@ -666,9 +666,9 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
                 new ProgramOperation(
                     node5->move().destination().hintOperation()));
         po2->addInputNode(*node5);
-        node5->setDestinationOperationPtr(po2);
+        node5->addDestinationOperationPtr(po2);
         po2->addInputNode(*node6);
-        node6->setDestinationOperationPtr(po2);
+        node6->addDestinationOperationPtr(po2);
         po2->addOutputNode(*node7);
         node7->setSourceOperationPtr(po2);
         TTAProgram::Move* newMove = new TTAProgram::Move(
@@ -691,7 +691,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_EQUALS(otherTarget->isMoveOwned(), true);
 
         bypassed->setSourceOperationPtr(po1);
-        bypassed->setDestinationOperationPtr(po2);
+        bypassed->addDestinationOperationPtr(po2);
         po1->addOutputNode(*bypassed);
         po2->addInputNode(*bypassed);
         // bypass is now triggering, we remove original triggering move
@@ -920,8 +920,8 @@ BasicResourceManagerTest::testMULConflict() {
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperationPtr(po1);
-    node2->setDestinationOperationPtr(po1);
+    node1->addDestinationOperationPtr(po1);
+    node2->addDestinationOperationPtr(po1);
     node3->setSourceOperationPtr(po1);
 
     MoveNode* node4 = node1->copy();
@@ -934,12 +934,14 @@ BasicResourceManagerTest::testMULConflict() {
         ProgramOperationPtr(
             new ProgramOperation(
                 node5->move().destination().operation()));
-    
+
+    node4->clearDestinationOperation();
+    node5->clearDestinationOperation();
     po2->addNode(*node4);
     po2->addNode(*node5);
     po2->addNode(*node6);
-    node4->setDestinationOperationPtr(po2);
-    node5->setDestinationOperationPtr(po2);
+    node4->addDestinationOperationPtr(po2);
+    node5->addDestinationOperationPtr(po2);
     node6->setSourceOperationPtr(po2);
     
     TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node1));
@@ -1008,8 +1010,8 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperationPtr(po1);
-    node2->setDestinationOperationPtr(po1);
+    node1->addDestinationOperationPtr(po1);
+    node2->addDestinationOperationPtr(po1);
     node3->setSourceOperationPtr(po1);
 
     TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 1);
@@ -1057,8 +1059,8 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     po1->addNode(*node1);
     po1->addNode(*node2);
     po1->addNode(*node3);
-    node1->setDestinationOperationPtr(po1);
-    node2->setDestinationOperationPtr(po1);
+    node1->addDestinationOperationPtr(po1);
+    node2->addDestinationOperationPtr(po1);
     node3->setSourceOperationPtr(po1);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 0);
@@ -1085,8 +1087,8 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     po2->addNode(*node4);
     po2->addNode(*node5);
     po2->addNode(*node6);
-    node4->setDestinationOperationPtr(po2);
-    node5->setDestinationOperationPtr(po2);
+    node4->addDestinationOperationPtr(po2);
+    node5->addDestinationOperationPtr(po2);
     node6->setSourceOperationPtr(po2);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node4), 0);
     TS_ASSERT_EQUALS(rm->earliestCycle(*node5), 0);

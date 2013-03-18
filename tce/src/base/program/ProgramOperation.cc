@@ -86,7 +86,7 @@ ProgramOperation::~ProgramOperation() {
     // If MoveNodes of PO are not destroyed before PO they need to unset
     // their source or destination operation respectively
     for (int i = 0; i < inputMoveCount(); i++) {
-        inputMove(i).unsetDestinationOperation();
+        inputMove(i).removeDestinationOperation(this);
     }
     for (int i = 0; i < outputMoveCount(); i++) {
         outputMove(i).unsetSourceOperation();
