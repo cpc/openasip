@@ -179,11 +179,11 @@ ExecutionPipelineResource::isAvailable(const int cycle) const {
     int modCycle = instructionIndex(cycle);
     for (int i = 0; i < fu_.portCount(); i++) {
         const TTAMachine::BaseFUPort* port = fu_.port(i);
-        OperandWriteMap::const_iterator i = operandsWriten_.find(port);
-        if (i == operandsWriten_.end()) {
+        OperandWriteMap::const_iterator it = operandsWriten_.find(port);
+        if (it == operandsWriten_.end()) {
             return true;
         }
-        const OperandWriteVector& operandWrites = i->second;
+        const OperandWriteVector& operandWrites = it->second;
         OperandWriteVector::const_iterator j = operandWrites.find(modCycle);
         if (j == operandWrites.end()) {
             return true;
