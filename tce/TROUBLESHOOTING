@@ -45,10 +45,6 @@ supported by TCE at the moment. Although, it is possible to circumvent
 this issue by changing the stack size in shell with:
   ulimit -s unlimited
 
-See the TCE Bug report for more info.
-  http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
-
-
 Red Hat Enterprise Linux 4.x (or CentOS 4.x)
 --------------------------------------------
 
