@@ -111,6 +111,7 @@ Estimator::totalAreaOfFunctionUnits(
     TTAMachine::Machine::FunctionUnitNavigator nav = 
         machine.functionUnitNavigator();
     for (int i = 0; i < nav.count(); ++i) {
+        int areaFU;
         TTAMachine::FunctionUnit* fuArchitecture = nav.item(i);
         IDF::FUImplementationLocation* fuImplementation = 
             &IDF::NullFUImplementationLocation::instance();
@@ -120,7 +121,18 @@ Estimator::totalAreaOfFunctionUnits(
             fuImplementation = &machineImplementation.fuImplementation(
                 fuArchitecture->name());
         }
-        total += functionUnitArea(*fuArchitecture, *fuImplementation);
+
+        areaFU = functionUnitArea(*fuArchitecture, *fuImplementation);
+        total += areaFU;
+
+        if(areaFU <= 0) {
+            Application::warningStream() << "Warning: gate count of FU '"
+				<< fuArchitecture->name() << "' was estimated as " 
+                << areaFU << std::endl;
+        } else if (Application::verboseLevel() > 0) {
+            Application::logStream() << "FU '" << fuArchitecture->name() 
+				<< "' contributes " << areaFU << " gates" << std::endl;
+        }
     }
     // GCU is not included in the MOM FU navigator, so we have to treat it
     // separately
@@ -158,6 +170,7 @@ Estimator::totalAreaOfRegisterFiles(
     TTAMachine::Machine::RegisterFileNavigator nav = 
         machine.registerFileNavigator();
     for (int i = 0; i < nav.count(); ++i) {
+        int areaRF;
         TTAMachine::BaseRegisterFile* rfArchitecture = nav.item(i);
         IDF::RFImplementationLocation* rfImplementation = 
             &IDF::NullRFImplementationLocation::instance();
@@ -167,7 +180,17 @@ Estimator::totalAreaOfRegisterFiles(
             rfImplementation = &machineImplementation.rfImplementation(
                 rfArchitecture->name());
         }
-        total += registerFileArea(*rfArchitecture, *rfImplementation);
+        areaRF = registerFileArea(*rfArchitecture, *rfImplementation);
+        total += areaRF;
+
+        if(areaRF <= 0) {
+            Application::warningStream() << "Warning: gate count of RF '"
+				<< rfArchitecture->name() << "' was estimated as " 
+                << areaRF << std::endl;
+        } else if (Application::verboseLevel() > 0) {
+            Application::logStream() << "RF '" << rfArchitecture->name()
+				<< "' contributes " << areaRF << " gates" << std::endl;
+        }
     }
     return total;
 }
@@ -218,6 +241,12 @@ Estimator::icArea(
             std::string("Error while using ICDecoder estimation plugin. ") +
             e.errorMessage());
     }
+
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "IC contributes " << area << " gates" 
+			<< std::endl;
+    }
+
     return area;
 }
 

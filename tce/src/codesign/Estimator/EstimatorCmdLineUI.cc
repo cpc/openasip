@@ -72,19 +72,19 @@ ExecutionTrace* trace = NULL;
  * @return True in case there was no errors in the arguments.
  */
 bool 
-loadInputs(EstimatorCmdLineOptions& options) {
+loadInputs(EstimatorCmdLineOptions *options) {
     
-    if (options.numberOfArguments() < 2) {
+    if (options->numberOfArguments() < 2) {
         std::cerr << "ADF and IDF are required." << std::endl;
         return false;
     }
-    else if (options.numberOfArguments() > 2) {
+    else if (options->numberOfArguments() > 2) {
         std::cerr << "Illegal command line arguments." << std::endl;
         return false;
     }
     
-    std::string adfFile = options.argument(1);
-    std::string idfFile = options.argument(2);    
+    std::string adfFile = options->argument(1);
+    std::string idfFile = options->argument(2);    
     
     try {
         ADFSerializer serializer;
@@ -106,9 +106,9 @@ loadInputs(EstimatorCmdLineOptions& options) {
         return false;
     }
 
-    if (options.TPEF() != "") {
+    if (options->TPEF() != "") {
         
-        if (options.traceDB() == "") {
+        if (options->traceDB() == "") {
             std::cerr << "Also TraceDB is required for energy estimation."
                       << std::endl;
             return false;
@@ -116,7 +116,7 @@ loadInputs(EstimatorCmdLineOptions& options) {
 
         TPEF::Binary* tpef = NULL;
         try {
-            const std::string tpefFileName = options.TPEF();
+            const std::string tpefFileName = options->TPEF();
             if (!FileSystem::fileExists(tpefFileName)) {
                 std::cerr << "Error while loading TPEF. " 
                           << "Cannot open file '" << tpefFileName << "'."
@@ -149,9 +149,9 @@ loadInputs(EstimatorCmdLineOptions& options) {
         }
     }
 
-    if (options.traceDB() != "") {
+    if (options->traceDB() != "") {
         
-        const std::string traceDBFileName = options.traceDB();
+        const std::string traceDBFileName = options->traceDB();
         if (!FileSystem::fileExists(traceDBFileName)) {
             std::cerr << "Error while loading TraceDB. " 
                       << "Cannot open file '" << traceDBFileName << "'."
@@ -205,9 +205,10 @@ main(int argc, char* argv[]) {
 
     Application::initialize();    
 
-    EstimatorCmdLineOptions options;
+    EstimatorCmdLineOptions *options = new EstimatorCmdLineOptions();
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
+        Application::setCmdLineOptions(options);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
@@ -221,19 +222,21 @@ main(int argc, char* argv[]) {
     }
 
     Estimator estimator;
-    if (options.totalArea() || !options.runOnlyEstimations()) {
-        std::cout << "total area: ";
+    if (options->totalArea() || !options->runOnlyEstimations()) {
+        int totalArea = -1;
         try {
-            std::cout 
-                << round(estimator.totalArea(*machine, *implementation))
-                << " gates" << std::endl;
+            totalArea = round(estimator.totalArea(*machine, *implementation));
         } catch (const Exception& e) {
             std::cerr << "estimation failed: " + e.errorMessage() 
                       << std::endl;
         }
+
+        if (totalArea >= 0) {
+            std::cout << "total area: " << totalArea << " gates" << std::endl;
+		}
     }
 
-    if (options.longestPath() || !options.runOnlyEstimations()) {
+    if (options->longestPath() || !options->runOnlyEstimations()) {
         std::cout << "delay of the longest path: ";
         try {
             std::cout 
@@ -246,7 +249,7 @@ main(int argc, char* argv[]) {
     }
 
     if (energyEstimation && 
-            (options.totalEnergy() || !options.runOnlyEstimations())) {
+            (options->totalEnergy() || !options->runOnlyEstimations())) {
         std::cout << "total consumed energy: ";
         try {
             std::cout 
