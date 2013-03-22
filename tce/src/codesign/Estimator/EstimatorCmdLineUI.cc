@@ -72,7 +72,7 @@ ExecutionTrace* trace = NULL;
  * @return True in case there was no errors in the arguments.
  */
 bool 
-loadInputs(EstimatorCmdLineOptions &options) {
+loadInputs(EstimatorCmdLineOptions& options) {
     
     if (options.numberOfArguments() < 2) {
         std::cerr << "ADF and IDF are required." << std::endl;
