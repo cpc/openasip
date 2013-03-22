@@ -13,8 +13,10 @@ Misc. smaller improvements
 - Instruction decoder optimized to be smaller and faster.
 - Added shl1add and shl2add operations for faster array indexing calculations
   into base operation set and some ALU implementations.
+- Estimator can print out info of the found and unfound cost data
+  with -v (thanks to Jani Boutellier).
 
-[changes starting from 2013-01-07]
+[changes checked from bzr log at 2013-01-07]
 
 1.7     January 2013
 ====================

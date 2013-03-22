@@ -205,9 +205,10 @@ main(int argc, char* argv[]) {
 
     Application::initialize();    
 
-    EstimatorCmdLineOptions options;
+    EstimatorCmdLineOptions *options = new EstimatorCmdLineOptions();
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
+        Application::setCmdLineOptions(options);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
@@ -215,25 +216,28 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (!loadInputs(options)) {
+    if (!loadInputs(*options)) {
         cleanup();
         return EXIT_FAILURE;
     }
 
     Estimator estimator;
-    if (options.totalArea() || !options.runOnlyEstimations()) {
-        std::cout << "total area: ";
+    if (options->totalArea() || !options->runOnlyEstimations()) {
+        int totalArea = -1;
         try {
-            std::cout 
-                << round(estimator.totalArea(*machine, *implementation))
-                << " gates" << std::endl;
+            totalArea = round(estimator.totalArea(*machine, *implementation));
         } catch (const Exception& e) {
             std::cerr << "estimation failed: " + e.errorMessage() 
                       << std::endl;
         }
+
+        if (totalArea >= 0) {
+            std::cout << "total area: " << totalArea << " gates"
+                      << std::endl;
+		}
     }
 
-    if (options.longestPath() || !options.runOnlyEstimations()) {
+    if (options->longestPath() || !options->runOnlyEstimations()) {
         std::cout << "delay of the longest path: ";
         try {
             std::cout 
@@ -246,7 +250,7 @@ main(int argc, char* argv[]) {
     }
 
     if (energyEstimation && 
-            (options.totalEnergy() || !options.runOnlyEstimations())) {
+            (options->totalEnergy() || !options->runOnlyEstimations())) {
         std::cout << "total consumed energy: ";
         try {
             std::cout 
