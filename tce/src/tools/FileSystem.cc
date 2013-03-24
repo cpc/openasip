@@ -41,7 +41,10 @@
 #include <unistd.h> // for truncate
 #include <sys/types.h> // for truncate
 
-#define BOOST_FILESYSTEM_VERSION 3
+/* This must be before any of the boost inclusions, to ensure
+ * that the boost filesystem API we get agrees with what is
+ * exposed through the header. */
+#include "FileSystem.hh"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -49,7 +52,6 @@
 #include <boost/regex.hpp>
 #include <boost/format.hpp>
 
-#include "FileSystem.hh"
 #include "MathTools.hh"
 #include "tce_config.h"
 
@@ -724,9 +726,13 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     if (dstIt == dstEndIt) {
         toRelDir.clear();
         while (POIt != POEndIt) {
+#if BOOST_FILESYSTEM_VERSION < 3
+            toRelDir.append(*POIt++);
+#else
             std::string const tmp = POIt->string();
             toRelDir.append(tmp);
             POIt++;
+#endif
             if (POIt != POEndIt) {
                 toRelDir.append(DIRECTORY_SEPARATOR);
             }
@@ -735,9 +741,13 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     } else { // if above
         std::string temp;
         while (POIt != POEndIt) {
+#if BOOST_FILESYSTEM_VERSION < 3
+            toRelDir.append(*POIt++);
+#else
             std::string const tmp = POIt->string();
             POIt++;
             temp.append(tmp);
+#endif
             if (POIt != POEndIt) {
                 temp.append(DIRECTORY_SEPARATOR);
             }

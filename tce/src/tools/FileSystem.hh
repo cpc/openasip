@@ -38,7 +38,25 @@
 #include <string>
 #include <vector>
 
+#include <boost/version.hpp>
+
+/*
+ * Useful to know in case you need to adjust this threshold:
+ *
+ * Boost 1.44 is the oldest version of Boost that ships
+ * boost filesystem v3. 1.49 seems to be the newest that
+ * ships v2.
+ *
+ * Also note that value of BOOST_FILESYSTEM_VERSION
+ * is currently #ifdef'd against in FileSystem.{cc,hh,icc}
+ * files, to support using either of the Boost filesystem
+ * APIs.
+ */
+#if BOOST_VERSION < 104400
+#define BOOST_FILESYSTEM_VERSION 2
+#else
 #define BOOST_FILESYSTEM_VERSION 3
+#endif
 
 #include <boost/filesystem/path.hpp>
 
