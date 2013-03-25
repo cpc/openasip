@@ -67,7 +67,7 @@ CompiledSimController::CompiledSimController(
     SimulatorFrontend& frontend, const TTAMachine::Machine& machine, 
     const TTAProgram::Program& program, bool leaveDirty) : 
     TTASimulationController(frontend, machine, program),
-    pluginTools_(true), compiledSimulationPath_(""), 
+    pluginTools_(true, false), compiledSimulationPath_(""), 
     leaveDirty_(leaveDirty) {
     reset();
 }

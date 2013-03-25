@@ -34,8 +34,15 @@
 
 /**
  * Default constructor
+ *
+ * The simulation plugins must be loaded globally and lazily.
+ * Lazily because the plugins might not be loaded in a correct
+ * order (symbols referred from a plugin that are going to be imported 
+ * from a latter plugin). 
+ * 
  */
-CompiledSimulationPimpl::CompiledSimulationPimpl() {
+CompiledSimulationPimpl::CompiledSimulationPimpl() : 
+    pluginTools_(true, false) {
 }
 
 /**

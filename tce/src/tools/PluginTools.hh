@@ -52,7 +52,7 @@
  */
 class PluginTools {
 public:
-    PluginTools(bool modeLazyGlobal = false);
+    PluginTools(bool lazyResolution = true, bool local = false);
     virtual ~PluginTools();
 
     void addSearchPath(const std::string& searchPath)
@@ -104,11 +104,12 @@ private:
     /// Map containing opened module handles.
     std::map<std::string, void*> modules_;
 
-    /// True if the symbols defined in the loaded library should be made
-    /// available for symbol resolution of subsequently loaded libraries,
-    /// and if all undefined symbols should be resolved only when needed
-    /// (use flags RTLD_GLOBAL and RTLD_LAZY).
+    /// True if all undefined symbols should be resolved only when needed.
     bool lazyResolution_;
+    /// True if the symbols defined in the loaded library should be made
+    /// available for symbol resolution of subsequently loaded libraries.
+    bool localResolution_;
+
 };
 
 #include "PluginTools.icc"

@@ -12,6 +12,14 @@ base_la_SOURCES = base.cc
 avalon_la_SOURCES = avalon.cc
 simple_io_la_SOURCES = simple_io.cc
 
+# In case libtce.so is loaded using RTLD_LOCAL (e.g. by an icd
+# loader), the dlopen that opens the .opb does not get the missing 
+# libtce symbols. Add libtce as a dependency so they can be loaded
+# when the plugins are loaded.
+base_la_LIBADD = ../../src/libtce.la
+avalon_la_LIBADD = ../../src/libtce.la
+simple_io_la_LIBADD = ../../src/libtce.la
+
 EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA} ${nobase_simple_io_DATA}
 
 PROJECT_ROOT = $(top_srcdir)

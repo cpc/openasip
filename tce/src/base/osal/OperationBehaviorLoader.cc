@@ -51,9 +51,15 @@ const string OperationBehaviorLoader::DELETE_FUNC = "deleteOpBehavior_";
  * OperationBehavior uses OperationIndex for getting the right modules.
  *
  * @param index OperationIndex.
+ *
+ * @note The PluginTools instance should load the behavior modules in the LOCAL
+ * mode to enable overriding behavior definitions from later definitions in
+ * the search path. E.g., if base.opb defines ADD, a custom.opb can redefine
+ * it. If the symbols are made global then the latter symbol is not reloaded
+ * but the one from base.opb reused.
  */
 OperationBehaviorLoader::OperationBehaviorLoader(OperationIndex& index) :
-    index_(index) {
+    index_(index), tools_(false, true) {
 }
 
 /**

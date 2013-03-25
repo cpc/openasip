@@ -306,7 +306,7 @@ PluginToolsTest::testDlclose() {
  */
 void 
 PluginToolsTest::testModulesWithClashingSymbols() {
-    PluginTools tools;
+    PluginTools tools(true, true);
     TS_ASSERT_THROWS_NOTHING(tools.addSearchPath(PLUGIN_SEARCH_PATH));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("clashing1.so"));
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("clashing2.so"));

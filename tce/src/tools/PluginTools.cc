@@ -61,16 +61,17 @@ using std::endl;
  *
  * The created instance has no search paths registered.
  *
- * @param modeLazyGlobal True if symbol resolution must be lazy and binding
- * global. Default is false: symbols are resolved immediately with local
- * binding.
+ * @param lazyResolution True if symbol resolution should be done
+ * lazily.
+ * @param localResolution True in case the symbols are loaded locally
+ * to the process only and not made visible to later plugin loads.
  *
  * @note Throwing C++ exceptions from plugin to the loader might not work
  * with the lazy resolution! It's probably safest to set the argument to
  * "false".
  */
-PluginTools::PluginTools(bool modeLazyGlobal):
-    lazyResolution_(modeLazyGlobal) {
+PluginTools::PluginTools(bool lazyResolution, bool local) :
+    lazyResolution_(lazyResolution), localResolution_(local) {
 }
 
 
@@ -174,11 +175,20 @@ PluginTools::registerModule(const std::string& module)
 
         void* handle = NULL;
 
+        int flags = 0;
         if (lazyResolution_) {
-            handle = dlopen(path.c_str(), RTLD_GLOBAL | RTLD_LAZY);
+            flags |= RTLD_LAZY;
         } else {
-            handle = dlopen(path.c_str(), RTLD_LOCAL | RTLD_NOW);
+            flags |= RTLD_NOW;
         }
+
+        if (localResolution_) {
+            flags |= RTLD_LOCAL;
+        } else {
+            flags |= RTLD_GLOBAL;
+        }
+
+        handle = dlopen(path.c_str(), flags);
 
         if (handle == NULL) {
             string method = "PluginTools::registerModule()";
