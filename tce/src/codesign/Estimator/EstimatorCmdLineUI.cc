@@ -223,7 +223,7 @@ main(int argc, char* argv[]) {
 
     Estimator estimator;
     if (options->totalArea() || !options->runOnlyEstimations()) {
-        int totalArea = -1;
+        CostEstimator::AreaInGates totalArea = -1;
         try {
             totalArea = round(estimator.totalArea(*machine, *implementation));
         } catch (const Exception& e) {

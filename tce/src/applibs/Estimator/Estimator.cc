@@ -121,7 +121,8 @@ Estimator::totalAreaOfFunctionUnits(
                 fuArchitecture->name());
         }
 
-        int areaFU = functionUnitArea(*fuArchitecture, *fuImplementation);
+        CostEstimator::AreaInGates areaFU = 
+            functionUnitArea(*fuArchitecture, *fuImplementation);
         total += areaFU;
 
         if (areaFU <= 0) {
@@ -181,7 +182,8 @@ Estimator::totalAreaOfRegisterFiles(
                 rfArchitecture->name());
         }
 
-        int areaRF = registerFileArea(*rfArchitecture, *rfImplementation);
+        CostEstimator::AreaInGates areaRF = 
+            registerFileArea(*rfArchitecture, *rfImplementation);
         total += areaRF;
 
         if (areaRF <= 0) {
