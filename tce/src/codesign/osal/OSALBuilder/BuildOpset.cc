@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  * them to the target directory.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2013
  * @note rating: red
  */
 
@@ -145,6 +146,9 @@ BuildOpsetOptions::ignore() const {
  * installed.
  */
 int main(int argc, char* argv[]) {
+
+    Application::initialize(argc, argv);
+
     try {
         OperationBuilder& builder = OperationBuilder::instance();
         BuildOpsetOptions options;

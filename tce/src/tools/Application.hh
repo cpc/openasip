@@ -168,6 +168,7 @@ public:
     static CmdLineOptions* cmdLineOptions();
     static int argc() { return argc_; }
     static char** argv() { return argv_; }
+    static bool isInstalled();
 
     /**
      * An interface for classes that can receive notification when a Unix

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of OperationBuilder class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2013 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -145,15 +145,13 @@ OperationBuilder::buildObject(
     std::vector<std::string>& output) {
 
     if (behaviorFile != "") {
-        const string CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
-        const string CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
-	  + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
-        const string CXXCOMPILER = Environment::environmentVariable("CXX");
+        TCEString CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
+        TCEString CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
+            + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
+        TCEString CXXCOMPILER = Environment::environmentVariable("CXX");
         vector<string> includes = Environment::includeDirPaths();
 
-	
-
-        string INCLUDES = makeIncludeString(includes);
+        TCEString INCLUDES = makeIncludeString(includes);
         
         // Ugly fix. When compiling TCE the base opset is compiled in the 
         // source directory. When distributed version is enabled buildopset
@@ -168,6 +166,16 @@ OperationBuilder::buildObject(
                 INCLUDES += makeIncludeString(extraIncludes);
             }
          }
+
+        if (Application::isInstalled()) {
+            /* Add a dependency to the installed libtce.so just in case
+               the .opb will be loaded through a libtce.so that is loaded
+               through a dlopen() with the RTLD_LOCAL flag. In that case
+               it can happen the loading of libtce.so to access some 
+               specific functionality might not import all the symbols
+               required by the .opb loaded by libtce later. */
+            CXXFLAGS += " `tce-config --libs` ";
+        }
 
         string COMPILE_FLAGS = \
             CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES + " " + 

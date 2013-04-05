@@ -1,11 +1,20 @@
 1.8       unreleased
 ====================
 
+Notable changes and features
+----------------------------
+- Removed the use of llvm-ld (its copy in TCE source tree) for linking bitcode
+  libraries. It now uses llvm-link. Beware: it might require your Newlib bitcode 
+  libraries to be rebuilt.
+
 Code generator improvements
 ---------------------------
 - If conversion enabled in llvm side of the compiler backend.
 - Post-pass operand sharing removes some unnecessary operand writes
   after instruction scheduler. Does not improve performance, only saves power.
+- Computation support for half-precision floats.
+- The trigger operand can be now changed on the fly for commutative
+  operations in case the schedule benefits from it.
 
 Misc. smaller improvements
 --------------------------
@@ -15,8 +24,16 @@ Misc. smaller improvements
   into base operation set and some ALU implementations.
 - Estimator can print out info of the found and unfound cost data
   with -v (thanks to Jani Boutellier).
+- Fixed some issues when using libtce through a dlopen (icd loader or some other
+  "plugin interface"). When TCE loaded the operation behavior descriptions as
+  plugins, not all symbols of libtce they needed were found. Now tries to link
+  the OPBs against libtce whenever possible to mark the dependency.
 
-[changes checked from bzr log at 2013-01-07]
+Hardware Database Additions
+---------------------------
+- 2-wide SIMD units for half floats
+
+[changes checked from bzr log at 2013-04-05]
 
 1.7     January 2013
 ====================

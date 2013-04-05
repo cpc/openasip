@@ -77,7 +77,9 @@ OSEd::~OSEd() {
  */
 bool
 OSEd::OnInit() {
-	
+
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
+
     mainFrame_ = new OSEdMainFrame(_T("Operation Set Editor"),
                                    wxPoint(50, 50), wxSize(900, 500));
     
@@ -170,3 +172,4 @@ OSEd::createDefaultOptions() {
         cerr << "Writing options failed: " << e.errorMessage() << endl;
     }
 }
+

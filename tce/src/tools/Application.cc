@@ -454,3 +454,28 @@ std::string
 Application::TCEVersionString() {
     return TCE_VERSION_STRING;
 }
+
+/**
+ * Returns true if the application was started from an installed location
+ * instead of the build tree.
+ *
+ * This can affect selection of some paths etc. in some TCE applicatons.
+ * Warning: this check is incomplete, lightly tested, and might sometimes 
+ * return true even if running from the source tree. Use with caution.
+ */
+bool
+Application::isInstalled() {
+
+    if (argv_ == NULL || argv_[0] == NULL)
+        return true;
+
+    TCEString execPath(argv_[0]);
+    
+    // assume that the binaries executed from the build tree
+    // contain the libtool lt- prefix
+    std::vector<TCEString> pieces = execPath.split("/");
+    if (pieces.at(pieces.size() - 1).startsWith("lt-")) {
+        return false;
+    }
+    return true;
+}

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation on the WxConversion class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2013
  * @note rating: red
  */
 
@@ -89,4 +90,20 @@ WxConversion::toWxString(const float& source) {
 wxString
 WxConversion::toWxString(const double& source) {
     return wxString((Conversion::toString(source)).c_str(), *wxConvCurrent);
+}
+
+/**
+ * Converts an wxChar* array (zero terminated strings) to a char* array.
+ *
+ * Assumes the client frees the array after use.
+ */
+char**
+WxConversion::toCStringArray(size_t elements, wxChar** source) {
+    char** cstringArray = new char*[elements];
+    for (size_t i = 0; i < elements; ++i) {
+        wxString wxStr(source[i]);
+        cstringArray[i] = new char[wxStr.size()];
+        cstringArray[i] = strndup((const char*)wxStr.mb_str(), wxStr.size());
+    }
+    return cstringArray;
 }

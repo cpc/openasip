@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -41,6 +41,7 @@
  */
 class WxConversion {
 public:
+    static char** toCStringArray(size_t elements, wxChar** source);
     static std::string toString(const wxString& source);
     static wxString toWxString(const std::string& source);
     static wxString toWxString(const int& source);
