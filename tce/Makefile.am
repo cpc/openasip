@@ -1,4 +1,8 @@
-SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer doc 
+SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scripts manual cost_estimator_plugins explorer doc 
+
+if ! DISTRIBUTED_VERSION
+SUBDIRS += scheduler 
+endif
 
 if COMPILER_FOUND
 SUBDIRS += newlib-1.17.0 bclib
@@ -22,14 +26,7 @@ bin_SCRIPTS = tce-config
 EXTRA_DIST = README-AUTOTOOLS CHANGES INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
 		tools/Doxygen/doxygen.config \
 		tools/patches \
-		tce-llvm-gcc/INSTALL \
-		tce-llvm-gcc/config.guess \
-		tce-llvm-gcc/config.sub \
-		tce-llvm-gcc/configure.ac \
-		tce-llvm-gcc/install-sh \
-		tce-llvm-gcc/llvm-gcc-4.2 \
-		tce-llvm-gcc/Makefile.am \
-		tce-llvm-gcc/missing newlib-1.17.0 \
+		newlib-1.17.0 \
 		TROUBLESHOOTING distro autogen.sh
 
 dist-hook:

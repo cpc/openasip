@@ -7,9 +7,15 @@
 #
 # $1    package version number, default TCE_ROOT bzr revision
 
-TCE_ROOT=${TCE_ROOT:-"../../../"}
-DEB_ARCH=${DEB_ARCH:-"i386"}
+# set -x 
+
+TCE_ROOT=${TCE_ROOT:-"$PWD"}
+
+DEB_ARCH=${DEB_ARCH:-"amd64"}
 PROGRAM_NAME=${PROGRAM_NAME:-"tce"}
+
+SCRIPT_DIR=`dirname $0`
+log_file=build_debian.log
 
 function eexit {
     echo "$1"
@@ -19,6 +25,7 @@ function eexit {
 
 function cleanup {
     rm -fr $TMP_DIR
+    rm -f $TCE_ROOT/distro
 }
 
 # adds the $1 param to the end of PATH variable
@@ -34,11 +41,10 @@ function init_temp_dir {
     echo "Temporary directory for the package: ${TMP_DIR}"
 
     mkdir $TMP_DIR/DEBIAN
-    cp DEBIAN/* $TMP_DIR/DEBIAN
+    cp $SCRIPT_DIR/DEBIAN/* $TMP_DIR/DEBIAN
 }
 
 function build_and_install {
-    local log_file="/dev/null"
     export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-$HOME/llvm}
     export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
     addToPath "${LLVM_INSTALL_DIR}/bin"
@@ -49,9 +55,11 @@ function build_and_install {
     export CXXFLAGS="-O3 -g" 
 
     cd $TCE_ROOT
-    [ ! -e "./configure" ] && autoreconf &> ${log_file}
-    make clean &> ${log_file}
-    ./configure --enable-distributed &> ${log_file} || eexit "configure failed."
+    echo "A dummy file that marks this a root of a distributed TCE release." > distro
+    ./autogen.sh &> ${log_file}
+#    make clean &> ${log_file}
+    ./configure &> ${log_file} || eexit "configure failed."
+    make -sj8 &> ${log_file} || eexit "build failed."
     make DESTDIR=${TMP_DIR} dev-install &> ${log_file} || eexit "make failed."
 }
 
@@ -89,18 +97,17 @@ Section: devel
 Priority: optional
 Architecture: ${DEB_ARCH}
 Essential: no
-Depends: libwxgtk2.6-0, libboost-filesystem1.34.1, \
-libboost-graph1.34.1, libboost-regex1.34.1, \
-libboost-thread1.34.1, tcl8.5, libedit2, \
-libsqlite3-0, libxerces27, g++, \
-tce-frontend
+Depends: libwxgtk2.8-0, libboost-filesystem1.42.0, \
+libboost-graph1.42.0, libboost-regex1.42.0, \
+libboost-thread1.42.0, tcl8.4, libedit2, \
+libsqlite3-0, libxerces-c28, g++, gcc 
 Pre-Depends: perl 
-Recommends: llvm (=2.2)
+Recommends: llvm (=3.2)
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $TMP_DIR/usr | awk '{print $1}')
-Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen_no.spam_tut.fi>
+Maintainer: TCE developers <tce-users@cs.tut.fi>
 Provides: tce
-Description: TTA Co-design Environment. A toolset for designing TTA-based application specific processors.
+Description: TTA Co-design Environment. A toolset for designing new TTA-based processors and programming them.
 EOF
 
 create_deb

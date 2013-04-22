@@ -468,7 +468,7 @@ class TestExplorer(TCETestCase):
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
         self.assertTrue('No fitting processor configurations were created.' in stdout)
-        self.assertEquals(stderr, '')
+        self.assertTrue(x.startswith('Warning') for x in stderr.splitlines())
         self.assertEquals(code, 0)
 
         
@@ -549,7 +549,7 @@ delay of the longest path: 12 ns
 
         assert area < 5400 and area > 3000, "area: %d" % area
         self.assertTrue(delay < 14)
-        self.assertEquals(stderr, '')
+        self.assertTrue(x.startswith('Warning') for x in stderr.splitlines())
         self.assertEquals(code, 0)        
 
 class TestProGeAndPIG(TCETestCase):

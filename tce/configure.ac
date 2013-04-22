@@ -1176,6 +1176,7 @@ DISTRIBUTED_VERSION_DEFAULT=true
 else
 DISTRIBUTED_VERSION_DEFAULT=false
 fi
+DISTRIBUTED_VERSION=$DISTRIBUTED_VERSION_DEFAULT
 
 # Enable DISTRIBUTED_VERSION
 AC_ARG_ENABLE(distributed,
@@ -1187,6 +1188,7 @@ AC_ARG_ENABLE(distributed,
              distributed to be used in non-developer systems. This results in debug logs \
              etc. being printed to different files, search paths do not include the TCE \
              source directory, etc.])
+  DISTRIBUTED_VERSION=true
     ;;
   no) 
   AC_DEFINE(DISTRIBUTED_VERSION, false,
@@ -1194,6 +1196,7 @@ AC_ARG_ENABLE(distributed,
              distributed to be used in non-developer systems. This results in debug logs \
              etc. being printed to different files, search paths do not include the TCE \
              source directory, etc.])
+  DISTRIBUTED_VERSION=false
     ;;
   *) 
     AC_MSG_ERROR(bad value ${enableval for --enable-distributed}) 
@@ -1204,7 +1207,9 @@ AC_ARG_ENABLE(distributed,
              distributed to be used in non-developer systems. This results in debug logs \
              etc. being printed to different files, search paths do not include the TCE \
              source directory, etc.])]
+
 )
+AM_CONDITIONAL(DISTRIBUTED_VERSION, test x$DISTRIBUTED_VERSION == xtrue)
 
 # set variables, which were used by old system...
 AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
