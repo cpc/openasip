@@ -68,7 +68,7 @@ else
     VERSION="$(bzr revno $TCE_ROOT)"
 fi
 
-package_name=${PROGRAM_NAME}-${VERSION}_${DEB_ARCH}.deb
+package_name=${PROGRAM_NAME}_${VERSION}_${DEB_ARCH}.deb
 
 if test -e $TCE_ROOT/$package_name; then
 eexit "The package already found. Want to build the same revision again? Please remove the old package first."
