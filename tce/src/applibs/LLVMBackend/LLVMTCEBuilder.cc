@@ -123,7 +123,7 @@
 
 #include "llvm/Target/TargetData.h"
 
-#elif LLVM_3_2
+#elif defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
 typedef llvm::DataLayout TargetData;
