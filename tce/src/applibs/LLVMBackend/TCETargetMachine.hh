@@ -54,9 +54,14 @@
 
 #include "llvm/Target/TargetData.h"
 
-#else
+#elif LLVM_3_2
 
 #include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#else
+
+#include "llvm/IR/DataLayout.h"
 typedef llvm::DataLayout TargetData;
 
 #endif

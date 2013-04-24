@@ -120,9 +120,14 @@ using namespace llvm;
 
 #include "llvm/Target/TargetData.h"
 
-#else
+#elif LLVM_3_2
 
 #include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#else
+
+#include "llvm/IR/DataLayout.h"
 typedef llvm::DataLayout TargetData;
 
 #endif
@@ -539,7 +544,10 @@ LLVMBackend::compile(
         if (foundAA)
             Passes.add(creator());
     }
+#ifdef LLVM_3_2
     Passes.add(createGCInfoDeleter());
+    // LLVM 3.3 doesn't have this. Maybe it's not even needed anymore?
+#endif
     if (ipData_ != NULL) {
         // Stack pointer datum.
         RegDatum* spReg = new RegDatum;
