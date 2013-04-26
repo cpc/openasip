@@ -115,6 +115,7 @@ TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
     return calleeSavedRegClasses;
 }
 
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
 /**
  * Eliminates call frame pseudo instructions. 
  *
@@ -126,33 +127,46 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
     MachineBasicBlock::iterator I) const {
     MBB.erase(I);
 }
+#endif
 
 void TCERegisterInfo::eliminateFrameIndex(
-    MachineBasicBlock::iterator II, int SPAdj, RegScavenger *RS) const {
+    MachineBasicBlock::iterator II, int SPAdj, 
+#if (!(defined(LLVM_3_1) && defined(LLVM_3_2)))
+    unsigned FIOperandNum,
+#endif
+    RegScavenger *RS) const {
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
-    unsigned i = 0;
     MachineInstr &MI = *II;
     DebugLoc dl = MI.getDebugLoc();
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+    unsigned i = 0;
     while (!MI.getOperand(i).isFI()) {
         ++i;
         assert(i < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
     }
-
     int FrameIndex = MI.getOperand(i).getIndex();
 
+#else
+    int FrameIndex = MI.getOperand(FIOperandNum).getIndex();
+#endif
     // Addressable stack objects are accessed using neg. offsets from %fp
+    // NO THEY ARE NOT! apwards from SP!
     MachineFunction &MF = *MI.getParent()->getParent();
 
     int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) + MF.getFrameInfo()->getStackSize();
 
     if (Offset != 0) {
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
         MI.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
+#else
+        MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
+#endif
         BuildMI(
             *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
             TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
     } else {
-        MI.getOperand(i).ChangeToRegister(TCE::SP, false);
+        MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
     }
 }
 

@@ -59,6 +59,14 @@ namespace llvm {
 	TCEFrameInfo(const TCERegisterInfo* tri)
 	    : TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
+
+#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
+        void eliminateCallFramePseudoInstr(
+            MachineFunction &MF,
+            MachineBasicBlock &MBB,
+            MachineBasicBlock::iterator I) const;
+#endif
+
 	void emitPrologue(MachineFunction &mf) const;
 	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
 	bool hasFP(const MachineFunction &MF) const { return false; }

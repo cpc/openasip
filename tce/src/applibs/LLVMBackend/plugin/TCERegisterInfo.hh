@@ -54,16 +54,13 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
 
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const;
-
-#ifdef LLVM_3_0
-        const unsigned *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
-#else
-        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
 #endif
+        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
         const TargetRegisterClass* const* getCalleeSavedRegClasses(
             const MachineFunction *MF = 0) const;
 
@@ -72,9 +69,14 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const;
 
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
                                      int SPAdj, RegScavenger *RS = NULL) const;
-
+#else
+        void eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                 int SPAdj, unsigned FIOperandNum,
+                                 RegScavenger *RS = NULL) const;
+#endif
         unsigned getRARegister() const;
 
         unsigned getFrameRegister(const MachineFunction& mf) const;

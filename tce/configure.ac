@@ -1373,6 +1373,7 @@ AC_CONFIG_FILES([
   bclib/Makefile
   bclib/lwpr/Makefile
   bclib/saocl/Makefile 
+  bclib/cpp/Makefile 
   bclib/include/Makefile
   bclib/include/CL/Makefile
 ])

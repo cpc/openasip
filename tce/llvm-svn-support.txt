@@ -1,6 +1,6 @@
-tce-devel r1849:
-llvm-trunk 173000:
-* denbench needs tce-llvm-ld
-* false positives:
+tce-devel r1873:
+llvm-trunk 180591:
+* new -lcpp parameter need to be added when compiling/linking. C++ code.
+* false positives(on short systemtests):
   * some andn operation matched twice instead of once
   * ALU8 has more adds than the addresses ones.

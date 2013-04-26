@@ -29,9 +29,14 @@ Misc. smaller improvements
   plugins, not all symbols of libtce they needed were found. Now tries to link
   the OPBs against libtce whenever possible to mark the dependency.
 
+Misc. changes
+------------
+- -lcpp parameter needed when compiling/linking c++ programs.
+
 Hardware Database Additions
 ---------------------------
 - 2-wide SIMD units for half floats
+  (but not yet compiler support for automatic usage of these9
 
 [changes checked from bzr log at 2013-04-05]
 

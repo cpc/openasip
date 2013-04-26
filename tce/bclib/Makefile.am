@@ -1,4 +1,4 @@
-SUBDIRS = include lwpr saocl
+SUBDIRS = include lwpr saocl cpp
 
 
 

@@ -366,22 +366,15 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 elif suffix == ".cpp" or suffix == ".cc":
                     input_file = baseName + suffix
                     
-                    if options.use_clang:
-                        if options.soft_float and "@LLVM_VERSION@" != "3.1":
-                            extra_opts += " -ffp-contract=off"
+                    if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                        extra_opts += " -ffp-contract=off"
 
-                        command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
+                    command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
                                     "-O%d "\
                                     "-fno-inline -c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
                                     (tripleOption, extra_opts, options.frontend_optlevel)
-                    else:
-                        command = ("tce-llvm-g++ %s --emit-llvm -O%d "\
-                                    "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir + \
-                                    " " + compileFlags + " " + input_file + " -o " +\
-                                    outFileName + ".tobelowered1;") % \
-                                    (extra_opts, options.frontend_optlevel)
 
                     # For some reason C++ code does not get mallocs lowered to
                     # calls by the frontend, do it manually here with the -lowerallocs
@@ -1072,6 +1065,7 @@ else:
                        " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
     bclib_includes = ("-I " + os.path.join("@abs_top_srcdir@", "bclib/include"))
     lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
+    cpp_libdir = os.path.join("@abs_top_srcdir@", "bclib/cpp")
 
     # The standalone OpenCL paths.
     tceSAOpenCLDir = os.path.join(srcRoot, "bclib/saocl")
@@ -1079,7 +1073,7 @@ else:
     tceSAOpenCLIncDir = os.path.join("@abs_top_srcdir@", "bclib/include")
     tceOclExtGenDir = os.path.join("@abs_top_builddir@", "src/bintools/Compiler/tceopgen")
 
-    bclib_libdirs = [newlib_libdir, lwpr_libdir, tceSAOpenCLBitcodeLibDir]
+    bclib_libdirs = [newlib_libdir, lwpr_libdir, tceSAOpenCLBitcodeLibDir, cpp_libdir]
 
     dataDir = os.path.join(srcRoot, "data/tcecc")
 

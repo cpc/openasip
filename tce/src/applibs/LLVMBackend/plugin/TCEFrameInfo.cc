@@ -50,3 +50,17 @@ TCEFrameInfo::emitEpilogue(
     tri_->emitEpilogue(mf, mbb);
 }
 
+
+#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
+/**
+ * Eliminates call frame pseudo instructions. 
+ *
+ * Stack space is already reserved in caller stack.
+ */
+void
+TCEFrameInfo::eliminateCallFramePseudoInstr(
+    MachineFunction &MF, MachineBasicBlock &MBB,
+    MachineBasicBlock::iterator I) const {
+    MBB.erase(I);
+}
+#endif
