@@ -142,7 +142,7 @@ void TCERegisterInfo::eliminateFrameIndex(
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
     unsigned FIOperandNum = 0;
     while (!MI.getOperand(FIOperandNum).isFI()) {
-        ++i;
+        ++FIOperandNum;
         assert(FIOperandNum < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
     }
 #endif
