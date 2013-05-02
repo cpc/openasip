@@ -131,7 +131,7 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
 
 void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
-#if (!(defined(LLVM_3_1) && defined(LLVM_3_2)))
+#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
     unsigned FIOperandNum,
 #endif
     RegScavenger *RS) const {
