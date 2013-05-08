@@ -173,9 +173,11 @@ RFGuardDialog::TransferDataToWindow() {
         indexChoice_->Append(index);
     }
     
-    // add 'create all' possibility at the end of list
+    // add choice to create guard for every index
     if (adding_) {
-        indexChoice_->Append(wxT("All"));
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        indexChoice_->Append(WxConversion::toWxString(fmtAll.str()));
     }
     
     indexChoice_->SetSelection(newIndex_);
@@ -202,9 +204,12 @@ RFGuardDialog::onRFChoice(wxCommandEvent&) {
         wxString index = WxConversion::toWxString(i);
         indexChoice_->Append(index);
     }
-
+    
+    // add choice to create guard for every index
     if (adding_) {
-        indexChoice_->Append(wxT("All"));
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        indexChoice_->Append(WxConversion::toWxString(fmtAll.str()));
     }
     
     if (static_cast<int>(indexChoice_->GetCount()) >= selection) {
@@ -238,10 +243,23 @@ RFGuardDialog::selectedRF() const {
 void
 RFGuardDialog::onOK(wxCommandEvent&) {
     TransferDataFromWindow();
-    try { 
-        int createAllIndex = indexChoice_->GetCount()-1;
+    try {
+        // get currently selected index and its string representation
+        int indexSelection = indexChoice_->GetSelection();
+        assert(indexSelection != wxNOT_FOUND);
+        wxString choiceText = indexChoice_->GetString(indexSelection);
+        
+        // get the string that resembles all indices
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        bool singleGuard = true;
 
-        if (!adding_ || (adding_ && newIndex_ != createAllIndex)) {
+        // check if user has selected all indices
+        if (choiceText.IsSameAs(WxConversion::toWxString(fmtAll.str()))) {
+            singleGuard = false;
+        }
+
+        if (!adding_ || (adding_ && singleGuard)) {
             // add / edit one guard
             new RegisterGuard(newInverted_, *selectedRF(), newIndex_, 
                               *bus_);

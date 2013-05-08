@@ -125,6 +125,7 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     addText(TXT_YES, "yes");
     addText(TXT_NO, "no");
+    addText(TXT_ALL, "all");
 
     // Global control unit dialog
     addText(TXT_GCU_DIALOG_TITLE, "Global Control Unit");

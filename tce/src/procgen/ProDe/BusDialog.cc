@@ -880,7 +880,7 @@ BusDialog::onDeleteRFGuard(wxCommandEvent&) {
         item = rfGuardList_->GetNextItem(
             item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     
-        assert (item < int(registerGuards_.size()));
+        assert (item < static_cast<int>(registerGuards_.size()));
 
         if (item >= 0 && registerGuards_[item] != NULL) {
             delete registerGuards_[item];
