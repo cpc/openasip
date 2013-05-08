@@ -38,6 +38,11 @@ Hardware Database Additions
 - 2-wide SIMD units for half floats
   (but not yet compiler support for automatic usage of these9
 
+Usability features
+------------------
+- HDBEditor: Double-clicking some lists in the "Add Implementation"-dialog
+  now opens editing the list item. (no need to press the "edit"-button)
+
 [changes checked from bzr log at 2013-04-05]
 
 1.7     January 2013
