@@ -873,10 +873,25 @@ BusDialog::onAddRFGuard(wxCommandEvent&) {
  */
 void
 BusDialog::onDeleteRFGuard(wxCommandEvent&) {
-    delete selectedRFGuard();
+    long item = -1;
+
+    // loop selected guards and delete them
+    for (int i = 0; i < rfGuardList_->GetSelectedItemCount(); ++i) {
+        item = rfGuardList_->GetNextItem(
+            item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    
+        assert (item < static_cast<int>(registerGuards_.size()));
+
+        if (item >= 0 && registerGuards_[item] != NULL) {
+            delete registerGuards_[item];
+        }
+    }
+    
     updateGuardLists();
     wxListEvent dummy;
-    onRFGuardSelection(dummy);
+    onRFGuardSelection(dummy); 
+    
+    return;
 }
 
 
@@ -909,12 +924,16 @@ BusDialog::onEditRFGuard(wxCommandEvent&) {
 void
 BusDialog::onRFGuardSelection(wxListEvent&) {
     if (rfGuardList_->GetSelectedItemCount() != 1) {
-        FindWindow(ID_DELETE_RF_GUARD)->Disable();
         FindWindow(ID_EDIT_RF_GUARD)->Disable();
-        return;
+    } else {
+        FindWindow(ID_EDIT_RF_GUARD)->Enable();
     }
-    FindWindow(ID_DELETE_RF_GUARD)->Enable();
-    FindWindow(ID_EDIT_RF_GUARD)->Enable();
+
+    if (rfGuardList_->GetSelectedItemCount() < 1) {
+        FindWindow(ID_DELETE_RF_GUARD)->Disable();
+    } else {
+        FindWindow(ID_DELETE_RF_GUARD)->Enable();
+    }
 }
 
 
@@ -1214,7 +1233,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticBoxSizer *item30 = new wxStaticBoxSizer( item31, wxVERTICAL );
     registerGuardSizer_ = item30;
 
-    wxListCtrl *item32 = new wxListCtrl( parent, ID_RF_GUARD_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item32 = new wxListCtrl( parent, ID_RF_GUARD_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );

@@ -1,0 +1,30 @@
+TTA-based Co-design Environment (TCE) v1.8 released
+---------------------------------------------------
+
+TTA-based Co-design Environment (TCE) is a toolset for designing 
+application-specific processors based on the Transport Triggered 
+Architecture (TTA). The toolset provides a complete retargetable co-design
+flow from high-level language programs down to synthesizable processor
+RTL (VHDL and Verilog backends supported) and parallel program binaries.
+Processor customization points include the register files, function units, 
+supported operations, and the interconnection network.
+
+This release ...
+
+Acknowledgements
+----------------
+Thanks to Mikko Järvelä for his first code contributions to this
+release. Keep them coming!
+
+We'd like to thank the Radio Implementation Research Team of Nokia
+Research Center and Academy of Finland (funding decision 253087)
+for financially supporting most of the work for developing this release. 
+Much appreciated!
+
+Links
+-----
+
+TCE home page:     http://tce.cs.tut.fi
+This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Download:          http://tce.cs.tut.fi/downloads
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
