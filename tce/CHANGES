@@ -42,6 +42,9 @@ Usability features
 ------------------
 - HDBEditor: Double-clicking some lists in the "Add Implementation"-dialog
   now opens editing the list item. (no need to press the "edit"-button)
+- ProDe: User can add guards for all indices of a register file at once in the
+  "Register File Guard"-dialog
+- Multiselection and deletion enabled for register file guards in bus dialog
 
 [changes checked from bzr log at 2013-04-05]
 
