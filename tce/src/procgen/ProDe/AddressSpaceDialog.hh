@@ -34,10 +34,12 @@
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
+#include <set>
 
 class NumberControl;
 
 namespace TTAMachine {
+    class Machine;
     class AddressSpace;
 }
 
@@ -48,6 +50,7 @@ class AddressSpaceDialog : public wxDialog {
 public:
     AddressSpaceDialog(
         wxWindow* parent,
+        TTAMachine::Machine* machine,
         TTAMachine::AddressSpace* addressSpace);
     ~AddressSpaceDialog();
 
@@ -67,8 +70,18 @@ private:
     void onMaxToHex(wxCommandEvent& event);
     void onBitWidth(wxSpinEvent& event);
     void onBitWidthText(wxCommandEvent& event);
+    
+    void onAddId(wxCommandEvent& event);
+    void onDeleteId(wxCommandEvent& event);
+    void onSpinId(wxSpinEvent& event);
+    void onIdListSelection(wxListEvent& event);
+    void updateIdLists();
+    bool isFreeId(unsigned id);
+
     void setTexts();
 
+    /// Machine containing all the address spaces.
+    TTAMachine::Machine* machine_;
     /// Address space to modify with the dialog.
     TTAMachine::AddressSpace* as_;
     /// Name of the address space.
@@ -95,6 +108,16 @@ private:
     /// SpinCtrl containing the bit width of the max-address.
     wxSpinCtrl *bitWidthSpinCtrl_;
 
+    /// Boxsizer containing the address space id widget.
+    wxStaticBoxSizer* idSizer_;
+    /// List control containing the address space ids.
+    wxListCtrl* idListCtrl_;
+    /// SpinCtrl containing an address space id.
+    wxSpinCtrl* idSpinCtrl_;
+
+    /// Container for unique id numbers.
+    std::set<unsigned> idNumbers_;
+
     // IDs for dialog controls
     enum {
         ID_NAME = 10000,
@@ -102,6 +125,12 @@ private:
         ID_MIN_ADDRESS,
         ID_MAX_ADDRESS,
         ID_BIT_WIDTH,
+
+        ID_ID_LIST,
+        ID_SPIN_ID,
+        ID_ADD_ID,
+        ID_DELETE_ID,
+        
         ID_RADIO_MIN_DEC,
         ID_RADIO_MIN_HEX,
         ID_RADIO_MAX_DEC,

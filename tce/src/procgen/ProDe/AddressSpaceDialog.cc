@@ -62,6 +62,14 @@ BEGIN_EVENT_TABLE(AddressSpaceDialog, wxDialog)
     EVT_TEXT(ID_MAX_ADDRESS, AddressSpaceDialog::onMaxAddress)
     EVT_TEXT(ID_BIT_WIDTH, AddressSpaceDialog::onBitWidthText)
     EVT_SPINCTRL(ID_BIT_WIDTH, AddressSpaceDialog::onBitWidth)
+
+    EVT_BUTTON(ID_ADD_ID, AddressSpaceDialog::onAddId)
+    EVT_BUTTON(ID_DELETE_ID, AddressSpaceDialog::onDeleteId)
+    EVT_SPINCTRL(ID_SPIN_ID, AddressSpaceDialog::onSpinId)
+    EVT_LIST_ITEM_FOCUSED(ID_ID_LIST, AddressSpaceDialog::onIdListSelection)
+    EVT_LIST_DELETE_ITEM(ID_ID_LIST, AddressSpaceDialog::onIdListSelection)
+    EVT_LIST_ITEM_SELECTED(ID_ID_LIST, AddressSpaceDialog::onIdListSelection)
+    EVT_LIST_ITEM_DESELECTED(ID_ID_LIST, AddressSpaceDialog::onIdListSelection)
 END_EVENT_TABLE()
 
 
@@ -73,8 +81,10 @@ END_EVENT_TABLE()
  */
 AddressSpaceDialog::AddressSpaceDialog(
     wxWindow* parent,
+    TTAMachine::Machine* machine,
     AddressSpace* addressSpace):
     wxDialog(parent, -1, _T(""), wxDefaultPosition),
+    machine_(machine),
     as_(addressSpace),
     name_(_T("")),
     width_(ModelConstants::DEFAULT_WIDTH),
@@ -170,6 +180,9 @@ AddressSpaceDialog::TransferDataToWindow() {
     //minControl_->setRange(0, as_->end() - 1);
     //maxControl_->setRange(as_->start() + 1, 0xFFFFFFFF);
 
+    idNumbers_ = as_->getNumericalIds();
+    updateIdLists();
+
     // wxWidgets GTK1 version seems to bug with spincontrol validators.
     // The widget value has to be set manually.
     dynamic_cast<wxSpinCtrl*>(FindWindow(ID_WIDTH))->SetValue(width_);
@@ -177,11 +190,27 @@ AddressSpaceDialog::TransferDataToWindow() {
     wxCommandEvent dummy;
     onMaxAddress(dummy);
     onMinAddress(dummy);
-
+    
+    wxSpinEvent dummySpin;
+    onSpinId(dummySpin);
 
     return wxWindow::TransferDataToWindow();
 }
 
+/**
+ * Updates the id lists.
+ */
+void
+AddressSpaceDialog::updateIdLists() {
+    assert (idListCtrl_ != NULL);
+    idListCtrl_->DeleteAllItems();
+                
+    for (std::set<unsigned>::iterator it = idNumbers_.begin(); 
+         it != idNumbers_.end(); ++it) {
+        idListCtrl_->InsertItem(static_cast<long>(*it), 
+                                WxConversion::toWxString(*it));
+    }
+}
 
 /**
  * Validates input in the controls, and updates the AddressSpace.
@@ -244,6 +273,7 @@ AddressSpaceDialog::onOK(wxCommandEvent&) {
     unsigned int minAddr = minControl_->unsignedValue();
     unsigned int maxAddr = maxControl_->unsignedValue();
     as_->setAddressBounds(minAddr, maxAddr);
+    as_->updateIds(idNumbers_);
 
     EndModal(wxID_OK);
 }
@@ -314,6 +344,114 @@ AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
 }
 
 /**
+ * Adds a new ID number for the address space.
+ */
+void 
+AddressSpaceDialog::onAddId(wxCommandEvent& event) {
+    // current number in spin field
+    unsigned spinId = static_cast<unsigned>(idSpinCtrl_->GetValue());
+    
+    // existing entry found from some address space
+    if (!isFreeId(spinId)) {
+        return;
+    }
+
+    // no conflict, make a new entry for the current value in the spin field
+    idNumbers_.insert(spinId);
+    updateIdLists();
+    
+    // disable add button for added id number
+    FindWindow(ID_ADD_ID)->Disable();
+}
+
+/**
+ * Deletes selected ID number(s) from the address space.
+ */
+void 
+AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
+    long itemIndex = -1;
+    
+    // loop through all selected ids
+    for (int i = 0; i < idListCtrl_->GetSelectedItemCount(); ++i) {
+        itemIndex = idListCtrl_->GetNextItem(
+            itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        
+        assert (itemIndex < idListCtrl_->GetItemCount());
+
+        // get numerical value of the id and erase it from the address space
+        if (itemIndex >= 0) {
+            wxString idText = idListCtrl_->GetItemText(itemIndex);
+            long id;
+            if (idText.ToLong(&id)) {
+                idNumbers_.erase(id);
+            }
+        }
+    }
+    
+    updateIdLists();
+
+    wxSpinEvent dummy1;
+    onSpinId(dummy1);
+    wxListEvent dummy2;
+    onIdListSelection(dummy2);
+}
+
+/**
+ * Sets state of add button depending on whether the number in spin input al   ready exists in some address space
+ */
+void 
+AddressSpaceDialog::onSpinId(wxSpinEvent& event) {
+    // current number in spin field
+    unsigned spinId = static_cast<unsigned>(idSpinCtrl_->GetValue());
+    
+    // no conflict found
+    if (isFreeId(spinId)) {
+        FindWindow(ID_ADD_ID)->Enable();
+        return;
+    }
+    
+    // the number is already reserved, disable add button
+    FindWindow(ID_ADD_ID)->Disable();
+}
+
+/**
+ * Sets state of delete button depending on whether items are selected
+ */
+void 
+AddressSpaceDialog::onIdListSelection(wxListEvent& event) {
+    if (idListCtrl_->GetSelectedItemCount() < 1) {
+        FindWindow(ID_DELETE_ID)->Disable();
+    } else {
+        FindWindow(ID_DELETE_ID)->Enable();
+    }
+}
+
+/**
+ * Checks if given id is already reserved in some address space
+ *
+ * @param id Number that should be checked against reserved ids
+ */
+bool 
+AddressSpaceDialog::isFreeId(unsigned id) {
+    assert (machine_ != NULL);
+
+    Machine::AddressSpaceNavigator asNavigator =
+	machine_->addressSpaceNavigator();
+
+    for (int i = 0; i < asNavigator.count(); i++) {
+        AddressSpace* as = asNavigator.item(i);
+        std::set<unsigned> ids = as->getNumericalIds();
+        std::set<unsigned>::iterator it = ids.find(id);
+        if (it != ids.end()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+/**
  * Creates the dialog window contents.
  *
  * This method was generated with wxDesigner, thus the ugly code and
@@ -379,6 +517,40 @@ AddressSpaceDialog::createContents(
     item11->Add( bitSizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    // address space id box
+    wxStaticBox *itemIdBox = new wxStaticBox(parent, -1, wxT("ID number:"));
+    wxStaticBoxSizer *itemIdSizer = new wxStaticBoxSizer(itemIdBox, 
+                                                          wxHORIZONTAL);
+    idSizer_ = itemIdSizer;
+    
+    wxListCtrl *itemIdListCtrl = new wxListCtrl( parent, ID_ID_LIST, 
+                                                 wxDefaultPosition, 
+                                                 wxSize(100,120),
+                                                 wxLC_REPORT|wxSUNKEN_BORDER );
+    idSizer_->Add( itemIdListCtrl, 0, wxALIGN_CENTER|wxALL, 5 );
+    idListCtrl_ = itemIdListCtrl;
+    idListCtrl_->InsertColumn(0, _("ID"));
+    
+    wxBoxSizer *sizerOnRight = new wxBoxSizer(wxVERTICAL);
+    
+    wxSpinCtrl *itemIdSpinCtrl = new wxSpinCtrl( parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 2147483647, 1, wxT("Spin") );
+    sizerOnRight->Add( itemIdSpinCtrl, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    idSpinCtrl_ = itemIdSpinCtrl;
+    
+    wxButton *addButton = new wxButton( parent, ID_ADD_ID, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );
+    sizerOnRight->Add( addButton, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *deleteButton = new wxButton( parent, ID_DELETE_ID, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    sizerOnRight->Add( deleteButton, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    idSizer_->Add( sizerOnRight, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( idSizer_, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    
+    assert (idSizer_ != NULL);
+    assert (idListCtrl_ != NULL);
+    assert (idSpinCtrl_ != NULL);
+    // end of address space id box
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 

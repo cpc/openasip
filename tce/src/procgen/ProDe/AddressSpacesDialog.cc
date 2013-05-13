@@ -211,7 +211,7 @@ AddressSpacesDialog::onAdd(wxCommandEvent&) {
 			 ModelConstants::DEFAULT_AS_MAX_ADDRESS,
 			 *machine_);
 
-    AddressSpaceDialog dialog(this, newAS);
+    AddressSpaceDialog dialog(this, machine_, newAS);
 
     if (dialog.ShowModal() == wxID_OK) {
 	updateASList();
@@ -250,7 +250,7 @@ AddressSpacesDialog::onEdit(wxCommandEvent&) {
         return;
     }
 
-    AddressSpaceDialog dialog(this, selectedAS());
+    AddressSpaceDialog dialog(this, machine_, selectedAS());
 
     dialog.ShowModal();
     updateASList();

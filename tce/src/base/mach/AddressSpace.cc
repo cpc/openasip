@@ -403,5 +403,25 @@ AddressSpace::hasNumericalId(unsigned id) const {
     return AssocTools::containsKey(numericalIds_, id);
 }
 
+/**
+ * Returns ids that are assigned to this address space
+ *
+ * @return Address space ids
+ */
+std::set<unsigned> 
+AddressSpace::getNumericalIds() const {
+    return numericalIds_;
+}
+
+/**
+ * Updates the assigned address space ids.
+ *
+ * @param ids Contains new ids for the address space
+ */
+void 
+AddressSpace::updateIds(std::set<unsigned>& ids) {
+    numericalIds_ = ids;
+}
 
 }
+
