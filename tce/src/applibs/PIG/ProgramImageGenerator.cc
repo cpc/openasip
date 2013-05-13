@@ -270,18 +270,60 @@ ProgramImageGenerator::generateProgramImage(
             }
                 
         }
+
+        // variables for NOPs
+        int totalFullNOPs = 0;
+        int totalTwoConsNOPs = 0;
+        int totalThreeConsNOPs = 0;
+        int totalFourOrMoreConsNOPs = 0;
+        bool oneConsecutiveNOP = 0;
+        bool twoConsecutiveNOPs = 0;
+        bool threeConsecutiveNOPs = 0;
+        
+        // find full instruction NOPs and groups of full instruction NOPs
+        for (TTAProgram::Program::InstructionVector::const_iterator i = 
+                 instructions.begin(); i != instructions.end(); ++i) {
+            const TTAProgram::Instruction& instruction = **i;
+            if (instruction.isNOP()) {
+                ++totalFullNOPs;
+                if (threeConsecutiveNOPs) {
+                    ++totalFourOrMoreConsNOPs;
+                } else if (twoConsecutiveNOPs) {
+                    threeConsecutiveNOPs = 1;
+                    ++totalThreeConsNOPs;
+                } else if (oneConsecutiveNOP) {
+                    twoConsecutiveNOPs = 1;
+                    ++totalTwoConsNOPs;
+                }
+                oneConsecutiveNOP = 1;
+            } else {
+                oneConsecutiveNOP = 0;
+                twoConsecutiveNOPs = 0;
+                threeConsecutiveNOPs = 0;
+            }
+        } 
+
         Application::logStream()
             << (boost::format(
                     "total immediates: %d (long %.1f%%), "
                     "different immediate values: %d,\n"
                     "instr. addresses %d (%.1f%%), "
-                    "data addresses %d (%.1f%%)\n") 
+                    "data addresses %d (%.1f%%),\n"
+                    "total full instruction NOPs: %d (%.1f%% of instructions),\n"
+                    "two consecutive full instruction NOPs: %d,\n" 
+                    "three consecutive full instruction NOPs: %d,\n" 
+                    "four or more consecutive full instruction NOPs: %d\n") 
                 % totalImmediates 
                 % (totalLongImmediates * 100.0 / totalImmediates)
                 % allImmediates.size() % programAddresses.size() 
                 % (programAddresses.size() * 100.0 / allImmediates.size())
                 % dataAddresses.size()
-                % (dataAddresses.size() * 100.0 / allImmediates.size()))
+                % (dataAddresses.size() * 100.0 / allImmediates.size())
+                % totalFullNOPs
+                % (totalFullNOPs * 100.0 / instructionCount)
+                % totalTwoConsNOPs
+                % totalThreeConsNOPs
+                % totalFourOrMoreConsNOPs)
                 .str();
     }
 
