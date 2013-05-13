@@ -273,7 +273,7 @@ AddressSpaceDialog::onOK(wxCommandEvent&) {
     unsigned int minAddr = minControl_->unsignedValue();
     unsigned int maxAddr = maxControl_->unsignedValue();
     as_->setAddressBounds(minAddr, maxAddr);
-    as_->updateIds(idNumbers_);
+    as_->setNumericalIds(idNumbers_);
 
     EndModal(wxID_OK);
 }
