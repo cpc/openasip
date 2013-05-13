@@ -47,6 +47,11 @@ Usability features
 - ProDe: Multiselection and deletion enabled for register file guards in the 
   "Bus"-dialog
 
+Bugfixes
+--------
+- ProGe: imem_mau_pkg.vhdl is now prepended with top level entity name like
+  the actual package. (bug: #1063667)
+
 [changes checked from bzr log at 2013-04-05]
 
 1.7     January 2013
