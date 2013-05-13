@@ -38,6 +38,20 @@ Hardware Database Additions
 - 2-wide SIMD units for half floats
   (but not yet compiler support for automatic usage of these9
 
+Usability features
+------------------
+- HDBEditor: Double-clicking some lists in the "Add Implementation"-dialog
+  now opens editing the list item. (no need to press the "edit"-button)
+- ProDe: User can add guards for all indices of a register file at once in the
+  "Register File Guard"-dialog
+- ProDe: Multiselection and deletion enabled for register file guards in the 
+  "Bus"-dialog
+
+Bugfixes
+--------
+- ProGe: imem_mau_pkg.vhdl is now prepended with top level entity name like
+  the actual package. (bug: #1063667)
+
 [changes checked from bzr log at 2013-04-05]
 
 1.7     January 2013

@@ -127,6 +127,7 @@ public:
 
         TXT_YES,                        ///< Text 'yes' in lower case.
         TXT_NO,                         ///< Text 'no' in lower case.
+        TXT_ALL,                        ///< Text 'all' in lower case.
 
         TXT_BUTTON_UP,                  ///< Label for up button.
         TXT_BUTTON_DOWN,                ///< Label for down button.
