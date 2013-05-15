@@ -76,7 +76,7 @@ private:
     void onSpinId(wxSpinEvent& event);
     void onIdListSelection(wxListEvent& event);
     void updateIdLists();
-    bool isFreeId(unsigned id);
+    bool isFreeId(unsigned id) const;
 
     void setTexts();
 

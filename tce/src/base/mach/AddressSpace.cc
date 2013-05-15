@@ -408,7 +408,7 @@ AddressSpace::hasNumericalId(unsigned id) const {
  *
  * @return Address space ids.
  */
-std::set<unsigned> 
+std::set<unsigned>
 AddressSpace::getNumericalIds() const {
     return numericalIds_;
 }
@@ -417,9 +417,10 @@ AddressSpace::getNumericalIds() const {
  * Sets the ids for the address space.
  *
  * @param ids Contains new ids for the address space.
+ * @return Was setting the new address space ids successful.
  */
-void 
-AddressSpace::setNumericalIds(std::set<unsigned>& ids) {
+bool
+AddressSpace::setNumericalIds(const std::set<unsigned>& ids) {
     assert (machine() != NULL);
 
     Machine::AddressSpaceNavigator asNavigator =
@@ -429,27 +430,26 @@ AddressSpace::setNumericalIds(std::set<unsigned>& ids) {
     for (int i = 0; i < asNavigator.count(); i++) {
         AddressSpace* as = asNavigator.item(i);
         
-        // check every address space except this one for violating ids
+        // run through every address space
         if (as != this) {
             IDSet asIds = as->getNumericalIds();
             
-            // check if any of the proposed ids from the input parameter
-            // violate ids of other address spaces
-            for (IDSet::iterator itId = ids.begin(); 
-                 itId != ids.end(); ++itId) {
+            // does input parameter ids violate any id of the address space
+            for (IDSet::iterator itId = ids.begin(); itId != ids.end(); 
+                 ++itId) {
                 IDSet::iterator it = asIds.find(*itId);
                 
                 // violating (existing) id found
                 if (it != asIds.end()) {
-                    assert (false);
+                    return false;
                 }
             }
-            
         }
     }
 
     // no violating ids found, overwrite ids for this address space
     numericalIds_ = ids;
+    return true;
 }
 
 }

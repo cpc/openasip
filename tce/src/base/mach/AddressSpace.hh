@@ -74,7 +74,7 @@ public:
     virtual void addNumericalId(unsigned id);
     virtual bool hasNumericalId(unsigned id) const;
     std::set<unsigned> getNumericalIds() const;
-    void setNumericalIds(std::set<unsigned>& ids);
+    bool setNumericalIds(const std::set<unsigned>& ids);
     virtual void setShared(bool shared) { shared_ = shared; }
     virtual bool isShared() const { return shared_; }
 

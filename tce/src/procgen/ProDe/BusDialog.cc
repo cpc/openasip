@@ -298,32 +298,32 @@ BusDialog::setTexts() {
         dynamic_cast<wxListCtrl*>(FindWindow(ID_FU_GUARD_LIST));
 
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_INVERTED);
-    label = fmt.str();
-
-    rfGuardList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 40);
-    fuGuardList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 40);
-
+    string invLabel = fmt.str();
+    
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_NAME);
-    label = fmt.str();
-
-    segmentList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 280);
-
-    rfGuardList->InsertColumn(1, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 170);
-    fuGuardList->InsertColumn(1, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 170);
-
+    string nameLabel = fmt.str();
+    
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_INDEX);
-    label = fmt.str();
-    rfGuardList->InsertColumn(2, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 70);
-
+    string indexLabel = fmt.str();
+        
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_PORT);
-    label = fmt.str();
-    fuGuardList->InsertColumn(2, WxConversion::toWxString(label),
+    string portLabel = fmt.str();
+
+    segmentList->InsertColumn(0, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 280);
+    
+    rfGuardList->InsertColumn(0, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 170);
+    rfGuardList->InsertColumn(1, WxConversion::toWxString(indexLabel),
+                              wxLIST_FORMAT_LEFT, 70);
+    rfGuardList->InsertColumn(2, WxConversion::toWxString(invLabel),
+                              wxLIST_FORMAT_LEFT, 40);
+    
+    fuGuardList->InsertColumn(0, WxConversion::toWxString(invLabel),
+                              wxLIST_FORMAT_LEFT, 40);
+    fuGuardList->InsertColumn(1, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 170);
+    fuGuardList->InsertColumn(2, WxConversion::toWxString(portLabel),
                               wxLIST_FORMAT_LEFT, 70);
 }
 
@@ -401,20 +401,8 @@ BusDialog::updateGuardLists() {
                 alwaysTrueGuard_->SetValue(true);
             }
         } else if(rfGuard != NULL) {
-
             // register guard
-            int index = registerGuards_.size();
             registerGuards_.push_back(rfGuard);
-            if (rfGuard->isInverted()) {
-                rfGuardList_->InsertItem(index, _T("*"));
-            } else {
-                rfGuardList_->InsertItem(index, _T(" "));
-            }
-
-            string name = rfGuard->registerFile()->name();
-            int rfIndex = rfGuard->registerIndex();
-            rfGuardList_->SetItem(index, 1, WxConversion::toWxString(name));
-            rfGuardList_->SetItem(index, 2, WxConversion::toWxString(rfIndex));
         } else if(fuGuard != NULL) {
             // port guard
             int index = portGuards_.size();
@@ -432,8 +420,95 @@ BusDialog::updateGuardLists() {
             fuGuardList_->SetItem(index, 2, WxConversion::toWxString(name));
         }
     }
+
+    // order register file guards for listing
+    orderRFGuards();
+
+    // list register file guards
+    for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
+        RegisterGuard* rfGuard = registerGuards_.at(i);
+        string rfName = rfGuard->registerFile()->name();
+        int rfgIndex = rfGuard->registerIndex();
+
+        rfGuardList_->InsertItem(i, WxConversion::toWxString(rfName));
+        rfGuardList_->SetItem(i, 1, WxConversion::toWxString(rfgIndex));
+        if (rfGuard->isInverted()) {
+            rfGuardList_->SetItem(i, 2, _T("*"));
+        } else {
+            rfGuardList_->SetItem(i, 2, _T(" "));
+        }
+    }
 }
 
+/**
+ * Orders register file guards into wanted order.
+ */
+void
+BusDialog::orderRFGuards() {
+    
+    // order all existing register file names (std::set -> no duplications)
+    std::set<string> rfNames;
+    for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
+        rfNames.insert(registerGuards_.at(i)->registerFile()->name());
+    }
+
+    // will store register file guards in correct order for listing
+    std::vector<RegisterGuard*> newGuardOrder;
+    
+    // start going through register file names in ascending order
+    for (std::set<string>::iterator rfName = rfNames.begin(); rfName != rfNames.end(); ++rfName) {
+        
+        // guard indices found for the register file name
+        std::set<int> guards;
+        // non-inverted guards in ascending order, int is guard's index
+        std::map<int, RegisterGuard*> nonInvGuards;
+        // inverted guards in ascending order, int is guard's index
+        std::map<int, RegisterGuard*> invGuards;
+        
+        // find all guards for the register file name 
+        for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
+            RegisterGuard* rfGuard = registerGuards_.at(i);
+            string name = rfGuard->registerFile()->name();
+            int guardIndex = rfGuard->registerIndex();
+
+            // if a guard is found for rfName, save index and the guard
+            if (name.compare(*rfName) == 0) {
+                guards.insert(guardIndex);
+
+                if (rfGuard->isInverted()) {
+                    invGuards.insert(std::pair<int, RegisterGuard*>(
+                                         guardIndex, rfGuard));
+                } else {
+                    nonInvGuards.insert(std::pair<int, RegisterGuard*>(
+                                            guardIndex, rfGuard));
+                }
+                
+            }
+        }
+        
+        std::map<int, RegisterGuard*>::iterator itNonInv;
+        std::map<int, RegisterGuard*>::iterator itInv;
+        
+        // add found guards into the list, index order in guards is ascending
+        for (std::set<int>::iterator it = guards.begin(); 
+             it != guards.end(); ++it) {
+            // non-inverted guard with same index is added first
+            itNonInv = nonInvGuards.find(*it);
+            if (itNonInv != nonInvGuards.end()) {
+                newGuardOrder.push_back(itNonInv->second);
+            }
+            
+            // inverted guard with same index is added after
+            itInv = invGuards.find(*it);
+            if (itInv != invGuards.end()) {
+                newGuardOrder.push_back(itInv->second);
+            }
+        }
+    }
+
+    // set the new order ready for listing
+    registerGuards_ = newGuardOrder;
+}
 
 /**
  * Updates the segment list control.

@@ -273,7 +273,15 @@ AddressSpaceDialog::onOK(wxCommandEvent&) {
     unsigned int minAddr = minControl_->unsignedValue();
     unsigned int maxAddr = maxControl_->unsignedValue();
     as_->setAddressBounds(minAddr, maxAddr);
-    as_->setNumericalIds(idNumbers_);
+
+    if (!as_->setNumericalIds(idNumbers_)) {
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format message =
+            prodeTexts->text(ProDeTextGenerator::MSG_ERROR_ID_EXISTS);
+        InformationDialog dialog(
+            this, WxConversion::toWxString(message.str()));
+        dialog.ShowModal();
+    }
 
     EndModal(wxID_OK);
 }
@@ -344,7 +352,7 @@ AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
 }
 
 /**
- * Adds a new ID number for the address space.
+ * Adds a new id number for the address space.
  */
 void 
 AddressSpaceDialog::onAddId(wxCommandEvent& event) {
@@ -365,7 +373,7 @@ AddressSpaceDialog::onAddId(wxCommandEvent& event) {
 }
 
 /**
- * Deletes selected ID number(s) from the address space.
+ * Deletes selected id number(s) from the address space.
  */
 void 
 AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
@@ -376,8 +384,6 @@ AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
         itemIndex = idListCtrl_->GetNextItem(
             itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         
-        assert (itemIndex < idListCtrl_->GetItemCount());
-
         // get numerical value of the id and erase it from the address space
         if (itemIndex >= 0) {
             wxString idText = idListCtrl_->GetItemText(itemIndex);
@@ -397,14 +403,15 @@ AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
 }
 
 /**
- * Sets state of add button depending on whether the number in spin input al   ready exists in some address space
+ * Sets state of add button depending on whether the number in spin input 
+ * already exists in some address space
  */
 void 
 AddressSpaceDialog::onSpinId(wxSpinEvent& event) {
     // current number in spin field
     unsigned spinId = static_cast<unsigned>(idSpinCtrl_->GetValue());
     
-    // no conflict found
+    // no conflict found, enable add button
     if (isFreeId(spinId)) {
         FindWindow(ID_ADD_ID)->Enable();
         return;
@@ -427,26 +434,39 @@ AddressSpaceDialog::onIdListSelection(wxListEvent& event) {
 }
 
 /**
- * Checks if given id is already reserved in some address space
+ * Checks if given id is already reserved by some address space
  *
  * @param id Number that should be checked against reserved ids
  */
 bool 
-AddressSpaceDialog::isFreeId(unsigned id) {
+AddressSpaceDialog::isFreeId(unsigned id) const {
     assert (machine_ != NULL);
+    std::set<unsigned>::iterator it;
 
+    // check id numbers reserved by this address space
+    it = idNumbers_.find(id);
+    if (it != idNumbers_.end()) {
+        return false;
+    }
+    
     Machine::AddressSpaceNavigator asNavigator =
 	machine_->addressSpaceNavigator();
 
+    // check other address spaces
     for (int i = 0; i < asNavigator.count(); i++) {
         AddressSpace* as = asNavigator.item(i);
-        std::set<unsigned> ids = as->getNumericalIds();
-        std::set<unsigned>::iterator it = ids.find(id);
-        if (it != ids.end()) {
-            return false;
+
+        // ignore address space owned by this because data might be old
+        if (as != as_) {
+            std::set<unsigned> ids = as->getNumericalIds();
+            it = ids.find(id);
+            if (it != ids.end()) {
+                return false;
+            }
         }
     }
 
+    // the id is free
     return true;
 }
 

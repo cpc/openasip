@@ -37,6 +37,7 @@
 #include <wx/spinctrl.h>
 #include <wx/valgen.h>
 #include <vector>
+#include <string>
 
 using std::vector;
 
@@ -81,6 +82,7 @@ private:
     void onWidth(wxSpinEvent&);
     void updateSegmentList();
     void updateGuardLists();
+    void orderRFGuards();
 
     void onRFGuardRightClick(wxListEvent& event);
     void onActivateRFGuard(wxListEvent& event);
