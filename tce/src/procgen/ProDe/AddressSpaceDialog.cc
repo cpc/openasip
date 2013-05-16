@@ -97,6 +97,7 @@ AddressSpaceDialog::AddressSpaceDialog(
 
     // disable conditional buttons initially
     FindWindow(wxID_OK)->Disable();
+    FindWindow(ID_DELETE_ID)->Disable();
 
     // set validators for dialog controls
     FindWindow(ID_NAME)->SetValidator(
@@ -149,6 +150,12 @@ AddressSpaceDialog::setTexts() {
     WidgetTools::setLabel(generator, FindWindow(ID_HELP),
                           GUITextGenerator::TXT_BUTTON_HELP);
 
+    WidgetTools::setLabel(generator, FindWindow(ID_ADD_ID),
+                          GUITextGenerator::TXT_BUTTON_ADD_DIALOG);
+
+    WidgetTools::setLabel(generator, FindWindow(ID_DELETE_ID),
+                          GUITextGenerator::TXT_BUTTON_DELETE);
+
     // box sizer label
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_LABEL_NAME);
     WidgetTools::setWidgetLabel(nameSizer_, fmt.str());
@@ -180,7 +187,7 @@ AddressSpaceDialog::TransferDataToWindow() {
     //minControl_->setRange(0, as_->end() - 1);
     //maxControl_->setRange(as_->start() + 1, 0xFFFFFFFF);
 
-    idNumbers_ = as_->getNumericalIds();
+    idNumbers_ = as_->numericalIds();
     updateIdLists();
 
     // wxWidgets GTK1 version seems to bug with spincontrol validators.
@@ -207,8 +214,8 @@ AddressSpaceDialog::updateIdLists() {
                 
     for (std::set<unsigned>::iterator it = idNumbers_.begin(); 
          it != idNumbers_.end(); ++it) {
-        idListCtrl_->InsertItem(static_cast<long>(*it), 
-                                WxConversion::toWxString(*it));
+        idListCtrl_->InsertItem(
+            static_cast<long>(*it), WxConversion::toWxString(*it));
     }
 }
 
@@ -458,7 +465,7 @@ AddressSpaceDialog::isFreeId(unsigned id) const {
 
         // ignore address space owned by this because data might be old
         if (as != as_) {
-            std::set<unsigned> ids = as->getNumericalIds();
+            std::set<unsigned> ids = as->numericalIds();
             it = ids.find(id);
             if (it != ids.end()) {
                 return false;

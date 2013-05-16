@@ -409,7 +409,7 @@ AddressSpace::hasNumericalId(unsigned id) const {
  * @return Address space ids.
  */
 std::set<unsigned>
-AddressSpace::getNumericalIds() const {
+AddressSpace::numericalIds() const {
     return numericalIds_;
 }
 
@@ -417,7 +417,7 @@ AddressSpace::getNumericalIds() const {
  * Sets the ids for the address space.
  *
  * @param ids Contains new ids for the address space.
- * @return Was setting the new address space ids successful.
+ * @return True if setting the new address space ids was successful.
  */
 bool
 AddressSpace::setNumericalIds(const std::set<unsigned>& ids) {
@@ -426,21 +426,16 @@ AddressSpace::setNumericalIds(const std::set<unsigned>& ids) {
     Machine::AddressSpaceNavigator asNavigator =
         machine()->addressSpaceNavigator();
 
-    // loop through all address spaces
+    // loop through all other address spaces and check if input parameter
+    // violates any existing ids
     for (int i = 0; i < asNavigator.count(); i++) {
         AddressSpace* as = asNavigator.item(i);
         
-        // run through every address space
         if (as != this) {
-            IDSet asIds = as->getNumericalIds();
+            IDSet otherIds = as->numericalIds();
             
-            // does input parameter ids violate any id of the address space
-            for (IDSet::iterator itId = ids.begin(); itId != ids.end(); 
-                 ++itId) {
-                IDSet::iterator it = asIds.find(*itId);
-                
-                // violating (existing) id found
-                if (it != asIds.end()) {
+            for (IDSet::iterator id = ids.begin(); id != ids.end(); ++id) {
+                if (AssocTools::containsKey(otherIds, *id)) {
                     return false;
                 }
             }

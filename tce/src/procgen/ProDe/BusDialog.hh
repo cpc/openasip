@@ -82,8 +82,7 @@ private:
     void onWidth(wxSpinEvent&);
     void updateSegmentList();
     void updateGuardLists();
-    void orderRFGuards();
-
+    
     void onRFGuardRightClick(wxListEvent& event);
     void onActivateRFGuard(wxListEvent& event);
     void onFUGuardRightClick(wxListEvent& event);

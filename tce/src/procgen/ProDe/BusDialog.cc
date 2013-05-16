@@ -364,6 +364,46 @@ BusDialog::TransferDataToWindow() {
     return wxWindow::TransferDataToWindow();
 }
 
+/**
+ * Defines how SortItems() does comparison between two items to sort the list.
+ *
+ * Order: names in ascending order. Within same name, index numbers in 
+ * ascending order. Within same name and index number, non-inverted guard 
+ * comes before inverted.
+ */
+int wxCALLBACK 
+ListCompareFunction(long item1, long item2, long WXUNUSED(sortData))
+{
+    // items are set with SetItemData to contain pointers to the rf guards
+    RegisterGuard* rfGuard1 = (RegisterGuard*) item1;
+    RegisterGuard* rfGuard2 = (RegisterGuard*) item2;
+    assert (rfGuard1 != NULL);
+    assert (rfGuard2 != NULL);
+
+    string name1 = rfGuard1->registerFile()->name();
+    int index1 = rfGuard1->registerIndex();
+    bool inverted1 = rfGuard1->isInverted();
+
+    string name2 = rfGuard2->registerFile()->name();
+    int index2 = rfGuard2->registerIndex();
+    bool inverted2 = rfGuard2->isInverted();
+    
+    if (name1 < name2) {
+        return -1;
+    } else if (name1 > name2) {
+        return 1;
+    } else if (index1 < index2) {
+        return -1;
+    } else if (index1 > index2) {
+        return 1;
+    } else if (!inverted1 && inverted2) {
+        return -1;
+    } else if (inverted1 && !inverted2) {
+        return 1;
+    }
+    
+    return 0;
+}
 
 /**
  * Updates the guard lists.
@@ -402,7 +442,21 @@ BusDialog::updateGuardLists() {
             }
         } else if(rfGuard != NULL) {
             // register guard
+            int index = registerGuards_.size();
             registerGuards_.push_back(rfGuard);
+
+            string name = rfGuard->registerFile()->name();
+            int rfIndex = rfGuard->registerIndex();
+            rfGuardList_->InsertItem(index, WxConversion::toWxString(name));
+            rfGuardList_->SetItem(index, 1, WxConversion::toWxString(rfIndex));
+            if (rfGuard->isInverted()) {
+                rfGuardList_->SetItem(index, 2, _T("*"));
+            } else {
+                rfGuardList_->SetItem(index, 2, _T(" "));
+            }
+
+            // bind pointer to the guard as item data for future reference
+            rfGuardList_->SetItemData(index, (long)rfGuard);
         } else if(fuGuard != NULL) {
             // port guard
             int index = portGuards_.size();
@@ -421,93 +475,8 @@ BusDialog::updateGuardLists() {
         }
     }
 
-    // order register file guards for listing
-    orderRFGuards();
-
-    // list register file guards
-    for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
-        RegisterGuard* rfGuard = registerGuards_.at(i);
-        string rfName = rfGuard->registerFile()->name();
-        int rfgIndex = rfGuard->registerIndex();
-
-        rfGuardList_->InsertItem(i, WxConversion::toWxString(rfName));
-        rfGuardList_->SetItem(i, 1, WxConversion::toWxString(rfgIndex));
-        if (rfGuard->isInverted()) {
-            rfGuardList_->SetItem(i, 2, _T("*"));
-        } else {
-            rfGuardList_->SetItem(i, 2, _T(" "));
-        }
-    }
-}
-
-/**
- * Orders register file guards into wanted order.
- */
-void
-BusDialog::orderRFGuards() {
-    
-    // order all existing register file names (std::set -> no duplications)
-    std::set<string> rfNames;
-    for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
-        rfNames.insert(registerGuards_.at(i)->registerFile()->name());
-    }
-
-    // will store register file guards in correct order for listing
-    std::vector<RegisterGuard*> newGuardOrder;
-    
-    // start going through register file names in ascending order
-    for (std::set<string>::iterator rfName = rfNames.begin(); rfName != rfNames.end(); ++rfName) {
-        
-        // guard indices found for the register file name
-        std::set<int> guards;
-        // non-inverted guards in ascending order, int is guard's index
-        std::map<int, RegisterGuard*> nonInvGuards;
-        // inverted guards in ascending order, int is guard's index
-        std::map<int, RegisterGuard*> invGuards;
-        
-        // find all guards for the register file name 
-        for (unsigned int i = 0; i < registerGuards_.size(); ++i) {
-            RegisterGuard* rfGuard = registerGuards_.at(i);
-            string name = rfGuard->registerFile()->name();
-            int guardIndex = rfGuard->registerIndex();
-
-            // if a guard is found for rfName, save index and the guard
-            if (name.compare(*rfName) == 0) {
-                guards.insert(guardIndex);
-
-                if (rfGuard->isInverted()) {
-                    invGuards.insert(std::pair<int, RegisterGuard*>(
-                                         guardIndex, rfGuard));
-                } else {
-                    nonInvGuards.insert(std::pair<int, RegisterGuard*>(
-                                            guardIndex, rfGuard));
-                }
-                
-            }
-        }
-        
-        std::map<int, RegisterGuard*>::iterator itNonInv;
-        std::map<int, RegisterGuard*>::iterator itInv;
-        
-        // add found guards into the list, index order in guards is ascending
-        for (std::set<int>::iterator it = guards.begin(); 
-             it != guards.end(); ++it) {
-            // non-inverted guard with same index is added first
-            itNonInv = nonInvGuards.find(*it);
-            if (itNonInv != nonInvGuards.end()) {
-                newGuardOrder.push_back(itNonInv->second);
-            }
-            
-            // inverted guard with same index is added after
-            itInv = invGuards.find(*it);
-            if (itInv != invGuards.end()) {
-                newGuardOrder.push_back(itInv->second);
-            }
-        }
-    }
-
-    // set the new order ready for listing
-    registerGuards_ = newGuardOrder;
+    // sort guard list with given function, data parameter is not needed
+    rfGuardList_->SortItems(ListCompareFunction, static_cast<long>(0));
 }
 
 /**
@@ -582,7 +551,10 @@ BusDialog::selectedRFGuard() const {
 
     assert (item < int(registerGuards_.size()));
 
-    return registerGuards_[item];
+    long itemData = rfGuardList_->GetItemData(item);
+    RegisterGuard* rfGuard = (RegisterGuard*)itemData;
+    assert (rfGuard != NULL);
+    return rfGuard;
 }
 
 
@@ -954,11 +926,17 @@ BusDialog::onDeleteRFGuard(wxCommandEvent&) {
     for (int i = 0; i < rfGuardList_->GetSelectedItemCount(); ++i) {
         item = rfGuardList_->GetNextItem(
             item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    
+        
         assert (item < static_cast<int>(registerGuards_.size()));
 
-        if (item >= 0 && registerGuards_[item] != NULL) {
-            delete registerGuards_[item];
+        // retrieve item data (guard pointer) that is bound with the item  
+        if (item >= 0) {
+            long itemData = rfGuardList_->GetItemData(item);
+            RegisterGuard* rfGuard = (RegisterGuard*)itemData;
+            if (rfGuard != NULL) {
+                delete rfGuard;
+                rfGuard = NULL;
+            }
         }
     }
     
