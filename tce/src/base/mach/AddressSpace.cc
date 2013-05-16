@@ -403,5 +403,49 @@ AddressSpace::hasNumericalId(unsigned id) const {
     return AssocTools::containsKey(numericalIds_, id);
 }
 
+/**
+ * Returns ids that are assigned to this address space.
+ *
+ * @return Address space ids.
+ */
+std::set<unsigned>
+AddressSpace::numericalIds() const {
+    return numericalIds_;
+}
+
+/**
+ * Sets the ids for the address space.
+ *
+ * @param ids Contains new ids for the address space.
+ * @return True if setting the new address space ids was successful.
+ */
+bool
+AddressSpace::setNumericalIds(const std::set<unsigned>& ids) {
+    assert (machine() != NULL);
+
+    Machine::AddressSpaceNavigator asNavigator =
+        machine()->addressSpaceNavigator();
+
+    // loop through all other address spaces and check if input parameter
+    // violates any existing ids
+    for (int i = 0; i < asNavigator.count(); i++) {
+        AddressSpace* as = asNavigator.item(i);
+        
+        if (as != this) {
+            IDSet otherIds = as->numericalIds();
+            
+            for (IDSet::iterator id = ids.begin(); id != ids.end(); ++id) {
+                if (AssocTools::containsKey(otherIds, *id)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    // no violating ids found, overwrite ids for this address space
+    numericalIds_ = ids;
+    return true;
+}
 
 }
+

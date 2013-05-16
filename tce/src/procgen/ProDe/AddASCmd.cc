@@ -91,7 +91,8 @@ AddASCmd::Do() {
 			 *model->getMachine());
 
 
-    AddressSpaceDialog dialog(parentWindow(), addressSpace);
+    AddressSpaceDialog dialog(parentWindow(), model->getMachine(), 
+                              addressSpace);
 
     if (dialog.ShowModal() == wxID_OK) {
 	model->notifyObservers();
