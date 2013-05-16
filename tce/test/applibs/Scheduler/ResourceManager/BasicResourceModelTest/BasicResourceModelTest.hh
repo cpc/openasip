@@ -32,10 +32,12 @@
 
 #ifndef BASIC_RESOURCE_MODEL_TEST_HH
 #define BASIC_RESOURCE_MODEL_TEST_HH
+
 #include <iostream>
 #include <TestSuite.h>
 #include "SimpleResourceManager.hh"
 #include "UniversalMachine.hh"
+#include "Conversion.hh"
 
 /**
  * Tests basic functionality of the Resource Model using

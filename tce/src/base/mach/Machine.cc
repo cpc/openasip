@@ -54,6 +54,7 @@
 #include "ImmediateSlot.hh"
 #include "Application.hh"
 #include "ADFSerializer.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::set;
@@ -1020,5 +1021,22 @@ void
 Machine::setFUOrdered(bool order){
     fuOrdered_ = order;
 }
+
+/**
+ * Saves the state of each component in the given container and add the
+ * created ObjectStates as children of the given parent ObjectState.
+ *
+ * @param container The container.
+ * @param parent The parent ObjectState.
+ */
+template <typename ContainerType>
+void
+Machine::saveComponentStates(ContainerType& container, ObjectState* parent) {
+    for (int i = 0; i < container.count(); i++) {
+        Serializable* component = container.item(i);
+        parent->addChild(component->saveState());
+    }
+}
+
 
 }

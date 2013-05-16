@@ -49,6 +49,7 @@
 #include "OperationIndex.hh"
 #include "Operation.hh"
 #include "MathTools.hh"
+#include "Conversion.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;

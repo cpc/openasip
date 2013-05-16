@@ -48,6 +48,7 @@
 #include "FUState.hh"
 #include "StateData.hh"
 #include "SimValue.hh"
+#include "Conversion.hh"
 
 #include <wx/listctrl.h>
 

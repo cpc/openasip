@@ -43,6 +43,7 @@
 #include "Machine.hh"
 #include "ResourceVectorSet.hh"
 #include "CollisionMatrix.hh"
+#include "Conversion.hh"
 
 class FUFiniteStateAutomatonTest : public CxxTest::TestSuite {
 public:

@@ -39,6 +39,7 @@
 #include "Port.hh"
 #include "RegisterFile.hh"
 #include "Segment.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

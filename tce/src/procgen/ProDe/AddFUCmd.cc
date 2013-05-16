@@ -41,6 +41,7 @@
 #include "ProDeConstants.hh"
 #include "ProDe.hh"
 #include "Machine.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;

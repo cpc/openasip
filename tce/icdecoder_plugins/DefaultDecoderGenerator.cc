@@ -82,6 +82,7 @@
 #include "AssocTools.hh"
 #include "StringTools.hh"
 #include "TCEString.hh"
+#include "Conversion.hh"
 
 using namespace ProGe;
 using namespace TTAMachine;

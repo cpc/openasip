@@ -42,6 +42,7 @@
 #include "SpecialRegisterPort.hh"
 #include "Socket.hh"
 #include "MachineCheckResults.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 

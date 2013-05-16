@@ -38,6 +38,7 @@
 #include "AssocTools.hh"
 #include "Guard.hh"
 #include "TemplateSlot.hh"
+#include "ObjectState.hh"
 
 using namespace TTAMachine;
 

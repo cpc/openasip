@@ -49,6 +49,7 @@
 #include "Program.hh"
 #include "Move.hh"
 #include "MemorySystem.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

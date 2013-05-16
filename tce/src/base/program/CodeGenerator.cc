@@ -31,6 +31,7 @@
 #include "Program.hh"
 #include "Procedure.hh"
 #include "Instruction.hh"
+#include "Conversion.hh"
 
 namespace TTAProgram {
 

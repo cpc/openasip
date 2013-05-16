@@ -42,6 +42,7 @@
 #include "MOMTextGenerator.hh"
 #include "Application.hh"
 #include "ContainerTools.hh"
+#include "ObjectState.hh"
 
 using std::vector;
 using std::string;

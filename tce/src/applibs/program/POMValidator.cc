@@ -48,6 +48,7 @@
 #include "ControlUnit.hh"
 #include "TCEString.hh"
 #include "MathTools.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

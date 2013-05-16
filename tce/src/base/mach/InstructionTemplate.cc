@@ -39,6 +39,7 @@
 #include "MOMTextGenerator.hh"
 #include "ContainerTools.hh"
 #include "SequenceTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::set;

@@ -40,6 +40,7 @@
 #include "Move.hh"
 #include "MathTools.hh"
 #include "DisassemblyRegister.hh"
+#include "Conversion.hh"
 
 #include <string>
 #include <ctime>

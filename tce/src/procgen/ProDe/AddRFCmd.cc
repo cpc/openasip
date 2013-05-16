@@ -43,6 +43,7 @@
 #include "ProDe.hh"
 #include "RegisterFile.hh"
 #include "Machine.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;

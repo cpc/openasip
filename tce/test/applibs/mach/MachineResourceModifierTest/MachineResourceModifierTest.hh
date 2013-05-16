@@ -45,6 +45,7 @@
 #include "Segment.hh"
 #include "ADFSerializer.hh"
 #include "RegisterFile.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 
