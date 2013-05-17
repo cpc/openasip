@@ -41,6 +41,7 @@
 #include "MapTools.hh"
 #include "Application.hh"
 #include "SequenceTools.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;

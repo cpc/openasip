@@ -51,6 +51,7 @@
 #include "ProDeTextGenerator.hh"
 #include "InformationDialog.hh"
 #include "GUITextGenerator.hh"
+#include "ObjectState.hh"
 
 using boost::format;
 using std::string;

@@ -39,6 +39,7 @@
 #include "InstructionTemplate.hh"
 #include "ADFSerializer.hh"
 #include "FileSystem.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

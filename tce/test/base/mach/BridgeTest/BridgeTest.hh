@@ -41,6 +41,8 @@
 #include "Machine.hh"
 #include "ADFSerializer.hh"
 #include "FileSystem.hh"
+#include "Conversion.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

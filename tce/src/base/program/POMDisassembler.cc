@@ -65,6 +65,7 @@
 #include "Immediate.hh"
 #include "MoveGuard.hh"
 #include "HWOperation.hh"
+#include "Conversion.hh"
 
 #include "DisassemblyMove.hh"
 #include "DisassemblyRegister.hh"

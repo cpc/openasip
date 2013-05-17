@@ -42,6 +42,7 @@
 #include "MachineTester.hh"
 #include "Exception.hh"
 #include "StringTools.hh"
+#include "Conversion.hh"
 
 #include "MachineResourceModifier.hh"
 

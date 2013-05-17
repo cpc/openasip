@@ -45,6 +45,7 @@
 #include "MachinePart.hh"
 #include "Bus.hh"
 #include "ProDeTextGenerator.hh"
+#include "Conversion.hh"
 
 using boost::format;
 using std::string;
@@ -104,7 +105,7 @@ ProDeBusEditPolicy::getCommand(Request* request) {
         return statusCmd;
 
     } else {
-	return NULL;
+        return NULL;
     }
 }
 

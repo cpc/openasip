@@ -54,6 +54,7 @@
 #include "FUImplementation.hh"
 #include "HWOperation.hh"
 #include "StringTools.hh"
+#include "Conversion.hh"
 
 using std::string;
 using std::vector;

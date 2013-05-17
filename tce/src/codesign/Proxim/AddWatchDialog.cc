@@ -49,6 +49,7 @@
 #include "ProximConstants.hh"
 #include "ExpressionScript.hh"
 #include "TclConditionScript.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 using std::string;

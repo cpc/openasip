@@ -39,6 +39,7 @@
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;

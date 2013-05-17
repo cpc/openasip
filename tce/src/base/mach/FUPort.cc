@@ -40,6 +40,7 @@
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
 #include "MOMTextGenerator.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::set;

@@ -44,6 +44,7 @@
 #include "ProximSimulationThread.hh"
 #include "Machine.hh"
 #include "MemoryProxy.hh"
+#include "Conversion.hh"
 
 BEGIN_EVENT_TABLE(ProximMemoryWindow, ProximSimulatorWindow)
     EVT_SIMULATOR_STOP(0, ProximMemoryWindow::onSimulationStop)

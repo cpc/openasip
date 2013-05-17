@@ -53,6 +53,7 @@
 #include "Machine.hh"
 #include "ExplorerPluginParameter.hh"
 #include "Environment.hh"
+#include "Conversion.hh"
 
 using std::vector;
 using std::cout;

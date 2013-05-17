@@ -110,8 +110,9 @@ Options:
                        when -x switch *is not* set.
   simulate.ttasim      Lines to feed into ttasim to simulate and dump
                        verification output. If exists, no run command is given
-		       by the tester but only the commands from this file
-		       are executed.
+    	               by the tester but only the commands from this file
+                       are executed.
+  extraCompileFlags    Adds contents of this file as extra parameters to tcecc.               
   ----------------------------------------------------------------------------
 """
 

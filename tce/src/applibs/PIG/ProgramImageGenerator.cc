@@ -271,38 +271,52 @@ ProgramImageGenerator::generateProgramImage(
                 
         }
 
-        // variables for NOPs
+        // variables for NOP counting
         int totalFullNOPs = 0;
         int totalTwoConsNOPs = 0;
         int totalThreeConsNOPs = 0;
-        int totalFourOrMoreConsNOPs = 0;
-        bool oneConsecutiveNOP = 0;
-        bool twoConsecutiveNOPs = 0;
-        bool threeConsecutiveNOPs = 0;
+        int totalFourConsNOPs = 0;
+        bool oneConsecutiveNOP = false;
+        bool twoConsecutiveNOPs = false;
+        bool threeConsecutiveNOPs = false;
+        bool fourConsecutiveNOPs = false;
         
-        // find full instruction NOPs and groups of full instruction NOPs
+        // Find information about NOP instructions from program's instr.vectors
         for (TTAProgram::Program::InstructionVector::const_iterator i = 
                  instructions.begin(); i != instructions.end(); ++i) {
             const TTAProgram::Instruction& instruction = **i;
             if (instruction.isNOP()) {
+
+                // Increase count for each single full instruction NOP
                 ++totalFullNOPs;
-                if (threeConsecutiveNOPs) {
-                    ++totalFourOrMoreConsNOPs;
+
+                // Find full instruction NOP groups iteratively, ie. if there
+                // are 4 NOPs in a row, decrease count for 3 NOPs, etc.
+                if (fourConsecutiveNOPs) {
+                    // We don't change count beyond 4 or more consecutive
+                    // NOP instructions.
+                } else if (threeConsecutiveNOPs) {
+                    fourConsecutiveNOPs = true;
+                    ++totalFourConsNOPs;
+                    --totalThreeConsNOPs; // Actually 4 NOPs in a row, not 3
                 } else if (twoConsecutiveNOPs) {
-                    threeConsecutiveNOPs = 1;
+                    threeConsecutiveNOPs = true;
                     ++totalThreeConsNOPs;
+                    --totalTwoConsNOPs; // Actually 3 NOPs in a row, not 2
                 } else if (oneConsecutiveNOP) {
-                    twoConsecutiveNOPs = 1;
+                    twoConsecutiveNOPs = true;
                     ++totalTwoConsNOPs;
                 }
-                oneConsecutiveNOP = 1;
+                oneConsecutiveNOP = true;
             } else {
-                oneConsecutiveNOP = 0;
-                twoConsecutiveNOPs = 0;
-                threeConsecutiveNOPs = 0;
+                oneConsecutiveNOP = false;
+                twoConsecutiveNOPs = false;
+                threeConsecutiveNOPs = false;
+                fourConsecutiveNOPs = false;
             }
         } 
 
+        // Print information about immediates, addresses and NOPs
         Application::logStream()
             << (boost::format(
                     "total immediates: %d (long %.1f%%), "
@@ -312,7 +326,7 @@ ProgramImageGenerator::generateProgramImage(
                     "total full instruction NOPs: %d (%.1f%% of instructions),\n"
                     "two consecutive full instruction NOPs: %d,\n" 
                     "three consecutive full instruction NOPs: %d,\n" 
-                    "four or more consecutive full instruction NOPs: %d\n") 
+                    "four consecutive full instruction NOPs: %d\n") 
                 % totalImmediates 
                 % (totalLongImmediates * 100.0 / totalImmediates)
                 % allImmediates.size() % programAddresses.size() 
@@ -323,7 +337,7 @@ ProgramImageGenerator::generateProgramImage(
                 % (totalFullNOPs * 100.0 / instructionCount)
                 % totalTwoConsNOPs
                 % totalThreeConsNOPs
-                % totalFourOrMoreConsNOPs)
+                % totalFourConsNOPs)
                 .str();
     }
 

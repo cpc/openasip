@@ -42,6 +42,7 @@
 #include "ErrorDialog.hh"
 #include "ProDe.hh"
 #include "Machine.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

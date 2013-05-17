@@ -13,8 +13,8 @@ This release ...
 
 Acknowledgements
 ----------------
-Thanks to Mikko Järvelä for his first code contributions to this
-release. Keep them coming!
+Thanks to Mikko Järvelä and Janne Helkala for their first code contributions 
+to this release. Keep them coming!
 
 We'd like to thank the Radio Implementation Research Team of Nokia
 Research Center and Academy of Finland (funding decision 253087)

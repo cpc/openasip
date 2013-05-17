@@ -45,6 +45,8 @@
 #include "SequenceTools.hh"
 #include "SimpleBrokerDirector.hh"
 
+#include <sstream>
+
 using namespace TTAProgram;
 
 /**

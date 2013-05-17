@@ -52,6 +52,7 @@
 #include "FUPort.hh"
 #include "ExecutionPipeline.hh"
 #include "HDBRegistry.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;
