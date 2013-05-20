@@ -289,20 +289,18 @@ let isTerminator = 1, isBranch = 1 in {
     def STWfi : InstTCE<(outs), (ins MEMri:$op1, R32FPRegs:$op2), "",
 			[(store R32FPRegs:$op2, ADDRri:$op1)]>;
 
-// TODO: these should be LDH instead of LDW
-
-    def LDWhr : InstTCE<(outs R32HFPRegs:$op2), 
+    def LDHhr : InstTCE<(outs R32HFPRegs:$op2), 
 			(ins MEMrr:$op1), "", [(set R32HFPRegs:$op2,
 						(load ADDRrr:$op1))]>;
 
-    def LDWhi : InstTCE<(outs R32HFPRegs:$op2), 
+    def LDHhi : InstTCE<(outs R32HFPRegs:$op2), 
 			(ins MEMri:$op1), "", [(set R32HFPRegs:$op2,
 						(load ADDRri:$op1))]>;
 
-    def STWhr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
+    def STHhr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
 			[(store R32HFPRegs:$op2, ADDRrr:$op1)]>;
 
-    def STWhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
+    def STHhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
 			[(store R32HFPRegs:$op2, ADDRri:$op1)]>;
 
 include "GenInstrInfo.td"
