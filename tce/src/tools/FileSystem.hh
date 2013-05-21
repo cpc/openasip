@@ -75,7 +75,7 @@ public:
     static std::string fileExtension(const std::string& fileName);
     static std::string fileNameBody(const std::string& fileName);
     static std::string absolutePathOf(const std::string& pathName);
-
+    
     // file system environment functions
     static std::string currentWorkingDir();
     static bool changeWorkingDir(const std::string& path);
@@ -140,6 +140,11 @@ public:
     static bool relativeDir(
         const std::string& baseDir,
         std::string& toRelDir);
+
+    static bool makeRelativePath(
+        const std::vector<std::string>& searchPaths,
+        const std::string& basePath,
+        std::string& toRelPath);
 
     static bool readBlockFromFile(
         const std::string& sourceFile,

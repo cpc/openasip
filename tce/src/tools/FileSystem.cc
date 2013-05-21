@@ -755,6 +755,43 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
 }
 
 /**
+ * Creates relative path out of given base path if a relative path can be
+ * found under any of the search paths. Example: if base path is
+ * "/usr/foo/bar/x.hdb" and provided search path is "/usr/foo",
+ * following relative path is formed: "bar/x.hdb".
+ *
+ * @param searchPaths Relative path to base path is searched under these.
+ * @param basePath Path that needs to be changed into a relative path.
+ * @param toRelPath Outputs possibly created relative path.
+ * @return True if a relative path was created out of base path.
+ */
+bool 
+FileSystem::makeRelativePath(
+    const std::vector<std::string>& searchPaths, 
+    const std::string& basePath,
+    std::string& toRelPath) {
+    
+    for (unsigned int i = 0; i < searchPaths.size(); ++i) {
+        string searchPath = searchPaths.at(i);
+        string relativePath = basePath;
+        
+        // try to find a relative path to the base path under search path
+        if (relativeDir(searchPath, relativePath)) {
+            unsigned int combinedPathLength = searchPath.length() + 
+                DIRECTORY_SEPARATOR.length() + relativePath.length();
+            
+            // is it the correct relative path with the base path
+            if (combinedPathLength == basePath.length()) {
+                toRelPath = relativePath;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
  * Reads a block of text from a file.
  *
  * Start and end of the block are found by matching given regular expressions
