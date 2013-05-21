@@ -40,6 +40,7 @@
 #include "OperationBindingCheck.hh"
 #include "RegisterQuantityCheck.hh"
 #include "MachineCheckResults.hh"
+#include "Conversion.hh"
 
 class MachineCheckTest : public CxxTest::TestSuite {
 public:

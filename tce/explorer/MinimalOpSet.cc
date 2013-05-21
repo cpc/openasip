@@ -41,6 +41,7 @@
 #include "HDBRegistry.hh"
 #include "StringTools.hh"
 #include "Exception.hh"
+#include "Conversion.hh"
 
 #include "MinimalOpSetCheck.hh"
 

@@ -28,6 +28,8 @@ Misc. smaller improvements
   "plugin interface"). When TCE loaded the operation behavior descriptions as
   plugins, not all symbols of libtce they needed were found. Now tries to link
   the OPBs against libtce whenever possible to mark the dependency.
+- generatebits: -v (verbose) parameter now prints amount of full instruction
+  NOPs and amounts of consecutive 2, 3 and 4+ full instruction NOP groups
 
 Misc. changes
 ------------

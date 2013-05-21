@@ -49,6 +49,7 @@
 #include "ProDeTextGenerator.hh"
 #include "WidgetTools.hh"
 #include "MathTools.hh"
+#include "Conversion.hh"
 
 using boost::format;
 using std::string;

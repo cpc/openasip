@@ -39,6 +39,7 @@
 #include "Bus.hh"
 #include "MOMTextGenerator.hh"
 #include "Conversion.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

@@ -1048,10 +1048,10 @@ TDGen::writeInstrInfo(std::ostream& os) {
     opNames_["STWfr"] = "STW";
     opNames_["STWfi"] = "STW";
 
-    opNames_["LDWhr"] = "LDW";
-    opNames_["LDWhi"] = "LDW";
-    opNames_["STWhr"] = "STW";
-    opNames_["STWhi"] = "STW";
+    opNames_["LDHhr"] = "LDHU";
+    opNames_["LDHhi"] = "LDHU";
+    opNames_["STHhr"] = "STH";
+    opNames_["STHhi"] = "STH";
 
     // some global/address immediate if conversion fails
     // so commented out
@@ -3076,7 +3076,7 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                << "FP" << rcpf << ") return TCE::STWfr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
-               << "HFP" << rcpf << ") return TCE::STWhr;" << std::endl;
+               << "HFP" << rcpf << ") return TCE::STHhr;" << std::endl;
         }
     }
     
@@ -3166,7 +3166,7 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                << "FP" << rcpf << ") return TCE::LDWfr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "HFP" << rcpf << ") return TCE::LDWhr;" << std::endl;
+               << "HFP" << rcpf << ") return TCE::LDHhr;" << std::endl;
         }
     }
 

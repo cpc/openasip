@@ -47,6 +47,7 @@
 #include "MapTools.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"
+#include "Conversion.hh"
 
 using std::string;
 using boost::format;

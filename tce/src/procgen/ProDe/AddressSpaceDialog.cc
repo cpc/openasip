@@ -362,7 +362,7 @@ AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
  * Adds a new id number for the address space.
  */
 void 
-AddressSpaceDialog::onAddId(wxCommandEvent& event) {
+AddressSpaceDialog::onAddId(wxCommandEvent& /*event*/) {
     // current number in spin field
     unsigned spinId = static_cast<unsigned>(idSpinCtrl_->GetValue());
     
@@ -383,7 +383,7 @@ AddressSpaceDialog::onAddId(wxCommandEvent& event) {
  * Deletes selected id number(s) from the address space.
  */
 void 
-AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
+AddressSpaceDialog::onDeleteId(wxCommandEvent& /*event*/) {
     long itemIndex = -1;
     
     // loop through all selected ids
@@ -414,7 +414,7 @@ AddressSpaceDialog::onDeleteId(wxCommandEvent& event) {
  * already exists in some address space
  */
 void 
-AddressSpaceDialog::onSpinId(wxSpinEvent& event) {
+AddressSpaceDialog::onSpinId(wxSpinEvent& /*event*/) {
     // current number in spin field
     unsigned spinId = static_cast<unsigned>(idSpinCtrl_->GetValue());
     
@@ -432,7 +432,7 @@ AddressSpaceDialog::onSpinId(wxSpinEvent& event) {
  * Sets state of delete button depending on whether items are selected
  */
 void 
-AddressSpaceDialog::onIdListSelection(wxListEvent& event) {
+AddressSpaceDialog::onIdListSelection(wxListEvent& /*event*/) {
     if (idListCtrl_->GetSelectedItemCount() < 1) {
         FindWindow(ID_DELETE_ID)->Disable();
     } else {

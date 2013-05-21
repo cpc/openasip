@@ -57,6 +57,7 @@
 #include "MoveGuard.hh"
 #include "Operation.hh"
 #include "Move.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 

@@ -44,6 +44,7 @@
 #include "FileSystem.hh"
 #include "FunctionUnit.hh"
 #include "Machine.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

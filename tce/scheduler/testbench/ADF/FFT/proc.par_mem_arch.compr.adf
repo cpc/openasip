@@ -8189,9 +8189,9 @@
   </address-space>
 
   <address-space name="imem">
-    <width>6</width>
+    <width>8</width>
     <min-address>0</min-address>
-    <max-address>51</max-address>
+    <max-address>255</max-address>
   </address-space>
 
   <global-control-unit name="gcu">

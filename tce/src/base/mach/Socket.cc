@@ -45,6 +45,7 @@
 #include "Application.hh"
 #include "ContainerTools.hh"
 #include "AssocTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::set;

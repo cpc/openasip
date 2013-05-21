@@ -47,6 +47,7 @@
 #include "Environment.hh"
 #include "FileSystem.hh"
 #include "HDBRegistry.hh"
+#include "Conversion.hh"
 
 using std::string;
 using boost::format;

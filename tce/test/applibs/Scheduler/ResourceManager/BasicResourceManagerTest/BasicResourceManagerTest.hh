@@ -63,6 +63,7 @@
 #include "Program.hh"
 #include "Move.hh"
 #include "BasicBlock.hh"
+#include "Conversion.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT

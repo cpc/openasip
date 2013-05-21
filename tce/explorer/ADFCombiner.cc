@@ -45,6 +45,7 @@
 #include "HWOperation.hh"
 #include "ExecutionPipeline.hh"
 #include "Guard.hh"
+#include "Conversion.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;

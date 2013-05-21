@@ -39,6 +39,7 @@
 #include "MachineState.hh"
 #include "Machine.hh"
 #include "MathTools.hh"
+#include "Conversion.hh"
 
 #include <algorithm>
 #include <vector>

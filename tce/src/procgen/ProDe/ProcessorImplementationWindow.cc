@@ -55,6 +55,7 @@
 #include "FileSystem.hh"
 #include "GenerateProcessorDialog.hh"
 #include "ProDe.hh"
+#include "ObjectState.hh"
 
 using namespace IDF;
 using namespace TTAMachine;

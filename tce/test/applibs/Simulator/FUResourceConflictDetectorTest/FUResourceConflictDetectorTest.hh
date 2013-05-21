@@ -48,6 +48,7 @@
 #include "DCMFUResourceConflictDetector.hh"
 #include "TCEString.hh"
 #include "Machine.hh"
+#include "Conversion.hh"
 
 /**
  * Class for testing FU resource conflict detectors.

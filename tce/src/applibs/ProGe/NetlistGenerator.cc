@@ -71,6 +71,7 @@
 
 #include "MathTools.hh"
 #include "MapTools.hh"
+#include "Conversion.hh"
 
 using namespace IDF;
 using namespace HDB;
