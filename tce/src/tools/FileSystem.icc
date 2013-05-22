@@ -132,7 +132,7 @@ inline std::string
 FileSystem::homeDirectory() {
     std::string home = Environment::environmentVariable("HOME");
     Path homePath(home);
-    return homePath.native_directory_string();
+    return homePath.string();
 }
 
 /** 
@@ -237,11 +237,11 @@ FileSystem::findFromDirectoryRecursive(
             continue;
         }   
 #endif
-        if (regex_match((*dirIt).string(), re)) {
-            found.push_back((*dirIt).string());
+        if (regex_match((*dirIt).path().string(), re)) {
+            found.push_back((*dirIt).path().string());
         }
         if (is_directory(*dirIt)) {
-            std::string dir = (*dirIt).string();
+            std::string dir = (*dirIt).path().string();
             findFromDirectoryRecursive(regex, dir, found);
         }
         ++dirIt;
