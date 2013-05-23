@@ -44,6 +44,7 @@
 using std::string;
 using namespace IDF;
 
+const string CURR_WORK_DIR = FileSystem::currentWorkingDir();
 const string DS = FileSystem::DIRECTORY_SEPARATOR;
 const string WORM_IDF = "data" + DS + "worm.idf";
 const string TARGET_IDF = "data" + DS + "new.idf";
@@ -63,6 +64,7 @@ public:
     void tearDown();
     
     void testReadAndWriteState();
+    void testRelativePaths();
     
 private:
 };
@@ -159,6 +161,78 @@ IDFSerializerTest::testReadAndWriteState() {
     
     delete implementationState;
     delete machImpl;
+}
+
+void
+IDFSerializerTest::testRelativePaths() {
+        
+    std::vector<string> testSearchPaths;
+    string testBasePath;
+    string realRelativePath;
+    string relativePathOutput;
+    bool output;
+
+    // working path to a file
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR);
+    testBasePath = DECOMPRESSOR_FILE;
+    realRelativePath = "data" + DS + "decompressor.vhdl";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+
+    TS_ASSERT(output == true);
+    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+
+    // working path to a file
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR + DS + "data");
+    testBasePath = DECOMPRESSOR_FILE;
+    realRelativePath = "decompressor.vhdl";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+
+    TS_ASSERT(output == true);
+    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+    
+    // working path to a directory
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR);
+    testBasePath = CURR_WORK_DIR + DS + "data";
+    realRelativePath = "data";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+    
+    TS_ASSERT(output == true);
+    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+
+    // working path to a directory (same path as search path)
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR + DS + "data");
+    testBasePath = CURR_WORK_DIR + DS + "data";
+    realRelativePath = "";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+    
+    TS_ASSERT(output == true);
+    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+
+    // false path that should fail ('data' directory dropped from path)
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR);
+    testBasePath = CURR_WORK_DIR + DS + "decompressor.vhdl";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+
+    TS_ASSERT(output == false);
+    
+    // false path that should fail (non existing directory)
+    testSearchPaths.clear();
+    testSearchPaths.push_back(CURR_WORK_DIR);
+    testBasePath = CURR_WORK_DIR + DS + "nonexistentdirectory";
+    output = FileSystem::makeRelativePath(
+        testSearchPaths, testBasePath, relativePathOutput);
+    
+    TS_ASSERT(output == false);
 }
 
 #endif

@@ -199,6 +199,9 @@ private:
         std::string value;
     };
 
+    void makeHDBPathRelative(
+        const std::vector<std::string>& searchPaths,
+        UnitImplementationLocation& implem) const;
     UnitImplementationLocation* findImplementation(
         const ImplementationTable& table,
         const std::string& unitName) const;

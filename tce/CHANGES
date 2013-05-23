@@ -52,6 +52,9 @@ Usability features
   "Address Space"-dialog
 - ProDe: Ordering of register file guard list changed to be more user 
   friendly in the "Bus"-dialog
+- ProDe: When .idf is saved to a file, all file paths (.hdb, .vhdl, etc.)
+  pointing under the current working directory are made relative paths,
+  meaning that the absolute path above current working directory is cut off.
 
 Bugfixes
 --------

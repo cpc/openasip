@@ -757,7 +757,7 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
 /**
  * Creates relative path out of given base path if a relative path can be
  * found under any of the search paths. Example: if base path is
- * "/usr/foo/bar/x.hdb" and provided search path is "/usr/foo",
+ * "/usr/foo/bar/x.hdb" and provided search path is "/usr/foo", the
  * following relative path is formed: "bar/x.hdb".
  *
  * @param searchPaths Relative path to base path is searched under these.
@@ -769,21 +769,25 @@ bool
 FileSystem::makeRelativePath(
     const std::vector<std::string>& searchPaths, 
     const std::string& basePath,
-    std::string& toRelPath) {
-    
+    std::string& toRelPath) {    
+
     for (unsigned int i = 0; i < searchPaths.size(); ++i) {
         string searchPath = searchPaths.at(i);
         string relativePath = basePath;
         
         // try to find a relative path to the base path under search path
         if (relativeDir(searchPath, relativePath)) {
-            unsigned int combinedPathLength = searchPath.length() + 
-                DIRECTORY_SEPARATOR.length() + relativePath.length();
+            string fullPath = searchPath + DIRECTORY_SEPARATOR + relativePath;       
             
-            // is it the correct relative path with the base path
-            if (combinedPathLength == basePath.length()) {
+            // special case: if provided search path was same as base path
+            if (relativePath == "") {
                 toRelPath = relativePath;
                 return true;
+            } else if (isRelativePath(relativePath) && fileExists(fullPath)) {
+                if (fullPath.length() == basePath.length()) {
+                    toRelPath = relativePath;
+                    return true;
+                }
             }
         }
     }
