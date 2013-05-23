@@ -13,6 +13,7 @@
 
 #include <cstdlib> // NULL
 #include "TCEMCAsmInfo.hh"
+#include "tce_config.h"
 
 using namespace llvm;
 

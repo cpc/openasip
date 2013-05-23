@@ -15,6 +15,7 @@
 #define TCEMCASMINFO_H
 
 #include <llvm/MC/MCAsmInfo.h>
+#include "tce_config.h"
 
 namespace llvm {
   class Target;
