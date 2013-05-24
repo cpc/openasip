@@ -163,76 +163,50 @@ IDFSerializerTest::testReadAndWriteState() {
     delete machImpl;
 }
 
+/**
+ * Tests the functionality of forming relative paths out of absolute paths.
+ */
 void
 IDFSerializerTest::testRelativePaths() {
         
-    std::vector<string> testSearchPaths;
-    string testBasePath;
-    string realRelativePath;
-    string relativePathOutput;
-    bool output;
+    IDFSerializer serializer;
+    serializer.setSourceFile(WORM_IDF);
 
-    // working path to a file
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR);
-    testBasePath = DECOMPRESSOR_FILE;
-    realRelativePath = "data" + DS + "decompressor.vhdl";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
+    ObjectState* implementationState = NULL;
+    TS_ASSERT_THROWS_NOTHING(implementationState = serializer.readState());
 
-    TS_ASSERT(output == true);
-    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+    MachineImplementation* machImpl = NULL;
+    TS_ASSERT_THROWS_NOTHING(
+        machImpl = new MachineImplementation(implementationState));
 
-    // working path to a file
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR + DS + "data");
-    testBasePath = DECOMPRESSOR_FILE;
-    realRelativePath = "decompressor.vhdl";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
-
-    TS_ASSERT(output == true);
-    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+    TS_ASSERT(machImpl->hasICDecoderPluginFile());
+    TS_ASSERT(machImpl->hasDecompressorFile());
+    TS_ASSERT(machImpl->hasICDecoderHDB());
     
-    // working path to a directory
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR);
-    testBasePath = CURR_WORK_DIR + DS + "data";
-    realRelativePath = "data";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
-    
-    TS_ASSERT(output == true);
-    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+    std::vector<string> searchPaths;
+    searchPaths.push_back(CURR_WORK_DIR);
+        
+    string relPath;
+    string relPluginFile = "data" + DS + "exampleIcDecoderPlugin.so";
+    string relDecompressorFile = "data" + DS + "decompressor.vhdl";
+    string relDecoderHDBFile = "data" + DS + "icdecoderdata.hdb";
 
-    // working path to a directory (same path as search path)
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR + DS + "data");
-    testBasePath = CURR_WORK_DIR + DS + "data";
-    realRelativePath = "";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
-    
-    TS_ASSERT(output == true);
-    TS_ASSERT(relativePathOutput.compare(realRelativePath) == 0);
+    // provide absolute path of every file for relative path search
 
-    // false path that should fail ('data' directory dropped from path)
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR);
-    testBasePath = CURR_WORK_DIR + DS + "decompressor.vhdl";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
-
-    TS_ASSERT(output == false);
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->icDecoderPluginFile(), relPath);
+    TS_ASSERT_EQUALS(relPath, relPluginFile);
     
-    // false path that should fail (non existing directory)
-    testSearchPaths.clear();
-    testSearchPaths.push_back(CURR_WORK_DIR);
-    testBasePath = CURR_WORK_DIR + DS + "nonexistentdirectory";
-    output = FileSystem::makeRelativePath(
-        testSearchPaths, testBasePath, relativePathOutput);
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->decompressorFile(), relPath);
+    TS_ASSERT_EQUALS(relPath, relDecompressorFile);
     
-    TS_ASSERT(output == false);
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->icDecoderHDB(), relPath);
+    TS_ASSERT_EQUALS(relPath, relDecoderHDBFile);
+    
+    delete implementationState;
+    delete machImpl;
 }
 
 #endif

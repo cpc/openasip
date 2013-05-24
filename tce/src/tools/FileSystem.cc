@@ -771,6 +771,10 @@ FileSystem::makeRelativePath(
     const std::string& basePath,
     std::string& toRelPath) {    
 
+    if (!isAbsolutePath(basePath)) {
+        return false;
+    }
+
     for (unsigned int i = 0; i < searchPaths.size(); ++i) {
         string searchPath = searchPaths.at(i);
         string relativePath = basePath;

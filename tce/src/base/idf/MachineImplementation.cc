@@ -894,8 +894,7 @@ MachineImplementation::loadState(const ObjectState* state)
 
 
 /**
- * Saves the state of the object to an ObjectState tree. File paths of local
- * files (under current working directory) are changed to relative paths.
+ * Saves the state of the object to an ObjectState tree.
  *
  * @return The newly created ObjectState tree.
  */
@@ -905,11 +904,6 @@ MachineImplementation::saveState() const {
     ObjectState* state = new ObjectState(OSNAME_MACHINE_IMPLEMENTATION);
     state->setAttribute(OSKEY_SOURCE_IDF, sourceIDF_);
 
-    // add current working dir to search paths, which are used to make 
-    // relative paths
-    std::vector<std::string> sPaths;
-    sPaths.push_back(FileSystem::currentWorkingDir());
-
     // add ic&decoder data
     if (hasICDecoderPluginName()) {
         ObjectState* icdecState = new ObjectState(OSNAME_IC_DECODER_PLUGIN);
@@ -918,22 +912,12 @@ MachineImplementation::saveState() const {
                 OSKEY_IC_DECODER_NAME, icDecoderPluginName());
         }
         if (hasICDecoderPluginFile()) {
-            string filePath = icDecoderPluginFile_;
-            string relPath;
-            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
-                icdecState->setAttribute(OSKEY_IC_DECODER_FILE, relPath);
-            } else {
-                icdecState->setAttribute(OSKEY_IC_DECODER_FILE, filePath);
-            };
+            icdecState->setAttribute(
+                OSKEY_IC_DECODER_FILE, icDecoderPluginFile_);
         }
         if (hasICDecoderHDB()) {
-            string filePath = icDecoderHDB_;
-            string relPath;
-            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
-                icdecState->setAttribute(OSKEY_IC_DECODER_HDB, relPath);
-            } else {
-                icdecState->setAttribute(OSKEY_IC_DECODER_HDB, filePath);
-            };
+            icdecState->setAttribute(
+                OSKEY_IC_DECODER_HDB, icDecoderHDB_);
         }
 
         std::vector<Parameter>::const_iterator iter =
@@ -954,13 +938,7 @@ MachineImplementation::saveState() const {
 
     // add decompressor file data
     if (hasDecompressorFile()) {
-        string filePath = decompressorFile_;
-        string relPath;
-        if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
-            state->setAttribute(OSKEY_DECOMPRESSOR_FILE, relPath);    
-        } else {
-            state->setAttribute(OSKEY_DECOMPRESSOR_FILE, filePath);
-        };
+        state->setAttribute(OSKEY_DECOMPRESSOR_FILE, decompressorFile_);
     }
 
     // add FU implementations
@@ -969,7 +947,6 @@ MachineImplementation::saveState() const {
     state->addChild(fuImplementations);
     for (int i = 0; i < fuImplementationCount(); i++) {
         UnitImplementationLocation& impl = fuImplementation(i);
-        makeHDBPathRelative(sPaths, impl);
         fuImplementations->addChild(impl.saveState());
     }
 
@@ -979,7 +956,6 @@ MachineImplementation::saveState() const {
     state->addChild(rfImplementations);
     for (int i = 0; i < rfImplementationCount(); i++) {
         UnitImplementationLocation& impl = rfImplementation(i);
-        makeHDBPathRelative(sPaths, impl);
         rfImplementations->addChild(impl.saveState());
     }
 
@@ -989,7 +965,6 @@ MachineImplementation::saveState() const {
     state->addChild(iuImplementations);
     for (int i = 0; i < iuImplementationCount(); i++) {
         UnitImplementationLocation& impl = iuImplementation(i);
-        makeHDBPathRelative(sPaths, impl);
         iuImplementations->addChild(impl.saveState());
     }
 
@@ -999,7 +974,6 @@ MachineImplementation::saveState() const {
     state->addChild(busImplementations);
     for (int i = 0; i < busImplementationCount(); i++) {
         UnitImplementationLocation& impl = busImplementation(i);
-        makeHDBPathRelative(sPaths, impl);
         busImplementations->addChild(impl.saveState());
     }
 
@@ -1009,13 +983,80 @@ MachineImplementation::saveState() const {
     state->addChild(socketImplementations);
     for (int i = 0; i < socketImplementationCount(); i++) {
         UnitImplementationLocation& impl = socketImplementation(i);
-        makeHDBPathRelative(sPaths, impl);
         socketImplementations->addChild(impl.saveState());
     }
 
     return state;
 }
 
+/**
+ * Changes file paths in machine implementation to relative file paths 
+ * under provided search paths.
+ * 
+ * @param sPaths Search paths, used for finding relative paths.
+ */
+void
+MachineImplementation::makeFilesRelative(
+    const std::vector<std::string>& sPaths) {
+    
+    // ic&decoder files
+    if (hasICDecoderPluginName()) {
+        if (hasICDecoderPluginFile()) {
+            string filePath = icDecoderPluginFile_;
+            string relPath;
+            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+                icDecoderPluginFile_ = relPath;
+            } 
+        }
+        if (hasICDecoderHDB()) {
+            string filePath = icDecoderHDB_;
+            string relPath;
+            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+                icDecoderHDB_ = relPath;
+            }
+        }
+    }
+
+    // decompressor file
+    if (hasDecompressorFile()) {
+        string filePath = decompressorFile_;
+        string relPath;
+        if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+            decompressorFile_ = relPath;
+        }
+    }
+
+    // FU files
+    for (int i = 0; i < fuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = fuImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // RF files
+    for (int i = 0; i < rfImplementationCount(); i++) {
+        UnitImplementationLocation& impl = rfImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // IU files
+    for (int i = 0; i < iuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = iuImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // bus files
+    for (int i = 0; i < busImplementationCount(); i++) {
+        UnitImplementationLocation& impl = busImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // socket files
+    for (int i = 0; i < socketImplementationCount(); i++) {
+        UnitImplementationLocation& impl = socketImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+}
+ 
 /**
  * Tries to find a relative path for an HDB file and changes it, if one was
  * found. In case the HDB file path is invalid, the path field is left empty.

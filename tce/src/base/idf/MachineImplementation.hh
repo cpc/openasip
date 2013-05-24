@@ -158,6 +158,8 @@ public:
     loadFromIDF(const std::string& idfFileName)
         throw (Exception);
 
+    void makeFilesRelative(const std::vector<std::string>& sPaths);
+
     /// ObjectState name for machine implementation.
     static const std::string OSNAME_MACHINE_IMPLEMENTATION;
     /// ObjectState attribute name for the source IDF.
