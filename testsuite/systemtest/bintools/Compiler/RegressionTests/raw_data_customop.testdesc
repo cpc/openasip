@@ -1,5 +1,5 @@
 <?php
-$test_description="Check that raw data customops are not incorrectly casted."
-$test_bin = "./test_raw_data_customop.sh"
+$test_description="Check that raw data customops are not incorrectly casted.";
+$test_bin = "./test_raw_data_customop.sh";
 $bin_args = "";
 ?>

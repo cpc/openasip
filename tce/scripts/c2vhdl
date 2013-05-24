@@ -97,7 +97,7 @@ proge_dir=proge-output
 # this could be a commandline parameter
 dmem_width_in_maus=4
 
-tcecc "${1}" -O2 -o ${tmp_pname}.bc || pexit 1
+tcecc "${1}" --emit-llvm -O2 -o ${tmp_pname}.bc || pexit 1
 explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb &>/dev/null || pexit 1
 
 # TODO: use simpleicoptimizer if using some other adf than minimal
