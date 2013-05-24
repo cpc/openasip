@@ -1086,6 +1086,12 @@ if options.verbose:
     
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 
+if not options.compile_only and not options.adf_file and not options.emit_llvm:
+    sys.stdout.write("At least one of the following should be specified: -a, -c or --emit-llvm\n")
+    cleanup(tempDir)
+    sys.exit(1)
+
+
 if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     sys.stdout.write("Cannot specify -o  with -c and multiple input files.\n")
     cleanup(tempDir)
