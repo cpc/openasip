@@ -355,7 +355,7 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 # Check boost libraries
 #
 ######################################
-AX_BOOST_BASE([1.33.0])
+AX_BOOST_BASE([1.42.0])
 if test -z "$BOOST_LDFLAGS"
 then
 AC_MSG_ERROR(
@@ -465,7 +465,8 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
- llvmConf="$(which llvm-config)"
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.3 llvm-config-3.4 llvm-config-3.2 ])
+llvmConf=$LLVM_CONFIG
 ]
 )
 
@@ -508,8 +509,11 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
    ;;
      3.3*)
-     AC_DEFINE([LLVM_3_3], [], "Using LLVM svn (upcoming 3.3)")
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.3)")
+     AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.2")
+   ;;
+     3.4*)
+     AC_DEFINE([LLVM_3_4], [], "Using LLVM svn (upcoming 3.4)")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 3.4)")
    ;;   
      *)
    AC_MSG_NOTICE(
@@ -528,11 +532,16 @@ AC_MSG_NOTICE([
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
+  # Try the alternative location where llvm.org/apt packages install it.
+  LLVM_SHARED_LIB_FILE=/usr/lib/x86_64-linux-gnu/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+  if test ! -e $LLVM_SHARED_LIB_FILE;
+  then
         AC_MSG_ERROR([
 $LLVM_SHARED_LIB_FILE not found. 
 Either recompile and install LLVM after ./configure --enable-shared
 or use ./gen_llvm_shared_lib.sh to generate it.])
 
+  fi
 fi
 
 # test if $llvmConf is empty string
@@ -794,7 +803,7 @@ AC_ARG_WITH(tcl-headers,
   AC_SUBST([TCL_INCLUDES], ["-I$tcl_headers"] )
 ], 
 [
-  tcl_headers=`ls -1d /usr/include/tcl{,8.4,8.3,8.2,8.1,8.0} 2>/dev/null|head -n 1`
+  tcl_headers=`ls -1d /usr/include/tcl{8.6,8.4,8.3,8.2,8.1,8.0} 2>/dev/null|head -n 1`
 ]
 )
 
