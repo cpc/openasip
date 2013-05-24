@@ -621,9 +621,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # -O0 optimization doesn't exist in opt
     optSwitches = ""
 
-    if options.optimization_level == 0:
-        options.sequential_schedule = True
-    elif options.optimization_level == 1:
+    if options.optimization_level == 1:
         optSwitches = (default_opts + "-disable-internalize ") 
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
@@ -1251,9 +1249,13 @@ if options.adf_file != "":
         if exitCode == 0:
             command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so" 
 
+    if options.sequential_schedule:
+        command += " -O0"
+    else:
+        command += " -O" + str(options.optimization_level)    
+        
     command += (" -a " + options.adf_file +
-                " -o " + outFile +
-                " -O" + str(options.optimization_level) +
+                " -o " + outFile +        
                 " -e" + stdEmulationLib +
                 " " + toCodeGenFname)
        
