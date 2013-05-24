@@ -28,6 +28,8 @@ Misc. smaller improvements
   "plugin interface"). When TCE loaded the operation behavior descriptions as
   plugins, not all symbols of libtce they needed were found. Now tries to link
   the OPBs against libtce whenever possible to mark the dependency.
+- generatebits: -v (verbose) parameter now prints amount of full instruction
+  NOPs and amounts of consecutive 2, 3 and 4+ full instruction NOP groups
 
 Misc. changes
 ------------
@@ -37,6 +39,24 @@ Hardware Database Additions
 ---------------------------
 - 2-wide SIMD units for half floats
   (but not yet compiler support for automatic usage of these9
+
+Usability features
+------------------
+- HDBEditor: Double-clicking some lists in the "Add Implementation"-dialog
+  now opens editing the list item. (no need to press the "edit"-button)
+- ProDe: User can add guards for all indices of a register file at once in the
+  "Register File Guard"-dialog
+- ProDe: Multiselection and deletion enabled for register file guards in the 
+  "Bus"-dialog
+- ProDe: Added a UI element to assign IDs for address spaces in the
+  "Address Space"-dialog
+- ProDe: Ordering of register file guard list changed to be more user 
+  friendly in the "Bus"-dialog
+
+Bugfixes
+--------
+- ProGe: imem_mau_pkg.vhdl is now prepended with top level entity name like
+  the actual package. (bug: #1063667)
 
 [changes checked from bzr log at 2013-04-05]
 

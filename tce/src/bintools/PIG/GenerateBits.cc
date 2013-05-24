@@ -549,8 +549,9 @@ int main(int argc, char* argv[]) {
         
         int compressedInstructionWidth = imageGenerator.imemMauWidth();
         if (!progeOutputDir.empty()) {
-            string temp = 
-                progeOutputDir + DIR_SEP + "vhdl" + DIR_SEP + IMEM_MAU_PKG;
+            string temp =
+                progeOutputDir + DIR_SEP + "vhdl" + DIR_SEP + entityStr + 
+                "_" + IMEM_MAU_PKG;
             if ( (FileSystem::fileExists(temp) 
                   &&FileSystem::fileIsWritable(temp)) 
                  || FileSystem::fileIsCreatable(temp)) {
@@ -567,9 +568,10 @@ int main(int argc, char* argv[]) {
                 createMauPkg(1,compressedInstructionWidth, temp, entityStr);
             }
         } else {//if none exist generate in current folder for both HDLs
-            createMauPkg(0,compressedInstructionWidth, IMEM_MAU_PKG, entityStr);//vhdl
+            createMauPkg(0,compressedInstructionWidth, entityStr + "_" +
+                         IMEM_MAU_PKG, entityStr); //vhdl
             createMauPkg(1,compressedInstructionWidth,
-                entityStr +"_"+ VER_IMEM_MAU_PKG, entityStr);//verilog
+                entityStr + "_" + VER_IMEM_MAU_PKG, entityStr); //verilog
         }
 
         for (std::vector<Binary*>::iterator iter = tpefTable.begin();

@@ -40,6 +40,10 @@
 #include "HDBRegistry.hh"
 #include "StringTools.hh"
 #include "Exception.hh"
+#include "Conversion.hh"
+
+#include <iostream>
+#include <iomanip>
 
 //using namespace TTAProgram;
 using namespace TTAMachine;

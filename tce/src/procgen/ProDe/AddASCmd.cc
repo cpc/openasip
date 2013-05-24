@@ -41,6 +41,7 @@
 #include "ProDe.hh"
 #include "Machine.hh"
 #include "ModelConstants.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -90,7 +91,8 @@ AddASCmd::Do() {
 			 *model->getMachine());
 
 
-    AddressSpaceDialog dialog(parentWindow(), addressSpace);
+    AddressSpaceDialog dialog(parentWindow(), model->getMachine(), 
+                              addressSpace);
 
     if (dialog.ShowModal() == wxID_OK) {
 	model->notifyObservers();

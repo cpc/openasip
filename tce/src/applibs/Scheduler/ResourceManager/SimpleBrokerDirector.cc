@@ -58,6 +58,7 @@
 #include "MoveGuard.hh"
 #include "Move.hh"
 #include "Bus.hh"
+#include "Conversion.hh"
 
 #ifdef DEBUG_RM
 #include <typeinfo>

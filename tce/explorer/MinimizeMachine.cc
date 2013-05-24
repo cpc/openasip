@@ -46,6 +46,8 @@
 #include "DesignSpaceExplorer.hh"
 #include "CostEstimates.hh"
 #include "SimulatorConstants.hh"
+#include "Conversion.hh"
+#include "ObjectState.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

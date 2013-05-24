@@ -298,32 +298,32 @@ BusDialog::setTexts() {
         dynamic_cast<wxListCtrl*>(FindWindow(ID_FU_GUARD_LIST));
 
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_INVERTED);
-    label = fmt.str();
-
-    rfGuardList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 40);
-    fuGuardList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 40);
-
+    string invLabel = fmt.str();
+    
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_NAME);
-    label = fmt.str();
-
-    segmentList->InsertColumn(0, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 280);
-
-    rfGuardList->InsertColumn(1, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 170);
-    fuGuardList->InsertColumn(1, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 170);
-
+    string nameLabel = fmt.str();
+    
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_INDEX);
-    label = fmt.str();
-    rfGuardList->InsertColumn(2, WxConversion::toWxString(label),
-                              wxLIST_FORMAT_LEFT, 70);
-
+    string indexLabel = fmt.str();
+        
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_PORT);
-    label = fmt.str();
-    fuGuardList->InsertColumn(2, WxConversion::toWxString(label),
+    string portLabel = fmt.str();
+
+    segmentList->InsertColumn(0, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 280);
+    
+    rfGuardList->InsertColumn(0, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 170);
+    rfGuardList->InsertColumn(1, WxConversion::toWxString(indexLabel),
+                              wxLIST_FORMAT_LEFT, 70);
+    rfGuardList->InsertColumn(2, WxConversion::toWxString(invLabel),
+                              wxLIST_FORMAT_LEFT, 40);
+    
+    fuGuardList->InsertColumn(0, WxConversion::toWxString(invLabel),
+                              wxLIST_FORMAT_LEFT, 40);
+    fuGuardList->InsertColumn(1, WxConversion::toWxString(nameLabel),
+                              wxLIST_FORMAT_LEFT, 170);
+    fuGuardList->InsertColumn(2, WxConversion::toWxString(portLabel),
                               wxLIST_FORMAT_LEFT, 70);
 }
 
@@ -364,6 +364,46 @@ BusDialog::TransferDataToWindow() {
     return wxWindow::TransferDataToWindow();
 }
 
+/**
+ * Defines how SortItems() does comparison between two items to sort the list.
+ *
+ * Order: names in ascending order. Within same name, index numbers in 
+ * ascending order. Within same name and index number, non-inverted guard 
+ * comes before inverted.
+ */
+int wxCALLBACK 
+ListCompareFunction(long item1, long item2, long WXUNUSED(sortData))
+{
+    // items are set with SetItemData to contain pointers to the rf guards
+    RegisterGuard* rfGuard1 = (RegisterGuard*) item1;
+    RegisterGuard* rfGuard2 = (RegisterGuard*) item2;
+    assert (rfGuard1 != NULL);
+    assert (rfGuard2 != NULL);
+
+    string name1 = rfGuard1->registerFile()->name();
+    int index1 = rfGuard1->registerIndex();
+    bool inverted1 = rfGuard1->isInverted();
+
+    string name2 = rfGuard2->registerFile()->name();
+    int index2 = rfGuard2->registerIndex();
+    bool inverted2 = rfGuard2->isInverted();
+    
+    if (name1 < name2) {
+        return -1;
+    } else if (name1 > name2) {
+        return 1;
+    } else if (index1 < index2) {
+        return -1;
+    } else if (index1 > index2) {
+        return 1;
+    } else if (!inverted1 && inverted2) {
+        return -1;
+    } else if (inverted1 && !inverted2) {
+        return 1;
+    }
+    
+    return 0;
+}
 
 /**
  * Updates the guard lists.
@@ -401,20 +441,22 @@ BusDialog::updateGuardLists() {
                 alwaysTrueGuard_->SetValue(true);
             }
         } else if(rfGuard != NULL) {
-
             // register guard
             int index = registerGuards_.size();
             registerGuards_.push_back(rfGuard);
-            if (rfGuard->isInverted()) {
-                rfGuardList_->InsertItem(index, _T("*"));
-            } else {
-                rfGuardList_->InsertItem(index, _T(" "));
-            }
 
             string name = rfGuard->registerFile()->name();
             int rfIndex = rfGuard->registerIndex();
-            rfGuardList_->SetItem(index, 1, WxConversion::toWxString(name));
-            rfGuardList_->SetItem(index, 2, WxConversion::toWxString(rfIndex));
+            rfGuardList_->InsertItem(index, WxConversion::toWxString(name));
+            rfGuardList_->SetItem(index, 1, WxConversion::toWxString(rfIndex));
+            if (rfGuard->isInverted()) {
+                rfGuardList_->SetItem(index, 2, _T("*"));
+            } else {
+                rfGuardList_->SetItem(index, 2, _T(" "));
+            }
+
+            // bind pointer to the guard as item data for future reference
+            rfGuardList_->SetItemData(index, (long)rfGuard);
         } else if(fuGuard != NULL) {
             // port guard
             int index = portGuards_.size();
@@ -432,8 +474,10 @@ BusDialog::updateGuardLists() {
             fuGuardList_->SetItem(index, 2, WxConversion::toWxString(name));
         }
     }
-}
 
+    // sort guard list with given function, data parameter is not needed
+    rfGuardList_->SortItems(ListCompareFunction, static_cast<long>(0));
+}
 
 /**
  * Updates the segment list control.
@@ -507,7 +551,10 @@ BusDialog::selectedRFGuard() const {
 
     assert (item < int(registerGuards_.size()));
 
-    return registerGuards_[item];
+    long itemData = rfGuardList_->GetItemData(item);
+    RegisterGuard* rfGuard = (RegisterGuard*)itemData;
+    assert (rfGuard != NULL);
+    return rfGuard;
 }
 
 
@@ -873,10 +920,31 @@ BusDialog::onAddRFGuard(wxCommandEvent&) {
  */
 void
 BusDialog::onDeleteRFGuard(wxCommandEvent&) {
-    delete selectedRFGuard();
+    long item = -1;
+
+    // loop selected guards and delete them
+    for (int i = 0; i < rfGuardList_->GetSelectedItemCount(); ++i) {
+        item = rfGuardList_->GetNextItem(
+            item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        
+        assert (item < static_cast<int>(registerGuards_.size()));
+
+        // retrieve item data (guard pointer) that is bound with the item  
+        if (item >= 0) {
+            long itemData = rfGuardList_->GetItemData(item);
+            RegisterGuard* rfGuard = (RegisterGuard*)itemData;
+            if (rfGuard != NULL) {
+                delete rfGuard;
+                rfGuard = NULL;
+            }
+        }
+    }
+    
     updateGuardLists();
     wxListEvent dummy;
-    onRFGuardSelection(dummy);
+    onRFGuardSelection(dummy); 
+    
+    return;
 }
 
 
@@ -909,12 +977,16 @@ BusDialog::onEditRFGuard(wxCommandEvent&) {
 void
 BusDialog::onRFGuardSelection(wxListEvent&) {
     if (rfGuardList_->GetSelectedItemCount() != 1) {
-        FindWindow(ID_DELETE_RF_GUARD)->Disable();
         FindWindow(ID_EDIT_RF_GUARD)->Disable();
-        return;
+    } else {
+        FindWindow(ID_EDIT_RF_GUARD)->Enable();
     }
-    FindWindow(ID_DELETE_RF_GUARD)->Enable();
-    FindWindow(ID_EDIT_RF_GUARD)->Enable();
+
+    if (rfGuardList_->GetSelectedItemCount() < 1) {
+        FindWindow(ID_DELETE_RF_GUARD)->Disable();
+    } else {
+        FindWindow(ID_DELETE_RF_GUARD)->Enable();
+    }
 }
 
 
@@ -1214,7 +1286,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticBoxSizer *item30 = new wxStaticBoxSizer( item31, wxVERTICAL );
     registerGuardSizer_ = item30;
 
-    wxListCtrl *item32 = new wxListCtrl( parent, ID_RF_GUARD_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item32 = new wxListCtrl( parent, ID_RF_GUARD_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );

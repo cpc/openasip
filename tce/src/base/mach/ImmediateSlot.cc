@@ -35,6 +35,7 @@
 #include "ImmediateSlot.hh"
 #include "MOMTextGenerator.hh"
 #include "Machine.hh"
+#include "ObjectState.hh"
 
 using boost::format;
 using std::string;

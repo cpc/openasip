@@ -32,6 +32,7 @@
 
 #include "ImmediateUnit.hh"
 #include "Port.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

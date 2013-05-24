@@ -37,6 +37,7 @@
 #include "Guard.hh"
 #include "RegisterFile.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

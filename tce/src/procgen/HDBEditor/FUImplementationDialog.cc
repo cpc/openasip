@@ -95,16 +95,23 @@ BEGIN_EVENT_TABLE(FUImplementationDialog, wxDialog)
         ID_ARCH_PORT_LIST, FUImplementationDialog::onArchPortSelection)
     EVT_LIST_ITEM_DESELECTED(
         ID_ARCH_PORT_LIST, FUImplementationDialog::onArchPortSelection)
+    EVT_LIST_ITEM_ACTIVATED(
+        ID_ARCH_PORT_LIST, FUImplementationDialog::onArchPortActivation)
 
     EVT_LIST_ITEM_SELECTED(
         ID_EXTERNAL_PORT_LIST, 
         FUImplementationDialog::onExternalPortSelection)
+    EVT_LIST_ITEM_ACTIVATED(
+        ID_EXTERNAL_PORT_LIST, 
+        FUImplementationDialog::onExternalPortActivation)
     EVT_LIST_ITEM_DESELECTED(
         ID_EXTERNAL_PORT_LIST, 
         FUImplementationDialog::onExternalPortSelection)
 
     EVT_LIST_ITEM_SELECTED(
         ID_PARAMETER_LIST, FUImplementationDialog::onParameterSelection)
+    EVT_LIST_ITEM_ACTIVATED(
+        ID_PARAMETER_LIST, FUImplementationDialog::onParameterActivation)
     EVT_LIST_ITEM_DESELECTED(
         ID_PARAMETER_LIST, FUImplementationDialog::onParameterSelection)
 #ifdef ALLOW_OPCODE_EDITING
@@ -394,6 +401,27 @@ FUImplementationDialog::onArchPortSelection(wxListEvent&) {
     }
 }
 
+/**
+ * Event handler for the architecture port list activateion
+ *
+ * Opens a FUPortImplementationdialog for modifying the selected architecure
+ * port.
+ */
+void
+FUImplementationDialog::onArchPortActivation(wxListEvent&) {
+    FUPortImplementation* port = selectedArchPort();
+
+    assert(port != NULL);
+    
+    const BaseFUPort& archPort =
+        *architecture_.port(port->architecturePort());
+
+    FUPortImplementationDialog dialog(this, -1, *port, archPort);
+
+    dialog.ShowModal();
+    update();
+}
+
 
 /**
  * Event handler for the add external port button.
@@ -436,6 +464,24 @@ FUImplementationDialog::onEditExternalPort(wxCommandEvent&) {
     dialog.ShowModal();
     update();
 }
+
+/**
+ * Event handler for the activate external port list item
+ *
+ * Opens a FUExternalPort for modifying the selected external port.
+ */
+void
+FUImplementationDialog::onExternalPortActivation(wxListEvent&) {
+
+    FUExternalPort* port = selectedExternalPort();
+    assert(port != NULL);
+
+    FUExternalPortDialog dialog(this, -1, *port, implementation_);
+
+    dialog.ShowModal();
+    update();
+}
+
 
 
 /**
@@ -537,6 +583,36 @@ FUImplementationDialog::onEditParameter(wxCommandEvent&) {
     update();
 }
 
+/**
+ * Event handler for the parameter list activateion.
+ *
+ * Opens a FUImplementationParamaeterDialog for modifying the selected
+ * parameter.
+ */
+void
+FUImplementationDialog::onParameterActivation(wxListEvent&) {
+
+    FUImplementation::Parameter parameter = selectedParameter();
+    std::string oldName = parameter.name;
+
+    FUImplementationParameterDialog dialog(this, -1, parameter);
+
+    if (dialog.ShowModal() == wxID_OK) {
+        implementation_.removeParameter(oldName);
+        implementation_.addParameter(
+            parameter.name, parameter.type, parameter.value);
+
+        // update external port parameter dependencies if needed
+        for (int i = 0; i < implementation_.externalPortCount(); i++) {
+            HDB::FUExternalPort& port = implementation_.externalPort(i);
+            if (port.unsetParameterDependency(oldName)) {
+                port.setParameterDependency(parameter.name);
+            }
+        }
+    }
+
+    update();
+}
 
 /**
  * Event handler for the delete parameter button.

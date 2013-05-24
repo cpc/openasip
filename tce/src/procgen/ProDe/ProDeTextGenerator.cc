@@ -125,6 +125,7 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     addText(TXT_YES, "yes");
     addText(TXT_NO, "no");
+    addText(TXT_ALL, "all");
 
     // Global control unit dialog
     addText(TXT_GCU_DIALOG_TITLE, "Global Control Unit");
@@ -291,7 +292,10 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     addText(MSG_ERROR_NO_IMMEDIATE_UNITS,
             "There are no immediate units in the machine architecture.\n");
-    
+    addText(MSG_ERROR_ID_EXISTS,
+            "Conflicting address space ID found! Changes to address space "
+            "ID number list were not saved.\n");
+
     addText(MSG_WARN_RES_WITHOUT_USAGES, 
             "Resources without usages found.\n"
             "Removing resource: ");

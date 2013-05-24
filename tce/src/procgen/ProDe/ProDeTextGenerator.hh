@@ -127,6 +127,7 @@ public:
 
         TXT_YES,                        ///< Text 'yes' in lower case.
         TXT_NO,                         ///< Text 'no' in lower case.
+        TXT_ALL,                        ///< Text 'all' in lower case.
 
         TXT_BUTTON_UP,                  ///< Label for up button.
         TXT_BUTTON_DOWN,                ///< Label for down button.
@@ -234,7 +235,8 @@ public:
         MSG_ERROR_UNKNOWN_COMMAND_ID,   ///< Error: Unknown command ID.
         MSG_ERROR_LOADING_FILE,         ///< Error: File loading failed.
         MSG_ERROR_NO_IMMEDIATE_UNITS,   ///< Error: No IUs for a template slot.
-        
+        MSG_ERROR_ID_EXISTS,            ///< Error: Conflicting addr. space ID.
+
         MSG_WARN_RES_WITHOUT_USAGES,    ///< Warning: Resources without usages
 
         MSG_CONFIRM_OPERAND_DELETION,   ///< Confirm: operand deletion.

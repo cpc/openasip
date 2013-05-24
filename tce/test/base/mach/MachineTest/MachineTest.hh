@@ -50,6 +50,7 @@
 #include "ControlUnit.hh"
 #include "InstructionTemplate.hh"
 #include "Exception.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

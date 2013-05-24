@@ -91,6 +91,7 @@
 #include "MathTools.hh"
 #include "DataObject.hh"
 #include "MapTools.hh"
+#include "Conversion.hh"
 
 using namespace CostEstimator;
 using std::cerr;

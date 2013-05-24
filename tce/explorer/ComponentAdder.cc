@@ -41,6 +41,7 @@
 #include "RFPort.hh"
 #include "ComponentImplementationSelector.hh"
 #include "Exception.hh"
+#include "Conversion.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;

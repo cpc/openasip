@@ -54,6 +54,8 @@
 #include "DisassemblyBoolRegister.hh"
 #include "DisassemblyRegister.hh"
 
+#include "Conversion.hh"
+
 #include <wx/listctrl.h>
 
 using std::string;

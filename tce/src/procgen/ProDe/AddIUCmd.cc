@@ -41,6 +41,7 @@
 #include "ErrorDialog.hh"
 #include "ProDe.hh"
 #include "ImmediateUnit.hh"
+#include "Conversion.hh"
 
 using std::string;
 using namespace TTAMachine;

@@ -96,7 +96,7 @@ RFGuardDialog::RFGuardDialog(
     nameChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_RF_NAME));
     indexChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_RF_INDEX));
     invertedBox_ = dynamic_cast<wxCheckBox*>(FindWindow(ID_INVERTED));
-
+    
     invertedBox_->SetValidator(wxGenericValidator(&newInverted_));
     indexChoice_->SetValidator(wxGenericValidator(&newIndex_));
 
@@ -172,6 +172,14 @@ RFGuardDialog::TransferDataToWindow() {
         wxString index = WxConversion::toWxString(i);
         indexChoice_->Append(index);
     }
+    
+    // add choice to create guard for every index
+    if (adding_) {
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        indexChoice_->Append(WxConversion::toWxString(fmtAll.str()));
+    }
+    
     indexChoice_->SetSelection(newIndex_);
 
     // set inverted flag
@@ -196,7 +204,14 @@ RFGuardDialog::onRFChoice(wxCommandEvent&) {
         wxString index = WxConversion::toWxString(i);
         indexChoice_->Append(index);
     }
-
+    
+    // add choice to create guard for every index
+    if (adding_) {
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        indexChoice_->Append(WxConversion::toWxString(fmtAll.str()));
+    }
+    
     if (static_cast<int>(indexChoice_->GetCount()) >= selection) {
         indexChoice_->SetSelection(selection);
     } else {
@@ -229,7 +244,67 @@ void
 RFGuardDialog::onOK(wxCommandEvent&) {
     TransferDataFromWindow();
     try {
-        new RegisterGuard(newInverted_, *selectedRF(), newIndex_, *bus_);
+        // get currently selected index and its string representation
+        int indexSelection = indexChoice_->GetSelection();
+        assert(indexSelection != wxNOT_FOUND);
+        wxString choiceText = indexChoice_->GetString(indexSelection);
+        
+        // get the string that resembles all indices
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format fmtAll = prodeTexts->text(ProDeTextGenerator::TXT_ALL);
+        bool singleGuard = true;
+
+        // check if user has selected all indices
+        if (choiceText.IsSameAs(WxConversion::toWxString(fmtAll.str()))) {
+            singleGuard = false;
+        }
+
+        if (!adding_ || (adding_ && singleGuard)) {
+            // add / edit one guard
+            new RegisterGuard(newInverted_, *selectedRF(), newIndex_, 
+                              *bus_);
+        } else {
+            // add new guard for every index
+
+            string rfNameSel = WxConversion::toString(
+                            nameChoice_->GetStringSelection());
+            
+            // loop all bus guards and mark old guards (if there is any) 
+            // of the selected register file name to be deleted
+            std::vector<RegisterGuard*> toBeDeleted;
+            for (int i = 0; i < bus_->guardCount(); ++i) {
+                Guard* g = bus_->guard(i);
+                RegisterGuard* rfGuard = 
+                    dynamic_cast<RegisterGuard*>(g);
+                
+                if (rfGuard != NULL) {
+                    string rfName = rfGuard->registerFile()->name();
+
+                    // if register file names match
+                    if (rfName.compare(rfNameSel) == 0) {
+                        // if inverted setting is same
+                        if (rfGuard->isInverted() == newInverted_) {
+                            toBeDeleted.push_back(rfGuard);
+                        }
+                    }
+                }
+            }
+
+            // delete old guards
+            for (unsigned int i = 0; i < toBeDeleted.size(); ++i) {
+                if (toBeDeleted.at(i) != NULL) {
+                    delete toBeDeleted.at(i);
+                    toBeDeleted.at(i) = NULL;
+                }
+            }
+
+            // create new guard for every file register's index
+            for (int index = 0; index < selectedRF()->numberOfRegisters(); 
+                 ++index) {
+                new RegisterGuard(newInverted_, *selectedRF(), index, 
+                              *bus_);
+            }
+        }
     } catch (ComponentAlreadyExists& e) {
         ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
         format message =
@@ -239,6 +314,7 @@ RFGuardDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
         return;
     }
+    
     EndModal(wxID_OK);
 }
 

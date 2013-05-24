@@ -45,6 +45,7 @@
 #include "ResourceVector.hh"
 #include "ResourceVectorSet.hh"
 #include "CIStringSet.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

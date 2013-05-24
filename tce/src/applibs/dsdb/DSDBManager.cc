@@ -46,6 +46,7 @@
 #include "DataObject.hh"
 #include "FileSystem.hh"
 #include "MachineConnectivityCheck.hh"
+#include "ObjectState.hh"
 
 using std::pair;
 using std::map;

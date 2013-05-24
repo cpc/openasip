@@ -52,6 +52,7 @@
 #include "TemplateSlot.hh"
 #include "ADFSerializerTextGenerator.hh"
 #include "Environment.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

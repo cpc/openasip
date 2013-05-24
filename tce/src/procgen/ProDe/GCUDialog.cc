@@ -61,6 +61,7 @@
 #include "WarningDialog.hh"
 #include "FUPortDialog.hh"
 #include "SRPortDialog.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

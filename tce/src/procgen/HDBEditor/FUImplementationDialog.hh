@@ -65,16 +65,19 @@ private:
     HDB::FUExternalPort* selectedExternalPort();
     HDB::FUImplementation::Parameter selectedParameter();
 
+    void onArchPortActivation(wxListEvent& event);
     void onArchPortSelection(wxListEvent& event);
     void onAddArchitecturePort(wxCommandEvent& event);
     void onEditArchitecturePort(wxCommandEvent& event);
     void onDeleteArchitecturePort(wxCommandEvent& event);
 
+    void onExternalPortActivation(wxListEvent& event);
     void onExternalPortSelection(wxListEvent& event);
     void onAddExternalPort(wxCommandEvent& event);
     void onEditExternalPort(wxCommandEvent& event);
     void onDeleteExternalPort(wxCommandEvent& event);
 
+    void onParameterActivation(wxListEvent& event);
     void onParameterSelection(wxListEvent& event);
     void onAddParameter(wxCommandEvent& event);
     void onEditParameter(wxCommandEvent& event);

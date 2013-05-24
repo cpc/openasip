@@ -38,6 +38,7 @@
 #include "Guard.hh"
 #include "Machine.hh"
 #include "FUPort.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using namespace TTAMachine;

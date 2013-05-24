@@ -40,6 +40,7 @@
 #include "MOMTextGenerator.hh"
 #include "MachineTestReporter.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using boost::format;

@@ -55,7 +55,7 @@
 #include "Application.hh"
 #include "Procedure.hh"
 #include "MachineResourceModifier.hh"
-
+#include "Conversion.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
