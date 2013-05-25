@@ -13,10 +13,15 @@
 
 #include <cstdlib> // NULL
 #include "TCEMCAsmInfo.hh"
+#include "tce_config.h"
 
 using namespace llvm;
 
+#if (defined LLVM_3_3 || defined LLVM_3_2 || defined LLVM_3_1)
 TCEMCAsmInfo::TCEMCAsmInfo(const Target &, const StringRef &) {
+#else
+TCEMCAsmInfo::TCEMCAsmInfo(const StringRef &) {
+#endif
     AlignmentIsInBytes          = true;
     COMMDirectiveAlignmentIsInBytes = true;
 

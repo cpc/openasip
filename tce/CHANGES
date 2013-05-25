@@ -3,6 +3,7 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.3.
 - Removed the use of llvm-ld (its copy in TCE source tree) for linking bitcode
   libraries. It now uses llvm-link. Beware: it might require your Newlib bitcode 
   libraries to be rebuilt.
@@ -30,6 +31,8 @@ Misc. smaller improvements
   the OPBs against libtce whenever possible to mark the dependency.
 - generatebits: -v (verbose) parameter now prints amount of full instruction
   NOPs and amounts of consecutive 2, 3 and 4+ full instruction NOP groups
+- Support for Boost versions up to 1.53.0 (1.42.0 is the oldest
+  tested version).
 
 Misc. changes
 ------------
