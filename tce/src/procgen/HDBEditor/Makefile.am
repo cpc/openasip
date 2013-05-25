@@ -1,5 +1,3 @@
-CURDIR = $(shell pwd)
-
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
 
@@ -20,7 +18,10 @@ IMPL_TEST_DIR = ${SRC_ROOT_DIR}/applibs/ImplementationTester
 MACH_SIM_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
 OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 
-bin_PROGRAMS = hdbeditor testhdb
+bin_PROGRAMS = testhdb
+if WX
+bin_PROGRAMS += hdbeditor
+endif
 
 hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  AddRFArchitectureCmd.cc \
