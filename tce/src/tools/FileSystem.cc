@@ -742,7 +742,7 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
         std::string temp;
         while (POIt != POEndIt) {
 #if BOOST_FILESYSTEM_VERSION < 3
-            toRelDir.append(*POIt++);
+            temp.append(*POIt++);
 #else
             std::string const tmp = POIt->string();
             POIt++;

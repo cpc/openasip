@@ -64,6 +64,7 @@ public:
     void testToAbsolutePath();
     void testFindFileInSearchPaths();
     void testDirectoryContents();
+    void testRelativeDir();
 
 private:
     /// Existing, writable file name.
@@ -335,5 +336,29 @@ FileSystemTest::testDirectoryContents() {
     TS_ASSERT_THROWS(
         FileSystem::directoryContents("./foobar"), FileNotFound);
 }
+
+/**
+ * Tests converting absolute path to relative path below and above search path.
+ */
+void
+FileSystemTest::testRelativeDir() {
+    const string DS = FileSystem::DIRECTORY_SEPARATOR;
+    const string CURR_WORK_DIR = FileSystem::currentWorkingDir();
+    
+    // find relative path under search path
+    string searchPath = CURR_WORK_DIR;
+    string relPartOfPath = writableFile_;
+    string filePath = CURR_WORK_DIR + DS + relPartOfPath;
+    FileSystem::relativeDir(searchPath, filePath);
+    TS_ASSERT_EQUALS(filePath, relPartOfPath);
+
+    // find relative path above search path
+    searchPath = CURR_WORK_DIR + DS + "data";
+    relPartOfPath = ".." + DS + "FileSystemTest.hh";
+    filePath = CURR_WORK_DIR + DS + "FileSystemTest.hh";
+    FileSystem::relativeDir(searchPath, filePath);
+    TS_ASSERT_EQUALS(filePath, relPartOfPath);
+}
+
 
 #endif
