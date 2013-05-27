@@ -44,6 +44,7 @@
 using std::string;
 using namespace IDF;
 
+const string CURR_WORK_DIR = FileSystem::currentWorkingDir();
 const string DS = FileSystem::DIRECTORY_SEPARATOR;
 const string WORM_IDF = "data" + DS + "worm.idf";
 const string TARGET_IDF = "data" + DS + "new.idf";
@@ -63,6 +64,7 @@ public:
     void tearDown();
     
     void testReadAndWriteState();
+    void testRelativePaths();
     
 private:
 };
@@ -156,6 +158,52 @@ IDFSerializerTest::testReadAndWriteState() {
     TS_ASSERT(machImpl->hasBusImplementation("BUS1"));
     TS_ASSERT(machImpl->hasSocketImplementation("SOCKET1"));
     TS_ASSERT(!machImpl->hasBusImplementation("SOCKET_FOO"));
+    
+    delete implementationState;
+    delete machImpl;
+}
+
+/**
+ * Tests the functionality of forming relative paths out of absolute paths.
+ */
+void
+IDFSerializerTest::testRelativePaths() {
+        
+    IDFSerializer serializer;
+    serializer.setSourceFile(WORM_IDF);
+
+    ObjectState* implementationState = NULL;
+    TS_ASSERT_THROWS_NOTHING(implementationState = serializer.readState());
+
+    MachineImplementation* machImpl = NULL;
+    TS_ASSERT_THROWS_NOTHING(
+        machImpl = new MachineImplementation(implementationState));
+
+    TS_ASSERT(machImpl->hasICDecoderPluginFile());
+    TS_ASSERT(machImpl->hasDecompressorFile());
+    TS_ASSERT(machImpl->hasICDecoderHDB());
+    
+    std::vector<string> searchPaths;
+    searchPaths.push_back(CURR_WORK_DIR);
+        
+    string relPath;
+    string relPluginFile = "data" + DS + "exampleIcDecoderPlugin.so";
+    string relDecompressorFile = "data" + DS + "decompressor.vhdl";
+    string relDecoderHDBFile = "data" + DS + "icdecoderdata.hdb";
+
+    // provide absolute path of every file for relative path search
+
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->icDecoderPluginFile(), relPath);
+    TS_ASSERT_EQUALS(relPath, relPluginFile);
+    
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->decompressorFile(), relPath);
+    TS_ASSERT_EQUALS(relPath, relDecompressorFile);
+    
+    FileSystem::makeRelativePath(
+        searchPaths, machImpl->icDecoderHDB(), relPath);
+    TS_ASSERT_EQUALS(relPath, relDecoderHDBFile);
     
     delete implementationState;
     delete machImpl;

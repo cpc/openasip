@@ -989,6 +989,96 @@ MachineImplementation::saveState() const {
     return state;
 }
 
+/**
+ * Changes file paths in machine implementation to relative file paths 
+ * under provided search paths.
+ * 
+ * @param sPaths Search paths, used for finding relative paths.
+ */
+void
+MachineImplementation::makeFilesRelative(
+    const std::vector<std::string>& sPaths) {
+    
+    // ic&decoder files
+    if (hasICDecoderPluginName()) {
+        if (hasICDecoderPluginFile()) {
+            string filePath = icDecoderPluginFile_;
+            string relPath;
+            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+                icDecoderPluginFile_ = relPath;
+            } 
+        }
+        if (hasICDecoderHDB()) {
+            string filePath = icDecoderHDB_;
+            string relPath;
+            if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+                icDecoderHDB_ = relPath;
+            }
+        }
+    }
+
+    // decompressor file
+    if (hasDecompressorFile()) {
+        string filePath = decompressorFile_;
+        string relPath;
+        if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
+            decompressorFile_ = relPath;
+        }
+    }
+
+    // FU files
+    for (int i = 0; i < fuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = fuImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // RF files
+    for (int i = 0; i < rfImplementationCount(); i++) {
+        UnitImplementationLocation& impl = rfImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // IU files
+    for (int i = 0; i < iuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = iuImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // bus files
+    for (int i = 0; i < busImplementationCount(); i++) {
+        UnitImplementationLocation& impl = busImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+
+    // socket files
+    for (int i = 0; i < socketImplementationCount(); i++) {
+        UnitImplementationLocation& impl = socketImplementation(i);
+        makeHDBPathRelative(sPaths, impl);
+    }
+}
+ 
+/**
+ * Tries to find a relative path for an HDB file and changes it, if one was
+ * found. In case the HDB file path is invalid, the path field is left empty.
+ *
+ * @param searchPaths Search for relative paths is done under these paths.
+ * @param implem Object containing a file path, which points to an HDB file.
+ */
+void
+MachineImplementation::makeHDBPathRelative(
+    const std::vector<std::string>& searchPaths,
+    UnitImplementationLocation& implem) const {
+    
+    try {
+        string filePath = implem.hdbFile();
+        string relPath;
+        if (FileSystem::makeRelativePath(searchPaths, filePath, relPath)) {
+            implem.setHDBFile(relPath);
+        } 
+    } catch (FileNotFound& e) {
+        implem.setHDBFile("");
+    }
+}
 
 /**
  * Finds implementation for the given unit from the given table.

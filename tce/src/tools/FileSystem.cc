@@ -742,7 +742,7 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
         std::string temp;
         while (POIt != POEndIt) {
 #if BOOST_FILESYSTEM_VERSION < 3
-            toRelDir.append(*POIt++);
+            temp.append(*POIt++);
 #else
             std::string const tmp = POIt->string();
             POIt++;
@@ -766,6 +766,51 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     }
 
     return true;
+}
+
+/**
+ * Creates relative path out of given base path if a relative path can be
+ * found under any of the search paths. Example: if base path is
+ * "/usr/foo/bar/x.hdb" and provided search path is "/usr/foo", the
+ * following relative path is formed: "bar/x.hdb".
+ *
+ * @param searchPaths Relative path to base path is searched under these.
+ * @param basePath Path that needs to be changed into a relative path.
+ * @param toRelPath Outputs possibly created relative path.
+ * @return True if a relative path was created out of base path.
+ */
+bool 
+FileSystem::makeRelativePath(
+    const std::vector<std::string>& searchPaths, 
+    const std::string& basePath,
+    std::string& toRelPath) {    
+
+    if (!isAbsolutePath(basePath)) {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < searchPaths.size(); ++i) {
+        string searchPath = searchPaths.at(i);
+        string relativePath = basePath;
+        
+        // try to find a relative path to the base path under search path
+        if (relativeDir(searchPath, relativePath)) {
+            string fullPath = searchPath + DIRECTORY_SEPARATOR + relativePath;       
+            
+            // special case: if provided search path was same as base path
+            if (relativePath == "") {
+                toRelPath = relativePath;
+                return true;
+            } else if (isRelativePath(relativePath) && fileExists(fullPath)) {
+                if (fullPath.length() == basePath.length()) {
+                    toRelPath = relativePath;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 /**

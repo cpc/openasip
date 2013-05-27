@@ -355,7 +355,7 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 # Check boost libraries
 #
 ######################################
-AX_BOOST_BASE([1.42.0])
+AX_BOOST_BASE([1.41.0])
 if test -z "$BOOST_LDFLAGS"
 then
 AC_MSG_ERROR(
