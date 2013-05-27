@@ -635,7 +635,7 @@ class TestProGeAndPIG(TCETestCase):
         self.assertEquals(stderr, '')
         self.assertEquals(code, 0)        
         self.assertEquals('', stderr.strip())
-        self.assert_(os.path.exists('proc_vhdl/vhdl/imem_mau_pkg.vhdl'))
+        self.assert_(os.path.exists('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl'))
         self.assert_(os.path.exists('test_data.img'))
         self.assert_(os.path.exists('test.img'))        
         # Probably due to Bug http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=114
@@ -643,7 +643,7 @@ class TestProGeAndPIG(TCETestCase):
         #self.assertEquals(os.path.getsize('test_data.img'), 0) # No global data defs
         self.assertTrue(os.path.getsize('test.img') > 0)
         self.assertEquals(len(open('test.img','r').readlines()[0].strip()), 6)
-        self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/imem_mau_pkg.vhdl', 'r').read())
+        self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl', 'r').read())
 
 opencl_example_kernel = \
 r"""

@@ -40,6 +40,7 @@
 #include <boost/regex.hpp>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
+#include <boost/version.hpp>
 
 #include "Binary.hh"
 #include "BinaryReader.hh"
@@ -907,7 +908,13 @@ timeoutThread(unsigned int timeout, SimulatorFrontend* simFE) {
     TTASimulationController* simCon = simFE->simCon_;
     boost::xtime xt; 
     boost::xtime xtPoll; 
+#if BOOST_VERSION < 105000
     boost::xtime_get(&xt, boost::TIME_UTC);
+#else
+    /* TIME_UTC was replaced by TIME_UTC_ in boost 1.50, to avoid
+     * clashing with a similarly named C11 macro. */
+    boost::xtime_get(&xt, boost::TIME_UTC_);
+#endif
     unsigned int pollTime = 5; // poll time in seconds
     xtPoll = xt;
     xt.sec += timeout; 

@@ -13,7 +13,7 @@ Library               supported versions                   library license
 Xerces-C++            2.3.0+                               Apache v2.0
 wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
-Boost                 1.33-1.49.0                          very permissive
+Boost                 1.42.0-1.53.0                        very permissive
 sqlite3               3.0.0+                               public domain
 LLVM                  3.2, 3.1                             LLVM Release License
 Editline              2.9                                  BSD-style

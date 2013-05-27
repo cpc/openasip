@@ -1,6 +1,7 @@
 unsigned int chroma_in0_32b = 0xF1234567;
 unsigned int result, result2;
 
+__attribute__((noinline))
 int main() {
 
   unsigned char A1_Cb, A1_Cr;

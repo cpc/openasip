@@ -15,6 +15,7 @@
 #define TCEMCASMINFO_H
 
 #include <llvm/MC/MCAsmInfo.h>
+#include "tce_config.h"
 
 namespace llvm {
   class Target;
@@ -22,7 +23,11 @@ namespace llvm {
   
   class TCEMCAsmInfo : public MCAsmInfo {
   public:    
-    explicit TCEMCAsmInfo(const Target &T, const StringRef &TT);
+#if (defined LLVM_3_3 || defined LLVM_3_2 || defined LLVM_3_1)
+    explicit TCEMCAsmInfo(const Target &, const StringRef &);
+#else
+    explicit TCEMCAsmInfo(const StringRef &);
+#endif
   };
 
 } // namespace llvm
