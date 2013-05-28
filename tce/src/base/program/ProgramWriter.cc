@@ -724,11 +724,11 @@ ProgramWriter::createBinary() const
         (prog_.startAddress().location() < adfInstrASpace->start() ||
         prog_.startAddress().location() + prog_.instructionCount() > 
         adfInstrASpace->end())) {
-        std::cerr << "Warning: The program is out of bounds of the imem." 
-            " This will not work on real hardware, and may also cause the"
-            " compiler to fail. "
+        abortWithError(
+        "Error: The program is out of bounds of the imem." 
             " Please increase the instruction address space size in adf or "
-            " make the program smaller. " << std::endl;
+        " make the program smaller.(using smaller unroll threshold may help) "
+        " to decrease program size");
     }
 
     aSpaces->addElement(undefASpace);
