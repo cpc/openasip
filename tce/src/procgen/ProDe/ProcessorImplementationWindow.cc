@@ -690,6 +690,11 @@ ProcessorImplementationWindow::doSaveIDF() {
     if (dialog.ShowModal() == wxID_OK) {
         string path = WxConversion::toString(dialog.GetPath());
         try {
+            // Make local file paths relative
+            std::vector<string> searchPaths;
+            searchPaths.push_back(FileSystem::currentWorkingDir());
+            impl_.makeFilesRelative(searchPaths);
+ 
             IDFSerializer serializer;
             serializer.setDestinationFile(path);
             serializer.writeMachineImplementation(impl_);
