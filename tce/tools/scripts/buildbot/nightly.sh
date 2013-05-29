@@ -35,6 +35,7 @@ function start_compiletest {
     export CC="ccache gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
+    export LDFLAGS="-L/usr/local/lib"
 
     ./autogen.sh >& bb_autogen.log
 
