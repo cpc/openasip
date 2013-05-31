@@ -62,6 +62,7 @@ using namespace TTAMachine;
 using namespace ProGe;
 using std::vector;
 using std::string;
+using std::set;
 
 BEGIN_EVENT_TABLE(ProcessorImplementationWindow, wxDialog)
     EVT_BUTTON(ID_SELECT_RF_IMPL, ProcessorImplementationWindow::onSelectRFImplementation)
@@ -255,20 +256,31 @@ ProcessorImplementationWindow::TransferDataToWindow() {
             iuList_->SetItem(i, 2, WxConversion::toWxString(hdb));
         }
     }
-
+    
+    
     if (impl_.hasICDecoderPluginFile()) {
-        dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_FILE))->
-            SetValue(WxConversion::toWxString(impl_.icDecoderPluginFile()));
+        try {
+            dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_FILE))->
+                SetValue(WxConversion::toWxString(impl_.icDecoderPluginFile()));
+        } catch (FileNotFound& e) {
+            dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_FILE))->
+                SetValue(WxConversion::toWxString("File not found"));
+        }
     }
-
+    
     if (impl_.hasICDecoderPluginName()) {
         dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_NAME))->
             SetValue(WxConversion::toWxString(impl_.icDecoderPluginName()));
     }
     
     if (impl_.hasICDecoderHDB()) {
-        dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_HDB_FILE))->
-            SetValue(WxConversion::toWxString(impl_.icDecoderHDB()));
+        try {
+            dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_HDB_FILE))->
+                SetValue(WxConversion::toWxString(impl_.icDecoderHDB()));
+        } catch (FileNotFound& e) {
+            dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_HDB_FILE))->
+                SetValue(WxConversion::toWxString("File not found"));
+        }
     }
     
 
@@ -305,7 +317,7 @@ ProcessorImplementationWindow::TransferDataToWindow() {
         } catch (FileNotFound& e) {
             wxString message =
                 _T("Unable to set decompressor block file:\n");
-
+            
             WarningDialog dialog(this, message);
             dialog.ShowModal();
         }
@@ -627,12 +639,21 @@ ProcessorImplementationWindow::onLoadIDF(wxCommandEvent&) {
             IDFValidator::removeUnknownImplementations(impl_, machine_);
         }
 
-        if (impl_.hasICDecoderPluginName() &&
-            impl_.hasICDecoderPluginFile()) {
+        // check and possibly correct file paths defined in IDF
+        checkImplementationFiles();
 
-            loadICDecoderPlugin(
-                impl_.icDecoderPluginName(),
-                impl_.icDecoderPluginFile());
+        try {
+            if (impl_.hasICDecoderPluginName() &&
+                impl_.hasICDecoderPluginFile()) {
+                
+                loadICDecoderPlugin(
+                    impl_.icDecoderPluginName(),
+                    impl_.icDecoderPluginFile());
+            }
+        } catch (Exception& e) {
+            wxString msg = _T("Warning: could not load IC decoder plugin!");
+            WarningDialog warningDialog(this, msg);
+            warningDialog.ShowModal();
         }
 
         TransferDataToWindow();
@@ -693,7 +714,7 @@ ProcessorImplementationWindow::doSaveIDF() {
             // Make local file paths relative
             std::vector<string> searchPaths;
             searchPaths.push_back(FileSystem::currentWorkingDir());
-            impl_.makeFilesRelative(searchPaths);
+            impl_.makeImplFilesRelative(searchPaths);
  
             IDFSerializer serializer;
             serializer.setDestinationFile(path);
@@ -892,7 +913,11 @@ ProcessorImplementationWindow::loadICDecoderPlugin(
         dialog.ShowModal();
         return;
     }
-    impl_.setICDecoderPluginFile(pluginFile);
+
+    try {
+        impl_.setICDecoderPluginFile(pluginFile);
+    } catch (FileNotFound& e) {
+    }
     impl_.setICDecoderPluginName(pluginName);
     assert(plugin_ != NULL);
     return;
@@ -920,6 +945,45 @@ ProcessorImplementationWindow::onGenerateProcessor(wxCommandEvent&) {
 
     GenerateProcessorDialog dialog(this, machine_, impl_);
     dialog.ShowModal();
+}
+
+/**
+ * Checks if every file path defined in IDF is correct.
+ *
+ * If one or more file paths are invalid, warning dialog is showed to user.
+ */
+void
+ProcessorImplementationWindow::checkImplementationFiles() {
+    unsigned int missingFileCount;
+    unsigned int alternativesCount;
+    
+    // check implementation files, and try to fix paths for unresolved files
+    if (impl_.checkImplFiles(missingFileCount, alternativesCount)) {
+        // if all the files were located, exit method
+        return;
+    }
+
+    // every file was not found, get missing files and possible alternatives
+    wxString missFileCountStr = WxConversion::toWxString(missingFileCount);
+    wxString altFileCountStr = WxConversion::toWxString(alternativesCount);
+    
+    // form message for the dialog
+    wxString message = missFileCountStr;
+    message.Append(_T(" file(s) defined in IDF couldn't be located from"));
+    message.Append(_T(" absolute paths or under working directory.\n"));
+    message.Append(_T("\n"));
+
+    if (alternativesCount > 0) {
+        message.Append(altFileCountStr);
+        message.Append(_T(" of them were replaced with file(s) found under"));
+        message.Append(_T(" the default search paths."));
+    } else {
+        message.Append(_T("Any alternative file paths couldn't be"));
+        message.Append(_T(" located for the missing files."));
+    }
+    
+    WarningDialog warningDialog(this, message);
+    warningDialog.ShowModal();
 }
 
 

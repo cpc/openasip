@@ -96,6 +96,8 @@ private:
     void onGenerateProcessor(wxCommandEvent& event);
     void doSaveIDF();
 
+    void checkImplementationFiles();
+
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     wxSizer* functionUnitPage(
         wxWindow* parent, bool call_fit, bool set_sizer = true);

@@ -194,10 +194,18 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
         return;
     } else {
-        plugin = loadICDecoderGeneratorPlugin(
-            impl_.icDecoderPluginFile(), impl_.icDecoderPluginName());
+        try {
+            plugin = loadICDecoderGeneratorPlugin(
+                impl_.icDecoderPluginFile(), impl_.icDecoderPluginName());
 
-        if (plugin == NULL) return;
+            if (plugin == NULL) return;
+        } catch (FileNotFound& e) {
+            wxString message = _T("Error:\n");
+            message.Append(WxConversion::toWxString(e.errorMessage()));
+            ErrorDialog dialog(this, message);
+            dialog.ShowModal();
+            return;
+        }
     }
 
     // Set plugin parameters.

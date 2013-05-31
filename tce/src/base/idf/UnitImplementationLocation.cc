@@ -111,6 +111,15 @@ UnitImplementationLocation::hdbFile() const
     return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
 
+/**
+ * Returns the path to the file, which was defined in IDF.
+ *
+ * @return Path to the HDB in IDF file.
+ */
+std::string 
+UnitImplementationLocation::hdbFileOriginal() const {
+    return hdbFile_;
+}
 
 /**
  * Returns the entry ID in HDB.
