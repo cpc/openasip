@@ -508,7 +508,12 @@ FileSystem::findFileInSearchPaths(
     string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     if (isAbsolutePath(file)) {
-        return file;
+        if (fileExists(file)) {
+            return file;
+        } else {
+            string errorMsg = "File " + file + " not found.";
+            throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
+        }
     }
 
     for (vector<string>::const_iterator iter = searchPaths.begin();
@@ -769,10 +774,11 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
 }
 
 /**
- * Creates relative path out of given base path if a relative path can be
- * found under any of the search paths. Example: if base path is
- * "/usr/foo/bar/x.hdb" and provided search path is "/usr/foo", the
- * following relative path is formed: "bar/x.hdb".
+ * Creates relative path out of provided base path.
+ *
+ * A relative path is returned if it is found under any of the search paths.
+ * Example: if base path is "/usr/foo/bar/x.hdb" and provided search path 
+ * is "/usr/foo", the following relative path is formed: "bar/x.hdb".
  *
  * @param searchPaths Relative path to base path is searched under these.
  * @param basePath Path that needs to be changed into a relative path.

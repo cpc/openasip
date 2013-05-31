@@ -731,6 +731,7 @@ std::vector<std::string>
 Environment::decompressorPaths() {
     vector<string> paths;
     paths.push_back(FileSystem::currentWorkingDir());
+    paths.push_back(FileSystem::currentWorkingDir() + DS + "data");
     return paths;
 }
 

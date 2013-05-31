@@ -158,8 +158,11 @@ public:
     loadFromIDF(const std::string& idfFileName)
         throw (Exception);
 
-    void makeFilesRelative(const std::vector<std::string>& sPaths);
-
+    void makeImplFilesRelative(const std::vector<std::string>& sPaths);    
+    bool checkImplFiles(
+        unsigned int& missingFiles,
+        unsigned int& alternativeFiles);
+    
     /// ObjectState name for machine implementation.
     static const std::string OSNAME_MACHINE_IMPLEMENTATION;
     /// ObjectState attribute name for the source IDF.
@@ -201,6 +204,10 @@ private:
         std::string value;
     };
 
+    bool checkImplFile(
+        const std::vector<std::string>& primarySearchPaths,
+        const std::vector<std::string>& secondarySearchPaths,
+        std::string& file);
     void makeHDBPathRelative(
         const std::vector<std::string>& searchPaths,
         UnitImplementationLocation& implem) const;
@@ -236,6 +243,12 @@ private:
     std::string sourceIDF_;
     /// IC/decoder plugin parameters.
     std::vector<Parameter> icDecoderParameters_;
+
+    /// Implementation files defined in IDF which cannot be located.
+    std::vector<std::string> missingFiles_;
+    /// Possible alternative file paths for missing implementation files.
+    std::vector<std::string> alternativeFiles_;
+
 };
 }
 

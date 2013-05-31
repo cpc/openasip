@@ -65,6 +65,7 @@ public:
     
     void testReadAndWriteState();
     void testRelativePaths();
+    void testCheckImplFiles();
     
 private:
 };
@@ -208,5 +209,41 @@ IDFSerializerTest::testRelativePaths() {
     delete implementationState;
     delete machImpl;
 }
+
+/**
+ * Tests that checking of IDF files works.
+ */
+void
+IDFSerializerTest::testCheckImplFiles() {
+    IDFSerializer serializer;
+    serializer.setSourceFile(WORM_IDF);
+
+    ObjectState* implementationState = NULL;
+    TS_ASSERT_THROWS_NOTHING(implementationState = serializer.readState());
+
+    MachineImplementation* machImpl = NULL;
+    TS_ASSERT_THROWS_NOTHING(
+        machImpl = new MachineImplementation(implementationState));
+
+    unsigned int missingFiles;
+    unsigned int alternativeFiles;
+
+    // checking should fail, because there are 4 files defined in the IDF 
+    // file, of which one doesn't exist and 3 of them exist but they are 
+    // under /data and the method is looking for them from current working dir
+    TS_ASSERT(!machImpl->checkImplFiles(missingFiles, alternativeFiles));
+    
+    // 4 different file paths are missing
+    TS_ASSERT_EQUALS(missingFiles, 4);
+
+    // method should be able to locate 3 missing files under /data, because
+    // default search paths provide CURR_WORK_DIR/data as one of the search
+    // paths, the nonexisting file naturally cannot be located
+    TS_ASSERT_EQUALS(alternativeFiles, 3);
+
+    delete implementationState;
+    delete machImpl;
+}
+
 
 #endif
