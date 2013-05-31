@@ -234,12 +234,12 @@ IDFSerializerTest::testCheckImplFiles() {
     TS_ASSERT(!machImpl->checkImplFiles(missingFiles, alternativeFiles));
     
     // 4 different file paths are missing
-    TS_ASSERT_EQUALS(missingFiles, 4);
+    TS_ASSERT_EQUALS(missingFiles, (unsigned)4);
 
     // method should be able to locate 3 missing files under /data, because
     // default search paths provide CURR_WORK_DIR/data as one of the search
     // paths, the nonexisting file naturally cannot be located
-    TS_ASSERT_EQUALS(alternativeFiles, 3);
+    TS_ASSERT_EQUALS(alternativeFiles, (unsigned)3);
 
     delete implementationState;
     delete machImpl;
