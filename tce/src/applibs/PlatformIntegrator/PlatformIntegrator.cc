@@ -206,7 +206,7 @@ PlatformIntegrator::progeOutputHdlFiles(
     
     try {
         bool foundImemMau = false;
-        TCEString imemMau = "imem_mau_pkg.vhdl";
+        TCEString imemMau = coreEntityName() + "_imem_mau_pkg.vhdl";
 
         TCEString vhdlPath =
             progeOutputDir_ + FileSystem::DIRECTORY_SEPARATOR + "vhdl";
