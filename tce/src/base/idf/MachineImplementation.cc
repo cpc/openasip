@@ -990,13 +990,14 @@ MachineImplementation::saveState() const {
 }
 
 /**
- * Changes file paths in machine implementation to relative file paths 
- * under provided search paths.
+ * Changes file paths in machine implementation to relative file paths.
+ *
+ * Tries to find relative file paths under provided search paths.
  * 
  * @param sPaths Search paths, used for finding relative paths.
  */
 void
-MachineImplementation::makeFilesRelative(
+MachineImplementation::makeImplFilesRelative(
     const std::vector<std::string>& sPaths) {
     
     // ic&decoder files
@@ -1057,9 +1058,209 @@ MachineImplementation::makeFilesRelative(
     }
 }
  
+
 /**
- * Tries to find a relative path for an HDB file and changes it, if one was
- * found. In case the HDB file path is invalid, the path field is left empty.
+ * Checks that every file defined in IDF exists.
+ *
+ * If a file can't be found under current working directory or absolute
+ * path, it is searched under default search paths. If the file is found
+ * under a default search path, the original file path will be replaced with
+ * the found path.
+ * 
+ * @param missingFiles Amount of missing files is returned using this.
+ * @param alternativeFiles Amount of alt. files found for missing files.
+ * @return True if every file was found locally or from absolute paths.
+ */
+bool
+MachineImplementation::checkImplFiles(
+    unsigned int& missingFiles,
+    unsigned int& alternativeFiles) {
+    
+    missingFiles_.clear();
+    alternativeFiles_.clear();
+    
+    // local search paths (current working directory)
+    vector<string> localPaths;
+    localPaths.push_back(FileSystem::currentWorkingDir());
+    
+    // default search paths for different implementation files
+    vector<string> defSearchPaths;
+        
+    // file that will be searched under search paths
+    string filePath;
+
+    // ic&decoder files
+    if (hasICDecoderPluginName()) {
+        if (hasICDecoderPluginFile()) {
+            defSearchPaths = Environment::icDecoderPluginPaths();
+            filePath = icDecoderPluginFile_;
+            
+            // try to find file under local or default search paths
+            if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+                // found under default search paths, fix the path
+                icDecoderPluginFile_ = filePath;
+            }
+        }
+      
+        if (hasICDecoderHDB()) {
+            defSearchPaths = Environment::hdbPaths();
+            filePath = icDecoderHDB_;
+
+            if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+                icDecoderHDB_ = filePath;
+            }
+        }
+    }
+    
+    // decompressor file
+    if (hasDecompressorFile()) {
+        defSearchPaths = Environment::decompressorPaths();
+        filePath = decompressorFile_;
+
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            decompressorFile_ = filePath;
+        }
+    }
+
+    // HDB files
+    defSearchPaths = Environment::hdbPaths();
+
+    // FU files
+    for (int i = 0; i < fuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = fuImplementation(i);
+        filePath = impl.hdbFileOriginal();
+
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            impl.setHDBFile(filePath);
+        }
+    }
+    
+    // RF files
+    for (int i = 0; i < rfImplementationCount(); i++) {
+        UnitImplementationLocation& impl = rfImplementation(i);
+        filePath = impl.hdbFileOriginal();
+        
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            impl.setHDBFile(filePath);
+        }
+    }
+
+    // IU files
+    for (int i = 0; i < iuImplementationCount(); i++) {
+        UnitImplementationLocation& impl = iuImplementation(i);
+        filePath = impl.hdbFileOriginal();
+
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            impl.setHDBFile(filePath);
+        }
+    }
+
+    // bus files
+    for (int i = 0; i < busImplementationCount(); i++) {
+        UnitImplementationLocation& impl = busImplementation(i);
+        filePath = impl.hdbFileOriginal();
+
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            impl.setHDBFile(filePath);
+        }
+    }
+
+    // socket files
+    for (int i = 0; i < socketImplementationCount(); i++) {
+        UnitImplementationLocation& impl = socketImplementation(i);
+        filePath = impl.hdbFileOriginal();
+
+        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            impl.setHDBFile(filePath);
+        }
+    }
+
+    // check amount of missing files and alternative files that were found
+
+    missingFiles = missingFiles_.size();    
+    alternativeFiles = 0;
+    for (unsigned int i = 0; i < alternativeFiles_.size(); ++i) {
+        if (alternativeFiles_.at(i) != "") {
+            ++alternativeFiles;
+        }
+    }
+    
+    // were all the files found under local paths or from absolute paths?
+    if (missingFiles_.size() == 0) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Tries to find a file under provided search paths.
+ *
+ * If the file cannot be found under primary search paths, it is searched
+ * under secondary paths. If an alternative file path is found under 
+ * secondary paths, it is returned using the string reference parameter.
+ * 
+ * @param primarySearchPaths Paths where the file is searched first.
+ * @param secondarySearchPaths Paths where the file is searched after.
+ * @param file Path to file, might be relative of absolute. The alternative
+ *             file path is returned in this.
+ * @return True if alternative path was placed in the reference parameter.
+ */
+bool
+MachineImplementation::checkImplFile(
+    const std::vector<std::string>& primarySearchPaths,
+    const std::vector<std::string>& secondarySearchPaths,
+    std::string& file) {
+
+    if (file == "") {
+        return false;
+    }
+
+    // return if the file path has already been processed as a missing file
+    for (unsigned int i = 0; i < missingFiles_.size(); ++i) {
+        if (file.compare(missingFiles_.at(i)) == 0) {
+            if (alternativeFiles_.at(i) != "") {
+                file = alternativeFiles_.at(i);
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    // first search: primary search paths
+    try {
+        FileSystem::findFileInSearchPaths(primarySearchPaths, file);
+        return false;
+    } catch (Exception& e) {
+        // file was not found
+    }
+
+    // second search: secondary search paths (with the plain file name)
+    try {
+        string alternativePath = FileSystem::findFileInSearchPaths(
+            secondarySearchPaths, FileSystem::fileOfPath(file));
+
+        // file was not found, but alternative file path was found
+        missingFiles_.push_back(file);
+        alternativeFiles_.push_back(alternativePath);
+
+        file = alternativePath;
+        return true;
+    } catch (Exception& e) {
+        // file was not found, and no alternative path was found either
+        missingFiles_.push_back(file);
+        alternativeFiles_.push_back("");
+        return false;
+    }
+}
+
+/**
+ * Tries to find a relative path for an HDB file. 
+ *
+ * If a relative path is found under any of the search paths, the first
+ * match is saved. In case the HDB file path is invalid, the path field is 
+ * left empty.
  *
  * @param searchPaths Search for relative paths is done under these paths.
  * @param implem Object containing a file path, which points to an HDB file.

@@ -58,6 +58,10 @@ Usability features
 - ProDe: When .idf is saved to a file, all file paths (.hdb, .vhdl, etc.)
   pointing under the current working directory are made relative paths,
   meaning that the absolute path above current working directory is cut off.
+- ProDe: When loading an IDF file, implementation files are checked if they
+  exist under absolute path or current working dir. Files that are not found,
+  are searched under default search paths and if a file is found from there,
+  the file path is fixed to that location. User is prompted about this.
 
 Bugfixes
 --------

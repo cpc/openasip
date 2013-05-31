@@ -237,7 +237,8 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*cxxtest/Root.cpp:16:0.*|\
 .*<command-line>:.warning.*|\
 .*DataDependenceGraphBuilder.hh:38,|\
-.*ignoring.\#pragma.GCC.diagnostic.*"
+.*ignoring.\#pragma.GCC.diagnostic.*|\
+distcc.*Warning.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\

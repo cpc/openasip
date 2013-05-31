@@ -57,6 +57,7 @@ public:
 
     virtual std::string hdbFile() const
         throw (FileNotFound);
+    std::string hdbFileOriginal() const;
     virtual int id() const;
     virtual std::string unitName() const;
     virtual void setParent(MachineImplementation& parent)
