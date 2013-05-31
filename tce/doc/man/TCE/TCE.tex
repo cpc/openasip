@@ -1913,9 +1913,10 @@ lines in that file:
 
 Accordingly, the file \file{crc\_with\_custom\_op\_data.img} contains the data
 memory image of the processor. Program Image Generator also created file
-\file{proge-output/vhdl/imem\_mau\_pkg.vhdl} which contains the 
+\file{proge-output/vhdl/tta0\_imem\_mau\_pkg.vhdl} which contains the 
 width of the instruction memory (each designed TTA can have a different 
-instruction width).
+instruction width). The \_imem\_mau\_pkg.vhdl file is appended with the top
+level entity name, which in this case is ``tta0''.
 
 \paragraph{Simulation and verification}
 
