@@ -338,6 +338,54 @@ FileSystem::setFileExecutable(const std::string fileName) {
 }
 
 /**
+ * Returns last modification time of a file.
+ *
+ * If last modification time can't be resolved, std::time_t(-1) is returned.
+ *
+ * @param filePath Path to the file.
+ * @return Time of the last modification to the file.
+ */
+std::time_t
+FileSystem::lastModificationTime(const std::string& filePath) {
+    if (!isAbsolutePath(filePath) || !fileExists(filePath)) {
+        return std::time_t(-1);
+    }
+    
+    std::time_t lastModTime;
+    try {
+        lastModTime = boost::filesystem::last_write_time(filePath);
+    } catch (...) {
+        lastModTime = std::time_t(-1);
+    }
+    
+    return lastModTime;
+}
+
+/**
+ * Returns current size of the file in bytes.
+ *
+ * If file size can't be resolved, static_cast<uintmax_t>(-1) is returned.
+ *
+ * @param filePath Path to the file.
+ * @return Size of the file in bytes.
+ */
+uintmax_t
+FileSystem::sizeInBytes(const std::string& filePath) {
+    if (!isAbsolutePath(filePath) || !fileExists(filePath)) {
+        return static_cast<uintmax_t>(-1);
+    }
+
+    uintmax_t fileSize;
+    try {
+        fileSize = boost::filesystem::file_size(filePath);
+    } catch (...) {
+        fileSize = static_cast<uintmax_t>(-1);
+    }
+    
+    return fileSize;
+}
+
+/**
  * Creates a directory if it doesn't already exist.
  *
  * All non-existing directories in the path are created.

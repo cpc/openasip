@@ -148,6 +148,9 @@ HDBRegistry::hdbCount() {
 void
 HDBRegistry::loadFromSearchPaths() {
 
+    // check every HDB path exists, and if doesn't, remove from registry
+    removeDeadHDBPaths();
+
     const std::vector<std::string> hdbPaths = Environment::hdbPaths();
     std::vector<std::string>::const_iterator hdbIter = hdbPaths.begin();
     for(; hdbIter != hdbPaths.end(); hdbIter++) {
@@ -261,5 +264,21 @@ HDBRegistry::hdbErrorMessage(unsigned int index)
     }
     return errorMessages_[index];
 }    
+
+/**
+ * Removes nonexistent HDB files from registry.
+ */
+void
+HDBRegistry::removeDeadHDBPaths() {
+    
+    std::map<std::string, CachedHDBManager*>::iterator it;
+    for (it = registry_.begin(); it != registry_.end(); ) {
+        if (!FileSystem::fileExists(it->first)) {
+            registry_.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+}
 
 }

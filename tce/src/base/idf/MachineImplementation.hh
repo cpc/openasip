@@ -160,8 +160,8 @@ public:
 
     void makeImplFilesRelative(const std::vector<std::string>& sPaths);    
     bool checkImplFiles(
-        unsigned int& missingFiles,
-        unsigned int& alternativeFiles);
+        size_t& missingFiles,
+        size_t& alternativeFiles);
     
     /// ObjectState name for machine implementation.
     static const std::string OSNAME_MACHINE_IMPLEMENTATION;

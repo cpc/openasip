@@ -225,8 +225,8 @@ IDFSerializerTest::testCheckImplFiles() {
     TS_ASSERT_THROWS_NOTHING(
         machImpl = new MachineImplementation(implementationState));
 
-    unsigned int missingFiles;
-    unsigned int alternativeFiles;
+    size_t missingFiles;
+    size_t alternativeFiles;
 
     // checking should fail, because there are 4 files defined in the IDF 
     // file, of which one doesn't exist and 3 of them exist but they are 

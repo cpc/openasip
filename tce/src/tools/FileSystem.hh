@@ -101,6 +101,10 @@ public:
 
     // file permission changing functions 
     static bool setFileExecutable(const std::string fileName);
+
+    // file detail functions
+    static std::time_t lastModificationTime(const std::string& filePath);
+    static uintmax_t sizeInBytes(const std::string& filePath);
     
     // should this be moved to Application instead?
     static bool runShellCommand(const std::string command);

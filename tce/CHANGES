@@ -62,6 +62,8 @@ Usability features
   exist under absolute path or current working dir. Files that are not found,
   are searched under default search paths and if a file is found from there,
   the file path is fixed to that location. User is prompted about this.
+- ProDe: Cached HDB files are now monitored for changes, and they update 
+  correctly to the list of FUs/RFs that can be added from HDB. 
 
 Bugfixes
 --------

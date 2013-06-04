@@ -58,6 +58,7 @@ public:
     std::string hdbPath(unsigned int index) throw (OutOfRange);
     int hdbErrorCount();
     std::string hdbErrorMessage(unsigned int index) throw (OutOfRange);
+    void removeDeadHDBPaths();
 
 private:
     /// HDB registry must be created with instance() method.
