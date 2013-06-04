@@ -911,7 +911,7 @@ close $cycle_file
             allPassed = allPassed and srcCompileOk
 
             if srcCompileOk == False:
-                print ("Source compilation failed.")
+                self.testFailed("Source compilation failed.")
                 os.chdir(self.oldDir)
                 return False
             else:
@@ -1255,6 +1255,7 @@ def main():
             sys.stdout.seek(0)
             sys.__stdout__.write(sys.stdout.read())
             sys.stdout = sys.__stdout__
+            sys.exit(1)
             
     except TestBenchException, e:
         print "Error while running tests: " + e.getMsg()
