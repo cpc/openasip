@@ -62,7 +62,6 @@ using namespace TTAMachine;
 using namespace ProGe;
 using std::vector;
 using std::string;
-using std::set;
 
 BEGIN_EVENT_TABLE(ProcessorImplementationWindow, wxDialog)
     EVT_BUTTON(ID_SELECT_RF_IMPL, ProcessorImplementationWindow::onSelectRFImplementation)
@@ -698,6 +697,12 @@ ProcessorImplementationWindow::doSaveIDF() {
         defaultFile = doc->GetFilename();
         defaultFile.erase(defaultFile.rfind('.'));
         defaultFile += _T(".idf");
+
+        // set default save location to same where the .adf file is
+        string absolutePathToADF = FileSystem::absolutePathOf(
+            WxConversion::toString(defaultFile));
+        defaultDir = WxConversion::toWxString(
+            FileSystem::directoryOfPath(absolutePathToADF));
     } else {
         defaultFile = _T(".idf");
     }
@@ -950,12 +955,12 @@ ProcessorImplementationWindow::onGenerateProcessor(wxCommandEvent&) {
 /**
  * Checks if every file path defined in IDF is correct.
  *
- * If one or more file paths are invalid, warning dialog is showed to user.
+ * If one or more file paths are invalid, warning dialog is shown to user.
  */
 void
 ProcessorImplementationWindow::checkImplementationFiles() {
-    unsigned int missingFileCount;
-    unsigned int alternativesCount;
+    size_t missingFileCount;
+    size_t alternativesCount;
     
     // check implementation files, and try to fix paths for unresolved files
     if (impl_.checkImplFiles(missingFileCount, alternativesCount)) {
@@ -964,8 +969,10 @@ ProcessorImplementationWindow::checkImplementationFiles() {
     }
 
     // every file was not found, get missing files and possible alternatives
-    wxString missFileCountStr = WxConversion::toWxString(missingFileCount);
-    wxString altFileCountStr = WxConversion::toWxString(alternativesCount);
+    wxString missFileCountStr = WxConversion::toWxString(
+        static_cast<int>(missingFileCount));
+    wxString altFileCountStr = WxConversion::toWxString(
+        static_cast<int>(alternativesCount));
     
     // form message for the dialog
     wxString message = missFileCountStr;

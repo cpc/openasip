@@ -57,6 +57,8 @@ using namespace HDB;
  */
 CachedHDBManager::CachedHDBManager(const std::string& hdbFile)
     throw (IOException): HDBManager(hdbFile) {   
+    lastModificationTime_ = FileSystem::lastModificationTime(hdbFile);
+    lastSizeInBytes_ = FileSystem::sizeInBytes(hdbFile);
 }
 
 /**
@@ -226,6 +228,8 @@ FUArchitecture*
 CachedHDBManager::fuArchitectureByID(RowID id) const
     throw (KeyNotFound) {
 
+    validateCache();
+
     std::map<RowID, FUArchitecture*>::iterator iter = fuArchCache_.find(id);
     if (iter != fuArchCache_.end()) {
         return new FUArchitecture(*(*iter).second);
@@ -251,6 +255,8 @@ CachedHDBManager::fuArchitectureByID(RowID id) const
 RFArchitecture*
 CachedHDBManager::rfArchitectureByID(RowID id) const
     throw (KeyNotFound) {
+
+    validateCache();
 
     std::map<RowID, RFArchitecture*>::iterator iter = rfArchCache_.find(id);
     if (iter != rfArchCache_.end()) {
@@ -280,6 +286,8 @@ CachedHDBManager::costEstimationDataValue(
     const std::string& valueName,
     const std::string& pluginName) const
     throw (KeyNotFound) {
+
+    validateCache();
 
     std::map<std::string, std::map<std::string, DataObject> >::iterator iter =
         costEstimationPluginValueCache_.find(pluginName);
@@ -437,6 +445,8 @@ CachedHDBManager::modifyCostEstimationData(RowID id, const CostEstimationData& d
 RFImplementation*
 CachedHDBManager::createImplementationOfRF(RowID id) const {
 
+    validateCache();
+
     std::map<RowID, RFImplementation*>::iterator iter = rfImplCache_.find(id);
     if (iter != rfImplCache_.end()) {
         return new RFImplementation(*(*iter).second);
@@ -470,6 +480,8 @@ FUImplementation*
 CachedHDBManager::createImplementationOfFU(
     FUArchitecture& architecture, RowID id) const {
 
+    validateCache();
+
     std::map<RowID, FUImplementation*>::iterator iter = fuImplCache_.find(id);
     if (iter != fuImplCache_.end()) {
         return new FUImplementation(*(*iter).second);
@@ -490,6 +502,8 @@ CachedHDBManager::createImplementationOfFU(
 const FUArchitecture&
 CachedHDBManager::fuArchitectureByIDConst(RowID id) const {
 
+    validateCache();
+
     std::map<RowID, FUArchitecture*>::iterator iter = fuArchCache_.find(id);
     if (iter == fuArchCache_.end()) {
         FUArchitecture* arch = HDBManager::fuArchitectureByID(id);
@@ -501,6 +515,8 @@ CachedHDBManager::fuArchitectureByIDConst(RowID id) const {
 
 const RFArchitecture&
 CachedHDBManager::rfArchitectureByIDConst(RowID id) const {
+
+    validateCache();
 
     std::map<RowID, RFArchitecture*>::iterator iter = rfArchCache_.find(id);
     if (iter == rfArchCache_.end()) {
@@ -565,4 +581,36 @@ CachedHDBManager::deleteCostEstimationDataIDsQueries() const {
         ++it;
     }
     costEstimationDataIDsQueries_.clear();
+}
+
+
+/**
+ * Checks if HDB file is modified. In case it is, invalid cache is cleared.
+ */
+void
+CachedHDBManager::validateCache() const {
+    std::string hdbFile = HDBManager::fileName();
+    std::time_t modTime = FileSystem::lastModificationTime(hdbFile);
+    uintmax_t byteSize = FileSystem::sizeInBytes(hdbFile);
+    
+    if (modTime == std::time_t(-1) || 
+        byteSize == static_cast<uintmax_t>(-1)) {
+        // problems accessing the file
+        return;
+    } else if (lastModificationTime_ == modTime && 
+               lastSizeInBytes_ == byteSize) {
+        // no changes
+        return;
+    }
+
+    // delete all cached items
+    MapTools::deleteAllValues(fuArchCache_);
+    MapTools::deleteAllValues(rfArchCache_);
+    MapTools::deleteAllValues(fuImplCache_);
+    MapTools::deleteAllValues(rfImplCache_);
+    costEstimationPluginValueCache_.clear();
+
+    // set current size and modification time
+    lastModificationTime_ = modTime;
+    lastSizeInBytes_ = byteSize;
 }
