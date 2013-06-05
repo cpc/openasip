@@ -58,11 +58,13 @@ public:
     std::string hdbPath(unsigned int index) throw (OutOfRange);
     int hdbErrorCount();
     std::string hdbErrorMessage(unsigned int index) throw (OutOfRange);
-    void removeDeadHDBPaths();
+    
 
 private:
     /// HDB registry must be created with instance() method.
     HDBRegistry();
+    /// Deletes nonexistent HDB paths from registry.
+    void removeDeadHDBPaths();
     /// all opened HDBs are stored in this map
     std::map<const std::string, CachedHDBManager*> registry_;
     /// errors found during loading HDBs are strored in this vector
