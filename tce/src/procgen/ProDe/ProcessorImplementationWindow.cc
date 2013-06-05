@@ -697,6 +697,12 @@ ProcessorImplementationWindow::doSaveIDF() {
         defaultFile = doc->GetFilename();
         defaultFile.erase(defaultFile.rfind('.'));
         defaultFile += _T(".idf");
+
+        // set default save location to same where the .adf file is
+        string absolutePathToADF = FileSystem::absolutePathOf(
+            WxConversion::toString(defaultFile));
+        defaultDir = WxConversion::toWxString(
+            FileSystem::directoryOfPath(absolutePathToADF));
     } else {
         defaultFile = _T(".idf");
     }

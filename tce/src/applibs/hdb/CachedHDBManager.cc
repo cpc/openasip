@@ -287,6 +287,8 @@ CachedHDBManager::costEstimationDataValue(
     const std::string& pluginName) const
     throw (KeyNotFound) {
 
+    validateCache();
+
     std::map<std::string, std::map<std::string, DataObject> >::iterator iter =
         costEstimationPluginValueCache_.find(pluginName);
 

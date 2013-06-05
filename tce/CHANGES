@@ -64,6 +64,7 @@ Usability features
   the file path is fixed to that location. User is prompted about this.
 - ProDe: Cached HDB files are now monitored for changes, and they update 
   correctly to the list of FUs/RFs that can be added from HDB. 
+- ProDe: When saving IDF, default save location is the directory of the ADF.
 
 Bugfixes
 --------
