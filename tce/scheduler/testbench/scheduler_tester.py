@@ -458,6 +458,7 @@ class TestCase:
         global cmdLineArchitectures
         global extraCompileFlags
 
+        self.testExtraCompileFlags = extraCompileFlags
         self.description = ""
         self.architectures = []
         self.directory = directory
@@ -487,9 +488,9 @@ class TestCase:
             for line in flagsFile.read().splitlines():
                 param = line.strip()
                 if param != '':
-                    extraCompileFlags += ' ';
-                    extraCompileFlags += param;
-                    extraCompileFlags += ' ';
+                    self.testExtraCompileFlags += ' ';
+                    self.testExtraCompileFlags += param;
+                    self.testExtraCompileFlags += ' ';
 
         self.improvedRuns = False
         # Simulation results for each architecture (the verification data and the 
@@ -595,16 +596,15 @@ class TestCase:
         return True
 
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
-        global extraCompileFlags
 
-        schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
+        schedulingCommand = tceccExe + ' ' + self.testExtraCompileFlags + ' '
         if (leaveDirty):
             schedulingCommand += '-d '
 
         if (veryVerboseOutput):
             schedulingCommand += ' -v '
 
-        schedulingCommand += ' ' + extraCompileFlags;
+        schedulingCommand += ' ' + self.testExtraCompileFlags;
         schedulingCommand += " -o " + dstProgFileName + \
                              " -a " + archFilename + \
                              " " + seqProgFileName
@@ -889,7 +889,7 @@ close $cycle_file
 
         Returns true only if all tests passed.
         """
-        global extraCompileFlags, latexTable, recompile, normalOutput
+        global latexTable, recompile, normalOutput
 
         self.oldDir = os.getcwd()
         os.chdir(self.directory)
@@ -907,7 +907,7 @@ close $cycle_file
 
         # Recompile and set names for test programs.
         if recompile:
-            srcCompileOk = self.verifyCompiler(extraCompileFlags)
+            srcCompileOk = self.verifyCompiler(self.testExtraCompileFlags)
             allPassed = allPassed and srcCompileOk
 
             if srcCompileOk == False:
