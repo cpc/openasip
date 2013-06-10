@@ -1073,8 +1073,8 @@ MachineImplementation::makeImplFilesRelative(
  */
 bool
 MachineImplementation::checkImplFiles(
-    unsigned int& missingFiles,
-    unsigned int& alternativeFiles) {
+    size_t& missingFiles,
+    size_t& alternativeFiles) {
     
     missingFiles_.clear();
     alternativeFiles_.clear();
@@ -1085,7 +1085,7 @@ MachineImplementation::checkImplFiles(
     
     // default search paths for different implementation files
     vector<string> defSearchPaths;
-        
+    
     // file that will be searched under search paths
     string filePath;
 
@@ -1179,7 +1179,7 @@ MachineImplementation::checkImplFiles(
 
     missingFiles = missingFiles_.size();    
     alternativeFiles = 0;
-    for (unsigned int i = 0; i < alternativeFiles_.size(); ++i) {
+    for (size_t i = 0; i < alternativeFiles_.size(); ++i) {
         if (alternativeFiles_.at(i) != "") {
             ++alternativeFiles;
         }

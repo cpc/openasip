@@ -136,6 +136,9 @@ private:
     virtual FUImplementation* createImplementationOfFU(
         FUArchitecture& architecture, RowID id) const;
 
+    // Checks if cache is invalid.
+    void validateCache() const;
+
     /// FU Architecture cache.
     mutable std::map<RowID, FUArchitecture*> fuArchCache_;
     /// RF Architecture cache.
@@ -151,6 +154,12 @@ private:
     /// map of cached (compiled) queries for costEstimatioDataIDs function
     mutable std::map<short int, RelationalDBQueryResult*> 
         costEstimationDataIDsQueries_;
+
+    /// used to detect modifications to the HDB file (which invalidates cache)
+    mutable std::time_t lastModificationTime_;
+    /// used to detect modifications to the HDB file (which invalidates cache)
+    mutable uintmax_t lastSizeInBytes_;
+    
 };
 
 } // End namespace HDB.

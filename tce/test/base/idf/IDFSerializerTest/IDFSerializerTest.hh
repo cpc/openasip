@@ -225,8 +225,8 @@ IDFSerializerTest::testCheckImplFiles() {
     TS_ASSERT_THROWS_NOTHING(
         machImpl = new MachineImplementation(implementationState));
 
-    unsigned int missingFiles;
-    unsigned int alternativeFiles;
+    size_t missingFiles;
+    size_t alternativeFiles;
 
     // checking should fail, because there are 4 files defined in the IDF 
     // file, of which one doesn't exist and 3 of them exist but they are 
@@ -234,12 +234,12 @@ IDFSerializerTest::testCheckImplFiles() {
     TS_ASSERT(!machImpl->checkImplFiles(missingFiles, alternativeFiles));
     
     // 4 different file paths are missing
-    TS_ASSERT_EQUALS(missingFiles, (unsigned)4);
+    TS_ASSERT_EQUALS(missingFiles, (size_t)4);
 
     // method should be able to locate 3 missing files under /data, because
     // default search paths provide CURR_WORK_DIR/data as one of the search
     // paths, the nonexisting file naturally cannot be located
-    TS_ASSERT_EQUALS(alternativeFiles, (unsigned)3);
+    TS_ASSERT_EQUALS(alternativeFiles, (size_t)3);
 
     delete implementationState;
     delete machImpl;
