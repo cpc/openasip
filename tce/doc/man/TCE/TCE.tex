@@ -928,7 +928,7 @@ simulator called Proxim (Section~\ref{section:proxim}):
 
 The simulator will load the architecture definition and the program
 and wait for commands. Proxim shows one line per instruction. Minimal
-TTA has only bus and hence there is only instrecution slot
+TTA has only bus and hence there is only instruction slot
 (column). The total number of instructions is about $1~200$.
 
 Execute the program by clicking ``Run'' and Proxim should look like
@@ -1895,7 +1895,7 @@ we use generatebits to create instruction memory and data memory images:
 
 Flag $-d$ creates data images, $-w 4$ set data memory width 4 MAUs
 (Minimum Addressable Units, bytes in this case), $-p$ defines the
-program, $-x$ defines the HDL directory, and adf is give without a
+program, $-x$ defines the HDL directory, and adf is given without a
 flag.
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
@@ -1913,9 +1913,10 @@ lines in that file:
 
 Accordingly, the file \file{crc\_with\_custom\_op\_data.img} contains the data
 memory image of the processor. Program Image Generator also created file
-\file{proge-output/vhdl/imem\_mau\_pkg.vhdl} which contains the 
+\file{proge-output/vhdl/tta0\_imem\_mau\_pkg.vhdl} which contains the 
 width of the instruction memory (each designed TTA can have a different 
-instruction width).
+instruction width). The \_imem\_mau\_pkg.vhdl file is appended with the top
+level entity name, which in this case is ``tta0''.
 
 \paragraph{Simulation and verification}
 
@@ -5103,7 +5104,7 @@ HDB tester executable is called \textit{testhdb} and it is used as follows:
 HDB tester accepts following command line options:
 
 \begin{center}
-\begin{longtable}[htb]{@{}p{.10\textwidth}@{}p{.20\textwidth}%
+\begin{tabular}[htb]{@{}p{.10\textwidth}@{}p{.20\textwidth}%
                      @{}p{.65\textwidth}}
 
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
@@ -5127,7 +5128,7 @@ HDL simulator used to simulate testbench. Accepted values are 'ghdl' and
 v & \verb|verbose| &
 Enable verbose output. Prints all executed commands. \\
 
-\end{longtable}
+\end{tabular}
 \end{center}
 
 Example: test all FU and RF implementations in HDB:
@@ -6735,7 +6736,7 @@ The possible options of the application are as follows:\\
                 p{0.75\textwidth}}
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
-b & bem         & The binary encoding map.\\
+b & bem         & The binary encoding map file.\\
 c & compressor  & Name of the code compressor plugin file.\\
 u & compressorparam & Parameter to the code compressor in form 'name=value'. \\
 d & dataimages  & Creates data images.\\
@@ -6750,6 +6751,9 @@ f & piformat & Determines the output format of the program image and data
 images. Value may be 'ascii', 'binary' or 'mif'.\\
 s & showcompressors & Shows the compressor plugin descriptions. \\
 p & program & The TPEF program file(s).\\
+v & verbose & Display extra information during image creation: total 
+immediates, different immediate values, instr. addresses, data addresses,
+full instruction NOPs and consecutive full instr. NOP groups.\\
 \end{tabular}\\
 
 The application prints the program image to the standard output
@@ -6777,7 +6781,7 @@ The following example generates a program image and data images of the address
 spaces in ASCII format without code compression.
 
 \begin{verbatim}
-generatebits -b encodings.bem -t program.tpef -f ascii -d machine.adf
+generatebits -b encodings.bem -p program.tpef -f ascii -d machine.adf
 \end{verbatim}
 
 \subsection{Dictionary Compressor}
