@@ -183,9 +183,9 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
         return;
     }
     
-    int rfCount = foundRF_.size();
-    int iuCount = foundIU_.size();
-    int fuCount = foundFU_.size();
+    unsigned int rfCount = static_cast<unsigned int>(foundRF_.size());
+    unsigned int iuCount = static_cast<unsigned int>(foundIU_.size());
+    unsigned int fuCount = static_cast<unsigned int>(foundFU_.size());
 
     // form a message describing how many implementations were found
     wxString message = _T("");
