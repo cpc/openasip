@@ -65,6 +65,8 @@ Usability features
 - ProDe: Cached HDB files are now monitored for changes, and they update 
   correctly to the list of FUs/RFs that can be added from HDB. 
 - ProDe: When saving IDF, default save location is the directory of the ADF.
+- ProDe: Automatic implementation selection added to "Processor 
+  Implementation"-dialog.
 
 Bugfixes
 --------

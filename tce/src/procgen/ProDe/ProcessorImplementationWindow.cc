@@ -56,6 +56,7 @@
 #include "GenerateProcessorDialog.hh"
 #include "ProDe.hh"
 #include "ObjectState.hh"
+#include "AutoSelectImplementationsDialog.hh"
 
 using namespace IDF;
 using namespace TTAMachine;
@@ -67,6 +68,7 @@ BEGIN_EVENT_TABLE(ProcessorImplementationWindow, wxDialog)
     EVT_BUTTON(ID_SELECT_RF_IMPL, ProcessorImplementationWindow::onSelectRFImplementation)
     EVT_BUTTON(ID_SELECT_IU_IMPL, ProcessorImplementationWindow::onSelectIUImplementation)
     EVT_BUTTON(ID_SELECT_FU_IMPL, ProcessorImplementationWindow::onSelectFUImplementation)
+    EVT_BUTTON(ID_AUTO_SELECT_IMPL, ProcessorImplementationWindow::onAutoSelectImplementations)
 
     EVT_LIST_ITEM_FOCUSED(ID_RF_LIST, ProcessorImplementationWindow::onRFSelection)
     EVT_LIST_DELETE_ITEM(ID_RF_LIST, ProcessorImplementationWindow::onRFSelection)
@@ -343,6 +345,101 @@ ProcessorImplementationWindow::updateRFList(const std::string& rfName, int index
     }
     rfList_->SetItem(index, 1, WxConversion::toWxString(id));
     rfList_->SetItem(index, 2, WxConversion::toWxString(hdb));
+}
+
+
+
+/**
+ * Event handler for the automatic implementation selection button.
+ */
+void
+ProcessorImplementationWindow::onAutoSelectImplementations(wxCommandEvent&) {
+    AutoSelectImplementationsDialog dialog(this, machine_, impl_);
+    dialog.ShowModal();
+    updateImplementationLists();
+}
+
+/**
+ * Updates the list views on RF, IU and FU pages.
+ */
+void 
+ProcessorImplementationWindow::updateImplementationLists() {
+    fuList_->DeleteAllItems();
+    rfList_->DeleteAllItems();
+    iuList_->DeleteAllItems();
+    
+    // FU implementation list.
+    Machine::FunctionUnitNavigator fuNav =
+        machine_.functionUnitNavigator();
+
+    for (int i = 0; i < fuNav.count(); i++) {
+        string fuName = fuNav.item(i)->name();
+        fuList_->InsertItem(i, WxConversion::toWxString(fuName));
+        if (impl_.hasFUImplementation(fuName)) {
+            const FUImplementationLocation fuImpl =
+                impl_.fuImplementation(fuName);
+
+            string hdb;
+            int id = 0;
+            try {
+                hdb = fuImpl.hdbFile();
+                id = fuImpl.id();
+            } catch (FileNotFound& e) {
+                hdb = "Warning: " + e.errorMessage();
+            }
+
+            fuList_->SetItem(i, 1, WxConversion::toWxString(id));
+            fuList_->SetItem(i, 2, WxConversion::toWxString(hdb));
+        }
+    }
+
+    // RF implementation list.
+    const Machine::RegisterFileNavigator rfNav =
+        machine_.registerFileNavigator();
+
+    for (int i = 0; i < rfNav.count(); i++) {
+        string rfName = rfNav.item(i)->name();
+        rfList_->InsertItem(i, WxConversion::toWxString(rfName));
+        if (impl_.hasRFImplementation(rfName)) {
+            const RFImplementationLocation rfImpl =
+                impl_.rfImplementation(rfName);
+
+            string hdb;
+            int id = 0;
+            try {
+                hdb = rfImpl.hdbFile();
+                id = rfImpl.id();
+            } catch (FileNotFound& e) {
+                hdb = "Warning: " + e.errorMessage();
+            }
+            rfList_->SetItem(i, 1, WxConversion::toWxString(id));
+            rfList_->SetItem(i, 2, WxConversion::toWxString(hdb));
+        }
+    }
+
+    // IU implementation list.
+    const Machine::ImmediateUnitNavigator iuNav =
+        machine_.immediateUnitNavigator();
+
+    for (int i = 0; i < iuNav.count(); i++) {
+        string iuName = iuNav.item(i)->name();
+        iuList_->InsertItem(i, WxConversion::toWxString(iuName));
+        if (impl_.hasIUImplementation(iuName)) {
+            const RFImplementationLocation iuImpl =
+                impl_.iuImplementation(iuName);
+
+            string hdb;
+            int id = 0;
+            try {
+                hdb = iuImpl.hdbFile();
+                id = iuImpl.id();
+            } catch (FileNotFound& e) {
+                hdb = "Warning: " + e.errorMessage();
+            }
+            iuList_->SetItem(i, 1, WxConversion::toWxString(id));
+            iuList_->SetItem(i, 2, WxConversion::toWxString(hdb));
+        }
+    }
 }
 
 /**
@@ -1085,8 +1182,14 @@ wxSizer *ProcessorImplementationWindow::registerFilePage( wxWindow *parent, bool
     wxListCtrl *item1 = new wxListCtrl( parent, ID_RF_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
+    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     wxButton *item2 = new wxButton( parent, ID_SELECT_RF_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -1107,8 +1210,14 @@ wxSizer *ProcessorImplementationWindow::functionUnitPage( wxWindow *parent, bool
     wxListCtrl *item1 = new wxListCtrl( parent, ID_FU_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
+    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     wxButton *item2 = new wxButton( parent, ID_SELECT_FU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -1251,8 +1360,14 @@ wxSizer *ProcessorImplementationWindow::immediateUnitPage( wxWindow *parent, boo
     wxListCtrl *item1 = new wxListCtrl( parent, ID_IU_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
+    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     wxButton *item2 = new wxButton( parent, ID_SELECT_IU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
