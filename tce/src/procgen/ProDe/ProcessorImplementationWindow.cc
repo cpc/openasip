@@ -180,85 +180,9 @@ ProcessorImplementationWindow::~ProcessorImplementationWindow() {
 bool
 ProcessorImplementationWindow::TransferDataToWindow() {
 
-    fuList_->DeleteAllItems();
-    rfList_->DeleteAllItems();
-    iuList_->DeleteAllItems();
+    updateImplementationLists();
     parameterList_->DeleteAllItems();
-
-    // FU implementation list.
-    Machine::FunctionUnitNavigator fuNav =
-        machine_.functionUnitNavigator();
-
-    for (int i = 0; i < fuNav.count(); i++) {
-        string fuName = fuNav.item(i)->name();
-        fuList_->InsertItem(i, WxConversion::toWxString(fuName));
-        if (impl_.hasFUImplementation(fuName)) {
-            const FUImplementationLocation fuImpl =
-                impl_.fuImplementation(fuName);
-
-            string hdb;
-            int id = 0;
-            try {
-                hdb = fuImpl.hdbFile();
-                id = fuImpl.id();
-            } catch (FileNotFound& e) {
-                hdb = "Warning: " + e.errorMessage();
-            }
-
-            fuList_->SetItem(i, 1, WxConversion::toWxString(id));
-            fuList_->SetItem(i, 2, WxConversion::toWxString(hdb));
-        }
-    }
-
-    // RF implementation list.
-    const Machine::RegisterFileNavigator rfNav =
-        machine_.registerFileNavigator();
-
-    for (int i = 0; i < rfNav.count(); i++) {
-        string rfName = rfNav.item(i)->name();
-        rfList_->InsertItem(i, WxConversion::toWxString(rfName));
-        if (impl_.hasRFImplementation(rfName)) {
-            const RFImplementationLocation rfImpl =
-                impl_.rfImplementation(rfName);
-
-            string hdb;
-            int id = 0;
-            try {
-                hdb = rfImpl.hdbFile();
-                id = rfImpl.id();
-            } catch (FileNotFound& e) {
-                hdb = "Warning: " + e.errorMessage();
-            }
-            rfList_->SetItem(i, 1, WxConversion::toWxString(id));
-            rfList_->SetItem(i, 2, WxConversion::toWxString(hdb));
-        }
-    }
-
-    // IU implementation list.
-    const Machine::ImmediateUnitNavigator iuNav =
-        machine_.immediateUnitNavigator();
-
-    for (int i = 0; i < iuNav.count(); i++) {
-        string iuName = iuNav.item(i)->name();
-        iuList_->InsertItem(i, WxConversion::toWxString(iuName));
-        if (impl_.hasIUImplementation(iuName)) {
-            const RFImplementationLocation iuImpl =
-                impl_.iuImplementation(iuName);
-
-            string hdb;
-            int id = 0;
-            try {
-                hdb = iuImpl.hdbFile();
-                id = iuImpl.id();
-            } catch (FileNotFound& e) {
-                hdb = "Warning: " + e.errorMessage();
-            }
-            iuList_->SetItem(i, 1, WxConversion::toWxString(id));
-            iuList_->SetItem(i, 2, WxConversion::toWxString(hdb));
-        }
-    }
-    
-    
+            
     if (impl_.hasICDecoderPluginFile()) {
         try {
             dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_FILE))->

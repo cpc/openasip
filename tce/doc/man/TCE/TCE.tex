@@ -1798,10 +1798,19 @@ safe bet is to select an implementation with parametrizable width/size.
 
 \begin{enumerate}
 \item%
-Select implementation for RF: Click the RF name, 'Select RF implementation',
-find the TCE's default HDB file from your tce installation path 
-(PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) and select an
-implementation for the RF from there.
+Selecting implementations for register files, immediate units and function
+units can be done two different ways.
+
+\begin{enumerate}
+\item%
+Manual selection - user chooses the implementations from HDB files.
+
+\begin{enumerate}
+\item%
+Select implementation for RF: Click the RF name, 'Select Implementation',
+find the TCE's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
+from your tce installation path and select an implementation for the RF from 
+there.
 
 \item%
 Next select implementation for the boolean RF like above. But this time
@@ -1814,6 +1823,32 @@ HDB. Notice that it is vital that you choose the implementation for LSU from
 the asic\_130nm\_1.5V.hdb. Then select implementation for the reflecter but
 this time you have to use the \file{tour.hdb} created earlier to find the FU
 we added that supports the REFLECT custom operations.
+\end{enumerate}
+
+\item%
+Automatic selection - ProDe chooses the implementations from HDB files.
+
+\begin{enumerate}
+\item% 
+Select implementations for register files and function units all at once: 
+Click Auto Select Implementations, find the TCE's default HDB file from your 
+TCE installation path (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb), make sure
+'Register Files' and 'Function Units' checkboxes are checked and press 'Find'.
+A dialog should appear saying 4 implementations were found, 2 for register
+files and 2 for function units. Click 'Yes'. If the found number of 
+implementations was under 4 in your case, refer to the manual implementation 
+selection above.
+
+\item%
+Browse to Function Units page if you were not on it already. You should see, 
+that reflecter FU is still without implementation (because it is not defined 
+in asic\_130nm\_1.5V.hdb). Select Auto Select Implementations again, find 
+\file{tour.hdb} as the HDB file, and press 'Find'. 1 FU implementation should
+be found (the reflecter), click 'Yes'. Now all your register files and 
+function units should have implementations.
+\end{enumerate}
+
+\end{enumerate}
 
 \item%
 Next select the IC/Decoder generator plugin used to generate the

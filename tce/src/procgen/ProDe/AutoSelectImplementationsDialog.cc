@@ -236,13 +236,12 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
     // and then add the unit implementation to the machine implementation 
     std::map<const RFImplementationLocation*, HdbIdPair>::iterator itRF;
     for (itRF = foundRF_.begin(); itRF != foundRF_.end(); ++itRF) {
-        RFImplementationLocation* unit = 
-            const_cast<RFImplementationLocation*>(itRF->first);
+        const RFImplementationLocation* unit = itRF->first;
         HdbIdPair hdbID = itRF->second;
-        unit->setHDBFile(hdbID.hdbFile);
-        unit->setID(hdbID.id);
+        RFImplementationLocation* rf = new RFImplementationLocation(
+            hdbID.hdbFile, hdbID.id, unit->unitName());
         try {
-            impl_.addRFImplementation(unit);
+            impl_.addRFImplementation(rf);
         } catch (...) {
             // do nothing if the implementation could not be added
         }
@@ -250,13 +249,12 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
 
     std::map<const RFImplementationLocation*, HdbIdPair>::iterator itIU;
     for (itIU = foundIU_.begin(); itIU != foundIU_.end(); ++itIU) {
-        RFImplementationLocation* unit = 
-            const_cast<RFImplementationLocation*>(itIU->first);
+        const RFImplementationLocation* unit = itIU->first;
         HdbIdPair hdbID = itIU->second;
-        unit->setHDBFile(hdbID.hdbFile);
-        unit->setID(hdbID.id);
+        RFImplementationLocation* iu = new RFImplementationLocation(
+            hdbID.hdbFile, hdbID.id, unit->unitName());
         try {
-            impl_.addIUImplementation(unit);
+            impl_.addIUImplementation(iu);
         } catch (...) {
             // do nothing if the implementation could not be added
         }
@@ -264,13 +262,12 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
 
     std::map<const FUImplementationLocation*, HdbIdPair>::iterator itFU;
     for (itFU = foundFU_.begin(); itFU != foundFU_.end(); ++itFU) {
-        FUImplementationLocation* unit = 
-            const_cast<FUImplementationLocation*>(itFU->first);
+        const FUImplementationLocation* unit = itFU->first;
         HdbIdPair hdbID = itFU->second;
-        unit->setHDBFile(hdbID.hdbFile);
-        unit->setID(hdbID.id);
+        FUImplementationLocation* fu = new FUImplementationLocation(
+            hdbID.hdbFile, hdbID.id, unit->unitName());
         try {
-            impl_.addFUImplementation(unit);
+            impl_.addFUImplementation(fu);
         } catch (...) {
             // do nothing if the implementation could not be added
         }
@@ -457,10 +454,10 @@ AutoSelectImplementationsDialog::createContents(
     wxCheckBox *cboxRF = new wxCheckBox( parent, ID_RF, wxT("Register Files"), wxDefaultPosition, wxDefaultSize, 0 );
     cboxSizer->Add( cboxRF, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *cboxIU = new wxCheckBox( parent, ID_IU, wxT("Immediate units"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *cboxIU = new wxCheckBox( parent, ID_IU, wxT("Immediate Units"), wxDefaultPosition, wxDefaultSize, 0 );
     cboxSizer->Add( cboxIU, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *cboxFU = new wxCheckBox( parent, ID_FU, wxT("Function units"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *cboxFU = new wxCheckBox( parent, ID_FU, wxT("Function Units"), wxDefaultPosition, wxDefaultSize, 0 );
     cboxSizer->Add( cboxFU, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
     
     item0->Add( cboxSizer, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
