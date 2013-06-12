@@ -62,6 +62,9 @@ public:
     void setDirty(bool dirty = true) { dirtyData_ = dirty; }
 private:
 
+    void onAutoSelectImplementations(wxCommandEvent& event);
+    void updateImplementationLists();
+
     void handleSelectRFImplementation(long item);
     void onSelectRFImplementation(wxCommandEvent& event);
     void onRFSelection(wxListEvent& event);
@@ -137,6 +140,7 @@ private:
         ID_FU_LIST,
         ID_IU_LIST,
         ID_RF_LIST,
+        ID_AUTO_SELECT_IMPL,
         ID_SELECT_FU_IMPL,
         ID_SELECT_IU_IMPL,
         ID_SELECT_RF_IMPL,
