@@ -192,16 +192,9 @@ rm -rf $VECTORTEST
 # Check for clang or tce-llvm-gcc executables. 
 AC_CHECK_PROG([TCELLVMGCC], [tce-llvm-gcc], [yes], [], [], [])
 AC_CHECK_PROG([CLANG], [clang], [yes], [], [], [])
-AM_CONDITIONAL([COMPILER_FOUND], test ! -z $CLANG$TCELLVMGCC)
+AM_CONDITIONAL([COMPILER_FOUND], test ! -z $CLANG)
 
 AC_SUBST([CLANG_AS_DEFAULT], ["True"])
-if test -z $CLANG
-then
-   if test ! -z $TCELLVMGCC
-   then 
-       AC_SUBST([CLANG_AS_DEFAULT], ["False"])
-   fi
-fi 
 
 # === CHECK for unordered_map/hash_map ===
 # First check whether unordered_map exists.
@@ -509,7 +502,28 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
    ;;
      3.3*)
-     AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.2")
+     AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.3")
+
+     AC_LANG_CONFTEST(
+     [AC_LANG_PROGRAM(
+       [[
+char Y[4*10000] __attribute__((address_space(1)));
+char X[4*10000];
+       ]],
+       [[
+    for (int i = 0; i < 4*10000; ++i)
+        X[i] = Y[i] + 1;
+    return 0;
+       ]])])
+     AC_MSG_CHECKING([whether the used LLVM 3.3 is patched against the loop vectorizer bug])
+     if ! $LLVM_BINDIR/clang conftest.c -O3 -S -emit-llvm -o - | grep -q "load <16 x i8> addrspace(1)*";
+     then
+     AC_MSG_RESULT([no])
+     AC_MSG_ERROR([Your LLVM 3.3 is not patched against the loop vectorizer bug. 
+Please consult INSTALL for instructions.])
+     fi
+     AC_MSG_RESULT([yes])
+     
    ;;
      3.4*)
      AC_DEFINE([LLVM_3_4], [], "Using LLVM svn (upcoming 3.4)")
@@ -1513,17 +1527,6 @@ then
 else
   echo "Found LLVM version $LLVM_VERSION"
 fi
-
-if test x"$CLANG" != x
-then
-  echo "Using Clang as the default C compiler."
-elif test x"$TCELLVMGCC" != x
-  then
-     echo "Using tce-llvm-gcc as the default C compiler."
-else
-     echo "!WARNING! No compiler frontend (clang nor tce-llvm-gcc) found. C compilation support disabled!" 
-fi
-
 
 #  else
 #     

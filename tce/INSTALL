@@ -69,22 +69,30 @@ the best way is to install it from the sources.
 Please follow the steps below to ensure LLVM and Clang are built
 correctly to be used by TCE:
 
- 1) download the LLVM package
-    wget http://llvm.org/releases/3.2/llvm-3.2.src.tar.gz
- 2) unpack the package, e.g. tar xfz llvm-3.2.src.tar.gz
- 3) cd llvm-3.2.src/tools
- 4) download the clang package 
-    wget http://llvm.org/releases/3.2/clang-3.2.src.tar.gz
- 5) unpack clang to llvm-3.2.src/tools, e.g. tar xfz clang-3.2.src.tar.gz
- 6) mv clang-3.2.src clang
- 7) cd ..
+ *) download the LLVM package
+    wget http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz
+ *) unpack the package, e.g. tar xfz llvm-3.3.src.tar.gz
+ *) cd llvm-3.3.src/tools
+ *) download the clang package 
+    wget http://llvm.org/releases/3.3/clang-3.3.src.tar.gz
+ *) unpack clang to llvm-3.3.src/tools, e.g. tar xfz clang-3.3.src.tar.gz
+ *) mv clang-3.3.src clang
+ *) cd ..
 
-IMPORTANT NOTE! In order to use LLVM with TCE you need to configure LLVM 
+IMPORTANT NOTE 1! LLVM 3.3 has a bug which some times causes miscompilation in
+case one compiles for a target with multiple address spaces. This should be
+fixed before building LLVM 3.3 by applying a patch that is found in an
+LLVM bug report here http://llvm.org/bugs/show_bug.cgi?id=16306 or in
+the TCE source tree. For example:
+
+ *) patch -p0 < ~/tce/tools/patches/llvm-3.3-loopvec-address-space-fix.patch
+
+IMPORTANT NOTE 2! In order to use LLVM with TCE you need to configure LLVM 
 with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1',
 as follows:
 
- 8) ./configure --enable-shared --prefix=YOUR_INSTALLATION_PREFIX_HERE 
- 9) make REQUIRES_RTTI=1 && make install
+ *) ./configure --enable-shared --prefix=YOUR_INSTALLATION_PREFIX_HERE 
+ *) make REQUIRES_RTTI=1 && make install
 
 Building and installing TCE
 ===========================
