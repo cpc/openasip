@@ -45,7 +45,6 @@ Misc. changes
 Hardware Database Additions
 ---------------------------
 - 2-wide SIMD units for half floats
-  (but not yet compiler support for automatic usage of these9
 
 Usability features
 ------------------

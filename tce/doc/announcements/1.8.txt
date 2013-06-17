@@ -9,7 +9,15 @@ RTL (VHDL and Verilog backends supported) and parallel program binaries.
 Processor customization points include the register files, function units, 
 supported operations, and the interconnection network.
 
-This release ...
+This release adds support for LLVM 3.3, improved LLVM-side if-conversion,
+initial operand sharing implementation, native support for half
+precision floats, several usability improvements to the Processor
+Designer GUI and bug fixes.
+
+Note: this time we decided not to do a tar ball release. The users 
+are directed to check out the release branch from the version control 
+system. The branch might get fixes backported after the release
+announcement.
 
 Acknowledgements
 ----------------
@@ -26,5 +34,5 @@ Links
 
 TCE home page:     http://tce.cs.tut.fi
 This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
-Download:          http://tce.cs.tut.fi/downloads
-Change log:        http://tce.cs.tut.fi/downloads/CHANGES
+Download:          https://code.launchpad.net/~tce-developers/tce/1.8
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES-1.8
