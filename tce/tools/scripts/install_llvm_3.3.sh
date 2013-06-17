@@ -29,7 +29,7 @@ patch -p0 < fix.patch || eexit "Patching the LLVM failed."
 export CFLAGS=-O3
 export CPPFLAGS=-O3
 export CXXFLAGS=-O3
-./configure --enable-shared --prefix=$TARGET_DIR || eexit "Configure of LLVM failed."
+./configure --enable-optimized --enable-shared --prefix=$TARGET_DIR || eexit "Configure of LLVM failed."
 make -j2 REQUIRES_RTTI=1 || eexit "Build of LLVM failed."
 make install || eexit "Installed of LLVM failed."
 
