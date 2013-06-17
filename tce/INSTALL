@@ -64,8 +64,12 @@ In order to compile programs from C/C++ with TCE, you need to install
 LLVM and Clang.
 
 Unless a correct LLVM version is available for your distribution, 
-the best way is to install it from the sources. 
+the best way is to install it from the sources. You can do this
+by executing tools/scripts/install_llvm_3.3.sh DEST_PATH,
+where DEST_PATH is the absolute directory where you want the LLVM
+to be isntalled.
 
+Alternatively, you can build it manually as follows.
 Please follow the steps below to ensure LLVM and Clang are built
 correctly to be used by TCE:
 
