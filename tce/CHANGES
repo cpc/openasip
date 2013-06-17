@@ -1,5 +1,5 @@
-1.8       unreleased
-====================
+1.8       June 2013
+===================
 
 Notable changes and features
 ----------------------------
@@ -37,6 +37,10 @@ Misc. smaller improvements
 Misc. changes
 ------------
 - -lcpp parameter needed when compiling/linking c++ programs.
+- tcecc: --emit-llvm not the default anymore
+- tcecc: --sequential-schedule now passes -O0 to the llvmtce only to
+  enable aggressive LLVM optimization combined with a sequential
+  schedule.
 
 Hardware Database Additions
 ---------------------------
