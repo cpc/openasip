@@ -58,7 +58,8 @@ namespace TCEISD {
         ITOF,        // Int to FP within a FP register.
 
         CALL,        // A call instruction.
-        RET_FLAG     // Return with a flag operand.
+        RET_FLAG ,    // Return with a flag operand.
+        RET_FLAG_old
    };
 }
 

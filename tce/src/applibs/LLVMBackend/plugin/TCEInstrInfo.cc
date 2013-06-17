@@ -182,6 +182,7 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
     if (MBB.empty()) return false;
     switch (MBB.back().getOpcode()) {
     case TCE::RETL:    // Return.
+    case TCE::RETL_old:
     case TCE::TCEBR:  // Uncond branch.
         return true;
     default: return false;
@@ -419,7 +420,7 @@ unsigned TCEInstrInfo::getInvertedPredicatedOpcode(const int Opc) const {
 bool 
 TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
     // TODO: should be conditional move here..
-    if (mi->getOpcode() == TCE::RETL) {
+    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
         return false;
     }
 
@@ -434,7 +435,7 @@ bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
     }
 
     // TODO: why is RETL not predicable?
-    if (mi->getOpcode() == TCE::RETL) {
+    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
         return false;
     }
 

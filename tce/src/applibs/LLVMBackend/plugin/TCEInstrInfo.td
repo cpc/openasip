@@ -56,9 +56,13 @@ def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
 def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
-def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
+// this is for llvm-3.2 and older
+def retflag_old       : SDNode<"TCEISD::RET_FLAG_old", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
+// this is for llvm-3.3 and newer
+def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
+                           [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 def truncstorev2i8 : PatFrag<(ops node:$val, node:$ptr),
                            (truncstore node:$val, node:$ptr), [{
@@ -256,7 +260,14 @@ def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 //  Control flow
 // ============================
 
-// Return
+// Return. for llvm-3.2 and older
+let isReturn = 1, isTerminator = 1, 
+    hasDelaySlot = 1, isBarrier = 1 in {
+    def RETL_old: InstTCE<(outs), (ins),
+       "return-address -> jump.1; # RETURN", [(retflag_old)]>;
+}
+
+// Return. for llvm-3.3 and newer
 let isReturn = 1, isTerminator = 1, 
     hasDelaySlot = 1, isBarrier = 1 in {
     def RETL: InstTCE<(outs), (ins),
