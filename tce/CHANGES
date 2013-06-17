@@ -1,5 +1,13 @@
-1.8       unreleased
+1.9       unreleased
 ====================
+
+Notable changes and features
+----------------------------
+
+[changes updated from bzr log until 2013-06-17]
+
+1.8       June 2013
+===================
 
 Notable changes and features
 ----------------------------
@@ -37,11 +45,14 @@ Misc. smaller improvements
 Misc. changes
 ------------
 - -lcpp parameter needed when compiling/linking c++ programs.
+- tcecc: --emit-llvm not the default anymore
+- tcecc: --sequential-schedule now passes -O0 to the llvmtce only to
+  enable aggressive LLVM optimization combined with a sequential
+  schedule.
 
 Hardware Database Additions
 ---------------------------
 - 2-wide SIMD units for half floats
-  (but not yet compiler support for automatic usage of these9
 
 Usability features
 ------------------
@@ -72,8 +83,6 @@ Bugfixes
 --------
 - ProGe/PlatformIntegrator: imem_mau_pkg.vhdl is now prepended with top
   level entity name like the actual package. (bug: #1063667)
-
-[changes checked from bzr log at 2013-04-05]
 
 1.7     January 2013
 ====================
