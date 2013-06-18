@@ -77,10 +77,10 @@ correctly to be used by TCE:
     wget http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz
  *) unpack the package, e.g. tar xfz llvm-3.3.src.tar.gz
  *) cd llvm-3.3.src/tools
- *) download the clang package 
-    wget http://llvm.org/releases/3.3/clang-3.3.src.tar.gz
- *) unpack clang to llvm-3.3.src/tools, e.g. tar xfz clang-3.3.src.tar.gz
- *) mv clang-3.3.src clang
+ *) download the Clang package 
+    wget http://llvm.org/releases/3.3/cfe-3.3.src.tar.gz
+ *) unpack clang to llvm-3.3.src/tools, e.g. tar xfz cfe-3.3.src.tar.gz
+ *) mv cfe-3.3.src clang
  *) cd ..
 
 IMPORTANT NOTE 1! LLVM 3.3 has a bug which some times causes miscompilation in
