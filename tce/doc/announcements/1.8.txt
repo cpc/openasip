@@ -38,6 +38,6 @@ Links
 -----
 
 TCE home page:     http://tce.cs.tut.fi
-This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT-1.8
-Change log:        http://tce.cs.tut.fi/downloads/CHANGES-1.8
+This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
 Download:          run: "bzr co lp:tce/1.8 tce-1.8"
