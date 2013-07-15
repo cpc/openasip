@@ -48,6 +48,7 @@
 #include "cl_tce.h"
 
 #define DUMMY_PLATFORM_ID 42
+#define DUMMY_CONTEXT 32000
 
 extern "C" {
 
@@ -101,7 +102,45 @@ clGetContextInfo(
     size_t             param_value_size, 
     void *             param_value, 
     size_t *           param_value_size_ret) {
-    /* TODO */
+    
+    if (context != (cl_context) DUMMY_CONTEXT)
+	return CL_INVALID_CONTEXT;
+
+    switch (param_name) {
+    default:
+	return CL_INVALID_VALUE;
+    case CL_CONTEXT_REFERENCE_COUNT:
+	/* TODO: Implement reference counts. For now, always returns 1. */
+	if (param_value_size_ret != NULL)
+	    *param_value_size_ret = sizeof(cl_uint);
+	if (param_value != NULL) {
+	    if (param_value_size < sizeof(cl_uint))
+	    	return CL_INVALID_VALUE;
+	    *((cl_uint *) param_value) = 1;
+	}	
+	break;
+    case CL_CONTEXT_DEVICES:
+	/* For now, the only device is 0. */
+	if (param_value_size_ret != NULL)
+	    *param_value_size_ret = sizeof(cl_device_id[1]);
+	if (param_value != NULL) {
+	    if (param_value_size < sizeof(cl_device_id[1]))
+	    	return CL_INVALID_VALUE;
+	    *((cl_device_id *) param_value) = (cl_device_id) 0;	
+	}
+	break;
+    case CL_CONTEXT_PROPERTIES:
+	/* Return the dummy platform. */
+	if (param_value_size_ret != NULL)
+	    *param_value_size_ret = sizeof(cl_context_properties[1]);
+	if (param_value != NULL) {
+	    if (param_value_size < sizeof(cl_context_properties[1]))
+		return CL_INVALID_VALUE; 
+	    *((cl_context_properties *) param_value) =
+		(cl_platform_id) DUMMY_PLATFORM_ID;
+	}	
+    }
+ 
     return CL_SUCCESS;
 }
 
@@ -118,7 +157,7 @@ clCreateContextFromType(
     void (*pfn_notify)(const char *, const void *, size_t, void *),
     void *                 user_data,
     cl_int *               errcode_ret) {
-    return (cl_context)32000;
+    return (cl_context) DUMMY_CONTEXT;
 }
 
 /**
@@ -135,7 +174,7 @@ clCreateContext(
     void (*pfn_notify)(const char *, const void *, size_t, void *),
     void *                  /* user_data */,
     cl_int *                /* errcode_ret */) {
-    return (cl_context)32000;
+    return (cl_context) DUMMY_CONTEXT;
 }
 
 /**
@@ -155,6 +194,10 @@ clGetProgramBuildInfo(
 
 cl_int
 clReleaseMemObject(cl_mem memobj) {
+    
+    if (memobj == NULL)
+	return CL_INVALID_MEM_OBJECT;
+    /* TODO: Reference counters, free */
     return CL_SUCCESS;
 }
 
@@ -166,7 +209,23 @@ clCreateBuffer(
     void *       host_ptr,
     cl_int *     errcode_ret) {
 
-    cl_mem mem = (cl_mem)malloc(size);
+    cl_mem mem;
+
+    if (flags & CL_MEM_USE_HOST_PTR) {
+	
+	if (host_ptr == NULL) {
+		if (errcode_ret != NULL)
+			*errcode_ret = CL_INVALID_VALUE;
+		return NULL;
+	}
+#ifdef DEBUG_OCL_HOST
+	iprintf("clCreateBuffer: using the host pointer "
+		"%p for the buffer\n", host_ptr);
+#endif
+
+	mem = (cl_mem)host_ptr;
+    } else 
+    	mem  = (cl_mem)malloc(size);
 
     if (mem == NULL) {
         if (errcode_ret != NULL)
@@ -176,9 +235,9 @@ clCreateBuffer(
         if (errcode_ret != NULL)
             *errcode_ret = CL_SUCCESS;
     }
-
-    if (flags & CL_MEM_COPY_HOST_PTR && host_ptr != NULL)
-    {
+    
+    if (flags & CL_MEM_COPY_HOST_PTR && !(flags & CL_MEM_USE_HOST_PTR) 
+	&& host_ptr != NULL) {
 #ifdef DEBUG_OCL_HOST
         iprintf(
             "clCreateBuffer: copying %#x bytes from %p to %p\n", 
@@ -328,7 +387,7 @@ clReleaseCommandQueue(cl_command_queue command_queue) {
     return CL_SUCCESS;
 }
 
-cl_int
+CL_API_ENTRY cl_int CL_API_CALL
 clEnqueueReadBuffer(
     cl_command_queue    command_queue,
     cl_mem              buffer,
@@ -338,11 +397,25 @@ clEnqueueReadBuffer(
     void *              ptr,
     cl_uint             num_events_in_wait_list,
     const cl_event *    event_wait_list,
-    cl_event *          event) {
+    cl_event *          event) CL_API_SUFFIX__VERSION_1_0 {
+
+    cl_uchar *offset_buffer;
+
+    offset_buffer = (cl_uchar *)buffer + offset; 
+
+    if (ptr == (void *) offset_buffer) {
 #ifdef DEBUG_OCL_HOST
-    iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, buffer, ptr);
+    	iprintf("clEnqueueReadBuffer: no-op because ptr and buffer are the same\n");
 #endif
-    memcpy(ptr, buffer, cb);
+	return CL_SUCCESS;
+    }
+
+#ifdef DEBUG_OCL_HOST
+    iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, offset_buffer,
+	    ptr);
+#endif
+
+    memmove(ptr, offset_buffer, cb);
     return CL_SUCCESS;
 }
 
@@ -356,10 +429,23 @@ clEnqueueWriteBuffer(cl_command_queue command_queue,
                      cl_uint num_events_in_wait_list,
                      const cl_event *event_wait_list,
                      cl_event *event) CL_API_SUFFIX__VERSION_1_0 {
+    
+    cl_uchar *offset_buffer;
+
+    offset_buffer = (cl_uchar *)buffer + offset; 
+    
+    if (ptr == (void *) offset_buffer) {
 #ifdef DEBUG_OCL_HOST
-    iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, buffer, ptr);
+    	iprintf("clEnqueueWriteBuffer: no-op because ptr and buffer are the same\n");
 #endif
-    memcpy(buffer, ptr, cb);
+	return CL_SUCCESS;
+    }
+
+#ifdef DEBUG_OCL_HOST
+    iprintf("clEnqueueReadBuffer: copying %#x bytes from %p to %p\n", cb, offset_buffer,
+	    ptr);
+#endif
+    memmove(offset_buffer, ptr, cb);
     return CL_SUCCESS;
 }
 
