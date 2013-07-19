@@ -1,10 +1,16 @@
 1.9       unreleased
 ====================
 
+[changes updated from bzr log until 2013-07-16]
+
 Notable changes and features
 ----------------------------
 
-[changes updated from bzr log until 2013-06-17]
+Misc. smaller improvements
+--------------------------
+- Standalone OpenCL support: More OpenCL API functions implemented; 
+  support added for zero-copy buffers and reading from and writing to 
+  buffers by manipulation of buffer pointers.
 
 1.8       June 2013
 ===================
