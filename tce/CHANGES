@@ -8,8 +8,9 @@ Notable changes and features
 
 Misc. smaller improvements
 --------------------------
-- More OpenCL API functions implemented, supported added for zero-copy buffers
-  and reading from and writing to buffers by manipulation of buffer pointers
+- Standalone OpenCL support: More OpenCL API functions implemented; 
+  support added for zero-copy buffers and reading from and writing to 
+  buffers by manipulation of buffer pointers.
 
 1.8       June 2013
 ===================
