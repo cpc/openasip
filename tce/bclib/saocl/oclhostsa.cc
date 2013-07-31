@@ -58,9 +58,15 @@ extern "C" {
 
 // a single kernel call instance
 struct _cl_kernel {
+    /* General information */
     char* name;
+
+    /* Argument data */
     void* args[_TCE_CL_DEVICE_MAX_PARAMETERS];
     size_t sizes[_TCE_CL_DEVICE_MAX_PARAMETERS];
+
+   /* Default implementation */
+   struct _OpenCLKernel* impl;
 };
 
 /* An array of callable OpenCL kernel functions. */
@@ -68,6 +74,9 @@ struct _OpenCLKernel* _opencl_kernel_registry[_TCE_CL_MAX_KERNELS];
 
 /* Must be volatile otherwise LLVM removes the global constructor. */
 volatile int _opencl_kernel_count = 0;
+
+/* Internal counter to ensure unique kernel IDs */
+volatile int current_id = 0;
 
 void 
 _register_opencl_kernel(struct _OpenCLKernel* kernel) {
@@ -81,14 +90,18 @@ _register_opencl_kernel(struct _OpenCLKernel* kernel) {
 
 static struct _OpenCLKernel* 
 _find_opencl_kernel(cl_kernel kernel) { 
-    int i = 0;
-    for (; i < _opencl_kernel_count; ++i) {
-        struct _OpenCLKernel* k = _opencl_kernel_registry[i];
-        /* todo: the work group dimensions */
-        if (strcmp(k->name, kernel->name) == 0) {
-            return k;
-        }
-    }
+    int i;
+
+    const char *name = kernel->name;
+    /* todo: the work group dimensions */
+    for (i = 0; i < _opencl_kernel_count; i++) {
+	struct _OpenCLKernel* k = _opencl_kernel_registry[i];
+	const char *kname = k->name;
+
+	if (!strcmp(name, kname)) {
+	    return k;
+	}
+    }    
     return NULL;
 }
 
@@ -292,6 +305,20 @@ clCreateKernel(
     for (i = 0; i < _TCE_CL_DEVICE_MAX_PARAMETERS; ++i) {
         kernel->args[i] = NULL;
     }
+
+    /* Select the default implementation */
+    kernel->impl = _find_opencl_kernel(kernel);
+    
+    if (kernel->impl == NULL) {
+#ifdef DEBUG_OCL_HOST
+        iprintf("clCreateKernel: could not find the kernel %s in the registry"
+		" of %d kernels.\n", kernel->name, _opencl_kernel_count);
+#endif
+	if (errcode_ret != NULL)
+	    *errcode_ret = CL_INVALID_PROGRAM_EXECUTABLE;
+	return NULL;
+    }
+
     if (errcode_ret != NULL)
         *errcode_ret = CL_SUCCESS;
     return kernel;
@@ -328,12 +355,13 @@ clEnqueueNDRangeKernel(
     /* TODO: fall back to an implementation with a single
        work item processed at a time */
 
-    struct _OpenCLKernel* kernel_impl = 
-        _find_opencl_kernel(kernel);
+    /* For now, use the default implementation */
+    struct _OpenCLKernel *kernel_impl = kernel->impl;
 
     if (kernel_impl == NULL) {
 #ifdef DEBUG_OCL_HOST
-        iprintf("clEnqueueNDRangeKernel: could not find the kernel in the registry.\n");
+        iprintf("clEnqueueNDRangeKernel: could not find a valid kernel" 
+		" implementation.\n");
 #endif
         return CL_INVALID_PROGRAM_EXECUTABLE;
     }

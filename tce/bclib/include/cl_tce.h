@@ -50,6 +50,7 @@ extern "C" {
 struct _OpenCLKernel {
     /* the name of the kernel */
     const char* name;
+
     /* kernel "trampoline" function that converts the raw argument data to
        the kernel's function arguments and calls the kernel */
     void (*call) (void** /*arguments*/, size_t*, int, const size_t*, const size_t*);
