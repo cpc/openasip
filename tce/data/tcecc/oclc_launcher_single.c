@@ -33,6 +33,14 @@
  */
 extern "C" void %(converted_name)s(void** args, pocl_context*);
 
+static void __opencl_launch_wg_%(kernel_name)s(void **args, pocl_context* context) {
+#ifdef DEBUG_OCL
+                iprintf("### launching a WG %%d-%%d-%%d of %%d-%%d-%%d\\n", 
+                        gid_x, gid_y, gid_z, num_groups_x, num_groups_y, num_groups_z);
+#endif
+                %(converted_name)s(args, context);
+}
+
 static void __opencl_trampoline_%(kernel_name)s(
     void** args, 
     int work_dim, 
@@ -40,39 +48,60 @@ static void __opencl_trampoline_%(kernel_name)s(
     const size_t* global_work_size,
     int first_gidx, int last_gidx) {
 
+    int num_groups_y, num_groups_z;
+
     const int local_size_x = local_work_size[0];
-    const int local_size_y = (work_dim >= 2) ? local_work_size[1] : 1;
-    const int local_size_z = (work_dim == 3) ? local_work_size[2] : 1;
-
     const int global_size_x = global_work_size[0];
-    const int global_size_y = (work_dim >= 2) ? global_work_size[1] : 1;
-    const int global_size_z = (work_dim == 3) ? global_work_size[2] : 1;
-
     const int num_groups_x = global_size_x / local_size_x;
-    const int num_groups_y = (work_dim >= 2) ? (global_size_y / local_size_y) : 1;
-    const int num_groups_z = (work_dim == 3) ? (global_size_z / local_size_z) : 1;
 
-    for (unsigned gid_x = first_gidx; gid_x <= last_gidx; gid_x++) { 
-        for (unsigned gid_y = 0; gid_y < num_groups_y; gid_y++) { 
-            for (unsigned gid_z = 0; gid_z < num_groups_z; gid_z++) {
-                pocl_context context;
-                context.work_dim = work_dim;
-                context.num_groups[0] = num_groups_x;
-                context.num_groups[1] = num_groups_y;
-                context.num_groups[2] = num_groups_z;
-                context.group_id[0] = gid_x;
-                context.group_id[1] = gid_y;
-                context.group_id[2] = gid_z;
-                context.global_offset[0] = 0;
-                context.global_offset[1] = 0;
-                context.global_offset[2] = 0;
-#ifdef DEBUG_OCL
-                iprintf("### launching a WG %%d-%%d-%%d of %%d-%%d-%%d\\n", 
-                        gid_x, gid_y, gid_z, num_groups_x, num_groups_y, num_groups_z);
-#endif
-                %(converted_name)s(args, &context);
-            } 
+    // We need only one context for the single core version
+    pocl_context context;
+    context.work_dim = work_dim;
+    context.global_offset[0] = 0;
+    context.global_offset[1] = 0;
+    context.global_offset[2] = 0;
+
+    // Use only the number of iterators needed
+    switch (work_dim) {
+    case 1: 
+        context.num_groups[1] = 1; 
+        context.num_groups[2] = 1;
+    	context.group_id[1] = 0;
+   	context.group_id[2] = 0;
+        for (unsigned gid_x = first_gidx; gid_x <= last_gidx; gid_x++) { 
+    	    context.group_id[0] = gid_x;
+	    __opencl_launch_wg_%(kernel_name)s(args, &context);
         }
+        break; 
+    case 2:
+    	num_groups_y = global_work_size[1] / local_work_size[1];
+	context.num_groups[1] = num_groups_y;
+	context.num_groups[2] = 1;
+    	context.group_id[2] = 0;
+        for (unsigned gid_x = first_gidx; gid_x <= last_gidx; gid_x++) { 
+            for (unsigned gid_y = 0; gid_y < num_groups_y; gid_y++) { 
+    		context.group_id[0] = gid_x;
+    		context.group_id[1] = gid_y;
+	        __opencl_launch_wg_%(kernel_name)s(args, &context);
+	    }
+        }
+        break;
+    case 3:
+    	num_groups_y = global_work_size[1] / local_work_size[1];
+    	num_groups_z = global_work_size[2] / local_work_size[2];
+	context.group_id[1] = num_groups_y;
+	context.group_id[2] = num_groups_z;
+        for (unsigned gid_x = first_gidx; gid_x <= last_gidx; gid_x++) { 
+            for (unsigned gid_y = 0; gid_y < num_groups_y; gid_y++) { 
+                for (unsigned gid_z = 0; gid_z < num_groups_z; gid_z++) {
+    		    context.group_id[0] = gid_x;
+    		    context.group_id[1] = gid_y;
+    		    context.group_id[2] = gid_z;
+	            __opencl_launch_wg_%(kernel_name)s(args, &context);
+		}
+	    }
+        }
+	break;
     }
 }
 
@@ -104,8 +133,8 @@ void __opencl_trampoline_mt_%(kernel_name)s(
     int arg_is_local[] = _%(kernel_name)s_ARG_IS_LOCAL;
     for (int i = 0; i < _%(kernel_name)s_NUM_ARGS; ++i) {
         if (!arg_is_local[i]) continue;
-        args[i] = malloc(sizeof(void*));             
-        *((void**)args[i]) = malloc(sizes[i]);
+        args[i] = realloc(args[i], sizeof(void*));             
+        *((void**)args[i]) = realloc(*((void**)args[i]), sizes[i]);
         if (*((void**)args[i]) == NULL) {
 #ifdef DEBUG_OCL
             puts("### out of memory while allocating the local buffers\\n");
@@ -113,6 +142,7 @@ void __opencl_trampoline_mt_%(kernel_name)s(
             exit(1);
         }
     }
+#if _%(kernel_name)s_NUM_LOCALS != 0
     /* Allocate data for the automatic local buffers which have
        been converted to pointer arguments in the kernel launcher
        function. They are the last arguments always. */
@@ -120,8 +150,8 @@ void __opencl_trampoline_mt_%(kernel_name)s(
         for (int i = _%(kernel_name)s_NUM_ARGS; 
              i < _%(kernel_name)s_NUM_ARGS + _%(kernel_name)s_NUM_LOCALS; 
              ++i) {
-            args[i] = malloc(sizeof(void*));
-            *((void**)args[i]) = malloc(alocal_sizes[i - _%(kernel_name)s_NUM_ARGS]);
+            args[i] = realloc(args[i], sizeof(void*));
+            *((void**)args[i]) = realloc(*((void**)args[i]), alocal_sizes[i - _%(kernel_name)s_NUM_ARGS]);
 #ifdef DEBUG_OCL
             iprintf("### allocated %%d bytes for the automatic local arg %%d at %%x\\n", 
                     alocal_sizes[i - _%(kernel_name)s_NUM_ARGS], i, *(unsigned int*)args[i]);
@@ -133,25 +163,11 @@ void __opencl_trampoline_mt_%(kernel_name)s(
                 exit(1);
             }          
         }
+#endif
         __opencl_trampoline_%(kernel_name)s(
             args, work_dim, local_work_size, global_work_size,
             0, num_groups_x - 1);
-
-        /* free the local buffers */
-        for (int i = 0; i < _%(kernel_name)s_NUM_ARGS; ++i) {
-            if (!arg_is_local[i]) continue;
-            free(*((void**)args[i]));
-            free(args[1]);
-        }
-        /* free the automatic local buffers */
-        for (int i = _%(kernel_name)s_NUM_ARGS; 
-             i < _%(kernel_name)s_NUM_ARGS + _%(kernel_name)s_NUM_LOCALS; 
-             ++i) {
-#ifdef DEBUG_OCL
-            iprintf("### freed automatic local arg %%d\\n", i);
-#endif
-            free(*((void**)args[i]));
-            free(args[1]);
-        }
+    /* TODO: Pass back local buffers in some struct, such as cl_kernel, so
+	     that they can be freed with clReleaseKernel(). It is too expensive
+	     to free them now. For now, they are leaked. */
 }
-
