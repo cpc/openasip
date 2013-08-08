@@ -2,22 +2,27 @@ TTA-based Co-design Environment (TCE) v1.8 released
 ---------------------------------------------------
 
 TTA-based Co-design Environment (TCE) is a toolset for designing 
-application-specific processors based on the Transport Triggered 
-Architecture (TTA). The toolset provides a complete retargetable co-design
+customized processors based on the Transport Triggered Architecture 
+(TTA). The toolset provides a complete retargetable co-design
 flow from high-level language programs down to synthesizable processor
-RTL (VHDL and Verilog backends supported) and parallel program binaries.
-Processor customization points include the register files, function units, 
-supported operations, and the interconnection network.
+RTL (VHDL and Verilog backends supported) and instruction-level parallel 
+program binaries. Processor customization points include the register files, 
+function units, supported operations, and the datapath interconnection 
+network.
 
 This release adds support for LLVM 3.3, improved LLVM-side if-conversion,
 initial operand sharing implementation, native support for half
 precision floats, several usability improvements to the Processor
-Designer GUI and bug fixes.
+Designer GUI, bug fixes and more.
 
-Note: this time we decided not to do a tar ball release. The users 
+Note 1: This time we decided not to package release tar balls. The users 
 are directed to check out the release branch from the version control 
 system. The branch might get fixes backported after the release
 announcement.
+
+Note 2: LLVM 3.3 has a bug which might cause miscompilation when multiple
+address spaces are used. You need to apply a fix for it to the LLVM before TCE
+configure accepts it. See the INSTALL file for details.
 
 Acknowledgements
 ----------------
@@ -25,14 +30,15 @@ Thanks to Mikko Järvelä, Tomi Äijö, Janne Helkala and Joonas Sarajärvi for 
 first code contributions to TCE in this release. Keep them coming!
 
 We'd like to thank the Radio Implementation Research Team of Nokia
-Research Center and Academy of Finland (funding decision 253087)
-for financially supporting most of the work for developing this release. 
-Much appreciated!
+Research Center, Finnish Funding Agency for Technology and Innovation (project
+"Parallel Acceleration", funding decision 40115/13) and the Academy of Finland 
+(funding decision 253087) for financially supporting most of the development work 
+in this release. Much appreciated!
 
 Links
 -----
 
 TCE home page:     http://tce.cs.tut.fi
 This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
-Download:          https://code.launchpad.net/~tce-developers/tce/1.8
-Change log:        http://tce.cs.tut.fi/downloads/CHANGES-1.8
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
+Download:          run: "bzr co lp:tce/1.8 tce-1.8"

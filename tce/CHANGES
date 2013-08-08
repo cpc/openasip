@@ -19,9 +19,9 @@ Misc. smaller improvements
 Notable changes and features
 ----------------------------
 - Support for LLVM 3.3.
-- Removed the use of llvm-ld (its copy in TCE source tree) for linking bitcode
-  libraries. It now uses llvm-link. Beware: it might require your Newlib bitcode 
-  libraries to be rebuilt.
+- Removed the use of llvm-ld (and its copy in the TCE source tree) for linking 
+  bitcode libraries. It now uses llvm-link instead. Beware: it might require your 
+  Newlib bitcode libraries to be rebuilt.
 
 Code generator improvements
 ---------------------------
