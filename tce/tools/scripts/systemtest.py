@@ -46,10 +46,16 @@ import math
 import signal
 import StringIO
 
+try:
+    import multiprocessing
+    from multiprocessing import Pool
+    mp_supported = True
+except:
+    mp_supported = False
+
 from difflib import unified_diff
 from optparse import OptionParser
 from subprocess import Popen, PIPE
-
 
 def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True):
     """
@@ -210,7 +216,14 @@ def parse_options():
     parser.add_option("-t", "--test-case", dest="test_cases", action="append", type="string",
                       default=[],
                       help="Execute only the given test case files. " + \
-                      "This option can be given multiple times.")   
+                      "This option can be given multiple times.")
+    if mp_supported:
+        parser.add_option("-p", "--parallel-processes", dest="par_process_count", type="int", 
+                          default=multiprocessing.cpu_count(),
+                          help="The number of parallel processes to use for running the test dirs. " + \
+                              "Use 1 to disable parallel execution.")
+        parser.add_option("-a", "--all-parallel", dest="all_parallel", action="store_true",
+                          help="Assume all tests can be ran in parallel (after running all initialize files first). ")
 
     (options, args) = parser.parse_args()
 
@@ -302,7 +315,7 @@ class IntegrationTestCase(object):
                 "args:        %s\n") % \
             (self.description, self.type, self.bin, self.args)
 
-    def execute(self):
+    def execute(self, stdout_stream=sys.stdout):
         """Assumes CWD is in the test directory when this is called."""
 
         if os.path.exists(os.path.basename(self._file_name) + ".disabled"):
@@ -310,8 +323,8 @@ class IntegrationTestCase(object):
             return True
 
         if options.print_successful:
-            sys.stdout.write(self._file_name + ": " + self.description + "...")
-            sys.stdout.flush()
+            stdout_stream.write(self._file_name + ": " + self.description + "...")
+            stdout_stream.flush()
 
         all_ok = True
         
@@ -345,7 +358,7 @@ class IntegrationTestCase(object):
             stdoutDiff = list(unified_diff(correctOut, gotOut, 
                               fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
-                sys.stdout.write(stdoutStr)
+                stdout_stream.write(stdoutStr)
                 continue           
 
             if len(stdoutDiff) > 0:
@@ -357,8 +370,8 @@ class IntegrationTestCase(object):
                 all_ok = False
 
             if options.print_successful:
-                sys.stdout.write(".")
-                sys.stdout.flush()
+                stdout_stream.write(".")
+                stdout_stream.flush()
 
         # Free some memory.
         self._test_data = []
@@ -368,12 +381,12 @@ class IntegrationTestCase(object):
         duration_str = "(%dm%.3fs)" % \
             (duration / 60, duration % 60)
         if not options.print_successful and not all_ok:
-            sys.stdout.write(self._file_name + ": " + self.description + "...")
+            stdout_stream.write(self._file_name + ": " + self.description + "...")
         if all_ok:
             if options.print_successful:
-                sys.stdout.write("OK %s\n" % duration_str)
+                stdout_stream.write("OK %s\n" % duration_str)
         else:
-            sys.stdout.write("FAIL %s\n" % duration_str)
+            stdout_stream.write("FAIL %s\n" % duration_str)
 
         return all_ok
 
@@ -400,6 +413,148 @@ def find_test_cases(root):
             test_cases.append(test_case)
     return test_cases
 
+def init_test_dir(test_dir):
+    top_dir = os.getcwd()
+    if test_dir != '':
+        os.chdir(test_dir)
+    if os.access("initialize", os.X_OK):
+#        print("(%s) initialize %s" % (os.getpid(), test_dir))
+        run_command("./initialize")
+    os.chdir(top_dir)
+    return True
+
+def finalize_test_dir(test_dir):
+    top_dir = os.getcwd()
+    if os.access("finalize", os.X_OK):
+#        print("(%s) finalize %s" % (os.getpid(), test_dir))
+        run_command("./finalize")
+    os.chdir(top_dir)
+    return True
+
+# Run a single test case assuming parallel execution of multiple
+# test cases.
+def run_test_case_par(test_case):
+
+    top_dir = os.getcwd()   
+    os.chdir(test_case.test_dir)
+
+    stdout_stream = StringIO.StringIO()
+
+    ok = test_case.execute(stdout_stream) 
+
+    stdout_str = stdout_stream.getvalue()
+    if len(stdout_str):
+        # todo: should use a lock here.
+        # seems not so easy to get a lock to the processes in a Pool
+        sys.stdout.write("[%s] " % os.getpid())
+        sys.stdout.write(stdout_str)
+        sys.stdout.flush()
+
+    os.chdir(top_dir)
+
+    return ok
+
+# Run a single test directory sequentially, assuming parallel execution
+# of multiple test dirs.
+def run_test_dir_par(test_dir, test_cases):
+
+    top_dir = os.getcwd()   
+    os.chdir(test_dir)
+
+
+    all_ok = True
+    for test_case in test_cases:
+        stdout_stream = StringIO.StringIO()
+        all_ok = test_case.execute(stdout_stream) and all_ok
+        stdout_str = stdout_stream.getvalue()
+        if len(stdout_str):
+            # todo: should use a lock here.
+            # seems not so easy to get a lock to the processes in a Pool
+            for line in stdout_str.splitlines():
+                sys.stdout.write("[%s] %s\n" % (os.getpid(), line))
+            sys.stdout.flush()
+
+    os.chdir(top_dir)
+
+    return all_ok
+
+
+def process_test_dir_seq(test_dir, test_cases):
+
+    top_dir = os.getcwd()
+    
+    init_test_dir(test_dir)
+    os.chdir(test_dir)
+
+    all_ok = True
+    for test_case in test_cases:
+        all_ok = test_case.execute() and all_ok
+
+    os.chdir(top_dir)
+
+    finalize_test_dir(test_dir)
+
+    return all_ok
+
+def run_test_dirs_in_parallel(test_dirs):
+
+    run_initializers_in_parallel(test_dirs)
+
+    all_ok = True
+
+    exec_pool = Pool(options.par_process_count)
+    exec_results = []
+    for test_dir in test_dirs.keys():
+        exec_results.append(exec_pool.apply_async(run_test_dir_par, (test_dir, test_dirs[test_dir])))
+    exec_pool.close()
+    all_ok = all([x.get(options.timeout) for x in exec_results])
+    exec_pool.join()    
+
+    run_finalizers_in_parallel(test_dirs)
+
+    return all_ok
+
+def run_initializers_in_parallel(test_dirs):
+    initializer_pool = Pool(options.par_process_count)
+    initializer_results = []
+
+    for test_dir in test_dirs.keys():
+        initializer_results.append(initializer_pool.apply_async(init_test_dir, (test_dir, )))
+
+    initializer_pool.close()
+    [x.get(options.timeout) for x in initializer_results]
+    initializer_pool.join()
+
+def run_finalizers_in_parallel(test_dirs):
+    finalizer_pool = Pool(options.par_process_count)
+    finalizer_results = []
+
+    for test_dir in test_dirs.keys():
+        finalizer_results.append(finalizer_pool.apply_async(finalize_test_dir, (test_dir, )))
+
+    finalizer_pool.close()
+    [x.get(options.timeout) for x in finalizer_results]
+    finalizer_pool.join()
+
+def run_all_tests_in_parallel(test_dirs):    
+    # Initalize all test dirs first so all the test cases can be ran in any 
+    # order. Then, distribute the test cases to processes, and finally, 
+    # finalize all test dirs. This does not work with the scheduler_tester.py
+    # tests because multiple testdescs reuse the same test dirs and
+    # scheduler_tester.py uses constant name files for functioning.
+    run_initializers_in_parallel(test_dirs)
+
+    exec_pool = Pool(options.par_process_count)
+    exec_results = []
+    for test_dir in test_dirs.keys():
+        for test_case in test_dirs[test_dir]:
+            exec_results.append(exec_pool.apply_async(run_test_case_par, (test_case, )))
+    exec_pool.close()
+    all_ok = all([x.get(options.timeout) for x in exec_results])
+    exec_pool.join()    
+
+    run_finalizers_in_parrallel(test_dirs)
+
 if __name__ == "__main__":
     options, args = parse_options()
 
@@ -424,22 +579,16 @@ if __name__ == "__main__":
         test_dirs[test_case.test_dir] = \
             test_dirs.get(test_case.test_dir, []) + [test_case]
 
-    top_dir = os.getcwd()
-
     all_ok = True
 
-    for test_dir in test_dirs.keys():
-        if test_dir != '':
-            os.chdir(test_dir)
-        if os.access("initialize", os.X_OK):
-            run_command("./initialize")
-
-        for test_case in test_dirs[test_dir]:
-            all_ok = test_case.execute() and all_ok
-
-        if os.access("finalize", os.X_OK):
-            run_command("./finalize")
-        os.chdir(top_dir)
+    if mp_supported and options.par_process_count > 1: 
+        if options.all_parallel:
+            run_all_tests_in_parallel(test_dirs)
+        else:
+            run_test_dirs_in_parallel(test_dirs)
+    else:
+        for test_dir in test_dirs.keys():
+            all_ok = all_ok and process_test_dir_seq(test_dir, test_dirs[test_dir])
 
     if options.output_diff:
         output_diff_file.close()
