@@ -464,6 +464,7 @@ def run_test_dir_par(test_dir, test_cases):
     os.chdir(test_dir)
 
     all_ok = True
+
     for test_case in test_cases:
         stdout_stream = StringIO.StringIO()
         all_ok = test_case.execute(stdout_stream) and all_ok
