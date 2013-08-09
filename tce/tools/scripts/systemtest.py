@@ -583,9 +583,9 @@ if __name__ == "__main__":
 
     if mp_supported and options.par_process_count > 1: 
         if options.all_parallel:
-            run_all_tests_in_parallel(test_dirs)
+            all_ok = run_all_tests_in_parallel(test_dirs)
         else:
-            run_test_dirs_in_parallel(test_dirs)
+            all_ok = run_test_dirs_in_parallel(test_dirs)
     else:
         for test_dir in test_dirs.keys():
             all_ok = all_ok and process_test_dir_seq(test_dir, test_dirs[test_dir])
