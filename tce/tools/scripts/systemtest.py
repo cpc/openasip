@@ -458,9 +458,10 @@ def run_test_case_par(test_case):
 # of multiple test dirs.
 def run_test_dir_par(test_dir, test_cases):
 
+    init_test_dir(test_dir)
+
     top_dir = os.getcwd()   
     os.chdir(test_dir)
-
 
     all_ok = True
     for test_case in test_cases:
@@ -475,6 +476,8 @@ def run_test_dir_par(test_dir, test_cases):
             sys.stdout.flush()
 
     os.chdir(top_dir)
+
+    finalize_test_dir(test_dir)
 
     return all_ok
 
@@ -498,8 +501,6 @@ def process_test_dir_seq(test_dir, test_cases):
 
 def run_test_dirs_in_parallel(test_dirs):
 
-    run_initializers_in_parallel(test_dirs)
-
     all_ok = True
 
     exec_pool = Pool(options.par_process_count)
@@ -509,8 +510,6 @@ def run_test_dirs_in_parallel(test_dirs):
     exec_pool.close()
     all_ok = all([x.get(options.timeout) for x in exec_results])
     exec_pool.join()    
-
-    run_finalizers_in_parallel(test_dirs)
 
     return all_ok
 
