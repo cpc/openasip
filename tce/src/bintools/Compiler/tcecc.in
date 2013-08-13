@@ -454,20 +454,25 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     libFiles = []
 
     for name in linkFiles:
-        if name[-2:] == '.a' :
+        if name.endswith('.a'):
             libFiles.append(name);
 
-	libDirName = fileNamePrefix + "_libs"
 
-    runCommand("mkdir " + libDirName, options.verbose, echoStderr=True)
+    linkFiles = [x for x in linkFiles if not x.endswith('.a')]
 
-    for name in libFiles:
-        linkFiles.remove(name)
-        runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
+    libDirName = fileNamePrefix + "_libs"
+
+    if not os.path.exists(libDirName):
+        # We might have already expanded the library archive if we are using
+        # a previous compilation temp dir (--temp-dir=).
+        runCommand("mkdir " + libDirName, options.verbose, echoStderr=True)
+
+        for name in libFiles:
+            runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
     
-    for name in os.listdir(libDirName):
-        runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
-        runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
+        for name in os.listdir(libDirName):
+            runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
+            runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
         
     defSyms=['llvm.dbg.declare']
     undefSyms=[]
@@ -475,7 +480,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     # Kludge to support DENBench. Link crt0.o only if _start is undefined.
 
     for name in linkFiles:
-        (exitCode, output) = runCommandBuffered("llvm-nm "+name, echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False)
         for line in output.splitlines():
             split = line.split()
             if split[0]=='U':
@@ -492,7 +497,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     undefSyms=[]
 
     for name in linkFiles:
-        (exitCode, output) = runCommandBuffered("llvm-nm "+name, echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False)
         for line in output.splitlines():
             split = line.split()
             if split[0]=='U':
@@ -517,7 +522,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
         defsymToLib={}
         libToDefsyms={}
         libToUndefsyms={}
-        (exitCode, output) = runCommandBuffered("llvm-nm "+libDirName+"/*", echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + libDirName + "/*", echoOutput=False)
 
         file=""
         tempDefsyms=[]
