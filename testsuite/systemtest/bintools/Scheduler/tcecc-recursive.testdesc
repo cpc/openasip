@@ -1,8 +1,0 @@
-<?php
-// short test description
-$test_description="Compiling short test cases with tcecc using Recursive Bottom-Up scheduler";
-$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args = "-vr -g \"-O3 -k_Output --recursive-scheduler\" -e tests/DSPstone -w 15.7 ".
-    "-a ti64x_subset.adf ".
-    "-a 2regcopies.adf ";
-?>

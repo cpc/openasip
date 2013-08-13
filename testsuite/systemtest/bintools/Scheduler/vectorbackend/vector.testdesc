@@ -1,6 +1,6 @@
 <?php
 // short test description
 $test_description="Compiling short test cases with vector backend enabled";
-$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
+$test_bin = "../../../../../tce/scheduler/testbench/scheduler_tester.py";
 $bin_args = "-vr -g \"-O3 --vector-backend\" -e tests_vector -w 10.0";
 ?>
