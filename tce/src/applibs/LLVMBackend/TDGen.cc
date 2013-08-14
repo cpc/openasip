@@ -794,9 +794,9 @@ TDGen::writeVectorRegisterInfo(
                             subRegName+= aliasIndex;
                         } else {
                             
-                            if (laneIndex  == vectorWidth >>1) {
-                                subRegName <<" , _VEC32_"
-                                           << (vectorWidth >>1) << "_" << i+j;
+                            if (laneIndex  == vectorWidth >> 1) {
+                                subRegName << " , _VEC32_"
+                                           << (vectorWidth >> 1) << "_" << i + j;
                             }
                         }
                         vecRegRfName += "+" + gprRegInfo.rf;
@@ -819,7 +819,7 @@ TDGen::writeVectorRegisterInfo(
                     if (vectorRegs[firstLaneIndex] == "") {
                         vectorRegs[firstLaneIndex] = regName;
                     } else {
-                        vectorRegs[firstLaneIndex] += ", " +regName;
+                        vectorRegs[firstLaneIndex] += ", " + regName;
                     }
 
                     RegInfo vecRegInfo = { vecRegRfName, regIndex };
@@ -832,11 +832,8 @@ TDGen::writeVectorRegisterInfo(
                           << "subvector" << (vectorWidth >> 1) << "_"
                           << firstLaneIndex + (vectorWidth>>1);
                     }
-#ifdef LLVM_3_0
-                    o << "] in {" << std::endl;
-#else
                     o << "], CoveredBySubRegs = 1 in {" << std::endl;
-#endif
+
                     writeRegisterDef(
                         o, vecRegInfo, regName, 
                         TCEString("V") + Conversion::toString(vectorWidth)
@@ -856,7 +853,7 @@ TDGen::writeVectorRegisterInfo(
         }
     }
 
-    // only low lane ones are really used for data(ie. first element in lane 0)
+    // only low lane ones are really used for data (ie. first element in lane 0)
     if (!hasAllVectorRegs) {
         RegInfo reg = {TCEString("dummyvec") + Conversion::toString(vectorWidth), 0};
         TCEString nameI("V"); nameI << vectorWidth << "R32DUMMY" ;
@@ -941,7 +938,6 @@ TDGen::writeVectorRegisterInfo(
 /**
  * Writes register definitions for vector registers consisting from
  * multiple ordinar register files to the output stream.
- * @TODO: currently only support 2-sized registers.
  */
 void
 TDGen::writeVectorRegisterInfo(std::ostream& o) {
@@ -1537,7 +1533,7 @@ TDGen::writeOperationDefs(
         if (outOperand.type() == Operand::UINT_WORD || 
             outOperand.type() == Operand::SINT_WORD) {
 
-            // 32  to 1-bit operations
+            // 32 to 1-bit operations
             operandTypes[0] = 'b';
             writeOperationDefs(o, op, operandTypes, attrs, skipPattern);
         } 
@@ -2614,7 +2610,7 @@ TDGen::constantNodeString(
 }
 
 /**
- * Returns an llvm name for an operation node in a emulation dag.
+ * Returns an llvm name for an operation node in an emulation dag.
  *
  * @param op the operation being emulated.
  * @param dag dag of the emulated operation
