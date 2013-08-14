@@ -237,7 +237,7 @@ class IntegrationTestCase(object):
     files."""
     def __init__(self, test_case_file):
         self._file_name = test_case_file
-        self.test_dir = os.path.dirname(test_case_file)
+        self.test_dir = os.path.dirname(test_case_file) or "."
         self.valid = False
         if test_case_file.endswith(".testdesc"): 
             self._load_legacy_testdesc()
@@ -286,7 +286,7 @@ class IntegrationTestCase(object):
 
             self._test_data.append((in_file, os.path.basename(out_file)))
 
-        assert len(self._test_data) > 0
+        assert len(self._test_data) > 0, "No test stdin/stdout files found."
 
     def _load_legacy_testdesc(self):
         contents = open(self._file_name).read().strip()
