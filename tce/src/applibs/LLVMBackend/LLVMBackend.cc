@@ -238,6 +238,9 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
     options_ =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
 
+    if (options_ != NULL)
+        cachePath_ = options_->backendCacheDir();
+
     PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
     initializeCore(Registry);
     initializeScalarOpts(Registry);
@@ -808,7 +811,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // TODO: whether vectors are used or not stored in has of the
     // plugin. this is a temporary solution
     if (options_->useVectorBackend()) {
-	cmd += " -DUSE_VECTOR_REGS";
+        cmd += " -DUSE_VECTOR_REGS";
     }
     ret = system(cmd.c_str());
     if (ret) {
