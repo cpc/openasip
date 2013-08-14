@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011 Tampere University of Technology.
+    Copyright (c) 2011-2013 Pekka Jääskeläinen / Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -425,6 +425,8 @@ def init_test_dir(test_dir):
 
 def finalize_test_dir(test_dir):
     top_dir = os.getcwd()
+    if test_dir != '':
+        os.chdir(test_dir)
     if os.access("finalize", os.X_OK):
 #        print("(%s) finalize %s" % (os.getpid(), test_dir))
         run_command("./finalize")
@@ -458,13 +460,12 @@ def run_test_case_par(test_case):
 # of multiple test dirs.
 def run_test_dir_par(test_dir, test_cases):
 
-    init_test_dir(test_dir)
-
     top_dir = os.getcwd()   
+
+    init_test_dir(test_dir)
     os.chdir(test_dir)
 
     all_ok = True
-
     for test_case in test_cases:
         stdout_stream = StringIO.StringIO()
         all_ok = test_case.execute(stdout_stream) and all_ok
