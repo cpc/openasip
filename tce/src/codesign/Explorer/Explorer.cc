@@ -720,15 +720,32 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         return EXIT_FAILURE;
     }
-    
+
     // Load the HDB files if given as option
     if (options->hdbFileNames()) {
+        vector<string> hdbPaths;
+        // put current working directory first in path find priority
+        hdbPaths.push_back(FileSystem::currentWorkingDir());
+        // concatenate search paths after current working dir path
+        vector<string> srchPaths = Environment::hdbPaths();
+        hdbPaths.insert(hdbPaths.end(), srchPaths.begin(), srchPaths.end());
+
         for (int i = 0; i < options->hdbFileNameCount(); i++) {
+            string pathToHdb = options->hdbFileName(i);
+            string hdbFile = options->hdbFileName(i);
+            for (unsigned int p = 0; p < hdbPaths.size(); p++) {
+                string tempPath = 
+                    hdbPaths.at(p) + FileSystem::DIRECTORY_SEPARATOR + hdbFile;
+                if (FileSystem::fileExists(tempPath)) {
+                    pathToHdb = tempPath;
+                    break;
+                }
+            }
             try {
-                HDB::HDBRegistry::instance().hdb(options->hdbFileName(i));
+                HDB::HDBRegistry::instance().hdb(pathToHdb);
             } catch (const FileNotFound& e) {
                 std::cerr << "Could not find HDB file " 
-                          << options->hdbFileName(i) << std::endl;
+                          << pathToHdb << std::endl;
             }
         }
     } else {
@@ -751,7 +768,7 @@ int main(int argc, char* argv[]) {
                       << pathToHdb << std::endl;
         }
     }
-
+    
     try {
         RowID startPointConfigurationID = options->startConfiguration();        
         if (startPointConfigurationID == 0 &&
