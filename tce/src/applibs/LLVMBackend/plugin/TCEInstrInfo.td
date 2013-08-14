@@ -369,7 +369,7 @@ def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
                             (select R1Regs:$c, R32IRegs:$T, R32IRegs:$F))]>;
 
 // select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
- def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)), (SELECT_I32rr (MOVI32I1rr $c), $T, $F)>;
+ def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)), (SELECT_I32rr (MOVI32I1rr R32Regs:$c), $T, $F)>;
 
 
   def SELECT_I32ri : InstTCE<(outs R32IRegs:$dst),
