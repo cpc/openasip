@@ -517,31 +517,20 @@ TCETargetLowering::TCETargetLowering(
         Application::cmdLineOptions());
 
     if (opts != NULL && opts->conservativePreRAScheduler()) {
-	setSchedulingPreference(llvm::Sched::RegPressure);
+        setSchedulingPreference(llvm::Sched::RegPressure);
     }
 
-#if (defined(LLVM_3_1))
-    addRegisterClass(MVT::i1, TCE::R1RegsRegisterClass);
-    addRegisterClass(MVT::i32, TCE::R32IRegsRegisterClass);
-    addRegisterClass(MVT::f32, TCE::R32FPRegsRegisterClass);
-#else
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
     addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
     addRegisterClass(MVT::f16, &TCE::R32HFPRegsRegClass);
-#endif
 
     if (opts->useVectorBackend()) {
         switch (tm_.maxVectorSize()) {
         default: // more than 8? 
         case 8:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v8i32, TCE::V8R32IRegsRegisterClass);
-            addRegisterClass(MVT::v8f32, TCE::V8R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v8i32, &TCE::V8R32IRegsRegClass);
             addRegisterClass(MVT::v8f32, &TCE::V8R32FPRegsRegClass);
-#endif
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Legal);
@@ -559,13 +548,8 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
 
         case 4:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v4i32, TCE::V4R32IRegsRegisterClass);
-            addRegisterClass(MVT::v4f32, TCE::V4R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v4i32, &TCE::V4R32IRegsRegClass);
             addRegisterClass(MVT::v4f32, &TCE::V4R32FPRegsRegClass);
-#endif
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Legal);
@@ -573,9 +557,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
-
-	    // try to use signext or anyext for ext.
-	    //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
+            
+            // try to use signext or anyext for ext.
+            //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
@@ -586,18 +570,16 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
 
         case 2:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v2i32, TCE::V2R32IRegsRegisterClass);
-            addRegisterClass(MVT::v2f32, TCE::V2R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v2i32, &TCE::V2R32IRegsRegClass);
             addRegisterClass(MVT::v2f32, &TCE::V2R32FPRegsRegClass);
-#endif
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v2i32, Expand);
+#endif
 
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
@@ -605,6 +587,10 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v2f32, Expand);
+#endif
+
         case 1:
             break;
         }
@@ -832,7 +818,12 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
  */
 EVT
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+#if LLVM_3_2
     return llvm::MVT::i1;
+#else
+    if (!VT.isVector()) return llvm::MVT::i1;
+    return VT.changeVectorElementTypeToInteger();
+#endif
 }
 
 /**

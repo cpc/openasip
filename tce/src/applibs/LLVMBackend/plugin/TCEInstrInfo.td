@@ -336,7 +336,6 @@ def : Pat<(i1 (select R1Regs:$c, R1Regs:$T, (i1 0))), (ANDbbb R1Regs:$c, R1Regs:
 // select of 1 or 0.
 def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
 
-
 // then the actual select patterns.
 
   def SELECT_I1rr : InstTCE<(outs R1Regs:$dst),
@@ -368,6 +367,10 @@ def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
                           "# SELECT_I32 PSEUDO!",
                           [(set R32IRegs:$dst, 
                             (select R1Regs:$c, R32IRegs:$T, R32IRegs:$F))]>;
+
+// select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
+ def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)), (SELECT_I32rr (MOVI32I1rr $c), $T, $F)>;
+
 
   def SELECT_I32ri : InstTCE<(outs R32IRegs:$dst),
                           (ins R32IRegs:$c, R32IRegs:$T, i32imm:$F),
