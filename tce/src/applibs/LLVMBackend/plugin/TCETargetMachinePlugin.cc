@@ -235,18 +235,18 @@ GeneratedTCEPlugin::extractElementLane(const llvm::MachineInstr& mi) const {
 int GeneratedTCEPlugin::getTruePredicateOpcode(unsigned opc) const {
     std::map<unsigned int, unsigned int>::const_iterator i = truePredOps_.find(opc);
     if (i == truePredOps_.end()) {
-	return -1;
+        return -1;
     } else {
-	return i->second;
+        return i->second;
     }
 }
 
 int GeneratedTCEPlugin::getFalsePredicateOpcode(unsigned opc) const {
     std::map<unsigned int, unsigned int>::const_iterator i = falsePredOps_.find(opc);
     if (i == falsePredOps_.end()) {
-	return -1;
+        return -1;
     } else {
-	return i->second;
+        return i->second;
     }
 }
 

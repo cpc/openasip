@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2002-2011 Tampere University of Technology.
+# Copyright (c) 2002-2013 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -31,7 +31,6 @@ skipCompileTest=no
 gcovTest=no
 quickTest=no
 cleanupBeforeCompile=yes
-skipConfigure=no
 kdialogNotifications=no
 skipSystemTests=no
 useMutt=no
@@ -74,7 +73,8 @@ do
 
         c     )
 
-        cleanupBeforeCompile=no;;      
+        cleanupBeforeCompile=no
+        runConfigure=no;;
 
         m     )
 
@@ -82,7 +82,8 @@ do
 
         q     ) 
 
-        quickTest=yes;;      
+        quickTest=yes
+        runConfigure=no;;
 
         u     ) 
 
@@ -106,7 +107,7 @@ do
 
         h     ) 
 
-        echo "TCE Compile Test (c) 2003-2006 Pekka Jääskeläinen";
+        echo "TCE compile&test script (c) 2003-2013 Pekka Jääskeläinen";
         echo
         echo "switches: ";
         echo
@@ -135,12 +136,13 @@ do
         echo "    the code base before compiling! Does not run the long ";
         echo "    running test suite.";
         echo
-        echo "-c  Does not clean the code base after running configure. ";
+        echo "-c  Does not clean the code base nor run configure. ";
         echo "    This allows speeding up the compilation when using '-q' ";
         echo "    and having compiled the code base already. Tests are ";
         echo "    executed normally. This allows even quicker testing of ";
-        echo "    code base before committing. It only makes sure that ";
-        echo "    the code base builds (no errors) and tests pass.";
+        echo "    code base before committing. It makes sure that ";
+        echo "    the code base builds (no errors) and tests pass while";
+        echo "    reusing previously compiled object files.";
         echo
         echo "-k  Use KDialog to show GUI notifications of the compile test ";
         echo "    progress.";
@@ -197,6 +199,9 @@ WARNING_FILTERS="|\
 .*type.qualifier.is.meaningless.on.cast.type.*|\
 .*boost/type_traits/is.*warning.*|\
 .*boost/regex/v4/instances.hpp:.*warning:.*|\
+.*boost/graph/topological_sort.hpp.*warning.*|\
+.*boost/graph/detail/adjacency_list.hpp.*warning.*|\
+.*boost/graph/dijkstra_shortest_paths.hpp.*warning.*|\
 .*GT.*longlong.h.*|\
 .*does.not.support..long.long.*|\
 runner.cpp.*|\
@@ -215,7 +220,7 @@ runner.cpp.*|\
 .*idTable.cc.*warning.*dereferencing.type.pun.*|\
 .*TestSuite.h:.*warning.*comparison.between.sig.*|\
 .*install:.warning:.relinking.*|\
-.*/include/llvm/.*warning:.*|\
+.*/llvm/.*warning:.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*/llvm/Target/TargetLowering.h.*|\
 .*llvm/ADT/STLExtras.h.*|\
@@ -227,10 +232,16 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*This.configuration.is.not.supported.in.the.following.subdir.*|\
 .*target-libgloss.*|\
 .*Any.other.directories.should.still.work.fine.*|\
+.*stdlib/rand.c:8.*|\
+.*write.error:.Broken.pipe|\
 .*removing..*/Makefile.to.force.reconf.*|\
 .*PluginTools.icc.*warning:.dereferencing.*|\
+.*../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
+.*/usr/include/boost/graph/dijkstra_shortest_paths.hpp:81:.warning:.*|\
 .*PluginTools.icc.*note:.initialized.from.h.*|\
 .*TargetLowering.h:1307|\
+is.used.uninitialized.in.this.function.*|\
+In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*newlib/doc/makedoc.c:.*|\
 .*recipe.for.target.*.lib_a-mbtowc_r.o.*|\
 .*boost/graph/topological_sort.hpp:.*unused.parameter.*|\
@@ -707,7 +718,7 @@ function compile_test {
     echo -n "$2: " >> $LOG_FILE
 
     # run configure if not quick tests
-    if [ "x$quickTest" == "xno" ]; then
+    if [ "x$runConfigure" != "xno" ]; then
         debug_print_noendl " configure: "
         reconfigure
 	errors="no"

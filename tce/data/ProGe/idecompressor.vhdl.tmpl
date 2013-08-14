@@ -39,12 +39,12 @@ entity ENTITY_STR_decompressor is
   
 end ENTITY_STR_decompressor;
 
-architecture default of ENTITY_STR_decompressor is
+architecture structural of ENTITY_STR_decompressor is
   
-begin  -- default
+begin  -- structural
 
   glock <= lock;
   fetch_en <= not lock_r;
   instructionword <= fetchblock(fetchblock'length-1 downto fetchblock'length-INSTRUCTIONWIDTH);
   
-end default;
+end structural;

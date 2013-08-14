@@ -1219,7 +1219,7 @@ LLVMTCEBuilder::emitInstruction(
             return emitReturn(mi, proc);
         }
         opName = operationName(*mi);
-
+        
         // Pseudo instructions don't require any actual instructions.
         if (opName == "PSEUDO") {
             return NULL;
@@ -1237,10 +1237,10 @@ LLVMTCEBuilder::emitInstruction(
         }
 
         if (opName == "MOVE") {
-	    return emitMove(mi, proc, hasGuard, trueGuard);
-	}
+            return emitMove(mi, proc, hasGuard, trueGuard);
+        }
 
-	// TODO: guarded also for these
+        // TODO: guarded also for these
         if (opName == "INLINEASM") {
             return emitInlineAsm(mi, proc);
         }
@@ -1248,30 +1248,30 @@ LLVMTCEBuilder::emitInstruction(
         if (opName == "SELECT") {
             return emitSelect(mi, proc);
         }
+        
+        if (opName.find("_BUILD_") == 0) {
+            std::vector<std::string> res;
+            StringTools::chopString(opName, "_", res);
+            int elemCount = Conversion::toInt(res.at(2));
+            return emitVectorBuild(elemCount, mi, proc);
+        }
 
-	if (opName.find("_BUILD_") == 0) {
-	    std::vector<std::string> res;
-	    StringTools::chopString(opName, "_", res);
-	    int elemCount = Conversion::toInt(res.at(2));
-	    return emitVectorBuild(elemCount, mi, proc);
-	}
+        if (opName.find("_EXTRACT_") == 0) {
+            return emitVectorExtract(mi, proc);
+        }
 
-	if (opName.find("_EXTRACT_") == 0) {
-	    return emitVectorExtract(mi, proc);
-	}
-
-	if (opName.find("_INSERT_") == 0) {
-	    std::vector<std::string> res;
-	    StringTools::chopString(opName, "_", res);
-	    int elemCount = Conversion::toInt(res.at(2));
-	    return emitVectorInsert(elemCount, mi, proc);
-	}
+        if (opName.find("_INSERT_") == 0) {
+            std::vector<std::string> res;
+            StringTools::chopString(opName, "_", res);
+            int elemCount = Conversion::toInt(res.at(2));
+            return emitVectorInsert(elemCount, mi, proc);
+        }
 
         if (opName.find("_VECTOR_MOV") == 0) {
-	    std::vector<std::string> res;
-	    StringTools::chopString(opName, "_", res);
-	    int elemCount = Conversion::toInt(res.at(3));
-	    return emitVectorMov(elemCount, mi, proc);
+            std::vector<std::string> res;
+            StringTools::chopString(opName, "_", res);
+            int elemCount = Conversion::toInt(res.at(3));
+            return emitVectorMov(elemCount, mi, proc);
         }
     } else {
         opName = operationName(*mi);
@@ -1280,11 +1280,10 @@ LLVMTCEBuilder::emitInstruction(
     // format is _VECTOR_##__opname
     // where ## is number of elements
     if (opName.find("_VECTOR_") == 0) {
-	std::vector<std::string> res;
-	StringTools::chopString(opName, "_", res);
-	int elemCount = Conversion::toInt(res.at(2));
-	return emitVectorInstruction(
-	    res.at(3), elemCount, mi, proc);
+        std::vector<std::string> res;
+        StringTools::chopString(opName, "_", res);
+        int elemCount = Conversion::toInt(res.at(2));
+        return emitVectorInstruction(res.at(3), elemCount, mi, proc);
     }
 
     const HWOperation& op = getHWOperation(opName);
@@ -1310,24 +1309,24 @@ LLVMTCEBuilder::emitInstruction(
     int guardOperandIndex = -1;
 
     if (hasGuard) {
-	for (unsigned o = 0; o < mi->getNumOperands(); o++) {
-	    const MachineOperand& mo = mi->getOperand(o);
+        for (unsigned o = 0; o < mi->getNumOperands(); o++) {
+            const MachineOperand& mo = mi->getOperand(o);
 	
-	    // Guarded operations have the guarded element as the first
-	    // operand.
+            // Guarded operations have the guarded element as the first
+            // operand.
 
-	    if (mo.isReg() && mo.isUse()) {
-		guardOperandIndex = o;
-		// Create move from the condition operand register to bool register
-		// which is used by the guard.
-		TTAProgram::Terminal *t = createTerminal(mo);
-		// inv guards not yet supported
-		guard = createGuard(t, trueGuard);
-		delete t;
-		assert(guard != NULL);
-		break;
-	    }
-	}
+            if (mo.isReg() && mo.isUse()) {
+                guardOperandIndex = o;
+                // Create move from the condition operand register to bool register
+                // which is used by the guard.
+                TTAProgram::Terminal *t = createTerminal(mo);
+                // inv guards not yet supported
+                guard = createGuard(t, trueGuard);
+                delete t;
+                assert(guard != NULL);
+                break;
+            }
+        }
     }
 
 
@@ -1336,67 +1335,67 @@ LLVMTCEBuilder::emitInstruction(
             continue;
         }
 
-	const MachineOperand& mo = mi->getOperand(o);
+        const MachineOperand& mo = mi->getOperand(o);
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
 
-	// if vector operand, expand one MachineOperand into
-	// multiple TCE operands.
+        // if vector operand, expand one MachineOperand into
+        // multiple TCE operands.
         int vectorWidth = vectorOperandSize(mo);
-	if (vectorWidth > 1) {
+        if (vectorWidth > 1) {
             // TODO: does not work with bigger than 8 size vectors
-	    int nameIndex = strlen("_VECTOR_") + 2;
-	    for (int i = 0; i < vectorWidth; i++) {
-		int dRegNum = mo.getReg();
-		int idx = registerIndex(dRegNum);
-		std::string vectorRfName = registerFileName(dRegNum);
-		int nextNameIndex = vectorRfName.find('+', nameIndex);
-		int len = nextNameIndex - nameIndex;
-		std::string rfName = vectorRfName.substr(nameIndex, len);
-		nameIndex = nextNameIndex + 1;
+            int nameIndex = strlen("_VECTOR_") + 2;
+            for (int i = 0; i < vectorWidth; i++) {
+                int dRegNum = mo.getReg();
+                int idx = registerIndex(dRegNum);
+                std::string vectorRfName = registerFileName(dRegNum);
+                int nextNameIndex = vectorRfName.find('+', nameIndex);
+                int len = nextNameIndex - nameIndex;
+                std::string rfName = vectorRfName.substr(nameIndex, len);
+                nameIndex = nextNameIndex + 1;
+                
+                TTAProgram::TerminalRegister* tr = 
+                    createTerminalRegister(rfName, idx);
 		
-		TTAProgram::TerminalRegister* tr = 
-		    createTerminalRegister(rfName, idx);
-		
-		// input
-		if (mo.isUse() || operation.numberOfOutputs() == 0) {
-		    ++inputOperand;
-		    // something messed up?
-		    if (inputOperand > operation.numberOfInputs()) 
-			continue;
+                // input
+                if (mo.isUse() || operation.numberOfOutputs() == 0) {
+                    ++inputOperand;
+                    // something messed up?
+                    if (inputOperand > operation.numberOfInputs()) 
+                        continue;
 		    
-		    TTAProgram::Terminal* dst = 
-			new TTAProgram::TerminalFUPort(op, inputOperand);
-		    TTAProgram::Move* move = createMove(tr, dst, bus);
-		    TTAProgram::Instruction* ins = 
-			new TTAProgram::Instruction();
-		    ins->addMove(move);
-		    operandMoves.push_back(ins);
-		    debugDataToAnnotations(mi, move);
-		} else {
-		    // output
-		    ++outputOperand;
+                    TTAProgram::Terminal* dst = 
+                        new TTAProgram::TerminalFUPort(op, inputOperand);
+                    TTAProgram::Move* move = createMove(tr, dst, bus);
+                    TTAProgram::Instruction* ins = 
+                        new TTAProgram::Instruction();
+                    ins->addMove(move);
+                    operandMoves.push_back(ins);
+                    debugDataToAnnotations(mi, move);
+                } else {
+                    // output
+                    ++outputOperand;
+                    
+                    if (operation.operand(outputOperand).isNull())
+                        continue;
 		    
-		    if (operation.operand(outputOperand).isNull())
-			continue;
+                    assert(operation.operand(outputOperand).isOutput() &&
+                           !operation.operand(outputOperand).isAddress() &&
+                           "Operand mismatch.");
 		    
-		    assert(operation.operand(outputOperand).isOutput() &&
-			   !operation.operand(outputOperand).isAddress() &&
-			   "Operand mismatch.");
+                    TTAProgram::Terminal* src = 
+                        new TTAProgram::TerminalFUPort(op, outputOperand);
 		    
-		    TTAProgram::Terminal* src = 
-			new TTAProgram::TerminalFUPort(op, outputOperand);
-		    
-		    TTAProgram::Move* move = createMove(src, tr, bus);
-		    TTAProgram::Instruction* ins = 
-			new TTAProgram::Instruction();
-		    ins->addMove(move);
-		    resultMoves.push_back(ins);
-		    debugDataToAnnotations(mi, move);
-		}
-	    }
-	    continue;
-	} 
+                    TTAProgram::Move* move = createMove(src, tr, bus);
+                    TTAProgram::Instruction* ins = 
+                        new TTAProgram::Instruction();
+                    ins->addMove(move);
+                    resultMoves.push_back(ins);
+                    debugDataToAnnotations(mi, move);
+                }
+            }
+            continue;
+        } 
 
         if (!mo.isReg() || mo.isUse() || operation.numberOfOutputs() == 0) {
             ++inputOperand;
@@ -2188,6 +2187,8 @@ LLVMTCEBuilder::emitSelect(
     // Create move from the condition operand register to bool register
     // which is used by the guard.
     TTAProgram::Terminal *guardTerminal = createTerminal(guardMo);
+
+    assert(guardTerminal != NULL);
 
     TTAProgram::Terminal* dstT = createTerminal(mi->getOperand(0));
     TTAProgram::Terminal* dstF = createTerminal(mi->getOperand(0));

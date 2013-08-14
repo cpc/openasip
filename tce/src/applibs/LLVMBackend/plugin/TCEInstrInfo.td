@@ -56,9 +56,13 @@ def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
 def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
-def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
+// this is for llvm-3.2 and older
+def retflag_old       : SDNode<"TCEISD::RET_FLAG_old", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue]>;
 
+// this is for llvm-3.3 and newer
+def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
+                           [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 def truncstorev2i8 : PatFrag<(ops node:$val, node:$ptr),
                            (truncstore node:$val, node:$ptr), [{
@@ -256,7 +260,14 @@ def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 //  Control flow
 // ============================
 
-// Return
+// Return. for llvm-3.2 and older
+let isReturn = 1, isTerminator = 1, 
+    hasDelaySlot = 1, isBarrier = 1 in {
+    def RETL_old: InstTCE<(outs), (ins),
+       "return-address -> jump.1; # RETURN", [(retflag_old)]>;
+}
+
+// Return. for llvm-3.3 and newer
 let isReturn = 1, isTerminator = 1, 
     hasDelaySlot = 1, isBarrier = 1 in {
     def RETL: InstTCE<(outs), (ins),
@@ -325,7 +336,6 @@ def : Pat<(i1 (select R1Regs:$c, R1Regs:$T, (i1 0))), (ANDbbb R1Regs:$c, R1Regs:
 // select of 1 or 0.
 def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
 
-
 // then the actual select patterns.
 
   def SELECT_I1rr : InstTCE<(outs R1Regs:$dst),
@@ -357,6 +367,10 @@ def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
                           "# SELECT_I32 PSEUDO!",
                           [(set R32IRegs:$dst, 
                             (select R1Regs:$c, R32IRegs:$T, R32IRegs:$F))]>;
+
+// select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
+ def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)), (SELECT_I32rr (MOVI32I1rr $c), $T, $F)>;
+
 
   def SELECT_I32ri : InstTCE<(outs R32IRegs:$dst),
                           (ins R32IRegs:$c, R32IRegs:$T, i32imm:$F),

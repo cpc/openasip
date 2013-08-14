@@ -110,6 +110,8 @@ TCETargetLowering::LowerReturn(SDValue Chain,
       if (RVLocs[i].isRegLoc())
         DAG.getMachineFunction().getRegInfo().addLiveOut(RVLocs[i].getLocReg());
   }
+#else
+  SmallVector<SDValue, 4> RetOps(1, Chain);
 #endif
 
   SDValue Flag;
@@ -124,11 +126,25 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
+#if (!(defined(LLVM_3_2) || defined(LLVM_3_1)))
+    RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
+#endif
   }
 
+#if (defined(LLVM_3_1) || defined(LLVM_3_2))
   if (Flag.getNode())
-    return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other, Chain, Flag);
-  return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other, Chain);
+    return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain, Flag);
+  return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain);
+#else
+  RetOps[0] = Chain;  // Update chain.
+
+  // Add the flag if we have it.
+  if (Flag.getNode())
+    RetOps.push_back(Flag);
+
+  return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other,
+                     &RetOps[0], RetOps.size());
+#endif
 }
 
 /**
@@ -176,7 +192,7 @@ TCETargetLowering::LowerFormalArguments(
                 
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else if (CurArgReg < ArgRegEnd && !isVarArg) {
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
+#if (defined(LLVM_3_1))
                 unsigned VReg = RegInfo.createVirtualRegister(
                     &TCE::R32IRegsRegClass);
 #else
@@ -200,14 +216,9 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
                 if (ObjectVT == MVT::i32) {
-#ifdef LLVM_3_0
-                    Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
-                                       MachinePointerInfo(), false, false, 0);
-#else
                     Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
                                        MachinePointerInfo(), false, false, 
 				       false, 0);
-#endif
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
@@ -234,15 +245,9 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#ifdef LLVM_3_0
-                SDValue Load = DAG.getLoad(MVT::f16, dl, Chain, FIPtr,
-                                           MachinePointerInfo(),
-                                           false, false, 0);
-#else
                 SDValue Load = DAG.getLoad(MVT::f16, dl, Chain, FIPtr,
                                            MachinePointerInfo(),
                                            false, false, false, 0);
-#endif
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -256,15 +261,9 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#ifdef LLVM_3_0
-                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
-                                           MachinePointerInfo(),
-                                           false, false, 0);
-#else
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
                                            MachinePointerInfo(),
                                            false, false, false, 0);
-#endif
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -280,28 +279,16 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#ifdef LLVM_3_0
-		HiVal = DAG.getLoad(
-		    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-		    false, false, 0);
-#else
 		HiVal = DAG.getLoad(
 		    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
 		    false, false, false, 0);
-#endif
                 SDValue LoVal;
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-#ifdef LLVM_3_0
-                LoVal = DAG.getLoad(
-                    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-		    false, false, 0);
-#else
                 LoVal = DAG.getLoad(
                     MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
 		    false, false, false, 0);
-#endif
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
@@ -332,13 +319,11 @@ TCETargetLowering::LowerFormalArguments(
     return Chain;
 }
 
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
+#if (defined(LLVM_3_1))
 SDValue
 TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
-#ifndef LLVM_3_0
                              bool /*doesNotRet*/,
-#endif
                              bool &isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
                              const SmallVectorImpl<SDValue> &OutVals,
@@ -532,32 +517,20 @@ TCETargetLowering::TCETargetLowering(
         Application::cmdLineOptions());
 
     if (opts != NULL && opts->conservativePreRAScheduler()) {
-	setSchedulingPreference(llvm::Sched::RegPressure);
+        setSchedulingPreference(llvm::Sched::RegPressure);
     }
 
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
-    addRegisterClass(MVT::i1, TCE::R1RegsRegisterClass);
-    addRegisterClass(MVT::i32, TCE::R32IRegsRegisterClass);
-    addRegisterClass(MVT::f32, TCE::R32FPRegsRegisterClass);
-#else
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
     addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
     addRegisterClass(MVT::f16, &TCE::R32HFPRegsRegClass);
-#endif
 
-#ifndef LLVM_3_0
     if (opts->useVectorBackend()) {
         switch (tm_.maxVectorSize()) {
         default: // more than 8? 
         case 8:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v8i32, TCE::V8R32IRegsRegisterClass);
-            addRegisterClass(MVT::v8f32, TCE::V8R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v8i32, &TCE::V8R32IRegsRegClass);
             addRegisterClass(MVT::v8f32, &TCE::V8R32FPRegsRegClass);
-#endif
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v8i32, Legal);
@@ -575,13 +548,8 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
 
         case 4:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v4i32, TCE::V4R32IRegsRegisterClass);
-            addRegisterClass(MVT::v4f32, TCE::V4R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v4i32, &TCE::V4R32IRegsRegClass);
             addRegisterClass(MVT::v4f32, &TCE::V4R32FPRegsRegClass);
-#endif
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v4i32, Legal);
@@ -589,9 +557,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
-
-	    // try to use signext or anyext for ext.
-	    //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
+            
+            // try to use signext or anyext for ext.
+            //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v4f32, Legal);
@@ -602,18 +570,16 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
 
         case 2:
-#ifdef LLVM_3_1
-            addRegisterClass(MVT::v2i32, TCE::V2R32IRegsRegisterClass);
-            addRegisterClass(MVT::v2f32, TCE::V2R32FPRegsRegisterClass);
-#else
             addRegisterClass(MVT::v2i32, &TCE::V2R32IRegsRegClass);
             addRegisterClass(MVT::v2f32, &TCE::V2R32FPRegsRegClass);
-#endif
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v2i32, Expand);
+#endif
 
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
@@ -621,16 +587,14 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v2f32, Expand);
+#endif
+
         case 1:
             break;
         }
     }
-#else
-    if (opts->useVectorBackend()) {
-        std::cerr << "Warning: Vector backend disabled with LLVM-3.0"
-                  << std::endl;
-    }
-#endif
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -780,15 +744,6 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
     TargetLowering::ArgListTy Args;
     DebugLoc dl = Op->getDebugLoc();
-#ifdef LLVM_3_0
-    std::pair<SDValue, SDValue> CallResult =
-      LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
-                  false, false, false, false, 0, CallingConv::C,
-                  /*isTailCall=*/false,
-                  /*isReturnValueUsed=*/true,                  
-                  DAG.getExternalSymbol("_exit", getPointerTy()),
-                  Args, DAG, dl);
-#else
 #ifdef LLVM_3_1
     std::pair<SDValue, SDValue> CallResult =
       LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
@@ -810,7 +765,6 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
                                          Args, DAG, dl);
         std::pair<SDValue, SDValue> CallResult =
             LowerCallTo(CLI);
-#endif
 #endif
     return CallResult.second;
 
@@ -864,7 +818,12 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
  */
 EVT
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+#if LLVM_3_2
     return llvm::MVT::i1;
+#else
+    if (!VT.isVector()) return llvm::MVT::i1;
+    return VT.changeVectorElementTypeToInteger();
+#endif
 }
 
 /**
@@ -908,7 +867,7 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
                                                   EVT VT) const {
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
+#if (defined(LLVM_3_1))
     case 'r':
         return std::make_pair(0U, TCE::R32IRegsRegisterClass);
     case 'f':

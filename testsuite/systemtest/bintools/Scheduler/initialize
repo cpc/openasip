@@ -1,9 +1,0 @@
-#!/bin/bash
-
-llvm_version=$(llvm-config --version)
-
-if [ "x${llvm_version}" == "x3.0" ]; then
-    touch vector.testdesc.disabled
-else
-    rm -f vector.testdesc.disabled
-fi
