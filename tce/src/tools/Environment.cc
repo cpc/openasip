@@ -1050,9 +1050,7 @@ Environment::parsePathEnvVariable(std::vector<std::string>& paths) {
 }
 
 /**
- * Returns full path to llvmtce plugin cache directory.
- *
- * @return Full path to the llvmtce plugin cache directory.
+ * Returns full path to the default LLVM backend plugin cache directory.
  */
 string
 Environment::llvmtceCachePath() {

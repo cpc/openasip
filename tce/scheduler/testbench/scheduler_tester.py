@@ -36,13 +36,6 @@ from pprint import pformat
 
 # General settings.
 
-# Location of the scheduler and simulator programs relative to the location
-# of this script.
-
-schedulerExe = "../../src/bintools/Scheduler/schedule"
-tceccExe = "../../src/bintools/Compiler/tcecc"
-simulatorExe = "../../src/codesign/ttasim/ttasim"
-
 # How long the scheduling can run without getting killed?
 schedulingTimeoutSec = 100*60
 
@@ -116,6 +109,13 @@ Options:
   ----------------------------------------------------------------------------
 """
 
+# Location of the scheduler and simulator programs relative to the location
+# of this script.
+
+schedulerExe = "../../src/bintools/Scheduler/schedule"
+tceccExe = "../../src/bintools/Compiler/tcecc"
+simulatorExe = "../../src/codesign/ttasim/ttasim"
+
 # Access the options globally from everywhere.
 rootDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 ADFDir = os.path.normpath(rootDir + "/ADF")
@@ -124,6 +124,24 @@ schedulerExe = os.path.normpath(rootDir + "/" + schedulerExe)
 simulatorExe = os.path.normpath(rootDir + "/" + simulatorExe)
 tceccExe = os.path.normpath(rootDir + "/" + tceccExe)
 testRootDir = "."
+
+backendCacheDir = None
+def get_backend_cache_dir():    
+    """Returns the location of the backend plugin directory.
+
+    Creates a new temporary directory, if there's not one already."""
+    global backendCacheDir
+    if backendCacheDir is not None: return backendCacheDir
+
+    if os.environ.get('TCE_ST_REUSE_OLD_BACKENDS', '0') == '1':
+        # In case we know that there has not been changes to the
+        # backend plugin generation routines, we can use the common
+        # plugin cache dir to speed up compilation by setting the
+        # env to 1.
+        backendCacheDir = ''
+    else:
+        backendCacheDir = tempfile.mkdtemp(prefix="scheduler_tester-")
+    return backendCacheDir
 
 # Find the ADF and Operations directory in the same directory
 # the script is at.
@@ -250,12 +268,7 @@ def ParseCommandLine():
 
     def file_readable(filename):
         return access(filename, R_OK)
-            
-# Cleanup the target plugin cache.
-    exitOk, stdoutContents, stderrContents = \
-            runWithTimeout(tceccExe + ' --clear-plugin-cache', 50)
-    #print exitOk, stdoutContents, stderrContents
-    
+               
     normalOutput = not latexTable and not csvFormat
         
 def runWithTimeout(command, timeoutSecs, inputStream = ""):
@@ -598,6 +611,9 @@ class TestCase:
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
 
         schedulingCommand = tceccExe + ' ' + self.testExtraCompileFlags + ' '
+        if get_backend_cache_dir() != '':
+            schedulingCommand += "--plugin-cache-dir=" + get_backend_cache_dir() + " "
+
         if (leaveDirty):
             schedulingCommand += '-d '
 
@@ -1239,6 +1255,12 @@ class Tester:
         """
         sys.stdout.write('\\hline \\end{tabular}\n')        
 
+
+def cleanup_and_exit(retval):
+    if backendCacheDir is not None:
+        os.system("rm -fr " + backendCacheDir)
+    sys.exit(retval)
+
 def main():
     global failureFound, outputOnlyIfFailure
     ParseCommandLine()
@@ -1246,7 +1268,7 @@ def main():
         testCases = Tester()
     except TestBenchException, e:
         print "Error while initializing test system: " + e.getMsg()
-        sys.exit(3)
+        cleanup_and_exit(3)
 
     try:
         testCases.runTests()
@@ -1255,11 +1277,13 @@ def main():
             sys.stdout.seek(0)
             sys.__stdout__.write(sys.stdout.read())
             sys.stdout = sys.__stdout__
-            sys.exit(1)
+            cleanup_and_exit(1)
             
     except TestBenchException, e:
         print "Error while running tests: " + e.getMsg()
-        sys.exit(4)
+        cleanup_and_exit(1)
     
 if __name__ == '__main__':
     main()
+    cleanup_and_exit(0)
+

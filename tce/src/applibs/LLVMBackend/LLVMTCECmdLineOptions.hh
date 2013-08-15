@@ -79,6 +79,8 @@ public:
 
     bool analyzeInstructionPatterns() const;
 
+    std::string backendCacheDir() const;
+
     TCEString tempDir() const;    
 
     virtual bool dumpDDGsDot() const;
@@ -115,10 +117,11 @@ private:
     static const std::string SWL_RECURSIVE_BU_SCHEDULER;
     static const std::string SWL_USE_OLD_BACKEND_SOURCES;
     static const std::string SWL_TEMP_DIR;
-    static const std::string ENABLE_VECTOR_BACKEND;
-    static const std::string WORK_ITEM_AA_FILE;
-    static const std::string USAGE;
+    static const std::string SWL_ENABLE_VECTOR_BACKEND;
+    static const std::string SWL_WORK_ITEM_AA_FILE;
     static const std::string SWL_ANALYZE_INSTRUCTION_PATTERNS;
+    static const std::string SWL_BACKEND_CACHE_DIR;
+    static const std::string USAGE;
 };
 
 #endif

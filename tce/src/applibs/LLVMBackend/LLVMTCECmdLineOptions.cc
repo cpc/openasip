@@ -32,6 +32,7 @@
  */
 
 #include "LLVMTCECmdLineOptions.hh"
+#include "Environment.hh"
 
 const std::string LLVMTCECmdLineOptions::SWL_TARGET_MACHINE = "adf";
 const std::string LLVMTCECmdLineOptions::SWS_TARGET_MACHINE = "a";
@@ -63,9 +64,10 @@ const std::string LLVMTCECmdLineOptions::SWL_ANALYZE_INSTRUCTION_PATTERNS =
 
 const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
 
-const std::string LLVMTCECmdLineOptions::ENABLE_VECTOR_BACKEND = 
+const std::string LLVMTCECmdLineOptions::SWL_ENABLE_VECTOR_BACKEND = 
     "vector-backend";
-const std::string LLVMTCECmdLineOptions::WORK_ITEM_AA_FILE = "wi-aa-filename";
+const std::string LLVMTCECmdLineOptions::SWL_WORK_ITEM_AA_FILE = "wi-aa-filename";
+const std::string LLVMTCECmdLineOptions::SWL_BACKEND_CACHE_DIR = "backend-cache-dir";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -153,19 +155,24 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
 
     addOption(
         new StringCmdLineOptionParser(
-            WORK_ITEM_AA_FILE, 
+            SWL_WORK_ITEM_AA_FILE, 
             "The filename with Work Item Alias Analysis - this is filled automatically "
             "if tcecc finds path to installed pocl."));
 
     addOption(
         new BoolCmdLineOptionParser(
-            ENABLE_VECTOR_BACKEND,
+            SWL_ENABLE_VECTOR_BACKEND,
             "Enable backend support for vector registers split between multiple RF's"));
 
     addOption(
         new BoolCmdLineOptionParser(
             SWL_ANALYZE_INSTRUCTION_PATTERNS,
             "Analyze the instruction patterns after instruction selection."));
+
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_BACKEND_CACHE_DIR,
+            "The directory to use for caching LLVM backend plugins."));
 }
 
 /**
@@ -323,17 +330,17 @@ LLVMTCECmdLineOptions::tempDir() const {
 
 bool
 LLVMTCECmdLineOptions::useVectorBackend() const {
-    return findOption(ENABLE_VECTOR_BACKEND)->isDefined();
+    return findOption(SWL_ENABLE_VECTOR_BACKEND)->isDefined();
 }
 
 bool
 LLVMTCECmdLineOptions::isWorkItemAAFileDefined() const {
-    return findOption(WORK_ITEM_AA_FILE)->isDefined();
+    return findOption(SWL_WORK_ITEM_AA_FILE)->isDefined();
 }
 
 std::string
 LLVMTCECmdLineOptions::workItemAAFile() const {
-    return findOption(WORK_ITEM_AA_FILE)->String();
+    return findOption(SWL_WORK_ITEM_AA_FILE)->String();
 }
 
 bool
@@ -341,3 +348,9 @@ LLVMTCECmdLineOptions::analyzeInstructionPatterns() const {
     return findOption(SWL_ANALYZE_INSTRUCTION_PATTERNS)->isDefined();
 }
 
+std::string
+LLVMTCECmdLineOptions::backendCacheDir() const {
+    if (findOption(SWL_BACKEND_CACHE_DIR)->isDefined())
+        return findOption(SWL_BACKEND_CACHE_DIR)->String();
+    return Environment::llvmtceCachePath();
+}

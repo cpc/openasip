@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -538,6 +538,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v8i32, Expand);
+#endif
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Legal);
@@ -546,6 +549,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v8f32, Expand);
+#endif
 
         case 4:
             addRegisterClass(MVT::v4i32, &TCE::V4R32IRegsRegClass);
@@ -557,6 +563,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v4i32, Expand);
+#endif
             
             // try to use signext or anyext for ext.
             //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
@@ -568,6 +577,9 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
+#ifndef LLVM_3_2
+            setOperationAction(ISD::VSELECT, MVT::v4f32, Expand);
+#endif
 
         case 2:
             addRegisterClass(MVT::v2i32, &TCE::V2R32IRegsRegClass);

@@ -1194,6 +1194,7 @@ if options.adf_file != "":
 
     command += " --temp-dir=%s " % tempDir
 
+    command += " --backend-cache-dir=%s " % options.plugin_cache_dir
     if options.use_old_backend_src and options.temp_dir:
         command += " --use-old-backend-src" 
 
