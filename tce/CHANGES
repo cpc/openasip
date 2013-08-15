@@ -1,10 +1,14 @@
 1.9       unreleased
 ====================
 
-[changes updated from bzr log until 2013-07-16]
+[changes updated from bzr log until 2013-08-15]
 
 Notable changes and features
 ----------------------------
+
+Code generator improvements
+---------------------------
+- Support for vector comparisons with the vectorbackend.
 
 Misc. smaller improvements
 --------------------------
@@ -12,7 +16,7 @@ Misc. smaller improvements
   support added for zero-copy buffers and reading from and writing to 
   buffers by manipulation of buffer pointers. Also reduced kernel call
   overhead.
-- Explorer: Hdb files which are given with -b switch are now searched under
+- Explorer: HDB files which are given with -b switch are now searched under
   current working dir and default hdb search paths.
 
 1.8       June 2013
