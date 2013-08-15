@@ -731,41 +731,26 @@ int main(int argc, char* argv[]) {
         hdbPaths.insert(hdbPaths.end(), srchPaths.begin(), srchPaths.end());
 
         for (int i = 0; i < options->hdbFileNameCount(); i++) {
-            string pathToHdb = options->hdbFileName(i);
             string hdbFile = options->hdbFileName(i);
-            for (unsigned int p = 0; p < hdbPaths.size(); p++) {
-                string tempPath = 
-                    hdbPaths.at(p) + FileSystem::DIRECTORY_SEPARATOR + hdbFile;
-                if (FileSystem::fileExists(tempPath)) {
-                    pathToHdb = tempPath;
-                    break;
-                }
-            }
             try {
+                string pathToHdb = FileSystem::findFileInSearchPaths(
+                    hdbPaths, hdbFile);
                 HDB::HDBRegistry::instance().hdb(pathToHdb);
             } catch (const FileNotFound& e) {
                 std::cerr << "Could not find HDB file " 
-                          << pathToHdb << std::endl;
+                          << hdbFile << std::endl;
             }
         }
     } else {
         // if no hdb was given, use default hdb
-        string pathToHdb = EXPLORER_DEFAULT_HDB;
+        string hdbFile = EXPLORER_DEFAULT_HDB;
         vector<string> hdbPaths = Environment::hdbPaths();
-        for (unsigned int i = 0; i < hdbPaths.size(); i++) {
-            string tempPath =
-                hdbPaths.at(i) + FileSystem::DIRECTORY_SEPARATOR
-                + EXPLORER_DEFAULT_HDB;
-            if (FileSystem::fileExists(tempPath)) {
-                pathToHdb = tempPath;
-                break;
-            }
-        }
         try {
+            string pathToHdb = FileSystem::findFileInSearchPaths(
+                hdbPaths, hdbFile);
             HDB::HDBRegistry::instance().hdb(pathToHdb);
         } catch (const FileNotFound& e) {
-            std::cerr << "Could not find HDB file " 
-                      << pathToHdb << std::endl;
+            std::cerr << "Could not find HDB file " << hdbFile << std::endl;
         }
     }
     
