@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Inline definitions of MemorySystem class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2013 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -43,7 +43,7 @@ using boost::shared_ptr;
 inline void 
 MemorySystem::advanceClockOfSharedMemories() {
     for (size_t i = 0; i < sharedMemories_.size(); ++i) {
-        shared_ptr<Memory> mem = sharedMemories_.at(i);
+        Memory* mem = sharedMemories_.at(i).get();
         mem->advanceClock();
     }
 }
@@ -54,7 +54,7 @@ MemorySystem::advanceClockOfSharedMemories() {
 inline void 
 MemorySystem::advanceClockOfLocalMemories() {
     for (size_t i = 0; i < localMemories_.size(); ++i) {
-        shared_ptr<Memory> mem = localMemories_.at(i);
+        Memory* mem = localMemories_.at(i).get();
         mem->advanceClock();
     }
 }
@@ -68,7 +68,7 @@ MemorySystem::advanceClockOfLocalMemories() {
 inline void 
 MemorySystem::resetAllMemories() {
     for (size_t i = 0; i < memoryList_.size(); ++i) {
-        shared_ptr<Memory> mem = memoryList_.at(i);
+        Memory* mem = memoryList_.at(i).get();
         mem->reset();
     }
 }
@@ -82,7 +82,7 @@ MemorySystem::resetAllMemories() {
 inline void 
 MemorySystem::fillAllMemoriesWithZero() {
     for (size_t i = 0; i < memoryList_.size(); ++i) {
-        shared_ptr<Memory> mem = memoryList_.at(i);
+        Memory* mem = memoryList_.at(i).get();
         mem->fillWithZeros();
     }
 }
