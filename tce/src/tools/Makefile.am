@@ -29,7 +29,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	CmdLineOptions.hh CmdLineParser.hh CmdLineParser.icc StringTools.hh \
 	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
 	CIStringSet.hh ContainerTools.hh ContainerTools.icc Listener.hh \
-	Informer.hh Informer.icc HalfFloatWord.hh
+	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h
 
 REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo "" | tr -d "\n")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)

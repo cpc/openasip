@@ -41,7 +41,14 @@
 #ifndef TTA_BASETYPE_HH
 #define TTA_BASETYPE_HH
 
-#include "tce_config.h"
+#include "tce_config_public.h"
+
+#undef PACKAGE_VERSION
+#undef PACKAGE_NAME
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+
 
 #if SIZEOF_FLOAT == 4
 
