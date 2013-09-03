@@ -830,7 +830,7 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
  */
 EVT
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
-#if LLVM_3_2
+#ifdef LLVM_3_2
     return llvm::MVT::i1;
 #else
     if (!VT.isVector()) return llvm::MVT::i1;
