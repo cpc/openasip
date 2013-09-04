@@ -67,7 +67,13 @@ private:
     void onSelection(wxListEvent& event);
     void onOk(wxCommandEvent& event);
     void updateOperand();
+    void onType(wxCommandEvent& event);
+    void onElementWidth(wxCommandEvent& event);
+    void onElementCount(wxCommandEvent& event);
+
     void updateTypes(int type);
+    void updateElementWidths();
+    void updateElementCounts();
     void setTexts();
     
     /**
@@ -80,7 +86,11 @@ private:
         ID_OPERAND_CHOICE,
         ID_OPERATION_INPUT_TYPES, // Input Type ComboBox
         ID_ADD_BUTTON,
-        ID_DELETE_BUTTON
+        ID_DELETE_BUTTON,
+        ID_ELEMENT_WIDTH,
+        ID_ELEMENT_COUNT,
+        ID_TEXT_WIDTH,
+        ID_TEXT_COUNT
     };
 
     /// List of can swap operands.
@@ -97,12 +107,20 @@ private:
     bool memData_;
     /// Choice box for operation input types
     wxChoice* inputTypesComboBox_;
+    /// Choice box for operand element width.
+    wxChoice* elementWidthChoice_;
+    /// Choice box for operand element count.
+    wxChoice* elementCountChoice_;
     /// Operands that can be swapped with this operand.
     std::set<int> canSwap_;
     /// Numberof input operands.
     int numberOfOperands_;
     /// Index of the input operand currently modified.
     int index_;
+    /// Current element width in choice box.
+    int elemWidth_;
+    /// Current element count in choice box.
+    int elemCount_;
 
     /// Input types
     std::vector<std::string> inputTypes_;

@@ -37,6 +37,12 @@
 #include "BaseType.hh"
 #include "HalfFloatWord.hh"
 
+#include <string>
+#include <string.h>
+#include "Exception.hh"
+
+#define SIMD_WORD_WIDTH 1024
+
 //////////////////////////////////////////////////////////////////////////////
 // SimValue
 //////////////////////////////////////////////////////////////////////////////
@@ -109,6 +115,10 @@ public:
     FloatWord floatWordValue() const;
     HalfFloatWord halfFloatWordValue() const;
 
+    Byte* rawBytes() const;
+    HalfWord* rawHalfWords() const;
+    Word* rawWords() const;
+
     /// These are public for fast access in the compiled simulation engine.
     union Value {
         UIntWord uIntWord;
@@ -116,6 +126,7 @@ public:
         uint16_t halfFloatWordBits;
         FloatWord floatWord;
         DoubleWord doubleWord;
+        Byte rawData[SIMD_WORD_WIDTH / 8];
     };
 
     /// The value data.

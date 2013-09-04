@@ -45,6 +45,7 @@
 #include "OSEdTextGenerator.hh"
 #include "DialogPosition.hh"
 #include "Operand.hh"
+#include "SimValue.hh"
 
 using std::set;
 using std::string;
@@ -55,6 +56,10 @@ BEGIN_EVENT_TABLE(InputOperandDialog, wxDialog)
     EVT_LIST_ITEM_SELECTED(ID_SWAP_LIST, InputOperandDialog::onSelection)
     EVT_LIST_ITEM_DESELECTED(ID_SWAP_LIST, InputOperandDialog::onSelection)
     
+    EVT_CHOICE(ID_OPERATION_INPUT_TYPES, InputOperandDialog::onType)
+    EVT_CHOICE(ID_ELEMENT_WIDTH, InputOperandDialog::onElementWidth)
+    EVT_CHOICE(ID_ELEMENT_COUNT, InputOperandDialog::onElementCount)
+
     EVT_BUTTON(ID_ADD_BUTTON, InputOperandDialog::onAddSwap)
     EVT_BUTTON(ID_DELETE_BUTTON, InputOperandDialog::onDeleteSwap)
     EVT_BUTTON(wxID_OK, InputOperandDialog::onOk)
@@ -87,6 +92,12 @@ InputOperandDialog::InputOperandDialog(
 
     inputTypesComboBox_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_OPERATION_INPUT_TYPES));
+
+    elementWidthChoice_ =
+        dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_WIDTH));
+
+    elementCountChoice_ =
+        dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_COUNT));
     
     FindWindow(ID_MEM_ADDRESS)->SetValidator(wxGenericValidator(&memAddress_));
     FindWindow(ID_MEM_DATA)->SetValidator(wxGenericValidator(&memData_));
@@ -101,17 +112,21 @@ InputOperandDialog::InputOperandDialog(
     inputTypes_.push_back(Operand::DOUBLE_WORD_STRING);
     inputTypes_.push_back(Operand::HALF_FLOAT_WORD_STRING);
     inputTypes_.push_back(Operand::RAW_DATA_STRING);
-
+    
     operandTypes_[0] = Operand::SINT_WORD;
     operandTypes_[1] = Operand::UINT_WORD;
     operandTypes_[2] = Operand::FLOAT_WORD;
     operandTypes_[3] = Operand::DOUBLE_WORD;
     operandTypes_[4] = Operand::HALF_FLOAT_WORD;
     operandTypes_[5] = Operand::RAW_DATA;
-
+    
     updateTypes(operand_->type());
-
     setTexts();
+
+    elemWidth_ = operand_->elementWidth();
+    elemCount_ = operand_->elementCount();
+    updateElementWidths();
+    updateElementCounts();
 }
 
 /**
@@ -171,6 +186,61 @@ InputOperandDialog::setTexts() {
 }
 
 /**
+ * Event handler for operand type choice box.
+**/
+void 
+InputOperandDialog::onType(wxCommandEvent&) {
+
+    int type = inputTypesComboBox_->GetSelection();
+
+    Operand::OperandType operType = static_cast<Operand::OperandType>(type);
+    elemWidth_ = Operand::defaultElementWidth(operType);
+    elemCount_ = 1;
+    updateElementWidths();
+    updateElementCounts();
+}
+
+/**
+ * Event handler for element width choice box.
+**/
+void 
+InputOperandDialog::onElementWidth(wxCommandEvent&) {
+    // get the current choice box value and convert it to integer
+    int index = elementWidthChoice_->GetSelection();
+    wxString number = elementWidthChoice_->GetString(index);
+    long value;
+    if(!number.ToLong(&value)) { 
+        elemWidth_ = 32;
+        return;
+    }
+
+    // save current choice
+    elemWidth_ = static_cast<int>(value);
+    // update choice box list cells
+    updateElementCounts();
+}
+
+/**
+ * Event handler for element count choice box.
+**/
+void 
+InputOperandDialog::onElementCount(wxCommandEvent&) {
+    // get the current choice box value and convert it to integer
+    int index = elementCountChoice_->GetSelection();
+    wxString number = elementCountChoice_->GetString(index);
+    long value;
+    if(!number.ToLong(&value)) { 
+        elemCount_ = 1;
+        return;
+    }
+
+    // save current choice
+    elemCount_ = static_cast<int>(value);
+    // update choice box list cells
+    updateElementWidths();
+}
+
+/**
  * Updates the type lists.
  * 
  * @param type The type of the operation.
@@ -186,6 +256,40 @@ InputOperandDialog::updateTypes(int type) {
     }
 	
     inputTypesComboBox_->SetSelection(type);
+}
+
+/**
+ * Updates the element width choice box list.
+**/
+void
+InputOperandDialog::updateElementWidths() {
+
+    elementWidthChoice_->Clear();
+
+    elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
+    elementWidthChoice_->SetSelection(0);
+}
+
+/**
+ * Updates the element count choice box list.
+**/
+void
+InputOperandDialog::updateElementCounts() {
+
+    elementCountChoice_->Clear();
+    
+    // update the list so that longer than SIMD_WORD_WIDTH width*count 
+    // combinations are not listed at all
+    int elemCount = 1;
+    int elemCountIndex = 0;
+    while (elemCount*elemWidth_ <= SIMD_WORD_WIDTH) {
+        if (elemCount < elemCount_) {
+            ++elemCountIndex;
+        }
+        elementCountChoice_->Append(WxConversion::toWxString(elemCount));
+        elemCount *= 2;
+    }
+    elementCountChoice_->SetSelection(elemCountIndex);
 }
 
 /**
@@ -303,7 +407,6 @@ InputOperandDialog::updateOperand() {
     ObjectState* root = new ObjectState("");
     root->setAttribute(Operand::OPRND_ID, numberOfOperands_ + 1);
     
-    
     int selected = inputTypesComboBox_->GetSelection();
     Operand::OperandType type = operandTypes_[selected];
     
@@ -333,6 +436,9 @@ InputOperandDialog::updateOperand() {
             root->setAttribute(Operand::OPRND_TYPE, Operand::SINT_WORD_STRING);
             break;
     }
+
+    root->setAttribute(Operand::OPRND_ELEM_WIDTH, elemWidth_);
+    root->setAttribute(Operand::OPRND_ELEM_COUNT, elemCount_);
     
     root->setAttribute(Operand::OPRND_MEM_ADDRESS, memAddress_);
     root->setAttribute(Operand::OPRND_MEM_DATA, memData_);
@@ -391,13 +497,25 @@ InputOperandDialog::createContents(wxWindow *parent, bool call_fit, bool set_siz
     wxChoice *itemInputTypes = new wxChoice(parent, ID_OPERATION_INPUT_TYPES, wxDefaultPosition, wxSize(100,-1), 1, strs9);
     item1->Add(itemInputTypes, 0, wxALIGN_CENTER|wxALL, 5);
 
+    wxStaticText *itemTextWidth = new wxStaticText(parent, ID_TEXT_WIDTH, wxT("Element width:"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add(itemTextWidth, 0, wxALIGN_CENTER|wxALL, 5);
+    wxChoice *itemElemWidth = new wxChoice(parent, ID_ELEMENT_WIDTH, wxDefaultPosition, wxSize(70,-1), 1, strs9);
+    item1->Add(itemElemWidth, 0, wxALIGN_CENTER|wxALL, 5);
+    wxStaticText *itemTextCount = new wxStaticText(parent, ID_TEXT_COUNT, wxT("Element count:"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add(itemTextCount, 0, wxALIGN_CENTER|wxALL, 5);
+    wxChoice *itemElemCount = new wxChoice(parent, ID_ELEMENT_COUNT, wxDefaultPosition, wxSize(70,-1), 1, strs9);
+    item1->Add(itemElemCount, 0, wxALIGN_CENTER|wxALL, 5);
+
+    wxBoxSizer *item1b = new wxBoxSizer(wxHORIZONTAL);
+
     wxCheckBox *item2 = new wxCheckBox(parent, ID_MEM_ADDRESS, wxT("Memory address"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item2, 0, wxALIGN_CENTER|wxALL, 5);
+    item1b->Add(item2, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxCheckBox *item3 = new wxCheckBox(parent, ID_MEM_DATA, wxT("Memory data"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item3, 0, wxALIGN_CENTER|wxALL, 5);
+    item1b->Add(item3, 0, wxALIGN_CENTER|wxALL, 5);
 
     item0->Add(item1, 0, wxALIGN_CENTER|wxALL, 5);
+    item0->Add(item1b, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxStaticBox *item5 = new wxStaticBox(parent, -1, wxT("Can swap"));
     wxStaticBoxSizer *item4 = new wxStaticBoxSizer(item5, wxVERTICAL);

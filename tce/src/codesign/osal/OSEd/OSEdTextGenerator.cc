@@ -88,6 +88,8 @@ OSEdTextGenerator::OSEdTextGenerator() {
     addText(TXT_COLUMN_OPERATIONS, "operations");
     addText(TXT_COLUMN_PROPERTY, "property");
     addText(TXT_COLUMN_OPERAND_VALUE, "operand value");
+    addText(TXT_COLUMN_ELEMENT_WIDTH, "element width");
+    addText(TXT_COLUMN_ELEMENT_COUNT, "element count");
 
     addText(TXT_PROPERTY_DIALOG_TITLE, "Operation properties");
     addText(TXT_INPUT_OPERAND_DIALOG_TITLE, "Input operand properties: id %i");

@@ -43,12 +43,17 @@
 #include "DialogPosition.hh"
 #include "Operand.hh"
 #include "ObjectState.hh"
+#include "SimValue.hh"
 
 using std::string;
 using boost::format;
 
 BEGIN_EVENT_TABLE(OutputOperandDialog, wxDialog)
     EVT_BUTTON(wxID_OK, OutputOperandDialog::onOk)
+
+    EVT_CHOICE(ID_OPERATION_OUTPUT_TYPES, OutputOperandDialog::onType)
+    EVT_CHOICE(ID_ELEMENT_WIDTH, OutputOperandDialog::onElementWidth)
+    EVT_CHOICE(ID_ELEMENT_COUNT, OutputOperandDialog::onElementCount)
 END_EVENT_TABLE()
 
 /**
@@ -63,15 +68,20 @@ OutputOperandDialog::OutputOperandDialog(
     Operand* operand,
     int index) :
     wxDialog(parent, -1, _T(""), 
-             DialogPosition::getPosition(DialogPosition::DIALOG_OUTPUT_OPERAND), 
-             wxSize(350, 100)),
+             DialogPosition::getPosition(DialogPosition::DIALOG_OUTPUT_OPERAND)),
     operand_(operand), memData_(false), index_(index) {
     
     memData_ = operand_->isMemoryData();
-    createContents(this, false, true);
+    createContents(this, true, true);
 
     outputTypesComboBox_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_OPERATION_OUTPUT_TYPES));
+
+    elementWidthChoice_ =
+        dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_WIDTH));
+
+    elementCountChoice_ =
+        dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_COUNT));
 
     FindWindow(ID_MEM_DATA)->SetValidator(wxGenericValidator(&memData_));
 
@@ -93,6 +103,11 @@ OutputOperandDialog::OutputOperandDialog(
 
     setTexts();
     updateTypes(operand);
+
+    elemWidth_ = operand_->elementWidth();
+    elemCount_ = operand_->elementCount();
+    updateElementWidths();
+    updateElementCounts();
 }
 
 /**
@@ -103,6 +118,61 @@ OutputOperandDialog::~OutputOperandDialog() {
     GetPosition(&x, &y);
     wxPoint point(x, y);
     DialogPosition::setPosition(DialogPosition::DIALOG_OUTPUT_OPERAND, point);
+}
+
+/**
+ * Event handler for operand type choice box.
+**/
+void 
+OutputOperandDialog::onType(wxCommandEvent&) {
+
+    int type = outputTypesComboBox_->GetSelection();
+
+    Operand::OperandType operType = static_cast<Operand::OperandType>(type);
+    elemWidth_ = Operand::defaultElementWidth(operType);
+    elemCount_ = 1;
+    updateElementWidths();
+    updateElementCounts();
+}
+
+/**
+ * Event handler for element width choice box.
+**/
+void 
+OutputOperandDialog::onElementWidth(wxCommandEvent&) {
+    // get the current choice box value and convert it to integer
+    int index = elementWidthChoice_->GetSelection();
+    wxString number = elementWidthChoice_->GetString(index);
+    long value;
+    if(!number.ToLong(&value)) { 
+        elemWidth_ = 32;
+        return;
+    }
+
+    // save current choice
+    elemWidth_ = static_cast<int>(value);
+    // update choice box list cells
+    updateElementCounts();
+}
+
+/**
+ * Event handler for element count choice box.
+**/
+void 
+OutputOperandDialog::onElementCount(wxCommandEvent&) {
+    // get the current choice box value and convert it to integer
+    int index = elementCountChoice_->GetSelection();
+    wxString number = elementCountChoice_->GetString(index);
+    long value;
+    if(!number.ToLong(&value)) { 
+        elemCount_ = 1;
+        return;
+    }
+
+    // save current choice
+    elemCount_ = static_cast<int>(value);
+    // update choice box list cells
+    updateElementWidths();
 }
 
 /**
@@ -122,6 +192,40 @@ OutputOperandDialog::updateTypes(Operand* operand_) {
 
     outputTypesComboBox_->SetSelection(type);
 
+}
+
+/**
+ * Updates the element width choice box list.
+**/
+void
+OutputOperandDialog::updateElementWidths() {
+
+    elementWidthChoice_->Clear();
+
+    elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
+    elementWidthChoice_->SetSelection(0);
+}
+
+/**
+ * Updates the element count choice box list.
+**/
+void
+OutputOperandDialog::updateElementCounts() {
+
+    elementCountChoice_->Clear();
+
+    // update the list so that longer than SIMD_WORD_WIDTH width*count 
+    // combinations are not listed at all
+    int elemCount = 1;
+    int elemCountIndex = 0;
+    while (elemCount*elemWidth_ <= SIMD_WORD_WIDTH) {
+        if (elemCount < elemCount_) {
+            ++elemCountIndex;
+        }
+        elementCountChoice_->Append(WxConversion::toWxString(elemCount));
+        elemCount *= 2;
+    }
+    elementCountChoice_->SetSelection(elemCountIndex);
 }
 
 /**
@@ -189,6 +293,9 @@ OutputOperandDialog::onOk(wxCommandEvent&) {
             break;
     }
     
+    root->setAttribute(Operand::OPRND_ELEM_WIDTH, elemWidth_);
+    root->setAttribute(Operand::OPRND_ELEM_COUNT, elemCount_);
+
     root->setAttribute(Operand::OPRND_MEM_ADDRESS, false);
     root->setAttribute(Operand::OPRND_MEM_DATA, memData_);
     
@@ -227,10 +334,21 @@ OutputOperandDialog::createContents(
     wxChoice *itemOutputTypes = new wxChoice(parent, ID_OPERATION_OUTPUT_TYPES, wxDefaultPosition, wxSize(100,-1), 1, strs9);
     item1->Add(itemOutputTypes, 0, wxALIGN_CENTER|wxALL, 5);
 
+    wxStaticText *itemTextWidth = new wxStaticText(parent, ID_TEXT_WIDTH, wxT("Element width:"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add(itemTextWidth, 0, wxALIGN_CENTER|wxALL, 5);
+    wxChoice *itemElemWidth = new wxChoice(parent, ID_ELEMENT_WIDTH, wxDefaultPosition, wxSize(70,-1), 1, strs9);
+    item1->Add(itemElemWidth, 0, wxALIGN_CENTER|wxALL, 5);
+    wxStaticText *itemTextCount = new wxStaticText(parent, ID_TEXT_COUNT, wxT("Element count:"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add(itemTextCount, 0, wxALIGN_CENTER|wxALL, 5);
+    wxChoice *itemElemCount = new wxChoice(parent, ID_ELEMENT_COUNT, wxDefaultPosition, wxSize(70,-1), 1, strs9);
+    item1->Add(itemElemCount, 0, wxALIGN_CENTER|wxALL, 5);
+
+    wxBoxSizer *item1b = new wxBoxSizer(wxHORIZONTAL);
     wxCheckBox *item3 = new wxCheckBox(parent, ID_MEM_DATA, wxT("Memory data"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item3, 0, wxALIGN_CENTER|wxALL, 5);
+    item1b->Add(item3, 0, wxALIGN_CENTER|wxALL, 5);
 
     item0->Add(item1, 0, wxALIGN_CENTER|wxALL, 5);
+    item0->Add(item1b, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxBoxSizer *item4 = new wxBoxSizer(wxHORIZONTAL);
 

@@ -58,7 +58,13 @@ private:
 
     wxSizer* createContents(wxWindow* window, bool call_fit, bool set_sizer);
     void onOk(wxCommandEvent& event);
+    void onType(wxCommandEvent& event);
+    void onElementWidth(wxCommandEvent& event);
+    void onElementCount(wxCommandEvent& event);
+
     void updateTypes(Operand* operand);
+    void updateElementWidths();
+    void updateElementCounts();
     void setTexts();
 
     /**
@@ -66,7 +72,11 @@ private:
      */
     enum {
         ID_MEM_DATA,           ///< Memory data choice.
-        ID_OPERATION_OUTPUT_TYPES ///< Output Type ComboBox
+        ID_OPERATION_OUTPUT_TYPES, ///< Output Type ComboBox
+        ID_ELEMENT_WIDTH,
+        ID_ELEMENT_COUNT,
+        ID_TEXT_WIDTH,
+        ID_TEXT_COUNT
     };
 
     /// Operand to be modified.
@@ -77,6 +87,14 @@ private:
     int index_;
     /// Choice box for operation input types
     wxChoice* outputTypesComboBox_;
+    /// Choice box for operand element width.
+    wxChoice* elementWidthChoice_;
+    /// Choice box for operand element count.
+    wxChoice* elementCountChoice_;
+    /// Current element width in choice box.
+    int elemWidth_;
+    /// Current element count in choice box.
+    int elemCount_;
     
     /// Output types
     std::vector<std::string> outputTypes_;

@@ -306,30 +306,53 @@ OperationPropertyDialog::setTexts() {
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         OSEdConstants::DEFAULT_COLUMN_WIDTH);
     
+    fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_COUNT);
+	
+    inputOperandList_->InsertColumn(
+        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
+        110);
+
+    fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_WIDTH);
+	
+    inputOperandList_->InsertColumn(
+        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
+        110);
+
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_TYPE);
 	
     inputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
-        100);
+        110);
     
-
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_OPERAND);
 
     inputOperandList_->InsertColumn(
+        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT, 
+        70);
+
+    fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_COUNT);
+	
+    outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
-        OSEdConstants::DEFAULT_COLUMN_WIDTH);
+        110);
+
+    fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_WIDTH);
+	
+    outputOperandList_->InsertColumn(
+        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
+        110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_TYPE);
 	
     outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
-        100);
+        110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_OPERAND);
     
     outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
-        OSEdConstants::DEFAULT_COLUMN_WIDTH);
+        70);
 
     // check boxes
     WidgetTools::setLabel(&osedText, FindWindow(ID_READS_MEMORY),
@@ -427,6 +450,12 @@ OperationPropertyDialog::updateOperands() {
         inputOperandList_->InsertItem(i, id);
         std::string type = inputOperands_.at(i)->typeString();
         inputOperandList_->SetItem(i, 1, WxConversion::toWxString(type));
+        std::string elemWidth = Conversion::toString(
+            inputOperands_.at(i)->elementWidth());
+        inputOperandList_->SetItem(i, 2, WxConversion::toWxString(elemWidth));
+        std::string elemCount = Conversion::toString(
+            inputOperands_.at(i)->elementCount());
+        inputOperandList_->SetItem(i, 3, WxConversion::toWxString(elemCount));
     }
     int k = 0;
     for (unsigned int i = inputOperands_.size() + 1;
@@ -436,6 +465,12 @@ OperationPropertyDialog::updateOperands() {
         outputOperandList_->InsertItem(k, id);
         std::string type = outputOperands_.at(k)->typeString();
         outputOperandList_->SetItem(k, 1, WxConversion::toWxString(type));
+        std::string elemWidth = Conversion::toString(
+            outputOperands_.at(k)->elementWidth());
+        outputOperandList_->SetItem(k, 2, WxConversion::toWxString(elemWidth));
+        std::string elemCount = Conversion::toString(
+            outputOperands_.at(k)->elementCount());
+        outputOperandList_->SetItem(k, 3, WxConversion::toWxString(elemCount));
         k++;
     }
 
