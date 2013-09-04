@@ -87,6 +87,10 @@ public:
     static const std::string OPRND_IN;
     /// Object state name for output operand.
     static const std::string OPRND_OUT;
+    /// Object state name for element width.
+    static const std::string OPRND_ELEM_WIDTH;
+    /// Object state name for element count.
+    static const std::string OPRND_ELEM_COUNT;
 
     explicit Operand(bool isInput);
     explicit Operand(bool isInput, int index, OperandType type);
@@ -98,6 +102,11 @@ public:
     virtual bool isOutput() const;
     virtual OperandType type() const;
     virtual const std::string& typeString() const;
+    virtual int elementWidth() const;
+    virtual void setElementWidth(int elementWidth);
+    virtual int elementCount() const;
+    virtual void setElementCount(int elementCount);
+    virtual int width() const;
     virtual bool isAddress() const;
     virtual int memoryUnits() const;
     virtual bool isMemoryData() const;
@@ -109,6 +118,8 @@ public:
     virtual ObjectState* saveState() const;
 
     virtual bool isNull() const { return false; }
+
+    static int defaultElementWidth(OperandType type);
 
 private:
     void clear();
@@ -122,6 +133,10 @@ private:
     bool isInput_;
     /// Type of the Operand.
     OperandType type_;
+    /// Width of an element.
+    int elementWidth_;
+    /// Number of total elements.
+    int elementCount_;
     /// Flag indicating whether Operand is address or not.
     bool isAddress_;
     /// size of the data this operation addresses. 0 if unknown.

@@ -44,6 +44,8 @@
     </xs:sequence>
     <xs:attribute name="id" type="xs:integer" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="element-width" type="xs:integer"/>
+    <xs:attribute name="element-count" type="xs:integer"/>
 </xs:complexType>
 
 <xs:complexType name="out-type">
@@ -52,6 +54,8 @@
     </xs:sequence>
     <xs:attribute name="id" type="xs:integer" use="required"/>
     <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="element-width" type="xs:integer"/>
+    <xs:attribute name="element-count" type="xs:integer"/>
 </xs:complexType>
 
 <xs:complexType name="operation-type">

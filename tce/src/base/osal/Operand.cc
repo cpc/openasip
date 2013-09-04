@@ -55,6 +55,8 @@ const string Operand::OPRND_MEM_DATA = "mem-data";
 const string Operand::OPRND_CAN_SWAP = "can-swap";
 const string Operand::OPRND_IN = "in";
 const string Operand::OPRND_OUT = "out";
+const string Operand::OPRND_ELEM_WIDTH = "element-width";
+const string Operand::OPRND_ELEM_COUNT = "element-count";
 
 const std::string Operand::SINT_WORD_STRING = "SIntWord";
 const std::string Operand::UINT_WORD_STRING = "UIntWord";
@@ -68,8 +70,10 @@ const std::string Operand::UNKNOWN_TYPE_STRING = "InvalidValue";
  * Default constructor.
  */
 Operand::Operand(bool isInput) : 
-    Serializable(), index_(0), isInput_(isInput), type_(SINT_WORD),
-    isAddress_(false), addressUnits_(0), isMemoryData_(false) {
+    Serializable(), index_(0), isInput_(isInput), type_(SINT_WORD), 
+    elementCount_(1), isAddress_(false), addressUnits_(0), 
+    isMemoryData_(false) {
+    elementWidth_ = defaultElementWidth(type_);
 }
 
 /**
@@ -79,7 +83,9 @@ Operand::Operand(bool isInput) :
  */ 
 Operand::Operand(bool isInput, int index, OperandType type) : 
     Serializable(), index_(index), isInput_(isInput), type_(type),
-    isAddress_(false), addressUnits_(0), isMemoryData_(false) {
+    elementCount_(1), isAddress_(false), addressUnits_(0), 
+    isMemoryData_(false) {
+    elementWidth_ = defaultElementWidth(type_);
 }
 
 /**
@@ -89,7 +95,8 @@ Operand::Operand(bool isInput, int index, OperandType type) :
  */
 Operand::Operand(const Operand& op) : 
     Serializable(), index_(op.index()), isInput_(op.isInput()),
-    type_(op.type()), isAddress_(op.isAddress()), 
+    type_(op.type()), elementWidth_(op.elementWidth()), 
+    elementCount_(op.elementCount()), isAddress_(op.isAddress()), 
     addressUnits_(op.addressUnits_), isMemoryData_(op.isMemoryData()),
     swap_(op.swap()) {
 }
@@ -109,6 +116,8 @@ Operand::~Operand() {
 void
 Operand::clear() {
 	index_ = 0;
+    elementWidth_ = 0;
+    elementCount_ = 0;
 	isAddress_ = false;
 	isMemoryData_ = false;
 	swap_.clear();
@@ -185,6 +194,56 @@ Operand::typeString() const {
             return UNKNOWN_TYPE_STRING;
             break;
     }
+}
+
+/**
+ * Returns bit width of an operand element.
+ *
+ * @return Bit width of an element.
+ */
+int
+Operand::elementWidth() const {
+    return elementWidth_;
+}
+
+/**
+ * Sets the element bit width.
+ *
+ * @param elementWidth New element bit width.
+ */
+void
+Operand::setElementWidth(int elementWidth) {
+    elementWidth_ = elementWidth;
+}
+
+/**
+ * Returns total number of elements.
+ *
+ * @return Number of elements.
+ */
+int
+Operand::elementCount() const {
+    return elementCount_;
+}
+
+/**
+ * Sets the number of elements.
+ *
+ * @param elementCount New element count.
+ */
+void
+Operand::setElementCount(int elementCount) {
+    elementCount_ = elementCount;
+}
+
+/**
+ * Returns total bit width of the operand (element width * element count).
+ *
+ * @return Bit width of the operand.
+ */
+int
+Operand::width() const {
+    return elementWidth_ * elementCount_;
 }
 
 /**
@@ -274,6 +333,18 @@ Operand::loadState(const ObjectState* state)
         } else {
             string msg = "Invalid operand type: \"" + typeString + "\""; 
             throw Exception(__FILE__, __LINE__, method, msg);
+        }
+
+        if (state->hasAttribute(OPRND_ELEM_WIDTH)) {
+            elementWidth_ = state->intAttribute(OPRND_ELEM_WIDTH);
+        } else {
+            elementWidth_ = defaultElementWidth(type_);
+        }
+
+        if (state->hasAttribute(OPRND_ELEM_COUNT)) {
+            elementCount_ = state->intAttribute(OPRND_ELEM_COUNT);
+        } else {
+            elementCount_ = 1;
         }
     
         isAddress_ = state->boolAttribute(OPRND_MEM_ADDRESS);
@@ -367,6 +438,9 @@ Operand::saveState() const {
         root->setAttribute(OPRND_TYPE, UNKNOWN_TYPE_STRING);        
     }
     
+    root->setAttribute(OPRND_ELEM_WIDTH, elementWidth_);
+    root->setAttribute(OPRND_ELEM_COUNT, elementCount_);
+
     root->setAttribute(OPRND_MEM_ADDRESS, isAddress_);
     root->setAttribute(OPRND_MEM_DATA, isMemoryData_);
     if (addressUnits_ != 0) {
@@ -385,6 +459,23 @@ Operand::saveState() const {
         root->addChild(canSwap);
     }
     return root;
+}
+
+/**
+ * Returns default element width depending on operand's type.
+ *
+ * @param type Operand type.
+ * @return Element bit width of given operand type.
+ */
+int
+Operand::defaultElementWidth(OperandType type) {
+    if (type == DOUBLE_WORD) {
+        return 64;
+    } else if (type == HALF_FLOAT_WORD) {
+        return 16;
+    } else {
+        return 32;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
