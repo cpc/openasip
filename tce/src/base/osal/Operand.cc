@@ -197,7 +197,7 @@ Operand::typeString() const {
 }
 
 /**
- * Returns width of an operand element in bits.
+ * Returns bit width of an operand element.
  *
  * @return Bit width of an element.
  */
@@ -209,7 +209,7 @@ Operand::elementWidth() const {
 /**
  * Sets the element bit width.
  *
- * @param New element bit width.
+ * @param elementWidth New element bit width.
  */
 void
 Operand::setElementWidth(int elementWidth) {
@@ -229,7 +229,7 @@ Operand::elementCount() const {
 /**
  * Sets the number of elements.
  *
- * @param New element count.
+ * @param elementCount New element count.
  */
 void
 Operand::setElementCount(int elementCount) {
@@ -465,7 +465,7 @@ Operand::saveState() const {
  * Returns default element width depending on operand's type.
  *
  * @param type Operand type.
- * @return Element bit width of the operand.
+ * @return Element bit width of given operand type.
  */
 int
 Operand::defaultElementWidth(OperandType type) {
