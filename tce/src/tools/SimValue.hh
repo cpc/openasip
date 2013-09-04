@@ -36,10 +36,7 @@
 
 #include "BaseType.hh"
 #include "HalfFloatWord.hh"
-
-#include <string>
 #include <string.h>
-#include "Exception.hh"
 
 #define SIMD_WORD_WIDTH 1024
 
