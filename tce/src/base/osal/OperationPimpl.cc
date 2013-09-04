@@ -576,7 +576,7 @@ OperationPimpl::loadState(const ObjectState* state) {
             }
         }
 
-        for (int i = 1; i <= outputs_; ++i) {
+        for (int i = 1 + inputs_; i <= inputs_ + outputs_; ++i) {
             if (&operand(i) == &NullOperand::instance()) {
                 Operand* operand = new Operand(true, i, Operand::SINT_WORD);
                 insertOperand(operand, outputOperands_);
