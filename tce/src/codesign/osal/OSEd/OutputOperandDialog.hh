@@ -62,7 +62,7 @@ private:
     void onElementWidth(wxCommandEvent& event);
     void onElementCount(wxCommandEvent& event);
 
-    void updateTypes(Operand* operand);
+    void updateTypes();
     void updateElementWidths();
     void updateElementCounts();
     void setTexts();
@@ -91,6 +91,8 @@ private:
     wxChoice* elementWidthChoice_;
     /// Choice box for operand element count.
     wxChoice* elementCountChoice_;
+    /// Current operand type in choice box.
+    int type_;
     /// Current element width in choice box.
     int elemWidth_;
     /// Current element count in choice box.
@@ -99,8 +101,6 @@ private:
     /// Output types
     std::vector<std::string> outputTypes_;
     operandList operandTypes_;
-
-    //Operand::OperandType operandTypes_[4];
     
     DECLARE_EVENT_TABLE()
 };

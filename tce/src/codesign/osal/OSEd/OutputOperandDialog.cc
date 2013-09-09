@@ -101,13 +101,14 @@ OutputOperandDialog::OutputOperandDialog(
 
     FindWindow(wxID_OK)->SetFocus();
 
-    setTexts();
-    updateTypes(operand);
-
+    type_ = operand_->type();
     elemWidth_ = operand_->elementWidth();
     elemCount_ = operand_->elementCount();
+    updateTypes();
     updateElementWidths();
     updateElementCounts();
+
+    setTexts();
 }
 
 /**
@@ -126,9 +127,9 @@ OutputOperandDialog::~OutputOperandDialog() {
 void 
 OutputOperandDialog::onType(wxCommandEvent&) {
 
-    int type = outputTypesComboBox_->GetSelection();
+    type_ = outputTypesComboBox_->GetSelection();
 
-    Operand::OperandType operType = static_cast<Operand::OperandType>(type);
+    Operand::OperandType operType = static_cast<Operand::OperandType>(type_);
     elemWidth_ = Operand::defaultElementWidth(operType);
     elemCount_ = 1;
     updateElementWidths();
@@ -179,7 +180,7 @@ OutputOperandDialog::onElementCount(wxCommandEvent&) {
  * Updates the type lists.
  */
 void
-OutputOperandDialog::updateTypes(Operand* operand_) {
+OutputOperandDialog::updateTypes() {
 
     outputTypesComboBox_->Clear();
     
@@ -188,9 +189,7 @@ OutputOperandDialog::updateTypes(Operand* operand_) {
         outputTypesComboBox_->Append(oper);
     }
 
-    Operand::OperandType type = operand_->type();
-
-    outputTypesComboBox_->SetSelection(type);
+    outputTypesComboBox_->SetSelection(type_);
 
 }
 
@@ -202,8 +201,32 @@ OutputOperandDialog::updateElementWidths() {
 
     elementWidthChoice_->Clear();
 
-    elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
-    elementWidthChoice_->SetSelection(0);
+    Operand::OperandType operType = static_cast<Operand::OperandType>(type_);
+    if (operType == Operand::SINT_WORD || operType == Operand::UINT_WORD) {
+        // set 8, 16 and 32 bits as selectable bit widths for integer operands
+        int elemWidth = 8;
+        int elemWidthIndex = 0;
+        while (elemCount_*elemWidth <= SIMD_WORD_WIDTH && elemWidth <= 32) {
+            if (elemWidth < elemWidth_) {
+                ++elemWidthIndex;
+            }
+            elementWidthChoice_->Append(WxConversion::toWxString(elemWidth));
+            elemWidth *= 2;
+        }
+        elementWidthChoice_->SetSelection(elemWidthIndex);
+    } else if (operType == Operand::RAW_DATA) {
+        // element width for raw data type can be arbitrary (max. 32 bits)
+        unsigned int i = 1;
+        while (i*elemCount_ <= SIMD_WORD_WIDTH && i <= 32) {
+            elementWidthChoice_->Append(WxConversion::toWxString(i));
+            ++i;
+        }
+        elementWidthChoice_->SetSelection(elemWidth_-1);
+    } else {
+        // element width for other types is their default type
+        elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
+        elementWidthChoice_->SetSelection(0);
+    }
 }
 
 /**
@@ -214,8 +237,8 @@ OutputOperandDialog::updateElementCounts() {
 
     elementCountChoice_->Clear();
 
-    // update the list so that longer than SIMD_WORD_WIDTH width*count 
-    // combinations are not listed at all
+    // update the list so that only shorter or equal than SIMD_WORD_WIDTH 
+    // width*count combinations are listed 
     int elemCount = 1;
     int elemCountIndex = 0;
     while (elemCount*elemWidth_ <= SIMD_WORD_WIDTH) {

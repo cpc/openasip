@@ -71,7 +71,7 @@ private:
     void onElementWidth(wxCommandEvent& event);
     void onElementCount(wxCommandEvent& event);
 
-    void updateTypes(int type);
+    void updateTypes();
     void updateElementWidths();
     void updateElementCounts();
     void setTexts();
@@ -117,6 +117,8 @@ private:
     int numberOfOperands_;
     /// Index of the input operand currently modified.
     int index_;
+    /// Current operand type in choice box.
+    int type_;
     /// Current element width in choice box.
     int elemWidth_;
     /// Current element count in choice box.
