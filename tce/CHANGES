@@ -21,6 +21,9 @@ Misc. smaller improvements
 - OSAL Operation: optional element-count and element-width attribute fields 
   added for in/out operands in operation schema. From now on operands have 
   information of their subword width and subword count.
+- OSEd: element width and element count of an operand are now displayed in
+  operation property dialog, and these fields can also be modified for input 
+  and output operands.
 
 1.8       June 2013
 ===================

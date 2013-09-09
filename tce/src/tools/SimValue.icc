@@ -70,6 +70,21 @@ SimValue::setBitWidth(int width) {
     if (8*sizeof(mask_) > static_cast<unsigned>(width)) {
         mask_ = ~((~UIntWord(0)) << bitWidth_);
     }
+
+    // If bit width is larger than double word (64 bits), initialize
+    // raw data buffer with memset
+    if (8*sizeof(DoubleWord) < static_cast<size_t>(width)) {
+        int bytes = width / 8;
+        int remain = width % 8;
+        if (remain != 0) {
+            ++bytes;
+        }
+        if (bytes > SIMD_WORD_WIDTH / 8) {
+            bytes = SIMD_WORD_WIDTH / 8;
+        }
+        int offset = sizeof(DoubleWord);
+        memset(value_.rawData + offset, 0, bytes - offset);
+    }
 }
 
 /**
@@ -635,3 +650,33 @@ SimValue::halfFloatWordValue() const {
     return HalfFloatWord(value_.halfFloatWordBits);
 }
 
+
+/**
+ * Returns 8 bit pointer to raw data member of the Value union.
+ *
+ * @return Byte pointer of the raw data.
+ */
+inline Byte*
+SimValue::rawBytes() const {
+    return (Byte*)value_.rawData;
+}
+
+/**
+ * Returns 16 bit pointer to raw data member of the Value union.
+ *
+ * @return Half word pointer of the raw data.
+ */
+inline HalfWord*
+SimValue::rawHalfWords() const {
+    return (HalfWord*)value_.rawData;
+}
+
+/**
+ * Returns 32 bit pointer to raw data member of the Value union.
+ *
+ * @return Word pointer of the raw data.
+ */
+inline Word*
+SimValue::rawWords() const {
+    return (Word*)value_.rawData;
+}

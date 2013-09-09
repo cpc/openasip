@@ -102,6 +102,8 @@ public:
         TXT_COLUMN_OPERATIONS,            ///< Operations column header.
         TXT_COLUMN_PROPERTY,              ///< Property column header.
         TXT_COLUMN_OPERAND_VALUE,         ///< Operand value column header.
+        TXT_COLUMN_ELEMENT_WIDTH,         ///< Operand element width header.
+        TXT_COLUMN_ELEMENT_COUNT,         ///< Operand element count header.
 
         // dialog titles
         TXT_PROPERTY_DIALOG_TITLE,        ///< Property dialog title.
