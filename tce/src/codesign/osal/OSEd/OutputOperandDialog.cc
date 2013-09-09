@@ -215,13 +215,22 @@ OutputOperandDialog::updateElementWidths() {
         }
         elementWidthChoice_->SetSelection(elemWidthIndex);
     } else if (operType == Operand::RAW_DATA) {
-        // element width for raw data type can be arbitrary (max. 32 bits)
+        // element width for raw data type can be arbitrary
         unsigned int i = 1;
-        while (i*elemCount_ <= SIMD_WORD_WIDTH && i <= 32) {
+        int selIndex = 0;
+        while (i*elemCount_ <= SIMD_WORD_WIDTH) {
+            if (i < elemWidth_) {
+                ++selIndex;
+            }
+
             elementWidthChoice_->Append(WxConversion::toWxString(i));
-            ++i;
+            if (i < 32) {
+                ++i;
+            } else {
+                i *= 2;
+            }
         }
-        elementWidthChoice_->SetSelection(elemWidth_-1);
+        elementWidthChoice_->SetSelection(selIndex);
     } else {
         // element width for other types is their default type
         elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
