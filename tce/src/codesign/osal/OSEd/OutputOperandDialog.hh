@@ -35,6 +35,7 @@
 #define TTA_OUTPUT_OPERAND_DIALOG_HH
 
 #include <wx/wx.h>
+#include <wx/spinctrl.h>
 #include <map>
 
 #include "Operand.hh"
@@ -59,7 +60,7 @@ private:
     wxSizer* createContents(wxWindow* window, bool call_fit, bool set_sizer);
     void onOk(wxCommandEvent& event);
     void onType(wxCommandEvent& event);
-    void onElementWidth(wxCommandEvent& event);
+    void onElementWidth(wxSpinEvent& event);
     void onElementCount(wxCommandEvent& event);
 
     void updateTypes();
@@ -87,8 +88,8 @@ private:
     int index_;
     /// Choice box for operation input types
     wxChoice* outputTypesComboBox_;
-    /// Choice box for operand element width.
-    wxChoice* elementWidthChoice_;
+    /// Spin ctrl for operand element width.
+    wxSpinCtrl* elementWidthChoice_;
     /// Choice box for operand element count.
     wxChoice* elementCountChoice_;
     /// Current operand type in choice box.
