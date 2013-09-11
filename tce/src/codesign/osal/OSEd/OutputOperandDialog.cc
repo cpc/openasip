@@ -52,7 +52,7 @@ BEGIN_EVENT_TABLE(OutputOperandDialog, wxDialog)
     EVT_BUTTON(wxID_OK, OutputOperandDialog::onOk)
 
     EVT_CHOICE(ID_OPERATION_OUTPUT_TYPES, OutputOperandDialog::onType)
-    EVT_CHOICE(ID_ELEMENT_WIDTH, OutputOperandDialog::onElementWidth)
+    EVT_SPINCTRL(ID_ELEMENT_WIDTH, OutputOperandDialog::onElementWidth)
     EVT_CHOICE(ID_ELEMENT_COUNT, OutputOperandDialog::onElementCount)
 END_EVENT_TABLE()
 
@@ -77,8 +77,8 @@ OutputOperandDialog::OutputOperandDialog(
     outputTypesComboBox_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_OPERATION_OUTPUT_TYPES));
 
-    elementWidthChoice_ =
-        dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_WIDTH));
+    elementWidthSpinCtrl_ =
+        dynamic_cast<wxSpinCtrl*>(FindWindow(ID_ELEMENT_WIDTH));
 
     elementCountChoice_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_ELEMENT_COUNT));
@@ -137,21 +137,11 @@ OutputOperandDialog::onType(wxCommandEvent&) {
 }
 
 /**
- * Event handler for element width choice box.
+ * Event handler for element width spin ctrl.
 **/
 void 
-OutputOperandDialog::onElementWidth(wxCommandEvent&) {
-    // get the current choice box value and convert it to integer
-    int index = elementWidthChoice_->GetSelection();
-    wxString number = elementWidthChoice_->GetString(index);
-    long value;
-    if(!number.ToLong(&value)) { 
-        elemWidth_ = 32;
-        return;
-    }
-
-    // save current choice
-    elemWidth_ = static_cast<int>(value);
+OutputOperandDialog::onElementWidth(wxSpinEvent&) {
+    elemWidth_ = elementWidthSpinCtrl_->GetValue();
     // update choice box list cells
     updateElementCounts();
 }
@@ -172,7 +162,7 @@ OutputOperandDialog::onElementCount(wxCommandEvent&) {
 
     // save current choice
     elemCount_ = static_cast<int>(value);
-    // update choice box list cells
+    // update spin ctrl range
     updateElementWidths();
 }
 
@@ -199,33 +189,27 @@ OutputOperandDialog::updateTypes() {
 void
 OutputOperandDialog::updateElementWidths() {
 
-    elementWidthChoice_->Clear();
-
     Operand::OperandType operType = static_cast<Operand::OperandType>(type_);
-    if (operType == Operand::SINT_WORD || operType == Operand::UINT_WORD) {
-        // set 8, 16 and 32 bits as selectable bit widths for integer operands
-        int elemWidth = 8;
-        int elemWidthIndex = 0;
-        while (elemCount_*elemWidth <= SIMD_WORD_WIDTH && elemWidth <= 32) {
-            if (elemWidth < elemWidth_) {
-                ++elemWidthIndex;
-            }
-            elementWidthChoice_->Append(WxConversion::toWxString(elemWidth));
+
+    if (operType == Operand::RAW_DATA) {
+        // element width for raw data can be arbitrary up to the max width
+        int elemWidth = 1;
+        int lastValidWidth = 1;
+        while (elemCount_*elemWidth <= SIMD_WORD_WIDTH) {
+            lastValidWidth = elemWidth;
             elemWidth *= 2;
         }
-        elementWidthChoice_->SetSelection(elemWidthIndex);
-    } else if (operType == Operand::RAW_DATA) {
-        // element width for raw data type can be arbitrary (max. 32 bits)
-        unsigned int i = 1;
-        while (i*elemCount_ <= SIMD_WORD_WIDTH && i <= 32) {
-            elementWidthChoice_->Append(WxConversion::toWxString(i));
-            ++i;
+
+        // degrade current element width if it is too big
+        if (elemWidth_ > lastValidWidth) {
+            elemWidth_ = lastValidWidth;
         }
-        elementWidthChoice_->SetSelection(elemWidth_-1);
+        elementWidthSpinCtrl_->SetRange(1, lastValidWidth);
+        elementWidthSpinCtrl_->SetValue(elemWidth_);
     } else {
-        // element width for other types is their default type
-        elementWidthChoice_->Append(WxConversion::toWxString(elemWidth_));
-        elementWidthChoice_->SetSelection(0);
+        // element width for other types is their default type width
+        elementWidthSpinCtrl_->SetRange(elemWidth_, elemWidth_);
+        elementWidthSpinCtrl_->SetValue(elemWidth_);
     }
 }
 
@@ -359,7 +343,7 @@ OutputOperandDialog::createContents(
 
     wxStaticText *itemTextWidth = new wxStaticText(parent, ID_TEXT_WIDTH, wxT("Element width:"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(itemTextWidth, 0, wxALIGN_CENTER|wxALL, 5);
-    wxChoice *itemElemWidth = new wxChoice(parent, ID_ELEMENT_WIDTH, wxDefaultPosition, wxSize(70,-1), 1, strs9);
+    wxSpinCtrl *itemElemWidth = new wxSpinCtrl(parent, ID_ELEMENT_WIDTH, wxT(""), wxDefaultPosition, wxSize(70,-1), 1);
     item1->Add(itemElemWidth, 0, wxALIGN_CENTER|wxALL, 5);
     wxStaticText *itemTextCount = new wxStaticText(parent, ID_TEXT_COUNT, wxT("Element count:"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(itemTextCount, 0, wxALIGN_CENTER|wxALL, 5);

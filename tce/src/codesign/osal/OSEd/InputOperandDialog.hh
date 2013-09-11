@@ -35,6 +35,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/spinctrl.h>
 #include <set>
 
 class Operand;
@@ -68,7 +69,7 @@ private:
     void onOk(wxCommandEvent& event);
     void updateOperand();
     void onType(wxCommandEvent& event);
-    void onElementWidth(wxCommandEvent& event);
+    void onElementWidth(wxSpinEvent& event);
     void onElementCount(wxCommandEvent& event);
 
     void updateTypes();
@@ -107,8 +108,8 @@ private:
     bool memData_;
     /// Choice box for operation input types
     wxChoice* inputTypesComboBox_;
-    /// Choice box for operand element width.
-    wxChoice* elementWidthChoice_;
+    /// Spin ctrl for operand element width.
+    wxSpinCtrl* elementWidthSpinCtrl_;
     /// Choice box for operand element count.
     wxChoice* elementCountChoice_;
     /// Operands that can be swapped with this operand.
