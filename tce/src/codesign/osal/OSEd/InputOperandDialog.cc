@@ -93,7 +93,7 @@ InputOperandDialog::InputOperandDialog(
     inputTypesComboBox_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_OPERATION_INPUT_TYPES));
 
-    elementWidthChoice_ =
+    elementWidthSpinCtrl_ =
         dynamic_cast<wxSpinCtrl*>(FindWindow(ID_ELEMENT_WIDTH));
 
     elementCountChoice_ =
@@ -206,7 +206,7 @@ InputOperandDialog::onType(wxCommandEvent&) {
 **/
 void 
 InputOperandDialog::onElementWidth(wxSpinEvent&) {
-    elemWidth_ = elementWidthChoice_->GetValue();
+    elemWidth_ = elementWidthSpinCtrl_->GetValue();
     // update choice box list cells
     updateElementCounts();
 }
@@ -227,7 +227,7 @@ InputOperandDialog::onElementCount(wxCommandEvent&) {
 
     // save current choice
     elemCount_ = static_cast<int>(value);
-    // update choice box list cells
+    // update spin ctrl range
     updateElementWidths();
 }
 
@@ -256,7 +256,7 @@ InputOperandDialog::updateElementWidths() {
     Operand::OperandType operType = static_cast<Operand::OperandType>(type_);
 
     if (operType == Operand::RAW_DATA) {
-        // element width for raw data type can be arbitrary to the max width
+        // element width for raw data can be arbitrary up to the max width
         int elemWidth = 1;
         int lastValidWidth = 1;
         while (elemCount_*elemWidth <= SIMD_WORD_WIDTH) {
@@ -268,12 +268,12 @@ InputOperandDialog::updateElementWidths() {
         if (elemWidth_ > lastValidWidth) {
             elemWidth_ = lastValidWidth;
         }
-        elementWidthChoice_->SetRange(1, lastValidWidth);
-        elementWidthChoice_->SetValue(elemWidth_);
+        elementWidthSpinCtrl_->SetRange(1, lastValidWidth);
+        elementWidthSpinCtrl_->SetValue(elemWidth_);
     } else {
         // element width for other types is their default type width
-        elementWidthChoice_->SetRange(elemWidth_, elemWidth_);
-        elementWidthChoice_->SetValue(elemWidth_);
+        elementWidthSpinCtrl_->SetRange(elemWidth_, elemWidth_);
+        elementWidthSpinCtrl_->SetValue(elemWidth_);
     }
 }
 

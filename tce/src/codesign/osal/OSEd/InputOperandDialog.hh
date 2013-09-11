@@ -109,7 +109,7 @@ private:
     /// Choice box for operation input types
     wxChoice* inputTypesComboBox_;
     /// Spin ctrl for operand element width.
-    wxSpinCtrl* elementWidthChoice_;
+    wxSpinCtrl* elementWidthSpinCtrl_;
     /// Choice box for operand element count.
     wxChoice* elementCountChoice_;
     /// Operands that can be swapped with this operand.
