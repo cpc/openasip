@@ -99,6 +99,7 @@
 #include "DirectAccessMemory.hh"
 #include "IdealSRAM.hh"
 #include "MemoryProxy.hh"
+#include "DisassemblyFUPort.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -2211,4 +2212,145 @@ SimulatorFrontend::programErrorReportCount(
 void 
 SimulatorFrontend::clearProgramErrorReports() {
     programErrorReports_.clear();
+}
+
+/**
+ * Compares the states of two simulator engines.
+ *
+ * This is useful in debugging bugs in an simulator engine implementation.
+ * It assumes the engines have been stepped equal amount of instruction cycles 
+ * and, thus, the TTA programmer visible context should be equal.
+ *
+ * @param other A frontend to the other engine to compare this one to.
+ * @param differences An optional output stream where to output information
+ * of the possible differences.
+ * @return true in case the states are equal, false otherwise. 
+ */
+bool
+SimulatorFrontend::compareState(
+    SimulatorFrontend& other, std::ostream* differences) {
+
+    static InstructionAddress previousPC = 0;
+
+    if (programCounter() != other.programCounter()) {
+        if (differences != NULL) 
+            *differences
+                << "SIMULATION ERROR DETECTED (PCs DIFFER)" << std::endl
+                << "--------------------------------------" << std::endl
+                << "      cycle: " << cycleCount() << std::endl
+                << " other's PC: " << other.programCounter() << std::endl
+                << "   this' PC: " << programCounter() << std::endl;
+        return false;
+    }
+
+    bool errorLocationPrinted = false;
+    bool equal = true;
+
+    const TTAMachine::Machine::RegisterFileNavigator& rfNav = 
+        machine().registerFileNavigator();
+    for (int i = 0; i < rfNav.count(); ++i) {
+        TTAMachine::RegisterFile& rf = *rfNav.item(i);
+        for (int reg = 0; reg < rf.size(); ++reg) {
+            std::string thisReg = 
+                registerFileValue(rf.name(), reg);
+            std::string otherReg =
+                other.registerFileValue(rf.name(), reg);
+            if (thisReg != otherReg) {
+                equal = false;
+                if (!errorLocationPrinted && differences != NULL) {
+                    std::string procedureName =
+                        (dynamic_cast<TTAProgram::Procedure&>(
+                            program().instructionAt(programCounter()).parent())).name();
+
+                    *differences
+                        << "DIFFERING REGISTER FILE VALUES" << std::endl
+                        << "------------------------------" << std::endl
+                        << "      cycle: " << cycleCount() << std::endl
+                        << "         PC: " << programCounter() << std::endl
+                        << "previous PC: " << previousPC << std::endl
+                        << "   function: " << procedureName << std::endl
+                        << "disassembly around previous PC:" << std::endl;
+                    int start = 
+                        std::max(0, (int)previousPC - 5);
+                    int end = previousPC + 5;
+                    for (int instr = start; instr <= end; ++instr) {
+                        if (instr == (int)previousPC)
+                            *differences << "==> ";
+                        *differences
+                            << POMDisassembler::disassemble(
+                                program().instructionAt(instr), 
+                                true)
+                            << std::endl;
+                    }
+                    errorLocationPrinted = true;
+                }
+                if (differences != NULL) 
+                    *differences
+                        << rf.name() << "." << reg << ": "
+                        << thisReg << " (this) vs. " 
+                        << otherReg << " (other)" << std::endl;
+            }
+        } 
+    }
+
+    errorLocationPrinted = false;
+
+    const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
+        machine().functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); ++i) {
+        TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+
+        for (int port = 0; port < fu.portCount(); ++port) {
+            // skip output ports as compiled sim is not exact with them at BB boundaries
+            if (fu.port(port)->isOutput())
+                continue; 
+            std::string portName = fu.port(port)->name();
+            DisassemblyFUPort portString(fu.name(), portName);
+            SimValue thisReg = 
+                FUPortValue(fu.name(), portName);
+            SimValue otherReg = 
+                other.FUPortValue(fu.name(), portName);
+            if (thisReg.intValue() != otherReg.intValue()) {
+                equal = false;
+                if (!errorLocationPrinted && differences != NULL) {
+                    std::string procedureName =
+                        (dynamic_cast<TTAProgram::Procedure&>(
+                            program().instructionAt(programCounter()).parent())).name();
+
+                    *differences 
+                        << "DIFFERING FUNCTION UNIT PORT VALUES" << std::endl
+                        << "-----------------------------------" << std::endl
+                        << "      cycle: " << cycleCount() << std::endl
+                        << "         PC: " << programCounter() << std::endl
+                        << "previous PC: " << previousPC << std::endl
+                        << "   function: " << procedureName << std::endl
+                        << "disassembly around previous PC:" << std::endl;
+                    int start = 
+                        std::max(0, (int)previousPC - 5);
+                    int end = previousPC + 5;
+                    for (int instr = start; instr <= end; ++instr) {
+                        if (instr == (int)previousPC)
+                            *differences << "==> ";
+                        *differences
+                                << POMDisassembler::disassemble(
+                                    program().instructionAt(instr), true)
+                                << std::endl;
+                    }
+                    errorLocationPrinted = true;
+                }
+                if (differences != NULL)
+                    *differences
+                        << portString.toString() <<  ": "
+                        << thisReg.intValue() << " (this) vs. " 
+                        << otherReg.intValue() << " (other)" << std::endl;
+            }
+            
+        }
+
+
+    }
+
+    previousPC = programCounter();
+
+    return equal;
 }

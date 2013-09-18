@@ -67,6 +67,7 @@ public:
     uint64_t cycleCount();
 
     bool isRunning() const;
+    bool isFinished() const;
     bool hadRuntimeError() const;
 
     virtual void setOperationSimulator(

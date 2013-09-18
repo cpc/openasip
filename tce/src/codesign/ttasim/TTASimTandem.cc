@@ -77,7 +77,6 @@ tandemSimulate(
     assert(interp.isSimulationInitialized());
 
     ClockCycleCount simulatedCycles = 0;
-    InstructionAddress previousPC = 0;
     while (!compiled.hasSimulationEnded()) {
         ClockCycleCount stepping;
         try {
@@ -97,118 +96,9 @@ tandemSimulate(
             
         }
 
-        if (compiled.programCounter() != interp.programCounter()) {
-                std::cerr 
-                    << "SIMULATION ERROR DETECTED (PCs DIFFER)" << std::endl
-                    << "--------------------------------------" << std::endl
-                    << "      cycle: " << compiled.cycleCount() << std::endl
-                    << " interp. PC: " << interp.programCounter() << std::endl
-                    << "compiled PC: " << compiled.programCounter() << std::endl;
-                return;
-        }
+        if (!compiled.compareState(interp, &std::cerr))
+            return;
 
-        bool errorLocationPrinted = false;
-
-        const TTAMachine::Machine::RegisterFileNavigator& rfNav = 
-            compiled.machine().registerFileNavigator();
-        for (int i = 0; i < rfNav.count(); ++i) {
-            TTAMachine::RegisterFile& rf = *rfNav.item(i);
-            for (int reg = 0; reg < rf.size(); ++reg) {
-                std::string compiledReg = 
-                    compiled.registerFileValue(rf.name(), reg);
-                std::string interpReg =
-                    interp.registerFileValue(rf.name(), reg);
-                if (compiledReg != interpReg) {
-                    if (!errorLocationPrinted) {
-                        std::string procedureName =
-                            (dynamic_cast<TTAProgram::Procedure&>(
-                                program.instructionAt(compiled.programCounter()).parent())).name();
-
-                        std::cerr 
-                            << "POSSIBLE SIMULATION ERROR DETECTED" << std::endl
-                            << "----------------------------------" << std::endl
-                            << "      cycle: " << compiled.cycleCount() << std::endl
-                            << "         PC: " << compiled.programCounter() << std::endl
-                            << "previous PC: " << previousPC << std::endl
-                            << "   function: " << procedureName << std::endl
-                            << "disassembly around previous PC:" << std::endl;
-                        int start = 
-                            std::max(0, (int)previousPC - 5);
-                        int end = previousPC + 5;
-                        for (int instr = start; instr <= end; ++instr) {
-                            if (instr == (int)previousPC)
-                                std::cout << "==> ";
-                            std::cout 
-                                << POMDisassembler::disassemble(
-                                    compiled.program().instructionAt(instr), 
-                                    true)
-                                << std::endl;
-                        }
-                        errorLocationPrinted = true;
-                    }
-                    std::cerr 
-                        << rf.name() << "." << reg << ": "
-                        << compiledReg << " (compiled) vs. " 
-                        << interpReg << " (interp.)" << std::endl;
-                }
-            } 
-        }
-
-        const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
-            compiled.machine().functionUnitNavigator();
-        for (int i = 0; i < fuNav.count(); ++i) {
-            TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-
-            for (int port = 0; port < fu.portCount(); ++port) {
-                // skip output ports as compiled sim is not exact with them at BB boundaries
-                if (fu.port(port)->isOutput())
-                    continue; 
-                std::string portName = fu.port(port)->name();
-                DisassemblyFUPort portString(fu.name(), portName);
-                SimValue compiledReg = 
-                    compiled.FUPortValue(fu.name(), portName);
-                SimValue interpReg = 
-                    interp.FUPortValue(fu.name(), portName);
-                if (compiledReg.intValue() != interpReg.intValue()) {
-                    if (!errorLocationPrinted) {
-                        std::string procedureName =
-                            (dynamic_cast<TTAProgram::Procedure&>(
-                                program.instructionAt(compiled.programCounter()).parent())).name();
-
-                        std::cerr 
-                            << "POSSIBLE SIMULATION ERROR DETECTED" << std::endl
-                            << "----------------------------------" << std::endl
-                            << "      cycle: " << compiled.cycleCount() << std::endl
-                            << "         PC: " << compiled.programCounter() << std::endl
-                            << "previous PC: " << previousPC << std::endl
-                            << "   function: " << procedureName << std::endl
-                            << "disassembly around previous PC:" << std::endl;
-                        int start = 
-                            std::max(0, (int)previousPC - 5);
-                        int end = previousPC + 5;
-                        for (int instr = start; instr <= end; ++instr) {
-                            if (instr == (int)previousPC)
-                                std::cout << "==> ";
-                            std::cout 
-                                << POMDisassembler::disassemble(
-                                    compiled.program().instructionAt(instr), 
-                                    true)
-                                << std::endl;
-                        }
-                        errorLocationPrinted = true;
-                    }
-                    std::cerr 
-                        << portString.toString() <<  ": "
-                        << compiledReg.intValue() << " (compiled) vs. " 
-                        << interpReg.intValue() << " (interp.)" << std::endl;
-                }
-                
-           }
-
-
-        }
-
-        previousPC = compiled.programCounter();
         // print out the cycle count after simulating at least 1M cycles
         if (simulatedCycles / 1000000 > (simulatedCycles - stepping) / 1000000)
             std::cout

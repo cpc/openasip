@@ -251,6 +251,8 @@ public:
     
     friend void timeoutThread(unsigned int timeout, SimulatorFrontend* simFE);
 
+    bool compareState(SimulatorFrontend& other, std::ostream* differences=NULL);
+
 protected:
     virtual void initializeSimulation();
 

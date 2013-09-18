@@ -104,6 +104,11 @@ SimpleSimulatorFrontend::isRunning() const {
 }
 
 bool
+SimpleSimulatorFrontend::isFinished() const {
+    return simFront_->hasSimulationEnded();
+}
+
+bool
 SimpleSimulatorFrontend::hadRuntimeError() const {
     return simFront_->stopReasonCount() >= 1 &&
         simFront_->stopReason(0) == SRE_RUNTIME_ERROR;
