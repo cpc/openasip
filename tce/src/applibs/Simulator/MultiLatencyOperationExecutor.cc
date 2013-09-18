@@ -43,6 +43,8 @@
 using std::vector;
 using std::string;
 
+//#define DEBUG_OPERATION_SIMULATION
+
 /**
  * Constructor.
  *
@@ -167,7 +169,7 @@ MultiLatencyOperationExecutor::advanceClock() {
             freeExecOp_ = &execOp;
             continue;
         }
-            
+
         foundActiveOperation = true;
         bool customSimulated = 
             opSimulator_ != NULL && opSimulator_->simulateStage(execOp);
@@ -175,8 +177,13 @@ MultiLatencyOperationExecutor::advanceClock() {
             operation_->simulateTrigger(&execOp.iovec_[0], *context_);
         execOp.advanceCycle();
         
-        if (execOp.stage_ == hwOperation_->latency())
+        if (execOp.stage_ == hwOperation_->latency()) {
+#ifdef DEBUG_OPERATION_SIMULATION
+            Application::logStream()
+                << &execOp << " finished" << std::endl;
+#endif
             execOp.stop();
+        }
     }
     hasPendingOperations_ = foundActiveOperation;
 }
