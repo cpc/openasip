@@ -242,14 +242,17 @@ OperationSerializer::toXMLFormat(const ObjectState* state)
                     Operand::OPRND_TYPE, 
                     child->stringAttribute(Operand::OPRND_TYPE));
 
-                operandChild->setAttribute(
-                    Operand::OPRND_ELEM_WIDTH, 
-                    child->intAttribute(Operand::OPRND_ELEM_WIDTH));
+                if (child->hasAttribute(Operand::OPRND_ELEM_WIDTH)) {
+                    operandChild->setAttribute(
+                        Operand::OPRND_ELEM_WIDTH, 
+                        child->intAttribute(Operand::OPRND_ELEM_WIDTH));
+                } 
                 
-                operandChild->setAttribute(
-                    Operand::OPRND_ELEM_COUNT, 
-                    child->intAttribute(Operand::OPRND_ELEM_COUNT));
-
+                if (child->hasAttribute(Operand::OPRND_ELEM_COUNT)) {
+                    operandChild->setAttribute(
+                        Operand::OPRND_ELEM_COUNT, 
+                        child->intAttribute(Operand::OPRND_ELEM_COUNT));
+                }
 
                 if (child->boolAttribute(Operand::OPRND_MEM_ADDRESS)) {
                     operandChild->
