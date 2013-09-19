@@ -164,3 +164,9 @@ uint64_t
 SimpleSimulatorFrontend::cycleCount() {
     return simFront_->cycleCount();
 }
+
+void
+SimpleSimulatorFrontend::initializeDataMemories(
+    const TTAMachine::AddressSpace* onlyOne) {
+    simFront_->initializeDataMemories(onlyOne);
+}

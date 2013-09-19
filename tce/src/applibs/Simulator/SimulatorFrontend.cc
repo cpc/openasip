@@ -413,9 +413,12 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 /**
  * Resets and writes initial data to the memory system stored in simulation 
  * controller from loaded TPEF.
+ *
+ * @param onlyOne initialize the data memory of the given address space only.
  */
 void
-SimulatorFrontend::initializeDataMemories() {
+SimulatorFrontend::initializeDataMemories(
+    const TTAMachine::AddressSpace* onlyOne) {
 
     // we need tpef to get the initialization data and simcon to fetch
     // the memory system from
@@ -444,6 +447,8 @@ SimulatorFrontend::initializeDataMemories() {
                 const AddressSpace& addressSpace =
                     simCon_->memorySystem().addressSpace(
                         addressSpaceName);
+
+                if (onlyOne != NULL && &addressSpace != onlyOne) continue;
 
                 for (int d = 0; d < data.dataDefinitionCount(); ++d) {
                     const DataDefinition& def = data.dataDefinition(d);

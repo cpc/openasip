@@ -44,6 +44,7 @@ class MemorySystem;
 class Listener;
 namespace TTAMachine {
     class Machine;
+    class AddressSpace;
 }
 
 namespace TTAProgram {
@@ -74,6 +75,7 @@ public:
         const TCEString& fuName, DetailedOperationSimulator& sim);
 
     MemorySystem& memorySystem();
+    void initializeDataMemories(const TTAMachine::AddressSpace* onlyOne=NULL);
 
     void loadProgram(const std::string& fileName);
     const TTAMachine::Machine& machine() const;

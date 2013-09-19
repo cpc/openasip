@@ -69,6 +69,10 @@ namespace TTAProgram {
     class Program;
     class Procedure;
 }
+
+namespace TTAMachine {
+    class AddressSpace;
+}
 /**
  * Frontend to simulator functionality.
  *
@@ -253,12 +257,13 @@ public:
 
     bool compareState(SimulatorFrontend& other, std::ostream* differences=NULL);
 
+    void initializeDataMemories(const TTAMachine::AddressSpace* onlyOne=NULL);
+
 protected:
     virtual void initializeSimulation();
 
     void initializeTracing() 
         throw (IOException);
-    void initializeDataMemories();
     void initializeDisassembler() const;
     void initializeMemorySystem();
     bool hasStopReason(StopReason reason) const;
