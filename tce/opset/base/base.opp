@@ -515,10 +515,10 @@
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -532,10 +532,10 @@
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -549,10 +549,10 @@
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out element-count="1" element-width="32" id="2" type="UIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -566,10 +566,10 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="8" id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -583,10 +583,10 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="16" id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -600,10 +600,10 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -1713,10 +1713,10 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="UIntWord">
+    <out element-count="1" element-width="8" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -1730,10 +1730,10 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="16" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
