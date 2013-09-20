@@ -65,7 +65,7 @@ public:
     void run();
     void stop();
 
-    uint64_t cycleCount();
+    uint64_t cycleCount() const;
 
     bool isRunning() const;
     bool isFinished() const;

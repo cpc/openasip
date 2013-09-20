@@ -161,7 +161,7 @@ SimpleSimulatorFrontend::unregisterEventListener(
 }
 
 uint64_t
-SimpleSimulatorFrontend::cycleCount() {
+SimpleSimulatorFrontend::cycleCount() const {
     return simFront_->cycleCount();
 }
 
