@@ -54,6 +54,7 @@ SimpleSimulatorFrontend::SimpleSimulatorFrontend(
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile, TCEString programFile) {
     simFront_ = new SimulatorFrontend();
+    simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);
         simFront_->loadProgram(programFile);
