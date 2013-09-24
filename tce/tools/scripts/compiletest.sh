@@ -52,7 +52,9 @@ if [ -z "${BRANCH_NAME}" ]; then
     BRANCH_NAME="$(pwd | awk 'BEGIN {FS="/"} {print $(NF-1)}')"
 fi
 
-lastOkRevisionFile="${HOME}/tce_last_ok_revision_${BRANCH_NAME}"
+
+lastOkRevisionFile="${HOME}/.tce/tce_last_ok_revision_${BRANCH_NAME}"
+mkdir -p ${HOME}/.tce
 touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
