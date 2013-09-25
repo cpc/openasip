@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of SimpleSimulatorFrontend class.
  *
- * @author Pekka J‰‰skel‰inen 2010,2012 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010-2013 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -59,6 +59,10 @@ class SimpleSimulatorFrontend {
 public:
     SimpleSimulatorFrontend(TCEString machineFile);
     SimpleSimulatorFrontend(TCEString machineFile, TCEString programFile);
+    SimpleSimulatorFrontend(
+        const TTAMachine::Machine& machine, 
+        const TTAProgram::Program& program);
+
     virtual ~SimpleSimulatorFrontend();
 
     void step();

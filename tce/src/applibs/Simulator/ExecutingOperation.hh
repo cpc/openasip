@@ -47,7 +47,8 @@ class SimValue;
  */
 class ExecutingOperation {
 public:
-    ExecutingOperation(Operation& op) : stage_(0), free_(true), op_(&op) {}
+    ExecutingOperation(Operation& op, unsigned stages) : 
+    stage_(0), stages_(stages), free_(true), op_(&op) {}
 
     /**
      * Returns the value bound to the input or output operand
@@ -62,6 +63,16 @@ public:
     const Operation& operation() const { return *op_; }
 
     unsigned stage() const { return stage_; }
+
+    /**
+     * Returns true in case the currently simulated stage for the
+     * operation is the last before finishing the execution.
+     *
+     * The next advanceCycle call will push the operation out from
+     * the FU pipeline after which all results are assumed to have
+     * arrived.
+     */
+    bool isLastPipelineStage() const { return stage_ == stages_ -2; }
 
     /**
      * Methods that should not be called from SystemC models.
@@ -121,6 +132,9 @@ public:
     std::vector<PendingResult> pendingResults_;
     // the stage of execution the operation is in 
     int stage_;
+    // how many stage to simulate (the maximum of the result latencies or the
+    // last pipeline resource usage)
+    int stages_;
     bool free_;
     // the OSAL operation being executed
     const Operation* op_;

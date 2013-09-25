@@ -72,7 +72,7 @@ MultiLatencyOperationExecutor::MultiLatencyOperationExecutor(
     const std::size_t operandCount = inputOperands + outputOperands;
 
     hasPendingOperations_ = true;
-    ExecutingOperation eop(*operation_);
+    ExecutingOperation eop(*operation_, hwOp.latency());
     eop.iostorage_.resize(operandCount);
     executingOps_.resize(hwOp.latency(), eop);
 
@@ -152,6 +152,11 @@ MultiLatencyOperationExecutor::startOperation(Operation&) {
     for (std::size_t i = 1; i <= inputOperands; ++i) {
         execOp.iostorage_[i - 1] = binding(i).value();
     }
+#ifdef DEBUG_OPERATION_SIMULATION
+    Application::logStream()
+        << &execOp << " (" << execOp.operation().name() 
+        << ") started" << std::endl;
+#endif
     execOp.start();
     hasPendingOperations_ = true;
 }
@@ -180,7 +185,8 @@ MultiLatencyOperationExecutor::advanceClock() {
         if (execOp.stage_ == hwOperation_->latency()) {
 #ifdef DEBUG_OPERATION_SIMULATION
             Application::logStream()
-                << &execOp << " finished" << std::endl;
+                << &execOp << " (" << execOp.operation().name() 
+                << ") finished" << std::endl;
 #endif
             execOp.stop();
         }

@@ -68,6 +68,25 @@ SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     }
 }
 
+SimpleSimulatorFrontend::SimpleSimulatorFrontend(
+        const TTAMachine::Machine& machine, 
+        const TTAProgram::Program& program) {
+    simFront_ = new SimulatorFrontend();
+    simFront_->setZeroFillMemoriesOnReset(false);
+    try {
+        simFront_->loadMachine(machine);
+        simFront_->loadProgram(program);
+    } catch (Exception& e) {
+        std::cerr 
+            << e.errorMessage() + " in " +   
+            e.fileName() + ":" +
+            e.procedureName() + ":" 
+            << e.lineNum() << std::endl;
+        abort();
+    }
+
+}
+
 SimpleSimulatorFrontend::~SimpleSimulatorFrontend() {
     delete simFront_;
 }
