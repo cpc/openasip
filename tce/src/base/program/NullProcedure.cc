@@ -85,7 +85,7 @@ NullProcedure::parent() const throw (IllegalRegistration) {
  * Aborts program with error log message.
  */
 void
-NullProcedure::setParent(const Program&) {
+NullProcedure::setParent(Program&) {
     abortWithError("setParent()");
 }
 

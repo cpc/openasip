@@ -711,11 +711,10 @@ ComponentImplementationSelector::selectFUs(
         set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*>, 
             implComp> fuSet;
         for (map<const IDF::FUImplementationLocation*, 
-                 CostEstimates*>::const_iterator i = fuMap.begin();
+                 CostEstimates*>::iterator i = fuMap.begin();
              i != fuMap.end(); i++) {	    
             fuSet.insert(
-                std::make_pair<const IDF::FUImplementationLocation*, 
-                CostEstimates*>(i->first, i->second));
+                std::make_pair(i->first, i->second));
         }
        
         set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::
@@ -813,7 +812,7 @@ ComponentImplementationSelector::selectRFs(
         set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*>, implComp> rfSet;
 	for ( map<const IDF::RFImplementationLocation*, CostEstimates*>::const_iterator i = rfMap.begin();
       	      i != rfMap.end(); i++) {
-	    rfSet.insert(std::make_pair<const IDF::RFImplementationLocation*, CostEstimates*>(i->first, i->second));
+	    rfSet.insert(std::make_pair(i->first, i->second));
         }
 	set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*> >::const_iterator iter = rfSet.begin();
         if (rfMap.size() != 0) {
@@ -893,11 +892,12 @@ ComponentImplementationSelector::selectIUs(
 
 	// Create an id ordered set of idf entries to ensure the deterministic behaviour
 	set<std::pair<const IDF::IUImplementationLocation*, CostEstimates*>, implComp> iuSet;
-	for ( map<const IDF::IUImplementationLocation*, CostEstimates*>::const_iterator i = iuMap.begin();
-	      i != iuMap.end(); i++) {
-	    iuSet.insert(std::make_pair<const IDF::IUImplementationLocation*, CostEstimates*>(i->first, i->second));
-        }
-	set<std::pair<const IDF::IUImplementationLocation*, CostEstimates*> >::const_iterator iter = iuSet.begin();
+	for (map<const IDF::IUImplementationLocation*, CostEstimates*>::const_iterator i = 
+             iuMap.begin(); i != iuMap.end(); i++) {
+	    iuSet.insert(std::make_pair(i->first, i->second));
+    }
+	set<std::pair<const IDF::IUImplementationLocation*, 
+                  CostEstimates*> >::const_iterator iter = iuSet.begin();
         if (iuMap.size() != 0) {
             double longestPathDelay = 0;
             double area = 0;

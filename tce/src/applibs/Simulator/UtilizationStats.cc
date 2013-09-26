@@ -71,7 +71,7 @@ UtilizationStats::~UtilizationStats() {
  * @param executionCounts Execution counts of the instruction.
  */
 void 
-UtilizationStats::calculate(
+UtilizationStats::calculateForInstruction(
     const TTAProgram::Instruction& instructionData, 
     const ExecutableInstruction& executionCounts) {
 

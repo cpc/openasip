@@ -346,7 +346,7 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
     // Validate the program against the current machine using POMValidator.
     // TODO: this should be refactored -- the loadProgram(Program) is not
     // checking these?
-    POMValidator validator(*currentMachine_, *currentProgram_);
+    POMValidator validator(*currentProgram_);
     std::set<POMValidator::ErrorCode> checks;
     checks.insert(POMValidator::CONNECTION_MISSING);
     checks.insert(POMValidator::LONG_IMMEDIATE_NOT_SUPPORTED);

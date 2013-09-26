@@ -78,7 +78,7 @@ VectorTools::insertUnique(ContainerType& aVec, const ValueType& aValue) {
  */
 template <typename ContainerType, typename ValueType>
 void
-VectorTools::removeDuplicates(ContainerType& aVec, const ValueType& aValue) {
+VectorTools::removeDuplicates(ContainerType& aVec, const ValueType&) {
     std::sort(aVec.begin(), aVec.end());
     aVec.erase(std::unique(aVec.begin(), aVec.end()), aVec.end());
 }

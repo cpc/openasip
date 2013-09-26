@@ -35,6 +35,8 @@
  * @note rating: red
  */
 
+#include "Conversion.hh"
+
 /**
  * Tells whether the destination of the node (move) belongs to an operation.
  *
@@ -120,7 +122,9 @@ MoveNode::destinationOperationPtr(unsigned int index) const
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
         if (index >= dstOps_.size()) {
-            std::string msg = "MoveNode does not have dst Operation of index" + index;
+            std::string msg = 
+                "MoveNode does not have dst Operation of index" + 
+                Conversion::toString(index);
             throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
         return dstOps_[index];

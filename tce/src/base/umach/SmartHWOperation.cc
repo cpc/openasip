@@ -132,7 +132,7 @@ SmartHWOperation::port(int operand) const {
     }
 
     int bitWidth = is32BitOperation_ ? 32 : 64;
-    int portCount = parentUnit()->portCount(bitWidth);
+    int portCount = parentUnit()->portCountWithWidth(bitWidth);
 
     if (input) {
         if (otherMandatoryInputsBound(operand)) {
@@ -154,7 +154,7 @@ SmartHWOperation::port(int operand) const {
         } else {
             // bind to a non-opcode input port otherwise
             for (int i = 0; i < portCount; i++) {
-                FUPort& port = parentUnit()->port(i, bitWidth);
+                FUPort& port = parentUnit()->portWithWidth(i, bitWidth);
                 if (!isBound(port) && port.inputSocket() != NULL &&
                     !port.isOpcodeSetting()) {
                     const_cast<SmartHWOperation*>(this)->
@@ -167,7 +167,7 @@ SmartHWOperation::port(int operand) const {
     } else {
         // bind to some output port
         for (int i = 0; i < portCount; i++) {
-            FUPort& port = parentUnit()->port(i, bitWidth);
+            FUPort& port = parentUnit()->portWithWidth(i, bitWidth);
             if (!isBound(port) && port.outputSocket() != NULL) {
                 const_cast<SmartHWOperation*>(this)->
                     HWOperation::bindPort(operand, port);

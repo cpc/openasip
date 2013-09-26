@@ -162,9 +162,6 @@ private:
     /// Place to add warnings during compilation.
     Assembler* parent_;
 
-    /// Code section containing all moves added to creator.
-    TPEF::CodeSection* codeSection_;
-
     /// Next element is starting element of instruction.
     bool isNextBegin_;
 

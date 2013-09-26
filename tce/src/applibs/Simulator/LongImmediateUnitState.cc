@@ -240,7 +240,7 @@ NullLongImmediateUnitState::registerValue(int)
  * @exception OutOfRange Never throws.
  */
 void
-NullLongImmediateUnitState::setRegisterValue(int, SimValue&)
+NullLongImmediateUnitState::setRegisterValue(int, const SimValue&)
     throw (OutOfRange) {
 
     Application::abortWithError("setRegisterValue()");

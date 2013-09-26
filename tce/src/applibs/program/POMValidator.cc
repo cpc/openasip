@@ -56,12 +56,10 @@ using namespace TTAProgram;
 /**
  * The Constructor.
  *
- * @param machine Machine to validate the program against.
  * @param program POM to validate.
  */
-POMValidator::POMValidator(
-    const TTAMachine::Machine& machine, const TTAProgram::Program& program):
-    machine_(machine), program_(program), instructions_(program.instructionVector()) {
+POMValidator::POMValidator(const TTAProgram::Program& program):
+    instructions_(program.instructionVector()) {
 
 }
 

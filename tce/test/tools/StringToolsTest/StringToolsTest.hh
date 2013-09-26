@@ -112,10 +112,8 @@ void
 StringToolsTest::testStringToUpper() {
     string testString1 = "diididaa";
     string testString2 = "DiiDiDaa";
-    string testString3 = "däpåpöö";
     TS_ASSERT_EQUALS(StringTools::stringToUpper(testString1), "DIIDIDAA");
     TS_ASSERT_EQUALS(StringTools::stringToUpper(testString2), "DIIDIDAA");
-    TS_ASSERT_EQUALS(StringTools::stringToUpper(testString3), "DÄPÅPÖÖ");
 }
 
 
@@ -127,11 +125,9 @@ StringToolsTest::testStringToLower() {
     
     string testString1 = "DIIDAA";
     string testString2 = "DiiDaa";
-    string testString3 = "DÄPÄDÖÅ";
     
     TS_ASSERT_EQUALS(StringTools::stringToLower(testString1), "diidaa");
     TS_ASSERT_EQUALS(StringTools::stringToLower(testString2), "diidaa");
-    TS_ASSERT_EQUALS(StringTools::stringToLower(testString3), "däpädöå");
 }
 
 
@@ -179,15 +175,6 @@ StringToolsTest::testSplitToRows() {
     TS_ASSERT_EQUALS(result, "s\no\nm\ne\nt\nh\ni\nn\ng");
 
     result = StringTools::splitToRows(testString, 20);
-    TS_ASSERT_EQUALS(result, testString);
-
-    testString = "    something     else  and a little bit more: ääöö.    ";
-    result = StringTools::splitToRows(testString, 30);
-    TS_ASSERT_EQUALS(
-        result,
-        "    something     else  and a \nlittle bit more: ääöö.    ");
-
-    result = StringTools::splitToRows(testString, 0);
     TS_ASSERT_EQUALS(result, testString);
 
     testString = "";

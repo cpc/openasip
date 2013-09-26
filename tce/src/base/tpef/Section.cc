@@ -39,6 +39,7 @@
 
 #include "MapTools.hh"
 #include "SafePointer.hh"
+#include "TCEString.hh"
 
 namespace TPEF {
 
@@ -95,8 +96,8 @@ Section::createSection(SectionType type)
 
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, 
-            "No prototype for section type: " + 
-            static_cast<int>(type));
+            TCEString("No prototype for section type: ") + 
+            Conversion::toString(static_cast<int>(type)));
     }
 
     Section* section = (*prototypes_)[type]->clone();

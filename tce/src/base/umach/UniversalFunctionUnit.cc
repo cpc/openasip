@@ -120,7 +120,7 @@ UniversalFunctionUnit::operation(const std::string& name) const
             // method addOperation
             UniversalFunctionUnit* thisFU =
                 const_cast<UniversalFunctionUnit*>(this);
-            SmartHWOperation& hwOper = thisFU->addOperation(oper);
+            SmartHWOperation& hwOper = thisFU->addSupportedOperation(oper);
             return &hwOper;
         }
     }
@@ -174,7 +174,7 @@ UniversalFunctionUnit::loadState(const ObjectState*)
  * @exception OutOfRange If the given bit width is out of range.
  */
 int
-UniversalFunctionUnit::portCount(int width) const
+UniversalFunctionUnit::portCountWithWidth(int width) const
     throw (OutOfRange) {
 
     if (width < 1) {
@@ -203,10 +203,10 @@ UniversalFunctionUnit::portCount(int width) const
  * @exception OutOfRange If the given bit width or index is out of range.
  */
 FUPort&
-UniversalFunctionUnit::port(int index, int width) const
+UniversalFunctionUnit::portWithWidth(int index, int width) const
     throw (OutOfRange) {
 
-    if (width < 1 || index >= portCount(width)) {
+    if (width < 1 || index >= portCountWithWidth(width)) {
         const string procName = "UniversalFunctionUnit::port";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
@@ -242,7 +242,7 @@ UniversalFunctionUnit::port(int index, int width) const
  * @return The added operation.
  */
 SmartHWOperation&
-UniversalFunctionUnit::addOperation(const Operation& operation) {
+UniversalFunctionUnit::addSupportedOperation(const Operation& operation) {
 
     int inputCount = operation.numberOfInputs();
     int outputCount = operation.numberOfOutputs();
@@ -292,7 +292,7 @@ UniversalFunctionUnit::ensureInputPorts(int width, int count) {
     Socket* inputSocket = machine()->socketNavigator().item(
         UM_INPUT_SOCKET_NAME);
 
-    int portCount = this->portCount(width);
+    int portCount = this->portCountWithWidth(width);
 
     // create opcode setting port if there are no ports at all
     if (count > 0 && portCount == 0) {
@@ -307,7 +307,7 @@ UniversalFunctionUnit::ensureInputPorts(int width, int count) {
     // check the amount of matches
     int matches(1);
     for (int i = 1; i < portCount; i++) {
-        FUPort& port = this->port(i, width);
+        FUPort& port = this->portWithWidth(i, width);
         assert(port.width() == width);
         if (port.inputSocket() != NULL) {
             matches++;
@@ -343,8 +343,8 @@ UniversalFunctionUnit::ensureOutputPorts(int width, int count) {
 
     // check the amount of matches
     int matches(0);
-    for (int i = 0; i < portCount(width); i++) {
-        FUPort& port = this->port(i, width);
+    for (int i = 0; i < portCountWithWidth(width); i++) {
+        FUPort& port = this->portWithWidth(i, width);
         assert(port.width() == width);
         if (port.outputSocket() != NULL) {
             matches++;

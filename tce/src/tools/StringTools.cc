@@ -145,20 +145,7 @@ StringTools::stringToUpper(const std::string& source) {
     string upString;
     upString.reserve(source.length());
     for (unsigned int i = 0; i < source.length(); ++i) {
-        switch (source[i]) {
-        case 'ö':
-            upString.push_back('Ö');
-            break;
-        case 'ä':
-            upString.push_back('Ä');
-            break;
-        case 'å':
-            upString.push_back('Å');
-            break;
-        default:
-            upString.push_back(toupper(source[i]));
-            break;
-        }
+        upString.push_back(toupper(source[i]));
     }
     return upString;
 }
@@ -176,20 +163,7 @@ StringTools::stringToLower(const std::string& source) {
     string lowString;
     lowString.reserve(source.length());
     for (unsigned int i = 0; i < source.length(); ++i) {
-        switch (source[i]) {
-        case 'Ö':
-            lowString.push_back('ö');
-            break;
-        case 'Ä':
-            lowString.push_back('ä');
-            break;
-        case 'Å':
-            lowString.push_back('å');
-            break;
-        default:
-            lowString.push_back(tolower(source[i]));
-            break;
-        }
+        lowString.push_back(tolower(source[i]));
     }
     return lowString;
 }

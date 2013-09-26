@@ -69,7 +69,7 @@ TransportTDGen::generateBackend(std::string& path)
     writeCallingConv();
     writeInstrFormats();
     writeInstrInfo();
-    writeRegisterInfo();
+    writeRegInfo();
 }
 
 void
@@ -271,7 +271,7 @@ TransportTDGen::writeInstrInfo() {
 }
 
 void
-TransportTDGen::writeRegisterInfo() {
+TransportTDGen::writeRegInfo() {
     std::ofstream f(
         (directoryRoot_ + DIR_SEPARATOR + "TTARegisterInfo.td").c_str(),
         std::ios::trunc);

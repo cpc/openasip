@@ -52,7 +52,7 @@ class BasicBlockNode;
 class DataGraphBuilder;
 class ControlFlowGraph;
 class MoveNodeUse;
-class LiveRange;
+struct LiveRange;
 
 namespace TTAMachine {
     class BaseRegisterFile;

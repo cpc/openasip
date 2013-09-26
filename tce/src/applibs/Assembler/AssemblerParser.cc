@@ -231,12 +231,11 @@ SetGlobalActor::operator() (const char* start, const char* end) const {
 AssemblerParser::AssemblerParser(
     TPEF::Binary &aBin, TTAMachine::Machine &aMach,
     Assembler* parent) :
-    bin_(aBin), mach_(aMach),
+    bin_(aBin),
     resourceManager_(aBin, aMach, parent),
     dataSectionCreator_(resourceManager_, parent),
     codeSectionCreator_(resourceManager_, parent),
-    labelManager_(aBin, resourceManager_, parent),
-    parent_(parent) {
+    labelManager_(aBin, resourceManager_, parent) {
 }
 
 /**

@@ -93,7 +93,8 @@ SimulationStatistics::calculate() {
         }
 
         for (std::size_t i = 0; i < statisticsTypes_.size(); ++i) {
-            statisticsTypes_[i]->calculate(*currentInstruction, execInstr);
+            statisticsTypes_[i]->calculateForInstruction(
+                *currentInstruction, execInstr);
         }
 
         currentInstruction = &program_.nextInstruction(*currentInstruction);

@@ -68,7 +68,7 @@ public:
     UtilizationStats();
     virtual ~UtilizationStats();
 
-    virtual void calculate(
+    virtual void calculateForInstruction(
         const TTAProgram::Instruction& instructionData, 
         const ExecutableInstruction& executionCounts);
 

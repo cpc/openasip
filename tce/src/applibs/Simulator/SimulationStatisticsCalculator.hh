@@ -48,7 +48,7 @@ class ExecutableInstruction;
  */
 class SimulationStatisticsCalculator {
 public:
-    virtual void calculate(
+    virtual void calculateForInstruction(
         const TTAProgram::Instruction& instructionData, 
         const ExecutableInstruction& executionCounts) = 0;
 

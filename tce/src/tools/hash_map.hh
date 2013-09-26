@@ -37,20 +37,26 @@
 
 #include "tce_config.h"
 
-#ifdef UNORDERED_MAP
+#if defined(STD_TR1_UNORDERED_MAP)
 
 #include <tr1/unordered_map>
 
 using std::tr1::unordered_map;
 #define hash_map unordered_map
 
-#elif HASHMAP_GNU_EXT
+#elif defined(STD_UNORDERED_MAP)
+
+#include <unordered_map>
+using std::unordered_map;
+#define hash_map unordered_map
+
+#elif defined(HASHMAP_GNU_EXT)
 
 #include <ext/hash_map>
 
 using __gnu_cxx::hash_map;
 
-#elif HASHMAP_STD
+#elif defined(HASHMAP_STD)
 
 #include <hash_map>
 

@@ -106,7 +106,6 @@ private:
     /// The currently scheduled procedure.
     TTAProgram::Procedure* scheduledProcedure_;
 
-    ControlFlowGraph* cfg_;
     /// whole-procedure DDG.
     DataDependenceGraph* bigDDG_;
     /// The software bypasser to use to bypass registers when possible.

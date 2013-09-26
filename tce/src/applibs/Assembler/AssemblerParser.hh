@@ -925,8 +925,6 @@ private:
 
     /// TPEF where to program is compiled.
     TPEF::Binary &bin_;
-    /// Machine containing used resources.
-    TTAMachine::Machine &mach_;
 
     /// Generates string, resource, null and address space sections.
     mutable MachineResourceManager resourceManager_;
@@ -936,8 +934,6 @@ private:
     mutable CodeSectionCreator codeSectionCreator_;
     /// Creates symbol and relocation sections.
     mutable LabelManager labelManager_;
-    /// Assembler root class managing warning handling.
-    mutable Assembler* parent_;
 
     /// Temp-structure containing most recent parsed tokens.
     mutable ParserTemp parserTemp_;

@@ -49,7 +49,7 @@ namespace TTAProgram {
     class BasicBlock;
 }
 
-class LiveRange;
+struct LiveRange;
 class DataDependenceGraph;
 class MoveNode;
 class MoveNodeSelector;

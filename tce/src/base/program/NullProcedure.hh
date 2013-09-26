@@ -53,7 +53,7 @@ public:
     static NullProcedure& instance();
 
     Program& parent() const throw (IllegalRegistration);
-    void setParent(const Program& prog);
+    void setParent(Program& prog);
     bool isInProgram() const;
     std::string name() const;
     int alignment() const;

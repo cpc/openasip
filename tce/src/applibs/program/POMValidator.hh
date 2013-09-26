@@ -61,9 +61,7 @@ public:
         COMPILED_SIMULATION_NOT_POSSIBLE
     };
         
-    POMValidator(
-        const TTAMachine::Machine& mach, const TTAProgram::Program& program);
-
+    POMValidator(const TTAProgram::Program& program);
     virtual ~POMValidator();
 
     POMValidatorResults* validate(const std::set<ErrorCode>& errorsToCheck);
@@ -74,10 +72,6 @@ private:
     void checkSimulatability(POMValidatorResults& results);
     void checkCompiledSimulatability(POMValidatorResults& results);
 
-    /// The machine to validate the program against.
-    const TTAMachine::Machine& machine_;
-    /// The program to validate.
-    const TTAProgram::Program& program_;
     /// The program's instructions in a quickly accessed vector.
     const TTAProgram::Program::InstructionVector instructions_;
     

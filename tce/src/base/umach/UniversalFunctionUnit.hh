@@ -61,9 +61,9 @@ public:
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
 
-    int portCount(int width) const
+    int portCountWithWidth(int width) const
         throw (OutOfRange);
-    TTAMachine::FUPort& port(int index, int width) const
+    TTAMachine::FUPort& portWithWidth(int index, int width) const
         throw (OutOfRange);
 
     static bool is32BitOperation(const std::string& opName);
@@ -74,7 +74,7 @@ public:
     static const std::string OC_SETTING_PORT_64;
 
 private:
-    SmartHWOperation& addOperation(const Operation& operation);
+    SmartHWOperation& addSupportedOperation(const Operation& operation);
     void ensureInputPorts(int width, int count);
     void ensureOutputPorts(int width, int count);
 

@@ -64,7 +64,7 @@ private:
     void writeCallingConv();
     void writeInstrFormats();
     void writeInstrInfo();
-    void writeRegisterInfo();
+    void writeRegInfo();
     TCEString underScoredPortName(
         const TTAMachine::BaseFUPort& port, TCEString opName="");
     TCEString assemblyPortName(

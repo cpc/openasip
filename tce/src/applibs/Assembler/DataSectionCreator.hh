@@ -109,9 +109,6 @@ private:
 
     /// Internal data sections.
     std::vector<InternalSection> sections_;
-
-    /// Parent assembler where to add warnings.
-    Assembler* parent_;
 };
 
 

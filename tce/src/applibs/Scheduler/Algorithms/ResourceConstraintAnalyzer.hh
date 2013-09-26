@@ -70,8 +70,6 @@ private:
     typedef std::map<std::string, int> RFCountMap;
     typedef std::map<std::string, int> OperationCountMap;
 
-    int ddgEarliestCycle_;
-    int resourceConstrained_;
     int busConstrained_;
     int operationConstrained_;
     int rfWritePortConstrained_;

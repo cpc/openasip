@@ -53,9 +53,9 @@ using namespace TPEF;
  * @param resourceManager Resource manager for TPEF to create.
  */
 DataSectionCreator::DataSectionCreator(
-    MachineResourceManager& resourceManager, Assembler* parent) :
+    MachineResourceManager& resourceManager, Assembler* /*parent*/) :
     resources_(resourceManager), currentStartAddress_(0),
-    isStartAddressDefined_(false), parent_(parent) {
+    isStartAddressDefined_(false) {
 }
 
 /**

@@ -196,11 +196,48 @@ AM_CONDITIONAL([COMPILER_FOUND], test ! -z $CLANG)
 
 AC_SUBST([CLANG_AS_DEFAULT], ["True"])
 
-# === CHECK for unordered_map/hash_map ===
-# First check whether unordered_map exists.
-# now using unordered_map/set needs gcc flag -std=c++0x
-# later when hash_map/set are removed compiling without c++0x flag should work
-AC_MSG_CHECKING([whether unordered_map/hash_map is available])
+# === find the best implementation for unordered_map/hash_map ===
+
+HASHMAP_TEST=hashmaptest123456
+
+AC_MSG_CHECKING([whether std::hash_map is available])
+
+AC_LANG_CONFTEST(
+   [AC_LANG_PROGRAM(
+    [[#include <hash_map>]
+     [using std::hash_map;]],
+   [hash_map<const char*, int> months;])
+])
+
+rm -f $HASHMAP_TEST
+if $CXX $CXXFLAGS -Wno-deprecated conftest.c -c > /dev/null 2>&1;
+then
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(HASHMAP_STD, 1, 
+             [defines whether hash map is provided in namespace std])
+else
+   AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether std::unordered_map/hash_map is available])
+AC_LANG_CONFTEST(
+                 [AC_LANG_PROGRAM(
+                  [[#include <unordered_map>]
+                   [using std::unordered_map;]],
+                   [[]])
+                  ])
+
+rm -f $HASHMAP_TEST
+if $CXX $CXXFLAGS -Wno-deprecated conftest.c -c > /dev/null 2>&1 ;
+then
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(STD_UNORDERED_MAP, 1, 
+             [defines whether std unordered map is provided])
+else
+   AC_MSG_RESULT([no])
+fi
+
+AC_MSG_CHECKING([whether std::tr1::unordered_map/hash_map is available])
 AC_LANG_CONFTEST(
                  [AC_LANG_PROGRAM(
                   [[#include <tr1/unordered_map>]
@@ -208,61 +245,33 @@ AC_LANG_CONFTEST(
                    [[]])
                   ])
 
-# temporary file
-HASHMAP_TEST=hashmaptest123456
 rm -f $HASHMAP_TEST
-$CXX conftest.c 2> $HASHMAP_TEST
-
-# if failed then
-if test -s ${HASHMAP_TEST}; then
-  # Checks whether hash_map is available somewhere.
-  # First check for GNU. In that case it's available in ext/hash_map
-  # in namespace __gnu_cxx.
-  AC_LANG_CONFTEST(
-                   [AC_LANG_PROGRAM(
-                    [[#include <ext/hash_map>]
-                     [using __gnu_cxx::hash_map;]],
-                    [[hash_map<const char*, int> foo;]])
-                   ])
-
-  rm -f $HASHMAP_TEST
-  $CXX -Wno-deprecated conftest.c 2> $HASHMAP_TEST
-
-  # if failed again
-  if test -s ${HASHMAP_TEST}; then
-    # Let's look if it's in std namespace.
-    AC_LANG_CONFTEST(
-                     [AC_LANG_PROGRAM(
-                      [[#include <hash_map>]
-                      [using std::hash_map;]],
-                      [])
-                     ])
-
-    rm -f $HASHMAP_TEST
-    $CXX -Wno-deprecated conftest.c 2> $HASHMAP_TEST
-
-    # if failed again
-    if test -s ${HASHMAP_TEST}; then
-      AC_MSG_RESULT([no])
-    else
-        AC_MSG_RESULT([yes (namespace std)])
-        AC_DEFINE(HASHMAP_STD, 1, 
-                  [defines whether hash map is provided in namespace std])
-    fi
-
-  else
-    AC_MSG_RESULT([yes (GNU extension)])
-    AC_DEFINE(HASHMAP_GNU_EXT, 1, 
-              [defines whether hash map is provided as a GNU extension])
-  fi
-
+if $CXX $CXXFLAGS -Wno-deprecated conftest.c -c > /dev/null 2>&1 ;
+then
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(STD_TR1_UNORDERED_MAP, 1, 
+             [defines whether std tr1 unordered map is provided])
 else
-    AC_MSG_RESULT([yes (unordered map)])
-    AC_DEFINE(UNORDERED_MAP, 1, 
-              [defines whether unordered map is provided])
+   AC_MSG_RESULT([no])
 fi
 
+AC_MSG_CHECKING([whether __gnu_cxx::hash_map is available])
+AC_LANG_CONFTEST(
+                 [AC_LANG_PROGRAM(
+                  [[#include <ext/hash_map>]
+                   [using __gnu_cxx::hash_map;]],
+                   [[hash_map<const char*, int> foo;]])
+                  ])
+
 rm -f $HASHMAP_TEST
+if $CXX $CXXFLAGS -Wno-deprecated conftest.c -c > /dev/null 2>&1 ;
+then
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(GNU_EXT_HASHMAP, 1, 
+             [defines whether GNU ext hash_map is provided])
+else
+   AC_MSG_RESULT([no])
+fi
 
 
 # CXXFLAGS is set if gcc is in use and user has not given CXXFLAGS.

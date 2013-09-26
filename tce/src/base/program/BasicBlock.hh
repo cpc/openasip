@@ -42,7 +42,7 @@
 #include "Exception.hh"
 #include "CodeSnippet.hh"
 
-class LiveRangeData;
+struct LiveRangeData;
 
 namespace TTAProgram {
 

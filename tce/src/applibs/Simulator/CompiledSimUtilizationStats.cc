@@ -76,7 +76,7 @@ CompiledSimUtilizationStats::calculate(
         }
 
         // Calculate execution counts so far
-        UtilizationStats::calculate(*instr, executableInstr);
+        UtilizationStats::calculateForInstruction(*instr, executableInstr);
                 
         instr = &program.nextInstruction(*instr);
     }

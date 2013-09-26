@@ -12,6 +12,8 @@ Code generator improvements
 
 Misc. smaller improvements
 --------------------------
+- Fixed the TCE sources to compile with Clang++, a lot of new warnings 
+  exposed by it fixed.
 - Standalone OpenCL support: More OpenCL API functions implemented; 
   support added for zero-copy buffers and reading from and writing to 
   buffers by manipulation of buffer pointers. Also reduced kernel call

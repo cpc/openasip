@@ -129,7 +129,7 @@ public:
 
     virtual SimValue& registerValue(int index)
         throw (OutOfRange);
-    virtual void setRegisterValue(int index, SimValue& value)
+    virtual void setRegisterValue(int index, const SimValue& value)
         throw (OutOfRange);
 
     virtual LongImmediateRegisterState& immediateRegister(int i) 
