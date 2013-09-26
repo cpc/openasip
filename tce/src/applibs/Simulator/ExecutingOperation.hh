@@ -72,7 +72,7 @@ public:
      * the FU pipeline after which all results are assumed to have
      * arrived.
      */
-    bool isLastPipelineStage() const { return stage_ == stages_ -2; }
+    bool isLastPipelineStage() const { return stage_ == stages_ - 1; }
 
     /**
      * Methods that should not be called from SystemC models.
