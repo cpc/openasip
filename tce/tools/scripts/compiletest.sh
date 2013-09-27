@@ -193,6 +193,7 @@ WARNINGS="\
 .*catastrophic[[:space:]]error.*|\
 .*[[:space:]]undefined[[:space:]].*"
 
+
 # Filter away lines that match one of these regexps from lines acquired 
 # with WARNINGS regexps.
 WARNING_FILTERS="|\
@@ -251,7 +252,9 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*<command-line>:.warning.*|\
 .*DataDependenceGraphBuilder.hh:38,|\
 .*ignoring.\#pragma.GCC.diagnostic.*|\
-distcc.*Warning.*"
+distcc.*Warning.*|\
+.*clang..warning..argument.unused.during.compilation...-pthread..*"
+
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
