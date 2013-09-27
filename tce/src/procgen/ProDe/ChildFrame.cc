@@ -54,7 +54,7 @@ ChildFrame::ChildFrame(
     wxView* view,
     wxDocMDIParentFrame* parent):
     wxDocMDIChildFrame(doc, view, parent, -1, _T("ChildFrame")),
-    document_(doc), view_(view), parent_(parent) {
+    view_(view), parent_(parent) {
 
 }
 

@@ -257,14 +257,14 @@ ProximLROutputBuffer::overflow(int c) {
     flushBuffer();
 
     if (c != EOF) {
-	if(pbase() == epptr()) {
-	    // The buffer length is zero, character is sent directly to the
-	    // linereader.
-	    lineReader_->output("" + char(c));
-	} else {
-	    // Append char to the flushed buffer.
-	    sputc(c);
-	}
+        if(pbase() == epptr()) {
+            // The buffer length is zero, character is sent directly to the
+            // linereader.
+            lineReader_->output(std::string("") + (char)c);
+        } else {
+            // Append char to the flushed buffer.
+            sputc(c);
+        }
     }
     return 0;
 }

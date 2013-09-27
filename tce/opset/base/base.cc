@@ -1485,8 +1485,6 @@ END_OPERATION_WITH_STATE(RTC)
 OPERATION(LEDS)
 
 TRIGGER
-     unsigned int dummy = UINT(1);
-     dummy = dummy;
 END_TRIGGER;
 
 END_OPERATION(LEDS)
@@ -1541,8 +1539,6 @@ END_OPERATION(BCAST8)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(ECC)
 TRIGGER
-int dummy = INT(1);
-dummy = dummy;
 IO(2) = static_cast<unsigned int>(CYCLE_COUNT);
 END_TRIGGER;
 END_OPERATION(ECC)
@@ -1552,8 +1548,6 @@ END_OPERATION(ECC)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LCC)
 TRIGGER
-int dummy = INT(1);
-dummy = dummy;
 // Simulator does not model global lock, return 0
 IO(2) = 0;
 END_TRIGGER;

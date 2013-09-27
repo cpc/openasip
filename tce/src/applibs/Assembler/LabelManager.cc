@@ -81,8 +81,8 @@ using TPEF::TPEFTools;
  * @param parent Assembler root class.
  */
 LabelManager::LabelManager(
-    Binary& bin, MachineResourceManager& resources, Assembler* parent) :
-    bin_(bin), resources_(resources), parent_(parent) {
+    Binary& bin, MachineResourceManager& resources, Assembler* /*parent*/) :
+    bin_(bin), resources_(resources) {
 }
 
 /**

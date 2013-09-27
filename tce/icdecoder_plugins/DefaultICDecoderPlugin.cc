@@ -667,8 +667,7 @@ private:
         HDB::HDBManager& hdb = hdbRegistry.hdb(implementation.hdbFile());
 
         try {
-            //DelayInNanoSeconds delay = hdb.busCostEstimationData(
-            hdb.busCostEstimationData(
+            return hdb.busCostEstimationData(
                 "throughput_delay", implementationId, name_).doubleValue();
 
         } catch (const Exception& e) {
@@ -910,7 +909,7 @@ public:
         const TTAMachine::Machine& machine,
         const BinaryEncoding& bem) :
         ICDecoderGeneratorPlugin(machine, bem, PLUGIN_DESCRIPTION),
-        netlistGenerator_(NULL), icGenerator_(NULL), decoderGenerator_(NULL) {
+        icGenerator_(NULL), decoderGenerator_(NULL) {
 
         addParameter(
             GENERATE_BUS_TRACE_PARAM, 
@@ -1079,9 +1078,6 @@ private:
         return width;
     }
     
-    NetlistBlock* icBlock_;
-    NetlistBlock* decoderBlock_;
-    const NetlistGenerator* netlistGenerator_;
     DefaultICGenerator* icGenerator_;
     DefaultDecoderGenerator* decoderGenerator_;
 };

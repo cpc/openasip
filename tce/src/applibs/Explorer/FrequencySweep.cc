@@ -42,7 +42,7 @@
  */
 FrequencySweep::FrequencySweep(int startMHz, int endMHz, int stepMHz) 
     throw (IllegalParameters):
-    hasNext_(true), startMHz_(startMHz), endMHz_(endMHz), stepMHz_(stepMHz) {
+    hasNext_(true), endMHz_(endMHz), stepMHz_(stepMHz) {
 
     // Sweep is always done from the lowest frequency towards the highest
     // frequency.

@@ -76,9 +76,9 @@ END_EVENT_TABLE()
  * @param id Dialog identifier.
  * @param watch Watch point to edit, or NULL to create a new watch point.
  */
-AddWatchDialog::AddWatchDialog(wxWindow* parent, wxWindowID id, Watch* watch) :
-  wxDialog(parent, id, _T("Watch point"), wxDefaultPosition),
-    watch_(watch) {
+AddWatchDialog::AddWatchDialog(
+    wxWindow* parent, wxWindowID id, Watch* /*watch*/) :
+  wxDialog(parent, id, _T("Watch point"), wxDefaultPosition) {
 
     createContents(this, true, true);
 

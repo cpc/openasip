@@ -35,7 +35,7 @@
 #include "Move.hh"
 
 DataDependenceGraph*
-LLVMTCEDataDependenceGraphBuilder::build(
+LLVMTCEDataDependenceGraphBuilder::buildFromCFG(
     ControlFlowGraph& cGraph, const UniversalMachine*) {
 
     currentDDG_ = new DataDependenceGraph(allParamRegs_);
@@ -51,7 +51,7 @@ LLVMTCEDataDependenceGraphBuilder::build(
 }
 
 DataDependenceGraph*
-LLVMTCEDataDependenceGraphBuilder::build(
+LLVMTCEDataDependenceGraphBuilder::buildFromBB(
     TTAProgram::BasicBlock& bb, const UniversalMachine*) 
     throw (IllegalProgram) {
     currentDDG_ = new DataDependenceGraph(allParamRegs_);

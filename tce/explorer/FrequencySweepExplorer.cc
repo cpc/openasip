@@ -284,22 +284,15 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
 private:
     /// Selector used by the plugin.
     ComponentImplementationSelector selector_;
-    /// Number of buses in the machine.
-    int busCount_;
     /// Default value of busCount_
     static const int busCountDefault_ = 4;
 
     static const unsigned int immSlotBusIndexDefault_ = 0;
-    unsigned int immSlotBusIndex_;
 
     static const int registerFileSizeDefault_ = 4;
     static const int maxNumberOfRegisterFilesDefault_ = 16;
     static const int rfReadPortsDefault_ = 1;
     static const int rfWritePortsDefault_ = 1;
-    int registerFileSize_;
-    int maxNumberOfRegisterFiles_;
-    int rfReadPorts_;
-    int rfWritePorts_;
     
     // parameter names
     const static std::string startMHzPN_;

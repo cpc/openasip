@@ -84,9 +84,6 @@ private:
         ID_LINE
     };
 
-    /// Watch to modify. Null if a new watch is being created.
-    Watch* watch_;
-
     /// Address space choicer for memory watch.
     wxChoice* asChoice_;
     /// Function unit choicer for port watch.

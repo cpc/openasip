@@ -53,7 +53,7 @@ ProgramDependenceGraph::~ProgramDependenceGraph() {}
 ProgramDependenceGraph::ProgramDependenceGraph(
     ControlDependenceGraph& cdg, DataDependenceGraph& ddg) : 
     BoostGraph<ProgramDependenceNode, ProgramDependenceEdge>(cdg.name()), 
-    cdg_(&cdg), ddg_(&ddg) {
+    cdg_(&cdg) {
 
     ControlToProgram cNodePNode;
     std::map<BasicBlockNode*, ControlDependenceNode*> BBNodeCDNode;

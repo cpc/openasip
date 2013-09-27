@@ -51,8 +51,7 @@
  */
 ProximMachineCanvasTool::ProximMachineCanvasTool(MachineCanvas* canvas) :
     MachineCanvasTool(canvas),
-    canvas_(canvas),
-    toolTip_(NULL) {
+    canvas_(canvas) {
 
 }
 

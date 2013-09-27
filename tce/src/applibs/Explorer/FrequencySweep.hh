@@ -55,8 +55,6 @@ private:
     int nextFrequency_;
     /// Flag indicating is there next frequency to return.
     bool hasNext_;
-    /// Start frequency.
-    int startMHz_;
     /// End frequency.
     int endMHz_;
     /// Step frequency.

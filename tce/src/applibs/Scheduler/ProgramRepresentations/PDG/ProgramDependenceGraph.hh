@@ -61,7 +61,7 @@ private:
         ControlDependenceNode&);
     
     ControlDependenceGraph* cdg_;
-    DataDependenceGraph* ddg_;
+    /*DataDependenceGraph* ddg_;*/
     
 };
 

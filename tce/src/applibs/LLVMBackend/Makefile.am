@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = LLVMTCEPOMBuilder.la
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
-	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc TransportTDGen.cc \
+	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
 	LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc MachineInstrDDG.cc
@@ -84,7 +84,7 @@ libtcellvmbackend_la_SOURCES += \
 	TCESubtarget.hh TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
 	MachineInstrDDG.hh ProgramPartitioner.hh \
-	TransportTDGen.hh TCETargetSelectionDAGInfo.hh \
+	TCETargetSelectionDAGInfo.hh \
 	LLVMTCEIRBuilder.hh LLVMBackend.hh \
 	TDGen.hh LLVMTCEScheduler.hh \
 	InstructionPatternAnalyzer.hh TCETargetMachine.hh \

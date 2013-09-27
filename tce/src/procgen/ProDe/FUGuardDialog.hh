@@ -62,8 +62,6 @@ private:
     TTAMachine::FUPort* selectedPort() const;
     void setTexts();
 
-    /// Port guard to edit.
-    TTAMachine::PortGuard* guard_;
     /// Choice widget for the function unit selection.
     wxChoice* nameChoice_;
     /// Choice widget for the port selection.

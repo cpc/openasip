@@ -65,8 +65,6 @@ private:
     bool active_;
     /// Selection figure;
     SelectionFigure* figure_;
-    /// Current selection.
-    EditPart* selection_;
 
     /// IDs for the context menu items.
     enum {

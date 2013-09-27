@@ -53,10 +53,10 @@ public:
         DataDependenceGraphBuilder(ipd) {}
     virtual ~LLVMTCEDataDependenceGraphBuilder() {}
 
-    virtual DataDependenceGraph* build(
+    virtual DataDependenceGraph* buildFromCFG(
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
-    virtual DataDependenceGraph* build(
+    virtual DataDependenceGraph* buildFromBB(
         TTAProgram::BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);
 private:

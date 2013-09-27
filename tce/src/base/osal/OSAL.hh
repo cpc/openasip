@@ -72,10 +72,10 @@
  */
 #define OPERATION_COMMON(OPNAME) \
 public: \
-    OPNAME##_Behavior(const Operation& parent) : parent_(parent) {}; \
+OPNAME##_Behavior(const Operation& parent) : parent_(parent) {}; \
+    const Operation& parent_; \
 private: \
-    mutable OperationPool opPool_; \
-    const Operation& parent_; 
+    mutable OperationPool opPool_;
 
 /**
  * Operation behavior without state.

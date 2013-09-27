@@ -81,12 +81,6 @@ private:
     /// SQLite connection handle is saved to this
     sqlite3* connection_;
 
-    /// data in the "current" row in the result set, NULL if there's none
-    const char** currentData_;
-
-    /// data in the possible next row in the result set, NULL if there's none
-    const char** nextData_;
-
     bool transactionActive_;
 };
 

@@ -125,7 +125,6 @@ private:
 
     bool poMoved(ProgramOperation& po,  MoveNodeListVector& movesToCopy);
     
-    int slotsFilled_;
     DataDependenceGraph* ddg_;
     ControlFlowGraph* cfg_;
     std::map<TTAProgram::BasicBlock*, SimpleResourceManager*> resourceManagers_;

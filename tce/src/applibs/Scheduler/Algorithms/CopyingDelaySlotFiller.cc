@@ -255,7 +255,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
 /**
  * Constructor.
  */
-CopyingDelaySlotFiller::CopyingDelaySlotFiller() : slotsFilled_(0) {
+CopyingDelaySlotFiller::CopyingDelaySlotFiller() {
 }
 
 /**

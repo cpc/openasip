@@ -60,8 +60,6 @@ private:
     TTAMachine::RegisterFile* selectedRF() const;
     void setTexts();
 
-    /// RegisterGuard to edit.
-    TTAMachine::RegisterGuard* guard_;
     /// Choice widget for register file name selection.
     wxChoice* nameChoice_;
     /// Choice widget for register index selection.

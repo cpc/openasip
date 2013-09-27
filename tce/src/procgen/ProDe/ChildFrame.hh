@@ -49,8 +49,6 @@ public:
 private:
     void onFocus(wxFocusEvent& event);
 
-    /// Document which is displayed in the frame.
-    wxDocument* document_;
     /// View of the document which is displayed in the frame.
     wxView* view_;
     /// MDI parent frame of the ChildFrame.

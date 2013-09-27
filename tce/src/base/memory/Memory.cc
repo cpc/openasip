@@ -105,8 +105,7 @@ Memory::write(Word, MAU) {
  * @return The data read.
  */
 Memory::MAU
-Memory::read(Word address) {
-    address = address;
+Memory::read(Word /*address*/) {
     return 0;
 }
 

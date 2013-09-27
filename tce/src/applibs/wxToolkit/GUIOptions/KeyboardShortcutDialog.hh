@@ -53,8 +53,6 @@ private:
    
     /// modified shortcut
     KeyboardShortcut* shortcut_;
-    /// original shortcut
-    KeyboardShortcut* oldShortcut_;
     /// shortcut text field widget
     wxStaticText* shortcutField_;
    

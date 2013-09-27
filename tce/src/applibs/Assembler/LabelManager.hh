@@ -179,9 +179,6 @@ private:
 
     /// Common resources of TPEF.
     MachineResourceManager& resources_;
-
-    /// Parent assembler for adding warnings.
-    Assembler* parent_;
 };
 
 #endif

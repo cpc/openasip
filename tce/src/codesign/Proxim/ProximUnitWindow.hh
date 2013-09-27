@@ -83,9 +83,6 @@ private:
     virtual void reinitialize();
     virtual void update();
 
-    // Toplevel sizer for the window widgets.
-    wxBoxSizer* sizer_;
-
     // Widget IDs.
     enum {
 	ID_UNIT_CHOICE = 10000,

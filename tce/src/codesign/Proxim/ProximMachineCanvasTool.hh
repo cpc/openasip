@@ -54,8 +54,6 @@ private:
     void popupMenu(int x, int y);
     /// MachineCanvas where the tools is used.
     MachineCanvas* canvas_;
-
-    wxTipWindow* toolTip_;
 };
 
 #endif

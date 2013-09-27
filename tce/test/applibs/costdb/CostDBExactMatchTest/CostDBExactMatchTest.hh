@@ -76,7 +76,6 @@ private:
     SearchStrategy* strategy_;
     EntryKeyProperty* mbus_property;
     EntryKeyProperty* rfileProperty;
-    CostDBEntry* entry_;
     std::vector<MatchType*> matchTypeList;
     std::vector<CostDBEntry*> entryList;
 };
