@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-01-15
+-- Last update: 2013-10-17
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -340,11 +340,11 @@ begin
     end if;
   end process seq;
 
-  mem_en_x  <= mem_en_x_reg;
-  wr_en_x   <= wr_en_x_reg;
-  wr_mask_x <= wr_mask_x_reg;
-  data_out  <= data_out_reg;
-  addr      <= addr_reg;
-  r1data    <= r1_reg;
+  mem_en_x(0) <= mem_en_x_reg(0) or glock;
+  wr_en_x     <= wr_en_x_reg;
+  wr_mask_x   <= wr_mask_x_reg;
+  data_out    <= data_out_reg;
+  addr        <= addr_reg;
+  r1data      <= r1_reg;
 
 end rtl;

@@ -27,6 +27,12 @@ Misc. smaller improvements
   operation property dialog, and these fields can also be modified for input 
   and output operands.
 
+
+Bugfixes
+--------
+- ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw.vhdl did not react to glock properly but
+  updated a new value too early to the output.
+
 1.8       June 2013
 ===================
 
