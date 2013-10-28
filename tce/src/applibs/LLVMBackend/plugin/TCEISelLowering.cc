@@ -828,8 +828,14 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
 /**
  * Returns the preferred comparison result type.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
 EVT
 TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+#else
+EVT
+TCETargetLowering::getSetCCResultType(LLVMContext&, llvm::EVT VT) const { 
+#endif
+
 #ifdef LLVM_3_2
     return llvm::MVT::i1;
 #else

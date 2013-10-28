@@ -1,6 +1,4 @@
-tce-devel r1873:
-llvm-trunk 180591:
-* new -lcpp parameter need to be added when compiling/linking. C++ code.
-* false positives(on short systemtests):
-  * some andn operation matched twice instead of once
-  * ALU8 has more adds than the addresses ones.
+tce-devel r1957:
+llvm-trunk r182637 seems to work?
+llvm-trunk r182638 breaks due some stringref thingy?
+

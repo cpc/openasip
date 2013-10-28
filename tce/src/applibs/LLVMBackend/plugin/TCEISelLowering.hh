@@ -140,7 +140,11 @@ namespace llvm {
         TCETargetMachine& tm_;
         
     public:        
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
         virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const;
+#else
+        virtual llvm::EVT getSetCCResultType(LLVMContext&,llvm::EVT VT) const;
+#endif        
         virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const {
             if (VT==MVT::f32 || VT==MVT::f16) {
                 return true;

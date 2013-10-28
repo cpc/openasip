@@ -286,10 +286,11 @@ LLVMTCEBuilder::initDataSections() {
     MCContext* ctx = 
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
-#ifdef LLVM_3_1
-    mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
-#else
+
+#if 1 //(defined(LLVM_3_2) || defined(LLVM_3_3))
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
+#else
+    mang_ = new Mangler(*ctx, tm_); 
 #endif
 
 #if 0
@@ -307,11 +308,7 @@ LLVMTCEBuilder::initDataSections() {
     }
 #endif
 
-#ifdef LLVM_3_1
-    const TargetData* td = tm_->getTargetData();
-#else
     const TargetData* td = tm_->getDataLayout();
-#endif
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
