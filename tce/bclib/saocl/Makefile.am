@@ -3,9 +3,6 @@ pkglib_LIBRARIES = liboclhost-sa.a
 
 liboclhost_sa_a_SOURCES = oclhostsa.cc
 
-RANLIB = @LLVM_BINDIR@/llvm-ranlib
-AR = @LLVM_BINDIR@/llvm-ar
-
 TCECC_CPPFLAGS = -I${srcdir}/../include
 TCECC = ../../src/bintools/Compiler/tcecc
 
