@@ -84,13 +84,22 @@ static const unsigned ArgRegs[] = {
 static const int argRegCount = 1;
 
 
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
 SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
                                const SmallVectorImpl<SDValue> &OutVals,
-                               DebugLoc dl, SelectionDAG &DAG) const {
+                               DebugLoc dl, SelectionDAG &DAG) const 
+#else
+SDValue
+TCETargetLowering::LowerReturn(SDValue Chain,
+                               CallingConv::ID CallConv, bool isVarArg,
+                               const SmallVectorImpl<ISD::OutputArg> &Outs,
+                               const SmallVectorImpl<SDValue> &OutVals,
+                               SDLoc dl, SelectionDAG &DAG) const 
+#endif
+{
 
   // CCValAssign - represent the assignment of the return value to locations.
   SmallVector<CCValAssign, 16> RVLocs;
@@ -150,13 +159,24 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 /**
  * Lowers formal arguments.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
 SDValue
 TCETargetLowering::LowerFormalArguments(
     SDValue Chain,
     CallingConv::ID CallConv, bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
     DebugLoc dl, SelectionDAG &DAG,
-    SmallVectorImpl<SDValue> &InVals) const {
+    SmallVectorImpl<SDValue> &InVals) const 
+#else
+SDValue
+TCETargetLowering::LowerFormalArguments(
+    SDValue Chain,
+    CallingConv::ID CallConv, bool isVarArg,
+    const SmallVectorImpl<ISD::InputArg> &Ins,
+    SDLoc dl, SelectionDAG &DAG,
+    SmallVectorImpl<SDValue> &InVals) const 
+#endif
+{
 
     MachineFunction &MF = DAG.getMachineFunction();
     MachineRegisterInfo &RegInfo = MF.getRegInfo();
@@ -319,24 +339,17 @@ TCETargetLowering::LowerFormalArguments(
     return Chain;
 }
 
-#if (defined(LLVM_3_1))
-SDValue
-TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
-                             CallingConv::ID CallConv, bool isVarArg,
-                             bool /*doesNotRet*/,
-                             bool &isTailCall,
-                             const SmallVectorImpl<ISD::OutputArg> &Outs,
-                             const SmallVectorImpl<SDValue> &OutVals,
-                             const SmallVectorImpl<ISD::InputArg> &Ins,
-                             DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) const {
-#else
+
 SDValue
 TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                              SmallVectorImpl<SDValue> &InVals) const {
 
     SelectionDAG &DAG                     = CLI.DAG;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     DebugLoc &dl                          = CLI.DL;
+#else
+    SDLoc &dl                             = CLI.DL;
+#endif
     SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
     SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
     SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
@@ -345,9 +358,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     bool &isTailCall                      = CLI.IsTailCall;
     CallingConv::ID CallConv              = CLI.CallConv;
     bool isVarArg                         = CLI.IsVarArg;
-#endif
-
-
 
     // we do not yet support tail call optimization.
     isTailCall = false;
@@ -384,8 +394,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     // Keep stack frames 4-byte aligned.
     ArgsSize = (ArgsSize+3) & ~3;
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
-  
+#else
+    Chain = 
+        DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true), dl);
+#endif
     SmallVector<SDValue, 8> MemOpChains;
    
     SmallVector<std::pair<unsigned, SDValue>, argRegCount> RegsToPass;
@@ -480,8 +494,13 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
   InFlag = Chain.getValue(1);
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
                              DAG.getIntPtrConstant(0, true), InFlag);
+#else
+  Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
+                             DAG.getIntPtrConstant(0, true), InFlag, dl);
+#endif
   InFlag = Chain.getValue(1);
 
   // Assign locations to each value returned by this call.
@@ -755,17 +774,11 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 
 SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
     TargetLowering::ArgListTy Args;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3)) 
     DebugLoc dl = Op->getDebugLoc();
-#ifdef LLVM_3_1
-    std::pair<SDValue, SDValue> CallResult =
-      LowerCallTo(Op->getOperand(0), Type::getVoidTy(*DAG.getContext()),
-                  false, false, false, false, 0, CallingConv::C,
-                  /*isTailCall=*/false,
-                  /*doesNotRet=*/true,
-                  /*isReturnValueUsed=*/true,                  
-                  DAG.getExternalSymbol("_exit", getPointerTy()),
-                  Args, DAG, dl);
 #else
+    SDLoc dl(Op);
+#endif
     TargetLowering::CallLoweringInfo CLI(Op->getOperand(0),
                                          Type::getVoidTy(*DAG.getContext()),
                                          false, false, false, false, 
@@ -777,7 +790,6 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
                                          Args, DAG, dl);
         std::pair<SDValue, SDValue> CallResult =
             LowerCallTo(CLI);
-#endif
     return CallResult.second;
 
 }
@@ -786,9 +798,15 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
   // FIXME there isn't really any debug info here
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     DebugLoc dl = Op.getDebugLoc();
     SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
     return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
+#else
+    SDLoc dl(Op);
+    SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
+    return DAG.getNode(TCEISD::GLOBAL_ADDR, SDLoc(Op), MVT::i32, ga);
+#endif
 }
 
 static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
@@ -805,7 +823,11 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
             cp->getConstVal(), ptrVT,
             cp->getAlignment());
     }
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     return DAG.getNode(TCEISD::CONST_POOL, Op.getDebugLoc(), MVT::i32, res);
+#else
+    return DAG.getNode(TCEISD::CONST_POOL, SDLoc(Op), MVT::i32, res);
+#endif
 }
 
 static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
@@ -815,7 +837,11 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
 
     // vastart just stores the address of the VarArgsFrameIndex slot into the
     // memory location argument.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     DebugLoc dl = Op.getDebugLoc();
+#else
+    SDLoc dl(Op);
+#endif
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
     SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
@@ -885,15 +911,6 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
                                                   EVT VT) const {
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
-#if (defined(LLVM_3_1))
-    case 'r':
-        return std::make_pair(0U, TCE::R32IRegsRegisterClass);
-    case 'f':
-        if (VT == MVT::f32) {
-            return std::make_pair(0U, TCE::R32FPRegsRegisterClass);
-        }
-    }
-#else
     case 'r':
         return std::make_pair(0U, &TCE::R32IRegsRegClass);
     case 'f':
@@ -901,7 +918,6 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
             return std::make_pair(0U, &TCE::R32FPRegsRegClass);
         }
     }
-#endif
   }
   return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
 }

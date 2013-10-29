@@ -91,7 +91,8 @@ namespace llvm {
         
         /// getFunctionAlignment - Return the Log2 alignment of this function.
         virtual unsigned getFunctionAlignment(const Function *F) const;
-        
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
         virtual SDValue
         LowerFormalArguments(SDValue Chain,
                              CallingConv::ID CallConv,
@@ -99,35 +100,38 @@ namespace llvm {
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) const;
-        
+#else
+        virtual SDValue
+        LowerFormalArguments(SDValue Chain,
+                             CallingConv::ID CallConv,
+                             bool isVarArg,
+                             const SmallVectorImpl<ISD::InputArg> &Ins,
+                             SDLoc dl, SelectionDAG &DAG,
+                             SmallVectorImpl<SDValue> &InVals) const;
+#endif        
+
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
 
 
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
-        virtual SDValue
-        LowerCall(SDValue Chain, SDValue Callee,
-                  CallingConv::ID CallConv, bool isVarArg,
-#ifndef LLVM_3_0
-                             bool /*doesNotRet*/,
-#endif
-                  bool& isTailCall,
-                  const SmallVectorImpl<ISD::OutputArg> &Outs,
-                  const SmallVectorImpl<SDValue> &OutVals,
-                  const SmallVectorImpl<ISD::InputArg> &Ins,
-                  DebugLoc dl, SelectionDAG &DAG,
-                  SmallVectorImpl<SDValue> &InVals) const;
-#else // LLVM 3.2+
         virtual SDValue
         LowerCall(TargetLowering::CallLoweringInfo &CLI,
                   SmallVectorImpl<SDValue> &InVals) const;
-#endif
         
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
         virtual SDValue
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
                     DebugLoc dl, SelectionDAG &DAG) const;
+#else
+        virtual SDValue
+        LowerReturn(SDValue Chain,
+                    CallingConv::ID CallConv, bool isVarArg,
+                    const SmallVectorImpl<ISD::OutputArg> &Outs,
+                    const SmallVectorImpl<SDValue> &OutVals,
+                    SDLoc dl, SelectionDAG &DAG) const;
+#endif
 
 	virtual bool allowsUnalignedMemoryAccesses(EVT VT) const;
 

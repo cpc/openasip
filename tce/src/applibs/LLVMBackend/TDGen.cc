@@ -201,8 +201,8 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << "    let Namespace = \"TCE\";" << std::endl
       << "}" << std::endl;
 
-    
   // Subregister indices.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     o << "def lane0 : SubRegIndex;" << std::endl 
       << "def lane1 : SubRegIndex;" << std::endl
       << "def lane2 : SubRegIndex;" << std::endl
@@ -218,7 +218,24 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << "def subvector2_6 : SubRegIndex;" << std::endl
       << "def subvector4_0 : SubRegIndex;" << std::endl
       << "def subvector4_4 : SubRegIndex;" << std::endl << std::endl;
-    
+#else    
+    o << "def lane0 : SubRegIndex<32>;" << std::endl 
+      << "def lane1 : SubRegIndex<32>;" << std::endl
+      << "def lane2 : SubRegIndex<32>;" << std::endl
+      << "def lane3 : SubRegIndex<32>;" << std::endl
+      << "def lane4 : SubRegIndex<32>;" << std::endl
+      << "def lane5 : SubRegIndex<32>;" << std::endl
+      << "def lane6 : SubRegIndex<32>;" << std::endl
+      << "def lane7 : SubRegIndex<32>;" << std::endl << std::endl
+        
+      << "def subvector2_0 : SubRegIndex<64>;" << std::endl
+      << "def subvector2_2 : SubRegIndex<64>;" << std::endl
+      << "def subvector2_4 : SubRegIndex<64>;" << std::endl
+      << "def subvector2_6 : SubRegIndex<64>;" << std::endl
+      << "def subvector4_0 : SubRegIndex<128>;" << std::endl
+      << "def subvector4_4 : SubRegIndex<128>;" << std::endl << std::endl;
+#endif
+
     writeRegisterClasses(o);
    
     writeRARegisterInfo(o);

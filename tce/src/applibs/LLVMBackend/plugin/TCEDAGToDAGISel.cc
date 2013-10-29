@@ -105,9 +105,11 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
  */
 SDNode*
 TCEDAGToDAGISel::Select(SDNode* n) {
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     DebugLoc dl = n->getDebugLoc();
-
+#else
+    SDLoc dl(n);
+#endif
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
         // Already selected.

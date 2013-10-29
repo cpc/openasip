@@ -287,7 +287,7 @@ LLVMTCEBuilder::initDataSections() {
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
 
-#if 1 //(defined(LLVM_3_2) || defined(LLVM_3_3))
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
 #else
     mang_ = new Mangler(*ctx, tm_); 

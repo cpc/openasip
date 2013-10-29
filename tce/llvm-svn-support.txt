@@ -1,4 +1,3 @@
-tce-devel r1957:
-llvm-trunk r182637 seems to work?
-llvm-trunk r182638 breaks due some stringref thingy?
-
+tce-devel r1958:
+llvm-trunk r184018 seems to work?
+llvm-trunk r184019 removes ranlib
