@@ -57,8 +57,10 @@ namespace TTAProgram {
  */
 class SimpleSimulatorFrontend {
 public:
-    SimpleSimulatorFrontend(TCEString machineFile);
-    SimpleSimulatorFrontend(TCEString machineFile, TCEString programFile);
+    SimpleSimulatorFrontend(TCEString machineFile, bool useCompiledSimulation=false);
+    SimpleSimulatorFrontend(
+        TCEString machineFile, TCEString programFile, 
+        bool useCompiledSimulation=false);
     SimpleSimulatorFrontend(
         const TTAMachine::Machine& machine, 
         const TTAProgram::Program& program);

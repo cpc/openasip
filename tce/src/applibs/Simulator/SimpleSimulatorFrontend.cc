@@ -36,8 +36,8 @@
 #include "SimulationEventHandler.hh"
 
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
-    TCEString machineFile) {
-    simFront_ = new SimulatorFrontend();
+    TCEString machineFile, bool useCompiledSimulation) {
+    simFront_ = new SimulatorFrontend(useCompiledSimulation);
     simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);
@@ -52,8 +52,9 @@ SimpleSimulatorFrontend::SimpleSimulatorFrontend(
 }
 
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
-    TCEString machineFile, TCEString programFile) {
-    simFront_ = new SimulatorFrontend();
+    TCEString machineFile, TCEString programFile, 
+    bool useCompiledSimulation) {
+    simFront_ = new SimulatorFrontend(useCompiledSimulation);
     simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);

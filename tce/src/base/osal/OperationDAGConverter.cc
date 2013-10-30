@@ -474,6 +474,8 @@ OperationDAGConverter::castedVar(
         return "static_cast<UIntWord>(" + var + ".value_.uIntWord)";
     case Operand::FLOAT_WORD:
         return "static_cast<FloatWord>(" + var + ".value_.floatWord)";
+    case Operand::HALF_FLOAT_WORD:
+        return "static_cast<HalfFloatWord>(" + var + ".value_.halfFloatWordBits)";
     case Operand::DOUBLE_WORD:
         return "static_cast<DoubleWord>(" + var + ".value_.doubleWord)";
     default:

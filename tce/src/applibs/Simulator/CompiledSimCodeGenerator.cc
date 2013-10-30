@@ -1443,8 +1443,8 @@ CompiledSimCodeGenerator::generateTriggerCode(
     
     if (op.name() == "stw" || op.name() == "sth" || op.name() == "stq") {
         return generateStoreTrigger(op);
-    } else if (op.name() == "ldw" || op.name() == "ldh" || op.name() == "ldq"
-        || op.name() == "ldhu" || op.name() == "ldqu") {
+    } else if (op.name() == "ldw" || op.name() == "ldh" || op.name() == "ldq" || 
+               op.name() == "ldhu" || op.name() == "ldqu") {
         return generateLoadTrigger(op);
     }
     OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
@@ -1452,14 +1452,14 @@ CompiledSimCodeGenerator::generateTriggerCode(
     std::string simCode = 
         OperationDAGConverter::createSimulationCode(*dag, &operands);
 
-    for (int i = 1, tmp=1; op.port(i) != NULL; ++i) {
+    for (int i = 1, tmp = 1; op.port(i) != NULL; ++i) {
         if (op.port(i)->isOutput()) {
 
             std::string outValueStr;
             // add output values as delayed assignments
             std::string outputStr = std::string("outputvalue") + Conversion::toString(i);
             size_t ovLen = outputStr.length() + 3;
-            while (simCode.find(outputStr+" = ") != string::npos) {
+            while (simCode.find(outputStr + " = ") != string::npos) {
                 std::size_t begin = simCode.find(outputStr+" = ");
                 std::size_t end = simCode.find(";", begin);
                 outValueStr = simCode.substr(begin+ovLen,(end-begin-ovLen));
