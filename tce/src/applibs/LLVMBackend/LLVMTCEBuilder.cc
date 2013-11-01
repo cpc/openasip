@@ -101,11 +101,7 @@
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
-#include <llvm/Analysis/DebugInfo.h>
-#else
 #include <llvm/DebugInfo.h>
-#endif
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 
@@ -120,11 +116,7 @@
 #include "tce_config.h"
 
 
-#ifdef LLVM_3_1
-
-#include "llvm/Target/TargetData.h"
-
-#elif defined(LLVM_3_2)
+#if defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
 typedef llvm::DataLayout TargetData;
@@ -283,13 +275,15 @@ LLVMTCEBuilder::initDataSections() {
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     MCContext* ctx = 
 	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
 #else
+    MCContext* ctx = 
+	new MCContext(tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
+
     mang_ = new Mangler(*ctx, tm_); 
 #endif
 

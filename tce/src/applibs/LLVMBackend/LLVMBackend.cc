@@ -454,7 +454,9 @@ LLVMBackend::compile(
   Options.LessPreciseFPMADOption = true; //EnableFPMAD;
   Options.PrintMachineCode = false; //PrintCode;
   Options.NoFramePointerElim = false; // DisableFPElim;
+#if (defined (LLVM_3_2) || defined(LLVM_3_3))
   Options.NoFramePointerElimNonLeaf = false; //DisableFPElimNonLeaf;
+#endif
   // TODO: just commented this out..
 //  Options.NoExcessFPPrecision = true; //DisableExcessPrecision;
   Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
@@ -471,7 +473,9 @@ LLVMBackend::compile(
 //  Options.JITEmitDebugInfoToDisk = EmitJitDebugInfoToDisk;
   Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
   Options.StackAlignmentOverride = false; //OverrideStackAlignment;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
   Options.RealignStack = false; //EnableRealignStack;
+#endif
 //TODO: new llvm removed/renamed this
 //  Options.DisableJumpTables = false; //DisableSwitchTables;
 //  Options.TrapFuncName = TrapFuncName;

@@ -81,12 +81,17 @@ namespace llvm {
        virtual const char* getTargetNodeName(unsigned opcode) const;
         
         ConstraintType getConstraintType(const std::string &Constraint) const;
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
         std::pair<unsigned, const TargetRegisterClass*>
         getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
+#else
+        std::pair<unsigned, const TargetRegisterClass*>
+        getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const;
+#endif
         std::vector<unsigned>
         getRegClassForInlineAsmConstraint(const std::string &Constraint,
                                           EVT VT) const;
-        
         virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
         
         /// getFunctionAlignment - Return the Log2 alignment of this function.

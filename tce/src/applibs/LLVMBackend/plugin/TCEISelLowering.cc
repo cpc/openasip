@@ -906,9 +906,16 @@ TCETargetLowering::getConstraintType(const std::string &Constraint) const {
   return TargetLowering::getConstraintType(Constraint);
 }
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
 std::pair<unsigned, const TargetRegisterClass*>
 TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
-                                                  EVT VT) const {
+                                                  EVT VT) const 
+#else
+std::pair<unsigned, const TargetRegisterClass*>
+TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
+                                                  MVT VT) const 
+#endif
+{
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
     case 'r':
