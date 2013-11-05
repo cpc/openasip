@@ -16,7 +16,7 @@ inline void test( int a ) {
   }
 }
 
-inline float abs( float a ) { // TODO hardware instruction
+inline float fabsf( float a ) { // TODO hardware instruction
   //if( a < 0 ) {
   //  return -a;
   //}
@@ -112,7 +112,7 @@ main(void) {
     
     
     // *
-    // * ABSF, NEGF tests
+    // * FABSFF, NEGF tests
     // *
     _TCE_STDOUT('\n'); 
     _TCE_STDOUT('3'); 
@@ -121,10 +121,10 @@ main(void) {
     a=-2.f;
     b=2.f;
     
-    //ABS
-    test( abs( a ) == 2.f );
+    //FABSF
+    test( fabsf( a ) == 2.f );
     
-    test( abs( -a ) == 2.f );
+    test( fabsf( -a ) == 2.f );
     
     //NEG
     b = -a;

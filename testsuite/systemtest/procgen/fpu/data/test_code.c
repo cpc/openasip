@@ -16,7 +16,7 @@ inline void test( int a ) {
   }
 }
 
-inline float abs( float a ) { // TODO hardware instruction
+inline float fabsf( float a ) { // TODO hardware instruction
   //if( a < 0 ) {
   //  return -a;
   //}
@@ -145,16 +145,16 @@ main(void) {
     
     b=32084023.f;
     _TCE_SQRTF( b, c );
-    test( abs( c - 5664.2760349403879f ) < 0.001 );
+    test( fabsf( c - 5664.2760349403879f ) < 0.001 );
     
     // Simple SQRT
     b=90000.f;
     _TCE_SQRTF( b, c );
-    test( abs( c - 300.f ) < 0.00001 ); 
+    test( fabsf( c - 300.f ) < 0.00001 ); 
     
     b=9.f;
     _TCE_SQRTF( b, c );
-    test( abs( c - 3.f ) < 0.00001 ); 
+    test( fabsf( c - 3.f ) < 0.00001 ); 
     
     b=-1.f;
     _TCE_SQRTF( b, uni.df );
@@ -163,7 +163,7 @@ main(void) {
     
     
     // *
-    // * ABSF, NEGF tests
+    // * FABSFF, NEGF tests
     // *
     _TCE_STDOUT('\n'); 
     _TCE_STDOUT('4'); 
@@ -172,10 +172,10 @@ main(void) {
     a=-2.f;
     b=2.f;
     
-    //ABS
-    test( abs( a ) == 2.f );
+    //FABSF
+    test( fabsf( a ) == 2.f );
     
-    test( abs( -a ) == 2.f );
+    test( fabsf( -a ) == 2.f );
     
     //NEG
     b = -a;
