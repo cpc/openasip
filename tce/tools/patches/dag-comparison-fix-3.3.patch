@@ -1,0 +1,17 @@
+Index: utils/TableGen/DAGISelEmitter.cpp
+===================================================================
+--- utils/TableGen/DAGISelEmitter.cpp	(revision 190917)
++++ utils/TableGen/DAGISelEmitter.cpp	(working copy)
+@@ -81,6 +81,12 @@
+     const TreePatternNode *LHSSrc = LHS->getSrcPattern();
+     const TreePatternNode *RHSSrc = RHS->getSrcPattern();
+ 
++    // Without this transitivity is broken, could cause circular results,
++    // resulting in std::sort breaking; When some are compared with some 
++    // later comparison, some with data type comparison.
++    if ((LHSSrc->getNumTypes() != 0) != (RHSSrc->getNumTypes() != 0))
++      return RHSSrc->getNumTypes() != 0;
++
+     if (LHSSrc->getNumTypes() != 0 && RHSSrc->getNumTypes() != 0 &&
+         LHSSrc->getType(0) != RHSSrc->getType(0)) {
+       MVT::SimpleValueType V1 = LHSSrc->getType(0), V2 = RHSSrc->getType(0);
