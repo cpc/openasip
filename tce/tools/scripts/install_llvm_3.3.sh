@@ -2,6 +2,8 @@
 
 TARGET_DIR=$1
 
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 temp_dir=llvm-build-temp
 mkdir -p $temp_dir
 cd $temp_dir
@@ -15,7 +17,10 @@ if ! test -d llvm-3.3svn;
 then
   svn -q co http://llvm.org/svn/llvm-project/llvm/branches/release_33 llvm-3.3svn \
   || eexit "SVN co from LLVM failed"
-  cd llvm-3.3svn/tools
+  cd llvm-3.3svn
+  patch -p0 < $script_dir/../patches/dag-comparison-fix-3.3.patch \
+  || eexit "Patching failed"
+  cd tools
   svn -q co http://llvm.org/svn/llvm-project/cfe/branches/release_33 clang \
   || eexit "SVN co from LLVM failed" 
   cd ../..
