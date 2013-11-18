@@ -425,6 +425,8 @@ ARCHITECTURE rtl OF fpmac32_block_v2 IS
   )
   is
 
+    variable rfract_var                : UNSIGNED ((2*(frac_w))+1 downto 0);
+    variable rexpon_var                : SIGNED (exp_w+1 downto 0);
     variable fractc, fracts            : UNSIGNED (frac_w+1+guard downto 0);
     variable fractstmp                 : UNSIGNED (frac_w+1+guard downto 0);
     variable fractlt                   : BOOLEAN;     -- 
@@ -436,24 +438,34 @@ ARCHITECTURE rtl OF fpmac32_block_v2 IS
     variable rexpon2                   : SIGNED (exp_w+1 downto 0);  -- result exponent
     variable shiftx_var                : SIGNED (rexpon'range);  -- shift fractions
   begin
+    
+    rfract_var := rfract;
+    rexpon_var := rexpon;
     shiftx_var := shiftx;
+    
+    if rfract_var( rfract_var'high ) = '1' then
+      rfract_var := '0' & rfract_var( rfract_var'high downto 1 );
+      rexpon_var := rexpon_var + 1;
+      shiftx_var := shiftx_var + 1;
+    end if;
+  
     overflow := shiftx_var < -frac_w or shiftx_var > fractx'high;
     exponeq  := shiftx_var = 0;
     exponlt  := shiftx_var < 0;
-    fractlt  := rfract (rfract'high downto rfract'high - fractc'length+1) < fractx;
+    fractlt  := rfract_var (rfract'high downto rfract'high - fractc'length+1) < fractx;
     leftright := not( exponlt or (exponeq and fractlt) );
 
     -- Should add sticky bit here in case of more IEEE-compliant fpu
     sticky    := '0';
     
     if leftright then
-      rexpon2   := rexpon;
-      fractc    := rfract (rfract'high downto rfract'high - fractc'length+1);
+      rexpon2   := rexpon_var;
+      fractc    := rfract_var (rfract'high downto rfract'high - fractc'length+1);
       fractstmp := "0" & fractx;
     else
       rexpon2   := resize (exponc, rexpon2'length);
       fractc    := "0" & fractx;
-      fractstmp := rfract (rfract'high downto rfract'high - fractc'length+1);
+      fractstmp := rfract_var (rfract'high downto rfract'high - fractc'length+1);
     end if;
     
     if exponlt then
