@@ -94,6 +94,7 @@ public:
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    void setMaxCycle(unsigned int cycle);
     void clearOldResources();
     void clear();
     void setDDG(const DataDependenceGraph* ddg);
@@ -137,7 +138,7 @@ private:
     std::map<int,int> moveCounts_;
     int busCount_;
 
-    unsigned int instructionIndex(unsigned int cycle) const;
+    unsigned int instructionIndex(unsigned int maxCycle) const ;
 };
 
 #endif

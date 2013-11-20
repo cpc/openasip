@@ -69,6 +69,15 @@ ExecutionPipelineBroker::ExecutionPipelineBroker(std::string name,
     }
 }
 
+void
+ExecutionPipelineBroker::setMaxCycle(unsigned int maxCycle) {
+    // change ii for broker's resources also
+    for (FUPipelineMap::iterator i = fuPipelineMap_.begin();
+            i != fuPipelineMap_.end(); ++i) {
+        i->first->setMaxCycle(maxCycle);
+    }
+}
+
 /**
  * Destructor.
  */

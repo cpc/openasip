@@ -572,3 +572,8 @@ SimpleResourceManager::setDDG(const DataDependenceGraph* ddg) {
 std::map<const TTAMachine::Machine*, 
          std::map<int, std::list< SimpleResourceManager*> > >
 SimpleResourceManager::rmPool_;
+
+void SimpleResourceManager::setMaxCycle(unsigned int maxCycle) {
+    director_->setMaxCycle(maxCycle);
+}
+

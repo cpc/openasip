@@ -179,6 +179,11 @@ BypassingBUBasicBlockScheduler::handleDDG(
     endCycle_ = (int)(ddg.nodeCount()*1.3 + 150);
     BUMoveNodeSelector selector(ddg, targetMachine);
 
+    // scheduling pipeline resources after last cycle may cause problems.
+    // make RM to check for those
+    rm.setMaxCycle(endCycle_);
+
+
     // register selector to renamer for notfications.
     if (renamer_ != NULL) {
         renamer_->setSelector(&selector);

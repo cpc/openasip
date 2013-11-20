@@ -69,8 +69,8 @@ public:
     virtual bool isExecutionPipelineBroker() const;
     virtual void setInitiationInterval(unsigned int cycles);
     virtual int longestLatency() const { return longestLatency_; }
+    virtual void setMaxCycle(unsigned int maxCycle);
     void setDDG(const DataDependenceGraph* ddg);
-
 private:
     bool isMoveTrigger(const MoveNode& node) const;
 

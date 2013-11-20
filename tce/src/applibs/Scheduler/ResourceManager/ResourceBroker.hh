@@ -103,6 +103,7 @@ public:
     void resources(ResourceSet& contents);
     virtual void setInitiationInterval(unsigned int cycles);
     virtual void clear();
+    virtual void setMaxCycle(unsigned int maxCycle) {};
 protected:
     typedef std::map<
     const TTAMachine::MachinePart*, SchedulingResource*,

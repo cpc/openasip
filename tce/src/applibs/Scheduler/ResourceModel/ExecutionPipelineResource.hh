@@ -107,6 +107,7 @@ public:
 
     void clear();
     void setDDG(const DataDependenceGraph* ddg);
+    virtual void setMaxCycle(unsigned int maxCycle) { maxCycle_ = maxCycle;  }
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();
@@ -277,6 +278,7 @@ private:
     std::multimap<int, MoveNode*> assignedDestinationNodes_;
 
     mutable int cachedSize_;
+    int maxCycle_;
 
     const DataDependenceGraph* ddg_;
     const TTAMachine::FunctionUnit& fu_;

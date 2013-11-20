@@ -314,6 +314,7 @@ void
 CopyingDelaySlotFiller::addResourceManager(
     BasicBlock& bb, SimpleResourceManager& rm) {
     resourceManagers_[&bb] = &rm;
+    rm.setMaxCycle(INT_MAX);
 }
 
 /**

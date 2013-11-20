@@ -83,7 +83,7 @@ ExecutionPipelineResource::ExecutionPipelineResource(
     const unsigned int ii) :
     SchedulingResource("ep_" + fu.name(), ii), 
     resources(&ExecutionPipelineResourceTable::resourceTable(fu)),
-    cachedSize_(INT_MIN), ddg_(NULL), fu_(fu) {
+    cachedSize_(INT_MIN), maxCycle_(INT_MAX), ddg_(NULL), fu_(fu) {
 }
 
 /**
@@ -1140,6 +1140,23 @@ bool ExecutionPipelineResource::resourcesAllowTrigger(
         assigned[i].resize(resources->numberOfResources(), false);
     }
     
+    if (maxCycle_ != INT_MAX) {
+        for (unsigned int i = 0; i < resources->maximalLatency() 
+                 && canAssign; i++) {
+            
+            for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
+                // is this resource needed by this operation?
+                if (resources->operationPipeline(pIndex,i,j)) {
+                // is the resource free?
+                    if (((unsigned int)(cycle + i)) > maxCycle_) {
+                        canAssign = false;
+                        break;
+                    }
+                }
+            }
+        }    
+    }
+
     for (unsigned int i = 0; i < resources->maximalLatency() 
              && canAssign; i++) {
         unsigned int modci = instructionIndex(cycle+i); 
@@ -1155,14 +1172,15 @@ bool ExecutionPipelineResource::resourcesAllowTrigger(
                 continue;
             }
         }
+      
+        ResourceReservationVector& rrv =
+            fuExecutionPipeline_[modci];
+        
+        if (rrv.size() == 0) {
+            continue;
+        }
         
         for (unsigned int j = 0 ; j < resources->numberOfResources(); j++) {
-            ResourceReservationVector& rrv =
-                fuExecutionPipeline_[modci];
-            
-            if (rrv.size() == 0) {
-                continue;
-            }
             
             ResourceReservation& rr = rrv[j];
             

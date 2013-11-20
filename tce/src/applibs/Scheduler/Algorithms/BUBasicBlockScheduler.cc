@@ -152,6 +152,11 @@ BUBasicBlockScheduler::handleDDG(
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
     // instructions into the beginning of basic block.    
     endCycle_ = INT_MAX/1000;
+
+    // scheduling pipeline resources after last cycle may cause problems.
+    // make RM to check for those
+    rm.setMaxCycle(endCycle_);
+
     BUMoveNodeSelector selector(ddg, targetMachine);
     
     // register selector to renamer for notfications.

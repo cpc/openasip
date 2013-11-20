@@ -874,3 +874,8 @@ void
 SimpleBrokerDirector::setDDG(const DataDependenceGraph* ddg) {
     executionPipelineBroker().setDDG(ddg);
 }
+
+void
+SimpleBrokerDirector::setMaxCycle(unsigned int maxCycle) {
+    executionPipelineBroker().setMaxCycle(maxCycle);
+}
