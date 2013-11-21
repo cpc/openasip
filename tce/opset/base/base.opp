@@ -1383,8 +1383,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </trigger-semantics>
     <trigger-semantics>
       SimValue t1,t2;
-      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
-      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATION(gth, IO(1), IO(2), t1);
+      EXEC_OPERATION(gth, IO(2), IO(1), t2);
       EXEC_OPERATION(ior, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
