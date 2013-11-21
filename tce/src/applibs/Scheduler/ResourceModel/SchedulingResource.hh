@@ -123,7 +123,7 @@ public:
 
     virtual bool operator < (const SchedulingResource& other) const;
     virtual void clear();
-    virtual void setMaxCycle(unsigned int maxCycle) {};
+    virtual void setMaxCycle(unsigned int) {};
 protected:
     // Tests if all referenced resources in dependent groups are of correct
     // type
