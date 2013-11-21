@@ -1148,7 +1148,8 @@ bool ExecutionPipelineResource::resourcesAllowTrigger(
                 // is this resource needed by this operation?
                 if (resources->operationPipeline(pIndex,i,j)) {
                 // is the resource free?
-                    if (((unsigned int)(cycle + i)) > maxCycle_) {
+                    if (((unsigned int)(cycle + i)) > 
+                        (unsigned int)(maxCycle_)) {
                         canAssign = false;
                         break;
                     }
