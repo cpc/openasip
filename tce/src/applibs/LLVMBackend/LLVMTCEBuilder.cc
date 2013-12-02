@@ -1002,19 +1002,24 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
  * Fixes dummy code references to point the actual instructions.
  */
 bool
-LLVMTCEBuilder::doFinalization(Module& /* m */) {
-    
-    // errs() << "Finalize LLVMPOM builder\n";
+LLVMTCEBuilder::doFinalization(Module& m) {
 
     // get machine dce analysis
     MachineDCE& MDCE = getAnalysis<MachineDCE>();
+    // For some reason this is not otherwise ran _before_ this pass,
+    // even though this pass depends on it.
+    MDCE.doFinalization(m);
 
     for (MachineDCE::UnusedFunctionsList::iterator i = 
              MDCE.removeableFunctions.begin();
          i != MDCE.removeableFunctions.end(); i++) {        
         std::string name = *i;
-        // errs() << "Deleting unused function from pom: " 
-        //        << name << "\n";
+#if 0
+        Application::logStream() 
+            <<  "Deleting unused function from pom: " 
+            << name << std::endl;
+#endif
+
         TTAProgram::Procedure& notUsedProc = prog_->procedure(name);
         prog_->removeProcedure(notUsedProc);
     }
