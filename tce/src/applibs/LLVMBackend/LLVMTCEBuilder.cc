@@ -277,14 +277,14 @@ LLVMTCEBuilder::initDataSections() {
     // mangler initialized... --Pekka
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
     MCContext* ctx = 
-	new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
+        new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
 #else
     MCContext* ctx = 
-	new MCContext(tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
+        new MCContext(tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
 
-    mang_ = new Mangler(*ctx, tm_); 
+    mang_ = new Mangler(tm_); 
 #endif
 
 #if 0

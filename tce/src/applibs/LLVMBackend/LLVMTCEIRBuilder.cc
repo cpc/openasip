@@ -132,12 +132,12 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     } else {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
         MCContext* ctx = new MCContext(
-	    *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
+            *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getDataLayout()); 
 #else
         MCContext* ctx = new MCContext(
-	    tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
-        mang_ = new llvm::Mangler(*ctx, tm_); 
+            tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
+        mang_ = new llvm::Mangler(tm_); 
 #endif
     }
 
