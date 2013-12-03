@@ -33,6 +33,9 @@
  * @note rating: red
  */
 
+#include <llvm/CodeGen/MachineInstr.h>
+#include <llvm/CodeGen/MachineMemOperand.h>
+
 #include "AssocTools.hh"
 #include "ContainerTools.hh"
 #include "TCEString.hh"
@@ -1640,10 +1643,41 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
     if (!prev.pseudo() && !mnd.pseudo()) {
         ProgramOperation& currPop = mnd.mn()->destinationOperation();
         ProgramOperation& prevPop = prev.mn()->destinationOperation();
-//        MoveNode* currentAddress = addressMove(*mnd.mn());
-//        MoveNode* prevAddress = addressMove(*prev.mn());
 
-        aliasResult = analyzeMemoryAlias(prevPop, currPop);
+        const llvm::MachineInstr* instr1 = currPop.machineInstr();
+        const llvm::MachineInstr* instr2 = prevPop.machineInstr();
+
+        // The LLVM MachineInstructions are not connected to
+        // all memory operands, at least not to those in inline
+        // assembly blocks (from custom operation calls).
+        if (instr1 != NULL && instr2 != NULL) {            
+            llvm::MachineInstr::mmo_iterator begin1 =
+                instr1->memoperands_begin();
+            // Machine instruction could in theory have several memory operands.
+            // In practice it is usually just one.
+            while (begin1 != instr1->memoperands_end()) {
+                llvm::MachineInstr::mmo_iterator begin2 =
+                    instr2->memoperands_begin();
+
+                while (begin2 != instr2->memoperands_end()) {
+                    // Force program ordering between volatile mem accesses.
+                    if ((*begin1)->isVolatile() && (*begin2)->isVolatile()) {
+#if 0
+                        Application::logStream() << "MemDep >> volatile \n";
+                        PRINT_VAR(currPop.toString());
+                        PRINT_VAR(prevPop.toString());
+                        (*begin1)->getValue()->dump();
+                        (*begin2)->getValue()->dump();
+#endif
+                        aliasResult = MemoryAliasAnalyzer::ALIAS_TRUE;
+                    }
+                    begin2++;
+                }
+                begin1++;
+            }
+        }
+        if (aliasResult == MemoryAliasAnalyzer::ALIAS_UNKNOWN)
+            aliasResult = analyzeMemoryAlias(prevPop, currPop);
     }
 
     if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
