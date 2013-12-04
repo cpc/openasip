@@ -52,9 +52,16 @@ using namespace TTAProgram;
 
 
 /**
- * Default constructor
+ * Default constructor.
+ *
+ * @param globalSymbolSuffix Can be used to produce unique
+ * symbol names for the global BB simulation functions. 
+ * This has to be used in case using multiple simulation 
+ * engines in the same process.
  */
-CompiledSimSymbolGenerator::CompiledSimSymbolGenerator() {
+CompiledSimSymbolGenerator::CompiledSimSymbolGenerator(
+    const TCEString& globalSymbolSuffix) : 
+    globalSymbolSuffix_(globalSymbolSuffix) {
 }
 
 /**
@@ -312,7 +319,7 @@ CompiledSimSymbolGenerator::guardBoolSymbol() const {
 std::string 
 CompiledSimSymbolGenerator::basicBlockSymbol(InstructionAddress startAddress) 
     const {
-    return "simulate_" + Conversion::toString(startAddress);
+    return "simulate_" + globalSymbolSuffix_ + "_" + Conversion::toString(startAddress);
 }
 
 /**

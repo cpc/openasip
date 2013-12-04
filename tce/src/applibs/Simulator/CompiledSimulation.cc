@@ -254,7 +254,7 @@ ClockCycleCount CompiledSimulation::cycleCount() const {
 SimValue 
 CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {
       
-    CompiledSimSymbolGenerator symbolGen;
+    CompiledSimSymbolGenerator symbolGen(Conversion::toString(pimpl_->controller_));
     RegisterFile& rf = *machine_.registerFileNavigator().item(rfName);
     std::string registerFile = symbolGen.registerSymbol(rf, registerIndex);
     
@@ -279,7 +279,7 @@ CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {
 SimValue 
 CompiledSimulation::immediateUnitRegisterValue(const char* iuName, int index) {  
     
-    CompiledSimSymbolGenerator symbolGen;
+    CompiledSimSymbolGenerator symbolGen(Conversion::toString(pimpl_->controller_));
     ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(iuName);
     std::string immediateUnit = symbolGen.immediateRegisterSymbol(
         iu, index);
@@ -305,7 +305,7 @@ CompiledSimulation::immediateUnitRegisterValue(const char* iuName, int index) {
 SimValue 
 CompiledSimulation::FUPortValue(const char* fuName, const char* portName) {
     
-    CompiledSimSymbolGenerator symbolGen;
+    CompiledSimSymbolGenerator symbolGen(Conversion::toString(pimpl_->controller_));
     FunctionUnit* fu = NULL;
     try {
         fu = &functionUnit(fuName);
@@ -540,7 +540,7 @@ CompiledSimulation::compileAndLoadFunction(InstructionAddress address) {
     // Files compiled so far
     std::set<std::string> compiledFiles;
     
-    CompiledSimSymbolGenerator symbolGen;
+    CompiledSimSymbolGenerator symbolGen(Conversion::toString(pimpl_->controller_));
     
     // Get basic blocks of a procedure
     typedef ProcedureBBRelations::BasicBlockStarts::iterator BBIterator;

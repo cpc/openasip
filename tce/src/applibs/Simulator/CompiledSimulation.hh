@@ -59,7 +59,7 @@ struct ProcedureBBRelations;
 
 
 /// Type for the simulateXXXXX basic block functions
-typedef void (*SimulateFunction)(CompiledSimulationEngine& engine);
+typedef void (*SimulateFunction)(void* engine);
 
 // Used to set export symbols visible
 #define EXPORT __attribute__((visibility("default")))

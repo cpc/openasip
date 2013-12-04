@@ -34,8 +34,7 @@
 #define COMPILED_SIM_SYMBOL_GENERATOR_HH
 
 #include "BaseType.hh"
-
-#include <string>
+#include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -67,7 +66,7 @@ namespace TTAProgram {
 class CompiledSimSymbolGenerator {
 public:
     
-    CompiledSimSymbolGenerator();
+    CompiledSimSymbolGenerator(const TCEString& globalSymbolSuffix);
     virtual ~CompiledSimSymbolGenerator();
     
     void enablePrefix(const std::string& prefix);
@@ -128,7 +127,10 @@ private:
     CompiledSimSymbolGenerator& operator=(const CompiledSimSymbolGenerator&);
     
     /// Prefix used for generated variable symbols
-    std::string prefix_;
+    TCEString prefix_;
+
+    /// Suffix used for the generated global function symbols.
+    TCEString globalSymbolSuffix_;
 };
 
 #endif

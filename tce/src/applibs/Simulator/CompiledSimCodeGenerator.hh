@@ -110,7 +110,8 @@ public:
         bool handleCycleEnd,
         bool dynamicCompilation,
         bool basicBlockPerFile = false,
-        bool functionPerFile = true);
+        bool functionPerFile = true,
+        const TCEString& globalSymbolPrefix = "");
 
     virtual ~CompiledSimCodeGenerator();
     
@@ -294,7 +295,8 @@ private:
     GuardPipeline guardPipeline_;
 
     bool needGuardPipeline_;
-    
+
+    TCEString globalSymbolSuffix_;
 };
 
 #endif // include once

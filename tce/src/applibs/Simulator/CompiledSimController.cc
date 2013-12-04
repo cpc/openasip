@@ -248,12 +248,14 @@ CompiledSimController::reset() {
     }
     
     // Generate all simulation code at once
-    CompiledSimCodeGenerator generator(sourceMachine_, program_, *this,
+    CompiledSimCodeGenerator generator(
+        sourceMachine_, program_, *this,
         frontend_.fuResourceConflictDetection(),
         frontend_.executionTracing() || frontend_.procedureTransferTracing(),
         !frontend_.staticCompilation(), 
-        false, 
-        !frontend_.staticCompilation());
+        false, !frontend_.staticCompilation(),
+        Conversion::toString(this));
+
     CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
     
     basicBlocks_ = generator.basicBlocks();
@@ -291,7 +293,8 @@ CompiledSimController::reset() {
 
     // register simulation getter function symbol
     pluginTools_.registerModule("CompiledSimulationEngine.so");
-    pluginTools_.importSymbol("getSimulation", simulationGetter);
+    pluginTools_.importSymbol(
+         "getSimulation_" + Conversion::toString(this), simulationGetter);
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
             program_.lastInstruction().address().location(), 

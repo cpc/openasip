@@ -105,7 +105,8 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     bool handleCycleEnd,
     bool dynamicCompilation,
     bool basicBlockPerFile,
-    bool functionPerFile) :
+    bool functionPerFile,
+    const TCEString& globalSymbolSuffix) :
     machine_(machine), program_(program), simController_(controller),
     gcu_(*machine.controlUnit()),
     handleCycleEnd_(handleCycleEnd),
@@ -116,11 +117,11 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     moveCounter_(0),                      
     isProcedureBegin_(true), currentProcedure_(0),
     lastInstructionOfBB_(0),
-    className_("CompiledSimulationEngine"),
-    os_(NULL), symbolGen_(),
+    className_(TCEString("CompiledSimulationEngine_") + globalSymbolSuffix),
+    os_(NULL), symbolGen_(globalSymbolSuffix),
     conflictDetectionGenerator_(
         machine_, symbolGen_, fuResourceConflictDetection),
-    needGuardPipeline_(false) {
+    needGuardPipeline_(false), globalSymbolSuffix_(globalSymbolSuffix) {
 
     // this should result in roughly 100K-400K .cpp files
     maxInstructionsPerFile_ = 2000 / machine.busNavigator().count();
@@ -169,8 +170,8 @@ CompiledSimCodeGenerator::~CompiledSimCodeGenerator() {
 void
 CompiledSimCodeGenerator::generateToDirectory(const string& directory) {
     targetDirectory_ = directory;
-    headerFile_ = className_ + ".hh";
-    mainFile_ = className_ + ".cc";
+    headerFile_ = "CompiledSimulationEngine.hh";
+    mainFile_ = "CompiledSimulationEngine.cc";
 
     generateMakefile();
     generateSimulationCode();
@@ -416,7 +417,8 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     *os_ << "EXPORT virtual ~" << className_ << "() { }" << endl << endl;
     *os_ << "EXPORT virtual void simulateCycle();" << endl << endl << "}; // end class" << endl;
 
-    *os_ << "extern \"C\" EXPORT void updateFUOutputs(CompiledSimulationEngine&);" << endl;
+    *os_ << "extern \"C\" EXPORT void updateFUOutputs_" 
+         << globalSymbolSuffix_ << "(" << className_ << "&);" << endl;
 
     *os_ << endl << endl << "#endif // include once" << endl << endl;
 
@@ -464,7 +466,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
             it != bbStarts_.end(); ++it) {
             *os_ << "\t" << "extern \"C\" EXPORT void "
                  << symbolGen_.basicBlockSymbol(it->first) 
-                 << "(CompiledSimulationEngine&);" << endl;
+                 << "(void*);" << endl;
     }
     
     *os_ << "EXPORT " << className_ << "::";
@@ -517,7 +519,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     // Create a jump dispatcher for accessing each basic block start
     *os_ << "\t// jump dispatcher" << endl
          << "\tjumpTargetFunc_ = getSimulateFunction(jumpTarget_);" << endl
-         << "\t(jumpTargetFunc_)(*this);" << endl << endl;
+         << "\t(jumpTargetFunc_)(this);" << endl << endl;
     
     *os_ << conflictDetectionGenerator_.notifyOfConflicts()
          << "}" << endl << endl;
@@ -659,7 +661,9 @@ void
 CompiledSimCodeGenerator::generateFUOutputUpdater() {
     // use C-style functions only! (C++ name mangling complicates stuff)
     *os_ << "/* Updates all FU outputs to correct the visible machine state */" << endl
-         << "extern \"C\" EXPORT void updateFUOutputs(CompiledSimulationEngine& engine) {" << endl;
+         << "extern \"C\" EXPORT void updateFUOutputs_" 
+         << globalSymbolSuffix_ << "("
+         << className_ << "& engine) {" << endl;
 
     const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();    
     for (int i = 0; i < fus.count(); ++i) {
@@ -685,7 +689,8 @@ void
 CompiledSimCodeGenerator::generateSimulationGetter() {
     // use C-style functions only! (C++ name mangling complicates stuff)
     *os_ << "/* Class getter function */" << endl
-         << "extern \"C\" EXPORT CompiledSimulation* getSimulation(" << endl
+         << "extern \"C\" EXPORT CompiledSimulation* "  
+         << "getSimulation_" << globalSymbolSuffix_ << "(" << endl
          << "\tconst TTAMachine::Machine& machine," << endl
          << "\tInstructionAddress entryAddress," << endl
          << "\tInstructionAddress lastInstruction," << endl
@@ -1114,7 +1119,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         }   
         *os_ << endl << "extern \"C\" EXPORT void "
              << symbolGen_.basicBlockSymbol(address)
-             << "(CompiledSimulationEngine& engine) {" << endl;
+             << "(void* eng) {" << endl;
+        *os_ << className_ << "& engine = *(" << className_ << "*)eng;" << endl;
         symbolGen_.enablePrefix("engine.");
         lastFUWrites_.clear();
 
@@ -1404,7 +1410,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         *os_ 
             << "if (engine.cycleCount_ >= engine.cyclesToSimulate_) {" << endl
             << "\t" << "engine.stopRequested_ = true;" << endl 
-            << "\t" << "updateFUOutputs(engine);" << endl
+            << "\t" << "updateFUOutputs_" << globalSymbolSuffix_ 
+            << "(engine);" << endl
             << "}" << endl; 
 
         *os_ << "{ engine.programCounter_ = engine.jumpTarget_; "
