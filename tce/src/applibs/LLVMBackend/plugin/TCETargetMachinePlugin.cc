@@ -42,6 +42,7 @@
 #include "TCETargetMachine.hh"
 #include "TCEFrameInfo.hh"
 #include "TCEISelLowering.hh"
+#include "TCESubtarget.hh"
 #include "MapTools.hh"
 
 using namespace llvm;
@@ -57,6 +58,7 @@ public:
     virtual const TargetRegisterInfo* getRegisterInfo() const;
     virtual const TargetFrameLowering* getFrameLowering() const;
     virtual TargetLowering* getTargetLowering() const;
+    virtual const TargetSubtargetInfo* getSubtarget() const;
 
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
 
@@ -150,6 +152,8 @@ GeneratedTCEPlugin::GeneratedTCEPlugin() :
    initialize();
    frameInfo_ = new TCEFrameInfo(
        static_cast<const TCERegisterInfo*>(getRegisterInfo()));
+
+   subTarget_ = new TCESubtarget();
 }
 
 
@@ -204,6 +208,11 @@ TargetLowering*
 GeneratedTCEPlugin::getTargetLowering() const { 
     assert(lowering_ != NULL && "TCETargetMachine has not registered to plugin.");
     return lowering_;
+}
+
+const TargetSubtargetInfo* 
+GeneratedTCEPlugin::getSubtarget() const {
+    return subTarget_;
 }
 
 /**

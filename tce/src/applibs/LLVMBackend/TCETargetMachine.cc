@@ -98,7 +98,7 @@ TCETargetMachine::TCETargetMachine(
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL)
     : LLVMTargetMachine(T,TT, CPU, FS, Options, RM, CM, OL),
 
-      Subtarget(TT,FS),
+//      Subtarget(TT,FS),
       DL(
         "E-p:32:32:32"
         "-a0:0:32"

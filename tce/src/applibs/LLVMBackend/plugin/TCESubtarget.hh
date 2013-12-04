@@ -22,43 +22,41 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TCESubtarget.cpp
+ * @file TCESubtarget.h
  *
- * Implementation of TCESubtargetClass.
+ * Declaration of TCESubtarget class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
-#include <iostream>
-#include "llvm/Support/CommandLine.h"
+#ifndef TTA_TCE_SUBTARGET_H
+#define TTA_TCE_SUBTARGET_H
 
-#include "TCESubtarget.hh"
+#include <string>
 
-using namespace llvm;
+#include "llvm/Target/TargetSubtargetInfo.h"
 
-// Add plugin file name option.
-cl::opt<std::string>
-BackendPluginFile(
-    "tce-plugin-file",
-    cl::value_desc("plugin file"),
-    cl::desc("TCE target machine plugin file."),
-    cl::NotHidden);
+#define GET_SUBTARGETINFO_HEADER
+#include "TCEGenSubTargetInfo.inc"
 
-/**
- * The Constructor.
- */
-TCESubtarget::TCESubtarget(const std::string &TT, const std::string &FS) :
-    pluginFile_(BackendPluginFile) {
+namespace llvm {
 
+    class Module;
+
+    /**
+     * Currently there is only one generic universal machine target,
+     * so this class doesn't cotain any relevant information.
+     */
+    class TCESubtarget : public TCEGenSubtargetInfo {
+    public:
+        TCESubtarget(); //const std::string &TT, const std::string &FS);
+        std::string pluginFileName();
+    protected:
+        void ParseSubtargetFeatures(llvm::StringRef, llvm::StringRef);
+    private:
+        std::string pluginFile_;
+
+    };
 }
 
-/**
- * Returns full path of the plugin file name supplied with the
- * -tce-plugin-file parameter.
- *
- * @return plugin file path
- */
-std::string
-TCESubtarget::pluginFileName() {
-    return pluginFile_;
-}
+#endif

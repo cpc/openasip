@@ -51,7 +51,11 @@
 
 // Include code generated with tceplugingen:
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
 #define GET_INSTRINFO_CTOR
+#else
+#define GET_INSTRINFO_CTOR_DTOR
+#endif
 #define GET_INSTRINFO_MC_DESC
 #include "TCEGenInstrInfo.inc"
 

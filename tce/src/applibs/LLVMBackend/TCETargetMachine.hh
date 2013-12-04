@@ -38,7 +38,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/PassManager.h"
-#include "TCESubtarget.hh"
+//#include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetSelectionDAGInfo.hh"
 // tce_config.h defines these. this undef to avoid warning.
@@ -139,7 +139,8 @@ namespace llvm {
         }
 
         virtual const TargetSubtargetInfo* getSubtargetImpl() const {
-            return &Subtarget; }
+            return plugin_->getSubtarget(); 
+        }
 
         virtual const TargetInstrInfo* getInstrInfo() const {
             return plugin_->getInstrInfo();
@@ -239,7 +240,7 @@ namespace llvm {
 
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
-        TCESubtarget        Subtarget;
+        TargetSubtargetInfo*   Subtarget;
         const TargetData    DL; // Calculates type size & alignment
         
         TCESelectionDAGInfo tsInfo;

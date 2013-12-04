@@ -3,7 +3,7 @@ SUBDIRS = passes
 noinst_LTLIBRARIES = libtcellvmbackend.la 
 pkglib_LTLIBRARIES = LLVMTCEPOMBuilder.la
 
-libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
+libtcellvmbackend_la_SOURCES = \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
@@ -73,7 +73,7 @@ include_HEADERS = \
  plugin/TCECallingConv.td \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
- TCESubtarget.hh \
+ plugin/TCESubtarget.hh \
  TCETargetSelectionDAGInfo.hh \
  LLVMTCECmdLineOptions.hh 
 
@@ -81,7 +81,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libtcellvmbackend_la_SOURCES += \
-	TCESubtarget.hh TCETargetMachinePlugin.hh \
+	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
 	MachineInstrDDG.hh ProgramPartitioner.hh \
 	TCETargetSelectionDAGInfo.hh \

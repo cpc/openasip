@@ -443,11 +443,6 @@ LLVMBackend::compile(
     
     // TODO: what should this be? revision 134127 of llvm added this.
     std::string cpuStr = "tce";
-#ifdef LLVM_3_0
-    TCETargetMachine* targetMachine = 
-        static_cast<TCETargetMachine*>(
-            tceTarget->createTargetMachine(targetStr, cpuStr, featureString));
-#else
     // TODO: are these default options, ripped from llc, sensible?
 
   TargetOptions Options;
@@ -485,7 +480,6 @@ LLVMBackend::compile(
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
 		targetStr, cpuStr, featureString, Options));
-#endif
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";
@@ -783,6 +777,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
+    // Generate TCESuBTargetInfo.inc
+    cmd = tblgenCmd +
+        " -gen-subtarget" +
+        " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        "TCEGenSubTargetInfo.inc";
+
     ret = system(cmd.c_str());
     if (ret) {
         std::string msg = std::string() +
@@ -800,7 +800,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCEDAGToDAGISel.cc " +
         srcsPath + "TCETargetObjectFile.cc " +
         srcsPath + "TCEFrameInfo.cc " +
-        srcsPath + "TCETargetMachinePlugin.cc ";
+        srcsPath + "TCETargetMachinePlugin.cc " +
+        srcsPath + "TCESubtarget.cc ";
 
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
