@@ -250,7 +250,7 @@ class TestCompiler(TCETestCase):
 
         (fd, tpef_file_name) = tempfile.mkstemp(".tpef")
         (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("tcecc --ocl-disable-mt --swfp -O3 -a %s -o %s %s %s -loclhost-sa" % \
+           self.runWithTimeout("tcecc --swfp -O3 -a %s -o %s %s %s -loclhost-sa" % \
                                (self.get_minimalStdoutADF(),
                                 tpef_file_name, self.ocl_kernel_fn, self.ocl_host_fn),
                                20*60)
