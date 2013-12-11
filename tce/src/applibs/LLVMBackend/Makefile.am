@@ -63,6 +63,7 @@ include_HEADERS = \
  plugin/TCEPlugin.hh \
  plugin/TCERegisterInfo.cc \
  plugin/TCERegisterInfo.hh \
+ plugin/TCESubtarget.cc \
  plugin/TCEISelLowering.cc \
  plugin/TCEISelLowering.hh \
  plugin/TCETargetObjectFile.cc \
