@@ -125,10 +125,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
     cotaining all the files to link together.
     """
 
-    if "@LLVM_VERSION@" == "3.0":
-        tripleOption = " -ccc-host-triple "
-    else:
-        tripleOption = " -target "
+    tripleOption = " -target "
         
     compileFlags = newlib_includes + " " + bclib_includes + " "
 
@@ -229,8 +226,11 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # possible fix, but soft float should not be used for
                 # performance critical FP code anyways.
 
-                if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                if options.soft_float:
                     extra_opts += " -ffp-contract=off"
+                    if "@LLVM_VERSION@" >= "3.4":
+                        extra_opts += " -fno-vectorize -fno-slp-vectorize"
+
 
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -296,7 +296,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
                     def compile(input, output):
                         extra_opts = ""
-                        if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                        if options.soft_float:
                             extra_opts += "-ffp-contract=off"
 
                         command = ("clang %s tce-tut-llvm " + \
@@ -366,7 +366,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 elif suffix == ".cpp" or suffix == ".cc":
                     input_file = baseName + suffix
                     
-                    if options.soft_float and "@LLVM_VERSION@" != "3.1":
+                    if options.soft_float:
                         extra_opts += " -ffp-contract=off"
 
                     command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
@@ -423,8 +423,13 @@ def exitWithError(status, errorMessage=None):
     sys.exit(status)
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
+    optSwitches = ""
+
+    if "@LLVM_VERSION@" >= "3.4":
+        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+
     commandp = "opt -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
-    command = commandp + " -o " + dstFile + " " + srcFile
+    command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
     
 ###
@@ -643,8 +648,14 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     outputName = fileNamePrefix + "_optimized.bc"
     
-    if options.soft_float and "@LLVM_VERSION@" != "3.1":
-        optSwitches += " -fp-contract=off "    
+    if options.soft_float:
+        optSwitches += " -fp-contract=off "
+        # vectorizing breaks floating point emulation.
+        # phase ordering: vectorizer, fp emu, isel(including devectorizer)
+        # fp emu does not detect vectorized fp ops and cannot emulate them
+        if "@LLVM_VERSION@" >= "3.4":
+            optSwitches += "-disable-slp-vectorization "
+            optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
 
@@ -661,6 +672,11 @@ def optimizeBytecode(inFile, fileNamePrefix):
 def linkEmulationFuncs(inFile, fileNamePrefix):
 
     verbose = options.verbose
+
+    optSwitches = ""
+
+    if options.soft_float and "@LLVM_VERSION@" >= "3.4":
+        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
 
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
@@ -684,7 +700,8 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         no_inline = " -disable-inlining"
 
     command = ("opt " + linkedName + no_inline +
-               " -f -internalize " + internalize_api_list + " -o " + outputName)
+               " -f -internalize " + internalize_api_list + " -o " + outputName +
+                " " + optSwitches)
 
     (exitCode, output) = runCommandBuffered(command, verbose)
 
