@@ -1,4 +1,2 @@
-tce-devel r1965: 
-llvm-svn 190915 works
-llvm-svn 190916: enables SLP vectorizer which breaks FP emulation.
-llvm-svn 191750: fail. No Scheduling Model.. core dump.. lt-llvm-tce: TargetSchedule.cpp:50: unsigned int lcm(unsigned int, unsigned int): Assertion `(LCM >= A && LCM >= B) && "LCM overflow"' failed.
+tce-devel r1979:
+llvm-3.4 branch works

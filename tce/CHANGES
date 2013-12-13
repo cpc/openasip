@@ -5,6 +5,7 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.4.
 
 Code generator improvements
 ---------------------------
@@ -26,13 +27,18 @@ Misc. smaller improvements
 - OSEd: element width and element count of an operand are now displayed in
   operation property dialog, and these fields can also be modified for input 
   and output operands.
-
+- all memory accesses to volatile variables now happen in original order
 
 Bugfixes
 --------
 - ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw.vhdl did not react to glock properly but
   updated a new value too early to the output.
 - ttasim -q now simulates half float programs correctly
+- some half float comparison routine fixed
+- bottom-up-scheduler caused broken schedule with function units with
+  pipeline resource usage after last port usage (for example stores with
+  less than store op/cycle bandwidth)
+- FPU's were buggy with numbers close to 2.
 
 1.8       June 2013
 ===================
