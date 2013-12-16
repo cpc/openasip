@@ -138,8 +138,14 @@ namespace llvm {
                     SDLoc dl, SelectionDAG &DAG) const;
 #endif
 
-	virtual bool allowsUnalignedMemoryAccesses(EVT VT) const;
+        virtual bool allowsUnalignedMemoryAccesses(EVT VT) const;
 
+        // We can ignore the bitwidth differences between the pointers
+        // for now. It's the programmer's responsibility to ensure they
+        // fit.
+        virtual bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const {
+            return true;
+        }
         // ----------------------------------------------------
         //
         //  Below here TCE specific stuff is added, which is not copied from Sparc
