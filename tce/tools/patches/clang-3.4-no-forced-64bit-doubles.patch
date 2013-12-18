@@ -1,0 +1,53 @@
+This patch is needed to fix 32bit targets without 64bit doubles,
+such as TCE for Clang 3.4 (and above).
+
+Index: tools/clang/lib/Basic/TargetInfo.cpp
+===================================================================
+--- tools/clang/lib/Basic/TargetInfo.cpp	(revision 197368)
++++ tools/clang/lib/Basic/TargetInfo.cpp	(working copy)
+@@ -245,7 +245,14 @@
+     LongLongWidth = LongLongAlign = 128;
+     HalfWidth = HalfAlign = 16;
+     FloatWidth = FloatAlign = 32;
+-    DoubleWidth = DoubleAlign = 64;
++    
++    // Embedded 32-bit targets (OpenCL EP) might have double C type 
++    // defined as float. Let's not override this as it might lead 
++    // to generating illegal code that uses 64bit doubles.
++    if (DoubleWidth != FloatWidth) {
++      DoubleWidth = DoubleAlign = 64;
++      DoubleFormat = &llvm::APFloat::IEEEdouble;
++    }
+     LongDoubleWidth = LongDoubleAlign = 128;
+ 
+     assert(PointerWidth == 32 || PointerWidth == 64);
+@@ -260,7 +267,6 @@
+ 
+     HalfFormat = &llvm::APFloat::IEEEhalf;
+     FloatFormat = &llvm::APFloat::IEEEsingle;
+-    DoubleFormat = &llvm::APFloat::IEEEdouble;
+     LongDoubleFormat = &llvm::APFloat::IEEEquad;
+   }
+ }
+
+Index: tools/llvm-config/llvm-config.cpp
+===================================================================
+--- tools/llvm-config/llvm-config.cpp	(revision 192453)
++++ tools/llvm-config/llvm-config.cpp	(working copy)
+@@ -154,6 +154,7 @@
+   --targets-built   List of all targets currently built.\n\
+   --host-target     Target triple used to configure LLVM.\n\
+   --build-mode      Print build mode of LLVM tree (e.g. Debug or Release).\n\
++  --tce-patches     Print list of applied TCE patches-\n\
+ Typical components:\n\
+   all               All LLVM libraries (default).\n\
+   engine            Either a native JIT or a bitcode interpreter.\n";
+@@ -305,6 +306,8 @@
+         OS << LLVM_OBJ_ROOT << '\n';
+       } else if (Arg == "--src-root") {
+         OS << LLVM_SRC_ROOT << '\n';
++      } else if (Arg == "--tce-patches") {
++        OS << "clang-no-opencl-doubles" << '\n';  
+       } else {
+         usage();
+       }
