@@ -212,7 +212,7 @@ def parse_options():
     parser.add_option("-w", "--watchdog-time", dest="timeout", type="int",
                       help="The number of seconds to wait before assuming a single test got " +\
                           "stuck and should be killed.",
-                      default=2*60*60)
+                      default=4*60*60)
     parser.add_option("-t", "--test-case", dest="test_cases", action="append", type="string",
                       default=[],
                       help="Execute only the given test case files. " + \
