@@ -129,6 +129,11 @@ private:
     CompiledSimCodeGenerator::AddressMap basicBlocks_;
     /// A struct for tracking basic blocks and their relation to their procedures
     ProcedureBBRelations procedureBBRelations_;
+    /// The unique identifier for this simulation engine. Used for
+    /// enabling multiple compiled engines in the same process while
+    /// still having ccache hits (which would not happen when using
+    /// the object address as the id).
+    int instanceId_;
 };
 
 #endif

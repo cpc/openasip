@@ -69,6 +69,16 @@ CompiledSimController::CompiledSimController(
     TTASimulationController(frontend, machine, program),
     pluginTools_(true, false), compiledSimulationPath_(""), 
     leaveDirty_(leaveDirty) {
+
+    // Make the symbols unique in case we use more than one
+    // simulator engines in the same process.
+    static int instanceCount = 0;
+    instanceId_ = instanceCount;
+
+    // Note, this is not thread safe. Thus, the engines should be
+    // initialized sequentially.
+    ++instanceCount;
+
     reset();
 }
 
@@ -246,7 +256,7 @@ CompiledSimController::reset() {
             << "for the generated simulation code!" << endl;
         return;
     }
-    
+
     // Generate all simulation code at once
     CompiledSimCodeGenerator generator(
         sourceMachine_, program_, *this,
@@ -254,7 +264,7 @@ CompiledSimController::reset() {
         frontend_.executionTracing() || frontend_.procedureTransferTracing(),
         !frontend_.staticCompilation(), 
         false, !frontend_.staticCompilation(),
-        Conversion::toString(this));
+        Conversion::toString(instanceId_));
 
     CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
     
@@ -294,7 +304,7 @@ CompiledSimController::reset() {
     // register simulation getter function symbol
     pluginTools_.registerModule("CompiledSimulationEngine.so");
     pluginTools_.importSymbol(
-         "getSimulation_" + Conversion::toString(this), simulationGetter);
+         "getSimulation_" + Conversion::toString(instanceId_), simulationGetter);
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
             program_.lastInstruction().address().location(), 
