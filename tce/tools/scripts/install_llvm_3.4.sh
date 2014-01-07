@@ -2,6 +2,21 @@
 
 TARGET_DIR=$1
 
+if test "x$2" == "x--debug-build";
+then
+LLVM_BUILD_MODE=--enable-debug
+export CFLAGS=-O0
+export CPPFLAGS=-O0
+export CXXFLAGS=-O0
+else
+export CFLAGS=-O3
+export CPPFLAGS=-O3
+export CXXFLAGS=-O3
+LLVM_BUILD_MODE=--enable-optimized
+fi
+
+echo "### LLVM build mode: "$LLVM_BUILD_MODE
+
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 temp_dir=llvm-build-temp
@@ -37,9 +52,6 @@ cd ../../llvm-3.4svn
 
 patch -Np0 < $script_dir/../patches/clang-3.4-no-forced-64bit-doubles.patch
 
-export CFLAGS=-O3
-export CPPFLAGS=-O3
-export CXXFLAGS=-O3
-./configure --enable-optimized --enable-shared --prefix=$TARGET_DIR || eexit "Configure of LLVM failed."
+./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configure of LLVM failed."
 make -j2 REQUIRES_RTTI=1 || eexit "Build of LLVM failed."
 make install || eexit "Installed of LLVM failed."
