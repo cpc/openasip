@@ -135,8 +135,6 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
             *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getDataLayout()); 
 #else
-        MCContext* ctx = new MCContext(
-            tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
         mang_ = new llvm::Mangler(tm_); 
 #endif
     }

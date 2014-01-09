@@ -281,9 +281,6 @@ LLVMTCEBuilder::initDataSections() {
 
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
 #else
-    MCContext* ctx = 
-        new MCContext(tm_->getMCAsmInfo(), tm_->getRegisterInfo(), NULL);
-
     mang_ = new Mangler(tm_); 
 #endif
 
