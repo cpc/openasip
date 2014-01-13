@@ -18,6 +18,7 @@ fi
 echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+patch_dir=$script_dir/../patches
 
 temp_dir=llvm-build-temp
 mkdir -p $temp_dir
@@ -50,8 +51,9 @@ fi
 
 cd ../../llvm-3.4svn
 
-patch -Np0 < $script_dir/../patches/clang-3.4-no-forced-64bit-doubles.patch
+patch -Np0 < $patch_dir/clang-3.4-no-forced-64bit-doubles.patch
+patch -Np0 < $patch_dir/llvm-3.4-fix-SROA-creating-invalid-bitcasts-beween-address-spaces.patch
 
-./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configure of LLVM failed."
-make -j2 REQUIRES_RTTI=1 || eexit "Build of LLVM failed."
-make install || eexit "Installed of LLVM failed."
+./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
+make -j2 REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
+make install || eexit "Installation of LLVM/Clang failed."

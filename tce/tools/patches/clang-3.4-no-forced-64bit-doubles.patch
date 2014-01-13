@@ -47,7 +47,7 @@ Index: tools/llvm-config/llvm-config.cpp
        } else if (Arg == "--src-root") {
          OS << LLVM_SRC_ROOT << '\n';
 +      } else if (Arg == "--tce-patches") {
-+        OS << "clang-no-opencl-doubles" << '\n';  
++        OS << "clang-no-opencl-doubles sroa-fix" << '\n';  
        } else {
          usage();
        }
