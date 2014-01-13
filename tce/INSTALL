@@ -15,7 +15,7 @@ wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.41.0-1.53.0                        very permissive
 sqlite3               3.0.0+                               public domain
-LLVM                  3.3, 3.2                             LLVM Release License
+LLVM                  3.4, 3.3, 3.2                        LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
@@ -65,35 +65,14 @@ LLVM and Clang.
 
 Unless a correct LLVM version is available for your distribution, 
 the best way is to install it from the sources. You can do this
-by executing tools/scripts/install_llvm_3.3.sh DEST_PATH,
+by executing tools/scripts/install_llvm_3.4.sh DEST_PATH,
 where DEST_PATH is the absolute directory where you want the LLVM
-to be installed.
+to be installed. This script installs some required patches
+to LLVM without which TCE refuses to build.
 
-Alternatively, you can build it manually as follows.
-Please follow the steps below to ensure LLVM and Clang are built
-correctly to be used by TCE:
-
- *) download the LLVM package
-    wget http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz
- *) unpack the package, e.g. tar xfz llvm-3.3.src.tar.gz
- *) cd llvm-3.3.src/tools
- *) download the Clang package 
-    wget http://llvm.org/releases/3.3/cfe-3.3.src.tar.gz
- *) unpack clang to llvm-3.3.src/tools, e.g. tar xfz cfe-3.3.src.tar.gz
- *) mv cfe-3.3.src clang
- *) cd ..
-
-IMPORTANT NOTE 1! LLVM 3.3 has a bug which some times causes miscompilation in
-case one compiles for a target with multiple address spaces. This should be
-fixed before building LLVM 3.3 by applying a patch that is found in an
-LLVM bug report here http://llvm.org/bugs/show_bug.cgi?id=16306 or in
-the TCE source tree. For example:
-
- *) patch -p0 < ~/tce/tools/patches/llvm-3.3-loopvec-address-space-fix.patch
-
-IMPORTANT NOTE 2! In order to use LLVM with TCE you need to configure LLVM 
-with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1',
-as follows:
+If you build and patch LLVM/Clang yourself, note that in order to use LLVM with 
+TCE you need to configure LLVM with '--enable-shared' switch and compile 
+it with 'make REQUIRES_RTTI=1', as follows:
 
  *) ./configure --enable-optimized --enable-shared --prefix=YOUR_INSTALLATION_PREFIX_HERE 
  *) make REQUIRES_RTTI=1 && make install

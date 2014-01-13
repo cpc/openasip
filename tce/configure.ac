@@ -538,10 +538,10 @@ Please consult INSTALL for instructions.])
      3.4*)
      AC_DEFINE([LLVM_3_4], [], "Using LLVM 3.4")
      AC_MSG_CHECKING([whether the used LLVM 3.4 is patched against the OpenCL double issue])
-     if ! echo $LLVM_TCE_PATCHES | grep -q "clang-no-opencl-doubles";
+     if ! echo $LLVM_TCE_PATCHES | grep -q "clang-no-opencl-doubles sroa-fix";
      then
      AC_MSG_RESULT([no])
-     AC_MSG_ERROR([Your LLVM 3.4 is not patched against the OpenCL 64bit double issue. Use tools/scripts/install_llvm_3.4.sh.])
+     AC_MSG_ERROR([Your LLVM 3.4 is not patched with the required fixes. Use tools/scripts/install_llvm_3.4.sh.])
      else
      AC_MSG_RESULT([yes])
      fi
