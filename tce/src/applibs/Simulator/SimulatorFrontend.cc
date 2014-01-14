@@ -93,11 +93,14 @@
 #include "DataMemory.hh"
 #include "DataDefinition.hh"
 #include "CompiledSimController.hh"
+#include "TCEDBGController.hh"
+#include "CustomDBGController.hh"
 #include "CompiledSimUtilizationStats.hh"
 #include "SimulationEventHandler.hh"
 #include "MachineInfo.hh"
 #include "DirectAccessMemory.hh"
 #include "IdealSRAM.hh"
+#include "RemoteMemory.hh"
 #include "MemoryProxy.hh"
 #include "DisassemblyFUPort.hh"
 
@@ -109,11 +112,11 @@ using namespace TPEF;
 /**
  * Constructor.
  */
-SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) : 
+SimulatorFrontend::SimulatorFrontend(TTATargetType backendType) : 
     currentMachine_(NULL), machineState_(NULL), simCon_(NULL),
     machineOwnedByFrontend_(false), currentProgram_(NULL), 
     programFileName_(""), programOwnedByFrontend_(false), 
-    compiledSimulation_(useCompiledSimulation),
+    currentBackend_(backendType),
     disassembler_(NULL), traceFileName_(""), executionTracing_(false),
     busTracing_(false), 
     rfAccessTracing_(false), procedureTransferTracing_(false), 
@@ -129,7 +132,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false),
     memorySystem_(NULL), zeroFillMemoriesOnReset_(true) {
 
-    if (compiledSimulation_) {
+    if (backendType == SIM_COMPILED) {
         setFUResourceConflictDetection(false); // disabled by default
         SimulatorToolbox::textGenerator().generateCompiledSimTexts();
     } 
@@ -242,9 +245,9 @@ SimulatorFrontend::loadMachine(const Machine& machine)
 
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
-    if (compiledSimulation_ == true && 
+    if (isCompiledSimulation() && 
         machine.controlUnit()->globalGuardLatency() > 1) {
-        compiledSimulation_ = false;
+        setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
@@ -415,6 +418,7 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
  * controller from loaded TPEF.
  *
  * @param onlyOne initialize the data memory of the given address space only.
+ *                If onlyOne is NULL, tries to intialize all data memories.
  */
 void
 SimulatorFrontend::initializeDataMemories(
@@ -555,9 +559,9 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
 
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
-    if (compiledSimulation_ == true && 
+    if (isCompiledSimulation() && 
         currentMachine_->controlUnit()->globalGuardLatency() > 1) {
-        compiledSimulation_ = false;
+        setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
@@ -608,6 +612,27 @@ SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName)
     loadMachine(adfName);
 }
 
+
+/* Because memory models are initialized before the controller,
+ * and RemoteMemory accesses its physical memory via the controller, 
+ * RemoteMemories must be further initialized here.
+ */
+void 
+SimulatorFrontend::setControllerForMemories( RemoteController* con )
+{
+
+    int num_mems = memorySystem_->memoryCount();    
+    for( int i=0; i<num_mems; i++ )
+    {
+        MemorySystem::MemoryPtr memptr = memorySystem_->memory(i);
+        boost::shared_ptr<RemoteMemory> rmem = boost::static_pointer_cast<RemoteMemory>(memptr);
+        if( rmem == NULL )
+            std::cout << " it wasnt a RemoteMemory!"<<std::endl;
+        rmem->setController( con );    
+
+    }
+}
+
 /**
  * Initializes a new simulation.
  *
@@ -623,19 +648,34 @@ SimulatorFrontend::initializeSimulation() {
 
     delete simCon_;
     simCon_ = NULL;
+    switch(currentBackend_) {
+        case SIM_REMOTE:    
+            simCon_ = 
+                new TCEDBGController( 
+                    *this, *currentMachine_, *currentProgram_);
+            setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
+            break;
+        case SIM_CUSTOM:
+            simCon_ = 
+                new CustomDBGController(
+                    *this, *currentMachine_, *currentProgram_);
+            setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
+            break;
+        case SIM_COMPILED:
+            simCon_ = 
+                new CompiledSimController(
+                    *this, *currentMachine_, *currentProgram_, 
+                    leaveCompiledDirty_);
+            machineState_ = 
+                &(dynamic_cast<SimulationController*>(simCon_)->machineState());
+            break;
+        case SIM_NORMAL:
+        default:
+            simCon_ = 
+             new SimulationController(
+                    *this, *currentMachine_, *currentProgram_, 
+                    fuResourceConflictDetection_);
 
-    if (isCompiledSimulation()) {
-        simCon_ = 
-            new CompiledSimController(
-                *this, *currentMachine_, *currentProgram_, 
-                leaveCompiledDirty_);
-    } else {
-        simCon_ = 
-            new SimulationController(
-                *this, *currentMachine_, *currentProgram_, 
-                fuResourceConflictDetection_);
-        machineState_ = 
-            &(dynamic_cast<SimulationController*>(simCon_)->machineState());
     }
         
     delete stopPointManager_;
@@ -1266,7 +1306,29 @@ SimulatorFrontend::hasSimulationEnded() const {
  */
 bool 
 SimulatorFrontend::isCompiledSimulation() const {
-    return compiledSimulation_;
+    return currentBackend_ == SIM_COMPILED;
+}
+
+/**
+ * Check if we are currently using a TCE built-in debugger. This returns true if 
+ * we are attached to a FPGA or an ASIC with on-circuit debug hardware.
+ * 
+ * @return true if we are using a TCE debug target.
+ */
+bool 
+SimulatorFrontend::isTCEDebugger() const {
+    return currentBackend_ == SIM_REMOTE;
+}
+
+/**
+ * Check if we are currently using a custom debugger. This returns true if 
+ * we are attached to a FPGA or an ASIC with on-circuit debug hardware.
+ * 
+ * @return true if we are using a custom debugger target.
+ */
+bool 
+SimulatorFrontend::isCustomDebugger() const {
+    return currentBackend_ == SIM_CUSTOM;
 }
 
 /**
@@ -1637,16 +1699,30 @@ SimulatorFrontend::initializeMemorySystem() {
         const bool shared = space.isShared();
 
         MemorySystem::MemoryPtr mem;
+        switch (currentBackend_)
+        {
+        case SIM_COMPILED:
+             mem = MemorySystem::MemoryPtr(
+                 new DirectAccessMemory(
+                    space.start(), space.end(), space.width()));
+             break;
+        case SIM_NORMAL:
+             mem = MemorySystem::MemoryPtr(
+                 new IdealSRAM(
+                    space.start(), space.end(), space.width()));
+             break;
+        case SIM_REMOTE:
+        case SIM_CUSTOM:
+             mem = MemorySystem::MemoryPtr(
+                 new RemoteMemory( space ));
 
-        if (compiledSimulation_) {
-            mem = MemorySystem::MemoryPtr(
-                new DirectAccessMemory(
-                    space.start(), space.end(), space.width()));
-        } else {
-            mem = MemorySystem::MemoryPtr(
-                new IdealSRAM(
-                    space.start(), space.end(), space.width()));
+            break;
+        default:            
+        throw Exception(
+            __FILE__, __LINE__, __func__,
+            "Internal error: memory model not specified");
         }
+
         // If memory tracking is enabled, memories are wrapped by a proxy
         // that tracks memory access.
         if (memoryAccessTracking_) {
@@ -1768,7 +1844,12 @@ SimulatorFrontend::rfAccessTracker() const
  */
 void
 SimulatorFrontend::setCompiledSimulation(bool value) {
-    compiledSimulation_ = value;
+    // This legacy function assumes we use a simulator, not a
+    // remote target.
+    if (currentBackend_ == SIM_REMOTE) return;
+    if (currentBackend_ == SIM_CUSTOM) return;
+    if (value) currentBackend_ = SIM_COMPILED;
+    else       currentBackend_ = SIM_NORMAL;
 }
 
 /**
@@ -2017,12 +2098,13 @@ SimulatorFrontend::machineState() {
  * Recalculates the statistics in case they are old, that is, simulation
  * has been continued or restarted since it was calculated. Should not be
  * called in case simulation is not initialized!
+ * @todo: unimplemented for remote debuggers
  */
 const UtilizationStats& 
 SimulatorFrontend::utilizationStatistics() {
     if (utilizationStats_ == NULL) {
         // stats calculation differs slightly for compiled & interpretive sims.
-        if (!compiledSimulation_) {
+        if (!isCompiledSimulation()) {
             utilizationStats_ = new UtilizationStats();
             SimulationStatistics stats(
                 *currentProgram_, dynamic_cast<SimulationController*>(
@@ -2359,3 +2441,4 @@ SimulatorFrontend::compareState(
 
     return equal;
 }
+/* vim: set ts=4 expandtab: */

@@ -126,15 +126,15 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
         options_ = dynamic_cast<SimulatorCmdLineOptions*>(
             Application::cmdLineOptions());
     }
-    if (options_ == NULL || !options_->fastSimulationEngine()) {
-        interpreter_ =
-            new SimulatorInterpreter(
-                Application::argc(), Application::argv(), 
-                *context_, *reader_);
-    } else {
+    if (frontend.isCompiledSimulation()) {
         interpreter_ =
             new CompiledSimInterpreter(
                 Application::argc(), Application::argv(),
+                *context_, *reader_);
+    } else {
+        interpreter_ =
+            new SimulatorInterpreter(
+                Application::argc(), Application::argv(), 
                 *context_, *reader_);
     }
 

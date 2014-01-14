@@ -37,6 +37,7 @@
 #include <string>
 
 #include "CmdLineOptions.hh"
+#include "SimulatorFrontend.hh"
 
 /**
  * Command line option class for Simulator.
@@ -54,7 +55,7 @@ public:
     
     std::string machineFile();
     std::string programFile();
-    bool fastSimulationEngine();
+    TTATargetType backendType();
     
 private:
     /// Copying not allowed.

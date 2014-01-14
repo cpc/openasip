@@ -26,7 +26,7 @@
  *
  * Implementation of ttasim.
  *
- * The command line version of the TTA Simulator.
+ * The command line version of the TTA Simulator / Debugger
  *
  * @author Pekka Jääskeläinen 2005-2012 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
     
-    simFront.reset(new SimulatorFrontend(options->fastSimulationEngine()));
+    simFront.reset(new SimulatorFrontend(options->backendType()));
     
     SimulatorCLI* cli = new SimulatorCLI(*simFront);
 
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         SigINTHandler* ctrlcHandler = new SigINTHandler(*simFront);
         Application::setSignalHandler(SIGINT, *ctrlcHandler);
 
-        if (options->fastSimulationEngine()) {
+        if (simFront->isCompiledSimulation()) {
 
             /* Catch errors caused by the simulated program
                in compiled simulation these show up as normal
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     if (options->debugMode()) {        
         cli->run();   
         Application::restoreSignalHandler(SIGINT);
-        if (options->fastSimulationEngine()) {
+        if (simFront->isCompiledSimulation()) {
             Application::restoreSignalHandler(SIGFPE);
             Application::restoreSignalHandler(SIGSEGV);
         }        

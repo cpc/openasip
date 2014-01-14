@@ -64,6 +64,15 @@ const std::string SWL_FAST_SIM = "quick";
 /// Short switch string for the fast simulation
 const std::string SWS_FAST_SIM= "q";
 
+/// Long switch string for the custom remote debugger target
+const std::string SWL_CUSTOM_DBG = "custom"; 
+/// Short switch string for the custom remote debugger target
+const std::string SWS_CUSTOM_DBG = "c"; 
+
+/// Long switch string for the TCE builtin remote debugger target
+const std::string SWL_REMOTE_DBG = "remote"; 
+/// Short switch string for the TCE builtin remote debugger target
+const std::string SWS_REMOTE_DBG = "r"; 
 
 /**
  * Constructor.
@@ -97,6 +106,16 @@ SimulatorCmdLineOptions::SimulatorCmdLineOptions() : CmdLineOptions("") {
         new BoolCmdLineOptionParser(
             SWL_FAST_SIM, "uses the fast simulation engine.",            
             SWS_FAST_SIM));
+
+     addOption(
+        new BoolCmdLineOptionParser(
+            SWL_REMOTE_DBG, "connect to remote debugger on FPGA or ASIC.",            
+            SWS_REMOTE_DBG));
+
+     addOption(
+        new BoolCmdLineOptionParser(
+            SWL_CUSTOM_DBG, "connect to a custom remote debugger (if implemented).",            
+            SWS_CUSTOM_DBG));
 }
 
 /**
@@ -195,18 +214,34 @@ SimulatorCmdLineOptions::programFile() {
 }
 
 /**
- * Returns true if Simulator should use the fast simulation engine
+ * Check what sort of simulation user asked for on the command line.
+ * If no value is given in the parsed command line the "normal" simulation, 
+ * i.e. the interpreted, non-compiled, version is returned.
  *
- * If no value is given in the parsed command line, default one is returned.
- *
- * @return True if Simulator should use the fast simulation engine
+ * @return type of TTA backend user wants
  */
-bool 
-SimulatorCmdLineOptions::fastSimulationEngine() {
-    if (!optionGiven(SWL_FAST_SIM)) {
-        return false;
-    }
-    return findOption(SWL_FAST_SIM)->isFlagOn();
+TTATargetType
+SimulatorCmdLineOptions::backendType() {
+    bool want_compiled = false;
+    bool want_remote = false;
+    bool want_custom = false;
+
+    want_compiled |= optionGiven(SWL_FAST_SIM);
+    want_compiled &= findOption(SWL_FAST_SIM)->isFlagOn();
+
+    want_remote |= optionGiven(SWL_REMOTE_DBG);
+    want_remote &= findOption(SWL_REMOTE_DBG)->isFlagOn();
+
+    want_custom |= optionGiven(SWL_CUSTOM_DBG);
+    want_custom &= findOption(SWL_CUSTOM_DBG)->isFlagOn();
+
+    // TODO: no check for if user requests simultaneously several 
+    // versions of TTA backend. Start with the most picky one, 
+    // user probably notices it erroring out.
+    if (want_custom)   return SIM_CUSTOM;
+    if (want_remote)   return SIM_REMOTE;
+    if (want_compiled) return SIM_COMPILED;
+    return SIM_NORMAL;
 }
 
 
