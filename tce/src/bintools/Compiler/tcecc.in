@@ -226,11 +226,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # possible fix, but soft float should not be used for
                 # performance critical FP code anyways.
 
+
+                extra_opts += " -fno-vectorize "
+
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
-                    if "@LLVM_VERSION@" >= "3.4":
-                        extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
+                if options.soft_float and "@LLVM_VERSION@" >= "3.4" or not options.autovectorize:
+                    extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -897,6 +900,10 @@ else:
     p.add_option('--clang', action='store_true', dest='use_clang', default=False,
                  help=\
 "Use Clang for C compilation instead of llvm-gcc.")
+
+p.add_option('--autovectorize', action='store_true', dest='autovectorize', default=False,
+             help=\
+"""Use the LLVM autovectorizers. Disabled by default as it causes some miscompilations at the moment.""")
 
 p.add_option('-x', type='string', action='store', metavar='language',
              dest="language", default='', help=\
