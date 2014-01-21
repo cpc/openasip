@@ -26,6 +26,7 @@ miscompilation bug with DSPstone/adpcm:
    output:
 
    cat > run_bytecode
+   #!/bin/sh
    tce-exec-bc -e "run; puts [x /u h /n 32 _Input]; quit;"  \
                1_bus_full_connectivity.adf $1
    ^D
@@ -33,9 +34,19 @@ miscompilation bug with DSPstone/adpcm:
 
    The script given with '-e' is fed to ttasim and executed after it has 
    loaded the machine and the scheduled tpef. It is used to produce output for
-   verification. I could have used also printf() in the C code but it
-   slows down compilation quite a lot so I decided to generate the
-   verification data using ttasim instead.
+   verification. Do not forget to add the interpreter line (the first one) as
+   it doesn't seem to work without.
+ 
+   I could have used also printf() in the C code to print out verification
+   output, but it slows down compilation quite a lot so I decided to 
+   generate the verification data using ttasim instead.
+
+   If you have verification data printed out to STDOUT and you can run
+   the simulation to completion, the following run_bytecode script content
+   suffices:
+
+   #!/bin/sh
+   tce-exec-bc machine.adf $1
 
 3) Generate reference output from a valid run of the unoptimized
    program:
@@ -44,15 +55,12 @@ miscompilation bug with DSPstone/adpcm:
 
 4) Start Bugpoint.
 
-   tce-bugpoint -run-custom \
-                -exec-command=$PWD/run_bytecode \
-                -output=reference.txt \
-                -mlimit=0 \
-                -timeout=0 \
-                -check-exit-code=0 \
-                [OPT SWITCHES HERE] adpcm.bc
+   bugpoint adpcm.bc -run-custom \
+            -exec-command=$PWD/run_bytecode \
+            -output=reference.txt \
+            -O3 adpcm.bc
 
-   You should replace [OPT SWITCHES HERE] with the set of optimization
+   You should replace -O3 with the set of optimization
    switches that break the compile. For example, the switches from the
    command 
 

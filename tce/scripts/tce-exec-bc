@@ -31,16 +31,16 @@ runningInstalled = 'tce/scripts' not in scriptDir
 
 if not runningInstalled:
     srcRoot = scriptDir.split('tce/scripts')[0] + "tce/src"
-    llvmTce = srcRoot + "/bintools/Compiler/llvm-tce/llvm-tce"
+    llvmTce = srcRoot + "/bintools/Compiler/tcecc"
     ttasim = srcRoot + "/codesign/ttasim/ttasim"
 else:
-    llvmTce = "llvm-tce"
+    llvmTce = "tcecc"
     ttasim = "ttasim"
         
 def runCommand(command):
     """Runs a command."""
 
-    (exitCode, output) = commands.getstatusoutput(command)
+    (exitCode, output) = commands.getstatusoutput(command)    
     return (exitCode, output)
 
 tempHandle, tempFile = tempfile.mkstemp(".tpef")
@@ -55,7 +55,7 @@ cmd = ttasim
 if options.execute_script is not None:
     cmd += ' -e "' + options.execute_script + '" '
 else:
-    cmd += ' -e "quit;" '
+    cmd += ' -e "run; quit;" '
 
 cmd += " -a " + adf + " -p " + tempFile
 
@@ -63,4 +63,4 @@ cmd += " -a " + adf + " -p " + tempFile
 
 print out,
 
-os.unlink(tempFile)
+#os.unlink(tempFile)
