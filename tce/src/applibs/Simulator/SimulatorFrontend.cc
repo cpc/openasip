@@ -666,8 +666,6 @@ SimulatorFrontend::initializeSimulation() {
                 new CompiledSimController(
                     *this, *currentMachine_, *currentProgram_, 
                     leaveCompiledDirty_);
-            machineState_ = 
-                &(dynamic_cast<SimulationController*>(simCon_)->machineState());
             break;
         case SIM_NORMAL:
         default:
@@ -675,6 +673,8 @@ SimulatorFrontend::initializeSimulation() {
              new SimulationController(
                     *this, *currentMachine_, *currentProgram_, 
                     fuResourceConflictDetection_);
+            machineState_ = 
+                &(dynamic_cast<SimulationController*>(simCon_)->machineState());
 
     }
         

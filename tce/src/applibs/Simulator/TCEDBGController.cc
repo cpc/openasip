@@ -11,45 +11,51 @@ typedef MinimumAddressableUnit MAU;
 
    
 TCEDBGController::TCEDBGController( 
-        SimulatorFrontend& frontend,
-        const TTAMachine::Machine& machine, 
-        const TTAProgram::Program& program) : 
-        RemoteController( frontend, machine, program )
+    SimulatorFrontend& frontend,
+    const TTAMachine::Machine& machine, 
+    const TTAProgram::Program& program) : 
+    RemoteController( frontend, machine, program )
 {
 }
 
-void TCEDBGController::writeMem(Word address, MAU data, const AddressSpace& space)
+void TCEDBGController::writeMem(
+    Word /*address*/,
+    MAU /*data*/,
+    const AddressSpace& /*space*/)
 {
 }
 
-MAU TCEDBGController::readMem(Word address, const AddressSpace& space)
+MAU TCEDBGController::readMem(
+    Word /*address*/,
+    const AddressSpace& /*space*/)
 {
-    MAU rv;
-    return rv;
+    return 0;
 }
 
-void TCEDBGController::writeIMem(const char *, int size)
+void TCEDBGController::writeIMem(
+    const char *,
+    int /*size*/)
 {
 }
 
 
 void TCEDBGController::step(double /*count = 1*/)
-        throw (SimulationExecutionError)
+    throw (SimulationExecutionError)
 {
 }
 
 void TCEDBGController::next(int /*count = 1*/)
-        throw (SimulationExecutionError)
+    throw (SimulationExecutionError)
 {
 }
 
 void TCEDBGController::run()
-        throw (SimulationExecutionError)
+    throw (SimulationExecutionError)
 {
 }
 
-void TCEDBGController::runUntil(UIntWord address)
-        throw (SimulationExecutionError)
+void TCEDBGController::runUntil(UIntWord /*address*/)
+    throw (SimulationExecutionError)
 {
 }
 
@@ -58,8 +64,8 @@ void TCEDBGController::reset()
 }
     
 std::string TCEDBGController::registerFileValue(
-        const std::string& /*rfName*/, 
-        int /*registerIndex = -1*/)
+    const std::string& /*rfName*/, 
+    int /*registerIndex = -1*/)
 {
     std::string rv="hello";
     return rv;
@@ -73,8 +79,8 @@ SimValue TCEDBGController::immediateUnitRegisterValue(
 }
     
 SimValue TCEDBGController::FUPortValue(
-        const std::string& /*fuName*/, 
-        const std::string& /*portName*/)
+    const std::string& /*fuName*/, 
+    const std::string& /*portName*/)
 {
     SimValue rv;
     return rv;
@@ -82,6 +88,7 @@ SimValue TCEDBGController::FUPortValue(
     
 InstructionAddress TCEDBGController::programCounter() const
 {
+    return 0;
 }
 
-/* vim: set ts=4 expandtab */
+/* vim: set ts=4 expandtab: */

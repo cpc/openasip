@@ -22,53 +22,59 @@
 typedef MinimumAddressableUnit MAU;
 
 CustomDBGController::CustomDBGController( 
-        SimulatorFrontend& frontend,
-        const TTAMachine::Machine& machine, 
-        const TTAProgram::Program& program) : 
-        RemoteController( frontend, machine, program )
+    SimulatorFrontend& frontend,
+    const TTAMachine::Machine& machine, 
+    const TTAProgram::Program& program) : 
+    RemoteController( frontend, machine, program )
 {
     _WHERE();
     // Write instructions to TTA memory. This is not done by TCE in the simulator modes.
     // At some later point in time TCE fills the global data memory.
 }
 
-void CustomDBGController::writeMem(Word address, MAU data, const AddressSpace& space)
+void CustomDBGController::writeMem(
+    Word /*address*/,
+    MAU /*data*/,
+    const AddressSpace& /*space*/)
 {
     _WHERE();
 }
 
-MAU CustomDBGController::readMem(Word address, const AddressSpace& space)
+MAU CustomDBGController::readMem(
+    Word /*address*/,
+    const AddressSpace& /*space*/)
 {
-    MAU rv=0;
-    return rv;
+    return 0;
 }
 
-void CustomDBGController::writeIMem(const char *buff, int size)
+void CustomDBGController::writeIMem(
+    const char* /*buff*/,
+    int /*size*/)
 {
     _WHERE();
 }
 
 
 void CustomDBGController::step(double /*count = 1*/)
-        throw (SimulationExecutionError)
+   throw (SimulationExecutionError)
 {
     _WHERE();
 }
 
 void CustomDBGController::next(int /*count = 1*/)
-        throw (SimulationExecutionError)
+    throw (SimulationExecutionError)
 {
     _WHERE();
 }
 
 void CustomDBGController::run()
-        throw (SimulationExecutionError)
+    throw (SimulationExecutionError)
 {
     _WHERE();
 }
 
-void CustomDBGController::runUntil(UIntWord address)
-        throw (SimulationExecutionError)
+void CustomDBGController::runUntil(UIntWord /*address*/)
+    throw (SimulationExecutionError)
 {
     _WHERE();
 }
@@ -79,8 +85,8 @@ void CustomDBGController::reset()
 }
     
 std::string CustomDBGController::registerFileValue(
-        const std::string& rfName, 
-        int registerIndex )
+    const std::string& /*rfName*/, 
+    int /*registerIndex*/ )
 {
     std::string rv="hello";
     _WHERE();
@@ -88,15 +94,16 @@ std::string CustomDBGController::registerFileValue(
 }
     
 SimValue CustomDBGController::immediateUnitRegisterValue(
-    const std::string& iuName, int index)
+    const std::string& /*iuName*/,
+    int /*index*/)
 {
     SimValue rv;
     return rv;
 }
     
 SimValue CustomDBGController::FUPortValue(
-        const std::string& fuName, 
-        const std::string& portName)
+    const std::string& /*fuName*/, 
+    const std::string& /*portName*/)
 {
     SimValue rv;
     return rv;
@@ -104,9 +111,8 @@ SimValue CustomDBGController::FUPortValue(
     
 InstructionAddress CustomDBGController::programCounter() const
 {
-    int pc;
     _WHERE();
-    return pc;
+    return 0;
 }
 
 /* vim: set ts=4 expandtab: */
