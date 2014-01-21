@@ -226,9 +226,6 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # possible fix, but soft float should not be used for
                 # performance critical FP code anyways.
 
-
-                extra_opts += " -fno-vectorize "
-
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
