@@ -389,11 +389,13 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
+                elif suffix == ".o" or (suffix == ".bc" and options.force_link):
+                    outFileName = fName + ".bc"
+                    command += lowerMemIntrinsicCommand(fName, outFileName)
+
                 elif suffix == ".bc":
                     # Nothing to be done for the fully linked bitcode files.
                     outFileName = fName
-                elif suffix == ".o":
-                    outFileName =  fName
 
                 elif suffix == ".a":
                     outFileName = fName
@@ -650,12 +652,14 @@ def optimizeBytecode(inFile, fileNamePrefix):
     
     if options.soft_float:
         optSwitches += " -fp-contract=off "
-        # vectorizing breaks floating point emulation.
-        # phase ordering: vectorizer, fp emu, isel(including devectorizer)
-        # fp emu does not detect vectorized fp ops and cannot emulate them
-        if "@LLVM_VERSION@" >= "3.4":
-            optSwitches += "-disable-slp-vectorization "
-            optSwitches += "-disable-loop-vectorization "
+
+    # vectorizing breaks floating point emulation.
+    # phase ordering: vectorizer, fp emu, isel(including devectorizer)
+    # fp emu does not detect vectorized fp ops and cannot emulate them
+
+    if "@LLVM_VERSION@" >= "3.4" or not options.autovectorize:
+        optSwitches += " -disable-slp-vectorization "
+        optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
 
@@ -800,6 +804,10 @@ p.add_option('--no-schedule', action="store_true",
 p.add_option('--no-link', action="store_true",
              dest="no_link", default=False,
              help="Do not call linker. Assume the input file is a fully linked file (default for .bc).")
+
+p.add_option('--force-link', action="store_true",
+             dest="force_link", default=False,
+             help="Call bitcode linker in any case even if it has suffix .bc.")
 
 p.add_option('--disable-llvmaa', action="store_true",
              dest="disable_llvmaa", default=False,
@@ -994,6 +1002,9 @@ for opt in sys.argv[1:]:
 # parse valid args
 options, inFiles = p.parse_args(args)
 
+if options.no_link and options.force_link:
+    options.no_link = False
+
 if options.frontend_optlevel is None:
     options.frontend_optlevel = options.optimization_level
 
@@ -1121,7 +1132,7 @@ if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     cleanup(tempDir)
     sys.exit(1)
 
-elif len(inFiles) == 1 and (options.no_link or inFiles[0][-3:] == ".bc"):
+elif len(inFiles) == 1 and not options.force_link and (options.no_link or inFiles[0][-3:] == ".bc"):
     # Only one .bc inputfile given. No need to compile, link or optimize anything.
     # Note: Already linked bytecode can't be linked or optimized
     # with -lowermissing again anyway!

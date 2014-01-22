@@ -154,7 +154,7 @@ Autocorrelation (word * s /* [0..159]     IN/OUT  */ ,
   /*   Rescaling of the array s[0..159]
    */
   if (scalauto > 0)
-    for (k = 160; k >= 0; k--)
+    for (k = 159; k >= 0; k--)
       *s++ <<= scalauto;
 }
 
