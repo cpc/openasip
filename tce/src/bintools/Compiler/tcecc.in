@@ -467,7 +467,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     linkFiles = [x for x in linkFiles if not x.endswith('.a')]
 
-    libDirName = fileNamePrefix + "_libs"
+    libDirName = os.path.abspath(fileNamePrefix + "_libs")
 
     if not os.path.exists(libDirName):
         # We might have already expanded the library archive if we are using
