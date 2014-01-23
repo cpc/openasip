@@ -229,7 +229,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
-                if options.soft_float and "@LLVM_VERSION@" >= "3.4" or not options.autovectorize:
+                if "@LLVM_VERSION@" >= "3.4" and (options.soft_float or not options.autovectorize):
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
 
@@ -657,7 +657,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # phase ordering: vectorizer, fp emu, isel(including devectorizer)
     # fp emu does not detect vectorized fp ops and cannot emulate them
 
-    if "@LLVM_VERSION@" >= "3.4" or not options.autovectorize:
+    if "@LLVM_VERSION@" >= "3.4":
         optSwitches += " -disable-slp-vectorization "
         optSwitches += "-disable-loop-vectorization "
 
