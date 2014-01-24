@@ -4,7 +4,9 @@
 Notable changes and features
 ----------------------------
 - Support for LLVM 3.4.
-- OSAL operations have now operand widths and element counts.
+- OSAL Operation: optional element-count and element-width attribute fields 
+  added for in/out operands in operation schema. From now on operands have 
+  information of their subword width and subword count.
 
 Code generator improvements
 ---------------------------
@@ -20,9 +22,6 @@ Misc. smaller improvements
   overhead.
 - Explorer: HDB files which are given with -b switch are now searched under
   current working dir and default hdb search paths.
-- OSAL Operation: optional element-count and element-width attribute fields 
-  added for in/out operands in operation schema. From now on operands have 
-  information of their subword width and subword count.
 - OSEd: element width and element count of an operand are now displayed in
   operation property dialog, and these fields can also be modified for input 
   and output operands.
