@@ -1,11 +1,10 @@
-1.9       unreleased
+1.9     January 2014
 ====================
-
-[changes updated from bzr log until 2013-08-15]
 
 Notable changes and features
 ----------------------------
 - Support for LLVM 3.4.
+- OSAL operations have now operand widths and element counts.
 
 Code generator improvements
 ---------------------------
@@ -28,6 +27,11 @@ Misc. smaller improvements
   operation property dialog, and these fields can also be modified for input 
   and output operands.
 - all memory accesses to volatile variables now happen in original order
+- TCE code base builds and works now in g++'s C++11 mode (but does not yet
+  require it!) and Clang++
+- Make the simulation function symbols of the compiled simulator unique 
+  per compiled simulator engine instance so one can have multiple of them 
+  in the same process to simulate (heterogeneous) multi-TTA setups.
 
 Bugfixes
 --------
