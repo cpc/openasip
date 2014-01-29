@@ -1042,6 +1042,10 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            if (outputSockets.size() == 0) {
+                continue;
+            }
+
             stream << indentation(1) << busSignal(*bus) << " <= ";
             for (std::set<Socket*>::const_iterator iter = 
                      outputSockets.begin(); 

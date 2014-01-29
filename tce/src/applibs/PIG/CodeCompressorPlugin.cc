@@ -1271,6 +1271,10 @@ CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector)
             }
 
         } else if (&srcField == &childField) {
+            if (srcField.width() == 0) {
+                continue;
+            }
+
             NOPEncoding& encoding = srcField.noOperationEncoding();
             if (&encoding == &NullNOPEncoding::instance() &&
                 !guardField.hasUnconditionalGuardEncoding(true)) {
@@ -1297,6 +1301,9 @@ CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector)
             }
 
         } else if (&dstField == &childField) {
+            if (dstField.width() == 0) {
+                continue;
+            }
             NOPEncoding& encoding = dstField.noOperationEncoding();
             if (&encoding == &NullNOPEncoding::instance() &&
                 !guardField.hasUnconditionalGuardEncoding(true)) {

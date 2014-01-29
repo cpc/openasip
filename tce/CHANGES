@@ -3,6 +3,13 @@
 
 [updated from commit log on 2014-01-24]
 
+
+Bugfixes
+--------
+- Fix PIG and ProGe when generating bits or RTL for
+  a machine with a bus (slot) that does not have any
+  connections.
+
 1.9     January 2014
 ====================
 

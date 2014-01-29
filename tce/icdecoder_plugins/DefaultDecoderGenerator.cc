@@ -736,14 +736,14 @@ DefaultDecoderGenerator::writeSourceDestinationAndGuardSignals(
                << endl;
         for (int i = 0; i < bem_.moveSlotCount(); i++) {
             MoveSlot& slot = bem_.moveSlot(i);
-            if (slot.hasSourceField()) {
+            if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
                 stream << indentation(1) << "signal " 
                        << srcFieldSignal(slot.name()) 
                        << " : std_logic_vector(" << srcField.width() - 1 
                        << " downto 0);" << endl;
             }
-            if (slot.hasDestinationField()) {
+            if (slot.hasDestinationField() && slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
                 stream << indentation(1) << "signal " 
                        << dstFieldSignal(slot.name()) << " : std_logic_vector("
@@ -763,14 +763,14 @@ DefaultDecoderGenerator::writeSourceDestinationAndGuardSignals(
                << endl;
         for (int i = 0; i < bem_.moveSlotCount(); i++) {
             MoveSlot& slot = bem_.moveSlot(i);
-            if (slot.hasSourceField()) {
+            if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
                 stream << indentation(1) << "reg[" 
                        << srcField.width() - 1 << ":0] "
                        << srcFieldSignal(slot.name()) << ";"
                        << endl;
             }
-            if (slot.hasDestinationField()) {
+            if (slot.hasDestinationField() && slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
                 stream << indentation(1) << "reg[" 
                        << dstField.width() - 1 << ":0] "
@@ -1118,7 +1118,7 @@ DefaultDecoderGenerator::writeInstructionDismembering(
         for (int i = 0; i < bem_.moveSlotCount(); i++) {
             MoveSlot& slot = bem_.moveSlot(i);
             int slotPosition = slot.bitPosition();
-            if (slot.hasSourceField()) {
+            if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
                 stream << indentation(2) << srcFieldSignal(slot.name()) 
                        << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
@@ -1127,7 +1127,7 @@ DefaultDecoderGenerator::writeInstructionDismembering(
                        << slotPosition + srcField.bitPosition() << ");" 
                        << endl;
             }
-            if (slot.hasDestinationField()) {
+            if (slot.hasDestinationField() && slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
                 stream << indentation(2) << dstFieldSignal(slot.name()) 
                        << " <= " << NetlistGenerator::DECODER_INSTR_WORD_PORT
@@ -1170,7 +1170,7 @@ DefaultDecoderGenerator::writeInstructionDismembering(
         for (int i = 0; i < bem_.moveSlotCount(); i++) {
             MoveSlot& slot = bem_.moveSlot(i);
             int slotPosition = slot.bitPosition();
-            if (slot.hasSourceField()) {
+            if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
                 stream << indentation(2) << srcFieldSignal(slot.name()) 
                        << " = " << NetlistGenerator::DECODER_INSTR_WORD_PORT
@@ -1179,7 +1179,7 @@ DefaultDecoderGenerator::writeInstructionDismembering(
                        << slotPosition + srcField.bitPosition() << "];" 
                        << endl;
             }
-            if (slot.hasDestinationField()) {
+            if (slot.hasDestinationField() && slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
                 stream << indentation(2) << dstFieldSignal(slot.name()) 
                        << " = " << NetlistGenerator::DECODER_INSTR_WORD_PORT
