@@ -1669,7 +1669,7 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
                         (*begin1)->getValue()->dump();
                         (*begin2)->getValue()->dump();
 #endif
-                        aliasResult = MemoryAliasAnalyzer::ALIAS_TRUE;
+                        aliasResult = MemoryAliasAnalyzer::ALIAS_PARTIAL;
                     }
                     begin2++;
                 }

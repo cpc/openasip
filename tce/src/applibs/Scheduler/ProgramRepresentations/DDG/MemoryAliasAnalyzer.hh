@@ -46,8 +46,11 @@ class MemoryAliasAnalyzer {
 public:
 
     enum AliasingResult { ALIAS_FALSE = 0,
+                          // Only Use ALIAS_TRUE if they really fully alias.
+                          // It's used for transitivity optimizations.
                           ALIAS_TRUE  = 1,
-                          ALIAS_UNKNOWN = 2 };
+                          ALIAS_UNKNOWN = 2,
+                          ALIAS_PARTIAL = 3};
 
     virtual void initProcedure(TTAProgram::Procedure&) {}
 
