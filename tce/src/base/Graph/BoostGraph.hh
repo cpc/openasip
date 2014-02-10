@@ -216,6 +216,8 @@ public:
 
     bool hasPath(GraphNode& src, const GraphNode& dest) const;
 
+    bool detectIllegalCycles() const;
+
 private:
     /// Assignment forbidden.
     BoostGraph& operator=(const BoostGraph&);

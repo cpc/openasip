@@ -2491,6 +2491,46 @@ BoostGraph<GraphNode, GraphEdge>::hasPath(
     return false;
 }
 
+/**
+ * Detects cycles that happen without proper backedge properties
+ * This routine is currently quite slow , there is room for
+ * optimization. This is to be used for debugging.
+ */
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::detectIllegalCycles() const {
+    for (int i = 0; i < nodeCount(); i++) {
+        GraphNode* originalNode = &node(i);
+        NodeSet queuedNodes;
+        NodeSet foundNodes;
+        queuedNodes.insert(originalNode);
+        foundNodes.insert(originalNode);
+        while (!queuedNodes.empty()) {
+            const GraphNode* n = *queuedNodes.begin();
+            queuedNodes.erase(queuedNodes.begin());
+            EdgeSet es = outEdges(*n);
+            for (typename EdgeSet::iterator ei = es.begin(); ei != es.end(); ei++) {
+                const GraphEdge* e = *ei;
+                if (!e->isBackEdge()) {
+                    GraphNode& head = headNode(*e);
+                    if (&head == originalNode) {
+                        std::cerr << "Detected illegal cycle between nodes: "
+                                  << originalNode->toString() << " and "
+                                  << n->toString() << " edge: " <<
+                            e->toString() << std::endl;
+                        return true;
+                    }
+                    if (!AssocTools::containsKey(foundNodes,&head)) {
+                        foundNodes.insert(&head);
+                        queuedNodes.insert(&head);
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 template <typename GraphNode, typename GraphEdge>
 bool
 BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::operator<(

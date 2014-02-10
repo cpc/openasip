@@ -9,6 +9,9 @@ Bugfixes
 - Fix PIG and ProGe when generating bits or RTL for
   a machine with a bus (slot) that does not have any
   connections.
+- Having volatile variables could have caused broken code being generated.
+- Compiler sometimes refused to schedule to processors with relatively
+  sparse connectivity but no need for register copies.
 
 1.9     January 2014
 ====================

@@ -344,11 +344,18 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     std::string srDatumName = "SCRATCH_REGISTERS";
     if (!interPassData_.hasDatum(srDatumName) ||
         (dynamic_cast<TempRegData&>(
-            interPassData_.datum(srDatumName))).size() == 0)
+             interPassData_.datum(srDatumName))).size() == 0) {
+        // if there are no temp regs, addign them is impossible.
+        // but scheduling may be posible with some other FU, so
+        // return INT_MAX instead of throwing exception
+        // is only counting the amount of regcopies.
+        if (countOnly) {
+            return INT_MAX;
+        }
         throw IllegalProgram(
             __FILE__, __LINE__, __func__,
             "No scratch registers available for temporary moves.");
-
+    }
     const TempRegData& tempRegs = 
         dynamic_cast<TempRegData&>(interPassData_.datum(srDatumName));
 
