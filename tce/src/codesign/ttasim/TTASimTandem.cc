@@ -57,11 +57,11 @@ tandemSimulate(
     TTAProgram::Program& program) {
 
     // initialize both simulation engines
-    SimulatorFrontend interp(false);
+    SimulatorFrontend interp(SimulatorFrontend::SIM_NORMAL);
     interp.loadMachine(machine);
     interp.loadProgram(program);
 
-    SimulatorFrontend compiled(true);
+    SimulatorFrontend compiled(SimulatorFrontend::SIM_COMPILED);
 
     // leave the compile simulation engine files at /tmp
     compiled.setCompiledSimulationLeaveDirty(true);

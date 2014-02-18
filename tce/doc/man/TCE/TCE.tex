@@ -7172,6 +7172,23 @@ available. For example, setting 6 compiler threads can be done like following:
 export TTASIM_COMPILER_THREADS=6
 \end{verbatim}
 
+\subsection{Remote Debugger}
+
+When a TTA has been implemented to FPGA (or ASIC), ttasim can be used
+as a remote debug interface to the processor. 'ttasim' can connect to the
+TCE built-in debugger (under construction) with 
+\begin{verbatim}
+ttasim -a machine.adf -p program.tpef -r
+\end{verbatim}
+
+A convenience stub implementation for user-implemented debugging support in the TTA
+is given in 'tce/src/applibs/Simulator/CustomDBGController.cc'
+\begin{verbatim}
+ttasim -a machine.adf -p program.tpef -c
+\end{verbatim}
+
+Integration with 'proxim' is currently missing.
+
 
 \subsection{Simulator Control Language}
 

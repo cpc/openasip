@@ -1,6 +1,4 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
-
     This file is part of TTA-Based Codesign Environment (TCE).
 
     Permission is hereby granted, free of charge, to any person obtaining a
@@ -20,50 +18,31 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
- */
-/**
- * @file SimulatorCmdLineOptions.hh
+*/
+
+/** 
+ * @file RemoteMemory.cc
+ * 
+ * Implementation of RemoteMemory class.
  *
- * Declaration of SimulatorCmdLineOptions.
- *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
- * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @note rating: red
+ * @author Kalle Raiskila 2014
  */
 
-#ifndef TTA_SIM_CMDLINE_OPTIONS_HH
-#define TTA_SIM_CMDLINE_OPTIONS_HH
+#include <assert.h>
+#include "RemoteMemory.hh"
 
-#include <string>
+typedef MinimumAddressableUnit MAU;
 
-#include "CmdLineOptions.hh"
-#include "SimulatorFrontend.hh"
+void
+RemoteMemory::write(Word address, MAU data)
+{
+	assert(controller_);
+	controller_->writeMem(address, data, addressspace_);
+}
 
-/**
- * Command line option class for Simulator.
- */
-class SimulatorCmdLineOptions : public CmdLineOptions {
-public:
-    SimulatorCmdLineOptions();
-    virtual ~SimulatorCmdLineOptions();
-
-    virtual void printVersion() const;
-    virtual void printHelp() const;
-
-    bool debugMode();
-    std::string scriptString();
-    
-    std::string machineFile();
-    std::string programFile();
-    SimulatorFrontend::SimulationType backendType();
-    
-private:
-    /// Copying not allowed.
-    SimulatorCmdLineOptions(const SimulatorCmdLineOptions&);
-    /// Assignment not allowed.
-    SimulatorCmdLineOptions& operator=(const SimulatorCmdLineOptions&);
-
-    bool optionGiven(std::string key);    
-};
-
-#endif
+Memory::MAU
+RemoteMemory::read(Word address)
+{
+	assert(controller_);
+	return controller_->readMem(address, addressspace_ );
+}

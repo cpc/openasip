@@ -41,7 +41,9 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
 	OperationIDIndex.cc CompiledSimUtilizationStats.cc \
 	SimpleSimulatorFrontend.cc ExecutingOperation.cc SimulatorCLI.cc \
-	SimulatorCmdLineOptions.cc
+	SimulatorCmdLineOptions.cc \
+	RemoteController.cc CustomDBGController.cc TCEDBGController.cc
+	
 
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \
@@ -68,6 +70,9 @@ PROG_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/program
 FSA_DIR = ${SRC_ROOT_DIR}/applibs/FSA
 MACH_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/mach
 OSAL_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/osal
+PIG_DIR = ${SRC_ROOT_DIR}/applibs/PIG
+BEMG_DIR = ${SRC_ROOT_DIR}/applibs/bem
+BEM_DIR = ${SRC_ROOT_DIR}/base/bem
 
 SCHED_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
 RESOURCE_MODEL_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ResourceModel
@@ -85,6 +90,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} -I${MEMORY_DIR} -I${MACH_DIR} \
 	-I${TPEF_DIR} -I${DISASM_DIR} -I${TRACEDB_DIR} -I${PROG_APPLIBS_DIR} \
 	-I${FSA_DIR} -I${MACH_APPLIBS_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
 	-I${SCHED_APPLIBS_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${PDG_DIR} \
+	-I${PIG_DIR}  -I${BEMG_DIR} -I${BEM_DIR} \
         -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS	
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h

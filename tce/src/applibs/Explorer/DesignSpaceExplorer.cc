@@ -413,7 +413,10 @@ DesignSpaceExplorer::simulate(
     throw (Exception) {
 
     // initialize the simulator
-    SimulatorFrontend simulator(useCompiledSimulation);
+    SimulatorFrontend simulator(
+        useCompiledSimulation ? 
+        SimulatorFrontend::SIM_COMPILED : 
+        SimulatorFrontend::SIM_NORMAL);
     
     // setting simulator timeout in seconds
     simulator.setTimeout(480);

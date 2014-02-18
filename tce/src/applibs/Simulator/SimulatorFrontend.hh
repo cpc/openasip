@@ -44,6 +44,7 @@
 
 #include "Exception.hh"
 #include "SimulationController.hh"
+#include "RemoteController.hh"
 #include "SimulatorConstants.hh"
 #include "BaseType.hh"
 
@@ -73,6 +74,7 @@ namespace TTAProgram {
 namespace TTAMachine {
     class AddressSpace;
 }
+    
 /**
  * Frontend to simulator functionality.
  *
@@ -94,7 +96,15 @@ public:
                    /// with the simulation.
     } RuntimeErrorSeverity;
 
-    SimulatorFrontend(bool useCompiledSimulation = false);
+    /// Which type of simulation this SimulatorFrontend controls or connects to.
+    typedef enum {
+        SIM_NORMAL,   ///< Default, interpreted simulation (debugging engine).
+        SIM_COMPILED, ///< Compiled, faster simulation.
+        SIM_REMOTE,   ///< Remote debugger, not a simulator at all
+        SIM_CUSTOM    ///< User-implemented remote HW debugger
+    } SimulationType;
+
+    SimulatorFrontend(SimulationType backend = SIM_NORMAL);
     virtual ~SimulatorFrontend();
 
     virtual void loadProgram(const std::string& fileName);
@@ -152,6 +162,8 @@ public:
     bool hasSimulationEnded() const;
 
     bool isCompiledSimulation() const;
+    bool isTCEDebugger() const;
+    bool isCustomDebugger() const;
     void setCompiledSimulationLeaveDirty(bool dirty) { 
         leaveCompiledDirty_ = dirty;
     }
@@ -266,6 +278,7 @@ protected:
         throw (IOException);
     void initializeDisassembler() const;
     void initializeMemorySystem();
+    void setControllerForMemories(RemoteController* con);
     bool hasStopReason(StopReason reason) const;
 
     void startTimer();
@@ -294,8 +307,8 @@ protected:
     std::string programFileName_;
     /// Is the program owned by SimulatorFrontend or by the client?
     bool programOwnedByFrontend_;   
-    /// Is this a compiled simulation or not
-    bool compiledSimulation_;
+    /// Type of "backend" this Frontend has
+    SimulationType currentBackend_;
     /// The disassembler used to print out instructions. This is
     /// initialized on demand.
     mutable POMDisassembler* disassembler_;
