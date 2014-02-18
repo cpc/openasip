@@ -37,7 +37,9 @@
 
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile, bool useCompiledSimulation) {
-    simFront_ = new SimulatorFrontend(useCompiledSimulation ? SIM_COMPILED:SIM_NORMAL);
+    simFront_ = 
+        new SimulatorFrontend(
+            useCompiledSimulation ? SIM_COMPILED : SIM_NORMAL);
     simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);
@@ -54,7 +56,9 @@ SimpleSimulatorFrontend::SimpleSimulatorFrontend(
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile, TCEString programFile, 
     bool useCompiledSimulation) {
-    simFront_ = new SimulatorFrontend(useCompiledSimulation ? SIM_COMPILED:SIM_NORMAL);
+    simFront_ = 
+        new SimulatorFrontend(
+            useCompiledSimulation ? SIM_COMPILED : SIM_NORMAL);
     simFront_->setZeroFillMemoriesOnReset(false);
     try {
         simFront_->loadMachine(machineFile);

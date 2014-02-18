@@ -1,12 +1,35 @@
+/*
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
 /**
  * @file RemoteMemory.hh
  * 
  * Declaration of RemoteMemory class.
- * @author Kalle Raiskila, 2013
+ *
+ * @author Kalle Raiskila 2013
  */
 
-#ifndef REMOTE_MEMORY_H
-#define REMOTE_MEMORY_H
+#ifndef TTA_REMOTE_MEMORY_H
+#define TTA_REMOTE_MEMORY_H
 
 #include "Memory.hh"
 #include "RemoteController.hh"
@@ -25,24 +48,26 @@ using TTAMachine::AddressSpace;
  * interface.
  */
 class RemoteMemory : public Memory {
-	public:
+public:
 	// TODO: hoist AddressSpace-based constructor to parent class?
-	RemoteMemory( const AddressSpace &space )
-	:Memory( space.start(), space.end(), space.width()), 
-	 controller_(NULL), addressspace_(space) {}
+	RemoteMemory(const AddressSpace &space) :
+    Memory(space.start(), space.end(), space.width()), 
+    controller_(NULL), addressspace_(space) {}
 
-	/** Set SimulationController for memory.
+	/** 
+     * Set SimulationController for memory.
+     *
 	 * The RemoteMemory accesses physical memories via this controller object.
 	 */
 	void setController(RemoteController* con) {
-		controller_=con;
+		controller_ = con;
 	}
 
 	// overload the pure viruals of Memory
 	virtual void write(Word address, MAU data);
 	virtual Memory::MAU read(Word address);
 	
-	private:
+private:
 	RemoteController* controller_;
 	const AddressSpace& addressspace_;
 

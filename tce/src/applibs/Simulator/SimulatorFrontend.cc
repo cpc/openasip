@@ -112,7 +112,7 @@ using namespace TPEF;
 /**
  * Constructor.
  */
-SimulatorFrontend::SimulatorFrontend(TTATargetType backendType) : 
+SimulatorFrontend::SimulatorFrontend(SimulationType backendType) : 
     currentMachine_(NULL), machineState_(NULL), simCon_(NULL),
     machineOwnedByFrontend_(false), currentProgram_(NULL), 
     programFileName_(""), programOwnedByFrontend_(false), 
@@ -618,18 +618,15 @@ SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName)
  * RemoteMemories must be further initialized here.
  */
 void 
-SimulatorFrontend::setControllerForMemories( RemoteController* con )
-{
+SimulatorFrontend::setControllerForMemories(RemoteController* con) {
 
     int num_mems = memorySystem_->memoryCount();    
-    for( int i=0; i<num_mems; i++ )
-    {
+    for (int i = 0; i < num_mems; i++) {
         MemorySystem::MemoryPtr memptr = memorySystem_->memory(i);
-        boost::shared_ptr<RemoteMemory> rmem = boost::static_pointer_cast<RemoteMemory>(memptr);
-        if( rmem == NULL )
-            std::cout << " it wasnt a RemoteMemory!"<<std::endl;
-        rmem->setController( con );    
-
+        boost::shared_ptr<RemoteMemory> rmem = 
+            boost::static_pointer_cast<RemoteMemory>(memptr);
+        assert(rmem != NULL && "not a RemoteMemory!");
+        rmem->setController(con);    
     }
 }
 
@@ -1699,8 +1696,7 @@ SimulatorFrontend::initializeMemorySystem() {
         const bool shared = space.isShared();
 
         MemorySystem::MemoryPtr mem;
-        switch (currentBackend_)
-        {
+        switch (currentBackend_) {
         case SIM_COMPILED:
              mem = MemorySystem::MemoryPtr(
                  new DirectAccessMemory(
@@ -1844,12 +1840,14 @@ SimulatorFrontend::rfAccessTracker() const
  */
 void
 SimulatorFrontend::setCompiledSimulation(bool value) {
-    // This legacy function assumes we use a simulator, not a
+    // This legacy function assumes we use a simulator engine, not a
     // remote target.
     if (currentBackend_ == SIM_REMOTE) return;
     if (currentBackend_ == SIM_CUSTOM) return;
-    if (value) currentBackend_ = SIM_COMPILED;
-    else       currentBackend_ = SIM_NORMAL;
+    if (value)
+        currentBackend_ = SIM_COMPILED;
+    else 
+        currentBackend_ = SIM_NORMAL;
 }
 
 /**
@@ -2098,6 +2096,7 @@ SimulatorFrontend::machineState() {
  * Recalculates the statistics in case they are old, that is, simulation
  * has been continued or restarted since it was calculated. Should not be
  * called in case simulation is not initialized!
+ *
  * @todo: unimplemented for remote debuggers
  */
 const UtilizationStats& 

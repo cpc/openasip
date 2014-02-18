@@ -21,12 +21,13 @@
 */
 /**
  * @file RemoteController.hh
- * @author Kalle Raiskila
+ * @author Kalle Raiskila 2014
  *
  * Declaration of the RemoteController class.
  */
 
-#pragma once
+#ifndef TTA_REMOTE_CONTROLLER
+#define TTA_REMOTE_CONTROLLER
 
 #include "BaseType.hh"
 #include "TTASimulationController.hh"
@@ -53,13 +54,19 @@ public:
         const TTAMachine::Machine& machine, 
         const TTAProgram::Program& program);
 
-    /** Write data to physical memory.
+    /** 
+     * Write data to physical memory.
+     *
      * @param address TTA's view of the memory address to which to write
-     * @data one MAU of data to write. Needs to be masked, if MAU is less than maximum MAU size.
+     * @data one MAU of data to write. Needs to be masked, if MAU is 
+     *       less than maximum MAU size.
      * @space the address space in which to write the data.
      */
     virtual void writeMem(Word address, MAU data, const AddressSpace&) = 0;
-    /** Read data from physical memory.
+
+    /** 
+     * Read data from physical memory.
+     *
      * @param address TTA's view of the memory address from which to read
      * @space the address space from which to read the data.
      * @return one MAU of data to write. (TODO: is return value masked or not?)
@@ -68,6 +75,7 @@ public:
     
     /**
      * Create and load instruction memory image from current program.
+     *
      * This function generates a binary image of the instruction
      * memory, and stores it in cache. It is then written with loadInstructions(), 
      * which in turn call the pure virtual writeIMem, that subclasses need 
@@ -77,6 +85,7 @@ public:
 
     /**
      * Write to phyical instruction memory.
+     *
      * @param address TTA's view of the memory address to which to write
      * @data buffer of raw data to write to instruction memory
      * @size the size of the data buffer, in bytes
@@ -115,5 +124,8 @@ protected:
     std::set<InstructionAddress> exitPoints;
     std::ostringstream imemImage;
 };
+
+#endif
+
 /* vim: set ts=4 expandtab: */
 

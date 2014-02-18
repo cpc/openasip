@@ -75,14 +75,6 @@ namespace TTAMachine {
     class AddressSpace;
 }
     
-/// Which type of "simulation" this SimulatorFrontend controls
-typedef enum {
-    SIM_NORMAL,   ///< "Normal", interpreted simulation.
-    SIM_COMPILED, ///< Compiled, faster simulation.
-    SIM_REMOTE,   ///< Remote debugger, not a simulator at all
-    SIM_CUSTOM    ///< User-implemented remote HW debugger
-} TTATargetType;
-
 /**
  * Frontend to simulator functionality.
  *
@@ -104,7 +96,15 @@ public:
                    /// with the simulation.
     } RuntimeErrorSeverity;
 
-    SimulatorFrontend(TTATargetType backend = SIM_NORMAL);
+    /// Which type of simulation this SimulatorFrontend controls or connects to.
+    typedef enum {
+        SIM_NORMAL,   ///< Default, interpreted simulation (debugging engine).
+        SIM_COMPILED, ///< Compiled, faster simulation.
+        SIM_REMOTE,   ///< Remote debugger, not a simulator at all
+        SIM_CUSTOM    ///< User-implemented remote HW debugger
+    } SimulationType;
+
+    SimulatorFrontend(SimulationType backend = SIM_NORMAL);
     virtual ~SimulatorFrontend();
 
     virtual void loadProgram(const std::string& fileName);
@@ -278,7 +278,7 @@ protected:
         throw (IOException);
     void initializeDisassembler() const;
     void initializeMemorySystem();
-    void setControllerForMemories( RemoteController* con );
+    void setControllerForMemories(RemoteController* con);
     bool hasStopReason(StopReason reason) const;
 
     void startTimer();
@@ -308,7 +308,7 @@ protected:
     /// Is the program owned by SimulatorFrontend or by the client?
     bool programOwnedByFrontend_;   
     /// Type of "backend" this Frontend has
-    TTATargetType currentBackend_;
+    SimulationType currentBackend_;
     /// The disassembler used to print out instructions. This is
     /// initialized on demand.
     mutable POMDisassembler* disassembler_;

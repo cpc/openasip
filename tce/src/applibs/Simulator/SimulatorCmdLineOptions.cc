@@ -109,12 +109,12 @@ SimulatorCmdLineOptions::SimulatorCmdLineOptions() : CmdLineOptions("") {
 
      addOption(
         new BoolCmdLineOptionParser(
-            SWL_REMOTE_DBG, "connect to remote debugger on FPGA or ASIC.",            
+            SWL_REMOTE_DBG, "connect to a remote debugging interface on an FPGA or ASIC.",
             SWS_REMOTE_DBG));
 
      addOption(
         new BoolCmdLineOptionParser(
-            SWL_CUSTOM_DBG, "connect to a custom remote debugger (if implemented).",            
+            SWL_CUSTOM_DBG, "connect to a custom remote debugger (if implemented).",
             SWS_CUSTOM_DBG));
 }
 
@@ -215,6 +215,7 @@ SimulatorCmdLineOptions::programFile() {
 
 /**
  * Check what sort of simulation user asked for on the command line.
+ *
  * If no value is given in the parsed command line the "normal" simulation, 
  * i.e. the interpreted, non-compiled, version is returned.
  *
@@ -222,26 +223,26 @@ SimulatorCmdLineOptions::programFile() {
  */
 TTATargetType
 SimulatorCmdLineOptions::backendType() {
-    bool want_compiled = false;
-    bool want_remote = false;
-    bool want_custom = false;
 
-    want_compiled |= optionGiven(SWL_FAST_SIM);
-    want_compiled &= findOption(SWL_FAST_SIM)->isFlagOn();
+    bool wantCompiled = false;
+    bool wantRemote = false;
+    bool wantCustom = false;
 
-    want_remote |= optionGiven(SWL_REMOTE_DBG);
-    want_remote &= findOption(SWL_REMOTE_DBG)->isFlagOn();
+    wantCompiled |= optionGiven(SWL_FAST_SIM);
+    wantCompiled &= findOption(SWL_FAST_SIM)->isFlagOn();
 
-    want_custom |= optionGiven(SWL_CUSTOM_DBG);
-    want_custom &= findOption(SWL_CUSTOM_DBG)->isFlagOn();
+    wantRemote |= optionGiven(SWL_REMOTE_DBG);
+    wantRemote &= findOption(SWL_REMOTE_DBG)->isFlagOn();
+
+    wantCustom |= optionGiven(SWL_CUSTOM_DBG);
+    wantCustom &= findOption(SWL_CUSTOM_DBG)->isFlagOn();
 
     // TODO: no check for if user requests simultaneously several 
     // versions of TTA backend. Start with the most picky one, 
     // user probably notices it erroring out.
-    if (want_custom)   return SIM_CUSTOM;
-    if (want_remote)   return SIM_REMOTE;
-    if (want_compiled) return SIM_COMPILED;
+    if (wantCustom) return SIM_CUSTOM;
+    if (wantRemote) return SIM_REMOTE;
+    if (wantCompiled) return SIM_COMPILED;
     return SIM_NORMAL;
 }
-
 
