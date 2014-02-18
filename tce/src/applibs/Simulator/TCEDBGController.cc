@@ -14,80 +14,67 @@ TCEDBGController::TCEDBGController(
     SimulatorFrontend& frontend,
     const TTAMachine::Machine& machine, 
     const TTAProgram::Program& program) : 
-    RemoteController( frontend, machine, program )
-{
+    RemoteController( frontend, machine, program ) {
 }
 
 void TCEDBGController::writeMem(
     Word /*address*/,
     MAU /*data*/,
-    const AddressSpace& /*space*/)
-{
+    const AddressSpace& /*space*/) {
 }
 
 MAU TCEDBGController::readMem(
     Word /*address*/,
-    const AddressSpace& /*space*/)
-{
+    const AddressSpace& /*space*/) {
     return 0;
 }
 
 void TCEDBGController::writeIMem(
     const char *,
-    int /*size*/)
-{
+    int /*size*/) {
 }
 
 
 void TCEDBGController::step(double /*count = 1*/)
-    throw (SimulationExecutionError)
-{
+    throw (SimulationExecutionError) {
 }
 
 void TCEDBGController::next(int /*count = 1*/)
-    throw (SimulationExecutionError)
-{
+    throw (SimulationExecutionError) {
 }
 
 void TCEDBGController::run()
-    throw (SimulationExecutionError)
-{
+    throw (SimulationExecutionError) {
 }
 
 void TCEDBGController::runUntil(UIntWord /*address*/)
-    throw (SimulationExecutionError)
-{
+    throw (SimulationExecutionError) {
 }
 
-void TCEDBGController::reset()
-{
+void TCEDBGController::reset() {
 }
     
 std::string TCEDBGController::registerFileValue(
     const std::string& /*rfName*/, 
-    int /*registerIndex = -1*/)
-{
+    int /*registerIndex = -1*/) {
     std::string rv="hello";
     return rv;
 }
     
 SimValue TCEDBGController::immediateUnitRegisterValue(
-    const std::string& /*iuName*/, int /*index = -1*/)
-{
+    const std::string& /*iuName*/, int /*index = -1*/) {
     SimValue rv;
     return rv;
 }
     
 SimValue TCEDBGController::FUPortValue(
     const std::string& /*fuName*/, 
-    const std::string& /*portName*/)
-{
+    const std::string& /*portName*/) {
     SimValue rv;
     return rv;
 }
     
-InstructionAddress TCEDBGController::programCounter() const
-{
+InstructionAddress TCEDBGController::programCounter() const {
     return 0;
 }
 
