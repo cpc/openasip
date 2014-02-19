@@ -121,15 +121,16 @@ void SimpleResourceManager::buildResourceModel(
     OutputPSocketBroker* opsb = new OutputPSocketBroker(
         "OutputPSocketBroker", *ofb, this, initiationInterval_);
     brokers.push_back(opsb);
-    brokers.push_back(new BusBroker(
-                          "BusBroker", *ipsb, *opsb, machine, 
-                          initiationInterval_));
+    BusBroker* bb = new BusBroker(
+        "BusBroker", *ipsb, *opsb, machine, 
+        initiationInterval_);
+    brokers.push_back(bb);
     SegmentBroker* sb = new SegmentBroker(
         "SegmentBroker", *ipsb, *opsb, initiationInterval_);
     brokers.push_back(sb);
     brokers.push_back(
         new ITemplateBroker(
-            "ITemplateBroker", this, initiationInterval_));
+            "ITemplateBroker", *bb, this, initiationInterval_));
 
     ipsb->setSegmentBroker(*sb);
     opsb->setSegmentBroker(*sb);

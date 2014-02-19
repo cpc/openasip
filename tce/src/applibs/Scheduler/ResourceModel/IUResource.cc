@@ -291,7 +291,7 @@ IUResource::canAssign(
     }
 
     TTAProgram::TerminalImmediate* iTerm =
-        dynamic_cast<TTAProgram::TerminalImmediate*>(&mNode.move().source());
+        static_cast<TTAProgram::TerminalImmediate*>(&mNode.move().source());
     if (findAvailable(defCycle, useCycle) != -1) {
         // FIXME: hack to check if terminal is floating point value
         if ((iTerm->value().width() > INT_WORD_SIZE) && 
@@ -455,12 +455,12 @@ IUResource::findAvailable(const int defCycle, const int useCycle) const {
     int modUse = instructionIndex(useCycle);
     for (int i = 0; i < registerCount(); i++) {
         bool marker = false;
-        int size = resourceRecord_.at(i).size();
+        const ResourceRecordVectorType& resVec = resourceRecord_.at(i);
+        int size = resVec.size();
         for (int j = 0; j < size; j++) {
-
-            int otherDef = resourceRecord_.at(i).at(j)->definition_;
+            int otherDef = resVec[j]->definition_;
             int modOtherDef = instructionIndex(otherDef);
-            int otherUse = resourceRecord_.at(i).at(j)->use_;
+            int otherUse = resVec[j]->use_;
             int modOtherUse = instructionIndex(otherUse);
             
             // no overlap in old.

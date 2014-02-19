@@ -4,6 +4,10 @@
 [updated from commit log on 2014-01-24]
 
 
+Misc. smaller improvements
+--------------------------
+- Compilation times improved.
+
 Bugfixes
 --------
 - Fix PIG and ProGe when generating bits or RTL for

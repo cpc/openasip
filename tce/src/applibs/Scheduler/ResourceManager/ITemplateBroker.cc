@@ -50,6 +50,7 @@
 #include "TerminalRegister.hh"
 #include "Immediate.hh"
 #include "SimpleResourceManager.hh"
+#include "BusBroker.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -58,9 +59,10 @@ using namespace TTAProgram;
 /**
  * Constructor.
  */
-ITemplateBroker::ITemplateBroker(std::string name, unsigned int initiationInterval) :
+ITemplateBroker::ITemplateBroker(
+    std::string name, BusBroker& busBroker, unsigned int initiationInterval) :
     ResourceBroker(name, initiationInterval),
-    rm_(NULL) {
+    rm_(NULL), busBroker_(busBroker) {
 }
 
 /**
@@ -68,10 +70,11 @@ ITemplateBroker::ITemplateBroker(std::string name, unsigned int initiationInterv
  */
 ITemplateBroker::ITemplateBroker(
     std::string name,
+    BusBroker& busBroker,
     SimpleResourceManager* rm,
     unsigned int initiationInterval) :
     ResourceBroker(name, initiationInterval),
-    rm_(rm) {
+    rm_(rm), busBroker_(busBroker) {
 }
 
 /**
@@ -249,10 +252,10 @@ ITemplateBroker::assignImmediate(
         Immediates immediates;
         immediates.push_back(&immediate);
 
-        ITemplateResource& templateRes = dynamic_cast<ITemplateResource&>(
+        ITemplateResource& templateRes = static_cast<ITemplateResource&>(
             findITemplates(cycle, moves, immediates).resource(0));
          const InstructionTemplate& iTemplate =
-            dynamic_cast<const InstructionTemplate&>(
+            static_cast<const InstructionTemplate&>(
                 machinePartOf(templateRes));
 
         // Find instruction, if there is none, create new.
@@ -264,7 +267,7 @@ ITemplateBroker::assignImmediate(
             SchedulingResource& oldRes =
                 *resourceOf(ins->instructionTemplate());
             ITemplateResource& oldTemplateRes =
-                dynamic_cast<ITemplateResource&>(oldRes);
+                static_cast<ITemplateResource&>(oldRes);
             oldTemplateRes.unassign(cycle);
         } else {
             ins = new TTAProgram::Instruction(iTemplate);
@@ -736,9 +739,9 @@ ITemplateBroker::findITemplates(
         // For each of moves already assigned template
         // should not use the bus for immediate transport
         for (unsigned int i = 0; i < moves.size(); i++) {
-            SchedulingResource& bus =
-                resourceMapper().resourceOf(moves[i]->bus());
-            if ((*resIter).second->hasDependentResource(bus)) {
+            const SchedulingResource* bus =
+                busBroker_.resourceOf(moves[i]->bus());
+            if ((*resIter).second->hasDependentResource(*bus)) {
                 addResult = false;
                 break;
             }
