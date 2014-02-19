@@ -1803,14 +1803,19 @@ BoostGraph<GraphNode, GraphEdge>::successors(
 
     NodeDescriptor nd = descriptor(node);
     EdgeSet out = outEdges(node);
-    typedef typename EdgeSet::iterator EdgeIterator;
 
-    for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
-        bool backEdge = (*i)->isBackEdge();
+    typedef typename GraphTraits::out_edge_iterator outEdgeIter;
+    std::pair<outEdgeIter, outEdgeIter> edges = boost::out_edges(nd, graph_);
 
+    for (outEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        EdgeDescriptor ed = *ei;
+        GraphEdge* edge = graph_[ed];
+        bool backEdge = edge->isBackEdge();
         if (!((ignoreBackEdges && backEdge) ||
               (ignoreForwardEdges && !backEdge))) {
-            succ.insert(&headNode(**i, nd));
+            NodeDescriptor ndHead = boost::target(ed, graph_);
+            GraphNode* head = graph_[ndHead];
+            succ.insert(head);
         }
     }
 
