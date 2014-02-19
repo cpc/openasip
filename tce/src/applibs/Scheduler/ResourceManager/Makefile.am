@@ -44,5 +44,6 @@ libresourcemanager_la_SOURCES += \
 	ExecutionPipelineBroker.hh BusBroker.hh \
 	SimpleResourceManager.hh ResourceMapper.hh \
 	InputPSocketBroker.hh ResourceBroker.hh \
-	PendingAssignment.hh SegmentBroker.hh 
+	PendingAssignment.hh SegmentBroker.hh \
+	ResourceBroker.icc
 ## headers end

@@ -148,22 +148,6 @@ bool ResourceBroker::isAvailable(
 }
 
 /**
- * Return the resource instance that models the given machine part.
- *
- * @param mp Machine part.
- * @return The resource instance that models the given machine part,
- * or NULL if not found.
- */
-SchedulingResource*
-ResourceBroker::resourceOf(const TTAMachine::MachinePart& mp) const  {
-    ResourceMap::const_iterator iter = resMap_.find(&mp);
-    if (iter == resMap_.end()) {
-        return NULL;
-    }
-    return iter->second;
-}
-
-/**
  * Return the machine part that models the given resource.
  *
  * @param r Scheduling resource.

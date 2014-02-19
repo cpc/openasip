@@ -1870,7 +1870,7 @@ bool ExecutionPipelineResource::operandAllowedAtCycle(
         return INT_MAX;
     }
     
-    const OperandUseVector operandUsed = rui->second;
+    const OperandUseVector& operandUsed = rui->second;
     size_t operandUsedSize = operandUsed.size();
 
     if (!mn.isDestinationOperation()) {

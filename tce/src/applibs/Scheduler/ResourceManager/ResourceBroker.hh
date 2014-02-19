@@ -85,8 +85,7 @@ public:
 
     virtual void buildResources(const TTAMachine::Machine& target) = 0;
     virtual void setupResourceLinks(const ResourceMapper& mapper) = 0;
-    virtual SchedulingResource* resourceOf(const TTAMachine::MachinePart& mp)
-        const;
+    inline SchedulingResource* resourceOf(const TTAMachine::MachinePart& mp) const;
     virtual const TTAMachine::MachinePart& machinePartOf(
         const SchedulingResource& r)
         const throw (WrongSubclass, KeyNotFound);
@@ -126,5 +125,7 @@ protected:
     MoveResMap assignedResources_;
     std::string brokerName_;
 };
+
+#include "ResourceBroker.icc"
 
 #endif

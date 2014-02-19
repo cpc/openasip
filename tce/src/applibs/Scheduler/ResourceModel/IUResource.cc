@@ -455,9 +455,8 @@ IUResource::findAvailable(const int defCycle, const int useCycle) const {
     int modUse = instructionIndex(useCycle);
     for (int i = 0; i < registerCount(); i++) {
         bool marker = false;
-        for (int j = 0;
-            j < static_cast<int>(resourceRecord_.at(i).size());
-            j++) {
+        int size = resourceRecord_.at(i).size();
+        for (int j = 0; j < size; j++) {
 
             int otherDef = resourceRecord_.at(i).at(j)->definition_;
             int modOtherDef = instructionIndex(otherDef);
