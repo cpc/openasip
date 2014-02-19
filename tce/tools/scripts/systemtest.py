@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011-2013 Pekka Jääskeläinen / Tampere University of Technology.
+    Copyright (c) 2011-2014 Pekka Jääskeläinen / Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,7 +34,7 @@ To do:
     binaries, thus enable testing of build tree builds and even testing
     TCE installations.
 
-@author 2011 Pekka Jääskeläinen 
+@author 2011-2014 Pekka Jääskeläinen 
 """
 import os
 import tempfile
@@ -556,8 +556,19 @@ def run_all_tests_in_parallel(test_dirs):
 
     run_finalizers_in_parrallel(test_dirs)
 
+
+def setup_exec_env():
+    """Sets up the execution environment variables."""
+    # Use the thread-caching malloc to boost TCE execution speed, 
+    # if found.
+    tcm_libs = sorted(glob.glob("/usr/lib/libtcmalloc_minimal.*"), cmp=lambda x, y: len(x) - len(y))
+    if len(tcm_libs):
+        #print "Using", tcm_libs[0]
+        os.environ['LD_PRELOAD'] = tcm_libs[0]
+
 if __name__ == "__main__":
     options, args = parse_options()
+    setup_exec_env()
 
     if options.output_diff:
         output_diff_file = open('difference.txt', 'w+')
