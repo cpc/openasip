@@ -1802,8 +1802,6 @@ BoostGraph<GraphNode, GraphEdge>::successors(
     NodeSet succ;
 
     NodeDescriptor nd = descriptor(node);
-    EdgeSet out = outEdges(node);
-
     typedef typename GraphTraits::out_edge_iterator outEdgeIter;
     std::pair<outEdgeIter, outEdgeIter> edges = boost::out_edges(nd, graph_);
 
