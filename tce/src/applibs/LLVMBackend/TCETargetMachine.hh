@@ -50,11 +50,7 @@
 
 #include "llvm/CodeGen/Passes.h"
 
-#ifdef LLVM_3_1
-
-#include "llvm/Target/TargetData.h"
-
-#elif defined(LLVM_3_2)
+#if defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
 typedef llvm::DataLayout TargetData;
@@ -77,7 +73,6 @@ class PluginTools;
 extern "C" void LLVMInitializeTCETargetInfo();
 
 namespace llvm {
-#ifndef LLVM_3_0
     class TCEPassConfig : public TargetPassConfig {
     public:
 	TCEPassConfig(
@@ -96,7 +91,6 @@ namespace llvm {
 
 	TCETargetMachinePlugin* plugin_;
     };
-#endif
 
     class Module;
 
@@ -106,19 +100,12 @@ namespace llvm {
     class TCETargetMachine : public LLVMTargetMachine {
 
     public:
-#ifdef LLVM_3_0
-        TCETargetMachine(
-	    const Target &T, const std::string &TT,
-	    const std::string& CPU, const std::string &FS,
-	    Reloc::Model RM, CodeModel::Model CM);
-
-#else
         TCETargetMachine(
 	    const Target &T, const std::string &TT,
 	    const std::string& CPU, const std::string &FS,
 	    const TargetOptions &Options,
 	    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
-#endif
+
         virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);
@@ -154,11 +141,9 @@ namespace llvm {
             return &DL;
         }
 
-#ifndef LLVM_3_1
         virtual const DataLayout* getDataLayout() const { 
             return &DL; 
         }
-#endif
 
         virtual const TargetFrameLowering* getFrameLowering() const {
             return plugin_->getFrameLowering();
@@ -171,21 +156,8 @@ namespace llvm {
 	    return &tsInfo;
 	}
 
-#ifdef LLVM_3_0
-        virtual bool addPreISel(PassManagerBase& PM, 
-                                CodeGenOpt::Level OptLevel);
-
-        virtual bool addInstSelector(PassManagerBase& pm, 
-                                     CodeGenOpt::Level OptLevel);
-
-        // we do not want branch folder pass(we don not??)
-        virtual bool getEnableTailMergeDefault() const;
-#else
-
 	virtual TargetPassConfig *createPassConfig(
 	    PassManagerBase &PM);
-
-#endif
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);

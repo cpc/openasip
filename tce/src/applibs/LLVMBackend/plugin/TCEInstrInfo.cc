@@ -239,43 +239,6 @@ void TCEInstrInfo::copyPhysReg(
             get(plugin_->getRegCopy(destReg, srcReg)), destReg).
         .addReg(SrcReg, getKillRegState(isKillSrc));
 */
-#if (defined(LLVM_3_0) || defined(LLVM_3_1))
-    if (TCE::R1RegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::R32IRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::R32FPRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF32ff), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::R32HFPRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOVF16hh), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V2R32IRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV2vv), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V2R32FPRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV2mm), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V4R32IRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV4ww), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V4R32FPRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV4nn), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V8R32IRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV8xx), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else if (TCE::V8R32FPRegsRegisterClass->contains(destReg, srcReg)) {
-        BuildMI(mbb, mbbi, dl, get(TCE::MOV8oo), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
-    } else {
-        assert(
-            false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
-
-    }
-#else
     if (TCE::R1RegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
@@ -311,7 +274,6 @@ void TCEInstrInfo::copyPhysReg(
             false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
 
     }
-#endif
 }
 
 /*

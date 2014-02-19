@@ -58,7 +58,7 @@
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#ifdef LLVM_3_2
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
 #else
@@ -116,11 +116,7 @@ using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
 
-#ifdef LLVM_3_1
-
-#include "llvm/Target/TargetData.h"
-
-#elif defined(LLVM_3_2)
+#ifdef LLVM_3_2
 
 #include "llvm/DataLayout.h"
 typedef llvm::DataLayout TargetData;
@@ -504,11 +500,7 @@ LLVMBackend::compile(
 //    ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     
-#ifdef LLVM_3_1
-    const TargetData *TD = targetMachine->getTargetData();
-#else
     const TargetData *TD = targetMachine->getDataLayout();
-#endif
     assert(TD);
 
     Passes.add(new TargetData(*TD));

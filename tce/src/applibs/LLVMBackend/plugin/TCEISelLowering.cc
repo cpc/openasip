@@ -34,7 +34,7 @@
 #include <assert.h>
 #include <string>
 #include "tce_config.h"
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#ifdef LLVM_3_2
 #include <llvm/Function.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Intrinsics.h>
@@ -212,13 +212,8 @@ TCETargetLowering::LowerFormalArguments(
                 
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else if (CurArgReg < ArgRegEnd && !isVarArg) {
-#if (defined(LLVM_3_1))
                 unsigned VReg = RegInfo.createVirtualRegister(
                     &TCE::R32IRegsRegClass);
-#else
-                unsigned VReg = RegInfo.createVirtualRegister(
-                    &TCE::R32IRegsRegClass);
-#endif
                 MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
                 SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
                 if (ObjectVT != MVT::i32) {

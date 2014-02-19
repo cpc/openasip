@@ -84,7 +84,7 @@
 #include "AssocTools.hh"
 #include "Conversion.hh"
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#ifdef LLVM_3_2
 #include <llvm/Constants.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Module.h>
@@ -498,11 +498,7 @@ unsigned
 LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv) {
 
-#ifdef LLVM_3_1
-    const TargetData* td = tm_->getTargetData();
-#else
     const TargetData* td = tm_->getDataLayout();
-#endif
     unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
 
@@ -596,13 +592,8 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
-#ifdef LLVM_3_1
-    assert(addr % (tm_->getTargetData()->getABITypeAlignment(ci->getType()))
-           == 0 && "Invalid alignment for constant int!");
-#else
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
-#endif
 
     std::vector<MinimumAddressableUnit> maus;
 
@@ -650,13 +641,8 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
-#ifdef LLVM_3_1
-    assert(addr % (tm_->getTargetData()->getABITypeAlignment(cfp->getType()))
-           == 0 && "Invalid alignment for constant fp!");
-#else
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
-#endif
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
@@ -666,11 +652,7 @@ LLVMTCEBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
-#ifdef LLVM_3_1
-    unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
-#else
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
-#endif
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -744,11 +726,7 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     TYPE_CONST Type* type = gv->getType();
 
-#ifdef LLVM_3_1
-    unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
-#else
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
-#endif
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
@@ -796,11 +774,7 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
-#ifdef LLVM_3_1
-    const TargetData* td = tm_->getTargetData();
-#else
     const TargetData* td = tm_->getDataLayout();
-#endif
 
     assert(addr % (td->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");

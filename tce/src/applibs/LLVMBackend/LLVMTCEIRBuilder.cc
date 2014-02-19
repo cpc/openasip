@@ -68,7 +68,7 @@
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 #include <llvm/CodeGen/MachineJumpTableInfo.h>
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#ifdef LLVM_3_2
 #include <llvm/Value.h>
 #else
 #include <llvm/IR/Value.h>
@@ -760,11 +760,7 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
-#ifdef LLVM_3_0
-        return mi.getDesc().getName();
-#else
 	return targetMachine().getInstrInfo()->getName(mi.getOpcode());
-#endif
     }
 }
 

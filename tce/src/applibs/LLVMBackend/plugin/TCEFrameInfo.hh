@@ -60,7 +60,7 @@ namespace llvm {
 	    : TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
 
-#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
+#ifndef LLVM_3_2
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
