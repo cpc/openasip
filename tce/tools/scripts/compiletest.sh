@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2002-2013 Tampere University of Technology.
+# Copyright (c) 2002-2014 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -253,8 +253,8 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*DataDependenceGraphBuilder.hh:38,|\
 .*ignoring.\#pragma.GCC.diagnostic.*|\
 distcc.*Warning.*|\
-.*clang..warning..argument.unused.during.compilation...-pthread..*"
-
+.*clang..warning..argument.unused.during.compilation...-pthread..*|\
+.*wxDummyCheckInt.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
