@@ -333,9 +333,7 @@ class IntegrationTestCase(object):
             return
 
         self.description = m.group(1).strip()
-        self.bin = self._file_name
-        if os.path.basename(self.bin) == self.bin:
-            self.bin = os.path.join(".", self.bin)
+        self.bin = os.path.join(".", os.path.basename(self._file_name))
 
         m = re.search(r"###\sxstdout:\s(.*)", contents)
         if not m:
