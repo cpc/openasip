@@ -1,6 +1,0 @@
-<?php
-// short test description
-$test_description = "Test that bottom-up-scheduler does not break multiple address space support";
-$test_bin = "./test_addr_spaces_bu.sh";
-$bin_args = "";
-?>

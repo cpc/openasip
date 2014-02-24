@@ -1,6 +1,0 @@
-<?php
-// short test description
-$test_description = "Multiple address space support via __attribute__((address_space(X))";
-$test_bin = "./test_addr_spaces.sh";
-$bin_args = "";
-?>
