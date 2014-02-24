@@ -679,7 +679,7 @@ def setup_exec_env():
                     wanted_binaries.remove(wanted)
                     break
 
-    os.environ['PATH'] = tce_path_env + os.environ['PATH']
+    os.environ['PATH'] = tce_path_env + ":" + os.environ['PATH']
 
 if __name__ == "__main__":
     options, args = parse_options()
