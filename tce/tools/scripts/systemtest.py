@@ -24,15 +24,7 @@
     DEALINGS IN THE SOFTWARE.
 """
 """
-Integration/systemtest script for the TCE tools.
-
-To do:
-* Support executing {run_,test_,run-,test-}.{py,sh} files directly. 
-  * Read metadata (description, maybe expected output?) from the 
-    script's comments. 
-  * Setup PATH so one does not need relative paths to the src-tree 
-    binaries, thus enable testing of build tree builds and even testing
-    TCE installations.
+Integration/systemtest script for the TCE command line tools.
 
 @author 2011-2014 Pekka Jääskeläinen 
 """
@@ -238,9 +230,18 @@ class IntegrationTestCase(object):
     def __init__(self, test_case_file):
         self._file_name = test_case_file
         self.test_dir = os.path.dirname(test_case_file) or "."
+
+        # In case the test tests only one stdin case, this is set to the
+        # expected stdout/stderr content for verification.
+        self.xstdout = None
+        self.xstderr = None
+        self.stdin = ""
         self.valid = False
         if test_case_file.endswith(".testdesc"): 
             self._load_legacy_testdesc()
+        elif os.path.basename(test_case_file).startswith("tcetest_") and \
+                os.path.basename(test_case_file).endswith(".sh"):
+            self._load_sh_testdesc()        
 
         # list of tuples of test data:
         # (stdin, expected stdout)
@@ -286,11 +287,22 @@ class IntegrationTestCase(object):
 
             self._test_data.append((in_file, os.path.basename(out_file)))
 
-        assert len(self._test_data) > 0, "No test stdin/stdout files found."
+        if len(self._test_data) == 0:
+            # Assume the test case should be executed only once, does not
+            # read stdin and is assumed to output empty stdout and stderr
+            if self.stdin is None:
+                self.stdin = [""]
+            if self.xstdout is None:
+                self.xstdout = [""]
+            if self.xstderr is None:
+                self.xstderr = [""]
+            # A None test data file denotes this here: the test input/outputs are
+            # read from the variables in that case.
+            self._test_data.append((None, None))
 
     def _load_legacy_testdesc(self):
         contents = open(self._file_name).read().strip()
-        if not contents.startswith("<?php"):
+        if not contents.startswith("<?"):
             print >> sys.stderr, "Illegal test file", self._file_name
             self.valid = False
             return
@@ -308,12 +320,51 @@ class IntegrationTestCase(object):
 
         self.valid = True
 
+    def _load_sh_testdesc(self):
+        contents = open(self._file_name).read().strip()
+        self.valid = False
+        if not "### TCE TESTCASE" in contents or \
+                not "### title: " in contents:
+            sys.exit(2)
+            return
+
+        m = re.search(r"###\stitle:\s(.*)", contents)
+        if not m:
+            return
+
+        self.description = m.group(1).strip()
+        self.bin = self._file_name
+        if os.path.basename(self.bin) == self.bin:
+            self.bin = os.path.join(".", self.bin)
+
+        m = re.search(r"###\sxstdout:\s(.*)", contents)
+        if not m:
+            self.xstdout = [""]
+        else:
+            # The verifier assumes the lines are terminated with the new line 
+            # character.
+            self.xstdout = [x + "\n" for x in m.group(1).strip().split("\\n")]
+
+        self.args = ""
+        self.type = "sh"
+        # The default verification data dir is the file name with tcetest_ prefix and .sh suffix
+        # stripped.
+        self.verification_data_dir = os.path.basename(self._file_name)[8:-3]
+
+        if len(self.description) == 0 or len(self.bin) == 0:
+            print >> sys.stderr, "Illegal test file", self._file_name
+            self.valid = False
+            return
+
+        self.valid = True
+
     def __str__(self):
         return ("description: %s\n" + \
                 "type:        %s\n" + \
                 "bin:         %s\n" + \
-                "args:        %s\n") % \
-            (self.description, self.type, self.bin, self.args)
+                "args:        %s\n" + \
+                "data dir:    %s\n") % \
+            (self.description, self.type, self.bin, self.args, self.verification_data_dir)
 
     def execute(self, stdout_stream=sys.stdout):
         """Assumes CWD is in the test directory when this is called."""
@@ -338,8 +389,8 @@ class IntegrationTestCase(object):
                 stdin_fn = os.path.join(self.verification_data_dir, stdin_fn)
                 stdinStimulus = open(stdin_fn, 'r').readlines()
             else:
-                stdinStimulus = ""
-            stdout_fn = test_data[1]
+                stdinStimulus = self.stdin
+
             outputTemp = create_temp_file(".out")
             (timeout, stdoutStr, stderrStr, exitcode) = \
                 run_with_timeout(self.bin + " " + self.args, options.timeout, inputStream=stdinStimulus)
@@ -353,7 +404,12 @@ class IntegrationTestCase(object):
 
             stdout = StringIO.StringIO(stdoutStr)
             gotOut = stdout.readlines()
-            correctOut = open(os.path.join(self.verification_data_dir, stdout_fn)).readlines()
+
+            stdout_fn = test_data[1]
+            if stdout_fn is not None:
+                correctOut = open(os.path.join(self.verification_data_dir, stdout_fn)).readlines()
+            else:
+                correctOut = self.xstdout
 
             stdoutDiff = list(unified_diff(correctOut, gotOut, 
                               fromfile="expected.stdout", tofile="produced.stdout"))
@@ -403,6 +459,23 @@ def get_fs_tree(root):
             found_files += get_fs_tree(os.path.join(root, f))
 
     return found_files
+
+def get_fs_tree_dirs(root, max_depth=10, ignoredirs=[".deps", ".libs"]):
+    """Returns all dirs found starting from the given root path.
+
+    Does not include files."""
+    found_dirs = []
+
+    for f in os.listdir(root):
+        full_path = os.path.join(root, f)
+        if os.path.split(full_path)[-1] in ignoredirs: continue
+
+        if os.path.isdir(full_path):
+            found_dirs += [full_path]
+            if max_depth > 0:
+                found_dirs += get_fs_tree_dirs(os.path.join(root, f), max_depth=max_depth-1)
+
+    return found_dirs
 
 def find_test_cases(root):
     fs_tree = get_fs_tree(root)
@@ -565,6 +638,50 @@ def setup_exec_env():
     if len(tcm_libs):
         #print "Using", tcm_libs[0]
         os.environ['LD_PRELOAD'] = tcm_libs[0]
+
+    # Setup the PATH to point to the TCE binaries to test.
+    # Find the tce/src from the dir parents.    
+    bld_root = os.getcwd()
+    while bld_root != "":
+        if os.path.exists(bld_root + "/tce/src"):
+            break
+        bld_root = "/".join(os.path.split(bld_root)[0:-1])
+        if bld_root.endswith('/'): bld_root = bld_root[0:-1]
+
+    if bld_root == "": 
+        sys.stderr.write("Cannot find TCE build root to set up the test environment PATH.\n")
+        cleanup_and_exit(2)
+
+    bld_root += "/tce"
+#    print bld_root
+
+    subtreeroots = ["scripts", "src/bintools", "src/codesign", "src/procgen"]
+    # If any of the dirs inside the subtreeroots contains at least one
+    # of these tested binaries, put the dir to the PATH.
+    wanted_binaries = ["buildcompressor", "buildestimatorplugin",
+                       "buildexplorerplugin", "buildicdecoderplugin", "buildopset",
+                       "c2vhdl", "createbem", "createhdb", "dictionary_tool",
+                       "dump_instruction_execution_trace", "dumptpef",
+                       "estimate", "explore", "generatebits", "generate_cachegrind",
+                       "generateprocessor", "hdbeditor", "llvm-tce", "machine_instruction_info",
+                       "mc-stats", "minimize-ic", "osed", "pareto-vis", "prode",
+                       "proxim", "tceasm", "tcecc", "tce-config", "tcedisasm",
+                       "tceoclextgen", "tceopgen",
+                       "testhdb", "testosal", "ttasim", "ttasim-tandem",
+                       "ttaunittester", "viewbem"]
+    tce_path_env = ""
+    max_depth = 2
+    for root in subtreeroots:
+        new_dirs = get_fs_tree_dirs(os.path.join(bld_root, root), max_depth=max_depth)
+        for new_dir in new_dirs:
+            for wanted in wanted_binaries:
+                if os.path.exists(os.path.join(new_dir, wanted)):
+                    #print "Found", wanted, "in", new_dir
+                    tce_path_env += ":" + new_dir
+                    wanted_binaries.remove(wanted)
+                    break
+
+    os.environ['PATH'] = tce_path_env + os.environ['PATH']
 
 if __name__ == "__main__":
     options, args = parse_options()
