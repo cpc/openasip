@@ -675,11 +675,12 @@ def setup_exec_env():
             for wanted in wanted_binaries:
                 if os.path.exists(os.path.join(new_dir, wanted)):
                     #print "Found", wanted, "in", new_dir
-                    tce_path_env += ":" + new_dir
+                    tce_path_env += new_dir + ":"
                     wanted_binaries.remove(wanted)
                     break
 
-    os.environ['PATH'] = tce_path_env + ":" + os.environ['PATH']
+    os.environ['ORIGINALPATH'] = os.environ['PATH']
+    os.environ['PATH'] = tce_path_env + os.environ['PATH']
 
 if __name__ == "__main__":
     options, args = parse_options()

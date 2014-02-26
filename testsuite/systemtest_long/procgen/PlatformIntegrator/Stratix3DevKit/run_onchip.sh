@@ -37,6 +37,7 @@ cat $PO_DIR/platform/${ENT}_toplevel.vhdl | grep -v " signal "
 QUARTUS_SH=$(which quartus_sh 2> /dev/null)
 if [ "x$QUARTUS_SH" != "x" ]
 then
+  export PATH=$ORIGINALPATH
   ./quartus_synthesize.sh >& /dev/null || echo "Optional synthesis failed!"
 fi
 exit 0
