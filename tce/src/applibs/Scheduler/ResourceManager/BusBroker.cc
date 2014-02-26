@@ -720,25 +720,7 @@ BusBroker::setupResourceLinks(const ResourceMapper& mapper) {
         busResource->addToRelatedGroup(0, *immSocketResource);
 
         for (int i = 0; i < bus->segmentCount(); i++) {
-
             Segment* seg = bus->segment(i);
-            try {
-                SchedulingResource& depRes = mapper.resourceOf(*seg);
-                // add "virtual" socket for short immediate reading to the first
-                // segment
-                if (i == 0) {
-                    depRes.addToRelatedGroup(0, *immSocketResource);
-                }
-                busResource->addToDependentGroup(0, depRes);
-            } catch (const KeyNotFound& e) {
-                std::string msg = "BusBroker: finding ";
-                msg += " resource for Segment ";
-                msg += " failed with error: ";
-                msg += e.errorMessageStack();
-                throw KeyNotFound(
-                    __FILE__, __LINE__, __func__, msg);
-            }                                                            
-
             for (int j = 0; j < seg->connectionCount(); j++) {
                 Socket* socket = seg->connection(j);
                 SchedulingResource* relRes = 
@@ -783,10 +765,10 @@ BusBroker::canTransportImmediate(const MoveNode& node) const {
     ResourceMap::const_iterator resIter = resMap_.begin();
     while (resIter != resMap_.end()) {
         BusResource* busRes = static_cast<BusResource*>((*resIter).second);
-        if (canTransportImmediate(node, findImmResource(*busRes))) {
+        ShortImmPSocketResource* immRes = &findImmResource(*busRes);
+        if (canTransportImmediate(node, *immRes)) {
             bool guardOK = false;
-            const Bus* aBus =
-                static_cast<const Bus*>(&machinePartOf(*busRes));
+            const Bus* aBus = static_cast<const Bus*>(resIter->first);
             if (node.move().isUnconditional()) {
                 guardOK = true;
             } else {

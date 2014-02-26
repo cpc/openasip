@@ -57,7 +57,7 @@ using namespace TTAProgram;
 InputPSocketBroker::InputPSocketBroker(
     std::string name, ResourceBroker& fub, unsigned int initiationInterval): 
     ResourceBroker(name, initiationInterval), 
-    inputFUBroker_(fub), segmentBroker_(NULL) {
+    inputFUBroker_(fub), busBroker_(NULL) {
 }
 
 /**
@@ -351,9 +351,10 @@ InputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
 
         for (int i = 0; i < socket->segmentCount(); i++) {
             Segment* segment = socket->segment(i);
+            Bus* bus = segment->parentBus();
             try {
                 SchedulingResource& relRes = 
-                    *segmentBroker_->resourceOf(*segment);
+                    *busBroker_->resourceOf(*bus);
                 socketResource->addToRelatedGroup(1, relRes);
             } catch (const KeyNotFound& e) {
                 std::string msg = "InputPSocketBroker: finding ";
@@ -372,6 +373,6 @@ InputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
  *
  * Cannot be given in constructor because SegmentBroker is created later.
  */
-void InputPSocketBroker::setSegmentBroker(ResourceBroker& sb) {
-    segmentBroker_ = &sb;
+void InputPSocketBroker::setBusBroker(ResourceBroker& sb) {
+    busBroker_ = &sb;
 }

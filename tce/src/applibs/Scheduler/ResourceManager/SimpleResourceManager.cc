@@ -38,12 +38,12 @@
 #include "InputPSocketBroker.hh"
 #include "OutputPSocketBroker.hh"
 #include "BusBroker.hh"
-#include "SegmentBroker.hh"
 #include "IUBroker.hh"
 #include "ITemplateBroker.hh"
 #include "Instruction.hh"
 #include "SequenceTools.hh"
 #include "SimpleBrokerDirector.hh"
+#include "ExecutionPipelineResourceTable.hh"
 
 #include <sstream>
 
@@ -74,7 +74,7 @@ SimpleResourceManager::createRM(
         rmPool_[&machine];
     std::list<SimpleResourceManager*>& iipool = pool[ii];
     if (iipool.empty()) {
-        return new SimpleResourceManager(machine, ii);
+        return new SimpleResourceManager(machine,ii);
     } else {
         SimpleResourceManager* rm = iipool.back();
         iipool.pop_back();
@@ -87,11 +87,17 @@ SimpleResourceManager::createRM(
  *
  * This puts the RM into a pool of resource managers which can be recycled.
  */
-void SimpleResourceManager::disposeRM(SimpleResourceManager* rm) {
-    std::map<int, std::list< SimpleResourceManager*> >& pool =
-        rmPool_[&rm->machine()];
-    pool[rm->initiationInterval()].push_back(rm);
-    rm->clear();
+void SimpleResourceManager::disposeRM(
+    SimpleResourceManager* rm, bool allowReuse) {
+    if (allowReuse) {
+        std::map<int, std::list< SimpleResourceManager*> >& pool =
+            rmPool_[&rm->machine()];
+        pool[rm->initiationInterval()].push_back(rm);
+        rm->clear();
+    } else {
+        delete rm;
+        ExecutionPipelineResourceTable::finalize();
+    }
 }
 
 
@@ -125,15 +131,13 @@ void SimpleResourceManager::buildResourceModel(
         "BusBroker", *ipsb, *opsb, machine, 
         initiationInterval_);
     brokers.push_back(bb);
-    SegmentBroker* sb = new SegmentBroker(
-        "SegmentBroker", *ipsb, *opsb, initiationInterval_);
-    brokers.push_back(sb);
     brokers.push_back(
         new ITemplateBroker(
             "ITemplateBroker", *bb, this, initiationInterval_));
 
-    ipsb->setSegmentBroker(*sb);
-    opsb->setSegmentBroker(*sb);
+    ipsb->setBusBroker(*bb);
+    opsb->setBusBroker(*bb);
+
     // build resource model and assignment plan
 
     for (unsigned int i = 0; i < brokers.size(); i++) {

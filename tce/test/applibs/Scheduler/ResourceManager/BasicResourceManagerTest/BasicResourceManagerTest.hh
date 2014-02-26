@@ -99,6 +99,7 @@ BasicResourceManagerTest::tearDown() {
 
 void
 BasicResourceManagerTest::testBuildAndDispose() {
+
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
     // Target machine to schedule the program for.
@@ -140,7 +141,7 @@ BasicResourceManagerTest::testBuildAndDispose() {
         rm = SimpleResourceManager::createRM(*targetMachine);
         TS_ASSERT_EQUALS(rm->toString(), empty);
 //        std::cerr << rm->toString() << std::endl;
-        SimpleResourceManager::disposeRM(rm);
+        SimpleResourceManager::disposeRM(rm, false);
     }
 }
 
@@ -184,6 +185,8 @@ BasicResourceManagerTest::testMissingConnection() {
         MoveNodeGroup moves;
 
         moves = selector.candidates();
+        assert(moves.node(0).isMove());
+
         TS_ASSERT(!moves.node(0).isScheduled());
         TS_ASSERT_THROWS_NOTHING(rm->earliestCycle(moves.node(0)));
         TS_ASSERT_THROWS_NOTHING(rm->earliestCycle(moves.node(1)));
@@ -193,7 +196,7 @@ BasicResourceManagerTest::testMissingConnection() {
         }
         TS_ASSERT(rm->hasConnection(tempSet) == false);
         TS_ASSERT_EQUALS(rm->earliestCycle(moves.node(2)), -1);
-        SimpleResourceManager::disposeRM(rm);
+        SimpleResourceManager::disposeRM(rm, false);
         }
         delete srcProgram;
     } catch (const Exception& e) {
@@ -209,7 +212,7 @@ BasicResourceManagerTest::testMissingConnection() {
  */
 void
 BasicResourceManagerTest::testBasicFunctionality() {
-    
+
 #define SCHEDULE(X__,Y__) \
     TS_ASSERT(!moves.node(X__).isScheduled());\
     cycle = rm->earliestCycle(Y__,moves.node(X__));\
@@ -338,7 +341,7 @@ BasicResourceManagerTest::testBasicFunctionality() {
         TS_ASSERT(rm->instruction(5)->moveCount() == 0);
         TS_ASSERT(rm->instruction(4)->moveCount() == 1);
         delete cpSelector;
-        SimpleResourceManager::disposeRM(rm);
+        SimpleResourceManager::disposeRM(rm, false);
         }
         delete srcProgram;
         delete targetMachine;
@@ -358,7 +361,7 @@ BasicResourceManagerTest::testBasicFunctionality() {
  */
 void
 BasicResourceManagerTest::testRestorationOfResources() {
-    
+
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
     /// Target machine to schedule the program for.
@@ -499,7 +502,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
     delete source;
     delete destination;
 
-    SimpleResourceManager::disposeRM(rm);
+    SimpleResourceManager::disposeRM(rm, false);
     }
     delete targetMachine;
     delete srcProgram;
@@ -512,7 +515,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
  */
 void
 BasicResourceManagerTest::testLongImmediates() {
-    
+
     try{
 
         /// The tested input program with registers allocated.
@@ -596,7 +599,7 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(rm->instruction(3)->moveCount(), 2);
         TS_ASSERT_EQUALS(rm->instruction(4)->moveCount(), 1);
         delete selector;
-        SimpleResourceManager::disposeRM(rm);
+        SimpleResourceManager::disposeRM(rm, false);
         }
         delete targetMachine;
         delete srcProgram;
@@ -616,7 +619,7 @@ BasicResourceManagerTest::testLongImmediates() {
  */
 void
 BasicResourceManagerTest::testWAWEarliestLatestCycle() {
-    
+
     try{
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
@@ -877,7 +880,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete cfg;
         delete srcProgram;
         delete targetMachine;
-        SimpleResourceManager::disposeRM(rm);
+        SimpleResourceManager::disposeRM(rm, false);
 
     } catch (const Exception& e) {
         std::cout << e.fileName() << " " << e.procedureName() << " ";
@@ -947,7 +950,7 @@ BasicResourceManagerTest::testMULConflict() {
     
     TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node1));
     TS_ASSERT_THROWS_NOTHING(rm->assign(0,*node2));
-    
+
     TS_ASSERT_EQUALS(rm->canAssign(0,*node3), false);
     TS_ASSERT_EQUALS(rm->canAssign(1,*node3), false);
     TS_ASSERT_EQUALS(rm->canAssign(2,*node3), false);
@@ -969,7 +972,7 @@ BasicResourceManagerTest::testMULConflict() {
     TS_ASSERT_THROWS_NOTHING(rm->assign(2,*node5));
     TS_ASSERT_THROWS_NOTHING(rm->assign(1,*node4));
     TS_ASSERT_THROWS_NOTHING(rm->assign(5,*node6));
-    SimpleResourceManager::disposeRM(rm);
+    SimpleResourceManager::disposeRM(rm, false);
     }
     delete srcProgram;
     delete targetMachine;
@@ -1021,7 +1024,7 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
     TS_ASSERT_THROWS_NOTHING(rm->assign(2,*node1));
     TS_ASSERT_EQUALS(rm->earliestCycle(*node2), 3);
 
-    SimpleResourceManager::disposeRM(rm);
+    SimpleResourceManager::disposeRM(rm, false);
     delete srcProgram;
     delete targetMachine;
 }
@@ -1194,7 +1197,7 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
 	POMDisassembler::disassemble(*rm->instruction(5)) << std::endl;
 #endif
 #endif
-    SimpleResourceManager::disposeRM(rm);
+    SimpleResourceManager::disposeRM(rm, false);
     delete srcProgram;
     delete targetMachine;
 

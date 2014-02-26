@@ -28,11 +28,11 @@
  * implementation of the BusResource.
  *
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Heikki Kultala 2014 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include "BusResource.hh"
-#include "SegmentResource.hh"
 #include "Application.hh"
 #include "Exception.hh"
 #include "Conversion.hh"
@@ -68,14 +68,10 @@ BusResource::~BusResource() {}
  */
 bool
 BusResource::isInUse(const int cycle) const {
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i);
-            j < count;
-            j++) {
-            if (dependentResource(i, j).isInUse(cycle)) {
-                return true;
-            }
-        }
+    ResourceRecordType::const_iterator i = 
+        resourceRecord_.find(instructionIndex(cycle));
+    if (i != resourceRecord_.end() && i->second != 0) {
+        return true;
     }
     return false;
 }
@@ -87,16 +83,7 @@ BusResource::isInUse(const int cycle) const {
  */
 bool
 BusResource::isAvailable(const int cycle) const {
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i);
-            j < count;
-            j++) {
-            if (!dependentResource(i, j).isInUse(cycle)) {
-                return true;
-            }
-        }
-    }
-    return false;
+    return !isInUse(cycle);
 }
 
 /**
@@ -114,67 +101,7 @@ BusResource::isInUse(
     const SchedulingResource& inputPSocket,
     const SchedulingResource& outputPSocket) const {
 
-    if (!(hasRelatedResource(inputPSocket) &&
-        hasRelatedResource(outputPSocket))) {
-        std::string msg = "Bus \"";
-        msg += name();
-        msg += "\" is not connected to given PSockets!";
-        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-    }
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i);
-            j < count;
-            j++) {
-            if (dependentResource(i, j).hasRelatedResource(inputPSocket)) {
-                SegmentResource* start = NULL;
-                start =
-                    dynamic_cast<SegmentResource*>(&dependentResource(i,j));
-                if (start->isInUse(cycle)) {
-                    return true;
-                }
-                SegmentResource* destination = start;
-                while (!destination->hasRelatedResource(outputPSocket)) {
-                    if (destination->isInUse(cycle)) {
-                        return true;
-                    }
-                    if (destination->dependentResourceGroupCount() < 2 ||
-                        destination->dependentResourceCount(1) == 0) {
-                        return false;
-                    }
-                    // get next destination - terrible semantics
-                    // asks destinations for it's neighbour segment
-                    destination =
-                        dynamic_cast<SegmentResource*>(
-                        &destination->dependentResource(1, 0));
-                }
-                return false;
-            }
-            if (dependentResource(i, j).hasRelatedResource(outputPSocket)) {
-                SegmentResource* start = NULL;
-                start = dynamic_cast<SegmentResource*>
-                    (&dependentResource(i, j));
-                if (start->isInUse(cycle)) {
-                    return true;
-                }
-                SegmentResource* source = start;
-                while (!source->hasRelatedResource(inputPSocket)) {
-                    if (source->isInUse(cycle)) {
-                        return true;
-                    }
-                    if (source->dependentResourceGroupCount() < 1 ||
-                        source->dependentResourceCount(0) == 0) {
-                        return false;
-                    }
-                    // get next destination - terrible semantics
-                    // ask destination for it's neighbour segment
-                    source = dynamic_cast<SegmentResource*>
-                        (&source->dependentResource(1, 0));
-                }
-                return false;
-            }
-        }
-    }
-    return false;
+    return isInUse(cycle);
 }
 
 /**
@@ -195,57 +122,7 @@ BusResource::isAvailable(
        return false;
     }
 
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
-            SchedulingResource& depRes = dependentResource(i,j);
-            if (depRes.hasRelatedResource(inputPSocket)) {
-                SegmentResource* start = 
-                    static_cast<SegmentResource*>(&depRes);
-                if (!start->isAvailable(cycle)) {
-                    return false;
-                }
-                SegmentResource* destination = start;
-                while (!(destination->isAvailable(cycle) &&
-                    destination->hasRelatedResource(outputPSocket))) {
-                    if (!destination->isAvailable(cycle)) {
-                        return false;
-                    }
-                    if (destination->dependentResourceGroupCount() < 2 ||
-                        destination->dependentResourceCount(1) == 0) {
-                        return false;
-                    }
-                    // get next destination - terrible semantics
-                    destination =
-                        static_cast<SegmentResource*>
-                            (&destination->dependentResource(1, 0));
-                }
-                return true;
-            }
-            if (depRes.hasRelatedResource(outputPSocket)) {
-                SegmentResource* start = 
-                    static_cast<SegmentResource*>(&depRes);
-                if (!start->isAvailable(cycle)) {
-                    return false;
-                }
-                SegmentResource* source = start;
-                while (!(source->isAvailable(cycle) &&
-                    source->hasRelatedResource(inputPSocket))) {
-                    if (!source->isAvailable(cycle)) {
-                        return false;
-                    }
-                    if (source->dependentResourceGroupCount() < 1 ||
-                        source->dependentResourceCount(0) == 0) {
-                        return false;
-                    }
-                    // get next source - terrible semantics
-                    source = static_cast<SegmentResource*>
-                        (&source->dependentResource(0, 0));
-                }
-                return true;
-            }
-        }
-    }
-    return false;
+    return isAvailable(cycle);
 }
 
 /**
@@ -258,14 +135,12 @@ BusResource::isAvailable(
 void
 BusResource::assign(const int cycle, MoveNode& node)
     throw (Exception) {
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i);
-            j < count ;
-            j++) {
-            dependentResource(i, j).assign(cycle, node);
-        }
+
+   if (canAssign(cycle, node)) {
+        resourceRecord_[instructionIndex(cycle)] = 1;
+        increaseUseCount();
+        return;
     }
-    increaseUseCount();
 }
 
 /**
@@ -284,45 +159,20 @@ BusResource::assign(
     const SchedulingResource& inputPSocket,
     const SchedulingResource& outputPSocket)
     throw (Exception) {
-    std::vector<SegmentResource*> segmentPath;
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i); j < count  ; j++) {
-            SegmentResource* start = NULL;
-            start = dynamic_cast<SegmentResource*>
-                (&dependentResource(i, j));
-            if (start->canAssign(cycle, node, inputPSocket)) {
-                SegmentResource* destination = start;
-                while (!destination->canAssign(cycle, node, outputPSocket)) {
-                    destination = dynamic_cast<SegmentResource*>
-                        (&destination->dependentResource(1, 0));
-                    segmentPath.push_back(destination);
-                }
-                start->assign(cycle, node);
-                for (unsigned int i = 0; i < segmentPath.size(); i++) {
-                    segmentPath[i]->assign(cycle, node);
-                }
-                increaseUseCount();
-                return;
-            } else {
-                // if first segment found is connected to output socket
-                // proceed as above in reversed direction
-                if (start->canAssign(cycle, node, outputPSocket)) {
-                    SegmentResource* source = start;
-                    while (!source->canAssign(cycle, node, inputPSocket)) {
-                        source = dynamic_cast<SegmentResource*>
-                            (&source->dependentResource(0, 0));
-                        segmentPath.push_back(source);
-                    }
-                    start->assign(cycle, node);
-                    for (unsigned int i = 0; i < segmentPath.size(); i++) {
-                        segmentPath[i]->assign(cycle, node);
-                    }
-                    increaseUseCount();
-                    return;
-                }
-            }
-        }
+
+
+    if (canAssign(cycle, node)) {
+        resourceRecord_[instructionIndex(cycle)] = 1;
+        increaseUseCount();
+        return;
     }
+
+    std::string msg = "Bus ";
+    msg += name();
+    msg += " can not be assigned in cycle ";
+    msg += Conversion::toString(cycle);
+    msg += "!";
+    throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
 }
 
 /**
@@ -336,14 +186,8 @@ void
 BusResource::unassign(const int cycle, MoveNode& node)
     throw (Exception) {
     if (isInUse(cycle)) {
-        for (int i = 0; i < dependentResourceGroupCount(); i++) {
-            for (int j = 0, count = dependentResourceCount(i);
-                j < count;
-                j++) {
-                dependentResource(i, j).unassign(cycle, node);
-                decreaseUseCount();
-            }
-        }
+        resourceRecord_[instructionIndex(cycle)] = 0;
+        return;
     } else{
         std::string msg = "Bus ";
         msg += name();
@@ -372,41 +216,8 @@ BusResource::unassign(
     throw (Exception) {
 
     if (isInUse(cycle, inputPSocket, outputPSocket)) {
-        // There is no chance to test if this node was actually assigned
-        // to this range - it must be done in broker
-        for (int i = 0; i < dependentResourceGroupCount(); i++) {
-            for (int j = 0, count = dependentResourceCount(i);
-                j < count;
-                j++) {
-                SegmentResource* start = dynamic_cast<SegmentResource*>
-                    (&dependentResource(i, j));
-                if (start->hasRelatedResource(inputPSocket)) {
-                    SegmentResource* destination = start;
-                    start->unassign(cycle, node);
-                    while (!destination->hasRelatedResource(outputPSocket)) {
-                        destination = dynamic_cast<SegmentResource*>
-                            (&destination->dependentResource(1, 0));
-                        destination->unassign(cycle, node);
-                    }
-                    decreaseUseCount();
-                    return;
-                } else {
-                    // if first segment found is connected to output socket
-                    // proceed as above in reversed direction
-                    if (start->hasRelatedResource(outputPSocket)) {
-                        SegmentResource* source = start;
-                        start->unassign(cycle, node);
-                        while (!source->hasRelatedResource(inputPSocket)) {
-                            source = dynamic_cast<SegmentResource*>
-                                (&source->dependentResource(0, 0));
-                            source->unassign(cycle, node);
-                        }
-                        decreaseUseCount();
-                        return;
-                    }
-                }
-            }
-        }
+        resourceRecord_[instructionIndex(cycle)] = 0;
+        return;
     } else {
         std::string msg = "Bus ";
         msg += name();
@@ -463,54 +274,16 @@ BusResource::canAssign(
         return false;
     }
 
-    // Dependent segments are searched for source and destination psocket
-    // connection, segment chain is unidrectional!
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
-            SegmentResource* start = dynamic_cast<SegmentResource*>
-                (&dependentResource(i, j));
-            if (start->canAssign(cycle, node, inputPSocket)) {
-                SegmentResource* destination = start;
-                while (!destination->canAssign(cycle, node, outputPSocket)) {
-                    if (!destination->isAvailable(cycle)) {
-                        return false;
-                    }
-                    // segment has no destination segment, it is last
-                    // in chain of segments for bus
-                    if (destination->dependentResourceGroupCount() < 2 ||
-                        destination->dependentResourceCount(1) == 0) {
-                        return false;
-                    }
-                    // try next destination - terrible semantics
-                    destination = dynamic_cast<SegmentResource*>
-                        (&destination->dependentResource(1, 0));
-                }
-                return true;
-            } else {
-                // if first segment found is connected to output socket
-                // proceed as above in reversed direction
-                if (start->canAssign(cycle, node, outputPSocket)) {
-                    SegmentResource* source = start;
-                    while (!source->canAssign(cycle, node, inputPSocket)) {
-                        if (! source->isAvailable(cycle)) {
-                            return false;
-                        }
-                        // segment has no source segment, it is first
-                        // in chain of segments for bus
-                        if (source->dependentResourceGroupCount() < 1 ||
-                            source->dependentResourceCount(0) == 0) {
-                            return false;
-                        }
-                        // try next destination - terrible semantics
-                        source = dynamic_cast<SegmentResource*>
-                            (&source->dependentResource(0, 0));
-                    }
-                    return true;
-                }
-            }
-        }
+    if (!inputPSocket.isOutputPSocketResource() ||
+        !hasRelatedResource(inputPSocket)) {
+        return false;
     }
-    return false;
+    if (!outputPSocket.isInputPSocketResource() ||
+        !hasRelatedResource(outputPSocket)) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -530,14 +303,6 @@ BusResource::isBusResource() const {
  */
 bool
 BusResource::validateDependentGroups() {
-    for (int i = 0; i < dependentResourceGroupCount(); i++) {
-        for (int j = 0, count = dependentResourceCount(i);
-            j < count;
-            j++) {
-            if (!dependentResource(i, j).isSegmentResource())
-                return false;
-        }
-    }
     return true;
 }
 
@@ -610,4 +375,16 @@ BusResource::operator< (const SchedulingResource& other) const {
     // then use the default use count, name comparison,
     // but in opposite direction, facouring already used 
     return other.SchedulingResource::operator<(*this);
+}
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+BusResource::clear() {
+    SchedulingResource::clear();
+    resourceRecord_.clear();
 }

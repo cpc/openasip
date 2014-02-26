@@ -70,10 +70,10 @@ public:
     virtual bool isApplicable(const MoveNode& node) const;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
-    void setSegmentBroker(ResourceBroker& sb);
+    void setBusBroker(ResourceBroker& sb);
 private:
     ResourceBroker& outputFUBroker_;
-    ResourceBroker* segmentBroker_;
+    ResourceBroker* busBroker_;
     // Pointer to resource manager, needed to get information about
     // immediate from IUBroker
     SimpleResourceManager* rm_;    

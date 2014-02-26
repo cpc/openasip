@@ -35,7 +35,7 @@
 #define TTA_BUSRESOURCE_HH
 
 #include<string>
-
+#include <map>
 #include "SchedulingResource.hh"
 
 /**
@@ -86,6 +86,7 @@ public:
 
     virtual bool operator < (const SchedulingResource& other) const;
 
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();
@@ -105,6 +106,11 @@ private:
     int immSize_;
     // number of connected sockets
     int socketCount_;
+
+    // map contains <Cycle : testCounter>
+    typedef std::map<int, int> ResourceRecordType;
+    ResourceRecordType resourceRecord_;
+
 };
 
 #endif

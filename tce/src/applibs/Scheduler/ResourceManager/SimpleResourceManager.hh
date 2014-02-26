@@ -56,7 +56,7 @@ class SimpleResourceManager : public ResourceManager {
 public:
     static SimpleResourceManager* createRM(
         const TTAMachine::Machine& machine, unsigned int ii = 0);
-    static void disposeRM(SimpleResourceManager* rm);
+    static void disposeRM(SimpleResourceManager* rm, bool allowReuse = true);
 
     virtual bool canAssign(int cycle, MoveNode& node) const;
     virtual bool canTransportImmediate(const MoveNode& node) const;

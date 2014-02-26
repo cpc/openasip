@@ -3,7 +3,7 @@ libresourcemodel_la_SOURCES = BusResource.cc ExecutionPipelineResource.cc \
 	FUResource.cc InputFUResource.cc InputPSocketResource.cc \
 	ITemplateResource.cc IUResource.cc OutputFUResource.cc \
 	OutputPSocketResource.cc PSocketResource.cc SchedulingResource.cc \
-	SegmentResource.cc ShortImmPSocketResource.cc \
+	ShortImmPSocketResource.cc \
 	ExecutionPipelineResourceTable.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -37,7 +37,7 @@ libresourcemodel_la_SOURCES += \
 	IUResource.hh PSocketResource.hh \
 	BusResource.hh InputFUResource.hh \
 	ITemplateResource.hh ExecutionPipelineResourceTable.hh \
-	ShortImmPSocketResource.hh SegmentResource.hh \
+	ShortImmPSocketResource.hh \
 	FUResource.hh InputPSocketResource.hh \
 	ExecutionPipelineResourceTable.icc SchedulingResource.icc 
 ## headers end

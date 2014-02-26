@@ -69,10 +69,10 @@ public:
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
     
-    void setSegmentBroker(ResourceBroker& sb);
+    void setBusBroker(ResourceBroker& sb);
 private:
     ResourceBroker& inputFUBroker_;
-    ResourceBroker* segmentBroker_;
+    ResourceBroker* busBroker_;
 };
 
 #endif

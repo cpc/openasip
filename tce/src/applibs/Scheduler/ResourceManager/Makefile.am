@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libresourcemanager.la
 libresourcemanager_la_SOURCES = AssignmentPlan.cc ITemplateBroker.cc \
 	ResourceBuildDirector.cc BrokerDirector.cc IUBroker.cc \
 	ResourceManager.cc BusBroker.cc OutputFUBroker.cc ResourceMapper.cc \
-	ExecutionPipelineBroker.cc OutputPSocketBroker.cc SegmentBroker.cc \
+	ExecutionPipelineBroker.cc OutputPSocketBroker.cc \
 	InputFUBroker.cc PendingAssignment.cc SimpleBrokerDirector.cc \
 	InputPSocketBroker.cc ResourceBroker.cc SimpleResourceManager.cc
 
@@ -44,6 +44,6 @@ libresourcemanager_la_SOURCES += \
 	ExecutionPipelineBroker.hh BusBroker.hh \
 	SimpleResourceManager.hh ResourceMapper.hh \
 	InputPSocketBroker.hh ResourceBroker.hh \
-	PendingAssignment.hh SegmentBroker.hh \
+	PendingAssignment.hh \
 	ResourceBroker.icc
 ## headers end

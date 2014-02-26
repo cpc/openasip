@@ -84,7 +84,7 @@ InputPSocketResource::validateRelatedGroups() {
     for (int i = 0; i < relatedResourceGroupCount(); i++) {
         for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
             if (!(relatedResource(i, j).isInputFUResource() ||
-                relatedResource(i, j).isSegmentResource()))
+                relatedResource(i, j).isBusResource()))
                 return false;
         }
     }

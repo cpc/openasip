@@ -60,7 +60,7 @@ OutputPSocketBroker::OutputPSocketBroker(
     SimpleResourceManager* rm,
     unsigned int initiationInterval) : 
     ResourceBroker(name, initiationInterval), 
-    outputFUBroker_(fub), segmentBroker_(NULL), rm_(rm) {
+    outputFUBroker_(fub), busBroker_(NULL), rm_(rm) {
 }
 
 /**
@@ -468,8 +468,9 @@ OutputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
         for (int i = 0; i < socket->segmentCount(); i++) {
             try {
                 Segment* segment = socket->segment(i);
+                Bus* bus = segment->parentBus();
                 SchedulingResource& relRes = 
-                    *segmentBroker_->resourceOf(*segment);
+                    *busBroker_->resourceOf(*bus);
                 socketResource->addToRelatedGroup(2, relRes);
             } catch (const KeyNotFound& e) {
                 std::string msg = "OutputPSocketBroker: finding ";
@@ -488,6 +489,6 @@ OutputPSocketBroker::setupResourceLinks(const ResourceMapper& mapper) {
  *
  * Cannot be given in constructor because SegmentBroker is created later.
  */
-void OutputPSocketBroker::setSegmentBroker(ResourceBroker& sb) {
-    segmentBroker_ = &sb;
+void OutputPSocketBroker::setBusBroker(ResourceBroker& sb) {
+    busBroker_ = &sb;
 }
