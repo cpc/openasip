@@ -488,27 +488,7 @@ BusBroker::unassign(MoveNode& node) {
         Bus& bus = move.bus();
         SchedulingResource* res = resourceOf(bus);
         BusResource& busRes = static_cast<BusResource&>(*res);
-
-        if (move.source().isGPR() ||
-            move.source().isFUPort() ||
-            move.source().isImmediateRegister() ||
-            move.source().isImmediate()) {
-            PSocketResource *iPSocket = NULL;
-            PSocketResource *oPSocket = NULL;
-            if (move.source().isImmediate()) {
-                oPSocket = &findImmResource(busRes);
-            } else {
-                oPSocket = static_cast<PSocketResource*>
-                    (outputPSocketBroker_.resourceOf(
-                        *move.source().port().outputSocket()));
-            }
-            iPSocket = static_cast<PSocketResource*>
-                (inputPSocketBroker_.resourceOf(
-                    *move.destination().port().inputSocket()));
-            busRes.unassign(node.cycle(), node, *oPSocket, *iPSocket);
-        } else {
-            busRes.unassign(node.cycle(),node);
-        }
+        busRes.unassign(node.cycle(),node);
         assignedResources_.erase(&node);
     }
 }
@@ -585,50 +565,9 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
         return false;
     }
 
-    Move& move = const_cast<MoveNode&>(node).move();
     SchedulingResource* res = resourceOf(bus);
     BusResource& busRes = static_cast<BusResource&>(*res);
-
-    if (move.source().isGPR() ||
-        move.source().isFUPort() ||
-        move.source().isImmediateRegister() ||
-        move.source().isImmediate()) {
-        PSocketResource* iPSocket = NULL;
-        PSocketResource* oPSocket = NULL;
-        try {
-            iPSocket = 
-                static_cast<InputPSocketResource*>(
-                    inputPSocketBroker_.resourceOf(
-                         *move.destination().port().inputSocket()));
-        } catch (const KeyNotFound& e) {
-            std::string msg = "BusBroker: finding ";
-            msg += " resource for Socket ";
-            msg += " failed with error: ";
-            msg += e.errorMessageStack();
-            throw KeyNotFound(
-                __FILE__, __LINE__, __func__, msg);
-        }                                                            
-
-        if (move.source().isImmediate()) {
-            oPSocket = &findImmResource(busRes);
-        } else {
-            try {
-                oPSocket = static_cast<PSocketResource*>(
-                    outputPSocketBroker_.resourceOf(
-                        *move.source().port().outputSocket()));
-            } catch (const KeyNotFound& e) {
-                std::string msg = "BusBroker: finding ";
-                msg += " resource for Socket ";
-                msg += " failed with error: ";
-                msg += e.errorMessageStack();
-                throw KeyNotFound(
-                    __FILE__, __LINE__, __func__, msg);
-            }                                                                           
-        }
-        return busRes.isInUse(cycle, *oPSocket, *iPSocket);
-    } else {
-        return busRes.isInUse(cycle);
-    }
+    return busRes.isInUse(cycle);
 }
 /**
  * Return true if the given node needs a resource of the type managed

@@ -52,10 +52,6 @@ public:
 
     virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;
-    virtual bool isInUse(
-        const int cycle,
-        const SchedulingResource& inputPSocket,
-        const SchedulingResource& outputPSocket) const;
     virtual bool isAvailable(
         const int cycle,
         const SchedulingResource& inputPSocket,
@@ -71,12 +67,6 @@ public:
         const SchedulingResource& inputPSocket,
         const SchedulingResource& outputPSocket) const;
     virtual void assign(
-        const int cycle,
-        MoveNode& node,
-        const SchedulingResource& inputPSocket,
-        const SchedulingResource& outputPSocket)
-        throw (Exception);
-    virtual void unassign(
         const int cycle,
         MoveNode& node,
         const SchedulingResource& inputPSocket,

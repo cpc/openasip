@@ -87,24 +87,6 @@ BusResource::isAvailable(const int cycle) const {
 }
 
 /**
- * Test if resource BusResource is used in given cycle, using input
- * and output PSocket - testing range between them.
- *
- * @param cycle Cycle which to test
- * @param inputPSocket Source PSocket of move
- * @param outputPSocket Destination PSocket of move
- * @return True if any of segments of bus isInUse in given cycle
- */
-bool
-BusResource::isInUse(
-    const int cycle,
-    const SchedulingResource& inputPSocket,
-    const SchedulingResource& outputPSocket) const {
-
-    return isInUse(cycle);
-}
-
-/**
  * Test if resource BusResource is available.
  * @param cycle Cycle which to test
  * @return False if all the segments of bus are InUse
@@ -183,7 +165,7 @@ BusResource::assign(
  * @throw In case bus was not assigned
  */
 void
-BusResource::unassign(const int cycle, MoveNode& node)
+BusResource::unassign(const int cycle, MoveNode&)
     throw (Exception) {
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)] = 0;
@@ -196,39 +178,6 @@ BusResource::unassign(const int cycle, MoveNode& node)
         msg += ", it was not in use!";
         throw ModuleRunTimeError(__FILE__, __LINE__,__func__, msg);
     }
-}
-
-/**
- * Unassign resource from given node for given cycle from InputPSocket
- * to OutputPSocket
- * @param cycle Cycle to remove assignment from
- * @param node MoveNode to remove assignment from
- * @param inputPSocket PSocket connected to source of move
- * @param outputPSocket PSocket connected to destination of move
- * @throw In case bus was not assigned
- */
-void
-BusResource::unassign(
-    const int cycle,
-    MoveNode& node,
-    const SchedulingResource& inputPSocket,
-    const SchedulingResource& outputPSocket)
-    throw (Exception) {
-
-    if (isInUse(cycle, inputPSocket, outputPSocket)) {
-        resourceRecord_[instructionIndex(cycle)] = 0;
-        return;
-    } else {
-        std::string msg = "Bus ";
-        msg += name();
-        msg += " can not be unassigned in cycle ";
-        msg += Conversion::toString(cycle);
-        msg += ", it was not in use!";
-        msg += " - ii:";
-        msg += Conversion::toString(initiationInterval_);
-        throw ModuleRunTimeError(__FILE__, __LINE__,__func__, msg);
-    }
-
 }
 
 /**
