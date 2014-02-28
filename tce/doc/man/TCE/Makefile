@@ -20,6 +20,6 @@ publish: TCE.dvi html
 	cp TCE_manual.pdf ../../../manual/
 
 publish_to_web: TCE.pdf TCE.ps html
-	scp -r TCE.pdf TCE.ps TCE ${USERNAME}@${HOST}:/export/services/tce.cs.tut.fi/public_html/user_manual
+	scp -r TCE.pdf TCE.ps TCE ${USERNAME}@${HOST}:/home/tce/public_html/user_manual
 
 distclean: veryclean
