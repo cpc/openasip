@@ -288,7 +288,7 @@ class TestSimulator(TCETestCase):
            self.runWithTimeout("ttasim %s -a %s -p %s --no-debugmode" %
                                (switches,
                                 self.get_minimalStdoutADF(),
-                                self.tpef_file_name), 5*60)
+                                self.tpef_file_name), 10*60)
         self.assertFalse(timeout)
         self.assertEquals(stdout.strip(), "Hello \nTTA World!")
         self.assertEquals(stderr, "")
