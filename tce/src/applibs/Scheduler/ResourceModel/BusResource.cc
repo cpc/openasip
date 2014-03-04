@@ -126,38 +126,6 @@ BusResource::assign(const int cycle, MoveNode& node)
 }
 
 /**
- * Assign resource to given node for given cycle from inputPSocket
- * to OutputPSocket
- * @param cycle Cycle to assign
- * @param node MoveNode assigned
- * @param inputPSocket PSocket connected to source of move
- * @param outputPSocket PSocket connected to destination of move
- * @throw In case assignment can not be done
- */
-void
-BusResource::assign(
-    const int cycle,
-    MoveNode& node,
-    const SchedulingResource& inputPSocket,
-    const SchedulingResource& outputPSocket)
-    throw (Exception) {
-
-
-    if (canAssign(cycle, node)) {
-        resourceRecord_[instructionIndex(cycle)] = 1;
-        increaseUseCount();
-        return;
-    }
-
-    std::string msg = "Bus ";
-    msg += name();
-    msg += " can not be assigned in cycle ";
-    msg += Conversion::toString(cycle);
-    msg += "!";
-    throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-}
-
-/**
  * Unassign resource from given node for given cycle without testing
  * Input or Output PSocket, unassign all segments of bus
  * @param cycle Cycle to remove assignment from

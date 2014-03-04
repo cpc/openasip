@@ -66,12 +66,6 @@ public:
         const MoveNode& node,
         const SchedulingResource& inputPSocket,
         const SchedulingResource& outputPSocket) const;
-    virtual void assign(
-        const int cycle,
-        MoveNode& node,
-        const SchedulingResource& inputPSocket,
-        const SchedulingResource& outputPSocket)
-        throw (Exception);
     virtual bool isBusResource() const;
 
     virtual bool operator < (const SchedulingResource& other) const;

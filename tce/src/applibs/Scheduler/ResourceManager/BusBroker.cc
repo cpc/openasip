@@ -440,28 +440,7 @@ BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
                 }
             }
         }
-        if (move.source().isGPR() ||
-            move.source().isFUPort() ||
-            move.source().isImmediateRegister() ||
-            move.source().isImmediate()){
-            InputPSocketResource *iPSocket = NULL;
-            OutputPSocketResource *oPSocket = NULL;
-            if (move.source().isImmediate()) {
-                oPSocket = &findImmResource(busRes);
-            } else {
-                oPSocket = static_cast<OutputPSocketResource*>
-                    (outputPSocketBroker_.resourceOf(
-                    *move.source().port().outputSocket()));
-            }
-            iPSocket = 
-                static_cast<InputPSocketResource*>(
-                    inputPSocketBroker_.resourceOf(
-                        *move.destination().port().inputSocket()));
-            busRes.assign(cycle, node, *oPSocket, *iPSocket);
-        } else {
-            assert(0 && "move source is nothing!");
-            busRes.assign(cycle,node);
-        }
+        busRes.assign(cycle,node);
     } else {
         string msg = "Broker does not contain given resource.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
