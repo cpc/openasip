@@ -4,9 +4,11 @@
 [updated from commit log on 2014-01-24]
 
 
-Misc. smaller improvements
---------------------------
+Smaller features and improvements
+---------------------------------
 - Compilation times improved.
+- Functions marked as 'noinline' are not removed from the final program
+  even though the program itself does not refer to them.
 
 Bugfixes
 --------

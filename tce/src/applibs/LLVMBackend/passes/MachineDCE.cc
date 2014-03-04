@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 Tampere University of Technology.
+    Copyright (c) 2012-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,6 +43,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <iostream>
+
 #include "MachineDCE.hh"
 
 using namespace llvm;
@@ -51,6 +53,8 @@ using namespace llvm;
 static RegisterPass<MachineDCE> 
 R("machinedce","Symbol string based machine DCE for removing not used emulation functions", false, true);
 char MachineDCE::ID = 0;
+
+//#define DEBUG_MACHINE_DCE
 
 /**
  * Returns true if can find startpoint.
@@ -108,12 +112,33 @@ bool MachineDCE::doInitialization(Module &M) {
 
     // errs() << "Initializing MachineDCE\n";
 
-    // add first function to baseUsers
+    // add first function to baseUsers, assume it's the startup function
     baseUsers_.insert(M.begin()->getName());
+    for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
+        // aAd all noinline functions to baseUsers so they won't
+        // get removed. We might want to call them via a
+        // function pointer initialized from the outside. 
+#ifdef LLVM_3_2
+        const bool noinlineFunction = f->getFnAttributes().hasAttribute(Attribute::NoInline);
+#else
+        const bool noinlineFunction = f->hasFnAttribute(Attribute::NoInline);
+#endif
+        if (noinlineFunction) {
+            baseUsers_.insert(f->getName());
+#ifdef DEBUG_MACHINE_DCE
+            std::cerr << "Added " << f->getName().str() 
+                      << " to base functions due to noinline"
+                      << std::endl;
+#endif
+            continue;
+        }
+    }
+
     // Go through global variables to find out 
     for (Module::const_global_iterator i = M.global_begin();
          i != M.global_end(); i++) {
         
+
         std::string name = i->getName();
 
         if (!i->hasInitializer()) {
@@ -141,8 +166,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
     functionMappings_[funcName] = &F;
     
     for (MachineFunction::const_iterator i = F.begin();
-         i != F.end(); i++) {
-        
+         i != F.end(); i++) {        
         for (MachineBasicBlock::const_iterator j = i->begin();
              j != i->end(); j++) {
             
@@ -166,6 +190,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
     return true;
 }
 
+
 bool MachineDCE::doFinalization(Module&) {    
 
     // errs() << "Finalizing MachineDCE\n";
@@ -177,8 +202,10 @@ bool MachineDCE::doFinalization(Module&) {
         AvoidRecursionSet avoid_recursion;
 
         if (!canFindStart(func->first, avoid_recursion)) {
-            //errs() << "Function was not referred add it to dce data: " 
-            //       << func->first << "\n";
+#ifdef DEBUG_MACHINE_DCE
+            std::cerr << "Function was not referred add it to dce data: " 
+                      << func->first << "\n";
+#endif
             removeableFunctions.insert(func->first);
         }
     }
