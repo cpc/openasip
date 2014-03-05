@@ -119,7 +119,8 @@ bool MachineDCE::doInitialization(Module &M) {
         // get removed. We might want to call them via a
         // function pointer initialized from the outside. 
 #ifdef LLVM_3_2
-        const bool noinlineFunction = f->getFnAttributes().hasAttribute(Attribute::NoInline);
+        const bool noinlineFunction = f->getFnAttributes().hasAttribute(
+            Attributes::NoInline);
 #else
         const bool noinlineFunction = f->hasFnAttribute(Attribute::NoInline);
 #endif
