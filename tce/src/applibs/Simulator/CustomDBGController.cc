@@ -60,12 +60,14 @@ CustomDBGController::writeMem(
     MAU /*data*/,
     const AddressSpace& /*space*/) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 MAU 
 CustomDBGController::readMem(
     Word /*address*/,
     const AddressSpace& /*space*/) {
+    abortWithError("Unimplemented.");
     return 0;
 }
 
@@ -74,6 +76,7 @@ CustomDBGController::writeIMem(
     const char* /*buff*/,
     int /*size*/) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 
@@ -81,29 +84,34 @@ void
 CustomDBGController::step(double /*count = 1*/)
    throw (SimulationExecutionError) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 void
 CustomDBGController::next(int /*count = 1*/)
     throw (SimulationExecutionError) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 void
 CustomDBGController::run()
     throw (SimulationExecutionError) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 void
 CustomDBGController::runUntil(UIntWord /*address*/)
     throw (SimulationExecutionError) {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
 
 void
 CustomDBGController::reset() {
     _WHERE();
+    abortWithError("Unimplemented.");
 }
     
 std::string
@@ -112,6 +120,7 @@ CustomDBGController::registerFileValue(
     int /*registerIndex*/ ) {
     std::string rv="hello";
     _WHERE();
+    abortWithError("Unimplemented.");
     return rv;
 }
     
@@ -134,6 +143,7 @@ CustomDBGController::FUPortValue(
 InstructionAddress
 CustomDBGController::programCounter() const {
     _WHERE();
+    abortWithError("Unimplemented.");
     return 0;
 }
 
