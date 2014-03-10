@@ -164,7 +164,13 @@ OperationDAGBuilder::connectOperandToNode(
     
     // check if input or output
     Operation& currOp = currentOperation_->referencedOperation();        
-    
+    if (operandIndex > currOp.operandCount()) {
+        throw IllegalParameters(
+            __FILE__, __LINE__, __func__,
+            "Operation doesn't have operand number: " + 
+            Conversion::toString(operandIndex));
+    }
+
     if (currOp.operand(operandIndex).isInput()) {
         VariableBinding* srcNode = &getBinding(var);
         if (srcNode->first == NULL) {

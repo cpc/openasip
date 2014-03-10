@@ -18,6 +18,8 @@ Bugfixes
 - Having volatile variables could have caused broken code being generated.
 - Compiler sometimes refused to schedule to processors with relatively
   sparse connectivity but no need for register copies.
+- Wrong number of parameters in osed dags might now have reasonable error
+  message instead of crash.
 
 1.9     January 2014
 ====================
