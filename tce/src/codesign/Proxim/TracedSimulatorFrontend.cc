@@ -38,7 +38,7 @@
  * The constructor.
  */
 TracedSimulatorFrontend::TracedSimulatorFrontend() :
-    SimulatorFrontend(SIM_CUSTOM) {
+    SimulatorFrontend(SIM_NORMAL) {
 }
 
 /**
