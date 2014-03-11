@@ -164,7 +164,7 @@ OperationDAGBuilder::connectOperandToNode(
     
     // check if input or output
     Operation& currOp = currentOperation_->referencedOperation();        
-    if (operandIndex > currOp.operandCount()) {
+    if (operandIndex > (unsigned)currOp.operandCount()) {
         throw IllegalParameters(
             __FILE__, __LINE__, __func__,
             "Operation doesn't have operand number: " + 
