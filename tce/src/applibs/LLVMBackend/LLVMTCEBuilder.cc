@@ -2241,10 +2241,6 @@ LLVMTCEBuilder::isInitialized(const Constant* cv) {
         return false;
     }
 
-    if (cv->isNullValue()) {
-        return false;
-    }
-
     return true;
 }
 
