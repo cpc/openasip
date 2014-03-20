@@ -568,7 +568,13 @@ BEGIN  -- rtl
 
   regs: PROCESS (clk, rstx,
                  stage1_fractl,stage1_fractr,stage1_exponl,stage1_exponr,
-                 m1_in, m2_in, a_in, a_in)
+                 m1_in, m2_in, a_in,
+		 stage2_rfract, stage2_rexpon, stage2_fractx, stage2_exponc, stage2_shiftx,
+                 stage2_lsign, stage2_rsign, stage2_csign,
+                 stage3_fractc, stage3_fracts, stage3_leftright,
+                 stage3_lsign, stage3_rsign, stage3_csign,
+                 stage3_round_guard_out, stage3_exp_out
+                 )
   BEGIN  -- PROCESS fpu
     IF(rstx = '0') THEN  
       
