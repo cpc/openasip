@@ -73,6 +73,7 @@ public:
 
     uint64_t cycleCount() const;
 
+    bool isInitialized() const;
     bool isRunning() const;
     bool isFinished() const;
     bool hadRuntimeError() const;

@@ -127,6 +127,15 @@ SimpleSimulatorFrontend::loadProgram(const std::string& fileName) {
     simFront_->loadProgram(fileName);
 }
 
+/**
+ * Returns true in case the engine has the machine and the program
+ * loaded and is ready to execute.
+ */
+bool
+SimpleSimulatorFrontend::isInitialized() const {
+    return simFront_->isSimulationInitialized();
+}
+
 bool
 SimpleSimulatorFrontend::isRunning() const {
     return simFront_->isSimulationRunning();
