@@ -129,11 +129,20 @@ SimpleSimulatorFrontend::loadProgram(const std::string& fileName) {
 
 /**
  * Returns true in case the engine has the machine and the program
- * loaded and is ready to execute.
+ * loaded and is ready to execute, but has not been executed yet.
  */
 bool
 SimpleSimulatorFrontend::isInitialized() const {
     return simFront_->isSimulationInitialized();
+}
+
+/**
+ * Retruns true in case the engine has been initialized and is
+ * ready to be stepped.
+ */
+bool
+SimpleSimulatorFrontend::isStopped() const {
+    return simFront_->isSimulationStopped();
 }
 
 bool
