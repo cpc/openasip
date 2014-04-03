@@ -53,7 +53,8 @@ class DataDefinition {
 public:
     DataDefinition(
         Address start, 
-        int size, MinimumAddressableUnit *initData = NULL)
+        int size, MinimumAddressableUnit *initData = NULL,
+        bool allZeros = false)
         throw (OutOfRange);
 
     DataDefinition(
@@ -86,6 +87,9 @@ private:
     
     /// Init data of definition.
     std::vector<MinimumAddressableUnit>* data_;
+
+    /// Is all the data zeros? (In this case data_ is null)
+    bool allZeros_;
 
 };
 

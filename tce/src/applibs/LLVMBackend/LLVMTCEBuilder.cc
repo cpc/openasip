@@ -367,10 +367,9 @@ LLVMTCEBuilder::initDataSections() {
         unsigned pad = 0;
         while ((dataEndPos + pad) % data_[i].alignment != 0) pad++;
         if (pad > 0) {
-            std::vector<MinimumAddressableUnit> zeros(pad, 0);
             TTAProgram::Address address(dataEndPos, aSpace);
             dmem.addDataDefinition(
-                new TTAProgram::DataDefinition(address, zeros));
+                new TTAProgram::DataDefinition(address, pad, NULL, true));
             dataEndPos += pad;
         }
 
@@ -527,15 +526,9 @@ LLVMTCEBuilder::createDataDefinition(
     // Initialize with zeros if this is an uninitialized part of a partially
     // initialized data structure.
     if (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL) {
-
-        std::vector<MinimumAddressableUnit> maus;
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(0);
-        }
-
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, maus));
+            new TTAProgram::DataDefinition(address, sz, NULL, false) );
 
         addr += sz;
         return paddedAddr;
@@ -568,10 +561,16 @@ LLVMTCEBuilder::createDataDefinition(
         createExprDataDefinition(addressSpaceId, addr, ce);
 #ifndef LLVM_3_0
     } else if (const ConstantDataArray* cda = dyn_cast<ConstantDataArray>(cv)){
-	for (unsigned int i = 0; i < cda->getNumElements(); i++) {
-	    createDataDefinition(
-            addressSpaceId, addr, cda->getElementAsConstant(i));
-	}
+        if (cda->isNullValue()) {
+            TTAProgram::Address address(addr, aSpace);
+            dmem.addDataDefinition( 
+                new TTAProgram::DataDefinition(address, sz, NULL, false) );
+        } else {
+            for (unsigned int i = 0; i < cda->getNumElements(); i++) {
+                createDataDefinition(
+                    addressSpaceId, addr, cda->getElementAsConstant(i));
+            }
+        }
 #endif
     } else {
         cv->dump();
@@ -621,13 +620,18 @@ LLVMTCEBuilder::createIntDataDefinition(
     } u;
 
     u.d = ci->getZExtValue();
+    
+    TTAProgram::DataDefinition* def;
 
-    for (unsigned i = 0; i < sz; i++) {
-        maus.push_back(u.bytes[sz - i - 1]);
+    if (u.d == 0) {
+        def = new TTAProgram::DataDefinition(start, sz, NULL, true);
+    } else {
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[sz - i - 1]);
+        }
+
+        def = new TTAProgram::DataDefinition(start, maus);
     }
-
-    TTAProgram::DataDefinition* def =
-        new TTAProgram::DataDefinition(start, maus);
 
     addr += def->size();
     dmem.addDataDefinition(def);

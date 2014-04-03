@@ -50,9 +50,10 @@ namespace TTAProgram {
  */
 
 DataDefinition::DataDefinition(
-    Address start, int size, MinimumAddressableUnit *initData) 
+    Address start, int size, MinimumAddressableUnit *initData,
+    bool allZeros) 
     throw (OutOfRange) :
-    start_(start), size_(size) {
+    start_(start), size_(size), allZeros_(allZeros) {
     
     if (initData != NULL) {
         data_ = new std::vector<MinimumAddressableUnit>(size);
@@ -87,7 +88,7 @@ DataDefinition::DataDefinition(
 DataDefinition::DataDefinition(
     Address start, const std::vector<MinimumAddressableUnit>& initData) 
     throw (OutOfRange) :
-    start_(start) {    
+    start_(start), allZeros_(false) {    
 
     // check that the MAUs are not too large for the address space
     for (std::size_t i = 0 ; i < initData.size(); i++) {
@@ -141,7 +142,7 @@ DataDefinition::setStartAddress(Address start) {
  */
 bool 
 DataDefinition::isInitialized() const {
-    return (data_ != NULL);
+    return allZeros_ || (data_ != NULL);
 }
 
 /**
@@ -185,6 +186,8 @@ DataDefinition::MAU(int index) const {
         // return MAU
         return retVal;
 
+    } else if(allZeros_) {
+        return 0;
     } else if (isInitialized()) {
         return (*data_)[index];
 
@@ -255,7 +258,9 @@ DataDefinition::setDestinationAddress(Address) {
 DataDefinition* DataDefinition::copy() const {
     DataDefinition* newDef = NULL;
 
-    if (isInitialized()) {
+    if (allZeros_) {
+        newDef = new DataDefinition(start_, size_, NULL, true);
+    } else if (isInitialized()) {
         newDef = new DataDefinition(start_, *data_);
     } else {
         newDef = new DataDefinition(start_, size_);

@@ -26,8 +26,8 @@
  *
  * Implementation of TPEFProgramFactory class.
  *
- * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Mikael Lepistï¿½ 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2011
  * @note rating: yellow
  */
 
@@ -1606,6 +1606,8 @@ TPEFProgramFactory::canSourceBeAssigned(
                 return false;
             }
         }
+        //Application::errorStream() << insTemp->NOPSlotCount() << " " << templateIsGood << " ";
+        //Application::errorStream() << std::endl;
     }
 
     return true;
@@ -2368,15 +2370,29 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
 
                     assert(mauIndex + currArea.second <= 
                            static_cast<int>(currSect->lengthInMAUs()));
-                    
+
+                    bool allZeros = true;
                     for (int l = 0; l < currArea.second; l++) {
-                        initData.push_back(dataSect->MAU(mauIndex++));
+                        if(dataSect->MAU(mauIndex + l) != 0) {
+                            allZeros = false;
+                        }
                     }
+
+                    DataDefinition* newDataDef = NULL;
+
+                    if (allZeros) {
+                        newDataDef = new DataDefinition(
+                            Address(currArea.first, aSpace),
+                            currArea.second, NULL, true );        
+                    } else {
+                        for (int l = 0; l < currArea.second; l++) {
+                            initData.push_back(dataSect->MAU(mauIndex++));
+                        }
                     
-                    DataDefinition* newDataDef = 
-                        new DataDefinition(
+                        newDataDef = new DataDefinition(
                             Address(currArea.first, aSpace),
                             initData);
+                    }
                     
                     newDataMem->addDataDefinition(newDataDef);
                 }
