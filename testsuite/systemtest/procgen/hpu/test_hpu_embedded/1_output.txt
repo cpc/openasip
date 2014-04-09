@@ -5,6 +5,7 @@ Testing FPUs...
 4: OOOOO
 5: OO
 6: OOO
+7: OOOO
 Testing FMA and minf/maxf...
 1: OOOO
 2: OOOOOOOOOOO

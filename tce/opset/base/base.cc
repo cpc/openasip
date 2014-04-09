@@ -983,6 +983,62 @@ END_TRIGGER;
 END_OPERATION(CFH)
 
 //////////////////////////////////////////////////////////////////////////////
+// CHI  - convert floating-point to integer
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(CHI)
+
+TRIGGER
+    HalfFloatWord in = HFLT(1);
+    FloatWord inf = FloatWord(in);
+    SIntWord out = static_cast<SIntWord>(inf);
+    IO(2) = out;
+END_TRIGGER;
+
+END_OPERATION(CHI)
+
+//////////////////////////////////////////////////////////////////////////////
+// CHIU  - convert floating-point to unsigned integer
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(CHIU)
+
+TRIGGER
+    HalfFloatWord in = HFLT(1);
+    FloatWord inf = FloatWord(in);
+    UIntWord out = static_cast<UIntWord>(inf);
+    IO(2) = out;
+END_TRIGGER;
+
+END_OPERATION(CHIU)
+
+//////////////////////////////////////////////////////////////////////////////
+// CIH - convert integer to floating-point (i2f)
+//////////////////////////////////////////////////////////////////////////////
+// NOTE: can't be tested whether the output really is float...
+OPERATION(CIH)
+
+TRIGGER
+    SIntWord in = INT(1);
+    FloatWord inf = static_cast<FloatWord>(in);
+    IO(2) = HalfFloatWord(inf);
+END_TRIGGER;
+
+END_OPERATION(CIH)
+
+//////////////////////////////////////////////////////////////////////////////
+// CIHU - convert unsigned integer to floating-point (i2f)
+//////////////////////////////////////////////////////////////////////////////
+// NOTE: can't be tested whether the output really is float...
+OPERATION(CIHU)
+
+TRIGGER
+    UIntWord in = UINT(1);
+    FloatWord inf = static_cast<FloatWord>(in);
+    IO(2) = HalfFloatWord(inf);
+END_TRIGGER;
+
+END_OPERATION(CIHU)
+
+//////////////////////////////////////////////////////////////////////////////
 // INVSQRTH - half-float inverse square root
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(INVSQRTH)

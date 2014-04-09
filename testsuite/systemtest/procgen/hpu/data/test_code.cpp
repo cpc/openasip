@@ -11,6 +11,12 @@ class half {
 public:
     inline half() {
     };
+    inline half( int a ) {
+        _TCE_CIH( a, data );
+    };
+    inline half( unsigned int a ) {
+        _TCE_CIHU( a, data );
+    };
     inline half( float a ) {
         _TCE_CFH( a, data );
     };
@@ -88,6 +94,16 @@ public:
         _TCE_CHF( data, f );
         return f;
     }
+    unsigned int to_uint() const {
+        unsigned int f;
+        _TCE_CHIU( data, f );
+        return f;
+    }
+    int to_int() const {
+        int f;
+        _TCE_CHI( data, f );
+        return f;
+    }
     
     inline half abs() const {
         half result;
@@ -156,7 +172,7 @@ main() {
     test( -half(36.f) == half(-36.f) );
     test( -half(-36.f) == half(36.f) );
     _TCE_STDOUT('\n'); 
-    
+
     // Comparisons
     
     _TCE_STDOUT('2'); 
@@ -244,6 +260,18 @@ main() {
     half d = imm2.invsqrt();
     half e = imm1.invsqrt();
     test( (a==c) && (a==e) && (b==d) ); 
+    _TCE_STDOUT('\n');
+
+    // Conversions
+    _TCE_STDOUT('7'); 
+    _TCE_STDOUT(':'); 
+    _TCE_STDOUT(' '); 
+    imm1 = 3.25f;
+    imm2 = 3.75f;
+    test( half(imm1.to_float()) == half(3.25f) );
+    test( half(imm2.to_float()) == half(3.75f) );
+    test( half(imm1.to_int()) == half(3.f) );
+    test( half(imm2.to_int()) == half(4.f) );
     _TCE_STDOUT('\n');
 }
                          
