@@ -25,10 +25,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 
 -- Separation between combinatorial part and control part 
--- is copy-pasted from a FU in the included asic hdb,
+-- is copy-pasted from a FU in the included hdb,
 -- so as to get the control part right.
-
-
 
 package float_conv_opcodes is
   constant OPC_CFI  : std_logic_vector(1 downto 0) := "00";
@@ -39,8 +37,6 @@ end float_conv_opcodes;
 
 library IEEE;
 use IEEE.std_logic_1164.all;
---use IEEE.std_logic_arith.all;
---use ieee.numeric_std.all;
 use work.float_conv_opcodes.all;
 use work.fixed_float_types.all;
 use work.fixed_pkg.all;
@@ -79,26 +75,25 @@ architecture rtl of fpu_sp_conv is
 
   signal result_reg_in, result_reg_out : std_logic_vector(busw-1 downto 0);  
 
+  signal stage1_enable, stage2_enable, stage3_enable : std_logic;
 
   signal conv_input : std_logic_vector (intw+1-1 downto 0);
   signal signselect : std_logic;
   
   signal conv_result : std_logic_vector (mw+ew downto 0);
 
-  -- Float-to-int delay pipeline regs
+  -- Float-to-int delay regs
   signal trunc_result_reg_in, trunc_result_reg_out : std_logic_vector (intw-1 downto 0);
   signal trunc_result_reg1_in, trunc_result_reg1_out : std_logic_vector (intw-1 downto 0);
   
   -- Int-to-float pipeline regs
   signal sign_reg1_in, sign_reg1_out : STD_ULOGIC; 
   signal arg_int_reg1_in, arg_int_reg1_out : UNSIGNED(intw downto 0); 
-  
   signal arg_int_reg_in, arg_int_reg_out : UNSIGNED(intw downto 0); 
   signal exp_reg_in, exp_reg_out : SIGNED(ew-1 downto 0); 
   signal sign_reg_in, sign_reg_out : STD_ULOGIC; 
   
 begin
-
 
   pipeline_regs : process (clk, rstx)
   begin  -- process regs
@@ -114,32 +109,29 @@ begin
       trunc_result_reg_out <= (others => '0');
       trunc_result_reg1_out <= (others => '0');
       
+      result_reg_out <= (others => '0');
 
     elsif clk = '1' and clk'event then
       if (glock = '0') then
-        arg_int_reg1_out <= arg_int_reg1_in;
-        sign_reg1_out <= sign_reg1_in;
+	if (stage1_enable = '1') then
+          arg_int_reg1_out <= arg_int_reg1_in;
+          sign_reg1_out <= sign_reg1_in;
+          trunc_result_reg1_out <= trunc_result_reg1_in;
+	end if;
         
-        arg_int_reg_out <= arg_int_reg_in;
-        exp_reg_out <= exp_reg_in;
-        sign_reg_out <= sign_reg_in;
+	if (stage2_enable = '1') then
+          arg_int_reg_out <= arg_int_reg_in;
+          exp_reg_out <= exp_reg_in;
+          sign_reg_out <= sign_reg_in;
+          trunc_result_reg_out <= trunc_result_reg_in;
+	end if;
 
-        trunc_result_reg_out <= trunc_result_reg_in;
-        trunc_result_reg1_out <= trunc_result_reg1_in;
+	if (stage3_enable = '1') then
+          result_reg_out <= result_reg_in;
+	end if;
       end if;
     end if;
   end process pipeline_regs;
-
-  result_select: process( delay_opc1reg, conv_result, trunc_result_reg_out )
-  begin
-    if( delay2_opc1reg = OPC_CIF or delay_opc1reg = OPC_CIFU ) then
-      result_reg_in(mw+ew downto 0) <= conv_result;
-    else
-      result_reg_in <= trunc_result_reg_out;
-    end if;
-  end process result_select;
-
-  r1data <= result_reg_out;
 
   regs : process (clk, rstx)
   begin  -- process regs
@@ -149,15 +141,19 @@ begin
       opc1reg <= (others => '0');
       delay_opc1reg <= (others => '0');
       delay2_opc1reg <= (others => '0');
-      result_reg_out <= (others => '0');
-      
+      stage1_enable <= '0';
+      stage2_enable <= '0';
+      stage3_enable <= '0';
 
     elsif clk = '1' and clk'event then
       if (glock = '0') then
 
         delay_opc1reg <= opc1reg;
         delay2_opc1reg <= delay_opc1reg;
-        result_reg_out <= result_reg_in;
+
+        stage1_enable <= t1load;
+        stage2_enable <= stage1_enable;
+        stage3_enable <= stage2_enable;
 
         if( t1load = '1' ) then
           t1reg   <= t1data;
@@ -168,37 +164,17 @@ begin
     end if;
   end process regs;
 
-  process( opc1reg )
-  begin
-    if opc1reg = OPC_CFIU or opc1reg = OPC_CIFU then
-      signselect <= '1';
-    else
-      signselect <= '0';
-    end if;
-  end process;
-  
-  process( t1reg, conv_input )
-  begin
-    conv_input( intw-1 downto 0 ) <= t1reg( intw-1 downto 0 );
-    if( signselect = '1' ) then
-      conv_input(intw) <= '0';
-    else
-      conv_input(intw) <= t1reg( intw-1 );
-    end if;
-    --conv_result_reg_in <= to_slv( to_float( signed( conv_input ), 8, 23 ) );
-  end process;
-  
-  
+  signselect <= '1' when opc1reg = OPC_CFIU or opc1reg = OPC_CIFU else
+                '0';
   
   process( t1reg, trunc_result_reg1_out ) is
-    variable trunc_result_temp : std_logic_vector (intw+1-1 downto 0);
-  begin -- TODO TODO TODO
-
-    -- If output int is negative, result is undefined in IEEE, so we can output nonsensical results.
-    -- Uncomment the following lines to output zero instead.
+    variable trunc_result_temp : std_logic_vector (intw downto 0);
+  begin
+    --CFIU result is undefined when input is negative -> we can output anything.
+    --Uncomment the following lines to output zero.
 
     --if( t1reg( t1reg'high ) = '1' and signselect = '1' ) then
-    --  trunc_result_temp <= (others=>'0');
+    --  trunc_result_temp := (others=>'0');
     --else
       trunc_result_temp := std_logic_vector(to_signed(to_float(t1reg(ew+mw downto 0),ew,mw), intw+1));
     --end if;
@@ -206,49 +182,38 @@ begin
     trunc_result_reg_in <= trunc_result_reg1_out;
   end process;
 
-  
-  
-  
-    -- to_float (signed)
-  to_float_conv : process( conv_input,
-      exp_reg_out, sign_reg_out, arg_int_reg_out,
-      sign_reg1_out, arg_int_reg1_out ) is
+  conv_input(intw-1 downto 0) <= t1reg( intw-1 downto 0 );
+  conv_input(intw) <= '0' when signselect = '1' else
+                      t1reg(intw-1);
+
+  -- to_float (signed)
+  to_float_conv_stage1 : process( conv_input ) is
     variable arg            : SIGNED(intw downto 0);
-    constant exponent_width : NATURAL    := ew;  -- length of FP output exponent
-    constant fraction_width : NATURAL    := mw;  -- length of FP output fraction
-    constant round_style    : round_type := float_round_style;
-    variable result     : UNRESOLVED_float (exponent_width downto -fraction_width);
-    constant ARG_LEFT   : INTEGER := ARG'length-1;
-    alias XARG          : SIGNED(ARG_LEFT downto 0) is ARG;
-    variable arg_int    : UNSIGNED(xarg'range);  -- Real version of argument
-    variable argb2      : UNSIGNED(xarg'high/2 downto 0);  -- log2 of input
-    variable rexp       : SIGNED (exponent_width - 1 downto 0);
-    variable exp        : SIGNED (exponent_width - 1 downto 0);
-    -- signed version of exp.
-    variable expon      : UNSIGNED (exponent_width - 1 downto 0);
-    -- Unsigned version of exp.
-    variable round  : BOOLEAN;
-    --variable is_zero  : BOOLEAN;
-    variable fract  : UNSIGNED (fraction_width-1 downto 0);
-    variable rfract : UNSIGNED (fraction_width-1 downto 0);
+    variable arg_int    : UNSIGNED(arg'range);  -- Real version of argument
     variable sign   : STD_ULOGIC;         -- sign bit
-    variable sticky   : STD_ULOGIC;         -- sign bi
-    
-    constant remainder_width : INTEGER := intw - fraction_width;
-    variable remainder : UNSIGNED( remainder_width-1 downto 0 );
   begin
-  
     arg := signed( conv_input( intw downto 0 ) );
-                              -- Normal number (can't be denormal)
-    sign := to_X01(xarg (xarg'high));
-    arg_int := UNSIGNED(abs (to_01(xarg)));
+    -- Normal number (can't be denormal)
+    sign := to_X01(arg (arg'high));
+    arg_int := UNSIGNED(abs (to_01(arg)));
     
     sign_reg1_in <= sign;
     arg_int_reg1_in <= arg_int;
-    
+  end process;
+
+  -- to_float (signed)
+  to_float_conv_stage2 : process(
+      sign_reg1_out, arg_int_reg1_out ) is
+    variable arg            : SIGNED(intw downto 0);
+    constant round_style    : round_type := float_round_style;
+    variable arg_int    : UNSIGNED(arg'range);  -- Real version of argument
+    variable argb2      : UNSIGNED(arg'high/2 downto 0);  -- log2 of input
+    variable exp        : SIGNED (ew - 1 downto 0);
+    variable sign   : STD_ULOGIC;         -- sign bit
+  begin
     sign := sign_reg1_out;
     arg_int := arg_int_reg1_out;
-    
+   
     -- Compute Exponent
     argb2 := to_unsigned(find_leftmost(arg_int, '1'), argb2'length);  -- Log2
     
@@ -259,16 +224,39 @@ begin
     sign_reg_in <= sign;
     arg_int_reg_in <= arg_int;
     
+  end process;
+
+  -- to_float (signed)
+  to_float_conv_stage3 : process(
+      exp_reg_out, sign_reg_out, arg_int_reg_out ) is
+    variable arg            : SIGNED(intw downto 0);
+    constant round_style    : round_type := float_round_style;
+    variable result     : UNRESOLVED_float (ew downto -mw);
+    variable arg_int    : UNSIGNED(arg'range);  -- Real version of argument
+    variable rexp       : SIGNED (ew - 1 downto 0);
+    variable exp        : SIGNED (ew - 1 downto 0);
+    -- Signed version of exp.
+    variable expon      : UNSIGNED (ew - 1 downto 0);
+    -- Unsigned version of exp.
+    variable round  : BOOLEAN;
+    variable fract  : UNSIGNED (mw-1 downto 0);
+    variable rfract : UNSIGNED (mw-1 downto 0);
+    variable sign   : STD_ULOGIC;         -- sign bit
+    constant remainder_width : INTEGER := intw - mw;
+    variable remainder : UNSIGNED( remainder_width-1 downto 0 );
+  begin
+  
+    
     exp := exp_reg_out;
     sign := sign_reg_out;
     arg_int := arg_int_reg_out;
     
-    fract := arg_int (arg_int'high-1 downto (arg_int'high-fraction_width));
+    fract := arg_int (arg_int'high-1 downto (arg_int'high-mw));
     
     round := check_round (
       fract_in    => fract (0),
       sign        => sign,
-      remainder   => arg_int((arg_int'high-fraction_width-1)
+      remainder   => arg_int((arg_int'high-mw-1)
                              downto 0),
       round_style => round_style);
     if round then
@@ -282,19 +270,22 @@ begin
     end if;
     
     if (arg_int = 0) then
-      result := zerofp (fraction_width => fraction_width,
-                        exponent_width => exponent_width);
+      result := zerofp (fraction_width => mw,
+                        exponent_width => ew);
     else    
-      result (exponent_width) := sign;
+      result(ew) := sign;
       expon := UNSIGNED (rexp-1);
-      expon(exponent_width-1)            := not expon(exponent_width-1);
-      result (exponent_width-1 downto 0) := UNRESOLVED_float(expon);
-      result (-1 downto -fraction_width) := UNRESOLVED_float(rfract);
+      expon(ew-1)            := not expon(ew-1);
+      result (ew-1 downto 0) := UNRESOLVED_float(expon);
+      result (-1 downto -mw) := UNRESOLVED_float(rfract);
     end if;
-    --return result;
     conv_result <= to_slv( result );
-  end process to_float_conv;
+  end process to_float_conv_stage3;
   
-  
+  result_reg_in <= conv_result when (delay2_opc1reg = OPC_CIF or delay2_opc1reg = OPC_CIFU) else
+		   trunc_result_reg_out;
+
+  r1data <= result_reg_out;
+
 end rtl;
 
