@@ -272,6 +272,15 @@ main() {
     test( half(imm2.to_float()) == half(3.75f) );
     test( half(imm1.to_int()) == half(3.f) );
     test( half(imm2.to_int()) == half(4.f) );
+    imm1 = 0.0f;
+    test( half(imm1.to_float()) == half(0.f) );
+    test( imm1.to_int() == 0 );
+    int integer1 = 100000, integer2 = 200000;
+    test( half(integer1) == half(integer2) );
+    integer1 = -100000; integer2 = -200000;
+    test( half(integer1) == half(integer2) );
+    integer1 = 100000; integer2 = -200000;
+    test( half(integer1) != half(integer2) );
     _TCE_STDOUT('\n');
 }
                          

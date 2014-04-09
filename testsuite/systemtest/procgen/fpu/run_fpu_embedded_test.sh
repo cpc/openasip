@@ -15,7 +15,7 @@ RUNTIME=${RUNCYCLES}0
 echo "Testing FPUs..."
 
 # Compile program
-$TCECC -O1 -a $ADF -o $TPEF --bottom-up-scheduler -k result data/test_code.c || exit 1
+$TCECC -O1 -a $ADF -o $TPEF -k result data/test_code.c || exit 1
 
 # Check that there are no emulation functions
 $DISASM -o temp.txt $ADF $TPEF || exit 1

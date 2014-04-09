@@ -905,6 +905,10 @@ package float_pkg is
     size_res : UNRESOLVED_float)
     return UNRESOLVED_float;
 
+  function gen_expon_base (
+    constant exponent_width : NATURAL)
+    return SIGNED;
+
   -- For Verilog compatability
   function realtobits (arg : REAL) return STD_LOGIC_VECTOR;
   function bitstoreal (arg : STD_LOGIC_VECTOR) return REAL;

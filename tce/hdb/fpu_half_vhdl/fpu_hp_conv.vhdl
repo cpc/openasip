@@ -93,6 +93,8 @@ architecture rtl of fpu_hp_conv is
   signal arg_int_reg_in, arg_int_reg_out : UNSIGNED(intw downto 0); 
   signal exp_reg_in, exp_reg_out : SIGNED(ew-1 downto 0); 
   signal sign_reg_in, sign_reg_out : STD_ULOGIC; 
+  signal zero_reg_in, zero_reg_out : boolean;
+  signal inf_reg_in, inf_reg_out : boolean;
   
 begin
 
@@ -111,6 +113,8 @@ begin
       trunc_result_reg1_out <= (others => '0');
       
       result_reg_out <= (others => '0');
+      zero_reg_out <= False;
+      inf_reg_out <= False;
 
     elsif clk = '1' and clk'event then
       if (glock = '0') then
@@ -125,6 +129,8 @@ begin
           exp_reg_out <= exp_reg_in;
           sign_reg_out <= sign_reg_in;
           trunc_result_reg_out <= trunc_result_reg_in;
+          zero_reg_out <= zero_reg_in;
+          inf_reg_out <= inf_reg_in;
 	end if;
 
 	if (stage3_enable = '1') then
@@ -211,16 +217,24 @@ begin
     variable argb2      : UNSIGNED(arg'high/2 downto 0);  -- log2 of input
     variable exp        : SIGNED (ew - 1 downto 0);
     variable sign   : STD_ULOGIC;         -- sign bit
+    variable zero   : boolean;         -- sign bit
+    variable inf    : boolean;         -- sign bit
   begin
     sign := sign_reg1_out;
     arg_int := arg_int_reg1_out;
    
+    zero := arg_int = 0;
+
     -- Compute Exponent
     argb2 := to_unsigned(find_leftmost(arg_int, '1'), argb2'length);  -- Log2
     
     exp     := SIGNED(resize(argb2, exp'length));
-    arg_int := shift_left (arg_int, arg_int'high-to_integer(exp));    
+    arg_int := shift_left (arg_int, arg_int'high-to_integer(exp));
+    inf     := argb2 > unsigned(gen_expon_base(ew));
+    --inf     := argb2 > 14;
     
+    inf_reg_in <= inf;
+    zero_reg_in <= zero;
     exp_reg_in <= exp;
     sign_reg_in <= sign;
     arg_int_reg_in <= arg_int;
@@ -245,9 +259,12 @@ begin
     variable sign   : STD_ULOGIC;         -- sign bit
     constant remainder_width : INTEGER := intw - mw;
     variable remainder : UNSIGNED( remainder_width-1 downto 0 );
+    variable zero   : boolean;         -- sign bit
+    variable inf    : boolean;         -- sign bit
   begin
   
-    
+    zero := zero_reg_out;
+    inf := inf_reg_out;
     exp := exp_reg_out;
     sign := sign_reg_out;
     arg_int := arg_int_reg_out;
@@ -270,9 +287,17 @@ begin
       rexp   := exp;
     end if;
     
-    if (arg_int = 0) then
+    if zero then
       result := zerofp (fraction_width => mw,
                         exponent_width => ew);
+    elsif inf then
+      if sign = '0' then
+        result := pos_inffp (fraction_width => mw,
+                          exponent_width => ew);
+      else
+        result := neg_inffp (fraction_width => mw,
+                          exponent_width => ew);
+      end if;
     else    
       result(ew) := sign;
       expon := UNSIGNED (rexp-1);
