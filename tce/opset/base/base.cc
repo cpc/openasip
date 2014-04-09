@@ -1553,4 +1553,16 @@ IO(2) = 0;
 END_TRIGGER;
 END_OPERATION(LCC)
 
-
+//////////////////////////////////////////////////////////////////////////////
+// SELECT - select from two values
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SELECT)
+TRIGGER
+if (UINT(3) & 1) {
+    IO(4) = IO(1);
+} else {
+    IO(4) = IO(2);
+}
+//IO(4) = ((IO(3)) & 1) ? IO(1) : IO(2);
+END_TRIGGER;
+END_OPERATION(SELECT)

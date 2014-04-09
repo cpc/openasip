@@ -54,6 +54,7 @@
 #include "StringTools.hh"
 #include "MoveNode.hh"
 #include "MoveGuard.hh"
+#include "Guard.hh"
 
 using namespace TTAMachine;
 /**
@@ -1304,3 +1305,129 @@ MachineConnectivityCheck::PortPortBoolMap MachineConnectivityCheck::portPortCach
 MachineConnectivityCheck::RfRfBoolMap MachineConnectivityCheck::rfRfCache_;
 MachineConnectivityCheck::RfPortBoolMap MachineConnectivityCheck::rfPortCache_;
 MachineConnectivityCheck::PortRfBoolMap MachineConnectivityCheck::portRfCache_;
+
+
+bool
+MachineConnectivityCheck::hasConditionalMoves(
+    const TTAMachine::Machine& mach) {
+
+    const Machine::RegisterFileNavigator regNav =
+        mach.registerFileNavigator();
+
+    std::set<std::pair<RegisterFile*,int> > allGuardRegs;
+    const Machine::BusNavigator& busNav = mach.busNavigator();
+
+    // first just collect all guard registers.
+    for (int bi = 0; bi < busNav.count(); ++bi) {
+        Bus* bus = busNav.item(bi);
+        for (int gi = 0; gi < bus->guardCount(); gi++) {
+            Guard* guard = bus->guard(gi);
+            TTAMachine::RegisterGuard* rg = 
+                dynamic_cast<RegisterGuard*>(guard);
+            if (rg != NULL) {
+                allGuardRegs.insert(
+                    std::pair<RegisterFile*,int>(rg->registerFile(),
+                                                 rg->registerIndex()));
+            }
+        }
+    }
+
+
+    // then check for the connections.
+    for (int i = 0; i < regNav.count(); i++) {
+        TTAMachine::RegisterFile* srf = regNav.item(i);
+        for (int j = 0; j < regNav.count(); j++) {
+            TTAMachine::RegisterFile* drf = regNav.item(i);
+            for (std::set<std::pair<RegisterFile*,int> >::iterator k =
+                     allGuardRegs.begin(); k != allGuardRegs.end(); k++) {
+                if (!isConnectedWithBothGuards(*srf, *drf, *k)) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+/*
+bool
+MachineConnectivityCheck::hasConditionalOperations(
+    const TTAMachine::Machine& mach) {
+
+}
+*/
+
+/**
+ * Checks whether there is a connection from some outport port of a 
+ * register file or immediate unit into some input port of the given
+ * target register file or immediate unit.
+ *
+ * @param sourceRF Source RF/Immediate unit.
+ * @param destRF Source RF/Immediate unit.
+ * @return True if there is at least one connection from any of the output
+ * ports of the source RF/Imm unit into the destination RF.
+ */
+bool
+MachineConnectivityCheck::isConnectedWithBothGuards(
+    const TTAMachine::BaseRegisterFile& sourceRF,
+    const TTAMachine::BaseRegisterFile& destRF,
+    std::pair<RegisterFile*,int> guardReg) {
+    
+    RfRfBoolMap::const_iterator
+        i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
+    if (i != rfRfCache_.end()) {
+        if (i->second == false) {
+            return false;
+        }
+    }
+    std::set<TTAMachine::Bus*> srcBuses;
+    appendConnectedDestinationBuses(sourceRF, srcBuses);
+
+    std::set<TTAMachine::Bus*> dstBuses;
+    appendConnectedSourceBuses(destRF, dstBuses);
+
+    std::set<TTAMachine::Bus*> sharedBuses;
+    SetTools::intersection(srcBuses, dstBuses, sharedBuses);
+
+    bool trueOK = false;
+    bool falseOK = false;
+    if (sharedBuses.size() > 0) {
+        rfRfCache_[RfRfPair(&sourceRF,&destRF)] = true;
+        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
+             i != sharedBuses.end(); i++) {
+            Bus* bus = *i;
+            std::pair<bool, bool> guardsOK = hasBothGuards(bus, guardReg);
+            trueOK |= guardsOK.first;
+            falseOK |= guardsOK.second;
+            if (trueOK && falseOK) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+std::pair<bool,bool> MachineConnectivityCheck::hasBothGuards(
+    const TTAMachine::Bus* bus, std::pair<RegisterFile*,int> guardReg) {
+    bool trueOK = false;
+    bool falseOK = false;
+
+    for (int gi = 0; gi < bus->guardCount(); gi++) {
+        TTAMachine::Guard* guard = bus->guard(gi);
+        TTAMachine::RegisterGuard* rg =
+            dynamic_cast<TTAMachine::RegisterGuard*>(guard);
+        if (rg != NULL) {
+            if (rg->registerFile() == guardReg.first &&
+                rg->registerIndex() == guardReg.second) {
+                if (rg->isInverted()) {
+                    falseOK = true;
+                } else {
+                    trueOK = true;
+                }
+                if (falseOK && trueOK) {
+                    return std::pair<bool, bool>(true, true);
+                }
+            }
+        }
+    }
+    return std::pair<bool, bool>(trueOK, falseOK);
+}

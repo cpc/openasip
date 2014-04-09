@@ -42,6 +42,7 @@
 
 class TCEString;
 class MoveNode;
+class Operation;
 
 namespace TTAMachine {
     class Port;
@@ -78,6 +79,11 @@ public:
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::BaseRegisterFile& destRF,
         TTAMachine::Guard* guard = NULL);
+
+    static bool isConnectedWithBothGuards(
+        const TTAMachine::BaseRegisterFile& sourceRF,
+        const TTAMachine::BaseRegisterFile& destRF,
+        std::pair<TTAMachine::RegisterFile*,int> guardReg);
 
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
@@ -185,11 +191,17 @@ public:
     static std::set<const TTAMachine::Port*> findReadPorts(
         TTAMachine::Unit& rf);
 
+    static bool hasConditionalMoves(const TTAMachine::Machine& mach);
+
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();
 
     static void addAnnotatedFUs(std::set<TCEString>& candidateFUs, const TTAProgram::Move& m, 
 	TTAProgram::ProgramAnnotation::Id id);
+
+    static std::pair<bool,bool> hasBothGuards(
+        const TTAMachine::Bus* bus, 
+        std::pair<TTAMachine::RegisterFile*,int> guardReg);
 
 protected:
     MachineConnectivityCheck(const std::string& shortDesc_);

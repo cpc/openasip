@@ -1216,7 +1216,7 @@ LLVMTCEBuilder::emitInstruction(
             return emitInlineAsm(mi, proc);
         }
 
-        if (opName == "SELECT") {
+        if (opName == "CMOV_SELECT") {
             return emitSelect(mi, proc);
         }
         

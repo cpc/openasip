@@ -223,7 +223,7 @@ def MOVIF16hr : InstTCE<(outs R32HFPRegs:$dst), (ins R32IRegs:$src),
 
 def NOP : InstTCE<(outs), (ins), "...;", []>;
 
-// zero extending moves
+// zero extending moves used in some patterns
 
 def ANDext : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$src, i32imm:$val),
 	"", []>;
@@ -242,6 +242,32 @@ def PRED_TRUE_XORbicmp: InstTCE<(outs R1Regs:$dst),(ins R1Regs:$pred, R1Regs:$sr
 
 def PRED_FALSE_XORbicmp: InstTCE<(outs R1Regs:$dst),(ins R1Regs:$pred, R1Regs:$src, i32imm:$val),
     "", []>;
+
+// integer ops for floating point values - used for FP select emulation
+
+def IORfff: InstTCE<(outs R32FPRegs:$dst), 
+    (ins R32FPRegs:$src1, R32FPRegs:$src2), "", []>;
+
+def IORhhh: InstTCE<(outs R32HFPRegs:$dst), 
+    (ins R32HFPRegs:$src1, R32HFPRegs:$src2), "", []>;
+
+def ANDfff: InstTCE<(outs R32FPRegs:$dst), 
+    (ins R32FPRegs:$src1, R32FPRegs:$src2), "", []>;
+
+def ANDhhh: InstTCE<(outs R32HFPRegs:$dst), 
+    (ins R32HFPRegs:$src1, R32HFPRegs:$src2), "", []>;
+
+def ADDfri: InstTCE<(outs R32FPRegs:$dst), 
+    (ins R32IRegs:$src1, i32imm:$src2), "", []>;
+
+def ADDhri: InstTCE<(outs R32HFPRegs:$dst), 
+    (ins R32IRegs:$src1, i32imm:$src2), "", []>;
+
+def SUBfir: InstTCE<(outs R32FPRegs:$dst), 
+    (ins i32imm:$src1, R32IRegs:$src2), "", []>;
+
+def SUBhir: InstTCE<(outs R32HFPRegs:$dst), 
+    (ins i32imm:$src1, R32IRegs:$src2), "", []>;
 
 // (set R32IRegs:$dst, (zext R1Regs:$src))]>;
 
@@ -336,71 +362,6 @@ def : Pat<(i1 (select R1Regs:$c, R1Regs:$T, (i1 0))), (ANDbbb R1Regs:$c, R1Regs:
 // select of 1 or 0.
 def : Pat<(i32 (select R1Regs:$c, (i32 1), (i32 0))), (ANDext R1Regs:$c, 1)>;
 
-// then the actual select patterns.
-
-  def SELECT_I1rr : InstTCE<(outs R1Regs:$dst),
-                          (ins R1Regs:$c, R1Regs:$T, R1Regs:$F),
-                          "# SELECT_I1 PSEUDO!",
-                          [(set R1Regs:$dst, 
-    (select R1Regs:$c, R1Regs:$T, R1Regs:$F))]>;
-
-  def SELECT_I1ri : InstTCE<(outs R1Regs:$dst),
-                          (ins R1Regs:$c, R1Regs:$T, i1imm:$F),
-                          "# SELECT_I1 PSEUDO!",
-                          [(set R1Regs:$dst, 
-    (select R1Regs:$c, R1Regs:$T, (i1 imm:$F)))]>;
-
-  def SELECT_I1ir : InstTCE<(outs R1Regs:$dst),
-                          (ins R1Regs:$c, i1imm:$T, R1Regs:$F),
-                          "# SELECT_I1 PSEUDO!",
-                          [(set R1Regs:$dst, 
-    (select R1Regs:$c, (i1 imm:$T), R1Regs:$F))]>;
-
-  def SELECT_I1ii : InstTCE<(outs R1Regs:$dst),
-                          (ins R1Regs:$c, i1imm:$T, i1imm:$F),
-                          "# SELECT_I1 PSEUDO!",
-                          [(set R1Regs:$dst, 
-    (select R1Regs:$c, (i1 imm:$T), (i1 imm:$F)))]>;
-
-  def SELECT_I32rr : InstTCE<(outs R32IRegs:$dst),
-                          (ins R1Regs:$c, R32IRegs:$T, R32IRegs:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set R32IRegs:$dst, 
-                            (select R1Regs:$c, R32IRegs:$T, R32IRegs:$F))]>;
-
-// select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
- def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)), 
-     (SELECT_I32rr (MOVI32I1rr R32Regs:$c), R32IRegs:$T, R32IRegs:$F)>;
-
-  def SELECT_I32ri : InstTCE<(outs R32IRegs:$dst),
-                          (ins R32IRegs:$c, R32IRegs:$T, i32imm:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set R32IRegs:$dst, 
-    (select R32IRegs:$c, R32IRegs:$T, (i32 imm:$F)))]>;
-
-  def SELECT_I32ir : InstTCE<(outs R32IRegs:$dst),
-                          (ins R32IRegs:$c, i32imm:$T, R32IRegs:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set R32IRegs:$dst, 
-    (select R32IRegs:$c, (i32 imm:$T), R32IRegs:$F))]>;
-
-  def SELECT_I32ii : InstTCE<(outs R32IRegs:$dst),
-                          (ins R32IRegs:$c, i32imm:$T, i32imm:$F),
-                          "# SELECT_I32 PSEUDO!",
-                          [(set R32IRegs:$dst, 
-    (select R32IRegs:$c, (i32 imm:$T), (i32 imm:$F)))]>;
-
-  def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),
-                          (ins R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F),
-                          "# SELECT_F32 PSEUDO!",
-                          [(set R32FPRegs:$dst, 
-                            (select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;
-
-  def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),
-                          (ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),
-                          "# SELECT_F16 PSEUDO!",
-                          [(set R32HFPRegs:$dst, 
-                            (select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;
 
 
 // sign extension from i1 means 0 -> 0 , 1(true) -> -1

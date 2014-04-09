@@ -269,22 +269,8 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     const std::string PSEUDO = "PSEUDO";
     const std::string NOP = "NOP";
     const std::string INLINEASM = "INLINEASM";
-    const std::string SELECT = "SELECT";
 
-    // Pseudo operations
-    if (opc == TCE::SELECT_I1rr) return SELECT;
-    else if (opc == TCE::SELECT_I1ri) return SELECT;
-    else if (opc == TCE::SELECT_I1ir) return SELECT;
-    else if (opc == TCE::SELECT_I1ii) return SELECT;
-
-    else if (opc == TCE::SELECT_I32rr) return SELECT;
-    else if (opc == TCE::SELECT_I32ri) return SELECT;
-    else if (opc == TCE::SELECT_I32ir) return SELECT;
-    else if (opc == TCE::SELECT_I32ii) return SELECT;
-
-    else if (opc == TCE::SELECT_F32) return SELECT;
-    else if (opc == TCE::SELECT_F16) return SELECT;
-    else if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
+    if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
     else if (opc == TCE::NOP) return NOP;

@@ -71,8 +71,10 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
 TDGen::TDGen(const TTAMachine::Machine& mach) :
     mach_(mach), dregNum_(0), maxVectorSize_(1), 
     highestLaneInt_(-1), highestLaneBool_(-1),
-    hasExBoolRegs_(false), hasExIntRegs_(false) {
+    hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
+    hasConditionalMoves_ =  
+        MachineConnectivityCheck::hasConditionalMoves(mach_);
 }
 
 /**
@@ -1068,17 +1070,12 @@ TDGen::writeInstrInfo(std::ostream& os) {
 
     // some global/address immediate if conversion fails
     // so commented out
-    truePredOps_["MOVI32rr"] = "PRED_TRUE_MOVI32rr";
-    falsePredOps_["MOVI32rr"] = "PRED_FALSE_MOVI32rr";
-    truePredOps_["MOVI1rr"] = "PRED_TRUE_MOVI1rr";
-    falsePredOps_["MOVI1rr"] = "PRED_FALSE_MOVI1rr";
-
-//    truePredOps_["MOVI32ri"] = "PRED_TRUE_MOVI32ri";
-//    falsePredOps_["MOVI32ri"] = "PRED_FALSE_MOVI32ri";
-//    truePredOps_["MOVI1ri"] = "PRED_TRUE_MOVI1ri";
-//    falsePredOps_["MOVI1ri"] = "PRED_FALSE_MOVI1ri";
-
-
+    if (hasConditionalMoves_) {
+        truePredOps_["MOVI32rr"] = "PRED_TRUE_MOVI32rr";
+        falsePredOps_["MOVI32rr"] = "PRED_FALSE_MOVI32rr";
+        truePredOps_["MOVI1rr"] = "PRED_TRUE_MOVI1rr";
+        falsePredOps_["MOVI1rr"] = "PRED_FALSE_MOVI1rr";
+    }
 
     OperationDAGSelector::OperationSet::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
@@ -1214,6 +1211,8 @@ TDGen::writeInstrInfo(std::ostream& os) {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
+
+    createSelectPatterns(os);
 }
 
 /**
@@ -1519,6 +1518,23 @@ TDGen::writeOperationDefs(
         writeOperationDefs(o, op, "bbb", attrs, skipPattern);
     }
 
+    if (op.name() == "SELECT") {
+        writeOperationDef(o, op, "rrrb", attrs, skipPattern);
+        writeOperationDef(o, op, "riib", attrs, skipPattern);
+        writeOperationDef(o, op, "rrib", attrs, skipPattern);
+        writeOperationDef(o, op, "rirb", attrs, skipPattern);
+        writeOperationDef(o, op, "bbbb", attrs, skipPattern);
+        writeOperationDef(o, op, "bjjb", attrs, skipPattern);
+        writeOperationDef(o, op, "bjbb", attrs, skipPattern);
+        writeOperationDef(o, op, "bbjb", attrs, skipPattern);
+        // TODO: what about floating-point values?
+//        writeOperationDef(o, op, "fffb", attrs, skipPattern);
+//        writeOperationDef(o, op, "hhhb", attrs, skipPattern);
+
+        hasSelect_ = true;
+        return;
+    }
+
     // store likes this. store immediate to immediate address
     if (op.numberOfInputs() == 2 && op.numberOfOutputs() == 0) {
         Operand& operand1 = op.operand(1);
@@ -1676,26 +1692,6 @@ TDGen::writeVectorStoreDefs(
     writeVectorStoreDefs(o, op.name(), "vi", true, dataTypeInt);//, loadPatternName);
     writeVectorStoreDefs(o, op.name(), "mr", false, dataTypeFP);//, loadPatternName);
     writeVectorStoreDefs(o, op.name(), "mi", true, dataTypeFP);//, loadPatternName);
-
-/*
-
-    o << "def STW" << vectorLen << "vr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32IRegs:$data),"
-      << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRrr:$addr)]>;" << std::endl;
-    
-    o << "def STW" << vectorLen << "vi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32IRegs:$data),"
-      << "\"\", [(store V" << vectorLen << "R32IRegs:$data, ADDRri:$addr)]>;" << std::endl;
-
-    o << "def STW" << vectorLen << "mr : InstTCE<(outs), (ins MEMrr:$addr, V" << vectorLen << "R32FPRegs:$data),"
-      << "\"\", [(store V" << vectorLen << "R32FPRegs:$data, ADDRrr:$addr)]>;" << std::endl;
-
-    o << "def STW" << vectorLen << "mi : InstTCE<(outs), (ins MEMri:$addr, V" << vectorLen << "R32FPRegs:$data),"
-      << "\"\", [(store V" << vectorLen << "R32FPRegs:$data, ADDRri:$addr)]>;" << std::endl;
-
-    opNames_[op.name() + "vr"] = op.name();
-    opNames_[op.name() + "vi"] = op.name();
-    opNames_[op.name() + "mr"] = op.name();
-    opNames_[op.name() + "mi"] = op.name();
-*/
 }
 
 void 
@@ -1801,6 +1797,7 @@ void TDGen::writeVectorAnyextPattern(
     o << "def : Pat<(v" << vectorLen << "f32 (" << loadPatternName << " ADDRri:$addr)), (" << 
                               op.name() << "mi ADDRri:$addr)>;" << std::endl;
 }
+
 
 /**
  * Writes a single operation def for single operation.
@@ -2140,6 +2137,8 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "neg") return "ineg %1%";
     if (opName == "not") return "not %1%";
 
+    if (opName == "select") return "select %3%, %1%, %2%";
+
     // Unknown operation name.
     return "";
 }
@@ -2232,6 +2231,8 @@ TDGen::llvmOperationName(const std::string& osalOperationName) {
 
     if (opName == "neg") return "ineg";
     if (opName == "not") return "not";
+
+    if (opName == "select") return "select";
 
     // Unknown operation name.
     return "";
@@ -3284,4 +3285,174 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
         os << "if (vt == MVT::i32) return TCE::MAXUrrr;" << std::endl;
     }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
+}
+
+void TDGen::createSelectPatterns(std::ostream& os) {
+    if (!hasSelect_) {
+        if (!hasConditionalMoves_) {
+            os << std::endl
+               << "def : Pat<(i32 (select R1Regs:$c, R32Regs:$t, R32Regs:$f)), " 
+               << "(IORrrr (ANDrrr $t, (SUBrir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDrrr $f, (ADDrri (ANDext R1Regs:$c, 1), -1)))>;" 
+               << std::endl << std::endl
+                
+               << "def : Pat<(i32 (select R1Regs:$c, (i32 imm:$t),(i32 imm:$f))),"
+               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
+               << "(ANDrri (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;" 
+               << std::endl << std::endl
+                
+               << "def : Pat<(i32 (select R1Regs:$c, R32Regs:$t, (i32 imm:$f))),"
+               << "(IORrrr (ANDrrr (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
+               << "(ANDrri (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;"
+               << std::endl << std::endl
+                
+               << "def : Pat<(i32 (select R1Regs:$c, (i32 imm:$t), R32Regs:$f)),"
+               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
+               << "(ANDrrr (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;"
+               << std::endl << std::endl
+                
+               << "def : Pat<(i1 (select R1Regs:$c, R1Regs:$t, R1Regs:$f)),"
+               << "(IORbbb (ANDbbb R1Regs:$c, R1Regs:$t), " 
+               << "(ANDbbb (XORbbj R1Regs:$c, 1), R1Regs:$f))>;" 
+               << std::endl << std::endl
+                
+               << "def : Pat<(i1 (select R1Regs:$c, (i1 0), R1Regs:$f)),"
+               << "(ANDbbb (XORbbj R1Regs:$c, 1), R1Regs:$f)>;" 
+               << std::endl << std::endl
+                
+               << "def : Pat<(i1 (select R1Regs:$c, R1Regs:$t, (i1 -1))),"
+               << "(IORbbb (ANDbbb R1Regs:$c, R1Regs:$t)," 
+               << "(XORbbj R1Regs:$c, 1))>;"
+               << std::endl << std::endl;
+            
+            os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
+               << "(IORfff (ANDfff $t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDfff $f, (ADDfri (ANDext R1Regs:$c,1),-1)))>;"
+               << std::endl << std::endl
+                
+               << "def : Pat<(f16 (select R1Regs:$c,R32HFPRegs:$t,R32HFPRegs:$f)),"
+               << "(IORhhh (ANDhhh $t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDhhh $f, (ADDhri (ANDext R1Regs:$c,1),-1)))>;"
+               << std::endl << std::endl;
+        } else {
+            opNames_["SELECT_I1bb"] = "CMOV_SELECT";
+            opNames_["SELECT_I1bj"] = "CMOV_SELECT";
+            opNames_["SELECT_I1jb"] = "CMOV_SELECT";
+            opNames_["SELECT_I1jj"] = "CMOV_SELECT";
+            opNames_["SELECT_I32rr"] = "CMOV_SELECT";
+            opNames_["SELECT_I32ir"] = "CMOV_SELECT";
+            opNames_["SELECT_I32ri"] = "CMOV_SELECT";
+            opNames_["SELECT_I32ii"] = "CMOV_SELECT";
+            opNames_["SELECT_F32"] = "CMOV_SELECT";
+            opNames_["SELECT_F16"] = "CMOV_SELECT";
+
+
+            os << "def SELECT_I1bb : InstTCE<(outs R1Regs:$dst),"
+               << "(ins R1Regs:$c, R1Regs:$T, R1Regs:$F),"
+               << "\"# SELECT_I1 PSEUDO!\","
+               << " [(set R1Regs:$dst,"
+               << "(select R1Regs:$c, R1Regs:$T, R1Regs:$F))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I1bj : InstTCE<(outs R1Regs:$dst),"
+               << " (ins R1Regs:$c, R1Regs:$T, i1imm:$F),"
+               << "\"# SELECT_I1 PSEUDO!\","
+               << "[(set R1Regs:$dst,"
+               << "(select R1Regs:$c, R1Regs:$T, (i1 imm:$F)))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I1jb : InstTCE<(outs R1Regs:$dst),"
+               << "(ins R1Regs:$c, i1imm:$T, R1Regs:$F),"
+               << "\"# SELECT_I1 PSEUDO!\","
+               << "[(set R1Regs:$dst," 
+               << "(select R1Regs:$c, (i1 imm:$T), R1Regs:$F))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I1jj : InstTCE<(outs R1Regs:$dst),"
+               << "(ins R1Regs:$c, i1imm:$T, i1imm:$F),"
+               << "\"# SELECT_I1 PSEUDO!\","
+               << "[(set R1Regs:$dst,"
+               << "(select R1Regs:$c, (i1 imm:$T), (i1 imm:$F)))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I32rr : InstTCE<(outs R32IRegs:$dst),"
+               << "(ins R1Regs:$c, R32IRegs:$T, R32IRegs:$F),"
+               << "\"# SELECT_I32 PSEUDO!\","
+               << "[(set R32IRegs:$dst,"
+               << "(select R1Regs:$c, R32IRegs:$T, R32IRegs:$F))]>;"
+               << std::endl << std::endl
+// select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
+                
+               << "def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)),"
+               << "(SELECT_I32rr (MOVI32I1rr R32Regs:$c),"
+               << "R32IRegs:$T, R32IRegs:$F)>;" 
+               << std::endl << std::endl
+                
+               << "def SELECT_I32ri : InstTCE<(outs R32IRegs:$dst),"
+               << "(ins R32IRegs:$c, R32IRegs:$T, i32imm:$F),"
+               << "\"# SELECT_I32 PSEUDO!\","
+               << "[(set R32IRegs:$dst,"
+               << "(select R32IRegs:$c, R32IRegs:$T, (i32 imm:$F)))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I32ir : InstTCE<(outs R32IRegs:$dst),"
+               << "(ins R32IRegs:$c, i32imm:$T, R32IRegs:$F),"
+               << "\"# SELECT_I32 PSEUDO!\","
+               << "[(set R32IRegs:$dst,"
+               << "(select R32IRegs:$c, (i32 imm:$T), R32IRegs:$F))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_I32ii : InstTCE<(outs R32IRegs:$dst),"
+               << "(ins R32IRegs:$c, i32imm:$T, i32imm:$F),"
+               << "\"# SELECT_I32 PSEUDO!\","
+               << "[(set R32IRegs:$dst,"
+               << "(select R32IRegs:$c, (i32 imm:$T), (i32 imm:$F)))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),"
+               << "(ins R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F),"
+               << "\"# SELECT_F32 PSEUDO!\","
+               << "[(set R32FPRegs:$dst,"
+               << "(select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),"
+               << "(ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),"
+               << "\"# SELECT_F16 PSEUDO!\","
+               << "[(set R32HFPRegs:$dst, "
+               << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
+               << std::endl << std::endl;
+        }            
+
+    } else {
+        // TODO: select operation not yet handles FP values so these are here.
+        if (!hasConditionalMoves_) {
+            os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
+               << "(IORfff (ANDfff $t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDfff $f, (ADDfri (ANDext R1Regs:$c,1),-1)))>;"
+               << std::endl << std::endl
+                
+               << "def : Pat<(f16 (select R1Regs:$c,R32HFPRegs:$t,R32HFPRegs:$f)),"
+               << "(IORhhh (ANDhhh $t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDhhh $f, (ADDhri (ANDext R1Regs:$c,1),-1)))>;"
+               << std::endl << std::endl;
+        } else {
+            os << "def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),"
+               << "(ins R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F),"
+               << "\"# SELECT_F32 PSEUDO!\","
+               << "[(set R32FPRegs:$dst,"
+               << "(select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),"
+               << "(ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),"
+               << "\"# SELECT_F16 PSEUDO!\","
+               << "[(set R32HFPRegs:$dst, "
+               << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
+               << std::endl << std::endl;
+            
+            opNames_["SELECT_F32"] = "CMOV_SELECT";
+            opNames_["SELECT_F16"] = "CMOV_SELECT";
+        }
+    }
 }

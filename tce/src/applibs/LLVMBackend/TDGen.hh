@@ -258,6 +258,7 @@ throw (InvalidData);
 
     void generateLoadStoreCopyGenerator(std::ostream& os);
 
+    void createSelectPatterns(std::ostream& os);
     const TTAMachine::Machine& mach_;
 
     // Current dwarf register number.
@@ -294,6 +295,9 @@ throw (InvalidData);
 
     bool hasExBoolRegs_;
     bool hasExIntRegs_;
+    bool hasSelect_;
+
+    bool hasConditionalMoves_;
 
     /// Minimum number of 32 bit registers.
     unsigned static const REQUIRED_I32_REGS;

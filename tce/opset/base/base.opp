@@ -2983,4 +2983,17 @@ Input operand is discarded.</description>
     <out id="2" type="UIntWord"/>
   </operation>
 
+  <operation>
+    <name>SELECT</name>
+    <description>Select one of two values</description>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="RawData"></in>
+    <in id="2" type="RawData"></in>
+    <in id="3" type="UIntWord"></in>
+    <out id="4" type="RawData"/>
+    <trigger-semantics>
+    </trigger-semantics>
+  </operation>
+
 </osal>
