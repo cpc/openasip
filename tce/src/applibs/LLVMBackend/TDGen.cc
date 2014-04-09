@@ -2072,6 +2072,11 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "cfh") return "fround %1%";
     if (opName == "chf") return "fextend %1%";
 
+    if (opName == "cih") return "sint_to_fp %1%";
+    if (opName == "chi") return "fp_to_sint %1%";
+    if (opName == "cihu") return "uint_to_fp %1%";
+    if (opName == "chiu") return "fp_to_uint %1%";
+
     if (opName == "eqh") return "setoeq %1%, %2%";
     if (opName == "neh") return "setone %1%, %2%";
     if (opName == "lth") return "setolt %1%, %2%";
