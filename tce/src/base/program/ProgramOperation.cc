@@ -659,15 +659,15 @@ ProgramOperation::Comparator::operator()(
  * Switches inputs of 2-operand commutative operations
  */
 void
-ProgramOperation::switchInputs() {
+ProgramOperation::switchInputs(int idx1, int idx2) {
 
     const Operation& op = operation();
-    assert (op.numberOfInputs() == 2 && op.canSwap(1,2));
+    assert (op.numberOfInputs() >= 2);
     
     // switch input nodes.
-    MoveNodeSet tmpSet = *inputMoves_[1];
-    *inputMoves_[1] = *inputMoves_[2];
-    *inputMoves_[2] = tmpSet;
+    MoveNodeSet tmpSet = *inputMoves_[idx1];
+    *inputMoves_[idx1] = *inputMoves_[idx2];
+    *inputMoves_[idx2] = tmpSet;
 
     for (int i = 0; i < inputMoveCount(); i++) {
         MoveNode& node = inputMove(i);
@@ -675,10 +675,18 @@ ProgramOperation::switchInputs() {
         TTAProgram::Terminal& oldDest = move.destination();
         
         // then update the moves.
-        move.setDestination(
-            new TTAProgram::TerminalFUPort(
-                *static_cast<TTAProgram::TerminalFUPort&>(oldDest).
-                hwOperation(), 3-oldDest.operationIndex()));
+        if (move.destination().operationIndex() == idx1) {
+            move.setDestination(
+                new TTAProgram::TerminalFUPort(
+                    *static_cast<TTAProgram::TerminalFUPort&>(oldDest).
+                    hwOperation(), idx2));
+            
+        } else if (move.destination().operationIndex() == idx2) {
+            move.setDestination(
+                new TTAProgram::TerminalFUPort(
+                    *static_cast<TTAProgram::TerminalFUPort&>(oldDest).
+                    hwOperation(), idx1));
+        }
     }
 }
 

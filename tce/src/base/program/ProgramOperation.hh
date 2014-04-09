@@ -101,7 +101,7 @@ public:
     
     const llvm::MachineInstr* machineInstr() const { return mInstr_; }
 
-    void switchInputs();
+    void switchInputs(int idx1 = 1, int idx2 = 2);
 
     std::string toString() const;
 

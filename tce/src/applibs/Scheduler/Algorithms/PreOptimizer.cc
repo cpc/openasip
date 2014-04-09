@@ -208,15 +208,24 @@ PreOptimizer::tryToRemoveXor(
     DataDependenceGraph::EdgeSet oEdges = ddg.outEdges(result);
     bool ok = true;
     
-    // loop thru all outedges.
+    // loop through all outedges.
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
         if (edge.dependenceType() == DataDependenceEdge::DEP_RAW && 
             !edge.guardUse()) {
-            ok = false;
-            break;
+            MoveNode& dstMN = ddg.headNode(edge);
+            if (!dstMN.isDestinationOperation()) {
+                ok = false;
+                break;
+            }
+            ProgramOperation &dstOp = dstMN.destinationOperation();
+            if (dstOp.operation().name() != "SELECT") {
+                ok = false;
+                break;
+            }
         }
+
         
         // them checks that those guard usages cannot have some other
         // movenode writing the guard, if some complex guard 
@@ -263,13 +272,17 @@ PreOptimizer::tryToRemoveXor(
             continue;
         }
         MoveNode& head = ddg.headNode(edge);
-        TTAProgram::Move& guardUseMove = head.move();
-        assert(!guardUseMove.isUnconditional());
-        guardUseMove.setGuard(
-            TTAProgram::CodeGenerator::createInverseGuard(
-                guardUseMove.guard()));
-        if (guardUseMove.isJump()) {
-            reversesJump = true;
+        if (edge.guardUse()) {
+            TTAProgram::Move& guardUseMove = head.move();
+            assert(!guardUseMove.isUnconditional());
+            guardUseMove.setGuard(
+                TTAProgram::CodeGenerator::createInverseGuard(
+                    guardUseMove.guard()));
+            if (guardUseMove.isJump()) {
+                reversesJump = true;
+            }
+        } else {
+            head.destinationOperation().switchInputs(1,2);
         }
     }
     
