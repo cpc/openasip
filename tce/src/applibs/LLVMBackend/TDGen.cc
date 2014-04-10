@@ -1528,8 +1528,8 @@ TDGen::writeOperationDefs(
         writeOperationDef(o, op, "bjbb", attrs, skipPattern);
         writeOperationDef(o, op, "bbjb", attrs, skipPattern);
         // TODO: what about floating-point values?
-//        writeOperationDef(o, op, "fffb", attrs, skipPattern);
-//        writeOperationDef(o, op, "hhhb", attrs, skipPattern);
+        writeOperationDef(o, op, "fffb", attrs, skipPattern);
+        writeOperationDef(o, op, "hhhb", attrs, skipPattern);
 
         hasSelect_ = true;
         return;
@@ -2886,6 +2886,14 @@ TDGen::operandToString(
             return "V4R32IRegs:$op" + Conversion::toString(idx);
         case 'x':
             return "V8R32IRegs:$op" + Conversion::toString(idx);
+        case 'f':
+            if (operand.type() == Operand::RAW_DATA) {
+                return "R32FPRegs:$op" + Conversion::toString(idx);
+            }
+        case 'h':
+            if (operand.type() == Operand::RAW_DATA) {
+                return "R32HFPRegs:$op" + Conversion::toString(idx);
+            }
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";
@@ -3428,36 +3436,5 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
                << std::endl << std::endl;
         }            
-
-    } else {
-        // TODO: select operation not yet handles FP values so these are here.
-        if (!hasConditionalMoves_) {
-            os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
-               << "(IORfff (ANDfff $t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDfff $f, (ADDfri (ANDext R1Regs:$c,1),-1)))>;"
-               << std::endl << std::endl
-                
-               << "def : Pat<(f16 (select R1Regs:$c,R32HFPRegs:$t,R32HFPRegs:$f)),"
-               << "(IORhhh (ANDhhh $t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDhhh $f, (ADDhri (ANDext R1Regs:$c,1),-1)))>;"
-               << std::endl << std::endl;
-        } else {
-            os << "def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),"
-               << "(ins R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F),"
-               << "\"# SELECT_F32 PSEUDO!\","
-               << "[(set R32FPRegs:$dst,"
-               << "(select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;"
-               << std::endl << std::endl
-                
-               << "def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),"
-               << "(ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),"
-               << "\"# SELECT_F16 PSEUDO!\","
-               << "[(set R32HFPRegs:$dst, "
-               << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
-               << std::endl << std::endl;
-            
-            opNames_["SELECT_F32"] = "CMOV_SELECT";
-            opNames_["SELECT_F16"] = "CMOV_SELECT";
-        }
     }
 }
