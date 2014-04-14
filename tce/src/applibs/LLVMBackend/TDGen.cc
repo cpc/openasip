@@ -3301,27 +3301,29 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
 }
 
 void TDGen::createSelectPatterns(std::ostream& os) {
+    os << "// Creating select patterns. " << std::endl;
     if (!hasSelect_) {
+        os << "// Does not have select instr. " << std::endl;
         if (!hasConditionalMoves_) {
             os << std::endl
                << "def : Pat<(i32 (select R1Regs:$c, R32Regs:$t, R32Regs:$f)), " 
-               << "(IORrrr (ANDrrr $t, (SUBrir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDrrr $f, (ADDrri (ANDext R1Regs:$c, 1), -1)))>;" 
+               << "(IORrrr (ANDrrr R32Regs:$t, (SUBrir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDrrr R32Regs:$f, (SUBrri (ANDext R1Regs:$c, 1), 1)))>;" 
                << std::endl << std::endl
                 
                << "def : Pat<(i32 (select R1Regs:$c, (i32 imm:$t),(i32 imm:$f))),"
-               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
-               << "(ANDrri (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;" 
+               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), imm:$t),"
+               << "(ANDrri (SUBrri (ANDext R1Regs:$c, 1), 1), $f))>;" 
                << std::endl << std::endl
                 
                << "def : Pat<(i32 (select R1Regs:$c, R32Regs:$t, (i32 imm:$f))),"
-               << "(IORrrr (ANDrrr (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
-               << "(ANDrri (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;"
+               << "(IORrrr (ANDrrr (SUBrir 0, (ANDext R1Regs:$c, 1)), R32Regs:$t),"
+               << "(ANDrri (SUBrri (ANDext R1Regs:$c, 1), 1), imm:$f))>;"
                << std::endl << std::endl
                 
                << "def : Pat<(i32 (select R1Regs:$c, (i32 imm:$t), R32Regs:$f)),"
-               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), $t),"
-               << "(ANDrrr (ADDrri (ANDext R1Regs:$c, 1), -1), $f))>;"
+               << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), imm:$t),"
+               << "(ANDrrr (SUBrri (ANDext R1Regs:$c, 1), 1), R32Regs:$f))>;"
                << std::endl << std::endl
                 
                << "def : Pat<(i1 (select R1Regs:$c, R1Regs:$t, R1Regs:$f)),"
@@ -3339,13 +3341,13 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << std::endl << std::endl;
             
             os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
-               << "(IORfff (ANDfff $t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDfff $f, (ADDfri (ANDext R1Regs:$c,1),-1)))>;"
+               << "(IORfff (ANDfff R32FPRegs:$t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDfff R32FPRegs:$f, (SUBfri (ANDext R1Regs:$c,1),1)))>;"
                << std::endl << std::endl
                 
                << "def : Pat<(f16 (select R1Regs:$c,R32HFPRegs:$t,R32HFPRegs:$f)),"
-               << "(IORhhh (ANDhhh $t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDhhh $f, (ADDhri (ANDext R1Regs:$c,1),-1)))>;"
+               << "(IORhhh (ANDhhh R32HFPRegs:$t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDhhh R32HFPRegs:$f, (SUBhri (ANDext R1Regs:$c,1),1)))>;"
                << std::endl << std::endl;
         } else {
             opNames_["SELECT_I1bb"] = "CMOV_SELECT";
@@ -3436,5 +3438,7 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
                << std::endl << std::endl;
         }            
+    } else {
+        os << "// Has select instr!. " << std::endl;
     }
 }
