@@ -3313,7 +3313,7 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                 
                << "def : Pat<(i32 (select R1Regs:$c, (i32 imm:$t),(i32 imm:$f))),"
                << "(IORrrr (ANDrri (SUBrir 0, (ANDext R1Regs:$c, 1)), imm:$t),"
-               << "(ANDrri (SUBrri (ANDext R1Regs:$c, 1), 1), $f))>;" 
+               << "(ANDrri (SUBrri (ANDext R1Regs:$c, 1), 1), imm:$f))>;" 
                << std::endl << std::endl
                 
                << "def : Pat<(i32 (select R1Regs:$c, R32Regs:$t, (i32 imm:$f))),"
