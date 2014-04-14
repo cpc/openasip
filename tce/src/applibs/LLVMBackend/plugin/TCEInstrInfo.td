@@ -267,13 +267,13 @@ def SUBfir: InstTCE<(outs R32FPRegs:$dst),
     (ins i32imm:$src1, R32IRegs:$src2), "", []>;
 
 def SUBfri: InstTCE<(outs R32FPRegs:$dst), 
-    (R32IRegs:$src1, ins i32imm:$src2), "", []>;
+    (ins R32IRegs:$src1, i32imm:$src2), "", []>;
 
 def SUBhir: InstTCE<(outs R32HFPRegs:$dst), 
     (ins i32imm:$src1, R32IRegs:$src2), "", []>;
 
 def SUBhri: InstTCE<(outs R32HFPRegs:$dst), 
-    (R32IRegs:$src1, ins i32imm:$src2), "", []>;
+    (ins R32IRegs:$src1, i32imm:$src2), "", []>;
 
 // (set R32IRegs:$dst, (zext R1Regs:$src))]>;
 
