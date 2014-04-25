@@ -92,7 +92,10 @@ if test "x$want_boost" = "xyes"; then
     libsubdirs="lib"
     ax_arch=`uname -m`
     if test $ax_arch = x86_64 -o $ax_arch = ppc64 -o $ax_arch = s390x -o $ax_arch = sparc64; then
-        libsubdirs="lib64 lib lib64"
+    dnl Ubuntu 14.04 LTS installs new Boost versions to /usr/lib/x86_64-linux-gnu.
+    dnl Search from it first to find the newest versions before older that might be in /usr/lib.
+        libsubdirs="lib/x86_64-linux-gnu"
+        libsubdirs="$libsubdirs lib64 lib lib64"
     fi
 
     dnl first we check the system location for boost libraries

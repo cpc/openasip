@@ -39,12 +39,12 @@ Make sure you have installed the transfig package and latex2html.
 "Could not link against" error during configure
 -----------------------------------------------
 
-At least Ubuntu 14.04 (as of 2014-03-31) does not link the Boost libraries
-to standard library directories. The Boost library checks in the configure
-script fail mysteriously because of it. The Boost libs are only found in 
-architecture specific directory, e.g., /usr/lib/x86_64-linux-gnu. This dir
-must be given to the configure script explicitly so it can find the Boost libs.
-E.g.:
+At least Ubuntu 14.04 (as of 2014-03-31) does not link the new Boost library
+versions to standard library directories. The Boost library checks in the configure
+script fail mysteriously because due to multiple (older) Boost version
+confusing the installation path detection. In this case, either remove the old
+versions of Boost or force the configure script to find only one version
+installed to a certain location. For example:
 
  ./configure --with-boost-libdir=/usr/lib/x86_64-linux-gnu
 
