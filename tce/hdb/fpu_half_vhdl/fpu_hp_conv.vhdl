@@ -214,7 +214,7 @@ begin
     variable arg            : SIGNED(intw downto 0);
     constant round_style    : round_type := float_round_style;
     variable arg_int    : UNSIGNED(arg'range);  -- Real version of argument
-    variable argb2      : UNSIGNED(arg'high/2 downto 0);  -- log2 of input
+    variable argb2      : SIGNED(arg'high/2+1 downto 0);  -- log2 of input
     variable exp        : SIGNED (ew - 1 downto 0);
     variable sign   : STD_ULOGIC;         -- sign bit
     variable zero   : boolean;         -- sign bit
@@ -226,11 +226,11 @@ begin
     zero := arg_int = 0;
 
     -- Compute Exponent
-    argb2 := to_unsigned(find_leftmost(arg_int, '1'), argb2'length);  -- Log2
+    argb2 := to_signed(find_leftmost(arg_int, '1'), argb2'length);  -- Log2
     
     exp     := SIGNED(resize(argb2, exp'length));
     arg_int := shift_left (arg_int, arg_int'high-to_integer(exp));
-    inf     := argb2 > unsigned(gen_expon_base(ew));
+    inf     := argb2 > signed(gen_expon_base(ew));
     --inf     := argb2 > 14;
     
     inf_reg_in <= inf;
