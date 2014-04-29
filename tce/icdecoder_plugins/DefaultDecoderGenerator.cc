@@ -1486,6 +1486,8 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
                    << " <= '0';" << endl;
             stream << indentation(3) << iuWritePort(iu->name()) 
                    << " <= (others => '0');" << endl;
+            stream << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
+                   << " <= (others => '0');" << endl;
         }
         // else
         stream << indentation(2)  << "elsif (clk'event and clk = '1') then" << endl;
@@ -1535,6 +1537,8 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
             stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
                    << " <= 1'b0;" << endl
                    << indentation(3) << iuWritePort(iu->name()) 
+                   << " <= 0;" << endl
+                   << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
                    << " <= 0;" << endl;
         }
         stream  << indentation(2) << "end" << endl
@@ -1900,6 +1904,26 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
                 }
             }
         }
+
+        stream << endl;
+        
+        // reset IU control registers
+        Machine::ImmediateUnitNavigator iuNav = machine_.
+            immediateUnitNavigator();
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            for (int i = 0; i < iu->portCount(); i++) {
+                RFPort* port = iu->port(i);
+                stream << indentation(3) 
+                       << iuReadLoadCntrlPort(iu->name(), port->name())
+                       << " <= '0';" << endl;
+                if (0 < rfOpcodeWidth(*iu)) {
+                    stream << indentation(3) 
+                           << iuReadOpcodeCntrlPort(iu->name(), port->name()) 
+                           << " <= (others => '0');" << endl;
+                }
+            }
+        }
     } else {
         // reset socket control registers
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -1984,7 +2008,27 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
                            << " <= 0;" << endl;
                 }
             }
-        }    
+        }
+
+        stream << endl;
+        
+        // reset IU control registers
+        Machine::ImmediateUnitNavigator iuNav = machine_.
+            immediateUnitNavigator();
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            for (int i = 0; i < iu->portCount(); i++) {
+                RFPort* port = iu->port(i);
+                stream << indentation(3) 
+                       << iuReadLoadCntrlPort(iu->name(), port->name())
+                       << " <= 1'b0;" << endl;
+                if (0 < rfOpcodeWidth(*iu)) {
+                    stream << indentation(3) 
+                           << iuReadOpcodeCntrlPort(iu->name(), port->name()) 
+                           << " <= 0;" << endl;
+                }
+            }
+        }
     }
 }
 
