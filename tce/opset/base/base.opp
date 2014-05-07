@@ -2022,6 +2022,22 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
   </operation>
 
   <operation>
+    <name>SQRTH</name>
+    <description>Performs a square root of a half precision floating point.
+    </description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="HalfFloatWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(sqrtf, t1, t1, t2);
+      EXEC_OPERATION(cfh, t2, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>INVSQRTH</name>
     <description>Performs a inverse square root of a half-precision floating point.
 </description>
