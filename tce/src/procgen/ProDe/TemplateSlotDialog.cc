@@ -49,6 +49,7 @@
 #include "ProDeTextGenerator.hh"
 #include "Application.hh"
 #include "ImmediateSlot.hh"
+#include "TemplateSlot.hh"
 
 using boost::format;
 using std::string;
@@ -68,7 +69,7 @@ END_EVENT_TABLE()
 TemplateSlotDialog::TemplateSlotDialog(
     wxWindow* parent,
     InstructionTemplate* it,
-    Bus* slot) :
+    TemplateSlot* slot) :
     wxDialog(parent, -1, _T(""), wxDefaultPosition),
     slot_(slot),
     it_(it),
@@ -85,12 +86,12 @@ TemplateSlotDialog::TemplateSlotDialog(
 
     // Read slot attributes.
     if (slot_ != NULL) {
-        width_ = it_->supportedWidth(slot_->name());
+        width_ = it_->supportedWidth(slot_->slot());
         Machine::ImmediateUnitNavigator navigator =
             it_->machine()->immediateUnitNavigator();
         for (int i = 0; i < navigator.count(); i++) {
             if (it_->destinationUsesSlot(
-                    slot_->name(), *navigator.item(i))) {
+                    slot_->slot(), *navigator.item(i))) {
                 destination_ = navigator.item(i);
             }
         }
@@ -178,7 +179,7 @@ TemplateSlotDialog::TransferDataToWindow() {
         }
     } else {
         // An old slot is being modified, set the slot and disable the control.
-        slotChoice_->Append(WxConversion::toWxString(slot_->name()));
+        slotChoice_->Append(WxConversion::toWxString(slot_->slot()));
         slotChoice_->Disable();
     }
 
@@ -191,6 +192,14 @@ TemplateSlotDialog::TransferDataToWindow() {
             WxConversion::toWxString(navigator.item(i)->name());
         destinationChoice_->Append(name);
     }
+    // Set selections for editing slot
+    if(slot_ != NULL) {
+      wxString name = WxConversion::toWxString(slot_->destination()->name());
+      assert(!name.empty());
+      destinationChoice_->SetSelection(destinationChoice_->FindString(name));
+      widthCtrl_->SetValue(slot_->width());
+    }
+    
 
     // Set choicer selections.
     slotChoice_->SetSelection(0);
@@ -210,16 +219,14 @@ TemplateSlotDialog::TransferDataToWindow() {
 void
 TemplateSlotDialog::onOK(wxCommandEvent&) {
 
-    // delete old slot
+    string slotName = WxConversion::toString(slotChoice_->GetStringSelection());
+    
+    // Commit edit as new slot. Delete old slot.
     if (slot_ != NULL) {
-        // Currently editing slots is not possible due to the restrictions
-        // in the MOM interface.
-        assert(false);
+      it_->removeSlot(slotName);
     }
     TransferDataFromWindow();
-    string slotName =
-        WxConversion::toString(slotChoice_->GetStringSelection());
-    
+
     const Machine::BusNavigator busNavigator = it_->machine()->busNavigator();
     const Machine::ImmediateSlotNavigator immsNavigator =
         it_->machine()->immediateSlotNavigator();
