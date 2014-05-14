@@ -55,11 +55,37 @@ uint16_t
 HalfFloatWord::convertFloatToHalfWordRep(float value) {
     FloatConvUnion u;
     u.f = value;
-    int binary16 = (u.i & 0x007FFFFF) >> 13;
-    binary16 |=(u.i & 0x07800000) >> 13;
-    binary16 |=(u.i & 0x40000000) >> 16;
-    binary16 |=(u.i & 0x80000000) >> 16;
-    // TODO saturate overflows to inf
+    int binary16 = (u.i & 0x80000000) >> 16;
+
+    int expon = (u.i & 0x7f800000) >> 23;
+    expon += 15-127;
+    if(expon <= 0) {
+        // Underflow, return zero with correct sign
+        // TODO: support denormals?
+        return binary16;
+    }
+    if(expon >= 31) {
+        // Overflow, return inf with correct sign
+        binary16 |= 0x7c;
+        return binary16;
+    }
+    binary16 |= expon << 10;
+    binary16 |= (u.i & 0x007FFFFF) >> 13;
+
+    //Round to nearest even. Comment following code out
+    //for Round to Zero behavior.
+    int l, g, r, s;
+    l = (u.i >> 13) & 1;
+    g = (u.i >> 12) & 1;
+    r = (u.i >> 11) & 1;
+    s = (u.i & ((1<<11)-1)) ? 1 : 0;
+    if(g && (l || (r||s)))
+	binary16++;
+
+    //Saturate rounding overflow to infinity
+    if((binary16 & 0x7c) == 0x7c) 
+        binary16 &= 0xfc;
+
     return binary16;
 }
 
