@@ -58,6 +58,10 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     int binary16 = (u.i & 0x80000000) >> 16;
 
     int expon = (u.i & 0x7f800000) >> 23;
+    if(expon == 255) {
+        // Handle NAN
+        return binary16 | 0x7e00;
+    }
     expon += 15-127;
     if(expon <= 0) {
         // Underflow, return zero with correct sign
@@ -66,7 +70,7 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     }
     if(expon >= 31) {
         // Overflow, return inf with correct sign
-        binary16 |= 0x7c;
+        binary16 |= 0x7c00;
         return binary16;
     }
     binary16 |= expon << 10;
@@ -81,10 +85,6 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
     s = (u.i & ((1<<11)-1)) ? 1 : 0;
     if(g && (l || (r||s)))
 	binary16++;
-
-    //Saturate rounding overflow to infinity
-    if((binary16 & 0x7c) == 0x7c) 
-        binary16 &= 0xfc;
 
     return binary16;
 }
