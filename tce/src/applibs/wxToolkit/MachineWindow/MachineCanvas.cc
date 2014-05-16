@@ -374,6 +374,61 @@ MachineCanvas::findEditPart(const TTAMachine::MachinePart* model) {
 }
 
 /**
+ * Finds an closest edit part that is not excluded at the given coordinates 
+ * on the canvas.
+ * @param x X-coordinate of the position to search.
+ * @param y Y-coordinate of the position to search.
+ * @param range Range around given coordinates to search parts. Zero means 
+ * unlimited range.
+ * @param exclude An EditPart which is excluded in the search.
+ * @return Pointer to the found edit part, or NULL if no edit part was found in
+ * range.
+ */
+EditPart* 
+MachineCanvas::findClosestEditPart(int x, int y, int /* range */, EditPart* exclude) {
+  EditPart* part = NULL;
+  if (root_ != NULL && root_->contents() != NULL) {
+    part = root_->contents()->findNearest(wxPoint(x, y), exclude);
+    // TODO: Range check.  
+    if(part != NULL) {
+
+    }
+  }
+  return part;
+}
+
+/**
+ * Finds EditParts around coordinates that are in given range.
+ * @param x X-coordinate of the position to search.
+ * @param y Y-coordinate of the position to search.
+ * @param range Search range from position (x, y).
+ * @param found Found EditParts after call.
+ * @return Number of found EditParts. Zero if found nothing.
+ */
+int 
+MachineCanvas::findEditPartsInRange(int x, int y, int range, std::vector<EditPart*>& found) {
+  if (root_ != NULL && root_->contents() != NULL) {
+    return root_->contents()->findInRange(wxPoint(x,y), 
+					  static_cast<float>(range), found);
+  }
+  return 0;
+}
+
+/**
+ * Looks for given EditPart recursively.
+ * @param part Part to look up.
+ * @return True if canvas has given EditPart.
+ */
+bool 
+MachineCanvas::hasEditPart(const EditPart* part) const {
+  if (root_ != NULL && root_->contents() != NULL) {
+    return root_->contents()->hasEditPartRecursive(part);
+  }
+  return false;
+}
+
+
+/**
  * Marks an edit part selected.
  *
  * Previous selection is cleared.

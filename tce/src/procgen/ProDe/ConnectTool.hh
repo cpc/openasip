@@ -63,6 +63,8 @@ private:
     MDFView* view_;
     /// Tells if the tool is active or not.
     bool active_;
+    /// Source EditPart of the connection.
+    EditPart* source_;
     /// Target EditPart of the connection.
     EditPart* target_;
     /// Connection figure.

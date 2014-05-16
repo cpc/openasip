@@ -31,6 +31,7 @@
  */
 
 #include <wx/cursor.h>
+#include <vector>
 
 #include "ConnectTool.hh"
 #include "Request.hh"
@@ -58,6 +59,7 @@ ConnectTool::ConnectTool(ChildFrame* frame, MDFView* view):
     frame_(frame),
     view_(view),
     active_(false),
+    source_(NULL),
     target_(NULL),
     figure_(NULL) {
 
@@ -105,51 +107,67 @@ ConnectTool::deactivate() {
 void
 ConnectTool::onMouseEvent(wxMouseEvent& event, wxDC& dc) {
 
-    if (!active_) {
-        return;
+  if (!active_) {
+    return;
+  }
+  
+  // Get event position and translate "raw" coordinates to logical ones.
+  wxPoint position = event.GetPosition();
+  long logicalX = dc.DeviceToLogicalX(position.x);
+  long logicalY = dc.DeviceToLogicalY(position.y);
+  
+  // Check if there is an EditPart directly at the cursor position.
+  EditPart* toSelect = canvas_->findEditPart(logicalX, logicalY);
+  // Check if there is an EditParts near at the cursor position.
+  std::vector<EditPart*> nearbyParts;
+  canvas_->findEditPartsInRange(logicalX, logicalY, 10, nearbyParts);
+
+  EditPart* selection = canvas_->selection();
+
+  vector<EditPart*> sources;
+
+  source_ = NULL;
+  if(toSelect != NULL) {
+    target_ = toSelect;
+    updateStatusline(target_);
+    
+    // This enables single click feature to edit connection between socket and bus.
+    if((selection == NULL || selection == target_) && !nearbyParts.empty()) { 
+      sources = nearbyParts;
     }
-
-    //wxCursor connectCursor(wxCURSOR_CROSS);
-    //view_->canvas()->SetCursor(connectCursor);
-
-    // Get event position and translate "raw" coordinates to logical ones.
-    wxPoint position = event.GetPosition();
-    long logicalX = dc.DeviceToLogicalX(position.x);
-    long logicalY = dc.DeviceToLogicalY(position.y);
-
-    // Check if there is an EditPart at the cursor position.
-    EditPart* part = canvas_->findEditPart(logicalX, logicalY);
-
-    if (part != NULL) {
-        updateStatusline(part);
-        EditPart* selection = canvas_->selection();
-        ConnectRequest* request = new ConnectRequest(selection);
-
-        if (selection != NULL && part->canHandle(request)) {
-            if (target_ != part) {
-                target_ = part;
-                canvas_->refreshToolFigure();
-            }
-        } else {
-            if (target_ != NULL) {
-                target_ = NULL;
-                canvas_->refreshToolFigure();
-            }
-        }
-    } else {
-        if (target_ != NULL) {
-            target_ = NULL;
-            canvas_->refreshToolFigure();
-        }
+    else if(selection != target_) {
+      sources.push_back(selection);
     }
-
-    if (event.LeftUp()) {
-        leftClick(part);
+  
+    if(!sources.empty()) {  
+      for(unsigned int i = 0; i < sources.size(); i++) {	
+	ConnectRequest* request = new ConnectRequest(sources.at(i));
+	if(target_->canHandle(request)) {
+	  source_ = sources.at(i);
+	  delete request;
+	  break;
+	}
+	delete request;
+      } 
+      if(source_ == NULL) {
+	target_ = NULL;
+      }
     }
-
-    if (event.RightUp()) {
-        rightClick(event);
+    else {
+      target_ = NULL;
+      source_ = NULL;
     }
+  }
+
+  canvas_->refreshToolFigure();
+
+  if (event.LeftUp()) {
+    leftClick(toSelect);
+  }
+  
+  if (event.RightUp()) {
+    rightClick(event);
+  }
 }
 
 
@@ -182,11 +200,11 @@ ConnectTool::updateStatusline(EditPart* part) {
 void
 ConnectTool::leftClick(EditPart* part) {
     EditPart* selection = view_->selection();
-    ConnectRequest* request = new ConnectRequest(selection);
+    ConnectRequest* request = new ConnectRequest(source_);
     if (part != NULL && part->canHandle(request)) {
-        if (selection == NULL) {
+        if (selection == NULL && source_ == NULL) {
             canvas_->select(part);
-        } else {
+        } else if(source_ != NULL) {
             ComponentCommand* cmd = part->performRequest(request);
 
             if (cmd != NULL) {
@@ -196,6 +214,8 @@ ConnectTool::leftClick(EditPart* part) {
                 if (cmd->Do()) {
 		    // conenction was modified
 		    model->notifyObservers();
+		    target_ = NULL;
+		    source_ = NULL;
 		} else {
 		    // Modification failed.
 		    model->popFromStack();
@@ -253,9 +273,10 @@ ConnectTool::figure() {
         figure_ = NULL;
     }
 
-    EditPart* selection = view_->selection();
+    //EditPart* selection = view_->selection();
 
-    if (target_ == NULL || selection == NULL) {
+    //if (target_ == NULL || source_ == NULL) {
+    if (!canvas_->hasEditPart(target_) || !canvas_->hasEditPart(source_) ) {
         return NULL;
     }
 
@@ -264,19 +285,19 @@ ConnectTool::figure() {
     Segment* segment = NULL;
 
     // socket
-    socket = dynamic_cast<Socket*>(selection->model());
+    socket = dynamic_cast<Socket*>(source_->model());
     if (socket == NULL) {
         socket = dynamic_cast<Socket*>(target_->model());
     }
 
     // port
-    port = dynamic_cast<Port*>(selection->model());
+    port = dynamic_cast<Port*>(source_->model());
     if (port == NULL) {
         port = dynamic_cast<Port*>(target_->model());
     }
 
     // segment
-    segment = dynamic_cast<Segment*>(selection->model());
+    segment = dynamic_cast<Segment*>(source_->model());
     if (segment == NULL) {
         segment = dynamic_cast<Segment*>(target_->model());
     }
@@ -289,11 +310,11 @@ ConnectTool::figure() {
         } else {
             figure = new SocketPortConnToolFigure(true);
         }
-        if (selection->model() == socket) {
+        if (source_->model() == socket) {
             figure->setSource(target_->figure());
-            figure->setTarget(selection->figure());
+            figure->setTarget(source_->figure());
         } else {
-            figure->setSource(selection->figure());
+            figure->setSource(source_->figure());
             figure->setTarget(target_->figure());
         }
         figure_ = figure;
@@ -308,11 +329,11 @@ ConnectTool::figure() {
         } else {
             figure = new SocketBusConnToolFigure(true);
         }
-        if (selection->model() == segment) {
+        if (source_->model() == segment) {
             figure->setSource(target_->figure());
-            figure->setTarget(selection->figure());
+            figure->setTarget(source_->figure());
         } else {
-            figure->setSource(selection->figure());
+            figure->setSource(source_->figure());
             figure->setTarget(target_->figure());
         }
         figure_ = figure;
