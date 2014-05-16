@@ -10,6 +10,8 @@ Smaller features and improvements
 - Functions marked as 'noinline' are not removed from the final program
   even though the program itself does not refer to them.
 - Template Slots can be edited in ProDe's Intruction Templates-dialog.
+- Bus-socket -connection can be edited with single click in ProDe's 
+  Edit Connections mode.
 
 Bugfixes
 --------
