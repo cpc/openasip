@@ -62,7 +62,8 @@
 
 \newcommand{\theproject}[0]{TTA-based Co-design Environment}
 \newcommand{\theschool}[0]{Tampere University of Technology}
-\newcommand{\theinstitute}[0]{Department of Computer Systems}
+\newcommand{\theinstitute}[0]{Department of Pervasive Computing}
+\newcommand{\thegroup}[0]{Customized Parallel Computing group}
 
 \newcommand{\note}[1]{\marginpar[\scriptsize\sf #1]{\scriptsize\sf #1}}
 \newcommand{\texttilde}{{\large\raisebox{-0.75ex}{\~{}}}}
@@ -104,9 +105,10 @@
 \renewcommand{\maketitle}{\begin{titlepage}%
 \vspace*{4cm}
 \begin{center}
-  {\LARGE \theschool}\\[1ex]
+%  {\LARGE \theproject}\\[2ex]
+  {\LARGE \thegroup}\\[2ex]
   {\LARGE \theinstitute}\\[2ex]
-  {\LARGE Project: \theproject}\\[2ex]
+  {\LARGE \theschool}\\[1ex]
   \vrule width 0.7\textwidth height 1pt depth 0pt \\[8ex]
   {\Huge \thetitle}\\[2ex]
   {\LARGE \theauthor}

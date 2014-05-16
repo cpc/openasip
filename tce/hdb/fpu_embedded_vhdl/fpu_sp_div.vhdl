@@ -328,10 +328,10 @@ div_body : process( fractl_signal, fractr_signal, rx_reg_out, rxx3_reg_out, part
     variable rxx3           : UNSIGNED( fractr'high+2 downto 0 );
     constant stages       : INTEGER := lx'high - rx'high;  -- number of stages
     variable partial      : UNSIGNED (lx'range);
-    variable partial_slice : UNSIGNED(mw+1 downto 0);
-    variable partial_arg1  : SIGNED (mw+2 downto 0);
-    variable partial_arg2  : SIGNED (mw+2 downto 0);
-    variable partial_arg3  : SIGNED (mw+3 downto 0);
+    variable partial_slice : UNSIGNED(mw+2 downto 0);
+    variable partial_arg1  : SIGNED (mw+3 downto 0);
+    variable partial_arg2  : SIGNED (mw+3 downto 0);
+    variable partial_arg3  : SIGNED (mw+4 downto 0);
 
 begin
 
@@ -350,11 +350,11 @@ begin
       q := q_reg_out(i+1);
       partial := partial_reg_out(i+1); 
 
-      partial_slice := partial( i*2 + mw + 2 downto i*2+1 );
+      partial_slice := partial( i*2 + mw + 3 downto i*2+1 );
 
-      partial_arg1 := ( "0" & signed(partial_slice) ) - ("00" & signed(rx) );
-      partial_arg2 := ( "0" & signed(partial_slice) ) - ("0" & signed(rx) & "0" );
-      partial_arg3 := ( "00" & signed(partial_slice) ) - ("0" & signed(rxx3) );
+      partial_arg1 := ( "0" & signed(partial_slice) ) - ("000" & signed(rx) );
+      partial_arg2 := ( "0" & signed(partial_slice) ) - ("00" & signed(rx) & "0" );
+      partial_arg3 := ( "00" & signed(partial_slice) ) - ("00" & signed(rxx3) );
 
       if( partial_arg3(partial_arg3'high) = '0' ) then
         q( i*2+1 downto i*2 ) := "11";

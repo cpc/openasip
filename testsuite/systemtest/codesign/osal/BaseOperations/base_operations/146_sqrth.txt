@@ -1,0 +1,4 @@
+!output half
+sqrth 17408
+sqrth 18560
+!quit
