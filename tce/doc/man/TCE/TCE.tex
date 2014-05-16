@@ -2967,7 +2967,7 @@ don't need to print floats, so open the source code file
 \textit{printf()} calls to \textit{iprintf()}. Alternatively, you can
 do this with program \textit{sed}:
 
-\shellcmd{sed -i 's|printf|iprintf|g' std\_print.c}
+\shellcmd{sed -i 's/printf/iprintf/g' std\_print.c}
 
 Now recompile the program and check the instruction count:
 
@@ -3481,7 +3481,7 @@ parameters, so they can be used for float widths other than the IEEE single prec
 The FPUs are likely prohibitively slow for double-precision computation, and the \emph{fpu\_half} units
 should be better fit for half-precision.
 
-The parameters are \emph{mw} and \emph{ew} for all FUs. In addition, the float-int converter FU 
+The parameters are \emph{mw} (mantissa width) and \emph{ew} (exponent width) for all FUs. In addition, the float-int converter FU 
 \emph{fpu\_sp\_conv} has a parameter \emph{intw}, which decides the width of the integer to be 
 converted.
 
