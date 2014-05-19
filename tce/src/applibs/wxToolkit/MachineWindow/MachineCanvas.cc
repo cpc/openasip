@@ -1,25 +1,25 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+ Copyright (c) 2002-2009 Tampere University of Technology.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+ This file is part of TTA-Based Codesign Environment (TCE).
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
  */
 /**
  * @file MachineCanvas.cc
@@ -49,9 +49,8 @@
 #include "WxConversion.hh"
 
 BEGIN_EVENT_TABLE(MachineCanvas, wxScrolledWindow)
-  EVT_MOUSE_EVENTS(MachineCanvas::onMouseEvent)
+EVT_MOUSE_EVENTS(MachineCanvas::onMouseEvent)
 END_EVENT_TABLE()
-
 
 using namespace TTAMachine;
 
@@ -61,22 +60,15 @@ using namespace TTAMachine;
  * @param parent Parent frame of the canvas.
  * @param policyFactory EditPolicyFactory for creating edit policies.
  */
-MachineCanvas::MachineCanvas(
-    wxWindow* parent,
+MachineCanvas::MachineCanvas(wxWindow* parent,
     EditPolicyFactory* policyFactory) :
-    wxScrolledWindow(parent),
-    tool_(NULL), 
-    machine_(NULL),
-    editPolicyFactory_(policyFactory),
-    zoomFactor_(1.0),
-    dirty_(true),
-    root_(NULL) ,
-    selection_(NULL),
-    toolBounds_(0, 0, 0, 0) {
+                wxScrolledWindow(parent), tool_(NULL), machine_(NULL), editPolicyFactory_(
+                    policyFactory), zoomFactor_(1.0), dirty_(true), root_(
+                NULL), selection_(NULL), toolBounds_(0, 0, 0, 0) {
 
     root_ = new RootEditPart();
 
-    SetScrollRate(20,20);
+    SetScrollRate(20, 20);
     SetVirtualSize(1000, 800);
 }
 
@@ -85,11 +77,10 @@ MachineCanvas::MachineCanvas(
  */
 MachineCanvas::~MachineCanvas() {
     if (root_ != NULL) {
-	delete root_;
+        delete root_;
     }
     clearMoves();
 }
-
 
 /**
  * Called when the window needs to be drawn again.
@@ -111,18 +102,17 @@ MachineCanvas::OnDraw(wxDC& dc) {
 
     // draw machine
     if (root_->contents() != NULL) {
-	if (dirty_) {
-	    root_->contents()->figure()->layout(&dc);
-	    // Set Canvas virtual size according to the size needed by the
-	    // figures.
-	    wxRect bounds = root_->contents()->figure()->bounds();
-	    SetVirtualSize(
-		int(bounds.GetWidth() * zoomFactor()),
-		int(bounds.GetHeight() * zoomFactor()));
+        if (dirty_) {
+            root_->contents()->figure()->layout(&dc);
+            // Set Canvas virtual size according to the size needed by the
+            // figures.
+            wxRect bounds = root_->contents()->figure()->bounds();
+            SetVirtualSize(int(bounds.GetWidth() * zoomFactor()),
+                int(bounds.GetHeight() * zoomFactor()));
 
-	    dirty_ = false;
-	}
-	root_->contents()->figure()->draw(&dc);
+            dirty_ = false;
+        }
+        root_->contents()->figure()->draw(&dc);
 
     }
 
@@ -155,13 +145,13 @@ void
 MachineCanvas::refreshToolFigure() {
 
     if (toolBounds_.GetWidth() > 0 && toolBounds_.GetHeight() > 0) {
-	// Clear previous tool figure.
+        // Clear previous tool figure.
         refreshLogicalRect(toolBounds_);
     }
 
     Figure* toolFigure = tool()->figure();
     if (toolFigure != NULL) {
-	// Draw new tool figure.
+        // Draw new tool figure.
         toolFigure->layout(NULL);
         toolBounds_ = toolFigure->bounds();
         refreshLogicalRect(toolBounds_);
@@ -169,7 +159,6 @@ MachineCanvas::refreshToolFigure() {
         toolBounds_ = wxRect(0, 0, 0, 0);
     }
 }
-
 
 /**
  * Sets the zoom factor of the canvas.
@@ -183,7 +172,7 @@ MachineCanvas::setZoomFactor(double factor) {
     // * On Y direction, keep the upper edge of the windows pointer to
     //   same position in the machine.
     // This code calculates this and does the scrolling.
-    int x,y;
+    int x, y;
     int xSize, ySize;
     int scrollUnitX, scrollUnitY;
     GetScrollPixelsPerUnit(&scrollUnitX, &scrollUnitY);
@@ -191,19 +180,18 @@ MachineCanvas::setZoomFactor(double factor) {
     x *= scrollUnitX;
     y *= scrollUnitY;
     GetSize(&xSize, &ySize);
-    double xPos = (x + (xSize>>1)) / zoomFactor_;
+    double xPos = (x + (xSize >> 1)) / zoomFactor_;
     double yPos = y / zoomFactor_;
-    x = std::max(static_cast<int>(xPos*factor) - (xSize>>1),0);
-    y = static_cast<int>(yPos*factor);
-    Scroll((x+(scrollUnitX>>1))/scrollUnitX,
-           (y+(scrollUnitY>>1))/scrollUnitY);
+    x = std::max(static_cast<int>(xPos * factor) - (xSize >> 1), 0);
+    y = static_cast<int>(yPos * factor);
+    Scroll((x + (scrollUnitX >> 1)) / scrollUnitX,
+        (y + (scrollUnitY >> 1)) / scrollUnitY);
 
     // then do the zooming
     zoomFactor_ = factor;
     dirty_ = true;
     Refresh();
 }
-
 
 /**
  * Returns the zoom factor of the canvas.
@@ -214,7 +202,6 @@ double
 MachineCanvas::zoomFactor() {
     return zoomFactor_;
 }
-
 
 /**
  * Handles mouse events on the canvas.
@@ -231,7 +218,7 @@ MachineCanvas::onMouseEvent(wxMouseEvent& event) {
     dc.SetUserScale(zoomFactor_, zoomFactor_);
 
     if (tool_ != NULL) {
-	tool_->onMouseEvent(event, dc);
+        tool_->onMouseEvent(event, dc);
     }
 }
 
@@ -243,8 +230,8 @@ MachineCanvas::onMouseEvent(wxMouseEvent& event) {
 void
 MachineCanvas::setTool(MachineCanvasTool* tool) {
     if (tool_ != NULL) {
-	tool_->deactivate();
-        delete(tool_);
+        tool_->deactivate();
+        delete (tool_);
     }
     tool_ = tool;
     tool_->activate();
@@ -258,9 +245,9 @@ MachineCanvas::tool() {
     return tool_;
 }
 
-
 /**
- * Refreshes area of the MachineCanvas bound by a logical coordinate rectangle.
+ * Refreshes area of the MachineCanvas bound by a logical coordinate
+ * rectangle.
  *
  * @param rectangle Area to refresh.
  */
@@ -270,15 +257,12 @@ MachineCanvas::refreshLogicalRect(const wxRect& rectangle) {
     int x = 0;
     int y = 0;
     CalcScrolledPosition(int(rectangle.x * zoomFactor_),
-                         int(rectangle.y * zoomFactor_),
-                         &x, &y);
-    wxRect zoomed(x, y,
-                  int(rectangle.width * zoomFactor_),
-                  int(rectangle.height * zoomFactor_));
+        int(rectangle.y * zoomFactor_), &x, &y);
+    wxRect zoomed(x, y, int(rectangle.width * zoomFactor_),
+        int(rectangle.height * zoomFactor_));
 
     RefreshRect(zoomed);
 }
-
 
 /**
  * Updates the machine from the machine object model.
@@ -292,7 +276,7 @@ MachineCanvas::updateMachine() {
 
     if (machine_ == NULL) {
         root_->setContents(NULL);
-	return;
+        return;
     }
 
     MachineEditPartFactory factory(*editPolicyFactory_);
@@ -302,7 +286,6 @@ MachineCanvas::updateMachine() {
     contents->figure()->setOptions(&options_);
     Refresh();
 }
-
 
 /**
  * Sets the machine which is dispalyed on the canvas.
@@ -314,8 +297,6 @@ MachineCanvas::setMachine(TTAMachine::Machine* machine) {
     machine_ = machine;
     updateMachine();
 }
-
-
 
 /**
  * Clears component selection.
@@ -329,7 +310,6 @@ MachineCanvas::clearSelection() {
     Refresh();
 }
 
-
 /**
  * Returns pointer to the EditPart of the selected component.
  *
@@ -339,7 +319,6 @@ EditPart*
 MachineCanvas::selection() {
     return selection_;
 }
-
 
 /**
  * Finds an edit part at the given coordinates on the canvas.
@@ -357,7 +336,6 @@ MachineCanvas::findEditPart(int x, int y) {
     return part;
 }
 
-
 /**
  * Finds an edit part corresponding the given machine part.
  *
@@ -374,59 +352,37 @@ MachineCanvas::findEditPart(const TTAMachine::MachinePart* model) {
 }
 
 /**
- * Finds an closest edit part that is not excluded at the given coordinates 
- * on the canvas.
- * @param x X-coordinate of the position to search.
- * @param y Y-coordinate of the position to search.
- * @param range Range around given coordinates to search parts. Zero means 
- * unlimited range.
- * @param exclude An EditPart which is excluded in the search.
- * @return Pointer to the found edit part, or NULL if no edit part was found in
- * range.
- */
-EditPart* 
-MachineCanvas::findClosestEditPart(int x, int y, int /* range */, EditPart* exclude) {
-  EditPart* part = NULL;
-  if (root_ != NULL && root_->contents() != NULL) {
-    part = root_->contents()->findNearest(wxPoint(x, y), exclude);
-    // TODO: Range check.  
-    if(part != NULL) {
-
-    }
-  }
-  return part;
-}
-
-/**
  * Finds EditParts around coordinates that are in given range.
+ *
  * @param x X-coordinate of the position to search.
  * @param y Y-coordinate of the position to search.
  * @param range Search range from position (x, y).
  * @param found Found EditParts after call.
  * @return Number of found EditParts. Zero if found nothing.
  */
-int 
-MachineCanvas::findEditPartsInRange(int x, int y, int range, std::vector<EditPart*>& found) {
-  if (root_ != NULL && root_->contents() != NULL) {
-    return root_->contents()->findInRange(wxPoint(x,y), 
-					  static_cast<float>(range), found);
-  }
-  return 0;
+int
+MachineCanvas::findEditPartsInRange(int x, int y, int range,
+    std::vector<EditPart*>& found) {
+    if (root_ != NULL && root_->contents() != NULL) {
+        return root_->contents()->findInRange(wxPoint(x, y),
+            static_cast<float>(range), found);
+    }
+    return 0;
 }
 
 /**
  * Looks for given EditPart recursively.
+ *
  * @param part Part to look up.
  * @return True if canvas has given EditPart.
  */
-bool 
+bool
 MachineCanvas::hasEditPart(const EditPart* part) const {
-  if (root_ != NULL && root_->contents() != NULL) {
-    return root_->contents()->hasEditPartRecursive(part);
-  }
-  return false;
+    if (root_ != NULL && root_->contents() != NULL) {
+        return root_->contents()->hasEditPartRecursive(part);
+    }
+    return false;
 }
-
 
 /**
  * Marks an edit part selected.
@@ -443,8 +399,8 @@ MachineCanvas::select(EditPart* part) {
 
     // segments are not supported so we should select the parent
     // bus instead the segment (a very long standing irritating bug)
-    TTAMachine::Segment* segment = 
-        dynamic_cast<TTAMachine::Segment*>(part->model());
+    TTAMachine::Segment* segment =
+                    dynamic_cast<TTAMachine::Segment*>(part->model());
     if (segment != NULL) {
         // clicked segment, selecting parent bus instead
         part = part->parent();
@@ -461,8 +417,8 @@ MachineCanvas::select(EditPart* part) {
  * Highlights figure of a machine component.
  */
 void
-MachineCanvas::highlight(
-    TTAMachine::MachinePart* component, const wxColour& colour) {
+MachineCanvas::highlight(TTAMachine::MachinePart* component,
+    const wxColour& colour) {
 
     if (root_->contents() == NULL) {
         return;
@@ -480,7 +436,7 @@ MachineCanvas::highlight(
 void
 MachineCanvas::clearHighlights() {
     if (root_ != NULL && root_->contents() != NULL) {
-	root_->contents()->figure()->clearHighlight();
+        root_->contents()->figure()->clearHighlight();
     }
 }
 
@@ -493,7 +449,7 @@ MachineCanvas::clearHighlights() {
  */
 void
 MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target)
-    throw (InstanceNotFound) {
+                throw (InstanceNotFound) {
 
     std::string procName = "MachineCanvas::addMove";
     EditPart* busEditPart = findEditPart(bus);
@@ -514,7 +470,6 @@ MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target)
         sourceFigure = sourceEditPart->figure();
     }
 
-
     if (target != NULL) {
         EditPart* targetEditPart = findEditPart(target);
         if (targetEditPart == NULL) {
@@ -527,7 +482,6 @@ MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target)
         new MoveFigure(busFigure, sourceFigure, targetFigure));
 }
 
-
 /**
  * Clears list of moves to be drawn on the canvas.
  */
@@ -535,7 +489,6 @@ void
 MachineCanvas::clearMoves() {
     SequenceTools::deleteAllItems(moveFigures_);
 }
-
 
 /**
  * Saves the machine figure to an eps file.
@@ -546,8 +499,7 @@ MachineCanvas::clearMoves() {
  * @return True, if the eps was succesfully saved.
  */
 bool
-MachineCanvas::saveEPS(
-    const std::string& filename, const std::string& title,
+MachineCanvas::saveEPS(const std::string& filename, const std::string& title,
     const std::string& creator) {
 
     EPSDC dc;

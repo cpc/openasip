@@ -107,67 +107,67 @@ ConnectTool::deactivate() {
 void
 ConnectTool::onMouseEvent(wxMouseEvent& event, wxDC& dc) {
 
-  if (!active_) {
-    return;
-  }
-  
-  // Get event position and translate "raw" coordinates to logical ones.
-  wxPoint position = event.GetPosition();
-  long logicalX = dc.DeviceToLogicalX(position.x);
-  long logicalY = dc.DeviceToLogicalY(position.y);
-  
-  // Check if there is an EditPart directly at the cursor position.
-  EditPart* toSelect = canvas_->findEditPart(logicalX, logicalY);
-  // Check if there is an EditParts near at the cursor position.
-  std::vector<EditPart*> nearbyParts;
-  canvas_->findEditPartsInRange(logicalX, logicalY, 10, nearbyParts);
-
-  EditPart* selection = canvas_->selection();
-
-  vector<EditPart*> sources;
-
-  source_ = NULL;
-  if(toSelect != NULL) {
-    target_ = toSelect;
-    updateStatusline(target_);
-    
-    // This enables single click feature to edit connection between socket and bus.
-    if((selection == NULL || selection == target_) && !nearbyParts.empty()) { 
-      sources = nearbyParts;
+    if (!active_) {
+        return;
     }
-    else if(selection != target_) {
-      sources.push_back(selection);
-    }
-  
-    if(!sources.empty()) {  
-      for(unsigned int i = 0; i < sources.size(); i++) {	
-	ConnectRequest* request = new ConnectRequest(sources.at(i));
-	if(target_->canHandle(request)) {
-	  source_ = sources.at(i);
-	  delete request;
-	  break;
-	}
-	delete request;
-      } 
-      if(source_ == NULL) {
-	target_ = NULL;
-      }
-    }
-    else {
-      target_ = NULL;
-      source_ = NULL;
-    }
-  }
 
-  canvas_->refreshToolFigure();
+    // Get event position and translate "raw" coordinates to logical ones.
+    wxPoint position = event.GetPosition();
+    long logicalX = dc.DeviceToLogicalX(position.x);
+    long logicalY = dc.DeviceToLogicalY(position.y);
 
-  if (event.LeftUp()) {
-    leftClick(toSelect);
-  }
-  
-  if (event.RightUp()) {
-    rightClick(event);
-  }
+    // Check if there is an EditPart directly at the cursor position.
+    EditPart* toSelect = canvas_->findEditPart(logicalX, logicalY);
+    // Check if there is an EditParts near at the cursor position.
+    std::vector<EditPart*> nearbyParts;
+    canvas_->findEditPartsInRange(logicalX, logicalY, 10, nearbyParts);
+
+    EditPart* selection = canvas_->selection();
+
+    vector<EditPart*> sources;
+
+    source_ = NULL;
+    if(toSelect != NULL) {
+        target_ = toSelect;
+        updateStatusline(target_);
+
+        // This enables single click feature to edit connection between
+        // socket and bus.
+        if((selection == NULL || selection == target_)
+                && !nearbyParts.empty()) {
+            sources = nearbyParts;
+        } else if(selection != target_) {
+            sources.push_back(selection);
+        }
+
+        if(!sources.empty()) {
+            for(unsigned int i = 0; i < sources.size(); i++) {
+                ConnectRequest* request = new ConnectRequest(sources.at(i));
+                if(target_->canHandle(request)) {
+                    source_ = sources.at(i);
+                    delete request;
+                    break;
+                }
+                delete request;
+            }
+            if(source_ == NULL) {
+                target_ = NULL;
+            }
+        } else {
+            target_ = NULL;
+            source_ = NULL;
+        }
+    }
+
+    canvas_->refreshToolFigure();
+
+    if (event.LeftUp()) {
+        leftClick(toSelect);
+    }
+
+    if (event.RightUp()) {
+        rightClick(event);
+    }
 }
 
 
@@ -208,18 +208,18 @@ ConnectTool::leftClick(EditPart* part) {
             ComponentCommand* cmd = part->performRequest(request);
 
             if (cmd != NULL) {
-		Model* model = dynamic_cast<MDFDocument*>(
-		    wxGetApp().docManager()->GetCurrentDocument())->getModel();
-		model->pushToStack();
+                Model* model = dynamic_cast<MDFDocument*>(
+                  wxGetApp().docManager()->GetCurrentDocument())->getModel();
+                model->pushToStack();
                 if (cmd->Do()) {
-		    // conenction was modified
-		    model->notifyObservers();
-		    target_ = NULL;
-		    source_ = NULL;
-		} else {
-		    // Modification failed.
-		    model->popFromStack();
-		}
+                    // conenction was modified
+                    model->notifyObservers();
+                    target_ = NULL;
+                    source_ = NULL;
+                } else {
+                    // Modification failed.
+                    model->popFromStack();
+                }
             }
             delete cmd;
         }
@@ -273,10 +273,7 @@ ConnectTool::figure() {
         figure_ = NULL;
     }
 
-    //EditPart* selection = view_->selection();
-
-    //if (target_ == NULL || source_ == NULL) {
-    if (!canvas_->hasEditPart(target_) || !canvas_->hasEditPart(source_) ) {
+    if (!canvas_->hasEditPart(target_) || !canvas_->hasEditPart(source_)) {
         return NULL;
     }
 
