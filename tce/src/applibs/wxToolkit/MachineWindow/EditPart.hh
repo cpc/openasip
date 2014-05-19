@@ -111,7 +111,6 @@ private:
     /// Copying not allowed.
     EditPart(EditPart& old);
 
-    static int manhattanDistance(wxPoint p, wxRect r);
     static float distance(wxPoint p, wxRect r);
 };
 

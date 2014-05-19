@@ -178,7 +178,7 @@ EditPart::findNearest(wxPoint point, const EditPart* exclude) {
                 return found;
             }
 
-            if (manhattanDistance(point, foundRect) < lastDist) {
+            if (distance(point, foundRect) < lastDist) {
                 lastFound = found;
                 lastDist = distance(point, foundRect);
             }
@@ -321,24 +321,6 @@ EditPart::canHandle(Request* request) const {
         }
     }
     return false;
-}
-
-/**
- * Calculates Manhattan distance between a point and a rectangle.
- *
- * @param p Position.
- * @param r Rectangle.
- * @return Distance between point and rectangle. Zero if the point is in
- * the rectangle.
- */
-int
-EditPart::manhattanDistance(wxPoint p, wxRect r) {
-    wxPoint rp(0, 0);
-
-    rp.x = max(min(p.x, r.GetRight()), r.GetLeft());
-    rp.y = max(min(p.y, r.GetBottom()), r.GetTop());
-
-    return abs(rp.x - p.x) + abs(rp.y - p.y);
 }
 
 /**
