@@ -220,17 +220,17 @@ void
 TemplateSlotDialog::onOK(wxCommandEvent&) {
 
     string slotName = WxConversion::toString(slotChoice_->GetStringSelection());
-    
+
     // Commit edit as new slot. Delete old slot.
     if (slot_ != NULL) {
-      it_->removeSlot(slotName);
+        it_->removeSlot(slotName);
     }
     TransferDataFromWindow();
 
     const Machine::BusNavigator busNavigator = it_->machine()->busNavigator();
     const Machine::ImmediateSlotNavigator immsNavigator =
-        it_->machine()->immediateSlotNavigator();
-    
+                    it_->machine()->immediateSlotNavigator();
+
     destination_ = it_->machine()->immediateUnitNavigator().item(
         WxConversion::toString(destinationChoice_->GetStringSelection()));
 

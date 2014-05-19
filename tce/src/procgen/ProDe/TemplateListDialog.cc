@@ -484,11 +484,10 @@ TemplateListDialog::onDeleteSlot(wxCommandEvent&) {
  */
 void
 TemplateListDialog::onEditSlot(wxCommandEvent&) {
-
-  TemplateSlotDialog dialog(this, selectedTemplate(), 
-			    selectedTemplate()->templateSlot(selectedSlot()) );
-  dialog.ShowModal();
-  updateSlotList();
+    TemplateSlotDialog dialog(this, selectedTemplate(),
+        selectedTemplate()->templateSlot(selectedSlot()) );
+    dialog.ShowModal();
+    updateSlotList();
 }
 
 
