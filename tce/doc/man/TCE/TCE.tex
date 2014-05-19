@@ -932,7 +932,7 @@ TTA has only bus and hence there is only instruction slot
 (column). The total number of instructions is about $1~200$.
 
 Execute the program by clicking ``Run'' and Proxim should look like
-Fig.~\ref{fig:prode}.  Write down this cycle count in the bottom bar
+Fig.~\ref{fig:proxim}.  Write down this cycle count in the bottom bar
 of the simulator, you can use Table~\ref{tab:cyclecounts}. for future comparison.
 \begin{figure}
   \begin{center}
@@ -1238,7 +1238,7 @@ it has two operations: one for 8-bit data and another for 32-bit
 data. One way to implement this is to have 32-bit wide crosswiring and
 register the output. The 8-bit value would be reflected to the 8 MSB
 bits of the 32-bit wiring. Then we need to move the 8 MSB bits to the
-LSB end and set restto zero. This moving can be implemented using
+LSB end and set rest to zero. This moving can be implemented using
 multiplexers. So concerning the latency this can all be done easily
 within one clock cycle as there is not much logic needed.
 
@@ -2031,7 +2031,7 @@ connect the IC, as in Fig.\ref{fig:prode_largecustom} and save.
 \end{figure}
 
 
-\shellcmd{tcecc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef. -k result crc\_with\_custom\_op.c main.c}
+\shellcmd{tcecc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef -k result crc\_with\_custom\_op.c main.c}
 
 \shellcmd{ttasim -a large\_custom.adf -p crc\_with\_custom\_op.tpef}
 
@@ -2398,7 +2398,7 @@ multiplications (\textit{mul} and \textit{mul\_16\_fix}) are two clock cycles.
 \textbf{Address spaces} \\
 The machine has two separate address spaces, one for data and another for
 instructions. The data memory is 16-bit containing 128 memory slots and the
-MAU of data memory is 16-bits. The intruction memory has 1024 memory slots
+MAU of data memory is 16-bits. The instruction memory has 1024 memory slots
 which means that the maximum number of instructions of 1024.
 
 \textbf{Register files} \\
@@ -2967,7 +2967,7 @@ don't need to print floats, so open the source code file
 \textit{printf()} calls to \textit{iprintf()}. Alternatively, you can
 do this with program \textit{sed}:
 
-\shellcmd{sed -i 's|printf|iprintf|g' std\_print.c}
+\shellcmd{sed -i 's/printf/iprintf/g' std\_print.c}
 
 Now recompile the program and check the instruction count:
 
@@ -3481,7 +3481,7 @@ parameters, so they can be used for float widths other than the IEEE single prec
 The FPUs are likely prohibitively slow for double-precision computation, and the \emph{fpu\_half} units
 should be better fit for half-precision.
 
-The parameters are \emph{mw} and \emph{ew} for all FUs. In addition, the float-int converter FU 
+The parameters are \emph{mw} (mantissa width) and \emph{ew} (exponent width) for all FUs. In addition, the float-int converter FU 
 \emph{fpu\_sp\_conv} has a parameter \emph{intw}, which decides the width of the integer to be 
 converted.
 
@@ -6696,7 +6696,7 @@ The first interpretation is chosen even when it results in a semantic error
 (an index out of range) whereas the other interpretation would be valid.
 
 \emph{Example. Disambiguation rule.} The following move is interpreted as a
-move that writes the constant 55 to the register register with index 2 of
+move that writes the constant 55 to the register with index 2 of
 register file `xx' through port `yy'.  If there exists an FU called `xx'
 that supports an operation `yy' which has an input with index 2, this
 interpretation of the move is never possible.

@@ -38,6 +38,7 @@
 
 namespace TTAMachine {
     class InstructionTemplate;
+    class TemplateSlot;
     class Bus;
     class ImmediateUnit;
 }
@@ -50,7 +51,7 @@ public:
     TemplateSlotDialog(
         wxWindow* parent,
         TTAMachine::InstructionTemplate* it,
-        TTAMachine::Bus* slot = NULL);
+        TTAMachine::TemplateSlot* slot = NULL);
 
     virtual ~TemplateSlotDialog();
 
@@ -61,7 +62,7 @@ private:
     void setTexts();
 
     /// Instruction template slot to edit.
-    TTAMachine::Bus* slot_;
+    TTAMachine::TemplateSlot* slot_;
     /// Parent instruction template of the slot.
     TTAMachine::InstructionTemplate* it_;
     /// Choice control for the slot.

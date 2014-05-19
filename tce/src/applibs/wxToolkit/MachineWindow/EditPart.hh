@@ -36,9 +36,11 @@
 
 #include <vector>
 #include <set>
+#include <stddef.h>
 
 class Figure;
 class wxPoint;
+class wxRect;
 class EditPolicy;
 class Request;
 class ComponentCommand;
@@ -69,6 +71,10 @@ public:
     void setFigure(Figure* figure);
     EditPart* find(wxPoint point);
     EditPart* find(const TTAMachine::MachinePart* model);
+    EditPart* findNearest(wxPoint point, const EditPart* exclude = NULL);
+    int findInRange(wxPoint point, float radius,
+                    std::vector<EditPart*>& found);
+    bool hasEditPartRecursive(const EditPart* part) const;
     bool selectable() const;
     bool selected() const;
     void setSelectable(bool selectable);
@@ -105,6 +111,8 @@ private:
     EditPart& operator=(EditPart& old);
     /// Copying not allowed.
     EditPart(EditPart& old);
+
+    static float distance(wxPoint p, wxRect r);
 };
 
 #include "EditPart.icc"

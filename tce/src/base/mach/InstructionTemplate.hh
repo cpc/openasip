@@ -67,6 +67,7 @@ public:
 
     virtual int slotCount() const;
     virtual TemplateSlot* slot(int index) const;
+    TemplateSlot* templateSlot(const std::string& slotName) const;
 
     virtual bool usesSlot(const std::string& slotName) const;
     virtual bool destinationUsesSlot(
@@ -101,13 +102,15 @@ public:
     /// ObjectState name for instruction template.
     static const std::string OSNAME_INSTRUCTION_TEMPLATE;
 
+  
+
 private:
     /// Container for TemplateSlots.
     typedef std::vector<TemplateSlot*> SlotTable;
 
     void deleteAllSlots();
-    TemplateSlot* templateSlot(const std::string& slotName) const;
-
+    
+  
     /// Contains all the slots of the instruction template.
     SlotTable slots_;
 };

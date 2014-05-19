@@ -1,25 +1,25 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+ Copyright (c) 2002-2010 Tampere University of Technology.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+ This file is part of TTA-Based Codesign Environment (TCE).
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
  */
 /**
  * @file EditPart.cc
@@ -34,6 +34,9 @@
 
 #include <wx/wx.h>
 #include <wx/cmdproc.h>
+#include <stdlib.h>
+#include <limits>
+#include <math.h>
 
 #include "Application.hh"
 #include "ContainerTools.hh"
@@ -48,13 +51,15 @@
 
 using std::vector;
 using std::set;
+using std::min;
+using std::max;
 
 /**
  * The Constructor.
  */
-EditPart::EditPart():
-    parent_(NULL), figure_(NULL), model_(NULL), selectable_(false),
-    selected_(false), garbageCollected_(false) {
+EditPart::EditPart() :
+                parent_(NULL), figure_(NULL), model_(NULL), selectable_(
+                    false), selected_(false), garbageCollected_(false) {
 }
 
 /**
@@ -105,7 +110,7 @@ EditPart::find(wxPoint point) {
             return found;
         }
     }
-    
+
     // if no children were in located in the point, check self
 #if wxCHECK_VERSION(2, 8, 0)
     if (selectable_ && figure_->virtualBounds().Contains(point)) {
@@ -131,7 +136,7 @@ EditPart::find(const TTAMachine::MachinePart* model) {
     if (model == model_) {
         return this;
     }
-    
+
     EditPart* found = NULL;
 
     // Check if the component is child of this edit part.
@@ -143,6 +148,91 @@ EditPart::find(const TTAMachine::MachinePart* model) {
     }
 
     return NULL;
+}
+
+/**
+ * Finds an EditPart whose Figure is nearest to the given point or first
+ * found EditPart whose figure contains the given point.
+ *
+ * @param point Point in which to find the nearest EditPart.
+ * @param exclude An EditPart which is not included in the search.
+ * @return EditPart if the search found one. Otherwise returns NULL.
+ */
+EditPart*
+EditPart::findNearest(wxPoint point, const EditPart* exclude) {
+    EditPart* found = NULL;
+    EditPart* lastFound = NULL;
+    int lastDist = std::numeric_limits<int>::max();
+
+    for (unsigned int i = 0; i < children_.size(); i++) {
+        found = children_[i]->findNearest(point, exclude);
+        if (found != NULL) {
+            wxRect foundRect = found->figure()->virtualBounds();
+
+#if wxCHECK_VERSION(2, 8, 0)
+            if (foundRect.Contains(point)) {
+#else
+            if (foundRect.Inside(point)) {
+#endif 
+                assert(found->selectable());
+                return found;
+            }
+
+            if (distance(point, foundRect) < lastDist) {
+                lastFound = found;
+                lastDist = distance(point, foundRect);
+            }
+        }
+    }
+
+    if (!selectable_ || this == exclude) {
+        return lastFound;
+    }
+
+    // Check if this part's figure is closer to given point or
+    // contains the point.
+#if wxCHECK_VERSION(2, 8, 0)
+    if(figure_->virtualBounds().Contains(point)) {
+#else
+    if (figure_->virtualBounds().Inside(point)) {
+#endif  
+        return this;
+    } else {
+        if (distance(point, figure_->virtualBounds()) < lastDist) {
+            return this;
+        } else {
+            return lastFound;
+        }
+    }
+}
+
+/**
+ * Recursively looks for selectable EditParts including self that are in
+ * range around given coordinates.
+ *
+ * @param point Position for the search.
+ * @param radius Search range.
+ * @param found Found EditParts are collected to this.
+ * @return Number of found EditParts.
+ */
+int
+EditPart::findInRange(wxPoint point, float radius,
+    std::vector<EditPart*>& found) {
+    int totalFound = 0;
+
+    for (unsigned int i = 0; i < children_.size(); i++) {
+        totalFound += children_[i]->findInRange(point, radius, found);
+    }
+
+    if (!selectable_) {
+        return totalFound;
+    }
+
+    if (distance(point, figure_->virtualBounds()) < radius) {
+        found.push_back(this);
+        return totalFound + 1;
+    }
+    return totalFound;
 }
 
 /**
@@ -173,6 +263,25 @@ EditPart::addChild(EditPart* child) {
         figure_->addChild(child->figure());
         children_.push_back(child);
     }
+}
+
+/**
+ * Looks for given EditPart recursively.
+ * @param part EditPart to look up.
+ * @return True if tree has given EditPart.
+ */
+bool
+EditPart::hasEditPartRecursive(const EditPart* part) const {
+    if (part == this) {
+        return true;
+    }
+
+    for (unsigned int i = 0; i < children_.size(); i++) {
+        if (children_.at(i)->hasEditPartRecursive(part)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -212,4 +321,27 @@ EditPart::canHandle(Request* request) const {
         }
     }
     return false;
+}
+
+/**
+ * Calculates distance between a point and a rectangle.
+ *
+ * @param p Position.
+ * @param r Rectangle.
+ * @return Distance between point and rectangle. Zero if the point is in
+ * the rectangle.
+ */
+float
+EditPart::distance(wxPoint p, wxRect r) {
+    float xr = 0;
+    float yr = 0;
+    float xp = static_cast<float>(p.x);
+    float yp = static_cast<float>(p.y);
+
+    xr = static_cast<float>(max(min(p.x, r.GetRight()), r.GetLeft()));
+    yr = static_cast<float>(max(min(p.y, r.GetBottom()), r.GetTop()));
+
+    float dist = sqrt((xr - xp) * (xr - xp) + (yr - yp) * (yr - yp));
+
+    return dist;
 }

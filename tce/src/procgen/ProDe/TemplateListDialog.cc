@@ -287,10 +287,10 @@ void
 TemplateListDialog::onSlotSelection(wxListEvent&) {
     if (slotList_->GetSelectedItemCount() == 1) {
         FindWindow(ID_DELETE_SLOT)->Enable();
-//        FindWindow(ID_EDIT_SLOT)->Enable();
+        FindWindow(ID_EDIT_SLOT)->Enable();
     } else {
         FindWindow(ID_DELETE_SLOT)->Disable();
-//        FindWindow(ID_EDIT_SLOT)->Disable();
+        FindWindow(ID_EDIT_SLOT)->Disable();
     }
 }
 
@@ -484,7 +484,10 @@ TemplateListDialog::onDeleteSlot(wxCommandEvent&) {
  */
 void
 TemplateListDialog::onEditSlot(wxCommandEvent&) {
-    // Not implemented.
+    TemplateSlotDialog dialog(this, selectedTemplate(),
+        selectedTemplate()->templateSlot(selectedSlot()) );
+    dialog.ShowModal();
+    updateSlotList();
 }
 
 

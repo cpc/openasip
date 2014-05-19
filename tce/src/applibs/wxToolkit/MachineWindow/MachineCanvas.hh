@@ -77,6 +77,9 @@ public:
     EditPart* selection();
     EditPart* findEditPart(int x, int y);
     EditPart* findEditPart(const TTAMachine::MachinePart* model);
+    bool hasEditPart(const EditPart* part) const;
+    int findEditPartsInRange(int x, int y, int range,
+                             std::vector<EditPart*>& found);
     void highlight(TTAMachine::MachinePart* model, const wxColour& colour);
     void clearHighlights();
     void clearSelection();
