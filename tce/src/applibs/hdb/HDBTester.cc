@@ -71,6 +71,8 @@ HDBTester::testAllEntries(std::string hdbFile) {
     for (set<int>::iterator iter = fus.begin(); iter != fus.end(); iter++) {
         if (!testFU(*iter, implTester)) {
             noFailures = false;
+            std::cerr << "FU Entry " << *iter << " from " << hdbFile
+                      << " failed." << std::endl;
         }
     }
 
@@ -78,6 +80,8 @@ HDBTester::testAllEntries(std::string hdbFile) {
     for (set<int>::iterator iter = rfs.begin(); iter != rfs.end(); iter++) {
         if (!testRF(*iter, implTester)) {
             noFailures = false;
+            std::cerr << "RF Entry " << *iter << " from " << hdbFile
+                      << " failed." << std::endl;
         }
     }
     delete implTester;
@@ -93,6 +97,12 @@ HDBTester::testOneRF(std::string hdbFile, int entryId) {
     }
     bool success = testRF(entryId, implTester);
     delete implTester;
+
+    if (!success) {
+        std::cerr << "RF Entry " << entryId << " from " << hdbFile
+                  << " failed." << std::endl;
+    }
+
     return success;
 }
 
@@ -105,6 +115,12 @@ HDBTester::testOneFU(std::string hdbFile, int entryId) {
     }
     bool success = testFU(entryId, implTester);
     delete implTester;
+
+    if (!success) {
+        std::cerr << "FU Entry " << entryId << " from " << hdbFile
+                  << " failed." << std::endl;
+    }
+    
     return success;
 }
 
