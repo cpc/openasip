@@ -31,8 +31,8 @@ function start_compiletest {
     # remove the zOMG error mail when testing is finished, buildbot will handle the mails
     export ERROR_MAIL=no
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
-    export CXX="ccache g++${ALTGCC}"
-    export CC="ccache gcc${ALTGCC}"
+    export CXX="g++${ALTGCC}"
+    export CC="gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export LDFLAGS="-L/usr/local/lib"
