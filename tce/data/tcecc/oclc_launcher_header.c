@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "cl_tce.h"
-#include <pocl/pocl.h>
+#include <pocl.h>
 
 //#define DEBUG_MT
 //#define DEBUG_OCL
