@@ -120,9 +120,6 @@ const string IU_NAME_PREFIX = "iu_";
 
 const TCEString INSTANCE_SUFFIX = "_instance";
 
-const int DEF_IMEMADDRWIDTH = 16;
-const int DEF_IMEMWIDTH = 16;
-
 namespace ProGe {
 
 const std::string NetlistGenerator::DECODER_INSTR_WORD_PORT =

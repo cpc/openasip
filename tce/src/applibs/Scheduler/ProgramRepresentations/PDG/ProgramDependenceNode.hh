@@ -31,7 +31,7 @@
  * @note rating: red
  */
 #ifndef TTA_PROGRAM_DEPENDENCE_NODE_HH
-#define PROGRAM_DEPENDENCE_NODE_HH
+#define TTA_PROGRAM_DEPENDENCE_NODE_HH
 
 #include "ControlDependenceNode.hh"
 

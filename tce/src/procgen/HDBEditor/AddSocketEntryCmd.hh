@@ -31,7 +31,7 @@
  */
 
 #ifndef TTA_ADD_SOCKET_ENTRY_CMD_HH
-#define TTA_ADD_SOCKET_ENTRY_CMD_CC
+#define TTA_ADD_SOCKET_ENTRY_CMD_HH
 
 #include "GUICommand.hh"
 

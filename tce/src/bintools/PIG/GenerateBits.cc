@@ -63,7 +63,6 @@ using namespace TPEF;
 using namespace TTAMachine;
 
 const int DEFAULT_IMEMWIDTH_IN_MAUS = 1;
-const int PERIOD = 10;
 const string IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
 const string VER_IMEM_MAU_PKG = "imem_mau_pkg.vh";
 const string DECOMPRESSOR_FILE = "idecompressor.vhdl";
