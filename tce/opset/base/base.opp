@@ -3012,4 +3012,40 @@ Input operand is discarded.</description>
     </trigger-semantics>
   </operation>
 
+  <operation>
+    <name>chs</name>
+    <description>Convert half to short</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>chsu</name>
+    <description>Convert half to short unsigned</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>csh</name>
+    <description>Convert short to half</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="HalfFloatWord"/>
+  </operation>
+
+  <operation>
+    <name>cshu</name>
+    <description>Convert short to half unsigned</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="HalfFloatWord"/>
+  </operation>
+
 </osal>

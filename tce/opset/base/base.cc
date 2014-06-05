@@ -1622,3 +1622,63 @@ if (UINT(3) & 1) {
 //IO(4) = ((IO(3)) & 1) ? IO(1) : IO(2);
 END_TRIGGER;
 END_OPERATION(SELECT)
+
+////////////////////////////////////////////////////////////////////////////////
+// CHS - convert half to short
+////////////////////////////////////////////////////////////////////////////////
+OPERATION(CHS)
+TRIGGER
+HalfFloatWord in = HFLT(1);
+int tmp = SIntWord(in);
+if (tmp < -32768) {
+    tmp = -32768;
+} else if (tmp > 32767) {
+    tmp = 32767;
+}
+IO(2) = tmp;
+END_TRIGGER;
+END_OPERATION(CHS)
+
+////////////////////////////////////////////////////////////////////////////////
+// CHSU - convert half to unsigned short
+////////////////////////////////////////////////////////////////////////////////
+OPERATION(CHSU)
+TRIGGER
+HalfFloatWord in = HFLT(1);
+int tmp = SIntWord(in);
+if (tmp < 0) {
+    tmp = 0;
+}
+IO(2) = tmp;
+END_TRIGGER;
+END_OPERATION(CHSU)
+
+////////////////////////////////////////////////////////////////////////////////
+// CSH - convert short to half
+////////////////////////////////////////////////////////////////////////////////
+OPERATION(CSH)
+TRIGGER
+
+SIntWord in = INT(1);
+if (in & 0x8000) {
+    in |= 0xFFFF0000;
+} else {
+    in &= 0x0000FFFF;
+}
+//HalfFloatWord tmp(FloatWord(in));
+IO(2) = HalfFloatWord(FloatWord(in));
+END_TRIGGER;
+END_OPERATION(CSH)
+
+////////////////////////////////////////////////////////////////////////////////
+// CSHU - convert short to half
+////////////////////////////////////////////////////////////////////////////////
+OPERATION(CSHU)
+TRIGGER
+
+UIntWord in = (UINT(1));
+UIntWord tmp1 = in & 0xFFFF;
+IO(2) = HalfFloatWord(FloatWord(tmp1));
+END_TRIGGER;
+END_OPERATION(CSHU)
+

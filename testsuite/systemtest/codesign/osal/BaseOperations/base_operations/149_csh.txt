@@ -1,0 +1,3 @@
+!output half
+cih 149
+cih -10
