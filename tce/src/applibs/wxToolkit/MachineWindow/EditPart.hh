@@ -36,6 +36,7 @@
 
 #include <vector>
 #include <set>
+#include <stddef.h>
 
 class Figure;
 class wxPoint;
