@@ -109,7 +109,6 @@ private:
     ResourceBuildDirector buildDirector_;
 
     unsigned int initiationInterval_;
-    unsigned int maxCycle;
 
     unsigned int instructionIndex(unsigned int) const;
 

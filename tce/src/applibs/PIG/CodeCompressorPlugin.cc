@@ -82,6 +82,7 @@
 #include "MoveGuard.hh"
 #include "TCEString.hh"
 #include "Program.hh"
+#include "Procedure.hh"
 #include "Operation.hh"
 
 #include "tce_config.h"
@@ -204,12 +205,14 @@ CodeCompressorPlugin::bemBits(const TTAProgram::Program& program)
     indexTable_.clear();
 
     InstructionBitVector* imageBits = new InstructionBitVector();
-    Instruction* instruction = &program.firstInstruction();
-    while (instruction != &NullInstruction::instance()) {
-        InstructionBitVector* bits = bemInstructionBits(*instruction);
-        assert(bits->size() == static_cast<size_t>(bem_->width()));
-        imageBits->pushBack(*bits);
-        instruction = &program.nextInstruction(*instruction);
+    for (int i = 0; i < program.procedureCount(); i++) {
+	Procedure& p = program.procedure(i);
+	for (int j = 0; j < p.instructionCount(); j++) {
+	    Instruction& instruction = p.instructionAtIndex(j);
+	    InstructionBitVector* bits = bemInstructionBits(instruction);
+	    assert(bits->size() == static_cast<size_t>(bem_->width()));
+	    imageBits->pushBack(*bits);
+	}
     }
     return imageBits;
 }

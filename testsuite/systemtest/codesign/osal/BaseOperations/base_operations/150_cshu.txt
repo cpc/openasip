@@ -1,0 +1,3 @@
+cihu 65535
+!output half
+cihu 150

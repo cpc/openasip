@@ -30,7 +30,7 @@
  */
 
 #ifndef TTA_PRINT_PREVIEW_CMD_HH
-#define TTA_PRINT_PEWVIEW_CMD_HH
+#define TTA_PRINT_PREVIEW_CMD_HH
 
 #include <string>
 

@@ -31,7 +31,7 @@
  */
 
 #ifndef TTA_HDB_EDITOR_DELETE_CMD_HH
-#define TTA_HDB_EDITOR_DELETE_CMD_CC
+#define TTA_HDB_EDITOR_DELETE_CMD_HH
 
 #include "GUICommand.hh"
 

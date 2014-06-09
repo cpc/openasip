@@ -32,7 +32,7 @@
  */
 
 #ifndef TTA_PROGE_TEST_BENCH_GENERATOR_HH
-#define TTA_PROGE_TEST_BANCH_GENERATOR_HH
+#define TTA_PROGE_TEST_BENCH_GENERATOR_HH
 
 #include "Exception.hh"
 #include "MachineImplementation.hh"

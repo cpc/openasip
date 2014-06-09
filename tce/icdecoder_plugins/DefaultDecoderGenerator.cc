@@ -1486,6 +1486,7 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
                    << " <= '0';" << endl;
             stream << indentation(3) << iuWritePort(iu->name()) 
                    << " <= (others => '0');" << endl;
+            if (rfOpcodeWidth(*iu) != 0)
             stream << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
                    << " <= (others => '0');" << endl;
         }
@@ -1537,8 +1538,9 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
             stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
                    << " <= 1'b0;" << endl
                    << indentation(3) << iuWritePort(iu->name()) 
-                   << " <= 0;" << endl
-                   << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
+                   << " <= 0;" << endl;
+            if (rfOpcodeWidth(*iu) != 0)
+            stream << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
                    << " <= 0;" << endl;
         }
         stream  << indentation(2) << "end" << endl

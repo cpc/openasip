@@ -30,7 +30,7 @@
  * @note rating: red
  */
 
-#ifndef TTA_CENTRALIZED_CONTROl_IC_GENERATOR_HH
+#ifndef TTA_CENTRALIZED_CONTROL_IC_GENERATOR_HH
 #define TTA_CENTRALIZED_CONTROL_IC_GENERATOR_HH
 
 #include <string>

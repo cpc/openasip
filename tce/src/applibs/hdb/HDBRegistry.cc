@@ -271,10 +271,11 @@ HDBRegistry::hdbErrorMessage(unsigned int index)
 void
 HDBRegistry::removeDeadHDBPaths() {
     
-    std::map<std::string, CachedHDBManager*>::iterator it;
+    std::map<const std::string, CachedHDBManager*>::iterator it;
     for (it = registry_.begin(); it != registry_.end(); ) {
         if (!FileSystem::fileExists(it->first)) {
-            registry_.erase(it++);
+            registry_.erase(it->first);
+            ++it;
         } else {
             ++it;
         }

@@ -12,6 +12,11 @@ Smaller features and improvements
 - Template Slots can be edited in ProDe's Intruction Templates-dialog.
 - Bus-socket -connection can be edited with single click in ProDe's 
   Edit Connections mode.
+- Added select operation that can be used for select(?) operator
+  instead of conditional moves.
+- Added patterns which can do select(?) operator without conditional moves
+  or select operations with series of ors ands etc.
+- Better error message when trying to compile to adf with broken port bindings.
 
 Bugfixes
 --------

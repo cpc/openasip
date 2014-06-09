@@ -585,8 +585,11 @@ ExecutionPipeline::slack(int input) const
         slack++;
     }
 
+    const string errMessage = "Propably broken operand binding in operation:"
+	+ parent_->name() + " in FU: " + parent_->parentUnit()->name();
+
     const string procName = "ExecutionPipeline::slack";
-    throw IllegalParameters(__FILE__, __LINE__, procName);
+    throw IllegalParameters(__FILE__, __LINE__, procName, errMessage);
 }
    
 
