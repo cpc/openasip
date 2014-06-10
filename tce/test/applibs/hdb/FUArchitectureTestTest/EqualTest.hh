@@ -113,7 +113,6 @@ FUArchitectureTest::testEquals() {
 
     FUArchitecture* fuArch3 = new FUArchitecture(fu3);
 
-    TS_ASSERT(fuArch1 == fuArch1);
     TS_ASSERT_DIFFERS(fuArch1, fuArch2);
     TS_ASSERT_DIFFERS(fuArch2, fuArch3);
     TS_ASSERT_DIFFERS(fuArch1, fuArch3);
