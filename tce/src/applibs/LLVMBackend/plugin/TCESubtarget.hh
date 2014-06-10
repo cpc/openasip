@@ -45,7 +45,7 @@ namespace llvm {
 
     /**
      * Currently there is only one generic universal machine target,
-     * so this class doesn't cotain any relevant information.
+     * so this class doesn't contain any relevant information.
      */
     class TCESubtarget : public TCEGenSubtargetInfo {
     public:

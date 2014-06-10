@@ -17,6 +17,7 @@ Smaller features and improvements
 - Added patterns which can do select(?) operator without conditional moves
   or select operations with series of ors ands etc.
 - Better error message when trying to compile to adf with broken port bindings.
+- Build fixes for latest Mac OSX versions.
 
 Bugfixes
 --------
