@@ -1,25 +1,25 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+ Copyright (c) 2002-2009 Tampere University of Technology.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+ This file is part of TTA-Based Codesign Environment (TCE).
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
  */
 /**
  * @file RFImplementationDialog.cc
@@ -32,6 +32,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/radiobox.h>
 #include <wx/statline.h>
 
 #include <vector>
@@ -60,19 +61,19 @@ BEGIN_EVENT_TABLE(RFImplementationDialog, wxDialog)
     EVT_BUTTON(ID_ADD_SOURCE, RFImplementationDialog::onAddSourceFile)
     EVT_BUTTON(ID_DELETE_SOURCE, RFImplementationDialog::onDeleteSourceFile)
     EVT_BUTTON(ID_MOVE_SOURCE_UP, RFImplementationDialog::onMoveSourceFileUp)
-    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, 
-               RFImplementationDialog::onMoveSourceFileDown)
+    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, RFImplementationDialog::onMoveSourceFileDown)
+    EVT_RADIOBOX(ID_SAC, RFImplementationDialog::onSACchoise)
 
-    EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)
+EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)
 
-    EVT_LIST_ITEM_SELECTED(
-        ID_PORT_LIST, RFImplementationDialog::onPortSelection)
-    EVT_LIST_ITEM_DESELECTED(
-        ID_PORT_LIST, RFImplementationDialog::onPortSelection)
-    EVT_LIST_ITEM_SELECTED(
-        ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
-    EVT_LIST_ITEM_DESELECTED(
-        ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
+EVT_LIST_ITEM_SELECTED(
+                ID_PORT_LIST, RFImplementationDialog::onPortSelection)
+EVT_LIST_ITEM_DESELECTED(
+                ID_PORT_LIST, RFImplementationDialog::onPortSelection)
+EVT_LIST_ITEM_SELECTED(
+                ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
+EVT_LIST_ITEM_DESELECTED(
+                ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
 
 END_EVENT_TABLE()
 
@@ -83,10 +84,10 @@ END_EVENT_TABLE()
  * @param id Window identifier for the dialog window.
  * @param implementation RF implementation to modify.
  */
-RFImplementationDialog::RFImplementationDialog(
-    wxWindow* parent, wxWindowID id, RFImplementation& implementation):
-    wxDialog(parent, id, _T("Register File Implementation")),
-    implementation_(implementation) {
+RFImplementationDialog::RFImplementationDialog(wxWindow* parent,
+    wxWindowID id, RFImplementation& implementation) :
+                    wxDialog(parent, id, _T("Register File Implementation")),
+                    implementation_(implementation) {
 
     createContents(this, true, true);
 
@@ -95,8 +96,7 @@ RFImplementationDialog::RFImplementationDialog(
     sourceList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_SOURCE_LIST));
 
     portList_->InsertColumn(0, _T("name"), wxLIST_FORMAT_LEFT, 200);
-    sourceList_->InsertColumn(
-        0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
+    sourceList_->InsertColumn(0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
 
     // Read string attributes from the RFImplementation object.
     name_ = WxConversion::toWxString(implementation_.moduleName());
@@ -106,7 +106,7 @@ RFImplementationDialog::RFImplementationDialog(
     guardPort_ = WxConversion::toWxString(implementation_.guardPort());
     widthParam_ = WxConversion::toWxString(implementation_.widthParameter());
     sizeParam_ = WxConversion::toWxString(implementation_.sizeParameter());
-
+    sacParam_ = implementation_.separateAddressCycleParameter();
 
     // Set text field validators.
     FindWindow(ID_NAME)->SetValidator(
@@ -124,6 +124,8 @@ RFImplementationDialog::RFImplementationDialog(
     FindWindow(ID_SIZE_PARAMETER)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &sizeParam_));
 
+    wxRadioBox* rbox = dynamic_cast<wxRadioBox*>(FindWindow(ID_SAC));
+    rbox->SetSelection(sacParam_ ? RBOX_TRUE : RBOX_FALSE);
 
     // Disable conditional buttons initially.
     FindWindow(ID_DELETE_PORT)->Disable();
@@ -138,7 +140,6 @@ RFImplementationDialog::RFImplementationDialog(
  */
 RFImplementationDialog::~RFImplementationDialog() {
 }
-
 
 void
 RFImplementationDialog::update() {
@@ -166,6 +167,11 @@ RFImplementationDialog::update() {
     onPortSelection(dummy);
 }
 
+void
+RFImplementationDialog::onSACchoise(wxCommandEvent& event) {
+    assert((event.GetInt() == RBOX_FALSE) || (event.GetInt() == RBOX_TRUE));
+    sacParam_ = (event.GetInt() == RBOX_FALSE) ? false : true;
+}
 
 /**
  * Event handler for the add port button.
@@ -175,8 +181,8 @@ RFImplementationDialog::update() {
 void
 RFImplementationDialog::onAddPort(wxCommandEvent&) {
 
-    RFPortImplementation* port =
-        new RFPortImplementation("", HDB::IN, "", "" , "", implementation_);
+    RFPortImplementation* port = new RFPortImplementation("", HDB::IN, "", "",
+        "", implementation_);
 
     RFPortImplementationDialog dialog(this, -1, *port);
 
@@ -186,7 +192,6 @@ RFImplementationDialog::onAddPort(wxCommandEvent&) {
 
     update();
 }
-
 
 /**
  * Event handler for the port list selection changes.
@@ -250,8 +255,8 @@ HDB::RFPortImplementation*
 RFImplementationDialog::selectedPort() {
 
     long item = -1;
-    item = portList_->GetNextItem(
-        item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    item = portList_->GetNextItem(item, wxLIST_NEXT_ALL,
+        wxLIST_STATE_SELECTED);
 
     if (item == -1) {
         return NULL;
@@ -269,8 +274,8 @@ RFImplementationDialog::selectedPort() {
 void
 RFImplementationDialog::onAddSourceFile(wxCommandEvent&) {
 
-    BlockImplementationFile* file =
-        new BlockImplementationFile("", BlockImplementationFile::VHDL);
+    BlockImplementationFile* file = new BlockImplementationFile("",
+        BlockImplementationFile::VHDL);
 
     BlockImplementationFileDialog dialog(this, -1, *file);
 
@@ -282,7 +287,6 @@ RFImplementationDialog::onAddSourceFile(wxCommandEvent&) {
     }
 
 }
-
 
 /**
  * Event handler for the delete source file button.
@@ -314,38 +318,37 @@ RFImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
     if (implementation_.implementationFileCount() > 1) {
         std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
-        int originalImplementationFileCount = 
-            implementation_.implementationFileCount();
+        int originalImplementationFileCount =
+                        implementation_.implementationFileCount();
 
         for (int i = 0; i < originalImplementationFileCount; i++) {
             HDB::BlockImplementationFile& file = implementation_.file(0);
             pathToFileList.push_back(file.pathToFile());
             implementation_.removeImplementationFile(file);
         }
-        
+
         for (unsigned int i = 1; i < pathToFileList.size(); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(
-                    pathToFileList.begin() + i - 1, fileName);
+                pathToFileList.insert(pathToFileList.begin() + i - 1,
+                    fileName);
                 break;
             }
         }
-        
+
         for (unsigned int i = 0; i < pathToFileList.size(); i++) {
-            BlockImplementationFile* file =
-                new BlockImplementationFile(pathToFileList.at(i), 
-                                            BlockImplementationFile::VHDL);
+            BlockImplementationFile* file = new BlockImplementationFile(
+                pathToFileList.at(i), BlockImplementationFile::VHDL);
             implementation_.addImplementationFile(file);
         }
-        
+
         pathToFileList.clear();
         update();
 
         for (int i = 0; i < implementation_.implementationFileCount(); i++) {
             if (implementation_.file(i).pathToFile() == fileName) {
-                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
-                                          wxLIST_STATE_SELECTED);
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED,
+                    wxLIST_STATE_SELECTED);
             }
         }
     }
@@ -361,44 +364,42 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
     if (implementation_.implementationFileCount() > 1) {
         std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
-        
-        int originalImplementationFileCount = 
-            implementation_.implementationFileCount();
-        
+
+        int originalImplementationFileCount =
+                        implementation_.implementationFileCount();
+
         for (int i = 0; i < originalImplementationFileCount; i++) {
             HDB::BlockImplementationFile& file = implementation_.file(0);
             pathToFileList.push_back(file.pathToFile());
             implementation_.removeImplementationFile(file);
         }
-        
+
         for (unsigned int i = 0; i < (pathToFileList.size() - 1); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(
-                    pathToFileList.begin() + i + 1, fileName);
+                pathToFileList.insert(pathToFileList.begin() + i + 1,
+                    fileName);
                 break;
             }
         }
-                
+
         for (unsigned int i = 0; i < pathToFileList.size(); i++) {
-            BlockImplementationFile* file =
-                new BlockImplementationFile(pathToFileList.at(i), 
-                                            BlockImplementationFile::VHDL);
+            BlockImplementationFile* file = new BlockImplementationFile(
+                pathToFileList.at(i), BlockImplementationFile::VHDL);
             implementation_.addImplementationFile(file);
         }
-        
+
         pathToFileList.clear();
         update();
 
         for (int i = 0; i < implementation_.implementationFileCount(); i++) {
             if (implementation_.file(i).pathToFile() == fileName) {
-                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
-                                          wxLIST_STATE_SELECTED);
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED,
+                    wxLIST_STATE_SELECTED);
             }
         }
     }
 }
-
 
 /**
  * Event handler for the source file list selection changes.
@@ -407,7 +408,7 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
  */
 void
 RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
-    if (WidgetTools::lcStringSelection(sourceList_, 0)  == "") {
+    if (WidgetTools::lcStringSelection(sourceList_, 0) == "") {
         FindWindow(ID_DELETE_SOURCE)->Disable();
         FindWindow(ID_MOVE_SOURCE_UP)->Disable();
         FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
@@ -418,7 +419,6 @@ RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
     }
 }
 
-
 /**
  * Event handler for the OK button.
  *
@@ -427,7 +427,7 @@ RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
  */
 void
 RFImplementationDialog::onOK(wxCommandEvent&) {
-    
+
     TransferDataFromWindow();
 
     name_ = name_.Trim(true).Trim(false);
@@ -452,147 +452,185 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
     implementation_.setGuardPort(WxConversion::toString(guardPort_));
     implementation_.setWidthParameter(WxConversion::toString(widthParam_));
     implementation_.setSizeParameter(WxConversion::toString(sizeParam_));
+    implementation_.setSeparateAddressCycleParameter(sacParam_);
 
     EndModal(wxID_OK);
 
 }
 
-
 /**
  * Creates the dialog contents.
  */
 wxSizer*
-RFImplementationDialog::createContents(
-    wxWindow *parent, bool call_fit, bool set_sizer) {
+RFImplementationDialog::createContents(wxWindow *parent, bool call_fit,
+    bool set_sizer) {
 
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item1 = new wxBoxSizer(wxVERTICAL);
 
-    wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item2 = new wxFlexGridSizer(2, 0, 0);
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item3 = new wxStaticText(parent, ID_LABEL_NAME,
+        wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item3, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
-    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item4 = new wxTextCtrl(parent, ID_NAME, wxT(""),
+        wxDefaultPosition, wxSize(200, -1), 0);
+    item2->Add(item4, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_CLK_PORT, wxT("Clock port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText(parent, ID_LABEL_CLK_PORT,
+        wxT("Clock port:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item5, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_CLK_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item6 = new wxTextCtrl(parent, ID_CLK_PORT, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item6, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_RESET_PORT, wxT("Reset port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item7 = new wxStaticText(parent, ID_LABEL_RESET_PORT,
+        wxT("Reset port:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item7, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_RESET_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item8 = new wxTextCtrl(parent, ID_RESET_PORT, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item8, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_LABEL_GLOCK_PORT, wxT("Global lock port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item9 = new wxStaticText(parent, ID_LABEL_GLOCK_PORT,
+        wxT("Global lock port:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item9, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_GLOCK_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item10 = new wxTextCtrl(parent, ID_GLOCK_PORT, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item10, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_LABEL_GUARD_PORT, wxT("Guard port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item11 = new wxStaticText(parent, ID_LABEL_GUARD_PORT,
+        wxT("Guard port:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item11, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_GUARD_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item12 = new wxTextCtrl(parent, ID_GUARD_PORT, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item12, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_LABEL_SIZE_PARAMETER, wxT("Size parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item13 = new wxStaticText(parent, ID_LABEL_SIZE_PARAMETER,
+        wxT("Size parameter:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item13, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_SIZE_PARAMETER, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item14 = new wxTextCtrl(parent, ID_SIZE_PARAMETER, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item14, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_LABEL_WIDTH_PARAMETER, wxT("Width parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item15 = new wxStaticText(parent, ID_LABEL_WIDTH_PARAMETER,
+        wxT("Width parameter:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(item15, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_WIDTH_PARAMETER, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item16 = new wxTextCtrl(parent, ID_WIDTH_PARAMETER, wxT(""),
+        wxDefaultPosition, wxSize(80, -1), 0);
+    item2->Add(item16, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    item1->Add( item2, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxStaticText *saclabel = new wxStaticText(parent, ID_LABEL_SAC,
+        wxT("Separate address cycle:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(saclabel, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL,
+        5);
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+    wxString choises[2] =
+        { wxT("False"), wxT("True") };
+    wxRadioBox *sacradiobox = new wxRadioBox(parent, ID_SAC, wxT(""),
+        wxDefaultPosition, wxDefaultSize, 2, choises, 0, wxRA_SPECIFY_COLS);
 
-    wxStaticBox *item19 = new wxStaticBox( parent, -1, wxT("Ports:") );
-    wxStaticBoxSizer *item18 = new wxStaticBoxSizer( item19, wxVERTICAL );
+    item2->Add(sacradiobox, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxListCtrl *item20 = new wxListCtrl( parent, ID_PORT_LIST, wxDefaultPosition, wxSize(220,160), wxLC_REPORT|wxSUNKEN_BORDER );
-    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item17 = new wxBoxSizer(wxHORIZONTAL);
 
-    wxButton *item22 = new wxButton( parent, ID_ADD_PORT, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticBox *item19 = new wxStaticBox(parent, -1, wxT("Ports:"));
+    wxStaticBoxSizer *item18 = new wxStaticBoxSizer(item19, wxVERTICAL);
 
-    wxButton *item23 = new wxButton( parent, ID_MODIFY_PORT, wxT("Modify..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxListCtrl *item20 = new wxListCtrl(parent, ID_PORT_LIST,
+        wxDefaultPosition, wxSize(220, 160), wxLC_REPORT | wxSUNKEN_BORDER);
+    item18->Add(item20, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxButton *item24 = new wxButton( parent, ID_DELETE_PORT, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item21 = new wxBoxSizer(wxHORIZONTAL);
 
-    item18->Add( item21, 0, wxALIGN_CENTER, 5 );
+    wxButton *item22 = new wxButton(parent, ID_ADD_PORT, wxT("Add..."),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item21->Add(item22, 0, wxALIGN_CENTER | wxALL, 5);
 
-    item17->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item23 = new wxButton(parent, ID_MODIFY_PORT, wxT("Modify..."),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item21->Add(item23, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxStaticBox *item26 = new wxStaticBox( parent, -1, wxT("Source files:") );
-    wxStaticBoxSizer *item25 = new wxStaticBoxSizer( item26, wxVERTICAL );
+    wxButton *item24 = new wxButton(parent, ID_DELETE_PORT, wxT("Delete"),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item21->Add(item24, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxFlexGridSizer *item27_1 = new wxFlexGridSizer( 2, 0, 0 );
+    item18->Add(item21, 0, wxALIGN_CENTER, 5);
 
-    wxListCtrl *item27 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(300, 150), wxLC_REPORT|wxSUNKEN_BORDER );
-    item27_1->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item17->Add(item18, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxBoxSizer *item27_2 = new wxBoxSizer( wxVERTICAL );
-    
-    wxButton *item60 = new wxButton( parent, ID_MOVE_SOURCE_UP, wxT("▴"), wxDefaultPosition, wxSize(20, 20), 0 );
-    item27_2->Add( item60, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticBox *item26 = new wxStaticBox(parent, -1, wxT("Source files:"));
+    wxStaticBoxSizer *item25 = new wxStaticBoxSizer(item26, wxVERTICAL);
 
-    wxButton *item61 = new wxButton( parent, ID_MOVE_SOURCE_DOWN, wxT("▾"), wxDefaultPosition, wxSize(20, 20), 0 );
-    item27_2->Add( item61, 0, wxALIGN_CENTER|wxALL, 5 );
-    
-    item27_1->Add( item27_2, 0, wxALIGN_RIGHT|wxALIGN_CENTER, 5 );
+    wxFlexGridSizer *item27_1 = new wxFlexGridSizer(2, 0, 0);
 
-    item25->Add( item27_1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxListCtrl *item27 = new wxListCtrl(parent, ID_SOURCE_LIST,
+        wxDefaultPosition, wxSize(300, 150), wxLC_REPORT | wxSUNKEN_BORDER);
+    item27_1->Add(item27, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item27_2 = new wxBoxSizer(wxVERTICAL);
 
-    wxButton *item29 = new wxButton( parent, ID_ADD_SOURCE, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item60 = new wxButton(parent, ID_MOVE_SOURCE_UP, wxT("▴"),
+        wxDefaultPosition, wxSize(20, 20), 0);
+    item27_2->Add(item60, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxButton *item30 = new wxButton( parent, ID_DELETE_SOURCE, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item61 = new wxButton(parent, ID_MOVE_SOURCE_DOWN, wxT("▾"),
+        wxDefaultPosition, wxSize(20, 20), 0);
+    item27_2->Add(item61, 0, wxALIGN_CENTER | wxALL, 5);
 
-    item25->Add( item28, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 5 );
+    item27_1->Add(item27_2, 0, wxALIGN_RIGHT | wxALIGN_CENTER, 5);
 
-    item17->Add( item25, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item25->Add(item27_1, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    item1->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item28 = new wxBoxSizer(wxHORIZONTAL);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item29 = new wxButton(parent, ID_ADD_SOURCE, wxT("Add..."),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item28->Add(item29, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL,
+        5);
 
-    wxStaticLine *item31 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item30 = new wxButton(parent, ID_DELETE_SOURCE, wxT("Delete"),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item28->Add(item30, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    item25->Add(item28, 0, wxALIGN_RIGHT | wxALIGN_BOTTOM, 5);
 
-    wxButton *item33 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add(item25, 0, wxGROW | wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-    wxButton *item34 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add(item17, 0, wxALIGN_CENTER | wxALL, 5);
 
-    item0->Add( item32, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
+    wxStaticLine *item31 = new wxStaticLine(parent, ID_LINE,
+        wxDefaultPosition, wxSize(20, -1), wxLI_HORIZONTAL);
+    item0->Add(item31, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+    wxBoxSizer *item32 = new wxBoxSizer(wxHORIZONTAL);
+
+    wxButton *item33 = new wxButton(parent, wxID_OK, wxT("&OK"),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item32->Add(item33, 0, wxALIGN_CENTER | wxALL, 5);
+
+    wxButton *item34 = new wxButton(parent, wxID_CANCEL, wxT("&Cancel"),
+        wxDefaultPosition, wxDefaultSize, 0);
+    item32->Add(item34, 0, wxALIGN_CENTER | wxALL, 5);
+
+    item0->Add(item32, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+
+    if (set_sizer) {
+        parent->SetSizer(item0);
         if (call_fit)
-            item0->SetSizeHints( parent );
+            item0->SetSizeHints(parent);
     }
-    
+
     return item0;
 }
