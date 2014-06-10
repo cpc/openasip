@@ -50,10 +50,13 @@ using std::time_t;
 // Initialize statics
 
 // the most important one is "fno-working-directory" which is used because 
-// ccache doesn't like changing directory paths. Rest is just minor tweaks.
-const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS = 
+// c5Bcache doesn't like changing directory paths. Rest is just minor tweaks.
+const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS = " -fpic "
+#ifndef __clang__
+// not supported (yet) in Clang 3.4
     " -fno-working-directory "
     "-fno-enforce-eh-specs "
+#endif
     "-fno-rtti -DNDEBUG ";
 //     "-fno-rtti "
 //     "-fno-threadsafe-statics "
