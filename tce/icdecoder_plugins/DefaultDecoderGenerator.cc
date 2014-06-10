@@ -4166,6 +4166,7 @@ DefaultDecoderGenerator::indentation(unsigned int level) {
 bool
 DefaultDecoderGenerator::sacEnabled(const string& rfName) const
 {
+    assert(nlGenerator_ != NULL);
     const RFEntry& rfEntry = nlGenerator_->rfEntry(rfName);
     return rfEntry.implementation().separateAddressCycleParameter();
 }
