@@ -1091,6 +1091,9 @@ AC_RUN_IFELSE(
 [AC_LANG_PROGRAM(
 [[
 #include <sqlite3.h>
+#if SQLITE_VERSION_NUMBER < 3002000
+#error Too old SQLite3
+#endif
 ]],
 []
 )], 
@@ -1101,7 +1104,7 @@ AC_RUN_IFELSE(
 ],
 [
   AC_MSG_RESULT([no])
-  AC_MSG_ERROR([sqlite version must be >= 3.0.0])
+  AC_MSG_ERROR([sqlite version must be >= 3.2.0])
 ])
 CPPFLAGS="$TEMP_CPPFLAGS"
 LDFLAGS="$TEMP_LDFLAGS"

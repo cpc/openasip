@@ -47,6 +47,7 @@ namespace IDF {
 
 namespace HDB {
     class FUEntry;
+    class RFEntry;
 }
 
 namespace TTAMachine {
@@ -118,6 +119,8 @@ public:
 
     HDB::FUEntry& fuEntry(const std::string& fuName) const
         throw (InstanceNotFound);
+    HDB::RFEntry& rfEntry(const std::string& rfName) const
+            throw (InstanceNotFound);
 
     /// Instruction word port name in instruction decoder.
     static const std::string DECODER_INSTR_WORD_PORT;
@@ -150,6 +153,8 @@ private:
     typedef std::map<const TTAMachine::ImmediateUnit*, NetlistPort*> IUPortMap;
     /// Map type for FUImplementation.
     typedef std::map<std::string, HDB::FUEntry*> FUEntryMap;
+    /// Map type for RFImplementation.
+    typedef std::map<std::string, HDB::RFEntry*> RFEntryMap;
 
     void addGCUToNetlist(NetlistBlock& toplevelBlock, int imemWidthInMAUs);
     void addFUToNetlist(
@@ -251,6 +256,8 @@ private:
     NetlistBlock* instructionDecoder_;
     /// Maps FU implementations for different FU's.
     FUEntryMap fuEntryMap_;
+    /// Maps RF implementations for different RF's.
+    RFEntryMap rfEntryMap_;
     /// Return address in port in GCU (ifetch).
     NetlistPort* raInPort_;
     /// Returns address out port in GCU (ifetch).

@@ -252,6 +252,7 @@ private:
         const TTAMachine::Bus& bus) const;
     int opcode(const TTAMachine::HWOperation& operation) const;
     static std::string indentation(unsigned int level);
+    bool sacEnabled(const std::string& rfName) const;
     
     /// The machine.
     const TTAMachine::Machine& machine_;

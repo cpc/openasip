@@ -77,6 +77,9 @@
 #include "FUEntry.hh"
 #include "FUImplementation.hh"
 
+#include "RFEntry.hh"
+#include "RFImplementation.hh"
+
 #include "FileSystem.hh"
 #include "MathTools.hh"
 #include "AssocTools.hh"
@@ -4151,4 +4154,18 @@ DefaultDecoderGenerator::indentation(unsigned int level) {
         indentation += "  ";
     }
     return indentation;
+}
+
+/**
+ * Queries if given register file by name has separate address cycle (SAC)
+ * parameter enabled.
+ *
+ * @param rfName Name of register file in ADF.
+ * @return Status of the SAC.
+ */
+bool
+DefaultDecoderGenerator::sacEnabled(const string& rfName) const
+{
+    const RFEntry& rfEntry = nlGenerator_->rfEntry(rfName);
+    return rfEntry.implementation().separateAddressCycleParameter();
 }
