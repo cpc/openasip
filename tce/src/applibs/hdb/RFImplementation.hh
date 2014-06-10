@@ -53,7 +53,8 @@ public:
         const std::string& glockPort,
         const std::string& sizeParam,
         const std::string& widthParam,
-        const std::string& guardPort);
+        const std::string& guardPort,
+        bool sacParam = false);
     virtual ~RFImplementation();
 
     RFImplementation(const RFImplementation& o);
@@ -66,6 +67,9 @@ public:
 
     void setGuardPort(const std::string& guardPort);
     std::string guardPort() const;
+
+    void setSeparateAddressCycleParameter(bool enable);
+    bool separateAddressCycleParameter() const;
 
     void addPort(RFPortImplementation* port);
     void deletePort(RFPortImplementation* port)
@@ -84,6 +88,8 @@ private:
     std::string widthParam_;
     /// Name of the guard port.
     std::string guardPort_;
+    /// State of separate address cycle parameter.
+    bool sepAddrCycleParam_;
 
     /// Contains the ports.
     PortTable ports_;

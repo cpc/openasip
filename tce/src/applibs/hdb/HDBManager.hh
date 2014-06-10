@@ -121,7 +121,7 @@ public:
 
     RowID addRFImplementation(
         const RFImplementation& implementation,
-        RowID rfEntryID) const
+        RowID rfEntryID)
         throw (InvalidData);
 
     virtual void removeRFImplementation(RowID implID) const;
@@ -335,6 +335,8 @@ private:
         throw (NotAvailable);
     RowID rfArchitectureID(RowID rfEntryID) const
         throw (NotAvailable);
+    bool hasColumn(const std::string& table, const std::string& columnName) const;
+    int addBooleanColumn(const std::string& table, const std::string& newcolumn);
 
     CostFunctionPlugin* createCostFunctionOfFU(RowID id) const;
     CostFunctionPlugin* createCostFunctionOfRF(RowID id) const;
@@ -406,6 +408,7 @@ private:
     static std::string fuSourceFilesByIDQuery(RowID id);
     static std::string rfArchitectureByIDQuery(RowID id);
     static std::string rfImplementationByIDQuery(RowID id);
+    static std::string rfImplementationByIDQuery2(RowID id);
     static std::string rfImplementationDataPortsByIDQuery(RowID id);
     static std::string rfSourceFilesByIDQuery(RowID id);
     

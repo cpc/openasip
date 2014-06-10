@@ -55,6 +55,7 @@ namespace HDB {
  * @param widthParam Name of the parameter that defines the width of the
  *                   register file.
  * @param guardPort Name of the guard port.
+ * @param sacParam Flag for separate address cycle. Default value is false.
  */
 RFImplementation::RFImplementation(
     const std::string& moduleName,
@@ -63,9 +64,11 @@ RFImplementation::RFImplementation(
     const std::string& glockPort,
     const std::string& sizeParam,
     const std::string& widthParam,
-    const std::string& guardPort) :
+    const std::string& guardPort,
+    bool sacParam) :
     HWBlockImplementation(moduleName, clkPort, rstPort, glockPort), 
-    sizeParam_(sizeParam), widthParam_(widthParam), guardPort_(guardPort) {
+    sizeParam_(sizeParam), widthParam_(widthParam), guardPort_(guardPort),
+    sepAddrCycleParam_(sacParam) {
 }
 
 
@@ -80,6 +83,7 @@ RFImplementation::RFImplementation(const RFImplementation& original):
     sizeParam_ = original.sizeParam_;
     widthParam_ = original.widthParam_;
     guardPort_ = original.guardPort_;
+    sepAddrCycleParam_ = original.sepAddrCycleParam_;
 
     // Deep copy ports.
     for (int i = 0; i < original.portCount(); i++) {
@@ -161,6 +165,23 @@ RFImplementation::guardPort() const {
     return guardPort_;
 }
 
+/**
+ * Sets flag for separate address cycle.
+ *
+ * @param enable Flag value.
+ */
+void RFImplementation::setSeparateAddressCycleParameter(bool enable) {
+    sepAddrCycleParam_ = enable;
+}
+
+/**
+ * Returns flag for separate address cycle.
+ *
+ * @return The flag value. True if enabled.
+ */
+bool RFImplementation::separateAddressCycleParameter() const {
+    return sepAddrCycleParam_;
+}
 
 /**
  * Adds a new port to the RF implementation.
