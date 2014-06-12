@@ -1165,7 +1165,7 @@ package body float_pkg is
     return INTEGER is
   begin  -- function minimum
     if (L = INTEGER'low or R = INTEGER'low) then
-      report float_pkg'instance_name
+      report "float_pkg:"
         & " Unbounded number passed, was a literal used?"
         severity error;
       return 0;
@@ -1374,7 +1374,7 @@ package body float_pkg is
         exp (exponent_width-1) := not exp(exponent_width-1);
       when others =>
         assert NO_WARNING
-          report float_pkg'instance_name
+          report "float_pkg:"
           & "BREAK_NUMBER: " &
           "Meta state detected in fp_break_number process"
           severity warning;
@@ -1673,7 +1673,7 @@ package body float_pkg is
   begin  -- classfp
     if (arg'length < 1 or fraction_width < 3 or exponent_width < 3
         or x'left < x'right) then
-      report float_pkg'instance_name
+      report "float_pkg:"
         & "CLASSFP: " &
         "Floating point number detected with a bad range"
         severity error;
@@ -2145,7 +2145,7 @@ package body float_pkg is
         fpresult := zerofp (fraction_width => fraction_width,
                             exponent_width => exponent_width);
       when neg_zero | pos_zero =>       -- 1/0
-        report float_pkg'instance_name
+        report "float_pkg:"
           & "RECIPROCAL: Floating Point divide by zero"
           severity error;
         fpresult := pos_inffp (fraction_width => fraction_width,
@@ -2254,7 +2254,7 @@ package body float_pkg is
           fpresult := qnanfp (fraction_width => fraction_width,
                               exponent_width => exponent_width);
         else
-          report float_pkg'instance_name
+          report "float_pkg:"
             & "DIVIDE: Floating Point divide by zero"
             severity error;
           -- Infinity, define in 754-1985-7.2
@@ -2394,7 +2394,7 @@ package body float_pkg is
           fpresult := qnanfp (fraction_width => fraction_width,
                               exponent_width => exponent_width);
         else
-          report float_pkg'instance_name
+          report "float_pkg:"
             & "DIVIDEBYP2: Floating Point divide by zero"
             severity error;
           -- Infinity, define in 754-1985-7.2
@@ -2449,7 +2449,7 @@ package body float_pkg is
               fract       => urfract,
               expon       => exponr);
             assert (or_reduce (urfract (fraction_width-1 downto 0)) = '0')
-              report float_pkg'instance_name
+              report "float_pkg:"
               & "DIVIDEBYP2: "
               & "Dividebyp2 called with a non power of two divisor"
               severity error;
@@ -3230,7 +3230,7 @@ package body float_pkg is
         end if;
       end loop;
       if founddash then
-        report float_pkg'instance_name
+        report "float_pkg:"
           & " ""?>"": '-' found in compare string"
           severity error;
         return 'X';
@@ -3262,7 +3262,7 @@ package body float_pkg is
         end if;
       end loop;
       if founddash then
-        report float_pkg'instance_name
+        report "float_pkg:"
           & " ""?>="": '-' found in compare string"
           severity error;
         return 'X';
@@ -3294,7 +3294,7 @@ package body float_pkg is
         end if;
       end loop;
       if founddash then
-        report float_pkg'instance_name
+        report "float_pkg:"
           & " ""?<"": '-' found in compare string"
           severity error;
         return 'X';
@@ -3326,7 +3326,7 @@ package body float_pkg is
         end if;
       end loop;
       if founddash then
-        report float_pkg'instance_name
+        report "float_pkg:"
           & " ""?<="": '-' found in compare string"
           severity error;
         return 'X';
@@ -3345,7 +3345,7 @@ package body float_pkg is
     if (L'high = R'high and L'low = R'low) then
       return std_match(to_sulv(L), to_sulv(R));
     else
-      report float_pkg'instance_name
+      report "float_pkg:"
         & "STD_MATCH: L'RANGE /= R'RANGE, returning FALSE"
         severity warning;
       return false;
@@ -4689,7 +4689,7 @@ package body float_pkg is
   begin  -- function to_01
     if (arg'length < 1) then
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & "TO_01: null detected, returning NULL"
         severity warning;
       return NAFP;
@@ -4710,7 +4710,7 @@ package body float_pkg is
   begin
     if (arg'length < 1) then
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & "TO_X01: null detected, returning NULL"
         severity warning;
       return NAFP;
@@ -4725,7 +4725,7 @@ package body float_pkg is
   begin
     if (arg'length < 1) then
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & "TO_X01Z: null detected, returning NULL"
         severity warning;
       return NAFP;
@@ -4740,7 +4740,7 @@ package body float_pkg is
   begin
     if (arg'length < 1) then
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & "TO_UX01: null detected, returning NULL"
         severity warning;
       return NAFP;
@@ -5373,7 +5373,7 @@ package body float_pkg is
       RESULT := to_sulv(L) and to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """and"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5388,7 +5388,7 @@ package body float_pkg is
       RESULT := to_sulv(L) or to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """or"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5403,7 +5403,7 @@ package body float_pkg is
       RESULT := to_sulv(L) nand to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """nand"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5418,7 +5418,7 @@ package body float_pkg is
       RESULT := to_sulv(L) nor to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """nor"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5433,7 +5433,7 @@ package body float_pkg is
       RESULT := to_sulv(L) xor to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """xor"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5448,7 +5448,7 @@ package body float_pkg is
       RESULT := to_sulv(L) xnor to_sulv(R);
     else
       assert NO_WARNING
-        report float_pkg'instance_name
+        report "float_pkg:"
         & """xnor"": Range error L'RANGE /= R'RANGE"
         severity warning;
       RESULT := (others => 'X');
@@ -5803,7 +5803,7 @@ package body float_pkg is
               and expon (0) = '0' then
                                         -- Exponent is one away from infinity.
               assert NO_WARNING
-                report float_pkg'instance_name
+                report "float_pkg:"
                 & "FP_NEXTAFTER: NextAfter overflow"
                 severity warning;
               return pos_inffp (fraction_width => fraction_width,
@@ -5867,7 +5867,7 @@ package body float_pkg is
               and expon (0) = '0' then
                                         -- Exponent is one away from infinity.
               assert NO_WARNING
-                report float_pkg'instance_name
+                report "float_pkg:"
                 & "FP_NEXTAFTER: NextAfter overflow"
                 severity warning;
               return neg_inffp (fraction_width => fraction_width,
