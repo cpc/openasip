@@ -35,5 +35,14 @@ int main() {
                 i, space0[i], space1[i], space2[i]);
     }
 
+    int tmp;
+    _TCEAS_LDW("0", space0, tmp);
+    iprintf("i=%d space0 ", tmp);
+    _TCEAS_LDW("1", space1, tmp);
+    iprintf("i=%d space1 ", tmp);
+    _TCEAS_LDW("2", space2, tmp);
+    iprintf("i=%d space2 ", tmp);
+
+
     return 0;
 }

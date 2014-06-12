@@ -2340,21 +2340,64 @@ LLVMTCEBuilder::emitInlineAsm(
         return emitSpecialInlineAsm(opName, mi, proc);
     }
 
-    std::string addressedFU;
-
+    std::vector<std::string> addressedFUs;
     // test this is an addressable instruction
     bool addressedOp = StringTools::containsChar(opName, '.');
 
     if (addressedOp) {
-        // Split the string to get the FU and the operation
-        std::istringstream iss(opName);
-        std::getline(iss, addressedFU, '.');
-        std::getline(iss, opName, '.');
-        if (!mach_->functionUnitNavigator().hasItem(addressedFU)) {
-            std::cerr << "ERROR: Function Unit '" << addressedFU
-                    << "' not found."
-                    << std::endl;
-            assert(false);
+	if (opName.substr(0,3) == "_AS") {
+	    int addressSpaceId = -1;
+	    std::string foo;
+	    std::string addressedAS;
+	    std::istringstream iss(opName);
+	    std::getline(iss, foo, '.');
+	    std::getline(iss, addressedAS, '.');
+	    std::getline(iss, opName, '.');
+	    char *end;
+	    addressSpaceId = strtol(addressedAS.c_str(), &end, 10);
+	    if (end == addressedAS.c_str()) {
+		std::cerr << "ERROR: Address space not a number '" << addressedAS
+			  << std::endl;
+	    }
+	    // find addresspace with given id
+	    const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
+	    bool found = false;
+	    for (int i = 0; i < nav.count(); i++) {
+		AddressSpace* as = nav.item(i);
+		if (as->hasNumericalId(addressSpaceId)) {
+		    found = true;
+
+		    // find function units with given as.
+		    const TTAMachine::Machine::FunctionUnitNavigator& fuNav = mach_->functionUnitNavigator();
+		    for (int j = 0; j < fuNav.count(); j++) {
+			const FunctionUnit* fu = fuNav.item(j);
+			if (fu->addressSpace() == as) {
+			    addressedFUs.push_back(fu->name());
+			}
+		    }
+		    break;
+		}
+	    }
+	    if (!found) {
+		std::cerr << "ERROR: Address space with id '" << addressSpaceId
+			  << "' not found."
+			  << std::endl;
+		assert(false);
+	    }
+	} else {
+	    // Split the string to get the FU and the operation
+	    std::string addressedFU;
+
+	    std::istringstream iss(opName);
+	    std::getline(iss, addressedFU, '.');
+	    std::getline(iss, opName, '.');
+	    if (!mach_->functionUnitNavigator().hasItem(addressedFU)) {
+		std::cerr << "ERROR: Function Unit '" << addressedFU
+			  << "' not found."
+			  << std::endl;
+		assert(false);
+	    }
+	    addressedFUs.push_back(addressedFU);
         }
     }
 
@@ -2483,14 +2526,16 @@ LLVMTCEBuilder::emitInlineAsm(
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         proc->add(operandMoves[i]);
         if (addressedOp) {
-            // remove other allowed fu annotations, they are not allowed
-            operandMoves[i]->move(0).removeAnnotations(
-                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
-            
-            TTAProgram::ProgramAnnotation dstCandidate(
-                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
-                addressedFU);
-            operandMoves[i]->move(0).addAnnotation(dstCandidate);
+	    // remove other allowed fu annotations, they are not allowed
+	    operandMoves[i]->move(0).removeAnnotations(
+		TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+	    
+	    for (int j = 0; j < addressedFUs.size(); j++) {
+		TTAProgram::ProgramAnnotation dstCandidate(
+		    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+		    addressedFUs[j]);
+		operandMoves[i]->move(0).addAnnotation(dstCandidate);
+	    }
         }
     }
 
@@ -2500,11 +2545,13 @@ LLVMTCEBuilder::emitInlineAsm(
             // remove other allowed fu annotations, they are not allowed
             resultMoves[i]->move(0).removeAnnotations(
                 TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
-
-            TTAProgram::ProgramAnnotation srcCandidate(
-                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
-                addressedFU);
-            resultMoves[i]->move(0).addAnnotation(srcCandidate);
+	    
+	    for (int j = 0; j < addressedFUs.size(); j++) {
+		TTAProgram::ProgramAnnotation srcCandidate(
+		    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
+		    addressedFUs[j]);
+		resultMoves[i]->move(0).addAnnotation(srcCandidate);
+	    }
         }
     }    
     return first;
