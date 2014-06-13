@@ -2526,16 +2526,16 @@ LLVMTCEBuilder::emitInlineAsm(
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         proc->add(operandMoves[i]);
         if (addressedOp) {
-	    // remove other allowed fu annotations, they are not allowed
-	    operandMoves[i]->move(0).removeAnnotations(
-		TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
-	    
-	    for (int j = 0; j < addressedFUs.size(); j++) {
-		TTAProgram::ProgramAnnotation dstCandidate(
-		    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
-		    addressedFUs[j]);
-		operandMoves[i]->move(0).addAnnotation(dstCandidate);
-	    }
+            // remove other allowed fu annotations, they are not allowed
+            operandMoves[i]->move(0).removeAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+            
+            for (unsigned int j = 0; j < addressedFUs.size(); j++) {
+                TTAProgram::ProgramAnnotation dstCandidate(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+                    addressedFUs[j]);
+                operandMoves[i]->move(0).addAnnotation(dstCandidate);
+            }
         }
     }
 
@@ -2545,13 +2545,13 @@ LLVMTCEBuilder::emitInlineAsm(
             // remove other allowed fu annotations, they are not allowed
             resultMoves[i]->move(0).removeAnnotations(
                 TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
-	    
-	    for (int j = 0; j < addressedFUs.size(); j++) {
-		TTAProgram::ProgramAnnotation srcCandidate(
-		    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
-		    addressedFUs[j]);
-		resultMoves[i]->move(0).addAnnotation(srcCandidate);
-	    }
+            
+            for (unsigned int j = 0; j < addressedFUs.size(); j++) {
+                TTAProgram::ProgramAnnotation srcCandidate(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
+                    addressedFUs[j]);
+                resultMoves[i]->move(0).addAnnotation(srcCandidate);
+            }
         }
     }    
     return first;
