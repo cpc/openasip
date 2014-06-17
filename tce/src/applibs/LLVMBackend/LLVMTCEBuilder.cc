@@ -2354,35 +2354,52 @@ LLVMTCEBuilder::emitInlineAsm(
 	    std::getline(iss, addressedAS, '.');
 	    std::getline(iss, opName, '.');
 	    char *end;
-	    addressSpaceId = strtol(addressedAS.c_str(), &end, 10);
-	    if (end == addressedAS.c_str()) {
-		std::cerr << "ERROR: Address space not a number '" << addressedAS
-			  << std::endl;
-	    }
-	    // find addresspace with given id
-	    const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
-	    bool found = false;
-	    for (int i = 0; i < nav.count(); i++) {
-		AddressSpace* as = nav.item(i);
-		if (as->hasNumericalId(addressSpaceId)) {
-		    found = true;
 
-		    // find function units with given as.
-		    const TTAMachine::Machine::FunctionUnitNavigator& fuNav = mach_->functionUnitNavigator();
-		    for (int j = 0; j < fuNav.count(); j++) {
-			const FunctionUnit* fu = fuNav.item(j);
-			if (fu->addressSpace() == as) {
-			    addressedFUs.push_back(fu->name());
+	    AddressSpace* targetAS = NULL;
+
+	    if (addressedAS.size() && addressedAS[0] == '#') {
+		addressSpaceId = strtol(addressedAS.c_str()+1, &end, 10);
+		if (end == addressedAS.c_str()+1) {
+		    std::cerr << "ERROR: Address space id following # not a number '" << addressedAS
+			      << std::endl;
+		} else {
+		    // find addresspace with given id
+		    const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
+		    bool found = false;
+		    for (int i = 0; i < nav.count(); i++) {
+			AddressSpace* as = nav.item(i);
+			if (as->hasNumericalId(addressSpaceId)) {
+			    targetAS = as;
+			    break;
 			}
 		    }
-		    break;
+		}
+	    } else {
+		const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
+		bool found = false;
+		for (int i = 0; i < nav.count(); i++) {
+		    AddressSpace* as = nav.item(i);
+		    if (as->name() == addressedAS) {
+			targetAS = as;
+			break;
+		    }
 		}
 	    }
-	    if (!found) {
-		std::cerr << "ERROR: Address space with id '" << addressSpaceId
+
+	    if (targetAS == NULL) {
+		std::cerr << "ERROR: Address space '" << addressedAS
 			  << "' not found."
 			  << std::endl;
 		assert(false);
+	    }
+	    
+            // find function units with given as.
+	    const TTAMachine::Machine::FunctionUnitNavigator& fuNav = mach_->functionUnitNavigator();
+	    for (int j = 0; j < fuNav.count(); j++) {
+		const FunctionUnit* fu = fuNav.item(j);
+		if (fu->addressSpace() == targetAS) {
+		    addressedFUs.push_back(fu->name());
+		}
 	    }
 	} else {
 	    // Split the string to get the FU and the operation

@@ -36,11 +36,11 @@ int main() {
     }
 
     int tmp;
-    _TCEAS_LDW("0", space0, tmp);
+    _TCEAS_LDW("data", space0, tmp);
     iprintf("i=%d space0 ", tmp);
-    _TCEAS_LDW("1", space1, tmp);
+    _TCEAS_LDW("#1", space1, tmp);
     iprintf("i=%d space1 ", tmp);
-    _TCEAS_LDW("2", space2, tmp);
+    _TCEAS_LDW("data2", space2, tmp);
     iprintf("i=%d space2 ", tmp);
 
 
