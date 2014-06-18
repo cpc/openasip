@@ -22,6 +22,8 @@ Smaller features and improvements
   addressspace (e.g. _TCEAS_LDW("#1", addr, result) where 1 is the address
   space numeric identifier), or _TCEAS_LDW("data" where data is the name
   of the address space.
+- SLEEP operation that locks the core until an external signal has been
+  asserted. 
 
 Bugfixes
 --------
