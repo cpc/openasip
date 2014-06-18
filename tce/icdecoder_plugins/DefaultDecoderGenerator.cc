@@ -1077,11 +1077,12 @@ DefaultDecoderGenerator::writeRFCntrlSignals(
         registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile* rf = rfNav.item(i);
-        bool async_signal = sacEnabled(rf->name());
 
         for (int i = 0; i < rf->portCount(); i++) {
             RFPort* port = rf->port(i);
-                
+            bool async_signal = sacEnabled(rf->name())
+                            && port->outputSocket() != NULL;
+
             // load signal
             if(language_==VHDL){
                 stream << indentation(1) << "signal " << rfLoadSignalName(
@@ -1828,7 +1829,6 @@ const {
             stream << ", " << srcFieldSignal(busName)
                    << ", " << squashSignal(busName);
         }
-
         stream << ")" << endl;
         stream << indentation(1) << "begin" << endl;
 
@@ -1869,26 +1869,90 @@ const {
                 }
             }
         }
-
         stream << indentation(2) << "end if;" << endl;
+
         // End process //
         stream << indentation(1) << "end process;" << endl;
 
     } else { // language_ == VERILOG
-        // todo Begin process
+        // Begin process //
         string resetPort = NetlistGenerator::DECODER_RESET_PORT;
 
         stream << indentation(1)
                << "// separate SRAM RF read decoding process" << endl;
+        stream << indentation(1)
+               << "always@(";
 
+        // Sensitivity list //
+        BusSet connectedToSramRFs;
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                        sramrf_it++) {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for (int ip = 0; ip < rf.portCount(); ip++) {
+                const RFPort& port = *rf.port(ip);
+                if (port.outputSocket() != NULL) {
+                    BusSet tmp = connectedBuses(*port.outputSocket());
+                    connectedToSramRFs.insert(tmp.begin(), tmp.end());
+                }
+            }
+        }
 
-        // todo Sensitivity list
+        BusSet::const_iterator busSet_it;
+        for (busSet_it = connectedToSramRFs.begin();
+             busSet_it != connectedToSramRFs.end();
+             busSet_it++) {
+            string busName = (*busSet_it)->name();
+            stream << ", " << srcFieldSignal(busName)
+                   << ", " << squashSignal(busName);
+        }
+        stream << ")" << endl;
+        stream << indentation(1) << "begin" << endl;
 
-        // todo Signal resets
+        // Signal resets //
+        stream << indentation(2) << "if (" << resetPort << " == 0)" << endl
+               << indentation(2) << "begin" << endl;
 
-        // todo Decoding rules
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                        sramrf_it++)  {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for (int i = 0; i < rf.portCount(); i++) {
+                const RFPort& port = *rf.port(i);
+                if (port.outputSocket() == NULL) {
+                    continue;
+                }
 
-        // todo End process
+                stream << indentation(3)
+                       << rfLoadSignalName(rf.name(), port.name(), true)
+                       << " <= 1'b0;" << endl;
+                if (0 < rfOpcodeWidth(rf)) {
+                    stream << indentation(3)
+                           << rfOpcodeSignalName(rf.name(), port.name(), true)
+                           << " <= 0;" << endl;
+                }
+            }
+        }
+        stream << indentation(2) << "end" << endl;
+
+        // Decoding rules //
+        stream << indentation(2) << "else" << endl;
+        stream << indentation(2) << "begin" << endl;
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                                sramrf_it++)  {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for(int i = 0; i < rf.portCount(); i++) {
+                const RFPort& port = *rf.port(i);
+                if (port.outputSocket() != NULL) {
+                    writeControlRulesOfRFReadPort(port, stream);
+                }
+            }
+        }
+        stream << indentation(2) << "end" << endl;
+
+        // End process //
+        stream << indentation(1) << "end // process" << endl;
     }
 }
 
@@ -2027,12 +2091,15 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
-            // Skip RFs with separate address cycle address flag enabled.
-            if (sacEnabled(rf->name())) {
-                continue;
-            }
+
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
+                // Skip read ports of RFs with separate address cycle address
+                // flag enabled.
+                if (sacEnabled(rf->name()) && port->outputSocket() != NULL) {
+                    continue;
+                }
+
                 stream << indentation(3) 
                        << rfLoadSignalName(rf->name(), port->name())
                        << " <= '0';" << endl;
@@ -2136,12 +2203,14 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
-            // Skip RFs with separate address cycle address flag enabled.
-            if (sacEnabled(rf->name())) {
-                continue;
-            }
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
+                // Skip read ports of RFs with separate address cycle address
+                // flag enabled.
+                if (sacEnabled(rf->name()) && port->outputSocket() != NULL) {
+                    continue;
+                }
+
                 stream << indentation(3) 
                        << rfLoadSignalName(rf->name(), port->name())
                        << " <= 1'b0;" << endl;
@@ -3327,10 +3396,11 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
-            bool async_signal = sacEnabled(rf->name());
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
-                    
+                bool async_signal = sacEnabled(rf->name())
+                                && port->outputSocket() != NULL;
+
                 // map load signal
                 stream << indentation(1) 
                        << "assign "
