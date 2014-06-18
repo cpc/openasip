@@ -910,6 +910,16 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
 
     // add the register copy moves
 
+    if (tempRF1 == NULL) {
+        throw IllegalMachine(
+            __FILE__, __LINE__, __func__,
+            (boost::format(
+                "Unable to schedule move '%s' due to lacking "
+                "immediate resources (required width %d bits).") 
+             % originalMove.move().toString() % immediateBitWidth).
+            str());
+    }
+
     // create the first temporary move 'src -> temp1'
     // find a connected port in the temp reg file
     const TTAMachine::RFPort* dstRFPort = NULL;

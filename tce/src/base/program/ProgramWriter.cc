@@ -724,16 +724,17 @@ ProgramWriter::createBinary() const
         (prog_.startAddress().location() < adfInstrASpace->start() ||
         prog_.startAddress().location() + prog_.instructionCount() > 
         adfInstrASpace->end())) {
-        TCEString err = "Error: The program is out of bounds of the imem." 
+        TCEString err = 
+            "The program is out of bounds of the imem." 
             " Please increase the instruction address space size in adf or "
-        " make the program smaller.(using smaller unroll threshold may help) "
-            " to decrease program size.";
-        err << " Imem size: "
+            " make the program smaller. "
+            "Using a smaller unroll and/or inlining threshold may help.";
+        err << " Imem address space size: "
             << (adfInstrASpace->end() - adfInstrASpace->start() +1)
-            << " Program size: "
+            << ", required program size: "
             << prog_.instructionCount();
 
-        abortWithError(err);
+        throw Exception(__FILE__, __LINE__, __func__, err);
     }
 
     aSpaces->addElement(undefASpace);
