@@ -629,6 +629,8 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         stream << endl;
         writeLongImmediateWriteProcess(stream);
         stream << endl;
+        writeRFSRAMDecodingProcess(stream);
+        stream << endl;
         writeMainDecodingProcess(stream);
         stream << endl;
         
@@ -695,6 +697,8 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         writeSquashSignalGenerationProcesses(stream);
         stream << endl;
         writeLongImmediateWriteProcess(stream);
+        stream << endl;
+        writeRFSRAMDecodingProcess(stream);
         stream << endl;
         writeMainDecodingProcess(stream);
         stream << endl;
@@ -1073,29 +1077,34 @@ DefaultDecoderGenerator::writeRFCntrlSignals(
         registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile* rf = rfNav.item(i);
+        bool async_signal = sacEnabled(rf->name());
+
         for (int i = 0; i < rf->portCount(); i++) {
             RFPort* port = rf->port(i);
                 
             // load signal
             if(language_==VHDL){
                 stream << indentation(1) << "signal " << rfLoadSignalName(
-                rf->name(), port->name()) << " : std_logic;" << endl;
+                rf->name(), port->name(), async_signal) << " : std_logic;"
+                << endl;
             } else {
                 stream << indentation(1) << "reg " << rfLoadSignalName(
-                rf->name(), port->name()) << ";" << endl;            
+                rf->name(), port->name(), async_signal) << ";" << endl;
             }
                 
             // opcode signal
             if (0 < rfOpcodeWidth(*rf)) {
                 if(language_==VHDL){
                     stream << indentation(1) << "signal " 
-                        << rfOpcodeSignalName(rf->name(), port->name()) 
+                        << rfOpcodeSignalName(rf->name(), port->name(),
+                            async_signal)
                         << " : std_logic_vector(" << rfOpcodeWidth(*rf) - 1 
                         << " downto 0);" << endl;
                 } else {
                     stream << indentation(1) << "reg[" 
                         << rfOpcodeWidth(*rf) - 1 << ":0] " 
-                        << rfOpcodeSignalName(rf->name(), port->name()) 
+                        << rfOpcodeSignalName(rf->name(), port->name(),
+                            async_signal)
                         << ";" << endl;
                 }
             }
@@ -1761,7 +1770,128 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
     }
 }
 
+/**
+ * Writes separate combinational decoding process for SRAM register files.
+ *
+ * @param stream The stream to write.
+ */
+void
+DefaultDecoderGenerator::writeRFSRAMDecodingProcess(std::ostream& stream)
+const {
     
+    set<const RegisterFile*> sramRFset;
+    set<const RegisterFile*>::const_iterator sramrf_it;
+
+    // Write only when there is SRAM RFs.
+    bool hasSramRFs = false;
+    const Machine::RegisterFileNavigator& rfNav =
+                    machine_.registerFileNavigator();
+    for (int i = 0; i < rfNav.count(); i++) {
+        if(sacEnabled(rfNav.item(i)->name())) {
+            hasSramRFs = true;
+            sramRFset.insert(rfNav.item(i));
+        }
+    }
+
+    if(!hasSramRFs) {
+        return;
+    }
+
+    if (language_ == VHDL) {
+        string resetPort = NetlistGenerator::DECODER_RESET_PORT;
+
+        // Begin process //
+        stream << indentation(1)
+               << "-- separate SRAM RF read decoding process" << endl;
+        stream << indentation(1) << "process (" << resetPort;
+
+        // Sensitivity list //
+        BusSet connectedToSramRFs;
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                        sramrf_it++) {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for (int ip = 0; ip < rf.portCount(); ip++) {
+                const RFPort& port = *rf.port(ip);
+                if (port.outputSocket() != NULL) {
+                    BusSet tmp = connectedBuses(*port.outputSocket());
+                    connectedToSramRFs.insert(tmp.begin(), tmp.end());
+                }
+            }
+        }
+
+        BusSet::const_iterator busSet_it;
+        for (busSet_it = connectedToSramRFs.begin();
+             busSet_it != connectedToSramRFs.end();
+             busSet_it++) {
+            string busName = (*busSet_it)->name();
+            stream << ", " << srcFieldSignal(busName)
+                   << ", " << squashSignal(busName);
+        }
+
+        stream << ")" << endl;
+        stream << indentation(1) << "begin" << endl;
+
+        // Signal resets //
+        stream << indentation(2) << "if (" << resetPort << " = '0') then"
+               << endl;
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                        sramrf_it++)  {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for (int i = 0; i < rf.portCount(); i++) {
+                const RFPort& port = *rf.port(i);
+                if (port.outputSocket() == NULL) {
+                    continue;
+                }
+
+                stream << indentation(3)
+                       << rfLoadSignalName(rf.name(), port.name(), true)
+                       << " <= '0';" << endl;
+                if (0 < rfOpcodeWidth(rf)) {
+                    stream << indentation(3)
+                           << rfOpcodeSignalName(rf.name(), port.name(), true)
+                           << " <= (others => '0');" << endl;
+                }
+            }
+        }
+
+        // Write decoding rules //
+        stream << endl << indentation(2) << "else" << endl;
+        for (sramrf_it = sramRFset.begin(); sramrf_it != sramRFset.end();
+                                sramrf_it++)  {
+            const RegisterFile& rf = **sramrf_it;
+            assert(sacEnabled(rf.name()));
+            for(int i = 0; i < rf.portCount(); i++) {
+                const RFPort& port = *rf.port(i);
+                if (port.outputSocket() != NULL) {
+                    writeControlRulesOfRFReadPort(port, stream);
+                }
+            }
+        }
+
+        stream << indentation(2) << "end if;" << endl;
+        // End process //
+        stream << indentation(1) << "end process;" << endl;
+
+    } else { // language_ == VERILOG
+        // todo Begin process
+        string resetPort = NetlistGenerator::DECODER_RESET_PORT;
+
+        stream << indentation(1)
+               << "// separate SRAM RF read decoding process" << endl;
+
+
+        // todo Sensitivity list
+
+        // todo Signal resets
+
+        // todo Decoding rules
+
+        // todo End process
+    }
+}
+
 /**
  * Writes the main decoding process to the given stream.
  *
@@ -1897,6 +2027,10 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
+            // Skip RFs with separate address cycle address flag enabled.
+            if (sacEnabled(rf->name())) {
+                continue;
+            }
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
                 stream << indentation(3) 
@@ -2002,6 +2136,10 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
+            // Skip RFs with separate address cycle address flag enabled.
+            if (sacEnabled(rf->name())) {
+                continue;
+            }
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
                 stream << indentation(3) 
@@ -2118,6 +2256,10 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     Machine::RegisterFileNavigator rfNav = machine_.registerFileNavigator();
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile* rf = rfNav.item(i);
+        // Skip RFs with separate address cycle flag enabled.
+        if (sacEnabled(rf->name())) {
+            continue;
+        }
         for (int i = 0; i < rf->portCount(); i++) {
             RFPort* port = rf->port(i);
             if (port->outputSocket() != NULL) {
@@ -2396,6 +2538,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
     assert(port.outputSocket() != NULL);
     Socket* socket = port.outputSocket();
     BaseRegisterFile* rf = port.parentUnit();
+    bool async_signal = sacEnabled(rf->name());
 
     // collect to a set all the buses the socket is connected to
     BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(*socket);
@@ -2440,8 +2583,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                 loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
                 opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
             } else {
-                loadSignalName = rfLoadSignalName(rf->name(), port.name());
-                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
+                loadSignalName = rfLoadSignalName(rf->name(), port.name(),
+                    async_signal);
+                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name(),
+                    async_signal);
             }
             
             stream << indentation(5) << loadSignalName << " <= '1';" << endl;
@@ -2466,7 +2611,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
         if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
             stream << iuReadLoadCntrlPort(rf->name(), port.name());
         } else {
-            stream << rfLoadSignalName(rf->name(), port.name());
+            stream << rfLoadSignalName(rf->name(), port.name(), async_signal);
         }
         stream << " <= '0';" << endl;
         stream << indentation(4) << "end if;" << endl;
@@ -2513,8 +2658,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                 loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
                 opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
             } else {
-                loadSignalName = rfLoadSignalName(rf->name(), port.name());
-                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
+                loadSignalName = rfLoadSignalName(rf->name(), port.name(),
+                    async_signal);
+                opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name(),
+                    async_signal);
             }
             
             stream << indentation(5) << loadSignalName << " <= 1'b1;" << endl;
@@ -2538,7 +2685,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
         if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
             stream << iuReadLoadCntrlPort(rf->name(), port.name());
         } else {
-            stream << rfLoadSignalName(rf->name(), port.name());
+            stream << rfLoadSignalName(rf->name(), port.name(), async_signal);
         }
         stream << " <= 1'b0;" << endl
                << indentation(4) << "end" << endl;
@@ -3026,20 +3173,25 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
+
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
-                    
+                bool async_signal = sacEnabled(rf->name())
+                                && port->outputSocket() != NULL;
+
                 // map load signal
                 stream << indentation(1) 
                        << rfLoadCntrlPort(rf->name(), port->name()) << " <= " 
-                       << rfLoadSignalName(rf->name(), port->name()) << ";" 
+                       << rfLoadSignalName(rf->name(), port->name(),
+                           async_signal) << ";"
                        << endl;
                 // map opcode signal
                 stream << indentation(1) 
                        << rfOpcodeCntrlPort(rf->name(), port->name()) 
                        << " <= " 
                        << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
-                            rfOpcodeSignalName(rf->name(), port->name()))
+                            rfOpcodeSignalName(rf->name(), port->name(),
+                                async_signal))
                        << ";"
                        << endl;
             }
@@ -3175,6 +3327,7 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
             registerFileNavigator();
         for (int i = 0; i < rfNav.count(); i++) {
             RegisterFile* rf = rfNav.item(i);
+            bool async_signal = sacEnabled(rf->name());
             for (int i = 0; i < rf->portCount(); i++) {
                 RFPort* port = rf->port(i);
                     
@@ -3182,7 +3335,8 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                 stream << indentation(1) 
                        << "assign "
                        << rfLoadCntrlPort(rf->name(), port->name()) << " = " 
-                       << rfLoadSignalName(rf->name(), port->name()) << ";" 
+                       << rfLoadSignalName(rf->name(), port->name(),
+                           async_signal) << ";"
                        << endl;
                 // map opcode signal
                 stream << indentation(1)
@@ -3190,7 +3344,8 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                        << rfOpcodeCntrlPort(rf->name(), port->name()) 
                        << " = " 
                        << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
-                            rfOpcodeSignalName(rf->name(), port->name()))
+                            rfOpcodeSignalName(rf->name(), port->name(),
+                                async_signal))
                        << ";"
                        << endl;
             }
@@ -3591,14 +3746,21 @@ DefaultDecoderGenerator::rfLoadCntrlPort(
  *
  * @param rfName Name of the RF.
  * @param portName Name of the RF data port.
+ * @param async Flag to generate name for asynchronous signal. Default value
+ *              is false.
  * @return The name of the signal.
  */
 std::string
 DefaultDecoderGenerator::rfLoadSignalName(
     const std::string& rfName,
-    const std::string& portName) {
+    const std::string& portName,
+    bool async) {
     
-    return rfLoadCntrlPort(rfName, portName) + "_reg";
+    if (async) {
+        return rfLoadCntrlPort(rfName, portName) + "_wire";
+    } else {
+        return rfLoadCntrlPort(rfName, portName) + "_reg";
+    }
 }
 
 
@@ -3608,14 +3770,21 @@ DefaultDecoderGenerator::rfLoadSignalName(
  *
  * @param rfName Name of the register file.
  * @param portName Name of the RF data port.
+ * @param async Flag to generate name for asynchronous signal. Default value
+ *              is false.
  * @return The name of the signal.
  */
 std::string
 DefaultDecoderGenerator::rfOpcodeSignalName(
     const std::string& rfName, 
-    const std::string& portName) {
+    const std::string& portName,
+    bool async) {
     
-    return rfOpcodeCntrlPort(rfName, portName) + "_reg";
+    if (async) {
+        return rfOpcodeCntrlPort(rfName, portName) + "_wire";
+    } else {
+        return rfOpcodeCntrlPort(rfName, portName) + "_reg";
+    }
 }   
 
 /**
@@ -4158,10 +4327,10 @@ DefaultDecoderGenerator::indentation(unsigned int level) {
 
 /**
  * Queries if given register file by name has separate address cycle (SAC)
- * parameter enabled.
+ * flag enabled.
  *
  * @param rfName Name of register file in ADF.
- * @return Status of the SAC.
+ * @return Status of the SAC flag.
  */
 bool
 DefaultDecoderGenerator::sacEnabled(const string& rfName) const
