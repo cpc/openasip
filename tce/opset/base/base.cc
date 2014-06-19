@@ -1682,3 +1682,35 @@ IO(2) = HalfFloatWord(FloatWord(tmp1));
 END_TRIGGER;
 END_OPERATION(CSHU)
 
+#include <signal.h>
+
+void dummy(int) {
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// SLEEP - lock the core until an external signal is asserted
+//
+// The simulation behavior models this by waiting for the POSIX signal SIGUSR1.
+//
+////////////////////////////////////////////////////////////////////////////////
+OPERATION(SLEEP)
+TRIGGER
+
+struct sigaction sa;
+sa.sa_handler = dummy;
+sa.sa_flags = SA_RESETHAND;
+sigaction(SIGUSR1, &sa, NULL);
+
+sigset_t sigs[1];
+sigaddset(sigs, SIGUSR1);
+int sig;
+
+OUTPUT_STREAM << "[going to sleep...]" << std::endl;
+
+sigwait(sigs, &sig);
+
+OUTPUT_STREAM << "[...woke up]" << std::endl;
+
+END_TRIGGER;
+END_OPERATION(SLEEP)
+

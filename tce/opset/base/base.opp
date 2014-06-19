@@ -6,10 +6,10 @@
     <description>Add and sub the inputs and store results to 3 and 4, respectively.</description>
     <inputs>2</inputs>
     <outputs>2</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
-    <out id="4" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="4" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
@@ -21,9 +21,9 @@
     <description>Array indexing for 16-bit data types</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       SimValue shifted;
       EXEC_OPERATION(shl, IO(1), 1, shifted);
@@ -36,9 +36,9 @@
     <description>Array indexing for 32-bit data types</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       SimValue shifted;
       EXEC_OPERATION(shl, IO(1), 2, shifted);
@@ -51,17 +51,17 @@
     <description>Integer addition.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -72,9 +72,9 @@
     <description>Integer subtraction.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sub, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -86,10 +86,10 @@
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -103,10 +103,10 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -119,17 +119,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(eq, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -140,9 +140,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gt, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -153,9 +153,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -166,9 +166,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gt, IO(2), IO(1), IO(3));
     </trigger-semantics>
@@ -179,9 +179,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtu, IO(2), IO(1), IO(3));
     </trigger-semantics>
@@ -192,17 +192,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics> 
       SimValue t1;
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
@@ -221,9 +221,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics> 
       SimValue t1;
       EXEC_OPERATION(gt, IO(2), IO(1), t1);
@@ -242,9 +242,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gtu, IO(2),IO(1), t1);
@@ -263,9 +263,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gt, IO(1),IO(2), t1);
@@ -284,9 +284,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gtu, IO(1),IO(2), t1);
@@ -305,9 +305,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(shl, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -318,9 +318,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(shr, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -331,9 +331,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -341,17 +341,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(and, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -362,17 +362,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(ior, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -383,17 +383,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(xor, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -406,7 +406,7 @@
     <outputs>0</outputs>
     <control-flow/>
     <is-branch/>
-    <in id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(jump, IO(1));
     </trigger-semantics>
@@ -419,7 +419,7 @@
     <outputs>0</outputs>
     <control-flow/>
     <is-call/>
-    <in id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(call, IO(1));
     </trigger-semantics>
@@ -430,17 +430,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(min, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -451,17 +451,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(max, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -472,17 +472,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(minu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -493,17 +493,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="UIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(maxu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -616,8 +616,8 @@
     <description>sign extend from 8 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxqw, IO(1), IO(2));
     </trigger-semantics>
@@ -628,8 +628,8 @@
     <description>sign extend from 16 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxhw, IO(1), IO(2));
     </trigger-semantics>
@@ -640,8 +640,8 @@
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(neg, IO(1), IO(2));
     </trigger-semantics>
@@ -652,8 +652,8 @@
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(negf, IO(1), IO(2));
     </trigger-semantics>
@@ -669,8 +669,8 @@
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -692,9 +692,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
   </operation>
 
   <operation>
@@ -702,9 +702,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
   </operation>
 
   <operation>
@@ -712,9 +712,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -729,9 +729,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -746,17 +746,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(mul, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -767,9 +767,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(div, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -780,9 +780,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(divu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -793,17 +793,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(addf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -814,9 +814,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(subf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -827,17 +827,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(mulf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -848,9 +848,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(divf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -861,17 +861,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -882,17 +882,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(nef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -909,9 +909,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -922,9 +922,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -941,9 +941,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -957,9 +957,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -978,17 +978,17 @@
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
 
 
@@ -1003,17 +1003,17 @@
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1;
 EXEC_OPERATION(eqf, IO(1), IO(2), temp1);
 EXEC_OPERATION(xor, temp1, 1, IO(3));
@@ -1027,9 +1027,9 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
 
 </trigger-semantics>
@@ -1042,9 +1042,9 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
@@ -1061,9 +1061,9 @@ EXEC_OPERATION(ior, temp1, temp2, IO(3));
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2, temp3;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
@@ -1082,9 +1082,9 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(xor,temp1,1, IO(3));
@@ -1103,17 +1103,17 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1128,9 +1128,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1148,17 +1148,17 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1176,9 +1176,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="3" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1196,18 +1196,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="3"/>
       </can-swap>
     </in>
-    <in id="3" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="3" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <out id="4" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="4" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(mulh, IO(2), IO(3), t1);
@@ -1229,18 +1229,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="3"/>
       </can-swap>
     </in>
-    <in id="3" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="3" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <out id="4" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="4" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(mulh, IO(2), IO(3), t1);
@@ -1262,18 +1262,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="3"/>
       </can-swap>
     </in>
-    <in id="3" type="FloatWord">
+    <in element-count="1" element-width="32" id="3" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <out id="4" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="4" type="FloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(mulf, IO(2), IO(3), t1);
@@ -1286,18 +1286,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="3"/>
       </can-swap>
     </in>
-    <in id="3" type="FloatWord">
+    <in element-count="1" element-width="32" id="3" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <out id="4" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="4" type="FloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(mulf, IO(2), IO(3), t1);
@@ -1310,18 +1310,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
       <can-swap>
         <in id="3"/>
       </can-swap>
     </in>
-    <in id="3" type="SIntWord">
+    <in element-count="1" element-width="32" id="3" type="SIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <out id="4" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="4" type="SIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(mul, IO(2), IO(3), t1);
@@ -1334,17 +1334,17 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1361,17 +1361,17 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1394,9 +1394,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1413,9 +1413,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1438,9 +1438,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1460,9 +1460,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <in id="2" type="HalfFloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1485,8 +1485,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cfi, IO(1), IO(2));
     </trigger-semantics>
@@ -1497,8 +1497,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cfiu, IO(1), IO(2));
     </trigger-semantics>
@@ -1509,8 +1509,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cif, IO(1), IO(2));
     </trigger-semantics>
@@ -1521,8 +1521,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cifu, IO(1), IO(2));
     </trigger-semantics>
@@ -1533,8 +1533,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="DoubleWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cfd, IO(1), IO(2));
     </trigger-semantics>
@@ -1545,8 +1545,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="DoubleWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cdf, IO(1), IO(2));
     </trigger-semantics>
@@ -1557,8 +1557,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1574,8 +1574,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1591,8 +1591,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(cif, IO(1), t1);
@@ -1608,8 +1608,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(cifu, IO(1), t1);
@@ -1625,8 +1625,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(chf, IO(1), IO(2));
     </trigger-semantics>
@@ -1637,8 +1637,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(cfh, IO(1), IO(2));
     </trigger-semantics>
@@ -1649,9 +1649,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1659,9 +1659,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(rotr, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -1673,8 +1673,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
 </description>    <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -1682,8 +1682,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
     <trigger-semantics>
       EXEC_OPERATION(absf, IO(1), IO(2));
     </trigger-semantics>
@@ -1694,8 +1694,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1746,9 +1746,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(mod, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -1759,9 +1759,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(modu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -1773,7 +1773,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>0</outputs>
     <side-effects/>
-    <in id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(stdout, IO(1));
     </trigger-semantics>
@@ -1784,8 +1784,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1806,9 +1806,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 </description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>	SimValue negResult, mulin;
 	EXEC_OPERATION(not, IO(2), negResult);
 	EXEC_OPERATION(and, negResult, IO(1), IO(3));
@@ -1830,9 +1830,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <description>Leftmost Bit Detection (from TI C64X). Counts the number of 0's or 1's in the bit representation of operand 1 before the first 1 or 0. 2nd operand is used to tell whether to search for a 0 or 1.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1853,8 +1853,8 @@ When triggered with 0 writes a new sample to the output, if there are one ore mo
     <affects>
       <operation name="STREAM_IN_STATUS"/>
     </affects>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
   </operation>
 
   <operation>
@@ -1873,7 +1873,7 @@ In case no room is available in the output buffer, causes a global lock.
     <affects>
       <operation name="STREAM_OUT_STATUS"/>
     </affects>
-    <in id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
   </operation>
 
   <operation>
@@ -1896,8 +1896,8 @@ This operation allows handling stream buffer underflow without a global lock, th
     <affected-by>
       <operation name="STREAM_IN"/>
     </affected-by>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1922,8 +1922,8 @@ buffer is full.
     <affected-by>
       <operation name="STREAM_OUT"/>
     </affected-by>
-    <in id="1" type="RawData"/>
-    <out id="2" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
   </operation>
 
   <operation>
@@ -1940,8 +1940,8 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1958,8 +1958,8 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1969,17 +1969,17 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
 </description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord">
+    <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="FloatWord">
+    <in element-count="1" element-width="32" id="2" type="FloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2;
 EXEC_OPERATION(eqf, IO(1), IO(1), temp1);
 EXEC_OPERATION(eqf, IO(2), IO(2), temp2);
@@ -1997,9 +1997,9 @@ EXEC_OPERATION(and, temp1, temp2, IO(3));
 </description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <in id="2" type="FloatWord"/>
-    <out id="3" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="2" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2, temp3;
 EXEC_OPERATION(eqf, IO(1), IO(1), temp1);
 EXEC_OPERATION(eqf, IO(2), IO(2), temp2);
@@ -2017,8 +2017,8 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 </description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="FloatWord"/>
-    <out id="2" type="FloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="FloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="FloatWord"/>
   </operation>
 
   <operation>
@@ -2027,8 +2027,8 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     </description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2043,8 +2043,8 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 </description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 
   <operation>
@@ -2053,8 +2053,8 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 </description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2071,7 +2071,7 @@ EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
     <description>Control leds by writing a bit pattern. Bit 1 switches a led on and 0 switches off.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
-    <in id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -2080,19 +2080,19 @@ EXEC_OPERATION(mulh, IO(1), IO(1), IO(2));
     <inputs>1</inputs>
     <outputs>4</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2112,19 +2112,19 @@ EXEC_OPERATION(ldw, tmp, IO(5));
     <inputs>5</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2147,13 +2147,13 @@ EXEC_OPERATION(stw, tmp, IO(5));
     <inputs>1</inputs>
     <outputs>2</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2170,13 +2170,13 @@ EXEC_OPERATION(ldw, tmp, IO(3));
     <inputs>3</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2196,31 +2196,31 @@ EXEC_OPERATION(stw, tmp, IO(3));
     <inputs>9</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
-    <in id="6" type="RawData">
+    <in element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </in>
-    <in id="7" type="RawData">
+    <in element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </in>
-    <in id="8" type="RawData">
+    <in element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </in>
-    <in id="9" type="RawData">
+    <in element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2252,31 +2252,31 @@ EXEC_OPERATION(stw, tmp, IO(9));
     <inputs>1</inputs>
     <outputs>8</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="RawData">
+    <out element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="RawData">
+    <out element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="RawData">
+    <out element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="RawData">
+    <out element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2303,9 +2303,9 @@ EXEC_OPERATION(ldw, tmp, IO(9));
     <description>Copies data to two outputs</description>
     <inputs>1</inputs>
     <outputs>2</outputs>
-    <in id="1" type="RawData"/>
-    <out id="2" type="RawData"/>
-    <out id="3" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
+    <out element-count="1" element-width="32" id="3" type="RawData"/>
   </operation>
 
   <operation>
@@ -2313,11 +2313,11 @@ EXEC_OPERATION(ldw, tmp, IO(9));
     <description>Copies data to two outputs</description>
     <inputs>1</inputs>
     <outputs>4</outputs>
-    <in id="1" type="RawData"/>
-    <out id="2" type="RawData"/>
-    <out id="3" type="RawData"/>
-    <out id="4" type="RawData"/>
-    <out id="5" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
+    <out element-count="1" element-width="32" id="3" type="RawData"/>
+    <out element-count="1" element-width="32" id="4" type="RawData"/>
+    <out element-count="1" element-width="32" id="5" type="RawData"/>
   </operation>
 
   <operation>
@@ -2325,15 +2325,15 @@ EXEC_OPERATION(ldw, tmp, IO(9));
     <description>Copies data to two outputs</description>
     <inputs>1</inputs>
     <outputs>8</outputs>
-    <in id="1" type="RawData"/>
-    <out id="2" type="RawData"/>
-    <out id="3" type="RawData"/>
-    <out id="4" type="RawData"/>
-    <out id="5" type="RawData"/>
-    <out id="6" type="RawData"/>
-    <out id="7" type="RawData"/>
-    <out id="8" type="RawData"/>
-    <out id="9" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
+    <out element-count="1" element-width="32" id="3" type="RawData"/>
+    <out element-count="1" element-width="32" id="4" type="RawData"/>
+    <out element-count="1" element-width="32" id="5" type="RawData"/>
+    <out element-count="1" element-width="32" id="6" type="RawData"/>
+    <out element-count="1" element-width="32" id="7" type="RawData"/>
+    <out element-count="1" element-width="32" id="8" type="RawData"/>
+    <out element-count="1" element-width="32" id="9" type="RawData"/>
   </operation>
 
   <operation>
@@ -2342,13 +2342,13 @@ EXEC_OPERATION(ldw, tmp, IO(9));
     <inputs>1</inputs>
     <outputs>2</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2365,13 +2365,13 @@ EXEC_OPERATION(ldh, tmp, IO(3));
     <inputs>1</inputs>
     <outputs>2</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2388,19 +2388,19 @@ EXEC_OPERATION(ldhu, tmp, IO(3));
     <inputs>1</inputs>
     <outputs>4</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2420,19 +2420,19 @@ EXEC_OPERATION(ldh, tmp, IO(5));
     <inputs>1</inputs>
     <outputs>4</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2452,31 +2452,31 @@ EXEC_OPERATION(ldhu, tmp, IO(5));
     <inputs>1</inputs>
     <outputs>8</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="RawData">
+    <out element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="RawData">
+    <out element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="RawData">
+    <out element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="RawData">
+    <out element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2504,31 +2504,31 @@ EXEC_OPERATION(ldh, tmp, IO(9));
     <inputs>1</inputs>
     <outputs>8</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="RawData">
+    <out element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="RawData">
+    <out element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="RawData">
+    <out element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="RawData">
+    <out element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2556,13 +2556,13 @@ EXEC_OPERATION(ldhu, tmp, IO(9));
     <inputs>1</inputs>
     <outputs>2</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2579,13 +2579,13 @@ EXEC_OPERATION(ldq, tmp, IO(3));
     <inputs>1</inputs>
     <outputs>2</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2602,19 +2602,19 @@ EXEC_OPERATION(ldqu, tmp, IO(3));
     <inputs>1</inputs>
     <outputs>4</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2634,19 +2634,19 @@ EXEC_OPERATION(ldq, tmp, IO(5));
     <inputs>1</inputs>
     <outputs>4</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2666,31 +2666,31 @@ EXEC_OPERATION(ldqu, tmp, IO(5));
     <inputs>1</inputs>
     <outputs>8</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="RawData">
+    <out element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="RawData">
+    <out element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="RawData">
+    <out element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="RawData">
+    <out element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2718,31 +2718,31 @@ EXEC_OPERATION(ldq, tmp, IO(9));
     <inputs>1</inputs>
     <outputs>8</outputs>
     <reads-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
-    <out id="3" type="RawData">
+    <out element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </out>
-    <out id="4" type="RawData">
+    <out element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </out>
-    <out id="5" type="RawData">
+    <out element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </out>
-    <out id="6" type="RawData">
+    <out element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </out>
-    <out id="7" type="RawData">
+    <out element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </out>
-    <out id="8" type="RawData">
+    <out element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </out>
-    <out id="9" type="RawData">
+    <out element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>SimValue tmp;
@@ -2770,13 +2770,13 @@ EXEC_OPERATION(ldqu, tmp, IO(9));
     <inputs>3</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2792,19 +2792,19 @@ EXEC_OPERATION(sth, tmp, IO(3));
     <inputs>5</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2824,31 +2824,31 @@ EXEC_OPERATION(sth, tmp, IO(5));
     <inputs>9</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
-    <in id="6" type="RawData">
+    <in element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </in>
-    <in id="7" type="RawData">
+    <in element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </in>
-    <in id="8" type="RawData">
+    <in element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </in>
-    <in id="9" type="RawData">
+    <in element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2876,13 +2876,13 @@ EXEC_OPERATION(sth, tmp, IO(9));
     <inputs>3</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2898,19 +2898,19 @@ EXEC_OPERATION(stq, tmp, IO(3));
     <inputs>5</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2930,31 +2930,31 @@ EXEC_OPERATION(stq, tmp, IO(5));
     <inputs>9</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in id="1" type="UIntWord">
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in id="2" type="RawData">
+    <in element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </in>
-    <in id="3" type="RawData">
+    <in element-count="1" element-width="32" id="3" type="RawData">
       <mem-data/>
     </in>
-    <in id="4" type="RawData">
+    <in element-count="1" element-width="32" id="4" type="RawData">
       <mem-data/>
     </in>
-    <in id="5" type="RawData">
+    <in element-count="1" element-width="32" id="5" type="RawData">
       <mem-data/>
     </in>
-    <in id="6" type="RawData">
+    <in element-count="1" element-width="32" id="6" type="RawData">
       <mem-data/>
     </in>
-    <in id="7" type="RawData">
+    <in element-count="1" element-width="32" id="7" type="RawData">
       <mem-data/>
     </in>
-    <in id="8" type="RawData">
+    <in element-count="1" element-width="32" id="8" type="RawData">
       <mem-data/>
     </in>
-    <in id="9" type="RawData">
+    <in element-count="1" element-width="32" id="9" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>SimValue tmp;
@@ -2984,8 +2984,8 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -2995,8 +2995,8 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -3004,48 +3004,58 @@ Input operand is discarded.</description>
     <description>Select one of two values</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
-    <in id="1" type="RawData"></in>
-    <in id="2" type="RawData"></in>
-    <in id="3" type="UIntWord"></in>
-    <out id="4" type="RawData"/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="2" type="RawData"/>
+    <in element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="4" type="RawData"/>
     <trigger-semantics>
-    </trigger-semantics>
-  </operation>
+    </trigger-semantics></operation>
 
   <operation>
-    <name>chs</name>
+    <name>CHS</name>
     <description>Convert half to short</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
-    <name>chsu</name>
+    <name>CHSU</name>
     <description>Convert half to short unsigned</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord"/>
-    <out id="2" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
-    <name>csh</name>
+    <name>CSH</name>
     <description>Convert short to half</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 
   <operation>
-    <name>cshu</name>
+    <name>CSHU</name>
     <description>Convert short to half unsigned</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="UIntWord"/>
-    <out id="2" type="HalfFloatWord"/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+  </operation>
+
+  <operation>
+    <name>SLEEP</name>
+    <description>Puts the core to sleep (global lock) until an external signal wakes it up. The simulation model waits for a POSIX signal SIGUSR1.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <reads-memory/>
+    <writes-memory/>
+    <side-effects/>
+    <in element-count="1" element-width="1" id="1" type="RawData"/>
   </operation>
 
 </osal>

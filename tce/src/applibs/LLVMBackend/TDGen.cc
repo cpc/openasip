@@ -1479,6 +1479,7 @@ TDGen::writeOperationDefs(
         op.name() != "ASTW" && op.name() != "ASTD") {
 
         if (op.readsMemory()) attrs += " mayLoad = 1";
+        if (op.readsMemory() && op.writesMemory()) attrs += ", ";
         if (op.writesMemory()) attrs += " mayStore = 1";
     }
 

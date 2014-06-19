@@ -155,6 +155,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                           'no-pointer-sign',
                           'no-return-type', 
                           'no-unused-value',
+                          'no-ignored-qualifiers',
+                          'no-incompatible-pointer-types-discards-qualifiers',
                           'no-implicit-function-declaration']
         if w in white_list:
             compileFlags += "-W" + w + " "
