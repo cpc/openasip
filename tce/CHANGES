@@ -17,6 +17,11 @@ Smaller features and improvements
 - Added patterns which can do select(?) operator without conditional moves
   or select operations with series of ors ands etc.
 - Better error message when trying to compile to adf with broken port bindings.
+- Build fixes for latest Mac OSX versions.
+- Support for calling custom operations to be executed in any FU with given
+  addressspace (e.g. _TCEAS_LDW("#1", addr, result) where 1 is the address
+  space numeric identifier), or _TCEAS_LDW("data" where data is the name
+  of the address space.
 
 Bugfixes
 --------

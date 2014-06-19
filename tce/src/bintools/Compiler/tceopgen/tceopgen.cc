@@ -42,6 +42,7 @@
 #include "Operand.hh"
 #include "Application.hh"
 
+enum mode {NORMAL, FU_ADDRESSABLE, ADDRESSPACE };
 /**
  * Returns a C type string for the given operand type.
  */
@@ -77,21 +78,22 @@ operandTypeCString(const Operand& operand) {
 void
 writeCustomOpMacro(
     std::ostream& os, std::string& opName, const Operation& op, 
-    bool addressable) {
+    mode macroMode) {
 
     if (op.numberOfInputs() + op.numberOfOutputs() == 0)
         return;
 
     os << "#define _TCE";
 
-    if (addressable) {
-        os << "FU";
-    }
-
-    os << "_" << opName << "(";
-
-    if (addressable) {
-        os << "FU, ";
+    switch (macroMode) {
+    case FU_ADDRESSABLE:
+	os << "FU_" << opName << "(FU, ";
+	break;
+    case ADDRESSPACE:
+	os << "AS_" << opName << "(AS, ";
+	break;
+    default:
+	os << "_" << opName << "(";
     }
 
     int seenInputs = 0;
@@ -158,14 +160,16 @@ writeCustomOpMacro(
 
     os << "asm " << volatileKeyword << "(";
 
-    if (addressable) {
-        os << "FU";
-    }
-
-    os << "\"";
-
-    if (addressable) {
-        os << ".";
+    switch (macroMode) {
+    case FU_ADDRESSABLE:
+	os << "FU\".";
+	break;
+    case ADDRESSPACE:
+	os << "\"_AS.\"AS\".";
+	break;
+    default:
+	os << "\"";
+	break;
     }
 
     os << opName << "\":";
@@ -232,8 +236,11 @@ writeCustomOpMacros(std::ostream& os) {
                 }
                 operations.insert(opName);
 
-                writeCustomOpMacro(os, opName, op, false);
-                writeCustomOpMacro(os, opName, op, true);
+                writeCustomOpMacro(os, opName, op, NORMAL);
+                writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE);
+		if (op.usesMemory()) {
+		    writeCustomOpMacro(os, opName, op, ADDRESSPACE);
+		}
             }
         } catch (const Exception& e) {
             Application::errorStream()

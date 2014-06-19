@@ -37,6 +37,7 @@
 #include <set>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 #include "DBTypes.hh"
 #include "Exception.hh"
 #include "SimulatorConstants.hh"

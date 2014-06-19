@@ -212,7 +212,7 @@ CompiledSimCodeGenerator::generateMakefile() {
         << "CompiledSimulationEngine.so: CompiledSimulationEngine.hh.gch "
         << "$(dobjects) CompiledSimulationEngine.cc" << endl
         << "\t#@echo Compiling CompiledSimulationEngine.so" << endl
-        << "\t$(CC) $(soflags) $(cppflags) -O0 $(includes) CompiledSimulationEngine.cc "
+        << "\t$(CC) $(cppflags) -O0 $(includes) CompiledSimulationEngine.cc "
         << "-c -o CompiledSimulationEngine.o" << endl 
         << "\t$(CC) $(soflags) CompiledSimulationEngine.o -o CompiledSimulationEngine.so"
         << endl << endl
@@ -220,14 +220,14 @@ CompiledSimCodeGenerator::generateMakefile() {
 
         // compile and link phases separately to allow distributed compilation
         // thru distcc
-        << "\t$(CC) -c $(soflags) $(cppflags) $(opt_flags) $(includes) $< -o $@.o" << endl
+        << "\t$(CC) -c $(cppflags) $(opt_flags) $(includes) $< -o $@.o" << endl
         << "\t$(CC) $(soflags) $(opt_flags) -lgcc $@.o -o $@" << endl
         << "\t@rm -f $@.so.o" << endl
         << endl
             
         // use precompiled headers for more speed
         << "CompiledSimulationEngine.hh.gch:" << endl
-        << "\t$(CC) $(soflags) $(cppflags) $(opt_flags) $(includes) "
+        << "\t$(CC) $(cppflags) $(opt_flags) $(includes) "
         << "-xc++-header CompiledSimulationEngine.hh" << endl
         << endl
             

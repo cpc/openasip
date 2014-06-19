@@ -2554,6 +2554,12 @@ those address spaces. Storing data to address 0 is not done to avoid
 problems with NULL pointers pointing to valid data (in this case space1 and
 space2 would have been stored at address 0 = NULL).
 
+When using custom operation calls to manually execute operations that access
+memory on processors that have multiple data address spaces,
+it should be done using \_TCEAS\_OPERATIONNAME macro instead of using
+\_TCE\_OPERATIONNAME macro. See section~\ref{sec:tceccCustOp}
+ for more information about these custom operation call macros.
+
 \section{Running TTA on FPGA}
 \label{sec:fpgatutorial}
 
@@ -5568,15 +5574,42 @@ Usage of the ``explicit-FU`` macros is as follows:
 
 where <fuName> is the name of the target function unit in ProDe. 
 
+There are also versions of the custom operation macros which can be
+used to target specific address space for operations that use memory.
+These may be need to be used for custom memory operations on architectures with
+multiple memory address spaces, as the address space information of a pointer
+may be lost with the ordinary custom operation call.
+
+\begin{verbatim}
+ _TCEAS_<opName>("#<as-numerical-id>", input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+ _TCEAS_<opName>("<as-name>", input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+where <as-numerical-id> is the numerical id  of the target address space, 
+and <as-name> is the name of the target address space.
+This name is NOT necessaryly the same as the keyword in C code,
+this is the name visible in ProDE. Numerical id 0 is always where
+where the stack is located.
+
 Examples of usage:
 
 \begin{verbatim}
  
  _TCE_MAC(a, b, c);
  _TCEFU_MAC("MAC1", a, b, c);
+ _TCEAS_LDW("#1", a, b)
+ _TCEAS_LDW("my_huge_global_addresspace", a, b)
 
 \end{verbatim}
 
+% AS name intentionally long and cumbersome in the example to make people 
+% easily understand it's not necessarily same 
+% "global" , "private", "shared", or "local" that's visible in OpenCL/C code.
 
 \subsection{Unsupported C Language Features}
 

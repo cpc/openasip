@@ -497,6 +497,13 @@ if test x"$LLVM_RTTI_CHECK" != x; then
 AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
 fi
 
+# Add LLVM libdir into the Darwin RPATH
+case $host_os in
+  darwin* )
+  LLVM_LDFLAGS="$LLVM_LDFLAGS -rpath $LLVM_LIBDIR"
+  ;;
+esac
+
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
@@ -650,7 +657,7 @@ GUI_INCLUDES="$GUI_INCLUDES $($wxwindowsBin --cxxflags)"
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$($wxwindowsBin --version)" in
-     2.6.* | 2.8.*)
+     2.6.* | 2.8.* | 2.9.* )
    DO_WX_COMPILE=true
    ;;
      *)
@@ -791,10 +798,10 @@ case $host_os in
     GUI_INCLUDES=""
     AC_SUBST([GUI_LIBS])
     AC_SUBST([GUI_INCLUDES])
-    DO_WX_COMPILE=false
+    #     DO_WX_COMPILE=false
     AC_MSG_NOTICE(
     [
-    wxWidgets present on Mac OSX is not compatible with the TCE 1.6.
+    wxWidgets present on Mac OSX may not be compatible with the TCE.
     ])    
     ;;
    *)
