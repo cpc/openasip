@@ -24,6 +24,7 @@ Smaller features and improvements
   of the address space.
 - SLEEP operation that locks the core until an external signal has been
   asserted. 
+- Support for SRAM based register files.
 
 Bugfixes
 --------
