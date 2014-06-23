@@ -2365,7 +2365,6 @@ LLVMTCEBuilder::emitInlineAsm(
 		} else {
 		    // find addresspace with given id
 		    const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
-		    bool found = false;
 		    for (int i = 0; i < nav.count(); i++) {
 			AddressSpace* as = nav.item(i);
 			if (as->hasNumericalId(addressSpaceId)) {
@@ -2376,7 +2375,6 @@ LLVMTCEBuilder::emitInlineAsm(
 		}
 	    } else {
 		const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
-		bool found = false;
 		for (int i = 0; i < nav.count(); i++) {
 		    AddressSpace* as = nav.item(i);
 		    if (as->name() == addressedAS) {
