@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="ALU">
+    <hdb-file>../../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>377</fu-id>
+  </fu>
+
+  <fu name="LSU">
+    <hdb-file>../../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="stdout">
+    <hdb-file>custom.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>sramrf.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>../../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>103</rf-id>
+  </rf>
+
+</adf-implementation>
