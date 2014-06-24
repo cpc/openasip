@@ -346,6 +346,13 @@ BEMGenerator::addEncodings(DestinationField& field) const {
     Machine::BusNavigator busNav = machine_->busNavigator();
     assert(busNav.hasItem(busName));
     Bus* bus = busNav.item(busName);
+    bool createNopField = true;
+    for (int i = 0; i < bus->guardCount(); i++) {
+	Guard* g = bus->guard(i);
+	if (g->isInverted() && dynamic_cast<UnconditionalGuard*>(g) != NULL) {
+	    createNopField = false;
+	}
+    }
 
     int dstSockets = socketCount(*bus, Socket::INPUT);
     if (dstSockets == 0) {
@@ -355,7 +362,9 @@ BEMGenerator::addEncodings(DestinationField& field) const {
     multiset<int> socketCodeWidths = socketCodeWidthsForBus(
         *bus, Socket::INPUT);
     // add socket code width for NOP encoding
-    socketCodeWidths.insert(0);
+    if (createNopField) {
+	socketCodeWidths.insert(0);
+    }
 
     multiset<Encoding> encodings;
     calculateEncodings(socketCodeWidths, true, encodings);
@@ -367,7 +376,7 @@ BEMGenerator::addEncodings(DestinationField& field) const {
          encIter != encodings.end(); encIter++) {
         Encoding enc = *encIter;
         int scWidth = *scIter;
-        if (scWidth == 0 && !nopEncodingSet) {
+        if (scWidth == 0 && !nopEncodingSet && createNopField) {
             // add NOP encoding
             new NOPEncoding(enc.first, enc.second, field);
             nopEncodingSet = true;
@@ -411,7 +420,14 @@ BEMGenerator::addEncodings(SourceField& field) const {
     Machine::BusNavigator busNav = machine_->busNavigator();
     assert(busNav.hasItem(busName));
     Bus* bus = busNav.item(busName);
-    
+    bool createNopField = true;
+    for (int i = 0; i < bus->guardCount(); i++) {
+	Guard* g = bus->guard(i);
+	if (g->isInverted() && dynamic_cast<UnconditionalGuard*>(g) != NULL) {
+	    createNopField = false;
+	}
+    }
+
     int srcSockets = socketCount(*bus, Socket::OUTPUT);
     int srcBridges = sourceBridgeCount(*bus);
     bool shortImmSupport = (bus->immediateWidth() > 0);
@@ -425,7 +441,9 @@ BEMGenerator::addEncodings(SourceField& field) const {
         socketCodeWidths.insert(bus->immediateWidth());
     }
     // one encoding for NOP
-    socketCodeWidths.insert(0);
+    if (createNopField) {
+	socketCodeWidths.insert(0);
+    }
 
     multiset<Encoding> encodings;
     calculateEncodings(socketCodeWidths, true, encodings);
@@ -440,7 +458,7 @@ BEMGenerator::addEncodings(SourceField& field) const {
          encIter != encodings.end(); encIter++) {
         Encoding enc = *encIter;
         int scWidth = *scIter;
-        if (scWidth == 0 && !nopEncodingSet) {
+        if (scWidth == 0 && !nopEncodingSet && createNopField) {
             new NOPEncoding(enc.first, enc.second, field);
             nopEncodingSet = true;
         } else if (!immEncodingSet && scWidth == bus->immediateWidth()) {

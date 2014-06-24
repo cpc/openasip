@@ -24,7 +24,8 @@ Smaller features and improvements
   of the address space.
 - SLEEP operation that locks the core until an external signal has been
   asserted. 
-
+- Always false guard can be used for encoding NOPs, potentially saving
+  bits in source and destination fields.
 Bugfixes
 --------
 - Fix PIG and ProGe when generating bits or RTL for
