@@ -1212,6 +1212,27 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
     }
 
+    if (opNames.find("LDQ") != opNames.end()) {
+        createByteExtLoadPatterns(os);
+    } else {
+        os << "//No LDQ op found! No byte ext load patterns either!"
+                  << std::endl;
+
+        std::cerr << "No LDQ op found! No byte ext load patterns either!"
+                  << std::endl;
+    }
+
+    if (opNames.find("LDH") != opNames.end()) {
+        createShortExtLoadPatterns(os);
+    } else {
+        os << "//No LDH op found! No short ext load patterns either!"
+                  << std::endl;
+
+
+        std::cerr << "No LDH op found! No short ext load patterns either!"
+                  << std::endl;
+    }
+
     createSelectPatterns(os);
 }
 
@@ -3068,16 +3089,9 @@ void
 TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     // vector store/load generation code
 
-#ifdef LLVM_3_1
-    TCEString prefix = "";
-    TCEString rcpf = "RegsRegisterClass";
-    TCEString rapf = "TCE::RARegRegisterClass";
-
-#else
     TCEString prefix = "&"; // address of -operator
     TCEString rcpf = "RegsRegClass";
     TCEString rapf = "TCE::RARegRegClass";
-#endif
 
     os << "#include <stdio.h>" << std::endl 
        << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc)"
@@ -3299,6 +3313,26 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
         os << "if (vt == MVT::i32) return TCE::MAXUrrr;" << std::endl;
     }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
+}
+
+void TDGen::createByteExtLoadPatterns(std::ostream& os) {
+    os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDrri (LDQrr ADDRrr:$addr),1)>;" << std::endl
+       << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDrri (LDQri ADDRri:$addr),1)>;" << std::endl
+       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBrir 0,(ANDrri (LDQrr ADDRrr:$addr),1))>;" << std::endl
+       << "def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBrir 0,(ANDrri (LDQri ADDRri:$addr),1))>;" << std::endl
+       << "// anyextloads -> sextloads" << std::endl
+        
+       << "def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQri ADDRri:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQri ADDRri:$src)>;" << std::endl
+       << std::endl;
+}
+
+void TDGen::createShortExtLoadPatterns(std::ostream& os) {
+    os     << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHrr ADDRrr:$src)>;" << std::endl
+           << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;" << std::endl;
+
 }
 
 void TDGen::createSelectPatterns(std::ostream& os) {

@@ -420,10 +420,12 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 
                 return false;                
             }
-                        
-            assert (op.numberOfOutputs() == 1 && 
-                    "LowerMissing supports only 1 output instructions.");
 
+            if (op.numberOfOutputs() != 1) {
+                std::cerr << "Cannot lower missing instruction:" <<  *i << std::endl;
+                continue;
+            }
+	    
             // Make parameter list for operation with all needed integer 
             // widths. If pure floating point just i32 is used. 
             // 

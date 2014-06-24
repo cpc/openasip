@@ -26,6 +26,10 @@ Smaller features and improvements
   asserted. 
 - Always false guard can be used for encoding NOPs, potentially saving
   bits in source and destination fields.
+- Processor may not have ldq and ldh instructions and compiler
+  can then compile code which does not load 8/16 bit values.
+  Previously these operations were needed even when not used.
+
 Bugfixes
 --------
 - Fix PIG and ProGe when generating bits or RTL for

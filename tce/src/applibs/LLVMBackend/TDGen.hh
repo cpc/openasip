@@ -259,6 +259,10 @@ throw (InvalidData);
     void generateLoadStoreCopyGenerator(std::ostream& os);
 
     void createSelectPatterns(std::ostream& os);
+
+    void createByteExtLoadPatterns(std::ostream& os);
+    void createShortExtLoadPatterns(std::ostream& os);
+
     const TTAMachine::Machine& mach_;
 
     // Current dwarf register number.
