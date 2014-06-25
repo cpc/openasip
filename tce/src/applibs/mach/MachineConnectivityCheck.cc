@@ -781,12 +781,17 @@ bool
 MachineConnectivityCheck::canWriteAllImmediates(Port& destPort) {
     /** First check if there is a bus that can transfer the immediates */
     int portWidth = destPort.width();
+    int widestConnectedImmediate = -1;
+    int widestImmediate = -1;
     Socket& socket = *destPort.inputSocket();
-
+    
     // check immediates from buses
     for (int i = 0; i < socket.segmentCount(); ++i) {
         const Bus& bus = *socket.segment(i)->parentBus();
-        if (bus.immediateWidth() >= portWidth) {
+        int immw = bus.immediateWidth();
+        widestConnectedImmediate = 
+            std::max(widestConnectedImmediate, immw);
+        if (immw >= portWidth) {
             return true;
         }
     }
@@ -798,12 +803,26 @@ MachineConnectivityCheck::canWriteAllImmediates(Port& destPort) {
     
     for (int i = 0; i < iuNav.count(); i++) {
         ImmediateUnit& iu = *iuNav.item(i);
-        if (iu.width() >= portWidth && isConnected(iu, destPort)) {
-            return true;
+        int immw = iu.width();
+        if (isConnected(iu, destPort)) {
+	    widestConnectedImmediate = 
+                std::max(widestConnectedImmediate, immw);
+            if (immw >= portWidth) {
+                return true;
+            }
         }
+	widestImmediate = std::max(widestImmediate, immw);
     }
+
+    TTAMachine::Machine::BusNavigator busNav = 
+        mach.busNavigator();
     
-    return false;
+    for (int i = 0; i < busNav.count(); i++) {
+        Bus& bus = *busNav.item(i);
+        widestImmediate = std::max(widestImmediate, bus.immediateWidth());
+    }    
+    
+    return widestImmediate == widestConnectedImmediate;
 }
 
 /**
