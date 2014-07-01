@@ -30,7 +30,7 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	DisassemblyReturnAddressRegister.cc DisassemblyControlUnitPort.cc \
 	DisassemblyInstructionSlot.cc DisassemblyImmediateAssignment.cc \
 	DisassemblyLabel.cc DisassemblyNOP.cc DisassemblyFUOperand.cc \
-	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc CodeGenerator.cc \
+	DisassemblySequentialGuard.cc DisassemblyAnnotation.cc \
     TerminalBasicBlockReference.cc BasicBlock.cc TerminalSymbolReference.cc \
 	MoveNode.cc MoveNodeSet.cc ProgramOperation.cc TerminalProgramOperation.cc \
 	TerminalInstructionReference.cc
@@ -62,8 +62,7 @@ libprogram_la_SOURCES += \
 	Immediate.hh NullProgram.hh \
 	DisassemblyFUOpcodePort.hh TerminalAddress.hh \
 	DataAddressDef.hh DataDefinition.hh \
-	MoveNode.hh CodeGenerator.hh \
-	Instruction.hh Label.hh \
+	MoveNode.hh Instruction.hh Label.hh \
 	TPEFDisassembler.hh DisassemblyImmediateRegister.hh \
 	Scope.hh TerminalRegister.hh \
 	TerminalFUPort.hh DisassemblyInstruction.hh \
