@@ -25,6 +25,7 @@ OSAL_DIR = ${SRC_ROOT}/base/osal
 GRAPH_DIR = ${SRC_ROOT}/base/Graph
 OSAL_APPLIBS_DIR = ${SRC_ROOT}/applibs/osal
 MACH_APPLIBS_DIR = ${SRC_ROOT}/applibs/mach
+PROG_APPLIBS_DIR = ${SRC_ROOT}/applibs/program
 UMACH_DIR = ${SRC_ROOT}/base/umach
 DISASM_DIR = ${SRC_ROOT}/applibs/Disassembler
 SCHED_ALGO_DIR = ${SRC_ROOT}/applibs/Scheduler/Algorithms
@@ -41,7 +42,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS} \
 	-I${PDG_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${SELECTOR_DIR} -I${RM_DIR} \
-	-I${SCHED_ALGO_DIR}
+	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR}
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
