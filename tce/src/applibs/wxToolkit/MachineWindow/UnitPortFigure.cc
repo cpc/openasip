@@ -35,6 +35,10 @@
 
 #include "UnitPortFigure.hh"
 #include "MachineCanvasLayoutConstraints.hh"
+#include "MathTools.hh"
+
+#include "InputSocketFigure.hh"
+#include "OutputSocketFigure.hh"
 
 using std::vector;
 
@@ -44,10 +48,11 @@ const wxColour UnitPortFigure::DEFAULT_BG_COLOUR = wxColour(255, 255, 255);
 /**
  * The Constructor.
  */
-UnitPortFigure::UnitPortFigure(std::string name): Figure(), name_(name) {
+UnitPortFigure::UnitPortFigure(std::string name, int bitWidth): Figure(), name_(name) {
     size_ = wxSize(
-	MachineCanvasLayoutConstraints::PORT_WIDTH,
-	MachineCanvasLayoutConstraints::PORT_WIDTH);
+        ((MathTools::requiredBits(bitWidth)+(bitWidth/31))<<1) +
+        (MachineCanvasLayoutConstraints::PORT_WIDTH/4),
+        MachineCanvasLayoutConstraints::PORT_WIDTH);
 }
 
 /**
@@ -60,22 +65,22 @@ UnitPortFigure::~UnitPortFigure() {
  * Sets the x-coordinate for its child sockets.
  */
 void
-UnitPortFigure::layoutChildren(wxDC*) {
-
+UnitPortFigure::layoutChildren(wxDC* dc) {
     int socketX = location_.x;
     bool oneSet = false;
 
     for (unsigned int i = 0; i < children_.size(); i++) {
 
-	if (!oneSet && !children_[i]->xSet()) {
-	    children_[i]->setX(location_.x);
-	    oneSet = true;
-	    socketX += MachineCanvasLayoutConstraints::SOCKET_WIDTH +
-		       MachineCanvasLayoutConstraints::SOCKET_MIN_SPACE;
-
-	} else if (children_[i]->location().x == 0) {
-	    children_[i]->setPreferredX(socketX);
-	}
+        children_[i]->setWidth(size_.GetWidth());
+        
+        if (!oneSet && !children_[i]->xSet()) {
+            children_[i]->setX(location_.x);
+            oneSet = true;
+            socketX += MachineCanvasLayoutConstraints::SOCKET_WIDTH +
+                MachineCanvasLayoutConstraints::SOCKET_MIN_SPACE;
+        } else if (children_[i]->location().x == 0) {
+            children_[i]->setPreferredX(socketX);
+        }
     }
 }
 

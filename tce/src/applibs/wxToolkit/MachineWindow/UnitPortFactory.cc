@@ -84,9 +84,9 @@ UnitPortFactory::createEditPart(MachinePart* component) {
 
         FUPort* fuPort = dynamic_cast<FUPort*>(component);
         if (fuPort != NULL && fuPort->isTriggering()) {
-            fig = new TriggeringPortFigure(port->name());
+            fig = new TriggeringPortFigure(port->name(), port->width());
         } else {
-            fig = new UnitPortFigure(port->name());
+            fig = new UnitPortFigure(port->name(), port->width());
         }
 
 	portEditPart->setFigure(fig);

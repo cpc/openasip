@@ -44,7 +44,7 @@ class wxDC;
  */
 class TriggeringPortFigure : public UnitPortFigure {
 public:
-    TriggeringPortFigure(std::string name);
+    TriggeringPortFigure(std::string name, int bitWidth);
     virtual ~TriggeringPortFigure();
 
 protected:
