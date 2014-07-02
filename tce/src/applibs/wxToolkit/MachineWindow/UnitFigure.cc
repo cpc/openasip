@@ -59,8 +59,8 @@ const int UnitFigure::SPACING = 5;
  */
 UnitFigure::UnitFigure(): Figure() {
     minSize_ = wxSize(
-	MachineCanvasLayoutConstraints::UNIT_WIDTH,
-	MachineCanvasLayoutConstraints::UNIT_HEIGHT);
+        MachineCanvasLayoutConstraints::UNIT_WIDTH,
+        MachineCanvasLayoutConstraints::UNIT_HEIGHT);
     size_ = minSize_;
 }
 
@@ -88,8 +88,9 @@ UnitFigure::drawSelf(wxDC* dc) {
     dc->SetBrush(brush);
 
 
-    dc->DrawRectangle(location_.x, location_.y, size_.GetWidth(),
-		      size_.GetHeight());
+    dc->DrawRectangle(
+        location_.x, location_.y, size_.GetWidth(),
+        size_.GetHeight());
 
     dc->SetBackgroundMode(wxTRANSPARENT);
     dc->SetTextForeground(DEFAULT_COLOUR);
@@ -241,13 +242,13 @@ void
 UnitFigure::setName(const wxString& name) {
     int index = name.Find(':');
     if (index == -1) {
-	type_ = _T("Unit:");
-	name_ = name;
+        type_ = _T("Unit:");
+        name_ = name;
     } else {
-	type_ = name.Mid(0, index + 1);
-	type_.Trim();
-	name_ = name.Mid(index + 2);
-	name_.Trim();
+        type_ = name.Mid(0, index + 1);
+        type_.Trim();
+        name_ = name.Mid(index + 2);
+        name_.Trim();
     }
 }
 
@@ -293,11 +294,11 @@ UnitFigure::layoutSelf(wxDC* dc) {
 
     vector<Figure*>::const_iterator i = children_.begin();
     for (; i != children_.end(); i++) {
-	portsWidth += (*i)->bounds().GetWidth();
+        portsWidth += (*i)->bounds().GetWidth();
     }
 
     portsWidth +=
-	(children_.size()+1) * MachineCanvasLayoutConstraints::PORT_SPACE;
+        (children_.size()+1) * MachineCanvasLayoutConstraints::PORT_SPACE;
 
     int nameWidth = 0;
     int nameHeight = 0;
@@ -318,49 +319,49 @@ UnitFigure::layoutSelf(wxDC* dc) {
     int maxWidth = MachineCanvasLayoutConstraints::MAX_UNIT_NAME_WIDTH;
 
     if (portsWidth > maxWidth) {
-	maxWidth = portsWidth;
+        maxWidth = portsWidth;
     }
 
     if ((nameWidth + 2 * MARGIN) > maxWidth) {
 
-	unsigned int chars = 0;
-	int charsExtent = 0;
+        unsigned int chars = 0;
+        int charsExtent = 0;
 
-	while ((charsExtent + 2 * MARGIN) < maxWidth) {
-	    int charWidth = 0;
-	    int charHeight = 0;
-	    dc->GetTextExtent(name_.GetChar(chars), &charWidth, &charHeight);
-	    charsExtent += charWidth;
-	    chars++;
-	    if (chars > name_.Len()) {
-		break;
-	    }
-	}
+        while ((charsExtent + 2 * MARGIN) < maxWidth) {
+            int charWidth = 0;
+            int charHeight = 0;
+            dc->GetTextExtent(name_.GetChar(chars), &charWidth, &charHeight);
+            charsExtent += charWidth;
+            chars++;
+            if (chars > name_.Len()) {
+                break;
+            }
+        }
 
-	name_.Truncate(chars - 5);
-	name_.Append(_T("..."));
+        name_.Truncate(chars - 5);
+        name_.Append(_T("..."));
         dc->GetTextExtent(name_, &nameWidth, &nameHeight);
         nameWidth += 4 * MARGIN;
     }
 
     if (showInfo && (infoWidth + 2 * MARGIN) > maxWidth) {
 
-	unsigned int chars = 0;
-	int charsExtent = 0;
+        unsigned int chars = 0;
+        int charsExtent = 0;
 
-	while ((charsExtent + 2 * MARGIN) < maxWidth) {
-	    int charWidth = 0;
-	    int charHeight = 0;
-	    dc->GetTextExtent(info_.GetChar(chars), &charWidth, &charHeight);
-	    charsExtent += charWidth;
-	    chars++;
-	    if (chars > info_.Len()) {
-		break;
-	    }
-	}
+        while ((charsExtent + 2 * MARGIN) < maxWidth) {
+            int charWidth = 0;
+            int charHeight = 0;
+            dc->GetTextExtent(info_.GetChar(chars), &charWidth, &charHeight);
+            charsExtent += charWidth;
+            chars++;
+            if (chars > info_.Len()) {
+                break;
+            }
+        }
 
-	info_.Truncate(chars - 5);
-	info_.Append(_T("..."));
+        info_.Truncate(chars - 5);
+        info_.Append(_T("..."));
         dc->GetTextExtent(info_, &infoWidth, &infoHeight);
         infoWidth += 4 * MARGIN;
     }
@@ -378,11 +379,11 @@ UnitFigure::layoutSelf(wxDC* dc) {
     } else if (portsWidth > size_.GetWidth()) {
         size_.SetWidth(portsWidth);
     }
-
+    
     // Set figure height.
     int height = 2 * MARGIN +  SPACING + typeHeight + nameHeight +
         (MachineCanvasLayoutConstraints::PORT_WIDTH / 2);
-   
+    
     if (showInfo) {
         height += SPACING + infoHeight;
     }
