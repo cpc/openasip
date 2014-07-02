@@ -35,6 +35,12 @@ Usability features
 - ProDe: When unit details are not printed, the unit label is printed
   with a larger font for readability. The unit details toggle button is
   now added by default to the toolbar.
+- ProDe: The units are now rounded in case they are function units,
+  "more rounded" in case of a control unit, and rectangles in case
+  of register files. 
+- ProDe: In the non-unit-details mode only the unit's name is printed.
+  This enables making the unit visualization (and thus the whole processor
+  visualization) smaller.
 
 Bugfixes
 --------

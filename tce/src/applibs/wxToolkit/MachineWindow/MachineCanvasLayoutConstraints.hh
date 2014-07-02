@@ -42,7 +42,7 @@ public:
     /// Minimum unit width.
     static const int UNIT_WIDTH = 85;
     /// Minimum unit height.
-    static const int UNIT_HEIGHT = 65;
+    static const int UNIT_HEIGHT = 45;
     /// Space between units.
     static const int UNIT_SPACE = 36;
     /// Maximun unit name width in pixels.

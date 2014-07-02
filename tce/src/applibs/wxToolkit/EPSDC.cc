@@ -337,15 +337,16 @@ EPSDC::DoDrawEllipticArc(
 }
 
 /**
- * NOT IMPLEMENTED
+ * Not implemented, falls back to a rectangle.
  */
 void
 EPSDC::DoDrawRoundedRectangle(
-        wxCoord,
-        wxCoord,
-        wxCoord,
-        wxCoord,
+        wxCoord x,
+        wxCoord y,
+        wxCoord width,
+        wxCoord height,
         double) {
+    DoDrawRectangle(x, y, width, height);
 }
 
 /**

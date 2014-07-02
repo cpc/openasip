@@ -92,24 +92,36 @@ UnitFigure::drawSelf(wxDC* dc) {
          options()->optionValue(
              MachineCanvasOptions::SHOW_UNIT_INFO_STRING).isFlagOn());
 
-    dc->DrawRectangle(
-        location_.x, location_.y, size_.GetWidth(),
-        size_.GetHeight());
+    if (type_ == _T("FU:")) {
+        dc->DrawRoundedRectangle(
+            location_.x, location_.y, size_.GetWidth(),
+            size_.GetHeight(), size_.GetHeight()*0.25);
+    } else if (type_ == _T("GCU:")) {
+        dc->DrawRoundedRectangle(
+            location_.x, location_.y, size_.GetWidth(),
+            size_.GetHeight(), size_.GetHeight()*0.4);
+    } else { // register file
+        dc->DrawRectangle(
+            location_.x, location_.y, size_.GetWidth(),
+            size_.GetHeight());
+    }
 
     dc->SetBackgroundMode(wxTRANSPARENT);
     dc->SetTextForeground(DEFAULT_COLOUR);
 
-    int typeWidth;
-    int typeHeight;
-    dc->GetTextExtent(type_, &typeWidth, &typeHeight);
+    int typeWidth = 0;
+    int typeHeight = 0;
+    if (drawInfoRow) {
+        dc->GetTextExtent(type_, &typeWidth, &typeHeight);
 
-    int typeX = location_.x + size_.GetWidth() / 2 - typeWidth / 2;
-    int typeY = location_.y + MARGIN;
+        int typeX = location_.x + size_.GetWidth() / 2 - typeWidth / 2;
+        int typeY = location_.y + MARGIN;
+
+        dc->DrawText(type_, typeX, typeY);
+    }
 
     int nameWidth;
     int nameHeight;
-
-    dc->DrawText(type_, typeX, typeY);
 
     wxFont oldFont = dc->GetFont();
     if (!drawInfoRow) {
@@ -394,11 +406,11 @@ UnitFigure::layoutSelf(wxDC* dc) {
     }
     
     // Set figure height.
-    int height = 2 * MARGIN +  SPACING + typeHeight + nameHeight +
+    int height = 2 * MARGIN +  SPACING +  nameHeight +
         (MachineCanvasLayoutConstraints::PORT_WIDTH / 2);
     
     if (showInfo) {
-        height += SPACING + infoHeight;
+        height += typeHeight + SPACING + infoHeight;
     }
     if (height > minSize_.GetHeight()) {
         size_.SetHeight(height);
