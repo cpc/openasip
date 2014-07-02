@@ -38,6 +38,7 @@ Usability features
 - ProDe: The units are now rounded in case they are function units,
   "more rounded" in case of a control unit, rectangles in case
   of register files, and trapezoids in case of immediate units.
+  Also coloured: FU blue, LSU green, CU purple, IMMU orange, RF yellow.
 - ProDe: In the non-unit-details mode only the unit's name is printed.
   This enables making the unit visualization (and thus the whole processor
   visualization) smaller.
