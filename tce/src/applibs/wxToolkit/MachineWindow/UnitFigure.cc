@@ -87,6 +87,10 @@ UnitFigure::drawSelf(wxDC* dc) {
     }
     dc->SetBrush(brush);
 
+    const bool drawInfoRow =
+        (options() != NULL &&
+         options()->optionValue(
+             MachineCanvasOptions::SHOW_UNIT_INFO_STRING).isFlagOn());
 
     dc->DrawRectangle(
         location_.x, location_.y, size_.GetWidth(),
@@ -105,16 +109,25 @@ UnitFigure::drawSelf(wxDC* dc) {
     int nameWidth;
     int nameHeight;
 
+    dc->DrawText(type_, typeX, typeY);
+
+    wxFont oldFont = dc->GetFont();
+    if (!drawInfoRow) {
+        // In case we do not write the details (operation set) to the unit,
+        // print the name of the unit larger.
+        dc->SetFont(wxFont(16, wxDEFAULT, wxNORMAL, wxNORMAL));
+    }
     dc->GetTextExtent(name_, &nameWidth, &nameHeight);
 
     int nameX = location_.x + size_.GetWidth() / 2 - nameWidth / 2;
     int nameY = location_.y + MARGIN + typeHeight + SPACING;
-
-    dc->DrawText(type_, typeX, typeY);
     dc->DrawText(name_, nameX, nameY);
 
-    if (options() != NULL && options()->optionValue(
-            MachineCanvasOptions::SHOW_UNIT_INFO_STRING).isFlagOn()) {
+    if (!drawInfoRow) {
+        dc->SetFont(oldFont);
+    }
+
+    if (drawInfoRow) {
 
         int infoWidth;
         int infoHeight;
