@@ -9,6 +9,7 @@ SCHED_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
 SCHED_ALGO_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/Algorithms
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 POM_DIR = ${BASE_DIR}/program
+APPLIBS_POM_DIR = ${APPLIBS_DIR}/program
 TPEF_DIR = ${BASE_DIR}/tpef
 OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
@@ -22,7 +23,7 @@ PDG_DIR = ${PR_DIR}/PDG/
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
-    -I${DDG_DIR} -I${PDG_DIR} -I${SCHED_ALGO_DIR} \
+    -I${DDG_DIR} -I${PDG_DIR} -I${SCHED_ALGO_DIR} -I${APPLIBS_POM_DIR} \
     ${LLVM_CPPFLAGS}
 
 dist-hook:
