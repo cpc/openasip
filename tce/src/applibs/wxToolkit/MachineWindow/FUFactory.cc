@@ -42,6 +42,7 @@
 #include "FUPort.hh"
 #include "EditPolicyFactory.hh"
 #include "HWOperation.hh"
+#include "AddressSpace.hh"
 
 using std::vector;
 using namespace TTAMachine;
@@ -102,6 +103,14 @@ FUFactory::createEditPart(MachinePart* component) {
         }
 
         wxString operations = _T("{ ");
+        AddressSpace* as = fu->addressSpace();
+        if (as != NULL) {
+            operations.Append(_T("AS: "));
+            operations.Append(
+                WxConversion::toWxString(as->name()));
+            operations.Append(_T(" Ops:"));
+        }                
+
         for (int i = 0; i < fu->operationCount(); i++) {
             if (i > 0) {
                 operations.Append(_T(", "));
