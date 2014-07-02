@@ -214,7 +214,7 @@ ProGeTestBenchGenerator::generate(
                     ((i > 0) ? "b" : "a"))); // only two FUs for same AS
                 
                 if (it == it_secLast && (i+1) == it->second.size() && 
-                    (j+1) == count) {
+                    (j + 1) == count) {
                     // last mapping
                     LSUMap.append(");\n");
                 } else {
@@ -282,25 +282,25 @@ ProGeTestBenchGenerator::generate(
 
     // the beginning of the core FU (load store unit) mappings
     string LSUMapConst;
-    if(language==VHDL){
+    if (language == VHDL) {
         LSUMapConst = 
-        "port map (\n"
-        "clk  => clk,\n"
-        "rstx => rst_x,\n"
-        "busy => '0',\n"
-        "imem_en_x => imem_en_x,\n"
-        "imem_addr => imem_addr,\n"
-        "imem_data => imem_data,\n"
-        "pc_init => pc_init";
+            "port map (\n"
+            "clk  => clk,\n"
+            "rstx => rst_x,\n"
+            "busy => '0',\n"
+            "imem_en_x => imem_en_x,\n"
+            "imem_addr => imem_addr,\n"
+            "imem_data => imem_data,\n"
+            "pc_init => pc_init";
     } else {
         LSUMapConst=
-        ".clk                (clk),\n"
-        ".rstx               (rst_x),\n"
-        ".busy               (1'b0),\n"
-        ".imem_en_x          (imem_en_x),\n"
-        ".imem_addr          (imem_addr),\n"
-        ".imem_data          (imem_data),\n"
-        ".pc_init            (pc_init)";
+            ".clk                (clk),\n"
+            ".rstx               (rst_x),\n"
+            ".busy               (1'b0),\n"
+            ".imem_en_x          (imem_en_x),\n"
+            ".imem_addr          (imem_addr),\n"
+            ".imem_data          (imem_data),\n"
+            ".pc_init            (pc_init)";
     }
     
     if (LSUMap.length() < 1) {
