@@ -36,11 +36,13 @@ Usability features
   with a larger font for readability. The unit details toggle button is
   now added by default to the toolbar.
 - ProDe: The units are now rounded in case they are function units,
-  "more rounded" in case of a control unit, and rectangles in case
-  of register files. 
+  "more rounded" in case of a control unit, rectangles in case
+  of register files, and trapezoids in case of immediate units.
 - ProDe: In the non-unit-details mode only the unit's name is printed.
   This enables making the unit visualization (and thus the whole processor
   visualization) smaller.
+- ProDe: Wider ports/sockets look wider, narrower look narrower.
+- ProDe: Units and ports are closer to each others in the main view.
 
 Bugfixes
 --------
