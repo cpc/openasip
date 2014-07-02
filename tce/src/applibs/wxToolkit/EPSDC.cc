@@ -90,7 +90,7 @@ EPSDC::DoDrawPolygon(
     // Create VertexList of the vertices.
     VertexList list;
     for (int i = 0; i < n; i++) {
-        list.addVertex(vertices[i].x + xOffset, -1 * vertices[i].y + yOffset);
+        list.addVertex(vertices[i].x + xOffset, -1 * (vertices[i].y + yOffset));
     }
 
     if (fill_) {

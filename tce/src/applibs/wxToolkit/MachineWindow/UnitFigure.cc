@@ -100,6 +100,16 @@ UnitFigure::drawSelf(wxDC* dc) {
         dc->DrawRoundedRectangle(
             location_.x, location_.y, size_.GetWidth(),
             size_.GetHeight(), size_.GetHeight()*0.4);
+    } else if (type_ == _T("IMM:")) {
+        wxPoint points[4] { 
+            wxPoint(size_.GetWidth()/2-10, size_.GetHeight()),
+                wxPoint(size_.GetWidth()/2+10, size_.GetHeight()),
+                wxPoint(size_.GetWidth(),0),
+                wxPoint(0,0) };
+        dc->DrawPolygon(
+            4, points, 
+            location_.x, location_.y,
+            wxODDEVEN_RULE);
     } else { // register file
         dc->DrawRectangle(
             location_.x, location_.y, size_.GetWidth(),
@@ -201,6 +211,11 @@ UnitFigure::layoutChildren(wxDC* dc) {
     
     int portX = location_.x + MachineCanvasLayoutConstraints::PORT_SPACE;
     int portY = location_.y + size_.GetHeight();
+
+    // if only single port, put it to middle.
+    if (children_.size() == 1) {
+        portX = location_.x + (size_.GetWidth()- children_[0]->bounds().GetWidth()) / 2;
+    }
 
     // Layout input ports.
     map<std::string, Figure*>::iterator inIter = inputPorts.begin();
