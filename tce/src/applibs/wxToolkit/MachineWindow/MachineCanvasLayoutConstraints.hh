@@ -40,49 +40,53 @@
 class MachineCanvasLayoutConstraints {
 public:
     /// Minimum unit width.
-    static const int UNIT_WIDTH = 85;
+    static const int UNIT_WIDTH;
     /// Minimum unit height.
-    static const int UNIT_HEIGHT = 45;
+    static const int UNIT_HEIGHT;
     /// Space between units.
-    static const int UNIT_SPACE = 24;
+    static const int UNIT_SPACE;
     /// Maximun unit name width in pixels.
-    static const int MAX_UNIT_NAME_WIDTH = 250;
-    /// Width of a port.
-    static const int PORT_WIDTH = 16;
+    static const int MAX_UNIT_NAME_WIDTH;
+    /// Default Width of a port.
+    static const int PORT_WIDTH;
+    /// Minimum Width of a port.
+    static const int PORT_MIN_WIDTH;
+    /// Constant used for port width calculation
+    static const int PORT_BASE_WIDTH;
     /// Space between ports.
-    static const int PORT_SPACE = 14;
+    static const int PORT_SPACE;
     /// Width of a socket.
-    static const int SOCKET_WIDTH = PORT_WIDTH;
+    static const int SOCKET_WIDTH;
     /// Height of a socket.
-    static const int SOCKET_HEIGHT = 100;
+    static const int SOCKET_HEIGHT;
     /// Space dividing unconnected sockets.
-    static const int SOCKET_SPACE = SOCKET_WIDTH;
+    static const int SOCKET_SPACE;
     /// Space dividing connected sockets.
-    static const int SOCKET_MIN_SPACE = 2;
+    static const int SOCKET_MIN_SPACE;
     /// Space dividing segments.
-    static const int SEGMENT_SPACE = 14;
+    static const int SEGMENT_SPACE;
     /// Height of a segment.
-    static const int SEGMENT_HEIGHT = 4;
+    static const int SEGMENT_HEIGHT;
     /// Minimum width of a bus.
-    static const int BUS_MIN_WIDTH = 206;
+    static const int BUS_MIN_WIDTH;
     /// Minimum height of a bus.
-    static const int BUS_MIN_HEIGHT = SEGMENT_HEIGHT;
+    static const int BUS_MIN_HEIGHT;
     /// Space between buses and bus chains.
-    static const int BUS_SPACE = 30;
+    static const int BUS_SPACE;
     /// Width of a bridge.
-    static const int BRIDGE_WIDTH = BUS_MIN_WIDTH;
+    static const int BRIDGE_WIDTH;
     /// Height of a bridge.
-    static const int BRIDGE_HEIGHT = 30;
+    static const int BRIDGE_HEIGHT;
     /// Space dividing buses and bridges.
-    static const int BRIDGE_SPACE = 12;
+    static const int BRIDGE_SPACE;
     /// Top margin for the whole processor view.
-    static const int VIEW_MARGIN = 30;
+    static const int VIEW_MARGIN;
     /// Left margin.
-    static const int VIEW_LEFT_MARGIN = 50;
+    static const int VIEW_LEFT_MARGIN;
     /// Space reserved for port-socket-connections.
-    static const int CONNECTIONS_SPACE = 80;
+    static const int CONNECTIONS_SPACE;
     /// Size of the sockets' direction triangle.
-    static const int TRIANGLE_HEIGHT = 15;
+    static const int TRIANGLE_HEIGHT;
 };
 
 #endif

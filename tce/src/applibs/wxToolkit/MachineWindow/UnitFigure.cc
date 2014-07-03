@@ -93,10 +93,24 @@ UnitFigure::drawSelf(wxDC* dc) {
              MachineCanvasOptions::SHOW_UNIT_INFO_STRING).isFlagOn());
 
     if (type_ == _T("FU:")) {
-        if (info_.StartsWith(_T("{ AS:"))) {
-            dc->SetBrush(wxBrush(wxColour(170,255,170),wxSOLID));
+        if (!highlighted_) {
+            if (info_.StartsWith(_T("{ AS:"))) {
+                dc->SetBrush(wxBrush(wxColour(170,255,170),wxSOLID));
+            } else {
+                dc->SetBrush(wxBrush(wxColour(205,205,255),wxSOLID));
+            }
         } else {
-            dc->SetBrush(wxBrush(wxColour(205,205,255),wxSOLID));
+            if (info_.StartsWith(_T("{ AS:"))) {
+                dc->SetBrush(wxBrush(wxColour((53+highlight_.Red()*2)/3,
+                                              (82+highlight_.Green()*2)/3,
+                                              (53+highlight_.Blue()*2)/3),
+                                     wxSOLID));
+            } else {
+                dc->SetBrush(wxBrush(wxColour((68+highlight_.Red()*2)/3,
+                                              (68+highlight_.Green()*2)/3,
+                                              (82+highlight_.Blue()*2)/3),
+                                     wxSOLID));
+            }
         }
         dc->DrawRoundedRectangle(
             location_.x, location_.y, size_.GetWidth(),
