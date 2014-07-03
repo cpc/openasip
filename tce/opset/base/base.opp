@@ -401,7 +401,7 @@
 
   <operation>
     <name>JUMP</name>
-    <description/>
+    <description>Absolute jump to the given instruction address.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -414,7 +414,7 @@
 
   <operation>
     <name>CALL</name>
-    <description/>
+    <description>Calls a function at the given absolute instruction address. The return address is saved in the return address register (RA).</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
