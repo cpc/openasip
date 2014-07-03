@@ -34,7 +34,13 @@
 
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Analysis/Dominators.h>
+#else
+#include <llvm/IR/Dominators.h>
+#endif
+
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/PassManager.h>
 #include <llvm/Pass.h>
@@ -68,7 +74,11 @@
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Analysis/Verifier.h>
+#else
+#include <llvm/IR/Verifier.h>
+#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -81,7 +91,13 @@
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include "llvm/Support/system_error.h"
+#else
+/// @todo The file doesn't exist anymore. llvm::error_code -> std::error_code
+#endif
+
 
 #include <cstdlib> // system()
 #include <fstream>
@@ -114,7 +130,11 @@
 
 using namespace llvm;
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Assembly/PrintModulePass.h>
+#else
+#include <llvm/IR/IRPrintingPasses.h>
+#endif
 
 #ifdef LLVM_3_2
 
@@ -296,14 +316,31 @@ LLVMBackend::compile(
     LLVMContext &context = getGlobalContext();
 
     std::auto_ptr<Module> m;
+    
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     OwningPtr<MemoryBuffer> buffer;
+#else
+    std::unique_ptr<MemoryBuffer> buffer;
+#endif
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(
             bytecodeFile.c_str(), buffer)) {
+#else
+    if (std::error_code ec = MemoryBuffer::getFileOrSTDIN(
+            bytecodeFile.c_str(), buffer)) {
+#endif
+            
         std::string msg = "Error reading bytecode file: " + bytecodeFile +
             "\n" + ec.message();
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     } else {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
+#else
+        ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+        m.reset(module.get());
+#endif
     }
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
@@ -313,17 +350,35 @@ LLVMBackend::compile(
 
     std::auto_ptr<Module> emuM;
     if (!emulationBytecodeFile.empty()) {
+        
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         OwningPtr<MemoryBuffer> emuBuffer;
+#else
+        std::unique_ptr<MemoryBuffer> emuBuffer;
+#endif
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         if (error_code ec = MemoryBuffer::getFileOrSTDIN(
                 emulationBytecodeFile.c_str(), emuBuffer)) {
+#else
+        if (std::error_code ec = MemoryBuffer::getFileOrSTDIN(
+                emulationBytecodeFile.c_str(), emuBuffer)) {
+#endif
+
             std::string msg = "Error reading bytecode file: " + 
                 emulationBytecodeFile +
                 " of emulation library:\n" + ec.message();
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
         else {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
             emuM.reset(
                 ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
+#else
+            ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+            emuM.reset(module.get());
+#endif
+            
         }
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
@@ -470,7 +525,10 @@ LLVMBackend::compile(
 //TODO: new llvm removed/renamed this
 //  Options.DisableJumpTables = false; //DisableSwitchTables;
 //  Options.TrapFuncName = TrapFuncName;
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
   Options.EnableSegmentedStacks = false; //SegmentedStacks;
+#endif
 
     TCETargetMachine* targetMachine = 
         static_cast<TCETargetMachine*>(
@@ -503,7 +561,9 @@ LLVMBackend::compile(
     const TargetData *TD = targetMachine->getDataLayout();
     assert(TD);
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     Passes.add(new TargetData(*TD));
+#endif
 
     targetMachine->addPassesToEmitFile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);

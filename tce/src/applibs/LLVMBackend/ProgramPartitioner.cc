@@ -222,7 +222,12 @@ ProgramPartitioner::findNodeIndex(
             llvm::MachineRegisterInfo::def_iterator di = 
                 MRI.def_begin(operand.getReg());
             if (di.atEnd()) continue;
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
             const llvm::MachineInstr* parent = &*di;
+#else
+            const llvm::MachineInstr* parent = (*di).getParent();
+#endif
 
             // TODO: this NULL check not needed anymore?
             if (parent == NULL) continue;

@@ -40,7 +40,13 @@
 #include <llvm/CodeGen/MachineOperand.h>
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Target/Mangler.h>
+#else
+#include <llvm/IR/Mangler.h>
+#endif
+
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Constant.h>
