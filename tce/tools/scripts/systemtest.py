@@ -716,7 +716,7 @@ if __name__ == "__main__":
             all_ok = run_test_dirs_in_parallel(test_dirs)
     else:
         for test_dir in test_dirs.keys():
-            all_ok = all_ok and process_test_dir_seq(test_dir, test_dirs[test_dir])
+            all_ok = process_test_dir_seq(test_dir, test_dirs[test_dir]) and all_ok
 
     if options.output_diff:
         output_diff_file.close()

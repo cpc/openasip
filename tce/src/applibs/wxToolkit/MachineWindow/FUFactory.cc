@@ -42,6 +42,7 @@
 #include "FUPort.hh"
 #include "EditPolicyFactory.hh"
 #include "HWOperation.hh"
+#include "AddressSpace.hh"
 
 using std::vector;
 using namespace TTAMachine;
@@ -76,33 +77,41 @@ FUFactory::createEditPart(MachinePart* component) {
     FunctionUnit* fu = dynamic_cast<FunctionUnit*>(component);
 
     if (fu != NULL) {
-	EditPart* fuEditPart = new EditPart();
-	fuEditPart->setModel(fu);
+        EditPart* fuEditPart = new EditPart();
+        fuEditPart->setModel(fu);
 
-	UnitFigure* fig = new UnitFigure();
-	wxString name = WxConversion::toWxString(fu->name());
-	name.Prepend(_T("FU: "));
-	fig->setName(name);
-	fuEditPart->setFigure(fig);
+        UnitFigure* fig = new UnitFigure();
+        wxString name = WxConversion::toWxString(fu->name());
+        name.Prepend(_T("FU: "));
+        fig->setName(name);
+        fuEditPart->setFigure(fig);
 
-	for (int i = 0; i < fu->portCount(); i++) {
-	    vector<Factory*>::const_iterator iter;
-	    for (iter = factories_.begin(); iter != factories_.end(); iter++) {
-		EditPart* portEditPart =
-		    (*iter)->createEditPart(fu->port(i));
-		if (portEditPart != NULL) {
-		    fuEditPart->addChild(portEditPart);
-		    EditPolicy* editPolicy =
-			editPolicyFactory_.createFUPortEditPolicy();
-		    if (editPolicy != NULL) {
-			portEditPart->installEditPolicy(editPolicy);
-		    }
-		}
-	    }
-	}
+        for (int i = 0; i < fu->portCount(); i++) {
+            vector<Factory*>::const_iterator iter;
+            for (iter = factories_.begin(); iter != factories_.end(); iter++) {
+                EditPart* portEditPart =
+                    (*iter)->createEditPart(fu->port(i));
+                if (portEditPart != NULL) {
+                    fuEditPart->addChild(portEditPart);
+                    EditPolicy* editPolicy =
+                        editPolicyFactory_.createFUPortEditPolicy();
+                    if (editPolicy != NULL) {
+                        portEditPart->installEditPolicy(editPolicy);
+                    }
+                }
+            }
+        }
 
         wxString operations = _T("{ ");
-	for (int i = 0; i < fu->operationCount(); i++) {
+        AddressSpace* as = fu->addressSpace();
+        if (as != NULL) {
+            operations.Append(_T("AS: "));
+            operations.Append(
+                WxConversion::toWxString(as->name()));
+            operations.Append(_T(" Ops:"));
+        }                
+
+        for (int i = 0; i < fu->operationCount(); i++) {
             if (i > 0) {
                 operations.Append(_T(", "));
             }
@@ -112,16 +121,16 @@ FUFactory::createEditPart(MachinePart* component) {
         operations.Append(_T(" }"));
         fig->setInfo(operations);
 
-	fuEditPart->setSelectable(true);
+        fuEditPart->setSelectable(true);
+        
+        EditPolicy* editPolicy = editPolicyFactory_.createFUEditPolicy();
+        if (editPolicy != NULL) {
+            fuEditPart->installEditPolicy(editPolicy);
+        }
 
-	EditPolicy* editPolicy = editPolicyFactory_.createFUEditPolicy();
-	if (editPolicy != NULL) {
-	    fuEditPart->installEditPolicy(editPolicy);
-	}
-
-	return fuEditPart;
-
+        return fuEditPart;
+    
     } else {
-	return NULL;
+        return NULL;
     } 
 }

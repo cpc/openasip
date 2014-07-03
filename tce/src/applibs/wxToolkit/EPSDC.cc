@@ -90,7 +90,7 @@ EPSDC::DoDrawPolygon(
     // Create VertexList of the vertices.
     VertexList list;
     for (int i = 0; i < n; i++) {
-        list.addVertex(vertices[i].x + xOffset, -1 * vertices[i].y + yOffset);
+        list.addVertex(vertices[i].x + xOffset, -1 * (vertices[i].y + yOffset));
     }
 
     if (fill_) {
@@ -337,15 +337,16 @@ EPSDC::DoDrawEllipticArc(
 }
 
 /**
- * NOT IMPLEMENTED
+ * Not implemented, falls back to a rectangle.
  */
 void
 EPSDC::DoDrawRoundedRectangle(
-        wxCoord,
-        wxCoord,
-        wxCoord,
-        wxCoord,
+        wxCoord x,
+        wxCoord y,
+        wxCoord width,
+        wxCoord height,
         double) {
+    DoDrawRectangle(x, y, width, height);
 }
 
 /**

@@ -42,15 +42,15 @@ public:
     /// Minimum unit width.
     static const int UNIT_WIDTH = 85;
     /// Minimum unit height.
-    static const int UNIT_HEIGHT = 65;
+    static const int UNIT_HEIGHT = 45;
     /// Space between units.
-    static const int UNIT_SPACE = 36;
+    static const int UNIT_SPACE = 24;
     /// Maximun unit name width in pixels.
     static const int MAX_UNIT_NAME_WIDTH = 250;
     /// Width of a port.
     static const int PORT_WIDTH = 16;
     /// Space between ports.
-    static const int PORT_SPACE = 20;
+    static const int PORT_SPACE = 14;
     /// Width of a socket.
     static const int SOCKET_WIDTH = PORT_WIDTH;
     /// Height of a socket.

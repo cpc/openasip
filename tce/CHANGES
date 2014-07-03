@@ -10,8 +10,6 @@ Smaller features and improvements
 - Functions marked as 'noinline' are not removed from the final program
   even though the program itself does not refer to them.
 - Template Slots can be edited in ProDe's Intruction Templates-dialog.
-- Bus-socket -connection can be edited with single click in ProDe's 
-  Edit Connections mode.
 - Added select operation that can be used for select(?) operator
   instead of conditional moves.
 - Added patterns which can do select(?) operator without conditional moves
@@ -29,6 +27,23 @@ Smaller features and improvements
 - Processor may not have ldq and ldh instructions and compiler
   can then compile code which does not load 8/16 bit values.
   Previously these operations were needed even when not used.
+
+Usability features
+------------------
+- ProDe: Bus-socket -connection can be edited with single click in the
+  Edit Connections mode.
+- ProDe: When unit details are not printed, the unit label is printed
+  with a larger font for readability. The unit details toggle button is
+  now added by default to the toolbar.
+- ProDe: The units are now rounded in case they are function units,
+  "more rounded" in case of a control unit, rectangles in case
+  of register files, and trapezoids in case of immediate units.
+  Also coloured: FU blue, LSU green, CU purple, IMMU orange, RF yellow.
+- ProDe: In the non-unit-details mode only the unit's name is printed.
+  This enables making the unit visualization (and thus the whole processor
+  visualization) smaller.
+- ProDe: Wider ports/sockets look wider, narrower look narrower.
+- ProDe: Units and ports are closer to each others in the main view.
 
 Bugfixes
 --------
