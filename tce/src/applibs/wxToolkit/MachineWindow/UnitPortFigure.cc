@@ -65,7 +65,7 @@ UnitPortFigure::~UnitPortFigure() {
  * Sets the x-coordinate for its child sockets.
  */
 void
-UnitPortFigure::layoutChildren(wxDC* dc) {
+UnitPortFigure::layoutChildren(wxDC*) {
     int socketX = location_.x;
     bool oneSet = false;
 

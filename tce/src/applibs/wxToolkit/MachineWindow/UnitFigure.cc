@@ -106,14 +106,13 @@ UnitFigure::drawSelf(wxDC* dc) {
         dc->DrawRoundedRectangle(
             location_.x, location_.y, size_.GetWidth(),
             size_.GetHeight(), size_.GetHeight()*0.4);
-//        dc->FloodFill(wxPoint(location_.x + size_.GetWidth()/2, location_.y + size_.GetHeight()/2), DEFAULT_BG_COLOUR);
     } else if (type_ == _T("IMM:")) {
         dc->SetBrush(wxBrush(wxColour(255,168,140),wxSOLID));
-        wxPoint points[4] { 
-            wxPoint(size_.GetWidth()/2-10, size_.GetHeight()),
-                wxPoint(size_.GetWidth()/2+10, size_.GetHeight()),
-                wxPoint(size_.GetWidth(),0),
-                wxPoint(0,0) };
+        wxPoint points[4];
+        points[0] = wxPoint(size_.GetWidth()/2-10, size_.GetHeight());
+        points[1] = wxPoint(size_.GetWidth()/2+10, size_.GetHeight());
+        points[2] = wxPoint(size_.GetWidth(),0);
+        points[3] = wxPoint(0,0);
         dc->DrawPolygon(
             4, points, 
             location_.x, location_.y,
