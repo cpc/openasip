@@ -49,10 +49,11 @@ const wxColour UnitPortFigure::DEFAULT_BG_COLOUR = wxColour(255, 255, 255);
  * The Constructor.
  */
 UnitPortFigure::UnitPortFigure(std::string name, int bitWidth): Figure(), name_(name) {
-    size_ = wxSize(
-        ((MathTools::requiredBits(bitWidth)+(bitWidth/31))<<1) +
-        (MachineCanvasLayoutConstraints::PORT_WIDTH/4),
-        MachineCanvasLayoutConstraints::PORT_WIDTH);
+    size_ = wxSize(std::max(
+                       ((MathTools::requiredBits(bitWidth)+(bitWidth/31))<<1)+
+                       (MachineCanvasLayoutConstraints::PORT_BASE_WIDTH),
+                       MachineCanvasLayoutConstraints::PORT_MIN_WIDTH),
+                   MachineCanvasLayoutConstraints::PORT_WIDTH);
 }
 
 /**

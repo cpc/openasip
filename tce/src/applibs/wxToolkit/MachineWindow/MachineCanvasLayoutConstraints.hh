@@ -47,8 +47,12 @@ public:
     static const int UNIT_SPACE;
     /// Maximun unit name width in pixels.
     static const int MAX_UNIT_NAME_WIDTH;
-    /// Width of a port.
+    /// Default Width of a port.
     static const int PORT_WIDTH;
+    /// Minimum Width of a port.
+    static const int PORT_MIN_WIDTH;
+    /// Constant used for port width calculation
+    static const int PORT_BASE_WIDTH;
     /// Space between ports.
     static const int PORT_SPACE;
     /// Width of a socket.
