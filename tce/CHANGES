@@ -3,6 +3,10 @@
 
 [updated from commit log on 2014-01-24]
 
+Notable changes and features
+----------------------------
+- machinfo: a tool for automatically printing out documentation of
+  the designed ADF in LaTeX.
 
 Smaller features and improvements
 ---------------------------------
