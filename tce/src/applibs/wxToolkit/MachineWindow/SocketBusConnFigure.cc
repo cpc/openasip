@@ -74,7 +74,7 @@ void
 SocketBusConnFigure::drawConnection(wxDC* dc) {
 
     int xOffset = source_->bounds().GetWidth()/2;
-    int yOffset = MachineCanvasLayoutConstraints::SEGMENT_HEIGHT / 2;
+    int yOffset = target_->bounds().GetHeight()/2;
 
     // assumes that socket is always "source"
     dc->DrawCircle(source_->location().x + xOffset,
@@ -92,10 +92,10 @@ SocketBusConnFigure::layoutSelf(wxDC*) {
         wxPoint(
             source_->location().x,
             target_->location().y +   
-            (MachineCanvasLayoutConstraints::SEGMENT_HEIGHT / 2) -
+            (target_->bounds().GetHeight()/2) -
             (MachineCanvasLayoutConstraints::SOCKET_WIDTH / 2)));
     int size = std::max(std::min(source_->bounds().GetWidth(),
-                                 (MachineCanvasLayoutConstraints::BUS_SPACE-2)),
+                                 (MachineCanvasLayoutConstraints::BUS_SPACE)),
                         (MachineCanvasLayoutConstraints::SOCKET_WIDTH));
     setWidth(size);
     setHeight(size);

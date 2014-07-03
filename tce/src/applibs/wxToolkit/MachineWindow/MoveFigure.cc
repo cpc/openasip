@@ -72,9 +72,7 @@ MoveFigure::drawSelf(wxDC* dc) {
     dc->SetBrush(brush);
 
     int offset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;
-
-    int busY = bus_->location().y + 
-        (MachineCanvasLayoutConstraints::SEGMENT_HEIGHT / 2);
+    int busY = bus_->location().y + bus_->bounds().GetHeight()/2;
 
     int sourceX = 0;
     int targetX = 0;

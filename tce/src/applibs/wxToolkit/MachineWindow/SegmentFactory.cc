@@ -42,6 +42,7 @@
 #include "SocketFactory.hh"
 #include "SocketBusConnFactory.hh"
 #include "EditPolicyFactory.hh"
+#include "Bus.hh"
 
 using std::vector;
 using namespace TTAMachine;
@@ -77,7 +78,7 @@ SegmentFactory::createEditPart(MachinePart* component) {
         EditPart* segmentEditPart = new EditPart();
         segmentEditPart->setModel(segment);
 
-        SegmentFigure* fig = new SegmentFigure();
+        SegmentFigure* fig = new SegmentFigure(segment->parentBus()->width());
         segmentEditPart->setFigure(fig);
 
         SocketBusConnFactory connFactory;
