@@ -151,6 +151,7 @@ typedef llvm::DataLayout TargetData;
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
+const TCEString LLVMBackend::CXX11_FLAG = "-std=gnu++11";
 
 /**
  * Returns minimum opset that is required by llvm.
@@ -862,6 +863,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
         " " + LLVM_CPPFLAGS +
+#if defined(HAVE_CXX11)
+        " " + CXX11_FLAG +
+#endif
         " " + pluginSources +
         " -o " + pluginFileName;
 

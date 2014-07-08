@@ -58,6 +58,14 @@
 #define BOOST_FILESYSTEM_VERSION 3
 #endif
 
+#include "tce_config.h"
+
+// Needs to be declared if C++11 standard is used with boost/filesystem, otherwise
+// linker errors occur.
+#if defined(HAVE_CXX11)
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+#endif
+
 #include <boost/filesystem/path.hpp>
 
 #include <unistd.h> // access()

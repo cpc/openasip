@@ -1140,7 +1140,6 @@ dlerror();
   AC_SUBST([DL_FLAGS], ["-ldl"])
 ])
 
-
 ###########################
 #
 # CHECKS FOR HEADER FILES 
@@ -1211,6 +1210,39 @@ AC_ARG_ENABLE(bigendian,
 if test x"$bigendian" = xtrue; then
    AC_DEFINE(TARGET_WORDS_BIGENDIAN, 1, 
    [defines whether the target processor has big-endian byte order])
+fi
+
+
+#################################################################
+#
+# Determine whether the C++11 language standard is enabled or not.
+#
+#################################################################
+AC_ARG_ENABLE(cxx11,
+[AS_HELP_STRING([--enable-c++11],[target machine uses cxx11])],
+[ case "${enableval}" in
+  yes) 
+    cxx11=true 
+    ;;
+  no) 
+    cxx11=false 
+    ;;
+  *) 
+    AC_MSG_ERROR(bad value ${enableval for --enable-cxx11}) 
+    ;;
+  esac], 
+  [cxx11=false]
+)
+
+AC_MSG_CHECKING([whether c++11 language standard is enabled])
+if test x"$cxx11" = xtrue; then
+   AC_MSG_RESULT([yes])
+   AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
+   CXXFLAGS="$CXXFLAGS -std=gnu++11"
+   CPPFLAGS="$CPPFLAGS -std=gnu++11"
+   LDFLAGS="$LDFLAGS -std=gnu++11"
+else
+   AC_MSG_RESULT([no])
 fi
 
 ################################
