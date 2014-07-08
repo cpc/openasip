@@ -72,6 +72,32 @@ TCEString::upper() const {
 }
 
 /**
+ * Replaces all occurences of string 'old' with 'newString'
+ */
+TCEString&
+TCEString::replaceString(
+    const std::string& old, const std::string& newString) {
+        
+    TCEString modifiedString(*this);
+    std::string::size_type location = modifiedString.find(old);
+    while (location != std::string::npos) {
+        modifiedString.replace(
+            modifiedString.begin() + location,
+            modifiedString.begin() + location + old.length(),
+            newString.c_str());
+        // Avoid infinite recursion if replacing with a string
+        // that also contains the searched string. This happens
+        // when escaping reserved characters such as '_' -> '\\_'.
+        location = modifiedString.find(
+            old, std::distance(
+                modifiedString.begin(), 
+                modifiedString.begin() + location + newString.length() + (size_t)1));
+    }
+    *this = modifiedString;
+    return *this;
+}
+
+/**
  * Return a copy of the string with its first character in upper case and 
  * the rest in lower case.
  */

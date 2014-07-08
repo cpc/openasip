@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,50 +22,27 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file SegmentFigure.hh
+ * @file MachInfoCmdLineOptions.hh
  *
- * Declaration of SegmentFigure class.
- *
- * @author Ari Mets�halme 2003 (ari.metsahalme-no.spam-tut.fi)
- * @note rating: yellow
- * @note reviewed Jul 27 2004 by ml, pj, am
+ * @author Pekka Jääskeläinen 2014
  */
 
-#ifndef TTA_SEGMENT_FIGURE_HH
-#define TTA_SEGMENT_FIGURE_HH
+#ifndef TTA_MACH_INFO_CMD_LINE_OPTIONS_HH
+#define TTA_MACH_INFO_CMD_LINE_OPTIONS_HH
 
-#include <wx/wx.h>
+#include "CmdLineOptions.hh"
+#include "TCEString.hh"
 
-#include "Figure.hh"
-
-class wxDC;
-
-/**
- * Figure of a segment.
- */
-class SegmentFigure : public Figure {
+class MachInfoCmdLineOptions : public CmdLineOptions {
 public:
-    SegmentFigure(int bitWidth);
-    virtual ~SegmentFigure();
+    MachInfoCmdLineOptions();
+    virtual ~MachInfoCmdLineOptions();
 
-    void setLast(bool last);
+    TCEString outputFileNameSuffix() const;
+    TCEString outputFormat() const;
 
-protected:
-    virtual void drawSelf(wxDC* dc);
-
-private:
-    /// Assignment not allowed.
-    SegmentFigure& operator=(SegmentFigure& old);
-    /// Copying not allowed.
-    SegmentFigure(SegmentFigure& old);
-
-    /// True if segment is the last segment in a bus.
-    bool last_;
-
-    /// Default colour for the figure.
-    static const wxColour DEFAULT_COLOUR;
+    virtual void printVersion() const;
+    virtual void printHelp() const;
 };
-
-#include "SegmentFigure.icc"
 
 #endif

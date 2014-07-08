@@ -3,6 +3,10 @@
 
 [updated from commit log on 2014-01-24]
 
+Notable changes and features
+----------------------------
+- machinfo: a tool for automatically printing out documentation of
+  the designed ADF in LaTeX.
 
 Smaller features and improvements
 ---------------------------------
@@ -42,8 +46,8 @@ Usability features
 - ProDe: In the non-unit-details mode only the unit's name is printed.
   This enables making the unit visualization (and thus the whole processor
   visualization) smaller.
-- ProDe: Wider ports/sockets look wider, narrower look narrower.
-- ProDe: Units and ports are closer to each others in the main view.
+- ProDe: Wider ports, sockets and buses look wider, narrower look narrower.
+- ProDe: Units, ports and buses are closer to each others in the main view.
 
 Bugfixes
 --------

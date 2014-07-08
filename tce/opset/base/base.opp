@@ -82,7 +82,7 @@
 
   <operation>
     <name>LDW</name>
-    <description>Loads 4 minimum addressable units from memory. Address must be aligned to 4.</description>
+    <description>Loads 32 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -99,7 +99,7 @@
 
   <operation>
     <name>STW</name>
-    <description>Stores 4 minimum addressable units to memory. Address must be aligned to 4.</description>
+    <description>Stores 32 bits.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -116,7 +116,7 @@
 
   <operation>
     <name>EQ</name>
-    <description/>
+    <description>Equality comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -137,7 +137,7 @@
 
   <operation>
     <name>GT</name>
-    <description/>
+    <description>Greater-than signed integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -150,7 +150,7 @@
 
   <operation>
     <name>GTU</name>
-    <description/>
+    <description>Greater-than unsigned integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -302,7 +302,7 @@
 
   <operation>
     <name>SHL</name>
-    <description/>
+    <description>Left shift.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -315,7 +315,7 @@
 
   <operation>
     <name>SHR</name>
-    <description/>
+    <description>Arithmetic shift right (sign bit duplicated).</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -328,7 +328,7 @@
 
   <operation>
     <name>SHRU</name>
-    <description/>
+    <description>Logical shift right (first bit zeroed).</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -338,7 +338,7 @@
 
   <operation>
     <name>AND</name>
-    <description/>
+    <description>Bitwise AND.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -359,7 +359,7 @@
 
   <operation>
     <name>IOR</name>
-    <description/>
+    <description>Inclusive OR.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -380,7 +380,7 @@
 
   <operation>
     <name>XOR</name>
-    <description/>
+    <description>Exclusive OR.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -401,7 +401,7 @@
 
   <operation>
     <name>JUMP</name>
-    <description/>
+    <description>Absolute jump to the given instruction address.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -414,7 +414,7 @@
 
   <operation>
     <name>CALL</name>
-    <description/>
+    <description>Calls a function at the given absolute instruction address. The return address is saved in the return address register (RA).</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -427,7 +427,7 @@
 
   <operation>
     <name>MIN</name>
-    <description/>
+    <description>Returns the smaller of the two signed integer values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -448,7 +448,7 @@
 
   <operation>
     <name>MAX</name>
-    <description/>
+    <description>Returns the larger of the two signed input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -613,7 +613,7 @@
 
   <operation>
     <name>SXQW</name>
-    <description>sign extend from 8 bits</description>
+    <description>Sign extend from 8 bits to 32 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -625,7 +625,7 @@
 
   <operation>
     <name>SXHW</name>
-    <description>sign extend from 16 bits</description>
+    <description>Sign extend from 16 bits to 32 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -743,7 +743,7 @@
 
   <operation>
     <name>MUL</name>
-    <description/>
+    <description>32-bit integer multiplication with lower result bits in the output.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">

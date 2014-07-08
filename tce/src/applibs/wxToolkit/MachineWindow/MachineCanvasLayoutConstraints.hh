@@ -66,7 +66,7 @@ public:
     /// Space dividing segments.
     static const int SEGMENT_SPACE;
     /// Height of a segment.
-    static const int SEGMENT_HEIGHT;
+    static const int SEGMENT_HEIGHT_BASE;
     /// Minimum width of a bus.
     static const int BUS_MIN_WIDTH;
     /// Minimum height of a bus.
