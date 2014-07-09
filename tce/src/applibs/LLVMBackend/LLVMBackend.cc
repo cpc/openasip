@@ -35,6 +35,7 @@
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
 
+#include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Analysis/Dominators.h>
 #else
@@ -63,7 +64,6 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
-#include "tce_config.h"
 #ifdef LLVM_3_2
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>

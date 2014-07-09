@@ -1219,7 +1219,7 @@ fi
 #
 #################################################################
 AC_ARG_ENABLE(cxx11,
-[AS_HELP_STRING([--enable-c++11],[target machine uses cxx11])],
+[AS_HELP_STRING([--enable-c++11],[use c++11 language standard])],
 [ case "${enableval}" in
   yes) 
     cxx11=true 
