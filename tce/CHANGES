@@ -31,6 +31,9 @@ Smaller features and improvements
 - Processor may not have ldq and ldh instructions and compiler
   can then compile code which does not load 8/16 bit values.
   Previously these operations were needed even when not used.
+- C++11 compiling mode can be manually enabled by giving --enable-cxx11 switch
+  for the configure script.
+- C++11 compiling mode is always enabled if LLVM version is 3.5 or higher.
 
 Usability features
 ------------------

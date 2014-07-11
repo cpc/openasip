@@ -460,6 +460,10 @@ esac
 
 ####################################################################
 
+# Always enable C++11 language standard, if LLVM is 3.5 or higher. 
+# This is set to false if LLVM version is 3.4 or lower.
+ENABLE_CXX11=true
+
 LLVM_VERSION=
 
 AC_ARG_WITH(llvm,
@@ -512,12 +516,15 @@ fi
 case "$LLVM_VERSION" in
      3.0)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
+     ENABLE_CXX11=false
    ;;
      3.1*)
      AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
+     ENABLE_CXX11=false
    ;;
      3.2*)
      AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
+     ENABLE_CXX11=false
    ;;
      3.3*)
      AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.3")
@@ -542,6 +549,7 @@ Please consult INSTALL for instructions.])
      fi
      AC_MSG_RESULT([yes])
      
+     ENABLE_CXX11=false
    ;;
      3.4*)
      AC_DEFINE([LLVM_3_4], [], "Using LLVM 3.4")
@@ -553,6 +561,8 @@ Please consult INSTALL for instructions.])
      else
      AC_MSG_RESULT([yes])
      fi
+
+     ENABLE_CXX11=false
    ;;
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)")
@@ -1219,7 +1229,7 @@ fi
 #
 #################################################################
 AC_ARG_ENABLE(cxx11,
-[AS_HELP_STRING([--enable-c++11],[use c++11 language standard])],
+[AS_HELP_STRING([--enable-cxx11],[use c++11 language standard])],
 [ case "${enableval}" in
   yes) 
     cxx11=true 
@@ -1233,6 +1243,10 @@ AC_ARG_ENABLE(cxx11,
   esac], 
   [cxx11=false]
 )
+
+if test x"$ENABLE_CXX11" = xtrue; then
+   cxx11=true
+fi
 
 AC_MSG_CHECKING([whether c++11 language standard is enabled])
 if test x"$cxx11" = xtrue; then

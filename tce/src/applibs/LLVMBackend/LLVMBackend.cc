@@ -376,7 +376,8 @@ LLVMBackend::compile(
             emuM.reset(
                 ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
 #else
-            ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+            ErrorOr<Module*> module = 
+                parseBitcodeFile(emuBuffer.get(), context);
             emuM.reset(module.get());
 #endif
             
@@ -559,11 +560,16 @@ LLVMBackend::compile(
 //    ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     
-    const TargetData *TD = targetMachine->getDataLayout();
-    assert(TD);
-
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+    const TargetData *TD = targetMachine->getDataLayout();
+    assert(TD != NULL);
     Passes.add(new TargetData(*TD));
+#else
+    /// @note DataLayout.h states that DataLayoutPass should never be used.
+    /// Should this code segment be removed completely?
+    const DataLayout *DL = targetMachine->getDataLayout();
+    assert(DL != NULL);
+    Passes.add(new DataLayoutPass(*DL));
 #endif
 
     targetMachine->addPassesToEmitFile(

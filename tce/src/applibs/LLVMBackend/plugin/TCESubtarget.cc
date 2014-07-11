@@ -38,8 +38,16 @@
 #define GET_SUBTARGETINFO_CTOR
 #define GET_SUBTARGETINFO_MC_DESC
 #define GET_SUBTARGETINFO_TARGET_DESC
+
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+#define DEBUG_TYPE ""
+#endif
+
 #include "TCEGenSubTargetInfo.inc"
 
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+#undef DEBUG_TYPE
+#endif
 
 using namespace llvm;
 

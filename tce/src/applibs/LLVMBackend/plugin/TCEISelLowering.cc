@@ -151,8 +151,14 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   if (Flag.getNode())
     RetOps.push_back(Flag);
 
-  return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other,
-                     &RetOps[0], RetOps.size());
+#if (defined(LLVM3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+  return DAG.getNode(
+      TCEISD::RET_FLAG, dl, MVT::Other, &RetOps[0], RetOps.size());
+#else
+  return DAG.getNode(
+      TCEISD::RET_FLAG, dl, MVT::Other, ArrayRef<SDValue>(RetOps));
+#endif
+
 #endif
 }
 
@@ -458,8 +464,14 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Emit all stores, make sure the occur before any copies into physregs.
   if (!MemOpChains.empty()) {
-    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                        &MemOpChains[0], MemOpChains.size());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+      Chain = DAG.getNode(
+          ISD::TokenFactor, dl, MVT::Other, &MemOpChains[0], 
+          MemOpChains.size());
+#else
+      Chain = DAG.getNode(
+          ISD::TokenFactor, dl, MVT::Other, ArrayRef<SDValue>(MemOpChains));
+#endif
   }
 
   // Build a sequence of copy-to-reg nodes chained together with token
@@ -486,7 +498,15 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   NodeTys.push_back(MVT::Other);   // Returns a chain
   NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
+#else
+  Chain = DAG.getNode(
+      TCEISD::CALL, dl, ArrayRef<EVT>(NodeTys), 
+      ArrayRef<SDValue>(Ops, InFlag.getNode() ? 3 : 2));
+#endif
+
   InFlag = Chain.getValue(1);
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
@@ -642,9 +662,28 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     // SELECT is used instead of SELECT_CC.
     // so expand expands it into separate comparison and select.
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
+#else
+    // Using 'old way' MVT::Other to cover all value types is illegal now.
+    setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f32, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f64, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f80, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i1, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i8, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i16, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i32, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i64, Expand);
+
+    for (int i = MVT::FIRST_VECTOR_VALUETYPE;
+         i <= MVT::LAST_VECTOR_VALUETYPE; ++i) {
+        MVT VT = (MVT::SimpleValueType)i;
+        setOperationAction(ISD::SELECT_CC, VT, Expand);
+    }
+#endif
 
     // not needed when we uses xor for boolean comparison
 //    setOperationAction(ISD::SETCC, MVT::i1, Promote);
@@ -767,22 +806,53 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     }
 }
 
-SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
-    TargetLowering::ArgListTy Args;
+SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const { 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3)) 
     DebugLoc dl = Op->getDebugLoc();
 #else
     SDLoc dl(Op);
 #endif
-    TargetLowering::CallLoweringInfo CLI(Op->getOperand(0),
-                                         Type::getVoidTy(*DAG.getContext()),
-                                         false, false, false, false, 
-                                         0, CallingConv::C, false,
-                                         true, /* does not ret */
-                                         /*isReturnValueUsed=*/true,
-                                         DAG.getExternalSymbol(
-                                             "_exit", getPointerTy()),
-                                         Args, DAG, dl);
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+    TargetLowering::ArgListTy Args;
+
+    TargetLowering::CallLoweringInfo CLI(
+        Op->getOperand(0),
+        Type::getVoidTy(*DAG.getContext()),
+        false, 
+        false, 
+        false, 
+        false, 
+        0, 
+        CallingConv::C, 
+        false,
+        true, /* does not ret */
+        /*isReturnValueUsed=*/true,
+        DAG.getExternalSymbol("_exit", getPointerTy()),
+        Args,
+        DAG,
+        dl);
+#else
+    TargetLowering::ArgListTy Args;
+
+    TargetLowering::CallLoweringInfo CLI(DAG);
+    CLI.setDebugLoc(dl);
+    CLI.setChain(Op->getOperand(0));
+    CLI.setCallee(
+        CallingConv::C, 
+        Type::getVoidTy(*DAG.getContext()),
+        DAG.getExternalSymbol("_exit", getPointerTy()),
+        std::move(Args),
+        0);
+    CLI.setInRegister(false);
+    CLI.setNoReturn(true);
+    CLI.setVarArg(false);
+    CLI.setTailCall(false);
+    CLI.setDiscardResult(false);
+    CLI.setSExtResult(false);
+    CLI.setZExtResult(false);
+#endif
+
         std::pair<SDValue, SDValue> CallResult =
             LowerCallTo(CLI);
     return CallResult.second;
