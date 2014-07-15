@@ -513,6 +513,9 @@ if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
 fi
 
+rm -f $srcdir/../testsuite/systemtest/procgen/hpu/test_hpu_embedded.testdesc.disabled
+rm -f $srcdir/../testsuite/systemtest_long/bintools/llvm-frontend/llvm-frontend_O0.testdesc.disabled
+
 case "$LLVM_VERSION" in
      3.0)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
@@ -565,8 +568,10 @@ Please consult INSTALL for instructions.])
      ENABLE_CXX11=false
    ;;
      3.5*)
-     AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)")
-   ;;   
+     AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)") 
+     touch $srcdir/../testsuite/systemtest/procgen/hpu/test_hpu_embedded.testdesc.disabled
+     touch $srcdir/../testsuite/systemtest_long/bintools/llvm-frontend/llvm-frontend_O0.testdesc.disabled
+        ;;   
      *)
    AC_MSG_NOTICE(
    [
