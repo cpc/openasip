@@ -364,9 +364,8 @@ LLVMBackend::compile(
                 " of emulation library:\n" + ec.message();
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         } else {
-            ErrorOr<Module*> module = 
-                parseBitcodeFile(emuBuffer.get(), context);
-            emuM.reset(module.get());
+            emuM.reset(ParseBitcodeFile(
+                           emuBuffer.get(), context, &errMsgParse));
         }
 
         if (emuM.get() == 0) {
