@@ -151,7 +151,7 @@ typedef llvm::DataLayout TargetData;
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
-const TCEString LLVMBackend::CXX11_FLAG = "-std=gnu++11";
+const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
 
 /**
  * Returns minimum opset that is required by llvm.
@@ -320,29 +320,31 @@ LLVMBackend::compile(
     
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     OwningPtr<MemoryBuffer> buffer;
-#else
-    std::unique_ptr<MemoryBuffer> buffer;
-#endif
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(
             bytecodeFile.c_str(), buffer)) {
-#else
-    if (std::error_code ec = MemoryBuffer::getFileOrSTDIN(
-            bytecodeFile.c_str(), buffer)) {
-#endif
-            
         std::string msg = "Error reading bytecode file: " + bytecodeFile +
             "\n" + ec.message();
         throw CompileError(__FILE__, __LINE__, __func__, msg);
-    } else {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
-#else
-        ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
-        m.reset(module.get());
-#endif
     }
+
+    m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
+#else
+    ErrorOr<std::unique_ptr<MemoryBuffer>> bufferPtr =
+        MemoryBuffer::getFileOrSTDIN(bytecodeFile.c_str());
+
+    if (std::error_code ec = bufferPtr.getError()) {
+        std::string msg = "Error reading bytecode file: " + bytecodeFile +
+            "\n" + ec.message();
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    } 
+
+    /// @todo Not sure about std::move, replace with something else.
+    std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
+    ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+    m.reset(module.get());
+#endif
+
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
 	    "\n" + errMsgParse;
@@ -350,38 +352,23 @@ LLVMBackend::compile(
     }
 
     std::auto_ptr<Module> emuM;
+   
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     if (!emulationBytecodeFile.empty()) {
-        
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         OwningPtr<MemoryBuffer> emuBuffer;
-#else
-        std::unique_ptr<MemoryBuffer> emuBuffer;
-#endif
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         if (error_code ec = MemoryBuffer::getFileOrSTDIN(
                 emulationBytecodeFile.c_str(), emuBuffer)) {
-#else
-        if (std::error_code ec = MemoryBuffer::getFileOrSTDIN(
-                emulationBytecodeFile.c_str(), emuBuffer)) {
-#endif
-
             std::string msg = "Error reading bytecode file: " + 
                 emulationBytecodeFile +
                 " of emulation library:\n" + ec.message();
             throw CompileError(__FILE__, __LINE__, __func__, msg);
-        }
-        else {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-            emuM.reset(
-                ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
-#else
+        } else {
             ErrorOr<Module*> module = 
                 parseBitcodeFile(emuBuffer.get(), context);
             emuM.reset(module.get());
-#endif
-            
         }
+
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
                 emulationBytecodeFile + " of emulation library \n" 
@@ -389,7 +376,33 @@ LLVMBackend::compile(
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
-   
+#else
+    if (!emulationBytecodeFile.empty()) {
+        ErrorOr<std::unique_ptr<MemoryBuffer>> emuBufferPtr =
+            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile.c_str());
+
+        if (std::error_code ec = emuBufferPtr.getError()) {
+            std::string msg = "Error reading bytecode file: " + 
+                emulationBytecodeFile +
+                " of emulation library:\n" + ec.message();
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+
+        /// @todo Not sure about std::move, replace with something else.
+        std::unique_ptr<MemoryBuffer> emuBuffer = 
+            std::move(emuBufferPtr.get());
+        ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
+        emuM.reset(module.get());
+       
+        if (emuM.get() == 0) {
+            std::string msg = "Error parsing bytecode file: " + 
+                emulationBytecodeFile + " of emulation library \n" 
+                + errMsgParse;
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+    }
+#endif
+
     // Create target machine plugin.
     std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
 
@@ -397,8 +410,8 @@ LLVMBackend::compile(
     try {
         // Compile.
         result =
-            compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
-                    ipData);
+            compile(*m.release(), emuM.release(), *plugin, target, optLevel,
+                    debug, ipData);
     } catch (...) {
         // delete the backend plugin if we don't want to save it
         // Let's hope this doesn't crash as the plugin is loaded to the

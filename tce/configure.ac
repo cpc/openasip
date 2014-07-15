@@ -1252,9 +1252,9 @@ AC_MSG_CHECKING([whether c++11 language standard is enabled])
 if test x"$cxx11" = xtrue; then
    AC_MSG_RESULT([yes])
    AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
-   CXXFLAGS="$CXXFLAGS -std=gnu++11"
-   CPPFLAGS="$CPPFLAGS -std=gnu++11"
-   LDFLAGS="$LDFLAGS -std=gnu++11"
+   CXXFLAGS="$CXXFLAGS -std=c++11"
+   CPPFLAGS="$CPPFLAGS -std=c++11"
+   LDFLAGS="$LDFLAGS -std=c++11"
 else
    AC_MSG_RESULT([no])
 fi
