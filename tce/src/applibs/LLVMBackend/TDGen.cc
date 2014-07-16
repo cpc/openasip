@@ -563,7 +563,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         // go through all 1-bit RF classes
         if (ri->first.find("R32") == 0) {
             
-            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32,f32,f16], 32, (add ";
+            o << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i32,f32,f16,i1], 32, (add ";
             o << ri->second[0];
             for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
@@ -3433,7 +3433,7 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << std::endl << std::endl
 // select with the cond in an i32 (produced by expanded vselects with i32 cond vectors)
                 
-               << "def : Pat<(i32 (select R32Regs:$c, R32IRegs:$T, R32IRegs:$F)),"
+               << "def : Pat<(i32 (select R32IRegs:$c, R32IRegs:$T, R32IRegs:$F)),"
                << "(SELECT_I32rr (MOVI32I1rr R32Regs:$c),"
                << "R32IRegs:$T, R32IRegs:$F)>;" 
                << std::endl << std::endl

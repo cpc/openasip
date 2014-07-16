@@ -1440,6 +1440,7 @@ AC_CONFIG_FILES([
   src/procgen/HDB/Makefile 
   src/procgen/ProGe/Makefile
   src/procgen/HDBEditor/Makefile
+  src/procgen/MachInfo/Makefile
   src/applibs/Scheduler/Makefile
   src/applibs/Scheduler/ResourceModel/Makefile
   src/applibs/Scheduler/ResourceManager/Makefile

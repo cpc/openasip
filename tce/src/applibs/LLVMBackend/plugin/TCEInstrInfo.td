@@ -191,6 +191,10 @@ def PRED_FALSE_MOVI32rr : InstTCE<(outs R32IRegs:$dst),
 	           "$src -> $dst;",
                    []>;
 
+def MOVI1I32rr : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$src),
+                     "$src -> $dst;",
+                    []>;
+
 def MOVI32I1rr : InstTCE<(outs R1Regs:$dst), (ins R32IRegs:$src),
                      "$src -> $dst;",
                     [(set R1Regs:$dst, (trunc R32IRegs:$src))]>;
