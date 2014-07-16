@@ -59,6 +59,7 @@ Bugfixes
   sparse connectivity but no need for register copies.
 - Wrong number of parameters in osed dags might now have reasonable error
   message instead of crash.
+- Boolean return values no longer cause compiler to fail.
 
 1.9     January 2014
 ====================

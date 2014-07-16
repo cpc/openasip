@@ -111,7 +111,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
   // If this is the first return lowered for this function, add the regs to the
   // liveout set for the function.
   if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
@@ -135,12 +135,12 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_1)))
+#if (!(defined(LLVM_3_2)))
     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
 #endif
   }
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
   if (Flag.getNode())
     return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain, Flag);
   return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain);
@@ -656,7 +656,7 @@ TCETargetLowering::TCETargetLowering(
     // Expand jumptable branches.
     setOperationAction(ISD::BR_JT, MVT::Other, Expand);
     // Expand conditional branches.
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
     setOperationAction(ISD::BR_CC, MVT::Other, Expand);
 #else
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
