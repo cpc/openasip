@@ -7,6 +7,7 @@ Notable changes and features
 ----------------------------
 - machinfo: a tool for automatically printing out documentation of
   the designed ADF in LaTeX.
+- Support for LLVM 3.5.
 
 Smaller features and improvements
 ---------------------------------
@@ -32,8 +33,8 @@ Smaller features and improvements
   can then compile code which does not load 8/16 bit values.
   Previously these operations were needed even when not used.
 - C++11 compiling mode can be manually enabled by giving --enable-cxx11 switch
-  for the configure script.
-- C++11 compiling mode is always enabled if LLVM version is 3.5 or higher.
+  for the configure script. C++11 compiling mode is always enabled if LLVM
+  version is 3.5 or higher.
 
 Usability features
 ------------------
