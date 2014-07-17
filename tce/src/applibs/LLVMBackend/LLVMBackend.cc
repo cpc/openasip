@@ -93,9 +93,8 @@
 #define CONFIG_H
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+/// @note For LLVM 3.5 and greater std::error_code replaces llvm::error_code.
 #include "llvm/Support/system_error.h"
-#else
-/// @todo The file doesn't exist anymore. llvm::error_code -> std::error_code
 #endif
 
 
@@ -339,7 +338,6 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     } 
 
-    /// @todo Not sure about std::move, replace with something else.
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
     m.reset(module.get());
@@ -387,7 +385,6 @@ LLVMBackend::compile(
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
 
-        /// @todo Not sure about std::move, replace with something else.
         std::unique_ptr<MemoryBuffer> emuBuffer = 
             std::move(emuBufferPtr.get());
         ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
@@ -579,9 +576,11 @@ LLVMBackend::compile(
 #else
     /// @note DataLayout.h states that DataLayoutPass should never be used.
     /// Should this code segment be removed completely?
+    /*
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
     Passes.add(new DataLayoutPass(*DL));
+    */
 #endif
 
     targetMachine->addPassesToEmitFile(
