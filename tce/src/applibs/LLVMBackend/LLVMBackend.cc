@@ -574,13 +574,11 @@ LLVMBackend::compile(
     assert(TD != NULL);
     Passes.add(new TargetData(*TD));
 #else
-    /// @note DataLayout.h states that DataLayoutPass should never be used.
-    /// Should this code segment be removed completely?
-    /*
+    /// @todo DataLayout.h states that DataLayoutPass should never be used.
+    /// However, some tests will fail if it isn't added to Passes.
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
     Passes.add(new DataLayoutPass(*DL));
-    */
 #endif
 
     targetMachine->addPassesToEmitFile(
