@@ -5,9 +5,9 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.5.
 - machinfo: a tool for automatically printing out documentation of
   the designed ADF in LaTeX.
-- Support for LLVM 3.5.
 
 Smaller features and improvements
 ---------------------------------
