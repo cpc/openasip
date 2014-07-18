@@ -428,7 +428,12 @@ RegisterRenamer::renameDestinationRegister(
     // first find used fully scheduled ones!
     bool reused = true;
     
+#if !defined(HAVE_CXX11)
     std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
+#else
+    std::unique_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
+#endif
+
     if (liveRange->writes.empty()) {
         return false;
     }
