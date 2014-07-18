@@ -117,15 +117,10 @@ private:
 
     InterPassData* ipData_;
 
-    static const std::string TCEPLUGINGEN_BIN;
     static const std::string TBLGEN_INCLUDES;
-    static const std::string LLVM_CXX_FLAGS;
-    static const std::string LLVM_LD_FLAGS;
-    static const std::string LLVM_INCLUDE_DIR;
-
     static const std::string PLUGIN_PREFIX;
     static const std::string PLUGIN_SUFFIX;
-
+    static const TCEString CXX11_FLAG;
 };
 
 #endif

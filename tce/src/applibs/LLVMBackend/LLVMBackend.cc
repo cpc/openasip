@@ -34,7 +34,14 @@
 
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
+
+#include "tce_config.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Analysis/Dominators.h>
+#else
+#include <llvm/IR/Dominators.h>
+#endif
+
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/PassManager.h>
 #include <llvm/Pass.h>
@@ -57,7 +64,6 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
-#include "tce_config.h"
 #ifdef LLVM_3_2
 #include <llvm/Module.h>
 #include <llvm/LLVMContext.h>
@@ -68,7 +74,11 @@
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Analysis/Verifier.h>
+#else
+#include <llvm/IR/Verifier.h>
+#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -81,7 +91,12 @@
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+/// @note For LLVM 3.5 and greater std::error_code replaces llvm::error_code.
 #include "llvm/Support/system_error.h"
+#endif
+
 
 #include <cstdlib> // system()
 #include <fstream>
@@ -114,7 +129,11 @@
 
 using namespace llvm;
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/Assembly/PrintModulePass.h>
+#else
+#include <llvm/IR/IRPrintingPasses.h>
+#endif
 
 #ifdef LLVM_3_2
 
@@ -131,6 +150,7 @@ typedef llvm::DataLayout TargetData;
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
+const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
 
 /**
  * Returns minimum opset that is required by llvm.
@@ -296,15 +316,33 @@ LLVMBackend::compile(
     LLVMContext &context = getGlobalContext();
 
     std::auto_ptr<Module> m;
+    
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     OwningPtr<MemoryBuffer> buffer;
+
     if (error_code ec = MemoryBuffer::getFileOrSTDIN(
             bytecodeFile.c_str(), buffer)) {
         std::string msg = "Error reading bytecode file: " + bytecodeFile +
             "\n" + ec.message();
         throw CompileError(__FILE__, __LINE__, __func__, msg);
-    } else {
-        m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
     }
+
+    m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
+#else
+    ErrorOr<std::unique_ptr<MemoryBuffer>> bufferPtr =
+        MemoryBuffer::getFileOrSTDIN(bytecodeFile.c_str());
+
+    if (std::error_code ec = bufferPtr.getError()) {
+        std::string msg = "Error reading bytecode file: " + bytecodeFile +
+            "\n" + ec.message();
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    } 
+
+    std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
+    ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+    m.reset(module.get());
+#endif
+
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
 	    "\n" + errMsgParse;
@@ -312,19 +350,22 @@ LLVMBackend::compile(
     }
 
     std::auto_ptr<Module> emuM;
+   
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     if (!emulationBytecodeFile.empty()) {
         OwningPtr<MemoryBuffer> emuBuffer;
+
         if (error_code ec = MemoryBuffer::getFileOrSTDIN(
                 emulationBytecodeFile.c_str(), emuBuffer)) {
             std::string msg = "Error reading bytecode file: " + 
                 emulationBytecodeFile +
                 " of emulation library:\n" + ec.message();
             throw CompileError(__FILE__, __LINE__, __func__, msg);
+        } else {
+            emuM.reset(ParseBitcodeFile(
+                           emuBuffer.get(), context, &errMsgParse));
         }
-        else {
-            emuM.reset(
-                ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
-        }
+
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
                 emulationBytecodeFile + " of emulation library \n" 
@@ -332,7 +373,32 @@ LLVMBackend::compile(
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
-   
+#else
+    if (!emulationBytecodeFile.empty()) {
+        ErrorOr<std::unique_ptr<MemoryBuffer>> emuBufferPtr =
+            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile.c_str());
+
+        if (std::error_code ec = emuBufferPtr.getError()) {
+            std::string msg = "Error reading bytecode file: " + 
+                emulationBytecodeFile +
+                " of emulation library:\n" + ec.message();
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+
+        std::unique_ptr<MemoryBuffer> emuBuffer = 
+            std::move(emuBufferPtr.get());
+        ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
+        emuM.reset(module.get());
+       
+        if (emuM.get() == 0) {
+            std::string msg = "Error parsing bytecode file: " + 
+                emulationBytecodeFile + " of emulation library \n" 
+                + errMsgParse;
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+    }
+#endif
+
     // Create target machine plugin.
     std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
 
@@ -340,8 +406,8 @@ LLVMBackend::compile(
     try {
         // Compile.
         result =
-            compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
-                    ipData);
+            compile(*m.release(), emuM.release(), *plugin, target, optLevel,
+                    debug, ipData);
     } catch (...) {
         // delete the backend plugin if we don't want to save it
         // Let's hope this doesn't crash as the plugin is loaded to the
@@ -470,7 +536,10 @@ LLVMBackend::compile(
 //TODO: new llvm removed/renamed this
 //  Options.DisableJumpTables = false; //DisableSwitchTables;
 //  Options.TrapFuncName = TrapFuncName;
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
   Options.EnableSegmentedStacks = false; //SegmentedStacks;
+#endif
 
     TCETargetMachine* targetMachine = 
         static_cast<TCETargetMachine*>(
@@ -500,10 +569,17 @@ LLVMBackend::compile(
 //    ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     const TargetData *TD = targetMachine->getDataLayout();
-    assert(TD);
-
+    assert(TD != NULL);
     Passes.add(new TargetData(*TD));
+#else
+    /// @todo DataLayout.h states that DataLayoutPass should never be used.
+    /// However, some tests will fail if it isn't added to Passes.
+    const DataLayout *DL = targetMachine->getDataLayout();
+    assert(DL != NULL);
+    Passes.add(new DataLayoutPass(*DL));
+#endif
 
     targetMachine->addPassesToEmitFile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
@@ -802,6 +878,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
         " " + LLVM_CPPFLAGS +
+#if defined(HAVE_CXX11)
+        " " + CXX11_FLAG +
+#endif
         " " + pluginSources +
         " -o " + pluginFileName;
 
