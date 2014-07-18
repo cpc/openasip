@@ -315,8 +315,12 @@ LLVMBackend::compile(
     std::string errMsgParse;
     LLVMContext &context = getGlobalContext();
 
+#if !defined(HAVE_CXX11)
     std::auto_ptr<Module> m;
-    
+#else
+    std::unique_ptr<Module> m;
+#endif
+
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     OwningPtr<MemoryBuffer> buffer;
 
@@ -349,7 +353,11 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
+#if !defined(HAVE_CXX11)
     std::auto_ptr<Module> emuM;
+#else
+    std::unique_ptr<Module> emuM;
+#endif   
    
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     if (!emulationBytecodeFile.empty()) {
@@ -400,7 +408,11 @@ LLVMBackend::compile(
 #endif
 
     // Create target machine plugin.
+#if !defined(HAVE_CXX11)
     std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
+#else
+    std::unique_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
+#endif
 
     TTAProgram::Program* result = NULL;
     try {
