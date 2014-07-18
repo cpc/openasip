@@ -254,7 +254,8 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*ignoring.\#pragma.GCC.diagnostic.*|\
 distcc.*Warning.*|\
 .*clang..warning..argument.unused.during.compilation...-pthread..*|\
-.*wxDummyCheckInt.*"
+.*wxDummyCheckInt.*|\
+.*boost/.*warning:.typedef.'.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
