@@ -50,6 +50,8 @@
 #include "Move.hh"
 #include "LiveRange.hh"
 
+#include "tce_config.h"
+
 /**
  * Constructor.
  *
@@ -426,7 +428,12 @@ RegisterRenamer::renameDestinationRegister(
     // first find used fully scheduled ones!
     bool reused = true;
     
+#if !defined(HAVE_CXX11)
     std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
+#else
+    std::unique_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
+#endif
+
     if (liveRange->writes.empty()) {
         return false;
     }
@@ -530,7 +537,12 @@ RegisterRenamer::renameSourceRegister(
     // first find used fully scheduled ones!
     bool reused = true;
 
+#if !defined(HAVE_CXX11)
     std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
+#else
+    std::unique_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
+#endif
+
     if (liveRange->writes.empty()) {
         return false;
     }

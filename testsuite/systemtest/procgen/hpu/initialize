@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -f *.disabled
+#rm -f *.disabled
 rm -fr proge-output
 
 ghdl_bin=$(which ghdl 2> /dev/null)

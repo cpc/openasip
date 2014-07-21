@@ -230,7 +230,13 @@ TCERegisterInfo::emitEpilogue(
     MachineFunction& mf, MachineBasicBlock& mbb) const {
 
     MachineFrameInfo* mfi = mf.getFrameInfo();
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     MachineBasicBlock::iterator mbbi = prior(mbb.end());
+#else
+    MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
+#endif
+
     DebugLoc dl = mbbi->getDebugLoc();
 
     if (mbbi->getOpcode() != TCE::RETL && mbbi->getOpcode() != TCE::RETL_old) {

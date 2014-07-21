@@ -101,7 +101,13 @@
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/DebugInfo.h>
+#else
+#include <llvm/IR/DebugInfo.h>
+#endif
+
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 
@@ -280,8 +286,10 @@ LLVMTCEBuilder::initDataSections() {
         new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
+#elif defined(LLVM_3_4)
+    mang_ = new Mangler(tm_);
 #else
-    mang_ = new Mangler(tm_); 
+    mang_ = new Mangler(tm_->getDataLayout());
 #endif
 
 #if 0
