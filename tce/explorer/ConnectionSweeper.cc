@@ -67,6 +67,7 @@
 #include "MinimalOpSetCheck.hh"
 #include "MachineCheckResults.hh"
 
+#include "tce_config.h"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -410,8 +411,14 @@ private:
 
         std::list<RowID> results;
 
+#if !defined(HAVE_CXX11)
         std::auto_ptr<TTAMachine::Machine> currentMachine(
             db().architecture(startConf.architectureID));
+#else
+        std::unique_ptr<TTAMachine::Machine> currentMachine(
+            db().architecture(startConf.architectureID));
+#endif
+        
         for (std::vector<const TTAMachine::Connection*>::iterator 
                  connI = connections.begin(); connI != connections.end();
              ++connI) {
@@ -427,9 +434,17 @@ private:
         bool success = evaluate(conf, estimates, false);
         float worsening = averageWorsening(confId);
         if (success) {
+#if !defined(HAVE_CXX11)
             std::auto_ptr<TTAMachine::Machine> arch
                 (db().architecture(
                     db().configuration(confId).architectureID));
+#else
+            std::unique_ptr<TTAMachine::Machine> arch
+                (db().architecture(
+                    db().configuration(confId).architectureID));
+#endif
+
+            
             if (worsening <= ccWorseningThreshold_) {
                 results.push_back(confId);
                 TCEString s;

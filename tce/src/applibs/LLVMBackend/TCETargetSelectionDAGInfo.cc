@@ -35,6 +35,10 @@
 namespace llvm {
     
     TCESelectionDAGInfo::TCESelectionDAGInfo(const TCETargetMachine &tm) :
-	TargetSelectionDAGInfo(tm) {}
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+        TargetSelectionDAGInfo(tm) {}
+#else
+        TargetSelectionDAGInfo(tm.getDataLayout()) {}
+#endif
     TCESelectionDAGInfo::~TCESelectionDAGInfo() {}
 }

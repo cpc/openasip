@@ -41,7 +41,12 @@
 #include "llvm/IR/Module.h"
 #endif
 #include "llvm/Pass.h"
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include "llvm/Linker.h"
+#else
+#include "llvm/Linker/Linker.h"
+#endif
 
 using namespace llvm;
 

@@ -49,7 +49,13 @@
 #include "llvm/Pass.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include "llvm/Support/CFG.h"
+#else
+#include "llvm/Analysis/CFG.h"
+#endif
+
 #include "llvm/Support/Compiler.h"
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/ADT/DepthFirstIterator.h"
