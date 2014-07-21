@@ -1233,6 +1233,9 @@ fi
 # Determine whether the C++11 language standard is enabled or not.
 #
 #################################################################
+AC_LANG(C++)
+
+# Check if the enable parameter has been given to configure.
 AC_ARG_ENABLE(cxx11,
 [AS_HELP_STRING([--enable-cxx11],[use c++11 language standard])],
 [ case "${enableval}" in
@@ -1249,6 +1252,7 @@ AC_ARG_ENABLE(cxx11,
   [cxx11=false]
 )
 
+# If LLVM version is 3.5 or greater, force the mode on.
 if test x"$ENABLE_CXX11" = xtrue; then
    cxx11=true
 fi
@@ -1256,6 +1260,10 @@ fi
 AC_MSG_CHECKING([whether c++11 language standard is enabled])
 if test x"$cxx11" = xtrue; then
    AC_MSG_RESULT([yes])
+
+   # If C++11 mode is enabled, check that the compiler supports it.
+   AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+
    AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
    CXXFLAGS="$CXXFLAGS -std=c++11"
    CPPFLAGS="$CPPFLAGS -std=c++11"
