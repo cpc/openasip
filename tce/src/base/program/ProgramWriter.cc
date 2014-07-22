@@ -94,6 +94,7 @@
 #include "InstructionElement.hh"
 #include "TCEString.hh"
 #include "MathTools.hh"
+#include "POMDisassembler.hh"
 
 using TPEF::Binary;
 using TPEF::Section;
@@ -1060,10 +1061,12 @@ ProgramWriter::createCodeSection(
                                 MathTools::zeroExtendTo(
                                     wordToStore, fieldWidth);
                         } else {
+                            TCEString disasm = POMDisassembler::disassemble(progMove);
                             int location =  
                                 progMove.parent().address().location();
-                            TCEString message = "Inline immediate value ";
-                            message <<
+                            TCEString message = "In procedure:";
+                            message << currProcedure.name() <<  " Move: " <<
+                                disasm << " Inline immediate value " <<
                                 progMove.source().value().unsignedValue() <<
                                 " of required width " <<
                                 Conversion::toString(requiredBits) <<
