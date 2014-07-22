@@ -4,7 +4,7 @@ ttasim=../../../../../tce/src/codesign/ttasim/ttasim
 
 tpef=bool_return_value.tpef
 src=data/bool_return_value.cpp
-adf=data/bool_return_value.adf
+adf=../../../../../tce/data/mach/minimal.adf
 
 $tcecc -O0 --swfp -a $adf -o $tpef $src
 

@@ -302,7 +302,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVF16hi) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
-    if (opc == TCE::KILL) return "KILL";
 
     if (opc == TCE::ANDext) return "and";
     if (opc == TCE::XORbicmp) return "xor";

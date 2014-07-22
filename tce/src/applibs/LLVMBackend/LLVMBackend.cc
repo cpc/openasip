@@ -150,6 +150,7 @@ typedef llvm::DataLayout TargetData;
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
+const TCEString LLVMBackend::CXX0X_FLAG = "-std=c++0x";
 const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
 
 /**
@@ -315,7 +316,7 @@ LLVMBackend::compile(
     std::string errMsgParse;
     LLVMContext &context = getGlobalContext();
 
-#if !defined(HAVE_CXX11)
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
     std::auto_ptr<Module> m;
 #else
     std::unique_ptr<Module> m;
@@ -353,7 +354,7 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
-#if !defined(HAVE_CXX11)
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
     std::auto_ptr<Module> emuM;
 #else
     std::unique_ptr<Module> emuM;
@@ -408,7 +409,7 @@ LLVMBackend::compile(
 #endif
 
     // Create target machine plugin.
-#if !defined(HAVE_CXX11)
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
     std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
 #else
     std::unique_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
@@ -890,7 +891,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
         " " + LLVM_CPPFLAGS +
-#if defined(HAVE_CXX11)
+#if defined(HAVE_CXX0X)
+        " " + CXX0X_FLAG +
+#elif defined(HAVE_CXX11)
         " " + CXX11_FLAG +
 #endif
         " " + pluginSources +
