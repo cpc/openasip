@@ -398,6 +398,11 @@ TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
         return false;
     }
 
+    // KILL is not a predicated instruction.
+    if (mi->getOpcode() == TCE::KILL) {
+        return false;
+    }
+
     TCEString opName = plugin_->operationName(mi->getOpcode());
     return opName[0] == '?' || opName[0] == '!';
 }
