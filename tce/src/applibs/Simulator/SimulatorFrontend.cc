@@ -359,7 +359,12 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
         checks.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
     }
 
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
     std::auto_ptr<POMValidatorResults> results(validator.validate(checks));
+#else
+    std::unique_ptr<POMValidatorResults> results(validator.validate(checks));
+#endif
+
     if (results->errorCount() > 0) {
         std::string errorMsg = textGen.text(
             Texts::TXT_UNABLE_TO_LOAD_PROGRAM).str();

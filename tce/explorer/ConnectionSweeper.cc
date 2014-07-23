@@ -411,7 +411,7 @@ private:
 
         std::list<RowID> results;
 
-#if !defined(HAVE_CXX11)
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
         std::auto_ptr<TTAMachine::Machine> currentMachine(
             db().architecture(startConf.architectureID));
 #else
@@ -434,7 +434,7 @@ private:
         bool success = evaluate(conf, estimates, false);
         float worsening = averageWorsening(confId);
         if (success) {
-#if !defined(HAVE_CXX11)
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
             std::auto_ptr<TTAMachine::Machine> arch
                 (db().architecture(
                     db().configuration(confId).architectureID));

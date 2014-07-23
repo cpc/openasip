@@ -194,8 +194,13 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
             
+#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
             std::auto_ptr<TTAProgram::Program> scheduledProgram(
                 schedule(applicationFile, *adf));
+#else
+            std::unique_ptr<TTAProgram::Program> scheduledProgram(
+                schedule(applicationFile, *adf));
+#endif
 
             if (scheduledProgram.get() == NULL) {
                 dsdb_->setUnschedulable((*i), configuration.architectureID);

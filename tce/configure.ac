@@ -513,7 +513,6 @@ if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
 fi
 
-rm -f $srcdir/../testsuite/systemtest/procgen/hpu/test_hpu_embedded.testdesc.disabled
 rm -f $srcdir/../testsuite/systemtest_long/bintools/llvm-frontend/llvm-frontend_O0.testdesc.disabled
 
 case "$LLVM_VERSION" in
@@ -569,7 +568,6 @@ Please consult INSTALL for instructions.])
    ;;
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)") 
-     touch $srcdir/../testsuite/systemtest/procgen/hpu/test_hpu_embedded.testdesc.disabled
      touch $srcdir/../testsuite/systemtest_long/bintools/llvm-frontend/llvm-frontend_O0.testdesc.disabled
         ;;   
      *)
@@ -1261,13 +1259,29 @@ AC_MSG_CHECKING([whether c++11 language standard is enabled])
 if test x"$cxx11" = xtrue; then
    AC_MSG_RESULT([yes])
 
-   # If C++11 mode is enabled, check that the compiler supports it.
+   # Check that the compiler supports C++11 mode.
    AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
-   AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
-   CXXFLAGS="$CXXFLAGS -std=c++11"
-   CPPFLAGS="$CPPFLAGS -std=c++11"
-   LDFLAGS="$LDFLAGS -std=c++11"
+   # AX_CXX_COMPILE_STDCXX_11 macro sets CXXFLAGS to include -std=c++0x or
+   # -std=c++11, check which one and set other flags accordingly.
+   define_cxx0x=false
+   for flag in $CXXFLAGS; do
+       if test x"$flag" = x-std=c++0x; then
+          define_cxx0x=true
+          break
+       fi
+   done
+   
+   # Set the flags to use -std=c++0x or -std=c++11.
+   if test x"$define_cxx0x" = xtrue; then
+      AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard.])
+      CPPFLAGS="$CPPFLAGS -std=c++0x"
+      LDFLAGS="$LDFLAGS -std=c++0x"
+   else
+      AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
+      CPPFLAGS="$CPPFLAGS -std=c++11"
+      LDFLAGS="$LDFLAGS -std=c++11"
+   fi
 else
    AC_MSG_RESULT([no])
 fi
