@@ -2850,34 +2850,46 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
     std::string globalName = 
         constructors ? 
         ("llvm.global_ctors") : ("llvm.global_dtors");
-    
+
     TTAProgram::Instruction* firstInstruction = NULL;
 
     // find the _llvm.global_Xtors global with the
     // function pointers and priorities
-
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
-
+        
         const GlobalVariable* gv = i;
 
         if (gv->getName() == globalName && gv->use_empty()) {
-            // The initializer should be an array of '{ int, void ()* }' structs.  
+            // The initializer should be an array of '{ int, void ()* }' 
+            // structs for LLVM 3.4 and lower, and an array of
+            // '{ int, void ()*, i8* }' structs for LLVM 3.5.
             // The first value is the init priority, which we ignore.
             const ConstantArray* initList = cast<const ConstantArray>
                 (gv->getInitializer());
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {
-                    // Not array of 2-element structs.
-                    if (cs->getNumOperands() != 2) 
-                        return firstInstruction;  
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+                    // Not an array of 2-element structs.
+                    if (cs->getNumOperands() != 2) {
+                        return firstInstruction;
+                    }
+#else
+                    // LLVM 3.5 introduced an additional field, so test for
+                    // an array of 3-element structs.
+                    if (cs->getNumOperands() != 3) {
+                        return firstInstruction;
+                    }
+#endif
 
                      // Found a null terminator, exit printing.
-                    if (cs->getOperand(1)->isNullValue())
-                        return firstInstruction;  
-                    // Emit the call.
+                    if (cs->getOperand(1)->isNullValue()) {
+                        return firstInstruction;
+                    }
 
+                    // Emit the call.
                     GlobalValue* gv =  dynamic_cast<GlobalValue*>(
                         cs->getOperand(1));
                     assert(gv != NULL&&"global constructor name not constv");
