@@ -9,76 +9,76 @@ half mac( const half& a, const half& b, const half& c );
 
 class half {
 public:
-    inline half() {
+    __attribute__((always_inline)) half() {
     };
-    inline half( float a ) {
+    __attribute__((always_inline)) half( float a ) {
         _TCE_CFH( a, data );
     };
-    inline half( double ad ) {
+    __attribute__((always_inline)) half( double ad ) {
         float a = ad;
         _TCE_CFH( a, data );
     };
-    inline half( const half& a ) {
+    __attribute__((always_inline)) half( const half& a ) {
         data=a.data;
     };
-    inline void operator=( float a ) {
+    __attribute__((always_inline)) void operator=( float a ) {
         _TCE_CFH( a, data );
     }   
-    inline void operator=( double ad ) {
+    __attribute__((always_inline)) void operator=( double ad ) {
         float a = ad;
         _TCE_CFH( a, data );
     }   
-    inline void operator=( const half& a ) {
+    __attribute__((always_inline)) void operator=( const half& a ) {
         data = a.data;
     }   
-    inline half operator+( const half& a ) const {
+    __attribute__((always_inline)) half operator+( const half& a ) const {
         half result;
         _TCE_ADDH( data, a.data, result.data );
         return result;
     }
-    inline half operator-( const half& a ) const {
+    __attribute__((always_inline)) half operator-( const half& a ) const {
         half result;
         _TCE_SUBH( data, a.data, result.data );
         return result;
     }
-    inline half operator*( const half& a ) const {
+    __attribute__((always_inline)) half operator*( const half& a ) const {
         half result;
         _TCE_MULH( data, a.data, result.data );
         return result;
     }
-    inline half operator/( const half& a ) const {
+    __attribute__((always_inline)) half operator/( const half& a ) const {
         half result;
         _TCE_DIVH( data, a.data, result.data );
         return result;
     }
     
     //TODO should rewrite with just EQH and GTH?
-    inline bool operator<( const half& a ) const { 
+    __attribute__((always_inline)) bool operator<( const half& a ) const { 
         bool result;
         _TCE_LTH( data, a.data, result );
         return result;
     }
-    inline bool operator<=( const half& a ) const {
+    __attribute__((always_inline)) bool operator<=( const half& a ) const {
         bool result;
         _TCE_LEH( data, a.data, result );
         return result;
     }
-    inline bool operator==( const half& a ) const {
+    __attribute__((always_inline)) bool operator==( const half& a ) const {
         bool result;
         _TCE_EQH( data, a.data, result );
         return result;
     }
-    inline bool operator>=( const half& a ) const {
+    __attribute__((always_inline)) bool operator>=( const half& a ) const {
         bool result;
         _TCE_GEH( data, a.data, result );
         return result;
     }
-    inline bool operator>( const half& a ) const {
+    __attribute__((always_inline)) bool operator>( const half& a ) const {
         bool result;
         _TCE_GTH( data, a.data, result );
         return result;
     }
-    inline bool operator!=( const half& a ) const {
+    __attribute__((always_inline)) bool operator!=( const half& a ) const {
         bool result;
         _TCE_NEH( data, a.data, result );
         return result;
@@ -89,24 +89,24 @@ public:
         return f;
     }
     
-    inline half abs() const {
+    __attribute__((always_inline)) half abs() const {
         half result;
         _TCE_ABSH( data, result.data );
         return result;
     }
-    inline half operator-( ) const {
+    __attribute__((always_inline)) half operator-( ) const {
         half result;
         _TCE_NEGH( data, result.data );
         return result;
     }
     
-    inline half invsqrt() const {
+    __attribute__((always_inline)) half invsqrt() const {
         half result;
         _TCE_INVSQRTH( data, result.data );
         return result;
     }
     
-    inline half square() const {
+    __attribute__((always_inline)) half square() const {
         half result;
         //_TCE_SQUAREH( data, result.data );
         _TCE_MULH( data, data, result.data );
@@ -121,32 +121,32 @@ private:
     int data;
 };
 
-inline half mac( const half& a, const half& b, const half& c ) {
+__attribute__((always_inline)) half mac( const half& a, const half& b, const half& c ) {
     half result;
     _TCE_MACH( a.data, b.data, c.data, result.data );
     return result;
 }
 
-inline half msu( const half& a, const half& b, const half& c ) {
+__attribute__((always_inline)) half msu( const half& a, const half& b, const half& c ) {
     half result;
     _TCE_MSUH( a.data, b.data, c.data, result.data );
     return result;
 }
 
 
-inline half max( const half& a, const half& b ) {
+__attribute__((always_inline)) half max( const half& a, const half& b ) {
     half result;
     _TCE_MAXH( a.data, b.data, result.data );
     return result;
 }
 
-inline half min( const half& a, const half& b ) {
+__attribute__((always_inline)) half min( const half& a, const half& b ) {
     half result;
     _TCE_MINH( a.data, b.data, result.data );
     return result;
 }
 
-inline void test( int a ) {
+__attribute__((always_inline)) void test( int a ) {
     if( a ) {
         _TCE_STDOUT('O'); 
     }
