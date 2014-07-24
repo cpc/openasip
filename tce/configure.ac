@@ -353,46 +353,6 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 ########################
 
 
-######################################
-#
-# Check boost libraries
-#
-######################################
-AX_BOOST_BASE([1.41.0])
-if test -z "$BOOST_LDFLAGS"
-then
-AC_MSG_ERROR(
-[boost library not found. Install it or use --with-boost switch])
-fi
-
-AX_BOOST_FILESYSTEM
-if test -z "$BOOST_FILESYSTEM_LIB"
-then
-AC_MSG_ERROR(
-[boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
-fi
-#boost::system is not needed for anything AFAIK, works without...
-AX_BOOST_SYSTEM
-if test -z "$BOOST_SYSTEM_LIB"
-then
-AC_MSG_NOTICE(
-[boost_filesystem library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
-fi
-
-AX_BOOST_REGEX
-if test -z "$BOOST_REGEX_LIB"
-then
-AC_MSG_ERROR(
-[boost_regex library not found. Install it or use --with-boost-regex switch])
-fi
-
-AX_BOOST_THREAD
-if test -z "$BOOST_THREAD_LIB"
-then
-AC_MSG_ERROR(
-[boost_thread library not found. Install it or use --with-boost-thread switch])
-fi
-
 ##########################################################################
 #
 # With this switch user can define the compilation flags that make the
@@ -1231,6 +1191,10 @@ fi
 # Determine whether the C++11 language standard is enabled or not.
 #
 #################################################################
+
+# Defines the lowest required boost version.
+MIN_BOOST_VERSION=1.41.0
+
 AC_LANG(C++)
 
 # Check if the enable parameter has been given to configure.
@@ -1262,6 +1226,9 @@ if test x"$cxx11" = xtrue; then
    # Check that the compiler supports C++11 mode.
    AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
+   # Require at least boost 1.48.0 if C++11 mode is used.
+   MIN_BOOST_VERSION=1.48.0
+
    # AX_CXX_COMPILE_STDCXX_11 macro sets CXXFLAGS to include -std=c++0x or
    # -std=c++11, check which one and set other flags accordingly.
    define_cxx0x=false
@@ -1285,6 +1252,48 @@ if test x"$cxx11" = xtrue; then
 else
    AC_MSG_RESULT([no])
 fi
+
+
+######################################
+#
+# Check boost libraries
+#
+######################################
+AX_BOOST_BASE([$MIN_BOOST_VERSION])
+if test -z "$BOOST_LDFLAGS"
+then
+AC_MSG_ERROR(
+[boost library not found. Install it or use --with-boost switch])
+fi
+
+AX_BOOST_FILESYSTEM
+if test -z "$BOOST_FILESYSTEM_LIB"
+then
+AC_MSG_ERROR(
+[boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
+fi
+#boost::system is not needed for anything AFAIK, works without...
+AX_BOOST_SYSTEM
+if test -z "$BOOST_SYSTEM_LIB"
+then
+AC_MSG_NOTICE(
+[boost_filesystem library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
+fi
+
+AX_BOOST_REGEX
+if test -z "$BOOST_REGEX_LIB"
+then
+AC_MSG_ERROR(
+[boost_regex library not found. Install it or use --with-boost-regex switch])
+fi
+
+AX_BOOST_THREAD
+if test -z "$BOOST_THREAD_LIB"
+then
+AC_MSG_ERROR(
+[boost_thread library not found. Install it or use --with-boost-thread switch])
+fi
+
 
 ################################
 #
@@ -1575,7 +1584,7 @@ AC_OUTPUT
 
 echo "***************************************"
 echo "Found xerces-c library."
-echo "Found boost library >= v.1.33.0"
+echo "Found boost library >= v.$MIN_BOOST_VERSION"
 echo "Found sqlite3 library."
 
 if test x"$LATEX" = xyes;
