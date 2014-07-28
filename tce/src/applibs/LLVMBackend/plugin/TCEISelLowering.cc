@@ -151,7 +151,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   if (Flag.getNode())
     RetOps.push_back(Flag);
 
-#if (defined(LLVM3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
   return DAG.getNode(
       TCEISD::RET_FLAG, dl, MVT::Other, &RetOps[0], RetOps.size());
 #else
