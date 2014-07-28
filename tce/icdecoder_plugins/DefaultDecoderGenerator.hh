@@ -100,6 +100,9 @@ public:
     void verifyCompatibility() const
         throw (InvalidData);
 
+    void setGenerateLockTrace(bool generate);
+    void setLockTraceStartingCycle(unsigned int startCycle);
+
 private:
     /// Set type for buses.
     typedef std::set<TTAMachine::Bus*> BusSet;
@@ -109,6 +112,7 @@ private:
     int glockRequestWidth() const;
 
     void writeInstructionDecoder(std::ostream& stream) const;
+    void writeLockDumpCode(std::ostream& stream) const;
     void writeSourceDestinationAndGuardSignals(std::ostream& stream) const;
     void writeImmediateSlotSignals(std::ostream& stream) const;
     void writeLongImmediateTagSignal(std::ostream& stream) const;
@@ -263,8 +267,13 @@ private:
     const ProGe::NetlistGenerator* nlGenerator_;    
     /// The instruction decoder block in the netlist.
     ProGe::NetlistBlock* decoderBlock_;
+    /// Tells whether to generate global lock tracing code.
+    bool generateLockTrace_;
+    /// The starting cycle for bus tracing.
+    unsigned int lockTraceStartingCycle_;
     TCEString entityNameStr_;
     ProGe::HDL language_;
+
 };
 
 #endif

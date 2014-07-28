@@ -97,6 +97,7 @@ const string LIMM_TAG_SIGNAL = "limm_tag";
 const string GLOCK_PORT_NAME = "glock";
 const string LOCK_REQ_PORT_NAME = "lock_req";
 
+
 const string JUMP = "jump";
 const string CALL = "call";
 
@@ -112,7 +113,8 @@ DefaultDecoderGenerator::DefaultDecoderGenerator(
     const BinaryEncoding& bem,
     const CentralizedControlICGenerator& icGenerator) : 
     machine_(machine), bem_(bem), icGenerator_(icGenerator),
-    nlGenerator_(NULL), decoderBlock_(NULL) {
+    nlGenerator_(NULL), decoderBlock_(NULL), generateLockTrace_(false),
+    lockTraceStartingCycle_(1) {
 }
 
 /**
@@ -572,6 +574,25 @@ DefaultDecoderGenerator::verifyCompatibility() const
     }
 }
 
+/**
+ * Controls whenever global lock trace dump process will be generated.
+ *
+ * @param generate Generate lock trace process if true.
+ */
+void
+DefaultDecoderGenerator::setGenerateLockTrace(bool generate) {
+    generateLockTrace_ = generate;
+}
+
+/**
+ * Sets starting cycle to begin global lock tracing.
+ *
+ * @param startCycle nth cycle to begin tracing.
+ */
+void
+DefaultDecoderGenerator::setLockTraceStartingCycle(unsigned int startCycle) {
+    lockTraceStartingCycle_ = startCycle;
+}
 
 /**
  * Writes the instruction decoder to the given stream.
@@ -584,6 +605,9 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
         stream << "use IEEE.std_logic_arith.all;" << endl;
+        if (generateLockTrace_ == true) {
+            stream << "use STD.textio.all;" << endl;
+        }
         stream << "use work." << entityNameStr_ << "_globals.all;" << endl;
         stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;" << endl << endl;
         
@@ -618,6 +642,11 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         
         stream << endl << "begin" << endl << endl;
         
+        if (generateLockTrace_ == true) {
+            writeLockDumpCode(stream);
+            stream << endl;
+        }
+
         writeInstructionDismembering(stream);
         stream << endl;
         writeControlRegisterMappings(stream);
@@ -719,6 +748,104 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
     }
 }
 
+/**
+ * Writes process that captures state of global lock per clock cycle. The
+ * captured contents are dumped into an output file.
+ *
+ * @param stream The stream to write.
+ */
+void
+DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
+    if (language_==VHDL){
+        stream << indentation(1)
+               << "-- Dump the status of global lock into a file once "
+                  "in clock cycle"
+               << endl
+               << indentation(1)
+               << "-- setting DUMP false will disable dumping"
+               << endl << endl;
+
+        stream << indentation(1)
+               << "-- Do not synthesize this process!"
+               << endl
+               << indentation(1)
+               << "-- pragma synthesis_off"
+               << endl << endl;
+
+        stream << indentation(1)
+               << "file_output : process" << endl;
+        stream << indentation(2)
+               << "file fileout : text;" << endl << endl
+               << indentation(2)
+               << "variable lineout : line;" << endl
+               << indentation(2)
+               << "variable start : boolean := true;" << endl
+               << indentation(2)
+               << "variable count : integer := 0;" << endl
+               << indentation(2)
+               << "constant SEPARATOR : string := \" | \";" << endl
+               << indentation(2)
+               << "constant DUMP : boolean := true;" << endl
+               << indentation(2)
+               << "constant DUMPFILE : string := \"lock.dump\";" << endl;
+
+        stream << indentation(1)
+               << "begin" << endl;
+
+        stream << indentation(2)
+               << "if DUMP = true then" << endl;
+
+        stream << indentation(3)
+               << "if start = true then" << endl;
+
+        stream << indentation(4)
+               << "file_open(fileout, DUMPFILE, write_mode);" << endl
+               << indentation(4)
+               << "start := false;" << endl;
+
+        stream << indentation(3)
+               << "end if;" << endl;
+
+        stream << indentation(3)
+               << "wait for PERIOD;" << endl;
+
+        stream << indentation(3)
+               << "if count > " << (lockTraceStartingCycle_ - 1)
+               << " then" << endl;
+
+        stream << indentation(4)
+               << "write(lineout, count-" << lockTraceStartingCycle_
+               << ", right, 12);" << endl
+               << indentation(4)
+               << "write(lineout, SEPARATOR);" << endl
+               << indentation(4)
+               << "write(lineout, conv_integer(unsigned'(\"\" & "
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
+               << ")), right, 12);" << endl
+               << indentation(4)
+               << "write(lineout, SEPARATOR);" << endl
+               << indentation(4)
+               << "writeline(fileout, lineout);" << endl;
+
+        stream << indentation(3)
+               << "end if;" << endl;
+        stream << indentation(3)
+               << "count := count + 1;" << endl;
+
+        stream << indentation(2)
+               << "end if;" << endl;
+
+        stream << indentation(1)
+               << "end process file_output;" << endl;
+
+        stream << indentation(1)
+               << "-- pragma synthesis_on"
+               << endl;
+
+    } else { // language_==Verilog
+        // todo verilog version
+    }
+}
 
 /**
  * Writes the signals for source, destination and guard fields to the
