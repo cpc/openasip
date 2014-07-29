@@ -2957,12 +2957,11 @@ TDGen::operandToString(
         switch (operandType) {
         case 'i':
         case 'k':
-	case 'l':
+        case 'l':
             if (match) {
-                // TODO: is this correct?
-                return "f32imm:$op" + Conversion::toString(idx);
+                return "f16imm:$op" + Conversion::toString(idx);
             } else {
-                return "(f16 (fround (f32 fpimm:$op" + Conversion::toString(idx) + ")))";
+                return "(f16 fpimm:$op" + Conversion::toString(idx) + ")";
             }
         case 'r':
         case 'h':
