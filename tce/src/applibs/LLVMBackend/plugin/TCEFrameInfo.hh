@@ -66,8 +66,12 @@ namespace llvm {
      * stack has alignment of 4, and v4i32 vector has alignment of 16 
      * (bytes) -> vector's alignment in stack will be demoted to 4.
      */
-	TCEFrameInfo(const TCERegisterInfo* tri)
-	    : TargetFrameLowering(
+    TCEFrameInfo(const TCERegisterInfo* tri) : 
+#ifdef LLVM_3_2
+TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 4, -4, 1), tri_(tri) {}
+#else
+TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 4, -4, 1, false), tri_(tri) {}
 
 #ifndef LLVM_3_2
