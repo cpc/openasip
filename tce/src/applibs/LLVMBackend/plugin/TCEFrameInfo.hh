@@ -56,9 +56,19 @@ namespace llvm {
     class TCEFrameInfo : public TargetFrameLowering {
     public:
 
+    /** !! Important !! *************
+     * If the last boolean parameter of the constructor is set to false, 
+     * stack realignment is not allowed. This means, that every stack object
+     * having a bigger alignment than the stack's own alignment, will be 
+     * reduced to have the stack's alignment.
+     * 
+     * For example, if stack realignment parameter is set to false, and 
+     * stack has alignment of 4, and v4i32 vector has alignment of 16 
+     * (bytes) -> vector's alignment in stack will be demoted to 4.
+     */
 	TCEFrameInfo(const TCERegisterInfo* tri)
 	    : TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
+            TargetFrameLowering::StackGrowsDown, 4, -4, 1, false), tri_(tri) {}
 
 #ifndef LLVM_3_2
         void eliminateCallFramePseudoInstr(

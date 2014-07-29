@@ -2164,6 +2164,12 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
         }
     }
 
+    if (opName == "sxbw") return "sext %1%"; 
+    if (opName == "sxbh") return "sext %1%"; 
+    if (opName == "sxbq") return "sext %1%"; 
+
+    if (opName == "truncwh") return "trunc %1%";
+
     if (opName == "neg") return "ineg %1%";
     if (opName == "not") return "not %1%";
 
@@ -2258,6 +2264,11 @@ TDGen::llvmOperationName(const std::string& osalOperationName) {
 
     if (opName == "sxhw") return "sext_inreg";
     if (opName == "sxqw") return "sext_inreg";
+    if (opName == "sxbw") return "sext"; 
+    if (opName == "sxbh") return "sext"; 
+    if (opName == "sxbq") return "sext"; 
+
+    if (opName == "truncwh") return "trunc"; 
 
     if (opName == "neg") return "ineg";
     if (opName == "not") return "not";

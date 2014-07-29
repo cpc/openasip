@@ -612,6 +612,42 @@
   </operation>
 
   <operation>
+    <name>SXBQ</name>
+    <description>sign extend from 1 bit to 8 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbq, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXBH</name>
+    <description>sign extend from 1 bit to 16 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbh, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXBW</name>
+    <description>sign extend from 1 bit to 32 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SXQW</name>
     <description>Sign extend from 8 bits to 32 bits.</description>
     <inputs>1</inputs>
@@ -632,6 +668,18 @@
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxhw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>TRUNCWH</name>
+    <description>truncate 32 bit int to 16 bit int</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(truncwh, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
