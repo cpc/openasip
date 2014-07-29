@@ -40,6 +40,8 @@
 
 #define SIMD_WORD_WIDTH 1024
 
+class TCEString;
+
 //////////////////////////////////////////////////////////////////////////////
 // SimValue
 //////////////////////////////////////////////////////////////////////////////
@@ -105,6 +107,7 @@ public:
 
     int intValue() const;
     unsigned int unsignedValue() const;
+    TCEString hexValue() const;
 
     SIntWord sIntWordValue() const;
     UIntWord uIntWordValue() const;

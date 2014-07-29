@@ -485,18 +485,7 @@ TesterContext::toOutputFormat(SimValue* value) {
     if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX || 
         (value->width() > 32 && 
          outputFormat_ != CmdOutput::OUTPUT_FORMAT_DOUBLE)) {
-        
-        output += "0x";
-        int bytes = value->width() / 8;
-        int remain = value->width() % 8;
-        if (remain != 0) {
-            ++bytes;
-        }
-        // convert data buffer one byte at a time to hex string values
-        for (int i = bytes-1; i >= 0; --i) {
-            int intValue = static_cast<int>(value->rawBytes()[i]);
-            output += Conversion::toHexString(intValue, 2).substr(2); 
-        }
+        output = value->hexValue();
     } else if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
         output = Conversion::toString(value->intValue());
 

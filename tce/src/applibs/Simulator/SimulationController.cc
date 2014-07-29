@@ -461,9 +461,8 @@ SimulationController::registerFileValue(
     std::string stringValue("");
 
     if (registerIndex >= 0) {
-        stringValue += Conversion::toString(
-            frontend_.findRegister(rfName, registerIndex).value().
-            intValue());
+        stringValue += frontend_.findRegister(rfName, registerIndex).value().
+            hexValue();
     } else {
         Machine::RegisterFileNavigator navigator = 
             sourceMachine_.registerFileNavigator();
@@ -475,12 +474,10 @@ SimulationController::registerFileValue(
                 stringValue += "\n";
             const std::string registerName = 
                 rfName + "." + Conversion::toString(i);
+
             SimValue value = frontend_.findRegister(rfName, i).value();
-            stringValue += registerName + " " + Conversion::toHexString(
-                static_cast<unsigned int>(MathTools::zeroExtendTo(
-                    value.uIntWordValue(), value.width()))) + " " 
-                    + Conversion::toString(
-                        static_cast<int>(value.uIntWordValue()));
+            stringValue += registerName + " " + value.hexValue();
+
             firstReg = false;
         }
     }
