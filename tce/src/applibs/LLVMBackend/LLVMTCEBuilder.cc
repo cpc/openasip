@@ -292,6 +292,10 @@ LLVMTCEBuilder::initDataSections() {
     mang_ = new Mangler(tm_->getDataLayout());
 #endif
 
+    const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
+    assert(tm != NULL);
+    const unsigned stackAlignment = tm->getStackAlignment();
+        
 #if 0
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
@@ -303,7 +307,7 @@ LLVMTCEBuilder::initDataSections() {
     // (word to prevent writing bytes to 1,2,3 
     //  addresses and then reading word from 0)
     if (end_ == 0) {
-        end_ += 4;
+        end_ += stackAlignment;
     }
 #endif
 
@@ -348,7 +352,7 @@ LLVMTCEBuilder::initDataSections() {
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
-            def.alignment = std::max(def.alignment,4u);
+            def.alignment = std::max(def.alignment, stackAlignment);
         }
 
         assert(def.alignment != 0);
@@ -2289,7 +2293,7 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
 
-    unsigned ival = (addressSpaceById(0).end() & 0xfffffff8);
+    unsigned ival = (addressSpaceById(0).end() & 0xfffffffc);
     SimValue val(ival, 32);
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
@@ -3496,7 +3500,10 @@ LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
            writing bytes to 1,2,3 addresses and thus then reading valid data 
            from 0. */
         if (end == 0) {
-            end = 4;
+            const TCETargetMachine* tm = 
+                dynamic_cast<const TCETargetMachine*>(tm_);
+            assert(tm != NULL);
+            end = tm->getStackAlignment();
         }
         dataEnds_[&aSpace] = end;
 

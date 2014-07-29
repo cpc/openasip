@@ -51,7 +51,8 @@ namespace llvm {
 
 //  Frame info:
 // -------------
-// Grows down, alignment 4 bytes.
+// Grows down, alignment at least 4 bytes. The alignment is set according to
+// the widest operand in the machine.
 //
     class TCEFrameInfo : public TargetFrameLowering {
     public:
@@ -66,13 +67,22 @@ namespace llvm {
      * stack has alignment of 4, and v4i32 vector has alignment of 16 
      * (bytes) -> vector's alignment in stack will be demoted to 4.
      */
-    TCEFrameInfo(const TCERegisterInfo* tri) : 
+        TCEFrameInfo(const TCERegisterInfo* tri, int stackAlignment) : 
 #ifdef LLVM_3_2
-TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 4, -4, 1), tri_(tri) {}
+        TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 
+            stackAlignment, 
+            -stackAlignment, 
+            1), 
+        tri_(tri) {}
 #else
-TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 4, -4, 1, false), tri_(tri) {}
+        TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 
+            stackAlignment, 
+            -stackAlignment,
+            1,
+            true /*false*/),
+        tri_(tri) {}
 
 #ifndef LLVM_3_2
         void eliminateCallFramePseudoInstr(

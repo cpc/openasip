@@ -8,8 +8,8 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
-	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc MachineInstrDDG.cc
+	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
+	LLVMTCEScheduler.cc MachineInstrDDG.cc
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 
@@ -72,11 +72,9 @@ include_HEADERS = \
  plugin/TCEFrameInfo.hh \
  plugin/TCEFrameInfo.cc \
  plugin/TCETargetMachinePlugin.cc \
- plugin/TCECallingConv.td \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  plugin/TCESubtarget.hh \
- TCETargetSelectionDAGInfo.hh \
  LLVMTCECmdLineOptions.hh 
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
@@ -86,7 +84,6 @@ libtcellvmbackend_la_SOURCES += \
 	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
 	MachineInstrDDG.hh ProgramPartitioner.hh \
-	TCETargetSelectionDAGInfo.hh \
 	LLVMTCEIRBuilder.hh LLVMBackend.hh \
 	TDGen.hh LLVMTCEScheduler.hh \
 	InstructionPatternAnalyzer.hh TCETargetMachine.hh \

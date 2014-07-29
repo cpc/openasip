@@ -125,6 +125,9 @@ public:
         const llvm::TargetRegisterClass* current) const;
     virtual const llvm::TargetRegisterClass* nodeRegClass(
         unsigned nodeId, const llvm::TargetRegisterClass* current) const;
+
+    virtual unsigned getStackAlignment() const;
+
 private:
     void initialize();
     
@@ -146,14 +149,17 @@ private:
  */
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
+     int stackAlignment = static_cast<int>(getStackAlignment());
 
-   instrInfo_ = new TCEInstrInfo(this);
-   // Initialize register & opcode maps.
-   initialize();
-   frameInfo_ = new TCEFrameInfo(
-       static_cast<const TCERegisterInfo*>(getRegisterInfo()));
+     instrInfo_ = new TCEInstrInfo(this, stackAlignment);
+     // Initialize register & opcode maps.
+     initialize();
 
-   subTarget_ = new TCESubtarget();
+     const TCERegisterInfo* ri = 
+         static_cast<const TCERegisterInfo*>(getRegisterInfo());
+     frameInfo_ = new TCEFrameInfo(ri, stackAlignment);
+
+     subTarget_ = new TCESubtarget();
 }
 
 

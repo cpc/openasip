@@ -39,8 +39,8 @@
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/PassManager.h"
 //#include "TCESubtarget.hh"
+
 #include "TCETargetMachinePlugin.hh"
-#include "TCETargetSelectionDAGInfo.hh"
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
 #ifdef LLVM_LIBDIR
@@ -138,11 +138,11 @@ namespace llvm {
         }
 
         virtual const TargetData* getTargetData() const {
-            return &DL;
+            return &dl_;
         }
 
         virtual const DataLayout* getDataLayout() const { 
-            return &DL; 
+            return &dl_; 
         }
 
         virtual const TargetFrameLowering* getFrameLowering() const {
@@ -151,10 +151,6 @@ namespace llvm {
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }
-
-        virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {
-	    return &tsInfo;
-	}
 
 	virtual TargetPassConfig *createPassConfig(
 	    PassManagerBase &PM);
@@ -206,16 +202,19 @@ namespace llvm {
             return plugin_->maxVectorSize();
         }
 
+        unsigned getStackAlignment() const {
+            return plugin_->getStackAlignment();
+        }
+
         const std::set<
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();
 
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
-        TargetSubtargetInfo*   Subtarget;
-        const TargetData    DL; // Calculates type size & alignment
+        TargetSubtargetInfo* subTarget_;
+        TargetData dl_; // Calculates type size & alignment
         
-        TCESelectionDAGInfo tsInfo;
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.

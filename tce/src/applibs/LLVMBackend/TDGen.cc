@@ -97,6 +97,11 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
 #endif
     instrTD.close();
 
+    std::ofstream ccTD;
+    ccTD.open((path + "/GenCallingConv.td").c_str());
+    writeCallingConv(ccTD);
+    ccTD.close();
+
     std::ofstream pluginInc;
     pluginInc.open((path + "/Backend.inc").c_str());
     writeBackendCode(pluginInc);
@@ -1433,7 +1438,7 @@ TDGen::writeTopLevelTD(std::ostream& o) {
    o << "include \"Target.td\"" << std::endl;
    o << "include \"GenRegisterInfo.td\"" << std::endl;
    o << "include \"TCEInstrInfo.td\"" << std::endl;
-   o << "include \"TCECallingConv.td\"" << std::endl;
+   o << "include \"GenCallingConv.td\"" << std::endl;
    o << "def TCEInstrInfo : InstrInfo { }" << std::endl;
    o << "def TCE : Target { let InstructionSet = TCEInstrInfo; }" 
      << std::endl;
@@ -1845,7 +1850,7 @@ TDGen::writeOperationDef(
     asmstr = "\"\"";
     
     if (!skipPattern) {
-        if (llvmOperationPattern(op.name(),'r') != "" || 
+        if (llvmOperationPattern(op,'r') != "" || 
             op.dagCount() == 0) {
             OperationDAG* trivial = createTrivialDAG(op);
             pattern = operationPattern(op, *trivial, operandTypes);
@@ -1964,7 +1969,7 @@ TDGen::writeEmulationPattern(
         }
 
         bool ok = true;
-        std::string llvmPat = llvmOperationPattern(op.name(), 'r');
+        std::string llvmPat = llvmOperationPattern(op, 'r');
         assert(llvmPat != "" && "Unknown operation to emulate.");
         
         boost::format match1(llvmPat);
@@ -2028,11 +2033,13 @@ TDGen::writeEmulationPattern(
  * @param osalOperationName Base-operation name in OSAL.
  * @return Boost::format string of the operation node in llvm.
  */
-std::string
-TDGen::llvmOperationPattern(const std::string& osalOperationName,
-    char operandType) {
+TCEString
+TDGen::llvmOperationPattern(
+    const Operation& op, char operandType, TCEString opName) {
 
-    const std::string opName = StringTools::stringToLower(osalOperationName);
+    if (opName == "") {
+        opName = StringTools::stringToLower(op.name());
+    }
 
     if (opName == "add") return "add %1%, %2%";
     if (opName == "sub") return "sub %1%, %2%";
@@ -2183,10 +2190,12 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
  * Returns llvm operation name for the given OSAL operation name,
  * if any.
  */
-std::string
-TDGen::llvmOperationName(const std::string& osalOperationName) {
-
-    const std::string opName = StringTools::stringToLower(osalOperationName);
+TCEString
+TDGen::llvmOperationName(const Operation& op, TCEString opName) {
+    
+    if (opName == "") {
+        opName = StringTools::stringToLower(op.name());
+    }
 
     if (opName == "add") return "add";
     if (opName == "sub") return "sub";
@@ -2304,7 +2313,7 @@ TDGen::operationCanBeMatched(
     bool recursionHasStore) {
     
     // if operation has llvm pattern
-    if (llvmOperationPattern(op.name(),'r') != "") {
+    if (llvmOperationPattern(op,'r') != "") {
         return true;
     }
 
@@ -2807,7 +2816,7 @@ TDGen::operationNodeToString(
                 operationPat + "%" + Conversion::toString(i + 1) + "%";
         }
     } else {
-        operationPat = llvmOperationPattern(operation.name(), operandTypes[0]);
+        operationPat = llvmOperationPattern(operation, operandTypes[0]);
         
         // generate pattern for operation if not llvmOperation (can match 
         // custom op patterns)
@@ -3347,6 +3356,62 @@ void TDGen::createShortExtLoadPatterns(std::ostream& os) {
     os     << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHrr ADDRrr:$src)>;" << std::endl
            << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;" << std::endl;
 
+}
+
+void
+TDGen::writeCallingConv(std::ostream& os) {
+    writeCallingConvLicenceText(os);
+
+    os << "// Function return value types." << std::endl;
+    os << "def RetCC_TCE : CallingConv<[" << std::endl
+       << "  CCIfType<[i1], CCPromoteToType<i32>>," << std::endl
+       << "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl
+       << "  CCIfType<[f32], CCAssignToReg<[IRES0]>>," << std::endl
+       << "  CCAssignToStack<4, 4>" << std::endl
+       << "]>;" << std::endl << std::endl;
+
+    os << "// Function argument value types." << std::endl;
+    os << 
+        "def CC_TCE : CallingConv<[" << std::endl <<
+        "  CCIfType<[i1, i8, i16], CCPromoteToType<i32>>," << std::endl <<
+        "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl;
+
+    for (unsigned int i = 3; i < (2 + argRegCount_); i++) {
+        os << "  CCIfType<[i32], CCAssignToReg<[A" << i << "]>>," << std::endl;
+    }
+    
+    os << 
+        "  // Integer values get stored in stack slots that are 4 bytes in "
+       << std::endl <<
+        "  // size and 4-byte aligned." << std::endl << 
+        "  CCIfType<[i32, f32], CCAssignToStack<4, 4>>," << std::endl <<
+        "  // Integer values get stored in stack slots that are 8 bytes in"
+       << std::endl <<
+        "  // size and 8-byte aligned." << std::endl << 
+        "  CCIfType<[f64], CCAssignToStack<8, 8>>" << std::endl << 
+
+        "]>;" << std::endl;
+}
+
+void
+TDGen::writeCallingConvLicenceText(std::ostream& os) {
+    os << "//===- GenCallingConv.td - Calling Conventions TCE ---------*- "
+       << "tablegen -*-===//" << std::endl
+       << "// " << std::endl
+       << "//                     The LLVM Compiler Infrastructure" << std::endl
+       << "//" << std::endl
+       << "// This file is distributed under the University of "
+       << "Illinois Open Source" << std::endl
+       << "// License. See LICENSE.TXT for details." << std::endl
+       << "// " << std::endl
+       << "//===--------------------------------------------------------"
+       << "--------------===//" << std::endl
+       << "//" << std::endl
+       << "// This describes the calling conventions for the TCE "
+       << "architectures." << std::endl
+       << "//" << std::endl
+       << "//===--------------------------------------------------------"
+       << "--------------===//" << std::endl << std::endl;
 }
 
 void TDGen::createSelectPatterns(std::ostream& os) {

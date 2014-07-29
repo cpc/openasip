@@ -105,9 +105,8 @@ public:
 
     virtual int numberOfInputs() const;
     virtual int numberOfOutputs() const;
-    virtual int operandCount() const { 
-        return numberOfInputs() + numberOfOutputs(); 
-    }
+    virtual int operandCount() const;
+    virtual bool isVectorOperation() const;
     virtual bool usesMemory() const;
     virtual bool readsMemory() const;
     virtual bool writesMemory() const;

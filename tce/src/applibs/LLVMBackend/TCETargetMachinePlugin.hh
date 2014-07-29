@@ -125,6 +125,9 @@ namespace llvm {
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
 
+       // Byte width of the widest operand in the target machine.
+       virtual unsigned getStackAlignment() const = 0;
+
        /// Clustered-TTA-subtemplate related methods.
        virtual const llvm::TargetRegisterClass* extrasRegClass(
            const llvm::TargetRegisterClass* current) const = 0;

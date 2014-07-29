@@ -60,8 +60,7 @@ namespace TTAMachine {
  *
  * Generates files for building target architecture plugin for LLVM-TCE
  * backend. This version generates the backend files for the "RISC
- * instruction set style" output and provides useful methods for the
- * derived TDGen(s) (currently only TransportTDGen).
+ * instruction set style" output and provides useful methods.
  */
 class TDGen {
 public:
@@ -162,10 +161,10 @@ protected:
 
     void writeRegisterClasses(std::ostream& o);
 
-    virtual std::string llvmOperationPattern(
-        const std::string& osalOperationName, char operandType);
-    virtual std::string llvmOperationName(
-        const std::string& osalOperationName);
+    virtual TCEString llvmOperationPattern(
+        const Operation& op, char operandType, TCEString opName = "");
+    virtual TCEString llvmOperationName(
+        const Operation& op, TCEString opName = "");
     bool operationCanBeMatched(
         const Operation& op, 
         std::set<std::string>* recursionCycleCheck = NULL,
@@ -259,6 +258,9 @@ throw (InvalidData);
     virtual void createMinMaxGenerator(std::ostream& os);
 
     virtual void generateLoadStoreCopyGenerator(std::ostream& os);
+    
+    virtual void writeCallingConv(std::ostream& os);
+    void writeCallingConvLicenceText(std::ostream& os);
 
     void createSelectPatterns(std::ostream& os);
 
