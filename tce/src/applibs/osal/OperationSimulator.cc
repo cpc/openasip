@@ -37,6 +37,7 @@
 #include "Conversion.hh"
 #include "Operation.hh"
 #include "Operand.hh"
+#include "TCEString.hh"
 
 using std::string;
 using std::vector;
@@ -130,16 +131,7 @@ OperationSimulator::initializeSimValue(
 
     try {
         if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
-            string hexValue = value.substr(2); // remove "0x"
-
-            // check width
-            int bits = hexValue.size() * 4;
-            if (bits > SIMD_WORD_WIDTH) {
-                throw NumberFormatException(
-                    __FILE__, __LINE__, __func__, "Too wide value.");
-            }
-            
-            Conversion::toRawData(hexValue, sim->rawBytes());
+            (*sim).setValue(TCEString(value));
         } else if (is_int && !is_float) {
             *sim = Conversion::toInt(value);
         } else if (is_float) {

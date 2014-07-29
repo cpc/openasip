@@ -75,9 +75,30 @@ SimValue::unsignedValue() const {
 }
 
 /**
+ * Returns the value as a binary string.
+ *
+ * @return SimValue bytes in binary format.
+ */
+TCEString
+SimValue::binaryValue() const {
+    int fullBytes = width() / 8;
+    int remainBits = width() % 8;
+
+    TCEString binaryStr("");
+    for (int i = 0; i < fullBytes; ++i) {
+        binaryStr += Conversion::toBinary(
+            static_cast<unsigned int>(value_.rawData[i]), 8);
+    }
+
+    binaryStr += Conversion::toBinary(
+            static_cast<unsigned int>(value_.rawData[fullBytes]), remainBits);
+    return binaryStr;
+}
+
+/**
  * Returns the value as a hex string.
  *
- * @return Hex string value of the SimValue.
+ * @return SimValue bytes in hex format.
  */
 TCEString
 SimValue::hexValue() const {
@@ -104,4 +125,25 @@ SimValue::hexValue() const {
     }
 
     return hexStr;
+}
+
+/**
+ * Sets SimValue to correspond the hex value.
+ *
+ * @param hexValue New value in hex format.
+ */
+void
+SimValue::setValue(TCEString hexValue) {
+    if (hexValue.size() > 2 && hexValue[0] == '0' && hexValue[1] == 'x') {
+        hexValue = hexValue.substr(2); // Remove "0x."
+    }
+
+    // Check the hex string value doesn't exceed SimValue's bitwidth.
+    int bits = hexValue.size() * 4;
+    if (bits > SIMD_WORD_WIDTH) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, __func__, "Too wide value.");
+    }
+            
+    Conversion::toRawData(hexValue, rawBytes());
 }
