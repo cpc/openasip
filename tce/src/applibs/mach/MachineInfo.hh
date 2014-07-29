@@ -45,6 +45,8 @@ public:
         const TTAMachine::Machine& mach);
     static int longestGuardLatency(
         const TTAMachine::Machine& mach);
+    static TCETools::CIStringSet operationNames(
+        const TTAMachine::Machine& mach);
 private:
     MachineInfo();
 };
