@@ -1,7 +1,7 @@
 equf 1934.34f 1934.33f
 equf 123.123f -123.123f
 equf 234.234f 234.234f
-equf 0xfff00000f 0xfff00000f
+equf 0xfff00000 0xfff00000
 equf 1.0f 0xfff00000
 equf 0xfff00000 1.0f
 !quit
