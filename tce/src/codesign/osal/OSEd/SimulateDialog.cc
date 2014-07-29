@@ -374,7 +374,7 @@ SimulateDialog::onTrigger(wxCommandEvent&) {
     createState();
     OperationContext& context = OperationContainer::operationContext();
     if (simulator.simulateTrigger(
-            *operation_, inputs, outputs, context, 32, result)) {
+            *operation_, inputs, outputs, context, result)) {
 		
         //triggerBM_->SetBitmap(createBitmap(1));
         setOutputValues(outputs);

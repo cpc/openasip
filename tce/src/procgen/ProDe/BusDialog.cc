@@ -1200,7 +1200,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_BUS_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 1000, 1 );
+    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 1024, 1 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

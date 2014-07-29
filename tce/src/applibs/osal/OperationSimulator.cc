@@ -36,6 +36,7 @@
 #include "SimValue.hh"
 #include "Conversion.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 
 using std::string;
 using std::vector;
@@ -74,7 +75,6 @@ OperationSimulator::instance() {
  * @param inputs The inputs for the operation.
  * @param outputs The outputs of the operation.
  * @param context OperationContext used in simulation.
- * @param bitWidth Bit width of the operands.
  * @param result The possible error string.
  * @return True if simulation is successful.
  */
@@ -84,7 +84,6 @@ OperationSimulator::simulateTrigger(
     std::vector<DataObject> inputs,
     std::vector<SimValue*>& outputs,
     OperationContext& context,
-    unsigned int bitWidth,
     std::string& result) {
 
     if (static_cast<unsigned>(op.numberOfInputs()) != inputs.size()) {
@@ -92,7 +91,7 @@ OperationSimulator::simulateTrigger(
         return false;
     }
 
-    if (!initializeOutputs(op, inputs, outputs, bitWidth, result)) {
+    if (!initializeOutputs(op, inputs, outputs, result)) {
         return false;
     }
 
@@ -130,7 +129,18 @@ OperationSimulator::initializeSimValue(
         value.find("F") != string::npos);
 
     try {
-        if (is_int && !is_float) {
+        if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
+            string hexValue = value.substr(2); // remove "0x"
+
+            // check width
+            int bits = hexValue.size() * 4;
+            if (bits > SIMD_WORD_WIDTH) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__, "Too wide value.");
+            }
+            
+            Conversion::toRawData(hexValue, sim->rawBytes());
+        } else if (is_int && !is_float) {
             *sim = Conversion::toInt(value);
         } else if (is_float) {
             *sim = Conversion::toFloat(value.substr(0, value.length()-1));
@@ -150,7 +160,6 @@ OperationSimulator::initializeSimValue(
  * @param op Operation in which outputs are initialized.
  * @param inputs Input values.
  * @param outputs Output values to be initialized.
- * @param bitWidth Bit width of the operands.
  * @param result Possible error message string.
  * @return True if initialization is successful.
  */
@@ -159,23 +168,22 @@ OperationSimulator::initializeOutputs(
     Operation& op,
     std::vector<DataObject> inputs,
     std::vector<SimValue*>& outputs,
-    unsigned int bitWidth,
     std::string& result) {
 
     for (size_t i = 0; i < inputs.size(); i++) {
-        SimValue* sim = new SimValue(bitWidth);
+        SimValue* sim = new SimValue(op.input(i).width());
 
         string value = inputs[i].stringValue();
 
         if (!initializeSimValue(value, sim, result)) {
             return false;
         }
-
+ 
         outputs.push_back(sim);
     }
 
     for (int i = 0; i < op.numberOfOutputs(); i++) {
-        SimValue* result = new SimValue(bitWidth);
+        SimValue* result = new SimValue(op.output(i).width());
         outputs.push_back(result);
     }
     return true;

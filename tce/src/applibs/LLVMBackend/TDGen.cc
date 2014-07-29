@@ -1906,7 +1906,9 @@ TDGen::writeOperationDef(
  */
 char 
 TDGen::operandChar(Operand& operand) {
-    if (operand.type() == Operand::HALF_FLOAT_WORD ) {
+    if (operand.type() == Operand::BOOL) {
+        return 'b';
+    } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
         return 'h';
     } else if (operand.type() != Operand::UINT_WORD &&
         operand.type() != Operand::SINT_WORD &&
@@ -2099,6 +2101,7 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName,
     if (opName == "cihu") return "uint_to_fp %1%";
     if (opName == "chiu") return "fp_to_uint %1%";
 
+    if (opName == "neuh") return "setune %1%, %2%";
     if (opName == "eqh") return "setoeq %1%, %2%";
     if (opName == "neh") return "setone %1%, %2%";
     if (opName == "lth") return "setolt %1%, %2%";
@@ -2822,7 +2825,7 @@ TDGen::operationNodeToString(
     operation.numberOfOutputs();
 
     assert(outputs == 0 || outputs == 1);
-
+    
     for (int i = 1; i < inputs + 1; i++) {
         for (int e = 0; e < dag.inDegree(node); e++) {
             const OperationDAGEdge& edge = dag.inEdge(node, e);
@@ -2882,7 +2885,8 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::SINT_WORD ||
                operand.type() == Operand::UINT_WORD ||
-               operand.type() == Operand::RAW_DATA) {
+               operand.type() == Operand::RAW_DATA ||
+               operand.type() == Operand::BOOL) {
 
         // imm
         switch (operandType) {

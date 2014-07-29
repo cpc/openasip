@@ -63,6 +63,7 @@ const std::string Operand::UINT_WORD_STRING = "UIntWord";
 const std::string Operand::FLOAT_WORD_STRING = "FloatWord";
 const std::string Operand::HALF_FLOAT_WORD_STRING = "HalfFloatWord";
 const std::string Operand::DOUBLE_WORD_STRING = "DoubleWord";
+const std::string Operand::BOOL_STRING = "Bool";
 const std::string Operand::RAW_DATA_STRING = "RawData";
 const std::string Operand::UNKNOWN_TYPE_STRING = "InvalidValue";
 
@@ -164,6 +165,16 @@ Operand::type() const {
 }
 
 /**
+ * Sets the operand type.
+ *
+ * @param type The new type of the operand.
+ */
+void
+Operand::setType(OperandType type) {
+    type_ = type;
+}
+
+/**
  * Returns the string type of the Operand.
  *
  * @return The string type of the Operand.
@@ -187,6 +198,9 @@ Operand::typeString() const {
         case HALF_FLOAT_WORD:
             return HALF_FLOAT_WORD_STRING;
             break;
+        case BOOL:
+            return BOOL_STRING;
+            break;
         case RAW_DATA:
             return RAW_DATA_STRING;
             break;
@@ -197,7 +211,17 @@ Operand::typeString() const {
 }
 
 /**
- * Returns bit width of an operand element.
+ * Tells if the operand is a vector operand, in other words, has subwords.
+ *
+ * @return True, if the operand is a vector operand.
+ */
+bool
+Operand::isVector() const {
+    return (elementCount_ > 1);
+}
+
+/**
+ * Returns width of an operand element in bits.
  *
  * @return Bit width of an element.
  */
@@ -209,7 +233,7 @@ Operand::elementWidth() const {
 /**
  * Sets the element bit width.
  *
- * @param elementWidth New element bit width.
+ * @param New element bit width.
  */
 void
 Operand::setElementWidth(int elementWidth) {
@@ -229,7 +253,7 @@ Operand::elementCount() const {
 /**
  * Sets the number of elements.
  *
- * @param elementCount New element count.
+ * @param New element count.
  */
 void
 Operand::setElementCount(int elementCount) {
@@ -237,7 +261,7 @@ Operand::setElementCount(int elementCount) {
 }
 
 /**
- * Returns total bit width of the operand (element width * element count).
+ * Returns width of the operand in bits.
  *
  * @return Bit width of the operand.
  */
@@ -328,6 +352,8 @@ Operand::loadState(const ObjectState* state)
             type_ = DOUBLE_WORD;
         } else if (typeString.compare(HALF_FLOAT_WORD_STRING) == 0) {
             type_ = HALF_FLOAT_WORD;
+        } else if (typeString.compare(BOOL_STRING) == 0) {
+            type_ = BOOL;
         } else if (typeString.compare(RAW_DATA_STRING) == 0) {
             type_ = RAW_DATA;
         } else {
@@ -431,6 +457,9 @@ Operand::saveState() const {
     case HALF_FLOAT_WORD:
         root->setAttribute(OPRND_TYPE, HALF_FLOAT_WORD_STRING);
         break;
+    case BOOL:
+        root->setAttribute(OPRND_TYPE, BOOL_STRING);
+        break;
     case RAW_DATA:
         root->setAttribute(OPRND_TYPE, RAW_DATA_STRING);
         break;
@@ -465,7 +494,7 @@ Operand::saveState() const {
  * Returns default element width depending on operand's type.
  *
  * @param type Operand type.
- * @return Element bit width of given operand type.
+ * @return Element bit width of the operand.
  */
 int
 Operand::defaultElementWidth(OperandType type) {
@@ -473,6 +502,8 @@ Operand::defaultElementWidth(OperandType type) {
         return 64;
     } else if (type == HALF_FLOAT_WORD) {
         return 16;
+    } else if (type == BOOL) {
+        return 1;
     } else {
         return 32;
     }

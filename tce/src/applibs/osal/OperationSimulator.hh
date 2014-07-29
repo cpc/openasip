@@ -54,7 +54,6 @@ public:
         std::vector<DataObject> inputs,
         std::vector<SimValue*>& outputs,
         OperationContext& context,
-        unsigned int bitWidth,
         std::string& result);
 
     bool lateResult(
@@ -79,8 +78,7 @@ private:
     bool initializeOutputs(
         Operation& op,
         std::vector<DataObject> inputs,
-        std::vector<SimValue*>& outpus,
-        unsigned int bitWidth,
+        std::vector<SimValue*>& outputs,
         std::string& result);
 
     /// Unique instance.

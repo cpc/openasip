@@ -74,8 +74,8 @@ protected:
     virtual bool writeRegisterInfo(std::ostream& o) 
         throw (Exception);
     virtual void writeInstrInfo(std::ostream& o);
-    void writeBackendCode(std::ostream& o);
-    void writeTopLevelTD(std::ostream& o);
+    virtual void writeBackendCode(std::ostream& o);
+    virtual void writeTopLevelTD(std::ostream& o);
    
    
     enum RegType {
@@ -136,7 +136,8 @@ protected:
     void writeVectorRegisterInfo(std::ostream& o);
     void writeVectorRegisterInfo(std::ostream& o, int width);
 
-    void writeOperationDefs(std::ostream& o, Operation& op, bool skipPattern);
+    virtual void writeOperationDefs(
+        std::ostream& o, Operation& op, bool skipPattern);
 
     void writeOperationDef(
         std::ostream& o, Operation& op, 
@@ -161,9 +162,10 @@ protected:
 
     void writeRegisterClasses(std::ostream& o);
 
-    std::string llvmOperationPattern(
+    virtual std::string llvmOperationPattern(
         const std::string& osalOperationName, char operandType);
-    std::string llvmOperationName(const std::string& osalOperationName);
+    virtual std::string llvmOperationName(
+        const std::string& osalOperationName);
     bool operationCanBeMatched(
         const Operation& op, 
         std::set<std::string>* recursionCycleCheck = NULL,
@@ -174,7 +176,7 @@ protected:
     std::string patOutputs(const Operation& op, const std::string& oprTypes);
     std::string patInputs(const Operation& op, const std::string& oprTypes);
 
-    std::string operandToString(
+    virtual std::string operandToString(
         const Operand& operand,
         bool match,
         char operandType);
@@ -206,7 +208,7 @@ throw (InvalidData);
         const OperationDAG& dag,
         const std::string& operandTypes);
 
-    char operandChar(Operand& operand);
+    virtual char operandChar(Operand& operand);
     
     std::string createDefaultOperandTypeString(const Operation& op);
 
@@ -254,9 +256,9 @@ throw (InvalidData);
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
 
-    void createMinMaxGenerator(std::ostream& os);
+    virtual void createMinMaxGenerator(std::ostream& os);
 
-    void generateLoadStoreCopyGenerator(std::ostream& os);
+    virtual void generateLoadStoreCopyGenerator(std::ostream& os);
 
     void createSelectPatterns(std::ostream& os);
 
