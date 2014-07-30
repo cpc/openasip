@@ -3376,10 +3376,6 @@ TDGen::writeCallingConv(std::ostream& os) {
         "  CCIfType<[i1, i8, i16], CCPromoteToType<i32>>," << std::endl <<
         "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl;
 
-    for (unsigned int i = 3; i < (2 + argRegCount_); i++) {
-        os << "  CCIfType<[i32], CCAssignToReg<[A" << i << "]>>," << std::endl;
-    }
-    
     os << 
         "  // Integer values get stored in stack slots that are 4 bytes in "
        << std::endl <<
