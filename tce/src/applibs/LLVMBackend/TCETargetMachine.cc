@@ -161,7 +161,7 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 #endif
 
     // Set data layout with correct stack alignment.
-    unsigned alignBits = getStackAlignment() * 8;
+    unsigned alignBits = getMaxMemoryAlignment() * 8;
     TCEString dataLayoutStr("");
     dataLayoutStr += "E-p:32:32:32";
     dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);

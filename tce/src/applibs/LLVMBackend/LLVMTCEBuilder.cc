@@ -294,7 +294,7 @@ LLVMTCEBuilder::initDataSections() {
 
     const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
     assert(tm != NULL);
-    const unsigned stackAlignment = tm->getStackAlignment();
+    const unsigned stackAlignment = tm->getMaxMemoryAlignment();
         
 #if 0
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
@@ -3503,7 +3503,7 @@ LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
             const TCETargetMachine* tm = 
                 dynamic_cast<const TCETargetMachine*>(tm_);
             assert(tm != NULL);
-            end = tm->getStackAlignment();
+            end = tm->getMaxMemoryAlignment();
         }
         dataEnds_[&aSpace] = end;
 

@@ -202,8 +202,8 @@ namespace llvm {
             return plugin_->maxVectorSize();
         }
 
-        unsigned getStackAlignment() const {
-            return plugin_->getStackAlignment();
+        unsigned getMaxMemoryAlignment() const {
+            return plugin_->getMaxMemoryAlignment();
         }
 
         const std::set<

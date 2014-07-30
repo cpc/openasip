@@ -126,7 +126,7 @@ public:
     virtual const llvm::TargetRegisterClass* nodeRegClass(
         unsigned nodeId, const llvm::TargetRegisterClass* current) const;
 
-    virtual unsigned getStackAlignment() const;
+    virtual unsigned getMaxMemoryAlignment() const;
 
 private:
     void initialize();
@@ -149,7 +149,7 @@ private:
  */
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
-     int stackAlignment = static_cast<int>(getStackAlignment());
+     int stackAlignment = static_cast<int>(getMaxMemoryAlignment());
 
      instrInfo_ = new TCEInstrInfo(this, stackAlignment);
      // Initialize register & opcode maps.
