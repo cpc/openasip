@@ -39,6 +39,9 @@
 #include "ControlUnit.hh"
 #include "RegisterFile.hh"
 #include "Guard.hh"
+#include "Operation.hh"
+#include "Operand.hh"
+#include "FUPort.hh"
 
 using namespace TTAMachine;
 
@@ -100,35 +103,26 @@ MachineInfo::longestGuardLatency(
 }
 
 /**
- * Returns all operation names which exist in the machine.
+ * Returns Operand object for the given hardware operation attached to the port.
  *
- * @param mach The machine whose operation names are requested.
- * @return All operation names.
+ * InstanceNotFound exception is thrown, if the hardware operation doesn't have
+ * an operand in the given port. 
+ * 
+ * @param hwOp Hardware operation.
+ * @param port The port containing the desired Operand. 
+ * @return Reference to the Operand object.
  */
-TCETools::CIStringSet 
-MachineInfo::operationNames(const TTAMachine::Machine& mach) {
-    TCETools::CIStringSet opNames;
+Operand& 
+MachineInfo::operandFromPort(
+    const TTAMachine::HWOperation& hwOp,
+    const TTAMachine::FUPort& port) {
+ 
+    const TCEString& opName = hwOp.name();
+    OperationPool opPool;
+    const Operation& op = opPool.operation(opName.c_str());
 
-    const TTAMachine::Machine::FunctionUnitNavigator nav =
-        mach.functionUnitNavigator();
+    assert(&op != &NullOperation::instance() && "Invalid operation name.");
 
-    // go through every function unit
-    for (int i = 0; i < nav.count(); i++) {
-        const TTAMachine::FunctionUnit* fu = nav.item(i);
-        
-        if (fu == NULL) {
-            continue;
-        }
-        
-        TCETools::CIStringSet fuOpNames;
-        fu->operationNames(fuOpNames);
-
-        // go through every operation name and list the name
-        TCETools::CIStringSet::iterator it;
-        for (it = fuOpNames.begin(); it != fuOpNames.end(); ++it) {
-            opNames.insert(*it);
-        }
-    }
-
-    return opNames;
+    int opndIndex = hwOp.io(port);
+    return op.operand(opndIndex);
 }
