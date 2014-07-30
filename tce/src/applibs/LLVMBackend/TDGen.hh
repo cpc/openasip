@@ -258,6 +258,8 @@ throw (InvalidData);
     virtual void createMinMaxGenerator(std::ostream& os);
 
     virtual void generateLoadStoreCopyGenerator(std::ostream& os);
+
+    virtual void createGetMaxMemoryAlignment(std::ostream& os) const;
     
     virtual void writeCallingConv(std::ostream& os);
     void writeCallingConvLicenceText(std::ostream& os);

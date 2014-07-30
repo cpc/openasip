@@ -51,6 +51,7 @@ Usability features
   visualization) smaller.
 - ProDe: Wider ports, sockets and buses look wider, narrower look narrower.
 - ProDe: Units, ports and buses are closer to each others in the main view.
+- ttasim: register values are always printed in hex format for the whole width.
 
 Bugfixes
 --------

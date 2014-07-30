@@ -1425,6 +1425,7 @@ TDGen::writeBackendCode(std::ostream& o) {
 
     generateLoadStoreCopyGenerator(o);
     createMinMaxGenerator(o);
+    createGetMaxMemoryAlignment(o);
 }
 
 /**
@@ -3407,6 +3408,15 @@ TDGen::writeCallingConvLicenceText(std::ostream& os) {
        << "//" << std::endl
        << "//===--------------------------------------------------------"
        << "--------------===//" << std::endl << std::endl;
+}
+
+void
+TDGen::createGetMaxMemoryAlignment(std::ostream& os) const {
+    os << std::endl
+       << "unsigned GeneratedTCEPlugin::getMaxMemoryAlignment() const {"
+       << std::endl 
+       << "\treturn 4;" 
+       << std::endl << "}" << std::endl;
 }
 
 void TDGen::createSelectPatterns(std::ostream& os) {
