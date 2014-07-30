@@ -318,20 +318,6 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(WholeValue);
             }
             ArgOffset += 8;
-        } else if (sType.isVector()) {
-            if (!Ins[i].Used) {
-                InVals.push_back(DAG.getUNDEF(ObjectVT));
-            } else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
-                    sType.getStoreSize(), ArgOffset, true);
-                SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                SDValue Load = DAG.getLoad(
-                    sType, dl, Chain, FIPtr, MachinePointerInfo(), false,
-                    false, false, 0);
-                InVals.push_back(Load);
-            }
-
-            ArgOffset += sType.getStoreSize();
         } else {
             std::cerr << "Unhandled argument type: " 
                       << ObjectVT.getEVTString() << std::endl;
@@ -341,7 +327,6 @@ TCETargetLowering::LowerFormalArguments(
     
     // inspired from ARM
     if (isVarArg) {
-        /// @todo This probably doesn't work with vector arguments currently.
         // This will point to the next argument passed via stack.
 
         VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
@@ -397,8 +382,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
             } 
         } else if (sType == MVT::i64 || sType == MVT::f64) {
             ArgsSize += 8;
-        } else if (sType.isVector()) {
-            ArgsSize += sType.getStoreSize();
         } else {
             std::cerr << "Unknown argument type: " 
                       << ObjectVT.getEVTString() << std::endl;
@@ -408,11 +391,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
     // Keep stack frames 4-byte aligned.
     ArgsSize = (ArgsSize+3) & ~3;
-
-    /// @todo Enable this and remove the upper line, after the new alignment
-    /// works with multicores.
-    //unsigned alignBytes = tm_.getStackAlignment()-1;
-    //ArgsSize = (ArgsSize + alignBytes) & alignBytes;
                                  
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
     Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
@@ -449,9 +427,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     } else if (sType == MVT::i64 || sType == MVT::f64) {
         ObjSize = 8;
         ValToStore = Val;    // Whole thing is passed in memory.
-    } else if (sType.isVector()) {
-        ObjSize = sType.getStoreSize();
-        ValToStore = Val;
     } else {
         std::cerr << "Unknown argument type: " 
                   << ObjectVT.getEVTString() << std::endl;
