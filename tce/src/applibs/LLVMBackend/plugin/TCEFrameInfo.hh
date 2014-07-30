@@ -84,7 +84,6 @@ namespace llvm {
             true /*false*/),
         tri_(tri) {}
 
-#ifndef LLVM_3_2
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
