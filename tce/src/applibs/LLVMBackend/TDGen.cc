@@ -2030,7 +2030,7 @@ TDGen::writeEmulationPattern(
  *
  * Boost format parameters correspond to the operand strings.
  *
- * @param osalOperationName Base-operation name in OSAL.
+ * @param op Operation for which the LLVM pattern should be returned.
  * @return Boost::format string of the operation node in llvm.
  */
 TCEString
@@ -2184,8 +2184,7 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
 }
 
 /**
- * Returns llvm operation name for the given OSAL operation name,
- * if any.
+ * Returns llvm operation name for the given OSAL operation name, if any.
  */
 TCEString
 TDGen::llvmOperationName(const Operation& op) {
