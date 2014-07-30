@@ -179,10 +179,12 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-v512:32:512";
     dataLayoutStr += "-v1024:32:1024";
 
-#ifdef LLVM_3_2
+#if defined(LLVM_3_2)
     DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), &dl_);
-#else
+#elif (defined(LLVM_3_3) || defined(LLVM_3_4))
     dl_.init(dataLayoutStr.c_str());
+#else
+    dl_.reset(dataLayoutStr.c_str());
 #endif
 }
 
