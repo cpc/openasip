@@ -162,9 +162,9 @@ protected:
     void writeRegisterClasses(std::ostream& o);
 
     virtual TCEString llvmOperationPattern(
-        const Operation& op, char operandType, TCEString opName = "");
+        const Operation& op, char operandType = ' ');
     virtual TCEString llvmOperationName(
-        const Operation& op, TCEString opName = "");
+        const Operation& op);
     bool operationCanBeMatched(
         const Operation& op, 
         std::set<std::string>* recursionCycleCheck = NULL,

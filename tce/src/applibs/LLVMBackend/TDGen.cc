@@ -2034,12 +2034,9 @@ TDGen::writeEmulationPattern(
  * @return Boost::format string of the operation node in llvm.
  */
 TCEString
-TDGen::llvmOperationPattern(
-    const Operation& op, char operandType, TCEString opName) {
+TDGen::llvmOperationPattern(const Operation& op, char operandType) {
 
-    if (opName == "") {
-        opName = StringTools::stringToLower(op.name());
-    }
+    TCEString opName = StringTools::stringToLower(op.name());
 
     if (opName == "add") return "add %1%, %2%";
     if (opName == "sub") return "sub %1%, %2%";
@@ -2191,11 +2188,9 @@ TDGen::llvmOperationPattern(
  * if any.
  */
 TCEString
-TDGen::llvmOperationName(const Operation& op, TCEString opName) {
+TDGen::llvmOperationName(const Operation& op) {
     
-    if (opName == "") {
-        opName = StringTools::stringToLower(op.name());
-    }
+    TCEString opName = StringTools::stringToLower(op.name());
 
     if (opName == "add") return "add";
     if (opName == "sub") return "sub";
