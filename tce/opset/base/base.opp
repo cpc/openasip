@@ -3089,7 +3089,7 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -3106,7 +3106,7 @@ Input operand is discarded.</description>
     <description>Convert short to half</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 

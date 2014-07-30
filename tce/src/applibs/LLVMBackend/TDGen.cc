@@ -2129,6 +2129,11 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "cihu") return "uint_to_fp %1%";
     if (opName == "chiu") return "fp_to_uint %1%";
 
+    if (opName == "csh") return "sint_to_fp %1%";
+    if (opName == "cshu") return "uint_to_fp %1%";
+    if (opName == "chs") return "fp_to_sint %1%";
+    if (opName == "chsu") return "fp_to_uint %1%";
+
     if (opName == "ldq") return "sextloadi8 %1%";
     if (opName == "ldqu") return "zextloadi8 %1%";
     if (opName == "ldh") return "sextloadi16 %1%";
