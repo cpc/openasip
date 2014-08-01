@@ -926,7 +926,9 @@ public:
             " 'yes'.");
         addParameter(
             LOCK_TRACE_STARTING_CYCLE,
-            "The first cycle for which the global lock trace is printed.");
+            "The first cycle for which the global lock trace is printed. "
+            "If value is \"" + BUS_TRACE_STARTING_CYCLE + "\" then the "
+            "value is inherited from " + BUS_TRACE_STARTING_CYCLE + ".");
         
         icGenerator_ = new DefaultICGenerator(machine);
         decoderGenerator_ = new DefaultDecoderGenerator(
@@ -1090,6 +1092,11 @@ private:
             return 0;
         } else {
             string paramValue = parameterValue(LOCK_TRACE_STARTING_CYCLE);
+
+            if (paramValue == BUS_TRACE_STARTING_CYCLE) {
+               return busTraceStartingCycle();
+            }
+
             try {
                 unsigned int cycle = Conversion::toUnsignedInt(paramValue);
                 return cycle;

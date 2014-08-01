@@ -844,7 +844,7 @@ DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
                << endl;
 
     } else { // language_==Verilog
-        // todo verilog version
+
     }
 }
 
