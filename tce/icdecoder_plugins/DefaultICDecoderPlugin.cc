@@ -896,6 +896,9 @@ using std::endl;
 
 const std::string GENERATE_BUS_TRACE_PARAM = "bustrace";
 const std::string GENERATE_BUS_TRACE_PARAM_YES = "yes";
+const std::string GENERATE_LOCK_TRACE_PARAM = "locktrace";
+const std::string GENERATE_LOCK_TRACE_PARAM_YES = "yes";
+const std::string LOCK_TRACE_STARTING_CYCLE = "locktracestartingcycle";
 const std::string BUS_TRACE_STARTING_CYCLE = "bustracestartingcycle";
 const std::string PLUGIN_DESCRIPTION = 
                            "Generates the IC as as an AND-OR network.";
@@ -913,10 +916,17 @@ public:
 
         addParameter(
             GENERATE_BUS_TRACE_PARAM, 
-            "Generates code that prints bus trace if the value is 'yes'");
+            "Generates code that prints bus trace if the value is 'yes'.");
         addParameter(
             BUS_TRACE_STARTING_CYCLE,
             "The first cycle for which the bus trace is printed.");
+        addParameter(
+            GENERATE_LOCK_TRACE_PARAM,
+            "Generates code that prints global lock trace if the value is"
+            " 'yes'.");
+        addParameter(
+            LOCK_TRACE_STARTING_CYCLE,
+            "The first cycle for which the global lock trace is printed.");
         
         icGenerator_ = new DefaultICGenerator(machine);
         decoderGenerator_ = new DefaultDecoderGenerator(
@@ -967,6 +977,14 @@ public:
             icGenerator_->setBusTraceStartingCycle(busTraceStartingCycle());
         } else {
             icGenerator_->setGenerateBusTrace(false);
+        }
+
+        if (generateLockTrace()) {
+            decoderGenerator_->setGenerateLockTrace(true);
+            decoderGenerator_->setLockTraceStartingCycle(
+                lockTraceStartingCycle());
+        } else {
+            decoderGenerator_->setGenerateLockTrace(false);
         }
 
         // generate the IC
@@ -1023,6 +1041,23 @@ private:
         }
     }
 
+    /**
+     * Tells whether IC generator should generate global lock tracing code.
+     *
+     * @return True if IC generator should generate the code.
+     */
+    bool generateLockTrace() const {
+        if (!hasParameterSet(GENERATE_LOCK_TRACE_PARAM)) {
+            return false;
+        } else {
+            string paramValue = parameterValue(GENERATE_LOCK_TRACE_PARAM);
+            if (paramValue == GENERATE_LOCK_TRACE_PARAM_YES) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     /**
      * Returns the starting cycle to be written to the bus trace given as
@@ -1035,6 +1070,26 @@ private:
             return 0;
         } else {
             string paramValue = parameterValue(BUS_TRACE_STARTING_CYCLE);
+            try {
+                unsigned int cycle = Conversion::toUnsignedInt(paramValue);
+                return cycle;
+            } catch (const Exception&) {
+                return 0;
+            }
+        }
+    }
+
+    /**
+     * Returns the starting cycle to be written to the global lock trace
+     * given as parameter.
+     *
+     * @return The starting cycle.
+     */
+    int lockTraceStartingCycle() const {
+        if (!hasParameterSet(LOCK_TRACE_STARTING_CYCLE)) {
+            return 0;
+        } else {
+            string paramValue = parameterValue(LOCK_TRACE_STARTING_CYCLE);
             try {
                 unsigned int cycle = Conversion::toUnsignedInt(paramValue);
                 return cycle;
