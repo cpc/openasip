@@ -4687,6 +4687,40 @@ compiled to a shared object file and copied to appropriate
 directory. Then it can be given as command line parameter to the
 generator.
 
+\paragraph{Default IC Decoder Plugin}
+
+The plugin that is selected by default  ProDe's Processor Implementation dialog. 
+Parameters that can be passed to default ic decoder plugin are listed below. Note
+that if bustrace or locktrace is enabled the processor can not be synthesized.
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.25\textwidth}@{}p{.65\textwidth}}
+\textbf{Plugin parameter} &\textbf{Description} \\
+\hline
+bustrace &% 
+Value ``yes'' on the parameter adds code to IC implementation that 
+prints values of busses into a file called ``bus.dump''. The values are
+captured every clock period. By default the feature is disabled.
+\\
+bustracestartingcycle &%
+The cycle when the bus tracing starts. Parameter is unset by default.
+\\
+locktrace &%
+Value ``yes'' on the parameter adds code to decoder implementation that 
+prints signal value of global lock into a file called ``lock.dump''. The
+value is captured every clock period. By default the feature is disabled.
+\\
+locktracestartingcycle &%
+Parameter is unset by default. When numeric value is given it will be
+the cycle when the global lock tracing starts. When value is 
+``bustracestartingcycle'' then the value is inherited from bustracestartingcycle
+parameter.
+\\
+
+
+\end{longtable}
+\end{center}
+
 \section{Platform Integrator}
 \label{sec:platformIntegrator}
 
