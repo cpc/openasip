@@ -171,6 +171,8 @@ InputPSocketBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const{
     cycle = instructionIndex(cycle);
     Terminal& dst = const_cast<MoveNode&>(node).move().destination();
     const Port& port = dst.port();
+    if (port.inputSocket() == NULL)
+        return false;
     SchedulingResource* res = resourceOf(*port.inputSocket());
     if (res != NULL && res->isInUse(cycle) &&
         MapTools::containsKey(assignedResources_, &node)) {

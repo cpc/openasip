@@ -102,9 +102,6 @@ const int DEFAULT_HEIGHT = 500;
 const int DEFAULT_X_POS = 0;
 /// Default y position.
 const int DEFAULT_Y_POS = 0;
-/// Default undo stack size.
-const int DEFAULT_UNDO_SIZE = 10;
-
 /// String to mean delete key.
 const string DELETE_KEY = "del";
 

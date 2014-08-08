@@ -363,6 +363,8 @@ OutputPSocketBroker::isAlreadyAssigned(
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort() || src.isGPR() || src.isImmediateRegister()) {
         const Port& port = src.port();
+        if (port.outputSocket() == NULL)
+            return false;
         SchedulingResource* res = resourceOf(*port.outputSocket());
         if (res != NULL && res->isInUse(cycle) &&
             MapTools::containsKey(assignedResources_, &node)) {

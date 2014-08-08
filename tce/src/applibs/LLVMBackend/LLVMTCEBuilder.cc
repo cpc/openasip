@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -321,7 +321,8 @@ LLVMTCEBuilder::initDataSections() {
         const llvm::GlobalValue& gv = *i;
         unsigned int gvAlign = gv.getAlignment();
 
-        if (gv.hasSection() && gv.getSection() == "llvm.metadata") {
+        if (gv.hasSection() && 
+            gv.getSection() == std::string("llvm.metadata")) {
             // do not write debug constants to the data section
             continue; 
         }
