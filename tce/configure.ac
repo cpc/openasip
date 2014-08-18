@@ -432,7 +432,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.3 llvm-config-3.4 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -525,7 +525,7 @@ Please consult INSTALL for instructions.])
      ENABLE_CXX11=false
    ;;
      3.5*)
-     AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)")
+     AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
         ;;   
      *)
    AC_MSG_NOTICE(
