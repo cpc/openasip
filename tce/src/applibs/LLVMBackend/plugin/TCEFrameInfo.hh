@@ -51,8 +51,7 @@ namespace llvm {
 
 //  Frame info:
 // -------------
-// Grows down, alignment at least 4 bytes. The alignment is set according to
-// the widest operand in the machine.
+// Grows down, alignment at least 4 bytes.
 //
     class TCEFrameInfo : public TargetFrameLowering {
     public:

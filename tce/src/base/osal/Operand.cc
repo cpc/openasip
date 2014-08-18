@@ -233,7 +233,7 @@ Operand::elementWidth() const {
 /**
  * Sets the element bit width.
  *
- * @param New element bit width.
+ * @param elementWidth New element bit width.
  */
 void
 Operand::setElementWidth(int elementWidth) {
@@ -253,7 +253,7 @@ Operand::elementCount() const {
 /**
  * Sets the number of elements.
  *
- * @param New element count.
+ * @param elementCount New element count.
  */
 void
 Operand::setElementCount(int elementCount) {
