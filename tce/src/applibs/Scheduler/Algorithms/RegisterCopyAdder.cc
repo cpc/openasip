@@ -1665,11 +1665,6 @@ RegisterCopyAdder::countAndAddConnectionRegisterCopiesToRR(
          ++i) {
         const TTAMachine::Port& src = *(*i).first;
         const TTAMachine::Port& dst = *(*i).second;
-        if ((&src == NULL) || (&dst == NULL)) {
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__,
-                "Could not schedule move " + moveNode.toString());
-        }
         
         int regCount = addConnectionRegisterCopies(moveNode, src, dst);
 
@@ -1897,11 +1892,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
          ++i) {
         const TTAMachine::Port& src = *(*i).first;
         const TTAMachine::Port& dst = *(*i).second;
-        if ((&src == NULL) || (&dst == NULL)) {
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__,
-                "Could not schedule move " + moveNode.toString());
-        }
 
         int regCount = addConnectionRegisterCopies(moveNode, src, dst);
 

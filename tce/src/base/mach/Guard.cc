@@ -108,10 +108,7 @@ Guard::~Guard() {
  * @return False.
  */
 bool
-Guard::isMoreRestrictive(const Guard& guard) const {
-    // dummy if-clause to avoid compilation warning of unused parameter
-    if (&guard == 0) {
-    }
+Guard::isMoreRestrictive(const Guard& /*guard*/) const {
     return false;
 }
 
@@ -126,10 +123,7 @@ Guard::isMoreRestrictive(const Guard& guard) const {
  * @return False.
  */
 bool
-Guard::isLessRestrictive(const Guard& guard) const {
-    // dummy if-clause to avoid compilation warning of unused parameter
-    if (&guard == 0) {
-    }
+Guard::isLessRestrictive(const Guard& /*guard*/) const {
     return false;
 }
 

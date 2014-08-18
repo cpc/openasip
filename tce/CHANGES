@@ -34,6 +34,7 @@ Smaller features and improvements
   Previously these operations were needed even when not used.
 - C++11 compiling mode can be manually enabled by giving --enable-cxx11 for the
   configure script. The mode is always enabled if LLVM version is 3.5 or higher.
+- Default ic decoder plugin can print global lock trace.
 
 Usability features
 ------------------

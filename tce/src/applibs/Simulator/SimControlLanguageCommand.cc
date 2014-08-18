@@ -652,16 +652,6 @@ SimControlLanguageCommand::parseBreakpoint(
 /// widths don't include the spaces between columns
 /// the handle id column width
 const int BPINFO_HANDLE_COL_WIDTH = 6;
-/// the breakpoint address column width
-const int BPINFO_ADDRESS_COL_WIDTH = 7;
-/// the disposition (del/dis/keep) column width
-const int BPINFO_DISPOSITION_COL_WIDTH = 11;
-/// enabled (y/n) column width
-const int BPINFO_ENABLED_COL_WIDTH = 7;
-/// ignore count column width 
-const int BPINFO_IGNORE_COUNT_COL_WIDTH = 6;
-/// the breakpoint condition column width
-const int BPINFO_CONDITION_COL_WIDTH = 40;
 
 /**
  * Prints information of a breakpoint.
