@@ -1,10 +1,10 @@
 
-RF1.0 0xffffaaaa -21846
-RF1.1 0xffffbbbb -17477
-RF1.2 0xff21dddd -14557731
-RF1.3 0xffffdddd -8739
-RF1.4 0xffffabcd -21555
-RF1.5 0x42 66
-RF1.6 0x0 0
-RF1.7 0x0 0
+RF1.0 0xffffaaaa
+RF1.1 0xffffbbbb
+RF1.2 0xff21dddd
+RF1.3 0xffffdddd
+RF1.4 0xffffabcd
+RF1.5 0x00000042
+RF1.6 0x00000000
+RF1.7 0x00000000
 

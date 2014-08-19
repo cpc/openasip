@@ -146,7 +146,7 @@ writeCustomOpMacro(
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
         std::string operandTypeString = operandTypeCString(operand);
-        if (operandTypeString != "") {
+        if (operandTypeString != "" && !operand.isVector()) {
             os << operandTypeCString(operand) << " __tce_op_output_" << out
                << " = (" << operandTypeCString(operand) << ")0; ";
         }
@@ -179,7 +179,7 @@ writeCustomOpMacro(
 
         if (out > 1)
             os << ", ";
-        if (operandTypeCString(operand) != "") {
+        if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "\"=r\"(" << " __tce_op_output_" << out << ")";
         } else {
             os << "\"=r\"(o" << out << ")";
@@ -192,11 +192,15 @@ writeCustomOpMacro(
 
         if (in > 1)
             os << ", ";
-        if (operandTypeCString(operand) != "") {
+        if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "\"ir\"((" << operandTypeCString(operand)
                << ")(i" << in << "))";
         } else {
-            os << "\"ir\"(i" << in << ")";
+            if (operand.isVector()) {
+                os << "\"r\"(i" << in << ")";
+            } else {
+                os << "\"ir\"(i" << in << ")";
+            }
         }
     }
 
@@ -205,7 +209,7 @@ writeCustomOpMacro(
     // write the results from the temps to the output variables
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
-        if (operandTypeCString(operand) != "") {
+        if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "o" << out << " = __tce_op_output_" << out << ";";
         }
     }

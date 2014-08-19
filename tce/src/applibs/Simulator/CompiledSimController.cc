@@ -407,9 +407,8 @@ CompiledSimController::registerFileValue(
     std::string stringValue("");
 
     if (registerIndex >= 0) {
-        stringValue += Conversion::toString(
-            compiledSimulation()->
-                registerFileValue(rfName.c_str(), registerIndex).intValue());
+        stringValue += compiledSimulation()->
+            registerFileValue(rfName.c_str(), registerIndex).hexValue();
     } else {
         Machine::RegisterFileNavigator navigator = 
             sourceMachine_.registerFileNavigator();
@@ -421,14 +420,11 @@ CompiledSimController::registerFileValue(
                 stringValue += "\n";
             const std::string registerName = 
                 rfName + "." + Conversion::toString(i);
-            
+
             SimValue value = compiledSimulation()->
                 registerFileValue(rfName.c_str(), i);
-            stringValue += registerName + " " + Conversion::toHexString(
-                static_cast<unsigned int>(MathTools::zeroExtendTo(
-                    value.uIntWordValue(), value.width()))) + " " 
-                        + Conversion::toString(
-                            static_cast<int>(value.uIntWordValue()));
+            stringValue += registerName + " " + value.hexValue();
+
             firstReg = false;
         }
     }

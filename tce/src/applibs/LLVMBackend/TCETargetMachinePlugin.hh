@@ -125,6 +125,8 @@ namespace llvm {
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
 
+       virtual unsigned getMaxMemoryAlignment() const = 0;
+
        /// Clustered-TTA-subtemplate related methods.
        virtual const llvm::TargetRegisterClass* extrasRegClass(
            const llvm::TargetRegisterClass* current) const = 0;

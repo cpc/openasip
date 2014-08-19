@@ -33,6 +33,8 @@
 
 #include "SimValue.hh"
 #include "MathTools.hh"
+#include "Conversion.hh"
+#include "TCEString.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // NullSimValue
@@ -72,3 +74,76 @@ SimValue::unsignedValue() const {
     return MathTools::fastZeroExtendTo(value_.uIntWord, bitWidth);
 }
 
+/**
+ * Returns the value as a binary string.
+ *
+ * @return SimValue bytes in binary format.
+ */
+TCEString
+SimValue::binaryValue() const {
+    int fullBytes = width() / 8;
+    int remainBits = width() % 8;
+
+    TCEString binaryStr("");
+    for (int i = 0; i < fullBytes; ++i) {
+        binaryStr += Conversion::toBinary(
+            static_cast<unsigned int>(value_.rawData[i]), 8);
+    }
+
+    binaryStr += Conversion::toBinary(
+            static_cast<unsigned int>(value_.rawData[fullBytes]), remainBits);
+    return binaryStr;
+}
+
+/**
+ * Returns the value as a hex string.
+ *
+ * @return SimValue bytes in hex format.
+ */
+TCEString
+SimValue::hexValue() const {
+    // if bit width is smaller or equal to 1 hex number, return a single
+    // hex number representing the value
+    if (width() <= 4) {
+        int intValue = static_cast<int>(value_.rawData[0]);
+        return Conversion::toHexString(intValue, 1); 
+    }
+
+    // otherwise return full bytes wide hex string
+    TCEString hexStr = "0x";
+    int bytes = width() / 8;
+    int remain = width() % 8;
+    if (remain != 0) {
+        ++bytes;
+    }
+
+    // convert data buffer one byte at a time to hex string values,
+    // and remove "0x" from the front of the string for each value
+    for (int i = bytes-1; i >= 0; --i) {
+        int intValue = static_cast<int>(value_.rawData[i]);
+        hexStr += Conversion::toHexString(intValue, 2).substr(2);
+    }
+
+    return hexStr;
+}
+
+/**
+ * Sets SimValue to correspond the hex value.
+ *
+ * @param hexValue New value in hex format.
+ */
+void
+SimValue::setValue(TCEString hexValue) {
+    if (hexValue.size() > 2 && hexValue[0] == '0' && hexValue[1] == 'x') {
+        hexValue = hexValue.substr(2); // Remove "0x."
+    }
+
+    // Check the hex string value doesn't exceed SimValue's bitwidth.
+    int bits = hexValue.size() * 4;
+    if (bits > SIMD_WORD_WIDTH) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, __func__, "Too wide value.");
+    }
+            
+    Conversion::toRawData(hexValue, rawBytes());
+}

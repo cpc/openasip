@@ -3,6 +3,17 @@
 
 [updated from bzr log until 2014-08-18]
 
+Other features and improvements
+------------------------------
+- TestOsal: test context bitwidth attribute has been removed, since Operands
+  know their own width. Also, values that are printed in hex format are printed
+  using Operand's whole width, including leading zeroes.
+- osed: Operand type can be set to Bool.
+
+Usability features
+------------------
+- ttasim: register values are always printed in hex format for the whole width.
+
 1.10     August 2014
 ====================
 

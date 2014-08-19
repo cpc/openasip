@@ -22,9 +22,9 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TCERegisterInfo.cpp
+ * @file TCEFrameInfo.cpp
  *
- * Implementation of TCERegisterInfo class.
+ * Implementation of TCEFrameInfo class.
  *
  * @author Heikki Kultala 2010 (hkultala-no.spam-cs.tut.fi)
  */

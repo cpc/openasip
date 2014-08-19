@@ -51,7 +51,7 @@ namespace llvm {
      */
     class TCERegisterInfo : public TCEGenRegisterInfo {
     public:
-        TCERegisterInfo(const TargetInstrInfo& tii);
+        TCERegisterInfo(const TargetInstrInfo& tii, int stackAlignment);
         virtual ~TCERegisterInfo() {};
 
 #if (defined(LLVM_3_1) || defined(LLVM_3_2))
@@ -87,6 +87,7 @@ namespace llvm {
     private:
         const TargetInstrInfo& tii_;
         bool containsCall(MachineFunction& mf) const;
+        int stackAlignment_;
     };
 }
 

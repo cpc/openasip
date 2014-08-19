@@ -40,6 +40,8 @@
 
 #define SIMD_WORD_WIDTH 1024
 
+class TCEString;
+
 //////////////////////////////////////////////////////////////////////////////
 // SimValue
 //////////////////////////////////////////////////////////////////////////////
@@ -105,6 +107,8 @@ public:
 
     int intValue() const;
     unsigned int unsignedValue() const;
+    TCEString binaryValue() const;
+    TCEString hexValue() const;
 
     SIntWord sIntWordValue() const;
     UIntWord uIntWordValue() const;
@@ -115,6 +119,8 @@ public:
     Byte* rawBytes() const;
     HalfWord* rawHalfWords() const;
     Word* rawWords() const;
+
+    void setValue(TCEString hexValue);
 
     /// These are public for fast access in the compiled simulation engine.
     union Value {

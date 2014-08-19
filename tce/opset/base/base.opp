@@ -612,6 +612,42 @@
   </operation>
 
   <operation>
+    <name>SXBQ</name>
+    <description>sign extend from 1 bit to 8 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbq, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXBH</name>
+    <description>sign extend from 1 bit to 16 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbh, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXBW</name>
+    <description>sign extend from 1 bit to 32 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SXQW</name>
     <description>Sign extend from 8 bits to 32 bits.</description>
     <inputs>1</inputs>
@@ -632,6 +668,18 @@
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxhw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>TRUNCWH</name>
+    <description>truncate 32 bit int to 16 bit int</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(truncwh, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1386,6 +1434,30 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(gth, IO(1), IO(2), t1);
       EXEC_OPERATION(gth, IO(2), IO(1), t2);
       EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEUH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(neuf, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -3017,7 +3089,7 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -3034,7 +3106,7 @@ Input operand is discarded.</description>
     <description>Convert short to half</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 

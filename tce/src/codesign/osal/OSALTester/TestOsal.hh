@@ -208,24 +208,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// CmdBitWidth
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Sets bit width of the operation operands.
- */
-class CmdBitWidth : public CustomCommand {
-public:
-    CmdBitWidth();
-    explicit CmdBitWidth(const CmdBitWidth& cmd);
-    virtual ~CmdBitWidth();
-
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
-    virtual std::string helpText() const;
-};
-
-//////////////////////////////////////////////////////////////////////////////
 // TesterContext.
 //////////////////////////////////////////////////////////////////////////////
 
@@ -242,8 +224,6 @@ public:
     std::string outputFormat() const;
     void setOutputFormat(std::string outputFormat);
     std::string toOutputFormat(SimValue* value);
-    unsigned int bitWidth();
-    void setBitWidth(unsigned int bitWidth);
 
     InstructionAddress& programCounter();
     SimValue& returnAddress();
@@ -257,8 +237,6 @@ private:
     InstructionAddress programCounterStorage_;
     /// Indicates which output format is used currently.
     std::string outputFormat_;
-    /// Bit width of the operands.
-    unsigned int bitWidth_;
     /// The operation context shared with all operations invoked in
     /// the application.
     OperationContext opContext_;

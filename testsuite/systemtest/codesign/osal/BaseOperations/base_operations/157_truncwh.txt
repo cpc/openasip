@@ -1,0 +1,5 @@
+truncwh 0xffffffff
+truncwh 0xffff0000
+truncwh 0xffff0001
+truncwh 0x00000001
+truncwh 0x12345678

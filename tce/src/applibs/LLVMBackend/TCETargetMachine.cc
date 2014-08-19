@@ -45,6 +45,7 @@
 #include "PluginTools.hh"
 #include "FileSystem.hh"
 #include "ADFSerializer.hh"
+#include "Conversion.hh"
 
 #include <iostream>
 
@@ -98,8 +99,10 @@ TCETargetMachine::TCETargetMachine(
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL)
     : LLVMTargetMachine(T,TT, CPU, FS, Options, RM, CM, OL),
 
-//      Subtarget(TT,FS),
-      DL(
+//      subTarget_(TT,FS),
+
+      /// @note Is overwritten in setTargetMachinePlugin.
+      dl_(
         "E-p:32:32:32"
         "-a0:0:32"
         "-i1:8:8"
@@ -113,7 +116,6 @@ TCETargetMachine::TCETargetMachine(
         "-v64:32:32"
         "-v128:32:32"
         "-v256:32:32"),
-      tsInfo(*this),
       plugin_(NULL), pluginTool_(NULL) {
 }
 
@@ -156,6 +158,33 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
 #if (!(defined(LLVM_3_2) || defined(LLVM_3_3)))
     initAsmInfo();
+#endif
+
+    // Set data layout with correct stack alignment.
+    unsigned alignBits = getMaxMemoryAlignment() * 8;
+    TCEString dataLayoutStr("");
+    dataLayoutStr += "E-p:32:32:32";
+    dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
+    dataLayoutStr += "-i1:8:8";
+    dataLayoutStr += "-i8:8:32";
+    dataLayoutStr += "-i16:16:32";
+    dataLayoutStr += "-i32:32:32";
+    dataLayoutStr += "-i64:32:32";
+    dataLayoutStr += "-f16:16:16";
+    dataLayoutStr += "-f32:32:32";
+    dataLayoutStr += "-f64:32:64";
+    dataLayoutStr += "-v64:32:64";
+    dataLayoutStr += "-v128:32:128";
+    dataLayoutStr += "-v256:32:256";
+    dataLayoutStr += "-v512:32:512";
+    dataLayoutStr += "-v1024:32:1024";
+
+#if defined(LLVM_3_2)
+    DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), &dl_);
+#elif (defined(LLVM_3_3) || defined(LLVM_3_4))
+    dl_.init(dataLayoutStr.c_str());
+#else
+    dl_.reset(dataLayoutStr.c_str());
 #endif
 }
 

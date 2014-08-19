@@ -65,9 +65,10 @@ using namespace llvm;
 /**
  * Constructor.
  */
-TCEInstrInfo::TCEInstrInfo(const TCETargetMachinePlugin* plugin) :
+TCEInstrInfo::TCEInstrInfo(
+    const TCETargetMachinePlugin* plugin, int stackAlignment) :
     TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-    ri_(*this), plugin_(plugin) {
+    ri_(*this, stackAlignment), plugin_(plugin) {
 }
 
 /**

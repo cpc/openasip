@@ -68,9 +68,11 @@ using namespace llvm;
  * @param st Subtarget architecture.
  * @param tii Target architecture instruction info.
  */
-TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
+TCERegisterInfo::TCERegisterInfo(
+    const TargetInstrInfo& tii, int stackAlignment) :
     TCEGenRegisterInfo(TCE::RA),
-    tii_(tii) {
+    tii_(tii),
+    stackAlignment_(stackAlignment) {
 }
 
 /**
@@ -193,7 +195,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     if (hasCalls) {
         BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(4);
+            .addImm(stackAlignment_);
 
         // Save RA to stack.
         BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
@@ -202,7 +204,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
             .addReg(TCE::RA)
             .setMIFlag(MachineInstr::FrameSetup);
 
-        mfi->setStackSize(numBytes + 4);
+        mfi->setStackSize(numBytes + stackAlignment_);
 
         // Adjust stack pointer
         if (numBytes != 0) {
@@ -253,10 +255,10 @@ TCERegisterInfo::emitEpilogue(
     }
 
     if (hasCalls) {
-        if (numBytes != 4) {
+        if (numBytes != stackAlignment_) {
             BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
                 .addReg(TCE::SP)
-                .addImm(numBytes - 4);
+                .addImm(numBytes - stackAlignment_);
         }
 
         // Restore RA from stack.
@@ -267,7 +269,7 @@ TCERegisterInfo::emitEpilogue(
         
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(4);
+            .addImm(stackAlignment_);
     } else { // leaf function
         
         // adjust by stack size

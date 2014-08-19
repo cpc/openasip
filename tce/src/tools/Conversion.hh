@@ -85,6 +85,9 @@ public:
     template <typename T>
     static std::string toHexString(T source, std::size_t digits = 0);
 
+    static void toRawData(
+        const std::string& hexSource, unsigned char* target);
+
 private:
 
     template <typename SourceType, typename DestType, bool destIsNumeric>
