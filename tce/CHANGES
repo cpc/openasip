@@ -1,7 +1,10 @@
-1.10      unreleased
+1.11      unreleased
 ====================
 
-[updated from commit log on 2014-01-24]
+[updated from bzr log until 2014-08-18]
+
+1.10     August 2014
+====================
 
 Notable changes and features
 ----------------------------
@@ -9,8 +12,8 @@ Notable changes and features
 - machinfo: a tool for automatically printing out documentation of
   the designed ADF in LaTeX.
 
-Smaller features and improvements
----------------------------------
+Other features and improvements
+------------------------------
 - Compilation times improved.
 - Functions marked as 'noinline' are not removed from the final program
   even though the program itself does not refer to them.
@@ -34,7 +37,18 @@ Smaller features and improvements
   Previously these operations were needed even when not used.
 - C++11 compiling mode can be manually enabled by giving --enable-cxx11 for the
   configure script. The mode is always enabled if LLVM version is 3.5 or higher.
-- Default ic decoder plugin can print global lock trace.
+- Default ic decoder plugin can print a separate global lock trace.
+- Fixed issues spotted by compiling TCE using Clang++ 3.5.
+- Added a SLEEP operation to the base operation set.
+- tcecc no longer asserts/breaks if LDQ/STQ or LDH/STH is missing.
+  It, however, cannot emulate these, so only code which
+  does not load/store 8/16-bit values will compile if these are missing.
+- tcecc: Lacking some immediate width no longer force one register to be
+  wasted for regcopyadder.
+
+Code generator improvements
+---------------------------
+- Generation of conversions between half float and integers automatically.
 
 Usability features
 ------------------
@@ -53,18 +67,21 @@ Usability features
 - ProDe: Wider ports, sockets and buses look wider, narrower look narrower.
 - ProDe: Units, ports and buses are closer to each others in the main view.
 - ttasim: register values are always printed in hex format for the whole width.
+- tcecc: More user friendly error printouts when lacking immediate 
+  capabilities or when running out of imem.
 
-Bugfixes
---------
-- Fix PIG and ProGe when generating bits or RTL for
-  a machine with a bus (slot) that does not have any
-  connections.
+Notable bugfixes
+----------------
+- Fix PIG and ProGe when generating bits or RTL for a machine with a bus 
+  (slot) that does not have any connections.
 - Having volatile variables could have caused broken code being generated.
 - Compiler sometimes refused to schedule to processors with relatively
   sparse connectivity but no need for register copies.
 - Wrong number of parameters in osed dags might now have reasonable error
   message instead of crash.
 - Boolean return values no longer cause compiler to fail.
+- PIG generates initalization data also for variables initialized to zero.
+- ProGe: Reset also immediate unit control signals.
 
 1.9     January 2014
 ====================
