@@ -61,10 +61,6 @@ namespace llvm {
      * stack realignment is not allowed. This means, that every stack object
      * having a bigger alignment than the stack's own alignment, will be 
      * reduced to have the stack's alignment.
-     * 
-     * For example, if stack realignment parameter is set to false, and 
-     * stack has alignment of 4, and v4i32 vector has alignment of 16 
-     * (bytes) -> vector's alignment in stack will be demoted to 4.
      */
         TCEFrameInfo(const TCERegisterInfo* tri, int stackAlignment) : 
 #ifdef LLVM_3_2

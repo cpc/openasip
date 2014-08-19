@@ -208,22 +208,6 @@ Operation::operandCount() const {
 }
 
 /**
- * Returns true if any of the operands is a vector operand.
- *
- * @return True if Operation is a vector operation, false otherwise.
- */
-bool
-Operation::isVectorOperation() const {
-    for (int i = 1; i <= operandCount(); ++i) {
-        if (operand(i).isVector()) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
  * Returns true if Operation uses memory.
  *
  * @return True if Operation uses memory, false otherwise.
