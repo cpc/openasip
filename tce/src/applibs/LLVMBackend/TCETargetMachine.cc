@@ -116,7 +116,15 @@ TCETargetMachine::TCETargetMachine(
         "-v64:32:32"
         "-v128:32:32"
         "-v256:32:32"),
-      plugin_(NULL), pluginTool_(NULL) {
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+      tsInfo_(*this),
+#else
+      tsInfo_(this->getDataLayout()),
+#endif
+      plugin_(NULL),
+      pluginTool_(NULL)
+{
 }
 
 /**
