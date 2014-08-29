@@ -552,7 +552,7 @@
     <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="32" id="2" type="UIntWord">
+    <out element-count="1" element-width="64" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -603,7 +603,7 @@
     <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in element-count="1" element-width="32" id="2" type="UIntWord">
+    <in element-count="1" element-width="64" id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>

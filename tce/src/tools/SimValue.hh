@@ -27,6 +27,7 @@
  * Declaration of SimValue class.
  *
  * @author Pekka J‰‰skel‰inen 2004,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
@@ -39,6 +40,7 @@
 #include <string.h>
 
 #define SIMD_WORD_WIDTH 1024
+#define SIMVALUE_MAX_BYTE_SIZE (SIMD_WORD_WIDTH / BYTE_BITWIDTH)
 
 class TCEString;
 
@@ -56,13 +58,11 @@ class TCEString;
  */
 class SimValue {
 public:
-    inline SimValue();
-    inline explicit SimValue(int width);
-    inline explicit SimValue(int value, int width);
-
-    inline ~SimValue() {}
-    
-    inline SimValue(const SimValue& source);
+    SimValue();
+    explicit SimValue(int width);
+    explicit SimValue(int value, int width);
+    SimValue(const SimValue& source);
+    ~SimValue() {}
 
     int width() const;
     void setBitWidth(int width);
@@ -107,8 +107,6 @@ public:
 
     int intValue() const;
     unsigned int unsignedValue() const;
-    TCEString binaryValue() const;
-    TCEString hexValue() const;
 
     SIntWord sIntWordValue() const;
     UIntWord uIntWordValue() const;
@@ -116,31 +114,25 @@ public:
     FloatWord floatWordValue() const;
     HalfFloatWord halfFloatWordValue() const;
 
-    Byte* rawBytes() const;
-    HalfWord* rawHalfWords() const;
-    Word* rawWords() const;
-
+    TCEString binaryValue() const;
+    TCEString hexValue() const;
     void setValue(TCEString hexValue);
-
-    /// These are public for fast access in the compiled simulation engine.
-    union Value {
-        UIntWord uIntWord;
-        SIntWord sIntWord;
-        uint16_t halfFloatWordBits;
-        FloatWord floatWord;
-        DoubleWord doubleWord;
-        Byte rawData[SIMD_WORD_WIDTH / 8];
-    };
-
-    /// The value data.
-    Value value_;
 
     /// The bitwidth of the value.
     int bitWidth_;
 
+    /// Array that contains the SimValue's underlaying value in big endian.
+    Byte rawData_[SIMVALUE_MAX_BYTE_SIZE];
+
 private:
+    /// @todo Create more optimal 4-byte and 2-byte swapper functions for
+    /// 2 and 4 byte values. The more optimal swapper would load all bytes
+    /// to int or short int and shift the values to their correct places.
+    void swapByteOrder(const Byte* from, size_t byteCount, Byte* to) const;
+
     /// Mask for masking extra bits when returning unsigned value.
     UIntWord mask_;
+
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -165,7 +157,5 @@ private:
 };
 
 #define SIMULATOR_MAX_INTWORD_BITWIDTH 32
-
-#include "SimValue.icc"
 
 #endif

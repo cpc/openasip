@@ -126,7 +126,7 @@ CompiledSimulation::addFUResult(
                     if (oldResult.cycles < result.cycles) {
                         // use the space of the old result for the new one.
                         oldResult.cycles = cycleCount + latency;
-                        oldResult.value.value_.uIntWord = value;
+                        oldResult.value = value;
                         oldResult.used = true;
                         return;
                     } else {
@@ -139,7 +139,7 @@ CompiledSimulation::addFUResult(
 
         if (!result.used) {
             result.cycles = cycleCount + latency;
-            result.value.value_.uIntWord = value;
+            result.value = value;
             result.used = true;
             results.numberOfElements++;
             return;
