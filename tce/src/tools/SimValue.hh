@@ -53,8 +53,13 @@ class TCEString;
  *
  * This class represents any data type that can be manipulated by operations
  * of the target architecture template, and provides the interface to access
- * the data in three predefined types.
+ * the data in predefined types.
  *
+ * The data is stored in big-endian convention. When the data is accessed
+ * by using an API function, the data is interpreted to one of the predefined
+ * types (SIntWord, Float, etc.) and it can be treated as basic C/C++ 
+ * primitive types. Also, when a value is assigned and stored to SimValue, 
+ * the data is automatically swapped to big endian convention if necessary.
  */
 class SimValue {
 public:
@@ -121,7 +126,7 @@ public:
     /// The bitwidth of the value.
     int bitWidth_;
 
-    /// Array that contains the SimValue's underlaying value in big endian.
+    /// Array that contains SimValue's underlaying bytes in big endian.
     Byte rawData_[SIMVALUE_MAX_BYTE_SIZE];
 
 private:

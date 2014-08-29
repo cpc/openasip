@@ -46,7 +46,7 @@
  */
 SimValue::SimValue() :
     mask_(~UIntWord(0)) {
-    
+
     setBitWidth(SIMULATOR_MAX_INTWORD_BITWIDTH);
 }
 
@@ -57,6 +57,7 @@ SimValue::SimValue() :
  */
 SimValue::SimValue(int width) :
     mask_(~UIntWord(0)) {
+
     setBitWidth(width);
 }
 
