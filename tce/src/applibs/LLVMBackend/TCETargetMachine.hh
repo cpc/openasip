@@ -37,6 +37,7 @@
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/Target/TargetSelectionDAGInfo.h"
 #include "llvm/PassManager.h"
 //#include "TCESubtarget.hh"
 
@@ -152,8 +153,12 @@ namespace llvm {
             return plugin_->getTargetLowering();
         }
 
-	virtual TargetPassConfig *createPassConfig(
-	    PassManagerBase &PM);
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
+            return &tsInfo_;
+        }
+
+        virtual TargetPassConfig *createPassConfig(
+            PassManagerBase &PM);
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);
@@ -214,6 +219,7 @@ namespace llvm {
         /* more or less llvm naming convention to make it easier to track llvm changes */
         TargetSubtargetInfo* subTarget_;
         TargetData dl_; // Calculates type size & alignment
+        TargetSelectionDAGInfo tsInfo_;
         
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
