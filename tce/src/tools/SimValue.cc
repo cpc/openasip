@@ -121,14 +121,11 @@ SimValue::setBitWidth(int width) {
     }
 
     const int BYTE_COUNT = (width + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const int LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
-    
+
     if (static_cast<size_t>(BYTE_COUNT) > sizeof(DoubleWord)) {
-        memset(rawData_ + LEFT_BYTE_POS, 0, BYTE_COUNT);
+        clearToZero(width);
     } else {
-        memset(
-            rawData_ + SIMVALUE_MAX_BYTE_SIZE - sizeof(DoubleWord), 0, 
-            sizeof(DoubleWord));
+        clearToZero(BYTE_BITWIDTH * sizeof(DoubleWord));
     }
 }
 
@@ -901,6 +898,21 @@ SimValue::setValue(TCEString hexValue) {
     /// @todo Use memset to init the SimValue to 0 for the whole bitwidth 
     /// before copying the bytes?
     Conversion::toRawData(hexValue, rawData_ + LEFT_BYTE_POS);
+}
+
+/**
+ * Sets SimValue bytes to 0 for the given bitwidth.
+ *
+ * @param bitWidth The width that is to be nullified.
+ */
+void
+SimValue::clearToZero(int bitWidth) {
+    assert(bitWidth <= SIMD_WORD_WIDTH);
+
+    const size_t BYTE_COUNT = (bitWidth + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
+
+    memset(rawData_ + LEFT_BYTE_POS, 0, BYTE_COUNT);
 }
 
 /**

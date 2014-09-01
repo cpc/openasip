@@ -392,9 +392,13 @@ SimValueTest::testEqualities() {
 void 
 SimValueTest::testMisc() {
     SimValue simValue(16);
+
     simValue.setValue("0x1234");
     TS_ASSERT_EQUALS(simValue.binaryValue(), "0001001000110100");
     TS_ASSERT_EQUALS(simValue.hexValue(), "0x1234");
+
+    simValue.clearToZero(16);
+    TS_ASSERT_EQUALS(simValue.hexValue(), "0x0000");
 }
 
 #endif

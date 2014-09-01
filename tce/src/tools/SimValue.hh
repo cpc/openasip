@@ -121,7 +121,9 @@ public:
 
     TCEString binaryValue() const;
     TCEString hexValue() const;
+
     void setValue(TCEString hexValue);
+    void clearToZero(int bitWidth);
 
     /// The bitwidth of the value.
     int bitWidth_;
