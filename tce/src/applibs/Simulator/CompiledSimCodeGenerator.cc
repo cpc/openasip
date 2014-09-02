@@ -1759,12 +1759,7 @@ bool CompiledSimCodeGenerator::handleRegisterWrite(
     std::string tmpString;
     std::string tmpString2;
 
-    // drop "value_.uintWord" from end.
-    size_t nameLen = regSymbolName.find(".value_.uIntWord");
-   // if found, copy to tmp and take ref to tmp. not found, ref to original
-    const string tmpRef1 = (nameLen != string::npos) ?
-        tmpString = regSymbolName.substr(0,nameLen) : 
-        regSymbolName;
+    const string tmpRef1 = regSymbolName;
 
     // drop ".engine" from beginning
     // if found, copy to tmp and take ref to tmp. not found, ref to original

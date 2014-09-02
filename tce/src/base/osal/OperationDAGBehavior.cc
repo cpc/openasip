@@ -232,32 +232,18 @@ OperationDAGBehavior::simulateTrigger(
     SimValue** operands, OperationContext& context) const {    
   
     for (int i = 0; i < operandCount_; i++) {
-        ios_[i] = *(operands[i]);
+        ios_[i].deepCopy(*(operands[i]));
     }
-    
-    //std::cerr << "before operands of behavior: ";
-    //for (int j = 0; j < operandCount_; j++) std::cerr << operands[j]->intValue() << ",";
 
     for (unsigned int i = 0; i < simulationSteps_.size(); i++) {
-        //std::cerr << "Simulating:"  << simulationSteps_[i].op->name() << " in:";        
-        //for (int j = 0; j < simulationSteps_[i].op->numberOfInputs() + simulationSteps_[i].op->numberOfOutputs();j++) 
-        //    std::cerr << simulationSteps_[i].params[j]->intValue() << ",";  
-
         simulationSteps_[i].op->simulateTrigger(
             simulationSteps_[i].params, context);
-        
-        //std::cerr << " out:";
-        //for (int j = 0; j < simulationSteps_[i].op->numberOfInputs() + simulationSteps_[i].op->numberOfOutputs();j++) 
-        //    std::cerr << simulationSteps_[i].params[j]->intValue() << ",";  
-        //std::cerr << std::endl;
     }
 
     for (int i = 0; i < operandCount_; i++) {
-        *(operands[i]) = ios_[i];
+        operands[i]->deepCopy(ios_[i]);
     }
 
-    //std::cerr << "after operands of behavior: ";
-    //for (int j = 0; j < operandCount_; j++) std::cerr << operands[j]->intValue() << ","; 
     return true;
 }
 

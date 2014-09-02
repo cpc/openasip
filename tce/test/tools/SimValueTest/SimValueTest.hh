@@ -211,6 +211,16 @@ SimValueTest::testAssignments() {
     TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0xdc);
     TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0xba);
     TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x98);
+
+    // void deepCopy(const SimValue& source)
+    SimValue simValue1(8);
+    simValue1.setValue("0x12");
+
+    SimValue simValue2;
+    simValue2.deepCopy(simValue1);
+    TS_ASSERT_EQUALS(simValue2.hexValue(), simValue1.hexValue());
+    TS_ASSERT_EQUALS(simValue2.width(), simValue1.width());
+    
 }
 
 /**
@@ -393,10 +403,16 @@ void
 SimValueTest::testMisc() {
     SimValue simValue(16);
 
+    // void setValue(TCEString hexValue)
     simValue.setValue("0x1234");
+
+    // TCEString binaryValue() const
     TS_ASSERT_EQUALS(simValue.binaryValue(), "0001001000110100");
+
+    // TCEString hexValue() const
     TS_ASSERT_EQUALS(simValue.hexValue(), "0x1234");
 
+    // void clearToZero(int bitWidth)
     simValue.clearToZero(16);
     TS_ASSERT_EQUALS(simValue.hexValue(), "0x0000");
 }
