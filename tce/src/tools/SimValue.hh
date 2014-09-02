@@ -78,6 +78,7 @@ public:
     SimValue& operator=(const FloatWord& source);
     SimValue& operator=(const DoubleWord& source);
     SimValue& operator=(const SimValue& source);
+    void deepCopy(const SimValue& source);
 
     const SimValue operator+(const SIntWord& rightHand);
     const SimValue operator+(const UIntWord& rightHand);

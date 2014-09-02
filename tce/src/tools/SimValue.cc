@@ -256,6 +256,22 @@ SimValue::operator=(const SimValue& source) {
     return (*this);
 }
 
+/**
+ * Copies the source SimValue completely, along with the bitwidth info.
+ *
+ * @param source The source value.
+ */
+void
+SimValue::deepCopy(const SimValue& source) {
+    const size_t BYTE_COUNT = 
+        (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
+
+    memcpy(
+        rawData_ + LEFT_BYTE_POS, source.rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    bitWidth_ = source.bitWidth_;
+    mask_ = source.mask_;
+}
 
 /**
  * Explicit addition operator to SIntWord type.
