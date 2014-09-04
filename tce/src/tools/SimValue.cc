@@ -247,8 +247,15 @@ SimValue::operator=(const DoubleWord& source) {
  */
 SimValue&
 SimValue::operator=(const SimValue& source) {
+    // Choose the thinner bit width, which is used to copy the bytes. This
+    // copy style may clip away bytes from a larger source SimValue.
+    int bitWidth = bitWidth_;
+    if (source.bitWidth_ < bitWidth_) {
+        bitWidth = source.bitWidth_;
+    }
+
     const size_t BYTE_COUNT = 
-        (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+        (static_cast<size_t>(bitWidth) + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
     const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     memcpy(
@@ -263,6 +270,13 @@ SimValue::operator=(const SimValue& source) {
  */
 void
 SimValue::deepCopy(const SimValue& source) {
+    // Choose the thinner bit width, which is used to copy the bytes. This
+    // copy style may clip away bytes from a larger source SimValue.
+    int bitWidth = bitWidth_;
+    if (source.bitWidth_ < bitWidth_) {
+        bitWidth = source.bitWidth_;
+    }
+
     const size_t BYTE_COUNT = 
         (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
     const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
