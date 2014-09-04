@@ -134,11 +134,6 @@ SimValueTest::testAssignments() {
     val = test6;
     TS_ASSERT_EQUALS(val.doubleWordValue(), test6);
 
-    SimValue val2(10);
-
-    val2 = val;
-    TS_ASSERT_EQUALS(val2.doubleWordValue(), test6);
-
     // Test unsigned bit masking.
     SimValue val3(3);
     val3 = 8; // (0..01)000
