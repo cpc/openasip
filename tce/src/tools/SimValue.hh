@@ -55,12 +55,37 @@ class TCEString;
  * of the target architecture template, and provides the interface to access
  * the data in predefined types.
  *
- * The data is stored in big-endian convention. When the data is accessed
- * by using an API function, the data is interpreted to one of the predefined
- * types (SIntWord, Float, etc.) and it can be treated as basic C/C++ 
- * primitive types. Also, when a value is assigned and stored to SimValue, 
- * the data is automatically swapped to big endian convention if necessary.
+ * Values are always stored in big-endian convention in the rawData_ byte 
+ * array and the array is filled from the array's "right end" to left. For
+ * instance, let's assume the array is 128 bytes wide and a 32-bit UIntWord
+ * 305419896 (0x12345678) value is assigned to the SimValue. The value is 
+ * laid out in the array as follows:
+ * [0] = ...
+ * [1] = ... 
+ * ...
+ * [124] = 0x12
+ * [125] = 0x34
+ * [126] = 0x56
+ * [127] = 0x78
+ *
+ * When a user wants to interpret SimValue as any primitive value 
+ * (FloatWord, UIntWord, etc.), depending on the user's machine endianness
+ * the interpreted bytes are swapped correctly to be either in big-endian
+ * or little-endian convention. For instance, if the user has a little-endian
+ * machine and calls the uIntWordValue() function for a SimValue, which has
+ * the above value, a new value with the 0x78563412 byte order is returned.
+ *
+ * The same swapping convention also occurs when a primitive value is
+ * assigned to SimValue. If the value to be assigned is in little-endian 
+ * and its bytes are 0xabcd0000, the last four bytes in the SimValue are
+ * as 0x0000cdab.
+ *
+ * SimValue users don't need to worry about this possible byte swapping
+ * since it is automatic and is done only if the user's machine is a
+ * little-endian machine. However, users shouldn't access the public 
+ * rawData_ member directly unless they know exactly what they are doing.
  */
+
 class SimValue {
 public:
     SimValue();
@@ -135,7 +160,8 @@ public:
 private:
     /// @todo Create more optimal 4-byte and 2-byte swapper functions for
     /// 2 and 4 byte values. The more optimal swapper would load all bytes
-    /// to int or short int and shift the values to their correct places.
+    /// to int or short int and shift the values to their correct places,
+    /// which would reduce memory accesses.
     void swapByteOrder(const Byte* from, size_t byteCount, Byte* to) const;
 
     /// Mask for masking extra bits when returning unsigned value.

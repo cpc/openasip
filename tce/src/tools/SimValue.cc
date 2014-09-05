@@ -89,16 +89,8 @@ SimValue::SimValue(int value, int width) :
  *
  * @param source The source object from which to copy data.
  */
-SimValue::SimValue(const SimValue& source) :
-    mask_(source.mask_) {
-
-    setBitWidth(source.bitWidth_);
-
-    const int BYTE_COUNT = (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const int LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
-    
-    memcpy(
-        rawData_ + LEFT_BYTE_POS, source.rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+SimValue::SimValue(const SimValue& source) {
+    deepCopy(source);
 }
 
 /**
@@ -111,6 +103,11 @@ SimValue::width() const {
     return bitWidth_;
 }
 
+/**
+ * Sets SimValue's bitwidth and clears bytes to 0 for the whole width.
+ *
+ * @param width The new bit width.
+ */
 void
 SimValue::setBitWidth(int width) {
     assert(width <= SIMD_WORD_WIDTH);
@@ -131,7 +128,7 @@ SimValue::setBitWidth(int width) {
 
 
 /**
- * Assignment operator for source value of type int.
+ * Assignment operator for source value of type SIntWord.
  *
  * @param source The source value.
  * @return Reference to itself.
@@ -150,7 +147,7 @@ SimValue::operator=(const SIntWord& source) {
 }
 
 /**
- * Assignment operator for source value of type IntWord.
+ * Assignment operator for source value of type UIntWord.
  *
  * @param source The source value.
  * @return Reference to itself.
@@ -235,12 +232,16 @@ SimValue::operator=(const DoubleWord& source) {
 /**
  * Assignment operator for source value of type SimValue.
  *
+ * The amount of copied bytes is dominated by the destination SimValue width.
  * In case the bit widths don't match, sign extension is done to the target
  * at the highest bit of the narrower value. This models dropping the extra
  * most significant bits of the target value in case the widths don't match
- * in a way  that signed values keep their original meaning in signed
+ * in a way that signed values keep their original meaning in signed
  * calculations. That is, a 1-bit "-1" is still "-1" when written to a
  * 4-bit SimValue, and vice versa.
+ *
+ * Since bytes are always laid out in big endian convention in SimValues,
+ * the data can be directly copied between them without byte swapping.
  *
  * @param source The source value.
  * @return Reference to itself.
@@ -248,7 +249,7 @@ SimValue::operator=(const DoubleWord& source) {
 SimValue&
 SimValue::operator=(const SimValue& source) {
     const size_t BYTE_COUNT = 
-        (static_cast<size_t>(bitWidth_) + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+        (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
     const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     memcpy(
@@ -257,19 +258,12 @@ SimValue::operator=(const SimValue& source) {
 }
 
 /**
- * Copies the source SimValue completely, along with the bitwidth info.
+ * Copies the source SimValue completely.
  *
  * @param source The source value.
  */
 void
 SimValue::deepCopy(const SimValue& source) {
-    // Choose the thinner bit width, which is used to copy the bytes. This
-    // copy style may clip away bytes from a larger source SimValue.
-    int bitWidth = bitWidth_;
-    if (source.bitWidth_ < bitWidth_) {
-        bitWidth = source.bitWidth_;
-    }
-
     const size_t BYTE_COUNT = 
         (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
     const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
@@ -693,6 +687,11 @@ SimValue::operator==(const DoubleWord& rightHand) const {
     return doubleWordValue() == rightHand;
 }
 
+/**
+ * Returns SimValue as a sign extended integer.
+ *
+ * @return Sign extended integer value.
+ */
 int 
 SimValue::intValue() const {
     const size_t BYTE_COUNT = sizeof(int);
@@ -714,6 +713,11 @@ SimValue::intValue() const {
     return MathTools::fastSignExtendTo(cast.value, bitWidth);
 }
 
+/**
+ * Returns SimValue as a zero extended unsigned integer.
+ *
+ * @return Zero extended unsigned integer value.
+ */
 unsigned int 
 SimValue::unsignedValue() const {
     const size_t BYTE_COUNT = sizeof(unsigned int);
@@ -736,6 +740,11 @@ SimValue::unsignedValue() const {
     return MathTools::fastZeroExtendTo(cast.value, bitWidth);
 }
 
+/**
+ * Returns the SimValue as SIntWord value.
+ *
+ * @return SIntWord value.
+ */
 SIntWord 
 SimValue::sIntWordValue() const {
     const size_t BYTE_COUNT = sizeof(SIntWord);
@@ -755,7 +764,12 @@ SimValue::sIntWordValue() const {
 #endif
     return cast.value & mask_;
 }
- 
+
+/**
+ * Returns the SimValue as UIntWord value.
+ *
+ * @return UIntWord value.
+ */
 UIntWord 
 SimValue::uIntWordValue() const {
     const size_t BYTE_COUNT = sizeof(UIntWord);
@@ -776,6 +790,11 @@ SimValue::uIntWordValue() const {
     return cast.value & mask_;
 }
 
+/**
+ * Returns the SimValue as DoubleWord value.
+ *
+ * @return DoubleWord value.
+ */
 DoubleWord
 SimValue::doubleWordValue() const {
     const size_t BYTE_COUNT = sizeof(DoubleWord);
@@ -796,6 +815,11 @@ SimValue::doubleWordValue() const {
     return cast.value;
 }
 
+/**
+ * Returns the SimValue as FloatWord value.
+ *
+ * @return FloatWord value.
+ */
 FloatWord 
 SimValue::floatWordValue() const {
     const size_t BYTE_COUNT = sizeof(FloatWord);
@@ -816,6 +840,11 @@ SimValue::floatWordValue() const {
     return cast.value;
 }
 
+/**
+ * Returns the SimValue as HalfFloatWord value.
+ *
+ * @return HalfFloatWord value.
+ */
 HalfFloatWord 
 SimValue::halfFloatWordValue() const {
     const size_t BYTE_COUNT = sizeof(uint16_t);
@@ -864,7 +893,7 @@ SimValue::binaryValue() const {
 }
 
 /**
- * Returns the value as a hex string.
+ * Returns the value as a big endian ordered hex string.
  *
  * @return SimValue bytes in hex format.
  */
@@ -894,6 +923,11 @@ SimValue::hexValue() const {
 
 /**
  * Sets SimValue to correspond the hex value.
+ *
+ * Given hex string must be in little-endian order when it is given. For
+ * instance, if the user wants to set integer value 5 through this function,
+ * the function should be called "setValue("0x00000005");". Add leading
+ * zeroes if you want to clear bytes before the byte that has value 5.
  *
  * @param hexValue New value in hex format.
  */
