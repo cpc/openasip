@@ -32,14 +32,14 @@
 
 #include <wx/statline.h>
 #include <wx/valgen.h>
-#include "FUImplementationParameterDialog.hh"
+#include "ImplementationParameterDialog.hh"
 #include "WxConversion.hh"
 #include "ErrorDialog.hh"
 
 using namespace HDB;
 
-BEGIN_EVENT_TABLE(FUImplementationParameterDialog, wxDialog)
-    EVT_BUTTON(wxID_OK, FUImplementationParameterDialog::onOK)
+BEGIN_EVENT_TABLE(ImplementationParameterDialog, wxDialog)
+    EVT_BUTTON(wxID_OK, ImplementationParameterDialog::onOK)
 END_EVENT_TABLE()
 
 /**
@@ -49,7 +49,7 @@ END_EVENT_TABLE()
  * @param id Window identifier for the dialog window.
  * @param parameter FU implementation parameter to modify.
  */
-FUImplementationParameterDialog::FUImplementationParameterDialog(
+ImplementationParameterDialog::ImplementationParameterDialog(
     wxWindow* parent, wxWindowID id, FUImplementation::Parameter& parameter) :
     wxDialog(parent, id, _T("Parameter")),
     parameter_(parameter) {
@@ -71,7 +71,7 @@ FUImplementationParameterDialog::FUImplementationParameterDialog(
 /**
  * The Destructor.
  */
-FUImplementationParameterDialog::~FUImplementationParameterDialog() {
+ImplementationParameterDialog::~ImplementationParameterDialog() {
 }
 
 
@@ -79,7 +79,7 @@ FUImplementationParameterDialog::~FUImplementationParameterDialog() {
  * Event handler for the dialog OK-button.
  */
 void
-FUImplementationParameterDialog::onOK(wxCommandEvent&) {
+ImplementationParameterDialog::onOK(wxCommandEvent&) {
 
     TransferDataFromWindow();
 
@@ -113,7 +113,7 @@ FUImplementationParameterDialog::onOK(wxCommandEvent&) {
  * Creates the dialog contents.
  */
 wxSizer*
-FUImplementationParameterDialog::createContents(
+ImplementationParameterDialog::createContents(
     wxWindow *parent, bool call_fit, bool set_sizer) {
 
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );

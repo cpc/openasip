@@ -28,7 +28,7 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  AddRFImplementationCmd.cc BlockImplementationFileDialog.cc \
 		  CreateHDBCmd.cc FUArchitectureDialog.cc \
 		  FUExternalPortDialog.cc FUImplementationDialog.cc \
-		  FUImplementationParameterDialog.cc \
+		  ImplementationParameterDialog.cc \
 		  FUPortImplementationDialog.cc  HDBBrowserInfoPanel.cc \
 		  HDBBrowserWindow.cc HDBEditor.cc HDBEditorConstants.cc \
 		  HDBEditorDeleteCmd.cc HDBEditorMainFrame.cc \
@@ -39,7 +39,7 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  AddCostFunctionPluginCmd.cc AddBusEntryCmd.cc \
 		  AddSocketEntryCmd.cc AddFUEntryCmd.cc AddRFEntryCmd.cc \
 		  SetCostFunctionPluginCmd.cc HDBEditorAboutCmd.cc \
-		  HDBEditorAboutDialog.cc \
+		  HDBEditorAboutDialog.cc RFExternalPortDialog.cc \
 	AddBusEntryCmd.hh \
 	AddCostFunctionPluginCmd.hh \
 	AddFUArchFromADFCmd.hh \
@@ -57,7 +57,7 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 	FUArchitectureParametersDialog.hh \
 	FUExternalPortDialog.hh \
 	FUImplementationDialog.hh \
-	FUImplementationParameterDialog.hh \
+	ImplementationParameterDialog.hh \
 	FUPortImplementationDialog.hh \
 	HDBBrowserInfoPanel.hh \
 	HDBBrowserWindow.hh \
@@ -77,7 +77,8 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 	SetCostFunctionPluginCmd.hh \
 	SetFUArchitectureCmd.hh \
 	SetRFArchitectureCmd.hh \
-	TestHDBCmdLineOptions.hh
+	TestHDBCmdLineOptions.hh \
+	RFExternalPortDialog.hh
 
 
 hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
@@ -124,7 +125,7 @@ hdbeditor_SOURCES += \
 	CostFunctionPluginDialog.hh FUPortImplementationDialog.hh \
 	SetFUArchitectureCmd.hh HDBEditorDeleteCmd.hh \
 	HDBBrowserInfoPanel.hh HDBEditorModifyCmd.hh \
-	FUImplementationParameterDialog.hh AddCostFunctionPluginCmd.hh \
+	ImplementationParameterDialog.hh AddCostFunctionPluginCmd.hh \
 	HDBEditor.hh AddFUArchFromADFCmd.hh \
 	RFArchitectureDialog.hh AddSocketEntryCmd.hh \
 	FUArchitectureParametersDialog.hh BlockImplementationFileDialog.hh \

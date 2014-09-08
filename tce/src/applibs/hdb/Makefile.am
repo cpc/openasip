@@ -4,7 +4,8 @@ FUExternalPort.cc FUImplementation.cc HWBlockImplementation.cc \
 FUPortImplementation.cc RFPortImplementation.cc PortImplementation.cc \
 RFImplementation.cc RFArchitecture.cc BlockImplementationFile.cc \
 HDBRegistry.cc CostFunctionPlugin.cc HDBEntry.cc HWBlockArchitecture.cc \
-CostEstimationData.cc CachedHDBManager.cc HDBTester.cc
+CostEstimationData.cc CachedHDBManager.cc HDBTester.cc ExternalPort.cc \
+RFExternalPort.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -37,5 +38,6 @@ libhdb_la_SOURCES += \
 	CostEstimationData.hh HDBTester.hh \
 	RFImplementation.hh HDBRegistry.hh \
 	PortImplementation.hh FUArchitecture.hh \
-	HDBEntry.hh CostEstimationData.icc 
+	HDBEntry.hh ExternalPort.hh RFExternalPort.hh \
+	CostEstimationData.icc 
 ## headers end

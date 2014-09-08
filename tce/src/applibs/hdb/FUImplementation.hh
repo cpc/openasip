@@ -39,6 +39,7 @@
 
 #include "HWBlockImplementation.hh"
 #include "Exception.hh"
+#include "HDBTypes.hh"
 
 namespace HDB {
 
@@ -52,11 +53,12 @@ class FUPortImplementation;
 class FUImplementation : public HWBlockImplementation {
 public:
     /// Parameter of FU implementation.
-    struct Parameter {
+    /*struct Parameter {
         std::string name; ///< Name of the parameter.
         std::string type; ///< Type of the parameter.
         std::string value; ///< Value of the parameter.
-    };
+    };*/
+    typedef HDB::Parameter Parameter;
 
     FUImplementation(
         const std::string& name,

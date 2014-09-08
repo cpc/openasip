@@ -22,33 +22,58 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file HDBTypes.hh
+ * @file FUImplementationParameterDialog.hh
  *
- * Declarations of data types used in HDB.
+ * Declaration of FUImplementationParameterDialog class.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_HDB_TYPES_HH
-#define TTA_HDB_TYPES_HH
+#ifndef TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
+#define TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
 
-#include <string>
+#include <wx/wx.h>
 
-namespace HDB {
-    /// Direction of port.
-    enum Direction {
-        IN, ///< Input port.
-        OUT, ///< Output port.
-        BIDIR ///< Bidirectional port.
+#include "FUImplementation.hh"
+
+
+/**
+ * Dialog for editing FU port implementations.
+ */
+class ImplementationParameterDialog : public wxDialog {
+public:
+    ImplementationParameterDialog(
+        wxWindow* parent, wxWindowID id,
+        HDB::FUImplementation::Parameter& implementation);
+
+    virtual ~ImplementationParameterDialog();
+private:
+
+    void onOK(wxCommandEvent& event);
+
+    /// Enumerated IDs for dialog widgets.
+    enum {
+        ID_LABEL_NAME = 10000,
+        ID_NAME,
+        ID_LABEL_TYPE,
+        ID_TYPE,
+        ID_LABEL_VALUE,
+        ID_VALUE,
+        ID_LINE
     };
 
-    struct Parameter {
-        std::string name;  ///< Name of the parameter.
-        std::string type;  ///< Type of the parameter.
-        std::string value; ///< Value of the parameter.
-    };
+    /// Creates the dialog contents.
+    wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
-}
+    /// FU port implementation to modify.
+    HDB::FUImplementation::Parameter& parameter_;
+ 
+    wxString name_;
+    wxString type_;
+    wxString value_;
+
+    DECLARE_EVENT_TABLE()
+};
 
 #endif
