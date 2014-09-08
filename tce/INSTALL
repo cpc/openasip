@@ -3,9 +3,10 @@ Operating system
 
 TCE requires a Unix-style operating system such as Linux. 
 Debian-based distributions like Debian and Ubuntu should have
-most of the requires libraries shipped. 
+most of the required libraries included, but other distributions
+should work fine too. 
 
-MacOS should work to some extent.
+MacOS support is experimental.
 
 Library and tools version prerequisites for TCE
 ===============================================
