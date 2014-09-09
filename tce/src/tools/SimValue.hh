@@ -151,11 +151,11 @@ public:
     void setValue(TCEString hexValue);
     void clearToZero(int bitWidth);
 
-    /// The bitwidth of the value.
-    int bitWidth_;
-
     /// Array that contains SimValue's underlaying bytes in big endian.
     Byte rawData_[SIMVALUE_MAX_BYTE_SIZE];
+
+    /// The bitwidth of the value.
+    int bitWidth_;
 
 private:
     /// @todo Create more optimal 4-byte and 2-byte swapper functions for
