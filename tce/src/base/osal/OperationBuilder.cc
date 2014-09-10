@@ -145,7 +145,6 @@ OperationBuilder::buildObject(
     std::vector<std::string>& output) {
 
     if (behaviorFile != "") {
-#if 1
         const TCEString S = " ";
         const TCEString DS = FileSystem::DIRECTORY_SEPARATOR;
         vector<string> includes = Environment::includeDirPaths();
@@ -296,54 +295,6 @@ OperationBuilder::buildObject(
 
         // No errors, clear output messages.
         output.clear();
-#else
-        // OLD
-        TCEString CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
-        TCEString CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
-            + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
-        TCEString CXXCOMPILER = Environment::environmentVariable("CXX");
-        vector<string> includes = Environment::includeDirPaths();
-
-        TCEString INCLUDES = makeIncludeString(includes);
-        
-        // Ugly fix. When compiling TCE the base opset is compiled in the 
-        // source directory. When distributed version is enabled buildopset
-        // needs to know some include paths from the source tree because these
-        // headers aren't resident in places that includeDirPaths() returns.
-        if (DISTRIBUTED_VERSION) {
-            string cwd = FileSystem::currentWorkingDir();
-            string srcOpsetDir = TCE_SRC_ROOT + DS + "opset" + DS + "base";
-            if (cwd == srcOpsetDir) {
-                vector<string> extraIncludes = Environment::opsetIncludeDir();
-                INCLUDES += makeIncludeString(extraIncludes);
-            }
-         }
-
-        if (Application::isInstalled()) {
-            /* Add a dependency to the installed libtce.so just in case
-               the .opb will be loaded through a libtce.so that is loaded
-               through a dlopen() with the RTLD_LOCAL flag. In that case
-               it can happen the loading of libtce.so to access some 
-               specific functionality might not import all the symbols
-               required by the .opb loaded by libtce later. */
-            CXXFLAGS += " `tce-config --libs` ";
-        }
-
-        string COMPILE_FLAGS = \
-            CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES + " " + 
-            CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS;
-
-        string module = path + FileSystem::DIRECTORY_SEPARATOR +
-            baseName + ".opb";
-
-        string command = (CXXCOMPILER == "") ? (string(CXX)) : (CXXCOMPILER);
-        command += " " + COMPILE_FLAGS + " " + behaviorFile + " " +
-            string(SHARED_CXX_FLAGS) + " -o " + module + " 2>&1";
-
-        if (Application::runShellCommandAndGetOutput(command, output) != 0) {
-            return false;
-        }
-#endif
     }
 
     return true;
