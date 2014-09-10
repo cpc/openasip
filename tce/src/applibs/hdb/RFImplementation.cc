@@ -87,6 +87,16 @@ RFImplementation::RFImplementation(const RFImplementation& original):
         RFPortImplementation* p = new RFPortImplementation(original.port(i));
         addPort(p);
     }
+
+    // Copy parameters.
+    parameters_ = original.parameters_;
+
+    // Deep copy external ports.
+    for (int i = 0; i < original.externalPortCount(); i++) {
+        RFExternalPort* p = new RFExternalPort(original.externalPort(i));
+        addExternalPort(p);
+    }
+
 }
 
 

@@ -67,6 +67,9 @@ public:
 
     virtual RowID lastInsertRowID();
 
+    virtual bool tableExistsInDB(const std::string& tableName)
+    throw (RelationalDBException);
+
     void throwIfSQLiteError(int result)
 	throw (RelationalDBException);
 

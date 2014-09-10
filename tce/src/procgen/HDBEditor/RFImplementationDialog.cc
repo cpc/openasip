@@ -221,7 +221,7 @@ RFImplementationDialog::update() {
     // Update parameter list.
     parameterList_->DeleteAllItems();
     for (int i = 0; i < implementation_.parameterCount(); i++) {
-        const FUImplementation::Parameter parameter =
+        const RFImplementation::Parameter parameter =
             implementation_.parameter(i);
         wxString param = WxConversion::toWxString(parameter.type);
         param.Append(_T(": "));

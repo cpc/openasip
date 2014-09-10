@@ -174,6 +174,49 @@ SQLiteConnection::lastInsertRowID() {
 
 
 /**
+ * Checks if database has given table by name.
+ *
+ * @param tableName Name of the table
+ *
+ * @exception RelationalDBException In case a database error occurred or
+ *                                  call was made in the middle of an active
+ *                                  transaction.
+ */
+bool
+SQLiteConnection::tableExistsInDB(const std::string& tableName)
+    throw (RelationalDBException) {
+
+    if (transactionActive_) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::tableExistsInDB()",
+            "Illegal call during active transaction.");
+    }
+
+    string query = "SELECT count(*) "
+                   "FROM sqlite_master "
+                   "WHERE type = 'table' and name = '" + tableName + "';";
+
+    RelationalDBQueryResult* result = this->query(query, false);
+    assert(result->hasNext());
+    result->next();
+    const DataObject& count = result->data(0);
+
+    int intBoolValue = 0;
+
+    try {
+        intBoolValue = count.integerValue(); // boolValue is zero if DataObject
+                                             // has NULL value.
+    } catch (NumberFormatException& e) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::tableExistsInDB()",
+            "Exception from DataObject: " + e.errorMessage());
+    }
+
+    return (intBoolValue == 1);
+}
+
+
+/**
  * Throws a RelationalDBException if result value indicates an SQLite error.
  *
  * @param result The value from a SQLite API call.

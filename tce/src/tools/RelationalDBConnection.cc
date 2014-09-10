@@ -118,3 +118,19 @@ void
 RelationalDBConnection::commit()
     throw (RelationalDBException) {
 }
+
+/**
+ * Checks if database has given table by name.
+ *
+ * @param tableName Name of the table
+ *
+ * @exception RelationalDBException In case a database error occured or
+ *                                  call was made in the middle of an active
+ *                                  transaction.
+ */
+bool
+RelationalDBConnection::tableExistsInDB(const std::string&)
+    throw (RelationalDBException) {
+    return false;
+}
+
