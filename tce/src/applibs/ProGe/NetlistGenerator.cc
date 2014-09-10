@@ -62,6 +62,7 @@
 #include "FUArchitecture.hh"
 #include "FUPortImplementation.hh"
 #include "FUExternalPort.hh"
+#include "RFExternalPort.hh"
 #include "RFEntry.hh"
 #include "RFImplementation.hh"
 #include "RFArchitecture.hh"
@@ -945,7 +946,7 @@ NetlistGenerator::addFUToNetlist(
         // if external port uses parameter, it must be added as netlist 
         // parameter too and create new width formula for the top-level port
         // by replacing parameter names with the corresponding names in
-        // netlist
+        // netlist.
         string tlPortWidth = externalPort.widthFormula();
         for (int i = 0; i < externalPort.parameterDependencyCount(); i++) {
             string paramName = externalPort.parameterDependency(i);
@@ -1133,6 +1134,23 @@ NetlistGenerator::addBaseRFToNetlist(
         implementation.sizeParameter(), "integer",
         Conversion::toString(regFile.numberOfRegisters()));
 
+    // Add additional parameters to the block.
+    for (int i = 0; i< implementation.parameterCount(); i++) {
+        RFImplementation::Parameter param = implementation.parameter(i);
+
+        if (param.value == "") {
+            format errorMsg(
+                "Unable to resolve the value of parameter %1% of RF "
+                "entry %2%.");
+            errorMsg % param.name % location.id();
+            throw InvalidData(
+                __FILE__, __LINE__, __func__, errorMsg.str());
+
+        } else {
+            block->setParameter(param.name, param.type, param.value);
+        }
+    }
+
     // add ports
     for (int i = 0; i < implementation.portCount(); i++) {
         RFPortImplementation& port = implementation.port(i);
@@ -1223,6 +1241,49 @@ NetlistGenerator::addBaseRFToNetlist(
             guardPortName, size, regFile.numberOfRegisters(), BIT_VECTOR,
             HDB::OUT, *block);
         mapRFGuardPort(*block, *guardPort);
+    }
+
+    // Add external ports
+    for (int i = 0; i < implementation.externalPortCount(); i++) {
+        RFExternalPort& externalPort = implementation.externalPort(i);
+        // if external port uses parameter, it must be added as netlist
+        // parameter too and create new width formula for the top-level port
+        // by replacing parameter names with the corresponding names in
+        // netlist.
+        string tlPortWidth = externalPort.widthFormula();
+        for (int i = 0; i < externalPort.parameterDependencyCount(); i++) {
+            string hdbParamName = externalPort.parameterDependency(i);
+            Netlist::Parameter param = block->parameter(hdbParamName);
+            string nlParamName = "rf_" + location.unitName() + "_" +
+                hdbParamName;
+            if (!netlist.hasParameter(nlParamName)) {
+                netlist.setParameter(nlParamName, param.type, param.value);
+            }
+            block->setParameter(param.name, param.type, nlParamName);
+            size_t replaceStart = tlPortWidth.find(param.name, 0);
+            if (replaceStart == std::string::npos) {
+                throw InvalidData(__FILE__, __LINE__, __func__,
+                    (boost::format(
+                        "RF external port parameter dependencies do not seem "
+                        "to be right: Tried to find parameter named '%s'"
+                        " from external port width formula '%s' in unit '%s'")
+                        % param.name % tlPortWidth % nlParamName).str());
+            }
+            size_t replaceLength = param.name.length();
+            tlPortWidth = tlPortWidth.replace(
+                replaceStart, replaceLength, nlParamName);
+        }
+
+        NetlistPort* extPort = new NetlistPort(
+            externalPort.name(), externalPort.widthFormula(), BIT_VECTOR,
+            externalPort.direction(), *block);
+        // connect the external port to top level
+        string tlPortName = "rf_" + location.unitName() + "_" +
+            externalPort.name();
+        NetlistPort* tlPort = new NetlistPort(
+            tlPortName, tlPortWidth, BIT_VECTOR, externalPort.direction(),
+            topLevelBlock);
+        netlist.connectPorts(*tlPort, *extPort);
     }
 
     // add clock port
