@@ -41,6 +41,7 @@
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
+#include "LexicographicCompare.hh"
 
 #include "FileSystem.hh"
 #include "Conversion.hh"
@@ -299,7 +300,7 @@ VerilogNetlistWriter::writeSignalDeclarations(
     std::ofstream& stream) {
 
     // collect all the sub blocks to a set
-    typedef std::set<NetlistBlock*> BlockSet;
+    typedef std::set<NetlistBlock*, LexicographicCompare> BlockSet;
     BlockSet subBlocks;
     for (int i = 0; i < block.subBlockCount(); i++) {
         // ports belonging to virtual blocks have static values, thus they are
@@ -364,7 +365,7 @@ VerilogNetlistWriter::writeSignalAssignments(
     const NetlistBlock& block,
     std::ofstream& stream) const {
 
-    set<NetlistBlock*> subBlocks;
+    set<NetlistBlock*, LexicographicCompare> subBlocks;
     for (int i = 0; i < block.subBlockCount(); i++) {
         subBlocks.insert(&block.subBlock(i));
     }
