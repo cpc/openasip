@@ -523,7 +523,27 @@ RFImplementationDialog::onAddParameter(wxCommandEvent&) {
 
     ImplementationParameterDialog dialog(this, -1, parameter);
 
+    bool error = false;
+    wxString message = _T("");
+
     if (dialog.ShowModal() != wxID_OK) {
+        return;
+    }
+
+    if (parameter.name == WxConversion::toString(widthParam_)) {
+        message = _T("Parameter by the name is already "
+            "\ndefined as width parameter.");
+        error = true;
+    }
+    if (parameter.name == WxConversion::toString(sizeParam_)) {
+        message = _T("Parameter by the name is already "
+            "\ndefined as size parameter.");
+        error = true;
+    }
+
+    if (error) {
+        ErrorDialog dialog(this, message);
+        dialog.ShowModal();
         return;
     }
 
@@ -531,10 +551,14 @@ RFImplementationDialog::onAddParameter(wxCommandEvent&) {
         implementation_.addParameter(
             parameter.name, parameter.type, parameter.value);
     } catch (IllegalParameters& e) {
-        wxString message = _T("RF implementation already contains ");
+        message = _T("RF implementation already contains ");
         message.Append(_T("a parameter\nwith name '"));
         message.Append(WxConversion::toWxString(parameter.name));
         message.Append(_T("'."));
+        error = true;
+    }
+
+    if (error) {
         ErrorDialog dialog(this, message);
         dialog.ShowModal();
         return;
@@ -781,6 +805,24 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
         return;
     }
+
+    for (int i = 0; i < implementation_.parameterCount(); i++) {
+        RFImplementation::Parameter parameter = implementation_.parameter(i);
+        if (parameter.name == WxConversion::toString(widthParam_)) {
+            wxString message = _T("Width parameter may not be same as "
+                "parameter in the parameter list.");
+            InformationDialog dialog(this, message);
+            dialog.ShowModal();
+            return;
+        } else if (parameter.name == WxConversion::toString(sizeParam_)) {
+            wxString message = _T("Size parameter may not be same as "
+                "parameter in the parameter list.");
+            InformationDialog dialog(this, message);
+            dialog.ShowModal();
+            return;
+        }
+    }
+
 
     implementation_.setModuleName(WxConversion::toString(name_));
     implementation_.setClkPort(WxConversion::toString(clkPort_));
