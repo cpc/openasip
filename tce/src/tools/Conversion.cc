@@ -213,12 +213,11 @@ Conversion::toRawData(const std::string& hexSource, unsigned char* target) {
     if (hexValue.size() % 2 == 1) {
         hexValue.insert(0, "0");
     }
-
+    
     // start filling the input parameter 2 hex numbers (byte) at a time to
     // the data buffer
-    int index = 0;
-    for (int i = hexValue.size()-2; i >= 0; i=i-2) {
-        target[index] = toInt("0x" + hexValue.substr(i, 2)); 
-        ++index;
+    for (size_t i = 0; i < hexValue.size(); i=i+2) {
+        *target = toInt("0x" + hexValue.substr(i, 2)); 
+        ++target;
     }
 }

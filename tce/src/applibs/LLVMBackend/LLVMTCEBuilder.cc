@@ -1875,7 +1875,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
 		} else {
         	float fval = apf.convertToFloat();
         	SimValue val(32);
-        	val.value_.floatWord = fval;
+            val = fval;
         	return new TTAProgram::TerminalImmediate(val);
 		}
     } else if (mo.isImm()) {

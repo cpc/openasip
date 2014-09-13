@@ -478,10 +478,10 @@ string
 TesterContext::toOutputFormat(SimValue* value) {
     string output = "";
 
-    // if output format is in hex or the value is wider than 32 bits 
+    // If output format is in hex or the value is wider than 32 bits 
     // (except for DoubleWord), convert the SimValue to hex using the full 
     // width of the value. This means that leading zeroes are included in 
-    // the output result (e.g. 32 bit value 0x15 = 0x00000015)
+    // the output result (e.g. 32 bit value 0x15 = 0x00000015).
     if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX || 
         (value->width() > 32 && 
          outputFormat_ != CmdOutput::OUTPUT_FORMAT_DOUBLE)) {

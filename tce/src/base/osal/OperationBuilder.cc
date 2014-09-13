@@ -145,21 +145,36 @@ OperationBuilder::buildObject(
     std::vector<std::string>& output) {
 
     if (behaviorFile != "") {
-        TCEString CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
-        TCEString CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
-            + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
-        TCEString CXXCOMPILER = Environment::environmentVariable("CXX");
+        const TCEString S = " ";
+        const TCEString DS = FileSystem::DIRECTORY_SEPARATOR;
         vector<string> includes = Environment::includeDirPaths();
 
+        TCEString baseName_cc = baseName + ".cc";
+        TCEString baseName_lo = baseName + ".lo";
+        TCEString baseName_la = baseName + ".la";
+        TCEString baseName_Tpo = baseName + ".Tpo";
+        TCEString baseName_Plo = baseName + ".Plo";
+        TCEString baseName_so = baseName + ".so";
+        TCEString baseName_opb = baseName + ".opb";
+
+        TCEString SH = DS + "bin" + DS + "sh";
+        TCEString LIBTOOL = TCE_SRC_ROOT + DS + "libtool";
+        TCEString CXXCOMPILER = Environment::environmentVariable("CXX");
+        TCEString DEFS = "-DHAVE_CONFIG_H";
+        TCEString DEFAULT_INCLUDES = TCEString("-I. -I") + TCE_SRC_ROOT;
         TCEString INCLUDES = makeIncludeString(includes);
-        
+        TCEString CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
+        TCEString CXXFLAGS = Environment::environmentVariable("CXXFLAGS");
+        TCEString DEPSDIR = ".deps";
+        TCEString LIBSDIR = ".libs";
+        TCEString LIBTCE_PATH = TCE_SRC_ROOT + DS + "src" + DS + "libtce.la";
+
         // Ugly fix. When compiling TCE the base opset is compiled in the 
         // source directory. When distributed version is enabled buildopset
         // needs to know some include paths from the source tree because these
         // headers aren't resident in places that includeDirPaths() returns.
         if (DISTRIBUTED_VERSION) {
             string cwd = FileSystem::currentWorkingDir();
-            string DS = FileSystem::DIRECTORY_SEPARATOR;
             string srcOpsetDir = TCE_SRC_ROOT + DS + "opset" + DS + "base";
             if (cwd == srcOpsetDir) {
                 vector<string> extraIncludes = Environment::opsetIncludeDir();
@@ -177,21 +192,111 @@ OperationBuilder::buildObject(
             CXXFLAGS += " `tce-config --libs` ";
         }
 
-        string COMPILE_FLAGS = \
-            CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES + " " + 
-            CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS;
+        // If .deps directory doesn't exist already, create a new one.
+        const TCEString depsDirPath = path + DS + DEPSDIR;
 
-        string module = path + FileSystem::DIRECTORY_SEPARATOR +
-            baseName + ".opb";
+        if (!FileSystem::fileExists(depsDirPath)) {
+            if (!FileSystem::createDirectory(depsDirPath)) {
+                std::cerr << "Couldn't create \"" << DEPSDIR 
+                          << "\" directory in " << path << "." << std::endl;
+                return false;
+            }
+        }
 
-        string command = (CXXCOMPILER == "") ? (string(CXX)) : (CXXCOMPILER);
-        command += " " + COMPILE_FLAGS + " " + behaviorFile + " " +
-            string(SHARED_CXX_FLAGS) + " -o " + module + " 2>&1";
-        
-        if (Application::runShellCommandAndGetOutput(command, output) != 0) {
+        // If .libs directory doesn't exist already, create a new one.
+        const TCEString libsDirPath = path + DS + LIBSDIR;
+
+         if (!FileSystem::fileExists(libsDirPath)) {
+            if (!FileSystem::createDirectory(libsDirPath)) {
+                std::cerr << "Couldn't create \"" << LIBSDIR 
+                          << "\" directory in " << path << "." << std::endl;
+                return false;
+            }
+        }
+
+        // Compile.
+        TCEString compCmd = "";
+        compCmd += S + SH;
+        compCmd += S + LIBTOOL;
+        compCmd += S + "--tag=CXX";
+        compCmd += S + "--mode=compile";
+        compCmd += S + CXXCOMPILER;
+        compCmd += S + DEFS;
+        compCmd += S + DEFAULT_INCLUDES;
+        compCmd += S + INCLUDES;
+        compCmd += S + CONFIGURE_CPPFLAGS;
+        compCmd += S + CPPFLAGS;
+        compCmd += S + CXXFLAGS;
+        compCmd += S + "-MT" + S + path + DS + baseName_lo + S +"-MD -MP -MF";
+        compCmd += S + path + DS + DEPSDIR + DS + baseName_Tpo;
+        compCmd += S + "-c -o" + S + path + DS + baseName_lo + S + behaviorFile;
+
+        if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() << "Compiling command:" << std::endl;
+            Application::logStream() << compCmd << std::endl;
+        }
+
+        if (Application::runShellCommandAndGetOutput(compCmd, output) != 0) {
             return false;
         }
+
+        // Move .Tpo to .Plo
+        TCEString moveCmd = "";
+        moveCmd += "mv -f";
+        moveCmd += S + depsDirPath + DS + baseName_Tpo;
+        moveCmd += S + depsDirPath + DS + baseName_Plo;
+        
+        if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() << "Move command:" << std::endl;
+            Application::logStream() << moveCmd << std::endl;
+        }
+
+        if (Application::runShellCommandAndGetOutput(moveCmd, output) != 0) {
+            return false;
+        }
+
+        // Link.
+        TCEString linkerCmd = "";
+        linkerCmd += S + SH;
+        linkerCmd += S + LIBTOOL;
+        linkerCmd += S + "--tag=CXX";
+        linkerCmd += S + "--mode=link";
+        linkerCmd += S + CXXCOMPILER;
+        linkerCmd += S + CXXFLAGS;
+        linkerCmd += S + CONFIGURE_LDFLAGS + S + "-module";
+        linkerCmd += S + "-o " + path + DS + baseName_la;
+        linkerCmd += S + "-rpath" + S + TCE_SRC_ROOT; // Dummy path, not used.
+        linkerCmd += S + path + DS + baseName_lo;
+        linkerCmd += S + LIBTCE_PATH;
+
+        if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() << "Linker command:" << std::endl;
+            Application::logStream() << linkerCmd << std::endl;
+        }
+
+        if (Application::runShellCommandAndGetOutput(linkerCmd, output) != 0) {
+            return false;
+        }
+
+        // Make link between files.
+        TCEString linkFiles = "";
+        linkFiles += "ln -sf";
+        linkFiles += S + libsDirPath + DS + baseName_so;
+        linkFiles += S + path + DS + baseName_opb;
+
+        if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() << "Link .so to .pbo:" << std::endl;
+            Application::logStream() << linkFiles << std::endl;
+        }
+
+        if (Application::runShellCommandAndGetOutput(linkFiles, output) != 0) {
+            return false;
+        }
+
+        // No errors, clear output messages.
+        output.clear();
     }
+
     return true;
 }
 
