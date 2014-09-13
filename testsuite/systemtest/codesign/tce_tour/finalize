@@ -2,6 +2,8 @@
 # Clean the created files
 
 rm -f data/tutorial.opb
+rm -f data/tutorial.la
+rm -f data/tutorial.lo
 rm -f start.adf
 rm -f start.bem
 rm -f start.tpef
