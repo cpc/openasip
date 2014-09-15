@@ -248,6 +248,11 @@ FUGuardDialog::selectedFU() const {
 FUPort*
 FUGuardDialog::selectedPort() const {
     string name = WxConversion::toString(portChoice_->GetStringSelection());
+    
+    if (name == "") {
+        return NULL;
+    }
+
     FUPort* port = selectedFU()->operationPort(name);
     return port;
 }
@@ -259,9 +264,21 @@ FUGuardDialog::selectedPort() const {
  */
 void
 FUGuardDialog::onOK(wxCommandEvent&) {
+    FUPort* port = selectedPort();
+    if (port == NULL) {
+        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+        format message = prodeTexts->text(ProDeTextGenerator::MSG_ERROR);
+        InformationDialog dialog(
+            this, WxConversion::toWxString(
+                message.str() + "Select a port.\n"));
+        dialog.ShowModal();
+        return;
+    }
+
     TransferDataFromWindow();
+
     try {
-        new PortGuard(newInverted_, *selectedPort(), *bus_);
+        new PortGuard(newInverted_, *port, *bus_);
     } catch (ComponentAlreadyExists& e) {
         ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
         format message =
