@@ -1,0 +1,10 @@
+<?php
+// file: test_HDL_output_nondeterministic.testdesc
+
+// short test description
+$test_description="Testing that ProGe doesn't write output HDL in a nondeterministic way";
+// the binary being tested
+$test_bin="./run_test_HDL_output_nondeterministic.sh";
+// arguments given to the program
+$bin_args="";
+?>
