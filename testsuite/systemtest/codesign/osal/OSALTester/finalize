@@ -1,9 +1,3 @@
 #!/bin/bash
 
-rm data/operations.opb
-rm data/operations.la
-rm data/operations.lo
-rm -rf data/.deps/*
-rm -rf data/.libs/*
-
-
+rm -rf data/operations.opb
