@@ -32,6 +32,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/choice.h>
 #include <wx/statline.h>
 
 #include <vector>
@@ -126,16 +127,26 @@ RFImplementationDialog::RFImplementationDialog(
 
     createContents(this, true, true);
 
-    // Initialize list widgets.
+    // Initialize list and choice widgets.
     portList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_PORT_LIST));
     sourceList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_SOURCE_LIST));
     externalPortList_ = dynamic_cast<wxListCtrl*>(FindWindow(
         ID_EXTERNAL_PORT_LIST));
     parameterList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_PARAMETER_LIST));
+    sizeChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_SIZE_CHOICE));
+    widthChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_WIDTH_CHOICE));
+    assert(sizeChoice_);
+    assert(widthChoice_);
 
     portList_->InsertColumn(0, _T("name"), wxLIST_FORMAT_LEFT, 200);
     sourceList_->InsertColumn(
         0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
+
+    // Add initial size and width parameter choices
+    sizeChoice_->SetSelection(sizeChoice_->Append(
+        WxConversion::toWxString(implementation_.sizeParameter())));
+    widthChoice_->SetSelection(widthChoice_->Append(
+        WxConversion::toWxString(implementation_.widthParameter())));
 
     // Create columns in list widgets.
     externalPortList_->InsertColumn(0, _T("name"), wxLIST_FORMAT_LEFT, 260);
@@ -148,9 +159,8 @@ RFImplementationDialog::RFImplementationDialog(
     rstPort_ = WxConversion::toWxString(implementation_.rstPort());
     gLockPort_ = WxConversion::toWxString(implementation_.glockPort());
     guardPort_ = WxConversion::toWxString(implementation_.guardPort());
-    widthParam_ = WxConversion::toWxString(implementation_.widthParameter());
-    sizeParam_ = WxConversion::toWxString(implementation_.sizeParameter());
-
+    //widthParam_ = WxConversion::toWxString(implementation_.widthParameter());
+    //sizeParam_ = WxConversion::toWxString(implementation_.sizeParameter());
 
     // Set text field validators.
     FindWindow(ID_NAME)->SetValidator(
@@ -163,10 +173,10 @@ RFImplementationDialog::RFImplementationDialog(
         wxTextValidator(wxFILTER_ASCII, &gLockPort_));
     FindWindow(ID_GUARD_PORT)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &guardPort_));
-    FindWindow(ID_WIDTH_PARAMETER)->SetValidator(
-        wxTextValidator(wxFILTER_ASCII, &widthParam_));
-    FindWindow(ID_SIZE_PARAMETER)->SetValidator(
-        wxTextValidator(wxFILTER_ASCII, &sizeParam_));
+    //FindWindow(ID_WIDTH_PARAMETER)->SetValidator(
+    //    wxTextValidator(wxFILTER_ASCII, &widthParam_));
+    //FindWindow(ID_SIZE_PARAMETER)->SetValidator(
+    //    wxTextValidator(wxFILTER_ASCII, &sizeParam_));
 
 
     // Disable conditional buttons initially.
@@ -230,6 +240,22 @@ RFImplementationDialog::update() {
         parameterList_->SetItem(
             i, 1, WxConversion::toWxString(parameter.value));
     }
+
+    // Update width and size parameter choices
+    wxString oldWidthChoice = getWidthParameter();
+    wxString oldSizeChoice = getSizeParameter();
+    widthChoice_->Clear();
+    widthChoice_->Append(_T(""));
+    sizeChoice_->Clear();
+    sizeChoice_->Append(_T(""));
+    for (int i = 0; i < implementation_.parameterCount(); i++) {
+        const RFImplementation::Parameter parameter =
+            implementation_.parameter(i);
+        widthChoice_->Append(WxConversion::toWxString(parameter.name));
+        sizeChoice_->Append(WxConversion::toWxString(parameter.name));
+    }
+    widthChoice_->SetSelection(widthChoice_->FindString(oldWidthChoice));
+    sizeChoice_->SetSelection(sizeChoice_->FindString(oldSizeChoice));
 
     wxListEvent dummy;
     onPortSelection(dummy);
@@ -464,7 +490,7 @@ void RFImplementationDialog::onDeleteExternalPort(wxCommandEvent&) {
 
 
 /**
- * Event handler for the parameter list activateion.
+ * Event handler for the parameter list activation.
  *
  * Opens a RFImplementationParamaeterDialog for modifying the selected
  * parameter.
@@ -528,17 +554,6 @@ RFImplementationDialog::onAddParameter(wxCommandEvent&) {
 
     if (dialog.ShowModal() != wxID_OK) {
         return;
-    }
-
-    if (parameter.name == WxConversion::toString(widthParam_)) {
-        message = _T("Parameter by the name is already "
-            "\ndefined as width parameter.");
-        error = true;
-    }
-    if (parameter.name == WxConversion::toString(sizeParam_)) {
-        message = _T("Parameter by the name is already "
-            "\ndefined as size parameter.");
-        error = true;
     }
 
     if (error) {
@@ -615,7 +630,6 @@ void RFImplementationDialog::onDeleteParameter(wxCommandEvent&) {
         HDB::RFExternalPort& port = implementation_.externalPort(i);
         port.unsetParameterDependency(parameter.name);
     }
-
     update();
 }
 
@@ -781,6 +795,30 @@ RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
 
 
 /**
+ * Returns name of currently selected size parameter.
+ *
+ * @return Name of selected item or empty string if there is
+ *         no valid selection.
+ */
+wxString
+RFImplementationDialog::getSizeParameter() {
+    return sizeChoice_->GetString(sizeChoice_->GetSelection());
+}
+
+
+/**
+ * Returns name of currently selected width parameter.
+ *
+ * @return Name of selected item or empty string if there is
+ *         no valid selection.
+ */
+wxString
+RFImplementationDialog::getWidthParameter() {
+    return widthChoice_->GetString(widthChoice_->GetSelection());
+}
+
+
+/**
  * Event handler for the OK button.
  *
  * Validates the dialog data and updates the RFImplementation object string
@@ -796,8 +834,6 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
     rstPort_ = rstPort_.Trim(true).Trim(false);
     gLockPort_ = gLockPort_.Trim(true).Trim(false);
     guardPort_ = guardPort_.Trim(true).Trim(false);
-    widthParam_ = widthParam_.Trim(true).Trim(false);
-    sizeParam_ = sizeParam_.Trim(true).Trim(false);
 
     if (name_.IsEmpty()) {
         wxString message = _T("Name field must not be empty.");
@@ -806,31 +842,15 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
         return;
     }
 
-    for (int i = 0; i < implementation_.parameterCount(); i++) {
-        RFImplementation::Parameter parameter = implementation_.parameter(i);
-        if (parameter.name == WxConversion::toString(widthParam_)) {
-            wxString message = _T("Width parameter may not be same as "
-                "parameter in the parameter list.");
-            InformationDialog dialog(this, message);
-            dialog.ShowModal();
-            return;
-        } else if (parameter.name == WxConversion::toString(sizeParam_)) {
-            wxString message = _T("Size parameter may not be same as "
-                "parameter in the parameter list.");
-            InformationDialog dialog(this, message);
-            dialog.ShowModal();
-            return;
-        }
-    }
-
-
     implementation_.setModuleName(WxConversion::toString(name_));
     implementation_.setClkPort(WxConversion::toString(clkPort_));
     implementation_.setRstPort(WxConversion::toString(rstPort_));
     implementation_.setGlockPort(WxConversion::toString(gLockPort_));
     implementation_.setGuardPort(WxConversion::toString(guardPort_));
-    implementation_.setWidthParameter(WxConversion::toString(widthParam_));
-    implementation_.setSizeParameter(WxConversion::toString(sizeParam_));
+    implementation_.setWidthParameter(
+        WxConversion::toString(getWidthParameter()));
+    implementation_.setSizeParameter(
+        WxConversion::toString(getSizeParameter()));
 
     EndModal(wxID_OK);
 
@@ -894,17 +914,21 @@ RFImplementationDialog::createContents(
         wxT("Size parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_SIZE_PARAMETER, wxT(""),
-        wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    //wxTextCtrl *item14 = new wxTextCtrl( parent, ID_SIZE_PARAMETER, wxT(""),
+    //    wxDefaultPosition, wxSize(80,-1), 0 );
+    wxChoice *sizeChoice = new wxChoice(parent, ID_SIZE_CHOICE,
+            wxDefaultPosition, wxSize(80,-1), 0, 0, wxCB_SORT);
+    item2->Add( sizeChoice, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item15 = new wxStaticText( parent, ID_LABEL_WIDTH_PARAMETER,
         wxT("Width parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_WIDTH_PARAMETER, wxT(""),
-        wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    //wxTextCtrl *item16 = new wxTextCtrl( parent, ID_WIDTH_PARAMETER, wxT(""),
+    //    wxDefaultPosition, wxSize(80,-1), 0 );
+    wxChoice *widthChoice = new wxChoice(parent, ID_WIDTH_CHOICE,
+        wxDefaultPosition, wxSize(80,-1), 0, 0, wxCB_SORT);
+    item2->Add(widthChoice, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     item1->Add( item2, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 

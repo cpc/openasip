@@ -4572,7 +4572,16 @@ HDBManager::addRFParametersToImplementation(
     RowID entryID) const {
 
     if (!dbConnection_->tableExistsInDB("rf_implementation_parameter")) {
-        /*debugLog("HDB does not have table rf_implementation_parameter");*/
+        // Add implicit parameters: size and width parameters if older
+        // hdb is opened.
+        if (implementation.widthParameter() != "") {
+            implementation.addParameter(implementation.widthParameter(),
+                "integer", "");
+        }
+        if (implementation.sizeParameter() != "") {
+            implementation.addParameter(implementation.sizeParameter(),
+                "integer", "");
+        }
         return;
     }
 
@@ -4593,6 +4602,21 @@ HDBManager::addRFParametersToImplementation(
         string type = typeData.stringValue();
         string value = valueData.stringValue();
         implementation.addParameter(name, type, value);
+    }
+
+    // If RF implementation's size and width parameter dependencies do not have
+    // parameter defined, add default parameters for them.
+    if (implementation.widthParameter() != "" &&
+        !implementation.hasParameter(implementation.widthParameter())) {
+        implementation.addParameter(implementation.widthParameter(),
+            "integer", "");
+        implementation.addParameter(implementation.sizeParameter(),
+            "integer", "");
+    }
+    if (implementation.sizeParameter() != "" &&
+        !implementation.hasParameter(implementation.sizeParameter())) {
+        implementation.addParameter(implementation.sizeParameter(),
+            "integer", "");
     }
     delete result;
 }

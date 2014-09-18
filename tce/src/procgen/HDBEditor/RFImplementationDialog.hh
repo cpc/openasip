@@ -36,6 +36,7 @@
 #include "RFImplementation.hh"
 
 class wxListCtrl;
+class wxChoice;
 
 /**
  * Dialog for editing RF implementations.
@@ -79,6 +80,12 @@ private:
     void onMoveSourceFileUp(wxCommandEvent&);
     void onMoveSourceFileDown(wxCommandEvent&);
 
+    void onSizeChoice(wxCommandEvent& event);
+    void onWidthChoice(wxCommandEvent& event);
+
+    wxString getWidthParameter();
+    wxString getSizeParameter();
+
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
     /// Window indentifiers for dialog widgets.
@@ -115,7 +122,9 @@ private:
         ID_PARAMETER_LIST,
         ID_EDIT_PARAMETER,
         ID_ADD_PARAMETER,
-        ID_DELETE_PARAMETER
+        ID_DELETE_PARAMETER,
+        ID_SIZE_CHOICE,
+        ID_WIDTH_CHOICE
     };
 
     /// RF Implementation to modify.
@@ -129,14 +138,18 @@ private:
     wxListCtrl* externalPortList_;
     /// Pointer to the parameter list widget.
     wxListCtrl* parameterList_;
+    /// Pointer to size parameter choice widget
+    wxChoice* sizeChoice_;
+    /// Pointer to width parameter choice widget
+    wxChoice* widthChoice_;
 
     wxString name_;
     wxString clkPort_;
     wxString rstPort_;
     wxString gLockPort_;
     wxString guardPort_;
-    wxString sizeParam_;
-    wxString widthParam_;
+    //wxString sizeParam_;
+    //wxString widthParam_;
 
     DECLARE_EVENT_TABLE()
 };

@@ -1125,27 +1125,29 @@ NetlistGenerator::addBaseRFToNetlist(
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
     topLevelBlock.addSubBlock(block);
 
-    // add parameters (generics) to the block
-    block->setParameter(
-        implementation.widthParameter(), "integer",
-        Conversion::toString(regFile.width()));
-
-    block->setParameter(
-        implementation.sizeParameter(), "integer",
-        Conversion::toString(regFile.numberOfRegisters()));
-
-    // Add additional parameters to the block.
+    // Add parameters (generics) to the block.
     for (int i = 0; i< implementation.parameterCount(); i++) {
         RFImplementation::Parameter param = implementation.parameter(i);
 
+        // Check if parameter matches size or width parameter reference
+        // and set/override its parameter value according to architecture.
         if (param.value == "") {
-            format errorMsg(
-                "Unable to resolve the value of parameter %1% of RF "
-                "entry %2%.");
-            errorMsg % param.name % location.id();
-            throw InvalidData(
-                __FILE__, __LINE__, __func__, errorMsg.str());
-
+            if (param.name == implementation.sizeParameter()) {
+                block->setParameter(
+                    implementation.sizeParameter(), "integer",
+                    Conversion::toString(regFile.numberOfRegisters()));
+            } else if (param.name == implementation.widthParameter()) {
+                block->setParameter(
+                    implementation.widthParameter(), "integer",
+                    Conversion::toString(regFile.width()));
+            } else {
+                format errorMsg(
+                    "Unable to resolve the value of parameter %1% of RF "
+                    "entry %2%.");
+                errorMsg % param.name % location.id();
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__, errorMsg.str());
+            }
         } else {
             block->setParameter(param.name, param.type, param.value);
         }

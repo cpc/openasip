@@ -48,6 +48,7 @@
 #include "RFImplementation.hh"
 #include "RFPortImplementation.hh"
 #include "FUExternalPort.hh"
+#include "RFExternalPort.hh"
 #include "Machine.hh"
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
@@ -72,10 +73,12 @@ const string HDB_TO_CREATE_5 = "data" + DS + "newHDB5.hdb";
 const string HDB_TO_CREATE_6 = "data" + DS + "newHDB6.hdb";
 const string HDB_TO_CREATE_7 = "data" + DS + "newHDB7.hdb";
 const string HDB_TO_CREATE_8 = "data" + DS + "newHDB8.hdb";
+const string OLD_HDB_1 = "data" + DS + "oldHDB1.hdb";
+const string TMP_HDB  = "data" + DS + "tmp.hdb";
 const string TEST_ADF = "data" + DS + "testadf.adf";
 
 /**
- * Class that tests BEMGenerator class.
+ * Class that tests HDBManager class.
  */
 class HDBManagerTest : public CxxTest::TestSuite {
 public:
@@ -93,6 +96,8 @@ public:
     void testFUArchitectureMatching();
     void testRFArchitectureMatching();
     void testFUArchitectureIDbyOperationSet();
+    void testBackwardCompatibility();
+    void testHDBConversion();
 
 private:
     void initializeHDB();
@@ -104,6 +109,7 @@ private:
  */
 void
 HDBManagerTest::setUp() {
+    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 
@@ -112,6 +118,7 @@ HDBManagerTest::setUp() {
  */
 void
 HDBManagerTest::tearDown() {
+    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 
@@ -305,61 +312,77 @@ HDBManagerTest::testInsertingRFArchitecture() {
 void
 HDBManagerTest::testInsertingRFImplementation() {
 
-   try 
-     {
-	
-    FileSystem::removeFileOrDirectory(HDB_TO_CREATE_5);
-    HDBManager& manager = CachedHDBManager::createNew(HDB_TO_CREATE_5);
-    RowID entryID = manager.addRFEntry();
+    try {
+        FileSystem::removeFileOrDirectory(HDB_TO_CREATE_5);
+        HDBManager& manager = CachedHDBManager::createNew(HDB_TO_CREATE_5);
+        RowID entryID = manager.addRFEntry();
 
-    RFImplementation* impl = new RFImplementation(
-        "rf_module", "clk", "rst", "glock", "size", "width", "");
-    new RFPortImplementation(
-        "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
-    new RFPortImplementation(
-        "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
-    RowID implID = manager.addRFImplementation(*impl, entryID);
+        RFImplementation* impl = new RFImplementation(
+            "rf_module", "clk", "rst", "glock", "size", "width", "");
+        impl->addParameter("ext_dataw", "integer","32");
+        new RFPortImplementation(
+            "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
+        new RFPortImplementation(
+            "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
+        (new RFExternalPort("ext_port_out", HDB::OUT, "ext_dataw-2",
+            "Some description", *impl))->setParameterDependency("ext_dataw");
+        (new RFExternalPort("ext_port_in", HDB::IN, "ext_dataw-2",
+            "Some description", *impl))->setParameterDependency("ext_dataw");
+        RowID implID = manager.addRFImplementation(*impl, entryID);
 
-    RFEntry* entry = manager.rfByEntryID(entryID);
-    TS_ASSERT(!entry->hasArchitecture());
-    TS_ASSERT(entry->hasImplementation());
-    RFImplementation& loadedImpl = entry->implementation();
-    TS_ASSERT_EQUALS(loadedImpl.sizeParameter(), "size");
-    TS_ASSERT_EQUALS(loadedImpl.widthParameter(), "width");
-    TS_ASSERT_EQUALS(loadedImpl.guardPort(), "");
-    TS_ASSERT_EQUALS(loadedImpl.clkPort(), "clk");
-    TS_ASSERT_EQUALS(loadedImpl.rstPort(), "rst");
-    TS_ASSERT_EQUALS(loadedImpl.glockPort(), "glock");
-    TS_ASSERT_EQUALS(loadedImpl.portCount(), 2);
-    
-    for (int i = 0; i < loadedImpl.portCount(); i++) {
-        RFPortImplementation& port = loadedImpl.port(i);
-        TS_ASSERT_EQUALS(port.opcodePortWidthFormula(), "bit_width");
-        if (port.name() == "r1") {
-            TS_ASSERT_EQUALS(port.direction(), HDB::OUT);
-            TS_ASSERT_EQUALS(port.opcodePort(), "r1_opc");
-            TS_ASSERT_EQUALS(port.loadPort(), "r1_load");
-        } else {
-            TS_ASSERT_EQUALS(port.name(), "w1");
-            TS_ASSERT_EQUALS(port.direction(), HDB::IN);
-            TS_ASSERT_EQUALS(port.opcodePort(), "w1_opc");
-            TS_ASSERT_EQUALS(port.loadPort(), "w1_load");
+        RFEntry* entry = manager.rfByEntryID(entryID);
+        TS_ASSERT(!entry->hasArchitecture());
+        TS_ASSERT(entry->hasImplementation());
+        RFImplementation& loadedImpl = entry->implementation();
+        TS_ASSERT_EQUALS(loadedImpl.sizeParameter(), "size");
+        TS_ASSERT_EQUALS(loadedImpl.widthParameter(), "width");
+        TS_ASSERT_EQUALS(loadedImpl.guardPort(), "");
+        TS_ASSERT_EQUALS(loadedImpl.clkPort(), "clk");
+        TS_ASSERT_EQUALS(loadedImpl.rstPort(), "rst");
+        TS_ASSERT_EQUALS(loadedImpl.glockPort(), "glock");
+        TS_ASSERT_EQUALS(loadedImpl.portCount(), 2);
+
+        for (int i = 0; i < loadedImpl.portCount(); i++) {
+            RFPortImplementation& port = loadedImpl.port(i);
+            TS_ASSERT_EQUALS(port.opcodePortWidthFormula(), "bit_width");
+            if (port.name() == "r1") {
+                TS_ASSERT_EQUALS(port.direction(), HDB::OUT);
+                TS_ASSERT_EQUALS(port.opcodePort(), "r1_opc");
+                TS_ASSERT_EQUALS(port.loadPort(), "r1_load");
+            } else {
+                TS_ASSERT_EQUALS(port.name(), "w1");
+                TS_ASSERT_EQUALS(port.direction(), HDB::IN);
+                TS_ASSERT_EQUALS(port.opcodePort(), "w1_opc");
+                TS_ASSERT_EQUALS(port.loadPort(), "w1_load");
+            }
         }
-    }
 
-    delete impl;
-    delete entry;
+        TS_ASSERT_EQUALS(loadedImpl.externalPortCount(), 2);
+        for (int i = 0; i < loadedImpl.externalPortCount(); i++) {
+            RFExternalPort extPort = loadedImpl.externalPort(i);
+            TS_ASSERT_EQUALS(extPort.widthFormula(), "ext_dataw-2");
+            TS_ASSERT_EQUALS(extPort.parameterDependencyCount(), 1);
+            TS_ASSERT_EQUALS(extPort.parameterDependency(0), "ext_dataw");
+            if (extPort.name() == "ext_port_out") {
+                TS_ASSERT_EQUALS(extPort.direction(), HDB::OUT);
+                TS_ASSERT_EQUALS(extPort.description(), "Some description");
+            } else {
+                TS_ASSERT_EQUALS(extPort.direction(), HDB::IN);
+                TS_ASSERT_EQUALS(extPort.description(), "Some description");
+            }
+        }
 
-    manager.removeRFImplementation(implID);
-    entry = manager.rfByEntryID(entryID);
-    TS_ASSERT(!entry->hasImplementation());
-    delete entry;
-     } catch(Exception& e) 
-	  {
-	     
-	     std::cerr << e.fileName() << e.lineNum() << ":" << e.errorMessage() << std::endl;
-	  }
-   
+        delete impl;
+        delete entry;
+
+        manager.removeRFImplementation(implID);
+        entry = manager.rfByEntryID(entryID);
+        TS_ASSERT(!entry->hasImplementation());
+        delete entry;
+   } catch(Exception& e) {
+       std::cerr << e.fileName() << e.lineNum() << ":" << e.errorMessage()
+                 << std::endl;
+   }
 }
 
 
@@ -720,6 +743,69 @@ HDBManagerTest::testFUArchitectureIDbyOperationSet() {
         !AssocTools::containsKey(fuArchitectureIDsByOperationSet5, archID1));
     TS_ASSERT(
         !AssocTools::containsKey(fuArchitectureIDsByOperationSet5, archID2));
+}
+
+
+/**
+ * Test opening and reading old HDBs.
+ */
+void
+HDBManagerTest::testBackwardCompatibility() {
+
+    // Copy hdb in case it gets altered by tests.
+    FileSystem::copy(OLD_HDB_1, TMP_HDB);
+    const HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB);
+
+    // Test reading RF implementation in absence of rf_external_port,
+    // rf_implementation_parameter and rf_ext_port_parameter_dependency tables.
+    std::set<RowID> rfEntries = manager.rfEntryIDs();
+    std::set<RowID>::const_iterator rfEntryIter;
+
+    for (rfEntryIter = rfEntries.begin(); rfEntryIter != rfEntries.end();
+        rfEntryIter++) {
+        RFEntry* entry = manager.rfByEntryID(*rfEntryIter);
+        TS_ASSERT(entry->hasArchitecture());
+        TS_ASSERT(entry->hasImplementation());
+        RFImplementation& loadedImpl = entry->implementation();
+        // Note: Old HDBs does not have table for parameters, but size and
+        // width parameters (if not empty) are added to RFImplementation.
+        TS_ASSERT_EQUALS(loadedImpl.parameterCount(), 2);
+        TS_ASSERT_EQUALS(loadedImpl.externalPortCount(), 0);
+    }
+    FileSystem::removeFileOrDirectory(TMP_HDB);
+}
+
+
+/**
+ * Test opening old HDB and adding elements that alters DB's schema.
+ */
+void
+HDBManagerTest::testHDBConversion() {
+    FileSystem::copy(OLD_HDB_1, TMP_HDB);
+    HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB);
+
+    RFArchitecture arch(1, 1, 0, 2, 1, 1, false);
+    RowID archID = manager.addRFArchitecture(arch);
+    RowID entryID = manager.addRFEntry();
+    manager.setArchitectureForRF(entryID, archID);
+
+    RFImplementation* impl = new RFImplementation(
+        "rf_module_2", "clk", "rst", "glock", "size", "width", "");
+    impl->addParameter("ext_dataw", "integer", "16");
+    new RFPortImplementation(
+        "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
+    new RFPortImplementation(
+        "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
+    (new RFExternalPort("ext_port_out", HDB::OUT, "ext_dataw-2",
+        "Some description", *impl))->setParameterDependency("ext_dataw");
+    (new RFExternalPort("ext_port_in", HDB::IN, "ext_dataw-2",
+        "Some description", *impl))->setParameterDependency("ext_dataw");
+    RowID implID = -1;
+    TS_ASSERT_THROWS_NOTHING(
+        implID = manager.addRFImplementation(*impl, entryID));
+
+    delete impl;
+    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 #endif
