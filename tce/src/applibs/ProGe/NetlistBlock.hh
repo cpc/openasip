@@ -128,7 +128,19 @@ private:
     PortTable ports_;
     /// Parameters of the block.
     ParameterTable parameters_;
+
 };
+
+// Lexicographical comparison of 2 strings.
+// @return true if a comes before b in dictionary order.
+class LexicographicCompare {
+public:
+    bool operator () (const NetlistBlock* a, const NetlistBlock* b) const {
+        return (a->instanceName() + a->moduleName()) <
+                (b->instanceName() + b->moduleName());
+    }
+};
+
 }
 
 #endif

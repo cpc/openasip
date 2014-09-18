@@ -41,7 +41,6 @@
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
-#include "LexicographicCompare.hh"
 
 #include "FileSystem.hh"
 #include "Conversion.hh"

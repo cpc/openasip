@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>/usr/oma/multanej/TCE/repo/tce/tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="LSU">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="ALU">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>377</fu-id>
+  </fu>
+
+  <fu name="REFLECTER">
+    <hdb-file>HDL_nondeterm.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>191</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+  <rf name="RF_1">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+  <rf name="RF_2">
+    <hdb-file>/usr/oma/multanej/TCE/repo/tce/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+</adf-implementation>
