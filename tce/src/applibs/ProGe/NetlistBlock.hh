@@ -131,9 +131,17 @@ private:
 
 };
 
-// Lexicographical comparison of 2 strings.
-// @return true if a comes before b in dictionary order.
-class LexicographicCompare {
+
+/**
+ * Compares 2 NetlistBlock's names lexicographically(dictionary order).
+ *
+ * Can be used to organize containers of type NetlistBlock to dictionary
+ * order according to their instanceNames + moduleNames.
+ * @param a the first NetlistBlock to compare.
+ * @param b the second NetlistBlock to compare.
+ * @return true, if a comes before b in dictionary order.
+ */
+class InstNameModNameLexicographComp {
 public:
     bool operator () (const NetlistBlock* a, const NetlistBlock* b) const {
         return (a->instanceName() + a->moduleName()) <
