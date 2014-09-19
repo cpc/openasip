@@ -410,6 +410,9 @@ HDBManager::createNew(const std::string& file)
         connection.DDLQuery(CQ_RF);
         connection.DDLQuery(CQ_RF_ARCHITECTURE);
         connection.DDLQuery(CQ_RF_IMPLEMENTATION);
+        connection.DDLQuery(CQ_RF_IMPLEMENTATION_PARAMETER);
+        connection.DDLQuery(CQ_RF_EXTERNAL_PORT);
+        connection.DDLQuery(CQ_RF_EXT_PORT_PARAMETER_DEPENDENCY);
         connection.DDLQuery(CQ_RF_DATA_PORT);
         connection.DDLQuery(CQ_FORMAT);
         connection.DDLQuery(CQ_BUS);
@@ -1590,6 +1593,28 @@ HDBManager::addRFImplementation(
                     "value,rf_impl) VALUES(NULL,\"" + param.name +
                     "\",\"" + param.type + "\",\"" + param.value +
                     "\"," + Conversion::toString(implID) + ");"));
+        }
+
+        // Insert implicit parameters to rf_implementation_parameter table
+        // (size and width parameter references if not empty and parameters
+        // for them do not exists).
+        string widthParam = implementation.widthParameter();
+        if (!widthParam.empty() && !implementation.hasParameter(widthParam)) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_implementation_parameter(id,name,type,"
+                    "value,rf_impl) VALUES(NULL,\"" + widthParam +
+                    "\", \"integer\", \"\"," +
+                    Conversion::toString(implID) + ");"));
+        }
+        string sizeParam = implementation.sizeParameter();
+        if (!sizeParam.empty() && !implementation.hasParameter(sizeParam)) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_implementation_parameter(id,name,type,"
+                    "value,rf_impl) VALUES(NULL,\"" + sizeParam +
+                    "\", \"integer\", \"\"," +
+                    Conversion::toString(implID) + ");"));
         }
 
         // insert into rf_ext_port_parameter_dependency table

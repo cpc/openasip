@@ -123,8 +123,8 @@ RelationalDBConnection::commit()
  * Checks if database has given table by name.
  *
  * @param tableName Name of the table
- *
- * @exception RelationalDBException In case a database error occured or
+ * @return True if db has the table. Otherwise false.
+ * @exception RelationalDBException In case a database error occurred or
  *                                  call was made in the middle of an active
  *                                  transaction.
  */
@@ -133,4 +133,20 @@ RelationalDBConnection::tableExistsInDB(const std::string&)
     throw (RelationalDBException) {
     return false;
 }
+
+/**
+ * Return number of entries in the given table.
+ *
+ * @param tableName Name of the table.
+ * @return Number of entries in table.
+ * @exception RelationalDBException In case a database error occurred,
+ * call was made in the middle of an active transaction or the table does not
+ * exists.
+ */
+int
+RelationalDBConnection::rowCountInTable(const std::string&)
+    throw (RelationalDBException) {
+    return false;
+}
+
 

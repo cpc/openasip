@@ -70,6 +70,9 @@ public:
     virtual bool tableExistsInDB(const std::string& tableName)
     throw (RelationalDBException);
 
+    virtual int rowCountInTable(const std::string& tableName)
+    throw (RelationalDBException);
+
     void throwIfSQLiteError(int result)
 	throw (RelationalDBException);
 

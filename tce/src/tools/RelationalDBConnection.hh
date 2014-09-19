@@ -69,6 +69,8 @@ public:
 
     virtual bool tableExistsInDB(const std::string& tableName)
     throw (RelationalDBException) = 0;
+    virtual int rowCountInTable(const std::string& tableName)
+    throw (RelationalDBException) = 0;
 };
 
 #endif

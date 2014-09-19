@@ -73,9 +73,12 @@ const string HDB_TO_CREATE_5 = "data" + DS + "newHDB5.hdb";
 const string HDB_TO_CREATE_6 = "data" + DS + "newHDB6.hdb";
 const string HDB_TO_CREATE_7 = "data" + DS + "newHDB7.hdb";
 const string HDB_TO_CREATE_8 = "data" + DS + "newHDB8.hdb";
+const string HDB_TO_CREATE_9 = "data" + DS + "newHDB9.hdb";
 const string OLD_HDB_1 = "data" + DS + "oldHDB1.hdb";
 const string TMP_HDB  = "data" + DS + "tmp.hdb";
 const string TEST_ADF = "data" + DS + "testadf.adf";
+
+namespace HDB {
 
 /**
  * Class that tests HDBManager class.
@@ -97,10 +100,12 @@ public:
     void testRFArchitectureMatching();
     void testFUArchitectureIDbyOperationSet();
     void testBackwardCompatibility();
+    void testNoLeaks();
     void testHDBConversion();
 
 private:
     void initializeHDB();
+    RFImplementation* createExampleRFImplementation();
 };
 
 
@@ -317,17 +322,7 @@ HDBManagerTest::testInsertingRFImplementation() {
         HDBManager& manager = CachedHDBManager::createNew(HDB_TO_CREATE_5);
         RowID entryID = manager.addRFEntry();
 
-        RFImplementation* impl = new RFImplementation(
-            "rf_module", "clk", "rst", "glock", "size", "width", "");
-        impl->addParameter("ext_dataw", "integer","32");
-        new RFPortImplementation(
-            "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
-        new RFPortImplementation(
-            "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
-        (new RFExternalPort("ext_port_out", HDB::OUT, "ext_dataw-2",
-            "Some description", *impl))->setParameterDependency("ext_dataw");
-        (new RFExternalPort("ext_port_in", HDB::IN, "ext_dataw-2",
-            "Some description", *impl))->setParameterDependency("ext_dataw");
+        RFImplementation* impl = createExampleRFImplementation();
         RowID implID = manager.addRFImplementation(*impl, entryID);
 
         RFEntry* entry = manager.rfByEntryID(entryID);
@@ -543,6 +538,27 @@ void
 HDBManagerTest::initializeHDB() {
     FileSystem::runShellCommand("./initializehdb " + HDB_TO_CREATE_1);
 }
+
+
+/**
+ * Creates new RFImplementation to be used in test cases.
+ */
+RFImplementation*
+HDBManagerTest::createExampleRFImplementation() {
+    RFImplementation* impl = new RFImplementation(
+        "rf_module", "clk", "rst", "glock", "size", "width", "");
+    impl->addParameter("ext_dataw", "integer","32");
+    new RFPortImplementation(
+        "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
+    new RFPortImplementation(
+        "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
+    (new RFExternalPort("ext_port_out", HDB::OUT, "ext_dataw-2",
+        "Some description", *impl))->setParameterDependency("ext_dataw");
+    (new RFExternalPort("ext_port_in", HDB::IN, "ext_dataw-2",
+        "Some description", *impl))->setParameterDependency("ext_dataw");
+    return impl;
+}
+
 
 /**
  * Tests getting cost data.
@@ -777,6 +793,48 @@ HDBManagerTest::testBackwardCompatibility() {
 
 
 /**
+ * Test that adding and removing elements do not leave garbage behind.
+ */
+void
+HDBManagerTest::testNoLeaks() {
+    FileSystem::removeFileOrDirectory(HDB_TO_CREATE_9);
+    HDBManager& manager = CachedHDBManager::createNew(HDB_TO_CREATE_9);
+    RelationalDBConnection* dbConnection = manager.getDBConnection();
+
+    int oldRfCount = dbConnection->rowCountInTable("rf");
+    int oldRfImplementationCount =
+        dbConnection->rowCountInTable("rf_implementation");
+    int oldRfExternalPortCount =
+        dbConnection->rowCountInTable("rf_external_port");
+    int oldRfParameterCount =
+        dbConnection->rowCountInTable("rf_implementation_parameter");
+    int oldRfParameterDependency =
+        dbConnection->rowCountInTable("rf_ext_port_parameter_dependency");
+
+    RowID entryID = manager.addRFEntry();
+    RFImplementation* impl = createExampleRFImplementation();
+    RowID implID = manager.addRFImplementation(*impl, entryID);
+    manager.removeRFEntry(entryID);
+
+    int newRfCount = dbConnection->rowCountInTable("rf");
+    int newRfImplementationCount =
+        dbConnection->rowCountInTable("rf_implementation");
+    int newRfExternalPortCount =
+        dbConnection->rowCountInTable("rf_external_port");
+    int newRfParameterCount =
+        dbConnection->rowCountInTable("rf_implementation_parameter");
+    int newRfParameterDependency =
+        dbConnection->rowCountInTable("rf_ext_port_parameter_dependency");
+
+    TS_ASSERT_EQUALS(newRfCount, oldRfCount);
+    TS_ASSERT_EQUALS(newRfImplementationCount, oldRfImplementationCount);
+    TS_ASSERT_EQUALS(newRfExternalPortCount, oldRfExternalPortCount);
+    TS_ASSERT_EQUALS(newRfParameterCount, oldRfParameterCount);
+    TS_ASSERT_EQUALS(newRfParameterDependency, oldRfParameterDependency);
+}
+
+
+/**
  * Test opening old HDB and adding elements that alters DB's schema.
  */
 void
@@ -789,23 +847,24 @@ HDBManagerTest::testHDBConversion() {
     RowID entryID = manager.addRFEntry();
     manager.setArchitectureForRF(entryID, archID);
 
-    RFImplementation* impl = new RFImplementation(
-        "rf_module_2", "clk", "rst", "glock", "size", "width", "");
-    impl->addParameter("ext_dataw", "integer", "16");
-    new RFPortImplementation(
-        "r1", HDB::OUT, "r1_load", "r1_opc", "bit_width", *impl);
-    new RFPortImplementation(
-        "w1", HDB::IN, "w1_load", "w1_opc", "bit_width", *impl);
-    (new RFExternalPort("ext_port_out", HDB::OUT, "ext_dataw-2",
-        "Some description", *impl))->setParameterDependency("ext_dataw");
-    (new RFExternalPort("ext_port_in", HDB::IN, "ext_dataw-2",
-        "Some description", *impl))->setParameterDependency("ext_dataw");
+    RFImplementation* impl = createExampleRFImplementation();
     RowID implID = -1;
     TS_ASSERT_THROWS_NOTHING(
         implID = manager.addRFImplementation(*impl, entryID));
 
+    RelationalDBConnection* dbConnection = manager.getDBConnection();
+    TS_ASSERT(dbConnection->tableExistsInDB("rf_implementation_parameter"));
+    TS_ASSERT(dbConnection->tableExistsInDB("rf_external_port"));
+    TS_ASSERT(dbConnection->tableExistsInDB(
+        "rf_ext_port_parameter_dependency"));
+    TS_ASSERT_EQUALS(
+        dbConnection->rowCountInTable("rf_implementation_parameter"), 3);
+    TS_ASSERT_EQUALS(dbConnection->rowCountInTable("rf_external_port"), 2);
+    TS_ASSERT_EQUALS(dbConnection->rowCountInTable(
+            "rf_ext_port_parameter_dependency"), 2);
+
     delete impl;
     FileSystem::removeFileOrDirectory(TMP_HDB);
 }
-
+}
 #endif

@@ -80,6 +80,7 @@ class HDBRegistry;
  */
 class HDBManager {
 public:
+    friend class HDBManagerTest;
 
     typedef std::list<DataObject> DataObjectList;
     virtual ~HDBManager();
