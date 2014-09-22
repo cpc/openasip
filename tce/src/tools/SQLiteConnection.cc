@@ -177,7 +177,7 @@ SQLiteConnection::lastInsertRowID() {
  * Checks if database has given table by name.
  *
  * @param tableName Name of the table
- *
+ * @return True if db has the table. Otherwise false.
  * @exception RelationalDBException In case a database error occurred or
  *                                  call was made in the middle of an active
  *                                  transaction.
