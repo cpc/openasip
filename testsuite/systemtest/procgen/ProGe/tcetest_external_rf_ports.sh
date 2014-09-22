@@ -29,7 +29,12 @@ $PIG -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF $ADF || echo "Error from PIG"
 
 rf_ext_port_count=$(cat ${PROGE_OUT}/vhdl/${TOP}.vhdl | grep -c rf_RF_db_regs_out)
 if [ "$rf_ext_port_count" == "0" ]; then
-    echo "Error: RF's external ports where not generated."
+    echo "Error: External ports where not generated for RF."
+fi
+
+iu_ext_port_count=$(cat ${PROGE_OUT}/vhdl/${TOP}.vhdl | grep -c iu_IMM_db_regs_out)
+if [ "$iu_ext_port_count" == "0" ]; then
+    echo "Error: External ports where not generated for IU."
 fi
 
 # If GHDL is found from PATH, compile and simulate
@@ -42,7 +47,7 @@ then
   cd ..
 fi
 
-clear_test_data
+#clear_test_data
 
 
 

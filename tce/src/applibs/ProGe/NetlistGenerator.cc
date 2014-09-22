@@ -1246,6 +1246,12 @@ NetlistGenerator::addBaseRFToNetlist(
     }
 
     // Add external ports
+    string component_type("");
+    if (dynamic_cast<const ImmediateUnit*>(&regFile) != NULL) {
+        component_type = IU_NAME_PREFIX;
+    } else {
+        component_type = RF_NAME_PREFIX;
+    }
     for (int i = 0; i < implementation.externalPortCount(); i++) {
         RFExternalPort& externalPort = implementation.externalPort(i);
         // if external port uses parameter, it must be added as netlist
@@ -1256,7 +1262,7 @@ NetlistGenerator::addBaseRFToNetlist(
         for (int i = 0; i < externalPort.parameterDependencyCount(); i++) {
             string hdbParamName = externalPort.parameterDependency(i);
             Netlist::Parameter param = block->parameter(hdbParamName);
-            string nlParamName = "rf_" + location.unitName() + "_" +
+            string nlParamName = component_type + location.unitName() + "_" +
                 hdbParamName;
             if (!netlist.hasParameter(nlParamName)) {
                 netlist.setParameter(nlParamName, param.type, param.value);
@@ -1280,7 +1286,7 @@ NetlistGenerator::addBaseRFToNetlist(
             externalPort.name(), externalPort.widthFormula(), BIT_VECTOR,
             externalPort.direction(), *block);
         // connect the external port to top level
-        string tlPortName = "rf_" + location.unitName() + "_" +
+        string tlPortName = component_type + location.unitName() + "_" +
             externalPort.name();
         NetlistPort* tlPort = new NetlistPort(
             tlPortName, tlPortWidth, BIT_VECTOR, externalPort.direction(),

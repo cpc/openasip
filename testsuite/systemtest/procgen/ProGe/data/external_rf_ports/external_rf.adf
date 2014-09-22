@@ -138,6 +138,13 @@
     </writes-to>
   </socket>
 
+  <socket name="IMM_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
   <function-unit name="LSU">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
@@ -621,5 +628,24 @@
     <delay-slots>3</delay-slots>
     <guard-latency>1</guard-latency>
   </global-control-unit>
+
+  <immediate-unit name="IMM">
+    <type>normal</type>
+    <size>1</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>zero</extension>
+    <port name="P1">
+      <connects-to>IMM_o1</connects-to>
+    </port>
+    <template name="no_limm"/>
+    <template name="limm">
+      <slot>
+        <name>B1</name>
+        <width>32</width>
+      </slot>
+    </template>
+  </immediate-unit>
 
 </adf>

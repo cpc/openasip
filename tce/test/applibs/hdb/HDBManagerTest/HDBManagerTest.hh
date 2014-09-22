@@ -813,7 +813,7 @@ HDBManagerTest::testNoLeaks() {
 
     RowID entryID = manager.addRFEntry();
     RFImplementation* impl = createExampleRFImplementation();
-    RowID implID = manager.addRFImplementation(*impl, entryID);
+    manager.addRFImplementation(*impl, entryID);
     manager.removeRFEntry(entryID);
 
     int newRfCount = dbConnection->rowCountInTable("rf");
