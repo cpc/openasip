@@ -1,5 +1,0 @@
-sxbh 0
-sxbh 1
-sxbh 0x10
-sxbh 0x11
-sxbh 0x5

@@ -1,7 +1,6 @@
 #!/bin/bash
 # Script to run tce tour test
 
-BUILDOPSET=../../../../tce/src/codesign/osal/OSALBuilder/buildopset
 TTASIM=../../../../tce/src/codesign/ttasim/ttasim
 SIMCMD=data/simulator_commands
 CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
@@ -30,7 +29,6 @@ then
 fi
 }
 
-$BUILDOPSET data/tutorial
 
 # copy the minimal.adf
 cp $MINIMAL $MACH1

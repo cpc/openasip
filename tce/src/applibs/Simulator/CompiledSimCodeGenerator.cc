@@ -863,9 +863,9 @@ CompiledSimCodeGenerator::handleJump(const TTAMachine::HWOperation& op) {
     
     std::stringstream ss;
     ss << "engine.jumpTarget_ = " 
-       << symbolGen_.portSymbol(*op.port(1)) << ".value_.sIntWord;";
+       << symbolGen_.portSymbol(*op.port(1)) << ".sIntWordValue();";
     if (op.name() == "call") { // save return address
-        ss << symbolGen_.returnAddressSymbol(gcu_) << ".value_.uIntWord = " 
+        ss << symbolGen_.returnAddressSymbol(gcu_) << " = " 
            << instructionNumber_ + gcu_.delaySlots() + 1 << "u;" << endl;
     }
     return ss.str();
@@ -1010,7 +1010,7 @@ CompiledSimCodeGenerator::generateGuardRead(
             // red from the register.
             ss << "const bool " << lastGuardBool_ << 
                 " = !(MathTools::fastZeroExtendTo(" 
-               << guardSymbolName << ".value_.uIntWord, " <<
+               << guardSymbolName << ".uIntWordValue(), " <<
                 guardSymbolName << ".width()) == 0u);";
         }
     } else {
@@ -1155,7 +1155,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
         *os_ << symbolGen_.immediateRegisterSymbol(immediate.destination());
         int value = immediate.value().value().unsignedValue();
-        *os_  << ".value_.uIntWord = " << value << "u;";
+        *os_  << " = " << value << "u;";
     }
     
     // Get FU Results if there are any ready
@@ -1233,10 +1233,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
              || move.source().isImmediateRegister()) &&
             (move.source().port().width() <= static_cast<int>(sizeof(UIntWord)*8)) &&
             move.source().port().width() == move.destination().port().width()) {
-                moveDestination += ".value_.uIntWord";
-                moveSource += ".value_.uIntWord";
-            } else if (move.source().isImmediate()) {
-                moveDestination += ".value_.uIntWord";
+                moveSource += ".uIntWordValue()";
             }
 
         if (!dependingMove) {
@@ -1364,7 +1361,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             
         *os_ << symbolGen_.immediateRegisterSymbol(immediate.destination());
         unsigned int value = immediate.value().value().unsignedValue();
-        *os_  << ".value_.uIntWord = " << value << "u;";
+        *os_  << " = " << value << "u;";
     }
     
     // Do bus moves
@@ -1762,12 +1759,7 @@ bool CompiledSimCodeGenerator::handleRegisterWrite(
     std::string tmpString;
     std::string tmpString2;
 
-    // drop "value_.uintWord" from end.
-    size_t nameLen = regSymbolName.find(".value_.uIntWord");
-   // if found, copy to tmp and take ref to tmp. not found, ref to original
-    const string tmpRef1 = (nameLen != string::npos) ?
-        tmpString = regSymbolName.substr(0,nameLen) : 
-        regSymbolName;
+    const string tmpRef1 = regSymbolName;
 
     // drop ".engine" from beginning
     // if found, copy to tmp and take ref to tmp. not found, ref to original
@@ -1779,7 +1771,7 @@ bool CompiledSimCodeGenerator::handleRegisterWrite(
     if ( i != guardPipeline_.end()) {
         stream << "engine.guard_pipeline_" << tmpRef2 << "_0 " 
                << " = !(MathTools::fastZeroExtendTo(" 
-               << tmpRef1 << ".value_.uIntWord, "
+               << tmpRef1 << ".uIntWordValue(), "
                << tmpRef1 << ".width()) == 0u);" << std::endl;
         return true;
     }

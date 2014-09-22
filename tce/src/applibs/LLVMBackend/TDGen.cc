@@ -2174,9 +2174,7 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
         }
     }
 
-    if (opName == "sxbw") return "sext %1%"; 
-    if (opName == "sxbh") return "sext %1%"; 
-    if (opName == "sxbq") return "sext %1%"; 
+    if (opName == "sxbw") return "sext_inreg %1%, i1"; 
 
     if (opName == "truncwh") return "trunc %1%";
 
@@ -2273,9 +2271,7 @@ TDGen::llvmOperationName(const Operation& op) {
 
     if (opName == "sxhw") return "sext_inreg";
     if (opName == "sxqw") return "sext_inreg";
-    if (opName == "sxbw") return "sext"; 
-    if (opName == "sxbh") return "sext"; 
-    if (opName == "sxbq") return "sext"; 
+    if (opName == "sxbw") return "sext_inreg";
 
     if (opName == "truncwh") return "trunc"; 
 

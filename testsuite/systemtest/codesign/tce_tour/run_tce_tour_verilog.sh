@@ -1,7 +1,6 @@
 #!/bin/bash
 # Script to run checking verilog against vhdl on tce tour test
 
-BUILDOPSET=../../../../tce/src/codesign/osal/OSALBuilder/buildopset
 CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
 PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../tce/src/bintools/PIG/generatebits
@@ -32,7 +31,6 @@ then
 fi
 }
 
-$BUILDOPSET data/tutorial
 
 # compile the original
 $TCECC -O0 -a $MACH1 -o $PROG1 -k $SYMBOLS data/crc.c data/main.c
