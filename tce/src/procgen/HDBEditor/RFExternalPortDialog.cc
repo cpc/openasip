@@ -22,30 +22,33 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FUExternalPortDialog.cc
+ * @file RFExternalPortDialog.cc
  *
- * Implementation of FUExternalPortDialog class.
+ * Declaration of RFExternalPortDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Henry Linjam‰ki (henry-linjamaki-no.spam-cs.tut.fi)
  * @note rating: red
  */
+
+#include "RFExternalPortDialog.hh"
+
 
 #include <wx/wx.h>
 #include <wx/checklst.h>
 #include <wx/statline.h>
 #include <wx/valgen.h>
-#include "FUExternalPortDialog.hh"
-#include "FUExternalPort.hh"
+#include "RFExternalPortDialog.hh"
+#include "RFExternalPort.hh"
 #include "WxConversion.hh"
 #include "ErrorDialog.hh"
-#include "FUImplementation.hh"
+#include "RFImplementation.hh"
 
 
 using namespace HDB;
 using std::string;
 
-BEGIN_EVENT_TABLE(FUExternalPortDialog, wxDialog)
-    EVT_BUTTON(wxID_OK, FUExternalPortDialog::onOK)
+BEGIN_EVENT_TABLE(RFExternalPortDialog, wxDialog)
+    EVT_BUTTON(wxID_OK, RFExternalPortDialog::onOK)
 END_EVENT_TABLE()
 
 /**
@@ -53,13 +56,13 @@ END_EVENT_TABLE()
  *
  * @param parent Parent window of the dialog.
  * @param id Window identifier for the dialog window.
- * @param port FU external port to modify.
+ * @param port RF external port to modify.
  */
-FUExternalPortDialog::FUExternalPortDialog(
-    wxWindow* parent, wxWindowID id, FUExternalPort& port,
-    const FUImplementation& fu) :
-    wxDialog(parent, id, _T("Function Unit Port Port")),
-    port_(port), fu_(fu), depList_(NULL) {
+RFExternalPortDialog::RFExternalPortDialog(
+    wxWindow* parent, wxWindowID id, RFExternalPort& port,
+    const RFImplementation& rf) :
+    wxDialog(parent, id, _T("Register File Port")),
+    port_(port), rf_(rf), depList_(NULL) {
 
     initialize();
 }
@@ -67,35 +70,35 @@ FUExternalPortDialog::FUExternalPortDialog(
 /**
  * The Destructor.
  */
-FUExternalPortDialog::~FUExternalPortDialog() {
+RFExternalPortDialog::~RFExternalPortDialog() {
 }
 
 /**
  * Creates and initializes the dialog widgets.
  */
 void
-FUExternalPortDialog::initialize() {
-    
+RFExternalPortDialog::initialize() {
+
     createContents(this, true, true);
-    
+
     depList_ = dynamic_cast<wxCheckListBox*>(
         FindWindow(ID_PARAMETER_DEPS));
-    
+
     name_ = WxConversion::toWxString(port_.name());
     widthFormula_ = WxConversion::toWxString(port_.widthFormula());
     description_ = WxConversion::toWxString(port_.description());
     direction_ = port_.direction();
-    
+
     FindWindow(ID_NAME)->SetValidator(wxTextValidator(wxFILTER_ASCII, &name_));
     FindWindow(ID_WIDTH)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &widthFormula_));
     FindWindow(ID_DIRECTION)->SetValidator(wxGenericValidator(&direction_));
     FindWindow(ID_DESCRIPTION)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &description_));
-    
+
     depList_->Clear();
-    for (int i = 0; i < fu_.parameterCount(); i++) {
-        string parameter = fu_.parameter(i).name;
+    for (int i = 0; i < rf_.parameterCount(); i++) {
+        string parameter = rf_.parameter(i).name;
         depList_->Append( WxConversion::toWxString(parameter));
 
         for (int dep = 0; dep < port_.parameterDependencyCount(); dep++) {
@@ -111,14 +114,14 @@ FUExternalPortDialog::initialize() {
  * Event handler for the dialog OK-button.
  */
 void
-FUExternalPortDialog::onOK(wxCommandEvent&) {
+RFExternalPortDialog::onOK(wxCommandEvent&) {
 
     TransferDataFromWindow();
 
     name_ = name_.Trim(true).Trim(false);
     widthFormula_ = widthFormula_.Trim(true).Trim(false);
     description_ = description_.Trim(true).Trim(false);
-    
+
     if (name_.IsEmpty()) {
         wxString message = _T("Name field must not be empty.");
         ErrorDialog dialog(this, message);
@@ -148,9 +151,9 @@ FUExternalPortDialog::onOK(wxCommandEvent&) {
         assert(false);
     }
 
-    for (int i = 0; i < fu_.parameterCount(); i++) {
+    for (int i = 0; i < rf_.parameterCount(); i++) {
         string parameter = WxConversion::toString(depList_->GetString(i));
-        if (depList_->IsChecked(i)) {          
+        if (depList_->IsChecked(i)) {
             port_.setParameterDependency(parameter);
         } else {
             port_.unsetParameterDependency(parameter);
@@ -165,7 +168,7 @@ FUExternalPortDialog::onOK(wxCommandEvent&) {
  * Creates the dialog contents.
  */
 wxSizer*
-FUExternalPortDialog::createContents(
+RFExternalPortDialog::createContents(
     wxWindow *parent, bool call_fit, bool set_sizer) {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
@@ -195,10 +198,10 @@ FUExternalPortDialog::createContents(
 
     wxGridSizer *item9 = new wxGridSizer( 2, 0, 0 );
 
-    wxString strs10[] = 
+    wxString strs10[] =
     {
-        wxT("In"), 
-        wxT("Out"), 
+        wxT("In"),
+        wxT("Out"),
         wxT("Bidirectional")
     };
     wxRadioBox *item10 = new wxRadioBox( parent, ID_DIRECTION, wxT("Direction:"), wxDefaultPosition, wxDefaultSize, 3, strs10, 1, wxRA_SPECIFY_COLS );
@@ -206,7 +209,7 @@ FUExternalPortDialog::createContents(
 
     wxStaticBox *item12 = new wxStaticBox( parent, -1, wxT("Parameter dependency:") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
-    
+
     wxWindow *item13 = new wxCheckListBox(parent, ID_PARAMETER_DEPS, wxDefaultPosition, wxSize(200, 150));
     wxASSERT( item13 );
     item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -236,6 +239,7 @@ FUExternalPortDialog::createContents(
         if (call_fit)
             item0->SetSizeHints( parent );
     }
-    
+
     return item0;
 }
+

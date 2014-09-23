@@ -22,52 +22,44 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FUExternalPortDialog.hh
+ * @file FUImplementationParameterDialog.hh
  *
- * Declaration of FUExternalPortDialog class.
+ * Declaration of FUImplementationParameterDialog class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_FU_EXTERNAL_PORT_DIALOG_HH
-#define TTA_FU_EXTERNAL_PORT_DIALOG_HH
+#ifndef TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
+#define TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
 
 #include <wx/wx.h>
 
-class wxCheckListBox;
+#include "FUImplementation.hh"
 
-namespace HDB {
-    class FUExternalPort;
-    class FUImplementation;
-}
 
 /**
- * Dialog for editing FU external ports.
+ * Dialog for editing FU port implementations.
  */
-class FUExternalPortDialog : public wxDialog {
+class ImplementationParameterDialog : public wxDialog {
 public:
-    FUExternalPortDialog(
+    ImplementationParameterDialog(
         wxWindow* parent, wxWindowID id,
-        HDB::FUExternalPort& implementation,
-        const HDB::FUImplementation& fu);
+        HDB::FUImplementation::Parameter& implementation);
 
-    virtual ~FUExternalPortDialog();
-
+    virtual ~ImplementationParameterDialog();
 private:
-    void initialize();
+
     void onOK(wxCommandEvent& event);
 
     /// Enumerated IDs for dialog widgets.
     enum {
         ID_LABEL_NAME = 10000,
         ID_NAME,
-        ID_LABEL_WIDTH,
-        ID_WIDTH,
-        ID_LABEL_DESCRIPTION,
-        ID_DESCRIPTION,
-        ID_DIRECTION,
-        ID_PARAMETER_DEPS,
+        ID_LABEL_TYPE,
+        ID_TYPE,
+        ID_LABEL_VALUE,
+        ID_VALUE,
         ID_LINE
     };
 
@@ -75,16 +67,11 @@ private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
     /// FU port implementation to modify.
-    HDB::FUExternalPort& port_;
-    /// Parent FU implementation of the port.
-    const HDB::FUImplementation& fu_;
-
+    HDB::FUImplementation::Parameter& parameter_;
+ 
     wxString name_;
-    wxString widthFormula_;
-    wxString description_;
-    int direction_;
-
-    wxCheckListBox* depList_;
+    wxString type_;
+    wxString value_;
 
     DECLARE_EVENT_TABLE()
 };

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,6 +80,7 @@ class HDBRegistry;
  */
 class HDBManager {
 public:
+    friend class HDBManagerTest;
 
     typedef std::list<DataObject> DataObjectList;
     virtual ~HDBManager();
@@ -356,11 +357,17 @@ private:
         FUImplementation& implementation,
         FUArchitecture& architecture,
         RowID entryID) const;
-    void addExternalPortsToImplementation(
+    void addFUExternalPortsToImplementation(
         FUImplementation& implementation,
         RowID entryID) const;
-    void addParametersToImplementation(
+    void addRFExternalPortsToImplementation(
+        RFImplementation& implementation,
+        RowID entryID) const;
+    void addFUParametersToImplementation(
         FUImplementation& implementation,
+        RowID entryID) const;
+    void addRFParametersToImplementation(
+        RFImplementation& implementation,
         RowID entryID) const;
     void addBlockImplementationFiles(
         FUImplementation& implementation,
@@ -399,10 +406,12 @@ private:
     static std::string opcodesByIDQuery(RowID id);
     static std::string fuImplementationDataPortsByIDQuery(RowID id);
     static std::string fuExternalPortsByIDQuery(RowID id);
+    static std::string rfExternalPortsByIDQuery(RowID id);
     static std::string fuPortBindingByNameQuery(
         RowID fuID,
         const std::string& portName);
     static std::string fuImplementationParametersByIDQuery(RowID id);
+    static std::string rfImplementationParametersByIDQuery(RowID id);
     static std::string fuSourceFilesByIDQuery(RowID id);
     static std::string rfArchitectureByIDQuery(RowID id);
     static std::string rfImplementationByIDQuery(RowID id);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,58 +22,72 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FUImplementationParameterDialog.hh
+ * @file RFExternalPortDialog.hh
  *
- * Declaration of FUImplementationParameterDialog class.
+ * Declaration of RFExternalPortDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Henry Linjam‰ki (henry-linjamaki-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
-#define TTA_FU_IMPLEMENTATION_PARAMETER_DIALOG_HH
+#ifndef TTA_RFEXTERNAL_PORT_DIALOG_HH_
+#define TTA_RFEXTERNAL_PORT_DIALOG_HH_
 
 #include <wx/wx.h>
 
-#include "FUImplementation.hh"
+class wxCheckListBox;
 
+namespace HDB {
+    class RFExternalPort;
+    class RFImplementation;
+}
 
 /**
- * Dialog for editing FU port implementations.
+ * Dialog for editing RF external ports.
  */
-class FUImplementationParameterDialog : public wxDialog {
+class RFExternalPortDialog : public wxDialog {
 public:
-    FUImplementationParameterDialog(
+    RFExternalPortDialog(
         wxWindow* parent, wxWindowID id,
-        HDB::FUImplementation::Parameter& implementation);
+        HDB::RFExternalPort& implementation,
+        const HDB::RFImplementation& rf);
 
-    virtual ~FUImplementationParameterDialog();
+    virtual ~RFExternalPortDialog();
+
 private:
-
+    void initialize();
     void onOK(wxCommandEvent& event);
 
     /// Enumerated IDs for dialog widgets.
     enum {
         ID_LABEL_NAME = 10000,
         ID_NAME,
-        ID_LABEL_TYPE,
-        ID_TYPE,
-        ID_LABEL_VALUE,
-        ID_VALUE,
+        ID_LABEL_WIDTH,
+        ID_WIDTH,
+        ID_LABEL_DESCRIPTION,
+        ID_DESCRIPTION,
+        ID_DIRECTION,
+        ID_PARAMETER_DEPS,
         ID_LINE
     };
 
     /// Creates the dialog contents.
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
-    /// FU port implementation to modify.
-    HDB::FUImplementation::Parameter& parameter_;
- 
+    /// RF port implementation to modify.
+    HDB::RFExternalPort& port_;
+    /// Parent RF implementation of the port.
+    const HDB::RFImplementation& rf_;
+
     wxString name_;
-    wxString type_;
-    wxString value_;
+    wxString widthFormula_;
+    wxString description_;
+    int direction_;
+
+    wxCheckListBox* depList_;
 
     DECLARE_EVENT_TABLE()
 };
 
-#endif
+
+#endif /* TTA_RFEXTERNAL_PORT_DIALOG_HH_ */

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -36,6 +36,7 @@
 #include "RFImplementation.hh"
 
 class wxListCtrl;
+class wxChoice;
 
 /**
  * Dialog for editing RF implementations.
@@ -53,17 +54,37 @@ private:
     void update();
 
     HDB::RFPortImplementation* selectedPort();
+    HDB::RFExternalPort* selectedExternalPort();
+    HDB::RFImplementation::Parameter selectedParameter();
 
     void onPortSelection(wxListEvent& event); 
     void onAddPort(wxCommandEvent& event); 
     void onModifyPort(wxCommandEvent& event);
     void onDeletePort(wxCommandEvent& event);
 
+    void onExternalPortActivation(wxListEvent& event);
+    void onExternalPortSelection(wxListEvent& event);
+    void onAddExternalPort(wxCommandEvent& event);
+    void onEditExternalPort(wxCommandEvent& event);
+    void onDeleteExternalPort(wxCommandEvent& event);
+
+    void onParameterActivation(wxListEvent& event);
+    void onParameterSelection(wxListEvent& event);
+    void onAddParameter(wxCommandEvent& event);
+    void onEditParameter(wxCommandEvent& event);
+    void onDeleteParameter(wxCommandEvent& event);
+
     void onSourceFileSelection(wxListEvent& event);
     void onAddSourceFile(wxCommandEvent& event);
     void onDeleteSourceFile(wxCommandEvent& event);
     void onMoveSourceFileUp(wxCommandEvent&);
     void onMoveSourceFileDown(wxCommandEvent&);
+
+    void onSizeChoice(wxCommandEvent& event);
+    void onWidthChoice(wxCommandEvent& event);
+
+    wxString getWidthParameter();
+    wxString getSizeParameter();
 
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
@@ -92,7 +113,18 @@ private:
         ID_DELETE_SOURCE,
         ID_MOVE_SOURCE_UP,
         ID_MOVE_SOURCE_DOWN,
-        ID_LINE
+        ID_LINE,
+
+        ID_EXTERNAL_PORT_LIST,
+        ID_ADD_EXTERNAL_PORT,
+        ID_EDIT_EXTERNAL_PORT,
+        ID_DELETE_EXTERNAL_PORT,
+        ID_PARAMETER_LIST,
+        ID_EDIT_PARAMETER,
+        ID_ADD_PARAMETER,
+        ID_DELETE_PARAMETER,
+        ID_SIZE_CHOICE,
+        ID_WIDTH_CHOICE
     };
 
     /// RF Implementation to modify.
@@ -102,14 +134,22 @@ private:
     wxListCtrl* portList_;
     /// Pointer to the source file list widget.
     wxListCtrl* sourceList_;
+    /// Pointer to the external port list widget.
+    wxListCtrl* externalPortList_;
+    /// Pointer to the parameter list widget.
+    wxListCtrl* parameterList_;
+    /// Pointer to size parameter choice widget
+    wxChoice* sizeChoice_;
+    /// Pointer to width parameter choice widget
+    wxChoice* widthChoice_;
 
     wxString name_;
     wxString clkPort_;
     wxString rstPort_;
     wxString gLockPort_;
     wxString guardPort_;
-    wxString sizeParam_;
-    wxString widthParam_;
+    //wxString sizeParam_;
+    //wxString widthParam_;
 
     DECLARE_EVENT_TABLE()
 };

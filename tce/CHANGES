@@ -3,6 +3,12 @@
 
 [updated from bzr log until 2014-08-18]
 
+Notable changes and features
+----------------------------
+- HDBEditor: External ports and additional parameters can be defined for RF 
+  implementations.
+- ProGe: RF's external ports can be now generated.
+
 Other features and improvements
 ------------------------------
 - TestOsal: test context bitwidth attribute has been removed, since Operands
