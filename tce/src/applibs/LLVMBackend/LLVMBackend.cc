@@ -716,9 +716,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
             "applibs" + DS + "Scheduler" + DS + "Algorithms" + " " +
             
-            " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + 
-            "include" + DS +
-            
             " -I`llvm-config --includedir`" + DS + "llvm" + DS + 
             "Target" + DS;
 
@@ -779,19 +776,19 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         // /usr/include needs to be last in case there is old llvm installation
         // from packages
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            pluginIncludeFlags + 
             " -I" + tempDir_ +
             " -I`llvm-config --includedir`" + 
             " -I`llvm-config --includedir`/Target" + 
             " -I`llvm-config --includedir`/llvm/Target" +
-            " -I/usr/include " +
-            pluginIncludeFlags;
+            " -I/usr/include ";
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            pluginIncludeFlags +
             " -I" + tempDir_ + 
             " -I" + LLVM_INCLUDEDIR +
             " -I" + LLVM_INCLUDEDIR + "/Target" +
-            " -I" + LLVM_INCLUDEDIR + "/llvm/Target " +
-            pluginIncludeFlags;
+            " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
     }
 
     tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";

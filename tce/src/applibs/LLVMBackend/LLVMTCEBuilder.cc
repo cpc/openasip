@@ -3465,6 +3465,9 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
             }
         }
     }
+    std::cerr << "Warning: Could not find suitable guard from any bus in the"
+              << "processor. Did you forget to add guards to the processor?"
+              << std::endl;
     return NULL;
 }
 
