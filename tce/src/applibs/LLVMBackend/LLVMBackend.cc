@@ -716,9 +716,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
             "applibs" + DS + "Scheduler" + DS + "Algorithms" + " " +
             
-            " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + 
-            "include" + DS +
-            
             " -I`llvm-config --includedir`" + DS + "llvm" + DS + 
             "Target" + DS;
 
