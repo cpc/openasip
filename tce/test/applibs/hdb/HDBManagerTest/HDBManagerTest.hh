@@ -848,9 +848,8 @@ HDBManagerTest::testHDBConversion() {
     manager.setArchitectureForRF(entryID, archID);
 
     RFImplementation* impl = createExampleRFImplementation();
-    RowID implID = -1;
-    TS_ASSERT_THROWS_NOTHING(
-        implID = manager.addRFImplementation(*impl, entryID));
+
+    TS_ASSERT_THROWS_NOTHING(manager.addRFImplementation(*impl, entryID));
 
     RelationalDBConnection* dbConnection = manager.getDBConnection();
     TS_ASSERT(dbConnection->tableExistsInDB("rf_implementation_parameter"));

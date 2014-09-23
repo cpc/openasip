@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ### TCE TESTCASE
 ### title: Test that RFs with external ports are generated correctly.
 
