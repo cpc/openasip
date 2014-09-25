@@ -9,6 +9,9 @@ Other features and improvements
   know their own width. Also, values that are printed in hex format are printed
   using Operand's whole width, including leading zeroes.
 - osed: Operand type can be set to Bool.
+- ProGe: Generated HDL output files now have registers in deterministic order.
+- Improved code coverage for default ic decoder plugin.
+- Added verilog implementation to output global lock trace.
 
 Usability features
 ------------------

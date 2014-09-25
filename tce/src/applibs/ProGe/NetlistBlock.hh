@@ -141,7 +141,7 @@ private:
  * @param b the second NetlistBlock to compare.
  * @return true, if a comes before b in dictionary order.
  */
-class InstNameModNameLexicographComp {
+class NetlistBlockNameComparator {
 public:
     bool operator () (const NetlistBlock* a, const NetlistBlock* b) const {
         return (a->instanceName() + a->moduleName()) <

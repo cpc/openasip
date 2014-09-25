@@ -1577,9 +1577,9 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(3) << "wait for PERIOD;" << endl;
         int ind = 3;
         if (busTraceStartingCycle_ > 0) {
-            stream << indentation(3) << "if count > "
+            stream << indentation(3) << "if (count > "
                    << busTraceStartingCycle_ - 1
-                   << " then" << endl;
+                   << ") then" << endl;
             ind++;
         }
         stream << indentation(ind) << "write(lineout, count-"
@@ -1604,7 +1604,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process file_output;" << endl;
         stream << indentation(1) << "-- pragma synthesis_on" << endl;
-    } else {
+    } else { // language_==Verilog
         stream << indentation(1)
                << "// Dump the value on the buses into a file once in clock cycle"
                << endl
@@ -1614,38 +1614,40 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(1) << "//synthesis translate_off" << endl
                << indentation(1) << "integer fileout;" << endl << endl
                << indentation(1) << "integer count=0;" << endl << endl
-               << indentation(1) << "`define DUMPFILE \"bus.dump\"" << endl << endl
-               << indentation(2) << "initial" << endl
+               << indentation(1) << "`define DUMPFILE \"bus.dump\""
+               << endl << endl
+
+               << indentation(1) << "initial" << endl
+               << indentation(1) << "begin" << endl
+               << indentation(2) << "fileout = $fopen(`DUMPFILE,\"w\");" << endl
+               << indentation(2) << "$fclose(fileout);" << endl
+               << indentation(2) << "forever" << endl
                << indentation(2) << "begin" << endl
-               << indentation(3) << "fileout = $fopen(`DUMPFILE,\"w\");" << endl
-               << indentation(3) << "$fclose(fileout);" << endl
-               << indentation(3) << "forever" << endl
-               << indentation(4) << "begin" << endl
-               << indentation(4) << "#PERIOD;" << endl;
+               << indentation(3) << "#PERIOD;" << endl;
         if (busTraceStartingCycle_ > 0) {
-            stream << indentation(4) << "if(count > "
+            stream << indentation(3) << "if(count > "
                    << busTraceStartingCycle_ - 1
                    << ")" << endl;
         }
-        std::string format_string = " %d";
-        std::string variable_list = "count-" + Conversion::toString(busTraceStartingCycle_);
+        std::string format_string = " %11d";
+        std::string variable_list = "count - " + Conversion::toString(busTraceStartingCycle_);
 
         Machine::BusNavigator busNav = machine_.busNavigator();
         for (int i = 0; i < busNav.count(); i++) {
-            format_string += " |  %d";
+            format_string += " |  %11d";
             variable_list += ", $signed(" + Conversion::toString(busSignal(*busNav.item(i)))+")";
         }
         
-        stream << indentation(5) << "begin" << endl
-               << indentation(6) << "fileout = $fopen(`DUMPFILE,\"a\");" << endl
-               << indentation(6) << "$fwrite(fileout,"
+        stream << indentation(3) << "begin" << endl
+               << indentation(4) << "fileout = $fopen(`DUMPFILE,\"a\");" << endl
+               << indentation(4) << "$fwrite(fileout,"
                << "\"" << format_string << " | \\n\"" << ", "
                << variable_list << ");" << endl
-               << indentation(6) << "$fclose(fileout);" << endl
-               << indentation(5) << "end" << endl
-               << indentation(4) << "count = count + 1;" << endl
+               << indentation(4) << "$fclose(fileout);" << endl
                << indentation(3) << "end" << endl
+               << indentation(3) << "count = count + 1;" << endl
                << indentation(2) << "end" << endl
+               << indentation(1) << "end" << endl
                << indentation(1) << "//synthesis translate_on" << endl;    
     }
 }   

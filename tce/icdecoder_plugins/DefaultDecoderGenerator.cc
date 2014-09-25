@@ -681,7 +681,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
     } else {
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_decoder";
-        stream << "`timescale 10ns/1ns" << endl
+        stream << "`timescale 1ns/1ns" << endl
                << "module " << entityName << endl
                << "#(" << endl
                << "`include \""
@@ -714,6 +714,11 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         writeRFCntrlSignals(stream);
         stream << endl;
         
+        if (generateLockTrace_) {
+            writeLockDumpCode(stream);
+            stream << endl;
+        }
+
         writeInstructionDismembering(stream);
         stream << endl;
         writeControlRegisterMappings(stream);
@@ -844,7 +849,45 @@ DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
                << endl;
 
     } else { // language_==Verilog
+        stream << indentation(1)
+               << "// Dump the status of global lock into a file once "
+               << "in clock cycle"
+               << endl
+               << indentation(1)
+               << "// setting DUMP false will disable dumping"
+               << endl << endl
+               << indentation(1) << "// Do not synthesize!" << endl
+               << indentation(1) << "//synthesis translate_off" << endl
+               << indentation(1) << "integer fileout;" << endl << endl
+               << indentation(1) << "integer count=0;" << endl << endl
+               << indentation(1) << "`define DUMPFILE \"lock.dump\""
+               << endl << endl
 
+               << indentation(1) << "initial" << endl
+               << indentation(1) << "begin" << endl
+               << indentation(2) << "fileout = $fopen(`DUMPFILE,\"w\");"
+               << endl
+               << indentation(2) << "$fclose(fileout);" << endl
+               << indentation(2) << "forever" << endl
+               << indentation(2) << "begin" << endl
+               << indentation(3) << "#PERIOD;" << endl
+               << indentation(3) << "if ( count > "
+               << (lockTraceStartingCycle_ - 1) << ")" << endl;
+
+        stream << indentation(3) << "begin" << endl
+               << indentation(4) << "fileout = $fopen(`DUMPFILE,\"a\");"
+               << endl
+               << indentation(4) << "$fwrite(fileout," << "\""
+               << " %11d |  %11d | \\n\"" << ", count - "
+               << lockTraceStartingCycle_ << ", "
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ");"
+               << endl
+               << indentation(4) << "$fclose(fileout);" << endl
+               << indentation(3) << "end" << endl
+               << indentation(3) << "count = count + 1;" << endl
+               << indentation(2) << "end" << endl
+               << indentation(1) << "end" << endl
+               << indentation(1) << "//synthesis translate_on" << endl;
     }
 }
 
