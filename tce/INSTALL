@@ -43,6 +43,11 @@ command:
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
     libffi-dev
 
+This installs the required packages for an Red Hat 6 (and CentOS):
+
+  sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
+xerces-c-devel gcc-c++ make autoconf automake libtool
+
 Editline
 --------
 Editline is used for command line editing/history browsing capabilities to 
