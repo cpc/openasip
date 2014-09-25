@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,6 +66,11 @@ public:
 	throw (RelationalDBException) = 0;
 
     virtual RowID lastInsertRowID() = 0;
+
+    virtual bool tableExistsInDB(const std::string& tableName)
+    throw (RelationalDBException) = 0;
+    virtual int rowCountInTable(const std::string& tableName)
+    throw (RelationalDBException) = 0;
 };
 
 #endif

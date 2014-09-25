@@ -1077,9 +1077,11 @@ OperationPropertyDialog::updateOperation(bool newOpDag) {
                         assert(false);
                     }
                 }
-                delete orig;
+
                 delete mod;
+
                 if (ans == wxID_YES) {
+                    delete orig;
                     EndModal(wxID_OK);
                 } else if (ans == wxID_NO) {
                     EndModal(wxID_CANCEL);

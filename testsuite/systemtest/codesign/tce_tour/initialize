@@ -1,0 +1,4 @@
+#!/bin/bash
+BUILDOPSET=../../../../tce/src/codesign/osal/OSALBuilder/buildopset
+
+$BUILDOPSET data/tutorial

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -44,6 +44,7 @@
 #include "FUImplementation.hh"
 #include "FUPortImplementation.hh"
 #include "FUExternalPort.hh"
+#include "RFExternalPort.hh"
 #include "RFArchitecture.hh"
 #include "RFEntry.hh"
 #include "RFImplementation.hh"
@@ -192,6 +193,16 @@ const string CQ_FU_EXTERNAL_PORT =
     "       fu_impl REFERENCES fu_implementation(id) NOT NULL, "
     "       UNIQUE (name, fu_impl));";
 
+const string CQ_RF_EXTERNAL_PORT =
+    "CREATE TABLE rf_external_port("
+    "       id INTEGER PRIMARY KEY,"
+    "       name TEXT NOT NULL,"
+    "       direction TEXT NOT NULL,"
+    "       width_formula TEXT NOT NULL,"
+    "       description TEXT,"
+    "       rf_impl REFERENCES rf_implementation(id) NOT NULL, "
+    "       UNIQUE (name, rf_impl));";
+
 const string CQ_FU_IMPLEMENTATION_PARAMETER =
     "CREATE TABLE fu_implementation_parameter("
     "       id INTEGER PRIMARY KEY,"
@@ -200,11 +211,25 @@ const string CQ_FU_IMPLEMENTATION_PARAMETER =
     "       value TEXT,"
     "       fu_impl REFERENCES fu_implementation(id) NOT NULL);";
 
+const string CQ_RF_IMPLEMENTATION_PARAMETER =
+    "CREATE TABLE rf_implementation_parameter("
+    "       id INTEGER PRIMARY KEY,"
+    "       name TEXT NOT NULL,"
+    "       type TEXT,"
+    "       value TEXT,"
+    "       rf_impl REFERENCES rf_implementation(id) NOT NULL);";
+
 const string CQ_FU_EXT_PORT_PARAMETER_DEPENDENCY =
     "CREATE TABLE fu_ext_port_parameter_dependency("
     "       id INTEGER PRIMARY KEY,"
     "       port REFERENCES fu_external_port(id) NOT NULL,"
     "       parameter REFERENCES fu_implementation_parameter(id) NOT NULL);";
+
+const string CQ_RF_EXT_PORT_PARAMETER_DEPENDENCY =
+    "CREATE TABLE rf_ext_port_parameter_dependency("
+    "       id INTEGER PRIMARY KEY,"
+    "       port REFERENCES rf_external_port(id) NOT NULL,"
+    "       parameter REFERENCES rf_implementation_parameter(id) NOT NULL);";
 
 const string CQ_RF =
     "CREATE TABLE rf("
@@ -385,6 +410,9 @@ HDBManager::createNew(const std::string& file)
         connection.DDLQuery(CQ_RF);
         connection.DDLQuery(CQ_RF_ARCHITECTURE);
         connection.DDLQuery(CQ_RF_IMPLEMENTATION);
+        connection.DDLQuery(CQ_RF_IMPLEMENTATION_PARAMETER);
+        connection.DDLQuery(CQ_RF_EXTERNAL_PORT);
+        connection.DDLQuery(CQ_RF_EXT_PORT_PARAMETER_DEPENDENCY);
         connection.DDLQuery(CQ_RF_DATA_PORT);
         connection.DDLQuery(CQ_FORMAT);
         connection.DDLQuery(CQ_BUS);
@@ -1481,6 +1509,18 @@ HDBManager::addRFImplementation(
     delete entry;
     entry = NULL;
     
+    // Create tables for external ports, parameters and parameter dependecies
+    // if needed.
+    if (!dbConnection_->tableExistsInDB("rf_implementation_parameter")) {
+        dbConnection_->DDLQuery(CQ_RF_IMPLEMENTATION_PARAMETER);
+    }
+    if (!dbConnection_->tableExistsInDB("rf_external_port")) {
+        dbConnection_->DDLQuery(CQ_RF_EXTERNAL_PORT);
+    }
+    if (!dbConnection_->tableExistsInDB("rf_ext_port_parameter_dependency")) {
+        dbConnection_->DDLQuery(CQ_RF_EXT_PORT_PARAMETER_DEPENDENCY);
+    }
+
     try {
         dbConnection_->beginTransaction();
 
@@ -1531,6 +1571,70 @@ HDBManager::addRFImplementation(
                     path + "\"));"));
         }
         
+        // insert into rf_external_port table
+        for (int i = 0; i < implementation.externalPortCount(); i++) {
+            RFExternalPort& port = implementation.externalPort(i);
+            string direction = directionString(port.direction());
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_external_port(id,name,direction,"
+                    "width_formula,description,rf_impl) VALUES(NULL,\"" +
+                    port.name() + "\",\"" + direction + "\",\"" +
+                    port.widthFormula() + "\",\"" + port.description() +
+                    "\"," + Conversion::toString(implID) + ");"));
+        }
+
+        // insert into rf_implementation_parameter table
+        for (int i = 0; i < implementation.parameterCount(); i++) {
+            RFImplementation::Parameter param = implementation.parameter(i);
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_implementation_parameter(id,name,type,"
+                    "value,rf_impl) VALUES(NULL,\"" + param.name +
+                    "\",\"" + param.type + "\",\"" + param.value +
+                    "\"," + Conversion::toString(implID) + ");"));
+        }
+
+        // Insert implicit parameters to rf_implementation_parameter table
+        // (size and width parameter references if not empty and parameters
+        // for them do not exists).
+        string widthParam = implementation.widthParameter();
+        if (!widthParam.empty() && !implementation.hasParameter(widthParam)) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_implementation_parameter(id,name,type,"
+                    "value,rf_impl) VALUES(NULL,\"" + widthParam +
+                    "\", \"integer\", \"\"," +
+                    Conversion::toString(implID) + ");"));
+        }
+        string sizeParam = implementation.sizeParameter();
+        if (!sizeParam.empty() && !implementation.hasParameter(sizeParam)) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "INSERT INTO rf_implementation_parameter(id,name,type,"
+                    "value,rf_impl) VALUES(NULL,\"" + sizeParam +
+                    "\", \"integer\", \"\"," +
+                    Conversion::toString(implID) + ");"));
+        }
+
+        // insert into rf_ext_port_parameter_dependency table
+        for (int i = 0; i < implementation.externalPortCount(); i++) {
+            RFExternalPort& port = implementation.externalPort(i);
+            for (int i = 0; i < port.parameterDependencyCount(); i++) {
+                string param = port.parameterDependency(i);
+                dbConnection_->updateQuery(
+                    std::string(
+                        "INSERT INTO rf_ext_port_parameter_dependency(id,"
+                        "port,parameter) VALUES(NULL,(SELECT id FROM "
+                        "rf_external_port WHERE rf_impl=" +
+                        Conversion::toString(implID) + " AND name=\"" +
+                        port.name() + "\"),(SELECT id FROM "
+                        "rf_implementation_parameter WHERE rf_impl=" +
+                        Conversion::toString(implID) + " AND name=\"" +
+                        param + "\"));"));
+            }
+        }
+
         dbConnection_->commit();
         return implID;
 
@@ -1554,9 +1658,47 @@ HDBManager::addRFImplementation(
 void
 HDBManager::removeRFImplementation(RowID implID) const {
 
+    bool dependencyTableExists =
+        dbConnection_->tableExistsInDB("rf_ext_port_parameter_dependency");
+    bool parameterTableExists =
+        dbConnection_->tableExistsInDB("rf_implementation_parameter");
+    bool externalPortTableExists =
+        dbConnection_->tableExistsInDB("rf_external_port");
+
     try {
         dbConnection_->beginTransaction();
         
+        // remove from rf_ext_port_parameter_dependency table if it exists
+        // (backward compatibility for old HDBs).
+        if (dependencyTableExists) {
+            assert(parameterTableExists && externalPortTableExists);
+            dbConnection_->updateQuery(
+                std::string(
+                    "DELETE FROM rf_ext_port_parameter_dependency "
+                    "WHERE parameter in (SELECT ALL id "
+                    "FROM rf_implementation_parameter WHERE rf_impl = " +
+                    Conversion::toString(implID) + ");"));
+        }
+
+        // remove from rf_external_port table if it exists
+        // (backward compatibility for old HDBs).
+        if (externalPortTableExists) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "DELETE FROM rf_external_port "
+                    "WHERE rf_impl=" +
+                    Conversion::toString(implID) + ";"));
+        }
+
+        // remove from rf_implementation_parameter table if it exists
+        // (backward compatibility for old HDBs).
+        if (parameterTableExists) {
+            dbConnection_->updateQuery(
+                std::string(
+                    "DELETE FROM rf_implementation_parameter "
+                    "WHERE rf_impl=" + Conversion::toString(implID) + ";"));
+        }
+
         // remove from rf_source_file table
         dbConnection_->updateQuery(
             std::string(
@@ -2148,6 +2290,7 @@ HDBManager::rfByEntryID(RowID id) const
     entry->setCostFunction(costFunction);
     entry->setHDBFile(hdbFile_);
     delete result;
+
     return entry;
 }
 
@@ -2407,7 +2550,7 @@ HDBManager::rfEntriesByArchitecture(
     }
 
     std::set<RowID> entryIDs;
-    while(result->hasNext()) {
+    while (result->hasNext()) {
         result->next();
         entryIDs.insert(result->data(0).integerValue());
     }
@@ -3859,10 +4002,10 @@ HDBManager::createImplementationOfFU(
             name, opcodePort, clkPort, rstPort, glockPort, glockReqPort);
         implementation->setID(implID);
         
-        addParametersToImplementation(*implementation, id);
+        addFUParametersToImplementation(*implementation, id);
         addOpcodesToImplementation(*implementation, id);
         addDataPortsToImplementation(*implementation, architecture, id);
-        addExternalPortsToImplementation(*implementation, id);
+        addFUExternalPortsToImplementation(*implementation, id);
         addBlockImplementationFiles(*implementation, id);
     }
     
@@ -4075,7 +4218,9 @@ HDBManager::createImplementationOfRF(RowID id) const {
             sizeParam, widthParam, guardPort);
         implementation->setID(idData.integerValue());
 
+        addRFParametersToImplementation(*implementation, id);
         addDataPortsToImplementation(*implementation, id);
+        addRFExternalPortsToImplementation(*implementation, id);
         addBlockImplementationFiles(*implementation, id);
     }
     
@@ -4228,7 +4373,7 @@ HDBManager::addDataPortsToImplementation(
  * @param entryID ID of the FU entry.
  */
 void
-HDBManager::addExternalPortsToImplementation(
+HDBManager::addFUExternalPortsToImplementation(
     FUImplementation& implementation,
     RowID entryID) const {
 
@@ -4308,6 +4453,102 @@ HDBManager::addExternalPortsToImplementation(
     }
 }
 
+/**
+ * Adds external ports to the given RF implementation which is the
+ * implementation of the RF entry that has the given ID.
+ *
+ * @param implementation The implementation.
+ * @param entryID ID of the RF implementation entry.
+ */
+void
+HDBManager::addRFExternalPortsToImplementation(
+    RFImplementation& implementation,
+    RowID entryID) const {
+
+    if (!dbConnection_->tableExistsInDB("rf_external_port")) {
+        return;
+    }
+
+    RelationalDBQueryResult* extPortData = NULL;
+    try {
+        extPortData = dbConnection_->query(rfExternalPortsByIDQuery(entryID));
+    } catch (const Exception& e) {
+        assert(false);
+    }
+
+    int extPortNameColumn = extPortData->column("rf_external_port.name");
+    int directionColumn = extPortData->column(
+        "rf_external_port.direction");
+    int extPortWidthFormulaColumn = extPortData->column(
+        "rf_external_port.width_formula");
+    int descriptionColumn = extPortData->column(
+        "rf_external_port.description");
+
+    while (extPortData->hasNext()) {
+        extPortData->next();
+        const DataObject& nameData = extPortData->data(
+            extPortNameColumn);
+        const DataObject& directionData = extPortData->data(
+            directionColumn);
+        const DataObject& widthFormulaData = extPortData->data(
+            extPortWidthFormulaColumn);
+        const DataObject& descriptionData = extPortData->data(
+            descriptionColumn);
+
+        string name = nameData.stringValue();
+        string widthFormula = widthFormulaData.stringValue();
+        string description = descriptionData.stringValue();
+
+        Direction direction;
+        if (directionData.stringValue() == IN_DIRECTION) {
+            direction = IN;
+        } else if (directionData.stringValue() == OUT_DIRECTION) {
+            direction = OUT;
+        } else {
+            assert(directionData.stringValue() == BIDIR_DIRECTION);
+            direction = BIDIR;
+        }
+
+        new RFExternalPort(
+            name, direction, widthFormula, description, implementation);
+    }
+
+    delete extPortData;
+    extPortData = NULL;
+
+    // add parameter dependencies
+    if (!dbConnection_->tableExistsInDB("rf_ext_port_parameter_dependency")) {
+        return;
+    }
+
+    for (int i = 0; i < implementation.externalPortCount(); i++) {
+        RFExternalPort& port = implementation.externalPort(i);
+        try {
+            RelationalDBQueryResult* result = dbConnection_->query(
+                std::string(
+                    "SELECT rf_implementation_parameter.name FROM "
+                    "rf_implementation_parameter, rf_external_port, "
+                    "rf_ext_port_parameter_dependency, rf_implementation "
+                    "WHERE rf_implementation.rf=" +
+                    Conversion::toString(entryID) +
+                    " AND rf_external_port.rf_impl=rf_implementation.id AND "
+                    "rf_external_port.name=\"" + port.name() +
+                    "\" AND rf_ext_port_parameter_dependency.port="
+                    "rf_external_port.id AND rf_implementation_parameter.id="
+                    "rf_ext_port_parameter_dependency.parameter;"));
+            while (result->hasNext()) {
+                result->next();
+                const DataObject& paramData = result->data(0);
+                port.setParameterDependency(paramData.stringValue());
+            }
+            delete result;
+        } catch (const Exception& e) {
+            debugLog(e.errorMessage());
+            assert(false);
+        }
+    }
+}
+
 
 /**
  * Adds parameters to the given FU implementation which is the implementation
@@ -4317,7 +4558,7 @@ HDBManager::addExternalPortsToImplementation(
  * @param entryID ID of the FU entry.
  */
 void
-HDBManager::addParametersToImplementation(
+HDBManager::addFUParametersToImplementation(
     FUImplementation& implementation,
     RowID entryID) const {
 
@@ -4341,7 +4582,70 @@ HDBManager::addParametersToImplementation(
     }
     delete result;
 }
-   
+
+
+/**
+ * Adds parameters to the given RF implementation which is the implementation
+ * of the RF entry that has the given ID.
+ *
+ * @param implementation The implementation.
+ * @param entryID ID of the RF entry.
+ */
+void
+HDBManager::addRFParametersToImplementation(
+    RFImplementation& implementation,
+    RowID entryID) const {
+
+    if (!dbConnection_->tableExistsInDB("rf_implementation_parameter")) {
+        // Add implicit parameters: size and width parameters if older
+        // hdb is opened.
+        if (implementation.widthParameter() != "") {
+            implementation.addParameter(implementation.widthParameter(),
+                "integer", "");
+        }
+        if (implementation.sizeParameter() != "") {
+            implementation.addParameter(implementation.sizeParameter(),
+                "integer", "");
+        }
+        return;
+    }
+
+    RelationalDBQueryResult* result = NULL;
+    try {
+        result = dbConnection_->query(
+            rfImplementationParametersByIDQuery(entryID));
+    } catch (const Exception&) {
+        assert(false);
+    }
+
+    while (result->hasNext()) {
+        result->next();
+        const DataObject& nameData = result->data("name");
+        const DataObject& typeData = result->data("type");
+        const DataObject& valueData = result->data("value");
+        string name = nameData.stringValue();
+        string type = typeData.stringValue();
+        string value = valueData.stringValue();
+        implementation.addParameter(name, type, value);
+    }
+
+    // If RF implementation's size and width parameter dependencies do not have
+    // parameter defined, add default parameters for them.
+    if (implementation.widthParameter() != "" &&
+        !implementation.hasParameter(implementation.widthParameter())) {
+        implementation.addParameter(implementation.widthParameter(),
+            "integer", "");
+        implementation.addParameter(implementation.sizeParameter(),
+            "integer", "");
+    }
+    if (implementation.sizeParameter() != "" &&
+        !implementation.hasParameter(implementation.sizeParameter())) {
+        implementation.addParameter(implementation.sizeParameter(),
+            "integer", "");
+    }
+    delete result;
+}
+
 
 /**
  * Adds the block implementation files to the given FU implementation which
@@ -5073,12 +5377,41 @@ HDBManager::fuExternalPortsByIDQuery(RowID id) {
 
 
 /**
+ * Creates an SQL query for getting external port data of implementation of
+ * the RF that has the given ID.
+ *
+ * The result table has fields {rf_external_port.name,
+ * rf_external_port.direction, rf_external_port.width_formula,
+ * rf_external_port.description}.
+ *
+ * @param id ID of the RF entry in HDB.
+ * @return The SQL query.
+ */
+std::string
+HDBManager::rfExternalPortsByIDQuery(RowID id) {
+    string idString = Conversion::toString(id);
+    string query =
+        "SELECT rf_external_port.name AS 'rf_external_port.name',"
+        "       rf_external_port.direction AS 'rf_external_port.direction',"
+        "       rf_external_port.width_formula AS "
+        "           'rf_external_port.width_formula',"
+        "       rf_external_port.description AS "
+        "           'rf_external_port.description' "
+        "FROM rf, rf_implementation, rf_external_port "
+        "WHERE rf.id=" + idString + " AND"
+        "      rf_implementation.rf=rf.id AND"
+        "      rf_external_port.rf_impl=rf_implementation.id;";
+    return query;
+}
+
+
+/**
  * Creates an SQL query for getting the parameters of the implementation
  * of the FU that has the given ID.
  *
  * The result table has fields {name, type, value}.
  *
- * @param id ID of the FU entry.
+ * @param id ID of the FU implementation entry.
  * @return The SQL query.
  */
 std::string
@@ -5091,6 +5424,29 @@ HDBManager::fuImplementationParametersByIDQuery(RowID id) {
         "FROM fu_implementation, fu_implementation_parameter "
         "WHERE fu_implementation.fu=" + idString + " AND"
         "      fu_implementation_parameter.fu_impl=fu_implementation.id;";
+    return query;
+}
+
+
+/**
+ * Creates an SQL query for getting the parameters of the implementation
+ * of the RF that has the given ID.
+ *
+ * The result table has fields {name, type, value}.
+ *
+ * @param id ID of the RF entry.
+ * @return The SQL query.
+ */
+std::string
+HDBManager::rfImplementationParametersByIDQuery(RowID id) {
+    string idString = Conversion::toString(id);
+    string query =
+        "SELECT rf_implementation_parameter.name AS 'name',"
+        "       rf_implementation_parameter.type AS 'type',"
+        "       rf_implementation_parameter.value AS 'value' "
+        "FROM rf_implementation, rf_implementation_parameter "
+        "WHERE rf_implementation.rf=" + idString + " AND"
+        "      rf_implementation_parameter.rf_impl=rf_implementation.id;";
     return query;
 }
 
@@ -5745,7 +6101,7 @@ HDBManager::costEstimationDataIDs(
     }
 
     std::set<RowID> dataIDs;
-    while(result->hasNext()) {
+    while (result->hasNext()) {
         result->next();
         dataIDs.insert(result->data(0).integerValue());
     }

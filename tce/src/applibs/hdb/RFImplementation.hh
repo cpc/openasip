@@ -35,10 +35,13 @@
 
 #include <vector>
 #include "HWBlockImplementation.hh"
+#include "Exception.hh"
+#include "HDBTypes.hh"
 
 namespace HDB {
 
 class RFEntry;
+class RFExternalPort;
 class RFPortImplementation;
 
 /**
@@ -46,6 +49,9 @@ class RFPortImplementation;
  */
 class RFImplementation : public HWBlockImplementation {
 public:
+    /// Parameter of FU implementation.
+    typedef HDB::Parameter Parameter;
+
     RFImplementation(
         const std::string& moduleName,
         const std::string& clkPort,
@@ -68,15 +74,36 @@ public:
     std::string guardPort() const;
 
     void addPort(RFPortImplementation* port);
+    void addExternalPort(RFExternalPort* extPort);
     void deletePort(RFPortImplementation* port)
         throw (InstanceNotFound);
+    void deleteExternalPort(RFExternalPort* port)
+        throw (InstanceNotFound);
     int portCount() const;
+    int externalPortCount() const;
     RFPortImplementation& port(int index) const
         throw (OutOfRange);
+    RFExternalPort& externalPort(int index) const
+        throw (OutOfRange);
+
+    void addParameter(
+            const std::string& name,
+            const std::string& type,
+            const std::string& value)
+            throw (IllegalParameters);
+    void removeParameter(const std::string& name);
+    int parameterCount() const;
+    Parameter parameter(int index) const
+        throw (OutOfRange);
+    bool hasParameter(const std::string& name) const;
 
 private:
     /// Vector type for RFPortImplementation.
     typedef std::vector<RFPortImplementation*> PortTable;
+    /// Vector type for FUExternalPort.
+    typedef std::vector<RFExternalPort*> ExternalPortTable;
+    /// Vector type for parameter names.
+    typedef std::vector<Parameter> ParameterTable;
 
     /// Name of the size parameter.
     std::string sizeParam_;
@@ -87,6 +114,10 @@ private:
 
     /// Contains the ports.
     PortTable ports_;
+    /// Contains the external ports.
+    ExternalPortTable externalPorts_;
+    /// Contains the parameters.
+    ParameterTable parameters_;
 };
 }
 

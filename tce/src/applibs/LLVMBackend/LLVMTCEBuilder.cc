@@ -1875,7 +1875,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
 		} else {
         	float fval = apf.convertToFloat();
         	SimValue val(32);
-        	val.value_.floatWord = fval;
+            val = fval;
         	return new TTAProgram::TerminalImmediate(val);
 		}
     } else if (mo.isImm()) {
@@ -3465,6 +3465,9 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
             }
         }
     }
+    std::cerr << "Warning: Could not find suitable guard from any bus in the"
+              << "processor. Did you forget to add guards to the processor?"
+              << std::endl;
     return NULL;
 }
 

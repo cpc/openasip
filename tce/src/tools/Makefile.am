@@ -24,7 +24,7 @@ DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
-	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
+	SimValue.hh Serializable.hh ObjectState.icc Conversion.hh \
 	Conversion.icc MathTools.hh MathTools.icc TCEString.hh TCEString.icc \
 	CmdLineOptions.hh CmdLineParser.hh CmdLineParser.icc StringTools.hh \
 	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
@@ -68,7 +68,7 @@ libtcetools_la_SOURCES += \
 	Informer.hh Listener.hh \
 	CmdLineParser.hh BaseType.hh \
 	AssocTools.hh CmdLineOptionParser.icc \
-	Exception.icc SimValue.icc \
+	Exception.icc Conversion.icc \
 	DataObject.icc PluginTools.icc \
 	MapTools.icc MathTools.icc \
 	CmdLineParser.icc SequenceTools.icc \
@@ -76,6 +76,6 @@ libtcetools_la_SOURCES += \
 	AssocTools.icc FileSystem.icc \
 	ContainerTools.icc BitMatrix.icc \
 	TCEString.icc SetTools.icc \
-	Informer.icc VectorTools.icc \
-	Conversion.icc 
+	Informer.icc VectorTools.icc
+
 ## headers end

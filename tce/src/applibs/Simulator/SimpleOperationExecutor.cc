@@ -34,6 +34,7 @@
 
 #include "SimpleOperationExecutor.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 #include "SequenceTools.hh"
 #include "OperationContext.hh"
 #include "PortState.hh"
@@ -114,7 +115,8 @@ SimpleOperationExecutor::startOperation(Operation& op) {
         /// @todo Fix! This should not probably be assumed, or at least
         /// user should be notified if his operand ids are not what
         /// are expected.
-        for (std::size_t i = inputOperands + 1; i <= operandCount; ++i) {    
+        for (std::size_t i = inputOperands + 1; i <= operandCount; ++i) {
+            nextSlot.ioOrig_[i - 1].setBitWidth(op.operand(i).width());  
             nextSlot.io_[i - 1] = &nextSlot.ioOrig_[i - 1];
         }
         nextSlot.boundOperation_ = &op;

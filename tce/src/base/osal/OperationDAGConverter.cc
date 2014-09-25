@@ -469,15 +469,15 @@ OperationDAGConverter::castedVar(
 
     switch (type) { 
     case Operand::SINT_WORD:
-        return "static_cast<SIntWord>(" + var + ".value_.sIntWord)";
+        return var + ".sIntWordValue()";
     case Operand::UINT_WORD:
-        return "static_cast<UIntWord>(" + var + ".value_.uIntWord)";
+        return var + ".uIntWordValue()";
     case Operand::FLOAT_WORD:
-        return "static_cast<FloatWord>(" + var + ".value_.floatWord)";
+        return var + ".floatWordValue()";
     case Operand::HALF_FLOAT_WORD:
-        return "static_cast<HalfFloatWord>(" + var + ".value_.halfFloatWordBits)";
+        return var + ".halfFloatWordValue()";
     case Operand::DOUBLE_WORD:
-        return "static_cast<DoubleWord>(" + var + ".value_.doubleWord)";
+        return var + ".doubleWordValue()";
     default:
         return var;
     }
