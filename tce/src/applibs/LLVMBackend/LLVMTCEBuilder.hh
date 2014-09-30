@@ -181,7 +181,8 @@ namespace llvm {
 	TTAProgram::TerminalRegister* createTerminalRegister(
 	    const std::string& rfName, int index);
 
-        TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
+        TTAProgram::Terminal* createTerminal(
+            const MachineOperand& mo, int bitLimit = 32);
 
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,
