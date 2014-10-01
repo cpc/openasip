@@ -41,13 +41,12 @@
 
 #include <tr1/unordered_map>
 
-//using std::tr1::unordered_map;
 #define hash_map std::tr1::unordered_map
 
 #elif defined(STD_UNORDERED_MAP)
 
 #include <unordered_map>
-//using std::unordered_map;
+
 #define hash_map std::unordered_map
 
 #elif defined(HASHMAP_GNU_EXT)

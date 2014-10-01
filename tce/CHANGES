@@ -21,6 +21,8 @@ Other features and improvements
 - The way SimValue stores values has been changed from little-endian to 
   big-endian convention. This doesn't affect the way how SimValue should be 
   used.
+- Transfer of immediate 1 into boolean register no longer uses
+  long immediate when it's not needed.
 
 Usability features
 ------------------

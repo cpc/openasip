@@ -75,7 +75,8 @@ const string HDB_TO_CREATE_7 = "data" + DS + "newHDB7.hdb";
 const string HDB_TO_CREATE_8 = "data" + DS + "newHDB8.hdb";
 const string HDB_TO_CREATE_9 = "data" + DS + "newHDB9.hdb";
 const string OLD_HDB_1 = "data" + DS + "oldHDB1.hdb";
-const string TMP_HDB  = "data" + DS + "tmp.hdb";
+const string TMP_HDB_1 = "data" + DS + "tmp_1.hdb";
+const string TMP_HDB_2 = "data" + DS + "tmp_2.hdb";
 const string TEST_ADF = "data" + DS + "testadf.adf";
 
 namespace HDB {
@@ -114,7 +115,6 @@ private:
  */
 void
 HDBManagerTest::setUp() {
-    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 
@@ -123,7 +123,6 @@ HDBManagerTest::setUp() {
  */
 void
 HDBManagerTest::tearDown() {
-    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 
@@ -769,8 +768,7 @@ void
 HDBManagerTest::testBackwardCompatibility() {
 
     // Copy hdb in case it gets altered by tests.
-    FileSystem::copy(OLD_HDB_1, TMP_HDB);
-    const HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB);
+    const HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB_1);
 
     // Test reading RF implementation in absence of rf_external_port,
     // rf_implementation_parameter and rf_ext_port_parameter_dependency tables.
@@ -788,7 +786,6 @@ HDBManagerTest::testBackwardCompatibility() {
         TS_ASSERT_EQUALS(loadedImpl.parameterCount(), 2);
         TS_ASSERT_EQUALS(loadedImpl.externalPortCount(), 0);
     }
-    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 
 
@@ -839,8 +836,7 @@ HDBManagerTest::testNoLeaks() {
  */
 void
 HDBManagerTest::testHDBConversion() {
-    FileSystem::copy(OLD_HDB_1, TMP_HDB);
-    HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB);
+    HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB_2);
 
     RFArchitecture arch(1, 1, 0, 2, 1, 1, false);
     RowID archID = manager.addRFArchitecture(arch);
@@ -863,7 +859,6 @@ HDBManagerTest::testHDBConversion() {
             "rf_ext_port_parameter_dependency"), 2);
 
     delete impl;
-    FileSystem::removeFileOrDirectory(TMP_HDB);
 }
 }
 #endif

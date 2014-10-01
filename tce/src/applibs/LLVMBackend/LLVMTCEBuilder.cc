@@ -1844,7 +1844,7 @@ LLVMTCEBuilder::createTerminalRegister(
  * @return POM terminal.
  */
 TTAProgram::Terminal*
-LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
+LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
 
     if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
@@ -1879,7 +1879,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
         	return new TTAProgram::TerminalImmediate(val);
 		}
     } else if (mo.isImm()) {
-        int width = 32; // FIXME
+        int width = bitLimit;
         SimValue val(mo.getImm(), width);
         return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isMBB()) {
@@ -2067,8 +2067,9 @@ LLVMTCEBuilder::createMove(
     }
 
     Bus& bus = UniversalMachine::instance().universalBus();
+    TTAProgram::Terminal* dstTerm = createTerminal(dst);
     TTAProgram::Move* move = createMove(
-        createTerminal(src), createTerminal(dst), bus, guard);
+        createTerminal(src, dstTerm->port().width()), dstTerm, bus, guard);
 
     return move;
 }

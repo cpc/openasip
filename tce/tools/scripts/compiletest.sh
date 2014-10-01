@@ -255,7 +255,8 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 distcc.*Warning.*|\
 .*clang..warning..argument.unused.during.compilation...-pthread..*|\
 .*wxDummyCheckInt.*|\
-.*boost/.*warning:.typedef.'.*"
+.*boost/.*warning:.typedef.'.*|\
+.*libtool:.link:.warning:.*libstdc\+\+\.la..seems.to.be.moved.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
