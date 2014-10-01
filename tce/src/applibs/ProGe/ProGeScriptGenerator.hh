@@ -115,8 +115,6 @@ private:
     void uniqueFileNames(
         CONT& files,
         const std::string& rootDirectory);
-    std::string indentation(
-            unsigned int level) const;
     void prefixStrings(
         std::list<std::string>& tlist, 
         const std::string& prefix,
@@ -145,10 +143,6 @@ private:
     const std::string verDir_;
     const std::string gcuicDir_;
     const std::string tbDir_;
-    const std::string reportDir_;
-
-    // Names for options to the scripts
-    const std::string coverageOptionName_;
 
     // file names for scripts to be generated
     const std::string modsimCompileScriptName_;

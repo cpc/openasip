@@ -52,7 +52,6 @@
 #include "FUImplementation.hh"
 #include "RFEntry.hh"
 #include "RFImplementation.hh"
-#include "StringTools.hh"
 
 using namespace ProGe;
 
@@ -95,8 +94,6 @@ ProGeScriptGenerator::ProGeScriptGenerator(
     verDir_("verilog"),
     gcuicDir_("gcu_ic"),
     tbDir_("tb"),
-    reportDir_("reportdir"),
-    coverageOptionName_("-coverage"),
     modsimCompileScriptName_("modsim_compile.sh"),
     ghdlCompileScriptName_("ghdl_compile.sh"),
     iverilogCompileScriptName_("iverilog_compile.sh"),
@@ -163,39 +160,20 @@ ProGeScriptGenerator::generateModsimCompile()
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     generateStart(stream);
 
-    stream << "COVERAGE=\"\"" << endl
-           << "# If too many arguments." << endl
-           << "if ((\"$#\" > \"1\"))" << endl
-           << "then" << endl
-           << indentation(1) << "echo \"ERROR: Too many arguments.\"" << endl
-           << indentation(1) << "exit 1" << endl
-           << "fi" << endl << endl
+    stream << "rm -rf " << workDir_ << endl;
+    stream << "vlib " << workDir_ << endl;
+    stream << "vmap"  << endl;
 
-           << "if !((\"$#\" == \"0\"))" << endl
-           << "then" << endl
-           << indentation(1) << "if [ $1 == \"" << coverageOptionName_
-           << "\" ]" << endl
-           << indentation(1) << "then" << endl
-           << indentation(2) << "COVERAGE=\" -cover sbceft\"" << endl
-           << indentation(1) << "else" << endl
-           << indentation(2) << "echo \"ERROR: Illegal option \\\"$1\\\".\""
-           << endl << indentation(2) << "exit 1" << endl
-           << indentation(1) << "fi" << endl
-           << "fi" << endl << endl
-
-           << "rm -rf " << workDir_ << endl
-           << "vlib " << workDir_ << endl
-           << "vmap"  << endl << endl;
-
+    stream << endl;
     string program =
     ((language_==VHDL)?"vcom":"vlog +incdir+verilog +incdir+gcu_ic +incdir+tb");
-    outputScriptCommands(stream, vhdlFiles_, program + "$COVERAGE", "");
+    outputScriptCommands(stream, vhdlFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program + "$COVERAGE", "");
+    outputScriptCommands(stream, gcuicFiles_, program,"");
 
     stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program + "$COVERAGE", "");
+    outputScriptCommands(stream, testBenchFiles_, program,"");
 
     stream.close();
 }
@@ -286,62 +264,8 @@ ProGeScriptGenerator::generateModsimSimulate()
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     generateStart(stream);
 
-    stream << "# If too many arguments." << endl
-           << "if ((\"$#\" > \"1\"))" << endl
-           << "then" << endl
-           << indentation(1) << "echo \"ERROR: Too many arguments.\"" << endl
-           << indentation(1) << "exit 1" << endl
-           << "fi" << endl << endl
-
-           << "# If source HDL files were compiled with "
-           << coverageOptionName_ << " option."
-           << endl << "if ( grep -q o-cover \"" << workDir_ << "/_info\" )"
-           << endl << "then" << endl
-           << indentation(1) << "if [ $# == 0 ]" << endl
-           << indentation(1) << "then" << endl
-           << indentation(2) << "echo \"WARNING: Source compiled with "
-           << coverageOptionName_ << " option but simulation "
-           << "started without it.\"" << endl
-           << indentation(2) << "vsim " << testbenchName_ << " -c -do 'run "
-           << MAGICAL_RUNTIME_CONSTANT << "; exit'" << endl
-           << indentation(2) << "exit 0" << endl
-           << indentation(1) << "elif [ $1 == \"" << coverageOptionName_
-           << "\" ]" << endl
-           << indentation(1) << "then" << endl
-           << indentation(2) << "vsim -c "<< "-coverage "
-           << " -do \"coverage save -onexit coverage.ucdb;run "
-           << MAGICAL_RUNTIME_CONSTANT << "; "
-           << "exit\" \"+cover bcfst\" " << testbenchName_ << endl
-           << indentation(2) << "if [ ! -d \"reportdir\" ]" << endl
-           << indentation(2) << "then" << endl
-           << indentation(3) << "mkdir reportdir" << endl
-           << indentation(2) << "fi" << endl
-           << indentation(2) << "# Create HTML report directory structure."
-           << endl
-           << indentation(2) << "vcover report -html -htmldir "
-           << reportDir_ << "/ " << "coverage.ucdb" << endl
-           << indentation(1) << "else" << endl
-           << indentation(2) << "echo \"ERROR: Illegal option \\\"$1\\\".\""
-           << endl << indentation(1) << "fi" << endl << endl
-
-           << "# If not compiled with " << coverageOptionName_ << endl
-           << "else" << endl
-           << indentation(1) << "if [ $# == 0 ]" << endl
-           << indentation(1) << "then" << endl
-           << indentation(2) << "vsim " << testbenchName_ << " -c -do 'run "
-           << MAGICAL_RUNTIME_CONSTANT << "; exit'" << endl
-           << indentation(2) << "exit 0" << endl
-           << indentation(1) << "elif [ $1 == \""
-           << coverageOptionName_ << "\" ]" << endl
-           << indentation(1) << "then" << endl
-           << indentation(2) << "echo \"ERROR: Source not compiled with "
-           << coverageOptionName_ << " option but simulation started "
-           << "with it.\"" << endl
-           << indentation(2) << "exit 1" << endl
-           << indentation(1) << "else" << endl
-           << indentation(2) << "echo \"ERROR: Illegal option \\\"$1\\\".\""
-           << endl << indentation(1) << "fi" << endl
-           << "fi" << endl;
+    stream << "vsim " << testbenchName_ << "  -c -do 'run " 
+           << MAGICAL_RUNTIME_CONSTANT << "; exit'" << endl;
 
     stream.close();
 }
@@ -634,15 +558,6 @@ ProGeScriptGenerator::getBlockOrder(std::list<std::string>& order) {
     }
 }
 
-/**
- * Returns a string which makes indentation of the given level.
- *
- * @param level The indentation level.
- */
-std::string
-ProGeScriptGenerator::indentation(unsigned int level) const {
-    return StringTools::indent(level);
-}
 
 /** 
  * Prefixes strings in a container with a string within a range.
