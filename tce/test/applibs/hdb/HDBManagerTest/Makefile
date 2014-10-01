@@ -14,4 +14,18 @@ APPLIBS_MACH_OBJS = *.o
 EXTRA_COMPILER_LFAGS =
 EXTRA_LINKER_FLAGS = ${TCL_LD_FLAGS} ${BOOST_LDFLAGS} ${XERCES_LDFLAGS}
 
+INITIALIZATION = init
+FINALIZATION = cleanup
+
+.PHONY: init
+.PHONY: cleanup
+
 include ${TOP_SRCDIR}/test/Makefile_test.defs
+
+init:
+	@cp -f data/oldHDB1.hdb data/tmp_1.hdb
+	@cp -f data/oldHDB1.hdb data/tmp_2.hdb
+
+cleanup:
+	@rm -f data/newHDB*.hdb data/tmp_*.hdb
+

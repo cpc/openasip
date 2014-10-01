@@ -14,15 +14,23 @@
 #                     library definitions, e.g., -lxercesc.
 #
 # EXTRA_COMPILER_FLAGS Extra flags which should be added to the compile
-#                      command of the test. This variable is usually 
+#                      command of the test. This variable is usually
 #                      used for include definitions.
 #
-# INITIALIZATION      Rules defined in this variable are executed before the 
+# INITIALIZATION      Rules defined in this variable are executed before the
 #                     rest. One can for example create a rule in which the test
 #                     data is initialized. NOTE: you have to add your custom
-#                     rules in our Makefile *after* including this template 
-#                     because make seems to run the first found rule in the 
-#                     file as the default rule thus only the custom rule is 
+#                     rules in our Makefile *after* including this template
+#                     because make seems to run the first found rule in the
+#                     file as the default rule thus only the custom rule is
+#                     run in case the included rules are not found first.
+#
+# FINALIZATION        Rules defined in this variable are executed after the
+#                     rest. One can for example create a rule in which the test
+#                     data is removed. NOTE: you have to add your custom
+#                     rules in our Makefile *after* including this template
+#                     because make seems to run the first found rule in the
+#                     file as the default rule thus only the custom rule is
 #                     run in case the included rules are not found first.
 #
 # disable_watchdog    When set to "yes", watchdog is not used. Useful for
@@ -73,7 +81,8 @@ VALGRIND_TEXT = " using valgrind"
 endif
 
 TCE_INCLUDE_DIRS = \
-    $(shell find ${TOP_SRCDIR}/src -type d | egrep -v "\\.libs|\\.deps|\\.svn")
+    $(shell find ${TOP_SRCDIR}/src -type d \
+	| egrep -v "\\.libs|\\.deps|\\.svn|CMakeFiles")
 
 TCE_INCLUDES = $(addprefix -I,${TCE_INCLUDE_DIRS})
 TCE_INCLUDES += -I ${TOP_SRCDIR}
@@ -87,18 +96,16 @@ include ${TOP_SRCDIR}/test/Makefile_configure_settings
 # library paths to the linked binaries, so when the 'runner' is executed,
 # the TCE .libs directories are checked first for the dynamic libraries,
 # the system directories are checked only in case not found in these.
-TCE_LIB_DIRS = \
-    $(shell find ${TOP_SRCDIR}/src -name .libs)
+TCE_LIB_DIRS = ${TOP_SRCDIR}/src ${TOP_SRCDIR}/src/.libs
 LIB_MAGIC = -Wl,-rpath -Wl,
 TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
-TCE_LIBS = ${TOP_SRCDIR}/src/.libs/libtce${LIBRARY_SUFFIX} 
 
-
-LIB_FLAGS = ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS} ${LLVM_LD_FLAGS}
+TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "libtce${LIBRARY_SUFFIX}" | grep -v dSYM| grep -v passes)
 
 .PHONY: build_src, dummy
+.NOTPARALLEL: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
-all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2}
+all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
 %.hh: dummy
 	@echo Running $@${VALGRIND_TEXT}:;
@@ -123,7 +130,7 @@ build_src:
 
 # Removes .da files from OBJDIR to avoid accumulative results
 clean_gcov:
-	@cd ${OBJDIR} && rm -f *.da 
+	@cd ${OBJDIR} && rm -f *.da
 
 # runs gcov to all files found in DIST_OBJECTS and outputs the coverage
 # result to coverage.txt
