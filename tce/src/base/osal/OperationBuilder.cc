@@ -189,6 +189,10 @@ OperationBuilder::buildObject(
         string command = (CXXCOMPILER == "") ? (string(CXX)) : (CXXCOMPILER);
         command += " " + COMPILE_FLAGS + " " + behaviorFile + " " +
             string(SHARED_CXX_FLAGS) + " " + LDFLAGS + " -o " + module + " 2>&1";
+
+        if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() << command << std::endl;
+        }
         
         if (Application::runShellCommandAndGetOutput(command, output) != 0) {
             return false;

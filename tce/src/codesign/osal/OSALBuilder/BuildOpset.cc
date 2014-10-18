@@ -151,18 +151,19 @@ int main(int argc, char* argv[]) {
 
     try {
         OperationBuilder& builder = OperationBuilder::instance();
-        BuildOpsetOptions options;
+        BuildOpsetOptions *options = new BuildOpsetOptions;
 
-        options.parse(argv, argc);
+        options->parse(argv, argc);
+        Application::setCmdLineOptions(options);
 
-        int arguments = options.numberOfArguments();
+        int arguments = options->numberOfArguments();
         string module = "";
         // first argument is XML data file
         if (arguments == 0 || arguments > 1) {
-            options.printHelp();
+            options->printHelp();
             return EXIT_FAILURE;
         } else {
-            module = options.argument(1);
+            module = options->argument(1);
         }
 
         // get the path for the files
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
         string moduleName = FileSystem::fileOfPath(module);
 
         // get the path for the behavior file
-        string behaviorPath = options.sourceDir();
+        string behaviorPath = options->sourceDir();
         if (behaviorPath == "") {
             behaviorPath = path;
         }
@@ -187,7 +188,7 @@ int main(int argc, char* argv[]) {
         }
 
         // get the file where stuff gets installed
-        string installDir = options.install();
+        string installDir = options->install();
         if (installDir == "base") {
             installDir = Environment::osalPaths()[BASE];
         } else if (installDir == "custom") {
@@ -219,7 +220,7 @@ int main(int argc, char* argv[]) {
         // find the behavior source file and check if it should be ignored
         // if it's not found
         string behFile = builder.behaviorFile(moduleName, behaviorPath);
-        if (behFile == "" && !options.ignore()) {
+        if (behFile == "" && !options->ignore()) {
             string errorMessage = "Behavior source file '";
             errorMessage += behaviorPath + FileSystem::DIRECTORY_SEPARATOR
                 + moduleName + ".cc" + "' not found";
