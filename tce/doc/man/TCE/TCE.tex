@@ -3957,6 +3957,13 @@ be used is found.
 \end{longtable}
 \end{center}
 
+Third-party libraries can be used in the operation behavior model.
+\emph{buildopset} uses the environment variables \emph{CPPFLAGS}, 
+\emp{CXXFLAGS} and \emph{LDFLAGS} to search for the external library. E.g.: 
+
+\shellcmd{CPPFLAGS=-I/opt/mpeg/inlucde LDFLAGS=-lmpeg buildopset /home/jack/.tce/opset/custom/mpeg} 
+
+
 \subsection{OSAL Tester (testosal)}
 \label{sec:testosal}
 

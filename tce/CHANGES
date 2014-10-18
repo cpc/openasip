@@ -24,6 +24,7 @@ Other features and improvements
 Usability features
 ------------------
 - ttasim: register values are always printed in hex format for the whole width.
+- buildopset: use LDFLAGS environment variable to fix linking in 3rd party libs.
 
 1.10  September 2014
 ====================

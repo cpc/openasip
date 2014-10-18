@@ -147,7 +147,9 @@ OperationBuilder::buildObject(
     if (behaviorFile != "") {
         TCEString CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
         TCEString CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
-            + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
+            + " " + CONFIGURE_CPPFLAGS + " ";
+        TCEString LDFLAGS = Environment::environmentVariable("LDFLAGS")
+            + " " + CONFIGURE_LDFLAGS + " ";
         TCEString CXXCOMPILER = Environment::environmentVariable("CXX");
         vector<string> includes = Environment::includeDirPaths();
 
@@ -186,7 +188,7 @@ OperationBuilder::buildObject(
 
         string command = (CXXCOMPILER == "") ? (string(CXX)) : (CXXCOMPILER);
         command += " " + COMPILE_FLAGS + " " + behaviorFile + " " +
-            string(SHARED_CXX_FLAGS) + " -o " + module + " 2>&1";
+            string(SHARED_CXX_FLAGS) + " " + LDFLAGS + " -o " + module + " 2>&1";
         
         if (Application::runShellCommandAndGetOutput(command, output) != 0) {
             return false;
