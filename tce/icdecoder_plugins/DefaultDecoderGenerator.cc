@@ -681,7 +681,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
     } else {
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_decoder";
-        stream << "`timescale 10ns/1ns" << endl
+        stream << "`timescale 1ns/1ns" << endl
                << "module " << entityName << endl
                << "#(" << endl
                << "`include \""
@@ -714,6 +714,11 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
         writeRFCntrlSignals(stream);
         stream << endl;
         
+        if (generateLockTrace_) {
+            writeLockDumpCode(stream);
+            stream << endl;
+        }
+
         writeInstructionDismembering(stream);
         stream << endl;
         writeControlRegisterMappings(stream);
@@ -844,7 +849,45 @@ DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
                << endl;
 
     } else { // language_==Verilog
+        stream << indentation(1)
+               << "// Dump the status of global lock into a file once "
+               << "in clock cycle"
+               << endl
+               << indentation(1)
+               << "// setting DUMP false will disable dumping"
+               << endl << endl
+               << indentation(1) << "// Do not synthesize!" << endl
+               << indentation(1) << "//synthesis translate_off" << endl
+               << indentation(1) << "integer fileout;" << endl << endl
+               << indentation(1) << "integer count=0;" << endl << endl
+               << indentation(1) << "`define DUMPFILE \"lock.dump\""
+               << endl << endl
 
+               << indentation(1) << "initial" << endl
+               << indentation(1) << "begin" << endl
+               << indentation(2) << "fileout = $fopen(`DUMPFILE,\"w\");"
+               << endl
+               << indentation(2) << "$fclose(fileout);" << endl
+               << indentation(2) << "forever" << endl
+               << indentation(2) << "begin" << endl
+               << indentation(3) << "#PERIOD;" << endl
+               << indentation(3) << "if ( count > "
+               << (lockTraceStartingCycle_ - 1) << ")" << endl;
+
+        stream << indentation(3) << "begin" << endl
+               << indentation(4) << "fileout = $fopen(`DUMPFILE,\"a\");"
+               << endl
+               << indentation(4) << "$fwrite(fileout," << "\""
+               << " %11d |  %11d | \\n\"" << ", count - "
+               << lockTraceStartingCycle_ << ", "
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ");"
+               << endl
+               << indentation(4) << "$fclose(fileout);" << endl
+               << indentation(3) << "end" << endl
+               << indentation(3) << "count = count + 1;" << endl
+               << indentation(2) << "end" << endl
+               << indentation(1) << "end" << endl
+               << indentation(1) << "//synthesis translate_on" << endl;
     }
 }
 
@@ -1629,17 +1672,17 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
                 indLevel = 5;
                 if (i == 0) {
                     stream << indentation(4) << "if ("
-                           << instructionTemplateCondition(VHDL,iTemp->name()) 
+                           << instructionTemplateCondition(VHDL, iTemp->name())
                            << ") then" << endl;
                 } else if (i+1 < itNav.count()) {
                     stream << indentation(4) << "elsif ("
-                           << instructionTemplateCondition(VHDL,iTemp->name())
+                           << instructionTemplateCondition(VHDL, iTemp->name())
                            << ") then" << endl;
                 } else {
                     stream << indentation(4) << "else" << endl;
                 }
             }
-            writeInstructionTemplateProcedures(VHDL,*iTemp, indLevel, stream);
+            writeInstructionTemplateProcedures(VHDL, *iTemp, indLevel, stream);
         }
 
         if (bem_.hasImmediateControlField()) {
@@ -1683,17 +1726,17 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
                 indLevel = 5;
                 if (i == 0) {
                     stream << indentation(4) << "if ("
-                           << instructionTemplateCondition(Verilog,iTemp->name()) 
+                           << instructionTemplateCondition(Verilog, iTemp->name())
                            << ")" << endl;
                 } else if (i+1 < itNav.count()) {
                     stream << indentation(4) << "else if ("
-                           << instructionTemplateCondition(Verilog,iTemp->name())
+                           << instructionTemplateCondition(Verilog, iTemp->name())
                            << ")" << endl;
                 } else {
                     stream << indentation(4) << "else" << endl;
                 }
             }
-            writeInstructionTemplateProcedures(Verilog,*iTemp, indLevel, stream);
+            writeInstructionTemplateProcedures(Verilog, *iTemp, indLevel, stream);
         }
         stream << indentation(3) << "end" << endl
                << indentation(2) << "end" << endl;
@@ -2338,9 +2381,9 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
             MoveSlot& slot = bem_.moveSlot(bus->name());
             SourceField& srcField = slot.sourceField();
             stream << indentation(4) << "if (" 
-                   << socketEncodingCondition(VHDL,srcField, socket.name()) 
-                   << " and " << squashSignal(bus->name()) << " = '0') then"
-                   << endl;
+                   << squashSignal(bus->name()) << " = '0' and "
+                   << socketEncodingCondition(VHDL, srcField, socket.name())
+                   << ") then" << endl;
             string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
             stream << indentation(5) << busCntrlPin << " <= '1';" << endl;
             
@@ -2357,8 +2400,8 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
             MoveSlot& slot = bem_.moveSlot(bus->name());
             SourceField& srcField = slot.sourceField();
             stream << indentation(4) << "if (" 
-                   << socketEncodingCondition(Verilog,srcField, socket.name()) 
-                   << " && " << squashSignal(bus->name()) << " == 0)"
+                   << squashSignal(bus->name()) << " == 0 && "
+                   << socketEncodingCondition(Verilog, srcField, socket.name()) << ")"
                    << endl;
             string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
             stream << indentation(5) << busCntrlPin << " <= 1'b1;" << endl
@@ -2388,11 +2431,12 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
     ImmediateEncoding& enc = srcField.immediateEncoding();
     
     if(language_==VHDL){
-        stream << indentation(4) << "if (conv_integer(unsigned(" 
-               << srcFieldSignal(bus.name()) << "(" 
-               << enc.encodingPosition() + enc.encodingWidth() - 1 << " downto " 
-               << enc.encodingPosition() << "))) = " << enc.encoding() << " and "
-               << squashSignal(bus.name()) << " = '0') then" << endl;
+        stream << indentation(4) << "if (" << squashSignal(bus.name())
+               << " = '0' and " << "conv_integer(unsigned("
+               << srcFieldSignal(bus.name()) << "("
+               << enc.encodingPosition() + enc.encodingWidth() - 1
+               << " downto " << enc.encodingPosition() << "))) = "
+               << enc.encoding() << ") then" << endl;
         stream << indentation(5) << simmCntrlSignalName(bus.name())
                << "(0) <= '1';" << endl;
         stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
@@ -2411,10 +2455,11 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
         stream << indentation(4) << "end if;" << endl;
     } else {
         stream << indentation(4) << "if (" 
+               << squashSignal(bus.name()) << " == 0 && "
                << srcFieldSignal(bus.name()) << "[" 
                << enc.encodingPosition() + enc.encodingWidth() - 1 << " : " 
-               << enc.encodingPosition() << "] == " << enc.encoding() << " && "
-               << squashSignal(bus.name()) << " == 0)" << endl
+               << enc.encodingPosition() << "] == " << enc.encoding() << ")"
+               << endl
                << indentation(4) << "begin" << endl
                << indentation(5) << simmCntrlSignalName(bus.name())
                << "[0] <= 1'b1;" << endl
@@ -2460,15 +2505,15 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             MoveSlot& slot = bem_.moveSlot(bus->name());
             SourceField& srcField = slot.sourceField();
             SocketEncoding& enc = srcField.socketEncoding(socket->name());
-            stream << indentation(4) << "if ("
-                   << socketEncodingCondition(VHDL,srcField, socket->name())
-                   << " and " << squashSignal(bus->name()) << " = '0'";
+            stream << indentation(4) << "if (" << squashSignal(bus->name()) 
+                   << " = '0' and "
+                   << socketEncodingCondition(VHDL, srcField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 FUPortCode& code = scTable.fuPortCode(
                     port.parentUnit()->name(), port.name());
-                stream << " and " << portCodeCondition(VHDL,enc, code) << ") then" 
-                       << endl;
+                stream << " and " << portCodeCondition(VHDL, enc, code)
+                       << ") then" << endl;
             } else {
                 stream << ") then" << endl;
             }
@@ -2487,13 +2532,13 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             SourceField& srcField = slot.sourceField();
             SocketEncoding& enc = srcField.socketEncoding(socket->name());
             stream << indentation(4) << "if ("
-                   << socketEncodingCondition(Verilog,srcField, socket->name())
-                   << " && " << squashSignal(bus->name()) << " == 0";
+                   << squashSignal(bus->name()) << " == 0 && "
+                   << socketEncodingCondition(Verilog, srcField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 FUPortCode& code = scTable.fuPortCode(
                     port.parentUnit()->name(), port.name());
-                stream << " && " << portCodeCondition(Verilog,enc, code) << ")"
+                stream << " && " << portCodeCondition(Verilog, enc, code) << ")"
                        << endl;
             } else {
                 stream << ")" << endl;
@@ -2552,10 +2597,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                     code = &scTable->rfPortCode(rf->name());
                 }
             }
-            stream << socketEncodingCondition(VHDL,srcField, socket->name()) << " and " 
-                   << squashSignal(bus->name()) << " = '0'";
+            stream << squashSignal(bus->name()) << " = '0' and "
+                   << socketEncodingCondition(VHDL, srcField, socket->name());
             if (code != NULL && code->hasEncoding()) {
-                stream << " and " << portCodeCondition(VHDL,enc, *code);
+                stream << " and " << portCodeCondition(VHDL, enc, *code);
             }
             stream << ") then" << endl;
             
@@ -2572,7 +2617,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             stream << indentation(5) << loadSignalName << " <= '1';" << endl;
             if (code != NULL) {
                 stream << indentation(5) << opcodeSignalName << " <= ext(" 
-                       << rfOpcodeFromSrcOrDstField(VHDL,enc, *code) << ", "
+                       << rfOpcodeFromSrcOrDstField(VHDL, enc, *code) << ", "
                        << opcodeSignalName << "'length);" << endl;
             }
             
@@ -2623,11 +2668,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                     code = &scTable->rfPortCode(rf->name());
                 }
             }
-            stream << socketEncodingCondition(Verilog,srcField, socket->name())
-                   << " && " 
-                   << squashSignal(bus->name()) << " == 0";
+            stream << squashSignal(bus->name()) << " == 0 && "
+                   << socketEncodingCondition(Verilog, srcField, socket->name());
             if (code != NULL && code->hasEncoding()) {
-                stream << " && " << portCodeCondition(Verilog,enc, *code);
+                stream << " && " << portCodeCondition(Verilog, enc, *code);
             }
             stream << ")" << endl
                    << indentation(4) << "begin" << endl;
@@ -2645,7 +2689,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             stream << indentation(5) << loadSignalName << " <= 1'b1;" << endl;
             if (code != NULL) {
                 stream << indentation(5) << opcodeSignalName << " <= $unsigned(" 
-                       << rfOpcodeFromSrcOrDstField(Verilog,enc, *code) << ");" << endl;
+                       << rfOpcodeFromSrcOrDstField(Verilog, enc, *code) << ");" << endl;
             }
             
             if (needsDataControl(*socket)) {
@@ -2694,8 +2738,8 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
             MoveSlot& moveSlot = bem_.moveSlot(bus->name());
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
-            stream << socketEncodingCondition(VHDL,dstField, socket->name());
-            stream << " and " << squashSignal(bus->name()) << " = '0'";
+            stream << squashSignal(bus->name()) << " = '0' and "
+                   << socketEncodingCondition(VHDL, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 if (port.isOpcodeSetting()) {
@@ -2720,7 +2764,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                             HWOperation* operation = fu->operation(i);
                             FUPortCode& code = scTable.fuPortCode(
                                 fu->name(), port.name(), operation->name());
-                            stream << portCodeCondition(VHDL,enc, code) << ") then"
+                            stream << portCodeCondition(VHDL, enc, code) << ") then"
                                    << endl;
                             stream << indentation(6) 
                                    << fuLoadSignalName(fu->name(), port.name())
@@ -2787,7 +2831,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                 } else {
                     FUPortCode& code = scTable.fuPortCode(
                         fu->name(), port.name());
-                    stream << " and " << portCodeCondition(VHDL,enc, code) << ") then"
+                    stream << " and " << portCodeCondition(VHDL, enc, code) << ") then"
                            << endl;
                     stream << indentation(5) 
                            << fuLoadSignalName(fu->name(), port.name()) 
@@ -2847,8 +2891,8 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
             MoveSlot& moveSlot = bem_.moveSlot(bus->name());
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
-            stream << socketEncodingCondition(Verilog,dstField, socket->name())
-                   << " && " << squashSignal(bus->name()) << " == 0";
+            stream << squashSignal(bus->name()) << " == 0 && "
+                   << socketEncodingCondition(Verilog, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 if (port.isOpcodeSetting()) {
@@ -2859,7 +2903,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                         HWOperation* operation = fu->operation(i);
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), operation->name());
-                        stream << portCodeCondition(Verilog,enc, code) << ")"
+                        stream << portCodeCondition(Verilog, enc, code) << ")"
                                << endl
                                << indentation(5) << "begin" << endl
                                << indentation(6) 
@@ -2898,7 +2942,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                 } else {
                     FUPortCode& code = scTable.fuPortCode(
                         fu->name(), port.name());
-                    stream << " && " << portCodeCondition(Verilog,enc, code) << ")"
+                    stream << " && " << portCodeCondition(Verilog, enc, code) << ")"
                            << endl
                            << indentation(4) << "begin" << endl
                            << indentation(5) 
@@ -2978,13 +3022,13 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
             MoveSlot& moveSlot = bem_.moveSlot(bus->name());
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
-            stream << socketEncodingCondition(VHDL,dstField, socket->name()) << " and "
-                   << squashSignal(bus->name()) << " = '0'";
+            stream << squashSignal(bus->name()) << " = '0' and "
+                   << socketEncodingCondition(VHDL, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 RFPortCode& code = scTable.rfPortCode(rf->name());
                 if (code.hasEncoding()) {
-                    stream << " and " << portCodeCondition(VHDL,enc, code);
+                    stream << " and " << portCodeCondition(VHDL, enc, code);
 
                 }
                 stream << ") then" << endl;
@@ -2993,7 +3037,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
                        << endl;
                 stream << indentation(5) 
                        << rfOpcodeSignalName(rf->name(), port.name()) << " <= "
-                       << rfOpcodeFromSrcOrDstField(VHDL,enc, code) << ";" << endl;
+                       << rfOpcodeFromSrcOrDstField(VHDL, enc, code) << ";" << endl;
             } else {
                 stream << ") then" << endl;
                 stream << indentation(5)
@@ -3028,14 +3072,13 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
             MoveSlot& moveSlot = bem_.moveSlot(bus->name());
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
-            stream << socketEncodingCondition(Verilog,dstField, socket->name())
-                   << " && "
-                   << squashSignal(bus->name()) << " == 0";
+            stream << squashSignal(bus->name()) << " == 0 && "
+                   << socketEncodingCondition(Verilog, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 RFPortCode& code = scTable.rfPortCode(rf->name());
                 if (code.hasEncoding()) {
-                    stream << " && " << portCodeCondition(VHDL,enc, code);
+                    stream << " && " << portCodeCondition(VHDL, enc, code);
 
                 }
                 stream << ")" << endl
@@ -3045,7 +3088,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
                        << endl
                        << indentation(5) 
                        << rfOpcodeSignalName(rf->name(), port.name()) << " <= "
-                       << rfOpcodeFromSrcOrDstField(Verilog,enc, code) << ";" << endl;
+                       << rfOpcodeFromSrcOrDstField(Verilog, enc, code) << ";" << endl;
             } else {
                 stream << ")" << endl
                        << indentation(4) << "begin" << endl

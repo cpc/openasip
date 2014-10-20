@@ -2194,11 +2194,7 @@ The example streaming operations in the base operation set are
 called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
 These operations have a simulation behavior definition which simulates the
 stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host. The files are called \textit{ttasim\_stream.in} for 
-the input stream and \textit{ttasim\_stream.out} for the output stream and
-should reside in the directory where the simulator is started. 
-The file names can be customized using environment variables 
-TTASIM\_STREAM\_OUT\_FILE and TTASIM\_STREAM\_IN\_FILE, respectively.
+the simulator host.
 
 Here is an example C code that implements streaming I/O with the operations:
 
@@ -2232,9 +2228,11 @@ with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
 value means the stream buffer is empty, which means the file simulating the
 input buffer has reached the end of file.
 
-You can test the code by creating a file \textit{ttasim\_stream.in}
-with some test data. The code should create a copy of that file to the
-stream output file \textit{ttasim\_stream.out}.
+You can test the code by creating a file \textit{<FU\_NAME>.in} with some test
+data, compiling the code and simulating it. The code should create a copy of
+that file to the stream output file \textit{<FU\_NAME>.out}. These files
+should reside in the directory where the simulator is started. You can get
+the FU\_NAME from the streaming function units in the adf file.
 
 \subsection{Streaming I/O function units}
 VHDL implementations and HDB entries for streaming I/O have been included 
@@ -2388,7 +2386,7 @@ The processor's specifications are the following:
 Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
 \textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
 \textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
-\textit{gtu}, \textit{jump} and \textit{immediate transport}.
+\textit{gtu}, \textit{jump}, \textit{cos16} and \textit{immediate transport}.
 
 When you program using TTA assembly you need to take into account 
 operation latencies. The \textit{jump} latency is four clock cycles and load
