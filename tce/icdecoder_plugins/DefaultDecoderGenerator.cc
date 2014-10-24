@@ -47,6 +47,7 @@
 #include "VerilogNetlistWriter.hh"
 
 #include "Machine.hh"
+#include "MachineInfo.hh"
 #include "Bus.hh"
 #include "Segment.hh"
 #include "Socket.hh"
@@ -1436,15 +1437,8 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             }
             stream << guardFieldSignal(slot.name());
 
-            std::set<InstructionTemplate*> affectingInstTemplates;
-            Machine::InstructionTemplateNavigator itNav = 
-                machine_.instructionTemplateNavigator();
-            for (int i = 0; i < itNav.count(); i++) {
-                InstructionTemplate* iTemp = itNav.item(i);
-                if (iTemp->usesSlot(bus.name())) {
-                    affectingInstTemplates.insert(iTemp);
-                }
-            }
+            std::set<InstructionTemplate*> affectingInstTemplates =
+                MachineInfo::templatesUsingSlot(machine_, bus.name());
 
             if (affectingInstTemplates.size() > 0) {
                 stream << ", " << LIMM_TAG_SIGNAL;
@@ -1507,10 +1501,49 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             stream << indentation(indLevel+1) << squashSignal(slot.name()) 
                    << " <= '0';" << endl;
             stream << indentation(indLevel-1) << "end case;" << endl;
+        
             if (affectingInstTemplates.size() > 0) {
                 stream << indentation(2) << "end if;" << endl;
             }
             stream << indentation(1) << "end process;" << endl << endl;
+        } else if (MachineInfo::templatesUsesSlot(machine_, bus.name())) {
+            // In absence of guards generate squash signal if
+            // slot is affected by any long immediate instruction template.
+            stream << indentation(1) << "-- generate signal "
+                   << squashSignal(slot.name()) << endl;
+            stream << indentation(1) << "process (";
+
+            std::set<InstructionTemplate*> affectingInstTemplates =
+                MachineInfo::templatesUsingSlot(machine_, bus.name());
+
+            stream << LIMM_TAG_SIGNAL;
+            stream << ")" << endl;
+            stream << indentation(1) << "begin --process" << endl;
+            int indLevel = 2;
+            if (affectingInstTemplates.size() > 0) {
+                stream << indentation(indLevel) << "if (";
+                for (set<InstructionTemplate*>::const_iterator iter =
+                         affectingInstTemplates.begin();
+                     iter != affectingInstTemplates.end(); iter++) {
+                    if (iter != affectingInstTemplates.begin()) {
+                        stream << " or ";
+                    }
+                    ImmediateControlField& icField =
+                        bem_.immediateControlField();
+                    InstructionTemplate* affectingTemp = *iter;
+                    stream << "conv_integer(unsigned(" << LIMM_TAG_SIGNAL
+                           << ")) = "
+                           << icField.templateEncoding(affectingTemp->name());
+                }
+                stream << ") then" << endl;
+                stream << indentation(indLevel+1) << squashSignal(bus.name())
+                       << " <= '1';" << endl;
+                stream << indentation(2) << "else" << endl;
+                stream << indentation(indLevel+1) << squashSignal(bus.name())
+                       << " <= '0';" << endl;
+                stream << indentation(2) << "end if;" << endl;
+                stream << indentation(1) << "end process;" << endl << endl;
+            }
         } else {
             // the bus contains always true guard so squash has static value
             // Synthesis software should optimize it away

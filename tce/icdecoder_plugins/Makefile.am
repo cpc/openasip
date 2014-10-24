@@ -15,6 +15,7 @@ IDF_DIR = ${SRC_ROOT_DIR}/base/idf
 UMACH_DIR = ${SRC_ROOT_DIR}/base/umach
 PROG_DIR = ${SRC_ROOT_DIR}/base/program
 BEM_DIR = ${SRC_ROOT_DIR}/base/bem
+GRAPH_DIR = ${SRC_ROOT_DIR}/base/Graph
 BEM_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/bem
 PIG_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/PIG
 MACH_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/mach
@@ -31,6 +32,7 @@ LLVMBACKEND_DIR = ${SRC_ROOT_DIR}/applibs/LLVMBackend
 SCHEDULER_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
 APPLIBS_PROG = ${SRC_ROOT_DIR}/applibs/program
 PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
+OSAL_APPLIB_DIR = ${SRC_ROOT_DIR}/applibs/osal
 
 AM_CPPFLAGS = \
         -I${MACH_DIR} -I${UMACH_DIR} -I${OSAL_DIR} -I${TPEF_DIR} -I${BEM_DIR} \
@@ -39,7 +41,7 @@ AM_CPPFLAGS = \
 		-I${HDB_DIR} -I${TRACEDB_DIR} -I${SIM_DIR} -I${COSTDB_DIR} \
 		-I${EXPLORER_DIR} -I${DSDB_DIR} -I${INTERP_DIR} \
 		-I${LLVMBACKEND_DIR} -I${SCHEDULER_DIR} -I${APPLIBS_PROG} \
-		-I${PROGE_DIR}
+		-I${PROGE_DIR} -I${OSAL_APPLIB_DIR} -I${GRAPH_DIR}
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
