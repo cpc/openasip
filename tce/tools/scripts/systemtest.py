@@ -283,7 +283,13 @@ class IntegrationTestCase(object):
             elif len(in_files) == 1:
                 in_file = os.path.basename(in_files[0])
             else:
-                in_file = None
+                # Support also files without running index number in front.
+                # E.g. ld32_st32_output.txt and ld32_st32.txt (input).
+                no_index_file = os.path.join(self.verification_data_dir, index[0:-1] + ".txt")
+                if os.path.exists(no_index_file):
+                    in_file = index[0:-1] + ".txt"
+                else:                                 
+                    in_file = None
 
             self._test_data.append((in_file, os.path.basename(out_file)))
 
