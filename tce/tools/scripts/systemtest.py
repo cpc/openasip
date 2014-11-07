@@ -402,7 +402,7 @@ class IntegrationTestCase(object):
             if timeout:
                 if options.output_diff:
                     output_diff_file.write("FAIL (timeout %ss): " % options.timeout + \
-                                           self._file_name + ": " + self.description + "\n")
+                                           self._file_name + ": " + self.description + " (%s) " % stdin_fn + "\n")
                 all_ok = False
                 continue
 
@@ -423,7 +423,8 @@ class IntegrationTestCase(object):
 
             if len(stdoutDiff) > 0:
                 if options.output_diff:
-                    output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + "\n")
+                    output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
+                                               " (%s) " % stdin_fn + "\n")
                     for line in stdoutDiff:
                         output_diff_file.write(line)
                     output_diff_file.flush()
