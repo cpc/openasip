@@ -2791,7 +2791,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                             break;
                         }
                     }
-                    if (!ordered || (gcu != NULL)) {
+                    if (!ordered) {
                         stream << indentation(5) << "if (";
                         for (int i = 0; i < fu->operationCount(); i++) {
                             HWOperation* operation = fu->operation(i);
@@ -2804,11 +2804,11 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                                    << " <= '1';" << endl;
                             if (gcu != NULL) {
                                 if (operation->name() == JUMP) {
-                                    stream << indentation(5) 
+                                    stream << indentation(6)
                                            << fuOpcodeSignalName(fu->name())
                                            << " <= IFE_JUMP;" << endl;
                                 } else if (operation->name() == CALL) {
-                                    stream << indentation(5)
+                                    stream << indentation(6)
                                            << fuOpcodeSignalName(fu->name())
                                            << " <= IFE_CALL;" << endl;
                                 }
@@ -3679,14 +3679,21 @@ DefaultDecoderGenerator::simmControlPort(const std::string& busName) {
 
 
 /**
- * Returns the width of the short immediate port of the given bus.
+ * Returns the required width of the short immediate port of the given bus.
  *
  * @param bus The bus.
  * @return The width of the port.
  */
 int
 DefaultDecoderGenerator::simmPortWidth(const TTAMachine::Bus& bus) {
-    return bus.width();
+    if (bus.signExtends()) {
+        return bus.width();
+    } else if (bus.zeroExtends()) {
+        return bus.immediateWidth();
+    } else {
+        assert(false && "Unknown extension policy.");
+        return -1;
+    }
 }
 
 

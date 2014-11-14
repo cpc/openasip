@@ -30,6 +30,7 @@
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @author Pekka J‰‰skel‰inen 2011
  * @author Vinogradov Viacheslav(added Verilog generating) 2012
+ * @author Henry Linjam‰ki (henry.linjamaki-no.spam-tut.fi) 2014
  * @note rating: red
  */
 
@@ -595,21 +596,9 @@ void
 DefaultICGenerator::generateInputSocketRuleForBus(
     int bus, int ind, std::ofstream& stream) const {
     if(language_==VHDL){
-        stream << indentation(ind) << "if " << busWidthGeneric(bus) << " < " 
-               << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
-        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= ext(" 
-               << inputSocketBusPort(bus) << "," << INPUT_SOCKET_DATA_PORT 
-               << "'length);" << endl;
-        stream << indentation(ind) << "elsif " << busWidthGeneric(bus) 
-               << " > " << INPUT_SOCKET_DATAW_GENERIC << " then" << endl;
-        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
-               << inputSocketBusPort(bus) << "(" << INPUT_SOCKET_DATAW_GENERIC
-               << "-1 downto 0);" << endl;
-        stream << indentation(ind) << "else" << endl;
-        stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT << " <= " 
-               << inputSocketBusPort(bus) << "(" << busWidthGeneric(bus) 
-               << "-1 downto 0);" << endl;
-        stream << indentation(ind) << "end if;" << endl;
+        stream << indentation(ind) << INPUT_SOCKET_DATA_PORT
+               << " <= ext(" << inputSocketBusPort(bus) << ", "
+               << INPUT_SOCKET_DATA_PORT << "'length);" << endl;
     } else {
         stream << indentation(ind) << "if (" << busWidthGeneric(bus) << " < " 
                << INPUT_SOCKET_DATAW_GENERIC << ")" << endl
@@ -745,20 +734,13 @@ DefaultICGenerator::generateOutputSocket(
         stream << indentation(1) << "begin -- process output" << endl;
             
         for (int i = 0; i < segmentConns; i++) {
-            stream << indentation(2) << "if " << busWidthGeneric(i) 
-                   << " < data'length then" << endl;
-            stream << indentation(3) << outputSocketBusPort(i) 
-                   << " <= databus_" << i << "_temp(" << busWidthGeneric(i)
-                   << "-1 downto 0);" << endl;
-            stream << indentation(2) << "else" << endl;
-            stream << indentation(3) << outputSocketBusPort(i) 
-                   << " <= ext(databus_" << i << "_temp, " 
+            stream << indentation(2) << outputSocketBusPort(i)
+                   << " <= ext(databus_" << i << "_temp, "
                    << outputSocketBusPort(i) << "'length);" << endl;
-            stream << indentation(2) << "end if;" << endl;
         }
         stream << indentation(1) << "end process output;" << endl << endl;
         stream << "end output_socket_andor;" << endl;
-    } else {
+    } else { // language_ == Verilog
         stream << "`timescale 10ns/1ns" << endl
                << "module " << entityName << endl;
         writeOutputSocketComponentDeclaration(Verilog,
@@ -905,7 +887,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         stream << "use IEEE.std_logic_1164.all;" << endl;
         stream << "use IEEE.std_logic_arith.all;" << endl;
         stream << "use STD.textio.all;" << endl;
-        stream << "use work." << entityNameStr_ << "_globals.all;" << endl << endl;
+        stream << "use work." << entityNameStr_ << "_globals.all;" << endl
+               << endl;
             
         string entityName = entityNameStr_ + "_interconn";
         stream << "entity " << entityName << " is" << endl << endl;
@@ -943,9 +926,15 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                    << endl;
             stream << indentation(2) << "generic map (" << endl;
             for (int i = 0; i < segmentCount; i++) {
+                int actualGenericWidth = 0;
+                if (socket->direction() == Socket::OUTPUT) {
+                    actualGenericWidth = maxOutputSocketDataPortWidth(*socket);
+                } else if (socket->direction() == Socket::INPUT) {
+                    actualGenericWidth =
+                        socket->segment(i)->parentBus()->width();
+                }
                 stream << indentation(3) << busWidthGeneric(i) << " => " 
-                       << socket->segment(i)->parentBus()->width() << "," 
-                       << endl;
+                       << actualGenericWidth << "," << endl;
             }
             if (socket->direction() == Socket::OUTPUT) {
                 for (int i = 0; i < socket->portCount(); i++) {
@@ -964,13 +953,13 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                         stream << "," << endl;
                     }
                 }
-            } else {
+            } else { // socket->direction() == Socket::INPUT
                 string socketWidth;
                 if (socket->hasDataPortWidth()) {
                     socketWidth = socket->dataPortWidth();
                 } else {
-                    socketWidth =
-                        Conversion::toString(inputSocketDataPortWidth(*socket));
+                    socketWidth = Conversion::toString(
+                        inputSocketDataPortWidth(*socket));
                 }
                 stream << indentation(3) << INPUT_SOCKET_DATAW_GENERIC 
                        << " => " << socketWidth << ")"
@@ -1025,7 +1014,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                        << outputSocketEntityName(1, 1) << endl;
                 stream << indentation(2) << "generic map (" << endl;
                 stream << indentation(3) << busWidthGeneric(0) << " => " 
-                       << bus->width() << "," << endl;
+                       << simmPortWidth(*bus) << "," << endl;
                 stream << indentation(3) << dataWidthGeneric(0) << " => "
                        << simmPortWidth(*bus) << ")" << endl;
                 stream << indentation(2) << "port map (" << endl;
@@ -1051,7 +1040,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                      outputSockets.begin(); 
                  iter != outputSockets.end();) {
                 Socket* socket = *iter;
-                stream << busAltSignal(*bus, *socket);
+                stream << "ext(" << busAltSignal(*bus, *socket)
+                       << ", " << busSignal(*bus) << "'length)";
                 iter++;
                 if (iter != outputSockets.end()) {
                     stream << " or ";
@@ -1061,14 +1051,22 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                 if (outputSockets.begin() != outputSockets.end()) {
                     stream << " or ";
                 }
-                stream << simmSignal(*bus);
+                if (bus->signExtends()) {
+                    stream << "sxt(";
+                } else if (bus->zeroExtends()) {
+                    stream << "ext(";
+                } else {
+                    assert(false && "Unknown extension policy.");
+                }
+                stream << simmSignal(*bus)
+                       << ", " << busSignal(*bus) << "'length)";
             }
             stream << ";" << endl;
         }
             
         stream << endl;
         stream << "end comb_andor;" << endl;
-    } else {
+    } else { // language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_interconn";
         stream << "`timescale 1ns/1ns" << endl
@@ -1248,7 +1246,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
 void
 DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
     Machine::BusNavigator busNav = machine_.busNavigator();
-    if(language_==VHDL){
+    if (language_ == VHDL){
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             // create signal for the bus
@@ -1260,19 +1258,22 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
                  iter != outputSockets.end(); iter++) {
+
+
                 stream << indentation(1) << "signal " 
                        << busAltSignal(*bus, **iter) << " : std_logic_vector("
-                       << bus->width() - 1 << " downto 0);" << endl;
+                       << maxOutputSocketDataPortWidth(**iter) - 1
+                       << " downto 0);" << endl;
             }
 
             // create additional signal for short immediate
             if (bus->immediateWidth() > 0) {
                 stream << indentation(1) << "signal " << simmSignal(*bus) 
-                       << " : std_logic_vector(" << bus->width() - 1 
+                       << " : std_logic_vector(" << simmPortWidth(*bus) - 1
                        << " downto 0);" << endl;
             }
         }
-    } else {
+    } else { // language_ == Verilog
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             // create wire for the bus
@@ -1814,6 +1815,26 @@ DefaultICGenerator::outputSocketDataPortWidth(
 
 
 /**
+ * Returns the maximum width of the data ports of the given output socket.
+ *
+ * @param socket The socket.
+ */
+int
+DefaultICGenerator::maxOutputSocketDataPortWidth(
+    const TTAMachine::Socket& socket) {
+    int maxPortWidth = 0;
+    assert(socket.direction() == Socket::OUTPUT);
+    for (int i = 0; i < socket.portCount(); i++) {
+        Port* port = socket.port(i);
+        if (maxPortWidth < port->width()) {
+            maxPortWidth = port->width();
+        }
+    }
+    return maxPortWidth;
+}
+
+
+/**
  * Returns the number of bits required to control the bus connections of
  * the given socket.
  *
@@ -1862,14 +1883,21 @@ DefaultICGenerator::dataControlWidth(
 
 
 /**
- * Returns the width of the short immediate port of the given bus.
+ * Returns the required width of the short immediate port of the given bus.
  *
  * @param bus The bus.
  * @return The width of the port.
  */
 int
 DefaultICGenerator::simmPortWidth(const TTAMachine::Bus& bus) {
-    return bus.width();
+    if (bus.signExtends()) {
+        return bus.width();
+    } else if (bus.zeroExtends()) {
+        return bus.immediateWidth();
+    } else {
+        assert(false && "Unknown extension policy.");
+        return -1;
+    }
 }
 
 
@@ -2138,7 +2166,6 @@ DefaultICGenerator::socketFileName(
 }
 
 
-
 /**
  * Generates VHDL entity name for the given socket.
  *
@@ -2208,3 +2235,4 @@ DefaultICGenerator::indentation(unsigned int level) {
     }
     return indentation;
 }
+
