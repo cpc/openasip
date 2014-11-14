@@ -438,7 +438,7 @@ DefaultICGenerator::generateSocket(
     }
     
     std::ofstream stream(pathToFile.c_str(), std::ofstream::out);
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
         stream << "use IEEE.std_logic_arith.all;" << endl;
@@ -471,7 +471,7 @@ DefaultICGenerator::generateInputSocket(
     std::ofstream& stream) const {
     
     assert(segmentConns > 0);
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
         stream << "entity " << entityName << " is" << endl << endl;
         writeInputSocketComponentDeclaration(VHDL,segmentConns, 1, stream);
@@ -595,7 +595,7 @@ DefaultICGenerator::generateInputSocket(
 void
 DefaultICGenerator::generateInputSocketRuleForBus(
     int bus, int ind, std::ofstream& stream) const {
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         stream << indentation(ind) << INPUT_SOCKET_DATA_PORT
                << " <= ext(" << inputSocketBusPort(bus) << ", "
                << INPUT_SOCKET_DATA_PORT << "'length);" << endl;
@@ -1359,7 +1359,7 @@ DefaultICGenerator::writeOutputSocketComponentDeclaration(
     int ind,
     std::ostream& stream) {
 
-    if(language==VHDL){
+    if (language == VHDL) {
         stream << indentation(ind) << "generic (" << endl;
         
         for (int i = 0; i < segmentConns; i++) {
@@ -1473,7 +1473,7 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
     int ind,
     std::ostream& stream) {
     
-    if(language==VHDL){
+    if (language == VHDL) {
         stream << indentation(ind) << "generic (" << endl;
         
         for (int i = 0; i < segmentConns; i++) {
@@ -1546,7 +1546,7 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
  */
 void
 DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         stream << indentation(1)
                << "-- Dump the value on the buses into a file once in clock cycle"
                << endl;
@@ -1605,7 +1605,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process file_output;" << endl;
         stream << indentation(1) << "-- pragma synthesis_on" << endl;
-    } else { // language_==Verilog
+    } else { // language_ == Verilog
         stream << indentation(1)
                << "// Dump the value on the buses into a file once in clock cycle"
                << endl
