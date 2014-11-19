@@ -85,6 +85,14 @@ CmdLineOptionParser::integer(int) const
     return 0;
 }
 
+unsigned
+CmdLineOptionParser::unsignedInteger(int) const
+    throw (WrongSubclass) {
+
+    throw WrongSubclass(__FILE__, __LINE__, __func__);
+    return 0;
+}
+
 
 /**
  * This implementation should be never called.
@@ -264,6 +272,90 @@ IntegerCmdLineOptionParser::integer(int index) const
     assert(index == 0);
     return value_;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// IntegerCmdLineOptionParser
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Constructor.
+ *
+ * @param name The name of the option.
+ * @param desc The description of the option.
+ * @param alias The short name of the option.
+ */
+UnsignedIntegerCmdLineOptionParser::UnsignedIntegerCmdLineOptionParser(
+    std::string name,
+    std::string desc,
+    std::string alias) : 
+    CmdLineOptionParser(name, desc, alias), value_(0) {
+}
+
+/**
+ * Destructor.
+ */
+UnsignedIntegerCmdLineOptionParser::~UnsignedIntegerCmdLineOptionParser() {
+}
+
+OptionValue*
+UnsignedIntegerCmdLineOptionParser::copy() const {
+    UnsignedIntegerOptionValue* copy = new UnsignedIntegerOptionValue(value_);
+    return copy;
+}
+
+/**
+ * Parses the unsigned integer option value.
+ *
+ * @param arguments The arguments of option.
+ * @param prefix The prefix of option.
+ * @return True when parsing is ready.
+ * @exception IllegalCommandLine If the arguments of option are erronous.
+ */
+bool
+UnsignedIntegerCmdLineOptionParser::parseValue(
+    std::string arguments,
+    std::string prefix)
+    throw (IllegalCommandLine) {
+
+    if (prefix != "") {
+        string msg = "Illegal prefix for unsigned integer option";
+        string method = "UnsignedIntegerCmdLineOptionParser::parseValue()";
+        throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
+    }
+
+    if (arguments == "") {
+        string msg = "Missing value for unsigned integer option.";
+        string method = "UnsignedIntegerCmdLineOptionParser::parseValue()";
+        throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
+    }
+
+    istringstream istream(arguments);
+    if((!(istream >> value_)) || istream.peek() != EOF) {
+        string msg = "Format of " + longName() + " option value was wrong: "
+            + arguments;
+        string method = "unsignedIntegerCmdLineOptionParser::parseValue()";
+        throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
+    }
+
+    setDefined();
+    return true;
+}
+
+/**
+ * Returns the value of the unsigned integer option.
+ *
+ * @param index This must be zero for usigned integer option.
+ * @return The value of usigned integer option.
+ * @exception WrongSubclass Is never thrown by this function.
+ */
+unsigned
+UnsignedIntegerCmdLineOptionParser::unsignedInteger(int index) const
+    throw (WrongSubclass) {
+
+    assert(index == 0);
+    return value_;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // StringCmdLineOptionParser

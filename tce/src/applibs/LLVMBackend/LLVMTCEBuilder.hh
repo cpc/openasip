@@ -142,6 +142,8 @@ namespace llvm {
                         &targetMachine()) != NULL);
         }
 
+        void setInitialStackPointerValue(unsigned value);
+
     protected:
 
         bool doInitialization(Module &M);
@@ -453,6 +455,8 @@ namespace llvm {
         std::vector<MachineFunction*> functions_;
 
         int spillMoveCount_;
+
+        unsigned initialStackPointerValue_;
 
         bool dataInitialized_;
 

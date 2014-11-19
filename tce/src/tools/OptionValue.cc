@@ -87,6 +87,18 @@ OptionValue::setIntegerValue(int)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
+OptionValue::setUnsignedIntegerValue(unsigned)
+    throw (WrongSubclass) {
+
+    throw WrongSubclass(__FILE__, __LINE__, __func__);
+}
+
+/**
+ * This implementation should never be called.
+ *
+ * @exception WrongSubclass Called for a wrong subclass.
+ */
+void
 OptionValue::setRealValue(double)
     throw (WrongSubclass) {
 
@@ -249,6 +261,32 @@ IntegerOptionValue::integerValue(int) const
 
     return value_;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// UnsignedIntegerOptionValue
+//////////////////////////////////////////////////////////////////////////////
+
+UnsignedIntegerOptionValue::UnsignedIntegerOptionValue(unsigned value) {
+    value_ = value;
+}
+
+UnsignedIntegerOptionValue::~UnsignedIntegerOptionValue() {
+}
+
+void
+UnsignedIntegerOptionValue::setUnsignedIntegerValue(unsigned value)
+    throw (WrongSubclass) {
+
+    value_ = value;
+}
+
+unsigned
+UnsignedIntegerOptionValue::unsignedIntegerValue(int) const
+    throw (WrongSubclass, OutOfRange) {
+
+    return value_;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // StringOptionValue
