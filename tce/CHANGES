@@ -8,6 +8,7 @@ Notable changes and features
 - HDBEditor: External ports and additional parameters can be defined for RF 
   implementations.
 - ProGe: RF's external ports can be now generated.
+- tcecc --init-sp: force the initial stack pointer value
 
 Other features and improvements
 ------------------------------

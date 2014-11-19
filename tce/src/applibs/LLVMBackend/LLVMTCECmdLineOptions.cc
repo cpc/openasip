@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of LLVMTCECmdLineOptions class.
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2008-2012
+ * @author Pekka Jääskeläinen 2008-2014
  * @note rating: red
  */
 
@@ -68,6 +68,7 @@ const std::string LLVMTCECmdLineOptions::SWL_ENABLE_VECTOR_BACKEND =
     "vector-backend";
 const std::string LLVMTCECmdLineOptions::SWL_WORK_ITEM_AA_FILE = "wi-aa-filename";
 const std::string LLVMTCECmdLineOptions::SWL_BACKEND_CACHE_DIR = "backend-cache-dir";
+const std::string LLVMTCECmdLineOptions::SWL_INIT_SP = "init-sp";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -173,6 +174,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new StringCmdLineOptionParser(
             SWL_BACKEND_CACHE_DIR,
             "The directory to use for caching LLVM backend plugins."));
+
+    addOption(
+        new UnsignedIntegerCmdLineOptionParser(
+            SWL_INIT_SP,
+            "Initialize the stack pointer of the program to the given value."));
 }
 
 /**
@@ -353,4 +359,14 @@ LLVMTCECmdLineOptions::backendCacheDir() const {
     if (findOption(SWL_BACKEND_CACHE_DIR)->isDefined())
         return findOption(SWL_BACKEND_CACHE_DIR)->String();
     return Environment::llvmtceCachePath();
+}
+
+bool
+LLVMTCECmdLineOptions::isInitialStackPointerValueSet() const {
+   return findOption(SWL_INIT_SP)->isDefined();
+}
+
+unsigned
+LLVMTCECmdLineOptions::initialStackPointerValue() const {
+    return findOption(SWL_INIT_SP)->unsignedInteger();
 }

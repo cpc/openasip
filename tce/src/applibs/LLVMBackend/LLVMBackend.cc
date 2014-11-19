@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2011
+ * @author Pekka Jääskeläinen 2009-2014
  * @note rating: red
  */
 
@@ -659,6 +659,11 @@ LLVMBackend::compile(
     AliasAnalysis* AA = NULL;
     builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
 
+
+    if (options_ != NULL && options_->isInitialStackPointerValueSet()) {
+        builder->setInitialStackPointerValue(
+            options_->initialStackPointerValue());
+    }
     Passes.add(builder);
     Passes.run(module);
     // get and write out pom

@@ -71,7 +71,9 @@ public:
     bool isDefined();
 
     virtual int integer(int index = 0) const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
+    virtual unsigned unsignedInteger(int index = 0) const
+        throw (WrongSubclass);
     virtual std::string String(int index = 0) const
         throw (WrongSubclass);
     virtual double real() const
@@ -126,7 +128,7 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix)
         throw (IllegalCommandLine);
     virtual int integer(int index = 0) const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
 
 private:
     /// Copying not allowed.
@@ -137,6 +139,41 @@ private:
     /// The value of option.
     int value_;
 };
+
+//////////////////////////////////////////////////////////////////////////////
+// UnsignedIntegerCmdLineOptionParser
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Models an option that has an unsigned integer value.
+ */
+class UnsignedIntegerCmdLineOptionParser : public CmdLineOptionParser {
+public:
+    UnsignedIntegerCmdLineOptionParser(
+        std::string name,
+        std::string desc,
+        std::string alias = "");
+    virtual ~UnsignedIntegerCmdLineOptionParser();
+
+    virtual OptionValue* copy() const;
+
+    virtual bool parseValue(std::string arguments, std::string prefix)
+        throw (IllegalCommandLine);
+    virtual unsigned unsignedInteger(int index = 0) const
+        throw (WrongSubclass);
+
+private:
+    /// Copying not allowed.
+    UnsignedIntegerCmdLineOptionParser(
+        const UnsignedIntegerCmdLineOptionParser&);
+    /// Assignment not allowed.
+    UnsignedIntegerCmdLineOptionParser& operator=(
+        const UnsignedIntegerCmdLineOptionParser&);
+
+    /// The value of option.
+    unsigned value_;
+};
+
 
 //////////////////////////////////////////////////////////////////////////////
 // StringCmdLineOptionParser
@@ -158,7 +195,7 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix)
         throw (IllegalCommandLine);
     virtual std::string String(int index = 0) const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
 
 private:
     /// Copying not allowed.
@@ -190,7 +227,7 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix)
         throw (IllegalCommandLine);
     virtual double real() const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
 
 private:
     /// Copying not allowed.
@@ -259,9 +296,9 @@ public:
         throw (IllegalCommandLine);
 
     virtual int integer(int index = 0) const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
     virtual int listSize() const
-	throw (WrongSubclass);
+        throw (WrongSubclass);
 
 
 private:

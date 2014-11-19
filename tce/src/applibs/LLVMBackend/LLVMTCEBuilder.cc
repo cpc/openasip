@@ -184,7 +184,9 @@ LLVMTCEBuilder::initMembers() {
     multiDataMemMachine_ = false;
     spillMoveCount_ = 0;
     dataInitialized_ = false;
+    initialStackPointerValue_ = 0;
 }
+
 
 /**
  * The Destructor.
@@ -854,6 +856,16 @@ LLVMTCEBuilder::createExprDataDefinition(
     }
 }
 
+/**
+ * Sets the value the stack pointer should be initialized to.
+ */
+void
+LLVMTCEBuilder::setInitialStackPointerValue(unsigned value) {
+    initialStackPointerValue_ = value;
+}
+
+
+//        std::min(addressSpaceById(0).end() & 0xfffffff8, value);
 
 /**
  * Creates POM procedure of a MachineFunction object and adds it to the
@@ -2293,7 +2305,13 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
 
-    unsigned ival = (addressSpaceById(0).end() & 0xfffffffc);
+    unsigned ival = initialStackPointerValue_;
+
+    if (initialStackPointerValue_ == 0 || 
+        initialStackPointerValue_ >
+        (addressSpaceById(0).end() & 0xfffffff8))
+        ival = addressSpaceById(0).end() & 0xfffffff8;
+
     SimValue val(ival, 32);
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
