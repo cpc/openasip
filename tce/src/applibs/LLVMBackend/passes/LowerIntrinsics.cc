@@ -36,7 +36,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#if (defined(LLVM_3_2))
 #include "llvm/Module.h"
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
@@ -56,11 +56,7 @@
 #include "llvm/CodeGen/IntrinsicLowering.h"
 #include "tce_config.h"
 
-#ifdef LLVM_3_1
-
-#include "llvm/Target/TargetData.h"
-
-#elif defined(LLVM_3_2)
+#if defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
 typedef llvm::DataLayout TargetData;

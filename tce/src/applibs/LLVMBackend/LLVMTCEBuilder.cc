@@ -572,7 +572,6 @@ LLVMTCEBuilder::createDataDefinition(
         createGlobalValueDataDefinition(addressSpaceId, addr, gv);
     } else if (const ConstantExpr* ce = dyn_cast<ConstantExpr>(cv)) {
         createExprDataDefinition(addressSpaceId, addr, ce);
-#ifndef LLVM_3_0
     } else if (const ConstantDataArray* cda = dyn_cast<ConstantDataArray>(cv)){
         if (cda->isNullValue()) {
             TTAProgram::Address address(addr, aSpace);
@@ -584,7 +583,6 @@ LLVMTCEBuilder::createDataDefinition(
                     addressSpaceId, addr, cda->getElementAsConstant(i));
             }
         }
-#endif
     } else {
         cv->dump();
         abortWithError("Unknown cv type.");

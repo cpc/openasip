@@ -328,11 +328,7 @@ MachineInstrDDG::preceedingNodeUsesOrDefinesReg(
         }
         
         if (instr->readsRegister(physReg) || 
-#ifdef LLVM_2_7
-            instr->modifiesRegister(physReg)) {
-#else
             instr->modifiesRegister(physReg, regInfo_)) {
-#endif
             return true;
         } 
     }
