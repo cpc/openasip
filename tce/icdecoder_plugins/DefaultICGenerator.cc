@@ -114,13 +114,31 @@ DefaultICGenerator::addICToNetlist(
     ProGe::Netlist& netlist) {
 
     entityNameStr_ = netlist.topLevelBlock().moduleName();
-
     NetlistBlock* icBlock = 
         new NetlistBlock(
             entityNameStr_ + "_" + "interconn", "ic", netlist);
     icBlock_ = icBlock;
     netlist.topLevelBlock().addSubBlock(icBlock);
     ControlUnit* gcu = machine_.controlUnit();
+
+    // Add clock, reset port and glock port
+    NetlistPort* tlClkPort =
+        netlist.topLevelBlock()
+        .portByName(NetlistGenerator::DECODER_CLOCK_PORT);
+    NetlistPort* icClkPort = new NetlistPort(
+        NetlistGenerator::DECODER_CLOCK_PORT, "1", BIT, HDB::IN, *icBlock);
+    netlist.connectPorts(*icClkPort, *tlClkPort);
+
+    NetlistPort* tlResetPort =
+        netlist.topLevelBlock()
+        .portByName(NetlistGenerator::DECODER_RESET_PORT);
+    NetlistPort* icResetPort = new NetlistPort(
+        NetlistGenerator::DECODER_RESET_PORT, "1", BIT, HDB::IN, *icBlock);
+    netlist.connectPorts(*icResetPort, *tlResetPort);
+
+    NetlistPort* icGlockPort = new NetlistPort(
+        "glock", "1", BIT, HDB::IN, *icBlock);
+    setGlockPort(*icGlockPort);
 
     // add data ports and control ports for sockets
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -1556,21 +1574,34 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(1) << "-- pragma synthesis_off" << endl;
 
         stream << indentation(1) << "file_output : process" << endl << endl;
-        stream << indentation(2) << "file fileout : text;" << endl << endl;
+        stream << indentation(2)
+               << "file regularfileout : text;" << endl;
+        stream << indentation(2)
+               << "file executionfileout : text;" << endl << endl;
         stream << indentation(2) << "variable lineout : line;" << endl;
         stream << indentation(2) << "variable start : boolean := true;" << endl;
-        stream << indentation(2) << "variable count : integer := 0;" << endl
+        stream << indentation(2) << "variable cyclecount : integer := 0;"
                << endl;
+        stream << indentation(2) << "variable executioncount : integer := 0;"
+               << endl << endl;
         stream << indentation(2) << "constant SEPARATOR : string := \" | \";"
                << endl;
         stream << indentation(2) << "constant DUMP : boolean := true;" << endl;
-        stream << indentation(2) << "constant DUMPFILE : string := \"bus.dump\";"
+        stream << indentation(2)
+               << "constant REGULARDUMPFILE : string := \"bus.dump\";"
+               << endl;
+        stream << indentation(2)
+               << "constant EXECUTIONDUMPFILE : string := \"execbus.dump\";"
                << endl << endl;
 
         stream << indentation(1) << "begin" << endl;
         stream << indentation(2) << "if DUMP = true then" << endl;
         stream << indentation(3) << "if start = true then" << endl;
-        stream << indentation(4) << "file_open(fileout, DUMPFILE, write_mode);" 
+        stream << indentation(4)
+               << "file_open(regularfileout, REGULARDUMPFILE, write_mode);"
+               << endl;
+        stream << indentation(4)
+               << "file_open(executionfileout, EXECUTIONDUMPFILE, write_mode);"
                << endl;
         stream << indentation(4) << "start := false;" << endl;
         stream << indentation(3) << "end if;" << endl << endl;
@@ -1578,12 +1609,12 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(3) << "wait for PERIOD;" << endl;
         int ind = 3;
         if (busTraceStartingCycle_ > 0) {
-            stream << indentation(3) << "if (count > "
+            stream << indentation(3) << "if (cyclecount > "
                    << busTraceStartingCycle_ - 1
                    << ") then" << endl;
             ind++;
         }
-        stream << indentation(ind) << "write(lineout, count-"
+        stream << indentation(ind) << "write(lineout, cyclecount-"
                << busTraceStartingCycle_ << ", right, 12);"
                << endl;
         stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
@@ -1595,13 +1626,32 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
             stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
         }
         
-        stream << endl << indentation(ind) << "writeline(fileout, lineout);" 
+        stream << endl << indentation(ind)
+               << "writeline(regularfileout, lineout);" << endl;
+
+        stream << indentation(ind) << "if glock = '0' then" << endl;
+        stream << indentation(ind+1) << "write(lineout, executioncount"
+               << ", right, 12);"
                << endl;
+        stream << indentation(ind+1) << "write(lineout, SEPARATOR);" << endl;
+
+        for (int i = 0; i < busNav.count(); i++) {
+            stream << indentation(ind+1)
+                   << "write(lineout, conv_integer(signed("
+                   << busSignal(*busNav.item(i)) << ")), right, 12);" << endl;
+            stream << indentation(ind+1) << "write(lineout, SEPARATOR);"
+                   << endl;
+        }
+        stream << endl << indentation(ind+1)
+               << "writeline(executionfileout, lineout);" << endl;
+        stream << indentation(ind+1) << "executioncount := executioncount + 1;"
+               << endl;
+        stream << indentation(ind) << "end if;" << endl;
 
         if (busTraceStartingCycle_ > 0) {
             stream << indentation(3) << "end if;" << endl;
         }
-        stream << indentation(3) << "count := count + 1;" << endl;
+        stream << indentation(3) << "cyclecount := cyclecount + 1;" << endl;
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process file_output;" << endl;
         stream << indentation(1) << "-- pragma synthesis_on" << endl;

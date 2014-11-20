@@ -459,6 +459,11 @@ DefaultDecoderGenerator::addGlockPortToDecoder() const {
             netlist.connectPorts(*decGlockPort, glockPort);
         }
     }
+
+    // If IC requests glock port.
+    if (icGenerator_.hasGlockPort()) {
+        netlist.connectPorts(*decGlockPort, icGenerator_.glockPort());
+    }
 }
 
 
