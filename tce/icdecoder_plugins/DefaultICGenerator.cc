@@ -1663,15 +1663,24 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << "// setting DUMP false will disable dumping" << endl << endl
                << indentation(1) << "// Do not synthesize!" << endl
                << indentation(1) << "//synthesis translate_off" << endl
-               << indentation(1) << "integer fileout;" << endl << endl
-               << indentation(1) << "integer count=0;" << endl << endl
-               << indentation(1) << "`define DUMPFILE \"bus.dump\""
+               << indentation(1) << "integer regularfileout;" << endl << endl
+               << indentation(1) << "integer executionfileout;" << endl << endl
+               << indentation(1) << "integer count=0;" << endl
+               << indentation(1) << "integer executioncount=0;" << endl << endl
+               << indentation(1) << "`define REGULARDUMPFILE \"bus.dump\""
+               << indentation(1)
+               << "`define EXECUTIONDUMPFILE \"execbus.dump\""
                << endl << endl
 
                << indentation(1) << "initial" << endl
                << indentation(1) << "begin" << endl
-               << indentation(2) << "fileout = $fopen(`DUMPFILE,\"w\");" << endl
-               << indentation(2) << "$fclose(fileout);" << endl
+               << indentation(2)
+               << "regularfileout = $fopen(`REGULARDUMPFILE,\"w\");" << endl
+               << indentation(2) << "$fclose(regularfileout);" << endl
+               << indentation(2)
+               << "executionfileout = $fopen(`EXECUTIONDUMPFILE,\"w\");"
+               << endl
+               << indentation(2) << "$fclose(executionfileout);" << endl
                << indentation(2) << "forever" << endl
                << indentation(2) << "begin" << endl
                << indentation(3) << "#PERIOD;" << endl;
@@ -1681,20 +1690,36 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                    << ")" << endl;
         }
         std::string format_string = " %11d";
-        std::string variable_list = "count - " + Conversion::toString(busTraceStartingCycle_);
+        std::string count_string = "count - " +
+            Conversion::toString(busTraceStartingCycle_);
+        std::string variable_list = "";
+
 
         Machine::BusNavigator busNav = machine_.busNavigator();
         for (int i = 0; i < busNav.count(); i++) {
             format_string += " |  %11d";
-            variable_list += ", $signed(" + Conversion::toString(busSignal(*busNav.item(i)))+")";
+            variable_list += ", $signed(" +
+                Conversion::toString(busSignal(*busNav.item(i)))+")";
         }
         
         stream << indentation(3) << "begin" << endl
-               << indentation(4) << "fileout = $fopen(`DUMPFILE,\"a\");" << endl
-               << indentation(4) << "$fwrite(fileout,"
+               << indentation(4) << "regularfileout = "
+                   "$fopen(`REGULARDUMPFILE,\"a\");" << endl
+               << indentation(4) << "$fwrite(regularfileout,"
                << "\"" << format_string << " | \\n\"" << ", "
+               << count_string << variable_list << ");" << endl
+               << indentation(4) << "$fclose(regularfileout);" << endl
+               << indentation(4) << "if(glock == 0)" << endl
+               << indentation(4) << "begin" << endl
+               << indentation(5) << "executionfileout = "
+               "$fopen(`EXECUTIONDUMPFILE,\"a\");" << endl
+               << indentation(5) << "$fwrite(executionfileout,"
+               << "\"" << format_string << " | \\n\"" << ", executioncount"
                << variable_list << ");" << endl
-               << indentation(4) << "$fclose(fileout);" << endl
+               << indentation(5) << "$fclose(executionfileout);" << endl
+               << indentation(5) << "executioncount = executioncount + 1;"
+               << endl
+               << indentation(4) << "end" << endl
                << indentation(3) << "end" << endl
                << indentation(3) << "count = count + 1;" << endl
                << indentation(2) << "end" << endl

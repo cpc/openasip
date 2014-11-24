@@ -47,7 +47,7 @@ then
   cd ..
 fi
 
-#clear_test_data
+clear_test_data
 
 
 
