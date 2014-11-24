@@ -208,13 +208,24 @@ private:
     static std::string iuReadOpcodeCntrlPort(
         const std::string& unitName,
         const std::string& portName);
+    static std::string iuReadOpcodeCntrlSignal(
+        const std::string& unitName,
+        const std::string& portName);
     static std::string iuReadLoadCntrlPort(
         const std::string& unitName,
         const std::string& portName);
+    static std::string iuReadLoadCntrlSignal(
+        const std::string& unitName,
+        const std::string& portName);
     static std::string iuWritePort(const std::string& iuName);
+    static std::string iuWriteSignal(const std::string& iuName);
     static std::string iuWriteOpcodeCntrlPort(
         const std::string& unitName);
+    static std::string iuWriteOpcodeCntrlSignal(
+        const std::string& unitName);
     static std::string iuWriteLoadCntrlPort(
+        const std::string& unitName);
+    static std::string iuWriteLoadCntrlSignal(
         const std::string& unitName);
 
     static std::string socketBusControlPort(const std::string& name);
