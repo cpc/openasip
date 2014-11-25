@@ -48,7 +48,7 @@
 
   <operation>
     <name>ADD</name>
-    <description>Integer addition.</description>
+    <description>Integer addition. Output 3 is sum of inputs 1 and 2.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -69,7 +69,7 @@
 
   <operation>
     <name>SUB</name>
-    <description>Integer subtraction.</description>
+    <description>Integer subtraction. Input 1 is minuend,  input 2 is subtrahend and output 3 is difference.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -82,7 +82,7 @@
 
   <operation>
     <name>LDW</name>
-    <description>Loads 32 bits.</description>
+    <description>Loads 32 bits. Input 1 is address and output 2 read data.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -99,7 +99,7 @@
 
   <operation>
     <name>STW</name>
-    <description>Stores 32 bits.</description>
+    <description>Stores 32 bits. Input 1 is address and output 2 is write data.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -116,7 +116,7 @@
 
   <operation>
     <name>EQ</name>
-    <description>Equality comparison.</description>
+    <description>Equality comparison. Output 3 returns non-zero if inputs 1 and 2 are equal.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -137,7 +137,7 @@
 
   <operation>
     <name>GT</name>
-    <description>Greater-than signed integer comparison.</description>
+    <description>Greater-than signed integer comparison. Input operands 1 and 2 are mapped as  1 greater than 2 and result is written to output 3.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -150,7 +150,7 @@
 
   <operation>
     <name>GTU</name>
-    <description>Greater-than unsigned integer comparison.</description>
+    <description>Greater-than unsigned integer comparison. Input operands 1 and 2 are mapped as  1 greater than 2 and result is written to output 3.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -302,7 +302,7 @@
 
   <operation>
     <name>SHL</name>
-    <description>Left shift.</description>
+    <description>Left shift. Input 1 is value to be shifted and input 2 is shift amount.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -315,7 +315,7 @@
 
   <operation>
     <name>SHR</name>
-    <description>Arithmetic shift right (sign bit duplicated).</description>
+    <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -328,7 +328,7 @@
 
   <operation>
     <name>SHRU</name>
-    <description>Logical shift right (first bit zeroed).</description>
+    <description>Logical shift right (first bit zeroed). Input 1 is value to be shifted and input 2 is shift amount.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -338,7 +338,7 @@
 
   <operation>
     <name>AND</name>
-    <description>Bitwise AND.</description>
+    <description>Bitwise AND. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -359,7 +359,7 @@
 
   <operation>
     <name>IOR</name>
-    <description>Inclusive OR.</description>
+    <description>Inclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -380,7 +380,7 @@
 
   <operation>
     <name>XOR</name>
-    <description>Exclusive OR.</description>
+    <description>Exclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -427,7 +427,7 @@
 
   <operation>
     <name>MIN</name>
-    <description>Returns the smaller of the two signed integer values.</description>
+    <description>Returns the smaller of the two signed integer values. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -448,7 +448,7 @@
 
   <operation>
     <name>MAX</name>
-    <description>Returns the larger of the two signed input values.</description>
+    <description>Returns the larger of the two signed input values. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
