@@ -116,7 +116,7 @@
 
   <operation>
     <name>EQ</name>
-    <description>Equality comparison. Output 3 returns non-zero if inputs 1 and 2 are equal.</description>
+    <description>Equality comparison. Output 3 returns '1' if inputs 1 and 2 are equal and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -137,7 +137,8 @@
 
   <operation>
     <name>GT</name>
-    <description>Greater-than signed integer comparison. Input operands 1 and 2 are mapped as  1 greater than 2 and result is written to output 3.</description>
+    <description>Greater-than signed integer comparison. 
+Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -150,7 +151,7 @@
 
   <operation>
     <name>GTU</name>
-    <description>Greater-than unsigned integer comparison. Input operands 1 and 2 are mapped as  1 greater than 2 and result is written to output 3.</description>
+    <description>Greater-than unsigned integer comparison. Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -302,7 +303,7 @@
 
   <operation>
     <name>SHL</name>
-    <description>Left shift. Input 1 is value to be shifted and input 2 is shift amount.</description>
+    <description>Left logical shift. Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -315,7 +316,7 @@
 
   <operation>
     <name>SHR</name>
-    <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount.</description>
+    <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -328,7 +329,7 @@
 
   <operation>
     <name>SHRU</name>
-    <description>Logical shift right (first bit zeroed). Input 1 is value to be shifted and input 2 is shift amount.</description>
+    <description>Logical shift right (most siginificant bits zeroed). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -625,7 +626,7 @@
 
   <operation>
     <name>SXQW</name>
-    <description>Sign extend from 8 bits to 32 bits.</description>
+    <description>Sign extend from 8 bits of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -637,7 +638,7 @@
 
   <operation>
     <name>SXHW</name>
-    <description>Sign extend from 16 bits to 32 bits.</description>
+    <description>Sign extend from 16 bits of of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -767,7 +768,7 @@
 
   <operation>
     <name>MUL</name>
-    <description>32-bit integer multiplication with lower result bits in the output.</description>
+    <description>32-bit integer multiplication of the inputs 1 and 2 with lower result bits in the output 3.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
