@@ -45,7 +45,8 @@
 
 static MachInfoCmdLineOptions options;
 
-TCEString operandBindingsString(TTAMachine::HWOperation& hwop) {
+TCEString
+operandBindingsString(TTAMachine::HWOperation& hwop) {
     OperationPool OSAL;
     Operation* osalOp = &OSAL.operation(hwop.name().c_str());
     if (osalOp == &NullOperation::instance()) {
@@ -54,7 +55,7 @@ TCEString operandBindingsString(TTAMachine::HWOperation& hwop) {
     TCEString operandBindings = "";
     for (int i = 1; i < osalOp->operandCount() + 1; i++) {
         if (hwop.port(i) == NULL) {
-            std::cerr << "warning: Operand " << i << " of " << hwop.name()
+            std::cerr << "Warning: Operand " << i << " of " << hwop.name()
                       << " was not bound to any port." << std::endl;
             continue;
         }
@@ -67,7 +68,8 @@ TCEString operandBindingsString(TTAMachine::HWOperation& hwop) {
     return operandBindings;
 }
 
-void printLatexFunctionUnitDescription(const TTAMachine::Machine& machine,
+void
+printLatexFunctionUnitDescription(const TTAMachine::Machine& machine,
     std::ofstream& output) {
 
     OperationPool OSAL;
@@ -143,27 +145,28 @@ void printLatexFunctionUnitDescription(const TTAMachine::Machine& machine,
 
 }
 
-void printLatexAddressSpaceDescription(const TTAMachine::Machine& machine,
+void
+printLatexAddressSpaceDescription(const TTAMachine::Machine& machine,
     std::ofstream& output) {
 
     output << "\\begin{tabular}{|l|l|l|l|l|}" << std::endl;
 
     output << "\\hline" << std::endl;
 
-    output
-        << "name & start address & end address & width (b) & numerical id(s) \\\\"
-        << std::endl;
+    output << "name & start address & end address & width (b) & "
+           << "numerical id(s) \\\\"
+           << std::endl;
 
     output << "\\hline" << std::endl;
 
-    TTAMachine::Machine::AddressSpaceNavigator nav = machine
-        .addressSpaceNavigator();
+    TTAMachine::Machine::AddressSpaceNavigator nav =
+        machine.addressSpaceNavigator();
     for (int i = 0; i < nav.count(); ++i) {
         TTAMachine::AddressSpace& as = *nav.item(i);
         if (&as == machine.controlUnit()->addressSpace())
             continue;
-        output << as.name() << " & " << as.start() << " & " << as.end() << " & "
-               << as.width() << " & ";
+        output << as.name() << " & " << as.start() << " & " << as.end()
+               << " & " << as.width() << " & ";
         std::set<unsigned> ids = as.numericalIds();
         for (std::set<unsigned>::iterator i = ids.begin(), e = ids.end();
             i != e; ++i) {
@@ -191,7 +194,8 @@ void printLatexAddressSpaceDescription(const TTAMachine::Machine& machine,
     output << "\\end{tabular}" << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[]) {
     try {
         options.parse(argv, argc);
     } catch (const ParserStopRequest&) {

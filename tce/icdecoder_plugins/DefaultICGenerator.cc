@@ -1277,7 +1277,6 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
                  iter != outputSockets.end(); iter++) {
 
-
                 stream << indentation(1) << "signal " 
                        << busAltSignal(*bus, **iter) << " : std_logic_vector("
                        << maxOutputSocketDataPortWidth(**iter) - 1

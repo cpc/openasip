@@ -1240,11 +1240,11 @@ NetlistGenerator::addBaseRFToNetlist(
         } else if (regFile.numberOfRegisters() == 1) {
             // Special case for single register RFs which do not need opcode
             // port. For legacy support the opcode port is left out if opcode
-            // port is empty in HDB.
+            // port field is empty in HDB.
             // Do nothing.
         } else {
-            format text("RF entry '%1%' in HDB '%2%' does not have required "
-                "opcode port for RF with size > 1.");
+            format text("RF entry '%1%' in HDB '%2%' does not have "
+                "opcode port required for RFs of size > 1.");
             text % location.id() % location.hdbFile();
             throw InvalidData(__FILE__, __LINE__, __func__, text.str());
         }
