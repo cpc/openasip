@@ -15,6 +15,7 @@ TPEF="test.tpef"
 PROGE_OUT="proge-out"
 TOP="top"
 TTABUSTRACE=ttabustrace
+GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
 
 usage() {
     echo "Options: "
@@ -50,7 +51,7 @@ clear_test_data() {
 clear_test_data
 
 $TCEASM -o $TPEF $ADF $SRC &> $hide_garbage || echo "Error from tceasm."
-./generatebustrace.sh -o $TTABUSTRACE $ADF $TPEF \
+$GENBUSTRACE -o $TTABUSTRACE $ADF $TPEF \
     || echo "Error in bus trace generation."
 $PROGE -t -e $TOP -i $IDF -p $TPEF -o ${PROGE_OUT} $ADF || echo "Error from ProGe"
 $PIG -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF $ADF || echo "Error from PIG"
