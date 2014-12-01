@@ -9,6 +9,8 @@ Notable changes and features
   implementations.
 - ProGe: RF's external ports can be now generated.
 - tcecc --init-sp: force the initial stack pointer value
+- ProGe: DefaultICDecoderPlugin generates better VHDL code for code coverage.
+- ProGe: Simulating processor can now generate bus trace variant that excludes all locked states. The new variant is enabled when the regular bus trace is enabled in the DefaultICDecoderPlugin.
 
 Other features and improvements
 ------------------------------
@@ -24,6 +26,7 @@ Other features and improvements
   used.
 - Transfer of immediate 1 into boolean register no longer uses
   long immediate when it's not needed.
+- Better descriptions on some OSAL operations.
 
 Usability features
 ------------------
