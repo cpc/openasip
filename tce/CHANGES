@@ -28,6 +28,11 @@ Other features and improvements
   long immediate when it's not needed.
 - Better descriptions on some OSAL operations.
 
+Notable bugfixes
+----------------
+- Fixed ProGe not generating valid verilog code for core with IUs.
+- Fixed PIG failure if ADF had 2+ IUs one having size of one and others size of one plus.
+
 Usability features
 ------------------
 - ttasim: register values are always printed in hex format for the whole width.
