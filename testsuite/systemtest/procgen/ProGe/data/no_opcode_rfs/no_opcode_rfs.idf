@@ -47,4 +47,9 @@
     <rf-id>1</rf-id>
   </iu>
 
+  <iu name="IMM2">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>178</rf-id>
+  </iu>
+
 </adf-implementation>

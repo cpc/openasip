@@ -280,6 +280,17 @@
     </writes-to>
   </socket>
 
+  <socket name="S1_1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
   <function-unit name="LSU">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
@@ -815,7 +826,25 @@
         <width>32</width>
       </slot>
     </template>
-    <template name="limm_1"/>
+  </immediate-unit>
+
+  <immediate-unit name="IMM2">
+    <type>normal</type>
+    <size>2</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>zero</extension>
+    <port name="out1">
+      <connects-to>S1_1</connects-to>
+    </port>
+    <template name="no_limm"/>
+    <template name="limm2">
+      <slot>
+        <name>B1</name>
+        <width>32</width>
+      </slot>
+    </template>
   </immediate-unit>
 
 </adf>

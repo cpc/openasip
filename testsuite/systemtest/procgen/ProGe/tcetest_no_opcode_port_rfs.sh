@@ -16,14 +16,24 @@ PROGE_OUT="proge-out"
 TOP="top"
 TTABUSTRACE=ttabustrace
 
+usage() {
+    echo "Options: "
+    echo "-d   Leave dirty. Test case does not remove temporary files after the run."
+}
+
 OPTIND=1
-while getopts "d" OPTION
+while getopts "dh" OPTION
 do
     case $OPTION in
         d)
             leavedirty=true
             ;;
+        h)
+            usage
+            exit 0
+            ;;
         ?)
+            usage
             exit 1
             ;;
     esac
@@ -36,9 +46,10 @@ clear_test_data() {
     rm -f *.img
 }
 
+[ ! -z "$leavedirty" ] && hide_garbage="/dev/stdout" || hide_garbage="/dev/null"
 clear_test_data
 
-$TCEASM -o $TPEF $ADF $SRC &> /dev/null || echo "Error from tceasm."
+$TCEASM -o $TPEF $ADF $SRC &> $hide_garbage || echo "Error from tceasm."
 ./generatebustrace.sh -o $TTABUSTRACE $ADF $TPEF \
     || echo "Error in bus trace generation."
 $PROGE -t -e $TOP -i $IDF -p $TPEF -o ${PROGE_OUT} $ADF || echo "Error from ProGe"
@@ -50,7 +61,7 @@ if [ "x${GHDL}" != "x" ]
 then
   cd $PROGE_OUT || exit 1
   ./ghdl_compile.sh &> /dev/null || echo "ghdl compile failed."
-  ./ghdl_simulate.sh &> /dev/null || echo "ghdl simulation failed."
+  ./ghdl_simulate.sh  &> /dev/null || echo "ghdl simulation failed."
   cd ..
 fi
 

@@ -14,6 +14,9 @@ IMM.0 -> ALU.in1t.eq                  , ...                                 ;
 ALU.out1 -> BOOL.0                    , ...                                 ;
 ?BOOL.0 0x54 -> IO.in1t.stdout        , ...                                 ;
 !BOOL.0 0x46 -> IO.in1t.stdout        , ...                                 ;
+...                                   , ... [IMM2.0=0xA5A5A5A5]             ;
+0xA5A5A5A5 -> ALU.in2                 , IMM2.0 -> ALU.in1t.eq               ;
+ALU.out1 -> BOOL.0                    , ...                                 ;
 
 #############################################################################
 DATA data 0;
