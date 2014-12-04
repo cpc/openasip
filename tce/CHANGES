@@ -10,8 +10,11 @@ Notable changes and features
 - ProGe: RF's external ports can be now generated.
 - tcecc --init-sp: force the initial stack pointer value
 - ProGe: DefaultICDecoderPlugin generates better VHDL code for code coverage.
-- ProGe: Simulating processor can now generate bus trace variant that excludes all locked states. The new variant is enabled when the regular bus trace is enabled in the DefaultICDecoderPlugin.
-- MachInfo prints bindings between ADF ports and OSAL operations' operands in the function unit table.
+- ProGe: Simulating processor can now generate bus trace variant that excludes
+  all locked states. The new variant is enabled when the regular bus trace is 
+  enabled in the DefaultICDecoderPlugin.
+- MachInfo prints bindings between ADF ports and OSAL operations' operands 
+  in the function unit table.
 
 Other features and improvements
 ------------------------------
@@ -28,12 +31,14 @@ Other features and improvements
 - Transfer of immediate 1 into boolean register no longer uses
   long immediate when it's not needed.
 - Better descriptions on some OSAL operations.
-- Added helper script generatebustrace.sh under tools/scripts/ that generates bustrace from given ADF and TPEF. 
+- Added helper script generatebustrace.sh under tools/scripts/ that generates 
+  bustrace from given ADF and TPEF. 
 
 Notable bugfixes
 ----------------
 - Fixed ProGe not generating valid verilog code for core with IUs.
-- Fixed PIG failure if ADF had 2+ IUs one having size of one and others size of one plus.
+- Fixed PIG failure if ADF had 2+ IUs one having size of one and others size 
+  of one plus.
 
 Usability features
 ------------------
