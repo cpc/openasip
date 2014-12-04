@@ -101,9 +101,8 @@ begin
       reset_cntr      <= 0;
       reset_lock      <= '1';      
     elsif clk'event and clk = '1' then  -- rising clock edge
-
-      
-      if fetch_en = '1' and lock = '0' then
+   
+      if lock = '0' then
         pc_reg      <= next_pc;
         pc_prev_reg <= pc_reg;
       end if;
@@ -111,13 +110,11 @@ begin
       if lock = '0' then
         if reset_cntr < IFETCH_DELAY then
            reset_cntr <= reset_cntr + 1;
-        elsif reset_cntr = IFETCH_DELAY then
+        else
            reset_lock <= '0';
         end if;
         -- instruction register write
-        if fetch_en = '1' then
           instruction_reg <= imem_data(instruction_reg'length-1 downto 0);
-        end if;
         -- return address
         if (ra_load = '1') then
           return_addr_reg <= ra_in;

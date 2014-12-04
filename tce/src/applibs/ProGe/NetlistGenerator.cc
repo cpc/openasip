@@ -274,6 +274,15 @@ NetlistGenerator::loadPort(const NetlistPort& port) const
 
 
 /**
+ * Returns true if the given RF port has opcode port. Otherwise, returns false.
+ */
+bool
+NetlistGenerator::hasOpcodePort(const NetlistPort& port) const {
+    return MapTools::containsKey(rfOpcodePortMap_, &port);
+}
+
+
+/**
  * Returns the opcode port of the given RF port in the netlist.
  *
  * @param port The architectural RF port in the netlist.
@@ -1131,23 +1140,21 @@ NetlistGenerator::addBaseRFToNetlist(
 
         // Check if parameter matches size or width parameter reference
         // and set/override its parameter value according to architecture.
-        if (param.value == "") {
-            if (param.name == implementation.sizeParameter()) {
-                block->setParameter(
-                    implementation.sizeParameter(), "integer",
-                    Conversion::toString(regFile.numberOfRegisters()));
-            } else if (param.name == implementation.widthParameter()) {
-                block->setParameter(
-                    implementation.widthParameter(), "integer",
-                    Conversion::toString(regFile.width()));
-            } else {
-                format errorMsg(
-                    "Unable to resolve the value of parameter %1% of RF "
-                    "entry %2%.");
-                errorMsg % param.name % location.id();
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__, errorMsg.str());
-            }
+        if (param.name == implementation.sizeParameter()) {
+            block->setParameter(
+                implementation.sizeParameter(), "integer",
+                Conversion::toString(regFile.numberOfRegisters()));
+        } else if (param.name == implementation.widthParameter()) {
+            block->setParameter(
+                implementation.widthParameter(), "integer",
+                Conversion::toString(regFile.width()));
+        } else if (param.value == "") {
+            format errorMsg(
+                "Unable to resolve the value of parameter %1% of RF "
+                "entry %2%.");
+            errorMsg % param.name % location.id();
+            throw InvalidData(
+                __FILE__, __LINE__, __func__, errorMsg.str());
         } else {
             block->setParameter(param.name, param.type, param.value);
         }
@@ -1223,11 +1230,24 @@ NetlistGenerator::addBaseRFToNetlist(
         mapLoadPort(*newPort, *loadPort);
 
         // add opcode port
-        NetlistPort* opcodePort = new NetlistPort(
-            port.opcodePort(), port.opcodePortWidthFormula(),
-            MathTools::requiredBits(regFile.numberOfRegisters() - 1),
-            BIT_VECTOR, HDB::IN, *block);
-        mapRFOpcodePort(*newPort, *opcodePort);
+        NetlistPort* opcodePort = NULL;
+        if (!port.opcodePort().empty()) {
+            opcodePort = new NetlistPort(
+                port.opcodePort(), port.opcodePortWidthFormula(),
+                MathTools::requiredBits(regFile.numberOfRegisters() - 1),
+                BIT_VECTOR, HDB::IN, *block);
+            mapRFOpcodePort(*newPort, *opcodePort);
+        } else if (regFile.numberOfRegisters() == 1) {
+            // Special case for single register RFs which do not need opcode
+            // port. For legacy support the opcode port is left out if opcode
+            // port field is empty in HDB.
+            // Do nothing.
+        } else {
+            format text("RF entry '%1%' in HDB '%2%' does not have "
+                "opcode port required for RFs of size > 1.");
+            text % location.id() % location.hdbFile();
+            throw InvalidData(__FILE__, __LINE__, __func__, text.str());
+        }
     }
 
     // add guard port

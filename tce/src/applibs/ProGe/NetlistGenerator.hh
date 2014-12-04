@@ -86,6 +86,7 @@ public:
         throw (InstanceNotFound);
     NetlistPort& loadPort(const NetlistPort& port) const
         throw (InstanceNotFound);
+    bool hasOpcodePort(const NetlistPort& port) const;
     NetlistPort& rfOpcodePort(const NetlistPort& port) const
         throw (InstanceNotFound);
     NetlistPort& rfGuardPort(const NetlistBlock& rfBlock) const

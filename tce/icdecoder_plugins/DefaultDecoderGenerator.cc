@@ -250,8 +250,9 @@ DefaultDecoderGenerator::completeDecoderBlock(
             netlist.connectPorts(loadPort, *loadCntrlPort);
 
             int opcodeWidth = rfOpcodeWidth(*rf);
-            // RF opcode ports with width 0 are ok.
-            if (opcodeWidth >= 0) {
+            assert(!(!nlGenerator.hasOpcodePort(nlPort) &&
+                opcodeWidth > 1));
+            if (nlGenerator.hasOpcodePort(nlPort) && opcodeWidth >= 0) {
                 NetlistPort& opcodePort = nlGenerator.rfOpcodePort(nlPort);
                 NetlistPort* opcodeCntrlPort = new NetlistPort(
                     rfOpcodeCntrlPort(rf->name(), port->name()),
@@ -279,8 +280,9 @@ DefaultDecoderGenerator::completeDecoderBlock(
             netlist.connectPorts(loadPort, *loadCntrlPort);
 
             int opcodeWidth = rfOpcodeWidth(*iu);
-            // TODO: IU opcode for read ports with width 0 are ok?
-            if (opcodeWidth >= 0) {
+            assert(!(!nlGenerator.hasOpcodePort(iuDataPort) &&
+                opcodeWidth > 1));
+            if (nlGenerator.hasOpcodePort(iuDataPort) && opcodeWidth >= 0) {
                 NetlistPort& opcodePort = nlGenerator.rfOpcodePort(
                     iuDataPort);
                 NetlistPort* opcodeCntrlPort = new NetlistPort(
@@ -304,8 +306,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
         netlist.connectPorts(loadPort, *loadCntrlPort);
 
         int opcodeWidth = rfOpcodeWidth(*iu);
-        // TODO: IU opcode for ports with width 0 are ok?
-        if (opcodeWidth >= 0) {
+        if (nlGenerator.hasOpcodePort(iuDataPort) && opcodeWidth >= 0) {
             NetlistPort& opcodePort = nlGenerator.rfOpcodePort(iuDataPort);
             NetlistPort* opcodeCntrlPort = new NetlistPort(
                 iuWriteOpcodeCntrlPort(iu->name()), 
@@ -458,6 +459,11 @@ DefaultDecoderGenerator::addGlockPortToDecoder() const {
             netlist.connectPorts(*decGlockPort, glockPort);
         }
     }
+
+    // If IC requests glock port.
+    if (icGenerator_.hasGlockPort()) {
+        netlist.connectPorts(*decGlockPort, icGenerator_.glockPort());
+    }
 }
 
 
@@ -602,7 +608,7 @@ DefaultDecoderGenerator::setLockTraceStartingCycle(unsigned int startCycle) {
  */
 void
 DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
         stream << "use IEEE.std_logic_arith.all;" << endl;
@@ -679,7 +685,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) const {
                << endl;
         
         stream << endl << "end " << architectureName << ";" << endl;
-    } else {
+    } else { //language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_decoder";
         stream << "`timescale 1ns/1ns" << endl
@@ -1270,6 +1276,43 @@ DefaultDecoderGenerator::writeRFCntrlSignals(
             }
         }
     }
+    if (language_ == VHDL) {
+        // No need for declarations for vhdl.
+    } else { // language_ == Verilog
+        Machine::ImmediateUnitNavigator iuNav =
+            machine_.immediateUnitNavigator();
+        for (int i = 0; i < iuNav.count(); i++) {
+            ImmediateUnit* iu = iuNav.item(i);
+            for (int i = 0; i < iu->portCount(); i++) {
+                RFPort* port = iu->port(i);
+                if (port->isOutput()) {
+                    stream << indentation(1) << "reg " <<
+                        iuReadLoadCntrlSignal(iu->name(), port->name())
+                           << ";" << endl;
+
+                    if (0 < rfOpcodeWidth(*iu)) {
+                        stream << indentation(1) << "reg["
+                            << rfOpcodeWidth(*iu) - 1 << ":0] "
+                            << iuReadOpcodeCntrlSignal(iu->name(),
+                                port->name())
+                            << ";" << endl;
+                    }
+                }
+            }
+            stream << indentation(1) << "reg[" << iu->width()-1 << ":0] "
+                   << iuWriteSignal(iu->name())
+                   << ";" << endl;
+            stream << indentation(1) << "reg "
+                   << iuWriteLoadCntrlSignal(iu->name())
+                   << ";" << endl;
+            if (0 < rfOpcodeWidth(*iu)) {
+                stream << indentation(1) << "reg["
+                       << rfOpcodeWidth(*iu) - 1 << ":0] "
+                       << iuWriteOpcodeCntrlSignal(iu->name())
+                       << ";" << endl;
+            }
+        }
+    } // language_ == Verilog
 }
 
 
@@ -1672,7 +1715,7 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
 
     string resetPort = NetlistGenerator::DECODER_RESET_PORT;
     string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         stream << indentation(1) << "--long immediate write process" << endl;
         stream << indentation(1) << "process ("
                << clockPort << ", "  << resetPort << ")" << endl;
@@ -1726,7 +1769,7 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
         // reset endif
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process;" << endl;
-    } else {
+    } else { // language_ == Verilog
         stream << indentation(1) << "//long immediate write process" << endl
                << indentation(1) << "always@(posedge "
                << clockPort << " or negedge "  << resetPort << ")" << endl
@@ -1739,12 +1782,12 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
 
         for (int i = 0; i < iuNav.count(); i++) {
             ImmediateUnit* iu = iuNav.item(i);
-            stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
+            stream << indentation(3) << iuWriteLoadCntrlSignal(iu->name())
                    << " <= 1'b0;" << endl
-                   << indentation(3) << iuWritePort(iu->name()) 
+                   << indentation(3) << iuWriteSignal(iu->name())
                    << " <= 0;" << endl;
             if (rfOpcodeWidth(*iu) != 0)
-            stream << indentation(3) << iuWriteOpcodeCntrlPort(iu->name())
+            stream << indentation(3) << iuWriteOpcodeCntrlSignal(iu->name())
                    << " <= 0;" << endl;
         }
         stream  << indentation(2) << "end" << endl
@@ -1759,17 +1802,22 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
                 indLevel = 5;
                 if (i == 0) {
                     stream << indentation(4) << "if ("
-                           << instructionTemplateCondition(Verilog, iTemp->name())
+                           << instructionTemplateCondition(
+                               Verilog, iTemp->name())
                            << ")" << endl;
                 } else if (i+1 < itNav.count()) {
                     stream << indentation(4) << "else if ("
-                           << instructionTemplateCondition(Verilog, iTemp->name())
+                           << instructionTemplateCondition(
+                               Verilog, iTemp->name())
                            << ")" << endl;
                 } else {
                     stream << indentation(4) << "else" << endl;
                 }
             }
-            writeInstructionTemplateProcedures(Verilog, *iTemp, indLevel, stream);
+            stream << indentation(4) << "begin" << endl;
+            writeInstructionTemplateProcedures(
+                Verilog, *iTemp, indLevel, stream);
+            stream << indentation(4) << "end" << endl;
         }
         stream << indentation(3) << "end" << endl
                << indentation(2) << "end" << endl;
@@ -1794,7 +1842,7 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
 
     Machine::ImmediateUnitNavigator iuNav = 
         machine_.immediateUnitNavigator();
-    if(language==VHDL){
+    if (language == VHDL) {
         if (iTemp.isEmpty()) {
             for (int i = 0; i < iuNav.count(); i++) {
                 ImmediateUnit* iu = iuNav.item(i);
@@ -1878,17 +1926,18 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                 }
             }
         }
-    } else {
+    } else { // language == Verilog
         if (iTemp.isEmpty()) {
             for (int i = 0; i < iuNav.count(); i++) {
                 ImmediateUnit* iu = iuNav.item(i);
                 stream << indentation(indLevel)
-                       << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b0;" << endl;
+                       << iuWriteLoadCntrlSignal(iu->name())
+                       << " <= 1'b0;" << endl;
 
                 stream << indentation(indLevel)
-                       << iuWritePort(iu->name())
+                       << iuWriteSignal(iu->name())
                        << "[" << (iu->width() - 1) << " : 0"
-                       << "] <= {" << iu->width() <<"{1'b0}});" << endl;
+                       << "] <= {" << iu->width() <<"{1'b0}};" << endl;
             }
         } else {
             for (int i = 0; i < iuNav.count(); i++) {
@@ -1905,7 +1954,7 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                         }
 
                         stream << indentation(indLevel)
-                               << iuWritePort(iu->name())
+                               << iuWriteSignal(iu->name())
                                << "[" << msb << " : " << lsb << "] <= ";
                         if (j == 0) {
                             if (iu->extensionMode() == Machine::SIGN) {
@@ -1941,8 +1990,8 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                             bem_.longImmDstRegisterField(
                             iTemp.name(), iu->name());
                         stream << indentation(indLevel) 
-                               << iuWriteOpcodeCntrlPort(iu->name()) << " <= "
-                               << "$unsigned("
+                               << iuWriteOpcodeCntrlSignal(iu->name())
+                               << " <= " << "$unsigned("
                                << NetlistGenerator::DECODER_INSTR_WORD_PORT
                                << "["
                                << field.bitPosition() + rfOpcodeWidth(*iu) - 1
@@ -1950,11 +1999,11 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                                << endl;
                     }
                     stream << indentation(indLevel)
-                           << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b1;"
+                           << iuWriteLoadCntrlSignal(iu->name()) << " <= 1'b1;"
                            << endl;
                 } else {
                     stream << indentation(indLevel)
-                           << iuWriteLoadCntrlPort(iu->name()) << " <= 1'b0;"
+                           << iuWriteLoadCntrlSignal(iu->name()) << " <= 1'b0;"
                            << endl;
                 }
             }
@@ -2226,11 +2275,11 @@ DefaultDecoderGenerator::writeResettingOfControlRegisters(
             for (int i = 0; i < iu->portCount(); i++) {
                 RFPort* port = iu->port(i);
                 stream << indentation(3) 
-                       << iuReadLoadCntrlPort(iu->name(), port->name())
+                       << iuReadLoadCntrlSignal(iu->name(), port->name())
                        << " <= 1'b0;" << endl;
                 if (0 < rfOpcodeWidth(*iu)) {
                     stream << indentation(3) 
-                           << iuReadOpcodeCntrlPort(iu->name(), port->name()) 
+                           << iuReadOpcodeCntrlSignal(iu->name(), port->name())
                            << " <= 0;" << endl;
                 }
             }
@@ -2602,7 +2651,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
 
     // collect to a set all the buses the socket is connected to
     BusSet connectedBuses = DefaultDecoderGenerator::connectedBuses(*socket);
-    if(language_==VHDL){
+    if (language_ == VHDL) {
         for (BusSet::const_iterator iter = connectedBuses.begin();
              iter != connectedBuses.end();iter++) {
             BusSet::const_iterator nextIter = iter;
@@ -2640,8 +2689,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             string loadSignalName;
             string opcodeSignalName;
             if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-                loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
-                opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
+                loadSignalName =
+                    iuReadLoadCntrlPort(rf->name(), port.name());
+                opcodeSignalName =
+                    iuReadOpcodeCntrlPort(rf->name(), port.name());
             } else {
                 loadSignalName = rfLoadSignalName(rf->name(), port.name());
                 opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
@@ -2673,7 +2724,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
         }
         stream << " <= '0';" << endl;
         stream << indentation(4) << "end if;" << endl;
-    } else {
+    } else { // language_ == Verilog
         for (BusSet::const_iterator iter = connectedBuses.begin();
              iter != connectedBuses.end();iter++) {
             BusSet::const_iterator nextIter = iter;
@@ -2712,8 +2763,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             string loadSignalName;
             string opcodeSignalName;
             if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-                loadSignalName = iuReadLoadCntrlPort(rf->name(), port.name());
-                opcodeSignalName = iuReadOpcodeCntrlPort(rf->name(), port.name());
+                loadSignalName =
+                    iuReadLoadCntrlSignal(rf->name(), port.name());
+                opcodeSignalName =
+                    iuReadOpcodeCntrlSignal(rf->name(), port.name());
             } else {
                 loadSignalName = rfLoadSignalName(rf->name(), port.name());
                 opcodeSignalName = rfOpcodeSignalName(rf->name(), port.name());
@@ -2721,8 +2774,10 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             
             stream << indentation(5) << loadSignalName << " <= 1'b1;" << endl;
             if (code != NULL) {
-                stream << indentation(5) << opcodeSignalName << " <= $unsigned(" 
-                       << rfOpcodeFromSrcOrDstField(Verilog, enc, *code) << ");" << endl;
+                stream << indentation(5) << opcodeSignalName
+                       << " <= $unsigned("
+                       << rfOpcodeFromSrcOrDstField(Verilog, enc, *code)
+                       << ");" << endl;
             }
             
             if (needsDataControl(*socket)) {
@@ -2738,7 +2793,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                << indentation(4) << "begin" << endl
                << indentation(5);
         if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
-            stream << iuReadLoadCntrlPort(rf->name(), port.name());
+            stream << iuReadLoadCntrlSignal(rf->name(), port.name());
         } else {
             stream << rfLoadSignalName(rf->name(), port.name());
         }
@@ -2791,7 +2846,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                             break;
                         }
                     }
-                    if (!ordered || (gcu != NULL)) {
+                    if (!ordered) {
                         stream << indentation(5) << "if (";
                         for (int i = 0; i < fu->operationCount(); i++) {
                             HWOperation* operation = fu->operation(i);
@@ -2804,11 +2859,11 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                                    << " <= '1';" << endl;
                             if (gcu != NULL) {
                                 if (operation->name() == JUMP) {
-                                    stream << indentation(5) 
+                                    stream << indentation(6)
                                            << fuOpcodeSignalName(fu->name())
                                            << " <= IFE_JUMP;" << endl;
                                 } else if (operation->name() == CALL) {
-                                    stream << indentation(5)
+                                    stream << indentation(6)
                                            << fuOpcodeSignalName(fu->name())
                                            << " <= IFE_CALL;" << endl;
                                 }
@@ -3235,40 +3290,51 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                        << rfLoadCntrlPort(rf->name(), port->name()) << " <= " 
                        << rfLoadSignalName(rf->name(), port->name()) << ";" 
                        << endl;
+
                 // map opcode signal
-                stream << indentation(1) 
-                       << rfOpcodeCntrlPort(rf->name(), port->name()) 
-                       << " <= " 
-                       << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" : 
-                            rfOpcodeSignalName(rf->name(), port->name()))
-                       << ";"
-                       << endl;
+                bool OpcodePortExists = decoderBlock_->portByName(
+                    rfOpcodeCntrlPort(rf->name(), port->name()));
+                if (OpcodePortExists) {
+                    stream << indentation(1)
+                           << rfOpcodeCntrlPort(rf->name(), port->name())
+                           << " <= "
+                           << (rfOpcodeWidth(*rf) == 0 ? "\"0\"" :
+                               rfOpcodeSignalName(rf->name(), port->name()))
+                           << ";"
+                           << endl;
+                }
             }
         }
 
         // map IU write/read opcode signals (only 0 downto 0) to 0
         // TODO: mapping of these ports should probably be elsewhere
-        Machine::ImmediateUnitNavigator iuNav = 
+        Machine::ImmediateUnitNavigator iuNav =
             machine_.immediateUnitNavigator();
         for (int i = 0; i < iuNav.count(); i++) {
             ImmediateUnit* iu = iuNav.item(i);
             for (int i = 0; i < iu->portCount(); i++) {
                 RFPort* port = iu->port(i);
+                bool readOpcodePortExists = decoderBlock_->portByName(
+                    iuReadOpcodeCntrlPort(iu->name(), port->name()));
+                bool writeOpcodePortExists = decoderBlock_->portByName(
+                    iuWriteOpcodeCntrlPort(iu->name()));
+                assert(readOpcodePortExists == writeOpcodePortExists);
+                if (rfOpcodeWidth(*iu) == 0 and readOpcodePortExists and
+                    writeOpcodePortExists) {
 
-                if (rfOpcodeWidth(*iu) == 0) {
-                stream << indentation(1) 
-                       << iuReadOpcodeCntrlPort(iu->name(), port->name())
-                       << " <= \"0\";" 
-                       << endl;
+                    stream << indentation(1)
+                           << iuReadOpcodeCntrlPort(iu->name(), port->name())
+                           << " <= \"0\";"
+                           << endl;
 
-                stream << indentation(1) 
-                       << iuWriteOpcodeCntrlPort(iu->name())
-                       << " <= \"0\";" 
-                       << endl;
+                    stream << indentation(1)
+                           << iuWriteOpcodeCntrlPort(iu->name())
+                           << " <= \"0\";"
+                           << endl;
                 }
             }
         }
-       
+
 
         // map socket control signals
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -3397,8 +3463,6 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
             }
         }
 
-        // map IU write/read opcode signals (only 0 downto 0) to 0
-        // TODO: mapping of these ports should probably be elsewhere
         Machine::ImmediateUnitNavigator iuNav = 
             machine_.immediateUnitNavigator();
         for (int i = 0; i < iuNav.count(); i++) {
@@ -3406,21 +3470,44 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
             for (int i = 0; i < iu->portCount(); i++) {
                 RFPort* port = iu->port(i);
 
+                stream << indentation(1) << "assign "
+                       << iuReadLoadCntrlPort(iu->name(), port->name())
+                       << " = "
+                       << iuReadLoadCntrlSignal(iu->name(), port->name())
+                       << ";" << endl;
                 if (rfOpcodeWidth(*iu) == 0) {
-                stream << indentation(1)
-                       << "assign "
-                       << iuReadOpcodeCntrlPort(iu->name(), port->name())
-                       << " = 1'b0;" 
-                       << endl;
+                    stream << indentation(1) << "assign "
+                           << iuReadOpcodeCntrlPort(iu->name(), port->name())
+                           << " = 1'b0;"
+                           << endl;
 
-                stream << indentation(1)
-                       << "assign "
-                       << iuWriteOpcodeCntrlPort(iu->name())
-                       << " = 1'b0;" 
-                       << endl;
+                } else {
+                    stream << indentation(1) << "assign "
+                           << iuReadOpcodeCntrlPort(iu->name(), port->name())
+                           << " = "
+                           << iuReadOpcodeCntrlSignal(iu->name(), port->name())
+                           << ";" << endl;
+
                 }
+            } // Loop for IU ports
+            stream << indentation(1) << "assign "
+                   << iuWritePort(iu->name()) << " = "
+                   << iuWriteSignal(iu->name()) << ";" << endl;
+            stream << indentation(1) << "assign "
+                   << iuWriteLoadCntrlPort(iu->name()) << " = "
+                   << iuWriteLoadCntrlSignal(iu->name()) << ";" << endl;
+            if (rfOpcodeWidth(*iu) == 0) {
+                stream << indentation(1) << "assign "
+                       << iuWriteOpcodeCntrlPort(iu->name())
+                       << " = 1'b0;" << endl;
+            } else {
+                stream << indentation(1) << "assign "
+                       << iuWriteOpcodeCntrlPort(iu->name())
+                       << " = "
+                       << iuWriteOpcodeCntrlSignal(iu->name())
+                       << ";" << endl;
             }
-        }
+        } // Loop for IUs
        
 
         // map socket control signals
@@ -3679,14 +3766,21 @@ DefaultDecoderGenerator::simmControlPort(const std::string& busName) {
 
 
 /**
- * Returns the width of the short immediate port of the given bus.
+ * Returns the required width of the short immediate port of the given bus.
  *
  * @param bus The bus.
  * @return The width of the port.
  */
 int
 DefaultDecoderGenerator::simmPortWidth(const TTAMachine::Bus& bus) {
-    return bus.width();
+    if (bus.signExtends()) {
+        return bus.width();
+    } else if (bus.zeroExtends()) {
+        return bus.immediateWidth();
+    } else {
+        assert(false && "Unknown extension policy.");
+        return -1;
+    }
 }
 
 
@@ -3853,6 +3947,23 @@ DefaultDecoderGenerator::iuReadOpcodeCntrlPort(
 
 
 /**
+ * Returns the name of the opcode control signal of the given IU read port
+ * in decoder.
+ *
+ * @param unitName Name of the IU.
+ * @param portName Name of the read port.
+ * @return The name of the opcode control port.
+ */
+std::string
+DefaultDecoderGenerator::iuReadOpcodeCntrlSignal(
+    const std::string& unitName,
+    const std::string& portName) {
+
+    return iuReadOpcodeCntrlPort(unitName, portName) + "_reg";
+}
+
+
+/**
  * Returns the name of the load control port of the given IU read port in
  * in decoder.
  *
@@ -3870,6 +3981,23 @@ DefaultDecoderGenerator::iuReadLoadCntrlPort(
 
 
 /**
+ * Returns the name of the load control signal of the given IU read port in
+ * in decoder.
+ *
+ * @param unitName Name of the IU.
+ * @param portName Name of the read port.
+ * @return The name of the load control port.
+ */
+std::string
+DefaultDecoderGenerator::iuReadLoadCntrlSignal(
+    const std::string& unitName,
+    const std::string& portName) {
+
+    return iuReadLoadCntrlPort(unitName, portName) + "_reg";
+}
+
+
+/**
  * Returns the name of the IU write port of the given IU in decoder.
  *
  * @param iuName Name of the IU.
@@ -3878,6 +4006,18 @@ DefaultDecoderGenerator::iuReadLoadCntrlPort(
 std::string
 DefaultDecoderGenerator::iuWritePort(const std::string& iuName) {
     return "iu_" + iuName + "_write";
+}
+
+
+/**
+ * Returns the name of the IU write signal of the given IU in decoder.
+ *
+ * @param iuName Name of the IU.
+ * @return The name of the port.
+ */
+std::string
+DefaultDecoderGenerator::iuWriteSignal(const std::string& iuName) {
+    return iuWritePort(iuName) + "_reg";
 }
 
 
@@ -3895,6 +4035,20 @@ DefaultDecoderGenerator::iuWriteOpcodeCntrlPort(const std::string& unitName) {
 
 
 /**
+ * Returns the name of the opcode control signal of the write port of the given
+ * IU in decoder.
+ *
+ * @param unitName Name of the IU.
+ * @return The name of the opcode control port.
+ */
+std::string
+DefaultDecoderGenerator::iuWriteOpcodeCntrlSignal(
+    const std::string& unitName) {
+    return iuWriteOpcodeCntrlPort(unitName) + "_reg";
+}
+
+
+/**
  * Returns the name of the load control port of the write port of the given
  * IU in decoder.
  *
@@ -3904,6 +4058,19 @@ DefaultDecoderGenerator::iuWriteOpcodeCntrlPort(const std::string& unitName) {
 std::string
 DefaultDecoderGenerator::iuWriteLoadCntrlPort(const std::string& unitName) {
     return iuWritePort(unitName) + "_load";
+}
+
+
+/**
+ * Returns the name of the load control Signal of the write port of the given
+ * IU in decoder.
+ *
+ * @param unitName Name of the IU.
+ * @return The name of the load control port.
+ */
+std::string
+DefaultDecoderGenerator::iuWriteLoadCntrlSignal(const std::string& unitName) {
+    return iuWriteLoadCntrlPort(unitName) + "_reg";
 }
 
 

@@ -1012,6 +1012,9 @@ CodeCompressorPlugin::addBitsForDstRegisterField(
         TTAProgram::Immediate& immediate = instruction.immediate(i);
         const TTAProgram::Terminal& dstTerminal = immediate.destination();
         const ImmediateUnit& dstIU = dstTerminal.immediateUnit();
+        if (dstIU.numberOfRegisters() == 1) {
+            continue;
+        }
         string instructionTemplate = "";
         try {
             instructionTemplate = this->instructionTemplate(instruction);
@@ -1019,6 +1022,7 @@ CodeCompressorPlugin::addBitsForDstRegisterField(
             throw InvalidData(
                 __FILE__, __LINE__, __func__, e.errorMessage());
         }
+
         string iuName = field.immediateUnit(instructionTemplate);
         if (dstIU.name() == iuName) {
             bitVector.pushBack(dstTerminal.index(), field.width());

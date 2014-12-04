@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="LSU">
+    <hdb-file>mixed_hdl.hdb</hdb-file>
+    <fu-id>2</fu-id>
+  </fu>
+
+  <fu name="ALU">
+    <hdb-file>mixed_hdl.hdb</hdb-file>
+    <fu-id>3</fu-id>
+  </fu>
+
+  <fu name="TB">
+    <hdb-file>execbustrace.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="BOOL">
+    <hdb-file>mixed_hdl.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="RF">
+    <hdb-file>mixed_hdl.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <iu name="IMM">
+    <hdb-file>mixed_hdl.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </iu>
+
+</adf-implementation>
