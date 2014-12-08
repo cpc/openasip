@@ -130,30 +130,4 @@ private:
 
 #include "Memory.icc"
 
-//////////////////////////////////////////////////////////////////////////////
-// NullMemory
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Singleton class that is used to represent a null Memory.
- *
- * All methods cause program abort with an error log message.
- */
-class NullMemory : public Memory {
-public:
-    virtual ~NullMemory();
-
-    static NullMemory& instance();
-
-    virtual void write(Word address, MAU data);
-    virtual Memory::MAU read(Word address);
-
-protected:
-    NullMemory();
-
-private:
-    /// Unique instance of the class.
-    static NullMemory* instance_;
-};
-
 #endif
