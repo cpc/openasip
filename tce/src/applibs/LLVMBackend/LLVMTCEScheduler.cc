@@ -116,7 +116,11 @@ LLVMTCEScheduler::doInitialization(Module& m) {
 }
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
+#else
+    OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getSubtargetImpl()->getInstrInfo());
+#endif
 	
     AliasAnalysis* AA = getAnalysisIfAvailable<AliasAnalysis>();
     if (tceIRBuilder_ == NULL) {

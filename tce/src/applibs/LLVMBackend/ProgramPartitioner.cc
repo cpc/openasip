@@ -37,7 +37,7 @@
 #include "hash_map.hh"
 #include "Application.hh"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#ifdef LLVM_3_2
 #include <llvm/Instruction.h>
 #else
 #include <llvm/IR/Instruction.h>
@@ -64,6 +64,14 @@ ProgramPartitioner::doInitialization(llvm::Module& /*M*/) {
 
 bool 
 ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
+
+#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
+#ifdef DEBUG_PROGRAM_PARTITIONER
+    std::cerr << "### ProgramPartitioner disabled for llvm 3.6+ " << std::endl;
+#endif
+    return true;
+#endif
+
 #ifdef DEBUG_PROGRAM_PARTITIONER
     std::cerr << "### Running ProgramPartitioner for " 
               << MF.getFunction()->getName().str() << std::endl;

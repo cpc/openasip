@@ -636,7 +636,11 @@ def optimizeBytecode(inFile, fileNamePrefix):
     optSwitches = ""
 
     if options.optimization_level == 1:
-        optSwitches = (default_opts + "-disable-internalize ") 
+        # disable-internalize missing in llvm 3.6
+        if "@LLVM_VERSION@" > "3.5":
+            optSwitches = (default_opts)
+        else:
+            optSwitches = (default_opts + "-disable-internalize ") 
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
         

@@ -39,6 +39,8 @@
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 
+#include "llvm/IR/IRPrintingPasses.h"
+
 #include "TCETargetMachine.hh"
 #include "TCEMCAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
@@ -102,6 +104,7 @@ TCETargetMachine::TCETargetMachine(
 //      subTarget_(TT,FS),
 
       /// @note Is overwritten in setTargetMachinePlugin.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
       dl_(
         "E-p:32:32:32"
         "-a0:0:32"
@@ -116,11 +119,10 @@ TCETargetMachine::TCETargetMachine(
         "-v64:32:32"
         "-v128:32:32"
         "-v256:32:32"),
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
       tsInfo_(*this),
 #else
-      tsInfo_(this->getDataLayout()),
+                                  // tsinfo is now in plugin class
+                                  //      tsInfo_(this->getDataLayout()),
 #endif
       plugin_(NULL),
       pluginTool_(NULL)
@@ -188,11 +190,14 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-v1024:32:1024";
 
 #if defined(LLVM_3_2)
-    DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), &dl_);
+    DataLayout* dl = &dl_;
+    DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), dl);
 #elif (defined(LLVM_3_3) || defined(LLVM_3_4))
-    dl_.init(dataLayoutStr.c_str());
-#else
-    dl_.reset(dataLayoutStr.c_str());
+    DataLayout* dl = &dl_;
+    dl->init(dataLayoutStr.c_str());
+#else // LLVM 3.5+
+    DataLayout* dl = plugin_->getDataLayout();
+    dl->reset(dataLayoutStr.c_str());
 #endif
 }
 

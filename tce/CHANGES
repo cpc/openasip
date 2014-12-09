@@ -15,6 +15,7 @@ Notable changes and features
   enabled in the DefaultICDecoderPlugin.
 - MachInfo prints bindings between ADF ports and OSAL operations' operands 
   in the function unit table.
+- Support for LLVM 3.6. Clustered tta -mode dropped with llvm 3.6
 
 Other features and improvements
 ------------------------------

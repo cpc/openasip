@@ -55,9 +55,9 @@ public:
     bool SelectADDRrr(SDValue N, SDValue &R1, SDValue &R2);
     bool SelectADDRri(SDValue N, SDValue &Base, SDValue &Offset);
 
-    llvm::SDNode* Select(llvm::SDNode* op);
+    llvm::SDNode* Select(llvm::SDNode* op) override;
 
-    virtual const char* getPassName() const {
+    virtual const char* getPassName() const override {
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
 

@@ -42,6 +42,12 @@
 
 #include "tce_config.h"
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+#ifndef override
+#define override
+#endif
+#endif
+
 namespace llvm {
     class TargetInstrInfo;
     class Type;
@@ -54,32 +60,43 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii, int stackAlignment);
         virtual ~TCERegisterInfo() {};
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#ifdef LLVM_3_2
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const;
 #endif
-        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
-        const TargetRegisterClass* const* getCalleeSavedRegClasses(
-            const MachineFunction *MF = 0) const;
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+
+        const TargetRegisterClass* const* getCalleeSavedRegClasses(
+            const MachineFunction *MF = 0) const override;
+
+#elif defined(LLVM_3_5)
+        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+#else
+        const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
+#endif
+
+        // TODO: These are in TCEFrameInfo now, but those delegate here
+        // TODO: Moved them there some day.
         void emitPrologue(MachineFunction& mf) const;
         void emitEpilogue(MachineFunction& mf, MachineBasicBlock& mbb) const;
 
-        BitVector getReservedRegs(const MachineFunction &MF) const;
+        BitVector getReservedRegs(const MachineFunction &MF) const override;
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#ifdef LLVM_3_2
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
                                      int SPAdj, RegScavenger *RS = NULL) const;
 #else
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
                                  int SPAdj, unsigned FIOperandNum,
-                                 RegScavenger *RS = NULL) const;
+                                 RegScavenger *RS = NULL) const override;
 #endif
         unsigned getRARegister() const;
 
-        unsigned getFrameRegister(const MachineFunction& mf) const;
+        unsigned getFrameRegister(const MachineFunction& mf) const override;
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;

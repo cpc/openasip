@@ -527,7 +527,10 @@ Please consult INSTALL for instructions.])
    ;;
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
-        ;;   
+   ;;   
+     3.6*)
+     AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
+   ;;
      *)
    AC_MSG_NOTICE(
    [

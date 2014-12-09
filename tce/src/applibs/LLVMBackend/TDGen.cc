@@ -3209,7 +3209,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::STW8mr;"
            << std::endl;
     }
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
+#else
+    os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#endif
         << "\tassert(0&&\"Storing given regclass to stack not supported. "
         << "Bug in backend?\");"
         << std::endl
@@ -3296,7 +3300,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::LDW8mr;"
            << std::endl;
     }
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
+#else
+    os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#endif
         << "\tassert(0&&\"loading from stack to given regclass not supported."
         << " Bug in backend?\");"
        << std::endl

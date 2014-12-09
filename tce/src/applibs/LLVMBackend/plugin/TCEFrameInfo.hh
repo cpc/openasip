@@ -82,12 +82,12 @@ namespace llvm {
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
-            MachineBasicBlock::iterator I) const;
+            MachineBasicBlock::iterator I) const override;
 #endif
 
-	void emitPrologue(MachineFunction &mf) const;
-	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
-	bool hasFP(const MachineFunction &MF) const { return false; }
+	void emitPrologue(MachineFunction &mf) const override;
+	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+	bool hasFP(const MachineFunction &MF) const override { return false; }
 
     private:
 	const TCERegisterInfo* tri_;

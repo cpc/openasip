@@ -151,7 +151,7 @@ def MOVF16hk : InstTCE<(outs R32HFPRegs:$dst), (ins f16imm:$val),
 }
 
 // TODO: are these really ever used for anything? propably not?
-let isReMaterializable = 1, neverHasSideEffects = 1, isMoveImm = 1 in {
+let isReMaterializable = 1, isMoveImm = 1 in {
 def MOVF32fi : InstTCE<(outs R32FPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
