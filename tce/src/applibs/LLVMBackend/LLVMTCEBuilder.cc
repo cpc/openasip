@@ -83,6 +83,7 @@
 #include "HWOperation.hh"
 #include "AssocTools.hh"
 #include "Conversion.hh"
+#include "InstructionElement.hh"
 
 #ifdef LLVM_3_2
 #include <llvm/Constants.h>
@@ -1827,34 +1828,42 @@ LLVMTCEBuilder::debugDataToAnnotations(
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
-            // handle file+line number debug info
-            if (!dl.isUnknown()) {
-		
-                int sourceLineNumber = -1;
-                TCEString sourceFileName = "";
+        // handle file+line number debug info
+        if (!dl.isUnknown()) {
+            
+            int sourceLineNumber = -1;
+            TCEString sourceFileName = "";
                 
-                // inspired from lib/codegen/MachineInstr.cpp
-                const LLVMContext &Ctx = 
-                    mi->getParent()->getParent()->getFunction()->getContext();
-                // TODO: something broken with DIScope
-                DIScope discope(dl.getScope(Ctx));
-                sourceLineNumber = dl.getLine();
-                sourceFileName = static_cast<TCEString>(discope.getFilename());
+            // inspired from lib/codegen/MachineInstr.cpp
+            const LLVMContext &Ctx = 
+                mi->getParent()->getParent()->getFunction()->getContext();
+            // TODO: something broken with DIScope
+            DIScope discope(dl.getScope(Ctx));
+            sourceLineNumber = dl.getLine();
+            sourceFileName = static_cast<TCEString>(discope.getFilename());
 
-                TTAProgram::ProgramAnnotation progAnnotation(
-                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
-                    sourceLineNumber);
-                move->addAnnotation(progAnnotation); 
+            if (sourceFileName.size() >
+                TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
+                sourceFileName = 
+                    sourceFileName.substr(
+                        sourceFileName.size() - 
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES,
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
+            }
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
+                sourceLineNumber);
+            move->addAnnotation(progAnnotation); 
                        
-                if (sourceFileName != "") {
-                    TTAProgram::ProgramAnnotation progAnnotation(
-                        TTAProgram::ProgramAnnotation::
-                        ANN_DEBUG_SOURCE_CODE_PATH, 
-                        sourceFileName);
-                    move->addAnnotation(progAnnotation); 
-                }
+            if (sourceFileName != "") {
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::
+                    ANN_DEBUG_SOURCE_CODE_PATH, 
+                    sourceFileName);
+                move->addAnnotation(progAnnotation); 
             }
         }
+    }
 }
 
 TTAProgram::TerminalRegister*
