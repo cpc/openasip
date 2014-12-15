@@ -1263,7 +1263,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                 Socket* socket = *iter;
                 stream << busAltSignal(*bus, *socket);
                 iter++;
-                if (iter != outputSockets.end()) {
+                if (iter != socketsToWrite.end()) {
                     stream << " | ";
                 }
             }
