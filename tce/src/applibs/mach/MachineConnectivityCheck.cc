@@ -34,6 +34,7 @@
 #include <set>
 
 #include "MachineConnectivityCheck.hh"
+#include "MachineInfo.hh"
 #include "Application.hh"
 #include "Bus.hh"
 #include "Segment.hh"
@@ -842,16 +843,12 @@ MachineConnectivityCheck::requiredImmediateWidth(
     if (source.isCodeSymbolReference()) {
         const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
         if (source.toString() == "_end") {
-            TTAMachine::Machine::AddressSpaceNavigator asNav =
-                mach.addressSpaceNavigator();
-            for (int i = 0; i < asNav.count(); i++) {
-                if (asNav.item(i) != &instrAS) {
-                    return signExtension ?
-			MathTools::requiredBitsSigned(asNav.item(i)->end()):
-			MathTools::requiredBits(asNav.item(i)->end());
-                }
-            }
-            assert(false && "No data address space found!");
+            AddressSpace* dataAS
+                    = MachineInfo::findDefaultDataAddressSpace(mach);
+            
+            return signExtension ?
+			MathTools::requiredBitsSigned(dataAS->end()):
+			MathTools::requiredBits(dataAS->end());
         } else {
 	    return signExtension ?
 		MathTools::requiredBitsSigned (instrAS.end()):

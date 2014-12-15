@@ -39,6 +39,7 @@
 #include <set>
 
 namespace TTAMachine {
+    class AddressSpace;
     class Machine;
     class HWOperation;
     class FUPort;
@@ -49,6 +50,8 @@ class Operand;
 class MachineInfo {
 public:
     static OperationDAGSelector::OperationSet getOpset(
+        const TTAMachine::Machine& mach);
+    static TTAMachine::AddressSpace* findDefaultDataAddressSpace(
         const TTAMachine::Machine& mach);
     static int longestGuardLatency(
         const TTAMachine::Machine& mach);
