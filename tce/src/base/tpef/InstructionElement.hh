@@ -61,9 +61,10 @@ public:
 
     Byte size() const;
 
-private:
     /// Maximum number of bytes that annotation may contain.
     static const int MAX_ANNOTATION_BYTES;
+    
+private:
     /// Identifcation code of annotation.
     Word id_;
     /// Data of annotation.

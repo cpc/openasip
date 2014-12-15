@@ -35,11 +35,29 @@
 
 #include <iostream>
 
+#if defined(LLVM_3_2)
+
+#include "llvm/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#else
+
+#include "llvm/IR/DataLayout.h"
+typedef llvm::DataLayout TargetData;
+
+#endif
+
 #include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
 }
+
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+#include <llvm/Target/TargetSelectionDAGInfo.h>
+#endif
+
+#include "tce_config.h"
 
 /**
  * TCE target machine plugin interface.
@@ -59,7 +77,28 @@ namespace llvm {
 
    class TCETargetMachinePlugin {
     public:
-       TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL) {};
+       TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL)
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+                                ,
+                                  dl_(
+                                      "E-p:32:32:32"
+                                      "-a0:0:32"
+                                      "-i1:8:8"
+                                      "-i8:8:32"
+                                      "-i16:16:32"
+                                      "-i32:32:32"
+                                      "-i64:32:32"
+                                      "-f16:16:16"
+                                      "-f32:32:32"
+                                      "-f64:32:32"
+                                      "-v64:32:32"
+                                      "-v128:32:32"
+                                      "-v256:32:32"),
+                                tsInfo_(&dl_)
+#endif
+
+                             // this is overwritten anyway later
+ {};
        virtual ~TCETargetMachinePlugin() {};
 
        virtual const TargetInstrInfo* getInstrInfo() const = 0;
@@ -133,6 +172,19 @@ namespace llvm {
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+        virtual const DataLayout* getDataLayout() const {
+            return &dl_;
+        }
+
+        virtual DataLayout* getDataLayout() {
+            return &dl_;
+        }
+
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
+            return &tsInfo_;
+        }
+#endif
    protected:
        /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;
@@ -140,6 +192,10 @@ namespace llvm {
        TargetFrameLowering* frameInfo_;
        TCETargetMachine* tm_;
        TCESubtarget* subTarget_;
+#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
+       DataLayout dl_; // Calculates type size & alignment
+       TargetSelectionDAGInfo tsInfo_;
+#endif
    };
 
 }

@@ -343,8 +343,13 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     } 
 
+    // todo: what are these buffers..
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+#else
+    ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);    
+#endif
     m.reset(module.get());
 #endif
 
@@ -396,7 +401,11 @@ LLVMBackend::compile(
 
         std::unique_ptr<MemoryBuffer> emuBuffer = 
             std::move(emuBufferPtr.get());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
+#else
+        ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+#endif
         emuM.reset(module.get());
        
         if (emuM.get() == 0) {
@@ -589,9 +598,15 @@ LLVMBackend::compile(
 #else
     /// @todo DataLayout.h states that DataLayoutPass should never be used.
     /// However, some tests will fail if it isn't added to Passes.
+#ifdef LLVM_3_5
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
     Passes.add(new DataLayoutPass(*DL));
+
+#else
+    //TODO: do not use datalayout pass with llvm 3.6. lets see if somtething breaks
+//    const DataLayout *DL = targetMachine->getSubtargetImpl()->getDataLayout();
+#endif
 #endif
 
     targetMachine->addPassesToEmitFile(

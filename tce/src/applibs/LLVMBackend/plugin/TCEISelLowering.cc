@@ -105,8 +105,13 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
+#else
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 RVLocs, *DAG.getContext());
+#endif
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
@@ -193,10 +198,15 @@ TCETargetLowering::LowerFormalArguments(
 
     // Assign locations to all of the incoming arguments.
     SmallVector<CCValAssign, 16> ArgLocs;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     CCState CCInfo(
         CallConv, isVarArg, DAG.getMachineFunction(),
         getTargetMachine(), ArgLocs, *DAG.getContext());
-
+#else
+    CCState CCInfo(
+        CallConv, isVarArg, DAG.getMachineFunction(),
+        ArgLocs, *DAG.getContext());
+#endif
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
 
     const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs + argRegCount;
@@ -253,9 +263,15 @@ TCETargetLowering::LowerFormalArguments(
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, MVT::i32, FIPtr, 
                         DAG.getConstant(Offset, MVT::i32));
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
                     Load = DAG.getExtLoad(
                         LoadOp, dl, MVT::i32, Chain, FIPtr, 
                         MachinePointerInfo(), ObjectVT, false, false,0);
+#else
+                    Load = DAG.getExtLoad(
+                        LoadOp, dl, MVT::i32, Chain, FIPtr,           // is invariant.. true?
+                        MachinePointerInfo(), ObjectVT, false, false, false,0);
+#endif
                     Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
                 }
                 InVals.push_back(Load);
@@ -502,12 +518,19 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
   CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
 
   RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
+#else
+  CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 RVLocs, *DAG.getContext());
 
-  // Copy all of the result registers out of their specified physreg.
+  RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
+#endif
+
+  // Copy all of the result registers out of their specified physreg. (only one rv reg)
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
       unsigned Reg = RVLocs[i].getLocReg();
    
@@ -527,8 +550,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
  */
 TCETargetLowering::TCETargetLowering(
     TargetMachine& TM) :
-    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) {
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
+#else
+    TargetLowering(TM), tm_(static_cast<TCETargetMachine&>(TM)) 
+#endif
+{
     LLVMTCECmdLineOptions* opts = dynamic_cast<LLVMTCECmdLineOptions*>(
         Application::cmdLineOptions());
 
@@ -716,6 +743,13 @@ TCETargetLowering::TCETargetLowering(
 
     setTruncStoreAction(MVT::f32, MVT::f16, Expand);
     setLoadExtAction(ISD::EXTLOAD, MVT::f16, Expand);
+
+    setOperationAction(ISD::ADDE, MVT::i32, Expand);
+    setOperationAction(ISD::ADDC, MVT::i32, Expand);
+    setOperationAction(ISD::ADDE, MVT::i16, Expand);
+    setOperationAction(ISD::ADDC, MVT::i16, Expand);
+    setOperationAction(ISD::ADDE, MVT::i8, Expand);
+    setOperationAction(ISD::ADDC, MVT::i8, Expand);
     
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
@@ -999,10 +1033,16 @@ TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   return false;
 }
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+
 /// getFunctionAlignment - Return the Log2 alignment of this function.
 unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
   return 1;
 }
+
+#endif
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
 
 bool
 TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
@@ -1014,3 +1054,42 @@ TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
     */
     return false;
 }
+
+#elif defined(LLVM_3_4)
+
+bool allowsUnalignedMemoryAccesses(EVT, bool * /*Fast*/ = 0) const {
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+
+#elif defined(LLVM_3_5)
+
+bool
+TCETargetLowering::allowsUnalignedMemoryAccesses(EVT, unsigned, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+#else
+
+bool
+TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+#endif

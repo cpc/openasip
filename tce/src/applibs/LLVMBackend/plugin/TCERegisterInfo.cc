@@ -78,7 +78,11 @@ TCERegisterInfo::TCERegisterInfo(
 /**
  * Returns list of callee saved registers.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
 const uint16_t*
+#else
+const MCPhysReg*
+#endif
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     static const uint16_t calleeSavedRegs[] = { 0 };
     return calleeSavedRegs;
@@ -104,13 +108,15 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
  * The returned list has equal length with getCalleeSavedRegs() list
  * and the list items with same position correspond to each other.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 const TargetRegisterClass* const*
 TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
     static const TargetRegisterClass* const calleeSavedRegClasses[] = { 0 };
     return calleeSavedRegClasses;
 }
+#endif
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#ifdef LLVM_3_2
 /**
  * Eliminates call frame pseudo instructions. 
  *
@@ -126,7 +132,7 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
 
 void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
-#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
+#if (!(defined(LLVM_3_2)))
     unsigned FIOperandNum,
 #endif
     RegScavenger *RS) const {
@@ -134,7 +140,7 @@ void TCERegisterInfo::eliminateFrameIndex(
     assert(SPAdj == 0 && "Unexpected");
     MachineInstr &MI = *II;
     DebugLoc dl = MI.getDebugLoc();
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
     unsigned FIOperandNum = 0;
     while (!MI.getOperand(FIOperandNum).isFI()) {
         ++FIOperandNum;

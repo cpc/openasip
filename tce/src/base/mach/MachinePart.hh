@@ -118,7 +118,7 @@ public:
         throw (ObjectStateLoadingException);
 
     /**
-     * Compares 2 Component's names lexicographically(dictionary order).
+     * Compares 2 Component's names lexicographically (dictionary order).
      *
      * Can be used to organize containers of type Component to dictionary
      * order according to their name field.

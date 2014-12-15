@@ -159,7 +159,7 @@ GeneratedTCEPlugin::GeneratedTCEPlugin() :
          static_cast<const TCERegisterInfo*>(getRegisterInfo());
      frameInfo_ = new TCEFrameInfo(ri, stackAlignment);
 
-     subTarget_ = new TCESubtarget();
+     subTarget_ = new TCESubtarget(this);
 }
 
 
@@ -375,6 +375,8 @@ const llvm::TargetRegisterClass*
 GeneratedTCEPlugin::nodeRegClass(
     unsigned nodeId, const llvm::TargetRegisterClass* current) const {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
     TCEString origRCName(current->getName());
@@ -398,6 +400,9 @@ GeneratedTCEPlugin::nodeRegClass(
             return regClass;
     }
     return current;
+#else
+    return NULL;
+#endif
 }
 
 /**
@@ -411,6 +416,7 @@ GeneratedTCEPlugin::extrasRegClass(
     const llvm::TargetRegisterClass* current) const {
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString origRCName(current->getName());
     for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
         const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
@@ -432,6 +438,9 @@ GeneratedTCEPlugin::extrasRegClass(
             return regClass;
     }
     return current;
+#else
+    return NULL;
+#endif
 }
 
 

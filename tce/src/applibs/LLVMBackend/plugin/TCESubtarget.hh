@@ -39,8 +39,11 @@
 #define GET_SUBTARGETINFO_HEADER
 #include "TCEGenSubTargetInfo.inc"
 
+#include "tce_config.h"
+
 namespace llvm {
 
+    class TCETargetMachinePlugin;
     class Module;
 
     /**
@@ -49,13 +52,23 @@ namespace llvm {
      */
     class TCESubtarget : public TCEGenSubtargetInfo {
     public:
-        TCESubtarget(); //const std::string &TT, const std::string &FS);
+        TCESubtarget(TCETargetMachinePlugin* plugin); //const std::string &TT, const std::string &FS);
         std::string pluginFileName();
+
+#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
+        virtual const TargetInstrInfo* getInstrInfo() const override;
+        virtual const TargetFrameLowering* getFrameLowering() const override;
+        virtual const TargetLowering* getTargetLowering() const override;
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override;
+        virtual const DataLayout* getDataLayout() const override;
+        virtual const TargetRegisterInfo* getRegisterInfo() const override;
+#endif
+
     protected:
         void ParseSubtargetFeatures(llvm::StringRef, llvm::StringRef);
     private:
         std::string pluginFile_;
-
+        TCETargetMachinePlugin* plugin_;
     };
 }
 

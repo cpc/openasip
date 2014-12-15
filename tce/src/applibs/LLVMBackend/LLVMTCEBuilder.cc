@@ -83,6 +83,7 @@
 #include "HWOperation.hh"
 #include "AssocTools.hh"
 #include "Conversion.hh"
+#include "InstructionElement.hh"
 
 #ifdef LLVM_3_2
 #include <llvm/Constants.h>
@@ -290,8 +291,10 @@ LLVMTCEBuilder::initDataSections() {
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
 #elif defined(LLVM_3_4)
     mang_ = new Mangler(tm_);
-#else
+#elif defined(LLVM_3_5)
     mang_ = new Mangler(tm_->getDataLayout());
+#else
+    mang_ = new Mangler(tm_->getSubtargetImpl()->getDataLayout());
 #endif
 
     const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
@@ -313,7 +316,11 @@ LLVMTCEBuilder::initDataSections() {
     }
 #endif
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
@@ -512,7 +519,11 @@ unsigned
 LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
     unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
 
@@ -604,8 +615,13 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
+#else
+    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(ci->getType()))
+           == 0 && "Invalid alignment for constant int!");
+#endif
 
     std::vector<MinimumAddressableUnit> maus;
 
@@ -658,8 +674,13 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
+#else
+    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(cfp->getType()))
+           == 0 && "Invalid alignment for constant fp!");
+#endif
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
@@ -669,7 +690,11 @@ LLVMTCEBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
+#endif
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -743,7 +768,11 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     TYPE_CONST Type* type = gv->getType();
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
+#endif
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
@@ -791,7 +820,11 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
 
     assert(addr % (td->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");
@@ -1795,34 +1828,42 @@ LLVMTCEBuilder::debugDataToAnnotations(
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
-            // handle file+line number debug info
-            if (!dl.isUnknown()) {
-		
-                int sourceLineNumber = -1;
-                TCEString sourceFileName = "";
+        // handle file+line number debug info
+        if (!dl.isUnknown()) {
+            
+            int sourceLineNumber = -1;
+            TCEString sourceFileName = "";
                 
-                // inspired from lib/codegen/MachineInstr.cpp
-                const LLVMContext &Ctx = 
-                    mi->getParent()->getParent()->getFunction()->getContext();
-                // TODO: something broken with DIScope
-                DIScope discope(dl.getScope(Ctx));
-                sourceLineNumber = dl.getLine();
-                sourceFileName = static_cast<TCEString>(discope.getFilename());
+            // inspired from lib/codegen/MachineInstr.cpp
+            const LLVMContext &Ctx = 
+                mi->getParent()->getParent()->getFunction()->getContext();
+            // TODO: something broken with DIScope
+            DIScope discope(dl.getScope(Ctx));
+            sourceLineNumber = dl.getLine();
+            sourceFileName = static_cast<TCEString>(discope.getFilename());
 
-                TTAProgram::ProgramAnnotation progAnnotation(
-                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
-                    sourceLineNumber);
-                move->addAnnotation(progAnnotation); 
+            if (sourceFileName.size() >
+                TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
+                sourceFileName = 
+                    sourceFileName.substr(
+                        sourceFileName.size() - 
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES,
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
+            }
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
+                sourceLineNumber);
+            move->addAnnotation(progAnnotation); 
                        
-                if (sourceFileName != "") {
-                    TTAProgram::ProgramAnnotation progAnnotation(
-                        TTAProgram::ProgramAnnotation::
-                        ANN_DEBUG_SOURCE_CODE_PATH, 
-                        sourceFileName);
-                    move->addAnnotation(progAnnotation); 
-                }
+            if (sourceFileName != "") {
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::
+                    ANN_DEBUG_SOURCE_CODE_PATH, 
+                    sourceFileName);
+                move->addAnnotation(progAnnotation); 
             }
         }
+    }
 }
 
 TTAProgram::TerminalRegister*

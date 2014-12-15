@@ -933,7 +933,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         // Sort sockets by name to get deterministic order in HDL.
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
         std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
-        for (int i = 0; i< socketNav.count(); i++) {
+        for (int i = 0; i < socketNav.count(); i++) {
             socketsToWrite.insert(socketNav.item(i));
         }
         for (std::set<Socket*, Component::ComponentNameComparator>::const_iterator iter =
@@ -1055,7 +1055,6 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
-
             if (outputSockets.size() == 0) {
                 continue;
             }
@@ -1119,7 +1118,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             writeBusDumpCode(stream);
             stream << endl;
         }
-            
+        
+        // Sort sockets by name to get deterministic HDL output.    
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
         std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
         for (int i = 0; i < socketNav.count(); i++) {
@@ -1249,7 +1249,6 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
             stream << indentation(1) << "assign " << busSignal(*bus) << " = ";
-
             // Sort sockets by name to get deterministic HDL output.
             std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
@@ -1351,7 +1350,7 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
                 stream << indentation(1) << "wire[" << bus->width() - 1 << ":0] "
                        << simmSignal(*bus) << ";" << endl;
             }
-        }
+        }    
     }
 }
 
@@ -1368,14 +1367,13 @@ DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
     // Sort sockets by name to get deterministic HDL output.
     std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i< socketNav.count(); i++) {
+    for (int i = 0; i < socketNav.count(); i++) {
         socketsToWrite.insert(socketNav.item(i));
     }
 
     for (std::set<Socket*, Component::ComponentNameComparator>::const_iterator iter =
             socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
         Socket* socket = *iter;
-
         if (socket->segmentCount() > 0 && socket->portCount() > 0 &&
             !AssocTools::containsKey(
                 declaredSockets, socketEntityName(
@@ -1798,7 +1796,6 @@ DefaultICGenerator::outputSockets(const TTAMachine::Bus& bus) {
     }
     return outputSockets;
 }
-
 
 
 /**
@@ -2359,3 +2356,4 @@ DefaultICGenerator::indentation(unsigned int level) {
     }
     return indentation;
 }
+

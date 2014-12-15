@@ -34,6 +34,7 @@
 #include "llvm/Support/CommandLine.h"
 
 #include "TCESubtarget.hh"
+#include "TCETargetMachinePlugin.hh"
 
 #define GET_SUBTARGETINFO_CTOR
 #define GET_SUBTARGETINFO_MC_DESC
@@ -62,10 +63,10 @@ BackendPluginFile(
 /**
  * The Constructor.
  */
-TCESubtarget::TCESubtarget(): //const std::string &TT, const std::string &FS) :
+TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin): //const std::string &TT, const std::string &FS) :
 //    TCEGenSubtargetInfo(TT, FS, std::string("")),
     TCEGenSubtargetInfo(std::string("tut-tce-llvm"), std::string(""), std::string("")),
-    pluginFile_(BackendPluginFile) {
+    pluginFile_(BackendPluginFile), plugin_(plugin) {
 
 }
 
@@ -79,3 +80,32 @@ std::string
 TCESubtarget::pluginFileName() {
     return pluginFile_;
 }
+
+
+#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
+
+const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
+    return plugin_->getInstrInfo();
+}
+
+const TargetRegisterInfo* TCESubtarget::getRegisterInfo() const {
+    return plugin_->getRegisterInfo();
+}
+
+const DataLayout* TCESubtarget::getDataLayout() const { 
+    return plugin_->getDataLayout();
+}
+
+const TargetFrameLowering* TCESubtarget::getFrameLowering() const {
+    return plugin_->getFrameLowering();
+}
+
+const TargetLowering* TCESubtarget::getTargetLowering() const { 
+    return plugin_->getTargetLowering();
+}
+
+const TargetSelectionDAGInfo* TCESubtarget::getSelectionDAGInfo() const {
+    return plugin_->getSelectionDAGInfo();
+}
+
+#endif

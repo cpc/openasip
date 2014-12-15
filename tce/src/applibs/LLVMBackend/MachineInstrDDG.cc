@@ -40,6 +40,9 @@
 #include "llvm/Function.h"
 #else
 #include "llvm/IR/Function.h"
+#if (!defined(LLVM_3_3) && !(defined(LLVM_3_4)) && !(defined(LLVM_3_5)))
+#include <llvm/Target/TargetSubtargetInfo.h>
+#endif
 #endif
 
 #include "MachineInstrDDG.hh"
@@ -66,7 +69,12 @@ MachineInstrDDG::MachineInstrDDG(
     BoostGraph<MIDDGNode, MIDDGEdge>(
         std::string(mf.getFunction()->getName().str()) + "_middg", true),
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
-    regInfo_(mf_.getTarget().getRegisterInfo()) {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+    regInfo_(mf_.getTarget().getRegisterInfo()) 
+#else
+    regInfo_(mf_.getTarget().getSubtargetImpl()->getRegisterInfo()) 
+#endif
+{
     int instructions = 0;
     for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
          bbi != mf.end(); ++bbi) {
@@ -539,9 +547,13 @@ MachineInstrDDG::assignPhysReg(Register vreg, Register physReg) {
  */
 TCEString
 MIDDGNode::osalOperationName() const {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
-
+#else
+    const llvm::TargetInstrInfo *TII = 
+        machineInstr()->getParent()->getParent()->getTarget().getSubtargetImpl()->getInstrInfo();
+#endif
     // If it's a custom operation call, try to figure out
     // the called operation name and use it instead as the
     // node label.

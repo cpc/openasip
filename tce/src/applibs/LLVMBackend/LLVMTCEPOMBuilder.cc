@@ -83,9 +83,13 @@ LLVMTCEPOMBuilder::registerFileName(unsigned llvmRegNum) const {
 
     if (llvmRegNum == 1000000) 
         return "RF"; /* temp hack, always assume SP is the RF.4 */
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(llvmRegNum));
+#else
+    TCEString regName(
+        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(llvmRegNum));
+#endif
     return "RF";
 }
 
@@ -95,8 +99,13 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
     if (llvmRegNum == 1000000) 
         return 4; /* temp hack, always assume SP is the RF.4 */
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(llvmRegNum));
+#else
+    TCEString regName(
+        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(llvmRegNum));
+#endif
     
     TCEString indexStr = regName.split("_").at(1);
     return Conversion::toInt(indexStr);
@@ -105,7 +114,11 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
 TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::Procedure* proc) {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
+#else
+    TCEString opName(targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi->getOpcode()));
+#endif
     /* Non-trigger move. */
     if (opName == "MOVE")
         return LLVMTCEBuilder::emitMove(mi, proc);
@@ -134,9 +147,13 @@ LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
 
 TTAProgram::Terminal*
 LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(mo.getReg()));
+#else
+    TCEString regName(
+        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(mo.getReg()));
+#endif
     
     // test for _number which indicates a RF access
     std::vector<TCEString> pieces = regName.split("_");

@@ -86,7 +86,11 @@ namespace llvm {
                 return dynamic_cast<const TCETargetMachine&>(
                     targetMachine()).raPortDRegNum(); 
             } else {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
                 return targetMachine().getRegisterInfo()->getRARegister();
+#else
+                return targetMachine().getSubtargetImpl()->getRegisterInfo()->getRARegister();
+#endif
             }
         }
 
