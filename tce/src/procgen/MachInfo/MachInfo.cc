@@ -1,25 +1,25 @@
 /*
-    Copyright (c) 2014 Tampere University of Technology.
+ Copyright (c) 2014 Tampere University of Technology.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+ This file is part of TTA-Based Codesign Environment (TCE).
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
  */
 /**
  * @file MachInfo.cc
@@ -36,6 +36,8 @@
 #include "OperationPool.hh"
 #include "HWOperation.hh"
 #include "Operation.hh"
+#include "Conversion.hh"
+#include "FUPort.hh"
 
 #include <iostream>
 #include <fstream>
@@ -43,44 +45,75 @@
 
 static MachInfoCmdLineOptions options;
 
+TCEString
+operandBindingsString(TTAMachine::HWOperation& hwop) {
+    OperationPool OSAL;
+    Operation* osalOp = &OSAL.operation(hwop.name().c_str());
+    if (osalOp == &NullOperation::instance()) {
+        return TCEString("");
+    }
+    TCEString operandBindings = "";
+    for (int i = 1; i < osalOp->operandCount() + 1; i++) {
+        if (hwop.port(i) == NULL) {
+            std::cerr << "Warning: Operand " << i << " of " << hwop.name()
+                      << " was not bound to any port." << std::endl;
+            continue;
+        }
+        if (i > 1) {
+            operandBindings += ", ";
+        }
+        operandBindings += Conversion::toString(i) + ": "
+            + hwop.port(i)->name();
+    }
+    return operandBindings;
+}
+
 void
-printLatexFunctionUnitDescription(
-    const TTAMachine::Machine& machine, std::ofstream& output) {
+printLatexFunctionUnitDescription(const TTAMachine::Machine& machine,
+    std::ofstream& output) {
 
     OperationPool OSAL;
 
-    output << "\\begin{longtable}{|l|l|p{8cm}|}" << std::endl;
- 
-    TTAMachine::Machine::FunctionUnitNavigator nav = 
-        machine.functionUnitNavigator(); 
+    output << "\\begin{longtable}{|l|p{7cm}|p{3.5cm}|}" << std::endl;
+
+    TTAMachine::Machine::FunctionUnitNavigator nav = machine
+        .functionUnitNavigator();
     for (int i = 0; i < nav.count(); ++i) {
         TTAMachine::FunctionUnit& fu = *nav.item(i);
-        output << "\\hline" << std::endl;        
+        output << "\\hline" << std::endl;
         // TODO: print description here
         TCEString fuDescription;
         if (fu.hasAddressSpace()) {
-            fuDescription << " Accesses address space \\textbf{" 
+            fuDescription << " Accesses address space \\textbf{"
                           << fu.addressSpace()->name() << "}.\n";
         }
-        output << fu.name() << "\t& \\multicolumn{2}{p{10cm}|}{" << fuDescription << "} \\\\" << std::endl; 
+        output << fu.name() << "\t& \\multicolumn{2}{p{10cm}|}{"
+               << fuDescription << "} \\\\" << std::endl;
         output << "\\hline" << std::endl;
         for (int op = 0; op < fu.operationCount(); ++op) {
             TTAMachine::HWOperation& hwop = *fu.operation(op);
             Operation* osalOp = NULL;
             TCEString description;
-            if (&OSAL.operation(hwop.name().c_str()) != &NullOperation::instance()) {
+            TCEString operandBindings;
+            if (&OSAL.operation(hwop.name().c_str())
+                != &NullOperation::instance()) {
                 osalOp = &OSAL.operation(hwop.name().c_str());
                 description = osalOp->description();
+                operandBindings = operandBindingsString(hwop);
             } else {
                 std::cerr << "warning: Could not find OSAL data for operation '"
                           << hwop.name() << "." << std::endl;
             }
+
             TCEString opname = hwop.name();
             opname = opname.replaceString("_", "\\_");
-            output << "\t & " << opname << " (" << hwop.latency() - 1 << ") & \\small{" 
-                   << description << "}\\\\" << std::endl;
+            operandBindings = operandBindings.replaceString("_", "\\_");
+            output << "\\footnotesize{" << opname << " (" << hwop.latency() - 1
+                   << ")} & \\footnotesize{" << description
+                   << "} & \\footnotesize{" << operandBindings << "}\\\\"
+                   << std::endl;
         }
-    }    
+    }
     output << "\\hline" << std::endl;
     output << "\\hline" << std::endl;
 
@@ -92,7 +125,8 @@ printLatexFunctionUnitDescription(
         TTAMachine::HWOperation& hwop = *fu.operation(op);
         Operation* osalOp = NULL;
         TCEString description;
-        if (&OSAL.operation(hwop.name().c_str()) != &NullOperation::instance()) {
+        if (&OSAL.operation(hwop.name().c_str())
+            != &NullOperation::instance()) {
             osalOp = &OSAL.operation(hwop.name().c_str());
             description = osalOp->description();
         } else {
@@ -101,10 +135,10 @@ printLatexFunctionUnitDescription(
         }
         TCEString opname = hwop.name();
         opname = opname.replaceString("_", "\\_");
-        output << "\t & " << opname << " (" << hwop.latency() - 1 << ") & \\small{" 
-               << description << "}\\\\" << std::endl;
+        output << opname << " (" << hwop.latency() - 1 << ") & \\small{"
+               << description << "} & \\\\" << std::endl;
     }
-    
+
     output << "\\hline" << std::endl;
 
     output << "\\end{longtable}" << std::endl;
@@ -112,28 +146,30 @@ printLatexFunctionUnitDescription(
 }
 
 void
-printLatexAddressSpaceDescription(
-    const TTAMachine::Machine& machine, std::ofstream& output) {
-
+printLatexAddressSpaceDescription(const TTAMachine::Machine& machine,
+    std::ofstream& output) {
 
     output << "\\begin{tabular}{|l|l|l|l|l|}" << std::endl;
 
     output << "\\hline" << std::endl;
 
-    output << "name & start address & end address & width (b) & numerical id(s) \\\\" 
+    output << "name & start address & end address & width (b) & "
+           << "numerical id(s) \\\\"
            << std::endl;
 
     output << "\\hline" << std::endl;
 
-    TTAMachine::Machine::AddressSpaceNavigator nav = 
-        machine.addressSpaceNavigator(); 
+    TTAMachine::Machine::AddressSpaceNavigator nav =
+        machine.addressSpaceNavigator();
     for (int i = 0; i < nav.count(); ++i) {
         TTAMachine::AddressSpace& as = *nav.item(i);
-        if (&as == machine.controlUnit()->addressSpace()) continue;
-        output << as.name() << " & " << as.start() << " & "  << as.end() << " & " << as.width() << " & ";
+        if (&as == machine.controlUnit()->addressSpace())
+            continue;
+        output << as.name() << " & " << as.start() << " & " << as.end()
+               << " & " << as.width() << " & ";
         std::set<unsigned> ids = as.numericalIds();
-        for (std::set<unsigned>::iterator i = ids.begin(), e = ids.end(); 
-             i != e; ++i) {
+        for (std::set<unsigned>::iterator i = ids.begin(), e = ids.end();
+            i != e; ++i) {
             output << *i << " ";
         }
         output << "\\\\" << std::endl;
@@ -144,10 +180,11 @@ printLatexAddressSpaceDescription(
 
     TTAMachine::AddressSpace& as = *machine.controlUnit()->addressSpace();
 
-    output << as.name() << " & " << as.start() << " & "  << as.end() << " & " << as.width() << " & ";
+    output << as.name() << " & " << as.start() << " & " << as.end() << " & "
+           << as.width() << " & ";
     std::set<unsigned> ids = as.numericalIds();
-    for (std::set<unsigned>::iterator i = ids.begin(), e = ids.end(); 
-         i != e; ++i) {
+    for (std::set<unsigned>::iterator i = ids.begin(), e = ids.end(); i != e;
+        ++i) {
         output << *i << " ";
     }
     output << "\\\\" << std::endl;
@@ -157,7 +194,7 @@ printLatexAddressSpaceDescription(
     output << "\\end{tabular}" << std::endl;
 }
 
-int 
+int
 main(int argc, char* argv[]) {
     try {
         options.parse(argv, argc);
@@ -191,12 +228,12 @@ main(int argc, char* argv[]) {
     std::ofstream asDescOutput;
     try {
         fuDescOutput.open(
-            (options.outputFileNameSuffix() + ".fu_table.tex").c_str(), 
+            (options.outputFileNameSuffix() + ".fu_table.tex").c_str(),
             std::ios::trunc);
         asDescOutput.open(
-            (options.outputFileNameSuffix() + ".as_table.tex").c_str(), 
+            (options.outputFileNameSuffix() + ".as_table.tex").c_str(),
             std::ios::trunc);
-        
+
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
@@ -204,7 +241,7 @@ main(int argc, char* argv[]) {
     if (options.outputFormat() == "latex") {
         printLatexFunctionUnitDescription(*mach, fuDescOutput);
         printLatexAddressSpaceDescription(*mach, asDescOutput);
-    } 
+    }
     fuDescOutput.close();
     asDescOutput.close();
     return EXIT_SUCCESS;

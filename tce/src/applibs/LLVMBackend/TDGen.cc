@@ -1493,7 +1493,7 @@ TDGen::writeOperationDefs(
 
     // These white listed operations have mayLoad/mayStore flag
     // inferred from the llvm pattern and declaring it
-    // explicitly will display warning in tablegen.
+    // explicitly will display a warning in tablegen.
     if (op.name() != "LDQ" && op.name() != "LDQU" &&
         op.name() != "LDH" && op.name() != "LDHU" &&
         op.name() != "LDW" && op.name() != "LDD" &&
@@ -1648,7 +1648,7 @@ TDGen::writeOperationDefs(
         }
         if (!canSwap) {
             std::string opTypes = operandTypes;
-            char& c = opTypes[i+op.numberOfOutputs()];
+            char& c = opTypes[i + op.numberOfOutputs()];
             switch(c) {
             case 'r':
                 c = 'i';
@@ -1670,8 +1670,10 @@ TDGen::writeOperationDefs(
     }
 }
 
-void TDGen::writeVectorStoreDefs(std::ostream& o, const TCEString& opName, const TCEString& opNameSuffix, bool addrImm,
-				 const TCEString& dataType) {
+void TDGen::writeVectorStoreDefs(
+    std::ostream& o, const TCEString& opName, 
+    const TCEString& opNameSuffix, bool addrImm,
+    const TCEString& dataType) {
 
     TCEString addrType;
     TCEString addrTypePat;
@@ -1876,33 +1878,44 @@ TDGen::writeOperationDef(
       << "[" << pattern << "]>;"
       << std::endl;
 
-    // write predicated versions
-    o << "def PRED_TRUE_" << opcEnum << " : "
-      << "InstTCE<"
-      << outputs << ", "
-      << predicatedInputs << ", "
-      << asmstr << ", "
-      << "[]>;"
-      << std::endl;
+    // Predicating operands with immediates can currently lead to
+    // unschedulable code in case there's no bus that has both the
+    // predicate and the immediate transfer capability. Disable
+    // generating the predicated versions for immediate operand
+    // patterns for now.
+    bool canBePredicated = operandTypes.find('i') == std::string::npos;
 
-    // write predicated versions
-    o << "def PRED_FALSE_" << opcEnum << " : "
-      << "InstTCE<"
-      << outputs << ", "
-      << predicatedInputs << ", "
-      << asmstr << ", "
-      << "[]>;"
-      << std::endl;
+    if (canBePredicated) {
+        // write predicated versions
+        o << "def PRED_TRUE_" << opcEnum << " : "
+          << "InstTCE<"
+          << outputs << ", "
+          << predicatedInputs << ", "
+          << asmstr << ", "
+          << "[]>;"
+          << std::endl;
+
+        // write predicated versions
+        o << "def PRED_FALSE_" << opcEnum << " : "
+          << "InstTCE<"
+          << outputs << ", "
+          << predicatedInputs << ", "
+          << asmstr << ", "
+          << "[]>;"
+          << std::endl;
+    }
 
     if (attrs != "") {
         o << "}" << std::endl;
     }        
     opNames_[opcEnum] = backendPrefix + op.name();
-    opNames_["PRED_TRUE_" + opcEnum] = "?" + backendPrefix + op.name();
-    opNames_["PRED_FALSE_" + opcEnum] = "!" + backendPrefix + op.name();
 
-    truePredOps_[opcEnum] = "PRED_TRUE_" + opcEnum;
-    falsePredOps_[opcEnum] = "PRED_FALSE_" + opcEnum;
+    if (canBePredicated) {
+        opNames_["PRED_TRUE_" + opcEnum] = "?" + backendPrefix + op.name();
+        opNames_["PRED_FALSE_" + opcEnum] = "!" + backendPrefix + op.name();
+        truePredOps_[opcEnum] = "PRED_TRUE_" + opcEnum;
+        falsePredOps_[opcEnum] = "PRED_FALSE_" + opcEnum;
+    }
 }
 
 /**
@@ -1955,10 +1968,10 @@ TDGen::writeEmulationPattern(
 
     int inputCount = op.numberOfInputs();
     for (int immInput = 0; immInput <= inputCount; immInput++) {
-        // commutative op imms only once
+        // generate commutative operation immediate patterns only once
         bool canSwap = false;
         if (immInput > 0) {
-            for (int j = immInput + 1 ; j <= op.numberOfInputs(); j++) {
+            for (int j = immInput + 1; j <= op.numberOfInputs(); j++) {
                 if (op.canSwap(immInput, j)) {
                     canSwap = true;
                     break;
@@ -3009,7 +3022,6 @@ TDGen::operandToString(
  * Returns llvm input definition list for an operation.
  *
  * @param op Operation to define inputs for.
- * @param immOp Index for an operand that should be defined as an immediate.
  * @return String defining operation inputs in llvm .td format.
  */
 std::string

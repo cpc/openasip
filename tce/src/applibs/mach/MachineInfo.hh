@@ -34,6 +34,9 @@
 #define TTA_MACHINE_INFO_HH
 
 #include "OperationDAGSelector.hh"
+#include "InstructionTemplate.hh"
+
+#include <set>
 
 namespace TTAMachine {
     class Machine;
@@ -52,6 +55,13 @@ public:
     static Operand& operandFromPort(
         const TTAMachine::HWOperation& hwOp,
         const TTAMachine::FUPort& port);
+    static bool templatesUsesSlot(
+        const TTAMachine::Machine& mach,
+        const std::string& slotName);
+    static std::set<TTAMachine::InstructionTemplate*> templatesUsingSlot(
+        const TTAMachine::Machine& mach,
+        const std::string& slotName);
+
 
 private:
     MachineInfo();

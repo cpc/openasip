@@ -85,7 +85,7 @@ public:
         const MoveNode& tail,
         const MoveNode& head);
 
-    DependenceType dependenceType() {
+    DependenceType dependenceType() const {
         return static_cast<DependenceType>(dependenceType_);
     }
     EdgeReason edgeReason() const {

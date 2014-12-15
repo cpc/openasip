@@ -48,6 +48,7 @@ namespace TTAProgram {
  */
 ProgramAnnotation::ProgramAnnotation(Id id, const std::string& data) :
     id_(id) {
+    assert(data.length() < 128);
     setStringValue(data);
 }
 
@@ -65,6 +66,7 @@ ProgramAnnotation::ProgramAnnotation(Id id, int value) :
 ProgramAnnotation::ProgramAnnotation(
     Id id, const std::vector<Byte>& payload) :
     id_(id), payload_(payload) {
+    assert(payload.size() < 128);
 }
 
 /**

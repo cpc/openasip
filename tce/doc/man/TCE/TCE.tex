@@ -2314,7 +2314,7 @@ bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
 multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
 \textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
 overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
-the corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
+the corresponding cosine value $cos\left(\frac{x(2i+1)\pi}{16}\right)$. The code calculates
 following equations:
 
 \begin{equation}
@@ -3954,6 +3954,13 @@ be used is found.
 
 \end{longtable}
 \end{center}
+
+Third-party libraries can be used in the operation behavior model.
+\emph{buildopset} uses the environment variables \emph{CPPFLAGS}, 
+\emph{CXXFLAGS} and \emph{LDFLAGS} to search for the external library. E.g.: 
+
+\shellcmd{CPPFLAGS=-I/opt/mpeg/inlucde LDFLAGS=-lmpeg buildopset /home/jack/.tce/opset/custom/mpeg} 
+
 
 \subsection{OSAL Tester (testosal)}
 \label{sec:testosal}

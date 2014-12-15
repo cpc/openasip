@@ -993,6 +993,11 @@ p.add_option('--temp-dir',
              dest="temp_dir", default=None,
              help="Use the given directory for temporary files.")
 
+p.add_option('--init-sp', 
+             type="long", action="store", metavar='value',
+             dest='init_sp', default=None,
+             help="Set the initial stack pointer of the program to the given value.")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -1227,6 +1232,9 @@ if options.adf_file != "":
         command = "llvm-tce"
 
     command += " --temp-dir=%s " % tempDir
+
+    if options.init_sp:
+        command += " --init-sp=%d" % options.init_sp
 
     command += " --backend-cache-dir=%s " % options.plugin_cache_dir
     if options.use_old_backend_src and options.temp_dir:

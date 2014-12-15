@@ -83,6 +83,7 @@ SQLite::connect(
 
     if (value != SQLITE_OK) {
         string error = sqlite3_errmsg(connection);
+        error += " - file:\"" + database +"\"";
         throw RelationalDBException(
             __FILE__, __LINE__, "SQLite::connect()", error);
     }

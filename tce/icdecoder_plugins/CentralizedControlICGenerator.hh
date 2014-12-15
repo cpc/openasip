@@ -64,6 +64,9 @@ public:
     ProGe::NetlistPort& dataCntrlPortOfSocket(
         const std::string& socketName) const
         throw (InstanceNotFound);
+    bool hasGlockPort() const;
+    ProGe::NetlistPort& glockPort() const
+        throw (InstanceNotFound);
 
     virtual int outputSocketCntrlPinForSegment(
         const TTAMachine::Socket& socket,
@@ -89,6 +92,7 @@ protected:
     void mapDataCntrlPortOfSocket(
         const std::string& socketName,
         ProGe::NetlistPort& port);
+    void setGlockPort(ProGe::NetlistPort& glockPort);
 
 private:
     typedef std::map<std::string, ProGe::NetlistPort*> NetlistPortMap;
@@ -103,6 +107,8 @@ private:
     NetlistPortMap busCntrlPortMap_;
     /// Maps the data control ports of sockets.
     NetlistPortMap dataCntrlPortMap_;
+    /// (optional) Glock port
+    ProGe::NetlistPort* glockPort_;
 };
 
 #endif

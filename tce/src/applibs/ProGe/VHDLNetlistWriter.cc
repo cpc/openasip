@@ -279,6 +279,9 @@ VHDLNetlistWriter::writePortDeclaration(
 
     stream << generateIndentation(indentationLevel, indentation) << "port ("
            << endl;
+    for(int i = 0; i < block.portCount(); i++) {
+        NetlistPort& port = block.port(i);
+    }
 
     for (int i = 0; i < block.portCount(); i++) {
         NetlistPort& port = block.port(i);

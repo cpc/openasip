@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>LOCKTEST</name>
+    <description>Dummy operation for TB FU. When written '1' to input the FU generates glock sequence.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in element-count="1" element-width="1" id="1" type="Bool"/>
+  </operation>
+
+</osal>

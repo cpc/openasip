@@ -41,7 +41,8 @@ using namespace TTAMachine;
 /**
  * The constructor.
  */
-CentralizedControlICGenerator::CentralizedControlICGenerator() {
+CentralizedControlICGenerator::CentralizedControlICGenerator() :
+    glockPort_(0) {
 }
 
 
@@ -135,6 +136,32 @@ CentralizedControlICGenerator::dataCntrlPortOfSocket(
 
 
 /**
+ * Returns true if IC has glock port.
+ */
+bool
+CentralizedControlICGenerator::hasGlockPort() const {
+    return (glockPort_ != 0);
+}
+
+
+/**
+ * Returns reference to NetlistPort of glock.
+ *
+ * @exception InstanceNotFound If IC does not have glock port.
+ */
+ProGe::NetlistPort&
+CentralizedControlICGenerator::glockPort() const
+    throw (InstanceNotFound) {
+    if (!hasGlockPort()) {
+        throw InstanceNotFound(__FILE__, __LINE__, __func__,
+            "IC does not have glock port.");
+    } else {
+        return *glockPort_;
+    }
+}
+
+
+/**
  * Maps the given netlist port as the short immediate data port of the 
  * given bus.
  *
@@ -202,3 +229,16 @@ CentralizedControlICGenerator::mapDataCntrlPortOfSocket(
     dataCntrlPortMap_.insert(
         std::pair<std::string, NetlistPort*>(socketName, &port));
 }    
+
+
+/**
+ * Sets optional glock port of IC.
+ *
+ * @param glockPort The glock port.
+ */
+void
+CentralizedControlICGenerator::setGlockPort(ProGe::NetlistPort& glockPort) {
+    assert(glockPort_ == 0);
+    glockPort_ = &glockPort;
+}
+
