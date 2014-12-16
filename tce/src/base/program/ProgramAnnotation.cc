@@ -52,7 +52,7 @@ namespace TTAProgram {
  */
 ProgramAnnotation::ProgramAnnotation(Id id, const std::string& data) :
     id_(id) {
-    assert(data.length() <= TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
+    assert(data.length() <= (unsigned)TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
     setStringValue(data);
 }
 
@@ -71,7 +71,7 @@ ProgramAnnotation::ProgramAnnotation(
     Id id, const std::vector<Byte>& payload) :
     id_(id), payload_(payload) {
     assert(payload.size() <= 
-           TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
+           (unsigned)TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
 }
 
 /**

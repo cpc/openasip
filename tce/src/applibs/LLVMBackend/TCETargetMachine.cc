@@ -39,8 +39,6 @@
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 
-#include "llvm/IR/IRPrintingPasses.h"
-
 #include "TCETargetMachine.hh"
 #include "TCEMCAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
