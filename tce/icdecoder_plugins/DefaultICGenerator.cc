@@ -446,7 +446,8 @@ DefaultICGenerator::generateSocket(
     const std::string& dstDirectory) const
     throw (IOException) {
     
-    string fileName = socketFileName(language_,direction, portConns, segmentConns);
+    string fileName = socketFileName(language_,
+            direction, portConns, segmentConns);
     string pathToFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         fileName;
     bool created = FileSystem::createFile(pathToFile);
@@ -930,9 +931,17 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             stream << endl;
         }
             
+        // Sort sockets by name to get deterministic order in HDL.
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
         for (int i = 0; i < socketNav.count(); i++) {
-            Socket* socket = socketNav.item(i);
+            socketsToWrite.insert(socketNav.item(i));
+        }
+        for (std::set<Socket*,
+                Component::ComponentNameComparator>::const_iterator iter =
+                socketsToWrite.begin();
+                iter != socketsToWrite.end(); iter++) {
+            Socket* socket = *iter;
             int segmentCount = socket->segmentCount();
             if (segmentCount == 0 || socket->portCount() == 0) {
                 continue;
@@ -1052,21 +1061,27 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             if (outputSockets.size() == 0) {
                 continue;
             }
+            // Sort sockets by name to get deterministic HDL output.
+            std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
+            for (std::set<Socket*>::iterator iter = outputSockets.begin();
+                    iter != outputSockets.end(); iter++) {
+                socketsToWrite.insert(*iter);
+            }
 
             stream << indentation(1) << busSignal(*bus) << " <= ";
-            for (std::set<Socket*>::const_iterator iter = 
-                     outputSockets.begin(); 
-                 iter != outputSockets.end();) {
+            for (std::set<Socket*,
+                    Component::ComponentNameComparator>::const_iterator iter =
+                     socketsToWrite.begin(); iter != socketsToWrite.end();) {
                 Socket* socket = *iter;
                 stream << "ext(" << busAltSignal(*bus, *socket)
                        << ", " << busSignal(*bus) << "'length)";
                 iter++;
-                if (iter != outputSockets.end()) {
+                if (iter != socketsToWrite.end()) {
                     stream << " or ";
                 }
             }
             if (bus->immediateWidth() > 0) {
-                if (outputSockets.begin() != outputSockets.end()) {
+                if (socketsToWrite.begin() != socketsToWrite.end()) {
                     stream << " or ";
                 }
                 if (bus->signExtends()) {
@@ -1106,10 +1121,17 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             writeBusDumpCode(stream);
             stream << endl;
         }
-            
+        
+        // Sort sockets by name to get deterministic HDL output.    
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
+        std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
         for (int i = 0; i < socketNav.count(); i++) {
-            Socket* socket = socketNav.item(i);
+            socketsToWrite.insert(socketNav.item(i));
+        }
+        for (std::set<Socket*,
+                Component::ComponentNameComparator>::const_iterator iter =
+                socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
+            Socket* socket = *iter;
             int segmentCount = socket->segmentCount();
             if (segmentCount == 0 || socket->portCount() == 0) {
                 continue;
@@ -1231,18 +1253,25 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
             stream << indentation(1) << "assign " << busSignal(*bus) << " = ";
-            for (std::set<Socket*>::const_iterator iter =
-                     outputSockets.begin(); 
-                 iter != outputSockets.end();) {
+            // Sort sockets by name to get deterministic HDL output.
+            std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
+            for (std::set<Socket*>::iterator iter = outputSockets.begin();
+                    iter != outputSockets.end(); iter++) {
+                socketsToWrite.insert(*iter);
+            }
+
+            for (std::set<Socket*,
+                    Component::ComponentNameComparator>::const_iterator iter =
+                     socketsToWrite.begin(); iter != socketsToWrite.end();) {
                 Socket* socket = *iter;
                 stream << busAltSignal(*bus, *socket);
                 iter++;
-                if (iter != outputSockets.end()) {
+                if (iter != socketsToWrite.end()) {
                     stream << " | ";
                 }
             }
             if (bus->immediateWidth() > 0) {
-                if (outputSockets.begin() != outputSockets.end()) {
+                if (socketsToWrite.begin() != socketsToWrite.end()) {
                     stream << " | ";
                 }
                 stream << simmSignal(*bus);
@@ -1273,10 +1302,17 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
                    << " downto 0);" << endl;
                 
             // create a signal for all the output sockets connected to the bus
+            // Sort alphabetically to get deterministic HDL output.
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
-                 iter != outputSockets.end(); iter++) {
+                    iter != outputSockets.end(); iter++) {
+                socketsToWrite.insert(*iter);
+            }
 
+            for (std::set<Socket*, Component::ComponentNameComparator>::iterator
+                    iter = socketsToWrite.begin(); iter != socketsToWrite.end();
+                    iter++) {
                 stream << indentation(1) << "signal " 
                        << busAltSignal(*bus, **iter) << " : std_logic_vector("
                        << maxOutputSocketDataPortWidth(**iter) - 1
@@ -1298,9 +1334,17 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
                    << busSignal(*bus) << ";"<< endl;
                 
             // create a wires for all the output sockets connected to the bus
+            // Sort alphabetically to get deterministic HDL output.
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
+            std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
-                 iter != outputSockets.end(); iter++) {
+                    iter != outputSockets.end(); iter++) {
+                socketsToWrite.insert(*iter);
+            }
+
+            for (std::set<Socket*, Component::ComponentNameComparator>::iterator
+                    iter = socketsToWrite.begin(); iter != socketsToWrite.end();
+                    iter++) {
                 stream << indentation(1) << "wire[" << bus->width() - 1 <<":0] "
                        << busAltSignal(*bus, **iter)<<";"<< endl;
             }
@@ -1324,9 +1368,17 @@ void
 DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
 
     std::set<string> declaredSockets;
+    // Sort sockets by name to get deterministic HDL output.
+    std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
     for (int i = 0; i < socketNav.count(); i++) {
-        Socket* socket = socketNav.item(i);
+        socketsToWrite.insert(socketNav.item(i));
+    }
+
+    for (std::set<Socket*,
+            Component::ComponentNameComparator>::const_iterator iter =
+            socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
+        Socket* socket = *iter;
         if (socket->segmentCount() > 0 && socket->portCount() > 0 &&
             !AssocTools::containsKey(
                 declaredSockets, socketEntityName(
@@ -2229,7 +2281,8 @@ DefaultICGenerator::socketFileName(
 
     if (direction == Socket::INPUT) {
         return "input_socket_" + 
-            Conversion::toString(segmentConns) + ((language==VHDL)?".vhdl":".v");
+            Conversion::toString(segmentConns) +
+            ((language==VHDL)?".vhdl":".v");
     } else if (direction == Socket::OUTPUT) {
         return "output_socket_" +
             Conversion::toString(segmentConns) + "_" + 
