@@ -446,7 +446,8 @@ DefaultICGenerator::generateSocket(
     const std::string& dstDirectory) const
     throw (IOException) {
     
-    string fileName = socketFileName(language_,direction, portConns, segmentConns);
+    string fileName = socketFileName(language_,
+            direction, portConns, segmentConns);
     string pathToFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         fileName;
     bool created = FileSystem::createFile(pathToFile);
@@ -936,8 +937,10 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < socketNav.count(); i++) {
             socketsToWrite.insert(socketNav.item(i));
         }
-        for (std::set<Socket*, Component::ComponentNameComparator>::const_iterator iter =
-                socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
+        for (std::set<Socket*,
+                Component::ComponentNameComparator>::const_iterator iter =
+                socketsToWrite.begin();
+                iter != socketsToWrite.end(); iter++) {
             Socket* socket = *iter;
             int segmentCount = socket->segmentCount();
             if (segmentCount == 0 || socket->portCount() == 0) {
@@ -1125,7 +1128,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < socketNav.count(); i++) {
             socketsToWrite.insert(socketNav.item(i));
         }
-        for (std::set<Socket*, Component::ComponentNameComparator>::const_iterator iter =
+        for (std::set<Socket*,
+                Component::ComponentNameComparator>::const_iterator iter =
                 socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
             Socket* socket = *iter;
             int segmentCount = socket->segmentCount();
@@ -1371,7 +1375,8 @@ DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
         socketsToWrite.insert(socketNav.item(i));
     }
 
-    for (std::set<Socket*, Component::ComponentNameComparator>::const_iterator iter =
+    for (std::set<Socket*,
+            Component::ComponentNameComparator>::const_iterator iter =
             socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
         Socket* socket = *iter;
         if (socket->segmentCount() > 0 && socket->portCount() > 0 &&
@@ -2276,7 +2281,8 @@ DefaultICGenerator::socketFileName(
 
     if (direction == Socket::INPUT) {
         return "input_socket_" + 
-            Conversion::toString(segmentConns) + ((language==VHDL)?".vhdl":".v");
+            Conversion::toString(segmentConns) +
+            ((language==VHDL)?".vhdl":".v");
     } else if (direction == Socket::OUTPUT) {
         return "output_socket_" +
             Conversion::toString(segmentConns) + "_" + 

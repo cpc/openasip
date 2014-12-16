@@ -122,15 +122,16 @@ public:
      *
      * Can be used to organize containers of type Component to dictionary
      * order according to their name field.
+     *
      * @param a the first Component to compare.
      * @param b the second Component to compare.
      * @return true, if a comes before b in dictionary order.
      */
     class ComponentNameComparator {
-        public:
-            bool operator () (const Component* a, const Component* b) const {
-                return (a->name()) < (b->name());
-            }
+    public:
+        bool operator () (const Component* a, const Component* b) const {
+            return (a->name()) < (b->name());
+        }
     };
 
     /// ObjectState name for component.
