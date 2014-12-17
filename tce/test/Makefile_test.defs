@@ -42,7 +42,7 @@
 # How long to run a test before killing it. 5 mins = 300s
 MAXIMUM_TEST_RUNTIME = 300
 
-TESTS = $(wildcard *Test.hh)
+TESTS = $(patsubst %.hh,%.rt,$(wildcard *Test.hh))
 TESTDIR = $(TOP_SRCDIR)/test
 
 WATCHDOG_CMD = $(TOP_SRCDIR)/tools/scripts/exec_max_time ${MAXIMUM_TEST_RUNTIME}
@@ -102,31 +102,39 @@ TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
 
 TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "libtce${LIBRARY_SUFFIX}" | grep -v dSYM| grep -v passes)
 
-.PHONY: build_src, dummy
+.PHONY: dummy, all, clean
+
+# This is required to avoid make deleting the "intermediate" files,
+# which is required to rerun the test without building.
+.SECONDARY: $(patsubst %.rt,%-runner, ${TESTS})
 .NOTPARALLEL: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
 all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
-%.hh: dummy
-	@echo Running $@${VALGRIND_TEXT}:;
-	@(${CXXDIR}/cxxtestgen.pl --error-printer -o runner.cpp $@;\
+%-runner.cpp: %.hh
+	${CXXDIR}/cxxtestgen.pl --error-printer -o $@ $<
+
+%-runner.o: %-runner.cpp
 	${CXX} ${TCE_INCLUDES} ${CPPFLAGS} ${CXXFLAGS} \
         ${EDITLINE_INCLUDES} ${BOOST_INCLUDES} -I ${CXXDIR} -I ${CXXDIR}/.. \
         ${EXTRA_COMPILER_FLAGS} \
-	    -g -c runner.cpp || exit 1; \
-	${CXX} runner.o ${TCE_LIB_FLAGS} ${TCE_LIBS} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} \
-        ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} -g -o runner || exit 1; \
-	${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./runner")
+	    -g -c $< -o $@
 
+%-runner: %-runner.o
+	${CXX} $@.o ${TCE_LIB_FLAGS} ${TCE_LIBS} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} \
+        ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} -o $@
+	strip $@
+
+# Strip the runner from (debug) symbols as they binaries are quite big and usually 
+# the runner itself is not a problem when debugging issues, but the
+# issue is in libtce.so.
+%.rt: %-runner 
+	@echo Running $(patsubst %.rt,%,$@)${VALGRIND_TEXT}:;
+	@${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./$<"
 
 # This has to be there otherwise %.hh won't get called for each *Test.hh
 dummy:
 	@echo -n;
-
-build_src:
-	@(cd ${OBJDIR}; \
-	  ${MAKE} -j2 2>> ${TEST_COMPILE_LOG} 1>/dev/null || exit 1; \
-	  cd ${CURDIR})
 
 # Removes .da files from OBJDIR to avoid accumulative results
 clean_gcov:
@@ -144,5 +152,8 @@ gcov:
 
 distclean: clean
 
+TESTS = $(patsubst %.hh,%.rt,$(wildcard *Test.hh))
+
 clean:
-	rm -rf core* runner runner.o runner.cpp *~ coverage.txt ${TEST_COMPILE_LOG} ${CLEAN_FILES}
+	rm -rf core* $(patsubst %.rt,%-runner.o,$(TESTS)) $(patsubst %.rt,%-runner.cpp,$(TESTS)) \
+	$(patsubst %.rt,%-runner,$(TESTS)) *~ coverage.txt ${TEST_COMPILE_LOG} ${CLEAN_FILES}
