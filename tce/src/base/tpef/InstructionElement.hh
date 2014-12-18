@@ -62,7 +62,7 @@ public:
     Byte size() const;
 
     /// Maximum number of bytes that annotation may contain.
-    static const int MAX_ANNOTATION_BYTES;
+    static const size_t MAX_ANNOTATION_BYTES;
     
 private:
     /// Identifcation code of annotation.
