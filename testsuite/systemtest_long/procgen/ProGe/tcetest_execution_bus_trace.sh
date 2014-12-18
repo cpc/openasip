@@ -36,11 +36,12 @@ shift "$((OPTIND-1))"
 clear_test_data() {
     rm -rf $PROGE_OUT_VHDL
     rm -rf $PROGE_OUT_VERILOG
-    rm -f $TPEF
+    rm -f ${TPEF}
     rm -f *.img
     rm -f $TTABUSTRACE
     rm -f *.opp
     rm -f *.opb
+    rm -f *.tpef.*
 }
 
 clear_test_data
@@ -62,6 +63,7 @@ then
   ./ghdl_compile.sh >& /dev/null || echo "ghdl compile failed."
   ./ghdl_simulate.sh >& /dev/null || echo "ghdl simulation failed."
   cd ..
+  diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT_VHDL/execbus.dump)
 fi
 
 # If IVerilog is found from PATH, compile and simulate
@@ -72,10 +74,8 @@ then
     ./iverilog_compile.sh >& /dev/null || echo "iverilog compile failed."
     ./iverilog_simulate.sh >& /dev/null || echo "iverilog simulation failed."
     cd ..
+    diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT_VERILOG/execbus.dump)
 fi
-
-diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT_VHDL/execbus.dump)
-diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT_VERILOG/execbus.dump)
 
 if [ "${leavedirty}" != "true" ]; then
     clear_test_data
