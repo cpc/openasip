@@ -35,6 +35,7 @@
 
 #include <iostream>
 
+#include "tce_config.h"
 #if defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
@@ -56,8 +57,6 @@ namespace TTAMachine {
 #if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
 #include <llvm/Target/TargetSelectionDAGInfo.h>
 #endif
-
-#include "tce_config.h"
 
 /**
  * TCE target machine plugin interface.
