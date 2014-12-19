@@ -64,9 +64,8 @@ then
   ./ghdl_compile.sh &> /dev/null || echo "ghdl compile failed."
   ./ghdl_simulate.sh  &> /dev/null || echo "ghdl simulation failed."
   cd ..
+  diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT/bus.dump)
 fi
-
-diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT/bus.dump)
 
 [ "${leavedirty}" != "true" ] && clear_test_data
 exit 0
