@@ -42,8 +42,6 @@
 /// Size of a memory chunk in MAUs.
 #define MEM_CHUNK_SIZE (1024)
 
-using std::size_t;
-
 /**
  * Models the data contained in memory.
  */
