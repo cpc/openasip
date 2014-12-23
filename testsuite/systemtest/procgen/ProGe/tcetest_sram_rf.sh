@@ -57,6 +57,7 @@ then
     ./ghdl_simulate.sh >& /dev/null
     cd ..
     diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $RTLBUSTRACE)
+    grep -q TT $pdir/printchar_output.txt || abort_w_msg "Error from test program."
 fi
 
 if [ "${leavedirty}" != "true" ]; then

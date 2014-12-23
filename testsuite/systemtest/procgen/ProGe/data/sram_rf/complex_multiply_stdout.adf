@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.9">
+<adf version="1.7">
 
   <bus name="B1">
     <width>32</width>
@@ -68,14 +68,14 @@
     </reads-from>
   </socket>
 
-  <socket name="RF_i1">
+  <socket name="RF1_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="RF_o1">
+  <socket name="RF1_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
@@ -143,6 +143,20 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+  </socket>
+
+  <socket name="RF2_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="RF2_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <function-unit name="LSU">
@@ -571,17 +585,17 @@
     <address-space/>
   </function-unit>
 
-  <register-file name="RF">
+  <register-file name="RF1">
     <type>normal</type>
-    <size>5</size>
+    <size>2</size>
     <width>32</width>
     <max-reads>1</max-reads>
     <max-writes>1</max-writes>
     <port name="wr">
-      <connects-to>RF_i1</connects-to>
+      <connects-to>RF1_i1</connects-to>
     </port>
     <port name="rd">
-      <connects-to>RF_o1</connects-to>
+      <connects-to>RF1_o1</connects-to>
     </port>
   </register-file>
 
@@ -596,6 +610,20 @@
     </port>
     <port name="rd">
       <connects-to>bool_o1</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="RF2">
+    <type>normal</type>
+    <size>3</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr">
+      <connects-to>RF2_o1</connects-to>
+    </port>
+    <port name="rd">
+      <connects-to>RF2_i1</connects-to>
     </port>
   </register-file>
 
