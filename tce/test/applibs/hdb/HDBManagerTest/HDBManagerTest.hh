@@ -75,8 +75,10 @@ const string HDB_TO_CREATE_7 = "data" + DS + "newHDB7.hdb";
 const string HDB_TO_CREATE_8 = "data" + DS + "newHDB8.hdb";
 const string HDB_TO_CREATE_9 = "data" + DS + "newHDB9.hdb";
 const string OLD_HDB_1 = "data" + DS + "oldHDB1.hdb";
+const string OLD_HDB_2 = "data" + DS + "oldHDB2.hdb";
 const string TMP_HDB_1 = "data" + DS + "tmp_1.hdb";
 const string TMP_HDB_2 = "data" + DS + "tmp_2.hdb";
+const string TMP_HDB_3 = "data" + DS + "tmp_3.hdb";
 const string TEST_ADF = "data" + DS + "testadf.adf";
 
 namespace HDB {
@@ -383,17 +385,14 @@ HDBManagerTest::testInsertingRFImplementation() {
 }
 
 /**
- * Tests inserting new column for SAC parameter into RF implementation table.
+ * Tests inserting new column for separate address cycle flag into RF
+ * implementation table.
  */
 void
 HDBManagerTest::testInsertingRFImplementationToOldDB() {
 
     try {
-        string origdb = "data" + DS + "oldHDB1.hdb_orig";
-        string testdb = "data" + DS + "oldHDB1.hdb";
-        FileSystem::removeFileOrDirectory(testdb);
-        FileSystem::copy(origdb, testdb);
-        HDBManager& manager = HDBRegistry::instance().hdb(testdb);
+        HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB_3);
 
         // Read SAC from database which do not have SAC column in
         // RF implementation table.
@@ -410,8 +409,8 @@ HDBManagerTest::testInsertingRFImplementationToOldDB() {
         entry = NULL;
 
         // Check that new column is created to rf_implementation.
-        TS_ASSERT(FileSystem::runShellCommand("sqlite3 data" + DS +
-            "oldHDB1.hdb \"pragma table_info(rf_implementation)\"" +
+        TS_ASSERT(FileSystem::runShellCommand("sqlite3 " + TMP_HDB_3 +
+            " \"pragma table_info(rf_implementation)\"" +
             " | grep sac_param"));
 
         // Check that added RF implementation has SAC set to true.
@@ -426,7 +425,7 @@ HDBManagerTest::testInsertingRFImplementationToOldDB() {
 
     } catch(Exception& e) {
         std::cerr << e.fileName() << e.lineNum() << ":" << e.errorMessage()
-                        << std::endl;
+                  << std::endl;
     }
 }
 

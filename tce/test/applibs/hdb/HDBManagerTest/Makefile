@@ -25,6 +25,7 @@ include ${TOP_SRCDIR}/test/Makefile_test.defs
 init:
 	@cp -f data/oldHDB1.hdb data/tmp_1.hdb
 	@cp -f data/oldHDB1.hdb data/tmp_2.hdb
+	@cp -f data/oldHDB2.hdb data/tmp_3.hdb
 
 cleanup:
 	@rm -f data/newHDB*.hdb data/tmp_*.hdb
