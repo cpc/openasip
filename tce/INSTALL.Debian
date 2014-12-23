@@ -34,6 +34,7 @@ This needs root/admin privileges.
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
   export PATH=$PATH:$HOME/local/bin
+  export LDFLAGS=-L$HOME/local/lib
 
 You better put the above environment variable modification commands to 
 your ~/.bashrc or similar so they are taken in effect automatically whenever 
