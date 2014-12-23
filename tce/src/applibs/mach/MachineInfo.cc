@@ -39,6 +39,10 @@
 #include "ControlUnit.hh"
 #include "RegisterFile.hh"
 #include "Guard.hh"
+#include "Operation.hh"
+#include "Operand.hh"
+#include "FUPort.hh"
+#include "InstructionTemplate.hh"
 
 using namespace TTAMachine;
 
@@ -98,3 +102,77 @@ MachineInfo::longestGuardLatency(
     }
     return ggLatency;
 }
+
+/**
+ * Returns Operand object for the given hardware operation attached to the port.
+ *
+ * InstanceNotFound exception is thrown, if the hardware operation doesn't have
+ * an operand in the given port. 
+ * 
+ * @param hwOp Hardware operation.
+ * @param port The port containing the desired Operand. 
+ * @return Reference to the Operand object.
+ */
+Operand& 
+MachineInfo::operandFromPort(
+    const TTAMachine::HWOperation& hwOp,
+    const TTAMachine::FUPort& port) {
+ 
+    const TCEString& opName = hwOp.name();
+    OperationPool opPool;
+    const Operation& op = opPool.operation(opName.c_str());
+
+    assert(&op != &NullOperation::instance() && "Invalid operation name.");
+
+    int opndIndex = hwOp.io(port);
+    return op.operand(opndIndex);
+}
+
+/**
+ * Checks if slot is used in any of the instruction templates defined in ADF.
+ *
+ * @param mach The Machine.
+ * @param slotName The name of the slot.
+ * @return True if any template includes given slot. False otherwise.
+ */
+bool
+MachineInfo::templatesUsesSlot(
+    const TTAMachine::Machine& mach,
+    const std::string& slotName) {
+
+    std::set<InstructionTemplate*> affectingInstTemplates;
+    Machine::InstructionTemplateNavigator itNav =
+        mach.instructionTemplateNavigator();
+    for (int i = 0; i < itNav.count(); i++) {
+        InstructionTemplate* iTemp = itNav.item(i);
+        if (iTemp->usesSlot(slotName)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Returns set of pointers to instruction templates that uses the given slot.
+ *
+ * @param mach The Machine.
+ * @param slotName The name of the slot.
+ * @return List of found templates or empty none was found.
+ */
+std::set<TTAMachine::InstructionTemplate*>
+MachineInfo::templatesUsingSlot(
+    const TTAMachine::Machine& mach,
+    const std::string& slotName) {
+    std::set<InstructionTemplate*> affectingInstTemplates;
+    Machine::InstructionTemplateNavigator itNav =
+        mach.instructionTemplateNavigator();
+    for (int i = 0; i < itNav.count(); i++) {
+        InstructionTemplate* iTemp = itNav.item(i);
+        if (iTemp->usesSlot(slotName)) {
+            affectingInstTemplates.insert(iTemp);
+        }
+    }
+    return affectingInstTemplates;
+}
+

@@ -37,10 +37,11 @@
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/Target/TargetSelectionDAGInfo.h"
 #include "llvm/PassManager.h"
 //#include "TCESubtarget.hh"
+
 #include "TCETargetMachinePlugin.hh"
-#include "TCETargetSelectionDAGInfo.hh"
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
 #ifdef LLVM_LIBDIR
@@ -51,15 +52,9 @@
 #include "llvm/CodeGen/Passes.h"
 
 #if defined(LLVM_3_2)
-
 #include "llvm/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
 #else
-
 #include "llvm/IR/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
 #endif
 
 
@@ -137,14 +132,15 @@ namespace llvm {
             return plugin_->getRegisterInfo();
         }
 
-        virtual const TargetData* getTargetData() const {
-            return &DL;
-        }
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         virtual const DataLayout* getDataLayout() const { 
-            return &DL; 
+            return &dl_; 
         }
-
+#else
+        virtual const DataLayout* getDataLayout() const {
+            return plugin_->getDataLayout();
+        }
+#endif
         virtual const TargetFrameLowering* getFrameLowering() const {
             return plugin_->getFrameLowering();
         }
@@ -152,12 +148,20 @@ namespace llvm {
             return plugin_->getTargetLowering();
         }
 
-        virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {
-	    return &tsInfo;
-	}
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
+            return &tsInfo_;
+        }
+#else
+#ifdef LLVM_3_5
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override {
+            return plugin_->getSelectionDAGInfo();
+        }
+#endif
+#endif
 
-	virtual TargetPassConfig *createPassConfig(
-	    PassManagerBase &PM);
+        virtual TargetPassConfig *createPassConfig(
+            PassManagerBase &PM);
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);
@@ -206,16 +210,21 @@ namespace llvm {
             return plugin_->maxVectorSize();
         }
 
+        unsigned getMaxMemoryAlignment() const {
+            return plugin_->getMaxMemoryAlignment();
+        }
+
         const std::set<
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();
 
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
-        TargetSubtargetInfo*   Subtarget;
-        const TargetData    DL; // Calculates type size & alignment
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+        DataLayout dl_; // Calculates type size & alignment
+        TargetSelectionDAGInfo tsInfo_;
+#endif
         
-        TCESelectionDAGInfo tsInfo;
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.

@@ -117,6 +117,23 @@ public:
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
 
+    /**
+     * Compares 2 Component's names lexicographically (dictionary order).
+     *
+     * Can be used to organize containers of type Component to dictionary
+     * order according to their name field.
+     *
+     * @param a the first Component to compare.
+     * @param b the second Component to compare.
+     * @return true, if a comes before b in dictionary order.
+     */
+    class ComponentNameComparator {
+    public:
+        bool operator () (const Component* a, const Component* b) const {
+            return (a->name()) < (b->name());
+        }
+    };
+
     /// ObjectState name for component.
     static const std::string OSNAME_COMPONENT;
     /// ObjectState attribute key for the name of the component.

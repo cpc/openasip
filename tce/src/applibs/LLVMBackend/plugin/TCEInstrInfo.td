@@ -151,7 +151,7 @@ def MOVF16hk : InstTCE<(outs R32HFPRegs:$dst), (ins f16imm:$val),
 }
 
 // TODO: are these really ever used for anything? propably not?
-let isReMaterializable = 1, neverHasSideEffects = 1, isMoveImm = 1 in {
+let isReMaterializable = 1, isMoveImm = 1 in {
 def MOVF32fi : InstTCE<(outs R32FPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
@@ -190,6 +190,10 @@ def PRED_FALSE_MOVI32rr : InstTCE<(outs R32IRegs:$dst),
     (ins R1Regs:$pred, R32IRegs:$src),
 	           "$src -> $dst;",
                    []>;
+
+def MOVI1I32rr : InstTCE<(outs R32IRegs:$dst), (ins R1Regs:$src),
+                     "$src -> $dst;",
+                    []>;
 
 def MOVI32I1rr : InstTCE<(outs R1Regs:$dst), (ins R32IRegs:$src),
                      "$src -> $dst;",
@@ -400,13 +404,6 @@ def LDQUBi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), "", [(set R1Regs:$op2
 def : Pat<(i1 (load ADDRrr:$addr)), (LDQBr ADDRrr:$addr)>;
 def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
 
-def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDrri (LDQrr ADDRrr:$addr),1)>;
-def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDrri (LDQri ADDRri:$addr),1)>;
-
-// the and could be dropped if we knew our store1 cannot write garbage to upper bits?
-// so TODO: create true 1-bit mem operations
-def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBrir 0,(ANDrri (LDQrr ADDRrr:$addr),1))>;
-def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBrir 0,(ANDrri (LDQri ADDRri:$addr),1))>;
 
 def: Pat <(i32 (sext R1Regs:$src)), (SUBrir 0,(ANDext R1Regs:$src, 1))>;
 
@@ -414,13 +411,6 @@ def: Pat <(i32 (sext R1Regs:$src)), (SUBrir 0,(ANDext R1Regs:$src, 1))>;
 def STWRArr : InstTCE<(outs), (ins MEMrr:$op1,RAReg:$op2), "", [(store RAReg:$op2, ADDRrr:$op1)]>;
 def LDWRAr : InstTCE<(outs RAReg:$op2), (ins MEMrr:$op1), "", [(set RAReg:$op2, (load ADDRrr:$op1))]>;
 
-// anyextloads -> sextloads
-def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQri ADDRri:$src)>;
-def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQri ADDRri:$src)>;
-def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHrr ADDRrr:$src)>;
-def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;
 
 // 1-bit comparison with constant - xor or move.
 // 1-bit one becomes -1 as i1 is signed, so the incoming imm is -1, not 1.

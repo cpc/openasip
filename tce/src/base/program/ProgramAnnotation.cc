@@ -26,13 +26,14 @@
  *
  * Implementation of ProgramAnnotation class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2014 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include "ProgramAnnotation.hh"
 #include "Conversion.hh"
+#include "InstructionElement.hh"
 
 namespace TTAProgram {
 
@@ -43,11 +44,16 @@ namespace TTAProgram {
 /**
  * Constructor.
  *
+ * @note Exceeding the maximum annotation length of TPEF leads
+ * to an assertion!
+ * 
  * @param id The id of the annotation (a 24-bit value).
  * @param data The payload data as a string.
  */
 ProgramAnnotation::ProgramAnnotation(Id id, const std::string& data) :
     id_(id) {
+    assert(data.length() <=
+            (unsigned)TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
     setStringValue(data);
 }
 
@@ -65,6 +71,8 @@ ProgramAnnotation::ProgramAnnotation(Id id, int value) :
 ProgramAnnotation::ProgramAnnotation(
     Id id, const std::vector<Byte>& payload) :
     id_(id), payload_(payload) {
+    assert(payload.size() <= 
+           (unsigned)TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
 }
 
 /**

@@ -51,25 +51,43 @@ namespace llvm {
 
 //  Frame info:
 // -------------
-// Grows down, alignment 4 bytes.
+// Grows down, alignment at least 4 bytes.
 //
     class TCEFrameInfo : public TargetFrameLowering {
     public:
 
-	TCEFrameInfo(const TCERegisterInfo* tri)
-	    : TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 4, -4), tri_(tri) {}
+    /** !! Important !! *************
+     * If the last boolean parameter of the constructor is set to false, 
+     * stack realignment is not allowed. This means, that every stack object
+     * having a bigger alignment than the stack's own alignment, will be 
+     * reduced to have the stack's alignment.
+     */
+        TCEFrameInfo(const TCERegisterInfo* tri, int stackAlignment) : 
+#ifdef LLVM_3_2
+        TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 
+            stackAlignment, 
+            -stackAlignment, 
+            1), 
+        tri_(tri) {}
+#else
+        TargetFrameLowering(
+            TargetFrameLowering::StackGrowsDown, 
+            stackAlignment, 
+            -stackAlignment,
+            1,
+            true /*false*/),
+        tri_(tri) {}
 
-#ifndef LLVM_3_2
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
-            MachineBasicBlock::iterator I) const;
+            MachineBasicBlock::iterator I) const override;
 #endif
 
-	void emitPrologue(MachineFunction &mf) const;
-	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
-	bool hasFP(const MachineFunction &MF) const { return false; }
+	void emitPrologue(MachineFunction &mf) const override;
+	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+	bool hasFP(const MachineFunction &MF) const override { return false; }
 
     private:
 	const TCERegisterInfo* tri_;

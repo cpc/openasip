@@ -46,6 +46,7 @@
 #include "ExecutionPipeline.hh"
 #include "PipelineElement.hh"
 #include "FUExternalPort.hh"
+#include "RFExternalPort.hh"
 #include "FUPortImplementation.hh"
 #include "BlockImplementationFile.hh"
 #include "RFEntry.hh"
@@ -780,6 +781,56 @@ HDBToHtml::rfImplToHtml(RowID id, std::ostream& stream) {
                << "<td>" << port.opcodePort() << "</td>"
                << "</td><td>" << port.opcodePortWidthFormula()
                << "</td></td>" << endl;
+    }
+    stream << "</table><br><br>" << endl;
+
+    // External ports
+    if (impl.externalPortCount() > 0) {
+        stream << "<b>External ports:</b>" << endl;
+        stream << "<table bgcolor=#bbbbbb>" << endl;
+        stream << "<tr><th>Name</th><th>Direction</th><th>Width formula</th>"
+            << "<th>Parameter dependencies</th>"
+            << "<th>Description</th></tr>" << endl;
+    } else {
+        stream << "No external ports.<br>" << endl;
+    }
+    for (int i = 0; i < impl.externalPortCount(); i++) {
+
+        const HDB::RFExternalPort& port = impl.externalPort(i);
+        stream << "<tr><td>" << port.name() << "</td><td align=center>";
+        if (port.direction() == HDB::IN) {
+            stream << "in";
+        } else if (port.direction() == HDB::OUT) {
+            stream << "out";
+        } else if (port.direction() == HDB::BIDIR) {
+            stream << "bidir";
+        }
+        stream << "</td><td>" << port.widthFormula() << "</td>";
+        stream << "<td>";
+        for (int dep = 0; dep < port.parameterDependencyCount(); dep++) {
+            if (dep > 0) {
+                stream << ", ";
+            }
+            stream << port.parameterDependency(dep);
+        }
+        stream << "</td><td>" << port.description() << "</td></tr>" << endl;
+    }
+    stream << "</table><br><br>" << endl;
+
+    // Parameters
+    if (impl.parameterCount() > 0) {
+        stream << "<b>Parameters:</b>" << endl;
+        stream << "<table bgcolor=#bbbbbb>" << endl;
+        stream << "<tr><th>Name</th><th>Type</th><th>Value</th></tr>" << endl;
+    } else {
+        stream << "No parameters.<br>" << endl;
+    }
+    for (int i = 0; i < impl.parameterCount(); i++) {
+
+        const HDB::RFImplementation::Parameter& parameter = impl.parameter(i);
+        stream << "<tr><td>" << parameter.name << "</td>"
+            << "<td align=center>" << parameter.type << "</td>"
+            << "<td>" << parameter.value << "</td></tr>" << endl;
     }
     stream << "</table><br><br>" << endl;
 

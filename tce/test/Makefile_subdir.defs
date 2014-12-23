@@ -5,13 +5,10 @@
 
 SUBDIRS = $(wildcard *Test)
 
-
-# After running the tests, we'll clean up the test directory to save
-# space because those runner executables are huge these days.
 all:
 	@@(for dname in ${SUBDIRS}; do \
 		cd $$dname; \
-		test -s Makefile && ${MAKE} && ${MAKE} clean; \
+		test -s Makefile && ${MAKE} && \
 		cd .. ; \
 	done)
 

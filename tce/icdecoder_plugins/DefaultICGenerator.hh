@@ -146,6 +146,8 @@ private:
     static int outputSocketDataPortWidth(
         const TTAMachine::Socket& socket, 
         int port);
+    static int maxOutputSocketDataPortWidth(
+        const TTAMachine::Socket& socket);
     static int busControlWidth(
         TTAMachine::Socket::Direction direction,
         int busConns);

@@ -105,13 +105,18 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
+#else
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 RVLocs, *DAG.getContext());
+#endif
 
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
   // If this is the first return lowered for this function, add the regs to the
   // liveout set for the function.
   if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
@@ -135,12 +140,12 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_1)))
+#if (!(defined(LLVM_3_2)))
     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
 #endif
   }
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
   if (Flag.getNode())
     return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain, Flag);
   return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain);
@@ -151,8 +156,14 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   if (Flag.getNode())
     RetOps.push_back(Flag);
 
-  return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other,
-                     &RetOps[0], RetOps.size());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+  return DAG.getNode(
+      TCEISD::RET_FLAG, dl, MVT::Other, &RetOps[0], RetOps.size());
+#else
+  return DAG.getNode(
+      TCEISD::RET_FLAG, dl, MVT::Other, ArrayRef<SDValue>(RetOps));
+#endif
+
 #endif
 }
 
@@ -163,17 +174,21 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 SDValue
 TCETargetLowering::LowerFormalArguments(
     SDValue Chain,
-    CallingConv::ID CallConv, bool isVarArg,
+    CallingConv::ID CallConv, 
+    bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
-    DebugLoc dl, SelectionDAG &DAG,
+    DebugLoc dl, 
+    SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const 
 #else
 SDValue
 TCETargetLowering::LowerFormalArguments(
     SDValue Chain,
-    CallingConv::ID CallConv, bool isVarArg,
+    CallingConv::ID CallConv, 
+    bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
-    SDLoc dl, SelectionDAG &DAG,
+    SDLoc dl, 
+    SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const 
 #endif
 {
@@ -183,11 +198,17 @@ TCETargetLowering::LowerFormalArguments(
 
     // Assign locations to all of the incoming arguments.
     SmallVector<CCValAssign, 16> ArgLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), ArgLocs, *DAG.getContext());
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+    CCState CCInfo(
+        CallConv, isVarArg, DAG.getMachineFunction(),
+        getTargetMachine(), ArgLocs, *DAG.getContext());
+#else
+    CCState CCInfo(
+        CallConv, isVarArg, DAG.getMachineFunction(),
+        ArgLocs, *DAG.getContext());
+#endif
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
-  
+
     const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs + argRegCount;
 
     unsigned ArgOffset = 0;
@@ -198,12 +219,10 @@ TCETargetLowering::LowerFormalArguments(
         // FIXME: We ignore the register assignments of AnalyzeFormalArguments
         // because it doesn't know how to split a double into two i32 registers.
         EVT ObjectVT = VA.getValVT();
-        switch (ObjectVT.getSimpleVT().SimpleTy) {
-        default: assert(false && "Unhandled argument type!");
-        case MVT::i1:
-        case MVT::i8:
-        case MVT::i16:
-        case MVT::i32: {
+        MVT sType = ObjectVT.getSimpleVT().SimpleTy;
+
+        if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 || 
+            sType == MVT::i32) {
             // There may be a bug that marked as not used if varargs
             if (!Ins[i].Used) {
                 if (CurArgReg < ArgRegEnd) {
@@ -218,10 +237,11 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
                 if (ObjectVT != MVT::i32) {
                     unsigned AssertOp = ISD::AssertSext;
-                    Arg = DAG.getNode(AssertOp, dl, MVT::i32, Arg,
-                                      DAG.getValueType(ObjectVT));
+                    Arg = DAG.getNode(
+                        AssertOp, dl, MVT::i32, Arg,
+                        DAG.getValueType(ObjectVT));
                     Arg = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Arg);
-                   }
+                }
                 InVals.push_back(Arg);
 
             } else {
@@ -231,62 +251,60 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
                 if (ObjectVT == MVT::i32) {
-                    Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
-                                       MachinePointerInfo(), false, false, 
-				       false, 0);
+                    Load = DAG.getLoad(
+                        MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(), 
+                        false, false, false, 0);
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
-                    // TCE is big endian, so add an offset based on the ObjectVT.
-                    unsigned Offset = 4-std::max(1U, ObjectVT.getSizeInBits()/8);
-                    FIPtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIPtr,
-                                        DAG.getConstant(Offset, MVT::i32));
-                    Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
-                                          MachinePointerInfo(), ObjectVT, 
-                                          false, false,0);
+                    // TCE is big endian, add an offset based on the ObjectVT.
+                    unsigned Offset = 4 - std::max(
+                        1U, ObjectVT.getSizeInBits()/8);
+                    FIPtr = DAG.getNode(
+                        ISD::ADD, dl, MVT::i32, FIPtr, 
+                        DAG.getConstant(Offset, MVT::i32));
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+                    Load = DAG.getExtLoad(
+                        LoadOp, dl, MVT::i32, Chain, FIPtr, 
+                        MachinePointerInfo(), ObjectVT, false, false,0);
+#else
+                    Load = DAG.getExtLoad(
+                        LoadOp, dl, MVT::i32, Chain, FIPtr,           // is invariant.. true?
+                        MachinePointerInfo(), ObjectVT, false, false, false,0);
+#endif
                     Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
                 }
                 InVals.push_back(Load);
             }
             
             ArgOffset += 4;
-            break;
-        }
-            
-        case MVT::f16: {
+        } else if (sType == MVT::f16) {
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                SDValue Load = DAG.getLoad(MVT::f16, dl, Chain, FIPtr,
-                                           MachinePointerInfo(),
-                                           false, false, false, 0);
+                SDValue Load = DAG.getLoad(
+                    MVT::f16, dl, Chain, FIPtr, MachinePointerInfo(),
+                    false, false, false, 0);
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
-            break;
-        }
-            
-        case MVT::f32: {
+        } else if (sType == MVT::f32) {
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
-                                           MachinePointerInfo(),
-                                           false, false, false, 0);
+                SDValue Load = DAG.getLoad(
+                    MVT::f32, dl, Chain, FIPtr, MachinePointerInfo(),
+                    false, false, false, 0);
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
-            break;
-        }
-            
-        case MVT::i64:
-        case MVT::f64: {            
+        } else if (sType == MVT::i64 || sType == MVT::f64) {
             if (!Ins[i].Used) {                // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
@@ -294,37 +312,37 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-		HiVal = DAG.getLoad(
-		    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-		    false, false, false, 0);
+                HiVal = DAG.getLoad(
+                    MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+                    false, false, false, 0);
                 SDValue LoVal;
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 LoVal = DAG.getLoad(
                     MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
-		    false, false, false, 0);
+                    false, false, false, 0);
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
                 
                 // If we want a double, do a bit convert.
                 if (ObjectVT == MVT::f64) {
-		    WholeValue = 
-			DAG.getNode(
-			    ISD::BITCAST, dl, MVT::f64, WholeValue);
-		}
+                    WholeValue = 
+                        DAG.getNode(ISD::BITCAST, dl, MVT::f64, WholeValue);
+                }
                 InVals.push_back(WholeValue);
             }
             ArgOffset += 8;
-            break;
-        }
-        }
-        
+        } else {
+            std::cerr << "Unhandled argument type: " 
+                      << ObjectVT.getEVTString() << std::endl;
+            assert(false);
+        }    
     }
     
     // inspired from ARM
-    if (isVarArg) {        
+    if (isVarArg) {
         // This will point to the next argument passed via stack.
 
         VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
@@ -364,31 +382,32 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     // Count the size of the outgoing arguments.
     unsigned ArgsSize = 0;
     for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
-        switch (Outs[i].VT.SimpleTy) {
-        default: assert(false && "Unknown value type!");
-        case MVT::i1:
-        case MVT::i8:
-        case MVT::i16:
-        case MVT::i32:
+        EVT ObjectVT = Outs[i].VT;
+        MVT sType = Outs[i].VT.SimpleTy;
+
+        if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 || 
+            sType == MVT::i32) {
             ArgsSize += 4;
             if (regParams < argRegCount) {
                 regParams++;
             } 
-            break;
-        case MVT::f16:
-        case MVT::f32:
+        } else if (sType == MVT::f16 || sType == MVT::f32) {
             ArgsSize += 4;
-            break;
-        case MVT::i64:
-        case MVT::f64:
+            if (regParams < argRegCount) {
+                regParams++;
+            } 
+        } else if (sType == MVT::i64 || sType == MVT::f64) {
             ArgsSize += 8;
-            break;
+        } else {
+            std::cerr << "Unknown argument type: " 
+                      << ObjectVT.getEVTString() << std::endl;
+            assert(false);
         }
     }
 
     // Keep stack frames 4-byte aligned.
     ArgsSize = (ArgsSize+3) & ~3;
-
+                                 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
     Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
 #else
@@ -404,26 +423,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
     SDValue Val = OutVals[i];
     EVT ObjectVT = Val.getValueType();
+    MVT sType = ObjectVT.getSimpleVT().SimpleTy;
     SDValue ValToStore(0, 0);
     unsigned ObjSize = 0;
-    switch (ObjectVT.getSimpleVT().SimpleTy) {
-    default: assert(false && "Unhandled argument type!");
-        
-    case MVT::i1:
-    case MVT::i8:
-    case MVT::i16: {
-        // TODO: is actually needed (sparc did not have this)?
-        // Promote the integer to 32-bits.
-        //        ISD::NodeType ext = ISD::ANY_EXTEND;
-        //        if (Ins[i].isSExt) {
-        //            ext = ISD::SIGN_EXTEND;
-        //        } else if (Ins[i].isZExt) {
-        //            ext = ISD::ZERO_EXTEND;
-        //        }
-        //        Val = DAG.getNode(ext, dl, MVT::i32, Val);
-        // FALL THROUGH
-    }
-    case MVT::i32:
+
+    if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 || 
+        sType == MVT::i32) {
         ObjSize = 4;
         if (RegsToPass.size() >= argRegCount || isVarArg) {
             ValToStore = Val;
@@ -432,19 +437,18 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
             RegsToPass.push_back(
                 std::make_pair(ArgRegs[RegsToPass.size()], Val));
         }
-        break;
-    case MVT::f16:
-    case MVT::f32:
+    } else if (sType == MVT::f16 || sType == MVT::f32) {
         ObjSize = 4;
         ValToStore = Val;
-        break;
-    case MVT::f64: 
-    case MVT::i64: 
+    } else if (sType == MVT::i64 || sType == MVT::f64) {
         ObjSize = 8;
         ValToStore = Val;    // Whole thing is passed in memory.
-        break;
+    } else {
+        std::cerr << "Unknown argument type: " 
+                  << ObjectVT.getEVTString() << std::endl;
+        assert(false);
     }
-  
+
     if (ValToStore.getNode()) {
       SDValue StackPtr = DAG.getRegister(TCE::SP, MVT::i32);
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
@@ -458,8 +462,14 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Emit all stores, make sure the occur before any copies into physregs.
   if (!MemOpChains.empty()) {
-    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                        &MemOpChains[0], MemOpChains.size());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+      Chain = DAG.getNode(
+          ISD::TokenFactor, dl, MVT::Other, &MemOpChains[0], 
+          MemOpChains.size());
+#else
+      Chain = DAG.getNode(
+          ISD::TokenFactor, dl, MVT::Other, ArrayRef<SDValue>(MemOpChains));
+#endif
   }
 
   // Build a sequence of copy-to-reg nodes chained together with token
@@ -486,7 +496,15 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   NodeTys.push_back(MVT::Other);   // Returns a chain
   NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
+#else
+  Chain = DAG.getNode(
+      TCEISD::CALL, dl, ArrayRef<EVT>(NodeTys), 
+      ArrayRef<SDValue>(Ops, InFlag.getNode() ? 3 : 2));
+#endif
+
   InFlag = Chain.getValue(1);
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
@@ -500,12 +518,19 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
   CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
 
   RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
+#else
+  CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                 RVLocs, *DAG.getContext());
 
-  // Copy all of the result registers out of their specified physreg.
+  RVInfo.AnalyzeCallResult(Ins, RetCC_TCE);
+#endif
+
+  // Copy all of the result registers out of their specified physreg. (only one rv reg)
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
       unsigned Reg = RVLocs[i].getLocReg();
    
@@ -525,8 +550,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
  */
 TCETargetLowering::TCETargetLowering(
     TargetMachine& TM) :
-    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) {
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
+#else
+    TargetLowering(TM), tm_(static_cast<TCETargetMachine&>(TM)) 
+#endif
+{
     LLVMTCECmdLineOptions* opts = dynamic_cast<LLVMTCECmdLineOptions*>(
         Application::cmdLineOptions());
 
@@ -642,9 +671,28 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     // SELECT is used instead of SELECT_CC.
     // so expand expands it into separate comparison and select.
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
+#else
+    // Using 'old way' MVT::Other to cover all value types is illegal now.
+    setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f32, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f64, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::f80, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i1, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i8, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i16, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i32, Expand);
+    setOperationAction(ISD::SELECT_CC, MVT::i64, Expand);
+
+    for (int i = MVT::FIRST_VECTOR_VALUETYPE;
+         i <= MVT::LAST_VECTOR_VALUETYPE; ++i) {
+        MVT VT = (MVT::SimpleValueType)i;
+        setOperationAction(ISD::SELECT_CC, VT, Expand);
+    }
+#endif
 
     // not needed when we uses xor for boolean comparison
 //    setOperationAction(ISD::SETCC, MVT::i1, Promote);
@@ -656,7 +704,7 @@ TCETargetLowering::TCETargetLowering(
     // Expand jumptable branches.
     setOperationAction(ISD::BR_JT, MVT::Other, Expand);
     // Expand conditional branches.
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
     setOperationAction(ISD::BR_CC, MVT::Other, Expand);
 #else
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
@@ -695,6 +743,13 @@ TCETargetLowering::TCETargetLowering(
 
     setTruncStoreAction(MVT::f32, MVT::f16, Expand);
     setLoadExtAction(ISD::EXTLOAD, MVT::f16, Expand);
+
+    setOperationAction(ISD::ADDE, MVT::i32, Expand);
+    setOperationAction(ISD::ADDC, MVT::i32, Expand);
+    setOperationAction(ISD::ADDE, MVT::i16, Expand);
+    setOperationAction(ISD::ADDC, MVT::i16, Expand);
+    setOperationAction(ISD::ADDE, MVT::i8, Expand);
+    setOperationAction(ISD::ADDC, MVT::i8, Expand);
     
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
@@ -767,22 +822,53 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     }
 }
 
-SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
-    TargetLowering::ArgListTy Args;
+SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const { 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3)) 
     DebugLoc dl = Op->getDebugLoc();
 #else
     SDLoc dl(Op);
 #endif
-    TargetLowering::CallLoweringInfo CLI(Op->getOperand(0),
-                                         Type::getVoidTy(*DAG.getContext()),
-                                         false, false, false, false, 
-                                         0, CallingConv::C, false,
-                                         true, /* does not ret */
-                                         /*isReturnValueUsed=*/true,
-                                         DAG.getExternalSymbol(
-                                             "_exit", getPointerTy()),
-                                         Args, DAG, dl);
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+    TargetLowering::ArgListTy Args;
+
+    TargetLowering::CallLoweringInfo CLI(
+        Op->getOperand(0),
+        Type::getVoidTy(*DAG.getContext()),
+        false, 
+        false, 
+        false, 
+        false, 
+        0, 
+        CallingConv::C, 
+        false,
+        true, /* does not ret */
+        /*isReturnValueUsed=*/true,
+        DAG.getExternalSymbol("_exit", getPointerTy()),
+        Args,
+        DAG,
+        dl);
+#else
+    TargetLowering::ArgListTy Args;
+
+    TargetLowering::CallLoweringInfo CLI(DAG);
+    CLI.setDebugLoc(dl);
+    CLI.setChain(Op->getOperand(0));
+    CLI.setCallee(
+        CallingConv::C, 
+        Type::getVoidTy(*DAG.getContext()),
+        DAG.getExternalSymbol("_exit", getPointerTy()),
+        std::move(Args),
+        0);
+    CLI.setInRegister(false);
+    CLI.setNoReturn(true);
+    CLI.setVarArg(false);
+    CLI.setTailCall(false);
+    CLI.setDiscardResult(false);
+    CLI.setSExtResult(false);
+    CLI.setZExtResult(false);
+#endif
+
         std::pair<SDValue, SDValue> CallResult =
             LowerCallTo(CLI);
     return CallResult.second;
@@ -947,13 +1033,63 @@ TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   return false;
 }
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+
 /// getFunctionAlignment - Return the Log2 alignment of this function.
 unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
   return 1;
 }
 
+#endif
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3))
+
 bool
 TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    /*
     return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
 	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
 }
+
+#elif defined(LLVM_3_4)
+
+bool allowsUnalignedMemoryAccesses(EVT, bool * /*Fast*/ = 0) const {
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+
+#elif defined(LLVM_3_5)
+
+bool
+TCETargetLowering::allowsUnalignedMemoryAccesses(EVT, unsigned, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+#else
+
+bool
+TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    /*
+    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
+	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
+    */
+    return false;
+}
+
+#endif

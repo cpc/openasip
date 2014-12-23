@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of OptionValue classes.
  *
  * @author Jari M‰ntyneva (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2014
  * @note rating: red
  */
 
@@ -56,6 +57,8 @@ public:
     virtual void setStringValue(const std::string&)
         throw (WrongSubclass);
     virtual void setIntegerValue(int)
+        throw (WrongSubclass);
+    virtual void setUnsignedIntegerValue(unsigned)
         throw (WrongSubclass);
     virtual void setRealValue(double)
         throw (WrongSubclass);
@@ -109,6 +112,32 @@ private:
 
     /// The value of option.
     int value_;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// UnsignedIntegerOptionValue
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Models an option that has an unsigned integer value.
+ */
+class UnsignedIntegerOptionValue : public OptionValue {
+public:
+    UnsignedIntegerOptionValue(unsigned value);
+    virtual ~UnsignedIntegerOptionValue();
+    virtual unsigned unsignedIntegerValue(int index = 0) const
+        throw (WrongSubclass, OutOfRange);
+    virtual void setUnsignedIntegerValue(unsigned value)
+        throw (WrongSubclass);
+
+private:
+    /// Copying not allowed.
+    UnsignedIntegerOptionValue(const UnsignedIntegerOptionValue&);
+    /// Assignment not allowed.
+    UnsignedIntegerOptionValue& operator=(const UnsignedIntegerOptionValue&);
+
+    /// The value of option.
+    unsigned value_;
 };
 
 //////////////////////////////////////////////////////////////////////////////

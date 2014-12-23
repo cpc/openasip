@@ -49,12 +49,15 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
+#if defined(LLVM_3_2)
 #include <llvm/Function.h>
 #include <llvm/Module.h>
 #else
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
+#if (!(defined(LLVM_3_3)) && !(defined(LLVM_3_4)) && !(defined(LLVM_3_5)))
+#include <llvm/Target/TargetSubtargetInfo.h>
+#endif
 #endif
 #include <llvm/MC/MCContext.h>
 #pragma GCC diagnostic warning "-Wunused-parameter"
@@ -1790,19 +1793,19 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         assert(programOperationToMIMap_.find(po.get()) != programOperationToMIMap_.end());
         llvm::MachineInstr* mi = programOperationToMIMap_[po.get()];
         assert(mi != NULL);
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         const llvm::TargetInstrInfo& tii = *mf.getTarget().getInstrInfo();
+#else
+        const llvm::TargetInstrInfo& tii = *mf.getTarget().getSubtargetImpl()->getInstrInfo();
+#endif
         const llvm::MCInstrDesc& tid =
             findLLVMTargetInstrDesc("HBR_LABEL", tii);
         llvm::MachineInstr* labelInstruction = 
             mf.CreateMachineInstr(tid, llvm::DebugLoc());
         labelInstruction->addOperand(
             llvm::MachineOperand::CreateMCSymbol(symbol));
-#ifdef LLVM_3_0
-        mi->getParent()->insert(mi, labelInstruction);        
-#else
         mi->getParent()->insert(
             llvm::MachineBasicBlock::instr_iterator (mi), labelInstruction);        
-#endif
     }
     tpos_.clear();
     programOperationToMIMap_.clear();
@@ -2000,7 +2003,11 @@ ControlFlowGraph::buildMBBFromBB(
         for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
              boi != bundleOrder.end(); ++boi) {
             llvm::MachineInstr* mi = NULL;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
             const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getInstrInfo();
+#else
+            const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getSubtargetImpl()->getInstrInfo();
+#endif
             if (startedOps.find(*boi) == startedOps.end()) {
 #if 0
                 // TODO: figure out a generic way to find the NOP opcode for 

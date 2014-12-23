@@ -60,6 +60,7 @@ public:
         FLOAT_WORD,
         DOUBLE_WORD,
         HALF_FLOAT_WORD,
+        BOOL,
         RAW_DATA
     };
 
@@ -68,6 +69,7 @@ public:
     static const std::string HALF_FLOAT_WORD_STRING;
     static const std::string FLOAT_WORD_STRING;
     static const std::string DOUBLE_WORD_STRING;
+    static const std::string BOOL_STRING;
     static const std::string RAW_DATA_STRING;
     static const std::string UNKNOWN_TYPE_STRING;
     
@@ -101,7 +103,9 @@ public:
     virtual bool isInput() const;
     virtual bool isOutput() const;
     virtual OperandType type() const;
+    virtual void setType(OperandType type);
     virtual const std::string& typeString() const;
+    virtual bool isVector() const;
     virtual int elementWidth() const;
     virtual void setElementWidth(int elementWidth);
     virtual int elementCount() const;

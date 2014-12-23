@@ -72,27 +72,33 @@ MoveFigure::drawSelf(wxDC* dc) {
     dc->SetBrush(brush);
 
     int offset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;
-
-    int busY = bus_->location().y + 
-        (MachineCanvasLayoutConstraints::SEGMENT_HEIGHT / 2);
+    int busY = bus_->location().y + bus_->bounds().GetHeight()/2;
 
     int sourceX = 0;
     int targetX = 0;
 
     // Draw source port -> bus line.
     if (source_ != NULL) {
-        sourceX = source_->location().x + offset;
+        sourceX = source_->location().x + source_->bounds().GetWidth()/2;
         int sourceY = source_->location().y + offset * 2;
         dc->DrawLine(sourceX, sourceY, sourceX, busY);
-        dc->DrawCircle(sourceX, busY, offset - 1);
+        int size = std::max(
+            std::min(source_->bounds().GetWidth(),
+                     (MachineCanvasLayoutConstraints::BUS_SPACE-2)),
+            (MachineCanvasLayoutConstraints::SOCKET_WIDTH));
+        dc->DrawCircle(sourceX, busY, size/2);
     }
 
     // Draw bus -> target port line.
     if (target_ != NULL) {
-        targetX = target_->location().x + offset;
+        targetX = target_->location().x + target_->bounds().GetWidth()/2;
         int targetY = target_->location().y + offset * 2;
         dc->DrawLine(targetX, targetY, targetX, busY);
-        dc->DrawCircle(targetX, busY, offset - 1);
+        int size = std::max(
+            std::min(target_->bounds().GetWidth(),
+                     (MachineCanvasLayoutConstraints::BUS_SPACE-2)),
+            (MachineCanvasLayoutConstraints::SOCKET_WIDTH));
+        dc->DrawCircle(targetX, busY, size/2);
     }
 
     // Draw line on the bus.

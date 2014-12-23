@@ -134,8 +134,12 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         MCContext* ctx = new MCContext(
             *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
         mang_ = new llvm::Mangler(*ctx, *tm_->getDataLayout()); 
+#elif defined(LLVM_3_4)
+        mang_ = new llvm::Mangler(tm_);
+#elif defined(LLVM_3_5)
+        mang_ = new llvm::Mangler(tm_->getDataLayout());
 #else
-        mang_ = new llvm::Mangler(tm_); 
+        mang_ = new llvm::Mangler(tm_->getSubtargetImpl()->getDataLayout());
 #endif
     }
 
@@ -760,7 +764,11 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
-	return targetMachine().getInstrInfo()->getName(mi.getOpcode());
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+        return targetMachine().getInstrInfo()->getName(mi.getOpcode());
+#else
+        return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi.getOpcode());
+#endif
     }
 }
 

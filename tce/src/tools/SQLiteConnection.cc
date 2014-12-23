@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -170,6 +170,88 @@ SQLiteConnection::commit()
 RowID
 SQLiteConnection::lastInsertRowID() {
     return sqlite3_last_insert_rowid(connection_);
+}
+
+
+/**
+ * Checks if database has given table by name.
+ *
+ * @param tableName Name of the table
+ * @return True if db has the table. Otherwise false.
+ * @exception RelationalDBException In case a database error occurred or
+ *                                  call was made in the middle of an active
+ *                                  transaction.
+ */
+bool
+SQLiteConnection::tableExistsInDB(const std::string& tableName)
+    throw (RelationalDBException) {
+
+    if (transactionActive_) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::tableExistsInDB()",
+            "Illegal call during active transaction.");
+    }
+
+    string query = "SELECT count(*) "
+        "FROM sqlite_master "
+        "WHERE type = 'table' and name = '" + tableName + "';";
+
+    RelationalDBQueryResult* result = this->query(query, false);
+    assert(result->hasNext());
+    result->next();
+    const DataObject& count = result->data(0);
+
+    int intBoolValue = 0;
+
+    try {
+        intBoolValue = count.integerValue(); // boolValue is zero if DataObject
+                                             // has NULL value.
+    } catch (NumberFormatException& e) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::tableExistsInDB()",
+            "Exception from DataObject: " + e.errorMessage());
+    }
+    return intBoolValue;
+
+}
+
+
+/**
+ * Return number of entries in the given table.
+ *
+ * @param tableName Name of the table.
+ * @return Number of entries in table.
+ * @exception RelationalDBException In case a database error occurred,
+ * call was made in the middle of an active transaction or the table does not
+ * exists.
+ */
+int
+SQLiteConnection::rowCountInTable(const std::string& tableName)
+    throw (RelationalDBException) {
+
+    if (!tableExistsInDB(tableName)) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::rowCountInTable()",
+            "Table was not found.");
+    }
+    string query = "SELECT count(*) FROM " + tableName + ";";
+
+    RelationalDBQueryResult* result = this->query(query, false);
+    assert(result->hasNext());
+    result->next();
+    const DataObject& count = result->data(0);
+    int countAsInt = -1;
+
+    try {
+        countAsInt = count.integerValue(); // boolValue is zero if DataObject
+                                           // has NULL value.
+    } catch (NumberFormatException& e) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::tableExistsInDB()",
+            "Exception from DataObject: " + e.errorMessage());
+    }
+    assert(countAsInt > -1);
+    return countAsInt;
 }
 
 

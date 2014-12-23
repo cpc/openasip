@@ -100,6 +100,9 @@ public:
     void verifyCompatibility() const
         throw (InvalidData);
 
+    void setGenerateLockTrace(bool generate);
+    void setLockTraceStartingCycle(unsigned int startCycle);
+
 private:
     /// Set type for buses.
     typedef std::set<TTAMachine::Bus*> BusSet;
@@ -109,6 +112,7 @@ private:
     int glockRequestWidth() const;
 
     void writeInstructionDecoder(std::ostream& stream) const;
+    void writeLockDumpCode(std::ostream& stream) const;
     void writeSourceDestinationAndGuardSignals(std::ostream& stream) const;
     void writeImmediateSlotSignals(std::ostream& stream) const;
     void writeLongImmediateTagSignal(std::ostream& stream) const;
@@ -207,13 +211,24 @@ private:
     static std::string iuReadOpcodeCntrlPort(
         const std::string& unitName,
         const std::string& portName);
+    static std::string iuReadOpcodeCntrlSignal(
+        const std::string& unitName,
+        const std::string& portName);
     static std::string iuReadLoadCntrlPort(
         const std::string& unitName,
         const std::string& portName);
+    static std::string iuReadLoadCntrlSignal(
+        const std::string& unitName,
+        const std::string& portName);
     static std::string iuWritePort(const std::string& iuName);
+    static std::string iuWriteSignal(const std::string& iuName);
     static std::string iuWriteOpcodeCntrlPort(
         const std::string& unitName);
+    static std::string iuWriteOpcodeCntrlSignal(
+        const std::string& unitName);
     static std::string iuWriteLoadCntrlPort(
+        const std::string& unitName);
+    static std::string iuWriteLoadCntrlSignal(
         const std::string& unitName);
 
     static std::string socketBusControlPort(const std::string& name);
@@ -267,8 +282,13 @@ private:
     const ProGe::NetlistGenerator* nlGenerator_;    
     /// The instruction decoder block in the netlist.
     ProGe::NetlistBlock* decoderBlock_;
+    /// Tells whether to generate global lock tracing code.
+    bool generateLockTrace_;
+    /// The starting cycle for bus tracing.
+    unsigned int lockTraceStartingCycle_;
     TCEString entityNameStr_;
     ProGe::HDL language_;
+
 };
 
 #endif

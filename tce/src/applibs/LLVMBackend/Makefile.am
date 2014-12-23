@@ -8,8 +8,8 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
-	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	LLVMTCEIRBuilder.cc LLVMTCEScheduler.cc MachineInstrDDG.cc
+	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
+	LLVMTCEScheduler.cc MachineInstrDDG.cc
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 
@@ -25,6 +25,7 @@ OSAL_DIR = ${SRC_ROOT}/base/osal
 GRAPH_DIR = ${SRC_ROOT}/base/Graph
 OSAL_APPLIBS_DIR = ${SRC_ROOT}/applibs/osal
 MACH_APPLIBS_DIR = ${SRC_ROOT}/applibs/mach
+PROG_APPLIBS_DIR = ${SRC_ROOT}/applibs/program
 UMACH_DIR = ${SRC_ROOT}/base/umach
 DISASM_DIR = ${SRC_ROOT}/applibs/Disassembler
 SCHED_ALGO_DIR = ${SRC_ROOT}/applibs/Scheduler/Algorithms
@@ -41,7 +42,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS} \
 	-I${PDG_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${SELECTOR_DIR} -I${RM_DIR} \
-	-I${SCHED_ALGO_DIR}
+	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR}
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
@@ -71,11 +72,9 @@ include_HEADERS = \
  plugin/TCEFrameInfo.hh \
  plugin/TCEFrameInfo.cc \
  plugin/TCETargetMachinePlugin.cc \
- plugin/TCECallingConv.td \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  plugin/TCESubtarget.hh \
- TCETargetSelectionDAGInfo.hh \
  LLVMTCECmdLineOptions.hh 
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
@@ -85,7 +84,6 @@ libtcellvmbackend_la_SOURCES += \
 	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
 	MachineInstrDDG.hh ProgramPartitioner.hh \
-	TCETargetSelectionDAGInfo.hh \
 	LLVMTCEIRBuilder.hh LLVMBackend.hh \
 	TDGen.hh LLVMTCEScheduler.hh \
 	InstructionPatternAnalyzer.hh TCETargetMachine.hh \

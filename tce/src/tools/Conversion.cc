@@ -185,3 +185,39 @@ Conversion::toBinary(unsigned int source, unsigned int stringWidth) {
 
     return result;
 }
+
+/**
+ * Converts bytes of a string hexadecimal value to target buffer.
+ *
+ * Hex value can be in "0x" format or without the prefix. Caller is 
+ * responsible for checking that the target buffer has enough allocated
+ * memory for conversion.
+ *
+ * @param source Hex value.
+ * @param target Buffer where hex value bits are converted to.
+ */
+void 
+Conversion::toRawData(const std::string& hexSource, unsigned char* target) {
+    std::string hexValue = hexSource;
+    std::stringstream hexStream;
+    hexStream << hexSource;
+    char first = hexStream.get();
+    char second = hexStream.get();
+
+    if (first == '0' && second == 'x') {
+        hexValue = hexSource.substr(2); // remove "0x"
+    }
+
+    // if number of hex numbers is uneven (e.g "12345FA"), insert additional
+    // 0 to the front so that the hex numbers form N full bytes
+    if (hexValue.size() % 2 == 1) {
+        hexValue.insert(0, "0");
+    }
+    
+    // start filling the input parameter 2 hex numbers (byte) at a time to
+    // the data buffer
+    for (size_t i = 0; i < hexValue.size(); i=i+2) {
+        *target = toInt("0x" + hexValue.substr(i, 2)); 
+        ++target;
+    }
+}

@@ -125,6 +125,9 @@ public:
         const llvm::TargetRegisterClass* current) const;
     virtual const llvm::TargetRegisterClass* nodeRegClass(
         unsigned nodeId, const llvm::TargetRegisterClass* current) const;
+
+    virtual unsigned getMaxMemoryAlignment() const;
+
 private:
     void initialize();
     
@@ -146,14 +149,17 @@ private:
  */
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
+     int stackAlignment = static_cast<int>(getMaxMemoryAlignment());
 
-   instrInfo_ = new TCEInstrInfo(this);
-   // Initialize register & opcode maps.
-   initialize();
-   frameInfo_ = new TCEFrameInfo(
-       static_cast<const TCERegisterInfo*>(getRegisterInfo()));
+     instrInfo_ = new TCEInstrInfo(this, stackAlignment);
+     // Initialize register & opcode maps.
+     initialize();
 
-   subTarget_ = new TCESubtarget();
+     const TCERegisterInfo* ri = 
+         static_cast<const TCERegisterInfo*>(getRegisterInfo());
+     frameInfo_ = new TCEFrameInfo(ri, stackAlignment);
+
+     subTarget_ = new TCESubtarget(this);
 }
 
 
@@ -369,6 +375,8 @@ const llvm::TargetRegisterClass*
 GeneratedTCEPlugin::nodeRegClass(
     unsigned nodeId, const llvm::TargetRegisterClass* current) const {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
     TCEString origRCName(current->getName());
@@ -392,6 +400,9 @@ GeneratedTCEPlugin::nodeRegClass(
             return regClass;
     }
     return current;
+#else
+    return NULL;
+#endif
 }
 
 /**
@@ -405,6 +416,7 @@ GeneratedTCEPlugin::extrasRegClass(
     const llvm::TargetRegisterClass* current) const {
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString origRCName(current->getName());
     for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
         const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
@@ -426,6 +438,9 @@ GeneratedTCEPlugin::extrasRegClass(
             return regClass;
     }
     return current;
+#else
+    return NULL;
+#endif
 }
 
 

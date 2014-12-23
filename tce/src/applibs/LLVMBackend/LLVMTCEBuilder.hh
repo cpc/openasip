@@ -40,8 +40,14 @@
 #include <llvm/CodeGen/MachineOperand.h>
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
-#include <llvm/Target/Mangler.h>
+
 #include "tce_config.h"
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+#include <llvm/Target/Mangler.h>
+#else
+#include <llvm/IR/Mangler.h>
+#endif
+
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
 #include <llvm/Constant.h>
 #else
@@ -136,6 +142,8 @@ namespace llvm {
                         &targetMachine()) != NULL);
         }
 
+        void setInitialStackPointerValue(unsigned value);
+
     protected:
 
         bool doInitialization(Module &M);
@@ -175,7 +183,8 @@ namespace llvm {
 	TTAProgram::TerminalRegister* createTerminalRegister(
 	    const std::string& rfName, int index);
 
-        TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
+        TTAProgram::Terminal* createTerminal(
+            const MachineOperand& mo, int bitLimit = 32);
 
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,
@@ -446,6 +455,8 @@ namespace llvm {
         std::vector<MachineFunction*> functions_;
 
         int spillMoveCount_;
+
+        unsigned initialStackPointerValue_;
 
         bool dataInitialized_;
 

@@ -34,6 +34,7 @@
 
 #include "SegmentFigure.hh"
 #include "MachineCanvasLayoutConstraints.hh"
+#include "MathTools.hh"
 
 const wxColour SegmentFigure::DEFAULT_COLOUR = wxColour(0, 0, 0);
 
@@ -41,10 +42,12 @@ const wxColour SegmentFigure::DEFAULT_COLOUR = wxColour(0, 0, 0);
 /**
  * The Constructor.
  */
-SegmentFigure::SegmentFigure(): Figure(), last_(false) {
+SegmentFigure::SegmentFigure(int bitWidth): Figure(), last_(false) {
     minSize_ = wxSize(
 	MachineCanvasLayoutConstraints::BUS_MIN_WIDTH,
-	MachineCanvasLayoutConstraints::SEGMENT_HEIGHT);
+	MachineCanvasLayoutConstraints::SEGMENT_HEIGHT_BASE+
+    std::max(0,MathTools::requiredBits(bitWidth)-2) +
+    bitWidth/63);
     size_ = minSize_;
 }
 

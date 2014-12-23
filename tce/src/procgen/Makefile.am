@@ -1,5 +1,5 @@
 if WX
-SUBDIRS = ProDe ProGe HDB HDBEditor
+SUBDIRS = ProDe ProGe HDB HDBEditor MachInfo
 else
-SUBDIRS = ProGe HDB
+SUBDIRS = ProGe HDB MachInfo
 endif

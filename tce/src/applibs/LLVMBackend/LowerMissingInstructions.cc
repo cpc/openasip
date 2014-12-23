@@ -60,7 +60,12 @@
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include "llvm/Support/CallSite.h"
+#else
+#include "llvm/IR/CallSite.h"
+#endif
+
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt
 
@@ -420,10 +425,12 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 
                 return false;                
             }
-                        
-            assert (op.numberOfOutputs() == 1 && 
-                    "LowerMissing supports only 1 output instructions.");
 
+            if (op.numberOfOutputs() != 1) {
+                std::cerr << "Cannot lower missing instruction:" <<  *i << std::endl;
+                continue;
+            }
+	    
             // Make parameter list for operation with all needed integer 
             // widths. If pure floating point just i32 is used. 
             // 

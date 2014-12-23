@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -33,6 +33,8 @@
 #ifndef TTA_HDB_TYPES_HH
 #define TTA_HDB_TYPES_HH
 
+#include <string>
+
 namespace HDB {
     /// Direction of port.
     enum Direction {
@@ -40,6 +42,13 @@ namespace HDB {
         OUT, ///< Output port.
         BIDIR ///< Bidirectional port.
     };
+
+    struct Parameter {
+        std::string name;  ///< Name of the parameter.
+        std::string type;  ///< Type of the parameter.
+        std::string value; ///< Value of the parameter.
+    };
+
 }
 
 #endif

@@ -69,11 +69,13 @@ SocketPortConnFigure::drawSelf(wxDC* dc) {
  */
 void
 SocketPortConnFigure::drawConnection(wxDC* dc) {
-    int offset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;
+    int xOffset = source_->bounds().GetWidth() / 2;
+
+    int yOffset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;
     // assumes that port is always "source"
-    dc->DrawLine(source_->location().x + offset,
-		 source_->location().y + offset*2,
-		 target_->location().x + offset,
+    dc->DrawLine(source_->location().x + xOffset,
+		 source_->location().y + yOffset*2,
+		 target_->location().x + xOffset,
 		 target_->location().y);
 }
 
@@ -83,18 +85,20 @@ SocketPortConnFigure::drawConnection(wxDC* dc) {
 void
 SocketPortConnFigure::layoutSelf(wxDC*) {
     // assumes that port is always "source"
-    int offset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;    
-    setHeight(target_->location().y - source_->location().y - offset*2);
+    int yOffset = MachineCanvasLayoutConstraints::PORT_WIDTH / 2;
+    int xOffset = source_->bounds().GetWidth() / 2;
+        
+    setHeight(target_->location().y - source_->location().y - yOffset*2);
     if(source_->location().x < target_->location().x) {
         setWidth(target_->location().x - source_->location().x + 3);
         setLocation(
-            wxPoint(source_->location().x - 1 + offset,
-                    source_->location().y + offset*2));
+            wxPoint(source_->location().x - 1 + xOffset,
+                    source_->location().y + yOffset*2));
 
     } else {
         setWidth(source_->location().x - target_->location().x + 3);
         setLocation(
-            wxPoint(target_->location().x - 1 + offset,
-                    source_->location().y + offset*2));
+            wxPoint(target_->location().x - 1 + xOffset,
+                    source_->location().y + yOffset*2));
     }
 }

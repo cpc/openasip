@@ -47,8 +47,8 @@ const wxColour TriggeringPortFigure::DEFAULT_BG_COLOUR =
  *
  * @param name Name of the port.
  */
-TriggeringPortFigure::TriggeringPortFigure(std::string name):
-    UnitPortFigure(name) {
+TriggeringPortFigure::TriggeringPortFigure(std::string name, int bitWidth):
+    UnitPortFigure(name, bitWidth) {
 }
 
 /**

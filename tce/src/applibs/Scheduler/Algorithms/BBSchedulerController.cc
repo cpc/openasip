@@ -71,10 +71,6 @@ namespace TTAMachine {
 //#define BIG_DDG_SNAPSHOTS
 //#define SW_BYPASSING_STATISTICS
 
-// getting slow with very big II's. limit it. TODO: make this cmdline param.
-static const int MAXIMUM_II = 110;
-static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
-
 /**
  * Constructs the basic block scheduler.
  *

@@ -1714,11 +1714,8 @@ BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphNode& n) const {
             return *i;
         }
     }
-    if (&n == NULL) {
-        std::cerr << "Null-reference node not in graph!" << std::endl;
-    } else {
-        std::cerr << "Node " << n.toString() << "not in graph!" << std::endl;
-    }
+    Application::logStream() 
+        << "Node " << n.toString() << "not in graph!" << std::endl;
     BoostGraph<GraphNode, GraphEdge>::writeToDotFile("missing_node.dot");
 
     assert(false);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,27 +22,27 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TCEDAGToDAGISel.hh
+ * @file MachInfoCmdLineOptions.hh
  *
- * Declaration of TCEDAGToDAGISel class.
- *
- * @author Heikki Kultala 2010 (hkultala-no.spam-cs.tut.fi) 
+ * @author Pekka Jääskeläinen 2014
  */
 
-#ifndef TCE_TARGET_SELECTION_DAG_INFO_HH
-#define TCE_TARGET_SELECTION_DAG_INFO_HH
+#ifndef TTA_MACH_INFO_CMD_LINE_OPTIONS_HH
+#define TTA_MACH_INFO_CMD_LINE_OPTIONS_HH
 
-#include "llvm/Target/TargetSelectionDAGInfo.h"
+#include "CmdLineOptions.hh"
+#include "TCEString.hh"
 
-namespace llvm {
-
-class TCETargetMachine;
-
-class TCESelectionDAGInfo : public TargetSelectionDAGInfo {
+class MachInfoCmdLineOptions : public CmdLineOptions {
 public:
-    TCESelectionDAGInfo(const TCETargetMachine &tm);
-    ~TCESelectionDAGInfo();
+    MachInfoCmdLineOptions();
+    virtual ~MachInfoCmdLineOptions();
+
+    TCEString outputFileNameSuffix() const;
+    TCEString outputFormat() const;
+
+    virtual void printVersion() const;
+    virtual void printHelp() const;
 };
-}
 
 #endif

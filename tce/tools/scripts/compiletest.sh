@@ -254,7 +254,9 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*ignoring.\#pragma.GCC.diagnostic.*|\
 distcc.*Warning.*|\
 .*clang..warning..argument.unused.during.compilation...-pthread..*|\
-.*wxDummyCheckInt.*"
+.*wxDummyCheckInt.*|\
+.*boost/.*warning:.typedef.'.*|\
+.*libtool:.link:.warning:.*libstdc\+\+\.la..seems.to.be.moved.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
@@ -557,9 +559,7 @@ function run_unit_tests {
 
     cd $UNITTEST_DIR
     {
-        make clean &> /dev/null 
         make 2>&1 | grep -Ex "$UNIT_TEST_WARNINGS" | grep -vEx $WARNING_FILTERS || true 
-        make clean &> /dev/null 
     } 1> $TEMP_FILE 2>&1
 
     # sets errors=yes if $TEMP_FILE size non zero
@@ -668,7 +668,6 @@ function run_tests_with_valgrind {
     prevline=""
     cd test
     {
-        make clean 1> /dev/null 
         make valgrind=yes 2>&1 | \
         grep -vEx "$VALGRIND_FILTERS" | \
         grep -Ex "$VALGRIND_WANTED" | \

@@ -62,6 +62,7 @@
 #include "FUArchitecture.hh"
 #include "FUPortImplementation.hh"
 #include "FUExternalPort.hh"
+#include "RFExternalPort.hh"
 #include "RFEntry.hh"
 #include "RFImplementation.hh"
 #include "RFArchitecture.hh"
@@ -270,6 +271,15 @@ NetlistGenerator::loadPort(const NetlistPort& port) const
              port.parentBlock()->instanceName() %
              port.parentBlock()->moduleName()).str());
     }
+}
+
+
+/**
+ * Returns true if the given RF port has opcode port. Otherwise, returns false.
+ */
+bool
+NetlistGenerator::hasOpcodePort(const NetlistPort& port) const {
+    return MapTools::containsKey(rfOpcodePortMap_, &port);
 }
 
 
@@ -965,7 +975,7 @@ NetlistGenerator::addFUToNetlist(
         // if external port uses parameter, it must be added as netlist 
         // parameter too and create new width formula for the top-level port
         // by replacing parameter names with the corresponding names in
-        // netlist
+        // netlist.
         string tlPortWidth = externalPort.widthFormula();
         for (int i = 0; i < externalPort.parameterDependencyCount(); i++) {
             string paramName = externalPort.parameterDependency(i);
@@ -1145,14 +1155,31 @@ NetlistGenerator::addBaseRFToNetlist(
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
     topLevelBlock.addSubBlock(block);
 
-    // add parameters (generics) to the block
-    block->setParameter(
-        implementation.widthParameter(), "integer",
-        Conversion::toString(regFile.width()));
+    // Add parameters (generics) to the block.
+    for (int i = 0; i< implementation.parameterCount(); i++) {
+        RFImplementation::Parameter param = implementation.parameter(i);
 
-    block->setParameter(
-        implementation.sizeParameter(), "integer",
-        Conversion::toString(regFile.numberOfRegisters()));
+        // Check if parameter matches size or width parameter reference
+        // and set/override its parameter value according to architecture.
+        if (param.name == implementation.sizeParameter()) {
+            block->setParameter(
+                implementation.sizeParameter(), "integer",
+                Conversion::toString(regFile.numberOfRegisters()));
+        } else if (param.name == implementation.widthParameter()) {
+            block->setParameter(
+                implementation.widthParameter(), "integer",
+                Conversion::toString(regFile.width()));
+        } else if (param.value == "") {
+            format errorMsg(
+                "Unable to resolve the value of parameter %1% of RF "
+                "entry %2%.");
+            errorMsg % param.name % location.id();
+            throw InvalidData(
+                __FILE__, __LINE__, __func__, errorMsg.str());
+        } else {
+            block->setParameter(param.name, param.type, param.value);
+        }
+    }
 
     // add ports
     for (int i = 0; i < implementation.portCount(); i++) {
@@ -1224,11 +1251,24 @@ NetlistGenerator::addBaseRFToNetlist(
         mapLoadPort(*newPort, *loadPort);
 
         // add opcode port
-        NetlistPort* opcodePort = new NetlistPort(
-            port.opcodePort(), port.opcodePortWidthFormula(),
-            MathTools::requiredBits(regFile.numberOfRegisters() - 1),
-            BIT_VECTOR, HDB::IN, *block);
-        mapRFOpcodePort(*newPort, *opcodePort);
+        NetlistPort* opcodePort = NULL;
+        if (!port.opcodePort().empty()) {
+            opcodePort = new NetlistPort(
+                port.opcodePort(), port.opcodePortWidthFormula(),
+                MathTools::requiredBits(regFile.numberOfRegisters() - 1),
+                BIT_VECTOR, HDB::IN, *block);
+            mapRFOpcodePort(*newPort, *opcodePort);
+        } else if (regFile.numberOfRegisters() == 1) {
+            // Special case for single register RFs which do not need opcode
+            // port. For legacy support the opcode port is left out if opcode
+            // port field is empty in HDB.
+            // Do nothing.
+        } else {
+            format text("RF entry '%1%' in HDB '%2%' does not have "
+                "opcode port required for RFs of size > 1.");
+            text % location.id() % location.hdbFile();
+            throw InvalidData(__FILE__, __LINE__, __func__, text.str());
+        }
     }
 
     // add guard port
@@ -1244,6 +1284,55 @@ NetlistGenerator::addBaseRFToNetlist(
             guardPortName, size, regFile.numberOfRegisters(), BIT_VECTOR,
             HDB::OUT, *block);
         mapRFGuardPort(*block, *guardPort);
+    }
+
+    // Add external ports
+    string component_type("");
+    if (dynamic_cast<const ImmediateUnit*>(&regFile) != NULL) {
+        component_type = IU_NAME_PREFIX;
+    } else {
+        component_type = RF_NAME_PREFIX;
+    }
+    for (int i = 0; i < implementation.externalPortCount(); i++) {
+        RFExternalPort& externalPort = implementation.externalPort(i);
+        // if external port uses parameter, it must be added as netlist
+        // parameter too and create new width formula for the top-level port
+        // by replacing parameter names with the corresponding names in
+        // netlist.
+        string tlPortWidth = externalPort.widthFormula();
+        for (int i = 0; i < externalPort.parameterDependencyCount(); i++) {
+            string hdbParamName = externalPort.parameterDependency(i);
+            Netlist::Parameter param = block->parameter(hdbParamName);
+            string nlParamName = component_type + location.unitName() + "_" +
+                hdbParamName;
+            if (!netlist.hasParameter(nlParamName)) {
+                netlist.setParameter(nlParamName, param.type, param.value);
+            }
+            block->setParameter(param.name, param.type, nlParamName);
+            size_t replaceStart = tlPortWidth.find(param.name, 0);
+            if (replaceStart == std::string::npos) {
+                throw InvalidData(__FILE__, __LINE__, __func__,
+                    (boost::format(
+                        "RF external port parameter dependencies do not seem "
+                        "to be right: Tried to find parameter named '%s'"
+                        " from external port width formula '%s' in unit '%s'")
+                        % param.name % tlPortWidth % nlParamName).str());
+            }
+            size_t replaceLength = param.name.length();
+            tlPortWidth = tlPortWidth.replace(
+                replaceStart, replaceLength, nlParamName);
+        }
+
+        NetlistPort* extPort = new NetlistPort(
+            externalPort.name(), externalPort.widthFormula(), BIT_VECTOR,
+            externalPort.direction(), *block);
+        // connect the external port to top level
+        string tlPortName = component_type + location.unitName() + "_" +
+            externalPort.name();
+        NetlistPort* tlPort = new NetlistPort(
+            tlPortName, tlPortWidth, BIT_VECTOR, externalPort.direction(),
+            topLevelBlock);
+        netlist.connectPorts(*tlPort, *extPort);
     }
 
     // add clock port

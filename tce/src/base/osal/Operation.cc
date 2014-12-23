@@ -198,6 +198,16 @@ Operation::numberOfOutputs() const {
 }
 
 /**
+ * Returns the number of all operands of the Operation.
+ *
+ * @return The number of all operands of the Operation.
+ */
+int
+Operation::operandCount() const {
+    return numberOfInputs() + numberOfOutputs();
+}
+
+/**
  * Returns true if Operation uses memory.
  *
  * @return True if Operation uses memory, false otherwise.

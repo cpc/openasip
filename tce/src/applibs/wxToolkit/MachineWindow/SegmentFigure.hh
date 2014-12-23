@@ -45,7 +45,7 @@ class wxDC;
  */
 class SegmentFigure : public Figure {
 public:
-    SegmentFigure();
+    SegmentFigure(int bitWidth);
     virtual ~SegmentFigure();
 
     void setLast(bool last);

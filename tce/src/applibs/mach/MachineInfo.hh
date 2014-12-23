@@ -33,11 +33,18 @@
 #ifndef TTA_MACHINE_INFO_HH
 #define TTA_MACHINE_INFO_HH
 
+#include "OperationDAGSelector.hh"
+#include "InstructionTemplate.hh"
+
+#include <set>
+
 namespace TTAMachine {
     class Machine;
+    class HWOperation;
+    class FUPort;
 }
 
-#include "OperationDAGSelector.hh"
+class Operand;
 
 class MachineInfo {
 public:
@@ -45,6 +52,17 @@ public:
         const TTAMachine::Machine& mach);
     static int longestGuardLatency(
         const TTAMachine::Machine& mach);
+    static Operand& operandFromPort(
+        const TTAMachine::HWOperation& hwOp,
+        const TTAMachine::FUPort& port);
+    static bool templatesUsesSlot(
+        const TTAMachine::Machine& mach,
+        const std::string& slotName);
+    static std::set<TTAMachine::InstructionTemplate*> templatesUsingSlot(
+        const TTAMachine::Machine& mach,
+        const std::string& slotName);
+
+
 private:
     MachineInfo();
 };

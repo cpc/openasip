@@ -37,7 +37,7 @@ void _start(void)
     _exit(retval);
 }
 
-volatile char __dummy__;
+volatile int __dummy__;
 
 /* override normal exit. simulator should stop when _exit() is seen */
 void _exit(int retval) {

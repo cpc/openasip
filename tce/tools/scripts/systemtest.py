@@ -283,7 +283,13 @@ class IntegrationTestCase(object):
             elif len(in_files) == 1:
                 in_file = os.path.basename(in_files[0])
             else:
-                in_file = None
+                # Support also files without running index number in front.
+                # E.g. ld32_st32_output.txt and ld32_st32.txt (input).
+                no_index_file = os.path.join(self.verification_data_dir, index[0:-1] + ".txt")
+                if os.path.exists(no_index_file):
+                    in_file = index[0:-1] + ".txt"
+                else:                                 
+                    in_file = None
 
             self._test_data.append((in_file, os.path.basename(out_file)))
 
@@ -396,7 +402,7 @@ class IntegrationTestCase(object):
             if timeout:
                 if options.output_diff:
                     output_diff_file.write("FAIL (timeout %ss): " % options.timeout + \
-                                           self._file_name + ": " + self.description + "\n")
+                                           self._file_name + ": " + self.description + " (%s) " % stdin_fn + "\n")
                 all_ok = False
                 continue
 
@@ -417,7 +423,8 @@ class IntegrationTestCase(object):
 
             if len(stdoutDiff) > 0:
                 if options.output_diff:
-                    output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + "\n")
+                    output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
+                                               " (%s) " % stdin_fn + "\n")
                     for line in stdoutDiff:
                         output_diff_file.write(line)
                     output_diff_file.flush()
@@ -716,7 +723,7 @@ if __name__ == "__main__":
             all_ok = run_test_dirs_in_parallel(test_dirs)
     else:
         for test_dir in test_dirs.keys():
-            all_ok = all_ok and process_test_dir_seq(test_dir, test_dirs[test_dir])
+            all_ok = process_test_dir_seq(test_dir, test_dirs[test_dir]) and all_ok
 
     if options.output_diff:
         output_diff_file.close()

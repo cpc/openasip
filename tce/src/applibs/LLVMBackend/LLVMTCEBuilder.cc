@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -83,6 +83,7 @@
 #include "HWOperation.hh"
 #include "AssocTools.hh"
 #include "Conversion.hh"
+#include "InstructionElement.hh"
 
 #ifdef LLVM_3_2
 #include <llvm/Constants.h>
@@ -101,7 +102,13 @@
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include <llvm/DebugInfo.h>
+#else
+#include <llvm/IR/DebugInfo.h>
+#endif
+
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 
@@ -178,7 +185,9 @@ LLVMTCEBuilder::initMembers() {
     multiDataMemMachine_ = false;
     spillMoveCount_ = 0;
     dataInitialized_ = false;
+    initialStackPointerValue_ = 0;
 }
+
 
 /**
  * The Destructor.
@@ -280,10 +289,18 @@ LLVMTCEBuilder::initDataSections() {
         new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
 
     mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
+#elif defined(LLVM_3_4)
+    mang_ = new Mangler(tm_);
+#elif defined(LLVM_3_5)
+    mang_ = new Mangler(tm_->getDataLayout());
 #else
-    mang_ = new Mangler(tm_); 
+    mang_ = new Mangler(tm_->getSubtargetImpl()->getDataLayout());
 #endif
 
+    const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
+    assert(tm != NULL);
+    const unsigned stackAlignment = tm->getMaxMemoryAlignment();
+        
 #if 0
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
@@ -295,11 +312,15 @@ LLVMTCEBuilder::initDataSections() {
     // (word to prevent writing bytes to 1,2,3 
     //  addresses and then reading word from 0)
     if (end_ == 0) {
-        end_ += 4;
+        end_ += stackAlignment;
     }
 #endif
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
@@ -313,7 +334,8 @@ LLVMTCEBuilder::initDataSections() {
         const llvm::GlobalValue& gv = *i;
         unsigned int gvAlign = gv.getAlignment();
 
-        if (gv.hasSection() && gv.getSection() == "llvm.metadata") {
+        if (gv.hasSection() && 
+            gv.getSection() == std::string("llvm.metadata")) {
             // do not write debug constants to the data section
             continue; 
         }
@@ -340,7 +362,7 @@ LLVMTCEBuilder::initDataSections() {
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
-            def.alignment = std::max(def.alignment,4u);
+            def.alignment = std::max(def.alignment, stackAlignment);
         }
 
         assert(def.alignment != 0);
@@ -497,7 +519,11 @@ unsigned
 LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
     unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
 
@@ -559,7 +585,6 @@ LLVMTCEBuilder::createDataDefinition(
         createGlobalValueDataDefinition(addressSpaceId, addr, gv);
     } else if (const ConstantExpr* ce = dyn_cast<ConstantExpr>(cv)) {
         createExprDataDefinition(addressSpaceId, addr, ce);
-#ifndef LLVM_3_0
     } else if (const ConstantDataArray* cda = dyn_cast<ConstantDataArray>(cv)){
         if (cda->isNullValue()) {
             TTAProgram::Address address(addr, aSpace);
@@ -571,7 +596,6 @@ LLVMTCEBuilder::createDataDefinition(
                     addressSpaceId, addr, cda->getElementAsConstant(i));
             }
         }
-#endif
     } else {
         cv->dump();
         abortWithError("Unknown cv type.");
@@ -591,8 +615,13 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
+#else
+    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(ci->getType()))
+           == 0 && "Invalid alignment for constant int!");
+#endif
 
     std::vector<MinimumAddressableUnit> maus;
 
@@ -645,8 +674,13 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     assert(addr % (tm_->getDataLayout()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
+#else
+    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(cfp->getType()))
+           == 0 && "Invalid alignment for constant fp!");
+#endif
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
@@ -656,7 +690,11 @@ LLVMTCEBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
+#endif
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -730,7 +768,11 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     TYPE_CONST Type* type = gv->getType();
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
+#else
+    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
+#endif
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
@@ -778,7 +820,11 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
+#else
+    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
+#endif
 
     assert(addr % (td->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");
@@ -843,6 +889,16 @@ LLVMTCEBuilder::createExprDataDefinition(
     }
 }
 
+/**
+ * Sets the value the stack pointer should be initialized to.
+ */
+void
+LLVMTCEBuilder::setInitialStackPointerValue(unsigned value) {
+    initialStackPointerValue_ = value;
+}
+
+
+//        std::min(addressSpaceById(0).end() & 0xfffffff8, value);
 
 /**
  * Creates POM procedure of a MachineFunction object and adds it to the
@@ -1772,34 +1828,42 @@ LLVMTCEBuilder::debugDataToAnnotations(
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
-            // handle file+line number debug info
-            if (!dl.isUnknown()) {
-		
-                int sourceLineNumber = -1;
-                TCEString sourceFileName = "";
+        // handle file+line number debug info
+        if (!dl.isUnknown()) {
+            
+            int sourceLineNumber = -1;
+            TCEString sourceFileName = "";
                 
-                // inspired from lib/codegen/MachineInstr.cpp
-                const LLVMContext &Ctx = 
-                    mi->getParent()->getParent()->getFunction()->getContext();
-                // TODO: something broken with DIScope
-                DIScope discope(dl.getScope(Ctx));
-                sourceLineNumber = dl.getLine();
-                sourceFileName = static_cast<TCEString>(discope.getFilename());
+            // inspired from lib/codegen/MachineInstr.cpp
+            const LLVMContext &Ctx = 
+                mi->getParent()->getParent()->getFunction()->getContext();
+            // TODO: something broken with DIScope
+            DIScope discope(dl.getScope(Ctx));
+            sourceLineNumber = dl.getLine();
+            sourceFileName = static_cast<TCEString>(discope.getFilename());
 
-                TTAProgram::ProgramAnnotation progAnnotation(
-                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
-                    sourceLineNumber);
-                move->addAnnotation(progAnnotation); 
+            if (sourceFileName.size() >
+                TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
+                sourceFileName = 
+                    sourceFileName.substr(
+                        sourceFileName.size() - 
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES,
+                        TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES);
+            }
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
+                sourceLineNumber);
+            move->addAnnotation(progAnnotation); 
                        
-                if (sourceFileName != "") {
-                    TTAProgram::ProgramAnnotation progAnnotation(
-                        TTAProgram::ProgramAnnotation::
-                        ANN_DEBUG_SOURCE_CODE_PATH, 
-                        sourceFileName);
-                    move->addAnnotation(progAnnotation); 
-                }
+            if (sourceFileName != "") {
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::
+                    ANN_DEBUG_SOURCE_CODE_PATH, 
+                    sourceFileName);
+                move->addAnnotation(progAnnotation); 
             }
         }
+    }
 }
 
 TTAProgram::TerminalRegister*
@@ -1831,7 +1895,7 @@ LLVMTCEBuilder::createTerminalRegister(
  * @return POM terminal.
  */
 TTAProgram::Terminal*
-LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
+LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
 
     if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
@@ -1862,11 +1926,11 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo) {
 		} else {
         	float fval = apf.convertToFloat();
         	SimValue val(32);
-        	val.value_.floatWord = fval;
+            val = fval;
         	return new TTAProgram::TerminalImmediate(val);
 		}
     } else if (mo.isImm()) {
-        int width = 32; // FIXME
+        int width = bitLimit;
         SimValue val(mo.getImm(), width);
         return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isMBB()) {
@@ -2054,8 +2118,9 @@ LLVMTCEBuilder::createMove(
     }
 
     Bus& bus = UniversalMachine::instance().universalBus();
+    TTAProgram::Terminal* dstTerm = createTerminal(dst);
     TTAProgram::Move* move = createMove(
-        createTerminal(src), createTerminal(dst), bus, guard);
+        createTerminal(src, dstTerm->port().width()), dstTerm, bus, guard);
 
     return move;
 }
@@ -2281,7 +2346,13 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
 
-    unsigned ival = (addressSpaceById(0).end() & 0xfffffff8);
+    unsigned ival = initialStackPointerValue_;
+
+    if (initialStackPointerValue_ == 0 || 
+        initialStackPointerValue_ >
+        (addressSpaceById(0).end() & 0xfffffff8))
+        ival = addressSpaceById(0).end() & 0xfffffff8;
+
     SimValue val(ival, 32);
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
@@ -2365,7 +2436,6 @@ LLVMTCEBuilder::emitInlineAsm(
 		} else {
 		    // find addresspace with given id
 		    const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
-		    bool found = false;
 		    for (int i = 0; i < nav.count(); i++) {
 			AddressSpace* as = nav.item(i);
 			if (as->hasNumericalId(addressSpaceId)) {
@@ -2376,7 +2446,6 @@ LLVMTCEBuilder::emitInlineAsm(
 		}
 	    } else {
 		const TTAMachine::Machine::AddressSpaceNavigator& nav = mach_->addressSpaceNavigator();
-		bool found = false;
 		for (int i = 0; i < nav.count(); i++) {
 		    AddressSpace* as = nav.item(i);
 		    if (as->name() == addressedAS) {
@@ -2844,34 +2913,46 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
     std::string globalName = 
         constructors ? 
         ("llvm.global_ctors") : ("llvm.global_dtors");
-    
+
     TTAProgram::Instruction* firstInstruction = NULL;
 
     // find the _llvm.global_Xtors global with the
     // function pointers and priorities
-
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
-
+        
         const GlobalVariable* gv = i;
 
         if (gv->getName() == globalName && gv->use_empty()) {
-            // The initializer should be an array of '{ int, void ()* }' structs.  
+            // The initializer should be an array of '{ int, void ()* }' 
+            // structs for LLVM 3.4 and lower, and an array of
+            // '{ int, void ()*, i8* }' structs for LLVM 3.5.
             // The first value is the init priority, which we ignore.
             const ConstantArray* initList = cast<const ConstantArray>
                 (gv->getInitializer());
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {
-                    // Not array of 2-element structs.
-                    if (cs->getNumOperands() != 2) 
-                        return firstInstruction;  
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+                    // Not an array of 2-element structs.
+                    if (cs->getNumOperands() != 2) {
+                        return firstInstruction;
+                    }
+#else
+                    // LLVM 3.5 introduced an additional field, so test for
+                    // an array of 3-element structs.
+                    if (cs->getNumOperands() != 3) {
+                        return firstInstruction;
+                    }
+#endif
 
                      // Found a null terminator, exit printing.
-                    if (cs->getOperand(1)->isNullValue())
-                        return firstInstruction;  
-                    // Emit the call.
+                    if (cs->getOperand(1)->isNullValue()) {
+                        return firstInstruction;
+                    }
 
+                    // Emit the call.
                     GlobalValue* gv =  dynamic_cast<GlobalValue*>(
                         cs->getOperand(1));
                     assert(gv != NULL&&"global constructor name not constv");
@@ -3442,6 +3523,9 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
             }
         }
     }
+    std::cerr << "Warning: Could not find suitable guard from any bus in the"
+              << "processor. Did you forget to add guards to the processor?"
+              << std::endl;
     return NULL;
 }
 
@@ -3478,7 +3562,10 @@ LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
            writing bytes to 1,2,3 addresses and thus then reading valid data 
            from 0. */
         if (end == 0) {
-            end = 4;
+            const TCETargetMachine* tm = 
+                dynamic_cast<const TCETargetMachine*>(tm_);
+            assert(tm != NULL);
+            end = tm->getMaxMemoryAlignment();
         }
         dataEnds_[&aSpace] = end;
 

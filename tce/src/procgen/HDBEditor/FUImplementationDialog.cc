@@ -45,7 +45,7 @@
 #include "BlockImplementationFile.hh"
 
 #include "FUPortImplementationDialog.hh"
-#include "FUImplementationParameterDialog.hh"
+#include "ImplementationParameterDialog.hh"
 #include "FUExternalPortDialog.hh"
 
 #include "FunctionUnit.hh"
@@ -522,14 +522,14 @@ FUImplementationDialog::onExternalPortSelection(wxListEvent&) {
 /**
  * Event handler for the add parameter button.
  *
- * Opens a FUImplementationParameterDialog for adding a new parameter.
+ * Opens a ImplementationParameterDialog for adding a new parameter.
  */
 void
 FUImplementationDialog::onAddParameter(wxCommandEvent&) {
 
     FUImplementation::Parameter parameter;
 
-    FUImplementationParameterDialog dialog(this, -1, parameter);
+    ImplementationParameterDialog dialog(this, -1, parameter);
 
     if (dialog.ShowModal() != wxID_OK) {
         return;
@@ -564,7 +564,7 @@ FUImplementationDialog::onEditParameter(wxCommandEvent&) {
     FUImplementation::Parameter parameter = selectedParameter();
     std::string oldName = parameter.name;
 
-    FUImplementationParameterDialog dialog(this, -1, parameter);
+    ImplementationParameterDialog dialog(this, -1, parameter);
 
     if (dialog.ShowModal() == wxID_OK) {
         implementation_.removeParameter(oldName);
@@ -595,7 +595,7 @@ FUImplementationDialog::onParameterActivation(wxListEvent&) {
     FUImplementation::Parameter parameter = selectedParameter();
     std::string oldName = parameter.name;
 
-    FUImplementationParameterDialog dialog(this, -1, parameter);
+    ImplementationParameterDialog dialog(this, -1, parameter);
 
     if (dialog.ShowModal() == wxID_OK) {
         implementation_.removeParameter(oldName);

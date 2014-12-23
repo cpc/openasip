@@ -48,7 +48,7 @@
 
   <operation>
     <name>ADD</name>
-    <description>Integer addition.</description>
+    <description>Integer addition. Output 3 is sum of inputs 1 and 2.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -69,7 +69,7 @@
 
   <operation>
     <name>SUB</name>
-    <description>Integer subtraction.</description>
+    <description>Integer subtraction. Input 1 is minuend,  input 2 is subtrahend and output 3 is difference.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -82,7 +82,7 @@
 
   <operation>
     <name>LDW</name>
-    <description>Loads 4 minimum addressable units from memory. Address must be aligned to 4.</description>
+    <description>Loads 32 bits. Input 1 is address and output 2 read data.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -99,7 +99,7 @@
 
   <operation>
     <name>STW</name>
-    <description>Stores 4 minimum addressable units to memory. Address must be aligned to 4.</description>
+    <description>Stores 32 bits. Input 1 is address and output 2 is write data.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -116,7 +116,7 @@
 
   <operation>
     <name>EQ</name>
-    <description/>
+    <description>Equality comparison. Output 3 returns '1' if inputs 1 and 2 are equal and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -137,7 +137,8 @@
 
   <operation>
     <name>GT</name>
-    <description/>
+    <description>Greater-than signed integer comparison. 
+Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -150,7 +151,7 @@
 
   <operation>
     <name>GTU</name>
-    <description/>
+    <description>Greater-than unsigned integer comparison. Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -302,7 +303,7 @@
 
   <operation>
     <name>SHL</name>
-    <description/>
+    <description>Left logical shift. Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -315,7 +316,7 @@
 
   <operation>
     <name>SHR</name>
-    <description/>
+    <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -328,7 +329,7 @@
 
   <operation>
     <name>SHRU</name>
-    <description/>
+    <description>Logical shift right (most siginificant bits zeroed). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -338,7 +339,7 @@
 
   <operation>
     <name>AND</name>
-    <description/>
+    <description>Bitwise AND. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -359,7 +360,7 @@
 
   <operation>
     <name>IOR</name>
-    <description/>
+    <description>Inclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -380,7 +381,7 @@
 
   <operation>
     <name>XOR</name>
-    <description/>
+    <description>Exclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -401,7 +402,7 @@
 
   <operation>
     <name>JUMP</name>
-    <description/>
+    <description>Absolute jump to the given instruction address.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -414,7 +415,7 @@
 
   <operation>
     <name>CALL</name>
-    <description/>
+    <description>Calls a function at the given absolute instruction address. The return address is saved in the return address register (RA).</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -427,7 +428,7 @@
 
   <operation>
     <name>MIN</name>
-    <description/>
+    <description>Returns the smaller of the two signed integer values. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -448,7 +449,7 @@
 
   <operation>
     <name>MAX</name>
-    <description/>
+    <description>Returns the larger of the two signed input values. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -552,7 +553,7 @@
     <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="32" id="2" type="UIntWord">
+    <out element-count="1" element-width="64" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -603,7 +604,7 @@
     <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <in element-count="1" element-width="32" id="2" type="UIntWord">
+    <in element-count="1" element-width="64" id="2" type="RawData">
       <mem-data/>
     </in>
     <trigger-semantics>
@@ -612,8 +613,20 @@
   </operation>
 
   <operation>
+    <name>SXBW</name>
+    <description>sign extend from 1 bit to 32 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxbw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SXQW</name>
-    <description>sign extend from 8 bits</description>
+    <description>Sign extend from 8 bits of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -625,13 +638,25 @@
 
   <operation>
     <name>SXHW</name>
-    <description>sign extend from 16 bits</description>
+    <description>Sign extend from 16 bits of of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxhw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>TRUNCWH</name>
+    <description>truncate 32 bit int to 16 bit int</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(truncwh, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -743,7 +768,7 @@
 
   <operation>
     <name>MUL</name>
-    <description/>
+    <description>32-bit integer multiplication of the inputs 1 and 2 with lower result bits in the output 3.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -1386,6 +1411,30 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       EXEC_OPERATION(gth, IO(1), IO(2), t1);
       EXEC_OPERATION(gth, IO(2), IO(1), t2);
       EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEUH</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="HalfFloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="HalfFloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2, t3;
+      EXEC_OPERATION(chf, IO(1), t1);
+      EXEC_OPERATION(chf, IO(2), t2);
+      EXEC_OPERATION(neuf, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -3017,7 +3066,7 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -3034,7 +3083,7 @@ Input operand is discarded.</description>
     <description>Convert short to half</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 
@@ -3052,8 +3101,6 @@ Input operand is discarded.</description>
     <description>Puts the core to sleep (global lock) until an external signal wakes it up. The simulation model waits for a POSIX signal SIGUSR1.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
-    <reads-memory/>
-    <writes-memory/>
     <side-effects/>
     <in element-count="1" element-width="1" id="1" type="RawData"/>
   </operation>

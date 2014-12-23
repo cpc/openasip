@@ -14,7 +14,7 @@ libmachinewindow_la_SOURCES = MachineEditPartFactory.cc BidirBridgeFigure.cc \
 	UnitPortFactory.cc UnitPortFigure.cc UnknownSocketFigure.cc \
 	MachineCanvas.cc EditPolicyFactory.cc MachineCanvasTool.cc \
 	Request.cc ComponentCommand.cc MoveFigure.cc TriggeringPortFigure.cc \
-	MachineCanvasOptions.cc
+	MachineCanvasOptions.cc MachineCanvasLayoutConstraints.cc
 
 
 PROJECT_ROOT = $(top_srcdir)

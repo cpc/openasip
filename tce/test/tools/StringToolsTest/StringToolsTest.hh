@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * A test suite for StringTools class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004,2014 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -45,7 +45,8 @@ using std::vector;
 
 
 /**
- * Implements the tests needed to verify correct operation of StringTools.
+ * Implements the tests needed to verify correct operation of StringTools
+ * and the TCEString class.
  */
 class StringToolsTest : public CxxTest::TestSuite {
 
@@ -58,6 +59,7 @@ public:
     void testChopString();
     void testSplitToRows();
     void testEndsWith();
+    void replaceString();
 };
 
 
@@ -198,5 +200,12 @@ StringToolsTest::testEndsWith() {
     TS_ASSERT(StringTools::endsWith(searchString3, ""));
 }
 
-
+void
+StringToolsTest::replaceString() {
+    TCEString foo = "foo_bar__baz";
+    TS_ASSERT_EQUALS(foo.replaceString("_", "\\_"), "foo\\_bar\\_\\_baz");
+    TS_ASSERT_EQUALS(foo.replaceString("_", "."), "foo.bar..baz");
+    TS_ASSERT_EQUALS(foo.replaceString("_", ".."), "foo..bar..baz");
+    TS_ASSERT_EQUALS(foo.replaceString("_", ".."), "foo..bar....baz");   
+}
 #endif

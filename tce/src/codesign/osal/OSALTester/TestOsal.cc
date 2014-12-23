@@ -119,7 +119,6 @@ CmdTrigger::execute(const std::vector<DataObject>& arguments)
 
     vector<SimValue*> args;
     TesterContext& context = *dynamic_cast<TesterContext*>(&interp->context());
-    unsigned int bitWidth = context.bitWidth();
     OperationContext& opContext = context.operationContext();
 
     string result = "";
@@ -127,7 +126,7 @@ CmdTrigger::execute(const std::vector<DataObject>& arguments)
     OperationSimulator& simulator = OperationSimulator::instance();
     InstructionAddress oldPC = opContext.programCounter();
     if (!simulator.simulateTrigger(
-            op, inputs, args, opContext, bitWidth, result)) {
+            op, inputs, args, opContext, result)) {
 
         for (unsigned int i = 0; i < args.size(); i++) {
             delete args[i];
@@ -409,7 +408,6 @@ OsalInterpreter::operation(const std::string& name) {
 TesterContext::TesterContext() :
     InterpreterContext(), continue_(true), programCounterStorage_(0),
     outputFormat_(CmdOutput::OUTPUT_FORMAT_INT_SIGNED),
-    bitWidth_(32),
     opContext_(NULL, programCounterStorage_, returnAddressStorage_) {
 
 }
@@ -479,7 +477,16 @@ TesterContext::setOutputFormat(string outputFormat) {
 string
 TesterContext::toOutputFormat(SimValue* value) {
     string output = "";
-    if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
+
+    // If output format is in hex or the value is wider than 32 bits 
+    // (except for DoubleWord), convert the SimValue to hex using the full 
+    // width of the value. This means that leading zeroes are included in 
+    // the output result (e.g. 32 bit value 0x15 = 0x00000015).
+    if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX || 
+        (value->width() > 32 && 
+         outputFormat_ != CmdOutput::OUTPUT_FORMAT_DOUBLE)) {
+        output = value->hexValue();
+    } else if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
         output = Conversion::toString(value->intValue());
 
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED) {
@@ -499,31 +506,8 @@ TesterContext::toOutputFormat(SimValue* value) {
         
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_BIN) {
         output = Conversion::toBinString(value->intValue());
-
-    } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX) {
-        output = Conversion::toHexString(value->unsignedValue());
     }
     return output;
-}
-
-/**
- * Returns the bit width of the operands.
- *
- * @return Bit width.
- */
-unsigned int
-TesterContext::bitWidth() {
-    return bitWidth_;
-}
-
-/**
- * Sets the bit width to new value.
- *
- * @param bitWidth The new bit width of the operands.
- */
-void
-TesterContext::setBitWidth(unsigned int bitWidth) {
-    bitWidth_ = bitWidth;
 }
 
 /**
@@ -914,74 +898,6 @@ CmdAdvanceClock::helpText() const {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// CmdBitWidth
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Constructor.
- */
-CmdBitWidth::CmdBitWidth() : CustomCommand("bitwidth") {
-}
-
-/**
- * Copy constructor.
- *
- * @param cmd Command to be copied.
- */
-CmdBitWidth::CmdBitWidth(const CmdBitWidth& cmd) : CustomCommand(cmd) {
-}
-
-/**
- * Destructor.
- */
-CmdBitWidth::~CmdBitWidth() {
-}
-
-/**
- * Executes the command.
- *
- * @param arguments Arguments for the command.
- * @return True if execution is successful, false otherwise.
- * @exception NumberFormatException If DataObject conversion fails.
- */
-bool
-CmdBitWidth::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
-    ScriptInterpreter* scriptInterp = interpreter();
-    OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
-    assert(interp != NULL);
-
-    DataObject* result = new DataObject();
-
-    if (arguments.size() != 2) {
-        result->setString("wrong number of arguments");
-        interp->setResult(result);
-        return false;
-    }
-
-    int width = arguments[1].integerValue();
-
-    TesterContext& context =
-        *(dynamic_cast<TesterContext*>(&interp->context()));
-    context.setBitWidth(width);
-    result->setString("");
-    interp->setResult(result);
-    return true;
-}
-
-/**
- * Returns the help text of the command.
- *
- * @return The help text.
- */
-string
-CmdBitWidth::helpText() const {
-    return "!bitwidth <value>\n"
-        "Sets new operand bit width.";
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // OsalCmdLineOptions
 //////////////////////////////////////////////////////////////////////////////
 
@@ -1046,7 +962,6 @@ int main(int argc, char* argv[]) {
     CmdRegister* reg = new CmdRegister();
     CmdMem* mem = new CmdMem();
     CmdAdvanceClock* clock = new CmdAdvanceClock();
-    CmdBitWidth* bitWidth = new CmdBitWidth();
 
     interpreter.initialize(argc, argv, &context, reader);
     interpreter.addCustomCommand(trigger);
@@ -1057,7 +972,6 @@ int main(int argc, char* argv[]) {
     interpreter.addCustomCommand(reg);
     interpreter.addCustomCommand(mem);
     interpreter.addCustomCommand(clock);
-    interpreter.addCustomCommand(bitWidth);
     reader->initialize(">> ");
 
     // memory is 64k bytes

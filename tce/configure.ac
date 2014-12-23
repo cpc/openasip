@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT([tce],[1.10-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.11-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -22,7 +22,8 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.8 = 8:0:0
 # TCE 1.9 = 9:0:0 
 # TCE 1.10 = 10:0:0
-AC_SUBST([LIB_VERSION], ["10:0:0"])
+# TCE 1.11 = 11:0:0
+AC_SUBST([LIB_VERSION], ["11:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -353,46 +354,6 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 ########################
 
 
-######################################
-#
-# Check boost libraries
-#
-######################################
-AX_BOOST_BASE([1.41.0])
-if test -z "$BOOST_LDFLAGS"
-then
-AC_MSG_ERROR(
-[boost library not found. Install it or use --with-boost switch])
-fi
-
-AX_BOOST_FILESYSTEM
-if test -z "$BOOST_FILESYSTEM_LIB"
-then
-AC_MSG_ERROR(
-[boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
-fi
-#boost::system is not needed for anything AFAIK, works without...
-AX_BOOST_SYSTEM
-if test -z "$BOOST_SYSTEM_LIB"
-then
-AC_MSG_NOTICE(
-[boost_filesystem library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
-fi
-
-AX_BOOST_REGEX
-if test -z "$BOOST_REGEX_LIB"
-then
-AC_MSG_ERROR(
-[boost_regex library not found. Install it or use --with-boost-regex switch])
-fi
-
-AX_BOOST_THREAD
-if test -z "$BOOST_THREAD_LIB"
-then
-AC_MSG_ERROR(
-[boost_thread library not found. Install it or use --with-boost-thread switch])
-fi
-
 ##########################################################################
 #
 # With this switch user can define the compilation flags that make the
@@ -460,6 +421,10 @@ esac
 
 ####################################################################
 
+# Always enable C++11 language standard, if LLVM is 3.5 or higher. 
+# This is set to false if LLVM version is 3.4 or lower.
+ENABLE_CXX11=true
+
 LLVM_VERSION=
 
 AC_ARG_WITH(llvm,
@@ -468,7 +433,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.3 llvm-config-3.4 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -512,12 +477,15 @@ fi
 case "$LLVM_VERSION" in
      3.0)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
+     ENABLE_CXX11=false
    ;;
      3.1*)
      AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
+     ENABLE_CXX11=false
    ;;
      3.2*)
      AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
+     ENABLE_CXX11=false
    ;;
      3.3*)
      AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.3")
@@ -542,6 +510,7 @@ Please consult INSTALL for instructions.])
      fi
      AC_MSG_RESULT([yes])
      
+     ENABLE_CXX11=false
    ;;
      3.4*)
      AC_DEFINE([LLVM_3_4], [], "Using LLVM 3.4")
@@ -553,10 +522,15 @@ Please consult INSTALL for instructions.])
      else
      AC_MSG_RESULT([yes])
      fi
+
+     ENABLE_CXX11=false
    ;;
      3.5*)
-     AC_DEFINE([LLVM_3_5], [], "Using LLVM svn (upcoming 3.5)")
+     AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
    ;;   
+     3.6*)
+     AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
+   ;;
      *)
    AC_MSG_NOTICE(
    [
@@ -1143,7 +1117,6 @@ dlerror();
   AC_SUBST([DL_FLAGS], ["-ldl"])
 ])
 
-
 ###########################
 #
 # CHECKS FOR HEADER FILES 
@@ -1215,6 +1188,116 @@ if test x"$bigendian" = xtrue; then
    AC_DEFINE(TARGET_WORDS_BIGENDIAN, 1, 
    [defines whether the target processor has big-endian byte order])
 fi
+
+
+#################################################################
+#
+# Determine whether the C++11 language standard is enabled or not.
+#
+#################################################################
+
+# Defines the lowest required boost version.
+MIN_BOOST_VERSION=1.41.0
+
+AC_LANG(C++)
+
+# Check if the enable parameter has been given to configure.
+AC_ARG_ENABLE(cxx11,
+[AS_HELP_STRING([--enable-cxx11],[use c++11 language standard])],
+[ case "${enableval}" in
+  yes) 
+    cxx11=true 
+    ;;
+  no) 
+    cxx11=false 
+    ;;
+  *) 
+    AC_MSG_ERROR(bad value ${enableval for --enable-cxx11}) 
+    ;;
+  esac], 
+  [cxx11=false]
+)
+
+# If LLVM version is 3.5 or greater, force the mode on.
+if test x"$ENABLE_CXX11" = xtrue; then
+   cxx11=true
+fi
+
+AC_MSG_CHECKING([whether c++11 language standard is enabled])
+if test x"$cxx11" = xtrue; then
+   AC_MSG_RESULT([yes])
+
+   # Check that the compiler supports C++11 mode.
+   AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+
+   # Require at least boost 1.48.0 if C++11 mode is used.
+   MIN_BOOST_VERSION=1.48.0
+
+   # AX_CXX_COMPILE_STDCXX_11 macro sets CXXFLAGS to include -std=c++0x or
+   # -std=c++11, check which one and set other flags accordingly.
+   define_cxx0x=false
+   for flag in $CXXFLAGS; do
+       if test x"$flag" = x-std=c++0x; then
+          define_cxx0x=true
+          break
+       fi
+   done
+   
+   # Set the flags to use -std=c++0x or -std=c++11.
+   if test x"$define_cxx0x" = xtrue; then
+      AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard.])
+      CPPFLAGS="$CPPFLAGS -std=c++0x"
+      LDFLAGS="$LDFLAGS -std=c++0x"
+   else
+      AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
+      CPPFLAGS="$CPPFLAGS -std=c++11"
+      LDFLAGS="$LDFLAGS -std=c++11"
+   fi
+else
+   AC_MSG_RESULT([no])
+fi
+
+
+######################################
+#
+# Check boost libraries
+#
+######################################
+AX_BOOST_BASE([$MIN_BOOST_VERSION])
+if test -z "$BOOST_LDFLAGS"
+then
+AC_MSG_ERROR(
+[boost library not found. Install it or use --with-boost switch])
+fi
+
+AX_BOOST_FILESYSTEM
+if test -z "$BOOST_FILESYSTEM_LIB"
+then
+AC_MSG_ERROR(
+[boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
+fi
+#boost::system is not needed for anything AFAIK, works without...
+AX_BOOST_SYSTEM
+if test -z "$BOOST_SYSTEM_LIB"
+then
+AC_MSG_NOTICE(
+[boost_filesystem library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
+fi
+
+AX_BOOST_REGEX
+if test -z "$BOOST_REGEX_LIB"
+then
+AC_MSG_ERROR(
+[boost_regex library not found. Install it or use --with-boost-regex switch])
+fi
+
+AX_BOOST_THREAD
+if test -z "$BOOST_THREAD_LIB"
+then
+AC_MSG_ERROR(
+[boost_thread library not found. Install it or use --with-boost-thread switch])
+fi
+
 
 ################################
 #
@@ -1392,6 +1475,7 @@ AC_CONFIG_FILES([
   src/procgen/HDB/Makefile 
   src/procgen/ProGe/Makefile
   src/procgen/HDBEditor/Makefile
+  src/procgen/MachInfo/Makefile
   src/applibs/Scheduler/Makefile
   src/applibs/Scheduler/ResourceModel/Makefile
   src/applibs/Scheduler/ResourceManager/Makefile
@@ -1504,7 +1588,7 @@ AC_OUTPUT
 
 echo "***************************************"
 echo "Found xerces-c library."
-echo "Found boost library >= v.1.33.0"
+echo "Found boost library >= v.$MIN_BOOST_VERSION"
 echo "Found sqlite3 library."
 
 if test x"$LATEX" = xyes;

@@ -1,3 +1,13 @@
+Operating system
+================
+
+TCE requires a Unix-style operating system such as Linux. 
+Debian-based distributions like Debian and Ubuntu should have
+most of the required libraries included, but other distributions
+should work fine too. 
+
+MacOS support is experimental.
+
 Library and tools version prerequisites for TCE
 ===============================================
 
@@ -15,7 +25,7 @@ wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.41.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  3.4, 3.3, 3.2                        LLVM Release License
+LLVM                  3.5, 3.4, 3.3, 3.2                   LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
@@ -32,6 +42,11 @@ command:
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
     libffi-dev
+
+This installs the required packages for an Red Hat 6 (and CentOS):
+
+  sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
+xerces-c-devel gcc-c++ make autoconf automake libtool
 
 Editline
 --------
@@ -65,7 +80,7 @@ LLVM and Clang with some patches to fix issues affecting TCE use.
 
 You can do this most easily by executing 
  
-  tools/scripts/install_llvm_3.4.sh DEST_PATH
+  tools/scripts/install_llvm_3.5.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches

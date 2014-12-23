@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam—tut.fi)
- * @author Pekka Jääskeläinen 2007-2012
+ * @author Pekka Jääskeläinen 2007-2014
  */
 
 #include "llvm/PassManager.h"
@@ -45,6 +45,7 @@
 #include "PluginTools.hh"
 #include "FileSystem.hh"
 #include "ADFSerializer.hh"
+#include "Conversion.hh"
 
 #include <iostream>
 
@@ -98,8 +99,11 @@ TCETargetMachine::TCETargetMachine(
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL)
     : LLVMTargetMachine(T,TT, CPU, FS, Options, RM, CM, OL),
 
-//      Subtarget(TT,FS),
-      DL(
+//      subTarget_(TT,FS),
+
+      /// @note Is overwritten in setTargetMachinePlugin.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+      dl_(
         "E-p:32:32:32"
         "-a0:0:32"
         "-i1:8:8"
@@ -113,8 +117,14 @@ TCETargetMachine::TCETargetMachine(
         "-v64:32:32"
         "-v128:32:32"
         "-v256:32:32"),
-      tsInfo(*this),
-      plugin_(NULL), pluginTool_(NULL) {
+      tsInfo_(*this),
+#else
+                                  // tsinfo is now in plugin class
+                                  //      tsInfo_(this->getDataLayout()),
+#endif
+      plugin_(NULL),
+      pluginTool_(NULL)
+{
 }
 
 /**
@@ -156,6 +166,36 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
 #if (!(defined(LLVM_3_2) || defined(LLVM_3_3)))
     initAsmInfo();
+#endif
+
+    // Set data layout with correct stack alignment.
+    unsigned alignBits = getMaxMemoryAlignment() * 8;
+    TCEString dataLayoutStr("");
+    dataLayoutStr += "E-p:32:32:32";
+    dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
+    dataLayoutStr += "-i1:8:8";
+    dataLayoutStr += "-i8:8:32";
+    dataLayoutStr += "-i16:16:32";
+    dataLayoutStr += "-i32:32:32";
+    dataLayoutStr += "-i64:32:32";
+    dataLayoutStr += "-f16:16:16";
+    dataLayoutStr += "-f32:32:32";
+    dataLayoutStr += "-f64:32:64";
+    dataLayoutStr += "-v64:32:64";
+    dataLayoutStr += "-v128:32:128";
+    dataLayoutStr += "-v256:32:256";
+    dataLayoutStr += "-v512:32:512";
+    dataLayoutStr += "-v1024:32:1024";
+
+#if defined(LLVM_3_2)
+    DataLayout* dl = &dl_;
+    DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), dl);
+#elif (defined(LLVM_3_3) || defined(LLVM_3_4))
+    DataLayout* dl = &dl_;
+    dl->init(dataLayoutStr.c_str());
+#else // LLVM 3.5+
+    DataLayout* dl = plugin_->getDataLayout();
+    dl->reset(dataLayoutStr.c_str());
 #endif
 }
 

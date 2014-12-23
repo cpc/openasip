@@ -37,6 +37,11 @@
 #include "TCEPlugin.hh"
 #include "tce_config.h"
 
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+#ifndef override
+#define override
+#endif
+#endif
 namespace TCEISD {
     enum {
         FIRST_NUMBER = llvm::ISD::BUILTIN_OP_END,
@@ -74,28 +79,36 @@ namespace llvm {
         mutable int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
         TCETargetLowering(TargetMachine& TM);
-        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
+        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
 
-        int getVarArgsFrameOffset() const { return VarArgsFrameOffset; }
+//#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+        int getVarArgsFrameOffset() const /* override */ { return VarArgsFrameOffset; }
+//#else
+        // TODO: moved to FunctionInfo class? implement it?
+//#endif
 
-       virtual const char* getTargetNodeName(unsigned opcode) const;
+       virtual const char* getTargetNodeName(unsigned opcode) const override;
         
-        ConstraintType getConstraintType(const std::string &Constraint) const;
+        ConstraintType getConstraintType(const std::string &Constraint) const override;
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
         std::pair<unsigned, const TargetRegisterClass*>
-        getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
+        getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const override;
 #else
         std::pair<unsigned, const TargetRegisterClass*>
-        getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const;
+        getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const override;
 #endif
+
+        //TODO: this is from some old version - which?
         std::vector<unsigned>
         getRegClassForInlineAsmConstraint(const std::string &Constraint,
                                           EVT VT) const;
-        virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+        virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const override;
         
         /// getFunctionAlignment - Return the Log2 alignment of this function.
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
         virtual unsigned getFunctionAlignment(const Function *F) const;
+#endif // no longer virtual
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))        
         virtual SDValue
@@ -104,7 +117,7 @@ namespace llvm {
                              bool isVarArg,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) const;
+                             SmallVectorImpl<SDValue> &InVals) const override;
 #else
         virtual SDValue
         LowerFormalArguments(SDValue Chain,
@@ -112,7 +125,7 @@ namespace llvm {
                              bool isVarArg,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              SDLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) const;
+                             SmallVectorImpl<SDValue> &InVals) const override;
 #endif        
 
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
@@ -120,7 +133,7 @@ namespace llvm {
 
         virtual SDValue
         LowerCall(TargetLowering::CallLoweringInfo &CLI,
-                  SmallVectorImpl<SDValue> &InVals) const;
+                  SmallVectorImpl<SDValue> &InVals) const override;
         
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))        
         virtual SDValue
@@ -128,22 +141,29 @@ namespace llvm {
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
-                    DebugLoc dl, SelectionDAG &DAG) const;
+                    DebugLoc dl, SelectionDAG &DAG) const override;
 #else
         virtual SDValue
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
-                    SDLoc dl, SelectionDAG &DAG) const;
+                    SDLoc dl, SelectionDAG &DAG) const override;
 #endif
 
-        virtual bool allowsUnalignedMemoryAccesses(EVT VT) const;
-
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
+        virtual bool allowsUnalignedMemoryAccesses(EVT VT) const override;
+#elif defined(LLVM_3_5)
+        virtual bool allowsUnalignedMemoryAccesses(EVT,
+                                                   unsigned,
+                                                   bool*) const override;
+#else // LLVM 3.6+
+        virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, bool* ) const override;
+#endif
         // We can ignore the bitwidth differences between the pointers
         // for now. It's the programmer's responsibility to ensure they
         // fit.
-        virtual bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const {
+        virtual bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const override {
             return true;
         }
         // ----------------------------------------------------
@@ -156,11 +176,11 @@ namespace llvm {
         
     public:        
 #if (defined(LLVM_3_2) || defined(LLVM_3_3))
-        virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const;
+        virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const override;
 #else
-        virtual llvm::EVT getSetCCResultType(LLVMContext&,llvm::EVT VT) const;
+        virtual llvm::EVT getSetCCResultType(LLVMContext&,llvm::EVT VT) const override;
 #endif        
-        virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const {
+        virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override {
             if (VT==MVT::f32 || VT==MVT::f16) {
                 return true;
             }

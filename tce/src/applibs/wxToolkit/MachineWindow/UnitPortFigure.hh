@@ -45,7 +45,7 @@ class wxDC;
  */
 class UnitPortFigure : public Figure {
 public:
-    UnitPortFigure(std::string name);
+    UnitPortFigure(std::string name, int bitWidth);
     virtual ~UnitPortFigure();
     std::string name() const;
 

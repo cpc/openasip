@@ -58,6 +58,14 @@
 #define BOOST_FILESYSTEM_VERSION 3
 #endif
 
+// Needs to be declared if C++11 standard is used with boost/filesystem, 
+// otherwise linker errors occur.
+#if BOOST_VERSION <= 105100
+#define BOOST_NO_SCOPED_ENUMS
+#else
+#define BOOST_NO_CXX11_SCOPED_ENUMS
+#endif
+
 #include <boost/filesystem/path.hpp>
 
 #include <unistd.h> // access()

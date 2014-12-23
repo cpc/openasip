@@ -41,7 +41,12 @@
 #include "llvm/IR/Module.h"
 #endif
 #include "llvm/Pass.h"
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 #include "llvm/Linker.h"
+#else
+#include "llvm/Linker/Linker.h"
+#endif
 
 using namespace llvm;
 
@@ -97,11 +102,20 @@ LinkBitcode::doFinalization(Module& /*M*/) {
 
 bool
 LinkBitcode::doInitialization(Module& M) {
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     std::string errors;
     if (Linker::LinkModules(
 	    &M, &inputModule_, Linker::DestroySource, &errors)) {
         errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
     } 
+#else
+    // TODO: what about the destroysource thing?
+    // TODO: DiagnosticHandledFunction
+    if (Linker::LinkModules(
+	    &M, &inputModule_)) {
+        errs() << "Error during linking in LinkBitcodePass: " << "\n";
+    } 
+#endif
     return true;
 }
 

@@ -27,6 +27,7 @@
  * Declaration of SimValue class.
  *
  * @author Pekka J‰‰skel‰inen 2004,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
@@ -39,6 +40,9 @@
 #include <string.h>
 
 #define SIMD_WORD_WIDTH 1024
+#define SIMVALUE_MAX_BYTE_SIZE (SIMD_WORD_WIDTH / BYTE_BITWIDTH)
+
+class TCEString;
 
 //////////////////////////////////////////////////////////////////////////////
 // SimValue
@@ -49,18 +53,46 @@
  *
  * This class represents any data type that can be manipulated by operations
  * of the target architecture template, and provides the interface to access
- * the data in three predefined types.
+ * the data in predefined types.
  *
+ * Values are always stored in big-endian convention in the rawData_ byte 
+ * array and the array is filled from the array's "right end" to left. For
+ * instance, let's assume the array is 128 bytes wide and a 32-bit UIntWord
+ * 305419896 (0x12345678) value is assigned to the SimValue. The value is 
+ * laid out in the array as follows:
+ * [0] = ...
+ * [1] = ... 
+ * ...
+ * [124] = 0x12
+ * [125] = 0x34
+ * [126] = 0x56
+ * [127] = 0x78
+ *
+ * When a user wants to interpret SimValue as any primitive value 
+ * (FloatWord, UIntWord, etc.), depending on the user's machine endianness
+ * the interpreted bytes are swapped correctly to be either in big-endian
+ * or little-endian convention. For instance, if the user has a little-endian
+ * machine and calls the uIntWordValue() function for a SimValue, which has
+ * the above value, a new value with the 0x78563412 byte order is returned.
+ *
+ * The same swapping convention also occurs when a primitive value is
+ * assigned to SimValue. If the value to be assigned is in little-endian 
+ * and its bytes are 0xabcd0000, the last four bytes in the SimValue are
+ * as 0x0000cdab.
+ *
+ * SimValue users don't need to worry about this possible byte swapping
+ * since it is automatic and is done only if the user's machine is a
+ * little-endian machine. However, users shouldn't access the public 
+ * rawData_ member directly unless they know exactly what they are doing.
  */
+
 class SimValue {
 public:
-    inline SimValue();
-    inline explicit SimValue(int width);
-    inline explicit SimValue(int value, int width);
-
-    inline ~SimValue() {}
-    
-    inline SimValue(const SimValue& source);
+    SimValue();
+    explicit SimValue(int width);
+    explicit SimValue(int value, int width);
+    SimValue(const SimValue& source);
+    ~SimValue() {}
 
     int width() const;
     void setBitWidth(int width);
@@ -71,6 +103,7 @@ public:
     SimValue& operator=(const FloatWord& source);
     SimValue& operator=(const DoubleWord& source);
     SimValue& operator=(const SimValue& source);
+    void deepCopy(const SimValue& source);
 
     const SimValue operator+(const SIntWord& rightHand);
     const SimValue operator+(const UIntWord& rightHand);
@@ -112,29 +145,28 @@ public:
     FloatWord floatWordValue() const;
     HalfFloatWord halfFloatWordValue() const;
 
-    Byte* rawBytes() const;
-    HalfWord* rawHalfWords() const;
-    Word* rawWords() const;
+    TCEString binaryValue() const;
+    TCEString hexValue() const;
 
-    /// These are public for fast access in the compiled simulation engine.
-    union Value {
-        UIntWord uIntWord;
-        SIntWord sIntWord;
-        uint16_t halfFloatWordBits;
-        FloatWord floatWord;
-        DoubleWord doubleWord;
-        Byte rawData[SIMD_WORD_WIDTH / 8];
-    };
+    void setValue(TCEString hexValue);
+    void clearToZero(int bitWidth);
 
-    /// The value data.
-    Value value_;
+    /// Array that contains SimValue's underlaying bytes in big endian.
+    Byte rawData_[SIMVALUE_MAX_BYTE_SIZE];
 
     /// The bitwidth of the value.
     int bitWidth_;
 
 private:
+    /// @todo Create more optimal 4-byte and 2-byte swapper functions for
+    /// 2 and 4 byte values. The more optimal swapper would load all bytes
+    /// to int or short int and shift the values to their correct places,
+    /// which would reduce memory accesses.
+    void swapByteOrder(const Byte* from, size_t byteCount, Byte* to) const;
+
     /// Mask for masking extra bits when returning unsigned value.
     UIntWord mask_;
+
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -159,7 +191,5 @@ private:
 };
 
 #define SIMULATOR_MAX_INTWORD_BITWIDTH 32
-
-#include "SimValue.icc"
 
 #endif

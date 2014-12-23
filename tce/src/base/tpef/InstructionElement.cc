@@ -40,7 +40,7 @@ namespace TPEF {
 //////////////////////////////////////////////////////////////////////////////
 
 /// Maximum number of bytes in annotation.
-const int InstructionAnnotation::MAX_ANNOTATION_BYTES = 131;
+const size_t InstructionAnnotation::MAX_ANNOTATION_BYTES = 127;
 
 /**
  * Constructor.

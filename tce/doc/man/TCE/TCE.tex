@@ -26,7 +26,7 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.10-pre}
+\title{TTA-based Co-design Environment v1.11-pre}
 \ver{29}
 \firstday{2006-10-25}
 \lastday{2014-05-05}
@@ -2194,11 +2194,7 @@ The example streaming operations in the base operation set are
 called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
 These operations have a simulation behavior definition which simulates the
 stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host. The files are called \textit{ttasim\_stream.in} for 
-the input stream and \textit{ttasim\_stream.out} for the output stream and
-should reside in the directory where the simulator is started. 
-The file names can be customized using environment variables 
-TTASIM\_STREAM\_OUT\_FILE and TTASIM\_STREAM\_IN\_FILE, respectively.
+the simulator host.
 
 Here is an example C code that implements streaming I/O with the operations:
 
@@ -2232,9 +2228,11 @@ with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
 value means the stream buffer is empty, which means the file simulating the
 input buffer has reached the end of file.
 
-You can test the code by creating a file \textit{ttasim\_stream.in}
-with some test data. The code should create a copy of that file to the
-stream output file \textit{ttasim\_stream.out}.
+You can test the code by creating a file \textit{<FU\_NAME>.in} with some test
+data, compiling the code and simulating it. The code should create a copy of
+that file to the stream output file \textit{<FU\_NAME>.out}. These files
+should reside in the directory where the simulator is started. You can get
+the FU\_NAME from the streaming function units in the adf file.
 
 \subsection{Streaming I/O function units}
 VHDL implementations and HDB entries for streaming I/O have been included 
@@ -2316,7 +2314,7 @@ bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
 multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
 \textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
 overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
-the corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
+the corresponding cosine value $cos\left(\frac{x(2i+1)\pi}{16}\right)$. The code calculates
 following equations:
 
 \begin{equation}
@@ -2388,7 +2386,7 @@ The processor's specifications are the following:
 Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
 \textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
 \textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
-\textit{gtu}, \textit{jump} and \textit{immediate transport}.
+\textit{gtu}, \textit{jump}, \textit{cos16} and \textit{immediate transport}.
 
 When you program using TTA assembly you need to take into account 
 operation latencies. The \textit{jump} latency is four clock cycles and load
@@ -3957,6 +3955,13 @@ be used is found.
 \end{longtable}
 \end{center}
 
+Third-party libraries can be used in the operation behavior model.
+\emph{buildopset} uses the environment variables \emph{CPPFLAGS}, 
+\emph{CXXFLAGS} and \emph{LDFLAGS} to search for the external library. E.g.: 
+
+\shellcmd{CPPFLAGS=-I/opt/mpeg/inlucde LDFLAGS=-lmpeg buildopset /home/jack/.tce/opset/custom/mpeg} 
+
+
 \subsection{OSAL Tester (testosal)}
 \label{sec:testosal}
 
@@ -4686,6 +4691,40 @@ software module that implements a certain interface must be created,
 compiled to a shared object file and copied to appropriate
 directory. Then it can be given as command line parameter to the
 generator.
+
+\paragraph{Default IC Decoder Plugin}
+
+The plugin that is selected by default  ProDe's Processor Implementation dialog. 
+Parameters that can be passed to default ic decoder plugin are listed below. Note
+that if bustrace or locktrace is enabled the processor can not be synthesized.
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.25\textwidth}@{}p{.65\textwidth}}
+\textbf{Plugin parameter} &\textbf{Description} \\
+\hline
+bustrace &% 
+Value ``yes'' on the parameter adds code to IC implementation that 
+prints values of busses into a file called ``bus.dump''. The values are
+captured every clock period. By default the feature is disabled.
+\\
+bustracestartingcycle &%
+The cycle when the bus tracing starts. Parameter is unset by default.
+\\
+locktrace &%
+Value ``yes'' on the parameter adds code to decoder implementation that 
+prints signal value of global lock into a file called ``lock.dump''. The
+value is captured every clock period. By default the feature is disabled.
+\\
+locktracestartingcycle &%
+Parameter is unset by default. When numeric value is given it will be
+the cycle when the global lock tracing starts. When value is 
+``bustracestartingcycle'' then the value is inherited from bustracestartingcycle
+parameter.
+\\
+
+
+\end{longtable}
+\end{center}
 
 \section{Platform Integrator}
 \label{sec:platformIntegrator}

@@ -68,15 +68,21 @@ using namespace llvm;
  * @param st Subtarget architecture.
  * @param tii Target architecture instruction info.
  */
-TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
+TCERegisterInfo::TCERegisterInfo(
+    const TargetInstrInfo& tii, int stackAlignment) :
     TCEGenRegisterInfo(TCE::RA),
-    tii_(tii) {
+    tii_(tii),
+    stackAlignment_(stackAlignment) {
 }
 
 /**
  * Returns list of callee saved registers.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
 const uint16_t*
+#else
+const MCPhysReg*
+#endif
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     static const uint16_t calleeSavedRegs[] = { 0 };
     return calleeSavedRegs;
@@ -102,13 +108,15 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
  * The returned list has equal length with getCalleeSavedRegs() list
  * and the list items with same position correspond to each other.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 const TargetRegisterClass* const*
 TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
     static const TargetRegisterClass* const calleeSavedRegClasses[] = { 0 };
     return calleeSavedRegClasses;
 }
+#endif
 
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#ifdef LLVM_3_2
 /**
  * Eliminates call frame pseudo instructions. 
  *
@@ -124,7 +132,7 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
 
 void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
-#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
+#if (!(defined(LLVM_3_2)))
     unsigned FIOperandNum,
 #endif
     RegScavenger *RS) const {
@@ -132,7 +140,7 @@ void TCERegisterInfo::eliminateFrameIndex(
     assert(SPAdj == 0 && "Unexpected");
     MachineInstr &MI = *II;
     DebugLoc dl = MI.getDebugLoc();
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
+#if (defined(LLVM_3_2))
     unsigned FIOperandNum = 0;
     while (!MI.getOperand(FIOperandNum).isFI()) {
         ++FIOperandNum;
@@ -193,7 +201,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     if (hasCalls) {
         BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(4);
+            .addImm(stackAlignment_);
 
         // Save RA to stack.
         BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
@@ -202,7 +210,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
             .addReg(TCE::RA)
             .setMIFlag(MachineInstr::FrameSetup);
 
-        mfi->setStackSize(numBytes + 4);
+        mfi->setStackSize(numBytes + stackAlignment_);
 
         // Adjust stack pointer
         if (numBytes != 0) {
@@ -230,7 +238,13 @@ TCERegisterInfo::emitEpilogue(
     MachineFunction& mf, MachineBasicBlock& mbb) const {
 
     MachineFrameInfo* mfi = mf.getFrameInfo();
+
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
     MachineBasicBlock::iterator mbbi = prior(mbb.end());
+#else
+    MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
+#endif
+
     DebugLoc dl = mbbi->getDebugLoc();
 
     if (mbbi->getOpcode() != TCE::RETL && mbbi->getOpcode() != TCE::RETL_old) {
@@ -247,10 +261,10 @@ TCERegisterInfo::emitEpilogue(
     }
 
     if (hasCalls) {
-        if (numBytes != 4) {
+        if (numBytes != stackAlignment_) {
             BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
                 .addReg(TCE::SP)
-                .addImm(numBytes - 4);
+                .addImm(numBytes - stackAlignment_);
         }
 
         // Restore RA from stack.
@@ -261,7 +275,7 @@ TCERegisterInfo::emitEpilogue(
         
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(4);
+            .addImm(stackAlignment_);
     } else { // leaf function
         
         // adjust by stack size
