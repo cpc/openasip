@@ -215,15 +215,21 @@ TCEPassConfig::addInstSelector()
  *
  * @param pm Function pass manager to add isel pass.
  * @param fast Not used.
- */                                     
+ */
+#if LLVM_OLDER_THAN_3_6                               
 bool
+#else
+void
+#endif
 TCEPassConfig::addPreRegAlloc() {
     LLVMTCECmdLineOptions *options =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     addPass(createProgramPartitionerPass());
     if (options != NULL && options->analyzeInstructionPatterns())
         addPass(createInstructionPatternAnalyzer());
+#if LLVM_OLDER_THAN_3_6
     return false;
+#endif
 }
 
 
@@ -289,7 +295,14 @@ TCETargetMachine::createPassConfig(
     return tpc;
 }
 
-bool TCEPassConfig::addPreSched2() {
+#ifdef LLVM_OLDER_THAN_3_6
+bool
+#else
+void
+#endif
+TCEPassConfig::addPreSched2() {
     addPass(&IfConverterID);
+#ifdef LLVM_OLDER_THAN_3_6
     return true;
+#endif
 }

@@ -478,14 +478,17 @@ case "$LLVM_VERSION" in
      3.0)
      AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
      ENABLE_CXX11=false
+     LLVM_OLDER_THAN_3_6=1
    ;;
      3.1*)
      AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
      ENABLE_CXX11=false
+     LLVM_OLDER_THAN_3_6=1
    ;;
      3.2*)
      AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
      ENABLE_CXX11=false
+     LLVM_OLDER_THAN_3_6=1
    ;;
      3.3*)
      AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.3")
@@ -511,6 +514,7 @@ Please consult INSTALL for instructions.])
      AC_MSG_RESULT([yes])
      
      ENABLE_CXX11=false
+     LLVM_OLDER_THAN_3_6=1
    ;;
      3.4*)
      AC_DEFINE([LLVM_3_4], [], "Using LLVM 3.4")
@@ -524,9 +528,11 @@ Please consult INSTALL for instructions.])
      fi
 
      ENABLE_CXX11=false
+     LLVM_OLDER_THAN_3_6=1
    ;;
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
+     LLVM_OLDER_THAN_3_6=1
    ;;   
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -545,6 +551,13 @@ esac
 AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
+
+if test "x$LLVM_OLDER_THAN_3_6" == "x1"; 
+then
+
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_6, 1, [LLVM version is older than 3.6])
+
+fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then

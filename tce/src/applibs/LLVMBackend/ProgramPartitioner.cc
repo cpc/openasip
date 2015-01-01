@@ -277,9 +277,14 @@ ProgramPartitioner::findNodeIndex(
                 // operand 1 - x coordinate
                 // operand 2 - y coordinate
                 // operand 3 - z coordinate
-                // pick X coordinate                         
-                id_x = 
-                    cast<llvm::ConstantInt>(xyz->getOperand(1));                        
+                // pick X coordinate
+#ifdef LLVM_OLDER_THAN_3_6
+                id_x = cast<llvm::ConstantInt>(xyz->getOperand(1));
+#else
+                id_x = cast<llvm::ConstantInt>(
+                    dyn_cast<llvm::ConstantAsMetadata>(
+                        xyz->getOperand(1))->getValue());
+#endif
             } else {
                 // old metadata format was
                 // operand 0 - WI_id
@@ -288,8 +293,13 @@ ProgramPartitioner::findNodeIndex(
                 // operand 3 - y coordinate
                 // operand 4 - z coordinate
                 // operand 5 - instruction number
-                id_x = 
-                    cast<llvm::ConstantInt>(md->getOperand(2));                                                
+#ifdef LLVM_OLDER_THAN_3_6
+                id_x = cast<llvm::ConstantInt>(md->getOperand(2));
+#else
+                id_x = cast<llvm::ConstantInt>(
+                    dyn_cast<llvm::ConstantAsMetadata>(
+                        md->getOperand(2))->getValue());
+#endif
             }
             if (id_x == NULL)
                 continue;
