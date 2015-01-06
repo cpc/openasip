@@ -1,0 +1,9 @@
+#!/bin/sh
+# The clustered machine vector backend is not supported
+# starting from LLVM 3.6.
+if egrep -q "#define.LLVM_3_4|#define.LLVM_3_5" ../../../../../tce/tce_config.h; 
+then
+    rm -f vector.testdesc.disabled
+else
+    touch vector.testdesc.disabled
+fi
