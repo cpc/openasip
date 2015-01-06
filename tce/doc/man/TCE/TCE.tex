@@ -1,4 +1,4 @@
-% Copyright (c) 2002-2014 Tampere University of Technology.
+% Copyright (c) 2002-2015 Tampere University of Technology.
 %
 % This file is part of TTA-Based Co-design Environment (TCE).
 % 
@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA-based Co-design Environment v1.11-pre}
-\ver{29}
+\ver{30}
 \firstday{2006-10-25}
-\lastday{2014-05-05}
+\lastday{2015-01-06}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -47,7 +47,7 @@ This is the user manual for TTA Co-design Environment (TCE)
 \cite{tcewww}
 \cite{lptce1}
 %\cite{lptce}. 
-The document describes all the tools in the toolset, and the most common use 
+The document describes all the tools in the toolset, and a set of common use 
 cases in the form of tutorials.
 
 Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. TCE supports
@@ -152,7 +152,7 @@ XML & Extensible Markup Language. \\
 \end{center}
 
 
-\chapter{TCE DESIGN FLOW}
+\chapter{PROCESSOR DESIGN FLOW}
 \label{chapter:tceFlow}
 
 
@@ -172,7 +172,7 @@ experimenting with new ideas for Transport Triggered Architectures (TTAs),
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
-\section{Flow Overview}
+\section{Design Flow Overview}
 
 The main phases in the TCE are illustrated in
 Figure~\ref{fig:tce_flow} and listed in Table~\ref{tab:phases} The
@@ -263,297 +263,6 @@ flow.
     \end{tabular}
   \end{center}
 \end{table}
-
-% From Erno:
-%!!! Nää kuvat itse asiassa vain vaikeuttavat ymmärtämistä. Ne pitää
-%joko poistaa tai yksinkertaistaa
-%\begin{figure}[p]
-%\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
-%\caption{The Initial Inputs for TCE Design Flow.}
-%\label{fig:design_flow}	
-%\end{figure}
-
-%\begin{figure}[p]
-%\centerline{\psfig{figure=eps/design_flow_exploration.eps,
-%width=1.0\textwidth}}
-%\caption{Design Space Exploration.}
-%\label{fig:design_flow_exploration}
-%\end{figure}
-
-%Fig.~\ref{fig:prode} shows mode detailed view of TCE flow.
-%\begin{figure}
-%  \begin{center}
-%    %\includegraphics[width=10cm]{eps/prode_minimal_adf.png}
-%    \makebox [\textwidth]{\framebox[5cm]{\rule{1pt}{5cm}}}
-%    \caption{Detailed TCE flow. Insert figure from page 3 of tce\_tour.ppt here}
-%    \label{fig:flow}
-%  \end{center}
-%\end{figure}
-
-
-\section{The TTA Processor Template}
-\label{section:template}
-
-The processor template from which the application specific processors
-designed with TCE are defined from is called Transport Triggered
-Architecture (TTA). For a detailed description behind the TTA
-philosophy, refer to \cite{HCorp97}. A short introduction is presented
-in \cite{boutellier11}.
-
-TTA is based on VLIW (Very Long Instruction Word) processor paradigm
-but solves its major bottlenecks: the complexity of register file (RF)
-and pipeline bypass network. However, TTA is \textit{statically
-scheduled} at compile time and supports \textit{instruction-level
-parallelism} (ILP) like VLIW. TTA instructions are commonly hundreds of
-bits wide. TTA has multiple internal \textit{function units} (FUs) and
-interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
-
-The term transport-triggered means that instruction words control the
-operand transfers on the interconnection network and the operation
-execution happens as a side effect of these transfers. An operation is
-triggered to execute when a data operand is transferred to a specific
-\textit{trigger} input port of an FU. In the instructions there is one
-\textit{slot} for each transport bus. For example, \textit{``FU0.out0
-  -> LSU.trig.stw''} moves data from the output port $0$ of function
-unit $0$ to the trigger input port of load-store unit (LSU). After
-that the LSU starts executing the triggered operation, in this case
-store word to memory. User is not expected to write TTA assembly which
-might be tedious. However, move instructions are very handy for the
-compiler which can do various neat optimizations and scale with the
-machine.
-
-%%% !!! INSERT BASIC EXPLANATION OF TTA HERE, INCL. 1-2 FIGURES
-
-\begin{figure}
-  \begin{center} 
-  \includegraphics[width=0.75\textwidth]{eps/tta.eps}
-	\caption{TTA basic structure} 
-	\label{fig:tta1} 
-  \end{center}
-\end{figure}
-
-In basic case, all FU input and output ports are registers which
-relieves the pressure on the register file. Thanks to the programming
-model, operands can be bypassed directly from one FU to another. This
-is called software bypassing. Additionally, if the bypassed operand is
-not needed by anyone else there is no need to write the operand to a
-register file. This optimization technique is called dead result
-elimination. Combining software bypassing with dead result elimination
-helps to reduce register file traffic.  Moreover, the TTA paradigm
-gives freedom for partitioning register files. For example, there can
-be several small and simple register files instead one centralized
-multiported RF.
-
-The transport paradigm is also beneficial because it allows easy
-scalability of the architecture and compiler, as well as supports
-varying pipeline depths at FUs. At the same time, the number of FU
-inputs and outputs is not restricted, unlike in most processor
-templates which support mostly just instructions with 2 inputs and 1
-output value. User can also create instruction set extensions with a
-\textit{special function unit} (SFU) which can have arbitrary number
-of I/O operands. Instruction set extension is a powerful way of
-enhancing the performance of certain applications.
-
-\begin{table}
-  \begin{center}
-    \caption {Configurable aspects of the TCE's TTA template}
-    \label {tab:filetypes}
-    \begin{tabular}{l | l | l }
-      \hline
-      Property & Values & Example  \\
-      \hline
-      \hline
-      Functional unit         & Type, count                         & 3x ALU, 2x LSU, 1x MUL, 1x ctrl...\\
-      Register file (RF)      & \# registers, \#RFs, \#ports, width & 16x 32b RF 2x rd + 2x wr ports, 16x 1b boolean RF \\
-      Interconnection network & \#buses, \#sockets                & 5 buses, total of 43 write and 44 read sockets\\
-      Memory interfaces       & Count, type                       & 2x LSU for SRAM w/ 32b data \& 32b addr \\
-      Special FU              & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
-      \hline
-    \end{tabular}
-  \end{center}
-\end{table}
-
-The basic exploration of TTA could be as follows. Start with a
-``basic'' TTA and measure the cycle counts and FU utilization using
-Proxim. Add lots of resources, especially those types that were
-heavily utilized in basic case, and make the interconnection fully
-connected. This will yield a very large TTA in terms of HW resources
-but also the one with lowest cycle count. In many cases, user can
-achieve 2-5x speedup in terms of cycle count. The next step is to
-reduce the FUs and the connectivity of the interconnection network to
-obtain reasonably sized machine. If that proves difficult, one can
-start planning an SFU.
-
-Fortunately, TCE makes it easy. User can define a fraction of code
-(e.g. the bottleneck function) to executed by an SFU, even if such
-unit has not been implemented yet. User only has to define the
-operation behavior in C/C++ and tell the compiler how many clock
-cycles the custom operation execution takes and then compile and
-repeat the simulation. This way it is easy to seek for the most
-potential custom operations as well as test different execution
-latencies for the custom operations. Once a suitable custom operation
-has been identified, user can start actually implementing it in an HDL.
-
-The rest of this section describes certain detailed aspects of the TTA
-template used in the TCE toolset that might not be very clear.
-
-\subsection{Immediates/Constants}
-
-The TTA template supports two ways of transporting program constants
-in instructions, such as \textit{``add value+5''}. \textit{Short
-  immediates} are encoded in the move slot's source field, and thus
-consume a part of a single move slot. The constants transported in the
-source field should usually be relatively small in size, otherwise the
-width of a move slot is dominated by the immediate field.
-
-Wider constants can be transported by means of so called \textit{long
-  immediates}. Long immediates can be defined using an ADF parameter
-called \textit{instruction template}. The instruction template defines
-which slots are used for pieces of the instruction template or for
-defining the transports (moves).  The slots cannot be used for regular
-data transports when they are used for transporting pieces of a long
-immediate.
-
-An instruction template defining a long immediate also provides
-a target to which the long immediate must be transported. The target register
-resides in a so called \textit{immediate unit} which is written directly 
-from the control unit, not through the transport buses. The immediate unit is like
-a register file expect that it contains only read ports and is written
-only by the instruction decoder in the control unit when it detects an 
-instruction with a long immediate (see Fig.~\ref{fig:tta1}.
-
-Thus, in order to support the special long immediate encoding, one has
-to add a) an instruction template that supports transporting the pieces
-of the immediate using full move slots b) at least one long immediate
-unit (a read-only register file) to which the instruction writes the
-immediates and of which registers the immediates can be read to the
-datapath.
-
-\subsection{Operations, Function Units, and Operand Bindings}
-Due to the way TCE abstracts operations and function units, an
-additional concept of \textit{operand binding} is needed to 
-connect the two in processor designs.
-
-Operations in TCE are defined in a separate database (OSAL,
-Sections~\ref{section:osal} and \ref{section:osal_details} ) in order
-to allow defining a reusable database of ``operation semantics''. The
-operations are used in processor designs by adding \textit{function
-units} (FU) that implement the wanted operations. Operands of the
-operations can be mapped to different ports of the implementing FU,
-which affects programming of the processor. Mapping of operation
-operands to the FU ports must be therefore described by the processor
-designer explicitly.
-
-\textbf{Example.} Designer adds an FU called 'ALU' which implements
-operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
-'in2t' (triggering), and an output port called 'out'. A logical binding of 
-the 'ADD' and 'SUB' operands to ALU ports is the following:
-
-\begin{verbatim}
- ADD.1 (the first input operand) bound to ALU.in1
- ADD.2 (the second input operand) bound to ALU.in2t
- ADD.3 (the output operand) bound to ALU.out
-
- SUB.1 (the first input operand) bound to ALU.in1
- SUB.2 (the second input operand) bound to ALU.in2t
- SUB.3 (the output operand) bound to ALU.out
-\end{verbatim}
-
-However, operation 'NOT', that is, the bitwise negation has only one input
-thus it must be bound to port 'FU.in2t' so it can be triggered:
-
-\begin{verbatim}
- NOT.1 bound to ALU.in2t
- NOT.2 (the output operand) bound to ALU.out
-\end{verbatim}
-
-Because we have a choice in how we bind the 'ADD' and 'SUB' input operands,
-the binding has to be explicit in the architecture definition. The operand
-binding described above defines architecturally different TTA function unit
-from the following:
-
-\begin{verbatim}
- SUB.2 bound to ALU.in1
- SUB.1 bound to ALU.in2t
- SUB.3 bound to ALU.out
-\end{verbatim}
-
-With the rest of the operands bound similarly as in the first example.
-
-Due to the differing 'SUB' input bindings, one cannot run code scheduled
-for the previous processor on a machine with an ALU with the latter 
-operand bindings. This small detail is important to understand when 
-designing more complex FUs, with multiple operations with different number of 
-operands of varying size, but is usually transparent to the basic user of 
-TCE.
-
-Reasons for wanting to fine tune the operand bindings might include using
-input ports of a smaller width for some operation operands. For example, the 
-width of the address operands in memory accessing operations of a load store 
-unit is often smaller than the data width. Similarly, the second operand of
-a shift operation that defines the number of bits to shift requires less
-bits than the shifted data operand.
-
-% !!!!!!! FOR EACH TOOL DESCRIBE:
-% The main purpose of existence. The main use cases.
-% ALL features and how to use them in case of command line tools.
-% In GUIs, describe only the most unclear parts (esp. in ProDe).
-
-
-\subsection{Datapath Connectivity Levels}
-\label{ConnectivityLevels}
-The datapath interconnection network of TTAs is visible to the
-programmer (i.e. the compiler in practice).  This enables full
-customization of the connectivity, making it possible to remove
-connections that are rarely, if at all, used by the programs the
-processor at hand is designed to run. This offers notable saving in
-the HW area. However, the less connections the machine has, the more
-challenging it becomes to automatically produce efficient code for
-it. This section describes the different TTA ``connectivity levels''
-and their support in the TCE design flow.
-
-The currently identified and supported connectivity levels are, in the order of 
-descending level of connectivity, as follows:
-\begin{enumerate}
-
-\item Fully Connected. Completely connected interconnection network ``matrix''.
-All bus-socket and socket-port connections are there. There is a shortcut for
-creating this type of connectivity in the ProDe tool.
-
-The easy target for the high-level language compiler tcecc. However, not
-a realistic design usually due to its high implementation costs.
-
-\item Directly Reachable. The connectivity has been reduced. However, there is
-still at least one direct connection from each function unit (FU) or register file 
-(RF) output to all inputs.
-
-An easy target for tcecc.
-
-\item Fully RF connected. All FUs are connected to all RFs. That is, you can 
-read and write any general purpose register (GPR) from any FU with a single
-move. However, some or all bypass connections between FUs might be missing.
-
-An easy target for tcecc. However, reduction of bypass connections means
-that less software bypassing can be done.
-
-\item Reachable. All FUs are connected to at least one RF and all RFs (and thus
-other FUs) can be reached via one or more additional register copy moves. 
-
-Compilation is fully supported starting from HLL. The Number of copies not 
-limited by tcecc. However, this often results in suboptimal code due to the
-additional register copies which introduce additional moves, consume registers, and
-produce dependencies to the code which hinder parallelism.
-
-\item RF disconnected. Some FUs are not connected to any RF or there are 
-``separated islands'' without connectivity to other ``islands''.
-
-Not supported by tcecc. However, any connectivity type is supported by the
-assembler. Thus, one can resort to manual TTA assembly programming.
-
-\end{enumerate}
-
-
-
 
 
 \section{Main File Formats}
@@ -4302,7 +4011,6 @@ An operation state object is unambiguously associated with an operation (or
 a
 group of operations, in case the state is shared among several) by means of
 its name, which should be unique across all the operation definitions.%
-\note{see issue \ref{sec:state-name}}
 
 Operation state can be accessed in the code that implements the behavior of
 the operation by means of a \verb#STATE# expression.  The fields of the
@@ -8445,45 +8153,289 @@ The created architecture and implementation definition file can be written to ar
 \shellcmd{explore -w 2 test.dsdb}
 
 
-\chapter{FREQUENTLY ASKED QUESTIONS}
-\label{chapter:faq}
+\chapter{PROCESSOR TEMPLATE}
+\label{section:template}
 
-\section{Memory Related}
+This chapter details features of the processor template of TCE.
+It describes the architectural overview of the template, giving 
+an overview of the processor paradigm used, and discusses
+its specifics. The chapter also describes the programmer interface, 
+especially from the point of view of the high-level language 
+compilation.
 
-Questions related to memory accessing.
+\section{Architecture Template}
 
-\subsection{What is the endianness of the TTA processors designed with TCE?}
+\subsection{Transport Triggered Architecture} 
 
-Big endian. At the moment, endianness cannot be customized.
+The processor template from which the application specific processors
+designed with TCE are defined is called Transport Triggered
+Architecture (TTA). For a detailed description behind the TTA
+idea, refer to \cite{HCorp97}. A short introduction is presented
+in \cite{boutellier11}.
 
-\subsection{What is the alignment of words when reading/writing memory?}
+TTA is based on VLIW (Very Long Instruction Word) processor paradigm
+but solves its major bottlenecks: the complexity of the register file (RF)
+and register file bypass network. TTA is \textit{statically
+scheduled} at compile time and supports \textit{instruction-level
+parallelism} (ILP) like VLIW. TTA instructions are commonly hundreds of
+bits wide. TTAs can have multiple independent \textit{function units} (FUs) and
+a customized interconnection network, as illustrated in Fig.~\ref{fig:tta1}.
 
-The memory acessing operations in the base operation set (ldq, ldh, ldw,
-ldd, stq, sth, stw, and ldd) are aligned with their size. Operations stq/ldq
-are for accessing single minimum addressable units (MAU, usually bytes),
-thus their alignment is 1 MAU, for sth/ldh it is 2 MAUs, and for stw/ldw 
-it is 4 MAUs. Thus, one cannot access, for example, a 4 MAU word at address
-3. 
+The term transport-triggered means that instruction words control the
+operand transfers on the interconnection network and the operation
+execution happens as a side effect of these transfers. An operation is
+triggered to execute when a data operand is transferred to a specific
+\textit{trigger} input port of an FU. In the instructions there is one
+\textit{slot} for each transport bus. For example, \textit{``FU0.out0
+  -> LSU.trig.stw''} moves data from the output port $0$ of function
+unit $0$ to the trigger input port of load-store unit (LSU). After
+that the LSU starts executing the triggered operation, in this case
+store word to memory. 
+% User is not expected to write TTA assembly which
+% might be tedious. However, move instructions are very handy for the
+% compiler which can do various neat optimizations and scale with the
+% machine.
 
-Double precision floating point word operations std/ldd which access
-64-bit words are aligned at 8-byte addresses. Thus, if your memory is
-addressed in 16-bit units, double words can be stored at addresses
-divisible by 4, if memory is byte-addressed, then addresses must be
-divisible by 8, and so on.
+%%% !!! INSERT BASIC EXPLANATION OF TTA HERE, INCL. 1-2 FIGURES
 
-\subsection{Load Store Unit}
-In the LSUs shipped with TCE the two LSB bits are used by the LSU to control
-a so called write mask that handles writing of bytes. This means that the
-memory address outside the processor is 2 bits narrower than inside the
-processor. When you set the data address space width in ProDe, the width
-is the address width inside the processor.
+\begin{figure}
+  \begin{center} 
+  \includegraphics[width=0.75\textwidth]{eps/tta}
+	\caption{TTA basic structure} 
+	\label{fig:tta1} 
+  \end{center}
+\end{figure}
 
-\subsection{Instruction Memory}
+In a basic case, all FU input and output ports are registers which
+relieves the pressure on the register file. Thanks to the programming
+model, operands can be bypassed directly from one FU to another. This
+is called software bypassing. Additionally, if the bypassed operand is
+not needed by anyone else there is no need to write the operand to a
+register file. This optimization technique is called dead result
+elimination. Combining software bypassing with dead result elimination
+helps to reduce register file traffic.  Moreover, the TCE TTA template
+gives freedom for partitioning register files. For example, there can
+be several small and simple register files instead one centralized
+multiported RF.
+
+The transport programming is also beneficial because it allows easy
+scalability of the architecture and compiler, as well as supports
+varying pipeline depths at FUs. At the same time, the number of FU
+inputs and outputs is not restricted, unlike in most processor
+templates which support only instructions with 2 inputs and 1
+output value. User can also create instruction set extensions with a
+\textit{special function unit} (SFU) which can have arbitrary number
+of I/O operands. Instruction set extension is a powerful way of
+enhancing the performance of certain applications.
+
+\begin{table}
+  \begin{center}
+    \caption {Configurable aspects of the TCE's TTA template}
+    \label {tab:filetypes}
+    \begin{tabular}{l | l | l }
+      \hline
+      Property & Values & Example  \\
+      \hline
+      \hline
+      Functional unit         & Type, count                         & 3x ALU, 2x LSU, 1x MUL, 1x ctrl...\\
+      Register file (RF)      & \# registers, \#RFs, \#ports, width & 16x 32b RF 2x rd + 2x wr ports, 16x 1b boolean RF \\
+      Interconnection network & \#buses, \#sockets                & 5 buses, total of 43 write and 44 read sockets\\
+      Memory interfaces       & Count, type                       & 2x LSU for SRAM w/ 32b data \& 32b addr \\
+      Special FU              & User-defined functionality        & dct, semaphor\_lock, FIFO I/O \\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\subsection{Immediates/Constants}
+
+The TTA template supports two ways of transporting program constants
+in instructions, such as \textit{``add value+5''}. \textit{Short
+  immediates} are encoded in the move slot's source field, and thus
+consume a part of a single move slot. The constants transported in the
+source field should usually be relatively small in size, otherwise the
+width of a move slot is dominated by the immediate field.
+
+Wider constants can be transported by means of so called \textit{long
+  immediates}. Long immediates can be defined using an ADF parameter
+called \textit{instruction template}. The instruction template defines
+which slots are used for pieces of the instruction template or for
+defining the transports (moves).  The slots cannot be used for regular
+data transports when they are used for transporting pieces of a long
+immediate.
+
+An instruction template defining a long immediate also provides
+a target to which the long immediate must be transported. The target register
+resides in a so called \textit{immediate unit} which is written directly 
+from the control unit, not through the transport buses. The immediate unit is like
+a register file expect that it contains only read ports and is written
+only by the instruction decoder in the control unit when it detects an 
+instruction with a long immediate (see Fig.~\ref{fig:tta1}).
+
+Thus, in order to support the special long immediate encoding, one has
+to add a) an instruction template that supports transporting the pieces
+of the immediate using full move slots b) at least one long immediate
+unit (a read-only register file) to which the instruction writes the
+immediates and of which registers the immediates can be read to the
+datapath.
+
+\subsection{Operations, Function Units, and Operand Bindings}
+Due to the way TCE abstracts operations and function units, an
+additional concept of \textit{operand binding} is needed to 
+connect the two in processor designs.
+
+Operations in TCE are defined in a separate database (OSAL,
+Sections~\ref{section:osal} and \ref{section:osal_details} ) in order
+to allow defining a reusable database of ``operation semantics''. The
+operations are used in processor designs by adding \textit{function
+units} (FU) that implement the wanted operations. Operands of the
+operations can be mapped to different ports of the implementing FU,
+which affects programming of the processor. Mapping of operation
+operands to the FU ports must be therefore described by the processor
+designer explicitly.
+
+\textbf{Example.} Designer adds an FU called 'ALU' which implements
+operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
+'in2t' (triggering), and an output port called 'out'. A logical binding of 
+the 'ADD' and 'SUB' operands to ALU ports is the following:
+
+\begin{verbatim}
+ ADD.1 (the first input operand) bound to ALU.in1
+ ADD.2 (the second input operand) bound to ALU.in2t
+ ADD.3 (the output operand) bound to ALU.out
+
+ SUB.1 (the first input operand) bound to ALU.in1
+ SUB.2 (the second input operand) bound to ALU.in2t
+ SUB.3 (the output operand) bound to ALU.out
+\end{verbatim}
+
+However, operation 'NOT', that is, the bitwise negation has only one input
+thus it must be bound to port 'FU.in2t' so it can be triggered:
+
+\begin{verbatim}
+ NOT.1 bound to ALU.in2t
+ NOT.2 (the output operand) bound to ALU.out
+\end{verbatim}
+
+Because we have a choice in how we bind the 'ADD' and 'SUB' input operands,
+the binding has to be explicit in the architecture definition. The operand
+binding described above defines architecturally different TTA function unit
+from the following:
+
+\begin{verbatim}
+ SUB.2 bound to ALU.in1
+ SUB.1 bound to ALU.in2t
+ SUB.3 bound to ALU.out
+\end{verbatim}
+
+With the rest of the operands bound similarly as in the first example.
+
+Due to the differing 'SUB' input bindings, one cannot run code scheduled
+for the previous processor on a machine with an ALU with the latter 
+operand bindings. This small detail is important to understand when 
+designing more complex FUs, with multiple operations with different number of 
+operands of varying size, but is usually transparent to the basic user of 
+TCE.
+
+Reasons for wanting to fine tune the operand bindings might include using
+input ports of a smaller width for some operation operands. For example, the 
+width of the address operands in memory accessing operations of a load store 
+unit is often smaller than the data width. Similarly, the second operand of
+a shift operation that defines the number of bits to shift requires less
+bits than the shifted data operand.
+
+
+\subsection{Datapath Connectivity Levels}
+\label{ConnectivityLevels}
+The datapath interconnection network of TTAs is visible to the
+programmer (i.e. the compiler in practice).  This enables full
+customization of the connectivity, making it possible to remove
+connections that are rarely, if at all, used by the programs the
+processor at hand is designed to run. This offers notable saving in
+the HW area. However, the less connections the machine has, the more
+challenging it becomes to automatically produce efficient code for
+it. This section describes the different TTA ``connectivity levels''
+and their support in the TCE design flow.
+
+The currently identified and supported connectivity levels are, in the order of 
+descending level of connectivity, as follows:
+\begin{enumerate}
+
+\item Fully connected. Completely connected interconnection network ``matrix''.
+All bus-socket and socket-port connections are there. There is a shortcut for
+creating this type of connectivity in the ProDe tool.
+
+The easy target for the high-level language compiler tcecc. However, not
+a realistic design usually due to its high implementation costs.
+
+\item Directly reachable. The connectivity has been reduced. However, there is
+still at least one direct connection from each function unit (FU) and register file 
+(RF) output to all inputs.
+
+An easy target for tcecc.
+
+\item Fully RF connected. All FUs are connected to all RFs. That is, you can 
+read and write any general purpose register (GPR) from any FU with a single
+move. However, some or all bypass connections between FUs might be missing.
+
+An easy target for tcecc. However, reduction of bypass connections means
+that less software bypassing can be done.
+
+\item Reachable. All FUs are connected to at least one RF and all RFs (and thus
+other FUs) can be reached via one or more additional register copy moves. 
+
+Compilation is fully supported by tcecc. The number of copies is not 
+limited by tcecc. However, this style of connectivity results in suboptimal code due to the
+additional register copies which introduce additional moves, consume registers, and
+produce dependencies to the code which hinder parallelism.
+
+\item RF disconnected. Some FUs are not connected to any RF or there are 
+``separated islands'' without connectivity to other ``islands''.
+
+Not supported by tcecc. However, any connectivity type is supported by 
+the TCE assembler. Thus, one can resort to manual TTA assembly programming in
+this case.
+
+\end{enumerate}
+
+\section{Programmer Interface}
+
+This section describes the programmer interface, which is 
+the application binary interface followed by tcecc.
+
+The programs produced by tcecc are fully linked and not expected
+to be relinked afterwards to other programs. Therefore, details 
+such as the function calling convention can be customized per program by 
+the compiler. For these parts, this section describes the current 
+default behavior for reference.
+
+\subsection{Default Data Address Space Layout}
+\label{ssec:address-spaces-of-umach}
+
+When compiling from a higher-level language using tcecc, there 
+has to be at least one byte-addressible data address space in the machine. 
+This is the ``default address space'', marked with the numerical 
+id 0 in case there are multiple data address spaces. 
+
+The C/C++ compilation lays out the global variables starting from the 
+first data memory location to the default address space. The first 
+location after the global variables is the start location for heap, 
+in case the program uses dynamic memory allocation. It grows upwards. 
+The stack, used to store the function local variables and to pass 
+parameters in the function calls, grows from the largest memory address 
+downwards. The start address of the stack can be changed with the tcecc 
+switch \textit{{--}init-sp}.
+
+As both heap and stack grow dynamically towards each other, to way to
+increase the available space for heap/stack is to 
+increase the size of your data memory address space in ADF. 
+
+\subsection{Instruction Address Space}
 
 The default GCU assumes that instruction memory is intruction addressable. In
 other words the instruction word must fit in the MAU of the instruction
 memory. This way the next instruction can be referenced by incrementing the
-current memory address by one.
+current program counter by one.
 
 How to interface the instruction memory with an actual memory chip is out of
 scope in TCE because there are too many different platforms and chips and
@@ -8492,59 +8444,123 @@ implement almost any kind of memory hierarchy the user wants. Most probably
 you must implement a memory adapter to bind the memory chip and the TTA
 processor interfaces together.
 
-\subsection{Stack and Heap}
+\subsection{Alignment of Words in Memory}
+\label{ssec:align-conventions}
 
-The heap (allocated with 'malloc' in C or 'new' in C++) and stack grow 
-towards each other. Stack growes from the end of the data address space 
-towards the beginning of the address space, while heap grows towards 
-the end of the address space starting from the end of the global data area.
+tcecc aligns the addresses of data word to the data type size in bytes.
+For example, if a floating-point word takes 4 MAU's, its address must be 
+a multiple of 8. 
 
-Thus, the correct way to increase the space for heap/stack is to increase
-the size of your data memory address space in the ADF. 
+The memory acessing operations in the base operation set (ldq, ldh, ldw,
+ldd, stq, sth, stw, and ldd) are aligned with their size. Operations stq/ldq
+are for accessing single bytes, thus their alignment is 1 byte, 
+for sth/ldh it is 2 bytes, and for stw/ldw it is 4 bytes. Thus, one cannot 
+assume to be able to access, for example, a 4 byte word at address 3
+using stw/ldw.
 
-\section{Processor Generator}
+Double precision floating point word operations std/ldd which access
+64-bit words are aligned at 8-byte addresses. 
 
-\subsubsection{Warning: Processor Generator failed to generate a test bench}
-The automatic testbench generator currently does not support any special
-function units that connect signals out from toplevel.vhdl. This warning
-can be ignored if you are not planning to use the automatically generated
-test bench.
+The effect of misaligned word accesses on processor implementations are
+undefined. Typically: (1) the processor accesses the nearest (lower) aligned
+address instead (because of zeroing the lower address bits); (2) the processor 
+halts or rises an exception (unlikely). More likely is that, a processor 
+could enter a slower operation mode and perform a mis-aligned memory access.
+However, these behaviors are not \textit{required} by the above mentioned 
+aligned base memory operations shipped with TCE.
 
-\subsubsection{Warning: Opcode defined in HDB for operation ...}
+\subsection{Stack Frame Layout}
+\label{sec:stack-layout}
 
-Processor Generator gives a warning message if the operation codes in FU
-are not numbered according to the alphabetical order of the operations.
-The VHDL implementation and the HDB entry of the FU should be fixed to use 
-this kind of opcode numbering. See section \ref{sec:opcodeorder} for more 
-details.
+The register assigned to act as the stack pointer register (referred to as 
+SPR) is the register number 0 of the first 32b register file in the ADF. 
+There is no frame pointer.
 
-\section{tcecc}
+\begin{figure}[t]
+  \centerline{
+  \psfig{figure=eps/StackFrames.eps,width=9.75cm}
+  }
+  \caption{Stack Layout.}
+  \label{fig:stack-frame}
+\end{figure}
 
-\subsubsection{Disappearing code}
+The stack of a program is divided up into blocks of contiguous memory called
+\emph{frames}. Each frame is activated upon entering a function and is
+destroyed (its storage is made available for new frames) when that function
+invocation returns. The stack frame of a function contains the arguments
+with which the function is called and variables local to the procedure.
 
-Tcecc is using the efficient LLVM compiler framework for its optimizations.
-Sometimes LLVM is too aggressive and removes code that you might not
-intend to get removed. This happens in case you write your output to a
-global variable which you might dump only in the simulator and never read 
-it in your program nor e.g. print it with \textbf{printf()}. In this case 
-LLVM sees writes to a global variable which is never read by the program, 
-thus thinks the computation producing the written value is useless and 
-removes it as dead code.
+The stack pointer register (SPR) always points to the the first word past
+the area of the current frame that is dedicated to local variables.  The
+area of the stack past the local variables area contains the outgoing
+arguments of called functions (if any).  The stack of TTA's supported by TCE
+grows downwards, therefore the incoming arguments and the local variables on
+the local stack frame have positive offsets when accessed from the current
+function, whereas the outgoing arguments have negative stack offsets.
 
-A solution to the problem is to always mark the global ``output/verification'' 
-variables as 'volatile' which means that the content of the variable should 
-be always written to the memory. Thus, LLVM has to assume that there might 
-be other readers of the same variable that are just not visible in the 
-current program.
+Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
+stack that contains two frames: A and B.  When function A frame is
+activated, SPR points to the first word past the top of the local variable
+area of the caller frame (this location is shown as ``SPR'' in figure).  At
+function entry and before accessing the stack, function A initialises SPR
+with the top of its frame (shown as ``SPR-A'' in figure).  When function A
+prepares a call to function B, it sets up the outgoing arguments in the
+stack area past its local variable area.  At function entry, function B
+initialises SPR with the first word past the top of its local variable area
+(shown as ``SPR-B'' in figure).  In case function B does not use any stack
+for passing outgoing arguments, the location SPR-B corresponds to one word
+past the top of the frame.
 
-\section{Hardware characteristics}
+% TODO: describe the RA position in stack. Seems to be the 
+% first 32b word pushed to it.
 
-\subsection{Interrupt support}
+% TODO: describe the return value position in stack.
 
-Currently TCE does not have support for TTA interrupts. This is mostly due to
-the fact that context saving is an expensive operation on TTA because the
-processor context can be huge. In general, TTA might not be the best
-architecture choice for control-oriented or reactive system.
+\subsection{Word Byte Order}
+\label{ssec:word-order}
+
+TCE-TTA processors follow the big endian byte order.
+
+\subsection{Function Calling Conventions}
+\label{ssec:calling-conventions}
+
+The current default calling convention generated by tcecc is as follows.
+
+The register number 1 in the first 32b register file of ADF 
+is a return value register which is used to return 
+32b values such as $int$s or $float$s from functions. 
+The same register is reused for the first 
+passed parameter value in function calls, if suitable. 
+
+In a function call, the arguments and return values that do not fit 
+in the 32b return value / parameter register are pushed to stack.
+
+The return location for the last executed CALL operation is 
+stored in the RA register in the control unit. This is pushed 
+to stack in case of multiple function call layers.
+
+
+\subsection{Register Context Saving Conventions}
+\label{ssec:register-conventions}
+
+All registers except SPR may have to be saved and restored as a result of a
+function call.  When a register carries a variable in the caller code that
+remains live across a function call, and uses a register overwritten in the callee, 
+it needs to be saved and restored.  Registers are subdivided in two groups:
+those that are saved and restored around a function call site, and those that are
+saved at the beginning of the called function and are restored before it 
+returns. The first group is termed \textit{caller-saved} registers, the second 
+group \textit{callee-saved} registers.
+
+The compiler has the freedom to optimize the context saving convention.
+Depending on the properties of the program and the capacity of the register
+allocator, a varying fraction of the total GPR's in a register file may be
+assigned to either above mentioned groups.  The register allocator may even 
+dedicate one register file completely to caller-saved registers and another 
+to callee-saved registers.
+
+The current default register saving convention followed by tcecc is to have 
+treat all registers as caller saved. 
 
 \chapter{PRODUCING EFFICIENT TTA DESIGNS WITH TCE}
 
@@ -8745,8 +8761,76 @@ automatically when starting from C/C++ code. Currently, the compiler
 converts doubles to floats to allow compiling and running code with 
 doubles with reduced precision.
 
-
 \appendix
+
+\chapter{FREQUENTLY ASKED QUESTIONS}
+\label{chapter:faq}
+
+\section{Memory Related}
+
+Questions related to memory accessing.
+
+\subsection{Load Store Unit}
+
+In the LSU implementations shipped with TCE the two LSB bits are used by the LSU to control
+a so called write mask that handles writing of bytes. This means that the
+memory address outside the processor is 2 bits narrower than inside the
+processor. When you set the data address space width in ProDe, the width
+is the address width inside the processor.
+
+
+\section{Processor Generator}
+
+\subsubsection{Warning: Processor Generator failed to generate a test bench}
+The automatic testbench generator currently does not support any special
+function units that connect signals out from toplevel.vhdl. This warning
+can be ignored if you are not planning to use the automatically generated
+test bench.
+
+\subsubsection{Warning: Opcode defined in HDB for operation ...}
+
+Processor Generator gives a warning message if the operation codes in FU
+are not numbered according to the alphabetical order of the operations.
+The VHDL implementation and the HDB entry of the FU should be fixed to use 
+this kind of opcode numbering. See section \ref{sec:opcodeorder} for more 
+details.
+
+\section{tcecc}
+
+\subsubsection{Disappearing code}
+
+Tcecc is using the efficient LLVM compiler framework for its optimizations.
+Sometimes LLVM is too aggressive and removes code that you might not
+intend to get removed. This happens in case you write your output to a
+global variable which you might dump only in the simulator and never read 
+it in your program nor e.g. print it with \textbf{printf()}. In this case 
+LLVM sees writes to a global variable which is never read by the program, 
+thus thinks the computation producing the written value is useless and 
+removes it as dead code.
+
+A solution to the problem is to always mark the global ``output/verification'' 
+variables as 'volatile' which means that the content of the variable should 
+be always written to the memory. Thus, LLVM has to assume that there might 
+be other readers of the same variable that are just not visible in the 
+current program.
+
+\section{Hardware characteristics}
+
+\subsection{Interrupt support}
+
+Currently TCE does not have support for TTA interrupts. This is mostly due to
+the fact that context saving is an expensive operation on TTA because the
+processor context can be huge. In general, TTA might not be the best
+architecture choice for the only processor in a control-oriented or reactive 
+system.
+
+\section{Misc}
+
+\subsection{File Search Paths}
+
+The tools in TCE search for files such as HDBs and OSAL operation definitions,
+in addition to the TCE install locations, in the current working directory and
+its 'data' subdirectory. 
 
 \chapter{SystemC Simulation Example}
 \label{appendix:SystemCExample}
