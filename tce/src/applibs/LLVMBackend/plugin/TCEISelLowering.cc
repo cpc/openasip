@@ -1057,7 +1057,9 @@ TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
 
 #elif defined(LLVM_3_4)
 
-bool allowsUnalignedMemoryAccesses(EVT, bool * /*Fast*/ = 0) const {
+bool 
+TCETargetLowering::allowsUnalignedMemoryAccesses(EVT) 
+const {
     /*
     return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
 	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
