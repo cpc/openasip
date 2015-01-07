@@ -79,10 +79,15 @@ namespace llvm {
 	}
 
 	virtual bool addPreISel();
-	virtual bool addPreRegAlloc();
 	virtual bool addInstSelector();
 
+#ifdef LLVM_OLDER_THAN_3_6
+	virtual bool addPreRegAlloc();
 	virtual bool addPreSched2();
+#else
+	virtual void addPreRegAlloc();
+	virtual void addPreSched2();
+#endif
 
 	TCETargetMachinePlugin* plugin_;
     };

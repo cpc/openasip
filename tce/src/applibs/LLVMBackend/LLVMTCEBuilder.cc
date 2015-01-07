@@ -1678,7 +1678,7 @@ LLVMTCEBuilder::addPointerAnnotations(
             const llvm::Value* originMemOpValue = memOpValue;
             while (originMemOpValue != NULL) {
                 TCEString currentPointerName = 
-		    (std::string)originMemOpValue->getName();
+                    (std::string)originMemOpValue->getName();
 
                 // Query metadata of the memory operands to find work item
                 // identifiers for OpenCL memory operands.
@@ -1686,11 +1686,21 @@ LLVMTCEBuilder::addPointerAnnotations(
                     dyn_cast<Instruction>(originMemOpValue)->getMetadata("wi")) {
                     const MDNode* md = 
                         cast<Instruction>(originMemOpValue)->getMetadata("wi");
-                    const MDNode* XYZ= dyn_cast<MDNode>(md->getOperand(2));
+                    const MDNode* XYZ = dyn_cast<MDNode>(md->getOperand(2));
                     assert(XYZ->getNumOperands() == 4);                
+#ifdef LLVM_OLDER_THAN_3_6
                     ConstantInt *CX = dyn_cast<ConstantInt>(XYZ->getOperand(1));
                     ConstantInt *CY = dyn_cast<ConstantInt>(XYZ->getOperand(2));
                     ConstantInt *CZ = dyn_cast<ConstantInt>(XYZ->getOperand(3));
+#else
+                    ConstantInt *CX = dyn_cast<ConstantInt>(
+                        dyn_cast<llvm::ConstantAsMetadata>(XYZ->getOperand(1))->getValue());
+                    ConstantInt *CY = dyn_cast<ConstantInt>(
+                        dyn_cast<llvm::ConstantAsMetadata>(XYZ->getOperand(2))->getValue());
+                    ConstantInt *CZ = dyn_cast<ConstantInt>(
+                        dyn_cast<llvm::ConstantAsMetadata>(XYZ->getOperand(3))->getValue());
+
+#endif
                     int id = (CZ->getZExtValue() & 0x0FF)
                             | ((CY->getZExtValue() & 0x0FF) << 8)
                             | ((CX->getZExtValue() & 0x0FF) << 16);
