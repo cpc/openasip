@@ -742,7 +742,11 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
 
     setTruncStoreAction(MVT::f32, MVT::f16, Expand);
+#ifdef LLVM_OLDER_THAN_3_6
     setLoadExtAction(ISD::EXTLOAD, MVT::f16, Expand);
+#else
+    setLoadExtAction(ISD::EXTLOAD, MVT::f16, MVT::f32, Expand);
+#endif
 
     setOperationAction(ISD::ADDE, MVT::i32, Expand);
     setOperationAction(ISD::ADDC, MVT::i32, Expand);
