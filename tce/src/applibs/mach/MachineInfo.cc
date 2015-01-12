@@ -81,7 +81,7 @@ MachineInfo::getOpset(const TTAMachine::Machine &mach) {
  * @return Default data address space for given machine
  */
 TTAMachine::AddressSpace*
-MachineInfo::findDefaultDataAddressSpace(const TTAMachine::Machine& mach) {
+MachineInfo::defaultDataAddressSpace(const TTAMachine::Machine& mach) {
 
     const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
     
@@ -98,7 +98,12 @@ MachineInfo::findDefaultDataAddressSpace(const TTAMachine::Machine& mach) {
             if (asNav.item(i) != &instrAS) return asNav.item(i);
         }
     }
-    assert(false && "No data address space found!");
+    
+    // no data address space found
+    throw IllegalMachine(
+        __FILE__, __LINE__, __func__,
+        "Target machine has no data address space");
+    return NULL;
 }
 
 int 

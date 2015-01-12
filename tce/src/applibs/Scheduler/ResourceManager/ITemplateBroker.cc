@@ -740,35 +740,39 @@ ITemplateBroker::findITemplates(
             if (immediates[i]->value().isCodeSymbolReference() &&
                 immediates[i]->value().toString() == "_end") {
                 
-                AddressSpace* dataAS 
-                        = MachineInfo::findDefaultDataAddressSpace(
-                        rm_->machine());
-                int requiredBitWidth = unit.extensionMode() == Machine::SIGN ?
-	                    MathTools::requiredBitsSigned(dataAS->end()):
-                        MathTools::requiredBits(dataAS->end());
+                AddressSpace* dataAS;
+                try {
+                    dataAS =
+                        MachineInfo::defaultDataAddressSpace(rm_->machine());
+                } catch (Exception&) {
+                    assert(false && "No default data address space");
+                }
                 
+                int requiredBitWidth = unit.extensionMode() == Machine::SIGN ?
+                        MathTools::requiredBitsSigned(dataAS->end()):
+                        MathTools::requiredBits(dataAS->end());
+
                 if (requiredBitWidth > iTemplate.supportedWidth(unit)) {
-        	        addResult = false;
-        	        break;
+                    addResult = false;
+                    break;
         	    }
                 
             } else if (immediates[i]->value().isBasicBlockReference() ||
                 immediates[i]->value().isCodeSymbolReference()) {
-                
+
                 const AddressSpace& as
                         = *rm_->machine().controlUnit()->addressSpace();
                 int requiredBitWidth = unit.extensionMode() == Machine::SIGN ? 
-                	    MathTools::requiredBitsSigned(as.end()) : 
-                	    MathTools::requiredBits(as.end());
+                        MathTools::requiredBitsSigned(as.end()) : 
+                        MathTools::requiredBits(as.end());
         	    
         	    if (requiredBitWidth > iTemplate.supportedWidth(unit)) {
         	        addResult = false;
         	        break;
-        	    } else {
-        	    }
-                
+                }
+
             }
-            
+
             unitWriten.push_back(&unit);
         }
         // For each of moves already assigned template

@@ -51,7 +51,7 @@ class MachineInfo {
 public:
     static OperationDAGSelector::OperationSet getOpset(
         const TTAMachine::Machine& mach);
-    static TTAMachine::AddressSpace* findDefaultDataAddressSpace(
+    static TTAMachine::AddressSpace* defaultDataAddressSpace(
         const TTAMachine::Machine& mach);
     static int longestGuardLatency(
         const TTAMachine::Machine& mach);

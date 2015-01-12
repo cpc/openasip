@@ -843,23 +843,27 @@ MachineConnectivityCheck::requiredImmediateWidth(
     if (source.isCodeSymbolReference()) {
         const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
         if (source.toString() == "_end") {
-            AddressSpace* dataAS
-                    = MachineInfo::findDefaultDataAddressSpace(mach);
-            
+            AddressSpace* dataAS;
+            try {
+                dataAS = MachineInfo::defaultDataAddressSpace(mach);
+            } catch (Exception&) {
+                assert(false && "No default data address space");
+            }
+
             return signExtension ?
-			MathTools::requiredBitsSigned(dataAS->end()):
-			MathTools::requiredBits(dataAS->end());
+            MathTools::requiredBitsSigned(dataAS->end()):
+            MathTools::requiredBits(dataAS->end());
         } else {
-	    return signExtension ?
-		MathTools::requiredBitsSigned (instrAS.end()):
-		MathTools::requiredBits(instrAS.end());
+            return signExtension ?
+            MathTools::requiredBitsSigned (instrAS.end()):
+            MathTools::requiredBits(instrAS.end());
         }
     }
     if (source.isInstructionAddress() || source.isBasicBlockReference()) {
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
         return signExtension ? 
-	    MathTools::requiredBitsSigned(as.end()): 
-	    MathTools::requiredBits(as.end());
+        MathTools::requiredBitsSigned(as.end()): 
+        MathTools::requiredBits(as.end());
     }
 
     int bits = -1;
