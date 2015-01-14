@@ -3,7 +3,7 @@
 # LLVM 3.6 lays out the arrays differently than 3.5: The constant string
 # comes after the arrays, producing different addresses than previously.
 
-if egrep -q "#define.LLVM_3_4|#define.LLVM_3_5" ../../../../tce/tce_config.h; 
+if egrep -q "#define.LLVM_3_2|#define.LLVM_3_3|#define.LLVM_3_4|#define.LLVM_3_5" ../../../../tce/tce_config.h; 
 then
     cp -f addr_spaces/1_output.txt.older_llvm addr_spaces/1_output.txt
     cp -f addr_spaces/1_output.txt.older_llvm addr_spaces_bu/1_output.txt
