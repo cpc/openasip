@@ -292,6 +292,11 @@ def : Pat<(TCEGlobalAddr tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 def : Pat<(TCEConstPool tglobaladdr:$in), (MOVI32ri tglobaladdr:$in)>;
 def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 
+// Transfer a basic block address into a register
+def TCEBlockAddress : SDNode<"TCEISD::BLOCK_ADDR", SDTIntUnaryOp>;
+def : Pat<(TCEBlockAddress tblockaddress:$src1),
+          (MOVI32ri tblockaddress:$src1)>;
+
 // ============================
 //  Control flow
 // ============================
@@ -319,7 +324,17 @@ let isTerminator = 1, isBranch = 1 in {
         "! $gr $dst -> jump.1;", []>;
 
     def TCEBR : InstTCE<(outs), (ins i32imm:$dst), "$dst -> jump.1;", []>;
+
+    let isIndirectBranch = 1 in {
+        def TCEBRIND : InstTCE<(outs), (ins R32Regs:$dst), "$dst -> jump.1;", []>;
+   }     
+
 }
+
+
+// indirect branch
+def: Pat<(brind (i32 R32Regs:$dst)),
+         (TCEBRIND R32Regs:$dst)>;
 
 // FP stores/loads
 

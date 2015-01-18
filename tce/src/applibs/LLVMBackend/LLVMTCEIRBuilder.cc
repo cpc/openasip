@@ -358,7 +358,14 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                         }
                     } else {
                         // has to be uncond jump, and last ins of bb.
-                        assert(&(*j) == &(mbb.back()));
+                        if (&(*j) != &(mbb.back())) {
+                            j->dump();
+                            Application::logStream() << " not at the end of ";
+                            mbb.dump();
+                            if (j->getDesc().isBranch())
+                                Application::logStream() << " is branch";
+                            abortWithError("Jump was not last ins of BB.");
+                        }
                         endingUncondJumpBBs.insert(&(*i));
                     }
                 }
@@ -431,9 +438,10 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 bb = &bbn->basicBlock();
             }
 
-            // conditional jump that is not last ins splits a bb.
-            if (j->getDesc().isConditionalBranch()
-                && &(*j) != &(mbb.back())) {
+            // conditional jump or indirect jump that is not last ins splits 
+            // a bb.
+            if (j->getDesc().isBranch() && 
+                &(*j) != &(mbb.back())) {
                 bbn = ftSuccs[bbn];
                 bb = &bbn->basicBlock();
             }
@@ -595,7 +603,7 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     cfg->addExitFromSinkNodes(exit);
     // add back edge properties.
     cfg->detectBackEdges();
-    
+    //cfg->writeToDotFile(fnName + ".cfg.dot");
     return cfg;
 }
 
@@ -668,6 +676,38 @@ LLVMTCEIRBuilder::compileOptimized(
 
 TTAProgram::Terminal*
 LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
+    if (mo.isBlockAddress()) {
+        TTAProgram::BasicBlock* bb = NULL;
+        std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator i =
+            bbMapping_.begin();
+        for (; i != bbMapping_.end(); ++i) {
+            const MachineBasicBlock* mbbt = i->first;
+            TTAProgram::BasicBlock& bbt = i->second->basicBlock();
+            if (mbbt->getBasicBlock() == mo.getBlockAddress()->getBasicBlock()) {
+                assert (bb == NULL);
+                bb = &bbt;
+            } 
+        }
+
+        i = skippedBBs_.begin();
+        for (; i != skippedBBs_.end(); ++i) {
+            const MachineBasicBlock* mbbt = i->first;
+            TTAProgram::BasicBlock& bbt = i->second->basicBlock();
+            if (mbbt->getBasicBlock() == mo.getBlockAddress()->getBasicBlock()) {
+                assert (bb == NULL);
+                bb = &bbt;
+            } 
+        }
+
+        if (bb == NULL) {
+            Application::logStream() 
+                << "Could not find referred MBB matching the referred BB:"
+                << std::endl;
+            mo.getBlockAddress()->getBasicBlock()->dump();
+            assert (bb != NULL);
+        }
+        return new TTAProgram::TerminalBasicBlockReference(*bb);
+    }
     MachineBasicBlock* mbb = mo.getMBB();
     std::map<const MachineBasicBlock*,BasicBlockNode*>::iterator i = 
         bbMapping_.find(mbb);
