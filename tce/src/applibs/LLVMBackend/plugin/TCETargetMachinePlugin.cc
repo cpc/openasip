@@ -329,6 +329,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBRICOND) return "!jump";
     if (opc == TCE::TCEBR) return "jump";
+    if (opc == TCE::TCEBRIND) return "jump";
     if (opc == TCE::CALL) return "call";
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";

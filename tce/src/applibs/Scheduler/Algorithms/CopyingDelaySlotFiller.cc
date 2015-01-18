@@ -333,12 +333,15 @@ CopyingDelaySlotFiller::findJumpImmediate(
     int irIndex = jumpIndex;
 
     // Register copy or some unknown source.
-    // should handle unlimited number of reg. copies
-    while (irMove->source().isGPR()) {
+    // should handle unlimited number of reg. copies.
+    // Note: the jump address can be written outside the BB
+    // if it's an indirect branch (e.g. LLVM address of label
+    // extension).
+    if (irMove->source().isGPR()) {
         const RegisterFile* rf = &irMove->source().registerFile();
         int regIndex = static_cast<int>(irMove->source().index());
         int found = false;
-        for( int i = irIndex -1 ; i >= 0 && !found; i-- ) {
+        for (int i = irIndex -1 ; i >= 0 && !found; i-- ) {
             Instruction &ins = bb.instructionAtIndex(i);
             for (int j = 0; j < ins.moveCount(); j++ ) {
                 Move& move = ins.move(j);
@@ -349,7 +352,7 @@ CopyingDelaySlotFiller::findJumpImmediate(
                         irIndex = i;
                         found = true;
                         break;
-                    }
+                    } 
                 }
             }
         }
@@ -359,9 +362,9 @@ CopyingDelaySlotFiller::findJumpImmediate(
     if (irMove->source().isImmediateRegister()) {
         const ImmediateUnit& immu = irMove->source().immediateUnit();
         int index = static_cast<int>(irMove->source().index());
-        for( int i = irIndex -1 ; i >= 0; i-- ) {
+        for (int i = irIndex -1; i >= 0; i--) {
             Instruction &ins = bb.instructionAtIndex(i);
-            for ( int j = 0; j < ins.immediateCount(); j++ ) {
+            for (int j = 0; j < ins.immediateCount(); j++) {
                 Immediate& imm = ins.immediate(j);
                 if (imm.destination().index() == index &&
                     &imm.destination().immediateUnit() == &immu) {

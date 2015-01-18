@@ -100,9 +100,9 @@ TCEInstrInfo::InsertBranch(
         // already has a uncond branch, no need for another.
         // asserts to make sure it's to same BB in order to not create
         // broken code.
-        if (mbb.back().getOpcode() == TCE::TCEBR) {
+        if (mbb.back().getOpcode() == TCE::TCEBR ||
+            mbb.back().getOpcode() == TCE::TCEBRIND) { 
             assert(cond.size() == 0);
-            assert(mbb.back().getOperand(0).getMBB() == tbb);
             return 0;
         }
         if (cond.size() != 0) {
@@ -123,7 +123,7 @@ TCEInstrInfo::InsertBranch(
         } else {
             if (cond.size() == 2 && cond[1].getImm() == false) {
                 // false jump
-		BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
+                BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
                     addReg(cond[0].getReg()).addMBB(tbb);
                 return 1;
             }
@@ -158,7 +158,7 @@ TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
     i--;
     int opc = i->getOpcode();
     if (opc == TCE::TCEBRCOND || opc == TCE::TCEBRICOND ||
-        opc == TCE::TCEBR) {
+        opc == TCE::TCEBR || opc == TCE::TCEBRIND) {
         i->eraseFromParent();
     } else {
         return 0;
@@ -189,6 +189,7 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
     case TCE::RETL:    // Return.
     case TCE::RETL_old:
     case TCE::TCEBR:  // Uncond branch.
+    case TCE::TCEBRIND:  // Uncond indirect branch.
         return true;
     default: return false;
     }
@@ -348,13 +349,14 @@ TCEInstrInfo::AnalyzeBranch(
         cond.push_back(i->getOperand(0));
         cond.push_back(MachineOperand::CreateImm(false));
         return false;
+    case TCE::TCEBRIND:
     case TCE::TCEBR: {
         // indirect jump cannot be analyzed
         if (!lastIns.getOperand(0).isMBB()) {
             return true;
         }
 
-        if ( i == mbb.begin()) {
+        if (i == mbb.begin()) {
             tbb = lastIns.getOperand(0).getMBB();
             return false; // uncond jump only ins in mbb.
         }
@@ -384,14 +386,6 @@ TCEInstrInfo::AnalyzeBranch(
     // should never be here
     return true;
 }
-
-/*
-unsigned TCEInstrInfo::getInvertedPredicatedOpcode(const int Opc) const {
-    switch(Opc) {
-    default: llvm_unreachable("Unexpected predicated instruction");
-    }
-}
-*/
 bool 
 TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
     // TODO: should be conditional move here..

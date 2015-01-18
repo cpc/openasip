@@ -668,6 +668,7 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::FP_TO_SINT, MVT::i16  , Promote);
 
     setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+    setOperationAction(ISD::BlockAddress, MVT::i32, Custom);
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
@@ -894,6 +895,14 @@ static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
 #endif
 }
 
+SDValue
+TCETargetLowering::LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const {
+  const BlockAddress *BA = cast<BlockAddressSDNode>(Op)->getBlockAddress();
+  SDValue BA_SD =  DAG.getTargetBlockAddress(BA, MVT::i32);
+  SDLoc dl(Op);
+  return DAG.getNode(TCEISD::BLOCK_ADDR, dl, getPointerTy(), BA_SD);
+}
+
 static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
     // TODO: Check this.
     llvm::MVT ptrVT = Op.getValueType().getSimpleVT();
@@ -963,6 +972,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     switch(op.getOpcode()) {
     case ISD::TRAP: return LowerTRAP(op, dag);
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
+    case ISD::BlockAddress: return LowerBlockAddress(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag, *this);
     case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
     case ISD::DYNAMIC_STACKALLOC: {
