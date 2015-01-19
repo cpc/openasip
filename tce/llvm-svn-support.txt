@@ -1,2 +1,5 @@
-tce-devel r1979:
-llvm-3.4 branch works
+tce-devel r2173:
+llvm-svn 225437 compiles, but:
+1) in CHStone/gsm test cases generates some 64-bit
+code which causes calls to _divdi emulation function which returns 2 values,
+which is not supported, resulting in assert in lowerCALL routine.

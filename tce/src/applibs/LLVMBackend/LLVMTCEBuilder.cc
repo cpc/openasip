@@ -1913,7 +1913,8 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         // is it the RA register?
         if (isTTATarget() && dRegNum == raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
-                *UniversalMachine::instance().controlUnit()->returnAddressPort());
+                *UniversalMachine::instance().controlUnit()->
+                returnAddressPort());
         }
 
         // an FU port register?
@@ -1943,8 +1944,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         int width = bitLimit;
         SimValue val(mo.getImm(), width);
         return new TTAProgram::TerminalImmediate(val);
-    } else if (mo.isMBB()) {
-
+    } else if (mo.isMBB() || mo.isBlockAddress()) {
         return createMBBReference(mo);
     } else if (mo.isFI()) {
         std::cerr << " Frame index source operand NOT IMPLEMENTED!"
@@ -2043,7 +2043,6 @@ LLVMTCEBuilder::createMBBReference(const MachineOperand& mo) {
     
     TTAProgram::TerminalInstructionReference* ref =
         new TTAProgram::TerminalInstructionReference(dummy);
-    
     mbbReferences_[ref] = mbbName(*mo.getMBB());
     return ref;
 }

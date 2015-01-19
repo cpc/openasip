@@ -56,6 +56,7 @@ namespace TCEISD {
 
         CONST_POOL,
         GLOBAL_ADDR,
+        BLOCK_ADDR,
 
         Hi, Lo,      // Hi/Lo operations, typically on a global address.
 
@@ -129,7 +130,7 @@ namespace llvm {
 #endif        
 
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
-
+        SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
 
         virtual SDValue
         LowerCall(TargetLowering::CallLoweringInfo &CLI,

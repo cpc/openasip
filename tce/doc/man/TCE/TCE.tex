@@ -8478,9 +8478,9 @@ There is no frame pointer.
 
 \begin{figure}[t]
   \centerline{
-  \psfig{figure=eps/StackFrames.eps,width=9.75cm}
+  \psfig{figure=eps/StackFrame.eps,width=9.75cm}
   }
-  \caption{Stack Layout.}
+  \caption{Stack layout for a situation with two call frames, A() calling B().}
   \label{fig:stack-frame}
 \end{figure}
 
@@ -8511,10 +8511,12 @@ initialises SPR with the first word past the top of its local variable area
 for passing outgoing arguments, the location SPR-B corresponds to one word
 past the top of the frame.
 
-% TODO: describe the RA position in stack. Seems to be the 
-% first 32b word pushed to it.
-
-% TODO: describe the return value position in stack.
+The value of the return address register is pushed to stack before the 
+function's local variables in case the function is not a leaf function
+(a function without calls to other functions). If the called function returns 
+an object that does not fit to the return value register, the function 
+gets an implicit argument that points to the location in the callee's 
+stack where the return value object will be written by the called function. 
 
 \subsection{Word Byte Order}
 \label{ssec:word-order}
@@ -8537,7 +8539,8 @@ in the 32b return value / parameter register are pushed to stack.
 
 The return location for the last executed CALL operation is 
 stored in the RA register in the control unit. This is pushed 
-to stack in case of multiple function call layers.
+to stack in case of multiple function call layers. Refer to the 
+stack frame layout for more information.
 
 
 \subsection{Register Context Saving Conventions}

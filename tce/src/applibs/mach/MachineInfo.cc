@@ -74,6 +74,38 @@ MachineInfo::getOpset(const TTAMachine::Machine &mach) {
     return opNames;
 }
 
+/**
+ * Finds the default data address space for given machine.
+ *
+ * @param mach The machine whose default data address space is requested.
+ * @return Default data address space for given machine
+ */
+TTAMachine::AddressSpace*
+MachineInfo::defaultDataAddressSpace(const TTAMachine::Machine& mach) {
+
+    const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
+    
+    TTAMachine::Machine::AddressSpaceNavigator asNav =
+        mach.addressSpaceNavigator();
+    int asCount = asNav.count();
+    for (int i = 0; i < asCount; i++) {
+        // if there are more than two address spaces, choose one which
+        // contains numerical id 0
+        // otherwise choose the one which is not the instruction address space
+        if (asCount > 2) {
+            if (asNav.item(i)->hasNumericalId(0)) return asNav.item(i);
+        } else {
+            if (asNav.item(i) != &instrAS) return asNav.item(i);
+        }
+    }
+    
+    // no data address space found
+    throw IllegalMachine(
+        __FILE__, __LINE__, __func__,
+        "Target machine has no data address space");
+    return NULL;
+}
+
 int 
 MachineInfo::longestGuardLatency(
     const TTAMachine::Machine& mach) {
