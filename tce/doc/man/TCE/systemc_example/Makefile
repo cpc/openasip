@@ -15,7 +15,7 @@ TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
 TCE_LIBS = ${tce_root}/src/.libs/libtce${LIBRARY_SUFFIX}
 
 simulator: simulator.cc mmio_send.tpef mmio_recv.tpef mem_map.h
-	${CXX} simulator.cc -I${tce_sim_inc} -I${tce_src_root}/base/osal \
+	${CXX} -fpermissive simulator.cc -I${tce_sim_inc} -I${tce_src_root}/base/osal \
 	-I${tce_src_root}/tools -I${tce_src_root}/.. ${TCE_LIB_FLAGS} ${TCE_LIBS} \
 	${LDFLAGS} -g -lsystemc -O3 -o simulator
 

@@ -283,7 +283,8 @@ FUState::setOperationSimulator(
         // only MultiCycleOperationExecutor supports the detailed
         // cycle-basis simulation of operations, need to replace
         // the current simulation model with that
-        replaceOperationExecutor(op, new MultiLatencyOperationExecutor());
+        oe = new MultiLatencyOperationExecutor();
+        replaceOperationExecutor(op, oe);
     }
     oe->setOperationSimulator(sim);
 }

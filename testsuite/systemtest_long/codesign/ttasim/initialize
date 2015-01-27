@@ -10,7 +10,7 @@ int sc_main(int argc, char* argv[]) {
 }
 EOF
 
-${CXX} $test_sc_src -lsystemc -o $test_sc_out >/dev/null 2>&1 && \
+${CXX} $test_sc_src -fpermissive -lsystemc -o $test_sc_out >/dev/null 2>&1 && \
 $test_sc_out >/dev/null 2>&1
 systemc_found=$?
 
