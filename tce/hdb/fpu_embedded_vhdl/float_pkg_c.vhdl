@@ -1523,8 +1523,7 @@ package body float_pkg is
     exp := resize (expon, exp'length) + shiftr;
     if (or_reduce (fract) = '0') then   -- Zero
       zerores := true;
-    elsif ((exp <= -resize(expon_base, exp'length)-1) and denormalize)
-      or ((exp < -resize(expon_base, exp'length)-1) and not denormalize) then
+    elsif (exp <= -resize(expon_base, exp'length)-1) then
       if (exp >= -resize(expon_base, exp'length)-fraction_width-1)
         and denormalize then
         exp    := -resize(expon_base, exp'length)-1;
