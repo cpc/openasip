@@ -88,11 +88,12 @@ SimulationController::SimulationController(
     SimulatorFrontend& frontend,
     const Machine& machine, 
     const Program& program,
-    bool fuResourceConflictDetection) :
+    bool fuResourceConflictDetection,
+    bool detailedSimulation) :
     TTASimulationController(frontend, machine, program),
     machineState_(NULL), gcu_(NULL) {
 
-    MachineStateBuilder builder;
+    MachineStateBuilder builder(detailedSimulation);
 
     if (fuResourceConflictDetection)
         buildFUResourceConflictDetectors(machine);

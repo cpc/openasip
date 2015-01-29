@@ -278,14 +278,8 @@ FUState::setOperationSimulator(
     DetailedOperationSimulator& sim) {
 
     MultiLatencyOperationExecutor* oe = 
-        dynamic_cast<MultiLatencyOperationExecutor*>(executor(op));
-    if (oe == NULL) {
-        // only MultiCycleOperationExecutor supports the detailed
-        // cycle-basis simulation of operations, need to replace
-        // the current simulation model with that
-        oe = new MultiLatencyOperationExecutor();
-        replaceOperationExecutor(op, oe);
-    }
+        dynamic_cast<MultiLatencyOperationExecutor*>(executor(op));  
+    assert (oe != NULL && "Can only add details to a complex executor.");
     oe->setOperationSimulator(sim);
 }
 

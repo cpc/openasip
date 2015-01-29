@@ -674,7 +674,7 @@ SimulatorFrontend::initializeSimulation() {
             simCon_ = 
              new SimulationController(
                     *this, *currentMachine_, *currentProgram_, 
-                    fuResourceConflictDetection_);
+                    fuResourceConflictDetection_, detailedSimulation_);
             machineState_ = 
                 &(dynamic_cast<SimulationController*>(simCon_)->machineState());
 

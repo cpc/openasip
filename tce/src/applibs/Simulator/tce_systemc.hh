@@ -58,7 +58,7 @@ public:
         sc_module_name name, std::string machineFile, 
         std::string programFile) :
         sc_module(name), 
-        SimpleSimulatorFrontend(machineFile, programFile) {
+        SimpleSimulatorFrontend(machineFile, programFile, false, true) {
         SC_METHOD(step);
         sensitive << clock.pos();
         lockCycles_ = 0;

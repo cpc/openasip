@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of MachineStateBuilder class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2015 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -61,7 +61,7 @@ namespace TTAMachine {
  */
 class MachineStateBuilder {
 public:
-    MachineStateBuilder();
+    MachineStateBuilder(bool detailedSimulationModel=false);
     virtual ~MachineStateBuilder();
 
     MachineState* build(
@@ -130,6 +130,10 @@ private:
     /// True in case the built model should throw an exception in case of
     /// a resource conflict.
     bool throwWhenConflict_;
+
+    /// Set to true in case should build a detailed model which simulates
+    /// FU stages, possibly with an external system-level model.
+    bool detailedSimulationModel_;
 };
 
 #endif
