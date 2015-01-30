@@ -678,14 +678,37 @@ TTAProgram::Terminal*
 LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
     if (mo.isBlockAddress()) {
         TTAProgram::BasicBlock* bb = NULL;
+        const MachineBasicBlock* mbb = NULL;
+
         std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator i =
             bbMapping_.begin();
         for (; i != bbMapping_.end(); ++i) {
             const MachineBasicBlock* mbbt = i->first;
             TTAProgram::BasicBlock& bbt = i->second->basicBlock();
             if (mbbt->getBasicBlock() == mo.getBlockAddress()->getBasicBlock()) {
-                assert (bb == NULL);
-                bb = &bbt;
+                if (bb != NULL) {
+#if 0
+                    Application::logStream() 
+                        << "LLVMTCEIRBuilder: found multiple potential BB references."
+                        << std::endl;
+                    Application::logStream() 
+                        << "first: " << bb->toString() << std::endl;
+                    mbb->dump();
+                    Application::logStream()
+                        << "another: " << bbt.toString() << std::endl;
+                    mbbt->dump();
+#endif
+                    // in case the original BB is split to multiple machine BBs,
+                    // refer to the first one in the chain because the original
+                    // BB reference could not have referred to middle of an BB
+                    if (mbbt->isPredecessor(mbb)) {
+                        bb = &bbt;
+                        mbb = mbbt;
+                    }
+                } else {
+                    bb = &bbt;
+                    mbb = mbbt;
+                }
             } 
         }
 
