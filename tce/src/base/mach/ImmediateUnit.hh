@@ -65,6 +65,10 @@ public:
         throw (OutOfRange);
     virtual void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
+
+    bool signExtends() const { return extension_ == Machine::SIGN; }
+    bool zeroExtends() const { return extension_ == Machine::ZERO; }
+    
     virtual Machine::Extension extensionMode() const;
     virtual int latency() const;
     virtual void setExtensionMode(Machine::Extension mode);

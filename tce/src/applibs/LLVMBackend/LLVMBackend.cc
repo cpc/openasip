@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2014
+ * @author Pekka Jääskeläinen 2009-2015
  * @note rating: red
  */
 
@@ -122,6 +122,7 @@
 #include "InterPassDatum.hh"
 #include "LLVMTCEIRBuilder.hh"
 #include "Machine.hh"
+#include "ConstantTransformer.hh"
 
 //#define DEBUG_TDGEN
 
@@ -674,11 +675,11 @@ LLVMBackend::compile(
     AliasAnalysis* AA = NULL;
     builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
 
-
     if (options_ != NULL && options_->isInitialStackPointerValueSet()) {
         builder->setInitialStackPointerValue(
             options_->initialStackPointerValue());
     }
+    Passes.add(new ConstantTransformer(target));
     Passes.add(builder);
     Passes.run(module);
     // get and write out pom

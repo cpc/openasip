@@ -929,7 +929,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     // ensure data sections have been initialized
     initDataSections();
 
-    // omit empty functions..
+   // omit empty functions..
     if (mf.begin() == mf.end()) return true;
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
@@ -1925,7 +1925,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         // a general purpose register?
         std::string rfName = registerFileName(dRegNum);
         int idx = registerIndex(dRegNum);
-	return createTerminalRegister(rfName, idx);
+        return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
 		if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
@@ -2156,7 +2156,7 @@ LLVMTCEBuilder::emitMove(
     assert(mi->getNumOperands() >= operandCount); // src, dst
 
     const MachineOperand& dst = mi->getOperand(0);
-    const MachineOperand& src = mi->getOperand(operandCount-1);
+    const MachineOperand& src = mi->getOperand(operandCount - 1);
     TTAProgram::MoveGuard* guard = NULL;
     if (conditional) {
         const MachineOperand& gmo = mi->getOperand(1);
@@ -3250,8 +3250,8 @@ LLVMTCEBuilder::emitVectorInsert(
     int elementIndex = elementIndexMO.getImm();
     assert(elementIndex < elementCount);
     for (int i = 0; i < elementIndex; i++) {
-	dstNameIndex = dstNextNameIndex + 1;
-	dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
+        dstNameIndex = dstNextNameIndex + 1;
+        dstNextNameIndex = dstVectorRfName.find('+', dstNameIndex);
     }
     int dlen = dstNextNameIndex - dstNameIndex;
     std::string dstRfName = dstVectorRfName.substr(dstNameIndex, dlen);

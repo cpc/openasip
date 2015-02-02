@@ -195,6 +195,10 @@ namespace llvm {
             return plugin_->spDRegNum();
         }
 
+        unsigned opcode(TCEString operationName) const {
+            return plugin_->opcode(operationName);
+        }
+  
         int getMinOpcode(llvm::SDNode* n) {
             return plugin_->getMinOpcode(n);
         }

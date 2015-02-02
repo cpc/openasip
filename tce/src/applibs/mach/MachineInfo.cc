@@ -43,6 +43,7 @@
 #include "Operand.hh"
 #include "FUPort.hh"
 #include "InstructionTemplate.hh"
+#include "MathTools.hh"
 
 using namespace TTAMachine;
 
@@ -208,3 +209,80 @@ MachineInfo::templatesUsingSlot(
     return affectingInstTemplates;
 }
 
+
+bool 
+MachineInfo::supportsOperation(
+    const TTAMachine::Machine& mach, TCEString operation) {
+    OperationDAGSelector::OperationSet opNames = 
+        MachineInfo::getOpset(mach);
+    return opNames.find(operation.upper()) != opNames.end();
+}
+
+/**
+ * Checks if the given immediate can be transferred at all
+ * in the given machine.
+ *
+ * Takes in account the move slots' or the immediate unit's
+ * extension mode when considering the encoding of the given 
+ * constant's bits. In case this function returns true,
+ * the register copy adder or similar pass should be able to
+ * route the constant to the wanted destination(s), in case
+ * no direct bus with the immediate support is found.
+ */
+bool
+MachineInfo::canEncodeImmediateInteger(
+    const TTAMachine::Machine& mach, int64_t imm) {
+
+    const Machine::BusNavigator& busNav = mach.busNavigator();
+
+    size_t requiredBitsSigned = MathTools::requiredBitsSigned(imm);
+    size_t requiredBitsUnsigned = MathTools::requiredBits(imm);
+    // first check the short immediate slots
+    for (int bi = 0; bi < busNav.count(); ++bi) {
+        const Bus& bus = *busNav.item(bi);
+        size_t requiredBits = bus.signExtends() ? 
+            requiredBitsSigned : requiredBitsUnsigned;
+        // In case the short immediate can write all bits in
+        // the bus, let's assume this is the word width to the
+        // target operation and the extension mode can be
+        // assumed to be 'signed' (the targeted operation can 
+        // interpret the value in the bus either way), we
+        // just have to be sure there is no information loss
+        // in the upper bits. This breaks with
+        // multibitwidth scalar machines, e.g., ones with
+        // INT32 datapath combined with FLOAT64 because now
+        // it assumes the constant can be written in case
+        // there's a 32b immediate slot for the INT32 bus. (*)
+        if (bus.width() == bus.immediateWidth() &&
+            requiredBitsSigned < requiredBits)
+            requiredBits = requiredBitsSigned;
+        if (bus.immediateWidth() >= requiredBits)
+            return true;
+    }
+
+    // then the long immediate units
+    TTAMachine::Machine::ImmediateUnitNavigator nav = 
+        mach.immediateUnitNavigator();
+    for (int i = 0; i < nav.count(); i++) {
+        const TTAMachine::ImmediateUnit& iu = *nav.item(i);
+        size_t requiredBits = iu.signExtends() ? 
+            requiredBitsSigned : requiredBitsUnsigned;
+        TTAMachine::Machine::InstructionTemplateNavigator inav = 
+            mach.instructionTemplateNavigator();
+        for (int t = 0; t < inav.count(); ++t) {
+            const TTAMachine::InstructionTemplate& itempl = *inav.item(t);
+            size_t supportedW = itempl.supportedWidth(iu);
+            // see above (*). Same applies here: if the template encodes
+            // as many bits as the IU is wide, the extension mode is
+            // meaningless -> can interpret it as one wishes here.
+            if (supportedW == iu.width() &&
+                requiredBitsSigned < requiredBits)
+                requiredBits = requiredBitsSigned;
+
+            if (supportedW >= requiredBits)
+                return true;
+        }
+    } 
+    
+    return false;
+}

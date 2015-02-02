@@ -51,6 +51,8 @@ class MachineInfo {
 public:
     static OperationDAGSelector::OperationSet getOpset(
         const TTAMachine::Machine& mach);
+    static bool supportsOperation(
+        const TTAMachine::Machine& mach, TCEString operation);
     static TTAMachine::AddressSpace* defaultDataAddressSpace(
         const TTAMachine::Machine& mach);
     static int longestGuardLatency(
@@ -64,6 +66,8 @@ public:
     static std::set<TTAMachine::InstructionTemplate*> templatesUsingSlot(
         const TTAMachine::Machine& mach,
         const std::string& slotName);
+    static bool canEncodeImmediateInteger(
+        const TTAMachine::Machine& mach, int64_t imm);
 
 
 private:
