@@ -185,7 +185,13 @@ main(int argc, char* argv[]) {
         delete ipData;
         ipData = NULL;
 
-    } catch (Exception& e) {
+    } catch (const CompileError& e) {
+        // CompilerErrors are related to the user program input and
+        // should be communicated to the programmer in a clean fashion.
+        Application::errorStream() << e.errorMessage() << std::endl;
+    } catch (const Exception& e) {
+        // Assume other Exceptions are due to like lack of more
+        // user friendly CompilerError or actual internal compiler errors.
         std::cerr << "Error compiling '" << bytecodeFile << "':" << std::endl
                   << e.errorMessageStack() << std::endl;
 

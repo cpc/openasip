@@ -1456,9 +1456,13 @@ ControlFlowGraph::copyToProcedure(
         for (int i = 0; i < bb.skippedFirstInstructions(); i++) {
             Instruction& ins = bb.instructionAtIndex(i);
             if (irm->hasReference(ins)) {
-                std::cerr << "\tSkipped inst has refs, proc: " << proc.name()
-                          << " index: " << i << std::endl;
-                writeToDotFile("\tSkipped_has_ref.dot");
+                Application::logStream() 
+                    << "CFG: Skipped inst has refs, proc: " << proc.name()
+                    << " index: " << i << std::endl
+                    << ins.toString() << std::endl << std::endl;
+                Application::logStream() 
+                    << bb.toString() << std::endl;
+                writeToDotFile("skipped_has_ref.dot");
             }
             assert(!irm->hasReference(ins));
         }

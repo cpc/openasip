@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -307,6 +307,21 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             if (j->getDesc().isCall()) {
+                if (j->getOperand(0).isGlobal()) {
+                    // If it's a direct call (not via function pointer),
+                    // check that the called function is defined. At this
+                    // point we should have a fully linked program.
+                    const Function* callee = 
+                        dyn_cast<Function>(j->getOperand(0).getGlobal());
+                    assert(callee != NULL);
+                    if (callee->size() == 0) {
+                        TCEString errorMsg = 
+                            "error: call to undefined function '";
+                        errorMsg << callee->getName().str() << "'.";
+                        throw CompileError(
+                            __FILE__, __LINE__, __func__, errorMsg);
+                    }
+                }
                 // if last ins of bb is call, no need to create new bb.
                 if (&(*j) == &(mbb.back())) {
                     endingCallBBs.insert(&(*i));
