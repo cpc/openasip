@@ -201,7 +201,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     }
 
     if (!modifyMF_) {
-        cfg->convertBBRefsToInstRefs(*irm);
+        cfg->convertBBRefsToInstRefs();
     }
     cfg->copyToProcedure(*procedure, irm);
 #ifdef WRITE_CFG_DOTS
@@ -667,12 +667,12 @@ LLVMTCEIRBuilder::compileOptimized(
         // BBReferences converted to Inst references
         // break LLVM->POM ->LLVM chain because we
         // need the BB refs to rebuild the LLVM CFG 
-        cfg.convertBBRefsToInstRefs(irm);        
+        cfg.convertBBRefsToInstRefs();
     }
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
-        dsf.fillDelaySlots(cfg, *ddg, *mach_, true);
+        dsf.fillDelaySlots(cfg, *ddg, *mach_);
     }
 
     PostpassOperandSharer ppos(*ipData_, irm);

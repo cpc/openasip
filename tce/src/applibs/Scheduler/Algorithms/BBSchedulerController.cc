@@ -250,8 +250,7 @@ BBSchedulerController::handleProcedure(
     procedure.clear();
 
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
-        delaySlotFiller_->fillDelaySlots(
-            cfg, *bigDDG_, targetMachine, true);
+        delaySlotFiller_->fillDelaySlots(cfg, *bigDDG_, targetMachine);
     }
 
     // now all basic blocks are scheduled, let's put them back to the
