@@ -44,6 +44,7 @@
 #include "FUPort.hh"
 #include "InstructionTemplate.hh"
 #include "MathTools.hh"
+#include "MachineConnectivityCheck.hh"
 
 using namespace TTAMachine;
 
@@ -273,12 +274,23 @@ MachineInfo::canEncodeImmediateInteger(
             const TTAMachine::InstructionTemplate& itempl = *inav.item(t);
             size_t supportedW = itempl.supportedWidth(iu);
             // see above (*). Same applies here: if the template encodes
-            // as many bits as the IU is wide, the extension mode is
-            // meaningless -> can interpret it as one wishes here.
-            if (supportedW == static_cast<size_t>(iu.width()) &&
+            // as many bits as the buses that the IU can write to are wide, 
+            // the extension mode is meaningless -> can interpret it as one wishes 
+            // here.
+            size_t maxBusW = 0;
+            std::set<TTAMachine::Bus*> buses;
+            MachineConnectivityCheck::appendConnectedDestinationBuses(
+                iu, buses);
+            for (std::set<TTAMachine::Bus*>::const_iterator ci = buses.begin();
+                 ci != buses.end(); ++ci) {
+                const Bus* bus = *ci;
+                if (static_cast<size_t>(bus->width()) > maxBusW)
+                    maxBusW = bus->width();
+            }
+                    
+            if (supportedW == maxBusW &&
                 requiredBitsSigned < requiredBits)
                 requiredBits = requiredBitsSigned;
-
             if (supportedW >= requiredBits)
                 return true;
         }
