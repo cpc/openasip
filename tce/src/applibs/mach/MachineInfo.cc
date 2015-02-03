@@ -256,7 +256,7 @@ MachineInfo::canEncodeImmediateInteger(
         if (bus.width() == bus.immediateWidth() &&
             requiredBitsSigned < requiredBits)
             requiredBits = requiredBitsSigned;
-        if (bus.immediateWidth() >= requiredBits)
+        if (static_cast<size_t>(bus.immediateWidth()) >= requiredBits)
             return true;
     }
 
@@ -275,7 +275,7 @@ MachineInfo::canEncodeImmediateInteger(
             // see above (*). Same applies here: if the template encodes
             // as many bits as the IU is wide, the extension mode is
             // meaningless -> can interpret it as one wishes here.
-            if (supportedW == iu.width() &&
+            if (supportedW == static_cast<size_t>(iu.width()) &&
                 requiredBitsSigned < requiredBits)
                 requiredBits = requiredBitsSigned;
 
