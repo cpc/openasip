@@ -39,7 +39,7 @@ function start_compiletest {
     then
         ./gen_llvm_shared_lib.sh >& /dev/null
     fi
-
+    cd test; make clean -s; cd ..
     tools/scripts/compiletest.sh -t $@ >& test.log
 
     ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache

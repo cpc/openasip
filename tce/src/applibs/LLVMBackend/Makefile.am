@@ -9,7 +9,7 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
-	LLVMTCEScheduler.cc MachineInstrDDG.cc
+	LLVMTCEScheduler.cc MachineInstrDDG.cc ConstantTransformer.cc
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 
@@ -88,5 +88,5 @@ libtcellvmbackend_la_SOURCES += \
 	TDGen.hh LLVMTCEScheduler.hh \
 	InstructionPatternAnalyzer.hh TCETargetMachine.hh \
 	LLVMPOMBuilder.hh LLVMTCEBuilder.hh \
-	TCEMCAsmInfo.hh 
+	TCEMCAsmInfo.hh ConstantTransformer.hh
 ## headers end

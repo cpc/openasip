@@ -26,7 +26,7 @@
  *
  * Definition of CopyingDelaySlotFiller class.
  *
- * @author Heikki Kultala 2007-2008 (hkultala-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2007-2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -38,16 +38,17 @@
 #include <list>
 #include "Exception.hh"
 #include "ProgramOperation.hh"
-#include "MoveNode.hh"
+#include "ControlFlowGraph.hh"
+#include "DataDependenceGraph.hh"
 
 class BasicBlockNode;
 class ControlFlowGraph;
 class ControlFlowEdge;
-class DataDependenceGraph;
 class SimpleResourceManager;
+class ResourceManager;
 class UniversalMachine;
 class InterPassData;
-class ResourceManager;
+class MoveNode;
 
 namespace TTAMachine {
     class Machine;
@@ -59,7 +60,10 @@ namespace TTAProgram {
     class Move;
     class Immediate;
     class MoveGuard;
+    class TerminalInstructionAddress;
+    class CodeGenerator;
     class BasicBlock;
+    class TerminalImmediate;
 }
 
 
@@ -67,67 +71,118 @@ class CopyingDelaySlotFiller {
 public:
     CopyingDelaySlotFiller();
     ~CopyingDelaySlotFiller();
+
+    void initialize(
+        ControlFlowGraph& cfg, DataDependenceGraph& ddg,
+        const TTAMachine::Machine& machine);
+
     void fillDelaySlots(
-        ControlFlowGraph& cfg, DataDependenceGraph& ddg, 
-        const TTAMachine::Machine& machine, bool deleteRMs = true) 
+        ControlFlowGraph& cfg, DataDependenceGraph& ddg,
+        const TTAMachine::Machine& machine) 
         throw (Exception);
-    void addResourceManager(
-        TTAProgram::BasicBlock& bbn, SimpleResourceManager& rm);
+    void addResourceManager(TTAProgram::BasicBlock& bbn, SimpleResourceManager& rm);
+
+    void bbnScheduled(BasicBlockNode& bbn);
+    void finalizeProcedure();
+
+    static std::pair<int, TTAProgram::Move*> findJump(
+        TTAProgram::BasicBlock& bb);
+
+    static std::pair <TTAProgram::Move*, TTAProgram::Immediate*> findJumpImmediate(
+        int jumpIndex, 
+        TTAProgram::Move& jumpMove,
+        TTAProgram::InstructionReferenceManager& irm)
+        throw (Exception);
+
 protected:
-        void fillDelaySlots(
-            BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru)
-    throw (Exception);
+    void fillDelaySlots(
+        BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru)
+        throw (Exception);
+
+
 private:
     typedef std::vector <std::list<MoveNode*> > MoveNodeListVector;
+    typedef std::map<TCEString,TTAProgram::TerminalImmediate*> 
+    PendingImmediateMap;
 
-    TTAProgram::MoveGuard* createInverseGuard(TTAProgram::MoveGuard &mg);
-    TTAProgram::Immediate* findJumpImmediate(
-        int jumpIndex, TTAProgram::Move& jumpMove)
-        throw (Exception);
+
+    bool areAllJumpPredsScheduled(BasicBlockNode& bbn) const;
+
+    bool areAllJumpPredsFilled(BasicBlockNode& bbn) const;
+
+    void bbFilled(BasicBlockNode& bbn);
+
+    void mightFillIncomingTo(BasicBlockNode& bbn);
 
     bool writesRegister(
-        TTAProgram::Move& move, TTAMachine::RegisterFile* rf, 
+        TTAProgram::Move& move, TTAMachine::RegisterFile* rf,
         unsigned int registerIndex);
 
-    bool 
+    bool
     tryToFillSlots(
-        BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, 
-        bool fallThru, TTAProgram::Move& jumpMove, int slotsToFill,
-        int grIndex, TTAMachine::RegisterFile* grFile) throw (Exception);
+        BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode,
+        bool fallThru, TTAProgram::Move* jumpMove, int slotsToFill,
+        int removeGuards,
+        int grIndex, TTAMachine::RegisterFile* grFile,
+        TTAProgram::Move *& skippedJump, int delaySlots) 
+        throw (Exception);
 
-    void updateJumps(
+    void updateJumpsAndCfg(
+        BasicBlockNode& jumpBBN, 
         BasicBlockNode& fillingBBN,
+        ControlFlowEdge& fillEdge,
+        TTAProgram::Move* jumpAddressMove, 
         TTAProgram::Immediate* jumpAddressImmediate,
         TTAProgram::Move* jumpMove,
-        int slotsFilled);
+        int slotsFilled,
+        TTAProgram::Move* skippedJump);
 
-    void loseCopies();
+    void loseCopies(DataDependenceGraph::NodeSet* keptTempNodes);
 
     bool collectMoves(
         BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBN, 
         MoveNodeListVector& moves, int slotsToFill, bool fallThru, 
-        TTAProgram::Move& jumpMove, int grIndex, 
-        TTAMachine::RegisterFile* grFile);
+        int removeGuards, TTAProgram::Move* jumpMove, int grIndex, 
+        TTAMachine::RegisterFile* grFile, TTAProgram::Move*& skippedJump,
+        int delaySlots);
+
+    bool checkImmediatesAfter(TTAProgram::BasicBlock& nextBB, int slotsToFill);
 
     bool checkIncomingDeps(
         MoveNode& mnOld, BasicBlockNode& blockToFillNode, int cycleDiff);
 
     bool tryToAssignNodes(
         MoveNodeListVector& moves, int slotsToFill, int firstCycleToFill, 
-        ResourceManager& rm, int nextBBStart);
+        ResourceManager& rm, int nextBBStart,
+        DataDependenceGraph::NodeSet& tempAssigns);
+
+    bool tryToAssignOtherMovesOfDestOps(
+        MoveNode& mn, int firstCycleToFill, ResourceManager& rm, 
+        int lastCycle, int nextBBStart, DataDependenceGraph::NodeSet& tempAssigns);
+
+    bool tryToAssignOtherMovesOfOp(
+        ProgramOperation& po, int firstCycleToFill, ResourceManager& rm, 
+        int lastCycle, int nextBBStart, DataDependenceGraph::NodeSet& tempAssigns);
 
     void unassignTempAssigns(
-	const std::list<MoveNode*>& tempAssigns, ResourceManager& rm);
+        DataDependenceGraph::NodeSet& tempAssigns, SimpleResourceManager& rm);
 
-    MoveNode& getMoveNode(MoveNode& old);
-    ProgramOperationPtr getProgramOperationPtr(ProgramOperationPtr old);
+    MoveNode& getMoveNode(
+        MoveNode& old, BasicBlockNode& bbn);
+    ProgramOperationPtr getProgramOperationPtr(
+        ProgramOperationPtr old, BasicBlockNode& bbn);
     TTAProgram::Move& getMove(TTAProgram::Move& old);
 
-    bool poMoved(ProgramOperation& po,  MoveNodeListVector& movesToCopy);
+    bool poMoved(
+        ProgramOperationPtr po,  MoveNodeListVector& movesToCopy, 
+        DataDependenceGraph::NodeSet& tempAssigns);
     
+    void finishBB(BasicBlockNode& bbn, bool force = false);
+
     DataDependenceGraph* ddg_;
     ControlFlowGraph* cfg_;
-    std::map<TTAProgram::BasicBlock*, SimpleResourceManager*> resourceManagers_;
+
+    std::map<TTAProgram::BasicBlock*,SimpleResourceManager*> resourceManagers_;
     UniversalMachine* um_;
 
     // indexed by the original PO's
@@ -138,9 +193,26 @@ private:
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
     std::map<TTAProgram::Move*,TTAProgram::Move*> moves_;
-    
+
+    std::map<BasicBlockNode*, DataDependenceGraph::NodeSet> tempResultNodes_;
+    std::map<BasicBlockNode*, std::set<
+        ProgramOperationPtr, ProgramOperation::Comparator> > tempPOs_;
+
     // garbage collection would be SOOOO nice!
     std::map<MoveNode*,bool,MoveNode::Comparator> mnOwned_;
+
+
+    enum BBNStates { BBN_UNKNOWN = 0, BBN_SCHEDULED = 1, BBN_JUMP_FILLED = 3,
+                     BBN_FALLTHRU_FILLED = 5, BBN_BOTH_FILLED = 7,
+                     BBN_TEMPS_CLEANED = 15,
+                     BBN_ALL_DONE = 31 };
+
+    // can go from uninitialized to UNKNOWN
+    mutable std::map <BasicBlockNode*, BBNStates> bbnStatus_;
+//    mutable std::map <BasicBlockNode*, BBNStates> bbnIncomingStatus_;
+    int delaySlots_;
+
+    ControlFlowGraph::NodeSet killedBBs_;
 };
 
 #endif

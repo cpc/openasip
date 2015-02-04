@@ -40,6 +40,9 @@ export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno
 export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 
 # run the tests
+cd tce/test
+make clean -s
+cd ..
 cd tce
 tools/scripts/compiletest.sh -q >& test.log
 

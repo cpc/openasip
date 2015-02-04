@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -201,7 +201,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     }
 
     if (!modifyMF_) {
-        cfg->convertBBRefsToInstRefs(*irm);
+        cfg->convertBBRefsToInstRefs();
     }
     cfg->copyToProcedure(*procedure, irm);
 #ifdef WRITE_CFG_DOTS
@@ -307,6 +307,21 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             if (j->getDesc().isCall()) {
+                if (j->getOperand(0).isGlobal()) {
+                    // If it's a direct call (not via function pointer),
+                    // check that the called function is defined. At this
+                    // point we should have a fully linked program.
+                    const Function* callee = 
+                        dyn_cast<Function>(j->getOperand(0).getGlobal());
+                    assert(callee != NULL);
+                    if (callee->size() == 0) {
+                        TCEString errorMsg = 
+                            "error: call to undefined function '";
+                        errorMsg << callee->getName().str() << "'.";
+                        throw CompileError(
+                            __FILE__, __LINE__, __func__, errorMsg);
+                    }
+                }
                 // if last ins of bb is call, no need to create new bb.
                 if (&(*j) == &(mbb.back())) {
                     endingCallBBs.insert(&(*i));
@@ -652,12 +667,12 @@ LLVMTCEIRBuilder::compileOptimized(
         // BBReferences converted to Inst references
         // break LLVM->POM ->LLVM chain because we
         // need the BB refs to rebuild the LLVM CFG 
-        cfg.convertBBRefsToInstRefs(irm);        
+        cfg.convertBBRefsToInstRefs();
     }
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
-        dsf.fillDelaySlots(cfg, *ddg, *mach_, true);
+        dsf.fillDelaySlots(cfg, *ddg, *mach_);
     }
 
     PostpassOperandSharer ppos(*ipData_, irm);
@@ -678,14 +693,37 @@ TTAProgram::Terminal*
 LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
     if (mo.isBlockAddress()) {
         TTAProgram::BasicBlock* bb = NULL;
+        const MachineBasicBlock* mbb = NULL;
+
         std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator i =
             bbMapping_.begin();
         for (; i != bbMapping_.end(); ++i) {
             const MachineBasicBlock* mbbt = i->first;
             TTAProgram::BasicBlock& bbt = i->second->basicBlock();
             if (mbbt->getBasicBlock() == mo.getBlockAddress()->getBasicBlock()) {
-                assert (bb == NULL);
-                bb = &bbt;
+                if (bb != NULL) {
+#if 0
+                    Application::logStream() 
+                        << "LLVMTCEIRBuilder: found multiple potential BB references."
+                        << std::endl;
+                    Application::logStream() 
+                        << "first: " << bb->toString() << std::endl;
+                    mbb->dump();
+                    Application::logStream()
+                        << "another: " << bbt.toString() << std::endl;
+                    mbbt->dump();
+#endif
+                    // in case the original BB is split to multiple machine BBs,
+                    // refer to the first one in the chain because the original
+                    // BB reference could not have referred to middle of an BB
+                    if (mbbt->isPredecessor(mbb)) {
+                        bb = &bbt;
+                        mbb = mbbt;
+                    }
+                } else {
+                    bb = &bbt;
+                    mbb = mbbt;
+                }
             } 
         }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -427,7 +427,10 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             }
 
             if (op.numberOfOutputs() != 1) {
-                std::cerr << "Cannot lower missing instruction:" <<  *i << std::endl;
+                if (Application::verboseLevel() > 0) {
+                    Application::errorStream() << "Cannot lower missing instruction:" 
+                                               <<  *i << std::endl;
+                }
                 continue;
             }
 	    

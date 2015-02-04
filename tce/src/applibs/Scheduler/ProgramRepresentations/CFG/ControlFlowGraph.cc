@@ -1021,6 +1021,21 @@ ControlFlowGraph::entryNode() const {
     return *result;
 }
 
+BasicBlockNode& 
+ControlFlowGraph::firstNormalNode() const {
+    ControlFlowGraph::NodeSet entrySucc = successors(entryNode());
+    if (entrySucc.size() != 1) {
+	throw InvalidData(__FILE__,__LINE__,__func__,
+			  "Entry node has not exactly one successor");
+    }
+    BasicBlockNode* firstNode = *entrySucc.begin();
+    if (!firstNode->isNormalBB()) {
+	throw InvalidData(__FILE__,__LINE__,__func__,
+			  "Successor of entry node is not normal bb");
+    }
+    return *firstNode;
+}
+
 
 /**
  * Return the stop/exit node of the graph.
@@ -1458,7 +1473,8 @@ ControlFlowGraph::copyToProcedure(
             if (irm->hasReference(ins)) {
                 std::cerr << "\tSkipped inst has refs, proc: " << proc.name()
                           << " index: " << i << std::endl;
-                writeToDotFile("\tSkipped_has_ref.dot");
+                writeToDotFile("skipped_has_ref.dot");
+                PRINT_VAR(bb.toString());
             }
             assert(!irm->hasReference(ins));
         }
@@ -2193,11 +2209,31 @@ ControlFlowGraph::updateReferencesFromProcToCfg() {
 bool
 ControlFlowGraph::hasIncomingFallThru(const BasicBlockNode& bbn) const {
     ControlFlowGraph::EdgeSet iEdges = inEdges(bbn);
-
+    
     for (ControlFlowGraph::EdgeSet::const_iterator i = iEdges.begin();
          i != iEdges.end(); i++) {
         const ControlFlowEdge& e = **i;
         if (!e.isJumpEdge()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Tells whether a node has incoming jumps that are not from
+ * a single-basic block loop, ie source is not the same node.
+ *
+ * @param bbn the node
+ */
+bool
+ControlFlowGraph::hasIncomingExternalJumps(const BasicBlockNode& bbn) const {
+    ControlFlowGraph::EdgeSet iEdges = inEdges(bbn);
+    
+    for (ControlFlowGraph::EdgeSet::const_iterator i = iEdges.begin();
+         i != iEdges.end(); i++) {
+        const ControlFlowEdge& e = **i;
+        if (e.isJumpEdge() && &tailNode(e) != &bbn) {
             return true;
         }
     }
@@ -2330,6 +2366,7 @@ ControlFlowGraph::deleteNodeAndRefs(BasicBlockNode& node) {
 TTAProgram::InstructionReferenceManager&
 ControlFlowGraph::instructionReferenceManager() {
     if (program_ == NULL) {
+        return *irm_;
         throw NotAvailable(__FILE__,__LINE__,__func__,
             "cfg does not have program");
     }
@@ -2362,8 +2399,7 @@ ControlFlowGraph::detectBackEdges() {
 }
 
 
-void ControlFlowGraph::convertBBRefsToInstRefs(
-    TTAProgram::InstructionReferenceManager& irm) {
+void ControlFlowGraph::convertBBRefsToInstRefs() {
 
     for (int i = 0; i < nodeCount(); i++) {
         BasicBlockNode& bbn = node(i);
@@ -2384,7 +2420,7 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                         assert(target.instructionCount() > 0);
                         move.setSource(
                             new TTAProgram::TerminalInstructionReference(
-                                irm.createReference(
+                                instructionReferenceManager().createReference(
                                     target.firstInstruction())));
                     }
                 }
@@ -2399,7 +2435,7 @@ void ControlFlowGraph::convertBBRefsToInstRefs(
                         assert(target.instructionCount() > 0);
                         imm.setValue(
                             new TTAProgram::TerminalInstructionReference(
-                                irm.createReference(
+                                instructionReferenceManager().createReference(
                                     target.firstInstruction())));
                     }
                 }
@@ -2547,6 +2583,7 @@ ControlFlowGraph::optimizeBBOrdering(
                                     head.basicBlock().
                                     skippedFirstInstructions()));
                         }
+                        queuedNodes.erase(&head);
                         mergeNodes(*currentBBN, head, ddg);
 #ifdef DEBUG_BB_OPTIMIZER
                         std::cerr << "Merged with after jump removal(1)" <<
@@ -2559,6 +2596,7 @@ ControlFlowGraph::optimizeBBOrdering(
                     // fall-through edge, OR merge BBs.
 
                     if (inDegree(head) == 1) {
+                        queuedNodes.erase(&head);
                         mergeNodes(*currentBBN, head, ddg);
                         nextNode = currentBBN;
 #ifdef DEBUG_BB_OPTIMIZER
@@ -2734,6 +2772,39 @@ ControlFlowGraph::getMBB(
  * TCE scheduler assumes there cannot be calls in the middle of basic block.
  */
 void
+ControlFlowGraph::splitBasicBlocksWithCallsAndRefs() {
+    std::set<BasicBlockNode*> bbsToHandle;
+    for (int i = 0; i < nodeCount(); ++i) {
+        BasicBlockNode& bb = node(i);
+        bbsToHandle.insert(&bb);
+    }
+
+    while (bbsToHandle.size() > 0) {
+        BasicBlockNode* bbn = *bbsToHandle.begin();
+        TTAProgram::BasicBlock& bb = bbn->basicBlock();
+
+        for (int ii = 0; ii < bb.instructionCount(); ++ii) {
+            TTAProgram::Instruction& instr = bb.instructionAt(ii);
+            if (instr.hasCall() && &instr != &bb.lastInstruction()) {
+                bbsToHandle.insert(splitBasicBlockAtIndex(*bbn, ii+1));
+                break;
+            }
+            if (ii != 0 && irm_->hasReference(instr)) {
+                bbsToHandle.insert(splitBasicBlockAtIndex(*bbn, ii));
+                break;
+            }
+        }
+        bbsToHandle.erase(bbn);
+    }
+}
+
+/**
+ * Checks if the basic blocks have calls in the middle of them and splits
+ * them to multiple basic blocks with call edge chains.
+ *
+ * TCE scheduler assumes there cannot be calls in the middle of basic block.
+ */
+void
 ControlFlowGraph::splitBasicBlocksWithCalls() {
     std::set<BasicBlockNode*> bbsToHandle;
     for (int i = 0; i < nodeCount(); ++i) {
@@ -2775,4 +2846,45 @@ ControlFlowGraph::splitBasicBlocksWithCalls() {
         }
         bbsToHandle.erase(bbsToHandle.begin());
     }
+}
+
+BasicBlockNode*
+ControlFlowGraph::splitBasicBlockAtIndex(
+    BasicBlockNode& bbn, int index) {
+    
+    TTAProgram::BasicBlock& bb = bbn.basicBlock();
+    TTAProgram::BasicBlock* newbb = new TTAProgram::BasicBlock();
+    BasicBlockNode* newbbn = new BasicBlockNode(*newbb);
+    addNode(*newbbn);
+    
+    // the BB can contain multiple calls, handle them
+    // in the new BB
+    moveOutEdges(bbn, *newbbn);                
+    
+    // move the instructions after the call in the old BB to
+    // the new one.
+    // no index update because remove puts to same index
+    for (int i = index; i < bb.instructionCount(); ) {
+        TTAProgram::Instruction& ins = bb.instructionAtIndex(i);
+        bb.remove(ins);
+        newbb->add(&ins);
+    }
+
+    ControlFlowEdge* cfe = new ControlFlowEdge(
+        ControlFlowEdge::CFLOW_EDGE_NORMAL, 
+        ControlFlowEdge::CFLOW_EDGE_CALL);
+    connectNodes(bbn, *newbbn, *cfe);
+
+    return newbbn;
+}
+
+bool ControlFlowGraph::isSingleBBLoop(const BasicBlockNode& node) const {
+    for (int i = 0; i < outDegree(node); i++) {
+        ControlFlowEdge& e = outEdge(node, i);
+        if (e.isJumpEdge() && &headNode(e) == &node) {
+            assert(e.isBackEdge());
+            return true;
+        }
+    }
+    return false;
 }

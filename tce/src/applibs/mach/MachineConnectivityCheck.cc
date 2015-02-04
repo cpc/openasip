@@ -851,19 +851,19 @@ MachineConnectivityCheck::requiredImmediateWidth(
             }
 
             return signExtension ?
-            MathTools::requiredBitsSigned(dataAS->end()):
-            MathTools::requiredBits(dataAS->end());
+                MathTools::requiredBitsSigned(dataAS->end()):
+                MathTools::requiredBits(dataAS->end());
         } else {
             return signExtension ?
-            MathTools::requiredBitsSigned (instrAS.end()):
-            MathTools::requiredBits(instrAS.end());
+                MathTools::requiredBitsSigned (instrAS.end()):
+                MathTools::requiredBits(instrAS.end());
         }
     }
     if (source.isInstructionAddress() || source.isBasicBlockReference()) {
         const AddressSpace& as = *mach.controlUnit()->addressSpace();
         return signExtension ? 
-        MathTools::requiredBitsSigned(as.end()): 
-        MathTools::requiredBits(as.end());
+            MathTools::requiredBitsSigned(as.end()): 
+            MathTools::requiredBits(as.end());
     }
 
     int bits = -1;
@@ -1159,7 +1159,6 @@ MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
     }
     return res;
 }
-
 
 std::set<const TTAMachine::Port*> 
 MachineConnectivityCheck::findPossibleSourcePorts(

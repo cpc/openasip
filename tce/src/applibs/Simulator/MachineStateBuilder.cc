@@ -80,7 +80,9 @@ using std::string;
 /**
  * Constructor.
  */
-MachineStateBuilder::MachineStateBuilder() : throwWhenConflict_(true) {
+MachineStateBuilder::MachineStateBuilder(bool detailedSimulationModel) : 
+    throwWhenConflict_(true), 
+    detailedSimulationModel_(detailedSimulationModel) {
 }
 
 /**
@@ -441,7 +443,7 @@ MachineStateBuilder::addVirtualOpcodeSettingPortsToFU(
                             }                            
                         }
 
-                        if (multiLatencyOp) {
+                        if (multiLatencyOp || detailedSimulationModel_) {
                             executor = new MultiLatencyOperationExecutor(
                                 state, hwOp); 
                         } else if (totalLatency == 1) {

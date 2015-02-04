@@ -103,6 +103,8 @@ public:
 
     BasicBlockNode& entryNode() const;
     BasicBlockNode& exitNode() const;
+    BasicBlockNode& firstNormalNode() const;
+
     TCEString printStatistics();
     const CFGStatistics& statistics();
     friend class ControlDependenceGraph;
@@ -117,14 +119,19 @@ public:
         TTAProgram::InstructionReferenceManager* irm = NULL);
 
     void updateReferencesFromProcToCfg();
-    void convertBBRefsToInstRefs(
-        TTAProgram::InstructionReferenceManager& irm);
+    void convertBBRefsToInstRefs();
 
     bool hasIncomingFallThru(const BasicBlockNode& bbn) const;
+
+    bool hasIncomingExternalJumps(const BasicBlockNode& bbn) const;
 
     void deleteNodeAndRefs(BasicBlockNode& node);
 
     TTAProgram::InstructionReferenceManager& instructionReferenceManager();
+    void setInstructionReferenceManager(
+        TTAProgram::InstructionReferenceManager& irm) {
+        irm_ = &irm;
+    }
 
     BasicBlockNode* jumpSuccessor(BasicBlockNode& bbn);
     BasicBlockNode* fallThruSuccessor(BasicBlockNode& bbn);
@@ -141,8 +148,10 @@ public:
         llvm::MachineFunction& mf,
         const TTAProgram::BasicBlock& bb) const;
 
+    void splitBasicBlocksWithCallsAndRefs();
     void splitBasicBlocksWithCalls();
 
+    bool isSingleBBLoop(const BasicBlockNode& node) const;
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>
@@ -237,6 +246,8 @@ private:
     NodeSet findReachableNodes();
     NodeSet findUnreachableNodes(const NodeSet& reachableNodes);
 
+    BasicBlockNode* splitBasicBlockAtIndex(BasicBlockNode& bbn, int index);
+
     void removeUnreachableNodes(
         const NodeSet& unreachableNodes, DataDependenceGraph* ddg);
     void mergeNodes(
@@ -288,15 +299,21 @@ private:
 
     // Optional interpass data to aid in the construction of the CFG.
     InterPassData* passData_;
+
+    // IRM needs to be set explicitly if CFG is built and used without a
+    // Program object.
+    TTAProgram::InstructionReferenceManager* irm_;
     
     // Maps BasicBlockNode onto it's MachineBasicBlock equivalent
-    mutable std::map<const TTAProgram::BasicBlock*, llvm::MachineBasicBlock*> bbMap_;
+    mutable std::map<const TTAProgram::BasicBlock*, llvm::MachineBasicBlock*> 
+    bbMap_;
 
     /// For LLVM conversion: the dummy label instructions for SPU should be
     /// created for with the given MCSymbol as argument after building.
     mutable std::set<std::pair<ProgramOperationPtr, llvm::MCSymbol*> > tpos_;
     /// For LLVM conversion: mapping of created MachineInstructions to TCE 
     /// ProgramOperations.
-    mutable std::map<ProgramOperation*, llvm::MachineInstr*> programOperationToMIMap_;
+    mutable std::map<ProgramOperation*, llvm::MachineInstr*> 
+    programOperationToMIMap_;
 };
 #endif

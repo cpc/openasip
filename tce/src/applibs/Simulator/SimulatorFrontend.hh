@@ -251,6 +251,9 @@ public:
     void setZeroFillMemoriesOnReset(bool val) 
         { zeroFillMemoriesOnReset_ = val; }
 
+    void setDetailedSimulation(bool val) 
+        { detailedSimulation_ = val; }
+
     CycleCount lastRunCycleCount() const;
 
     SimulationEventHandler& eventHandler();
@@ -390,5 +393,8 @@ protected:
     MemorySystem* memorySystem_;
     /// Set to true in case the memories should be set to zero at reset.
     bool zeroFillMemoriesOnReset_;
+    /// Set to true in case should build a detailed model which simulates
+    /// FU stages, possibly with an external system-level model.
+    bool detailedSimulation_;
 };
 #endif

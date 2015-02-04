@@ -60,7 +60,8 @@ public:
     SimpleSimulatorFrontend(TCEString machineFile, bool useCompiledSimulation=false);
     SimpleSimulatorFrontend(
         TCEString machineFile, TCEString programFile, 
-        bool useCompiledSimulation=false);
+        bool useCompiledSimulation=false,
+        bool useDetailedSimulation=false);
     SimpleSimulatorFrontend(
         const TTAMachine::Machine& machine, 
         const TTAProgram::Program& program);
