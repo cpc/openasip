@@ -23,16 +23,12 @@
 
 BRANCH_DIR=$PWD
 
-
-# TODO: support for altgcc
 function start_compiletest {
     cd "${BRANCH_DIR}/tce"
 
     # remove the zOMG error mail when testing is finished, buildbot will handle the mails
     export ERROR_MAIL=no
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
-    export CXX="g++${ALTGCC}"
-    export CC="gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export LDFLAGS="-L/usr/local/lib"
