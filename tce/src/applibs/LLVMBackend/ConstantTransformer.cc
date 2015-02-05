@@ -43,6 +43,7 @@ char ConstantTransformer::ID;
 
 bool
 ConstantTransformer::doInitialization(llvm::Module&) {
+    return false;
 }
 
 bool
