@@ -3,6 +3,9 @@
 # Find the DENbench directory and link it to the current dir.
 # We cannot copy it to the test suite as DENbench cannot be redistributed.
 
+# DENBench has bit rot and does not work with the latest gcc versions.
+# Disable it for now.
+touch denbench_verification.testdesc.disabled
 
 if test -d ~/project/experimental/EEMBC/DENBench;
 then
