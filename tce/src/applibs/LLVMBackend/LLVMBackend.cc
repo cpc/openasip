@@ -602,7 +602,7 @@ LLVMBackend::compile(
 #ifdef LLVM_3_5
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
-    Passes.add(new DataLayoutPass(DL));
+    Passes.add(new DataLayoutPass(*DL));
 #else
     Passes.add(new DataLayoutPass());
 #endif
