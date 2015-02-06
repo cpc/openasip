@@ -32,6 +32,7 @@
 #include <llvm/MC/MCInstrInfo.h>
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
+#include <llvm/Target/TargetSubtargetInfo.h>
 
 using llvm::MachineBasicBlock;
 using llvm::MachineFunction;

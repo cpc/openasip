@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -602,21 +602,15 @@ LLVMBackend::compile(
 #ifdef LLVM_3_5
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
-    Passes.add(new DataLayoutPass(*DL));
-
+    Passes.add(new DataLayoutPass(DL));
 #else
-    //TODO: do not use datalayout pass with llvm 3.6. lets see if somtething breaks
-//    const DataLayout *DL = targetMachine->getSubtargetImpl()->getDataLayout();
+    Passes.add(new DataLayoutPass());
 #endif
 #endif
 
     targetMachine->addPassesToEmitFile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
-//    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
-// TODO: should the above be on===
 
-    // inlined from old, removed addPassesToEmitFileFinish();
-//    setCodeModelForStatic();
     // Add alias analysis pass that is distributed with pocl library.
     if (options_->isWorkItemAAFileDefined()) {
         ImmutablePass* (*creator)();
