@@ -152,7 +152,7 @@ do
         echo "-i  Install tce after compile.";
         echo 
         echo "-t  Tag current revision as fully_tested if all (unit, short,";
-        echo "    long and longlong) tests pass."
+        echo "    and long) tests pass."
         echo "    Notice that you shouldn't use this if you have local";
         echo "    uncommitted changes!";
         echo 
@@ -784,11 +784,11 @@ function compile_test {
             test_errors_for long_system_tests_failed
 
             #  long long system test function
-            if [ "x$quickTest" == "xno" -a "x$longlong_system_tests_failed" == "xyes" ]; then 
-                run_tests "longlong tests: " "run_longlong_system_tests"
-            fi
-
-            test_errors_for longlong_system_tests_failed
+            #if [ "x$quickTest" == "xno" -a "x$longlong_system_tests_failed" == "xyes" ]; then 
+            #    run_tests "longlong tests: " "run_longlong_system_tests"
+            #fi
+            #
+            #test_errors_for longlong_system_tests_failed
 
         fi
 
