@@ -41,6 +41,7 @@
 #include "Move.hh"
 #include "Program.hh"
 #include "Instruction.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -171,13 +172,29 @@ std::string
 BasicBlockNode::toString() const {
 
     if (isNormalBB()) {
-        std::string content = "";
+        TCEString content = "";
         int iCount = basicBlock().instructionCount();
         if (iCount > 0) {
-            content += Conversion::toString(originalStartAddress_);
-            content += " - ";
-            content += 
-            Conversion::toString(originalStartAddress_ + iCount - 1);
+            const TTAProgram::Instruction& first = 
+                basicBlock().instructionAtIndex(
+                    basicBlock().skippedFirstInstructions());
+            
+            content << "0: ";
+            content << first.toString();
+
+            // print at most last 4 instructions to (usually) print out the
+            for (int i = 3; i >= 0; --i) {
+                int loc = iCount - i - 1;
+                if (loc <= basicBlock().skippedFirstInstructions())
+                    continue;
+                const TTAProgram::Instruction& instr = 
+                    basicBlock().instructionAtIndex(loc);
+                if (i == 3)
+                    content << "\\n...\\n";
+                content << "\\n";
+                content << loc << ": ";
+                content << instr.toString();
+            }
         }
         return content;
     } else if (isEntryBB()) {
