@@ -1646,6 +1646,10 @@ TDGen::writeOperationDefs(
                 break;
             }
         }
+        // setcc of LLVM is not commutative and get confused if we don't generate
+        // a pattern with immediate elsewhere than the last operand        
+        canSwap = canSwap && !(op.name().upper() == "EQ" || op.name().upper() == "NE");
+
         if (!canSwap) {
             std::string opTypes = operandTypes;
             char& c = opTypes[i + op.numberOfOutputs()];
@@ -1978,6 +1982,9 @@ TDGen::writeEmulationPattern(
                 }
             }
         }
+        // setcc of LLVM is not commutative and get confused if we don't generate
+        // a pattern with an immediate elsewhere than the last operand
+        canSwap = canSwap && !(op.name().upper() == "EQ" || op.name().upper() == "NE");
         if (canSwap) {
             continue;
         }
