@@ -70,3 +70,24 @@ miscompilation bug with DSPstone/adpcm:
    passes to find the pass the produces the broken end result, hopefully
    reducing the list of passes to a single one.
 
+Pitfalls
+--------
+
+* The execution that should succeed doesn't.
+
+  Bugpoint leaves the produced output to a bugpoint-execution-output* file.
+  Check the contents of the one with the latest time stamp to see what goes
+  wrong.
+
+* Out of memory issues when executing the custom exec command via bugpoint.
+
+  bugpoint sets up a memory limit for the executed custom commands and is 
+  300MB by default. This is usually not enough for tcecc and ttasim executed
+  by the exec-command. If out of memory issues happen, increase this by 
+  adding -mlimit=4096 to the above command line.
+
+* Missing 'memset' or similar when running the bugpoint optimized bitcode.
+
+  This happens because the bugpoint might optimize away the memset function
+  in the original bitcode. Force relinking the bitcode libs by adding
+  --force-link to the tcecc command line in the run_bytecode script.
