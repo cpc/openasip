@@ -716,7 +716,7 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
                     // in case the original BB is split to multiple machine BBs,
                     // refer to the first one in the chain because the original
                     // BB reference could not have referred to middle of an BB
-                    if (mbbt->isPredecessor(mbb)) {
+                    if (mbbt->isSuccessor(mbb)) {
                         bb = &bbt;
                         mbb = mbbt;
                     }
