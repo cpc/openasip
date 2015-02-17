@@ -228,17 +228,32 @@ MachineInfo::supportsOperation(
  * constant's bits. In case this function returns true,
  * the register copy adder or similar pass should be able to
  * route the constant to the wanted destination(s), in case
- * no direct bus with the immediate support is found.
+ * no direct bus with the immediate support is found. In
+ * case the destination (port) is known, its width should 
+ * be set to destWidth to constraint the required immediate
+ * extension width (in case the move tries to write to a port narrower
+ * than the immediate actually requires bits, the bug is earlier 
+ * in the compilation).
+ *
+ * A complex example: a move where a negative constant with minimal
+ * encoding of 7b is transported through a 32b bus to a 8b destination
+ * with a 8b move slot that uses zero extension mode. The zero extension
+ * mode does not fill up the upper bits with 1, but it does not
+ * lead to information loss as the destination uses only the lower
+ * 8 bits which can be encoded directly to the immediate field,
+ * thus the extension is not needed.
  */
 bool
 MachineInfo::canEncodeImmediateInteger(
-    const TTAMachine::Machine& mach, int64_t imm) {
+    const TTAMachine::Machine& mach, int64_t imm, unsigned destWidth) {
 
     const Machine::BusNavigator& busNav = mach.busNavigator();
 
-    size_t requiredBitsSigned = 
-        MathTools::requiredBitsSigned(static_cast<long int>(imm));
-    size_t requiredBitsUnsigned = MathTools::requiredBits(imm);
+    size_t requiredBitsSigned =
+        std::min((unsigned)MathTools::requiredBitsSigned(imm), destWidth);
+    size_t requiredBitsUnsigned =
+        std::min((unsigned)MathTools::requiredBits(imm), destWidth);
+
     // first check the short immediate slots
     for (int bi = 0; bi < busNav.count(); ++bi) {
         const Bus& bus = *busNav.item(bi);

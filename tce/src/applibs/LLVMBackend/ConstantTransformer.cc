@@ -21,11 +21,22 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
- 
+/**
+ * @file ConstantTransformer.cc
+ *
+ * Implementation of ConstantTransformer class.
+ *
+ * @author Pekka Jääskeläinen 2015 
+ * @note reting: red
+ */
+
 #include "ConstantTransformer.hh"
 
 #include "MachineInfo.hh"
 #include "TCETargetMachine.hh"
+#include "OperationPool.hh"
+#include "Operation.hh"
+#include "Operand.hh"
 
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
@@ -33,6 +44,9 @@
 #include <llvm/Target/TargetInstrInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Target/TargetSubtargetInfo.h>
+#include <llvm/Target/TargetOpcodes.h>
+
+#include <sstream>
 
 using llvm::MachineBasicBlock;
 using llvm::MachineFunction;
@@ -47,8 +61,52 @@ ConstantTransformer::doInitialization(llvm::Module&) {
     return false;
 }
 
+/**
+ * In case the given operandId is an input operand in the
+ * MachineInstr, returns the corresponding OSAL operand id
+ * (starting from 1), 0 otherwise.
+ */
+unsigned
+osalInputIndex(
+    const Operation& operation, 
+    const llvm::MachineInstr& instr, 
+    unsigned operandId) {
+
+    const TCETargetMachine& tm = 
+        dynamic_cast<const TCETargetMachine&>(
+            instr.getParent()->getParent()->getTarget());
+
+    TCEString operationName = tm.operationName(instr.getDesc().getOpcode());
+    bool hasGuard = operationName[0] == '?' || operationName[0] == '!';
+
+    unsigned osalIndex = 0;
+    for (unsigned operandI = 0; operandI < instr.getNumOperands(); ++operandI) {
+        const MachineOperand& mo = instr.getOperand(operandI);
+        if (hasGuard && operandI == 0) continue;
+        if (mo.isReg() && (mo.isDef() || mo.isImplicit())) continue; // Output
+        ++osalIndex;
+        if (operandI == operandId) return osalIndex;
+        // LLVM machineinstructions always present the addresses in the
+        // base + offset form, thus consume two input operands per one
+        // OSAL operand. Skip the offset operand in case the OSAL operation
+        // only the takes a single absolute address.
+        if (operation.operand(osalIndex).isAddress() && 
+            !operation.isBaseOffsetMemOperation()) {
+            ++operandI;
+        }
+    }
+
+    return 0;
+}
+
 bool
 ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
+
+    const TCETargetMachine& tm = 
+        dynamic_cast<const TCETargetMachine&>(mf.getTarget());
+    TCETargetMachinePlugin& plugin = tm.targetPlugin();
+
+    OperationPool osal;
 
     bool changed = false;
     for (MachineFunction::iterator i = mf.begin(); i != mf.end(); i++) {
@@ -56,71 +114,114 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
         for (MachineBasicBlock::iterator j = mbb.begin();
              j != mbb.end(); j++) {
             const llvm::MachineInstr* mi = j;
+            unsigned opc = mi->getOpcode();
+
+            const llvm::MCInstrDesc& opDesc = mi->getDesc();
+            if (opDesc.isReturn()) {
+                continue;
+            }
+            if (opc == llvm::TargetOpcode::DBG_VALUE || 
+                opc == llvm::TargetOpcode::KILL) {
+                continue;
+            }
+
+            TCEString opname = tm.operationName(opc);
+            if (opname == "") continue;
+            bool hasGuard = opname[0] == '?' || opname[0] == '!';
+            if (hasGuard) opname = opname.substr(1);
+
+            const Operation& op = osal.operation(opname.c_str());
+            if (op.isNull() || op.isBranch() || op.usesMemory() || 
+                op.isCall()) {
+                // isNull = INLINE asm, a pseudo asm block or similar.
+                // TODO: add support for at least INLINE and MOVE.
+
+                // TODO: Fix global address constants. Needs to have new type
+                // of data symbol/relocation info in case an address
+                // constant is  broken down.
+
+                continue;
+            }
+
             for (unsigned operandI = 0; operandI < mi->getNumOperands();
                  ++operandI) {
+                
                 const MachineOperand& mo = mi->getOperand(operandI);
-                if (mo.isImm() && 
-                    !MachineInfo::canEncodeImmediateInteger(mach_, mo.getImm())) {
+                if (!mo.isImm()) continue;
+
+                unsigned inputIndex = osalInputIndex(op, *mi, operandI);
+                if (inputIndex == 0) continue; 
+                const Operand& operand = op.operand(inputIndex);
+                if (operand.isNull()) {
+                    Application::errorStream() 
+                        << "Input " << inputIndex 
+                        << " not found for operation "
+                        << opname << std::endl;
+                    mi->dump();
+                    assert(false);
+                }
+                assert(operand.isInput());
+                size_t operandWidth = operand.width();
+
+                if (MachineInfo::canEncodeImmediateInteger(
+                        mach_, mo.getImm(), operandWidth)) continue;
                     
-                    // check if it's possible to convert C to SUB(0, -C) such
-                    // that it can be encoded for the target
-                    if (MachineInfo::canEncodeImmediateInteger(mach_, 0) ||
-                        MachineInfo::canEncodeImmediateInteger(mach_, -mo.getImm()) ||
-                        MachineInfo::supportsOperation(mach_, "SUB")) {
+                // check if it's possible to convert C to SUB(0, -C) such
+                // that it can be encoded for the target
+                if (MachineInfo::canEncodeImmediateInteger(mach_, 0) &&
+                    MachineInfo::canEncodeImmediateInteger(
+                        mach_, -mo.getImm()) && /* SUB is 32b */
+                    MachineInfo::supportsOperation(mach_, "SUB")) {  
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-                        const llvm::MCInstrInfo* iinfo = mf.getTarget().getInstrInfo();
+                    const llvm::MCInstrInfo* iinfo = mf.getTarget().getInstrInfo();
 #else
-                        const llvm::MCInstrInfo* iinfo = mf.getTarget().getSubtargetImpl()->getInstrInfo();
+                    const llvm::MCInstrInfo* iinfo = 
+                        mf.getTarget().getSubtargetImpl()->getInstrInfo();
 #endif
-                        const TCETargetMachine& tm = 
-                            dynamic_cast<const TCETargetMachine&>(mf.getTarget());
-                        TCETargetMachinePlugin& plugin = tm.targetPlugin();
 #if 0
-                        Application::logStream() 
-                            << "ConstantTransformer: converting constant in ";
-                        j->dump();
-                            
+                    Application::logStream() 
+                        << "ConstantTransformer: converting constant in ";
+                    j->dump();
 #endif
-                        // RV_HIGH = SUB 0 -X
-                        BuildMI(
-                            mbb, j, j->getDebugLoc(), iinfo->get(plugin.opcode("SUB")), 
-                            plugin.rvHighDRegNum()).addImm(0).addImm(-mo.getImm());
+                    // RV_HIGH = SUB 0 -X
+                    BuildMI(
+                        mbb, j, j->getDebugLoc(), iinfo->get(plugin.opcode("SUB")), 
+                        plugin.rvHighDRegNum()).addImm(0).addImm(-mo.getImm());
                         
-                        // replace the original instruction's immediate operand
-                        // with the RV_HIGH
-                        llvm::MachineInstrBuilder mib = 
-                            BuildMI(mbb, j, j->getDebugLoc(), j->getDesc());
-                        for (unsigned opr = 0; opr < j->getNumOperands(); ++opr) {
-                            MachineOperand& orig = j->getOperand(opr);
-                            if (opr == operandI) {
-                                mib.addOperand(
-                                    MachineOperand::CreateReg(plugin.rvHighDRegNum(), false));
-                                continue;
-                            }
-                            mib.addOperand(orig);
-                            orig.clearParent();
+                    // replace the original instruction's immediate operand
+                    // with the RV_HIGH
+                    llvm::MachineInstrBuilder mib = 
+                        BuildMI(mbb, j, j->getDebugLoc(), j->getDesc());
+                    for (unsigned opr = 0; opr < j->getNumOperands(); ++opr) {
+                        MachineOperand& orig = j->getOperand(opr);
+                        if (opr == operandI) {
+                            mib.addOperand(
+                                MachineOperand::CreateReg(plugin.rvHighDRegNum(), false));
+                            continue;
                         }
-                        
-                        // the original instruction can be now deleted
-                        j->eraseFromParent();
-                        // start scanning the MBB from the beginning due to
-                        // possibly invalidated iterators from adding the 
-                        // new instructions
-                        j = mbb.begin();
-                        changed = true;
-                    } else {
-                        std::ostringstream errMsg;
-                        errMsg << "Program uses constant '"
-                               << mo.getImm() << "' that cannot be encoded "
-                               << "for the machine by the current compiler.";
-                        throw CompileError(
-                            __FILE__, __LINE__, __func__, errMsg.str());
+                        mib.addOperand(orig);
+                        orig.clearParent();
                     }
+                        
+                    // the original instruction can be now deleted
+                    j->eraseFromParent();
+                    // start scanning the MBB from the beginning due to
+                    // possibly invalidated iterators from adding the 
+                    // new instructions
+                    j = mbb.begin();
+                    changed = true;
+                } else {
+                    std::ostringstream errMsg;
+                    errMsg << "Program uses constant '"
+                           << mo.getImm() << "' that cannot be encoded "
+                           << "for the machine by the current compiler.";
+                    throw CompileError(
+                        __FILE__, __LINE__, __func__, errMsg.str());
                 }
             }
-           
         }
+           
     }
     return changed;
 }
