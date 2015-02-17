@@ -192,6 +192,8 @@ BEGIN
       mac_in_m2 <= (OTHERS => '0');
       mac_in_a <= (OTHERS => '0');
       o1tempdata <= (OTHERS => '0');
+
+      r1trun <= (OTHERS => '0');
       
       IF bypass_5=False THEN
         t1load_delay5_r <= '0';
