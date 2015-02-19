@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,12 +22,12 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file LLVMTCECFGDDGBuilder.hh
+ * @file LLVMTCEIRBuilder.hh
  *
  * This builder builds a CFG and DDG from the new LLVM TTA backend format.
  *
  * @author Heikki Kultala 2011
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jääskeläinen 2011,2015
  * @note reting: red
  */
 
@@ -39,8 +39,11 @@
 
 #include "LLVMTCEBuilder.hh"
 #include "DataDependenceGraphBuilder.hh"
+#include "CopyingDelaySlotFiller.hh"
 
 class InterPassData;
+class LLVMTCECmdLineOptions;
+
 namespace TTAMachine {
     class Machine;
 }
@@ -134,8 +137,9 @@ namespace llvm {
         void compileFast(ControlFlowGraph& cfg);
         void compileOptimized(
             ControlFlowGraph& cfg, 
-            TTAProgram::InstructionReferenceManager& irm,
             llvm::AliasAnalysis* llvmAA);
+
+        CopyingDelaySlotFiller& delaySlotFiller();
 
         ControlFlowGraph* buildTCECFG(llvm::MachineFunction& mf);
         void markJumpTableDestinations(
@@ -161,6 +165,11 @@ namespace llvm {
 
         AliasAnalysis* AA_;
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
+
+        LLVMTCECmdLineOptions* options_;
+
+        CopyingDelaySlotFiller* dsf_;
+        bool delaySlotFilling_;
     };
 }
 

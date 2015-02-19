@@ -80,7 +80,7 @@ SequentialScheduler::SequentialScheduler(InterPassData& data) :
     ControlFlowGraphPass(data),
     ProcedurePass(data),
     ProgramPass(data), 
-    rm_(NULL) {
+    rm_(NULL), passData_(data) {
 }
 
 /**
@@ -99,8 +99,10 @@ SequentialScheduler::~SequentialScheduler() {
  */
 void
 SequentialScheduler::handleBasicBlock(
-    TTAProgram::BasicBlock& bb, 
-    const TTAMachine::Machine& targetMachine)
+    TTAProgram::BasicBlock& bb,
+    const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm,
+    BasicBlockNode*)
     throw (Exception) {
 
     if (bb.instructionCount() == 0)
@@ -112,6 +114,7 @@ SequentialScheduler::handleBasicBlock(
     int cycle = 0;
 
     SequentialMoveNodeSelector selector(bb);
+    selector_ = &selector;
 
     // loop as long as selector gives things to schedule
     MoveNodeGroup moves = selector.candidates();
@@ -133,7 +136,6 @@ SequentialScheduler::handleBasicBlock(
             for (int i = 0; i < moves.nodeCount(); i++) {
                 message += moves.node(i).toString() + " ";
             }
-            SimpleResourceManager::disposeRM(rm_); rm_ = NULL; 
             throw ModuleRunTimeError(__FILE__, __LINE__, __func__, message);
         }
 
@@ -143,9 +145,8 @@ SequentialScheduler::handleBasicBlock(
         }
         moves = selector.candidates();
     }
-    copyRMToBB(*rm_, bb, targetMachine);
-
-    SimpleResourceManager::disposeRM(rm_); rm_ = NULL; 
+    copyRMToBB(*rm_, bb, targetMachine, irm);
+    SimpleResourceManager::disposeRM(rm_); rm_ = NULL;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -171,7 +172,8 @@ SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
         (moves.node(0).sourceOperation()):
         (moves.node(0).destinationOperation());
 
-    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_);
+    RegisterCopyAdder regCopyAdder(
+        BasicBlockPass::interPassData(), *rm_);
 
 
     // TODO: registercopyader and ddg..
@@ -233,6 +235,7 @@ SequentialScheduler::scheduleOperandWrites(
     MoveNode* trigger = NULL;
     MoveNode& firstNode = moves.node(0);
     ProgramOperation& po = firstNode.destinationOperation();
+
 
     for (int i = 0; i < moves.nodeCount(); i++) {
 
@@ -322,7 +325,8 @@ int
 SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
     throw (Exception) {
 
-    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_);
+    RegisterCopyAdder regCopyAdder(
+        BasicBlockPass::interPassData(), *rm_);
 
     RegisterCopyAdder::AddedRegisterCopies addedCopies =
       regCopyAdder.addRegisterCopiesToRRMove(moveNode, NULL);
@@ -389,7 +393,7 @@ SequentialScheduler::scheduleMove(
             TTAProgram::ProgramAnnotation annotation(
                 TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM);
             moveNode.move().setAnnotation(annotation);
-            
+
         } else if (!moveNode.isDestinationOperation() &&
                    rm_->earliestCycle(rm_->largestCycle()+1,moveNode) == -1) {
             // If source is constant and node does not have annotation
@@ -493,7 +497,7 @@ SequentialScheduler::scheduleInputOperandTempMoves(
     int cycle, MoveNode& operandMove, 
     RegisterCopyAdder::AddedRegisterCopies& regCopies)
     throw (Exception) {
-    
+
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.operandCopies_,&operandMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -552,7 +556,7 @@ SequentialScheduler::scheduleResultTempMoves(
     int cycle, MoveNode& resultMove,
     RegisterCopyAdder::AddedRegisterCopies& regCopies)
     throw (Exception) {
-    
+
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.resultCopies_,&resultMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -622,7 +626,9 @@ SequentialScheduler::handleProcedure(
     createBasicBlocks(procedure, basicBlocks, bbAddresses);
 
     for (unsigned int i = 0; i < basicBlocks.size();i++) {
-        handleBasicBlock(*basicBlocks[i], targetMachine);
+        handleBasicBlock(
+            *basicBlocks[i], targetMachine,
+            procedure.parent().instructionReferenceManager());
     }
 
     copyBasicBlocksToProcedure(procedure, basicBlocks, bbAddresses);

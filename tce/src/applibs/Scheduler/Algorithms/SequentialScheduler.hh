@@ -44,6 +44,7 @@
 class BasicBlockNode;
 class SimpleResourceManager;
 class MoveNodeGroup;
+class MoveNodeSelector;
 
 /**
  * A class that implements the functionality of a basic block scheduler.
@@ -69,7 +70,9 @@ public:
         throw (Exception);
 
     virtual void handleBasicBlock(
-        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine)
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm,
+        BasicBlockNode* bbn = NULL)
         throw (Exception);
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
@@ -129,9 +132,9 @@ private:
     const TTAMachine::Machine* targetMachine_;
     /// Resource Manager of the currently scheduled BB.
     SimpleResourceManager* rm_;
-    /// Stores the MoveNodes that were scheduled as temp moves during
-    /// scheduling of the operand move.
 
+    InterPassData& passData_;
+    MoveNodeSelector* selector_;
 };
 
 #endif

@@ -38,6 +38,8 @@
 
 class BasicBlockPass;
 class ControlFlowGraph;
+class BasicBlockNode;
+
 namespace TTAMachine {
     class Machine;
 }
@@ -55,7 +57,7 @@ public:
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    static void executeBasicBlockPass(
+    void executeBasicBlockPass(
         ControlFlowGraph& cfg,
         const TTAMachine::Machine& targetMachine,
         BasicBlockPass& bbPass)

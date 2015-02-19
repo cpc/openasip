@@ -41,11 +41,14 @@
 #include "ProcedurePass.hh"
 #include "ProgramPass.hh"
 #include "ControlFlowGraphPass.hh"
+#include "DataDependenceGraph.hh"
+
 namespace TTAProgram {
     class CodeSnippet;
     class Procedure;
     class Program;
     class InstructionReferenceManager;
+    class Instruction;
 }
 
 namespace TTAMachine {
@@ -80,13 +83,38 @@ public:
         ControlFlowGraph& cfg,
         DataDependenceGraph& ddg);
 
-    std::string shortDescription() const { return "optimizes away guard nagation operaions, uses opposite guards instead"; };
+    std::string shortDescription() const { 
+        return "optimizes away guard nagation operations, "
+            "uses opposite guards instead"; };
 private:
+    bool inverseGuardsOfHeads(
+        DataDependenceGraph& ddg,
+        DataDependenceGraph::EdgeSet& oEdges);
+
+    bool checkGuardReversalAllowed(
+        DataDependenceGraph& ddg,
+        DataDependenceGraph::EdgeSet& oEdges);
+
     bool tryToOptimizeAddressReg(
         DataDependenceGraph& ddg, ProgramOperation&po);
+
     TTAProgram::CodeSnippet* tryToRemoveXor(
         DataDependenceGraph& ddg, ProgramOperation& po,
-        TTAProgram::InstructionReferenceManager* irm);
+        TTAProgram::InstructionReferenceManager* irm,
+        ControlFlowGraph& cfg);
+
+    TTAProgram::CodeSnippet* tryToRemoveEq(
+        DataDependenceGraph& ddg, ProgramOperation& po,
+        TTAProgram::InstructionReferenceManager* irm,
+        ControlFlowGraph& cfg);
+    
+    TTAProgram::CodeSnippet* tryToRemoveGuardInversingOp(
+        DataDependenceGraph& ddg, ProgramOperation& po,
+        TTAProgram::InstructionReferenceManager* irm,
+        ControlFlowGraph& cfg);
+
+    bool cfgAllowsJumpReversal(
+        TTAProgram::Instruction& ins, ControlFlowGraph& cfg);
 
 
 };
