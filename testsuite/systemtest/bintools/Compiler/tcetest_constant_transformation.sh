@@ -11,3 +11,5 @@ tcecc $src -llwpr -O3 -a $mach -o $program &&
 ttasim -a $mach -p $program --no-debugmode
 
 tcedisasm -s $mach $program | egrep -cq '\s+0 -> ALU.in1t.sub' || exit 1
+
+rm -f $program
