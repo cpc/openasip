@@ -34,8 +34,13 @@
 #ifndef LLVM_POM_BUILDER_H
 #define LLVM_POM_BUILDER_H
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "LLVMTCEBuilder.hh"
 #include "TCETargetMachine.hh"
+
+#pragma clang diagnostic pop
 
 namespace TTAMachine {
     class Machine;

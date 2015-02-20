@@ -29,6 +29,10 @@
  * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include <llvm/CodeGen/MachineFunction.h>
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
@@ -46,6 +50,8 @@
 #include "InterPassData.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "OperationPool.hh"
+
+#pragma clang diagnostic pop
 
 namespace llvm {
 

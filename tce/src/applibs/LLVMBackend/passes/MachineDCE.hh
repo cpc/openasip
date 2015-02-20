@@ -29,6 +29,9 @@
  * @author Mikael Lepistö 
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
@@ -66,6 +69,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "llvm/ADT/StringMap.h"
+
+#pragma clang diagnostic pop
 
 #include <map>
 

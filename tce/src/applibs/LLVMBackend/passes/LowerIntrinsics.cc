@@ -74,10 +74,7 @@ using namespace llvm;
 #include <set>
 
 namespace {
-    class LowerIntrinsics : public BasicBlockPass {
-
-        Module* dstModule_;
-        
+    class LowerIntrinsics : public BasicBlockPass {        
     public:
         static char ID; // Pass ID, replacement for typeid       
         LowerIntrinsics();

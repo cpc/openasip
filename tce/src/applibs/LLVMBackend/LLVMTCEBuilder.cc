@@ -40,6 +40,9 @@
 
 #include <boost/format.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "LLVMTCEBuilder.hh"
 #include "Program.hh"
 #include "Machine.hh"
@@ -122,7 +125,6 @@
 
 #include "tce_config.h"
 
-
 #if defined(LLVM_3_2)
 
 #include "llvm/DataLayout.h"
@@ -143,8 +145,7 @@ typedef llvm::DataLayout TargetData;
 
 #define END_SYMBOL_NAME "_end"
 
-
-
+#pragma clang diagnostic pop
 
 using namespace TTAMachine;
 using namespace llvm;

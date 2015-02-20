@@ -30,6 +30,9 @@
  * @note reting: red
  */
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "ConstantTransformer.hh"
 
 #include "MachineInfo.hh"
@@ -45,6 +48,8 @@
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Target/TargetSubtargetInfo.h>
 #include <llvm/Target/TargetOpcodes.h>
+
+#pragma clang diagnostic pop
 
 #include <sstream>
 

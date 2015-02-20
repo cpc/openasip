@@ -31,6 +31,9 @@
 
 #include <iostream>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "ProgramPartitioner.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetMachine.hh"

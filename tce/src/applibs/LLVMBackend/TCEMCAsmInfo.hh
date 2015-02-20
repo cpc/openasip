@@ -14,8 +14,13 @@
 #ifndef TCEMCASMINFO_H
 #define TCEMCASMINFO_H
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include <llvm/MC/MCAsmInfo.h>
 #include "tce_config.h"
+
+#pragma clang diagnostic pop
 
 namespace llvm {
   class Target;

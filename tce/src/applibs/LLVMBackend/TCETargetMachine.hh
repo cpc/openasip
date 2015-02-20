@@ -34,6 +34,10 @@
 #define TCE_TARGET_MACHINE_H
 
 #include <set>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
@@ -57,6 +61,7 @@
 #include "llvm/IR/DataLayout.h"
 #endif
 
+#pragma clang diagnostic pop
 
 namespace TTAMachine {
     class Machine;
