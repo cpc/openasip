@@ -226,7 +226,7 @@ begin
     zero := arg_int = 0;
 
     -- Compute Exponent
-    argb2 := to_signed(find_leftmost(arg_int, '1'), argb2'length);  -- Log2
+    argb2 := to_signed(my_find_leftmost(arg_int, '1'), argb2'length);  -- Log2
     
     exp     := SIGNED(resize(argb2, exp'length));
     arg_int := shift_left (arg_int, arg_int'high-to_integer(exp));
