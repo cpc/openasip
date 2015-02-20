@@ -95,9 +95,10 @@ char LLVMTCEIRBuilder::ID = -1;
 
 LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
-    InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, bool modifyMF) :
+    InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, 
+    bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
-    ddgBuilder_(ipd), modifyMF_(modifyMF), options_(NULL), AA_(AA), dsf_(NULL) {
+    ddgBuilder_(ipd), modifyMF_(modifyMF), AA_(AA), options_(NULL), dsf_(NULL) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
