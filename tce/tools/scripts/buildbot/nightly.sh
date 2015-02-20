@@ -23,6 +23,9 @@
 
 BRANCH_DIR=$PWD
 
+echo "CXX: $CXX"
+echo "CC: $CC"
+
 function start_compiletest {
     cd "${BRANCH_DIR}/tce"
 
