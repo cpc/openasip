@@ -1256,12 +1256,10 @@ if test x"$cxx11" = xtrue; then
    # Set the flags to use -std=c++0x or -std=c++11.
    if test x"$define_cxx0x" = xtrue; then
       AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard.])
-      CPPFLAGS="$CPPFLAGS -std=c++0x"
-      LDFLAGS="$LDFLAGS -std=c++0x"
+      CXXFLAGS="$CXXFLAGS -std=c++0x"
    else
       AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
-      CPPFLAGS="$CPPFLAGS -std=c++11"
-      LDFLAGS="$LDFLAGS -std=c++11"
+      CXXFLAGS="$CXXFLAGS -std=c++11"
    fi
 else
    AC_MSG_RESULT([no])
