@@ -51,7 +51,6 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 # we move CXXFLAGS to AM_CXXFLAGS with additional -Wno switch 
 # and clean old CXXFLAGS variable
 AM_CXXFLAGS = -g ${CXXFLAGS}
-CXXFLAGS=-Wno-unused-parameter
 
 # Static sources for target machine plugins.
 include_HEADERS = \

@@ -17,11 +17,6 @@ MachineDCE_la_LDFLAGS = -module
 
 AM_CPPFLAGS = ${LLVM_CPPFLAGS}
 
-# gives automake warning, but is necessary to disable
-# compilation warnings from llvm headers...
-AM_CXXFLAGS = ${CXXFLAGS} 
-CXXFLAGS=-Wno-unused-parameter -g
-
 ## headers start
 LowerIntrinsics_la_SOURCES += \
 	MachineDCE.hh 
