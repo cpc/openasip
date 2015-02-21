@@ -136,14 +136,17 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
             if (hasGuard) opname = opname.substr(1);
 
             const Operation& op = osal.operation(opname.c_str());
-            if (op.isNull() || op.isBranch() || op.usesMemory() || 
-                op.isCall()) {
+            if (op.isNull() || op.isBranch() || op.isCall() || 
+                op.readsMemory()) {
                 // isNull = INLINE asm, a pseudo asm block or similar.
                 // TODO: add support for at least INLINE and MOVE.
 
+                // In case the operation reads memory, assume the 
+                // possible immediate operand is a global address
+                // we cannot fix at this point.
                 // TODO: Fix global address constants. Needs to have new type
                 // of data symbol/relocation info in case an address
-                // constant is  broken down.
+                // constant is broken down.
 
                 continue;
             }
@@ -157,7 +160,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                 unsigned inputIndex = osalInputIndex(op, *mi, operandI);
                 if (inputIndex == 0) continue; 
                 const Operand& operand = op.operand(inputIndex);
-                if (operand.isNull()) {
+                if (operand.isNull() || !operand.isInput()) {
                     Application::errorStream() 
                         << "Input " << inputIndex 
                         << " not found for operation "
