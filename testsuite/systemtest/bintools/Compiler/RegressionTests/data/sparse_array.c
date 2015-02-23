@@ -1,0 +1,8 @@
+
+volatile char a[] = {
+    0xff, 0x00, 0xfe, 0x00, 0xfa, 0x00
+};
+
+int main() {
+    return a[1];
+}

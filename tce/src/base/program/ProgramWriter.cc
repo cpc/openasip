@@ -735,7 +735,7 @@ ProgramWriter::createBinary() const
             << ", required program size: "
             << prog_.instructionCount();
 
-        throw Exception(__FILE__, __LINE__, __func__, err);
+        throw CompileError(__FILE__, __LINE__, __func__, err);
     }
 
     aSpaces->addElement(undefASpace);
@@ -1406,22 +1406,6 @@ ProgramWriter::createDataSections(Binary* bin) const {
                  currSect->startingAddress() +
                  currSect->lengthInMAUs())) {
                 
-#if 0 
-                // prints out debug data of all created data sections
-                if (currSect != NULL) {
-                    std::cerr << "Created data section length: " 
-                              << currSect->lengthInMAUs()
-                              << "\tstart address: " 
-                              << TPEFTools::addressSpaceName(
-                                  *bin, *currSect->aSpace())
-                              << ":" << currSect->startingAddress()
-                              << "\tinitialized: " 
-                              << static_cast<int>(
-                                  currSect->type() == Section::ST_DATA)
-                              << std::endl;
-                }
-#endif
-
                 if (currDef.isInitialized()) {
                     currSect = dynamic_cast<UDataSection*>(
                         Section::createSection(Section::ST_DATA));
@@ -1429,7 +1413,7 @@ ProgramWriter::createDataSections(Binary* bin) const {
                     currSect = dynamic_cast<UDataSection*>(
                         Section::createSection(Section::ST_UDATA));
                 }
-                
+               
                 // add section to binary
                 assert (currSect != NULL);
                 bin->addSection(currSect);
@@ -1468,6 +1452,23 @@ ProgramWriter::createDataSections(Binary* bin) const {
                 currSect->setLengthInMAUs(
                     currSect->lengthInMAUs() + currDef.size());
             }
+
+#if 0
+            // prints out debug data of all created data sections
+            if (currSect != NULL) {
+                Application::logStream()
+                    << "data section " << currSect << " length: " 
+                    << currSect->lengthInMAUs()
+                    << "\tstart address: " 
+                    << TPEFTools::addressSpaceName(
+                        *bin, *currSect->aSpace())
+                    << ":" << currSect->startingAddress()
+                    << "\tinitialized: " 
+                    << static_cast<int>(currSect->isDataSection())
+                    << std::endl;
+            }
+#endif
+
         }
     }
 }

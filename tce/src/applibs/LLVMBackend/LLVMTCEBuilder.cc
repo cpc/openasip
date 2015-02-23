@@ -515,11 +515,14 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
  *
  * @param addr Address for the POM data.
  * @param cv Initializer for the data in llvm.
+ * @param forceInitialize In case wanting to use initialization data even 
+ *                        for null values.
  * @return POM data address after padding data to correct alignment.
  */
 unsigned
 LLVMTCEBuilder::createDataDefinition(
-    int addressSpaceId, unsigned& addr, const Constant* cv) {
+    int addressSpaceId, unsigned& addr, const Constant* cv, 
+    bool forceInitialize) {
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const TargetData* td = tm_->getDataLayout();
@@ -553,31 +556,23 @@ LLVMTCEBuilder::createDataDefinition(
 
     // Initialize with zeros if this is an uninitialized part of a partially
     // initialized data structure.
-    if (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL) {
+    if (!forceInitialize && 
+        (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL)) {
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, sz, NULL, false) );
+            new TTAProgram::DataDefinition(address, sz, NULL, false));
 
         addr += sz;
         return paddedAddr;
     }
 
-
-    if ((dyn_cast<ConstantArray>(cv) != NULL) ||
-        (dyn_cast<ConstantStruct>(cv) != NULL) ||
-        (dyn_cast<ConstantVector>(cv) != NULL)) {
+    if (isa<ConstantArray>(cv) ||
+        isa<ConstantStruct>(cv) ||
+        isa<ConstantVector>(cv)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-
-#ifndef NDEBUG
-            unsigned dataAddr = createDataDefinition(
-                addressSpaceId, addr, cast<Constant>(cv->getOperand(i)));
-            // First element of structured data should be in the paddedAddr.
-            assert (i > 0 || dataAddr == paddedAddr);
-#else
             createDataDefinition(
                 addressSpaceId, addr, cast<Constant>(cv->getOperand(i)));
-#endif
         }
     } else if (const ConstantInt* ci = dyn_cast<ConstantInt>(cv)) {
         createIntDataDefinition(addressSpaceId, addr, ci);
@@ -593,9 +588,28 @@ LLVMTCEBuilder::createDataDefinition(
             dmem.addDataDefinition( 
                 new TTAProgram::DataDefinition(address, sz, NULL, false) );
         } else {
+            /* If the array has non-zero values, do not split the
+               definitions to iinitialized and initialized data sections, but
+               initialize them all. Otherwise we might end up having zillions
+               of UData and Data sections after each other in the TPEF for the
+               initialization data, because the sections have only one start 
+               address. It soon exceeds the maximum number of
+               sections in case of large initialized arrays with some of the
+               values being zeros. */
+            bool allZeros = true;
+            for (unsigned i = 0, e = cda->getNumElements(); i != e; ++i) {
+                llvm::Constant *ace = 
+                    cast<Constant>(cda->getElementAsConstant(i));
+                if (ace->isNullValue() || isa<UndefValue>(ace))
+                    continue;
+                allZeros = false;
+                break;
+            }
+
             for (unsigned int i = 0; i < cda->getNumElements(); i++) {
-                createDataDefinition(
-                    addressSpaceId, addr, cda->getElementAsConstant(i));
+                createDataDefinition(                    
+                    addressSpaceId, addr, cda->getElementAsConstant(i), 
+                    !allZeros);
             }
         }
     } else {
@@ -654,16 +668,11 @@ LLVMTCEBuilder::createIntDataDefinition(
     
     TTAProgram::DataDefinition* def;
 
-    if (u.d == 0) {
-        def = new TTAProgram::DataDefinition(start, sz, NULL, true);
-    } else {
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
-        }
-
-        def = new TTAProgram::DataDefinition(start, maus);
+    for (unsigned i = 0; i < sz; i++) {
+        maus.push_back(u.bytes[sz - i - 1]);
     }
 
+    def = new TTAProgram::DataDefinition(start, maus);
     addr += def->size();
     dmem.addDataDefinition(def);
 }
