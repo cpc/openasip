@@ -31,10 +31,9 @@
  * @author Pekka Jääskeläinen 2007-2015
  */
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
@@ -56,9 +55,7 @@
 
 #include "LLVMTCECmdLineOptions.hh"
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+POP_COMPILER_DIAGS
 
 using namespace llvm;
 

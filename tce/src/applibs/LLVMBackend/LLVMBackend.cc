@@ -32,6 +32,9 @@
  * @note rating: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
 
@@ -147,6 +150,8 @@ typedef llvm::DataLayout TargetData;
 typedef llvm::DataLayout TargetData;
 
 #endif
+
+POP_COMPILER_DIAGS
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";

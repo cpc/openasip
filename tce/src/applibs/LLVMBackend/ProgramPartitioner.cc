@@ -31,10 +31,9 @@
 
 #include <iostream>
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "ProgramPartitioner.hh"
 #include "TCETargetMachinePlugin.hh"
@@ -48,9 +47,7 @@
 #include <llvm/IR/Instruction.h>
 #endif
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+POP_COMPILER_DIAGS
 
 char ProgramPartitioner::ID = 0;    
 

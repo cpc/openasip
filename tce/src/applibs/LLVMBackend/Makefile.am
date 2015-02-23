@@ -11,12 +11,11 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
 	LLVMTCEScheduler.cc MachineInstrDDG.cc ConstantTransformer.cc
 
-TOOLS_DIR = ${SRC_ROOT}/tools
-
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module
 
 PROJECT_ROOT = $(top_srcdir)
+TOOLS_DIR = ${SRC_ROOT}/tools
 SRC_ROOT = ${PROJECT_ROOT}/src
 MACH_DIR = ${SRC_ROOT}/base/mach
 PROG_DIR = ${SRC_ROOT}/base/program

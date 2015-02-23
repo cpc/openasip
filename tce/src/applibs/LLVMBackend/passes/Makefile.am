@@ -15,7 +15,12 @@ LinkBitcode_la_LDFLAGS = -module
 MachineDCE_la_SOURCES = MachineDCE.cc MachineDCE.hh
 MachineDCE_la_LDFLAGS = -module
 
-AM_CPPFLAGS = ${LLVM_CPPFLAGS}
+TOOLS_DIR = ${SRC_ROOT}/tools
+
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT = ${PROJECT_ROOT}/src
+
+AM_CPPFLAGS = ${LLVM_CPPFLAGS} -I${TOOLS_DIR}
 
 ## headers start
 LowerIntrinsics_la_SOURCES += \

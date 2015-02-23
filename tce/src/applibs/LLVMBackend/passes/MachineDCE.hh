@@ -29,10 +29,9 @@
  * @author Mikael Lepistö 
  */
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
@@ -72,9 +71,7 @@
 
 #include "llvm/ADT/StringMap.h"
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+POP_COMPILER_DIAGS
 
 #include <map>
 

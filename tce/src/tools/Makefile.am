@@ -76,6 +76,7 @@ libtcetools_la_SOURCES += \
 	AssocTools.icc FileSystem.icc \
 	ContainerTools.icc BitMatrix.icc \
 	TCEString.icc SetTools.icc \
-	Informer.icc VectorTools.icc
+	Informer.icc VectorTools.icc \
+	CompilerWarnings.hh
 
 ## headers end

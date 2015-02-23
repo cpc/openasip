@@ -30,10 +30,9 @@
  * @note rating: red
  */
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include <llvm/CodeGen/MachineFunction.h>
 #include "tce_config.h"
@@ -53,9 +52,7 @@
 #include "LLVMTCECmdLineOptions.hh"
 #include "OperationPool.hh"
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+POP_COMPILER_DIAGS
 
 namespace llvm {
 
@@ -144,7 +141,7 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
 }
 
 FunctionPass*
-createTCESchedulerPass(const char* target) {
+createTCESchedulerPass(const char* /*target*/) {
     if (ADFLocation == "") {
         Application::logStream()
             << "TCE: you need to provide the ADF location via llc -adf switch!"

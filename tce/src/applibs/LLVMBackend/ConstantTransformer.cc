@@ -30,10 +30,9 @@
  * @note reting: red
  */
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "ConstantTransformer.hh"
 
@@ -51,9 +50,7 @@
 #include <llvm/Target/TargetSubtargetInfo.h>
 #include <llvm/Target/TargetOpcodes.h>
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
+POP_COMPILER_DIAGS
 
 #include <sstream>
 

@@ -34,6 +34,9 @@
 #undef NDEBUG
 #endif
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "LLVMTCEIRBuilder.hh"
 #include "ControlFlowGraph.hh"
 #include "Procedure.hh"
@@ -75,6 +78,8 @@
 #endif
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include "llvm/Analysis/AliasAnalysis.h"
+
+POP_COMPILER_DIAGS
 
 #define EXIT_IF_THROWS(__X__)                               \
     try {                                                   \

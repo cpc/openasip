@@ -31,10 +31,9 @@
 #undef NDEBUG
 #endif
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
@@ -59,11 +58,9 @@
 #include "OperationPool.hh"
 #include "Operation.hh"
 
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
 #include <utility>
+
+POP_COMPILER_DIAGS
 
 // #define DEBUG_MI_DDG
 
