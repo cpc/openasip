@@ -31,8 +31,10 @@
 #undef NDEBUG
 #endif
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
@@ -57,7 +59,9 @@
 #include "OperationPool.hh"
 #include "Operation.hh"
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 #include <utility>
 

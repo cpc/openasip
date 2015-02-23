@@ -33,8 +33,10 @@
 #ifndef TCE_MACHINE_INSTR_DDG_HH
 #define TCE_MACHINE_INSTR_DDG_HH
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 #include "BoostGraph.hh"
 #include "GraphNode.hh"
@@ -46,7 +48,9 @@
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetMachine.h"
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 namespace llvm {
     class MachineFunction;

@@ -30,8 +30,10 @@
  * @note rating: red
  */
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 #include <llvm/CodeGen/MachineFunction.h>
 #include "tce_config.h"
@@ -51,7 +53,9 @@
 #include "LLVMTCECmdLineOptions.hh"
 #include "OperationPool.hh"
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 namespace llvm {
 

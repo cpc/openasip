@@ -915,7 +915,7 @@ LLVMTCEIRBuilder::registerIndex(unsigned llvmRegNum) const {
 void
 LLVMTCEIRBuilder::markJumpTableDestinations(
     llvm::MachineFunction& mf,
-    ControlFlowGraph& cfg) {
+    ControlFlowGraph&) {
     llvm::MachineJumpTableInfo* jtInfo = mf.getJumpTableInfo();
     if (jtInfo == NULL || jtInfo->isEmpty()) {
         return;

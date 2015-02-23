@@ -35,8 +35,10 @@
 
 #include <set>
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#endif
 
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
@@ -61,7 +63,9 @@
 #include "llvm/IR/DataLayout.h"
 #endif
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 namespace TTAMachine {
     class Machine;

@@ -367,9 +367,9 @@ namespace llvm {
 
         // Create MoveNodes before calling DDGBuilder.
         virtual void createMoveNode(
-            ProgramOperationPtr& po,
-            TTAProgram::Move& m,
-            bool isDestination) {}
+            ProgramOperationPtr&,
+            TTAProgram::Move&,
+            bool /*isDestination*/) {}
 
         unsigned addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
         TTAMachine::AddressSpace& addressSpaceById(unsigned id);
