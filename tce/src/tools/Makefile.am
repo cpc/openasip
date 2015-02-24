@@ -29,7 +29,8 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	CmdLineOptions.hh CmdLineParser.hh CmdLineParser.icc StringTools.hh \
 	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
 	CIStringSet.hh ContainerTools.hh ContainerTools.icc Listener.hh \
-	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h
+	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h \
+	CompilerWarnings.hh
 
 REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo "" | tr -d "\n")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
@@ -76,7 +77,6 @@ libtcetools_la_SOURCES += \
 	AssocTools.icc FileSystem.icc \
 	ContainerTools.icc BitMatrix.icc \
 	TCEString.icc SetTools.icc \
-	Informer.icc VectorTools.icc \
-	CompilerWarnings.hh
+	Informer.icc VectorTools.icc 
 
 ## headers end
