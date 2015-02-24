@@ -80,8 +80,14 @@ namespace {
         LowerIntrinsics();
         virtual ~LowerIntrinsics();
 
+        // from llvm::Pass:
         bool doInitialization(Module &M);
         bool doFinalization (Module &M);
+
+        // to suppress Clang warnings
+        using llvm::BasicBlockPass::doInitialization;
+        using llvm::BasicBlockPass::doFinalization;
+
         bool runOnBasicBlock(BasicBlock &BB);
        
      private:

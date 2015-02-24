@@ -36,6 +36,9 @@
 #include "CompilerWarnings.hh"
 
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
+#ifdef __clang__
+IGNORE_COMPILER_WARNING("-Wunused-private-field")
+#endif
 
 #include "BoostGraph.hh"
 #include "GraphNode.hh"
@@ -46,8 +49,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/Target/TargetMachine.h"
-
-POP_COMPILER_DIAGS
 
 namespace llvm {
     class MachineFunction;
@@ -195,6 +196,9 @@ private:
     llvm::MachineFunction& mf_;
     const llvm::TargetRegisterInfo* regInfo_;
 };
+
+POP_COMPILER_DIAGS
+
 
 #endif
 
