@@ -1,0 +1,37 @@
+TTA-based Co-design Environment (TCE) v1.11 released
+----------------------------------------------------
+
+TTA-based Co-design Environment (TCE) is a toolset for designing 
+application-specific processors based on the Transport Triggered 
+Architecture (TTA). The toolset provides a complete retargetable co-design
+flow from high-level language programs down to synthesizable processor
+RTL (VHDL and Verilog generation supported) and parallel program binaries.
+Processor customization points include the register files, function units, 
+supported operations, and the interconnection network.
+
+This release adds support for LLVM 3.6, adds address of label extension
+support, brings various usability improvements and fixes several bugs 
+among other improvements (see CHANGES document and 'bzr log' for details).
+
+Note: This time we decided it is not useful to do a "tar ball release". 
+Users are directed to check out the release branch from the version 
+control system. The branch might get fixes backported also after 
+the release announcement.
+
+Acknowledgements
+----------------
+
+We'd like to thank Finnish Funding Agency for Technology and Innovation 
+(project "Parallel Acceleration", funding decision 40115/13), the Academy of 
+Finland (funding decision 253087) and ARTEMIS joint undertaking under grant 
+agreement no 641439 (ALMARVI), for financially supporting most of the 
+development work in this release. Much appreciated!
+
+Links
+-----
+
+TCE home page:     http://tce.cs.tut.fi
+This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
+Install info:      http://tce.cs.tut.fi/downloads/INSTALL
+Bazaar branch:     run: "bzr co lp:tce/1.11 tce-1.11"

@@ -25,7 +25,7 @@ wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.41.0-1.53.0                        very permissive
 sqlite3               3.0.0+                               public domain
-LLVM                  3.5, 3.4, 3.3, 3.2                   LLVM Release License
+LLVM                  3,6, 3.5, 3.4, 3.3                   LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
@@ -76,11 +76,12 @@ packages.
 LLVM and Clang
 --------------
 In order to compile programs from C/C++ with TCE, you need to install 
-LLVM and Clang with some patches to fix issues affecting TCE use.
+LLVM and Clang with some patches and correct LLVM build switches to fix 
+issues affecting TCE use.
 
 You can do this most easily by executing 
  
-  tools/scripts/install_llvm_3.5.sh DEST_PATH
+  tools/scripts/install_llvm_3.6.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches
