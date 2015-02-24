@@ -1,2 +1,0 @@
-Disabled the -O1 and -O2 tests as they don't make much
-sense with Clang that uses opt for optimizations.

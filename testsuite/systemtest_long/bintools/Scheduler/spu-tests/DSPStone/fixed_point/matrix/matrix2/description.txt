@@ -1,1 +1,0 @@
-DSPstone: Fixed point: Matrix multiplication 2 (10x10x10)

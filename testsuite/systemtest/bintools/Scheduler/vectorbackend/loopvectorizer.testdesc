@@ -1,5 +1,0 @@
-<?php
-// short test description
-$test_description="Tests for LLVM loopvectorizer for the vectorbackend";
-$test_bin = "./run_loopvectorizer_tests.sh";
-?>

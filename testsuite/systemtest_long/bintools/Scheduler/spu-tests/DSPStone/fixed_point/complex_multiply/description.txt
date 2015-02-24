@@ -1,1 +1,0 @@
-DSPstone: fixed point: complex multiply
