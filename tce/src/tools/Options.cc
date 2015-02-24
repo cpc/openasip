@@ -79,24 +79,25 @@ Options::addOptionValue(const string& name, OptionValue* option)
     throw (TypeMismatch) {
 
     try {
-	vector<OptionValue*> values;
-	values = MapTools::valueForKey<vector<OptionValue*> >(options_, name);
+        vector<OptionValue*> values;
+        values = MapTools::valueForKey<vector<OptionValue*> >(options_, name);
 
-	// check that new value is same type that old ones
-	if (typeid(*option) == typeid(*values.at(0))) {
-	    values.push_back(option);
-	    options_.erase(name);
-	    options_.insert(pair<string, vector<OptionValue*> >(name, values));
-	} else {
-	    string procName = "Options::addOptionValue";
-	    string errorMsg =
-		"Type of new OptionValue differs from the type of old values";
-	    throw TypeMismatch(__FILE__, __LINE__, procName, errorMsg);
-	}
+        OptionValue& other = *values.at(0);
+        // check that new value is same type that old ones
+        if (typeid(*option) == typeid(other)) {
+            values.push_back(option);
+            options_.erase(name);
+            options_.insert(pair<string, vector<OptionValue*> >(name, values));
+        } else {
+            string procName = "Options::addOptionValue";
+            string errorMsg =
+                "Type of new OptionValue differs from the type of old values";
+            throw TypeMismatch(__FILE__, __LINE__, procName, errorMsg);
+        }
     } catch (KeyNotFound& e) {
-	vector<OptionValue*> values;
-	values.push_back(option);
-	options_.insert(pair<string, vector<OptionValue*> >(name, values));
+        vector<OptionValue*> values;
+        values.push_back(option);
+        options_.insert(pair<string, vector<OptionValue*> >(name, values));
     }
 }
 

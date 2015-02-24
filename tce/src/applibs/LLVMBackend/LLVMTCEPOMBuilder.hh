@@ -98,7 +98,8 @@ namespace llvm {
         bool doFinalization(Module& m);
         bool doInitialization(Module &M);
         TTAProgram::Instruction* emitMove(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
+            bool conditional=false, bool trueGuard=true);
     };
 }
 

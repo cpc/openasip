@@ -80,7 +80,7 @@ SequentialScheduler::SequentialScheduler(InterPassData& data) :
     ControlFlowGraphPass(data),
     ProcedurePass(data),
     ProgramPass(data), 
-    rm_(NULL), passData_(data) {
+    rm_(NULL) {
 }
 
 /**

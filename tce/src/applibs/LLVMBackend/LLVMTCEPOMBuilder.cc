@@ -113,7 +113,8 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
 
 TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
+    bool, bool) {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
 #else

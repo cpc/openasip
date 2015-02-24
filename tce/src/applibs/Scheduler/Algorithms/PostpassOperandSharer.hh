@@ -57,7 +57,9 @@ public:
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& basicBlock,
-        const TTAMachine::Machine& targetMachine)
+        const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm, 
+        BasicBlockNode* bbn = NULL)
         throw (Exception);
 
     bool tryRemoveOperandWrite(

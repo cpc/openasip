@@ -94,12 +94,10 @@ struct MIDDGEdge : public GraphEdge {
         EDGE_MEMORY};
 
     MIDDGEdge(unsigned reg) : 
-        GraphEdge(), reg_(reg), dependenceType_(DEP_RAW), 
-        edgeReason_(EDGE_REGISTER) {}
+        GraphEdge(), reg_(reg), dependenceType_(DEP_RAW) {}
 
     MIDDGEdge(unsigned reg, DependenceType type) : 
-        GraphEdge(), reg_(reg), dependenceType_(type), 
-        edgeReason_(EDGE_REGISTER) {}
+        GraphEdge(), reg_(reg), dependenceType_(type) {}
 
 
     virtual ~MIDDGEdge() {}
@@ -128,7 +126,6 @@ private:
     
     unsigned reg_;
     unsigned char dependenceType_; // DependenceType
-    unsigned char edgeReason_; // EdgeReason
 };
 
 /**

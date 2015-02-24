@@ -73,7 +73,7 @@ public:
         TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
         TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode*bbn = NULL)
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
         throw (Exception);
 
     virtual bool executeLoopPass(

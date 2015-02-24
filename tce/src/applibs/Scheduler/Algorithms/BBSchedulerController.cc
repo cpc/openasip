@@ -110,7 +110,8 @@ void
 BBSchedulerController::handleBasicBlock(
     TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm)
+    TTAProgram::InstructionReferenceManager& irm,
+    BasicBlockNode* bbn)
     throw (Exception) {
 
     // TODO: define them somewhere in one place.
@@ -139,29 +140,27 @@ BBSchedulerController::handleBasicBlock(
         rr = new RegisterRenamer(targetMachine, bb);
     }
 
-    BasicBlockScheduler* bbScheduler = NULL;
+    std::vector<DDGPass*> bbSchedulers;
+
     if (options_ != NULL && options_->useRecursiveBUScheduler()) {
-        bbScheduler = new BypassingBUBasicBlockScheduler(
-            BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-    } else {
-        if (options_ != NULL && options_->useBUScheduler()) {
-            bbScheduler = new BUBasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-        } else {   
-            bbScheduler = new BasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-        }
+        bbSchedulers.push_back(
+            new BypassingBUBasicBlockScheduler(
+                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
+    } else if (options_ != NULL && options_->useBUScheduler()) {
+       bbSchedulers.push_back(
+           new BUBasicBlockScheduler(
+               BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
+    } else {   
+       bbSchedulers.push_back(
+           new BasicBlockScheduler(
+               BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
     }
-    
+       
     // if not scheduled yet (or loop scheduling failed)
     if (!bbScheduled) {
 
-        if (Application::verboseLevel() > 1) {
-            Application::logStream()
-                << "executing ddg pass " << std::endl;
-        }
-
-        executeDDGPass(bb, targetMachine, irm, *bbScheduler);
+        executeDDGPass(
+            bb, targetMachine, irm, bbSchedulers, bbn);
 
         if (Application::verboseLevel() > 0) {
             if (progressBar_ != NULL)
@@ -183,7 +182,7 @@ BBSchedulerController::handleBasicBlock(
     bb.liveRangeData_->registersUsedAfter_.clear();
     bb.liveRangeData_->regFirstUses_.clear();
     bb.liveRangeData_->regDefines_.clear();
-    delete bbScheduler;
+    AssocTools::deleteAllItems(bbSchedulers);
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -384,14 +383,15 @@ BBSchedulerController::executeDDGPass(
     TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine, 
     TTAProgram::InstructionReferenceManager& irm, 
-    DDGPass& ddgPass)
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode*)
     throw (Exception) {
 
     static int bbNumber = 0;
     DataDependenceGraph* ddg = createDDGFromBB(bb);
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
 
-    ddgPass.handleDDG(*ddg, *rm, targetMachine);
+    assert (ddgPasses.size() == 1);
+    ddgPasses.at(0)->handleDDG(*ddg, *rm, targetMachine);
     copyRMToBB(*rm, bb, targetMachine, irm);
     
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {

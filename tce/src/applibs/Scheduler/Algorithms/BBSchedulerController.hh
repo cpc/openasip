@@ -71,7 +71,8 @@ public:
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
-        TTAProgram::InstructionReferenceManager& irm)
+        TTAProgram::InstructionReferenceManager& irm, 
+        BasicBlockNode* bbn = NULL)
         throw (Exception);
 
     virtual void handleControlFlowGraph(
@@ -90,11 +91,11 @@ public:
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    void executeDDGPass(
+    virtual void executeDDGPass(
         TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
-        TTAProgram::InstructionReferenceManager& irm, 
-        DDGPass& ddgPass)
+        TTAProgram::InstructionReferenceManager& irm,
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
         throw (Exception);
 
     virtual void handleCFGDDG(

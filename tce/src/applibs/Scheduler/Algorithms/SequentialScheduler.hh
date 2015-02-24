@@ -133,7 +133,6 @@ private:
     /// Resource Manager of the currently scheduled BB.
     SimpleResourceManager* rm_;
 
-    InterPassData& passData_;
     MoveNodeSelector* selector_;
 };
 

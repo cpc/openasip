@@ -107,8 +107,15 @@ namespace {
         static char ID; // Pass ID, replacement for typeid       
         LowerMissingInstructions(const TTAMachine::Machine& mach);
 
+        
+        // from llvm::Pass:
         bool doInitialization(Module &M);
         bool doFinalization (Module &M);
+
+        // to suppress Clang warnings
+        using llvm::BasicBlockPass::doInitialization;
+        using llvm::BasicBlockPass::doFinalization;
+
         bool runOnBasicBlock(BasicBlock &BB);
 
         virtual const char *getPassName() const {
