@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-12
--- Last update: 2010-04-20
+-- Last update: 2015-03-10
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -257,12 +257,10 @@ architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor_alwa
   
 begin  -- rtl
 
+  control <= o1load&t1load;
   
   regs : process (clk, rstx)
   begin  -- process regs
-    
-    control <= o1load&t1load;
-
     if rstx = '0' then
       t1reg   <= (others => '0');
       opc1reg <= (others => '0');
@@ -271,7 +269,6 @@ begin  -- rtl
 
     elsif clk = '1' and clk'event then
       if (glock = '0') then
-        
         case control is
           when "11" =>
             o1reg   <= o1data;
@@ -355,12 +352,11 @@ architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor_alwa
   signal result_en_reg : std_logic;
   
 begin  -- rtl
+
+  control <= o1load&t1load;
   
   regs : process (clk, rstx)
   begin  -- process regs
-
-    control <= o1load&t1load;
-
     if rstx = '0' then
       t1reg   <= (others => '0');
       opc1reg <= (others => '0');
