@@ -458,6 +458,8 @@ bool TCEInstrInfo::PredicateInstruction(
 						    mo.isDebug());
         } else if (mo.isImm()) {
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
+        } else if (mo.isFPImm()) {
+            mi->getOperand(oper+1).ChangeToFPImmediate(mo.getFPImm());
         } else if (mo.isGlobal()) {
             // TODO: what to do here? 
             llvm_unreachable("Unexpected operand type");
