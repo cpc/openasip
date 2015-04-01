@@ -243,7 +243,7 @@ begin
 
   -- to_float (signed)
   to_float_conv_stage3 : process(
-      exp_reg_out, sign_reg_out, arg_int_reg_out ) is
+      exp_reg_out, sign_reg_out, arg_int_reg_out, zero_reg_out, inf_reg_out ) is
     variable arg            : SIGNED(intw downto 0);
     constant round_style    : round_type := float_round_style;
     variable result     : UNRESOLVED_float (ew downto -mw);

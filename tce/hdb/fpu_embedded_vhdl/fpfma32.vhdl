@@ -437,7 +437,7 @@ ARCHITECTURE rtl OF fpfma32_block IS
       exponc := (others => '1');
       exponc(exp_w-1) := '0';
       exponc := -exponc;
-      exponc := to_signed(-16,exponc'length);
+      exponc := to_signed(-128,exponc'length);
     end if;
     fractx := (OTHERS => '0');
     fractx(frac_w+guard DOWNTO guard) := fractional_c;
@@ -532,7 +532,7 @@ ARCHITECTURE rtl OF fpfma32_block IS
     fractlt  := rfract_var < fractx_tmp;
     leftright := not( exponlt or (exponeq and fractlt) );
     
-    if exponc_tmp = -16 then 
+    if exponc_tmp = -128 then 
       exponeq := false;
       exponlt := false;
       leftright := true;

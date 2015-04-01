@@ -103,21 +103,6 @@ ARCHITECTURE rtl OF fpfma16 IS
       );
   END COMPONENT;
   
-  
-  function vec2str(vec: std_logic_vector) return string is 
-  variable res: string(vec'left + 1 downto 1); 
-  begin 
-    for i in vec'reverse_range loop 
-      if (vec(i) = '1') then 
-	res(i + 1) := '1'; 
-      elsif (vec(i) = '0') then 
-	res(i + 1) := '0'; 
-      else 
-	res(i + 1) := 'X'; 
-      end if; 
-    end loop; 
-  return res; 
-  end function vec2str;
   SIGNAL mac_in_m1  : float(ew DOWNTO -mw);
   SIGNAL mac_in_m2  : float(ew DOWNTO -mw);
   SIGNAL mac_in_a   : float(ew DOWNTO -mw);
@@ -183,7 +168,7 @@ BEGIN
   r1data(ew + mw downto 0) <= r1trun;
   --r1data(busw-1 downto ew + mw + 1) <= (others => '0');
 
-  fpu: PROCESS (clk, rstx, sign_out_add,round_guard_out_add,exp_out_add,frac_out_add)
+  fpu: PROCESS (clk, rstx)
   BEGIN  -- PROCESS fpu
 
     IF(rstx = '0') THEN  
@@ -194,14 +179,6 @@ BEGIN
       o1tempdata <= (OTHERS => '0');
 
       r1trun <= (OTHERS => '0');
-      
-      IF bypass_5=False THEN
-        t1load_delay5_r <= '0';
-        sign_norm <= '0';
-        round_guard_norm <= '0';
-        exp_in_norm <= (others => '0');
-        frac_in_norm <= (others => '0');
-      END IF;
 
     ELSIF(clk'event AND clk = '1') then
       if(glock = '0') then
@@ -245,29 +222,48 @@ BEGIN
             o2tempdata <= o2trun;
         end if;
         
-        IF bypass_5=False and t1load_delay4='1' THEN
-          t1load_delay5_r <= t1load_delay4;
-          sign_norm <= sign_out_add;
-          round_guard_norm <= round_guard_out_add;
-          exp_in_norm <= to_signed(-8, ew+2) + exp_out_add;
-          frac_in_norm <= frac_out_add;
-        END IF;
-        
         if t1load_delay5_r = '1' then
           r1trun <= to_slv(res_out_norm);
         end if;
         
       END IF;
-    END IF;    
+    END IF;
+  END PROCESS fpu;
 
-    IF bypass_5=True THEN
+  stage5_wires : if bypass_5 = True generate
+    wires : process(t1load_delay4,sign_out_add,round_guard_out_add,exp_out_add,frac_out_add) is
+    begin
       t1load_delay5_r <= t1load_delay4;
       sign_norm <= sign_out_add;
       round_guard_norm <= round_guard_out_add;
       exp_in_norm <= to_signed(-8, ew+2) + exp_out_add;
       frac_in_norm <= frac_out_add;
-    END IF;    
-  END PROCESS fpu;
+    end process wires;
+  end generate;
+  
+  stage5_regs : if bypass_5 = False generate
+    regs: PROCESS (clk, rstx)
+    BEGIN  -- PROCESS fpu
+      IF(rstx = '0') THEN  
+        t1load_delay5_r <= '0';
+        sign_norm <= '0';
+        round_guard_norm <= '0';
+        exp_in_norm <= (others=>'0');
+        frac_in_norm <= (others=>'0');
+      ELSIF(clk'event AND clk = '1') then
+        IF(glock = '0') then
+          t1load_delay5_r <= t1load_delay4;
+
+          if t1load_delay4 = '1' then
+            sign_norm <= sign_out_add;
+            round_guard_norm <= round_guard_out_add;
+            exp_in_norm <= to_signed(-8, ew+2) + exp_out_add;
+            frac_in_norm <= frac_out_add;
+          end if;
+        END IF;
+      END IF;
+    END PROCESS regs;
+  end generate;
   
   res_out_norm <= normalize (fract  => frac_in_norm,
                           expon  => exp_in_norm,
@@ -462,21 +458,6 @@ ARCHITECTURE rtl OF fpfma16_block IS
     rfract_out <= (fractl * fractr) & '0';
     rexpon_out <= rexpon;
   end procedure fp_mac_stage2;
-  
-  function vec2str(vec: std_logic_vector) return string is 
-  variable res: string(vec'left + 1 downto 1); 
-  begin 
-    for i in vec'reverse_range loop 
-      if (vec(i) = '1') then 
-	res(i + 1) := '1'; 
-      elsif (vec(i) = '0') then 
-	res(i + 1) := '0'; 
-      else 
-	res(i + 1) := 'X'; 
-      end if; 
-    end loop; 
-  return res; 
-  end function vec2str;
   
   procedure fp_mac_stage3 (
       rfract          : IN UNSIGNED (2*frac_w+2 downto 0);
