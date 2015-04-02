@@ -325,7 +325,9 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 if (&(*j) == &(mbb.back())) {
                     endingCallBBs.insert(&(*i));
                 } else {
-                    if (!hasRealInstructions(j, mbb)) {
+                    MachineBasicBlock::const_iterator afterCall = j;
+                    ++afterCall;
+                    if (!hasRealInstructions(afterCall, mbb)) {
                         endingCallBBs.insert(&(*i));
                     } else {
                         // create a new BB for code after the call
@@ -446,12 +448,17 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 nextLabel = "";
             }
             
-            // if call, switch to next bb(in callsucc chain)
             if (j->getDesc().isCall() && &(*j) != &(mbb.back())) {
+                if (!AssocTools::containsKey(callSuccs, bbn)) {
+                    // the call ends the basic block, after this only at most
+                    // "non real" instructions (such as debug metadata), which
+                    // we can simply ignore
+                    break;
+                }
                 bbn = callSuccs[bbn];
                 bb = &bbn->basicBlock();
             }
-
+            
             // conditional jump or indirect jump that is not last ins splits 
             // a bb.
             if (j->getDesc().isBranch() && 
