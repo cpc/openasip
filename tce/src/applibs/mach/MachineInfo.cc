@@ -250,9 +250,11 @@ MachineInfo::canEncodeImmediateInteger(
     const Machine::BusNavigator& busNav = mach.busNavigator();
 
     size_t requiredBitsSigned =
-        std::min((unsigned)MathTools::requiredBitsSigned(imm), destWidth);
+        std::min((unsigned)MathTools::requiredBitsSigned(
+                     static_cast<long int>(imm)), destWidth);
     size_t requiredBitsUnsigned =
-        std::min((unsigned)MathTools::requiredBits(imm), destWidth);
+        std::min((unsigned)MathTools::requiredBits(
+             static_cast<long int>(imm)), destWidth);
 
     // first check the short immediate slots
     for (int bi = 0; bi < busNav.count(); ++bi) {
