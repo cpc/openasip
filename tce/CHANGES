@@ -3,6 +3,11 @@
 
 [bzr log checked on 2015-02-24]
 
+Other features and improvements
+------------------------------
+- Operation definitions can be now overridden one-by-one
+  by redefining them in a local OSAL search path.
+
 1.11      March 2015
 ====================
 

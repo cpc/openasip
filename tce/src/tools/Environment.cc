@@ -508,6 +508,10 @@ Environment::setNewErrorLogFileDir(const std::string& path) {
 /**
  * Returns the paths in which operation set files are searched.
  *
+ * The paths are returned in the order of preference. The user
+ * can override global operation definitions by redefining them in
+ * a local search path.
+ *
  * @return The paths in which operations are searched.
  */
 vector<string>
@@ -521,8 +525,6 @@ Environment::osalPaths() {
     // tce/opset/base -- these are needed during newlib build,
     // specifically STDOUT is needed to build puts() correctly.
     string src = string(TCE_BLD_ROOT) + DS + "opset" + DS + "base";
-    paths.push_back(data);
-    paths.push_back(src);
 
 	// default path for predefined and "standard" operations
 	string basePath =
@@ -542,12 +544,14 @@ Environment::osalPaths() {
 	// in current working directory
     string cwd = FileSystem::currentWorkingDir();
 
-    VectorTools::insertUnique(paths, basePath);
-    VectorTools::insertUnique(paths, userPath);
-    VectorTools::insertUnique(paths, customPath);
     if (envPath != "")
         VectorTools::insertUnique(paths, envPath);
     VectorTools::insertUnique(paths, cwd);
+    VectorTools::insertUnique(paths, data);
+    VectorTools::insertUnique(paths, src);
+    VectorTools::insertUnique(paths, userPath);
+    VectorTools::insertUnique(paths, customPath);
+    VectorTools::insertUnique(paths, basePath);
 
 	return paths;
 }
