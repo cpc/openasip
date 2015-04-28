@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -1399,11 +1399,11 @@ DataDependenceGraphBuilder::createTriggerDependencies(
     createSideEffectEdges(
         currentBB_->basicBlock().liveRangeData_->fuDepReaches_, moveNode, dop);
 
-    if (dop.hasSideEffects() || dop.affectsCount() > 0 ||
-        dop.affectedByCount() > 0) {
+    OperationPool pool;
+    if (dop.hasSideEffects() || pool.sharesState(dop)) {
 
         // remove old same op from bookkeeping.
-        // this should prevent exponential explosion or edge count.
+        // this should prevent exponential explosion of edge count.
         if (dop.hasSideEffects() && moveNode.move().isUnconditional()) {
             for (MoveNodeUseSet::iterator iter =
                      currentBB_->basicBlock().liveRangeData_->fuDeps_.begin();
@@ -1437,8 +1437,8 @@ void
 DataDependenceGraphBuilder::createSideEffectEdges(
     MoveNodeUseSet& prevMoves, const MoveNode& mn, Operation& dop) {
 
-    const int affectCount = dop.affectedByCount() + dop.affectsCount();
-    if (affectCount != 0 || dop.hasSideEffects()) {
+    OperationPool pool;
+    if (pool.sharesState(dop) || dop.hasSideEffects()) {
         for (MoveNodeUseSet::iterator i = prevMoves.begin();
              i != prevMoves.end(); i++) {
             const Operation& o = i->mn()->destinationOperation().operation();

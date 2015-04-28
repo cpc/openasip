@@ -111,6 +111,20 @@ OperationPool::index() {
 }
 
 /**
+ * Checks globally from all the loaded operations whether
+ * the given operation shares state with any of them.
+ *
+ * In case another operation affects this operation or
+ * vice-versa, they are assumed to share state. The
+ * shares-property has to be in only one of the operation's
+ * description.
+ */
+bool
+OperationPool::sharesState(const Operation& op) {
+    return pimpl_->sharesState(op);
+}
+
+/**
  * Used to force loading of OSAL data straight from LLVM backend data 
  * instead of the .opp XML files.
  */

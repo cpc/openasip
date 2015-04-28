@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>INT</name>
+    <description>Asserts (a set of) interrupt lines. The input is a bitmask with each bit denoting an interrupt line. The invoked interrupt might cause external events which indirectly change memory, this should be taken in account by the compiler. Invoking this operation with 0 is defined to be a no-operation.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+  </operation>
+
+</osal>

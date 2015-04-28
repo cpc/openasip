@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+  <operation>
+    <name>SLEEP</name>
+    <description>Puts the core to sleep (global lock) until an external signal wakes it up. The simulation model waits for a POSIX signal SIGUSR1.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <reads-memory/>
+    <writes-memory/>    
+    <side-effects/>
+    <affects>
+      <operation name="LDW"/>
+      <operation name="STW"/>
+    </affects>
+    <in element-count="1" element-width="1" id="1" type="RawData"/>
+  </operation>
+
+</osal>
