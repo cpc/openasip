@@ -4385,6 +4385,7 @@ be valid.
 \end{center}
 
 \subsection{IC/Decoder Generators}
+\label{ssec:ICDecoderGenerators}
 
 IC/Decoder generators are implemented as external plug-in
 modules. This enables users to provide customizable instruction
@@ -4867,6 +4868,44 @@ is first in the list and so on.
 \caption{HDB Editor Main window.}
 \label{fig:hdbeditor_main_window}
 \end{figure}
+
+\subsubsection{Using SRAM based Register File Implementations}
+Register files may be implemented using SRAM memory blocks. When
+implementing SRAM based RFs timing of read accesses must be
+considered. TTA machines expects that contents of the registers can be
+read at the same cycle as they are pointed by register index. However,
+SRAM memory blocks may require index (or address) to be stabilized in
+the previous cycle before accessed data can read.
+
+To implement SRAM based register files TCE must be notified if a
+implementation of RF requires separate address cycle. This is done in
+HDBEditor by setting option ``Separate address cycle'' to true in
+Register File Implementation dialog. This option adjusts the timing of
+read accesses to be a cycle earlier by modifying instruction pipeline
+of the machine when using default IC / Decoder Plugin (see:
+\ref{ssec:ICDecoderGenerators}).
+
+In addition to above, the implementer of the SRAM based RF must handle
+read-after-write hazard introduced by ``separate address cycle''
+option. Consider the following assembly code piece:
+
+\begin{verbatim}
+1 -> RF.0;
+2 -> RF.0;
+RF.0 -> ALU.in2;
+\end{verbatim}
+
+TCE's basic combinatorial implementation of the RF will output value
+of '2' as it should. When using ``Separate address cycle'' option
+without considering read-after-write hazard then RF may output
+incorrect value of '1'. This may happen as the read access is a cycle
+earlier and new data to be written to the same register has not yet
+committed therefore old data is read instead.
+
+To solve read-after-write hazard the simultaneous read and write
+accesses targeting the same register must be handled with bypassing.
+That is the reading port takes data from a writing port if the both
+ports are accessing the same register.
 
 \section{Hardware Database Tester}
 \label{sec:hdbtester}

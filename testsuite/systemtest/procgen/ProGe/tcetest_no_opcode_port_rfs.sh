@@ -43,6 +43,7 @@ shift "$((OPTIND-1))"
 
 clear_test_data() {
     rm -rf $PROGE_OUT
+    rm -f $TTABUSTRACE
     rm -f $TPEF
     rm -f *.img
 }

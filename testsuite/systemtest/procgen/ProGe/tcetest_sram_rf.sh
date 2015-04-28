@@ -11,9 +11,10 @@ testDataDir=data/sram_rf
 testAdf="${testDataDir}/complex_multiply_stdout.adf"
 testIdf="${testDataDir}/complex_multiply_stdout.idf"
 testC="${testDataDir}/complex_multiply_stdout.c"
-testTpef=complex_multiply_stdout.tpef
+testAsm="${testDataDir}/test.tceasm"
+testTpef=test.tpef
 pdir=proge-output
-TTABUSTRACE=ttabus
+TTABUSTRACE=ttabustrace
 RTLBUSTRACE=$pdir/execbus.dump
 
 clear_test_data() {
@@ -42,6 +43,18 @@ do
 done
 shift "$((OPTIND-1))"
 
+rtl-simulate() {
+    GHDL=$(which ghdl 2> /dev/null)
+    if [ "x${GHDL}" != "x" ]
+    then
+        cd $pdir || exit 1
+        ./ghdl_compile.sh >& /dev/null
+        ./ghdl_simulate.sh >& sim.log
+        cd ..
+        diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $RTLBUSTRACE)
+    fi
+}
+
 clear_test_data
 
 $PROGE -t -i $testIdf -o $pdir $testAdf || abort_w_msg "Error from ProGe"
@@ -49,19 +62,19 @@ $TCECC -O0 -a $testAdf -o $testTpef $testC || abort_w_msg "Error from tcecc"
 $GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
 $PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
 
-GHDL=$(which ghdl 2> /dev/null)
-if [ "x${GHDL}" != "x" ]
-then
-    cd $pdir || exit 1
-    ./ghdl_compile.sh >& /dev/null
-    ./ghdl_simulate.sh >& /dev/null
-    cd ..
-    diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $RTLBUSTRACE)
-    grep -q TT $pdir/printchar_output.txt || abort_w_msg "Error from test program."
-fi
+rtl-simulate
+grep -q TT $pdir/printchar_output.txt \
+    || abort_w_msg "Error from test program."
+
+tceasm -o $testTpef $testAdf  $testAsm || abort_w_msg "Error from tceasm"
+$GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
+$PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
+
+rtl-simulate
 
 if [ "${leavedirty}" != "true" ]; then
     clear_test_data
 fi
+
 exit 0
 
