@@ -39,10 +39,14 @@
 #include <string>
 
 #include "OperationSerializer.hh"
+#include "OperationBehaviorLoader.hh"
 #include "Exception.hh"
 
 class OperationModule;
 class ObjectState;
+class Operation;
+class TCEString;
+class OperationBehaviorProxy;
 
 /**
  * Class that holds information about search paths, modules and operations.
@@ -80,6 +84,9 @@ public:
         throw (OutOfRange, BadOperationModule);
     int operationCount(const OperationModule& om)
         throw (BadOperationModule);
+
+    Operation* effectiveOperation(const TCEString& name);
+
 private:
     /// Contains all operation modules indexed by full path names.
     typedef std::map<std::string, std::vector<OperationModule*> >
@@ -110,9 +117,11 @@ private:
     DefinitionTable opDefinitions_;
     /// Container holding all modules.
     std::vector<OperationModule*> modules_;
-
     /// Reads the operation property definitions.
     OperationSerializer serializer_;
+    OperationBehaviorLoader loader_;
+    std::vector<OperationBehaviorProxy*> proxies_;
+
 };
 
 #include "OperationIndex.icc"

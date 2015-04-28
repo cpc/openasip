@@ -67,8 +67,8 @@ public:
         const TTAMachine::Machine& mach,
         const std::string& slotName);
     static bool canEncodeImmediateInteger(
-        const TTAMachine::Machine& mach, int64_t imm);
-
+        const TTAMachine::Machine& mach, int64_t imm, 
+        unsigned destWidth=UINT_MAX);
 
 private:
     MachineInfo();

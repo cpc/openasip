@@ -48,6 +48,10 @@
 #include "Program.hh"
 #include "Operation.hh"
 #include "BasicBlock.hh"
+#include "SchedulerCmdLineOptions.hh"
+#include "Operand.hh"
+
+static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
 
 /**
  * Constructor. Initializes interpassData.
@@ -108,11 +112,9 @@ PreOptimizer::tryToOptimizeAddressReg(
             if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER) {
                 return false;
             }
-/*
             if (edge.isBackEdge()) {
                 return false;
             }
-*/
             if (src == NULL) {
                 src = &ddg.tailNode(edge);
                 connectingEdge = &edge;
@@ -131,7 +133,7 @@ PreOptimizer::tryToOptimizeAddressReg(
     }
 
     // TODO: multi-threading might make this fail too often!
-    if (src->nodeID() != address.nodeID()-1) {
+    if (src->nodeID() != address.nodeID() - 1) {
         // some other moves between these moves.
         return false;
     }
@@ -150,7 +152,7 @@ PreOptimizer::tryToOptimizeAddressReg(
     }
 
     // cannot use narrower reg for address.
-    if (address.move().source().registerFile().width() >
+    if (address.move().source().registerFile().width() !=
         result.move().destination().registerFile().width()) {
         return false;
     }
@@ -187,12 +189,11 @@ PreOptimizer::tryToOptimizeAddressReg(
 TTAProgram::CodeSnippet*
 PreOptimizer::tryToRemoveXor(
     DataDependenceGraph& ddg, ProgramOperation& po,
-    TTAProgram::InstructionReferenceManager* irm) {
+    TTAProgram::InstructionReferenceManager* irm, ControlFlowGraph& cfg) {
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
         return NULL;
     }
     // check that it's or by 1.
-    MoveNode& operand1 = po.inputMove(0);
     MoveNode& operand2 = po.inputMove(1);
     TTAProgram::Terminal& src2 = operand2.move().source();
     if (!src2.isImmediate() || src2.value().intValue() != 1) {
@@ -200,53 +201,56 @@ PreOptimizer::tryToRemoveXor(
     }
     // now we have a xor op which is a truth value reversal.
     // find where the result is used.
-    
+
+    return tryToRemoveGuardInversingOp(ddg, po, irm, cfg);
+}
+
+
+
+TTAProgram::CodeSnippet*
+PreOptimizer::tryToRemoveEq(
+    DataDependenceGraph& ddg, ProgramOperation& po,
+    TTAProgram::InstructionReferenceManager* irm, ControlFlowGraph& cfg) {
+    if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
+        return NULL;
+    }
+    // check that it's or by 0.
+    MoveNode& operand1 = po.inputMove(0);
+    MoveNode& operand2 = po.inputMove(1);
+    TTAProgram::Terminal& src2 = operand2.move().source();
+    if (!src2.isImmediate() || src2.value().intValue() != 0) {
+        return NULL;
+    }
+    MoveNode* src = ddg.onlyRegisterRawSource(operand1);
+    if (src == NULL || !src->isSourceOperation()) {
+        return NULL;
+    }
+    ProgramOperation& srcOp = src->sourceOperation();
+    if (srcOp.operation().operand(
+            src->move().source().operationIndex()).type() == Operand::BOOL) {
+        // now we have a xor op which is a truth value reversal.
+        // find where the result is used.
+        return tryToRemoveGuardInversingOp(ddg, po, irm, cfg);
+    }
+    return NULL;
+}
+
+
+TTAProgram::CodeSnippet*
+PreOptimizer::tryToRemoveGuardInversingOp(
+    DataDependenceGraph& ddg, ProgramOperation& po,
+    TTAProgram::InstructionReferenceManager* irm,
+    ControlFlowGraph& cfg) {
+
+    MoveNode& operand1 = po.inputMove(0);
+    MoveNode& operand2 = po.inputMove(1);
     MoveNode& result = po.outputMove(0);
     TTAProgram::Move& resultMove = result.move();
     DataDependenceGraph::EdgeSet oEdges = ddg.outEdges(result);
-    bool ok = true;
-    
-    // loop through all outedges.
-    for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
-         i != oEdges.end(); i++) {
-        DataDependenceEdge& edge = **i;
-        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW && 
-            !edge.guardUse()) {
-            MoveNode& dstMN = ddg.headNode(edge);
-            if (!dstMN.isDestinationOperation()) {
-                ok = false;
-                break;
-            }
-            ProgramOperation &dstOp = dstMN.destinationOperation();
-            if (dstOp.operation().name() != "SELECT") {
-                ok = false;
-                break;
-            }
-        }
 
-        
-        // them checks that those guard usages cannot have some other
-        // movenode writing the guard, if some complex guard 
-        // calculation where guard write itself is conditional
-        // or multiple guard sources in different BBs.
-        int gRawCount = 0;
-        MoveNode& head = ddg.headNode(edge);
-        DataDependenceGraph::EdgeSet iEdges = ddg.inEdges(head);
-        for (DataDependenceGraph::EdgeSet::iterator j = iEdges.begin();
-             j != iEdges.end(); j++) {
-            if ((**j).guardUse() && 
-                (**j).dependenceType() == DataDependenceEdge::DEP_RAW) {
-                gRawCount++;
-                if (gRawCount > 1) {
-                    ok = false;
-                    break;
-                }
-            }
-        }
-    }
     // some more complex things done with the guard.
     // converting those not yet supported.
-    if (!ok) {
+    if (!checkGuardReversalAllowed(ddg, oEdges)) {
         return NULL;
     }
     
@@ -262,28 +266,10 @@ PreOptimizer::tryToRemoveXor(
         return NULL;
     }
     
-    bool reversesJump = false;
-    for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
-         i != oEdges.end(); i++) {
-        DataDependenceEdge& edge = **i;
-        if (edge.dependenceType() != DataDependenceEdge::DEP_RAW) {
-            continue;
-        }
-        MoveNode& head = ddg.headNode(edge);
-        if (edge.guardUse()) {
-            TTAProgram::Move& guardUseMove = head.move();
-            assert(!guardUseMove.isUnconditional());
-            guardUseMove.setGuard(
-                TTAProgram::CodeGenerator::createInverseGuard(
-                    guardUseMove.guard()));
-            if (guardUseMove.isJump()) {
-                reversesJump = true;
-            }
-        } else {
-            head.destinationOperation().switchInputs(1,2);
-        }
+    bool reversesJump = inverseGuardsOfHeads(ddg, oEdges);
+    if (reversesJump && !cfgAllowsJumpReversal(operand1Ins, cfg)) {
+        return NULL;
     }
-    
     // need some copy from one predicate to another?
     TTAProgram::Terminal& src1 = operand1.move().source();
     TTAProgram::Terminal& dst = resultMove.destination();
@@ -330,6 +316,77 @@ PreOptimizer::tryToRemoveXor(
     }
 }
 
+
+bool PreOptimizer::checkGuardReversalAllowed(
+    DataDependenceGraph& ddg,
+    DataDependenceGraph::EdgeSet& oEdges) {
+    
+    // loop through all outedges.
+    for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
+         i != oEdges.end(); i++) {
+        DataDependenceEdge& edge = **i;
+        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW && 
+            !edge.guardUse()) {
+            MoveNode& dstMN = ddg.headNode(edge);
+            if (!dstMN.isDestinationOperation()) {
+                return false;
+            }
+            ProgramOperation &dstOp = dstMN.destinationOperation();
+            if (dstOp.operation().name() != "SELECT") {
+                return false;
+            }
+        }
+
+        
+        // them checks that those guard usages cannot have some other
+        // movenode writing the guard, if some complex guard 
+        // calculation where guard write itself is conditional
+        // or multiple guard sources in different BBs.
+        int gRawCount = 0;
+        MoveNode& head = ddg.headNode(edge);
+        DataDependenceGraph::EdgeSet iEdges = ddg.inEdges(head);
+        for (DataDependenceGraph::EdgeSet::iterator j = iEdges.begin();
+             j != iEdges.end(); j++) {
+            if ((**j).guardUse() && 
+                (**j).dependenceType() == DataDependenceEdge::DEP_RAW) {
+                gRawCount++;
+                if (gRawCount > 1) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+
+bool PreOptimizer::inverseGuardsOfHeads(
+    DataDependenceGraph& ddg,
+    DataDependenceGraph::EdgeSet& oEdges) {
+    bool reversesJump = false;
+    for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
+         i != oEdges.end(); i++) {
+        DataDependenceEdge& edge = **i;
+        if (edge.dependenceType() != DataDependenceEdge::DEP_RAW) {
+            continue;
+        }
+        MoveNode& head = ddg.headNode(edge);
+        if (edge.guardUse()) {
+            TTAProgram::Move& guardUseMove = head.move();
+            assert(!guardUseMove.isUnconditional());
+            guardUseMove.setGuard(
+                TTAProgram::CodeGenerator::createInverseGuard(
+                    guardUseMove.guard()));
+            if (guardUseMove.isJump()) {
+                reversesJump = true;
+            }
+        } else {
+            head.destinationOperation().switchInputs(1,2);
+        }
+    }
+    return reversesJump;
+}
+
 /**
  * Handles a procedure.
  * 
@@ -341,6 +398,15 @@ PreOptimizer::handleProcedure(
     TTAProgram::Procedure& procedure,
     const TTAMachine::Machine& mach)
     throw (Exception) {
+
+    // If procedure has too many instructions, may run out of memory.
+    // so check the lowmem mode. in lowmem mode this optimiziation 
+    // is disabled, so returns.
+    int lowMemThreshold = DEFAULT_LOWMEM_MODE_THRESHOLD;
+
+    if (procedure.instructionCount() >=lowMemThreshold) {
+        return;
+    }
 
     ControlFlowGraph cfg(procedure /*, ProcedurePass::interPassData()*/);
     cfg.updateReferencesFromProcToCfg();
@@ -362,25 +428,29 @@ PreOptimizer::handleCFGDDG(
         &program->instructionReferenceManager();
 
     // Loop over all programoperations. find XOR's by 1.
-    for (int i = 0; i < ddg.programOperationCount(); i++) {
+    for (int i = ddg.programOperationCount()-1; i>=0; i--) {
         ProgramOperation& po = ddg.programOperation(i);
+        TTAProgram::CodeSnippet* parent = NULL;
         if (po.operation().name() == "XOR") {
-            TTAProgram::CodeSnippet* parent = tryToRemoveXor(ddg,po,irm);
-            if (parent) {
-                bool found = false;
-                for (int j = 0; j < cfg.nodeCount(); j++) {
-                    BasicBlockNode& bbn = cfg.node(j);
-                    if (&bbn.basicBlock() == parent) {
-                        cfg.reverseGuardOnOutEdges(bbn);
-                        found = true;
-                        break;
-                    }
+            parent = tryToRemoveXor(ddg,po,irm,cfg);
+        }
+        if (po.operation().name() == "EQ") {
+            parent = tryToRemoveEq(ddg,po,irm,cfg);
+        }
+        if (parent) {
+            bool found = false;
+            for (int j = 0; j < cfg.nodeCount(); j++) {
+                BasicBlockNode& bbn = cfg.node(j);
+                if (&bbn.basicBlock() == parent) {
+                    cfg.reverseGuardOnOutEdges(bbn);
+                    found = true;
+                    break;
                 }
-                if (found == true) {
-                    continue;
-                }
-                assert(false && "invalid parent on removed xor inst.");
             }
+            if (found == true) {
+                continue;
+            }
+            assert(false && "invalid parent on removed xor inst.");
         }
         if (po.operation().readsMemory()) {
             tryToOptimizeAddressReg(ddg, po);
@@ -407,3 +477,22 @@ PreOptimizer::handleControlFlowGraph(
     delete ddg;
 }
 
+/** Check that we can revert the out edges of the cfg when reverting 
+ *  a jump guard */
+bool
+PreOptimizer::cfgAllowsJumpReversal(
+    TTAProgram::Instruction& ins, ControlFlowGraph& cfg) {
+    TTAProgram::CodeSnippet* parent = &ins.parent();
+    for (int j = 0; j < cfg.nodeCount(); j++) {
+        BasicBlockNode& bbn = cfg.node(j);
+        if (&bbn.basicBlock() == parent) {
+            for (int i = 0; i < cfg.outDegree(bbn); i++) {
+                ControlFlowEdge& e = cfg.outEdge(bbn,i);
+                if (!e.isTrueEdge() && !e.isFalseEdge()) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}

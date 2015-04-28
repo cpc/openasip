@@ -1,6 +1,0 @@
-<?php
-// short test description
-$bin_args = "-c ../../../../tce/scheduler/passes/sequential_tcecc_scheduler.conf -vxr -g \"-O1 -k_Output\" -a huge.adf ";
-$test_description="Validating llvm-fronted: Compiling short test case sources with: ".$bin_args;
-$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-?>

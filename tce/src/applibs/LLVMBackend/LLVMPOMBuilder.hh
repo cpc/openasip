@@ -34,8 +34,14 @@
 #ifndef LLVM_POM_BUILDER_H
 #define LLVM_POM_BUILDER_H
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "LLVMTCEBuilder.hh"
 #include "TCETargetMachine.hh"
+
+POP_COMPILER_DIAGS
 
 namespace TTAMachine {
     class Machine;

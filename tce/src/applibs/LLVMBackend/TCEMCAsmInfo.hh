@@ -14,8 +14,13 @@
 #ifndef TCEMCASMINFO_H
 #define TCEMCASMINFO_H
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include <llvm/MC/MCAsmInfo.h>
 #include "tce_config.h"
+
+POP_COMPILER_DIAGS
 
 namespace llvm {
   class Target;

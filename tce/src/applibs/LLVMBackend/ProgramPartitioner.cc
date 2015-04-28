@@ -31,6 +31,10 @@
 
 #include <iostream>
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "ProgramPartitioner.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "TCETargetMachine.hh"
@@ -42,6 +46,8 @@
 #else
 #include <llvm/IR/Instruction.h>
 #endif
+
+POP_COMPILER_DIAGS
 
 char ProgramPartitioner::ID = 0;    
 

@@ -1,2 +1,0 @@
---extra-llvm-opts=vectorize,bb-vectorize-max-instr-per-group=27
---vector-backend

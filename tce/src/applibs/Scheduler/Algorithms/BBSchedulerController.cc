@@ -109,7 +109,9 @@ BBSchedulerController::~BBSchedulerController() {
 void
 BBSchedulerController::handleBasicBlock(
     TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine)
+    const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm,
+    BasicBlockNode* bbn)
     throw (Exception) {
 
     // TODO: define them somewhere in one place.
@@ -138,29 +140,27 @@ BBSchedulerController::handleBasicBlock(
         rr = new RegisterRenamer(targetMachine, bb);
     }
 
-    BasicBlockScheduler* bbScheduler = NULL;
+    std::vector<DDGPass*> bbSchedulers;
+
     if (options_ != NULL && options_->useRecursiveBUScheduler()) {
-        bbScheduler = new BypassingBUBasicBlockScheduler(
-            BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-    } else {
-        if (options_ != NULL && options_->useBUScheduler()) {
-            bbScheduler = new BUBasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-        } else {   
-            bbScheduler = new BasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr);
-        }
+        bbSchedulers.push_back(
+            new BypassingBUBasicBlockScheduler(
+                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
+    } else if (options_ != NULL && options_->useBUScheduler()) {
+       bbSchedulers.push_back(
+           new BUBasicBlockScheduler(
+               BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
+    } else {   
+       bbSchedulers.push_back(
+           new BasicBlockScheduler(
+               BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
     }
-    
+       
     // if not scheduled yet (or loop scheduling failed)
     if (!bbScheduled) {
 
-        if (Application::verboseLevel() > 1) {
-            Application::logStream()
-                << "executing ddg pass " << std::endl;
-        }
-
-        executeDDGPass(bb, targetMachine, *bbScheduler);
+        executeDDGPass(
+            bb, targetMachine, irm, bbSchedulers, bbn);
 
         if (Application::verboseLevel() > 0) {
             if (progressBar_ != NULL)
@@ -182,7 +182,7 @@ BBSchedulerController::handleBasicBlock(
     bb.liveRangeData_->registersUsedAfter_.clear();
     bb.liveRangeData_->regFirstUses_.clear();
     bb.liveRangeData_->regDefines_.clear();
-    delete bbScheduler;
+    AssocTools::deleteAllItems(bbSchedulers);
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -205,7 +205,7 @@ BBSchedulerController::handleProcedure(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
-    ControlFlowGraph cfg(procedure);
+    ControlFlowGraph cfg(procedure, BasicBlockPass::interPassData());
 
     if (Application::verboseLevel() > 0) {
         totalBasicBlocks_ = cfg.nodeCount() - 3;
@@ -244,10 +244,14 @@ BBSchedulerController::handleProcedure(
 
     scheduledProcedure_ = &procedure;
 
-    handleControlFlowGraph(cfg, targetMachine);
-
+    // dsf also called between scheduling.. have to update these before it.
+    // delay slot filler needs refs to be into instrs in cfg, not in
+    // original program
     cfg.updateReferencesFromProcToCfg();
+
     procedure.clear();
+
+    handleControlFlowGraph(cfg, targetMachine);
 
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
         delaySlotFiller_->fillDelaySlots(cfg, *bigDDG_, targetMachine);
@@ -255,8 +259,6 @@ BBSchedulerController::handleProcedure(
 
     // now all basic blocks are scheduled, let's put them back to the
     // original procedure
-
-//    copyCfgToProcedure(procedure, cfg);
     cfg.copyToProcedure(procedure);
 
     if (bigDDG_ != NULL) {
@@ -277,6 +279,29 @@ BBSchedulerController::handleProcedure(
         delete bigDDG_;
         bigDDG_ = NULL;
     }
+    if (delaySlotFiller_ != NULL) {
+        delaySlotFiller_->finalizeProcedure();
+    }
+    scheduledProcedure_ = NULL;
+}
+
+/**
+ * Schedules all nodes in a control flow graph.
+ *
+ * The original control flow graph nodes are modified during scheduling.
+ *
+ * @param cfg The control flow graph to schedule.
+ * @param targetMachine The target machine.
+ * @exception Exception In case of an error during scheduling. The exception
+ *            type can be any subtype of Exception.
+ */
+void
+BBSchedulerController::handleControlFlowGraph(
+    ControlFlowGraph& cfg,
+    const TTAMachine::Machine& targetMachine)
+    throw (Exception) {
+
+    return handleCFGDDG(cfg, *bigDDG_, targetMachine);
 }
 
 /**
@@ -357,15 +382,17 @@ void
 BBSchedulerController::executeDDGPass(
     TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine, 
-    DDGPass& ddgPass)
+    TTAProgram::InstructionReferenceManager& irm, 
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode*)
     throw (Exception) {
 
     static int bbNumber = 0;
     DataDependenceGraph* ddg = createDDGFromBB(bb);
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
 
-    ddgPass.handleDDG(*ddg, *rm, targetMachine);
-    copyRMToBB(*rm, bb, targetMachine);
+    assert (ddgPasses.size() == 1);
+    ddgPasses.at(0)->handleDDG(*ddg, *rm, targetMachine);
+    copyRMToBB(*rm, bb, targetMachine, irm);
     
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
         rm->clearOldResources();
@@ -391,5 +418,33 @@ BBSchedulerController::handleCFGDDG(
     DataDependenceGraph& ddg,
     const TTAMachine::Machine& targetMachine) {
     bigDDG_ = &ddg;
-    executeBasicBlockPass(cfg, targetMachine, *this);
+
+    TCEString procName = cfg.procedureName();
+
+    if (procName == "") procName = cfg.name();
+
+    int nodeCount = cfg.nodeCount();
+    for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
+        BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
+        if (!bb.isNormalBB())
+            continue;
+        if (bb.isScheduled()) {
+            continue;
+        }
+
+        handleBasicBlock(
+            bb.basicBlock(), targetMachine, cfg.instructionReferenceManager());
+        bb.setScheduled();
+
+        if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
+            delaySlotFiller_->bbnScheduled(bb);
+        }
+
+        // if some node is removed, make sure does not skip some node and
+        // then try to handle too many nodes.
+        if (cfg.nodeCount() != nodeCount) {
+            nodeCount = cfg.nodeCount();
+            bbIndex = 0;
+        }
+    }
 }

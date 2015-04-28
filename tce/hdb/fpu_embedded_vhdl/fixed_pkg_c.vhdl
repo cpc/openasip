@@ -37,9 +37,9 @@ package fixed_pkg is
   -- Author David Bishop (dbishop@vhdl.org)
 
   -- base Unsigned fixed point type, downto direction assumed
-  type UNRESOLVED_ufixed is array (INTEGER range <>) of STD_ULOGIC;
+  type UNRESOLVED_ufixed is array (INTEGER range <>) of STD_LOGIC;
   -- base Signed fixed point type, downto direction assumed
-  type UNRESOLVED_sfixed is array (INTEGER range <>) of STD_ULOGIC;
+  type UNRESOLVED_sfixed is array (INTEGER range <>) of STD_LOGIC;
 
   subtype U_ufixed is UNRESOLVED_ufixed;
   subtype U_sfixed is UNRESOLVED_sfixed;
@@ -341,17 +341,17 @@ function "MOD"(X, Y: in REAL ) return REAL;
   --         = ufixed (maximum(a,c) downto minimum(b,d))
   procedure add_carry (
     L, R   : in  UNRESOLVED_ufixed;
-    c_in   : in  STD_ULOGIC;
+    c_in   : in  STD_LOGIC;
     result : out UNRESOLVED_ufixed;
-    c_out  : out STD_ULOGIC);
+    c_out  : out STD_LOGIC);
 
   -- add_carry (sfixed(a downto b), sfixed (c downto d))
   --         = sfixed (maximum(a,c) downto minimum(b,d))
   procedure add_carry (
     L, R   : in  UNRESOLVED_sfixed;
-    c_in   : in  STD_ULOGIC;
+    c_in   : in  STD_LOGIC;
     result : out UNRESOLVED_sfixed;
-    c_out  : out STD_ULOGIC);
+    c_out  : out STD_LOGIC);
 
   -- Scales the result by a power of 2.  Width of input = width of output with
   -- the binary point moved.
@@ -379,18 +379,18 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function "/=" (l, r : UNRESOLVED_ufixed) return BOOLEAN;
   function "/=" (l, r : UNRESOLVED_sfixed) return BOOLEAN;
 
-  function \?=\  (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?/=\ (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>\  (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>=\ (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<\  (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<=\ (l, r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?=\  (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?/=\ (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>\  (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>=\ (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<\  (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<=\ (l, r : UNRESOLVED_sfixed) return STD_ULOGIC;
+  function \?=\  (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?/=\ (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>\  (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>=\ (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<\  (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<=\ (l, r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?=\  (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?/=\ (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>\  (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>=\ (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<\  (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<=\ (l, r : UNRESOLVED_sfixed) return STD_LOGIC;
 
   function std_match (l, r : UNRESOLVED_ufixed) return BOOLEAN;
   function std_match (l, r : UNRESOLVED_sfixed) return BOOLEAN;
@@ -421,19 +421,19 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function ">"  (l : NATURAL; r : UNRESOLVED_ufixed) return BOOLEAN;
   function "<"  (l : NATURAL; r : UNRESOLVED_ufixed) return BOOLEAN;
   
-  function \?=\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
-  function \?/=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
-  function \?>=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
-  function \?<=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
-  function \?>\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
-  function \?<\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_ULOGIC;
+  function \?=\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
+  function \?/=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
+  function \?>=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
+  function \?<=\ (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
+  function \?>\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
+  function \?<\  (l : UNRESOLVED_ufixed; r : NATURAL) return STD_LOGIC;
 
-  function \?=\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?/=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
+  function \?=\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?/=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<=\ (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<\  (l : NATURAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
 
   function maximum (l : UNRESOLVED_ufixed; r : NATURAL)
     return UNRESOLVED_ufixed;
@@ -462,19 +462,19 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function ">"  (l : REAL; r : UNRESOLVED_ufixed) return BOOLEAN;
   function "<"  (l : REAL; r : UNRESOLVED_ufixed) return BOOLEAN;
 
-  function \?=\  (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
-  function \?/=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
-  function \?>=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
-  function \?<=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
-  function \?>\  (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
-  function \?<\  (l : UNRESOLVED_ufixed; r : REAL) return STD_ULOGIC;
+  function \?=\  (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
+  function \?/=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
+  function \?>=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
+  function \?<=\ (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
+  function \?>\  (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
+  function \?<\  (l : UNRESOLVED_ufixed; r : REAL) return STD_LOGIC;
 
-  function \?=\  (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?/=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?>\  (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function \?<\  (l : REAL; r : UNRESOLVED_ufixed) return STD_ULOGIC;
+  function \?=\  (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?/=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<=\ (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?>\  (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
+  function \?<\  (l : REAL; r : UNRESOLVED_ufixed) return STD_LOGIC;
 
   function maximum (l : UNRESOLVED_ufixed; r : REAL) return UNRESOLVED_ufixed;
   function maximum (l : REAL; r : UNRESOLVED_ufixed) return UNRESOLVED_ufixed;
@@ -499,19 +499,19 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function ">"  (l : INTEGER; r : UNRESOLVED_sfixed) return BOOLEAN;
   function "<"  (l : INTEGER; r : UNRESOLVED_sfixed) return BOOLEAN;
 
-  function \?=\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
-  function \?/=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
-  function \?>=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
-  function \?<=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
-  function \?>\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
-  function \?<\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_ULOGIC;
+  function \?=\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
+  function \?/=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
+  function \?>=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
+  function \?<=\ (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
+  function \?>\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
+  function \?<\  (l : UNRESOLVED_sfixed; r : INTEGER) return STD_LOGIC;
 
-  function \?=\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?/=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_ULOGIC;
+  function \?=\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?/=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<=\ (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<\  (l : INTEGER; r : UNRESOLVED_sfixed) return STD_LOGIC;
 
   function maximum (l : UNRESOLVED_sfixed; r : INTEGER)
     return UNRESOLVED_sfixed;
@@ -540,19 +540,19 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function ">"  (l : REAL; r : UNRESOLVED_sfixed) return BOOLEAN;
   function "<"  (l : REAL; r : UNRESOLVED_sfixed) return BOOLEAN;
 
-  function \?=\  (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
-  function \?/=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
-  function \?>=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
-  function \?<=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
-  function \?>\  (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
-  function \?<\  (l : UNRESOLVED_sfixed; r : REAL) return STD_ULOGIC;
+  function \?=\  (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
+  function \?/=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
+  function \?>=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
+  function \?<=\ (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
+  function \?>\  (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
+  function \?<\  (l : UNRESOLVED_sfixed; r : REAL) return STD_LOGIC;
 
-  function \?=\  (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?/=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?>\  (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function \?<\  (l : REAL; r : UNRESOLVED_sfixed) return STD_ULOGIC;
+  function \?=\  (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?/=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<=\ (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?>\  (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
+  function \?<\  (l : REAL; r : UNRESOLVED_sfixed) return STD_LOGIC;
 
   function maximum (l : UNRESOLVED_sfixed; r : REAL) return UNRESOLVED_sfixed;
   function maximum (l : REAL; r : UNRESOLVED_sfixed) return UNRESOLVED_sfixed;
@@ -615,80 +615,80 @@ function "MOD"(X, Y: in REAL ) return REAL;
   function "xor"  (l, r : UNRESOLVED_sfixed) return UNRESOLVED_sfixed;
   function "xnor" (l, r : UNRESOLVED_sfixed) return UNRESOLVED_sfixed;
 
-  -- Vector and std_ulogic functions, same as functions in numeric_std
-  function "and"  (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  -- Vector and STD_LOGIC functions, same as functions in numeric_std
+  function "and"  (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "and"  (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "and"  (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "or"   (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  function "or"   (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "or"   (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "or"   (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "nand" (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  function "nand" (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "nand" (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "nand" (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "nor"  (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  function "nor"  (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "nor"  (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "nor"  (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "xor"  (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  function "xor"  (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "xor"  (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "xor"  (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "xnor" (l : STD_ULOGIC; r : UNRESOLVED_ufixed)
+  function "xnor" (l : STD_LOGIC; r : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed;
-  function "xnor" (l : UNRESOLVED_ufixed; r : STD_ULOGIC)
+  function "xnor" (l : UNRESOLVED_ufixed; r : STD_LOGIC)
     return UNRESOLVED_ufixed;
-  function "and"  (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "and"  (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "and"  (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "and"  (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
-  function "or"   (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "or"   (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "or"   (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "or"   (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
-  function "nand" (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "nand" (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "nand" (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "nand" (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
-  function "nor"  (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "nor"  (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "nor"  (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "nor"  (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
-  function "xor"  (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "xor"  (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "xor"  (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "xor"  (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
-  function "xnor" (l : STD_ULOGIC; r : UNRESOLVED_sfixed)
+  function "xnor" (l : STD_LOGIC; r : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed;
-  function "xnor" (l : UNRESOLVED_sfixed; r : STD_ULOGIC)
+  function "xnor" (l : UNRESOLVED_sfixed; r : STD_LOGIC)
     return UNRESOLVED_sfixed;
 
   -- Reduction operators, same as numeric_std functions
-  function and_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function nand_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function or_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function nor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function xor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function xnor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC;
-  function and_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function nand_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function or_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function nor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function xor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
-  function xnor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC;
+  function and_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function nand_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function or_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function nor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function xor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function xnor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC;
+  function and_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
+  function nand_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
+  function or_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
+  function nor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
+  function xor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
+  function xnor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC;
 
   -- returns arg'low-1 if not found
-  function find_leftmost (arg : UNRESOLVED_ufixed; y : STD_ULOGIC)
+  function my_find_leftmost (arg : UNRESOLVED_ufixed; y : STD_LOGIC)
     return INTEGER;
-  function find_leftmost (arg : UNRESOLVED_sfixed; y : STD_ULOGIC)
+  function my_find_leftmost (arg : UNRESOLVED_sfixed; y : STD_LOGIC)
     return INTEGER;
 
   -- returns arg'high+1 if not found
-  function find_rightmost (arg : UNRESOLVED_ufixed; y : STD_ULOGIC)
+  function find_rightmost (arg : UNRESOLVED_ufixed; y : STD_LOGIC)
     return INTEGER;
-  function find_rightmost (arg : UNRESOLVED_sfixed; y : STD_ULOGIC)
+  function find_rightmost (arg : UNRESOLVED_sfixed; y : STD_LOGIC)
     return INTEGER;
 
   --===========================================================================
@@ -998,13 +998,13 @@ function "MOD"(X, Y: in REAL ) return REAL;
   -- maps meta-logical values
   function to_01 (
     s             : UNRESOLVED_ufixed;  -- fixed point input
-    constant XMAP : STD_ULOGIC := '0')  -- Map x to
+    constant XMAP : STD_LOGIC := '0')  -- Map x to
     return UNRESOLVED_ufixed;
 
   -- maps meta-logical values
   function to_01 (
     s             : UNRESOLVED_sfixed;  -- fixed point input
-    constant XMAP : STD_ULOGIC := '0')  -- Map x to
+    constant XMAP : STD_LOGIC := '0')  -- Map x to
     return UNRESOLVED_sfixed;
 
   function Is_X    (arg : UNRESOLVED_ufixed) return BOOLEAN;
@@ -1037,41 +1037,25 @@ function "MOD"(X, Y: in REAL ) return REAL;
   alias to_Std_Logic_Vector is to_slv [UNRESOLVED_sfixed
                                        return STD_LOGIC_VECTOR];
 
-  function to_sulv (
-    arg : UNRESOLVED_ufixed)            -- fixed point vector
-    return STD_ULOGIC_VECTOR;
-  alias to_StdULogicVector is to_sulv [UNRESOLVED_ufixed
-                                      return STD_ULOGIC_VECTOR];
-  alias to_Std_ULogic_Vector is to_sulv [UNRESOLVED_ufixed
-                                        return STD_ULOGIC_VECTOR];
-
-  function to_sulv (
-    arg : UNRESOLVED_sfixed)            -- fixed point vector
-    return STD_ULOGIC_VECTOR;
-  alias to_StdULogicVector is to_sulv [UNRESOLVED_sfixed
-                                      return STD_ULOGIC_VECTOR];
-  alias to_Std_ULogic_Vector is to_sulv [UNRESOLVED_sfixed
-                                        return STD_ULOGIC_VECTOR];
-
   function to_ufixed (
-    arg                  : STD_ULOGIC_VECTOR;  -- shifted vector
+    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
     return UNRESOLVED_ufixed;
 
   function to_ufixed (
-    arg      : STD_ULOGIC_VECTOR;       -- shifted vector
+    arg      : STD_LOGIC_VECTOR;       -- shifted vector
     size_res : UNRESOLVED_ufixed)       -- for size only
     return UNRESOLVED_ufixed;
 
   function to_sfixed (
-    arg                  : STD_ULOGIC_VECTOR;  -- shifted vector
+    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
     return UNRESOLVED_sfixed;
 
   function to_sfixed (
-    arg      : STD_ULOGIC_VECTOR;       -- shifted vector
+    arg      : STD_LOGIC_VECTOR;       -- shifted vector
     size_res : UNRESOLVED_sfixed)       -- for size only
     return UNRESOLVED_sfixed;
 
@@ -1084,14 +1068,14 @@ function "MOD"(X, Y: in REAL ) return REAL;
 
   -- unsigned fixed point
   function to_UFix (
-    arg      : STD_ULOGIC_VECTOR;
+    arg      : STD_LOGIC_VECTOR;
     width    : NATURAL;                 -- width of vector
     fraction : NATURAL)                 -- width of fraction
     return UNRESOLVED_ufixed;
 
   -- signed fixed point
   function to_SFix (
-    arg      : STD_ULOGIC_VECTOR;
+    arg      : STD_LOGIC_VECTOR;
     width    : NATURAL;                 -- width of vector
     fraction : NATURAL)                 -- width of fraction
     return UNRESOLVED_sfixed;
@@ -1420,44 +1404,6 @@ function "MOD"(X, Y: in REAL ) return REAL;
 -- rtl_synthesis on
 -- pragma synthesis_on
 
-  -- IN VHDL-2006 std_logic_vector is a subtype of std_ulogic_vector, so these
-  -- extra functions are needed for compatability.
-  function to_ufixed (
-    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
-    constant left_index  : INTEGER;
-    constant right_index : INTEGER)
-    return UNRESOLVED_ufixed;
-
-  function to_ufixed (
-    arg      : STD_LOGIC_VECTOR;       -- shifted vector
-    size_res : UNRESOLVED_ufixed)       -- for size only
-    return UNRESOLVED_ufixed;
-
-  function to_sfixed (
-    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
-    constant left_index  : INTEGER;
-    constant right_index : INTEGER)
-    return UNRESOLVED_sfixed;
-
-  function to_sfixed (
-    arg      : STD_LOGIC_VECTOR;       -- shifted vector
-    size_res : UNRESOLVED_sfixed)       -- for size only
-    return UNRESOLVED_sfixed;
-
-  -- unsigned fixed point
-  function to_UFix (
-    arg      : STD_LOGIC_VECTOR;
-    width    : NATURAL;                 -- width of vector
-    fraction : NATURAL)                 -- width of fraction
-    return UNRESOLVED_ufixed;
-
-  -- signed fixed point
-  function to_SFix (
-    arg      : STD_LOGIC_VECTOR;
-    width    : NATURAL;                 -- width of vector
-    fraction : NATURAL)                 -- width of fraction
-    return UNRESOLVED_sfixed;
-
 end package fixed_pkg;
 -------------------------------------------------------------------------------
 -- Proposed package body for the VHDL-200x-FT fixed_pkg package
@@ -1496,7 +1442,7 @@ end SYS_fmod;
   -- null array constants
   constant NAUF : UNRESOLVED_ufixed (0 downto 1) := (others => '0');
   constant NASF : UNRESOLVED_sfixed (0 downto 1) := (others => '0');
-  constant NSLV : STD_ULOGIC_VECTOR (0 downto 1) := (others => '0');
+  constant NSLV : STD_LOGIC_VECTOR (0 downto 1) := (others => '0');
 
   -- This differed constant will tell you if the package body is synthesizable
   -- or implemented as real numbers, set to "true" if synthesizable.
@@ -1531,12 +1477,12 @@ end SYS_fmod;
     end if;
   end function "sra";
   
-  function or_reduce (arg : STD_ULOGIC_VECTOR)
+  function or_reduce (arg : STD_LOGIC_VECTOR)
     return STD_LOGIC is
-    variable Upper, Lower : STD_ULOGIC;
+    variable Upper, Lower : STD_LOGIC;
     variable Half         : INTEGER;
-    variable BUS_int      : STD_ULOGIC_VECTOR (arg'length - 1 downto 0);
-    variable Result       : STD_ULOGIC;
+    variable BUS_int      : STD_LOGIC_VECTOR (arg'length - 1 downto 0);
+    variable Result       : STD_LOGIC;
   begin
     if (arg'length < 1) then            -- In the case of a NULL range
       Result := '0';
@@ -1558,12 +1504,12 @@ end SYS_fmod;
 
   -- purpose: AND all of the bits in a vector together
   -- This is a copy of the proposed "and_reduce" from 1076.3
-  function and_reduce (arg : STD_ULOGIC_VECTOR)
+  function and_reduce (arg : STD_LOGIC_VECTOR)
     return STD_LOGIC is
-    variable Upper, Lower : STD_ULOGIC;
+    variable Upper, Lower : STD_LOGIC;
     variable Half         : INTEGER;
-    variable BUS_int      : STD_ULOGIC_VECTOR (arg'length - 1 downto 0);
-    variable Result       : STD_ULOGIC;
+    variable BUS_int      : STD_LOGIC_VECTOR (arg'length - 1 downto 0);
+    variable Result       : STD_LOGIC;
   begin
     if (arg'length < 1) then            -- In the case of a NULL range
       Result := '1';
@@ -1583,11 +1529,11 @@ end SYS_fmod;
     return Result;
   end function and_reduce;
 
-  function xor_reduce (arg : STD_ULOGIC_VECTOR) return STD_ULOGIC is
-    variable Upper, Lower : STD_ULOGIC;
+  function xor_reduce (arg : STD_LOGIC_VECTOR) return STD_LOGIC is
+    variable Upper, Lower : STD_LOGIC;
     variable Half         : INTEGER;
-    variable BUS_int      : STD_ULOGIC_VECTOR (arg'length - 1 downto 0);
-    variable Result       : STD_ULOGIC := '0';  -- In the case of a NULL range
+    variable BUS_int      : STD_LOGIC_VECTOR (arg'length - 1 downto 0);
+    variable Result       : STD_LOGIC := '0';  -- In the case of a NULL range
   begin
     if (arg'length >= 1) then
       BUS_int := to_ux01 (arg);
@@ -1605,20 +1551,20 @@ end SYS_fmod;
     return Result;
   end function xor_reduce;
 
-  function nand_reduce(arg : std_ulogic_vector) return STD_ULOGIC is
+  function nand_reduce(arg : STD_LOGIC_vector) return STD_LOGIC is
   begin
     return not and_reduce (arg);
   end function nand_reduce;
-  function nor_reduce(arg : std_ulogic_vector) return STD_ULOGIC is
+  function nor_reduce(arg : STD_LOGIC_vector) return STD_LOGIC is
   begin
     return not or_reduce (arg);
   end function nor_reduce;
-  function xnor_reduce(arg : std_ulogic_vector) return STD_ULOGIC is
+  function xnor_reduce(arg : STD_LOGIC_vector) return STD_LOGIC is
   begin
     return not xor_reduce (arg);
   end function xnor_reduce;
   -- Match table, copied form new std_logic_1164
-  type stdlogic_table is array(STD_ULOGIC, STD_ULOGIC) of STD_ULOGIC;
+  type stdlogic_table is array(STD_LOGIC, STD_LOGIC) of STD_LOGIC;
   constant match_logic_table : stdlogic_table := (
     -----------------------------------------------------
     -- U    X    0    1    Z    W    L    H    -         |   |  
@@ -1650,19 +1596,19 @@ end SYS_fmod;
     );
 
   -------------------------------------------------------------------
-  -- ?= functions, Similar to "std_match", but returns "std_ulogic".
+  -- ?= functions, Similar to "std_match", but returns "STD_LOGIC".
   -------------------------------------------------------------------
-  function \?=\ (l, r : STD_ULOGIC) return STD_ULOGIC is
+  function \?=\ (l, r : STD_LOGIC) return STD_LOGIC is
   begin
     return match_logic_table (l, r);
   end function \?=\;
-  function \?/=\ (l, r : STD_ULOGIC) return STD_ULOGIC is
+  function \?/=\ (l, r : STD_LOGIC) return STD_LOGIC is
   begin
     return no_match_logic_table (l, r);
   end function \?/=\;
-  -- "?=" operator is similar to "std_match", but returns a std_ulogic..
+  -- "?=" operator is similar to "std_match", but returns a STD_LOGIC..
   -- Id: M.2B
-  function \?=\ (L, R: UNSIGNED) return STD_ULOGIC is
+  function \?=\ (L, R: UNSIGNED) return STD_LOGIC is
     constant L_LEFT : INTEGER := L'LENGTH-1;
     constant R_LEFT : INTEGER := R'LENGTH-1;
     alias XL        : UNSIGNED(L_LEFT downto 0) is L;
@@ -1670,7 +1616,7 @@ end SYS_fmod;
     constant SIZE   : NATURAL := MAXIMUM(L'LENGTH, R'LENGTH);
     variable LX     : UNSIGNED(SIZE-1 downto 0);
     variable RX     : UNSIGNED(SIZE-1 downto 0);
-    variable result, result1 : STD_ULOGIC;          -- result
+    variable result, result1 : STD_LOGIC;          -- result
   begin
     -- Logically identical to an "=" operator.
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
@@ -1697,7 +1643,7 @@ end SYS_fmod;
   end function \?=\;
 
   -- Id: M.3B
-  function \?=\ (L, R: SIGNED) return std_ulogic is
+  function \?=\ (L, R: SIGNED) return STD_LOGIC is
     constant L_LEFT : INTEGER := L'LENGTH-1;
     constant R_LEFT : INTEGER := R'LENGTH-1;
     alias XL        : SIGNED(L_LEFT downto 0) is L;
@@ -1705,7 +1651,7 @@ end SYS_fmod;
     constant SIZE   : NATURAL := MAXIMUM(L'LENGTH, R'LENGTH);
     variable LX     : SIGNED(SIZE-1 downto 0);
     variable RX     : SIGNED(SIZE-1 downto 0);
-    variable result, result1 : STD_ULOGIC;          -- result
+    variable result, result1 : STD_LOGIC;          -- result
   begin                                 -- ?=
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -1730,7 +1676,7 @@ end SYS_fmod;
     end if;
   end function \?=\;
 
-  function \?/=\ (L, R : UNSIGNED) return std_ulogic is
+  function \?/=\ (L, R : UNSIGNED) return STD_LOGIC is
     constant L_LEFT : INTEGER := L'LENGTH-1;
     constant R_LEFT : INTEGER := R'LENGTH-1;
     alias XL        : UNSIGNED(L_LEFT downto 0) is L;
@@ -1738,7 +1684,7 @@ end SYS_fmod;
     constant SIZE   : NATURAL := MAXIMUM(L'LENGTH, R'LENGTH);
     variable LX     : UNSIGNED(SIZE-1 downto 0);
     variable RX     : UNSIGNED(SIZE-1 downto 0);
-    variable result, result1 : STD_ULOGIC;             -- result
+    variable result, result1 : STD_LOGIC;             -- result
   begin                                 -- ?=
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -1763,7 +1709,7 @@ end SYS_fmod;
     end if;
   end function \?/=\;
 
-  function \?/=\ (L, R : SIGNED) return std_ulogic is
+  function \?/=\ (L, R : SIGNED) return STD_LOGIC is
     constant L_LEFT : INTEGER := L'LENGTH-1;
     constant R_LEFT : INTEGER := R'LENGTH-1;
     alias XL        : SIGNED(L_LEFT downto 0) is L;
@@ -1771,7 +1717,7 @@ end SYS_fmod;
     constant SIZE   : NATURAL := MAXIMUM(L'LENGTH, R'LENGTH);
     variable LX     : SIGNED(SIZE-1 downto 0);
     variable RX     : SIGNED(SIZE-1 downto 0);
-    variable result, result1 : STD_ULOGIC;                   -- result
+    variable result, result1 : STD_LOGIC;                   -- result
   begin                                 -- ?=
     if ((L'LENGTH < 1) or (R'LENGTH < 1)) then
       assert NO_WARNING
@@ -1804,7 +1750,7 @@ end SYS_fmod;
   begin
     return Is_X (STD_LOGIC_VECTOR (s));
   end function Is_X;
-  function \?>\ (L, R : UNSIGNED) return STD_ULOGIC is
+  function \?>\ (L, R : UNSIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1835,9 +1781,9 @@ end SYS_fmod;
       end if;
     end if;
   end function \?>\;
-  -- %%% function "?>" (L, R : UNSIGNED) return std_ulogic is
+  -- %%% function "?>" (L, R : UNSIGNED) return STD_LOGIC is
   -- %%% end function "?>"\;
-  function \?>\ (L, R : SIGNED) return STD_ULOGIC is
+  function \?>\ (L, R : SIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1868,7 +1814,7 @@ end SYS_fmod;
       end if;
     end if;
   end function \?>\;
-  function \?>=\ (L, R : UNSIGNED) return STD_ULOGIC is
+  function \?>=\ (L, R : UNSIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1899,9 +1845,9 @@ end SYS_fmod;
       end if;
     end if;
   end function \?>=\;
-  -- %%% function "?>=" (L, R : UNSIGNED) return std_ulogic is
+  -- %%% function "?>=" (L, R : UNSIGNED) return STD_LOGIC is
   -- %%% end function "?>=";
-  function \?>=\ (L, R : SIGNED) return STD_ULOGIC is
+  function \?>=\ (L, R : SIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1932,7 +1878,7 @@ end SYS_fmod;
       end if;
     end if;
   end function \?>=\;
-  function \?<\ (L, R : UNSIGNED) return STD_ULOGIC is
+  function \?<\ (L, R : UNSIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1963,9 +1909,9 @@ end SYS_fmod;
       end if;
     end if;
   end function \?<\;
-  -- %%% function "?<" (L, R : UNSIGNED) return std_ulogic is
+  -- %%% function "?<" (L, R : UNSIGNED) return STD_LOGIC is
   -- %%% end function "?<";
-  function \?<\ (L, R : SIGNED) return STD_ULOGIC is
+  function \?<\ (L, R : SIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -1996,7 +1942,7 @@ end SYS_fmod;
       end if;
     end if;
   end function \?<\;
-  function \?<=\ (L, R : UNSIGNED) return STD_ULOGIC is
+  function \?<=\ (L, R : UNSIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -2027,9 +1973,9 @@ end SYS_fmod;
       end if;
     end if;
   end function \?<=\;
-  -- %%% function "?<=" (L, R : UNSIGNED) return std_ulogic is
+  -- %%% function "?<=" (L, R : UNSIGNED) return STD_LOGIC is
   -- %%% end function "?<=";
-  function \?<=\ (L, R : SIGNED) return STD_ULOGIC is
+  function \?<=\ (L, R : SIGNED) return STD_LOGIC is
   begin
     if ((l'length < 1) or (r'length < 1)) then
       assert NO_WARNING
@@ -2189,7 +2135,7 @@ end SYS_fmod;
     result := to_fixed(ress (ress'high-1
                              downto 0), arg'high, arg'low);
     overflowx := ((arg(arg'high) /= ress(ress'high-1))
-                  and (or_reduce (STD_ULOGIC_VECTOR(ress)) /= '0'));
+                  and (or_reduce (STD_LOGIC_VECTOR(ress)) /= '0'));
   end procedure round_up;
 
   -- Rounding - Performs a "round_nearest" (IEEE 754) which rounds up
@@ -2207,7 +2153,7 @@ end SYS_fmod;
     if (remainder'length > 1) then
       if (remainder (remainder'high) = '1') then
         rounds := (arg(arg'low) = '1')
-                  or (or_reduce (to_sulv(remainder(remainder'high-1 downto
+                  or (or_reduce (to_slv(remainder(remainder'high-1 downto
                                                   remainder'low))) = '1');
       end if;
     else
@@ -2239,7 +2185,7 @@ end SYS_fmod;
     if (remainder'length > 1) then
       if (remainder (remainder'high) = '1') then
         rounds := (arg(arg'low) = '1')
-                  or (or_reduce (to_sulv(remainder(remainder'high-1 downto
+                  or (or_reduce (to_slv(remainder(remainder'high-1 downto
                                                   remainder'low))) = '1');
       end if;
     else
@@ -2290,46 +2236,32 @@ end SYS_fmod;
 
   -- Conversion functions.  These are needed for synthesis where typically
   -- the only input and output type is a std_logic_vector.
-  function to_sulv (
-    arg : UNRESOLVED_ufixed)            -- fixed point vector
-    return STD_ULOGIC_VECTOR is
-    variable result : STD_ULOGIC_VECTOR (arg'length-1 downto 0);
-  begin
-    if arg'length < 1 then
-      return NSLV;
-    end if;
-    result := STD_ULOGIC_VECTOR (arg);
-    return result;
-  end function to_sulv;
-
-  function to_sulv (
-    arg : UNRESOLVED_sfixed)            -- fixed point vector
-    return STD_ULOGIC_VECTOR is
-    variable result : STD_ULOGIC_VECTOR (arg'length-1 downto 0);
-  begin
-    if arg'length < 1 then
-      return NSLV;
-    end if;
-    result := STD_ULOGIC_VECTOR (arg);
-    return result;
-  end function to_sulv;
-
   function to_slv (
     arg : UNRESOLVED_ufixed)            -- fixed point vector
     return STD_LOGIC_VECTOR is
+    variable result : STD_LOGIC_VECTOR (arg'length-1 downto 0);
   begin
-    return to_stdlogicvector(to_sulv(arg));
+    if arg'length < 1 then
+      return NSLV;
+    end if;
+    result := STD_LOGIC_VECTOR (arg);
+    return result;
   end function to_slv;
 
   function to_slv (
     arg : UNRESOLVED_sfixed)            -- fixed point vector
     return STD_LOGIC_VECTOR is
+    variable result : STD_LOGIC_VECTOR (arg'length-1 downto 0);
   begin
-    return to_stdlogicvector(to_sulv(arg));
+    if arg'length < 1 then
+      return NSLV;
+    end if;
+    result := STD_LOGIC_VECTOR (arg);
+    return result;
   end function to_slv;
 
   function to_ufixed (
-    arg                  : STD_ULOGIC_VECTOR;  -- shifted vector
+    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
     return unresolved_ufixed is
@@ -2354,7 +2286,7 @@ end SYS_fmod;
   end function to_ufixed;
 
   function to_sfixed (
-    arg                  : STD_ULOGIC_VECTOR;  -- shifted vector
+    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
     constant left_index  : INTEGER;
     constant right_index : INTEGER)
     return unresolved_sfixed is
@@ -2883,9 +2815,9 @@ end SYS_fmod;
   -- Procedure for those who need an "accumulator" function
   procedure add_carry (
     L, R   : in  UNRESOLVED_ufixed;
-    c_in   : in  STD_ULOGIC;
+    c_in   : in  STD_LOGIC;
     result : out UNRESOLVED_ufixed;
-    c_out  : out STD_ULOGIC) is
+    c_out  : out STD_LOGIC) is
     constant left_index       : INTEGER := maximum(l'high, r'high)+1;
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -2913,9 +2845,9 @@ end SYS_fmod;
 
   procedure add_carry (
     L, R   : in  UNRESOLVED_sfixed;
-    c_in   : in  STD_ULOGIC;
+    c_in   : in  STD_LOGIC;
     result : out UNRESOLVED_sfixed;
-    c_out  : out STD_ULOGIC) is
+    c_out  : out STD_LOGIC) is
     constant left_index       : INTEGER := maximum(l'high, r'high)+1;
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -2991,7 +2923,7 @@ end SYS_fmod;
     end if;
   end function Is_Negative;
 
-  function find_rightmost (arg : UNRESOLVED_ufixed; y : STD_ULOGIC)
+  function find_rightmost (arg : UNRESOLVED_ufixed; y : STD_LOGIC)
     return INTEGER is
   begin
     for_loop : for i in arg'reverse_range loop
@@ -3002,7 +2934,7 @@ end SYS_fmod;
     return arg'high+1;                  -- return out of bounds 'high
   end function find_rightmost;
 
-  function find_leftmost (arg : UNRESOLVED_ufixed; y : STD_ULOGIC)
+  function my_find_leftmost (arg : UNRESOLVED_ufixed; y : STD_LOGIC)
     return INTEGER is
   begin
     for_loop : for i in arg'range loop
@@ -3011,9 +2943,9 @@ end SYS_fmod;
       end if;
     end loop;
     return arg'low-1;                   -- return out of bounds 'low
-  end function find_leftmost;
+  end function my_find_leftmost;
 
-  function find_rightmost (arg : UNRESOLVED_sfixed; y : STD_ULOGIC)
+  function find_rightmost (arg : UNRESOLVED_sfixed; y : STD_LOGIC)
     return INTEGER is
   begin
     for_loop : for i in arg'reverse_range loop
@@ -3024,7 +2956,7 @@ end SYS_fmod;
     return arg'high+1;                  -- return out of bounds 'high
   end function find_rightmost;
 
-  function find_leftmost (arg : UNRESOLVED_sfixed; y : STD_ULOGIC)
+  function my_find_leftmost (arg : UNRESOLVED_sfixed; y : STD_LOGIC)
     return INTEGER is
   begin
     for_loop : for i in arg'range loop
@@ -3033,7 +2965,7 @@ end SYS_fmod;
       end if;
     end loop;
     return arg'low-1;                   -- return out of bounds 'low
-  end function find_leftmost;
+  end function my_find_leftmost;
 
   function "sll" (ARG : UNRESOLVED_ufixed; COUNT : INTEGER)
     return UNRESOLVED_ufixed is
@@ -3220,17 +3152,17 @@ end SYS_fmod;
   -- logical functions
   ----------------------------------------------------------------------------
   function "not" (L : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
-    RESULT := not to_sulv(L);
+    RESULT := not to_slv(L);
     return to_ufixed(RESULT, L'high, L'low);
   end function "not";
 
   function "and" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) and to_sulv(R);
+      RESULT := to_slv(L) and to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3242,10 +3174,10 @@ end SYS_fmod;
   end function "and";
 
   function "or" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) or to_sulv(R);
+      RESULT := to_slv(L) or to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3257,10 +3189,10 @@ end SYS_fmod;
   end function "or";
 
   function "nand" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) nand to_sulv(R);
+      RESULT := to_slv(L) nand to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3272,10 +3204,10 @@ end SYS_fmod;
   end function "nand";
 
   function "nor" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) nor to_sulv(R);
+      RESULT := to_slv(L) nor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3287,10 +3219,10 @@ end SYS_fmod;
   end function "nor";
 
   function "xor" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) xor to_sulv(R);
+      RESULT := to_slv(L) xor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3302,10 +3234,10 @@ end SYS_fmod;
   end function "xor";
 
   function "xnor" (L, R : UNRESOLVED_ufixed) return UNRESOLVED_ufixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) xnor to_sulv(R);
+      RESULT := to_slv(L) xnor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3317,17 +3249,17 @@ end SYS_fmod;
   end function "xnor";
 
   function "not" (L : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
-    RESULT := not to_sulv(L);
+    RESULT := not to_slv(L);
     return to_sfixed(RESULT, L'high, L'low);
   end function "not";
 
   function "and" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) and to_sulv(R);
+      RESULT := to_slv(L) and to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3339,10 +3271,10 @@ end SYS_fmod;
   end function "and";
 
   function "or" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) or to_sulv(R);
+      RESULT := to_slv(L) or to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3354,10 +3286,10 @@ end SYS_fmod;
   end function "or";
 
   function "nand" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) nand to_sulv(R);
+      RESULT := to_slv(L) nand to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3369,10 +3301,10 @@ end SYS_fmod;
   end function "nand";
 
   function "nor" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) nor to_sulv(R);
+      RESULT := to_slv(L) nor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3384,10 +3316,10 @@ end SYS_fmod;
   end function "nor";
 
   function "xor" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) xor to_sulv(R);
+      RESULT := to_slv(L) xor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3399,10 +3331,10 @@ end SYS_fmod;
   end function "xor";
 
   function "xnor" (L, R : UNRESOLVED_sfixed) return UNRESOLVED_sfixed is
-    variable RESULT : STD_ULOGIC_VECTOR(L'length-1 downto 0);  -- force downto
+    variable RESULT : STD_LOGIC_VECTOR(L'length-1 downto 0);  -- force downto
   begin
     if (L'high = R'high and L'low = R'low) then
-      RESULT := to_sulv(L) xnor to_sulv(R);
+      RESULT := to_slv(L) xnor to_slv(R);
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3413,8 +3345,8 @@ end SYS_fmod;
     return to_sfixed(RESULT, L'high, L'low);
   end function "xnor";
 
-  -- Vector and std_ulogic functions, same as functions in numeric_std
-  function "and" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  -- Vector and STD_LOGIC functions, same as functions in numeric_std
+  function "and" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3424,7 +3356,7 @@ end SYS_fmod;
     return result;
   end function "and";
 
-  function "and" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "and" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3434,7 +3366,7 @@ end SYS_fmod;
     return result;
   end function "and";
 
-  function "or" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  function "or" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3444,7 +3376,7 @@ end SYS_fmod;
     return result;
   end function "or";
 
-  function "or" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "or" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3454,7 +3386,7 @@ end SYS_fmod;
     return result;
   end function "or";
 
-  function "nand" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  function "nand" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3464,7 +3396,7 @@ end SYS_fmod;
     return result;
   end function "nand";
 
-  function "nand" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "nand" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3474,7 +3406,7 @@ end SYS_fmod;
     return result;
   end function "nand";
 
-  function "nor" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  function "nor" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3484,7 +3416,7 @@ end SYS_fmod;
     return result;
   end function "nor";
 
-  function "nor" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "nor" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3494,7 +3426,7 @@ end SYS_fmod;
     return result;
   end function "nor";
 
-  function "xor" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  function "xor" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3504,7 +3436,7 @@ end SYS_fmod;
     return result;
   end function "xor";
 
-  function "xor" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "xor" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3514,7 +3446,7 @@ end SYS_fmod;
     return result;
   end function "xor";
 
-  function "xnor" (L : STD_ULOGIC; R : UNRESOLVED_ufixed)
+  function "xnor" (L : STD_LOGIC; R : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (R'range);
   begin
@@ -3524,7 +3456,7 @@ end SYS_fmod;
     return result;
   end function "xnor";
 
-  function "xnor" (L : UNRESOLVED_ufixed; R : STD_ULOGIC)
+  function "xnor" (L : UNRESOLVED_ufixed; R : STD_LOGIC)
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (L'range);
   begin
@@ -3534,7 +3466,7 @@ end SYS_fmod;
     return result;
   end function "xnor";
 
-  function "and" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "and" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3544,7 +3476,7 @@ end SYS_fmod;
     return result;
   end function "and";
 
-  function "and" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "and" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3554,7 +3486,7 @@ end SYS_fmod;
     return result;
   end function "and";
 
-  function "or" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "or" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3564,7 +3496,7 @@ end SYS_fmod;
     return result;
   end function "or";
 
-  function "or" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "or" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3574,7 +3506,7 @@ end SYS_fmod;
     return result;
   end function "or";
 
-  function "nand" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "nand" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3584,7 +3516,7 @@ end SYS_fmod;
     return result;
   end function "nand";
 
-  function "nand" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "nand" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3594,7 +3526,7 @@ end SYS_fmod;
     return result;
   end function "nand";
 
-  function "nor" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "nor" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3604,7 +3536,7 @@ end SYS_fmod;
     return result;
   end function "nor";
 
-  function "nor" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "nor" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3614,7 +3546,7 @@ end SYS_fmod;
     return result;
   end function "nor";
 
-  function "xor" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "xor" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3624,7 +3556,7 @@ end SYS_fmod;
     return result;
   end function "xor";
 
-  function "xor" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "xor" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3634,7 +3566,7 @@ end SYS_fmod;
     return result;
   end function "xor";
 
-  function "xnor" (L : STD_ULOGIC; R : UNRESOLVED_sfixed)
+  function "xnor" (L : STD_LOGIC; R : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (R'range);
   begin
@@ -3644,7 +3576,7 @@ end SYS_fmod;
     return result;
   end function "xnor";
 
-  function "xnor" (L : UNRESOLVED_sfixed; R : STD_ULOGIC)
+  function "xnor" (L : UNRESOLVED_sfixed; R : STD_LOGIC)
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (L'range);
   begin
@@ -3655,68 +3587,68 @@ end SYS_fmod;
   end function "xnor";
 
   -- Reduction operator_reduces
-  function and_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function and_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return and_reduce (to_sulv(l));
+    return and_reduce (to_slv(l));
   end function and_reduce;
 
-  function nand_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function nand_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return nand_reduce (to_sulv(l));
+    return nand_reduce (to_slv(l));
   end function nand_reduce;
 
-  function or_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function or_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return or_reduce (to_sulv(l));
+    return or_reduce (to_slv(l));
   end function or_reduce;
 
-  function nor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function nor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return nor_reduce (to_sulv(l));
+    return nor_reduce (to_slv(l));
   end function nor_reduce;
 
-  function xor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function xor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return xor_reduce (to_sulv(l));
+    return xor_reduce (to_slv(l));
   end function xor_reduce;
 
-  function xnor_reduce (l : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function xnor_reduce (l : UNRESOLVED_ufixed) return STD_LOGIC is
   begin
-    return xnor_reduce (to_sulv(l));
+    return xnor_reduce (to_slv(l));
   end function xnor_reduce;
 
-  function and_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function and_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return and_reduce (to_sulv(l));
+    return and_reduce (to_slv(l));
   end function and_reduce;
 
-  function nand_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function nand_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return nand_reduce (to_sulv(l));
+    return nand_reduce (to_slv(l));
   end function nand_reduce;
 
-  function or_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function or_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return or_reduce (to_sulv(l));
+    return or_reduce (to_slv(l));
   end function or_reduce;
 
-  function nor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function nor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return nor_reduce (to_sulv(l));
+    return nor_reduce (to_slv(l));
   end function nor_reduce;
 
-  function xor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function xor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return xor_reduce (to_sulv(l));
+    return xor_reduce (to_slv(l));
   end function xor_reduce;
 
-  function xnor_reduce (l : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function xnor_reduce (l : UNRESOLVED_sfixed) return STD_LOGIC is
   begin
-    return xnor_reduce (to_sulv(l));
+    return xnor_reduce (to_slv(l));
   end function xnor_reduce;
   -- End reduction operator_reduces
 
-  function \?=\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?=\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3737,7 +3669,7 @@ end SYS_fmod;
     end if;
   end function \?=\;
 
-  function \?/=\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?/=\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3758,7 +3690,7 @@ end SYS_fmod;
     end if;
   end function \?/=\;
 
-  function \?>\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?>\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3779,7 +3711,7 @@ end SYS_fmod;
     end if;
   end function \?>\;
 
-  function \?>=\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?>=\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3800,7 +3732,7 @@ end SYS_fmod;
     end if;
   end function \?>=\;
 
-  function \?<\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?<\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3821,7 +3753,7 @@ end SYS_fmod;
     end if;
   end function \?<\;
 
-  function \?<=\ (L, R : UNRESOLVED_ufixed) return STD_ULOGIC is
+  function \?<=\ (L, R : UNRESOLVED_ufixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_ufixed (left_index downto right_index);
@@ -3842,7 +3774,7 @@ end SYS_fmod;
     end if;
   end function \?<=\;
 
-  function \?=\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?=\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3863,7 +3795,7 @@ end SYS_fmod;
     end if;
   end function \?=\;
 
-  function \?/=\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?/=\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3884,7 +3816,7 @@ end SYS_fmod;
     end if;
   end function \?/=\;
 
-  function \?>\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?>\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3905,7 +3837,7 @@ end SYS_fmod;
     end if;
   end function \?>\;
 
-  function \?>=\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?>=\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3926,7 +3858,7 @@ end SYS_fmod;
     end if;
   end function \?>=\;
 
-  function \?<\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?<\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3947,7 +3879,7 @@ end SYS_fmod;
     end if;
   end function \?<\;
 
-  function \?<=\ (L, R : UNRESOLVED_sfixed) return STD_ULOGIC is
+  function \?<=\ (L, R : UNRESOLVED_sfixed) return STD_LOGIC is
     constant left_index       : INTEGER := maximum(l'high, r'high);
     constant right_index      : INTEGER := mins(l'low, r'low);
     variable lresize, rresize : UNRESOLVED_sfixed (left_index downto right_index);
@@ -3972,7 +3904,7 @@ end SYS_fmod;
   function std_match (L, R : UNRESOLVED_ufixed) return BOOLEAN is
   begin
     if (L'high = R'high and L'low = R'low) then
-      return std_match(to_sulv(L), to_sulv(R));
+      return std_match(to_slv(L), to_slv(R));
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -3985,7 +3917,7 @@ end SYS_fmod;
   function std_match (L, R : UNRESOLVED_sfixed) return BOOLEAN is
   begin
     if (L'high = R'high and L'low = R'low) then
-      return std_match(to_sulv(L), to_sulv(R));
+      return std_match(to_slv(L), to_slv(R));
     else
       assert NO_WARNING
         report "fixed_pkg:"
@@ -4451,7 +4383,7 @@ end SYS_fmod;
     variable sresult : UNRESOLVED_sfixed (left_index downto 0) :=
       (others => '0');  -- integer portion
     variable argx    : INTEGER;         -- internal version of arg
-    variable sign    : STD_ULOGIC;      -- sign of input
+    variable sign    : STD_LOGIC;      -- sign of input
   begin
     if (result'length < 1) then         -- null range
       return NASF;
@@ -4868,7 +4800,7 @@ end SYS_fmod;
   -- "to_ufixed" and "to_sfixed" routines.
   -- Unsigned fixed point
   function to_UFix (
-    arg      : STD_ULOGIC_VECTOR;
+    arg      : STD_LOGIC_VECTOR;
     width    : NATURAL;                 -- width of vector
     fraction : NATURAL)                 -- width of fraction
     return UNRESOLVED_ufixed is
@@ -4876,7 +4808,7 @@ end SYS_fmod;
   begin
     if (arg'length /= result'length) then
       report "fixed_pkg:"
-        & "TO_UFIX (STD_ULOGIC_VECTOR) "
+        & "TO_UFIX (STD_LOGIC_VECTOR) "
         & "Vector lengths do not match.  Input length is "
         & INTEGER'image(arg'length) & " and output will be "
         & INTEGER'image(result'length) & " wide."
@@ -4890,7 +4822,7 @@ end SYS_fmod;
 
   -- signed fixed point
   function to_SFix (
-    arg      : STD_ULOGIC_VECTOR;
+    arg      : STD_LOGIC_VECTOR;
     width    : NATURAL;                 -- width of vector
     fraction : NATURAL)                 -- width of fraction
     return UNRESOLVED_sfixed is
@@ -4898,7 +4830,7 @@ end SYS_fmod;
   begin
     if (arg'length /= result'length) then
       report "fixed_pkg:"
-        & "TO_SFIX (STD_ULOGIC_VECTOR) "
+        & "TO_SFIX (STD_LOGIC_VECTOR) "
         & "Vector lengths do not match.  Input length is "
         & INTEGER'image(arg'length) & " and output will be "
         & INTEGER'image(result'length) & " wide."
@@ -5144,7 +5076,7 @@ end SYS_fmod;
 
   function to_01 (
     s             : UNRESOLVED_ufixed;              -- ufixed point input
-    constant XMAP : STD_ULOGIC := '0')              -- Map x to
+    constant XMAP : STD_LOGIC := '0')              -- Map x to
     return UNRESOLVED_ufixed is
     variable result : UNRESOLVED_ufixed (s'range);  -- result
   begin
@@ -5160,7 +5092,7 @@ end SYS_fmod;
 
   function to_01 (
     s             : UNRESOLVED_sfixed;  -- sfixed point input
-    constant XMAP : STD_ULOGIC := '0')  -- Map x to
+    constant XMAP : STD_LOGIC := '0')  -- Map x to
     return UNRESOLVED_sfixed is
     variable result : UNRESOLVED_sfixed (s'range);
   begin
@@ -5177,18 +5109,18 @@ end SYS_fmod;
   function Is_X (
     arg : UNRESOLVED_ufixed)
     return BOOLEAN is
-    variable argslv : STD_ULOGIC_VECTOR (arg'length-1 downto 0);  -- slv
+    variable argslv : STD_LOGIC_VECTOR (arg'length-1 downto 0);  -- slv
   begin
-    argslv := to_sulv(arg);
+    argslv := to_slv(arg);
     return Is_X (argslv);
   end function Is_X;
   
   function Is_X (
     arg : UNRESOLVED_sfixed)
     return BOOLEAN is
-    variable argslv : STD_ULOGIC_VECTOR (arg'length-1 downto 0);  -- slv
+    variable argslv : STD_LOGIC_VECTOR (arg'length-1 downto 0);  -- slv
   begin
-    argslv := to_sulv(arg);
+    argslv := to_slv(arg);
     return Is_X (argslv);
   end function Is_X;
 
@@ -5196,42 +5128,42 @@ end SYS_fmod;
     arg : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
   begin
-    return to_ufixed (To_X01(to_sulv(arg)), arg'high, arg'low);
+    return to_ufixed (To_X01(to_slv(arg)), arg'high, arg'low);
   end function To_X01;
 
   function to_X01 (
     arg : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
   begin
-    return to_sfixed (To_X01(to_sulv(arg)), arg'high, arg'low);
+    return to_sfixed (To_X01(to_slv(arg)), arg'high, arg'low);
   end function To_X01;
 
   function To_X01Z (
     arg : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
   begin
-    return to_ufixed (To_X01Z(to_sulv(arg)), arg'high, arg'low);
+    return to_ufixed (To_X01Z(to_slv(arg)), arg'high, arg'low);
   end function To_X01Z;
 
   function to_X01Z (
     arg : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
   begin
-    return to_sfixed (To_X01Z(to_sulv(arg)), arg'high, arg'low);
+    return to_sfixed (To_X01Z(to_slv(arg)), arg'high, arg'low);
   end function To_X01Z;
 
   function To_UX01 (
     arg : UNRESOLVED_ufixed)
     return UNRESOLVED_ufixed is
   begin
-    return to_ufixed (To_UX01(to_sulv(arg)), arg'high, arg'low);
+    return to_ufixed (To_UX01(to_slv(arg)), arg'high, arg'low);
   end function To_UX01;
 
   function to_UX01 (
     arg : UNRESOLVED_sfixed)
     return UNRESOLVED_sfixed is
   begin
-    return to_sfixed (To_UX01(to_sulv(arg)), arg'high, arg'low);
+    return to_sfixed (To_UX01(to_slv(arg)), arg'high, arg'low);
   end function To_UX01;
   
   function resize (
@@ -5259,13 +5191,13 @@ end SYS_fmod;
                           (right_index = arghigh+1);
       elsif (left_index < arglow) then  -- return overflow
         if (overflow_style = fixed_saturate) and
-          (or_reduce(to_sulv(invec)) = '1') then
+          (or_reduce(to_slv(invec)) = '1') then
           result := saturate (result'high, result'low);     -- saturate
         end if;
       elsif (arghigh > left_index) then
         -- wrap or saturate?
         if (overflow_style = fixed_saturate and
-            or_reduce (to_sulv(invec(arghigh downto left_index+1))) = '1')
+            or_reduce (to_slv(invec(arghigh downto left_index+1))) = '1')
         then
           result := saturate (result'high, result'low);     -- saturate
         else
@@ -5310,7 +5242,7 @@ end SYS_fmod;
     variable invec   : UNRESOLVED_sfixed (arghigh downto arglow);
     variable result  : UNRESOLVED_sfixed(left_index downto right_index) :=
       (others => '0');
-    variable reduced        : STD_ULOGIC;
+    variable reduced        : STD_LOGIC;
     variable needs_rounding : BOOLEAN := false;           -- rounding
   begin  -- resize
     if (arg'length < 1) or (result'length < 1) then
@@ -5327,7 +5259,7 @@ end SYS_fmod;
                           (right_index = arghigh+1);
       elsif (left_index < arglow) then  -- return overflow
         if (overflow_style = fixed_saturate) then
-          reduced := or_reduce (to_sulv(invec));
+          reduced := or_reduce (to_slv(invec));
           if (reduced = '1') then
             if (invec(arghigh) = '0') then
               -- saturate POSITIVE
@@ -5342,7 +5274,7 @@ end SYS_fmod;
         end if;
       elsif (arghigh > left_index) then
         if (invec(arghigh) = '0') then
-          reduced := or_reduce (to_sulv(invec(arghigh-1 downto
+          reduced := or_reduce (to_slv(invec(arghigh-1 downto
                                              left_index)));
           if overflow_style = fixed_saturate and reduced = '1' then
             -- saturate positive
@@ -5357,7 +5289,7 @@ end SYS_fmod;
             end if;
           end if;
         else
-          reduced := and_reduce (to_sulv(invec(arghigh-1 downto
+          reduced := and_reduce (to_slv(invec(arghigh-1 downto
                                               left_index)));
           if overflow_style = fixed_saturate and reduced = '0' then
             result := not saturate (result'high, result'low);
@@ -5399,7 +5331,7 @@ end SYS_fmod;
   -- The only part of this variable used it it's size, it is never passed
   -- to a lower level routine.
   function to_ufixed (
-    arg      : STD_ULOGIC_VECTOR;       -- shifted vector
+    arg      : STD_LOGIC_VECTOR;       -- shifted vector
     size_res : UNRESOLVED_ufixed)       -- for size only
     return UNRESOLVED_ufixed is
     constant fw     : INTEGER := mine (size_res'low, size_res'low);  -- catch literals
@@ -5416,7 +5348,7 @@ end SYS_fmod;
   end function to_ufixed;
 
   function to_sfixed (
-    arg      : STD_ULOGIC_VECTOR;       -- shifted vector
+    arg      : STD_LOGIC_VECTOR;       -- shifted vector
     size_res : UNRESOLVED_sfixed)       -- for size only
     return UNRESOLVED_sfixed is
     constant fw     : INTEGER := mine (size_res'low, size_res'low);  -- catch literals
@@ -6045,7 +5977,7 @@ end SYS_fmod;
   function \?=\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?=\;
@@ -6053,7 +5985,7 @@ end SYS_fmod;
   function \?/=\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?/=\;
@@ -6061,7 +5993,7 @@ end SYS_fmod;
   function \?>=\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?>=\;
@@ -6069,7 +6001,7 @@ end SYS_fmod;
   function \?<=\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?<=\;
@@ -6077,7 +6009,7 @@ end SYS_fmod;
   function \?>\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (l,  to_ufixed (r, l'high, l'low));
   end function \?>\;
@@ -6085,7 +6017,7 @@ end SYS_fmod;
   function \?<\ (
     l : UNRESOLVED_ufixed;
     r : NATURAL)                        -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (l,  to_ufixed (r, l'high, l'low));
   end function \?<\;
@@ -6158,7 +6090,7 @@ end SYS_fmod;
   function \?=\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (to_ufixed (l, r'high, r'low), r);
   end function \?=\;
@@ -6166,7 +6098,7 @@ end SYS_fmod;
   function \?/=\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (to_ufixed (l, r'high, r'low), r);
   end function \?/=\;
@@ -6174,7 +6106,7 @@ end SYS_fmod;
   function \?>=\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (to_ufixed (l, r'high, r'low), r);
   end function \?>=\;
@@ -6182,7 +6114,7 @@ end SYS_fmod;
   function \?<=\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (to_ufixed (l, r'high, r'low), r);
   end function \?<=\;
@@ -6190,7 +6122,7 @@ end SYS_fmod;
   function \?>\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (to_ufixed (l, r'high, r'low), r);
   end function \?>\;
@@ -6198,7 +6130,7 @@ end SYS_fmod;
   function \?<\ (
     l : NATURAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (to_ufixed (l, r'high, r'low), r);
   end function \?<\;
@@ -6271,7 +6203,7 @@ end SYS_fmod;
   function \?=\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?=\;
@@ -6279,7 +6211,7 @@ end SYS_fmod;
   function \?/=\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?/=\;
@@ -6287,7 +6219,7 @@ end SYS_fmod;
   function \?>=\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?>=\;
@@ -6295,7 +6227,7 @@ end SYS_fmod;
   function \?<=\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (l,  to_ufixed (r, l'high, l'low));
   end function \?<=\;
@@ -6303,7 +6235,7 @@ end SYS_fmod;
   function \?>\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (l,  to_ufixed (r, l'high, l'low));
   end function \?>\;
@@ -6311,7 +6243,7 @@ end SYS_fmod;
   function \?<\ (
     l : UNRESOLVED_ufixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (l,  to_ufixed (r, l'high, l'low));
   end function \?<\;
@@ -6384,7 +6316,7 @@ end SYS_fmod;
   function \?=\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (to_ufixed (l, r'high, r'low), r);
   end function \?=\;
@@ -6392,7 +6324,7 @@ end SYS_fmod;
   function \?/=\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (to_ufixed (l, r'high, r'low), r);
   end function \?/=\;
@@ -6400,7 +6332,7 @@ end SYS_fmod;
   function \?>=\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (to_ufixed (l, r'high, r'low), r);
   end function \?>=\;
@@ -6408,7 +6340,7 @@ end SYS_fmod;
   function \?<=\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (to_ufixed (l, r'high, r'low), r);
   end function \?<=\;
@@ -6416,7 +6348,7 @@ end SYS_fmod;
   function \?>\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (to_ufixed (l, r'high, r'low), r);
   end function \?>\;
@@ -6424,7 +6356,7 @@ end SYS_fmod;
   function \?<\ (
     l : REAL;
     r : UNRESOLVED_ufixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (to_ufixed (l, r'high, r'low), r);
   end function \?<\;
@@ -6497,7 +6429,7 @@ end SYS_fmod;
   function \?=\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?=\;
@@ -6505,7 +6437,7 @@ end SYS_fmod;
   function \?/=\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?/=\;
@@ -6513,7 +6445,7 @@ end SYS_fmod;
   function \?>=\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?>=\;
@@ -6521,7 +6453,7 @@ end SYS_fmod;
   function \?<=\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?<=\;
@@ -6529,7 +6461,7 @@ end SYS_fmod;
   function \?>\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (l,  to_sfixed (r, l'high, l'low));
   end function \?>\;
@@ -6537,7 +6469,7 @@ end SYS_fmod;
   function \?<\ (
     l : UNRESOLVED_sfixed;
     r : INTEGER)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (l,  to_sfixed (r, l'high, l'low));
   end function \?<\;
@@ -6610,7 +6542,7 @@ end SYS_fmod;
   function \?=\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (to_sfixed (l, r'high, r'low), r);
   end function \?=\;
@@ -6618,7 +6550,7 @@ end SYS_fmod;
   function \?/=\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (to_sfixed (l, r'high, r'low), r);
   end function \?/=\;
@@ -6626,7 +6558,7 @@ end SYS_fmod;
   function \?>=\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (to_sfixed (l, r'high, r'low), r);
   end function \?>=\;
@@ -6634,7 +6566,7 @@ end SYS_fmod;
   function \?<=\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (to_sfixed (l, r'high, r'low), r);
   end function \?<=\;
@@ -6642,7 +6574,7 @@ end SYS_fmod;
   function \?>\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (to_sfixed (l, r'high, r'low), r);
   end function \?>\;
@@ -6650,7 +6582,7 @@ end SYS_fmod;
   function \?<\ (
     l : INTEGER;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (to_sfixed (l, r'high, r'low), r);
   end function \?<\;
@@ -6723,7 +6655,7 @@ end SYS_fmod;
   function \?=\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?=\;
@@ -6731,7 +6663,7 @@ end SYS_fmod;
   function \?/=\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?/=\;
@@ -6739,7 +6671,7 @@ end SYS_fmod;
   function \?>=\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?>=\;
@@ -6747,7 +6679,7 @@ end SYS_fmod;
   function \?<=\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (l,  to_sfixed (r, l'high, l'low));
   end function \?<=\;
@@ -6755,7 +6687,7 @@ end SYS_fmod;
   function \?>\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (l,  to_sfixed (r, l'high, l'low));
   end function \?>\;
@@ -6763,7 +6695,7 @@ end SYS_fmod;
   function \?<\ (
     l : UNRESOLVED_sfixed;
     r : REAL)
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (l,  to_sfixed (r, l'high, l'low));
   end function \?<\;
@@ -6836,7 +6768,7 @@ end SYS_fmod;
   function \?=\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?=\ (to_sfixed (l, r'high, r'low), r);
   end function \?=\;
@@ -6844,7 +6776,7 @@ end SYS_fmod;
   function \?/=\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?/=\ (to_sfixed (l, r'high, r'low), r);
   end function \?/=\;
@@ -6852,7 +6784,7 @@ end SYS_fmod;
   function \?>=\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>=\ (to_sfixed (l, r'high, r'low), r);
   end function \?>=\;
@@ -6860,7 +6792,7 @@ end SYS_fmod;
   function \?<=\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-                 return STD_ULOGIC is
+                 return STD_LOGIC is
   begin
     return \?<=\ (to_sfixed (l, r'high, r'low), r);
   end function \?<=\;
@@ -6868,7 +6800,7 @@ end SYS_fmod;
   function \?>\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?>\ (to_sfixed (l, r'high, r'low), r);
   end function \?>\;
@@ -6876,7 +6808,7 @@ end SYS_fmod;
   function \?<\ (
     l : REAL;
     r : UNRESOLVED_sfixed)              -- fixed point input
-    return STD_ULOGIC is
+    return STD_LOGIC is
   begin
     return \?<\ (to_sfixed (l, r'high, r'low), r);
   end function \?<\;
@@ -6900,8 +6832,8 @@ end SYS_fmod;
 -- pragma synthesis_off
   -- copied from std_logic_textio
   type MVL9plus is ('U', 'X', '0', '1', 'Z', 'W', 'L', 'H', '-', error);
-  type char_indexed_by_MVL9 is array (STD_ULOGIC) of CHARACTER;
-  type MVL9_indexed_by_char is array (CHARACTER) of STD_ULOGIC;
+  type char_indexed_by_MVL9 is array (STD_LOGIC) of CHARACTER;
+  type MVL9_indexed_by_char is array (CHARACTER) of STD_LOGIC;
   type MVL9plus_indexed_by_char is array (CHARACTER) of MVL9plus;
 
   constant MVL9_to_char : char_indexed_by_MVL9 := "UX01ZWLH-";
@@ -6916,7 +6848,7 @@ end SYS_fmod;
 
   -- %%% Replicated Textio functions
   procedure Char2TriBits (C           :     CHARACTER;
-                          RESULT      : out STD_ULOGIC_VECTOR(2 downto 0);
+                          RESULT      : out STD_LOGIC_VECTOR(2 downto 0);
                           GOOD        : out BOOLEAN;
                           ISSUE_ERROR : in  BOOLEAN) is
   begin
@@ -6941,11 +6873,11 @@ end SYS_fmod;
         good   := false;
     end case;
   end procedure Char2TriBits;
-  -- Hex Read and Write procedures for STD_ULOGIC_VECTOR.
+  -- Hex Read and Write procedures for STD_LOGIC_VECTOR.
   -- Modified from the original to be more forgiving.
 
   procedure Char2QuadBits (C           :     CHARACTER;
-                           RESULT      : out STD_ULOGIC_VECTOR(3 downto 0);
+                           RESULT      : out STD_LOGIC_VECTOR(3 downto 0);
                            GOOD        : out BOOLEAN;
                            ISSUE_ERROR : in  BOOLEAN) is
   begin
@@ -6994,12 +6926,12 @@ end SYS_fmod;
     end loop;
   end procedure skip_whitespace;
 
-  function to_ostring (value     : STD_ULOGIC_VECTOR) return STRING is
+  function to_ostring (value     : STD_LOGIC_VECTOR) return STRING is
     constant ne     : INTEGER := (value'length+2)/3;
-    variable pad    : STD_ULOGIC_VECTOR(0 to (ne*3 - value'length) - 1);
-    variable ivalue : STD_ULOGIC_VECTOR(0 to ne*3 - 1);
+    variable pad    : STD_LOGIC_VECTOR(0 to (ne*3 - value'length) - 1);
+    variable ivalue : STD_LOGIC_VECTOR(0 to ne*3 - 1);
     variable result : STRING(1 to ne);
-    variable tri    : STD_ULOGIC_VECTOR(0 to 2);
+    variable tri    : STD_LOGIC_VECTOR(0 to 2);
   begin
     if value'length < 1 then
       return NUS;
@@ -7029,12 +6961,12 @@ end SYS_fmod;
     end if;
   end function to_ostring;
   -------------------------------------------------------------------   
-  function to_hstring (value     : STD_ULOGIC_VECTOR) return STRING is
+  function to_hstring (value     : STD_LOGIC_VECTOR) return STRING is
     constant ne     : INTEGER := (value'length+3)/4;
-    variable pad    : STD_ULOGIC_VECTOR(0 to (ne*4 - value'length) - 1);
-    variable ivalue : STD_ULOGIC_VECTOR(0 to ne*4 - 1);
+    variable pad    : STD_LOGIC_VECTOR(0 to (ne*4 - value'length) - 1);
+    variable ivalue : STD_LOGIC_VECTOR(0 to ne*4 - 1);
     variable result : STRING(1 to ne);
-    variable quad   : STD_ULOGIC_VECTOR(0 to 3);
+    variable quad   : STD_LOGIC_VECTOR(0 to 3);
   begin
     if value'length < 1 then
       return NUS;
@@ -7090,7 +7022,7 @@ end SYS_fmod;
         s(sindx) := '.';
         sindx    := sindx + 1;
       end if;
-      s(sindx) := MVL9_to_char(STD_ULOGIC(value(i)));
+      s(sindx) := MVL9_to_char(STD_LOGIC(value(i)));
       sindx    := sindx + 1;
     end loop;
     write(l, s, justified, field);
@@ -7111,7 +7043,7 @@ end SYS_fmod;
         s(sindx) := '.';
         sindx    := sindx + 1;
       end if;
-      s(sindx) := MVL9_to_char(STD_ULOGIC(value(i)));
+      s(sindx) := MVL9_to_char(STD_LOGIC(value(i)));
       sindx    := sindx + 1;
     end loop;
     write(l, s, justified, field);
@@ -7173,7 +7105,7 @@ end SYS_fmod;
         elsif char_to_MVL9plus(c) = error then
           report "fixed_pkg:" & "READ(ufixed) "
             & "Character '" &
-            c & "' read, expected STD_ULOGIC literal."
+            c & "' read, expected STD_LOGIC literal."
             severity error;
           return;
         else
@@ -7300,7 +7232,7 @@ end SYS_fmod;
         elsif char_to_MVL9plus(c) = error then
           report "fixed_pkg:" & "READ(sfixed) "
             & "Character '" &
-            c & "' read, expected STD_ULOGIC literal."
+            c & "' read, expected STD_LOGIC literal."
             severity error;
           return;
         else
@@ -7354,7 +7286,7 @@ end SYS_fmod;
   -- purpose: Routines common to the OREAD routines
   procedure OREAD_common (
     L                : inout LINE;
-    slv              : out   STD_ULOGIC_VECTOR;
+    slv              : out   STD_LOGIC_VECTOR;
     igood            : out   BOOLEAN;
     idex             : out INTEGER;
     constant bpoint : in INTEGER;       -- binary point
@@ -7380,7 +7312,7 @@ end SYS_fmod;
       end if;
     end procedure errmes;
     variable xgood : BOOLEAN;
-    variable nybble : STD_ULOGIC_VECTOR (2 downto 0);        -- 3 bits
+    variable nybble : STD_LOGIC_VECTOR (2 downto 0);        -- 3 bits
     variable c : CHARACTER;
     variable i : INTEGER;
     variable lastu  : BOOLEAN := false;       -- last character was an "_"
@@ -7450,7 +7382,7 @@ end SYS_fmod;
                    VALUE : out   UNRESOLVED_ufixed) is
     constant hbv    : INTEGER := (((maximum(3, (VALUE'high+1))+2)/3)*3)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-2)/3)*3;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_ufixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7487,7 +7419,7 @@ end SYS_fmod;
                   GOOD  : out   BOOLEAN) is
     constant hbv    : INTEGER := (((maximum(3, (VALUE'high+1))+2)/3)*3)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-2)/3)*3;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_ufixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7515,7 +7447,7 @@ end SYS_fmod;
                   VALUE : out   UNRESOLVED_sfixed) is
     constant hbv    : INTEGER := (((maximum(3, (VALUE'high+1))+2)/3)*3)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-2)/3)*3;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_sfixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7555,7 +7487,7 @@ end SYS_fmod;
                   GOOD  : out   BOOLEAN) is
     constant hbv    : INTEGER := (((maximum(3, (VALUE'high+1))+2)/3)*3)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-2)/3)*3;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_sfixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7611,7 +7543,7 @@ end SYS_fmod;
   -- purpose: Routines common to the OREAD routines
   procedure HREAD_common (
     L                : inout LINE;
-    slv              : out   STD_ULOGIC_VECTOR;
+    slv              : out   STD_LOGIC_VECTOR;
     igood            : out   BOOLEAN;
     idex             : out INTEGER;
     constant bpoint : in INTEGER;       -- binary point
@@ -7637,7 +7569,7 @@ end SYS_fmod;
       end if;
     end procedure errmes;
     variable xgood : BOOLEAN;
-    variable nybble : STD_ULOGIC_VECTOR (3 downto 0);        -- 4 bits
+    variable nybble : STD_LOGIC_VECTOR (3 downto 0);        -- 4 bits
     variable c : CHARACTER;
     variable i : INTEGER;
     variable lastu  : BOOLEAN := false;       -- last character was an "_"
@@ -7704,7 +7636,7 @@ end SYS_fmod;
                   VALUE : out   UNRESOLVED_ufixed) is
     constant hbv    : INTEGER := (((maximum(4, (VALUE'high+1))+3)/4)*4)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-3)/4)*4;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_ufixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7741,7 +7673,7 @@ end SYS_fmod;
                   GOOD  : out   BOOLEAN) is
     constant hbv    : INTEGER := (((maximum(4, (VALUE'high+1))+3)/4)*4)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-3)/4)*4;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_ufixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7769,7 +7701,7 @@ end SYS_fmod;
                   VALUE : out   UNRESOLVED_sfixed) is
     constant hbv    : INTEGER := (((maximum(4, (VALUE'high+1))+3)/4)*4)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-3)/4)*4;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_sfixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7809,7 +7741,7 @@ end SYS_fmod;
                   GOOD  : out   BOOLEAN) is
     constant hbv    : INTEGER := (((maximum(4, (VALUE'high+1))+3)/4)*4)-1;
     constant lbv    : INTEGER := ((mine(0, VALUE'low)-3)/4)*4;
-    variable slv    : STD_ULOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
+    variable slv    : STD_LOGIC_VECTOR (hbv-lbv downto 0);  -- high bits
     variable valuex : UNRESOLVED_sfixed (hbv downto lbv);
     variable igood  : BOOLEAN;
     variable i      : INTEGER;
@@ -7865,7 +7797,7 @@ end SYS_fmod;
             s(sindx) := '.';
             sindx    := sindx + 1;
           end if;
-          s(sindx) := MVL9_to_char(STD_ULOGIC(value(i)));
+          s(sindx) := MVL9_to_char(STD_LOGIC(value(i)));
           sindx    := sindx + 1;
         end loop;
         return s;
@@ -7898,7 +7830,7 @@ end SYS_fmod;
             s(sindx) := '.';
             sindx    := sindx + 1;
           end if;
-          s(sindx) := MVL9_to_char(STD_ULOGIC(value(i)));
+          s(sindx) := MVL9_to_char(STD_LOGIC(value(i)));
           sindx    := sindx + 1;
         end loop;
         return s;
@@ -7909,8 +7841,8 @@ end SYS_fmod;
   function to_ostring (value : UNRESOLVED_ufixed) return STRING is
     constant lne  : INTEGER := (-VALUE'low+2)/3;
     variable subval : UNRESOLVED_ufixed (value'high downto -3);
-    variable lpad : STD_ULOGIC_VECTOR (0 to (lne*3 + VALUE'low) -1);
-    variable slv : STD_ULOGIC_VECTOR (value'length-1 downto 0);
+    variable lpad : STD_LOGIC_VECTOR (0 to (lne*3 + VALUE'low) -1);
+    variable slv : STD_LOGIC_VECTOR (value'length-1 downto 0);
   begin
     if value'length < 1 then
       return NUS;
@@ -7930,7 +7862,7 @@ end SYS_fmod;
           return to_ostring (resize (value, value'high, -3));
         end if;
       else
-        slv := to_sulv (value);
+        slv := to_slv (value);
         if Is_X (value (value'low)) then
           lpad := (others => value (value'low));
         else
@@ -7946,8 +7878,8 @@ end SYS_fmod;
   function to_hstring (value : UNRESOLVED_ufixed) return STRING is
     constant lne  : INTEGER := (-VALUE'low+3)/4;
     variable subval : UNRESOLVED_ufixed (value'high downto -4);
-    variable lpad : STD_ULOGIC_VECTOR (0 to (lne*4 + VALUE'low) -1);
-    variable slv : STD_ULOGIC_VECTOR (value'length-1 downto 0);
+    variable lpad : STD_LOGIC_VECTOR (0 to (lne*4 + VALUE'low) -1);
+    variable slv : STD_LOGIC_VECTOR (value'length-1 downto 0);
   begin
     if value'length < 1 then
       return NUS;
@@ -7967,7 +7899,7 @@ end SYS_fmod;
           return to_hstring (resize (value, value'high, -4));
         end if;
       else
-        slv := to_sulv (value);
+        slv := to_slv (value);
         if Is_X (value (value'low)) then
           lpad := (others => value(value'low));
         else
@@ -7982,11 +7914,11 @@ end SYS_fmod;
 
   function to_ostring (value : UNRESOLVED_sfixed) return STRING is
     constant ne   : INTEGER := ((value'high+1)+2)/3;
-    variable pad  : STD_ULOGIC_VECTOR(0 to (ne*3 - (value'high+1)) - 1);
+    variable pad  : STD_LOGIC_VECTOR(0 to (ne*3 - (value'high+1)) - 1);
     constant lne  : INTEGER := (-VALUE'low+2)/3;
     variable subval : UNRESOLVED_sfixed (value'high downto -3);
-    variable lpad : STD_ULOGIC_VECTOR (0 to (lne*3 + VALUE'low) -1);
-    variable slv  : STD_ULOGIC_VECTOR (VALUE'high - VALUE'low downto 0);
+    variable lpad : STD_LOGIC_VECTOR (0 to (lne*3 + VALUE'low) -1);
+    variable slv  : STD_LOGIC_VECTOR (VALUE'high - VALUE'low downto 0);
   begin
     if value'length < 1 then
       return NUS;
@@ -8003,7 +7935,7 @@ end SYS_fmod;
         end if;
       else
         pad := (others => value(value'high));
-        slv := to_sulv (value);
+        slv := to_slv (value);
         if Is_X (value (value'low)) then
           lpad := (others => value(value'low));
         else
@@ -8018,11 +7950,11 @@ end SYS_fmod;
 
   function to_hstring (value : UNRESOLVED_sfixed) return STRING is
     constant ne   : INTEGER := ((value'high+1)+3)/4;
-    variable pad  : STD_ULOGIC_VECTOR(0 to (ne*4 - (value'high+1)) - 1);
+    variable pad  : STD_LOGIC_VECTOR(0 to (ne*4 - (value'high+1)) - 1);
     constant lne  : INTEGER := (-VALUE'low+3)/4;
     variable subval : UNRESOLVED_sfixed (value'high downto -4);
-    variable lpad : STD_ULOGIC_VECTOR (0 to (lne*4 + VALUE'low) -1);
-    variable slv  : STD_ULOGIC_VECTOR (value'length-1 downto 0);
+    variable lpad : STD_LOGIC_VECTOR (0 to (lne*4 + VALUE'low) -1);
+    variable slv  : STD_LOGIC_VECTOR (value'length-1 downto 0);
   begin
     if value'length < 1 then
       return NUS;
@@ -8038,7 +7970,7 @@ end SYS_fmod;
           return to_hstring (resize (value, value'high, -4));
         end if;
       else
-        slv := to_sulv (value);
+        slv := to_slv (value);
         pad := (others => value(value'high));
         if Is_X (value (value'low)) then
           lpad := (others => value(value'low));
@@ -8330,76 +8262,76 @@ end SYS_fmod;
   end function from_hstring;
 -- pragma synthesis_on
 -- rtl_synthesis on
-  -- IN VHDL-2006 std_logic_vector is a subtype of std_ulogic_vector, so these
+  -- IN VHDL-2006 std_logic_vector is a subtype of STD_LOGIC_vector, so these
   -- extra functions are needed for compatability.
-  function to_ufixed (
-    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
-    constant left_index  : INTEGER;
-    constant right_index : INTEGER)
-    return UNRESOLVED_ufixed is
-  begin
-    return to_ufixed (
-      arg => to_stdulogicvector (arg),
-      left_index => left_index,
-      right_index => right_index);
-  end function to_ufixed;
-
-  function to_ufixed (
-    arg      : STD_LOGIC_VECTOR;       -- shifted vector
-    size_res : UNRESOLVED_ufixed)       -- for size only
-    return UNRESOLVED_ufixed is
-  begin
-    return to_ufixed (
-      arg => to_stdulogicvector (arg),
-      size_res => size_res);
-  end function to_ufixed;
-
-  function to_sfixed (
-    arg                  : STD_LOGIC_VECTOR;  -- shifted vector
-    constant left_index  : INTEGER;
-    constant right_index : INTEGER)
-    return UNRESOLVED_sfixed is
-  begin
-    return to_sfixed (
-      arg => to_stdulogicvector (arg),
-      left_index => left_index,
-      right_index => right_index);
-  end function to_sfixed;
-
-  function to_sfixed (
-    arg      : STD_LOGIC_VECTOR;       -- shifted vector
-    size_res : UNRESOLVED_sfixed)       -- for size only
-    return UNRESOLVED_sfixed is
-  begin
-    return to_sfixed (
-      arg => to_stdulogicvector (arg),
-      size_res => size_res);
-  end function to_sfixed;
-
-  -- unsigned fixed point
-  function to_UFix (
-    arg      : STD_LOGIC_VECTOR;
-    width    : NATURAL;                 -- width of vector
-    fraction : NATURAL)                 -- width of fraction
-    return UNRESOLVED_ufixed is
-  begin
-    return to_UFix (
-      arg => to_stdulogicvector (arg),
-      width => width,
-      fraction => fraction);
-  end function to_UFix;
-
-  -- signed fixed point
-  function to_SFix (
-    arg      : STD_LOGIC_VECTOR;
-    width    : NATURAL;                 -- width of vector
-    fraction : NATURAL)                 -- width of fraction
-    return UNRESOLVED_sfixed is
-  begin
-    return to_SFix (
-      arg => to_stdulogicvector (arg),
-      width => width,
-      fraction => fraction);
-  end function to_SFix;
+--   function to_ufixed (
+--     arg                  : STD_LOGIC_VECTOR;  -- shifted vector
+--     constant left_index  : INTEGER;
+--     constant right_index : INTEGER)
+--     return UNRESOLVED_ufixed is
+--   begin
+--     return to_ufixed (
+--       arg => to_stdulogicvector (arg),
+--       left_index => left_index,
+--       right_index => right_index);
+--   end function to_ufixed;
+-- 
+--   function to_ufixed (
+--     arg      : STD_LOGIC_VECTOR;       -- shifted vector
+--     size_res : UNRESOLVED_ufixed)       -- for size only
+--     return UNRESOLVED_ufixed is
+--   begin
+--     return to_ufixed (
+--       arg => to_stdulogicvector (arg),
+--       size_res => size_res);
+--   end function to_ufixed;
+-- 
+--   function to_sfixed (
+--     arg                  : STD_LOGIC_VECTOR;  -- shifted vector
+--     constant left_index  : INTEGER;
+--     constant right_index : INTEGER)
+--     return UNRESOLVED_sfixed is
+--   begin
+--     return to_sfixed (
+--       arg => to_stdulogicvector (arg),
+--       left_index => left_index,
+--       right_index => right_index);
+--   end function to_sfixed;
+-- 
+--   function to_sfixed (
+--     arg      : STD_LOGIC_VECTOR;       -- shifted vector
+--     size_res : UNRESOLVED_sfixed)       -- for size only
+--     return UNRESOLVED_sfixed is
+--   begin
+--     return to_sfixed (
+--       arg => to_stdulogicvector (arg),
+--       size_res => size_res);
+--   end function to_sfixed;
+-- 
+--   -- unsigned fixed point
+--   function to_UFix (
+--     arg      : STD_LOGIC_VECTOR;
+--     width    : NATURAL;                 -- width of vector
+--     fraction : NATURAL)                 -- width of fraction
+--     return UNRESOLVED_ufixed is
+--   begin
+--     return to_UFix (
+--       arg => to_stdulogicvector (arg),
+--       width => width,
+--       fraction => fraction);
+--   end function to_UFix;
+-- 
+--   -- signed fixed point
+--   function to_SFix (
+--     arg      : STD_LOGIC_VECTOR;
+--     width    : NATURAL;                 -- width of vector
+--     fraction : NATURAL)                 -- width of fraction
+--     return UNRESOLVED_sfixed is
+--   begin
+--     return to_SFix (
+--       arg => to_stdulogicvector (arg),
+--       width => width,
+--       fraction => fraction);
+--   end function to_SFix;
 
 end package body fixed_pkg;

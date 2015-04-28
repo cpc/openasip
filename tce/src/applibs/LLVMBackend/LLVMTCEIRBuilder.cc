@@ -34,6 +34,9 @@
 #undef NDEBUG
 #endif
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "LLVMTCEIRBuilder.hh"
 #include "ControlFlowGraph.hh"
 #include "Procedure.hh"
@@ -76,6 +79,8 @@
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include "llvm/Analysis/AliasAnalysis.h"
 
+POP_COMPILER_DIAGS
+
 #define EXIT_IF_THROWS(__X__)                               \
     try {                                                   \
         __X__;                                              \
@@ -95,9 +100,10 @@ char LLVMTCEIRBuilder::ID = -1;
 
 LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     const llvm::TargetMachine& tm, TTAMachine::Machine* mach, 
-    InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, bool modifyMF) :
+    InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, 
+    bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
-    ddgBuilder_(ipd), modifyMF_(modifyMF), AA_(AA) {
+    ddgBuilder_(ipd), modifyMF_(modifyMF), AA_(AA), options_(NULL), dsf_(NULL) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
@@ -114,6 +120,12 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
         }
 
     } 
+    if (Application::cmdLineOptions() != NULL) {
+        options_ = 
+            dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+    }
+    delaySlotFilling_ = true;
 }
 
 bool
@@ -159,7 +171,6 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         prog_->addProcedure(procedure);
     } 
     
-
     TTAProgram::InstructionReferenceManager* irm = NULL;
     if (functionAtATime_) {
         irm = new TTAProgram::InstructionReferenceManager();
@@ -167,21 +178,16 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         irm = &prog_->instructionReferenceManager();
     }
 
-
     ControlFlowGraph* cfg = buildTCECFG(mf);
+    cfg->setInstructionReferenceManager(*irm);
 #ifdef WRITE_CFG_DOTS
     cfg->writeToDotFile(fnName + "_cfg1.dot");
 #endif
-    
-    LLVMTCECmdLineOptions* options = NULL;
-    bool fastCompilation = false;
-    if (Application::cmdLineOptions() != NULL) {
-        options = 
-            dynamic_cast<LLVMTCECmdLineOptions*>(
-                Application::cmdLineOptions());
-        fastCompilation = options->optLevel() == 0;
-    }
+
+    bool fastCompilation = options_ != NULL && options_->optLevel() == 0;    
+
     markJumpTableDestinations(mf, *cfg);
+
     if (fastCompilation) {
         EXIT_IF_THROWS(compileFast(*cfg));
     } else {
@@ -197,7 +203,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
             // got them for us and passed through.        
             AA = AA_;
         }
-        EXIT_IF_THROWS(compileOptimized(*cfg, *irm, AA));
+        EXIT_IF_THROWS(compileOptimized(*cfg, AA));
     }
 
     if (!modifyMF_) {
@@ -231,13 +237,6 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     TCEString fnName(Buffer.c_str());
 
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
-    
-/*
-    // TODO: antidep level bigger on trunk where loop scheduling.
-    DataDependenceGraph* ddg = new DataDependenceGraph(
-        allParamRegs_, fnName, DataDependenceGraph::INTRA_BB_ANTIDEPS,
-        NULL, true, false);
-*/
 
     bbMapping_.clear();
     skippedBBs_.clear();
@@ -326,7 +325,9 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 if (&(*j) == &(mbb.back())) {
                     endingCallBBs.insert(&(*i));
                 } else {
-                    if (!hasRealInstructions(j, mbb)) {
+                    MachineBasicBlock::const_iterator afterCall = j;
+                    ++afterCall;
+                    if (!hasRealInstructions(afterCall, mbb)) {
                         endingCallBBs.insert(&(*i));
                     } else {
                         // create a new BB for code after the call
@@ -447,12 +448,17 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 nextLabel = "";
             }
             
-            // if call, switch to next bb(in callsucc chain)
             if (j->getDesc().isCall() && &(*j) != &(mbb.back())) {
+                if (!AssocTools::containsKey(callSuccs, bbn)) {
+                    // the call ends the basic block, after this only at most
+                    // "non real" instructions (such as debug metadata), which
+                    // we can simply ignore
+                    break;
+                }
                 bbn = callSuccs[bbn];
                 bb = &bbn->basicBlock();
             }
-
+            
             // conditional jump or indirect jump that is not last ins splits 
             // a bb.
             if (j->getDesc().isBranch() && 
@@ -463,8 +469,6 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         }
 
         assert(bb->instructionCount() != 0);
-//        ddgBuilder_->constructIndividualBB(REGISTERS_AND_PROGRAM_OPERATIONS);
-
     }
 
     // 3rd loop: create edges?
@@ -605,11 +609,22 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         }
     }
 
+    TTAProgram::InstructionReferenceManager* irm = NULL;
+    if (functionAtATime_) {
+        irm = new TTAProgram::InstructionReferenceManager();
+    } else {        
+        irm = &prog_->instructionReferenceManager();
+    }
+
+    cfg->setInstructionReferenceManager(*irm);
+    // add back edge properties.
+    cfg->detectBackEdges();
+
     /* Split BBs with calls inside. These can be produced 
        from expanding  the pseudo asm blocks. Currently at least 
        the call_global_[cd]tors expands to multiple calls to the
        global object constructors and destructors. */
-    cfg->splitBasicBlocksWithCalls();
+    cfg->splitBasicBlocksWithCallsAndRefs();
     fixProgramOperationReferences();
     
     // create jumps to exit node
@@ -628,10 +643,16 @@ LLVMTCEIRBuilder::compileFast(ControlFlowGraph& cfg) {
     sched.handleControlFlowGraph(cfg, *mach_);
 }
 
+CopyingDelaySlotFiller&
+LLVMTCEIRBuilder::delaySlotFiller() {
+    if (dsf_ == NULL)
+        dsf_ = new CopyingDelaySlotFiller;
+    return *dsf_;    
+}
+
 void
 LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
-    TTAProgram::InstructionReferenceManager& irm,
     llvm::AliasAnalysis* llvmAA) {
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
@@ -641,19 +662,28 @@ LLVMTCEIRBuilder::compileOptimized(
 #ifdef WRITE_DDG_DOTS
     ddg.writeToDotFile(fnName + "_ddg1.dot");
 #endif
+    cfg.optimizeBBOrdering(true, cfg.instructionReferenceManager(), ddg);
 
     PreOptimizer preOpt(*ipData_);
     preOpt.handleCFGDDG(cfg, *ddg);
 
-    cfg.optimizeBBOrdering(true, irm, ddg);
+    cfg.optimizeBBOrdering(true, cfg.instructionReferenceManager(), ddg);
 
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg2.dot");
 #endif
 
+    if (!modifyMF_) {
+        // BBReferences converted to Inst references
+        // break LLVM->POM ->LLVM chain because we
+        // need the BB refs to rebuild the LLVM CFG 
+        cfg.convertBBRefsToInstRefs();
+    }
+
     CycleLookBackSoftwareBypasser bypasser;
-    CopyingDelaySlotFiller dsf;
-    BBSchedulerController bbsc(*ipData_, &bypasser, &dsf);
+    BBSchedulerController bbsc(*ipData_, &bypasser, &delaySlotFiller());
+    if (delaySlotFilling_)
+        delaySlotFiller().initialize(cfg, *ddg, *mach_);
     bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
 
 #ifdef WRITE_CFG_DOTS
@@ -672,10 +702,12 @@ LLVMTCEIRBuilder::compileOptimized(
 
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
-        dsf.fillDelaySlots(cfg, *ddg, *mach_);
+        if (delaySlotFilling_) {
+            delaySlotFiller().fillDelaySlots(cfg, *ddg, *mach_);
+        } 
     }
 
-    PostpassOperandSharer ppos(*ipData_, irm);
+    PostpassOperandSharer ppos(*ipData_, cfg.instructionReferenceManager());
     ppos.handleControlFlowGraph(cfg, *mach_);
 
 #ifdef WRITE_DDG_DOTS
@@ -716,7 +748,7 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
                     // in case the original BB is split to multiple machine BBs,
                     // refer to the first one in the chain because the original
                     // BB reference could not have referred to middle of an BB
-                    if (mbbt->isPredecessor(mbb)) {
+                    if (mbbt->isSuccessor(mbb)) {
                         bb = &bbt;
                         mbb = mbbt;
                     }
@@ -895,7 +927,7 @@ LLVMTCEIRBuilder::registerIndex(unsigned llvmRegNum) const {
 void
 LLVMTCEIRBuilder::markJumpTableDestinations(
     llvm::MachineFunction& mf,
-    ControlFlowGraph& cfg) {
+    ControlFlowGraph&) {
     llvm::MachineJumpTableInfo* jtInfo = mf.getJumpTableInfo();
     if (jtInfo == NULL || jtInfo->isEmpty()) {
         return;

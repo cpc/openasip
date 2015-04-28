@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -25,7 +25,7 @@
  * @file BBSchedulerController.hh
  *
  * Declaration of BBSchedulerController class.
- * @author Pekka J��skel�inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J��skel�inen 2006,2015 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
@@ -70,7 +70,14 @@ public:
     virtual ~BBSchedulerController();
 
     virtual void handleBasicBlock(
-        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine)
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm, 
+        BasicBlockNode* bbn = NULL)
+        throw (Exception);
+
+    virtual void handleControlFlowGraph(
+        ControlFlowGraph& cfg,
+        const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
     virtual void handleProcedure(
@@ -84,10 +91,11 @@ public:
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    void executeDDGPass(
+    virtual void executeDDGPass(
         TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
-        DDGPass& ddgPass)
+        TTAProgram::InstructionReferenceManager& irm,
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
         throw (Exception);
 
     virtual void handleCFGDDG(

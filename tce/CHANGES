@@ -1,10 +1,23 @@
-1.11      unreleased
+1.12         unknown
 ====================
 
-[updated from bzr log until 2014-08-18]
+[bzr log checked on 2015-02-24]
+
+Other features and improvements
+------------------------------
+- Operation definitions can be now overridden one-by-one
+  by redefining them in a local OSAL search path.
+
+1.11      March 2015
+====================
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.6.
+- tcecc: Support for the "address of label" extension:
+  http://blog.llvm.org/2010/01/address-of-label-and-indirect-branches.html
+- tcecc: Support for using SUB to flip the sign of constants in case the
+  constant cannot be encoded directly.
 - HDBEditor: External ports and additional parameters can be defined for RF 
   implementations.
 - ProGe: RF's external ports can be now generated.
@@ -15,7 +28,7 @@ Notable changes and features
   enabled in the DefaultICDecoderPlugin.
 - MachInfo prints bindings between ADF ports and OSAL operations' operands 
   in the function unit table.
-- Support for LLVM 3.6. Clustered tta -mode dropped with llvm 3.6
+- Clustered TTA mode compilation dropped when using LLVM 3.6.
 
 Other features and improvements
 ------------------------------
@@ -34,12 +47,16 @@ Other features and improvements
 - Better descriptions on some OSAL operations.
 - Added helper script generatebustrace.sh under tools/scripts/ that generates 
   bustrace from given ADF and TPEF. 
+- tcecc: More user friendly error messages for several failures caused by
+  unsupported ADFs.
 
 Notable bugfixes
 ----------------
 - Fixed ProGe not generating valid verilog code for core with IUs.
 - Fixed PIG failure if ADF had 2+ IUs one having size of one and others size 
   of one plus.
+- SystemC simulation hook crash fixes.
+- Fixes to FMA unit implementations.
 
 Usability features
 ------------------

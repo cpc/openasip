@@ -2,7 +2,6 @@
 // short test description
 $test_description="Compiling short test cases with tcecc using default Top-Down scheduler";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args = "-vr -g \"-O3\" -e tests -w 14 ".
-    "-a ti64x_subset.adf ".
-    "-a 2regcopies.adf ";
+$bin_args = "-vr -g \"-O3\" -e tests ".
+    "-a ti64x_subset.adf ";
 ?>

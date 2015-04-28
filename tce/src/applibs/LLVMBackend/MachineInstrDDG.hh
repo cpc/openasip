@@ -33,6 +33,13 @@
 #ifndef TCE_MACHINE_INSTR_DDG_HH
 #define TCE_MACHINE_INSTR_DDG_HH
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+#ifdef __clang__
+IGNORE_COMPILER_WARNING("-Wunused-private-field")
+#endif
+
 #include "BoostGraph.hh"
 #include "GraphNode.hh"
 #include "GraphEdge.hh"
@@ -88,12 +95,10 @@ struct MIDDGEdge : public GraphEdge {
         EDGE_MEMORY};
 
     MIDDGEdge(unsigned reg) : 
-        GraphEdge(), reg_(reg), dependenceType_(DEP_RAW), 
-        edgeReason_(EDGE_REGISTER) {}
+        GraphEdge(), reg_(reg), dependenceType_(DEP_RAW) {}
 
     MIDDGEdge(unsigned reg, DependenceType type) : 
-        GraphEdge(), reg_(reg), dependenceType_(type), 
-        edgeReason_(EDGE_REGISTER) {}
+        GraphEdge(), reg_(reg), dependenceType_(type) {}
 
 
     virtual ~MIDDGEdge() {}
@@ -122,7 +127,6 @@ private:
     
     unsigned reg_;
     unsigned char dependenceType_; // DependenceType
-    unsigned char edgeReason_; // EdgeReason
 };
 
 /**
@@ -192,6 +196,9 @@ private:
     llvm::MachineFunction& mf_;
     const llvm::TargetRegisterInfo* regInfo_;
 };
+
+POP_COMPILER_DIAGS
+
 
 #endif
 

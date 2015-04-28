@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of OperationIndex class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2015
  * @note rating: yellow
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */
@@ -42,6 +43,8 @@
 #include "SequenceTools.hh"
 #include "MapTools.hh"
 #include "OperationBuilder.hh"
+#include "OperationBehaviorProxy.hh"
+#include "OperationBehaviorLoader.hh"
 
 using std::map;
 using std::string;
@@ -52,7 +55,7 @@ const string OperationIndex::PROPERTY_FILE_EXTENSION = ".opp";
 /**
  * Constructor.
  */
-OperationIndex::OperationIndex() {
+OperationIndex::OperationIndex() : loader_(*this) {
 }
 
 /**
@@ -64,6 +67,7 @@ OperationIndex::OperationIndex() {
 OperationIndex::~OperationIndex() {
     AssocTools::deleteAllValues(opDefinitions_);
     SequenceTools::deleteAllItems(modules_);
+    SequenceTools::deleteAllItems(proxies_);
 }
 
 /**
@@ -454,4 +458,48 @@ OperationIndex::moduleOf(
         }
     }
     return NullOperationModule::instance();
+}
+
+/**
+ * Returns a new instance of the Operation with the given
+ * name that is 'effective' based on the search path priorities.
+ */
+Operation*
+OperationIndex::effectiveOperation(const TCEString& name) {
+
+    OperationModule& mod = moduleOf(name);
+
+    DefinitionTable::const_iterator dt = 
+        opDefinitions_.find(mod.propertiesModule());
+
+    assert (dt != opDefinitions_.end());
+
+    ObjectState* root = (*dt).second;
+    ObjectState* child = NULL;
+    
+    // load operations
+    for (int i = 0; i < root->childCount(); i++) {
+        child = root->child(i);
+        const TCEString operName = 
+            root->child(i)->stringAttribute(Operation::OPRN_NAME);
+      
+        /* Do not load all operations in the module because the user
+           might have overridden some of the operation (properties)
+           in a local search path with higher order. Just load the one 
+           requested. */
+        if (!operName.ciEqual(name))
+            continue;
+        
+        Operation* oper = 
+            new Operation(operName, NullOperationBehavior::instance());
+      
+        oper->loadState(child);
+        // add the behavior loader proxy
+        OperationBehaviorProxy* proxy = 
+            new OperationBehaviorProxy(*oper, loader_);
+        proxies_.push_back(proxy);
+        oper->setBehavior(*proxy);
+        return oper;
+    }
+    return NULL;
 }

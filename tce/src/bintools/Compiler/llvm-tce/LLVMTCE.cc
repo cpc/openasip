@@ -61,7 +61,7 @@ const int DEFAULT_OPT_LEVEL = 2;
 int
 main(int argc, char* argv[]) {
 
-    Application::initialize();
+    Application::initialize(argc, argv);
 
     LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions();
 
@@ -153,9 +153,8 @@ main(int argc, char* argv[]) {
     
     //--- check if program was ran in src dir or from install dir ---
     std::string runPath = std::string(argv[0]);
-    bool useInstalledVersion = 
-        runPath.find("bintools/Compiler/llvm-tce/.libs") == std::string::npos &&
-        runPath.find("lt-llvm-tce") == std::string::npos;
+
+    bool useInstalledVersion = Application::isInstalled();
     
     // All emulation code which cannot be linked in before last global dce is
     // executed, for emulation of instructions which are generated during 
@@ -169,14 +168,13 @@ main(int argc, char* argv[]) {
     try {
         InterPassData* ipData = new InterPassData;
 
-	#ifndef LLVM_3_1
-	const char* argv[] = {"llvm-tce", "--no-stack-coloring"};
-	llvm::cl::ParseCommandLineOptions(2, argv, "llvm linker\n");
-	#endif
-        
+        const char* argv[] = {"llvm-tce", "--no-stack-coloring"};
+        llvm::cl::ParseCommandLineOptions(2, argv, "llvm linker\n");
+
         LLVMBackend compiler(useInstalledVersion, options->tempDir());
         TTAProgram::Program* seqProg =
-            compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
+            compiler.compile(
+                bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 
         TTAProgram::Program::writeToTPEF(*seqProg, outputFileName);
         delete seqProg;

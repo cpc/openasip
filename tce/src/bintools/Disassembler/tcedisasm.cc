@@ -102,8 +102,7 @@ public:
     }
 
     bool printToStdout() {
-        return findOption("stdout")->isDefined() && 
-            findOption("stdout")->isFlagOn();
+        return findOption("stdout")->isFlagOn();
     }
 
     void printVersion() const {

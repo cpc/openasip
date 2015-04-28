@@ -24,3 +24,5 @@ $PROGE -t -i $IDF -o${progeOutDir2} $ADF
 #remove generated testbench filenames from 2. output
 diff -r ${progeOutDir} ${progeOutDir2} | grep -v ghdl \
     | grep -v modsim | grep -v tb
+
+exit 0

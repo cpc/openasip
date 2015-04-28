@@ -34,6 +34,11 @@
 #define TCE_TARGET_MACHINE_H
 
 #include <set>
+
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
@@ -57,6 +62,7 @@
 #include "llvm/IR/DataLayout.h"
 #endif
 
+POP_COMPILER_DIAGS
 
 namespace TTAMachine {
     class Machine;

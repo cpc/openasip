@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,8 +28,12 @@
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam—tut.fi)
- * @author Pekka Jääskeläinen 2007-2014
+ * @author Pekka Jääskeläinen 2007-2015
  */
+
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetRegisterInfo.h"
@@ -50,6 +54,8 @@
 #include <iostream>
 
 #include "LLVMTCECmdLineOptions.hh"
+
+POP_COMPILER_DIAGS
 
 using namespace llvm;
 

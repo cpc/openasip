@@ -74,17 +74,20 @@ using namespace llvm;
 #include <set>
 
 namespace {
-    class LowerIntrinsics : public BasicBlockPass {
-
-        Module* dstModule_;
-        
+    class LowerIntrinsics : public BasicBlockPass {        
     public:
         static char ID; // Pass ID, replacement for typeid       
         LowerIntrinsics();
         virtual ~LowerIntrinsics();
 
+        // from llvm::Pass:
         bool doInitialization(Module &M);
         bool doFinalization (Module &M);
+
+        // to suppress Clang warnings
+        using llvm::BasicBlockPass::doInitialization;
+        using llvm::BasicBlockPass::doFinalization;
+
         bool runOnBasicBlock(BasicBlock &BB);
        
      private:

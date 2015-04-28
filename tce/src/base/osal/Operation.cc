@@ -303,6 +303,15 @@ Operation::isCall() const {
     return pimpl_->isCall();
 }
 
+bool
+Operation::isBaseOffsetMemOperation() const {
+    std::string upperName = name().upper();
+    return upperName == "ALDW" || upperName == "ALDHU" || 
+        upperName == "ALDH" || upperName == "ALDQU" ||
+        upperName == "ALDQ" || upperName == "ASTW" ||
+        upperName == "ASTH" || upperName == "ASTQ";
+}
+
 /**
  * Sets the property of operation indicating the operation is control flow.
  */

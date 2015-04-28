@@ -9,6 +9,6 @@ $test_bin="expr";
 
 // args given to program
 // SLEEP operation cannot be tested automatically easily. That's the ignored + 1 here ;)
-$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `cat ../../../../../tce/opset/base/base.opp|grep \"<name>\"|wc -l` + 1";
+$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `cat ../../../../../tce/opset/base/base.opp|grep \"<name>\"|wc -l` + 1 ; exit 0";
 
 ?>

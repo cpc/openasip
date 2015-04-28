@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -30,7 +30,7 @@
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jääskeläinen 2011,2015
  * @note rating: red
  */
 
@@ -2789,6 +2789,7 @@ ControlFlowGraph::splitBasicBlocksWithCallsAndRefs() {
                 bbsToHandle.insert(splitBasicBlockAtIndex(*bbn, ii+1));
                 break;
             }
+            assert (irm_ != NULL);
             if (ii != 0 && irm_->hasReference(instr)) {
                 bbsToHandle.insert(splitBasicBlockAtIndex(*bbn, ii));
                 break;

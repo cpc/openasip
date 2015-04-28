@@ -11,12 +11,11 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
 	LLVMTCEScheduler.cc MachineInstrDDG.cc ConstantTransformer.cc
 
-TOOLS_DIR = ${SRC_ROOT}/tools
-
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module
 
 PROJECT_ROOT = $(top_srcdir)
+TOOLS_DIR = ${SRC_ROOT}/tools
 SRC_ROOT = ${PROJECT_ROOT}/src
 MACH_DIR = ${SRC_ROOT}/base/mach
 PROG_DIR = ${SRC_ROOT}/base/program
@@ -51,7 +50,6 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 # we move CXXFLAGS to AM_CXXFLAGS with additional -Wno switch 
 # and clean old CXXFLAGS variable
 AM_CXXFLAGS = -g ${CXXFLAGS}
-CXXFLAGS=-Wno-unused-parameter
 
 # Static sources for target machine plugins.
 include_HEADERS = \

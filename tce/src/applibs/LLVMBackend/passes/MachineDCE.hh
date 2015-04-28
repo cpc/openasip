@@ -29,6 +29,10 @@
  * @author Mikael Lepistö 
  */
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
@@ -66,6 +70,8 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "llvm/ADT/StringMap.h"
+
+POP_COMPILER_DIAGS
 
 #include <map>
 

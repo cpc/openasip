@@ -74,12 +74,14 @@ end fpu_hp_compare_minmax;
 architecture rtl of fpu_hp_compare_minmax is
 
 
-  signal t1reg   : std_logic_vector (busw-1 downto 0);
-  signal opc1reg : std_logic_vector (3 downto 0);
-  signal o1reg   : std_logic_vector (busw-1 downto 0);
-  signal o1temp  : std_logic_vector (busw-1 downto 0);
-  signal r1      : std_logic_vector (busw-1 downto 0);
-  signal control : std_logic_vector(1 downto 0);
+  signal t1reg    : std_logic_vector (busw-1 downto 0);
+  signal t1reg_fd : std_logic_vector (busw-1 downto 0);
+  signal opc1reg  : std_logic_vector (3 downto 0);
+  signal o1reg    : std_logic_vector (busw-1 downto 0);
+  signal o1reg_fd : std_logic_vector (busw-1 downto 0);
+  signal o1temp   : std_logic_vector (busw-1 downto 0);
+  signal r1       : std_logic_vector (busw-1 downto 0);
+  signal control  : std_logic_vector(1 downto 0);
 
   signal eq, gt  : std_logic;
   
@@ -117,16 +119,30 @@ begin
     end if;
   end process regs;
 
+  -- Flush denormals to zero.
   process( t1reg, o1reg )
+  begin
+    t1reg_fd <= t1reg;
+    if unsigned(t1reg(mw+ew-1 downto mw)) = 0 then
+      t1reg_fd(mw-1 downto 0) <= (others=>'0');
+    end if;
+
+    o1reg_fd <= o1reg;
+    if unsigned(o1reg(mw+ew-1 downto mw)) = 0 then
+      o1reg_fd(mw-1 downto 0) <= (others=>'0');
+    end if;
+  end process;
+
+  process( t1reg_fd, o1reg_fd )
     variable signa, signb : std_logic;
     variable absa, absb : unsigned( mw+ew-1 downto 0 );
     variable absgt : std_logic;
     variable abseq : std_logic;
   begin
-    signa := t1reg( mw+ew );
-    signb := o1reg( mw+ew );
-    absa := unsigned( t1reg( mw+ew-1 downto 0 ) );
-    absb := unsigned( o1reg( mw+ew-1 downto 0 ) );
+    signa := t1reg_fd( mw+ew );
+    signb := o1reg_fd( mw+ew );
+    absa := unsigned( t1reg_fd( mw+ew-1 downto 0 ) );
+    absb := unsigned( o1reg_fd( mw+ew-1 downto 0 ) );
 
     if absa > absb then
       absgt := '1';
@@ -165,26 +181,26 @@ begin
 
   end process;
 
-  COMPARE_LOGIC : process( o1reg, t1reg, opc1reg, eq, gt )
+  COMPARE_LOGIC : process( o1reg_fd, t1reg_fd, opc1reg, eq, gt )
   begin
     case opc1reg is 
       when OPC_ABSH =>
-        r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
+        r1( mw+ew-1 downto 0 ) <= t1reg_fd( mw+ew-1 downto 0 );
         r1( mw+ew ) <= '0';
       when OPC_NEGH =>
-        r1( mw+ew-1 downto 0 ) <= t1reg( mw+ew-1 downto 0 );
-        r1( mw+ew ) <= not t1reg( mw+ew );
+        r1( mw+ew-1 downto 0 ) <= t1reg_fd( mw+ew-1 downto 0 );
+        r1( mw+ew ) <= not t1reg_fd( mw+ew );
       when OPC_MINH =>
         if gt = '0' then
-          r1 <= t1reg;
+          r1 <= t1reg_fd;
         else
-          r1 <= o1reg;
+          r1 <= o1reg_fd;
         end if;
       when OPC_MAXH =>
         if gt = '0' then
-          r1 <= o1reg;
+          r1 <= o1reg_fd;
         else
-          r1 <= t1reg;
+          r1 <= t1reg_fd;
         end if;
       when OPC_EQH =>
         r1( busw-1 downto 1 ) <= (others=>'0');

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of OperationPoolPimpl (private implementation) class.
  *
  * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jääskeläinen 2011,2015
  * @note rating: red
  */
 
@@ -66,9 +66,7 @@ using std::vector;
 using std::string;
 
 OperationPoolPimpl::OperationTable OperationPoolPimpl::operationCache_;
-std::vector<OperationBehaviorProxy*> OperationPoolPimpl::proxies_;
 OperationIndex* OperationPoolPimpl::index_(NULL);
-OperationBehaviorLoader* OperationPoolPimpl::loader_(NULL);
 const llvm::MCInstrInfo* OperationPoolPimpl::llvmTargetInstrInfo_(NULL);
 
 /**
@@ -83,7 +81,6 @@ OperationPoolPimpl::OperationPoolPimpl() {
         for (unsigned int i = 0; i < paths.size(); i++) {
             index_->addPath(paths[i]);
         }
-        loader_ = new OperationBehaviorLoader(*index_);
     }
 }
 
@@ -102,11 +99,8 @@ OperationPoolPimpl::~OperationPoolPimpl() {
 void 
 OperationPoolPimpl::cleanupCache() {
     AssocTools::deleteAllValues(operationCache_);
-    SequenceTools::deleteAllItems(proxies_);
     delete index_;
     index_ = NULL;
-    delete loader_;
-    loader_ = NULL;
 }
 
 /**
@@ -155,47 +149,10 @@ OperationPoolPimpl::operation(const char* name) {
         return NullOperation::instance();
     }
     
-    Operation* found = NULL;
-
-    serializer_.setSourceFile(module.propertiesModule());
-    ObjectState* root = serializer_.readState();
-    ObjectState* child = NULL;
-    
-    // load operations
-    for (int i = 0; i < root->childCount(); i++) {
-        child = root->child(i);
-        const std::string operName = 
-            root->child(i)->stringAttribute(Operation::OPRN_NAME);
-      
-        Operation* oper = 
-            new Operation(operName, NullOperationBehavior::instance());
-      
-        oper->loadState(child);
-        operationCache_[StringTools::stringToLower(operName)] = oper;
-      
-        if (StringTools::ciEqual(operName, name)) {
-            found = oper;
-        }            
-    }
-    
-    // add behaviours
-    for (std::map<std::string, Operation*>::iterator 
-             iter = operationCache_.begin();
-         iter != operationCache_.end(); iter++) {
-      
-        Operation* oper = iter->second;
-      
-        OperationBehaviorProxy* proxy = 
-            new OperationBehaviorProxy(*oper, *loader_);
-        proxies_.push_back(proxy);
-        oper->setBehavior(*proxy);
-    }
-    
-    delete root;
-    root = NULL;
-
-    if (found != NULL) {
-        return *found;
+    Operation* effective = index_->effectiveOperation(name);
+    if (effective != NULL) {
+        operationCache_[StringTools::stringToLower(name)] = effective;
+        return *effective;
     } else {
         return NullOperation::instance();            
     }

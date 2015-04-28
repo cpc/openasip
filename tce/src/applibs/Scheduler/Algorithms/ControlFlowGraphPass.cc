@@ -96,11 +96,24 @@ ControlFlowGraphPass::executeBasicBlockPass(
     BasicBlockPass& bbPass)
     throw (Exception) {
 
-    const int nodeCount = cfg.nodeCount();
+    int nodeCount = cfg.nodeCount();
     for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
         BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
         if (!bb.isNormalBB())
             continue;
-        bbPass.handleBasicBlock(bb.basicBlock(), targetMachine);
+        if (bb.isScheduled()) {
+            continue;
+        }
+
+        bbPass.handleBasicBlock(
+            bb.basicBlock(), targetMachine, 
+            cfg.instructionReferenceManager(), &bb);
+        bb.setScheduled();
+        // if some node is removed, make sure does not skip some node and
+        // then try to handle too many nodes.
+        if (cfg.nodeCount() != nodeCount) {
+            nodeCount = cfg.nodeCount();
+            bbIndex = 0;
+        }
     }
 }

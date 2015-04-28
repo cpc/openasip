@@ -123,6 +123,7 @@ public:
     virtual bool canSwap(int id1, int id2) const;
     virtual bool isCall() const;
     virtual bool isBranch() const;
+    virtual bool isBaseOffsetMemOperation() const;
     virtual void setCall(bool setting);
     virtual void setBranch(bool setting);
     virtual void setControlFlowOperation(bool setting);

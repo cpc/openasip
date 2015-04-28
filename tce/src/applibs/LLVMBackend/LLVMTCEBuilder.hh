@@ -272,7 +272,8 @@ namespace llvm {
         void emitDataDef(const DataDef& def);
 
         unsigned createDataDefinition(
-            int addressSpaceId, unsigned& addr,  const Constant* cv);
+            int addressSpaceId, unsigned& addr,  const Constant* cv,
+            bool forceInitialize=false);
 
         void createIntDataDefinition(
             int addressSpaceId, unsigned& addr, const llvm::ConstantInt* ci,
@@ -367,9 +368,9 @@ namespace llvm {
 
         // Create MoveNodes before calling DDGBuilder.
         virtual void createMoveNode(
-            ProgramOperationPtr& po,
-            TTAProgram::Move& m,
-            bool isDestination) {}
+            ProgramOperationPtr&,
+            TTAProgram::Move&,
+            bool /*isDestination*/) {}
 
         unsigned addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
         TTAMachine::AddressSpace& addressSpaceById(unsigned id);

@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT([tce],[1.11-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.12-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -23,7 +23,8 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.9 = 9:0:0 
 # TCE 1.10 = 10:0:0
 # TCE 1.11 = 11:0:0
-AC_SUBST([LIB_VERSION], ["11:0:0"])
+# TCE 1.12 = 12:0:0
+AC_SUBST([LIB_VERSION], ["12:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -421,8 +422,7 @@ esac
 
 ####################################################################
 
-# Always enable C++11 language standard, if LLVM is 3.5 or higher. 
-# This is set to false if LLVM version is 3.4 or lower.
+# Always enable C++11 language standard.
 ENABLE_CXX11=true
 
 LLVM_VERSION=
@@ -475,61 +475,6 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     3.0)
-     AC_DEFINE([LLVM_3_0], [], "Using LLVM 3.0")
-     ENABLE_CXX11=false
-     LLVM_OLDER_THAN_3_6=1
-   ;;
-     3.1*)
-     AC_DEFINE([LLVM_3_1], [], "Using LLVM 3.1")
-     ENABLE_CXX11=false
-     LLVM_OLDER_THAN_3_6=1
-   ;;
-     3.2*)
-     AC_DEFINE([LLVM_3_2], [], "Using LLVM 3.2")
-     ENABLE_CXX11=false
-     LLVM_OLDER_THAN_3_6=1
-   ;;
-     3.3*)
-     AC_DEFINE([LLVM_3_3], [], "Using LLVM 3.3")
-
-     AC_LANG_CONFTEST(
-     [AC_LANG_PROGRAM(
-       [[
-char Y[4*10000] __attribute__((address_space(1)));
-char X[4*10000];
-       ]],
-       [[
-    for (int i = 0; i < 4*10000; ++i)
-        X[i] = Y[i] + 1;
-    return 0;
-       ]])])
-     AC_MSG_CHECKING([whether the used LLVM 3.3 is patched against the loop vectorizer bug])
-     if ! $LLVM_BINDIR/clang conftest.c -O3 -S -emit-llvm -o - | grep -q "load <16 x i8> addrspace(1)*";
-     then
-     AC_MSG_RESULT([no])
-     AC_MSG_ERROR([Your LLVM 3.3 is not patched against the loop vectorizer bug. 
-Please consult INSTALL for instructions.])
-     fi
-     AC_MSG_RESULT([yes])
-     
-     ENABLE_CXX11=false
-     LLVM_OLDER_THAN_3_6=1
-   ;;
-     3.4*)
-     AC_DEFINE([LLVM_3_4], [], "Using LLVM 3.4")
-     AC_MSG_CHECKING([whether the used LLVM 3.4 is patched against the OpenCL double issue])
-     if ! echo $LLVM_TCE_PATCHES | grep -q "clang-no-opencl-doubles sroa-fix";
-     then
-     AC_MSG_RESULT([no])
-     AC_MSG_ERROR([Your LLVM 3.4 is not patched with the required fixes. Use tools/scripts/install_llvm_3.4.sh.])
-     else
-     AC_MSG_RESULT([yes])
-     fi
-
-     ENABLE_CXX11=false
-     LLVM_OLDER_THAN_3_6=1
-   ;;
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
      LLVM_OLDER_THAN_3_6=1
@@ -1214,60 +1159,28 @@ MIN_BOOST_VERSION=1.41.0
 
 AC_LANG(C++)
 
-# Check if the enable parameter has been given to configure.
-AC_ARG_ENABLE(cxx11,
-[AS_HELP_STRING([--enable-cxx11],[use c++11 language standard])],
-[ case "${enableval}" in
-  yes) 
-    cxx11=true 
-    ;;
-  no) 
-    cxx11=false 
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-cxx11}) 
-    ;;
-  esac], 
-  [cxx11=false]
-)
+cxx11=true
 
-# If LLVM version is 3.5 or greater, force the mode on.
-if test x"$ENABLE_CXX11" = xtrue; then
-   cxx11=true
-fi
+# Check that the compiler supports C++11 mode.
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
-AC_MSG_CHECKING([whether c++11 language standard is enabled])
-if test x"$cxx11" = xtrue; then
-   AC_MSG_RESULT([yes])
-
-   # Check that the compiler supports C++11 mode.
-   AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
-
-   # Require at least boost 1.48.0 if C++11 mode is used.
-   MIN_BOOST_VERSION=1.48.0
-
-   # AX_CXX_COMPILE_STDCXX_11 macro sets CXXFLAGS to include -std=c++0x or
-   # -std=c++11, check which one and set other flags accordingly.
-   define_cxx0x=false
-   for flag in $CXXFLAGS; do
-       if test x"$flag" = x-std=c++0x; then
-          define_cxx0x=true
-          break
-       fi
-   done
+# AX_CXX_COMPILE_STDCXX_11 macro sets CXXFLAGS to include -std=c++0x or
+# -std=c++11, check which one and set other flags accordingly.
+define_cxx0x=false
+for flag in $CXXFLAGS; do
+    if test x"$flag" = x-std=c++0x; then
+       define_cxx0x=true
+       break
+    fi
+done
    
-   # Set the flags to use -std=c++0x or -std=c++11.
-   if test x"$define_cxx0x" = xtrue; then
-      AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard.])
-      CPPFLAGS="$CPPFLAGS -std=c++0x"
-      LDFLAGS="$LDFLAGS -std=c++0x"
-   else
-      AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard.])
-      CPPFLAGS="$CPPFLAGS -std=c++11"
-      LDFLAGS="$LDFLAGS -std=c++11"
-   fi
+# Set the flags to use -std=c++0x or -std=c++11.
+if test x"$define_cxx0x" = xtrue; then
+   AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard switch.])
+   CXXFLAGS="$CXXFLAGS -std=c++0x"
 else
-   AC_MSG_RESULT([no])
+   AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
+   CXXFLAGS="$CXXFLAGS -std=c++11"
 fi
 
 
@@ -1276,6 +1189,8 @@ fi
 # Check boost libraries
 #
 ######################################
+MIN_BOOST_VERSION=1.48.0
+
 AX_BOOST_BASE([$MIN_BOOST_VERSION])
 if test -z "$BOOST_LDFLAGS"
 then

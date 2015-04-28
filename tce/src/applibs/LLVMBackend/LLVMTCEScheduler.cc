@@ -29,6 +29,11 @@
  * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
+
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include <llvm/CodeGen/MachineFunction.h>
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
@@ -46,6 +51,8 @@
 #include "InterPassData.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "OperationPool.hh"
+
+POP_COMPILER_DIAGS
 
 namespace llvm {
 
@@ -134,7 +141,7 @@ LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
 }
 
 FunctionPass*
-createTCESchedulerPass(const char* target) {
+createTCESchedulerPass(const char* /*target*/) {
     if (ADFLocation == "") {
         Application::logStream()
             << "TCE: you need to provide the ADF location via llc -adf switch!"

@@ -37,7 +37,9 @@
 #include "SchedulerPass.hh"
 #include "DataDependenceGraphBuilder.hh"
 
+class BasicBlockNode;
 class DDGPass;
+class DataDependenceGraph;
 class SimpleResourceManager;
 
 namespace TTAProgram {
@@ -46,6 +48,10 @@ namespace TTAProgram {
 
 namespace TTAMachine {
     class Machine;
+}
+
+namespace TTAProgram {
+    class InstructionReferenceManager;
 }
 
 /**
@@ -58,23 +64,41 @@ public:
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& basicBlock,
-        const TTAMachine::Machine& targetMachine)
+        const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm, 
+        BasicBlockNode* bbn = NULL)
         throw (Exception);
 
-    void executeDDGPass(
+    virtual void executeDDGPass(
         TTAProgram::BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
-        DDGPass& ddgPass)
+        TTAProgram::InstructionReferenceManager& irm,
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
         throw (Exception);
+
+    virtual bool executeLoopPass(
+        TTAProgram::BasicBlock& bb,
+        const TTAMachine::Machine& targetMachine, 
+        TTAProgram::InstructionReferenceManager& irm,
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode*bbn = NULL)
+        throw (Exception);
+
+    static void copyRMToBB(
+        SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
+        const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm, int lastCycle = -1);
 
     virtual DataDependenceGraphBuilder& ddgBuilder() { return ddgBuilder_; }
 
 protected:
+    void ddgSnapshot(
+        DataDependenceGraph* ddg,
+        std::string& name,
+        DataDependenceGraph::DumpFileFormat format,
+        bool final);
 
+    
     virtual DataDependenceGraph* createDDGFromBB(TTAProgram::BasicBlock& bb);
-    virtual void copyRMToBB(
-        SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
-        const TTAMachine::Machine& targetMachine);
 
 private:
     DataDependenceGraphBuilder ddgBuilder_;

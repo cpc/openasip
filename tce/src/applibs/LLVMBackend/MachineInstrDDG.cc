@@ -31,6 +31,10 @@
 #undef NDEBUG
 #endif
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunction.h"
@@ -55,6 +59,8 @@
 #include "Operation.hh"
 
 #include <utility>
+
+POP_COMPILER_DIAGS
 
 // #define DEBUG_MI_DDG
 

@@ -38,7 +38,12 @@
 #include "SimpleResourceManager.hh"
 #include "ControlUnit.hh"
 #include "DDGPass.hh"
+#include "POMDisassembler.hh"
+#include "InstructionReferenceManager.hh"
+#include "BasicBlockScheduler.hh"
 #include "Instruction.hh"
+#include "FunctionUnit.hh"
+#include "UniversalMachine.hh"
 
 /**
  * Constructor.
@@ -60,6 +65,10 @@ BasicBlockPass::~BasicBlockPass() {
  * client should copy the original. Does not restore the BB even though
  * handling was not successful.
  *
+ * @todo: Why both BB and BBN as arguments? If BBN is needed then I think
+ * BB argument can be replaced with a BBN one. We always should have it
+ * anyways.
+ *
  * @param basicBlock The basic block to handle.
  * @param machine The target machine if any. (NullMachine::instance() if
  * target machine is irrelevant).
@@ -69,15 +78,19 @@ BasicBlockPass::~BasicBlockPass() {
 void 
 BasicBlockPass::handleBasicBlock(
     TTAProgram::BasicBlock& basicBlock,
-    const TTAMachine::Machine& targetMachine)
+    const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm,
+    BasicBlockNode* bbn)
     throw (Exception) {
 
     if (basicBlock.instructionCount() == 0)
         return;
 
     DDGPass* ddgPass = dynamic_cast<DDGPass*>(this);
+    std::vector<DDGPass*> ddgPasses;
+    ddgPasses.push_back(ddgPass);
     if (ddgPass != NULL) {
-        executeDDGPass(basicBlock, targetMachine, *ddgPass);
+        executeDDGPass(basicBlock, targetMachine, irm, ddgPasses, bbn);
     } else {
         abortWithError("basic block pass is not also a ddg pass so you "
                        "must overload handleBasicBlock method!");
@@ -91,93 +104,191 @@ void
 BasicBlockPass::executeDDGPass(
     TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& targetMachine, 
-    DDGPass& ddgPass)
+    TTAProgram::InstructionReferenceManager& irm, 
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode*)
     throw (Exception) {
+
+    std::cerr << "Calling bbpass::executedgpass." << std::endl;
 
     DataDependenceGraph* ddg = createDDGFromBB(bb);
 
 #ifdef DDG_SNAPSHOTS
-    static int bbCounter = 0;
-    ddg_->writeToDotFile(
-        (boost::format("bb_%.4d_0_before_scheduling.dot") % bbCounter).str());
-    Application::logStream() << "\nBB " << bbCounter << std::endl;
+    std::string name = "scheduling";
+    ddgSnapshot(ddg, name, false);
 #endif
     
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
-    ddgPass.handleDDG(*ddg, *rm, targetMachine);
+    ddgPasses[0]->handleDDG(*ddg, *rm, targetMachine);
 
 #ifdef DDG_SNAPSHOTS
-    ddg->writeToDotFile(
-        (boost::format("bb_%.4d_1_after_scheduling.dot") % bbCounter).str());
-    ++bbCounter;
+    std::string name = "scheduling";
+    ddgSnapshot(ddg, name, true);
 #endif
 
-    copyRMToBB(*rm, bb, targetMachine);
+    copyRMToBB(*rm, bb, targetMachine, irm);
 
-    // deletes or stores rm for future use
-    SimpleResourceManager::disposeRM(rm);
     delete ddg;
+    SimpleResourceManager::disposeRM(rm);
+}
+
+/**
+ * Creates a DDG from the given basic block and executes a Loop pass for that.
+ */
+bool
+BasicBlockPass::executeLoopPass(
+    TTAProgram::BasicBlock&,
+    const TTAMachine::Machine&, 
+    TTAProgram::InstructionReferenceManager&,
+    std::vector<DDGPass*>, BasicBlockNode*)
+    throw (Exception) {
+
+    // not implemented
+    assert(0 && "should not be here?");
+    return false;
+}
+
+/** 
+ * Prints DDG to a dot file before and after scheudling
+ * 
+ * @param ddg to print
+ * @param name operation name for ddg
+ * @param final specify if ddg is after scheduling
+ * @param format format of the file
+ * @return number of cycles/instructions copied.
+ */
+
+void
+BasicBlockPass::ddgSnapshot(
+    DataDependenceGraph* ddg, 
+    std::string& name,
+    DataDependenceGraph::DumpFileFormat format,
+    bool final) {
+    static int bbCounter = 0;
+
+    if (final) {
+	if (format == DataDependenceGraph::DUMP_DOT) {
+	    ddg->writeToDotFile(
+		(boost::format("bb_%.4d_1_after_%2%.dot") % bbCounter % name).str());
+	} else {
+	    ddg->writeToXMLFile(
+		(boost::format("bb_%.4d_1_after_%2%.xml") % bbCounter % name).str());
+	}
+        ++bbCounter;
+    } else {
+	if (format == DataDependenceGraph::DUMP_DOT) {
+	    ddg->writeToDotFile(
+		(boost::format("bb_%.4d_0_before_%2%.dot") % bbCounter % name).str());
+	} else {
+	    ddg->writeToXMLFile(
+		(boost::format("bb_%.4d_0_before_%2%.xml") % bbCounter % name).str());
+	}
+	Application::logStream() << "\nBB " << bbCounter << std::endl;
+    }
 }
 
 /** 
  * Copies moves back from resourcemanager to basicblock,
  * putting them to correct instructions based in their cycle,
- * and addign the final delay slots.
+ * and adding the final delay slots.
  * 
  * @param rm the resourcemanager
  * @param bb the basicblock
  * @param targetMachine machine we are scheduling for.
+ * @param irm IRM to keep book of the instruction references.
+ * @param lastCycle the last instruction cycle of BB to copy.
+ * @return number of cycles/instructions copied.
  */
-void 
+void
 BasicBlockPass::copyRMToBB(
     SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 
-    const TTAMachine::Machine& targetMachine) {
+    const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm, int lastCycle) {
+
     // find the largest cycle any of a pipelines is still used
-    const int rmLastCycle = rm.largestCycle();
-    int lastCycle = rmLastCycle;
+    if (lastCycle == -1) {
+        const int rmLastCycle = rm.largestCycle();
+        lastCycle = rmLastCycle;
+    }
 
-    // the location of the branch instruction in the BB
-    int jumpCycle = -1;
+    // only first ins of bb may have incoming references
+    for (int i = 1; i < bb.instructionCount(); i++) {
+        if (irm.hasReference(bb.instructionAtIndex(i))) {
+            std::cerr << "non-first has ref:, index: " << i <<
+                " bb size: " << bb.instructionCount() << std::endl;
+        }
+        assert (!irm.hasReference(bb.instructionAtIndex(i)));
+    }
 
-    TTAProgram::Instruction* firstNewInstruction = NULL;
+    TTAProgram::Instruction refHolder;
+    if (bb.instructionCount() && irm.hasReference(bb.instructionAtIndex(0))) {
+        irm.replace(bb.instructionAtIndex(0), refHolder);
+    }
+
+    int moveCount = 0;
 
     // update the BB with the new instructions
     bb.clear();
 
-    int cycle = rm.smallestCycle();
-    
-    for (; cycle <= lastCycle; ++cycle) {
-
-        TTAProgram::Instruction* newInstruction = rm.instruction(cycle);
-
-        if (newInstruction->hasControlFlowMove()) {
-            assert(jumpCycle == -1 && "Multiple jumps in BB!");
-
-            // add delay slots to loop end count if control flow move
-            // scheduled less then #delay slots from end of BB.
-            lastCycle = std::max(lastCycle,
-                cycle + targetMachine.controlUnit()->delaySlots());
-            assert(lastCycle >= rmLastCycle);
-        }
-
-        bb.add(newInstruction);
-        rm.loseInstructionOwnership(cycle);
-
-        if (firstNewInstruction == NULL) {
-            firstNewInstruction = newInstruction;
-        }
+    int index = rm.smallestCycle();
+    if (rm.initiationInterval() > 0 && rm.initiationInterval() != INT_MAX) {
+        lastCycle = rm.initiationInterval() -1;
+        index = 0;
     }
+
+    for (; index <= lastCycle; ++index) {
+        TTAProgram::Instruction* newInstruction = rm.instruction(index);
+        if (newInstruction->hasControlFlowMove()) {
+            // Add delay slots of the last control flow instruction
+            // to loop end count. There can be multiple control
+            // flow instructions in a basic block in case thread yield
+            // emitter is enabled and it has inserted one or more
+            // calls to thread_yield().
+
+            // only this this when not modulo-scheduling.
+            if (rm.initiationInterval() < 1 || 
+                rm.initiationInterval() == INT_MAX) {
+                lastCycle = 
+                    std::max(
+                        lastCycle, 
+                        index + targetMachine.controlUnit()->delaySlots());
+//                assert(lastCycle >= rmLastCycle);
+            }
+        }
+
+        moveCount += newInstruction->moveCount();
+        bb.add(newInstruction);
+#if 0
+        Application::logStream() 
+            << newInstruction->instructionTemplate().name() << ": "
+            << newInstruction->toString() << std::endl;
+#endif
+        rm.loseInstructionOwnership(index);
+    }
+
+    if (irm.hasReference(refHolder)) {
+        irm.replace(refHolder, bb.firstInstruction());
+    }
+
+    const int instructionCount = lastCycle + 1 - rm.smallestCycle();
+    if (Application::verboseLevel() > 1 && bb.isInInnerLoop()) {
+        const int busCount = targetMachine.busNavigator().count();
+        const int moveSlotCount = busCount * instructionCount;
+        Application::logStream() 
+            << "BB -- inner loop with trip count: " << bb.tripCount() 
+            << std::endl
+            << "BB -- instruction count: " << instructionCount << std::endl;
+        Application::logStream()
+            << "BB -- move slots used: " << moveCount << " of " 
+            << moveSlotCount << " (" << (float)moveCount * 100 / moveSlotCount
+            << "%)" << std::endl;
+    }
+
+    return;
 }
 
-/**
- * Helper function used to create DDG for BBPass.
- *
- * By overriding this in derived class a different way of creating DDG's
- * can be used ( like subgraphs of a big DDG )
- *
- * @param bb BasicBlock where DDG is to be created from
- */
+
 DataDependenceGraph*
 BasicBlockPass::createDDGFromBB(TTAProgram::BasicBlock& bb) {
-    return ddgBuilder().build(bb, DataDependenceGraph::INTRA_BB_ANTIDEPS);
+    return ddgBuilder().build(
+        bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, "unknown_bb");
 }

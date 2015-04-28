@@ -26,7 +26,7 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.11-pre}
+\title{TTA-based Co-design Environment v1.12-pre}
 \ver{30}
 \firstday{2006-10-25}
 \lastday{2015-01-06}
@@ -4271,22 +4271,26 @@ to define the memory access behavior:
 \section{OSAL search paths}
 \label{sec:osalpaths}
 
-Default paths, where OSAL operations are seached, are the following: \\
-(in descending search order)
+Default paths, where OSAL operations are searched allows local overriding of 
+global operation definitions. The search paths are the following (the path
+where the operation is first found will be effective):\\
 
 \begin{enumerate}
+
+\item
+   A custom path in the \textit{\$TCE\_OSAL\_PATH/} environment variable. 
+
+\item
+   Operations in current working directory:\\
+   \textit{\$PWD/}
+      
 \item
    \textit{\$PWD/data/} \\ where \$PWD is your current working directory
+      
 
 \item
    \textit{TCE\_SRC\_ROOT/opset/base/} \\ where TCE\_SRC\_ROOT/ is the
    TCE source code directory.
-
-\item
-   Default predefined and standard operations: \\
-   \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
-   TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
-   example /usr/local/share/tce).
 
 \item
    Users local custom operations: \\
@@ -4299,19 +4303,12 @@ Default paths, where OSAL operations are seached, are the following: \\
    example /usr/local/share/tce).
 
 \item
-   A custom path in the \textit{\$TCE\_OSAL\_PATH/} environment variable. 
-
-\item
-   Operations in current working directory:\\
-   \textit{\$PWD/}
+   Default predefined and standard operations: \\
+   \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
+   TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
+   example /usr/local/share/tce).
 
 \end{enumerate}
-
-\textbf{NOTE!} Search paths 1 and 2 are not used in Distributed versions!
-
-Search paths are in descending search order meaning that operations are first
-searched from first defined paths. If an operation exists in multiple search
-paths, the last found version is used.
 
 
 \section{Processor Generator (ProGe)}

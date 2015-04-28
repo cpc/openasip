@@ -37,6 +37,10 @@
 #ifndef TCE_PROGRAM_PARTITIONER_HH
 #define TCE_PROGRAM_PARTITIONER_HH
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
 #if (defined(LLVM_3_2) || defined(LLVM_3_1))
@@ -77,6 +81,8 @@
 #include "llvm/ADT/StringMap.h"
 
 #include "hash_map.hh"
+
+POP_COMPILER_DIAGS
 
 struct ProgramPartitioner : public llvm::MachineFunctionPass {
     static char ID;

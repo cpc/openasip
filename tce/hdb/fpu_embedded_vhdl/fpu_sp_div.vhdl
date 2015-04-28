@@ -70,7 +70,7 @@ architecture rtl of fpu_sp_div is
   signal enable  : std_logic;
 
   -- division pipeline regs
-  constant divbody_latency : integer := mw/2+1;
+  constant divbody_latency : integer := (mw/2)+1;
 
   type pipe_23u is array (divbody_latency downto 0) of unsigned(mw downto 0);
   signal rx_reg_in : pipe_23u;
@@ -263,7 +263,7 @@ begin
       fract       => urfract,
       expon       => exponr);
     -- Compute the exponent
-    rexpon := resize (exponl, rexpon'length) - exponr - 2 + mw mod 2;
+    rexpon := resize (exponl, rexpon'length) - exponr - 3 + (mw mod 2)*2;
     --if (rfptype = pos_denormal or rfptype = neg_denormal) then
       -- Do the shifting here not after.  That way we have a smaller
       -- shifter, and need a smaller divider, because the top
@@ -350,7 +350,7 @@ begin
       q := q_reg_out(i+1);
       partial := partial_reg_out(i+1); 
 
-      partial_slice := partial( i*2 + mw + 3 downto i*2+1 );
+      partial_slice := partial( i*2 + mw + 2 + (mw mod 2) downto i*2+(mw mod 2) );
 
       partial_arg1 := ( "0" & signed(partial_slice) ) - ("000" & signed(rx) );
       partial_arg2 := ( "0" & signed(partial_slice) ) - ("00" & signed(rx) & "0" );

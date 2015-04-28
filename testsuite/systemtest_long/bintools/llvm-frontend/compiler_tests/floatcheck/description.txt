@@ -1,1 +1,0 @@
-Test for software floatingpoint functions results the same result that native code (using hw or sw floats).

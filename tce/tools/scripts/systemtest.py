@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011-2014 Pekka Jääskeläinen / Tampere University of Technology.
+    Copyright (c) 2011-2015 Pekka Jääskeläinen / Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -25,8 +25,6 @@
 """
 """
 Integration/systemtest script for the TCE command line tools.
-
-@author 2011-2014 Pekka Jääskeläinen 
 """
 import os
 import tempfile
@@ -415,6 +413,16 @@ class IntegrationTestCase(object):
             else:
                 correctOut = self.xstdout
 
+
+            # Allow checking only against the script exit code. In this case the
+            # xstdout can be completely empty. It is marked a list with an empty 
+            # string.
+            if correctOut is None or correctOut == []:
+                correctOut = [""]
+
+            if gotOut is None or gotOut == []:
+                gotOut = [""]
+
             stdoutDiff = list(unified_diff(correctOut, gotOut, 
                               fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
@@ -423,10 +431,19 @@ class IntegrationTestCase(object):
 
             if len(stdoutDiff) > 0:
                 if options.output_diff:
+                    stdin_fn_out = ""
+                    if stdin_fn is not None: stdin_fn_out = ' (%s)' % stdin_fn
                     output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
-                                               " (%s) " % stdin_fn + "\n")
+                                               "%s" % stdin_fn_out + "\n")
                     for line in stdoutDiff:
                         output_diff_file.write(line)
+                    output_diff_file.flush()
+                all_ok = False
+
+            if exitcode != 0:
+                if options.output_diff:
+                    output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
+                                               " [nonzero (%d) exit code]\n" % exitcode)
                     output_diff_file.flush()
                 all_ok = False
 

@@ -458,6 +458,10 @@ bool TCEInstrInfo::PredicateInstruction(
 						    mo.isDebug());
         } else if (mo.isImm()) {
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
+#ifndef LLVM_OLDER_THAN_3_6
+        } else if (mo.isFPImm()) {
+            mi->getOperand(oper+1).ChangeToFPImmediate(mo.getFPImm());
+#endif
         } else if (mo.isGlobal()) {
             // TODO: what to do here? 
             llvm_unreachable("Unexpected operand type");
