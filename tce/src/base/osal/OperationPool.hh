@@ -56,6 +56,7 @@ public:
 
     Operation& operation(const char* name);
     OperationIndex& index();
+    bool sharesState(const Operation& op);
 
     static void cleanupCache();
 

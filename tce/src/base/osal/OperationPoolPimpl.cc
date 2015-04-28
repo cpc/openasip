@@ -223,3 +223,14 @@ OperationPoolPimpl::index() {
     return *index_;
 }
 
+bool
+OperationPoolPimpl::sharesState(const Operation& op) {
+    if (op.affectsCount() > 0 || op.affectedByCount() > 0)
+        return true;
+    for (const auto& entry : operationCache_) {
+        const Operation& other = *entry.second;
+        if (other.dependsOn(op))
+            return true;
+    }
+    return false;
+}

@@ -360,6 +360,10 @@ Operation::behavior() const {
 /**
  * Returns the number of operations that affect this operation.
  *
+ * @note This is from the point of view of the single operation's
+ * description. It doesn't know the affectedBy-properties globally
+ * of all possible operations!
+ *
  * @return The number of operations that affect this operation.
  */
 int
@@ -369,6 +373,10 @@ Operation::affectsCount() const {
 
 /**
  * Returns the number of operations affected by this operation.
+ *
+ * @note This is from the point of view of the single operation's
+ * description. It doesn't know the affects-properties globally
+ * of all possible operations!
  *
  * @return The number of operations affected by this operation.
  */
@@ -380,6 +388,10 @@ Operation::affectedByCount() const {
 /**
  * Returns the name of the operation this operation affects.
  *
+ * @note This is from the point of view of the single operation's
+ * description. It doesn't know the affects-properties globally
+ * of all possible operations!
+ *
  * @param i The index of the operation.
  * @return The name of the operation.
  */
@@ -390,6 +402,10 @@ Operation::affects(unsigned int i) const {
 
 /**
  * Returns the name of the operation that is affected by this operation.
+ *
+ * @note This is from the point of view of the single operation's
+ * description. It doesn't know the affects-properties globally
+ * of all possible operations!
  *
  * @param i The index of the operation.
  * @exception OutOfRange If index is illegal.
