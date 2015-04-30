@@ -4870,42 +4870,29 @@ is first in the list and so on.
 \end{figure}
 
 \subsubsection{Using SRAM based Register File Implementations}
-Register files may be implemented using SRAM memory blocks. When
-implementing SRAM based RFs timing of read accesses must be
-considered. TTA machines expects that contents of the registers can be
-read at the same cycle as they are pointed by register index. However,
-SRAM memory blocks may require index (or address) to be stabilized in
-the previous cycle before accessed data can read.
+Register files of TTA machines may be implemented using SRAM memory
+blocks. To support SRAM memory based register files the requirements
+are:
 
-To implement SRAM based register files TCE must be notified if a
-implementation of RF requires separate address cycle. This is done in
-HDBEditor by setting option ``Separate address cycle'' to true in
-Register File Implementation dialog. This option adjusts the timing of
-read accesses to be a cycle earlier by modifying instruction pipeline
-of the machine when using default IC / Decoder Plugin (see:
-\ref{ssec:ICDecoderGenerators}).
+\begin{enumerate}
+\item SRAM memory blocks have fixed latency of one when reading data.
+\item SRAM memory blocks can handle as many writes and reads as there
+  are read and write ports in the register in a single clock cycle.
+\item TCE's Default IC / Decoder Plugin is used to generate the decoder of
+  the processor.
+\item \label{itm:bypass_req} SRAM bypasses write data to reading port
+  if the accesses occurs at same cycle and same address.
+\end{enumerate}
 
-In addition to above, the implementer of the SRAM based RF must handle
-read-after-write hazard introduced by ``separate address cycle''
-option. Consider the following assembly code piece:
-
-\begin{verbatim}
-1 -> RF.0;
-2 -> RF.0;
-RF.0 -> ALU.in2;
-\end{verbatim}
-
-TCE's basic combinatorial implementation of the RF will output value
-of '2' as it should. When using ``Separate address cycle'' option
-without considering read-after-write hazard then RF may output
-incorrect value of '1'. This may happen as the read access is a cycle
-earlier and new data to be written to the same register has not yet
-committed therefore old data is read instead.
-
-To solve read-after-write hazard the simultaneous read and write
-accesses targeting the same register must be handled with bypassing.
-That is the reading port takes data from a writing port if the both
-ports are accessing the same register.
+To enable SRAM based register files in the implementation TCE must be
+notified if a implementation of RF requires separate address
+cycle. This is done in HDBEditor by setting option ``Separate address
+cycle'' to true in the Register File Implementation dialog. This
+option adjusts the timing of read accesses to be a cycle earlier. The
+option is effective only if default IC / Decoder Plugin
+(see:\ref{ssec:ICDecoderGenerators}) is used to generate the machine
+since it does necessary modification to the instruction pipeline to
+tweak timings.
 
 \section{Hardware Database Tester}
 \label{sec:hdbtester}
