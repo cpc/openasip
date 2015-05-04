@@ -1,0 +1,1 @@
+tceasm -o data/override.tpef $minimal_with_stdout data/override.tceasm
