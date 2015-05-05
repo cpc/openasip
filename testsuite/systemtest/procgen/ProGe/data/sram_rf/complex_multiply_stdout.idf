@@ -33,13 +33,13 @@
   </rf>
 
   <rf name="RF1">
-    <hdb-file>sramrf.hdb</hdb-file>
-    <rf-id>3</rf-id>
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>1738</rf-id>
   </rf>
 
   <rf name="RF2">
     <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>169</rf-id>
+    <rf-id>170</rf-id>
   </rf>
 
 </adf-implementation>

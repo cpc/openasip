@@ -51,13 +51,21 @@ rtl-simulate() {
         ./ghdl_compile.sh >& /dev/null
         ./ghdl_simulate.sh >& sim.log
         cd ..
-        diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $RTLBUSTRACE)
+        diff $TTABUSTRACE <(head -n $(wc -l < $TTABUSTRACE) < $RTLBUSTRACE) \
+            && return 0 \
+            || return 1
     fi
 }
 
 clear_test_data
 
 $PROGE -t -i $testIdf -o $pdir $testAdf || abort_w_msg "Error from ProGe"
+tceasm -o $testTpef $testAdf  $testAsm || abort_w_msg "Error from tceasm"
+$GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
+$PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
+
+rtl-simulate ||  abort_w_msg "Error from rtl simulation or bus trace mismatch."
+
 $TCECC -O0 -a $testAdf -o $testTpef $testC || abort_w_msg "Error from tcecc"
 $GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
 $PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
@@ -65,12 +73,6 @@ $PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
 rtl-simulate
 grep -q TT $pdir/printchar_output.txt \
     || abort_w_msg "Error from test program."
-
-tceasm -o $testTpef $testAdf  $testAsm || abort_w_msg "Error from tceasm"
-$GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
-$PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
-
-rtl-simulate
 
 if [ "${leavedirty}" != "true" ]; then
     clear_test_data
