@@ -3747,7 +3747,9 @@ HDBManager::rfArchitectureID(RowID rfEntryID) const
  * @return True if the table has the named column.
  */
 bool
-HDBManager::hasColumn(const std::string& table, const std::string& columnName) const {
+HDBManager::hasColumn(
+    const std::string& table, const std::string& columnName) const {
+
     std::string table_info_query("PRAGMA table_info(");
     table_info_query += table;
     table_info_query += ");";
