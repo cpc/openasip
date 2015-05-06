@@ -1,5 +1,6 @@
 --
--- Based on Xilinx XST Dual-Port RAM with Enable on Each Port code example.
+-- Based on code example of Xilinx XST Dual-Port RAM with Enable on Each Port
+-- from XST User Guide.
 --
 
 library ieee;
