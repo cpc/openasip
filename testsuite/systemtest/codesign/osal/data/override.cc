@@ -1,0 +1,13 @@
+#include "OSAL.hh"
+
+OPERATION(ADD)
+TRIGGER;
+   OUTPUT_STREAM << "ADD override works" << std::endl;
+END_TRIGGER;
+END_OPERATION(ADD)
+
+OPERATION(STDOUT)
+TRIGGER;
+   OUTPUT_STREAM << "STDOUT override works" << std::endl;
+END_TRIGGER;
+END_OPERATION(STDOUT)

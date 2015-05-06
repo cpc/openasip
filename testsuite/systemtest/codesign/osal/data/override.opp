@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+  <operation>
+    <name>ADD</name>
+    <description>Integer addition. Output 3 is sum of inputs 1 and 2.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STDOUT</name>
+    <description>Writes a single 8bit char to "standard output" which is platform dependent. In simulator outputs the character to simulator console. Used for debugging. printf() uses this by default.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+  </operation>
+
+</osal>

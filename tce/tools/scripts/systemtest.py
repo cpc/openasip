@@ -427,7 +427,6 @@ class IntegrationTestCase(object):
                               fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
                 stdout_stream.write(stdoutStr)
-                continue           
 
             if len(stdoutDiff) > 0:
                 if options.output_diff:
@@ -705,6 +704,7 @@ def setup_exec_env():
 
     os.environ['ORIGINALPATH'] = os.environ['PATH']
     os.environ['PATH'] = tce_path_env + os.environ['PATH']
+    os.environ['minimal_with_stdout'] = os.path.join(bld_root, 'data', 'mach', 'minimal_with_stdout.adf')
 
 if __name__ == "__main__":
     options, args = parse_options()
