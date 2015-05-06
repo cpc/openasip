@@ -1357,8 +1357,6 @@ NetlistGenerator::addBaseRFToNetlist(
             implementation.glockPort(), "1", BIT, HDB::IN, *block);
         mapGlobalLockPort(*block, *glockPort);
     }
-
-    //delete entry; // Entries are deleted in destructor.
 }
 
 

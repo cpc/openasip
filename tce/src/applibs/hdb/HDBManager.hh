@@ -336,8 +336,10 @@ private:
         throw (NotAvailable);
     RowID rfArchitectureID(RowID rfEntryID) const
         throw (NotAvailable);
-    bool hasColumn(const std::string& table, const std::string& columnName) const;
-    int addBooleanColumn(const std::string& table, const std::string& newcolumn);
+    bool hasColumn(
+        const std::string& table, const std::string& columnName) const;
+    int addBooleanColumn(
+        const std::string& table, const std::string& newcolumn);
 
     CostFunctionPlugin* createCostFunctionOfFU(RowID id) const;
     CostFunctionPlugin* createCostFunctionOfRF(RowID id) const;

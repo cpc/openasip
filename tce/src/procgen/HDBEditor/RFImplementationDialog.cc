@@ -67,7 +67,8 @@ BEGIN_EVENT_TABLE(RFImplementationDialog, wxDialog)
     EVT_BUTTON(ID_ADD_SOURCE, RFImplementationDialog::onAddSourceFile)
     EVT_BUTTON(ID_DELETE_SOURCE, RFImplementationDialog::onDeleteSourceFile)
     EVT_BUTTON(ID_MOVE_SOURCE_UP, RFImplementationDialog::onMoveSourceFileUp)
-    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, RFImplementationDialog::onMoveSourceFileDown)
+    EVT_BUTTON(ID_MOVE_SOURCE_DOWN, 
+               RFImplementationDialog::onMoveSourceFileDown)
     EVT_RADIOBOX(ID_SAC, RFImplementationDialog::onSACchoise)
 
 EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)

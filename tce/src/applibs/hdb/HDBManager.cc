@@ -3739,7 +3739,13 @@ HDBManager::rfArchitectureID(RowID rfEntryID) const
     }
 }
 
-//todo
+/**
+ * Returns true if a table by name has a column by given name.
+ *
+ * @param table The table by name to search the column from.
+ * @param columnName The name of the column to be searched.
+ * @return True if the table has the named column.
+ */
 bool
 HDBManager::hasColumn(const std::string& table, const std::string& columnName) const {
     std::string table_info_query("PRAGMA table_info(");
@@ -3769,7 +3775,13 @@ HDBManager::hasColumn(const std::string& table, const std::string& columnName) c
     return false;
 }
 
-//todo
+/**
+ * Inserts a new boolean type column into existing table.
+ *
+ * @param table The name of the targeted table.
+ * @param newColumn The name of the new column.
+ * @return Number of rows affected by the change.
+ */
 int
 HDBManager::addBooleanColumn(const std::string& table,
     const std::string& newcolumn) {
