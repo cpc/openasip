@@ -130,6 +130,7 @@ private:
         std::ostream& stream) const;
     void writeLongImmediateWriteProcess(std::ostream& stream) const;
     void writeControlRegisterMappings(std::ostream& stream) const;
+    void writeRFSRAMDecodingProcess(std::ostream& stream) const;
     void writeMainDecodingProcess(std::ostream& stream) const;
     void writeResettingOfControlRegisters(std::ostream& stream) const;
     void writeInstructionDecoding(std::ostream& stream) const;
@@ -198,10 +199,12 @@ private:
         const std::string& portName);
     static std::string rfLoadSignalName(
         const std::string& rfName,
-        const std::string& portName);
+        const std::string& portName,
+        bool async = false);
     static std::string rfOpcodeSignalName(
         const std::string& rfName, 
-        const std::string& portName);
+        const std::string& portName,
+        bool async = false);
     static std::string rfOpcodeCntrlPort(
         const std::string& rfName,
         const std::string& portName);
@@ -267,6 +270,7 @@ private:
         const TTAMachine::Bus& bus) const;
     int opcode(const TTAMachine::HWOperation& operation) const;
     static std::string indentation(unsigned int level);
+    bool sacEnabled(const std::string& rfName) const;
     
     /// The machine.
     const TTAMachine::Machine& machine_;

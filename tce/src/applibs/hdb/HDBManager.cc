@@ -261,7 +261,8 @@ const string CQ_RF_IMPLEMENTATION =
     "       rst_port TEXT NOT NULL,"
     "       glock_port TEXT NOT NULL,"
     "       guard_port TEXT,"
-    "       rf REFERENCES rf(id) NOT NULL);";
+    "       rf REFERENCES rf(id) NOT NULL,"
+    "       sac_param INTEGER DEFAULT 0);"; // Separate address cycle
 
 const string CQ_RF_DATA_PORT =
     "CREATE TABLE rf_data_port("
@@ -1495,7 +1496,7 @@ HDBManager::removeRFEntry(RowID id) const {
 RowID
 HDBManager::addRFImplementation(
     const RFImplementation& implementation,
-    RowID rfEntryID) const
+    RowID rfEntryID)
     throw (InvalidData) {
 
     if (!hasRFEntry(rfEntryID)) {
@@ -1509,6 +1510,10 @@ HDBManager::addRFImplementation(
     delete entry;
     entry = NULL;
     
+    if(!hasColumn("rf_implementation", "sac_param")) {
+        addBooleanColumn("rf_implementation", "sac_param");
+    }
+
     // Create tables for external ports, parameters and parameter dependecies
     // if needed.
     if (!dbConnection_->tableExistsInDB("rf_implementation_parameter")) {
@@ -1519,24 +1524,29 @@ HDBManager::addRFImplementation(
     }
     if (!dbConnection_->tableExistsInDB("rf_ext_port_parameter_dependency")) {
         dbConnection_->DDLQuery(CQ_RF_EXT_PORT_PARAMETER_DEPENDENCY);
+
     }
 
     try {
         dbConnection_->beginTransaction();
 
+        int sacFlagAsInt = implementation.separateAddressCycleParameter();
+
         // insert into rf_implementation table
-        dbConnection_->updateQuery(
-            std::string(
-                "INSERT INTO rf_implementation(id,name,size_param,"
-                "width_param,clk_port,rst_port,glock_port,guard_port,rf) "
-                "VALUES(NULL,\"" + implementation.moduleName() + "\",\"" +
-                implementation.sizeParameter() + "\",\"" +
-                implementation.widthParameter() + "\",\"" +
-                implementation.clkPort() + "\",\"" +
-                implementation.rstPort() + "\",\"" +
-                implementation.glockPort() + "\",\"" +
-                implementation.guardPort() + "\"," +
-                Conversion::toString(rfEntryID) + ");"));
+        std::string insert_query(
+            "INSERT INTO rf_implementation(id,name,size_param,"
+            "width_param,clk_port,rst_port,glock_port,guard_port,sac_param,rf) "
+            "VALUES(NULL,\"" + implementation.moduleName() + "\",\"" +
+            implementation.sizeParameter() + "\",\"" +
+            implementation.widthParameter() + "\",\"" +
+            implementation.clkPort() + "\",\"" +
+            implementation.rstPort() + "\",\"" +
+            implementation.glockPort() + "\",\"" +
+            implementation.guardPort() + "\"," +
+            Conversion::toString(sacFlagAsInt) +  "," +
+            Conversion::toString(rfEntryID) + ");");
+
+        dbConnection_->updateQuery(insert_query);
         RowID implID = dbConnection_->lastInsertRowID();
 
         // insert into rf_data_port table
@@ -3729,6 +3739,69 @@ HDBManager::rfArchitectureID(RowID rfEntryID) const
     }
 }
 
+/**
+ * Returns true if a table by name has a column by given name.
+ *
+ * @param table The table by name to search the column from.
+ * @param columnName The name of the column to be searched.
+ * @return True if the table has the named column.
+ */
+bool
+HDBManager::hasColumn(
+    const std::string& table, const std::string& columnName) const {
+
+    std::string table_info_query("PRAGMA table_info(");
+    table_info_query += table;
+    table_info_query += ");";
+
+    RelationalDBQueryResult* result;
+    try {
+        result = dbConnection_->query(table_info_query);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    while(result->hasNext()) {
+        result->next();
+        // Second column in result row is column name of the table.
+        const DataObject& columnData = result->data(1);
+        std::string columnNameFromTable = columnData.stringValue();
+
+        assert(!columnNameFromTable.empty());
+        if(columnNameFromTable == columnName) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Inserts a new boolean type column into existing table.
+ *
+ * @param table The name of the targeted table.
+ * @param newColumn The name of the new column.
+ * @return Number of rows affected by the change.
+ */
+int
+HDBManager::addBooleanColumn(const std::string& table,
+    const std::string& newcolumn) {
+    std::string add_column_query("ALTER TABLE ");
+    add_column_query += table + " ADD COLUMN " + newcolumn;
+    add_column_query += " INTEGER DEFAULT 0;";
+
+    int result = 0;
+
+    try {
+        result = dbConnection_->updateQuery(add_column_query);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    return result;
+}
 
 /**
  * Obtains data from HDB and creates ports and operand bindings to the given
@@ -4173,9 +4246,16 @@ HDBManager::createImplementationOfRF(RowID id) const {
 
     RelationalDBQueryResult* implementationData = NULL;
     try {
-        implementationData = dbConnection_->query(
-            rfImplementationByIDQuery(id));;
-    } catch (const Exception&) {
+        if(hasColumn("rf_implementation", "sac_param")) {
+            // Use new query.
+            implementationData = dbConnection_->query(
+                rfImplementationByIDQuery2(id));
+        } else {
+            // Use fallback query.
+            implementationData = dbConnection_->query(
+                rfImplementationByIDQuery(id));
+        }
+    } catch (const Exception& e) {
         assert(false);
     }
 
@@ -4188,6 +4268,7 @@ HDBManager::createImplementationOfRF(RowID id) const {
         int nameColumn = implementationData->column("name");
         int sizeParamColumn = implementationData->column("size_param");
         int widthParamColumn = implementationData->column("width_param");
+        int sacParamColumn = implementationData->column("sac_param");
         int clkPortColumn = implementationData->column("clk_port");
         int rstPortColumn = implementationData->column("rst_port");
         int glockPortColumn = implementationData->column("glock_port");
@@ -4207,15 +4288,21 @@ HDBManager::createImplementationOfRF(RowID id) const {
             glockPortColumn);
         const DataObject& guardPortData = implementationData->data(
             guardPortColumn);
+        const DataObject& sacParamData = implementationData->data(
+            sacParamColumn);
 
         string sizeParam = sizeParamData.stringValue();
         string widthParam = widthParamData.stringValue();
         string guardPort = guardPortData.stringValue();
+        bool sacParam =
+            (sacParamColumn != RelationalDBQueryResult::UNKNOWN_INDEX) ?
+            sacParamData.boolValue() :
+            false;
 
         implementation = new RFImplementation(
             nameData.stringValue(), clkPortData.stringValue(), 
             rstPortData.stringValue(), glockPortData.stringValue(), 
-            sizeParam, widthParam, guardPort);
+            sizeParam, widthParam, guardPort, sacParam);
         implementation->setID(idData.integerValue());
 
         addRFParametersToImplementation(*implementation, id);
@@ -5538,19 +5625,46 @@ std::string
 HDBManager::rfImplementationByIDQuery(RowID id) {
     string idString = Conversion::toString(id);
     string query =
-        "SELECT id,"
-        "       name,"
-        "       size_param,"
-        "       width_param,"
-        "       clk_port,"
-        "       rst_port,"
-        "       glock_port,"
-        "       guard_port "
-        "FROM rf_implementation "
-        "WHERE rf_implementation.rf=" + idString + ";";
+            "SELECT id,"
+            "       name,"
+            "       size_param,"
+            "       width_param,"
+            "       clk_port,"
+            "       rst_port,"
+            "       glock_port,"
+            "       guard_port "
+            "FROM rf_implementation "
+            "WHERE rf_implementation.rf=" + idString + ";";
     return query;
 }
 
+/**
+ * Same as rfImplementationByIDQuery() bus has additional field for separate
+ * address cycle.
+ *
+ * The result table has fields {id, name, size_param, width_param,
+ * clk_port, rst_port, glock_port, guard_port, sac_param}.
+ *
+ * @param id The ID of the RF entry.
+ * @return The SQL query.
+ */
+std::string
+HDBManager::rfImplementationByIDQuery2(RowID id) {
+    string idString = Conversion::toString(id);
+    string query =
+            "SELECT id,"
+            "       name,"
+            "       size_param,"
+            "       width_param,"
+            "       clk_port,"
+            "       rst_port,"
+            "       glock_port,"
+            "       guard_port, "
+            "       sac_param "
+            "FROM rf_implementation "
+            "WHERE rf_implementation.rf=" + idString + ";";
+    return query;
+}
 
 /**
  * Creates an SQL query for getting the data ports of the implementation of

@@ -154,6 +154,7 @@ NetlistGenerator::NetlistGenerator(
  */
 NetlistGenerator::~NetlistGenerator() {
     MapTools::deleteAllValues(fuEntryMap_);
+    MapTools::deleteAllValues(rfEntryMap_);
 }
 
 
@@ -597,6 +598,25 @@ NetlistGenerator::fuEntry(const std::string& fuName) const
     }
 }
 
+/**
+ * Returns the RF entry which was selected to represent the given RF.
+ *
+ * @param fuName Name of the RF in ADF.
+ * @return The RF entry.
+ * @exception InstanceNotFound If the netlist is not created yet or if there
+ *                             was no RF entry for the given RF.
+ */
+HDB::RFEntry&
+NetlistGenerator::rfEntry(const std::string& rfName) const
+    throw (InstanceNotFound) {
+
+    try {
+        return *MapTools::valueForKey<RFEntry*>(rfEntryMap_, rfName);
+    } catch (const Exception&) {
+        throw InstanceNotFound(__FILE__, __LINE__, __func__,
+            "Cannot find register file entry from the netlist.");
+    }
+}
 
 /**
  * Adds the global control unit to the netlist as sub-block of the given
@@ -1124,6 +1144,7 @@ NetlistGenerator::addBaseRFToNetlist(
         throw InvalidData(__FILE__, __LINE__, __func__, text.str());
     }
 
+    rfEntryMap_.insert(std::make_pair(location.unitName(), entry));
     RFImplementation& implementation = entry->implementation();
     RFArchitecture& architecture = entry->architecture();
     TCEString instanceName = blockNamePrefix + location.unitName();
@@ -1336,8 +1357,6 @@ NetlistGenerator::addBaseRFToNetlist(
             implementation.glockPort(), "1", BIT, HDB::IN, *block);
         mapGlobalLockPort(*block, *glockPort);
     }
-
-    delete entry;
 }
 
 

@@ -75,8 +75,10 @@ const string HDB_TO_CREATE_7 = "data" + DS + "newHDB7.hdb";
 const string HDB_TO_CREATE_8 = "data" + DS + "newHDB8.hdb";
 const string HDB_TO_CREATE_9 = "data" + DS + "newHDB9.hdb";
 const string OLD_HDB_1 = "data" + DS + "oldHDB1.hdb";
+const string OLD_HDB_2 = "data" + DS + "oldHDB2.hdb";
 const string TMP_HDB_1 = "data" + DS + "tmp_1.hdb";
 const string TMP_HDB_2 = "data" + DS + "tmp_2.hdb";
+const string TMP_HDB_3 = "data" + DS + "tmp_3.hdb";
 const string TEST_ADF = "data" + DS + "testadf.adf";
 
 namespace HDB {
@@ -94,6 +96,7 @@ public:
     void testInsertingFUImplementation();
     void testInsertingRFArchitecture();
     void testInsertingRFImplementation();
+    void testInsertingRFImplementationToOldDB();
     void testGettingFUByID();
     void testGettingRFByID();
     void testGettingCostData();
@@ -335,6 +338,8 @@ HDBManagerTest::testInsertingRFImplementation() {
         TS_ASSERT_EQUALS(loadedImpl.rstPort(), "rst");
         TS_ASSERT_EQUALS(loadedImpl.glockPort(), "glock");
         TS_ASSERT_EQUALS(loadedImpl.portCount(), 2);
+        // SAC is false by default when RFImplementation is constructed.
+        TS_ASSERT_EQUALS(loadedImpl.separateAddressCycleParameter(), false);
 
         for (int i = 0; i < loadedImpl.portCount(); i++) {
             RFPortImplementation& port = loadedImpl.port(i);
@@ -379,6 +384,50 @@ HDBManagerTest::testInsertingRFImplementation() {
    }
 }
 
+/**
+ * Tests inserting new column for separate address cycle flag into RF
+ * implementation table.
+ */
+void
+HDBManagerTest::testInsertingRFImplementationToOldDB() {
+
+    try {
+        HDBManager& manager = HDBRegistry::instance().hdb(TMP_HDB_3);
+
+        // Read SAC from database which do not have SAC column in
+        // RF implementation table.
+        RFEntry* entry = manager.rfByEntryID(2);
+        TS_ASSERT(entry->hasImplementation());
+        RFImplementation& rfImpl = entry->implementation();
+        TS_ASSERT(rfImpl.hasID());
+        TS_ASSERT(rfImpl.separateAddressCycleParameter() == false);
+        rfImpl.setSeparateAddressCycleParameter(true);
+        RowID implId = rfImpl.id();
+        manager.removeRFImplementation(implId);
+        implId = manager.addRFImplementation(rfImpl, entry->id());
+        delete entry;
+        entry = NULL;
+
+        // Check that new column is created to rf_implementation.
+        TS_ASSERT(FileSystem::runShellCommand("sqlite3 " + TMP_HDB_3 +
+            " \"pragma table_info(rf_implementation)\"" +
+            " | grep sac_param"));
+
+        // Check that added RF implementation has SAC set to true.
+        entry = manager.rfByEntryID(2);
+        TS_ASSERT(entry->hasImplementation());
+        RFImplementation& rfImpl2 = entry->implementation();
+        TS_ASSERT(rfImpl2.hasID());
+        TS_ASSERT(rfImpl2.separateAddressCycleParameter() == true);
+
+        delete entry;
+
+
+    } catch(Exception& e) {
+        std::cerr << e.fileName() << e.lineNum() << ":" << e.errorMessage()
+                  << std::endl;
+    }
+}
 
 /**
  * Tests getting an FU entry from HDB by ID.
@@ -505,6 +554,7 @@ HDBManagerTest::testGettingRFByID() {
     TS_ASSERT(implementation.guardPort() == "guard");
     TS_ASSERT(implementation.sizeParameter() == "");
     TS_ASSERT(implementation.widthParameter() == "");
+    TS_ASSERT(implementation.separateAddressCycleParameter() == true);
     TS_ASSERT(implementation.portCount() == 2);
     for (int i = 0; i < implementation.portCount(); i++) {
         RFPortImplementation& port = implementation.port(i);

@@ -120,7 +120,7 @@ INSERT INTO rf_architecture(id,size,width,read_ports,write_ports,bidir_ports,lat
 
 INSERT INTO rf VALUES(1, 1, NULL);
 
-INSERT INTO rf_implementation VALUES(1, 'rf_8x16', NULL, NULL, 'clk', 'rst', 'glock', 'guard', 1);
+INSERT INTO rf_implementation VALUES(1, 'rf_8x16', NULL, NULL, 'clk', 'rst', 'glock', 'guard', 1, 1);
 
 INSERT INTO rf_data_port (id, name, direction, load_port, opcode_port, opcode_port_width_formula, rf_impl) VALUES(1, 'rd', 'OUT', 'rd_ld', 'rd_opc', '16', 1);
 INSERT INTO rf_data_port (id, name, direction, load_port, opcode_port, opcode_port_width_formula, rf_impl) VALUES(2, 'wr', 'IN', 'wr_ld', 'wr_opc', '16', 1);

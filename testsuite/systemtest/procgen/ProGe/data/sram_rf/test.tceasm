@@ -1,0 +1,24 @@
+CODE 0;
+:procedure main;
+############################################################################
+main:
+## B1 ######################################################################
+#                                                                          #
+# Test that 0xCAFEBABE is bypassed correctly
+0xDEADBEEF -> RF1.1                 , ...                                   ;
+0xCAFEBABE -> RF1.1                 , ...                                   ;
+RF1.1 -> ALU.in2                    , ...                                   ;
+0xBAADF00D -> RF1.1                 , ...                                   ;
+# Test that register copy to itself does not cause combinatorial loop
+...                                 , ...                                   ;
+RF1.1 -> RF1.1                      , ...                                   ;
+RF1.1 -> ALU.in2                    , ...                                   ;
+# Test that bypassing does not happen too early
+0xDEADBEEF -> RF1.0                 , ...                                   ;
+0xBEEFCAFE -> RF1.0                 , RF1.0 -> ALU.in2                      ;
+RF1.0 -> ALU.in2                    , ...                                   ;
+...                                 , ...                                   ;
+
+#############################################################################
+DATA data 0;
+#############################################################################

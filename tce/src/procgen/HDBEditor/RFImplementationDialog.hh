@@ -57,6 +57,8 @@ private:
     HDB::RFExternalPort* selectedExternalPort();
     HDB::RFImplementation::Parameter selectedParameter();
 
+    void onSACchoise(wxCommandEvent& event);
+
     void onPortSelection(wxListEvent& event); 
     void onAddPort(wxCommandEvent& event); 
     void onModifyPort(wxCommandEvent& event);
@@ -104,6 +106,8 @@ private:
         ID_SIZE_PARAMETER,
         ID_LABEL_WIDTH_PARAMETER,
         ID_WIDTH_PARAMETER,
+        ID_LABEL_SAC,
+        ID_SAC,
         ID_PORT_LIST,
         ID_ADD_PORT,
         ID_MODIFY_PORT,
@@ -127,6 +131,11 @@ private:
         ID_WIDTH_CHOICE
     };
 
+    enum {
+        RBOX_FALSE = 0,
+        RBOX_TRUE
+    };
+
     /// RF Implementation to modify.
     HDB::RFImplementation& implementation_;
 
@@ -148,8 +157,7 @@ private:
     wxString rstPort_;
     wxString gLockPort_;
     wxString guardPort_;
-    //wxString sizeParam_;
-    //wxString widthParam_;
+    bool sacParam_;
 
     DECLARE_EVENT_TABLE()
 };

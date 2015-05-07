@@ -745,6 +745,12 @@ HDBToHtml::rfImplToHtml(RowID id, std::ostream& stream) {
            << "<td align=center>" << impl.widthParameter() << "</td></tr>"
            << endl;
 
+    std::string sac_flag(impl.separateAddressCycleParameter() ?
+        "true" : "false");
+    stream << "<tr><td align=right><b>Separate address cycle:</b></td>"
+           << "<td align=center>"
+           << sac_flag << "</td></tr>" << endl;
+
     stream << "</table><br><br>" << endl;
 
 

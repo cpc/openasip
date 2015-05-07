@@ -32,6 +32,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/radiobox.h>
 #include <wx/choice.h>
 #include <wx/statline.h>
 
@@ -68,17 +69,18 @@ BEGIN_EVENT_TABLE(RFImplementationDialog, wxDialog)
     EVT_BUTTON(ID_MOVE_SOURCE_UP, RFImplementationDialog::onMoveSourceFileUp)
     EVT_BUTTON(ID_MOVE_SOURCE_DOWN, 
                RFImplementationDialog::onMoveSourceFileDown)
+    EVT_RADIOBOX(ID_SAC, RFImplementationDialog::onSACchoise)
 
-    EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)
+EVT_BUTTON(wxID_OK, RFImplementationDialog::onOK)
 
-    EVT_LIST_ITEM_SELECTED(
-        ID_PORT_LIST, RFImplementationDialog::onPortSelection)
-    EVT_LIST_ITEM_DESELECTED(
-        ID_PORT_LIST, RFImplementationDialog::onPortSelection)
-    EVT_LIST_ITEM_SELECTED(
-        ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
-    EVT_LIST_ITEM_DESELECTED(
-        ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
+EVT_LIST_ITEM_SELECTED(
+                ID_PORT_LIST, RFImplementationDialog::onPortSelection)
+EVT_LIST_ITEM_DESELECTED(
+                ID_PORT_LIST, RFImplementationDialog::onPortSelection)
+EVT_LIST_ITEM_SELECTED(
+                ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
+EVT_LIST_ITEM_DESELECTED(
+                ID_SOURCE_LIST, RFImplementationDialog::onSourceFileSelection)
 
     EVT_BUTTON(
         ID_ADD_EXTERNAL_PORT, RFImplementationDialog::onAddExternalPort)
@@ -120,10 +122,10 @@ END_EVENT_TABLE()
  * @param id Window identifier for the dialog window.
  * @param implementation RF implementation to modify.
  */
-RFImplementationDialog::RFImplementationDialog(
-    wxWindow* parent, wxWindowID id, RFImplementation& implementation):
-    wxDialog(parent, id, _T("Register File Implementation")),
-    implementation_(implementation) {
+RFImplementationDialog::RFImplementationDialog(wxWindow* parent,
+    wxWindowID id, RFImplementation& implementation) :
+                    wxDialog(parent, id, _T("Register File Implementation")),
+                    implementation_(implementation) {
 
     createContents(this, true, true);
 
@@ -139,8 +141,7 @@ RFImplementationDialog::RFImplementationDialog(
     assert(widthChoice_);
 
     portList_->InsertColumn(0, _T("name"), wxLIST_FORMAT_LEFT, 200);
-    sourceList_->InsertColumn(
-        0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
+    sourceList_->InsertColumn(0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
 
     // Add initial size and width parameter choices
     sizeChoice_->SetSelection(sizeChoice_->Append(
@@ -159,8 +160,7 @@ RFImplementationDialog::RFImplementationDialog(
     rstPort_ = WxConversion::toWxString(implementation_.rstPort());
     gLockPort_ = WxConversion::toWxString(implementation_.glockPort());
     guardPort_ = WxConversion::toWxString(implementation_.guardPort());
-    //widthParam_ = WxConversion::toWxString(implementation_.widthParameter());
-    //sizeParam_ = WxConversion::toWxString(implementation_.sizeParameter());
+    sacParam_ = implementation_.separateAddressCycleParameter();
 
     // Set text field validators.
     FindWindow(ID_NAME)->SetValidator(
@@ -173,11 +173,9 @@ RFImplementationDialog::RFImplementationDialog(
         wxTextValidator(wxFILTER_ASCII, &gLockPort_));
     FindWindow(ID_GUARD_PORT)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &guardPort_));
-    //FindWindow(ID_WIDTH_PARAMETER)->SetValidator(
-    //    wxTextValidator(wxFILTER_ASCII, &widthParam_));
-    //FindWindow(ID_SIZE_PARAMETER)->SetValidator(
-    //    wxTextValidator(wxFILTER_ASCII, &sizeParam_));
 
+    wxRadioBox* rbox = dynamic_cast<wxRadioBox*>(FindWindow(ID_SAC));
+    rbox->SetSelection(sacParam_ ? RBOX_TRUE : RBOX_FALSE);
 
     // Disable conditional buttons initially.
     FindWindow(ID_DELETE_PORT)->Disable();
@@ -196,7 +194,6 @@ RFImplementationDialog::RFImplementationDialog(
  */
 RFImplementationDialog::~RFImplementationDialog() {
 }
-
 
 void
 RFImplementationDialog::update() {
@@ -263,6 +260,11 @@ RFImplementationDialog::update() {
     onParameterSelection(dummy);
 }
 
+void
+RFImplementationDialog::onSACchoise(wxCommandEvent& event) {
+    assert((event.GetInt() == RBOX_FALSE) || (event.GetInt() == RBOX_TRUE));
+    sacParam_ = (event.GetInt() == RBOX_FALSE) ? false : true;
+}
 
 /**
  * Event handler for the add port button.
@@ -272,8 +274,8 @@ RFImplementationDialog::update() {
 void
 RFImplementationDialog::onAddPort(wxCommandEvent&) {
 
-    RFPortImplementation* port =
-        new RFPortImplementation("", HDB::IN, "", "" , "", implementation_);
+    RFPortImplementation* port = new RFPortImplementation("", HDB::IN, "", "",
+        "", implementation_);
 
     RFPortImplementationDialog dialog(this, -1, *port);
 
@@ -283,7 +285,6 @@ RFImplementationDialog::onAddPort(wxCommandEvent&) {
 
     update();
 }
-
 
 /**
  * Event handler for the port list selection changes.
@@ -347,8 +348,8 @@ HDB::RFPortImplementation*
 RFImplementationDialog::selectedPort() {
 
     long item = -1;
-    item = portList_->GetNextItem(
-        item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    item = portList_->GetNextItem(item, wxLIST_NEXT_ALL,
+        wxLIST_STATE_SELECTED);
 
     if (item == -1) {
         return NULL;
@@ -644,8 +645,8 @@ void RFImplementationDialog::onDeleteParameter(wxCommandEvent&) {
 void
 RFImplementationDialog::onAddSourceFile(wxCommandEvent&) {
 
-    BlockImplementationFile* file =
-        new BlockImplementationFile("", BlockImplementationFile::VHDL);
+    BlockImplementationFile* file = new BlockImplementationFile("",
+        BlockImplementationFile::VHDL);
 
     BlockImplementationFileDialog dialog(this, -1, *file);
 
@@ -657,7 +658,6 @@ RFImplementationDialog::onAddSourceFile(wxCommandEvent&) {
     }
 
 }
-
 
 /**
  * Event handler for the delete source file button.
@@ -689,38 +689,37 @@ RFImplementationDialog::onMoveSourceFileUp(wxCommandEvent&) {
     if (implementation_.implementationFileCount() > 1) {
         std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
-        int originalImplementationFileCount = 
-            implementation_.implementationFileCount();
+        int originalImplementationFileCount =
+                        implementation_.implementationFileCount();
 
         for (int i = 0; i < originalImplementationFileCount; i++) {
             HDB::BlockImplementationFile& file = implementation_.file(0);
             pathToFileList.push_back(file.pathToFile());
             implementation_.removeImplementationFile(file);
         }
-        
+
         for (unsigned int i = 1; i < pathToFileList.size(); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(
-                    pathToFileList.begin() + i - 1, fileName);
+                pathToFileList.insert(pathToFileList.begin() + i - 1,
+                    fileName);
                 break;
             }
         }
-        
+
         for (unsigned int i = 0; i < pathToFileList.size(); i++) {
-            BlockImplementationFile* file =
-                new BlockImplementationFile(pathToFileList.at(i), 
-                                            BlockImplementationFile::VHDL);
+            BlockImplementationFile* file = new BlockImplementationFile(
+                pathToFileList.at(i), BlockImplementationFile::VHDL);
             implementation_.addImplementationFile(file);
         }
-        
+
         pathToFileList.clear();
         update();
 
         for (int i = 0; i < implementation_.implementationFileCount(); i++) {
             if (implementation_.file(i).pathToFile() == fileName) {
-                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
-                                          wxLIST_STATE_SELECTED);
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED,
+                    wxLIST_STATE_SELECTED);
             }
         }
     }
@@ -736,44 +735,42 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
     if (implementation_.implementationFileCount() > 1) {
         std::string fileName = WidgetTools::lcStringSelection(sourceList_, 0);
         std::vector<std::string> pathToFileList;
-        
-        int originalImplementationFileCount = 
-            implementation_.implementationFileCount();
-        
+
+        int originalImplementationFileCount =
+                        implementation_.implementationFileCount();
+
         for (int i = 0; i < originalImplementationFileCount; i++) {
             HDB::BlockImplementationFile& file = implementation_.file(0);
             pathToFileList.push_back(file.pathToFile());
             implementation_.removeImplementationFile(file);
         }
-        
+
         for (unsigned int i = 0; i < (pathToFileList.size() - 1); i++) {
             if (pathToFileList.at(i) == fileName) {
                 pathToFileList.erase(pathToFileList.begin() + i);
-                pathToFileList.insert(
-                    pathToFileList.begin() + i + 1, fileName);
+                pathToFileList.insert(pathToFileList.begin() + i + 1,
+                    fileName);
                 break;
             }
         }
-                
+
         for (unsigned int i = 0; i < pathToFileList.size(); i++) {
-            BlockImplementationFile* file =
-                new BlockImplementationFile(pathToFileList.at(i), 
-                                            BlockImplementationFile::VHDL);
+            BlockImplementationFile* file = new BlockImplementationFile(
+                pathToFileList.at(i), BlockImplementationFile::VHDL);
             implementation_.addImplementationFile(file);
         }
-        
+
         pathToFileList.clear();
         update();
 
         for (int i = 0; i < implementation_.implementationFileCount(); i++) {
             if (implementation_.file(i).pathToFile() == fileName) {
-                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED, 
-                                          wxLIST_STATE_SELECTED);
+                sourceList_->SetItemState(i, wxLIST_STATE_SELECTED,
+                    wxLIST_STATE_SELECTED);
             }
         }
     }
 }
-
 
 /**
  * Event handler for the source file list selection changes.
@@ -782,7 +779,7 @@ RFImplementationDialog::onMoveSourceFileDown(wxCommandEvent&) {
  */
 void
 RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
-    if (WidgetTools::lcStringSelection(sourceList_, 0)  == "") {
+    if (WidgetTools::lcStringSelection(sourceList_, 0) == "") {
         FindWindow(ID_DELETE_SOURCE)->Disable();
         FindWindow(ID_MOVE_SOURCE_UP)->Disable();
         FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
@@ -792,7 +789,6 @@ RFImplementationDialog::onSourceFileSelection(wxListEvent&) {
         FindWindow(ID_MOVE_SOURCE_DOWN)->Enable();
     }
 }
-
 
 /**
  * Returns name of currently selected size parameter.
@@ -826,7 +822,7 @@ RFImplementationDialog::getWidthParameter() {
  */
 void
 RFImplementationDialog::onOK(wxCommandEvent&) {
-    
+
     TransferDataFromWindow();
 
     name_ = name_.Trim(true).Trim(false);
@@ -847,6 +843,7 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
     implementation_.setRstPort(WxConversion::toString(rstPort_));
     implementation_.setGlockPort(WxConversion::toString(gLockPort_));
     implementation_.setGuardPort(WxConversion::toString(guardPort_));
+    implementation_.setSeparateAddressCycleParameter(sacParam_);
     implementation_.setWidthParameter(
         WxConversion::toString(getWidthParameter()));
     implementation_.setSizeParameter(
@@ -855,7 +852,6 @@ RFImplementationDialog::onOK(wxCommandEvent&) {
     EndModal(wxID_OK);
 
 }
-
 
 /**
  * Creates the dialog contents.
@@ -914,8 +910,6 @@ RFImplementationDialog::createContents(
         wxT("Size parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    //wxTextCtrl *item14 = new wxTextCtrl( parent, ID_SIZE_PARAMETER, wxT(""),
-    //    wxDefaultPosition, wxSize(80,-1), 0 );
     wxChoice *sizeChoice = new wxChoice(parent, ID_SIZE_CHOICE,
             wxDefaultPosition, wxSize(80,-1), 0, 0, wxCB_SORT);
     item2->Add( sizeChoice, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -924,11 +918,20 @@ RFImplementationDialog::createContents(
         wxT("Width parameter:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    //wxTextCtrl *item16 = new wxTextCtrl( parent, ID_WIDTH_PARAMETER, wxT(""),
-    //    wxDefaultPosition, wxSize(80,-1), 0 );
     wxChoice *widthChoice = new wxChoice(parent, ID_WIDTH_CHOICE,
         wxDefaultPosition, wxSize(80,-1), 0, 0, wxCB_SORT);
     item2->Add(widthChoice, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+    wxStaticText *saclabel = new wxStaticText(parent, ID_LABEL_SAC,
+        wxT("Separate address cycle:"), wxDefaultPosition, wxDefaultSize, 0);
+    item2->Add(saclabel, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL,
+        5);
+
+    wxString choises[2] =
+        { wxT("False"), wxT("True") };
+    wxRadioBox *sacradiobox = new wxRadioBox(parent, ID_SAC, wxT(""),
+        wxDefaultPosition, wxDefaultSize, 2, choises, 0, wxRA_SPECIFY_COLS); 
+    item2->Add(sacradiobox, 0, wxGROW | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
     item1->Add( item2, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
@@ -1076,8 +1079,8 @@ RFImplementationDialog::createContents(
     {
         parent->SetSizer( item0 );
         if (call_fit)
-            item0->SetSizeHints( parent );
+            item0->SetSizeHints(parent);
     }
-    
+
     return item0;
 }

@@ -4385,6 +4385,7 @@ be valid.
 \end{center}
 
 \subsection{IC/Decoder Generators}
+\label{ssec:ICDecoderGenerators}
 
 IC/Decoder generators are implemented as external plug-in
 modules. This enables users to provide customizable instruction
@@ -4867,6 +4868,36 @@ is first in the list and so on.
 \caption{HDB Editor Main window.}
 \label{fig:hdbeditor_main_window}
 \end{figure}
+
+\subsubsection{Using SRAM based Register File Implementations}
+Register files of TTA machines may be implemented using synchronous
+SRAM memory blocks. To support SRAM memory based register files the
+requirements are:
+
+\begin{enumerate}
+  \item SRAM memory blocks have fixed latency of one for read operation.
+  \item SRAM memory blocks can handle as many writes and reads in a
+    single clock cycle as specified in the ADF.
+  \item TCE's Default IC / Decoder Plugin is used to generate the
+    decoder of the processor.
+  \item \label{itm:bypass_req} SRAM bypasses write data to reading
+    port if the accesses occurs at same cycle and at same
+    address. Alternatively, the SRAM is wrapped in a module with the
+    bypass logic.
+\end{enumerate}
+
+To enable SRAM based register files in the implementation TCE must be
+notified if a implementation of RF requires separate address
+cycle. This is done in HDBEditor by setting option ``Separate address
+cycle'' to true in the Register File Implementation dialog. This
+option adjusts the timing of read accesses to be a cycle earlier. The
+option is effective only if default IC / Decoder Plugin (see:
+\ref{ssec:ICDecoderGenerators}) is used to generate the machine since
+it does necessary modification to the instruction pipeline to tweak
+timings.
+
+HDB includes a single SRAM register file implementation using
+dual-port block RAM inferred by Xilinx XST synthesis tool.
 
 \section{Hardware Database Tester}
 \label{sec:hdbtester}
