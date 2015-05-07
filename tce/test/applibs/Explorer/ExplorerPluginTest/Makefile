@@ -32,14 +32,13 @@ MEMORY=${SRC_BASE}/base/memory
 MACH_APPLIBS=${APPLIBS}/mach
 PROGRAM_APPLIBS=${APPLIBS}/program
 
-COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I ${TOOLS} \
+COMPILE_FLAGS = -I${TOP_SRCDIR} -I ${TOOLS} \
 -I ${SRC_BASE}/applibs/Estimator -I ${SRC_BASE}/base/idf \
 -I ${PROGE} -I ${BASE}/mach -I ${BASE}/program \
 -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
 -I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${OSAL} \
 -I ${UMACH} -I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} \
--I ${PROGRAM_APPLIBS}
-
+-I ${PROGRAM_APPLIBS} ${CPPFLAGS}
 
 # 'dynamic_modules' rule compiles the dynamic modules representing Explorer
 # plugins

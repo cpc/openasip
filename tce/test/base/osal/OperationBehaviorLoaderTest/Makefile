@@ -23,8 +23,8 @@ SIMLIB_DIR = ${TOP_SRCDIR}/src/applibs/Simulator
 TOOLS_DIR = ${TOP_SRCDIR}/src/tools
 MEM_DIR = ${TOP_SRCDIR}/src/base/memory
 
-COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
-                -I${MEM_DIR}
+COMPILE_FLAGS = -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
+                -I${MEM_DIR} ${CPPFLAGS} 
 
 dynamic_modules:
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/correct.cc \
