@@ -8,8 +8,8 @@ Other features and improvements
 - Operation definitions can be now overridden one-by-one
   by redefining them in a local OSAL search path.
 
-1.11      March 2015
-====================
+1.11      May 2015
+==================
 
 Notable changes and features
 ----------------------------
@@ -29,6 +29,8 @@ Notable changes and features
 - MachInfo prints bindings between ADF ports and OSAL operations' operands 
   in the function unit table.
 - Clustered TTA mode compilation dropped when using LLVM 3.6.
+- Register files can be implemented using synchronous SRAMs. Included one 
+  RF implementation using Xilinx's BRAMs.
 
 Other features and improvements
 ------------------------------
