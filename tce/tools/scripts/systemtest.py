@@ -232,6 +232,11 @@ class IntegrationTestCase(object):
         # In case the test tests only one stdin case, this is set to the
         # expected stdout/stderr content for verification.
         self.xstdout = None
+        # In case the tcetest does not contain an xstdout line, it means
+        # that stdout should be ignored and the test can fail only with
+        # a nonzero exit code. On the other hand, if xstdout is empty, 
+        # the tests expectes there's no stdout printouts.
+        self.ignore_stdout = False
         self.xstderr = None
         self.stdin = ""
         self.valid = False
@@ -341,11 +346,13 @@ class IntegrationTestCase(object):
 
         m = re.search(r"###\sxstdout:\s(.*)", contents)
         if not m:
-            self.xstdout = [""]
+            self.xstdout = None
+            self.ignore_stdout = True
         else:
             # The verifier assumes the lines are terminated with the new line 
             # character.
             self.xstdout = [x + "\n" for x in m.group(1).strip().split("\\n")]
+            self.ignore_stdout = False
 
         self.args = ""
         self.type = "sh"
@@ -423,12 +430,13 @@ class IntegrationTestCase(object):
             if gotOut is None or gotOut == []:
                 gotOut = [""]
 
-            stdoutDiff = list(unified_diff(correctOut, gotOut, 
-                              fromfile="expected.stdout", tofile="produced.stdout"))
+            if not self.ignore_stdout:
+                stdoutDiff = list(unified_diff(correctOut, gotOut, 
+                                               fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
                 stdout_stream.write(stdoutStr)
 
-            if len(stdoutDiff) > 0:
+            if not self.ignore_stdout and len(stdoutDiff) > 0:
                 if options.output_diff:
                     stdin_fn_out = ""
                     if stdin_fn is not None: stdin_fn_out = ' (%s)' % stdin_fn
@@ -443,6 +451,12 @@ class IntegrationTestCase(object):
                 if options.output_diff:
                     output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
                                                " [nonzero (%d) exit code]\n" % exitcode)
+                    if self.ignore_stdout and gotOut:
+                        # In case we ignore stdout in the verification, it might still
+                        # contain useful information for debugging the failed error code,
+                        # thus let's dump it to the log here.
+                        for line in gotOut:
+                            output_diff_file.write(line)
                     output_diff_file.flush()
                 all_ok = False
 
@@ -702,9 +716,22 @@ def setup_exec_env():
                     wanted_binaries.remove(wanted)
                     break
 
+    # Let's add these on demand. For now dirs required by pocl build.
+    includedirs = ['src/tools', 'src/applibs/Simulator', 'src/base/mach',
+                   'src/base/memory', 'src/base/program', '']
+    cpp_flags = ""
+    for include in includedirs:
+        cpp_flags += "-I" + os.path.join(bld_root, include) + " "
+
+    lib_tce_dir = os.path.join(bld_root, 'src')
+
+    os.environ['TCE_LDFLAGS'] = "-L" + lib_tce_dir
+    os.environ['TCE_CPPFLAGS'] = cpp_flags
+    os.environ['TCE_LD_LIBRARY_PATH'] = lib_tce_dir
     os.environ['ORIGINALPATH'] = os.environ['PATH']
     os.environ['PATH'] = tce_path_env + os.environ['PATH']
-    os.environ['minimal_with_stdout'] = os.path.join(bld_root, 'data', 'mach', 'minimal_with_stdout.adf')
+    os.environ['minimal_with_stdout'] = \
+        os.path.join(bld_root, 'data', 'mach', 'minimal_with_stdout.adf')
 
 if __name__ == "__main__":
     options, args = parse_options()
