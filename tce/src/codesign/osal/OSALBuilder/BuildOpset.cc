@@ -52,13 +52,6 @@ using std::vector;
 
 const string SCHEMA_FILE_NAME = "Operation_Schema.xsd";
 
-// probably following enumeration should be in a domain-wide OSAL header
-
-/// Enumeration of all reachable paths to operation definitions. The order
-/// of paths is hardcoded in Environment::osalPaths().
-enum { BASE, USER, CUSTOM, NO_PATH };
-
-
 //////////////////////////////////////////////////////////////////////////////
 // BuildOpsetOptions
 //////////////////////////////////////////////////////////////////////////////
@@ -69,14 +62,8 @@ enum { BASE, USER, CUSTOM, NO_PATH };
 BuildOpsetOptions::BuildOpsetOptions() :
     CmdLineOptions("Usage: buildopset [options] module_name") {
 
-    string desc = "\n\tInstall the data file and the built dynamic module\n";
-    desc += "\tinto one of the allowed paths. Paths are identified by the\n";
-    desc += "\tfollowing keywords: base, custom, user.";
-    StringCmdLineOptionParser* install =
-        new StringCmdLineOptionParser("install", desc, "k");
-    addOption(install);
-
-    desc = "\n\tIgnore the case whereby the source file containing the\n";
+    TCEString desc;
+    desc += "\n\tIgnore the case whereby the source file containing the\n";
     desc += "\toperation behavior model code are not found. By default, the\n";
     desc += "\tOSAL Builder aborts if it cannot build the dynamic module.\n";
     desc += "\tThis option may be used in combination with install option\n";
@@ -109,16 +96,6 @@ BuildOpsetOptions::printVersion() const {
 }
 
 /**
- * Returns the value of the install option.
- *
- * @return The value of the install option.
- */
-string
-BuildOpsetOptions::install() const {
-    return findOption("install")->String();
-}
-
-/**
  * Returns the value of the source-dir option.
  *
  * @return The value of the source-dir option.
@@ -142,8 +119,7 @@ BuildOpsetOptions::ignore() const {
  * Main program.
  *
  * Searches for XML file given to it as a parameter. Then searches for a
- * corresponding operation behavior source file. It is compiled and then
- * installed.
+ * corresponding operation behavior source file and compiles it.
  */
 int main(int argc, char* argv[]) {
 
@@ -187,35 +163,6 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
 
-        // get the file where stuff gets installed
-        string installDir = options->install();
-        if (installDir == "base") {
-            installDir = Environment::osalPaths()[BASE];
-        } else if (installDir == "custom") {
-            installDir = Environment::osalPaths()[CUSTOM];
-        } else if (installDir == "user") {
-            installDir = Environment::osalPaths()[USER];
-        } else if (installDir == "") {
-            installDir = path;
-        } else {
-            cerr << "Illegal install option: " 
-                 << installDir << endl;
-            return EXIT_FAILURE;
-        }
-
-        // install data file, if destination directory is different
-        // than the current directory of data file
-        if (installDir != path) {
-            if(!builder.installDataFile(path, moduleName + ".opp",
-                                        installDir)) {
-                string errorMessage = "Cannot install property data file\n'";
-                errorMessage += path + FileSystem::DIRECTORY_SEPARATOR
-                    + moduleName + ".opp" + "'\n" + "into path\n"
-                    + "'" + installDir + "'";
-                cerr << errorMessage << endl;
-                return EXIT_FAILURE;
-            }
-        }
 
         // find the behavior source file and check if it should be ignored
         // if it's not found
@@ -230,7 +177,7 @@ int main(int argc, char* argv[]) {
 
         // build and install the behavior module
         vector<string> output;
-        builder.buildObject(moduleName, behFile, installDir, output);
+        builder.buildObject(moduleName, behFile, path, output);
         if (output.size() > 0) {
             cerr << "Error building shared objects:" << endl;
             for (size_t i = 0; i < output.size(); i++) {

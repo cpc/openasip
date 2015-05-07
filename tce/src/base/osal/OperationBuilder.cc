@@ -179,9 +179,12 @@ OperationBuilder::buildObject(
             CXXFLAGS += " `tce-config --libs` ";
         }
 
+        // Add user defined CXXFLAGS + CPPFLAGS to the end because they
+        // might point to paths with incompatible TCE headers.
         string COMPILE_FLAGS = \
-            CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES + " " + 
-            CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS;
+            INCLUDES + " " + 
+            CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " " +
+            CXXFLAGS + " " + CPPFLAGS + " ";
 
         string module = path + FileSystem::DIRECTORY_SEPARATOR +
             baseName + ".opb";
