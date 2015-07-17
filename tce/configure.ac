@@ -478,9 +478,14 @@ case "$LLVM_VERSION" in
      3.5*)
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
      LLVM_OLDER_THAN_3_6=1
+     LLVM_OLDER_THAN_3_7=1
    ;;   
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
+     LLVM_OLDER_THAN_3_7=1
+   ;;
+     3.7*)
+     AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
    ;;
      *)
    AC_MSG_NOTICE(
@@ -497,11 +502,14 @@ AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
 
-if test "x$LLVM_OLDER_THAN_3_6" == "x1"; 
+if test "x$LLVM_OLDER_THAN_3_6" == "x1";
 then
-
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_6, 1, [LLVM version is older than 3.6])
+fi
 
+if test "x$LLVM_OLDER_THAN_3_7" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_7, 1, [LLVM version is older than 3.7])
 fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;

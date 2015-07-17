@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -36,27 +36,33 @@
 #include <iostream>
 
 #include "tce_config.h"
-#if defined(LLVM_3_2)
 
-#include "llvm/DataLayout.h"
+#define TCEBEDLString \
+    "E-p:32:32:32"    \
+    "-a0:0:32"        \
+    "-i1:8:8"         \
+    "-i8:8:32"        \
+    "-i16:16:32"      \
+    "-i32:32:32"      \
+    "-i64:32:32"      \
+    "-f16:16:16"      \
+    "-f32:32:32"      \
+    "-f64:32:64"      \
+    "-v64:32:64"      \
+    "-v128:32:128"    \
+    "-v512:32:512"    \
+    "-v1024:32:1024"
+
+#include <llvm/IR/DataLayout.h>
+#include <llvm/Target/TargetSelectionDAGInfo.h>
+
 typedef llvm::DataLayout TargetData;
-
-#else
-
-#include "llvm/IR/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
-#endif
 
 #include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
 }
-
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
-#include <llvm/Target/TargetSelectionDAGInfo.h>
-#endif
 
 /**
  * TCE target machine plugin interface.
@@ -76,24 +82,13 @@ namespace llvm {
 
    class TCETargetMachinePlugin {
     public:
-       TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL)
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
-                                ,
-                                  dl_(
-                                      "E-p:32:32:32"
-                                      "-a0:0:32"
-                                      "-i1:8:8"
-                                      "-i8:8:32"
-                                      "-i16:16:32"
-                                      "-i32:32:32"
-                                      "-i64:32:32"
-                                      "-f16:16:16"
-                                      "-f32:32:32"
-                                      "-f64:32:32"
-                                      "-v64:32:32"
-                                      "-v128:32:32"
-                                      "-v256:32:32"),
-                                tsInfo_(&dl_)
+       TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL),
+                                  dl_(TCEBEDLString)
+#ifdef LLVM_OLDER_THAN_3_7
+           ,tsInfo_(&dl_)
+#else
+           // In 3.7, the TargetSelectionDAGInfo constructor doesn't
+           // take arguments.
 #endif
 
                              // this is overwritten anyway later

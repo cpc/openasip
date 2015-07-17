@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,7 +43,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetSelectionDAGInfo.h"
+#ifdef LLVM_OLDER_THAN_3_7
 #include "llvm/PassManager.h"
+#else
+#include "llvm/IR/PassManager.h"
+#endif
 //#include "TCESubtarget.hh"
 
 #include "TCETargetMachinePlugin.hh"
@@ -55,12 +59,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "tce_config.h"
 
 #include "llvm/CodeGen/Passes.h"
-
-#if defined(LLVM_3_2)
-#include "llvm/DataLayout.h"
-#else
 #include "llvm/IR/DataLayout.h"
-#endif
 
 POP_COMPILER_DIAGS
 
@@ -69,6 +68,7 @@ namespace TTAMachine {
 }
 
 class PluginTools;
+
 
 // just to be able to manually register tce target if needed.
 extern "C" void LLVMInitializeTCETargetInfo();
@@ -106,12 +106,19 @@ namespace llvm {
     class TCETargetMachine : public LLVMTargetMachine {
 
     public:
+#ifdef LLVM_OLDER_THAN_3_7
         TCETargetMachine(
-	    const Target &T, const std::string &TT,
-	    const std::string& CPU, const std::string &FS,
-	    const TargetOptions &Options,
-	    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
-
+            const Target &T, const std::string &TT,
+            const std::string& CPU, const std::string &FS,
+            const TargetOptions &Options,
+            Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
+#else
+        TCETargetMachine(
+            const Target &T, const Triple& TTriple,
+            const std::string& CPU, const std::string &FS, 
+            const TargetOptions &Options,
+            Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
+#endif
         virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);

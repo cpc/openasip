@@ -17,10 +17,10 @@
 
 using namespace llvm;
 
-#if (defined LLVM_3_3 || defined LLVM_3_2 || defined LLVM_3_1)
-TCEMCAsmInfo::TCEMCAsmInfo(const Target &, const StringRef &) {
+#ifdef LLVM_OLDER_THAN_3_7
+TCEMCAsmInfo::TCEMCAsmInfo(const StringRef&) {
 #else
-TCEMCAsmInfo::TCEMCAsmInfo(const StringRef &) {
+TCEMCAsmInfo::TCEMCAsmInfo(const llvm::Triple&) {
 #endif
     AlignmentIsInBytes          = true;
     COMMDirectiveAlignmentIsInBytes = true;

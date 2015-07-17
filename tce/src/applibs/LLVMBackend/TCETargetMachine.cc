@@ -35,7 +35,13 @@
 
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
+#include "tce_config.h"
+
+#ifdef LLVM_OLDER_THAN_3_7
 #include "llvm/PassManager.h"
+#else
+#include "llvm/IR/PassManager.h"
+#endif
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -70,21 +76,11 @@ Pass* createProgramPartitionerPass();
 Pass* createInstructionPatternAnalyzer();
 
 extern "C" void LLVMInitializeTCETargetInfo() { 
-    RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
+    RegisterTarget<Triple::tce> X(TheTCETarget, "tce", 
+                                  "TTA-Based Co-design Environment");
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
 
-// TODO:
-// this to MVTargetDesc.cpp - where is it?
-
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
-
-
-/*
-extern "C" void LLVMInitializeSparcMCAsmInfo() {
-    RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
-}
-*/
-
 }
 
 //
@@ -99,39 +95,24 @@ extern "C" void LLVMInitializeSparcMCAsmInfo() {
 // etc.
 // 
 
+#ifdef LLVM_OLDER_THAN_3_7
 TCETargetMachine::TCETargetMachine(
     const Target &T, const std::string &TT, const std::string& CPU,
     const std::string &FS, const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL)
-    : LLVMTargetMachine(T,TT, CPU, FS, Options, RM, CM, OL),
-
-//      subTarget_(TT,FS),
-
-      /// @note Is overwritten in setTargetMachinePlugin.
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-      dl_(
-        "E-p:32:32:32"
-        "-a0:0:32"
-        "-i1:8:8"
-        "-i8:8:32"
-        "-i16:16:32"
-        "-i32:32:32"
-        "-i64:32:32"
-        "-f16:16:16"
-        "-f32:32:32"
-        "-f64:32:32"
-        "-v64:32:32"
-        "-v128:32:32"
-        "-v256:32:32"),
-      tsInfo_(*this),
-#else
-                                  // tsinfo is now in plugin class
-                                  //      tsInfo_(this->getDataLayout()),
-#endif
-      plugin_(NULL),
-      pluginTool_(NULL)
-{
+    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
+    LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL), plugin_(NULL),
+    pluginTool_(NULL) {
 }
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const std::string& CPU, const std::string &FS, 
+    const TargetOptions &Options,
+    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
+    LLVMTargetMachine(T, TCEBEDLString, TTriple, CPU, FS, Options, RM, CM, OL), 
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#endif
 
 /**
  * The Destructor.
@@ -193,16 +174,8 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-v512:32:512";
     dataLayoutStr += "-v1024:32:1024";
 
-#if defined(LLVM_3_2)
-    DataLayout* dl = &dl_;
-    DataLayout::parseSpecifier(StringRef(dataLayoutStr.c_str()), dl);
-#elif (defined(LLVM_3_3) || defined(LLVM_3_4))
-    DataLayout* dl = &dl_;
-    dl->init(dataLayoutStr.c_str());
-#else // LLVM 3.5+
     DataLayout* dl = plugin_->getDataLayout();
     dl->reset(dataLayoutStr.c_str());
-#endif
 }
 
 /**

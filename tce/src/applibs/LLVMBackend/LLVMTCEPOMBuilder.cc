@@ -83,14 +83,7 @@ LLVMTCEPOMBuilder::registerFileName(unsigned llvmRegNum) const {
 
     if (llvmRegNum == 1000000) 
         return "RF"; /* temp hack, always assume SP is the RF.4 */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    TCEString regName(
-        targetMachine().getRegisterInfo()->getName(llvmRegNum));
-#else
-    TCEString regName(
-        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(llvmRegNum));
-#endif
-    return "RF";
+    abortWithError("Unimplemented.");
 }
 
 int
@@ -98,17 +91,7 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
 
     if (llvmRegNum == 1000000) 
         return 4; /* temp hack, always assume SP is the RF.4 */
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    TCEString regName(
-        targetMachine().getRegisterInfo()->getName(llvmRegNum));
-#else
-    TCEString regName(
-        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(llvmRegNum));
-#endif
-    
-    TCEString indexStr = regName.split("_").at(1);
-    return Conversion::toInt(indexStr);
+    abortWithError("Unimplemented.");
 }
 
 TTAProgram::Instruction*
@@ -117,8 +100,12 @@ LLVMTCEPOMBuilder::emitMove(
     bool, bool) {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
-#else
+#elif (defined(LLVM_OLDER_THAN_3_7))
     TCEString opName(targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi->getOpcode()));
+#else
+    TCEString opName(targetMachine().getSubtargetImpl(
+                         *mi->getParent()->getParent()->getFunction())->
+                     getInstrInfo()->getName(mi->getOpcode()));
 #endif
     /* Non-trigger move. */
     if (opName == "MOVE")
@@ -151,9 +138,15 @@ LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(mo.getReg()));
+#elif (defined(LLVM_OLDER_THAN_3_7))
+    TCEString regName(
+        targetMachine().getSubtargetImpl()->
+        getRegisterInfo()->getName(mo.getReg()));
 #else
     TCEString regName(
-        targetMachine().getSubtargetImpl()->getRegisterInfo()->getName(mo.getReg()));
+        targetMachine().getSubtargetImpl(
+            *mo.getParent()->getParent()->getParent()->getFunction())->
+        getRegisterInfo()->getName(mo.getReg()));
 #endif
     
     // test for _number which indicates a RF access

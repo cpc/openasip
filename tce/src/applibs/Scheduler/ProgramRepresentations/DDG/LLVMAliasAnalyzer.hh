@@ -37,11 +37,18 @@
 #ifndef TTA_LLVM_ALIAS_ANALYZER
 #define TTA_LLVM_ALIAS_ANALYZER
 
-namespace llvm {
-    class AliasAnalysis;
-}
-
 #include "MemoryAliasAnalyzer.hh"
+
+#include "tce_config.h"
+
+#include "llvm/Analysis/AliasAnalysis.h"
+
+#ifdef LLVM_OLDER_THAN_3_7
+typedef llvm::AliasAnalysis::AliasResult AliasResult;
+#else
+typedef llvm::MemoryLocation Location;
+typedef llvm::AliasResult AliasResult;
+#endif
 
 class LLVMAliasAnalyzer : public MemoryAliasAnalyzer {
 public:

@@ -125,8 +125,12 @@ bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
+#elif (defined LLVM_OLDER_THAN_3_7)
+    OperationPool::setLLVMTargetInstrInfo(
+        MF.getTarget().getSubtargetImpl()->getInstrInfo());
 #else
-    OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getSubtargetImpl()->getInstrInfo());
+    OperationPool::setLLVMTargetInstrInfo(
+        MF.getTarget().getSubtargetImpl(*MF.getFunction())->getInstrInfo());
 #endif
 	
     AliasAnalysis* AA = getAnalysisIfAvailable<AliasAnalysis>();

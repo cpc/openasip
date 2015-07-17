@@ -1811,8 +1811,12 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         assert(mi != NULL);
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         const llvm::TargetInstrInfo& tii = *mf.getTarget().getInstrInfo();
+#elif (defined (LLVM_3_6))
+        const llvm::TargetInstrInfo& tii = 
+            *mf.getTarget().getSubtargetImpl()->getInstrInfo();
 #else
-        const llvm::TargetInstrInfo& tii = *mf.getTarget().getSubtargetImpl()->getInstrInfo();
+        const llvm::TargetInstrInfo& tii = 
+            *mf.getTarget().getSubtargetImpl(*mf.getFunction())->getInstrInfo();
 #endif
         const llvm::MCInstrDesc& tid =
             findLLVMTargetInstrDesc("HBR_LABEL", tii);
@@ -2020,9 +2024,12 @@ ControlFlowGraph::buildMBBFromBB(
              boi != bundleOrder.end(); ++boi) {
             llvm::MachineInstr* mi = NULL;
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-            const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getInstrInfo();
+            const llvm::TargetInstrInfo& tii = 
+                *mbb.getParent()->getTarget().getInstrInfo();
 #else
-            const llvm::TargetInstrInfo& tii = *mbb.getParent()->getTarget().getSubtargetImpl()->getInstrInfo();
+            const llvm::TargetInstrInfo& tii = 
+                *mbb.getParent()->getTarget().getSubtargetImpl(
+                    *mbb.getParent()->getFunction())->getInstrInfo();
 #endif
             if (startedOps.find(*boi) == startedOps.end()) {
 #if 0
@@ -2102,20 +2109,25 @@ ControlFlowGraph::buildMBBFromBB(
                             dynamic_cast<
                             const TTAProgram::TerminalProgramOperation&>(
                                 *terminal);
+#ifdef LLVM_OLDER_THAN_3_7
                         llvm::MCSymbol* symbol = 
                             mbb.getParent()->getContext().GetOrCreateSymbol(
                                 llvm::StringRef(tpo.label()));
+#else
+                        llvm::MCSymbol* symbol = 
+                            mbb.getParent()->getContext().getOrCreateSymbol(
+                                llvm::StringRef(tpo.label()));
+#endif
                         mi->addOperand(llvm::MachineOperand::CreateMCSymbol(symbol));
                         // need to keep book of the TPOs in order to recreate the
                         // label instructions
                         tpos_.insert(std::make_pair(tpo.programOperation(), symbol));
                     } else if (terminal->isImmediate()) {
-                        if (!mi->getDesc().isReturn() ||
-                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")){
+                        if (!mi->getDesc().isReturn()) {
                             mi->addOperand(
                                  llvm::MachineOperand::CreateImm(
                                  terminal->value().intValue()));
-                        }                                                    
+                        } 
                     } else if (terminal->isGPR()) {
                         // in case it's an output, it's a def, the outputs are always the
                         // first operands in the LLVM instruction
@@ -2131,8 +2143,7 @@ ControlFlowGraph::buildMBBFromBB(
                         // LLVM register index starts from 1, 
                         // we count register from 0
                         // thus add 1 to get correct data to the LLVM
-                        if (!mi->getDesc().isReturn() ||
-                            !mbb.getParent()->getTarget().getTargetTriple().startswith("cellspu")) {
+                        if (!mi->getDesc().isReturn()) {
                             mi->addOperand(
                                 llvm::MachineOperand::CreateReg(
                                     terminal->index() + 1, isDef, isImp));                            

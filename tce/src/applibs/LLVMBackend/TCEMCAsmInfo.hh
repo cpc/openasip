@@ -25,13 +25,14 @@ POP_COMPILER_DIAGS
 namespace llvm {
   class Target;
   class StringRef;
+  class Triple;
   
   class TCEMCAsmInfo : public MCAsmInfo {
   public:    
-#if (defined LLVM_3_3 || defined LLVM_3_2 || defined LLVM_3_1)
-    explicit TCEMCAsmInfo(const Target &, const StringRef &);
-#else
+#ifdef LLVM_OLDER_THAN_3_7
     explicit TCEMCAsmInfo(const StringRef &);
+#else
+    explicit TCEMCAsmInfo(const llvm::Triple &);
 #endif
   };
 

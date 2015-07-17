@@ -57,7 +57,7 @@ operandTypeCString(const Operand& operand) {
         return "unsigned";
         break;
     case Operand::FLOAT_WORD:
-        return"float";
+        return "float";
         break;
     case Operand::DOUBLE_WORD:
         return "double";
@@ -87,13 +87,13 @@ writeCustomOpMacro(
 
     switch (macroMode) {
     case FU_ADDRESSABLE:
-	os << "FU_" << opName << "(FU, ";
-	break;
+        os << "FU_" << opName << "(FU, ";
+        break;
     case ADDRESSPACE:
-	os << "AS_" << opName << "(AS, ";
-	break;
+        os << "AS_" << opName << "(AS, ";
+        break;
     default:
-	os << "_" << opName << "(";
+        os << "_" << opName << "(";
     }
 
     int seenInputs = 0;

@@ -150,8 +150,10 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         mang_ = new llvm::Mangler(tm_);
 #elif defined(LLVM_3_5)
         mang_ = new llvm::Mangler(tm_->getDataLayout());
-#else
+#elif defined(LLVM_OLDER_THAN_3_7)
         mang_ = new llvm::Mangler(tm_->getSubtargetImpl()->getDataLayout());
+#else
+        mang_ = new llvm::Mangler();
 #endif
     }
 
@@ -876,8 +878,13 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
     } else {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         return targetMachine().getInstrInfo()->getName(mi.getOpcode());
+#elif (defined LLVM_OLDER_THAN_3_7)
+        return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(
+            mi.getOpcode());
 #else
-        return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi.getOpcode());
+        return targetMachine().getSubtargetImpl(
+            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode());
 #endif
     }
 }

@@ -77,8 +77,11 @@ MachineInstrDDG::MachineInstrDDG(
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     regInfo_(mf_.getTarget().getRegisterInfo()) 
-#else
+#elif (defined LLVM_OLDER_THAN_3_7)
     regInfo_(mf_.getTarget().getSubtargetImpl()->getRegisterInfo()) 
+#else
+    regInfo_(mf_.getTarget().getSubtargetImpl(
+                 *mf_.getFunction())->getRegisterInfo()) 
 #endif
 {
     int instructions = 0;
@@ -556,9 +559,16 @@ MIDDGNode::osalOperationName() const {
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
+#elif defined LLVM_OLDER_THAN_3_7
+    const llvm::TargetInstrInfo *TII = 
+        machineInstr()->getParent()->getParent()->getTarget().
+        getSubtargetImpl()->getInstrInfo();
 #else
     const llvm::TargetInstrInfo *TII = 
-        machineInstr()->getParent()->getParent()->getTarget().getSubtargetImpl()->getInstrInfo();
+        machineInstr()->getParent()->getParent()->getTarget().
+        getSubtargetImpl(
+            *machineInstr()->getParent()->getParent()->getFunction())->
+        getInstrInfo();
 #endif
     // If it's a custom operation call, try to figure out
     // the called operation name and use it instead as the

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -126,18 +126,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "tce_config.h"
 
-#if defined(LLVM_3_2)
-
-#include "llvm/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
-#else
-
 #include "llvm/IR/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
-#endif
-
 
 #define TYPE_CONST
 #include <llvm/MC/MCInstrDesc.h>
@@ -169,6 +158,17 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     tm_ = &tm;
     mach_ = mach;
     functionAtATime_ = functionAtATime;
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+    dl_ = tm_->getDataLayout();
+#elif (defined(LLVM_OLDER_THAN_3_7))
+    dl_ = tm_->getSubtargetImpl()->getDataLayout();
+#else
+    // The required type size info is the same for both BE and LE targets,
+    // no need to ask for the sub target as it requires llvm::Function in
+    // LLVM 3.7 for some reason. If the endianness is needed, ask for it
+    // separately.
+    dl_ = tm_->getDataLayout();
+#endif
 }
 
 LLVMTCEBuilder::LLVMTCEBuilder(char& ID) : MachineFunctionPass(ID) {
@@ -284,19 +284,10 @@ LLVMTCEBuilder::initDataSections() {
     }
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
-    // this doesn't look right, creating a MCContext just to get the
-    // mangler initialized... --Pekka
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    MCContext* ctx = 
-        new MCContext(*tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
-
-    mang_ = new Mangler(*ctx, *tm_->getDataLayout()); 
-#elif defined(LLVM_3_4)
-    mang_ = new Mangler(tm_);
-#elif defined(LLVM_3_5)
-    mang_ = new Mangler(tm_->getDataLayout());
+#if defined(LLVM_OLDER_THAN_3_7)
+    mang_ = new Mangler(dl_);
 #else
-    mang_ = new Mangler(tm_->getSubtargetImpl()->getDataLayout());
+    mang_ = new Mangler();
 #endif
 
     const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
@@ -318,11 +309,6 @@ LLVMTCEBuilder::initDataSections() {
     }
 #endif
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    const TargetData* td = tm_->getDataLayout();
-#else
-    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
-#endif
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
@@ -360,8 +346,8 @@ LLVMTCEBuilder::initDataSections() {
         def.address = 0;
         def.addressSpaceId = 
             cast<PointerType>(gv.getType())->getAddressSpace();
-        def.alignment = std::max(gvAlign,td->getPrefTypeAlignment(type));
-        def.size = td->getTypeStoreSize(type);
+        def.alignment = std::max(gvAlign, dl_->getPrefTypeAlignment(type));
+        def.size = dl_->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
             def.alignment = std::max(def.alignment, stackAlignment);
@@ -524,13 +510,8 @@ LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv, 
     bool forceInitialize) {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    const TargetData* td = tm_->getDataLayout();
-#else
-    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
-#endif
-    unsigned sz = td->getTypeStoreSize(cv->getType());
-    unsigned align = td->getABITypeAlignment(cv->getType());
+    unsigned sz = dl_->getTypeStoreSize(cv->getType());
+    unsigned align = dl_->getABITypeAlignment(cv->getType());
 
     unsigned pad = 0;
     while ((addr + pad) % align != 0) pad++;
@@ -631,13 +612,8 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    assert(addr % (tm_->getDataLayout()->getABITypeAlignment(ci->getType()))
-           == 0 && "Invalid alignment for constant int!");
-#else
-    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(ci->getType()))
-           == 0 && "Invalid alignment for constant int!");
-#endif
+    assert(addr % (dl_->getABITypeAlignment(ci->getType())) == 0 && 
+           "Invalid alignment for constant int!");
 
     std::vector<MinimumAddressableUnit> maus;
 
@@ -685,13 +661,8 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    assert(addr % (tm_->getDataLayout()->getABITypeAlignment(cfp->getType()))
-           == 0 && "Invalid alignment for constant fp!");
-#else
-    assert(addr % (tm_->getSubtargetImpl()->getDataLayout()->getABITypeAlignment(cfp->getType()))
-           == 0 && "Invalid alignment for constant fp!");
-#endif
+    assert(addr % (dl_->getABITypeAlignment(cfp->getType())) == 0 
+           && "Invalid alignment for constant fp!");
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
@@ -701,11 +672,8 @@ LLVMTCEBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     TYPE_CONST Type* type = cfp->getType();
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
-#else
-    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
-#endif
+    unsigned sz = dl_->getTypeStoreSize(type);
+
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -779,11 +747,7 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
 
     TYPE_CONST Type* type = gv->getType();
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    unsigned sz = tm_->getDataLayout()->getTypeStoreSize(type);
-#else
-    unsigned sz = tm_->getSubtargetImpl()->getDataLayout()->getTypeStoreSize(type);
-#endif
+    unsigned sz = dl_->getTypeStoreSize(type);
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
@@ -831,21 +795,15 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-    const TargetData* td = tm_->getDataLayout();
-#else
-    const TargetData* td = tm_->getSubtargetImpl()->getDataLayout();
-#endif
-
-    assert(addr % (td->getABITypeAlignment(ce->getType()))
-           == 0 && "Invalid alignment for constant expr!");
+    assert(addr % (dl_->getABITypeAlignment(ce->getType())) == 0 && 
+           "Invalid alignment for constant expr!");
 
     unsigned opcode = ce->getOpcode();
     if (opcode == Instruction::GetElementPtr) {
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
-        int64_t ptrOffset = offset + td->getIndexedOffset(
+        int64_t ptrOffset = offset + dl_->getIndexedOffset(
             ptr->getType(), idxVec);
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
@@ -1850,7 +1808,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
         ++spillMoveCount_;
     } else {
         // handle file+line number debug info
-        if (!dl.isUnknown()) {
+        if (dl.getScope() != NULL) {
             
             int sourceLineNumber = -1;
             TCEString sourceFileName = "";
@@ -1858,11 +1816,15 @@ LLVMTCEBuilder::debugDataToAnnotations(
             // inspired from lib/codegen/MachineInstr.cpp
             const LLVMContext &Ctx = 
                 mi->getParent()->getParent()->getFunction()->getContext();
-            // TODO: something broken with DIScope
-            DIScope discope(dl.getScope(Ctx));
             sourceLineNumber = dl.getLine();
+#ifdef LLVM_OLDER_THAN_3_7
+            DIScope discope(dl.getScope(Ctx));
             sourceFileName = static_cast<TCEString>(discope.getFilename());
-
+#else
+            sourceFileName = 
+                static_cast<TCEString>(
+                    cast<DIScope>(dl.getScope())->getFilename());
+#endif
             if (sourceFileName.size() >
                 TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
                 sourceFileName = 

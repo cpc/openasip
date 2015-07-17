@@ -55,6 +55,18 @@
 using namespace TTAProgram;
 using namespace TTAMachine;
 
+#ifdef LLVM_OLDER_THAN_3_7
+#define MayAlias llvm::AliasAnalysis::MayAlias
+#define PartialAlias llvm::AliasAnalysis::PartialAlias
+#define MustAlias llvm::AliasAnalysis::MustAlias
+#define NoAlias llvm::AliasAnalysis::NoAlias
+#else
+#define MayAlias llvm::MayAlias
+#define PartialAlias llvm::PartialAlias
+#define MustAlias llvm::MustAlias
+#define NoAlias llvm::NoAlias
+#endif
+
 LLVMAliasAnalyzer::LLVMAliasAnalyzer(){
     AA_ = NULL;
 }
@@ -113,17 +125,16 @@ LLVMAliasAnalyzer::analyze(
             uint64_t size2 = (*begin2)->getSize();
             if (val1 && val2) {
             
-                llvm::AliasAnalysis::AliasResult res = 
+                AliasResult res = 
                     AA_->alias(val1, size1, val2, size2);
                     
-                if (res == llvm::AliasAnalysis::MayAlias ||
-                    res == llvm::AliasAnalysis::PartialAlias) {
+                if (res == MayAlias || res == PartialAlias) {
                     result = ALIAS_UNKNOWN;
                 }
-                if (res == llvm::AliasAnalysis::MustAlias) {
+                if (res == MustAlias) {
                     result = ALIAS_TRUE;
                 }
-                if (res == llvm::AliasAnalysis::NoAlias) {
+                if (res == NoAlias) {
                     result = ALIAS_FALSE;
                 }
             } else {

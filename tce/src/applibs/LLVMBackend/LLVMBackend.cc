@@ -46,7 +46,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #endif
 
 #include <llvm/Analysis/AliasAnalysis.h>
+#ifdef LLVM_OLDER_THAN_3_7
 #include <llvm/PassManager.h>
+#else
+#include <llvm/IR/LegacyPassManager.h>
+#endif
 #include <llvm/Pass.h>
 //#include <llvm/ModuleProvider.h>
 
@@ -322,24 +326,8 @@ LLVMBackend::compile(
     std::string errMsgParse;
     LLVMContext &context = getGlobalContext();
 
-#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
-    std::auto_ptr<Module> m;
-#else
-    std::unique_ptr<Module> m;
-#endif
+    std::unique_ptr<llvm::Module> m;
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    OwningPtr<MemoryBuffer> buffer;
-
-    if (error_code ec = MemoryBuffer::getFileOrSTDIN(
-            bytecodeFile.c_str(), buffer)) {
-        std::string msg = "Error reading bytecode file: " + bytecodeFile +
-            "\n" + ec.message();
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
-    }
-
-    m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
-#else
     ErrorOr<std::unique_ptr<MemoryBuffer>> bufferPtr =
         MemoryBuffer::getFileOrSTDIN(bytecodeFile.c_str());
 
@@ -353,10 +341,17 @@ LLVMBackend::compile(
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
+#elif defined(LLVM_OLDER_THAN_3_7)
+    ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
 #else
-    ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);    
+    ErrorOr<std::unique_ptr<llvm::Module> > module = 
+        parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
 #endif
+
+#ifdef LLVM_OLDER_THAN_3_7
     m.reset(module.get());
+#else
+    m.reset(module.get().get());
 #endif
 
     if (m.get() == 0) {
@@ -365,35 +360,8 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
-#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
-    std::auto_ptr<Module> emuM;
-#else
     std::unique_ptr<Module> emuM;
-#endif   
    
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    if (!emulationBytecodeFile.empty()) {
-        OwningPtr<MemoryBuffer> emuBuffer;
-
-        if (error_code ec = MemoryBuffer::getFileOrSTDIN(
-                emulationBytecodeFile.c_str(), emuBuffer)) {
-            std::string msg = "Error reading bytecode file: " + 
-                emulationBytecodeFile +
-                " of emulation library:\n" + ec.message();
-            throw CompileError(__FILE__, __LINE__, __func__, msg);
-        } else {
-            emuM.reset(ParseBitcodeFile(
-                           emuBuffer.get(), context, &errMsgParse));
-        }
-
-        if (emuM.get() == 0) {
-            std::string msg = "Error parsing bytecode file: " + 
-                emulationBytecodeFile + " of emulation library \n" 
-                + errMsgParse;
-            throw CompileError(__FILE__, __LINE__, __func__, msg);
-        }
-    }
-#else
     if (!emulationBytecodeFile.empty()) {
         ErrorOr<std::unique_ptr<MemoryBuffer>> emuBufferPtr =
             MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile.c_str());
@@ -409,11 +377,19 @@ LLVMBackend::compile(
             std::move(emuBufferPtr.get());
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
+#elif (defined LLVM_OLDER_THAN_3_7)
+        ErrorOr<Module*> module = 
+            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
 #else
-        ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+        ErrorOr<std::unique_ptr<Module> > module = 
+            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
 #endif
+
+#ifdef LLVM_OLDER_THAN_3_7
         emuM.reset(module.get());
-       
+#else
+        emuM.reset(module.get().get());
+#endif       
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
                 emulationBytecodeFile + " of emulation library \n" 
@@ -421,7 +397,6 @@ LLVMBackend::compile(
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
-#endif
 
     // Create target machine plugin.
 #if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
@@ -522,52 +497,32 @@ LLVMBackend::compile(
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
+#ifdef LLVM_OLDER_THAN_3_7
         errs() << "Available targets:\n";
         for (TargetRegistry::iterator i = TargetRegistry::begin(); 
              i != TargetRegistry::end(); i++) {
             errs() << i->getName() << " : " 
                    << i->getShortDescription() << "\n";
-        }        
+        }
+#endif
         return NULL;
     }
     
-    // TODO: what should this be? revision 134127 of llvm added this.
     std::string cpuStr = "tce";
-    // TODO: are these default options, ripped from llc, sensible?
 
-  TargetOptions Options;
-  Options.LessPreciseFPMADOption = true; //EnableFPMAD;
-  Options.PrintMachineCode = false; //PrintCode;
-  Options.NoFramePointerElim = false; // DisableFPElim;
-#if (defined (LLVM_3_2) || defined(LLVM_3_3))
-  Options.NoFramePointerElimNonLeaf = false; //DisableFPElimNonLeaf;
+    TargetOptions Options;
+    Options.LessPreciseFPMADOption = true; //EnableFPMAD;
+    Options.PrintMachineCode = false; //PrintCode;
+#ifdef LLVM_OLDER_THAN_3_7
+    Options.NoFramePointerElim = false; // DisableFPElim;
+    Options.UseSoftFloat = false; //GenerateSoftFloatCalls; 
 #endif
-  // TODO: just commented this out..
-//  Options.NoExcessFPPrecision = true; //DisableExcessPrecision;
-  Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
-  Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
-  Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
-  Options.HonorSignDependentRoundingFPMathOption = false;
-//      EnableHonorSignDependentRoundingFPMath;
-  Options.UseSoftFloat = false; //GenerateSoftFloatCalls; 
-//  if (FloatABIForCalls != FloatABI::Default)
-//    Options.FloatABIType = FloatABIForCalls;
-//  Options.NoZerosInBSS = DontPlaceZerosInBSS;
-//  Options.JITExceptionHandling = EnableJITExceptionHandling;
-//  Options.JITEmitDebugInfo = EmitJitDebugInfo;
-//  Options.JITEmitDebugInfoToDisk = EmitJitDebugInfoToDisk;
-  Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
-  Options.StackAlignmentOverride = false; //OverrideStackAlignment;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-  Options.RealignStack = false; //EnableRealignStack;
-#endif
-//TODO: new llvm removed/renamed this
-//  Options.DisableJumpTables = false; //DisableSwitchTables;
-//  Options.TrapFuncName = TrapFuncName;
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-  Options.EnableSegmentedStacks = false; //SegmentedStacks;
-#endif
+    Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
+    Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
+    Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
+    Options.HonorSignDependentRoundingFPMathOption = false;
+    Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
+    Options.StackAlignmentOverride = false; //OverrideStackAlignment;
 
     TCETargetMachine* targetMachine = 
         static_cast<TCETargetMachine*>(
@@ -594,27 +549,39 @@ LLVMBackend::compile(
     CodeGenOpt::Level OptLevel = 
         (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
 
-//    ExistingModuleProvider provider(&module);    
+#ifdef LLVM_OLDER_THAN_3_7
     llvm::PassManager Passes;
-    
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    const TargetData *TD = targetMachine->getDataLayout();
-    assert(TD != NULL);
-    Passes.add(new TargetData(*TD));
+#define addPass(P) Passes.add(P)    
 #else
+    llvm::legacy::PassManager Passes;
+#define addPass(P) Passes.add(P)    
+#endif
+    
     /// @todo DataLayout.h states that DataLayoutPass should never be used.
     /// However, some tests will fail if it isn't added to Passes.
 #ifdef LLVM_3_5
     const DataLayout *DL = targetMachine->getDataLayout();
     assert(DL != NULL);
-    Passes.add(new DataLayoutPass(*DL));
+    addPass(new DataLayoutPass(*DL));
+#elif (defined LLVM_OLDER_THAN_3_7)
+    addPass(new DataLayoutPass());
 #else
-    Passes.add(new DataLayoutPass());
-#endif
+    // Let's see if we still need to pass it in 3.7. In LLVM 3.6 it still
+    // broke down things.
+#warning Test and check this.
+
 #endif
 
+#ifdef LLVM_OLDER_THAN_3_7
     targetMachine->addPassesToEmitFile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
+#else
+    SmallVector<char, 4096> data;
+    llvm::raw_svector_ostream sos(data);
+    targetMachine->addPassesToEmitFile(
+        Passes, sos, TargetMachine::CGFT_AssemblyFile, OptLevel);
+#endif
+
 
     // Add alias analysis pass that is distributed with pocl library.
     if (options_->isWorkItemAAFileDefined()) {
@@ -639,12 +606,8 @@ LLVMBackend::compile(
             foundAA = false;
         }
         if (foundAA)
-            Passes.add(creator());
+            addPass(creator());
     }
-#ifdef LLVM_3_2
-    Passes.add(createGCInfoDeleter());
-    // LLVM 3.3 doesn't have this. Maybe it's not even needed anymore?
-#endif
     if (ipData_ != NULL) {
         // Stack pointer datum.
         RegDatum* spReg = new RegDatum;
@@ -678,8 +641,8 @@ LLVMBackend::compile(
         builder->setInitialStackPointerValue(
             options_->initialStackPointerValue());
     }
-    Passes.add(new ConstantTransformer(target));
-    Passes.add(builder);
+    addPass(new ConstantTransformer(target));
+    addPass(builder);
     Passes.run(module);
     // get and write out pom
     TTAProgram::Program* prog = builder->result();

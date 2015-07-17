@@ -463,8 +463,10 @@ namespace llvm {
 
         std::set<TTAProgram::TerminalProgramOperation*> symbolicPORefs_;
 
-        std::map<TCEString, ProgramOperationPtr >
-        labeledPOs_;
+        std::map<TCEString, ProgramOperationPtr > labeledPOs_;
+
+        // The data layout for the machine.
+        const llvm::DataLayout* dl_;
     };
 }
 #endif

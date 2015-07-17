@@ -184,9 +184,13 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
                     const llvm::MCInstrInfo* iinfo = mf.getTarget().getInstrInfo();
-#else
+#elif (defined LLVM_OLDER_THAN_3_7)
                     const llvm::MCInstrInfo* iinfo = 
                         mf.getTarget().getSubtargetImpl()->getInstrInfo();
+#else
+                    const llvm::MCInstrInfo* iinfo = 
+                        mf.getTarget().getSubtargetImpl(
+                            *mf.getFunction())->getInstrInfo();
 #endif
 #if 0
                     Application::logStream() 
