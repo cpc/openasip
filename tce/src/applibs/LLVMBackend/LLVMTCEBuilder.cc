@@ -1808,7 +1808,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
         ++spillMoveCount_;
     } else {
         // handle file+line number debug info
-        if (dl.getScope() != NULL) {
+
+        bool hasDebugInfo = false;
+#ifdef LLVM_OLDER_THAN_3_7
+        hasDebugInfo = !dl.isUnknown();
+#else
+        hasDebugInfo = dl.getScope() != NULL;
+#endif
+        if (hasDebugInfo) {
             
             int sourceLineNumber = -1;
             TCEString sourceFileName = "";
