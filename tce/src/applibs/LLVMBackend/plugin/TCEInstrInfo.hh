@@ -65,10 +65,14 @@ namespace llvm {
         virtual unsigned InsertBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,
             MachineBasicBlock *FBB,
+#ifdef LLVM_OLDER_THAN_3_7
             const SmallVectorImpl<MachineOperand> &Cond,
-	    DebugLoc DL) const;
+#else
+            ArrayRef<MachineOperand> Cond,
+#endif
+	    DebugLoc DL) const override;
 
-        unsigned RemoveBranch(MachineBasicBlock &mbb) const;
+        unsigned RemoveBranch(MachineBasicBlock &mbb) const override;
 
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
@@ -109,42 +113,56 @@ namespace llvm {
 	    MachineBasicBlock& mbb,
 	    MachineBasicBlock::iterator mbbi, DebugLoc DL,
 	    unsigned destReg, unsigned srcReg,
-	    bool KillSrc) const;
+	    bool KillSrc) const override;
 
         virtual bool ReverseBranchCondition(
-            llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const;
+            llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const override;
 
         virtual bool AnalyzeBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
             MachineBasicBlock *&FBB, 
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
 	    bool allowModify = false)
-            const;
+            const override;
 
-	virtual bool isPredicated(const MachineInstr *MI) const;
-	virtual bool isPredicable(MachineInstr *MI) const;
+	virtual bool isPredicated(const MachineInstr *MI) const override;
+	virtual bool isPredicable(MachineInstr *MI) const override;
+#ifdef LLVM_OLDER_THAN_3_7
 	virtual bool PredicateInstruction(
 	    MachineInstr *mi,
-	    const SmallVectorImpl<MachineOperand> &cond) const;
+	    const SmallVectorImpl<MachineOperand> &cond) const override;
+#else
+	virtual bool PredicateInstruction(
+	    MachineInstr *mi,
+	    ArrayRef<MachineOperand> cond) const override;
+#endif
 
 	virtual bool DefinesPredicate(MachineInstr *MI,
-				      std::vector<MachineOperand> &Pred) const;
+				      std::vector<MachineOperand> &Pred) const override;
 
+#ifdef LLVM_OLDER_THAN_3_7
 	virtual bool
 	SubsumesPredicate(const SmallVectorImpl<MachineOperand> &Pred1,
-			  const SmallVectorImpl<MachineOperand> &Pred2) const {
+			  const SmallVectorImpl<MachineOperand> &Pred2) const override {
 	    return false;
 	}
+#else
+	virtual bool
+	SubsumesPredicate(ArrayRef<MachineOperand> Pred1,
+                      ArrayRef<MachineOperand> Pred2) const override {
+	    return false;
+	}
+#endif
 
 	virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
 					 unsigned ExtraPredCycles,
-					 const BranchProbability &Probability) const;
+					 const BranchProbability &Probability) const override;
 	
 	virtual bool isProfitableToIfCvt(MachineBasicBlock &TMBB,
 					 unsigned NumTCycles, unsigned ExtraTCycles,
 					 MachineBasicBlock &FMBB,
 					 unsigned NumFCycles, unsigned ExtraFCycles,
-					 const BranchProbability &Probability) const;
+					 const BranchProbability &Probability) const override;
 
 
 

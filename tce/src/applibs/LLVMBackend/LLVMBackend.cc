@@ -351,6 +351,7 @@ LLVMBackend::compile(
 #ifdef LLVM_OLDER_THAN_3_7
     m.reset(module.get());
 #else
+    // TODO: why does this work? it should not?
     m.reset(module.get().get());
 #endif
 
@@ -388,7 +389,7 @@ LLVMBackend::compile(
 #ifdef LLVM_OLDER_THAN_3_7
         emuM.reset(module.get());
 #else
-        emuM.reset(module.get().get());
+        emuM = std::move(module.get());
 #endif       
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
@@ -576,8 +577,7 @@ LLVMBackend::compile(
     targetMachine->addPassesToEmitFile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
 #else
-    SmallVector<char, 4096> data;
-    llvm::raw_svector_ostream sos(data);
+    llvm::raw_fd_ostream sos(STDOUT_FILENO, false);
     targetMachine->addPassesToEmitFile(
         Passes, sos, TargetMachine::CGFT_AssemblyFile, OptLevel);
 #endif

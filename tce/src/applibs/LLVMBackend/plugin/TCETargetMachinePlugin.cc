@@ -179,7 +179,11 @@ GeneratedTCEPlugin::registerTargetMachine(
     TCETargetMachine &tm) {
     tm_ = &tm;
     if (lowering_ == NULL) {
+#ifdef LLVM_OLDER_THAN_3_7
         lowering_ = new TCETargetLowering(*tm_);
+#else
+        lowering_ = new TCETargetLowering(*tm_, *subTarget_);
+#endif
     }
 }
 

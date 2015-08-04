@@ -39,6 +39,9 @@
  * @note reting: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #define DEBUG_TYPE "lowermissing"
 
 #include "llvm/Transforms/Scalar.h"
@@ -87,6 +90,8 @@
 using TTAMachine::Machine;
 
 #include "LLVMBackend.hh" // llvmRequiredOps()
+
+POP_COMPILER_DIAGS
 
 using namespace llvm;
 

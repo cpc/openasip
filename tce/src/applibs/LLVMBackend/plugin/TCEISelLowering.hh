@@ -35,6 +35,7 @@
 
 #include <llvm/Target/TargetLowering.h>
 #include "TCEPlugin.hh"
+#include "TCESubtarget.hh"
 #include "tce_config.h"
 
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
@@ -79,26 +80,29 @@ namespace llvm {
     class TCETargetLowering : public llvm::TargetLowering {
         mutable int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
+#ifdef LLVM_OLDER_THAN_3_7
         TCETargetLowering(TargetMachine& TM);
+#else
+        TCETargetLowering(TargetMachine& TM, const TCESubtarget &subt);
+#endif
         virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
 
-//#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
         int getVarArgsFrameOffset() const /* override */ { return VarArgsFrameOffset; }
-//#else
-        // TODO: moved to FunctionInfo class? implement it?
-//#endif
 
        virtual const char* getTargetNodeName(unsigned opcode) const override;
-        
+
+#ifdef LLVM_OLDER_THAN_3_7        
         ConstraintType getConstraintType(const std::string &Constraint) const override;
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-        std::pair<unsigned, const TargetRegisterClass*>
-        getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const override;
-#else
         std::pair<unsigned, const TargetRegisterClass*>
         getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const override;
+#else
+        ConstraintType getConstraintType(StringRef Constraint) const override;
+        std::pair<unsigned, const TargetRegisterClass *>
+        getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
+                                     StringRef Constraint, MVT VT) const override;
 #endif
+
 
         //TODO: this is from some old version - which?
         std::vector<unsigned>
@@ -130,6 +134,7 @@ namespace llvm {
 #endif        
 
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
 
         virtual SDValue
@@ -152,9 +157,7 @@ namespace llvm {
                     SDLoc dl, SelectionDAG &DAG) const override;
 #endif
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        virtual bool allowsUnalignedMemoryAccesses(EVT VT) const override;
-#elif defined(LLVM_3_5)
+#if defined(LLVM_3_5)
         virtual bool allowsUnalignedMemoryAccesses(EVT,
                                                    unsigned,
                                                    bool*) const override;
@@ -176,11 +179,13 @@ namespace llvm {
         TCETargetMachine& tm_;
         
     public:        
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-        virtual llvm::EVT getSetCCResultType(llvm::EVT VT) const override;
-#else
+#ifdef LLVM_OLDER_THAN_3_7
         virtual llvm::EVT getSetCCResultType(LLVMContext&,llvm::EVT VT) const override;
-#endif        
+#else
+        virtual llvm::EVT getSetCCResultType(const DataLayout &DL, LLVMContext &Context,
+                                       EVT VT) const override;
+
+#endif
         virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override {
             if (VT==MVT::f32 || VT==MVT::f16) {
                 return true;

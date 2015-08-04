@@ -138,9 +138,15 @@ namespace llvm {
             ttaMach_ = mach;
         }
 
+#ifdef LLVM_OLDER_THAN_3_7
         virtual const TargetSubtargetInfo* getSubtargetImpl() const {
             return plugin_->getSubtarget(); 
         }
+#else
+        virtual const TargetSubtargetInfo* getSubtargetImpl(const Function&) const {
+            return plugin_->getSubtarget(); 
+        }
+#endif
 
         virtual const TargetInstrInfo* getInstrInfo() const {
             return plugin_->getInstrInfo();

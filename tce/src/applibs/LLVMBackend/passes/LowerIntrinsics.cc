@@ -33,6 +33,9 @@
 
 #define DEBUG_TYPE "lowerintrinsics"
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "tce_config.h"
@@ -55,6 +58,8 @@
 #include "llvm/Pass.h"
 #include "llvm/CodeGen/IntrinsicLowering.h"
 #include "tce_config.h"
+
+POP_COMPILER_DIAGS
 
 #if defined(LLVM_3_2)
 

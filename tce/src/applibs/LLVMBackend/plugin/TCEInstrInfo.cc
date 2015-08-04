@@ -93,7 +93,11 @@ TCEInstrInfo::InsertBranch(
     MachineBasicBlock& mbb,
     MachineBasicBlock* tbb,
     MachineBasicBlock* fbb,
+#ifdef LLVM_OLDER_THAN_3_7
     const llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
+#else
+    ArrayRef<MachineOperand> cond,
+#endif
     DebugLoc dl) const {
 
     if (mbb.size() != 0) {
@@ -428,7 +432,12 @@ bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
 // check the legal things
 bool TCEInstrInfo::PredicateInstruction(
     MachineInstr *mi,
-    const SmallVectorImpl<MachineOperand> &cond) const {
+#ifdef LLVM_OLDER_THAN_3_7
+    const SmallVectorImpl<MachineOperand> &cond
+#else
+    ArrayRef<MachineOperand> cond
+#endif
+) const {
 
     int opc = mi->getOpcode();
 

@@ -35,20 +35,17 @@
 
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
+#include "TCETargetMachine.hh"
 
 #define GET_SUBTARGETINFO_CTOR
 #define GET_SUBTARGETINFO_MC_DESC
 #define GET_SUBTARGETINFO_TARGET_DESC
 
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
 #define DEBUG_TYPE ""
-#endif
 
 #include "TCEGenSubTargetInfo.inc"
 
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
 #undef DEBUG_TYPE
-#endif
 
 using namespace llvm;
 
@@ -63,11 +60,18 @@ BackendPluginFile(
 /**
  * The Constructor.
  */
-TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin): //const std::string &TT, const std::string &FS) :
-//    TCEGenSubtargetInfo(TT, FS, std::string("")),
-    TCEGenSubtargetInfo(std::string("tut-tce-llvm"), std::string(""), std::string("")),
+TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin) :
+#ifdef LLVM_OLDER_THAN_3_7
+    TCEGenSubtargetInfo(
+        std::string("tce-tut-llvm"), std::string(""), 
+        std::string("")),
+#else
+    
+    TCEGenSubtargetInfo(
+        Triple("tce-tut-llvm"),
+        std::string(""), std::string("")),
+#endif
     pluginFile_(BackendPluginFile), plugin_(plugin) {
-
 }
 
 /**
@@ -92,9 +96,11 @@ const TargetRegisterInfo* TCESubtarget::getRegisterInfo() const {
     return plugin_->getRegisterInfo();
 }
 
+#ifdef LLVM_OLDER_THAN_3_7
 const DataLayout* TCESubtarget::getDataLayout() const { 
     return plugin_->getDataLayout();
 }
+#endif
 
 const TargetFrameLowering* TCESubtarget::getFrameLowering() const {
     return plugin_->getFrameLowering();

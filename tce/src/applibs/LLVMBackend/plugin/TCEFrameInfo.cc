@@ -36,10 +36,17 @@ using namespace llvm;
 /**
  * Emits machine function prologue to machine functions.
  */
+#ifdef LLVM_OLDER_THAN_3_7
 void
 TCEFrameInfo::emitPrologue(MachineFunction& mf) const {
     tri_->emitPrologue(mf);
 }
+#else
+void
+TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB) const {
+    tri_->emitPrologue(mf);
+}
+#endif
 
 /**
  * Emits machine function epilogue to machine functions.

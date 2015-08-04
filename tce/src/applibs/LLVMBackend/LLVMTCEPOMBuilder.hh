@@ -37,6 +37,9 @@
 #include <set>
 #include <iostream>
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include <llvm/CodeGen/MachineFunctionPass.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
 #include <llvm/CodeGen/MachineOperand.h>
@@ -66,6 +69,8 @@
 #endif
 #include "BaseType.hh"
 #include "LLVMPOMBuilder.hh"
+
+POP_COMPILER_DIAGS
 
 namespace TTAProgram {
     class TerminalFUPort;

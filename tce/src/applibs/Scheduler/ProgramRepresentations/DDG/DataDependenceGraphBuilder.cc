@@ -33,6 +33,9 @@
  * @note rating: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 
@@ -92,6 +95,8 @@ static const int REG_SP = 1;
 static const int REG_RV = 0;
 static const int REG_IPARAM = 2;
 static const int REG_RV_HIGH = 6;
+
+POP_COMPILER_DIAGS
 
 //#define USE_FALSE_AA
 

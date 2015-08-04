@@ -41,7 +41,12 @@
 
 #include "tce_config.h"
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/Analysis/AliasAnalysis.h"
+
+POP_COMPILER_DIAGS
 
 #ifdef LLVM_OLDER_THAN_3_7
 typedef llvm::AliasAnalysis::AliasResult AliasResult;

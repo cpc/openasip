@@ -47,6 +47,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"
+#include "llvm/MC/MCInstPrinter.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 
 #include "TCETargetMachine.hh"
@@ -75,12 +76,43 @@ Pass* createLinkBitcodePass(Module& inputCode);
 Pass* createProgramPartitionerPass();
 Pass* createInstructionPatternAnalyzer();
 
+#ifndef LLVM_OLDER_THAN_3_7
+
+class DummyInstPrinter : public MCInstPrinter {
+public:
+    DummyInstPrinter(
+        const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
+        const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+    void printInst(
+        const MCInst*, raw_ostream&, StringRef,
+        const MCSubtargetInfo&) override {}    
+};
+
+// In TCE target we don't print the MCInsts from LLVM, but
+// just want to run the codegen passes so we can get the
+// MachineInstrs in to our own finalization phases. LLVM 3.7
+// started to require MCInstPrinter to be created, a dummy
+// must be created therefore.
+MCInstPrinter *dummyInstrPrinterCtor(
+    const Triple &T,
+    unsigned SyntaxVariant,
+    const MCAsmInfo &MAI,
+    const MCInstrInfo &MII,
+    const MCRegisterInfo &MRI) {
+    return new DummyInstPrinter(MAI, MII, MRI);
+}
+
+#endif
+
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", 
                                   "TTA-Based Co-design Environment");
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
 
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+#ifndef LLVM_OLDER_THAN_3_7
+    TargetRegistry::RegisterMCInstPrinter(TheTCETarget, dummyInstrPrinterCtor);
+#endif
 }
 
 //

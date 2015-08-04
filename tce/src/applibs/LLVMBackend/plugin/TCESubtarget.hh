@@ -55,14 +55,14 @@ namespace llvm {
         TCESubtarget(TCETargetMachinePlugin* plugin); //const std::string &TT, const std::string &FS);
         std::string pluginFileName();
 
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;
         virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override;
+#ifdef LLVM_OLDER_THAN_3_7
         virtual const DataLayout* getDataLayout() const override;
-        virtual const TargetRegisterInfo* getRegisterInfo() const override;
 #endif
+        virtual const TargetRegisterInfo* getRegisterInfo() const override;
 
     protected:
         void ParseSubtargetFeatures(llvm::StringRef, llvm::StringRef);

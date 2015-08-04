@@ -60,6 +60,12 @@ using namespace llvm;
 #define GET_REGINFO_MC_DESC
 #define GET_REGINFO_TARGET_DESC
 
+#include "TCEFrameInfo.hh"
+
+#ifndef LLVM_OLDER_THAN_3_7
+#define TCEFrameLowering TCEFrameInfo
+#endif
+
 #include "TCEGenRegisterInfo.inc"
 
 /**

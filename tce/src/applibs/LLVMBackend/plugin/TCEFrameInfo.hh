@@ -53,6 +53,12 @@ namespace llvm {
 // -------------
 // Grows down, alignment at least 4 bytes.
 //
+
+#ifndef LLVM_OLDER_THAN_3_7
+// LLVM 3.7 tdgen expects the name class TCEFrameLowering
+#define TCEFrameInfo TCEFrameLowering 
+#endif
+
     class TCEFrameInfo : public TargetFrameLowering {
     public:
 
@@ -63,14 +69,6 @@ namespace llvm {
      * reduced to have the stack's alignment.
      */
         TCEFrameInfo(const TCERegisterInfo* tri, int stackAlignment) : 
-#ifdef LLVM_3_2
-        TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 
-            stackAlignment, 
-            -stackAlignment, 
-            1), 
-        tri_(tri) {}
-#else
         TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 
             stackAlignment, 
@@ -83,9 +81,12 @@ namespace llvm {
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const override;
-#endif
 
+#ifdef LLVM_OLDER_THAN_3_7
 	void emitPrologue(MachineFunction &mf) const override;
+#else
+    void emitPrologue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+#endif
 	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
 	bool hasFP(const MachineFunction &MF) const override { return false; }
 

@@ -31,6 +31,9 @@
 
 #define DEBUG_TYPE "linkbitcode"
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
@@ -47,6 +50,8 @@
 #else
 #include "llvm/Linker/Linker.h"
 #endif
+
+POP_COMPILER_DIAGS
 
 using namespace llvm;
 
@@ -118,8 +123,7 @@ LinkBitcode::doInitialization(Module& M) {
 #else
     // TODO: what about the destroysource thing?
     // TODO: DiagnosticHandledFunction
-    if (Linker::LinkModules(
-	    &M, &inputModule_)) {
+    if (Linker::LinkModules(&M, &inputModule_)) {
         errs() << "Error during linking in LinkBitcodePass: " << "\n";
     } 
 #endif

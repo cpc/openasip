@@ -1792,6 +1792,10 @@ LLVMTCEBuilder::debugDataToAnnotations(
     const llvm::MachineInstr* mi, TTAProgram::Move* move) {
 
     DebugLoc dl = mi->getDebugLoc();
+#ifndef LLVM_OLDER_THAN_3_7
+    if (!dl)
+        return;
+#endif
 
     // annotate the moves generated from known ra saves.
     if (mi->getFlag(MachineInstr::FrameSetup)) {
@@ -1821,8 +1825,10 @@ LLVMTCEBuilder::debugDataToAnnotations(
             TCEString sourceFileName = "";
                 
             // inspired from lib/codegen/MachineInstr.cpp
+#ifdef LLVM_OLDER_THAN_3_7
             const LLVMContext &Ctx = 
                 mi->getParent()->getParent()->getFunction()->getContext();
+#endif
             sourceLineNumber = dl.getLine();
 #ifdef LLVM_OLDER_THAN_3_7
             DIScope discope(dl.getScope(Ctx));

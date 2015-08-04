@@ -166,7 +166,6 @@ namespace llvm {
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
         virtual const DataLayout* getDataLayout() const {
             return &dl_;
         }
@@ -175,10 +174,15 @@ namespace llvm {
             return &dl_;
         }
 
+        virtual TCETargetMachine *getCurrentTargetMachine() {
+            return tm_;
+        }
+       
         virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
             return &tsInfo_;
         }
-#endif
+
+       
    protected:
        /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;
@@ -186,10 +190,8 @@ namespace llvm {
        TargetFrameLowering* frameInfo_;
        TCETargetMachine* tm_;
        TCESubtarget* subTarget_;
-#if (!defined(LLVM_3_2) && !defined(LLVM_3_3) && !defined(LLVM_3_4))
        DataLayout dl_; // Calculates type size & alignment
        TargetSelectionDAGInfo tsInfo_;
-#endif
    };
 
 }

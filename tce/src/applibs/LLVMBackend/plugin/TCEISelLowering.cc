@@ -170,17 +170,6 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 /**
  * Lowers formal arguments.
  */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
-SDValue
-TCETargetLowering::LowerFormalArguments(
-    SDValue Chain,
-    CallingConv::ID CallConv, 
-    bool isVarArg,
-    const SmallVectorImpl<ISD::InputArg> &Ins,
-    DebugLoc dl, 
-    SelectionDAG &DAG,
-    SmallVectorImpl<SDValue> &InVals) const 
-#else
 SDValue
 TCETargetLowering::LowerFormalArguments(
     SDValue Chain,
@@ -190,7 +179,6 @@ TCETargetLowering::LowerFormalArguments(
     SDLoc dl, 
     SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const 
-#endif
 {
 
     MachineFunction &MF = DAG.getMachineFunction();
@@ -260,9 +248,15 @@ TCETargetLowering::LowerFormalArguments(
                     // TCE is big endian, add an offset based on the ObjectVT.
                     unsigned Offset = 4 - std::max(
                         1U, ObjectVT.getSizeInBits()/8);
+#ifdef LLVM_OLDER_THAN_3_7
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, MVT::i32, FIPtr, 
                         DAG.getConstant(Offset, MVT::i32));
+#else
+                    FIPtr = DAG.getNode(
+                        ISD::ADD, dl, MVT::i32, FIPtr, 
+                        DAG.getConstant(Offset, dl, MVT::i32));
+#endif
 #if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
                     Load = DAG.getExtLoad(
                         LoadOp, dl, MVT::i32, Chain, FIPtr, 
@@ -407,12 +401,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
     // Keep stack frames 4-byte aligned.
     ArgsSize = (ArgsSize+3) & ~3;
-                                 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
-#else
+#ifdef LLVM_OLDER_THAN_3_7
     Chain = 
         DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true), dl);
+#else
+    Chain = 
+        DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, dl, true), dl);
 #endif
     SmallVector<SDValue, 8> MemOpChains;
    
@@ -451,7 +445,11 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
     if (ValToStore.getNode()) {
       SDValue StackPtr = DAG.getRegister(TCE::SP, MVT::i32);
+#ifdef LLVM_OLDER_THAN_3_7
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
+#else
+      SDValue PtrOff = DAG.getConstant(ArgOffset, dl, MVT::i32);
+#endif
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
                                          PtrOff, MachinePointerInfo(),
@@ -497,22 +495,18 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-  Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
-#else
   Chain = DAG.getNode(
       TCEISD::CALL, dl, ArrayRef<EVT>(NodeTys), 
       ArrayRef<SDValue>(Ops, InFlag.getNode() ? 3 : 2));
-#endif
 
   InFlag = Chain.getValue(1);
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-  Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
-                             DAG.getIntPtrConstant(0, true), InFlag);
-#else
+#ifdef LLVM_OLDER_THAN_3_7
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
                              DAG.getIntPtrConstant(0, true), InFlag, dl);
+#else
+  Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, dl, true),
+                             DAG.getIntPtrConstant(0, dl, true), InFlag, dl);
 #endif
   InFlag = Chain.getValue(1);
 
@@ -548,11 +542,18 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
  *
  * Initializes the target lowering.
  */
+#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
 TCETargetLowering::TCETargetLowering(
     TargetMachine& TM) :
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
     TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
+#elif LLVM_OLDER_THAN_3_7
+TCETargetLowering::TCETargetLowering(
+    TargetMachine& TM) :
+    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
+    TargetLowering(TM), tm_(static_cast<TCETargetMachine&>(TM)) 
 #else
+TCETargetLowering::TCETargetLowering(
+    TargetMachine& TM, const TCESubtarget &subt) :
     TargetLowering(TM), tm_(static_cast<TCETargetMachine&>(TM)) 
 #endif
 {
@@ -797,7 +798,11 @@ TCETargetLowering::TCETargetLowering(
     if (Application::verboseLevel() > 0) {
         std::cerr << std::endl;
     }
+#ifdef LLVM_OLDER_THAN_3_7
     computeRegisterProperties();
+#else
+    computeRegisterProperties(subt.getRegisterInfo());
+#endif
 }
 
 /**
@@ -828,43 +833,28 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 }
 
 SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const { 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3)) 
-    DebugLoc dl = Op->getDebugLoc();
-#else
     SDLoc dl(Op);
-#endif
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    TargetLowering::ArgListTy Args;
-
-    TargetLowering::CallLoweringInfo CLI(
-        Op->getOperand(0),
-        Type::getVoidTy(*DAG.getContext()),
-        false, 
-        false, 
-        false, 
-        false, 
-        0, 
-        CallingConv::C, 
-        false,
-        true, /* does not ret */
-        /*isReturnValueUsed=*/true,
-        DAG.getExternalSymbol("_exit", getPointerTy()),
-        Args,
-        DAG,
-        dl);
-#else
     TargetLowering::ArgListTy Args;
 
     TargetLowering::CallLoweringInfo CLI(DAG);
     CLI.setDebugLoc(dl);
     CLI.setChain(Op->getOperand(0));
+#ifdef LLVM_OLDER_THAN_3_7
     CLI.setCallee(
         CallingConv::C, 
         Type::getVoidTy(*DAG.getContext()),
         DAG.getExternalSymbol("_exit", getPointerTy()),
         std::move(Args),
         0);
+#else
+    CLI.setCallee(
+        CallingConv::C, 
+        Type::getVoidTy(*DAG.getContext()),
+        DAG.getExternalSymbol("_exit", getPointerTy(*getTargetMachine().getDataLayout(), 0)),
+        std::move(Args),
+        0);
+#endif
     CLI.setInRegister(false);
     CLI.setNoReturn(true);
     CLI.setVarArg(false);
@@ -872,10 +862,9 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
     CLI.setDiscardResult(false);
     CLI.setSExtResult(false);
     CLI.setZExtResult(false);
-#endif
 
-        std::pair<SDValue, SDValue> CallResult =
-            LowerCallTo(CLI);
+    std::pair<SDValue, SDValue> CallResult =
+        LowerCallTo(CLI);
     return CallResult.second;
 
 }
@@ -900,7 +889,13 @@ TCETargetLowering::LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const {
   const BlockAddress *BA = cast<BlockAddressSDNode>(Op)->getBlockAddress();
   SDValue BA_SD =  DAG.getTargetBlockAddress(BA, MVT::i32);
   SDLoc dl(Op);
+#ifdef LLVM_OLDER_THAN_3_7
   return DAG.getNode(TCEISD::BLOCK_ADDR, dl, getPointerTy(), BA_SD);
+#else
+  return DAG.getNode(
+      TCEISD::BLOCK_ADDR, dl, 
+      getPointerTy(*getTargetMachine().getDataLayout(), 0), BA_SD);
+#endif
 }
 
 static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
@@ -924,20 +919,22 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
 #endif
 }
 
-static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
-                            const TCETargetLowering &TLI) {
+SDValue 
+TCETargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
 
     // ARM ripoff 
 
     // vastart just stores the address of the VarArgsFrameIndex slot into the
     // memory location argument.
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    DebugLoc dl = Op.getDebugLoc();
-#else
     SDLoc dl(Op);
-#endif
+#ifdef LLVM_OLDER_THAN_3_7
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
-    SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
+#else
+    EVT PtrVT = 
+        DAG.getTargetLoweringInfo().getPointerTy(
+            *getTargetMachine().getDataLayout(), 0);
+#endif
+    SDValue FR = DAG.getFrameIndex(getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
     return DAG.getStore(
         Op.getOperand(0), dl, FR, Op.getOperand(1), MachinePointerInfo(SV), 
@@ -948,20 +945,20 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
 /**
  * Returns the preferred comparison result type.
  */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
+#ifdef LLVM_OLDER_THAN_3_7
 EVT
-TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+TCETargetLowering::getSetCCResultType(LLVMContext&, llvm::EVT VT) const
 #else
-EVT
-TCETargetLowering::getSetCCResultType(LLVMContext&, llvm::EVT VT) const { 
+llvm::EVT
+TCETargetLowering::getSetCCResultType(
+    const DataLayout&, 
+    LLVMContext &Context,
+    EVT VT) const
 #endif
+{
 
-#ifdef LLVM_3_2
-    return llvm::MVT::i1;
-#else
     if (!VT.isVector()) return llvm::MVT::i1;
     return VT.changeVectorElementTypeToInteger();
-#endif
 }
 
 /**
@@ -973,7 +970,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     case ISD::TRAP: return LowerTRAP(op, dag);
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
     case ISD::BlockAddress: return LowerBlockAddress(op, dag);
-    case ISD::VASTART: return LowerVASTART(op, dag, *this);
+    case ISD::VASTART: return LowerVASTART(op, dag);
     case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
@@ -990,8 +987,13 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
 
 /// getConstraintType - Given a constraint letter, return the type of
 /// constraint it is for this target.
+#ifdef LLVM_OLDER_THAN_3_7
 TCETargetLowering::ConstraintType
 TCETargetLowering::getConstraintType(const std::string &Constraint) const {
+#else
+TCETargetLowering::ConstraintType
+TCETargetLowering::getConstraintType(StringRef Constraint) const {
+#endif
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
     default:  break;
@@ -1001,14 +1003,16 @@ TCETargetLowering::getConstraintType(const std::string &Constraint) const {
   return TargetLowering::getConstraintType(Constraint);
 }
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-std::pair<unsigned, const TargetRegisterClass*>
-TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
-                                                  EVT VT) const 
-#else
+#ifdef LLVM_OLDER_THAN_3_7
 std::pair<unsigned, const TargetRegisterClass*>
 TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
                                                   MVT VT) const 
+#else
+std::pair<unsigned, const TargetRegisterClass *>
+TCETargetLowering::getRegForInlineAsmConstraint(
+    const TargetRegisterInfo* TRI,
+    StringRef Constraint, MVT VT) const 
+
 #endif
 {
   if (Constraint.size() == 1) {
@@ -1021,7 +1025,11 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
         }
     }
   }
+#ifdef LLVM_OLDER_THAN_3_7
   return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
+#else
+  return TargetLowering::getRegForInlineAsmConstraint(TRI, Constraint, VT);
+#endif
 }
 
 
