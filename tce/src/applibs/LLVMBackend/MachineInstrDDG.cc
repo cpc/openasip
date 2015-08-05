@@ -41,7 +41,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "tce_config.h"
 #include "llvm/IR/Function.h"
-#if (!defined(LLVM_3_5)))
+#ifndef LLVM_3_5
 #include <llvm/Target/TargetSubtargetInfo.h>
 #endif
 
