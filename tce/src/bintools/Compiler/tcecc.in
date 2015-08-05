@@ -441,6 +441,11 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
+    # format of llvm-nm has been changed in llvm 3.7
+    nmidx = 0
+    if "@LLVM_VERSION@" >= "3.7":
+        nmidx = 1
+        
     startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
 
     libNoSys = os.path.join(newlib_libdir,"libnosys.a")
@@ -495,9 +500,9 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
             if split[0]=='U':
                 if not split[1] in undefSyms:
                     undefSyms.append(split[1])
-            elif split[0] in 'CDT':
-                if not split[1] in defSyms:
-                    defSyms.append(split[1])
+            elif split[nmidx] in 'CDT':
+                if not split[nmidx+1] in defSyms:
+                    defSyms.append(split[nmidx+1])
 
     if not '_start' in defSyms:
 	linkFiles = startFiles + linkFiles 
@@ -512,9 +517,9 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
             if split[0]=='U':
                 if not split[1] in undefSyms:
                     undefSyms.append(split[1])
-            elif split[0] in 'CDT':
-                if not split[1] in defSyms:
-                    defSyms.append(split[1])
+            elif split[nmidx] in 'CDT':
+                if not split[nmidx+1] in defSyms:
+                    defSyms.append(split[nmidx+1])
 
     for sym in defSyms:
         if sym in undefSyms:
@@ -547,16 +552,13 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                 libToUndefsyms[file]=tempUndefsyms
             else:
                 split = line.split();
-                idx = 0
-                if "@LLVM_VERSION@" >= "3.7":
-                    idx = 1
-                if split[idx]=='U':
-                    if not split[idx+1] in undefSyms:
-                        tempUndefsyms.append(split[idx+1])
-                elif split[idx] in 'CDT':
-                    if not split[idx+1] in defSyms:
-                        tempDefsyms.append(split[idx+1])
-                        defsymToLib[ line.split()[idx+1] ] = file
+                if split[0]=='U':
+                    if not split[1] in undefSyms:
+                        tempUndefsyms.append(split[1])
+                elif split[nmidx] in 'CDT':
+                    if not split[nmidx+1] in defSyms:
+                        tempDefsyms.append(split[nmidx+1])
+                        defsymToLib[ line.split()[nmidx+1] ] = file
 
         # Now recursively resolve symbols.
 
