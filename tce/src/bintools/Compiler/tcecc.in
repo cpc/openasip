@@ -547,13 +547,16 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                 libToUndefsyms[file]=tempUndefsyms
             else:
                 split = line.split();
-                if split[0]=='U':
-                    if not split[1] in undefSyms:
-                        tempUndefsyms.append(split[1])
-                elif split[0] in 'CDT':
-                    if not split[1] in defSyms:
-                        tempDefsyms.append(split[1])
-                        defsymToLib[ line.split()[1] ] = file
+                idx = 0
+                if "@LLVM_VERSION@" >= "3.7":
+                    idx = 1
+                if split[idx]=='U':
+                    if not split[idx+1] in undefSyms:
+                        tempUndefsyms.append(split[idx+1])
+                elif split[idx] in 'CDT':
+                    if not split[idx+1] in defSyms:
+                        tempDefsyms.append(split[idx+1])
+                        defsymToLib[ line.split()[idx+1] ] = file
 
         # Now recursively resolve symbols.
 
