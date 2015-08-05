@@ -47,17 +47,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineBasicBlock.h>
 
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include <llvm/Target/Mangler.h>
-#else
 #include <llvm/IR/Mangler.h>
-#endif
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include <llvm/Constant.h>
-#else
 #include <llvm/IR/Constant.h>
-#endif
 #include <llvm/Transforms/IPO.h>
 
 #include "Exception.hh"

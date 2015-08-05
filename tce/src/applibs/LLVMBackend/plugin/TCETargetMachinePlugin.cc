@@ -380,7 +380,7 @@ const llvm::TargetRegisterClass*
 GeneratedTCEPlugin::nodeRegClass(
     unsigned nodeId, const llvm::TargetRegisterClass* current) const {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
 
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
@@ -421,7 +421,7 @@ GeneratedTCEPlugin::extrasRegClass(
     const llvm::TargetRegisterClass* current) const {
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     TCEString origRCName(current->getName());
     for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
         const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);

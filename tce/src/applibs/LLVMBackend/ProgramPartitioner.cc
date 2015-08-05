@@ -41,11 +41,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "hash_map.hh"
 #include "Application.hh"
 #include "tce_config.h"
-#ifdef LLVM_3_2
-#include <llvm/Instruction.h>
-#else
 #include <llvm/IR/Instruction.h>
-#endif
 
 POP_COMPILER_DIAGS
 
@@ -71,7 +67,7 @@ ProgramPartitioner::doInitialization(llvm::Module& /*M*/) {
 bool 
 ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
+#if (!(defined(LLVM_3_5)))
 #ifdef DEBUG_PROGRAM_PARTITIONER
     std::cerr << "### ProgramPartitioner disabled for llvm 3.6+ " << std::endl;
 #endif
@@ -237,11 +233,7 @@ ProgramPartitioner::findNodeIndex(
                 MRI.def_begin(operand.getReg());
             if (di.atEnd()) continue;
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-            const llvm::MachineInstr* parent = &*di;
-#else
             const llvm::MachineInstr* parent = (*di).getParent();
-#endif
 
             // TODO: this NULL check not needed anymore?
             if (parent == NULL) continue;

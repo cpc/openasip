@@ -118,12 +118,7 @@ bool MachineDCE::doInitialization(Module &M) {
         // aAd all noinline functions to baseUsers so they won't
         // get removed. We might want to call them via a
         // function pointer initialized from the outside. 
-#ifdef LLVM_3_2
-        const bool noinlineFunction = f->getFnAttributes().hasAttribute(
-            Attributes::NoInline);
-#else
         const bool noinlineFunction = f->hasFnAttribute(Attribute::NoInline);
-#endif
         if (noinlineFunction) {
             baseUsers_.insert(f->getName());
 #ifdef DEBUG_MACHINE_DCE

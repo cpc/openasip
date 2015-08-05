@@ -57,8 +57,6 @@ TCEFrameInfo::emitEpilogue(
     tri_->emitEpilogue(mf, mbb);
 }
 
-
-#if (!(defined(LLVM_3_1) || defined(LLVM_3_2)))
 /**
  * Eliminates call frame pseudo instructions. 
  *
@@ -70,4 +68,3 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
     MachineBasicBlock::iterator I) const {
     MBB.erase(I);
 }
-#endif

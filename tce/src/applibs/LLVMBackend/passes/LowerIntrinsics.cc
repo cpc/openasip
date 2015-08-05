@@ -39,21 +39,12 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "tce_config.h"
-#if (defined(LLVM_3_2))
-#include "llvm/Module.h"
-#include "llvm/Instructions.h"
-#include "llvm/Constants.h"
-#include "llvm/Intrinsics.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/LLVMContext.h"
-#else
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/LLVMContext.h"
-#endif
 #include "llvm/Support/Compiler.h"
 #include "llvm/Pass.h"
 #include "llvm/CodeGen/IntrinsicLowering.h"
@@ -61,17 +52,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 POP_COMPILER_DIAGS
 
-#if defined(LLVM_3_2)
-
-#include "llvm/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
-#else
-
 #include "llvm/IR/DataLayout.h"
 typedef llvm::DataLayout TargetData;
-
-#endif
 
 using namespace llvm;
 

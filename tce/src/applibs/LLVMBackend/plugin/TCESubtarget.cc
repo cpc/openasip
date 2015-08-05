@@ -86,7 +86,7 @@ TCESubtarget::pluginFileName() {
 }
 
 
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5)))
+#if (!(defined(LLVM_3_5)))
 
 const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
     return plugin_->getInstrInfo();

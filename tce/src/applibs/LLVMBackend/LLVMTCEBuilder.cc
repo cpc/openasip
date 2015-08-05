@@ -89,15 +89,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "Conversion.hh"
 #include "InstructionElement.hh"
 
-#ifdef LLVM_3_2
-#include <llvm/Constants.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/Module.h>
-#else
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Module.h>
-#endif
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
@@ -107,11 +101,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include <llvm/DebugInfo.h>
-#else
 #include <llvm/IR/DebugInfo.h>
-#endif
 
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
@@ -158,7 +148,7 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     tm_ = &tm;
     mach_ = mach;
     functionAtATime_ = functionAtATime;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     dl_ = tm_->getDataLayout();
 #elif (defined(LLVM_OLDER_THAN_3_7))
     dl_ = tm_->getSubtargetImpl()->getDataLayout();
@@ -2929,18 +2919,11 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-                    // Not an array of 2-element structs.
-                    if (cs->getNumOperands() != 2) {
-                        return firstInstruction;
-                    }
-#else
                     // LLVM 3.5 introduced an additional field, so test for
                     // an array of 3-element structs.
                     if (cs->getNumOperands() != 3) {
                         return firstInstruction;
                     }
-#endif
 
                      // Found a null terminator, exit printing.
                     if (cs->getOperand(1)->isNullValue()) {

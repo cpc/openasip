@@ -39,11 +39,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/Analysis/LoopPass.h>
 
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include <llvm/Analysis/Dominators.h>
-#else
 #include <llvm/IR/Dominators.h>
-#endif
 
 #include <llvm/Analysis/AliasAnalysis.h>
 #ifdef LLVM_OLDER_THAN_3_7
@@ -71,21 +67,12 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/Support/Debug.h>
 #include <llvm/CodeGen/RegAllocRegistry.h>
 #include "Application.hh"
-#ifdef LLVM_3_2
-#include <llvm/Module.h>
-#include <llvm/LLVMContext.h>
-#else
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
-#endif
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include <llvm/Analysis/Verifier.h>
-#else
 #include <llvm/IR/Verifier.h>
-#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -98,12 +85,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-/// @note For LLVM 3.5 and greater std::error_code replaces llvm::error_code.
-#include "llvm/Support/system_error.h"
-#endif
-
 
 #include <cstdlib> // system()
 #include <fstream>
@@ -137,23 +118,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 using namespace llvm;
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include <llvm/Assembly/PrintModulePass.h>
-#else
 #include <llvm/IR/IRPrintingPasses.h>
-#endif
-
-#ifdef LLVM_3_2
-
-#include "llvm/DataLayout.h"
-typedef llvm::DataLayout TargetData;
-
-#else
 
 #include "llvm/IR/DataLayout.h"
 typedef llvm::DataLayout TargetData;
 
-#endif
 
 POP_COMPILER_DIAGS
 
@@ -339,7 +308,7 @@ LLVMBackend::compile(
 
     // todo: what are these buffers..
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
 #elif defined(LLVM_OLDER_THAN_3_7)
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
@@ -376,7 +345,7 @@ LLVMBackend::compile(
 
         std::unique_ptr<MemoryBuffer> emuBuffer = 
             std::move(emuBufferPtr.get());
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
         ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
 #elif (defined LLVM_OLDER_THAN_3_7)
         ErrorOr<Module*> module = 

@@ -209,23 +209,6 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << "}" << std::endl;
 
   // Subregister indices.
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    o << "def lane0 : SubRegIndex;" << std::endl 
-      << "def lane1 : SubRegIndex;" << std::endl
-      << "def lane2 : SubRegIndex;" << std::endl
-      << "def lane3 : SubRegIndex;" << std::endl
-      << "def lane4 : SubRegIndex;" << std::endl
-      << "def lane5 : SubRegIndex;" << std::endl
-      << "def lane6 : SubRegIndex;" << std::endl
-      << "def lane7 : SubRegIndex;" << std::endl << std::endl
-        
-      << "def subvector2_0 : SubRegIndex;" << std::endl
-      << "def subvector2_2 : SubRegIndex;" << std::endl
-      << "def subvector2_4 : SubRegIndex;" << std::endl
-      << "def subvector2_6 : SubRegIndex;" << std::endl
-      << "def subvector4_0 : SubRegIndex;" << std::endl
-      << "def subvector4_4 : SubRegIndex;" << std::endl << std::endl;
-#else    
     o << "def lane0 : SubRegIndex<32>;" << std::endl 
       << "def lane1 : SubRegIndex<32>;" << std::endl
       << "def lane2 : SubRegIndex<32>;" << std::endl
@@ -241,7 +224,6 @@ TDGen::writeRegisterInfo(std::ostream& o)
       << "def subvector2_6 : SubRegIndex<64>;" << std::endl
       << "def subvector4_0 : SubRegIndex<128>;" << std::endl
       << "def subvector4_4 : SubRegIndex<128>;" << std::endl << std::endl;
-#endif
 
     writeRegisterClasses(o);
    
@@ -3216,7 +3198,7 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::STW8mr;"
            << std::endl;
     }
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
@@ -3307,7 +3289,7 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::LDW8mr;"
            << std::endl;
     }
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl

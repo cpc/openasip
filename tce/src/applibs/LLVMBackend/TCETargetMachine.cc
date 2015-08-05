@@ -183,9 +183,7 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     // register machine to plugin
     plugin_->registerTargetMachine(*this);
 
-#if (!(defined(LLVM_3_2) || defined(LLVM_3_3)))
     initAsmInfo();
-#endif
 
     // Set data layout with correct stack alignment.
     unsigned alignBits = getMaxMemoryAlignment() * 8;

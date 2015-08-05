@@ -98,7 +98,7 @@ TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
     bool, bool) {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
 #elif (defined(LLVM_OLDER_THAN_3_7))
     TCEString opName(targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi->getOpcode()));
@@ -135,7 +135,7 @@ LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
 
 TTAProgram::Terminal*
 LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(mo.getReg()));
 #elif (defined(LLVM_OLDER_THAN_3_7))

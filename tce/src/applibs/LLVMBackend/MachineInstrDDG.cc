@@ -40,13 +40,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include "llvm/Function.h"
-#else
 #include "llvm/IR/Function.h"
-#if (!defined(LLVM_3_3) && !(defined(LLVM_3_4)) && !(defined(LLVM_3_5)))
+#if (!defined(LLVM_3_5)))
 #include <llvm/Target/TargetSubtargetInfo.h>
-#endif
 #endif
 
 #include "MachineInstrDDG.hh"
@@ -75,7 +71,7 @@ MachineInstrDDG::MachineInstrDDG(
     BoostGraph<MIDDGNode, MIDDGEdge>(
         std::string(mf.getFunction()->getName().str()) + "_middg", true),
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     regInfo_(mf_.getTarget().getRegisterInfo()) 
 #elif (defined LLVM_OLDER_THAN_3_7)
     regInfo_(mf_.getTarget().getSubtargetImpl()->getRegisterInfo()) 
@@ -556,7 +552,7 @@ MachineInstrDDG::assignPhysReg(Register vreg, Register physReg) {
  */
 TCEString
 MIDDGNode::osalOperationName() const {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
 #elif defined LLVM_OLDER_THAN_3_7

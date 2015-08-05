@@ -33,13 +33,8 @@
 
 #include <assert.h>
 #include "tce_config.h"
-#if (defined(LLVM_3_1) || defined(LLVM_3_2))
-#include <llvm/Type.h>
-#include <llvm/Function.h>
-#else
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Function.h>
-#endif
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
 #include <llvm/Target/TargetInstrInfo.h>
@@ -84,7 +79,7 @@ TCERegisterInfo::TCERegisterInfo(
 /**
  * Returns list of callee saved registers.
  */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
 const uint16_t*
 #else
 const MCPhysReg*
@@ -108,51 +103,14 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     return reserved;
 }
 
-/**
- * Returns list of callee saved register classes.
- *
- * The returned list has equal length with getCalleeSavedRegs() list
- * and the list items with same position correspond to each other.
- */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-const TargetRegisterClass* const*
-TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
-    static const TargetRegisterClass* const calleeSavedRegClasses[] = { 0 };
-    return calleeSavedRegClasses;
-}
-#endif
-
-#ifdef LLVM_3_2
-/**
- * Eliminates call frame pseudo instructions. 
- *
- * Stack space is already reserved in caller stack.
- */
-void
-TCERegisterInfo::eliminateCallFramePseudoInstr(
-    MachineFunction &MF, MachineBasicBlock &MBB,
-    MachineBasicBlock::iterator I) const {
-    MBB.erase(I);
-}
-#endif
-
 void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
-#if (!(defined(LLVM_3_2)))
     unsigned FIOperandNum,
-#endif
     RegScavenger *RS) const {
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
     MachineInstr &MI = *II;
     DebugLoc dl = MI.getDebugLoc();
-#if (defined(LLVM_3_2))
-    unsigned FIOperandNum = 0;
-    while (!MI.getOperand(FIOperandNum).isFI()) {
-        ++FIOperandNum;
-        assert(FIOperandNum < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
-    }
-#endif
     int FrameIndex = MI.getOperand(FIOperandNum).getIndex();
 
     // Addressable stack objects are accessed using neg. offsets from %fp
@@ -245,11 +203,7 @@ TCERegisterInfo::emitEpilogue(
 
     MachineFrameInfo* mfi = mf.getFrameInfo();
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    MachineBasicBlock::iterator mbbi = prior(mbb.end());
-#else
     MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
-#endif
 
     DebugLoc dl = mbbi->getDebugLoc();
 

@@ -31,11 +31,7 @@
  */
 
 #include "tce_config.h"
-#ifdef LLVM_3_2
-#include <llvm/Intrinsics.h>
-#else
 #include <llvm/IR/Intrinsics.h>
-#endif
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/raw_ostream.h>
@@ -108,11 +104,7 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
  */
 SDNode*
 TCEDAGToDAGISel::Select(SDNode* n) {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    DebugLoc dl = n->getDebugLoc();
-#else
     SDLoc dl(n);
-#endif
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
         // Already selected.

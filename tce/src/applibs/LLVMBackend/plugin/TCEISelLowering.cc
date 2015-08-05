@@ -34,17 +34,10 @@
 #include <assert.h>
 #include <string>
 #include "tce_config.h"
-#ifdef LLVM_3_2
-#include <llvm/Function.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/Intrinsics.h>
-#include <llvm/CallingConv.h>
-#else
 #include <llvm/IR/Function.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/CallingConv.h>
-#endif
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/CodeGen/CallingConvLower.h>
 #include <llvm/CodeGen/SelectionDAG.h>
@@ -84,28 +77,19 @@ static const unsigned ArgRegs[] = {
 static const int argRegCount = 1;
 
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
-SDValue
-TCETargetLowering::LowerReturn(SDValue Chain,
-                               CallingConv::ID CallConv, bool isVarArg,
-                               const SmallVectorImpl<ISD::OutputArg> &Outs,
-                               const SmallVectorImpl<SDValue> &OutVals,
-                               DebugLoc dl, SelectionDAG &DAG) const 
-#else
 SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
                                const SmallVectorImpl<SDValue> &OutVals,
                                SDLoc dl, SelectionDAG &DAG) const 
-#endif
 {
 
   // CCValAssign - represent the assignment of the return value to locations.
   SmallVector<CCValAssign, 16> RVLocs;
 
   // CCState - Info about the registers and stack slot.
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
 #else
@@ -116,17 +100,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
   // Analize return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_TCE);
 
-#if (defined(LLVM_3_2))
-  // If this is the first return lowered for this function, add the regs to the
-  // liveout set for the function.
-  if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
-    for (unsigned i = 0; i != RVLocs.size(); ++i)
-      if (RVLocs[i].isRegLoc())
-        DAG.getMachineFunction().getRegInfo().addLiveOut(RVLocs[i].getLocReg());
-  }
-#else
   SmallVector<SDValue, 4> RetOps(1, Chain);
-#endif
 
   SDValue Flag;
 
@@ -140,31 +114,17 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
-#if (!(defined(LLVM_3_2)))
     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
-#endif
   }
 
-#if (defined(LLVM_3_2))
-  if (Flag.getNode())
-    return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain, Flag);
-  return DAG.getNode(TCEISD::RET_FLAG_old, dl, MVT::Other, Chain);
-#else
   RetOps[0] = Chain;  // Update chain.
 
   // Add the flag if we have it.
   if (Flag.getNode())
     RetOps.push_back(Flag);
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-  return DAG.getNode(
-      TCEISD::RET_FLAG, dl, MVT::Other, &RetOps[0], RetOps.size());
-#else
   return DAG.getNode(
       TCEISD::RET_FLAG, dl, MVT::Other, ArrayRef<SDValue>(RetOps));
-#endif
-
-#endif
 }
 
 /**
@@ -186,7 +146,7 @@ TCETargetLowering::LowerFormalArguments(
 
     // Assign locations to all of the incoming arguments.
     SmallVector<CCValAssign, 16> ArgLocs;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     CCState CCInfo(
         CallConv, isVarArg, DAG.getMachineFunction(),
         getTargetMachine(), ArgLocs, *DAG.getContext());
@@ -257,7 +217,7 @@ TCETargetLowering::LowerFormalArguments(
                         ISD::ADD, dl, MVT::i32, FIPtr, 
                         DAG.getConstant(Offset, dl, MVT::i32));
 #endif
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
                     Load = DAG.getExtLoad(
                         LoadOp, dl, MVT::i32, Chain, FIPtr, 
                         MachinePointerInfo(), ObjectVT, false, false,0);
@@ -352,11 +312,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                              SmallVectorImpl<SDValue> &InVals) const {
 
     SelectionDAG &DAG                     = CLI.DAG;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    DebugLoc &dl                          = CLI.DL;
-#else
     SDLoc &dl                             = CLI.DL;
-#endif
     SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
     SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
     SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
@@ -460,14 +416,8 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Emit all stores, make sure the occur before any copies into physregs.
   if (!MemOpChains.empty()) {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-      Chain = DAG.getNode(
-          ISD::TokenFactor, dl, MVT::Other, &MemOpChains[0], 
-          MemOpChains.size());
-#else
       Chain = DAG.getNode(
           ISD::TokenFactor, dl, MVT::Other, ArrayRef<SDValue>(MemOpChains));
-#endif
   }
 
   // Build a sequence of copy-to-reg nodes chained together with token
@@ -512,7 +462,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
   CCState RVInfo(CallConv, isVarArg, DAG.getMachineFunction(),
                  DAG.getTarget(), RVLocs, *DAG.getContext());
 
@@ -542,7 +492,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
  *
  * Initializes the target lowering.
  */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
 TCETargetLowering::TCETargetLowering(
     TargetMachine& TM) :
     TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
@@ -582,9 +532,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8i32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v8i32, Expand);
-#endif
 
             // TODO: the expanded code is suboptimal for subvectors
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v8f32, Legal);
@@ -593,9 +541,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v8f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v8f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v8f32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v8f32, Expand);
-#endif
 
         case 4:
             addRegisterClass(MVT::v4i32, &TCE::V4R32IRegsRegClass);
@@ -607,9 +553,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4i32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v4i32, Expand);
-#endif
             
             // try to use signext or anyext for ext.
             //	    setLoadExtAction(ISD::EXTLOAD, MVT::v4i8, Promote);
@@ -621,9 +565,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v4f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v4f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v4f32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v4f32, Expand);
-#endif
 
         case 2:
             addRegisterClass(MVT::v2i32, &TCE::V2R32IRegsRegClass);
@@ -633,9 +575,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2i32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2i32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2i32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v2i32, Expand);
-#endif
 
             setOperationAction(ISD::INSERT_SUBVECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::EXTRACT_SUBVECTOR, MVT::v2f32, Legal);
@@ -643,9 +583,7 @@ TCETargetLowering::TCETargetLowering(
             setOperationAction(ISD::SCALAR_TO_VECTOR, MVT::v2f32, Legal);
             setOperationAction(ISD::VECTOR_SHUFFLE, MVT::v2f32, Expand);
             setOperationAction(ISD::SELECT, MVT::v2f32, Expand);
-#ifndef LLVM_3_2
             setOperationAction(ISD::VSELECT, MVT::v2f32, Expand);
-#endif
 
         case 1:
             break;
@@ -673,11 +611,6 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-    // SELECT is used instead of SELECT_CC.
-    // so expand expands it into separate comparison and select.
-    setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
-#else
     // Using 'old way' MVT::Other to cover all value types is illegal now.
     setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
     setOperationAction(ISD::SELECT_CC, MVT::f32, Expand);
@@ -694,7 +627,6 @@ TCETargetLowering::TCETargetLowering(
         MVT VT = (MVT::SimpleValueType)i;
         setOperationAction(ISD::SELECT_CC, VT, Expand);
     }
-#endif
 
     // not needed when we uses xor for boolean comparison
 //    setOperationAction(ISD::SETCC, MVT::i1, Promote);
@@ -706,13 +638,9 @@ TCETargetLowering::TCETargetLowering(
     // Expand jumptable branches.
     setOperationAction(ISD::BR_JT, MVT::Other, Expand);
     // Expand conditional branches.
-#if (defined(LLVM_3_2))
-    setOperationAction(ISD::BR_CC, MVT::Other, Expand);
-#else
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
     setOperationAction(ISD::BR_CC, MVT::i32, Expand);
     setOperationAction(ISD::BR_CC, MVT::f32, Expand);
-#endif
     setOperationAction(ISD::MULHU,  MVT::i32, Expand);
     setOperationAction(ISD::MULHS,  MVT::i32, Expand);
     setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
@@ -873,15 +801,9 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
   // FIXME there isn't really any debug info here
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    DebugLoc dl = Op.getDebugLoc();
-    SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
-    return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
-#else
     SDLoc dl(Op);
     SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
     return DAG.getNode(TCEISD::GLOBAL_ADDR, SDLoc(Op), MVT::i32, ga);
-#endif
 }
 
 SDValue
@@ -912,11 +834,7 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
             cp->getConstVal(), ptrVT,
             cp->getAlignment());
     }
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-    return DAG.getNode(TCEISD::CONST_POOL, Op.getDebugLoc(), MVT::i32, res);
-#else
     return DAG.getNode(TCEISD::CONST_POOL, SDLoc(Op), MVT::i32, res);
-#endif
 }
 
 SDValue 
@@ -1055,42 +973,8 @@ TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   return false;
 }
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
 
-/// getFunctionAlignment - Return the Log2 alignment of this function.
-unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
-  return 1;
-}
-
-#endif
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-
-bool
-TCETargetLowering::allowsUnalignedMemoryAccesses(EVT VT) const {
-    /// @todo This commented area and the whole function is probably not
-    /// needed anymore. The base class version returns false as default.
-    /*
-    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
-	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
-    */
-    return false;
-}
-
-#elif defined(LLVM_3_4)
-
-bool 
-TCETargetLowering::allowsUnalignedMemoryAccesses(EVT) 
-const {
-    /*
-    return (VT==MVT::v2i8 || VT == MVT::v4i8 || VT == MVT::v8i8 ||
-	    VT==MVT::v2i16 || VT == MVT::v4i16 || VT == MVT::v8i16);
-    */
-    return false;
-}
-
-
-#elif defined(LLVM_3_5)
+#if defined(LLVM_3_5)
 
 bool
 TCETargetLowering::allowsUnalignedMemoryAccesses(EVT, unsigned, bool*) const {

@@ -182,7 +182,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                         mach_, -mo.getImm()) && /* SUB is 32b */
                     MachineInfo::supportsOperation(mach_, "SUB")) {  
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
                     const llvm::MCInstrInfo* iinfo = mf.getTarget().getInstrInfo();
 #elif (defined LLVM_OLDER_THAN_3_7)
                     const llvm::MCInstrInfo* iinfo = 

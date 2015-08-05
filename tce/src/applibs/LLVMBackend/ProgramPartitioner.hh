@@ -43,30 +43,16 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include "llvm/Constant.h"
-#include "llvm/Constants.h"
-#include "llvm/Instructions.h"
-#include "llvm/Function.h"
-#include "llvm/Type.h"
-#include "llvm/Module.h"
-#else
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Module.h"
-#endif
 #include "llvm/Pass.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include "llvm/Support/CFG.h"
-#else
 #include "llvm/Analysis/CFG.h"
-#endif
 
 #include "llvm/Support/Compiler.h"
 #include "llvm/Target/TargetInstrInfo.h"

@@ -38,11 +38,6 @@
 #include "TCESubtarget.hh"
 #include "tce_config.h"
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#ifndef override
-#define override
-#endif
-#endif
 namespace TCEISD {
     enum {
         FIRST_NUMBER = llvm::ISD::BUILTIN_OP_END,
@@ -111,19 +106,7 @@ namespace llvm {
         virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const override;
         
         /// getFunctionAlignment - Return the Log2 alignment of this function.
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        virtual unsigned getFunctionAlignment(const Function *F) const;
-#endif // no longer virtual
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
-        virtual SDValue
-        LowerFormalArguments(SDValue Chain,
-                             CallingConv::ID CallConv,
-                             bool isVarArg,
-                             const SmallVectorImpl<ISD::InputArg> &Ins,
-                             DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) const override;
-#else
         virtual SDValue
         LowerFormalArguments(SDValue Chain,
                              CallingConv::ID CallConv,
@@ -131,7 +114,6 @@ namespace llvm {
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              SDLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) const override;
-#endif        
 
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
@@ -141,21 +123,12 @@ namespace llvm {
         LowerCall(TargetLowering::CallLoweringInfo &CLI,
                   SmallVectorImpl<SDValue> &InVals) const override;
         
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))        
-        virtual SDValue
-        LowerReturn(SDValue Chain,
-                    CallingConv::ID CallConv, bool isVarArg,
-                    const SmallVectorImpl<ISD::OutputArg> &Outs,
-                    const SmallVectorImpl<SDValue> &OutVals,
-                    DebugLoc dl, SelectionDAG &DAG) const override;
-#else
         virtual SDValue
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
                     SDLoc dl, SelectionDAG &DAG) const override;
-#endif
 
 #if defined(LLVM_3_5)
         virtual bool allowsUnalignedMemoryAccesses(EVT,

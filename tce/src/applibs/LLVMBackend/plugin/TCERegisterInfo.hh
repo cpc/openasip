@@ -42,12 +42,6 @@
 
 #include "tce_config.h"
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#ifndef override
-#define override
-#endif
-#endif
-
 namespace llvm {
     class TargetInstrInfo;
     class Type;
@@ -60,20 +54,7 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii, int stackAlignment);
         virtual ~TCERegisterInfo() {};
 
-#ifdef LLVM_3_2
-        void eliminateCallFramePseudoInstr(
-            MachineFunction &MF,
-            MachineBasicBlock &MBB,
-            MachineBasicBlock::iterator I) const;
-#endif
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
-
-        const TargetRegisterClass* const* getCalleeSavedRegClasses(
-            const MachineFunction *MF = 0) const override;
-
-#elif defined(LLVM_3_5)
+#ifdef LLVM_3_5
         const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
 #else
         const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
@@ -86,14 +67,10 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
 
-#ifdef LLVM_3_2
-        void eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                     int SPAdj, RegScavenger *RS = NULL) const;
-#else
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
                                  int SPAdj, unsigned FIOperandNum,
                                  RegScavenger *RS = NULL) const override;
-#endif
+
         unsigned getRARegister() const;
 
         unsigned getFrameRegister(const MachineFunction& mf) const override;

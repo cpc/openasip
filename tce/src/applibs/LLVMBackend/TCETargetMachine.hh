@@ -156,15 +156,10 @@ namespace llvm {
             return plugin_->getRegisterInfo();
         }
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        virtual const DataLayout* getDataLayout() const { 
-            return &dl_; 
-        }
-#else
         virtual const DataLayout* getDataLayout() const {
             return plugin_->getDataLayout();
         }
-#endif
+
         virtual const TargetFrameLowering* getFrameLowering() const {
             return plugin_->getFrameLowering();
         }
@@ -172,16 +167,10 @@ namespace llvm {
             return plugin_->getTargetLowering();
         }
 
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
-            return &tsInfo_;
-        }
-#else
 #ifdef LLVM_3_5
         virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override {
             return plugin_->getSelectionDAGInfo();
         }
-#endif
 #endif
 
         virtual TargetPassConfig *createPassConfig(
@@ -248,10 +237,6 @@ namespace llvm {
 
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-        DataLayout dl_; // Calculates type size & alignment
-        TargetSelectionDAGInfo tsInfo_;
-#endif
         
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;

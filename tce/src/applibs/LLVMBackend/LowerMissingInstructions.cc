@@ -47,27 +47,15 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include "llvm/LLVMContext.h"
-#include "llvm/Module.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Instructions.h"
-#include "llvm/Constants.h"
-#else
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
-#endif
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
-
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4))
-#include "llvm/Support/CallSite.h"
-#else
 #include "llvm/IR/CallSite.h"
-#endif
+
 
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt

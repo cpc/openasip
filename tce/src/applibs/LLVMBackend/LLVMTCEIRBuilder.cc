@@ -71,11 +71,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
 #include <llvm/CodeGen/MachineJumpTableInfo.h>
-#ifdef LLVM_3_2
-#include <llvm/Value.h>
-#else
 #include <llvm/IR/Value.h>
-#endif
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include "llvm/Analysis/AliasAnalysis.h"
 
@@ -142,13 +138,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         initDataSections();
         emitConstantPool(*mf.getConstantPool());	
     } else {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3))
-        MCContext* ctx = new MCContext(
-            *tm_->getMCAsmInfo(), *tm_->getRegisterInfo(), NULL);
-        mang_ = new llvm::Mangler(*ctx, *tm_->getDataLayout()); 
-#elif defined(LLVM_3_4)
-        mang_ = new llvm::Mangler(tm_);
-#elif defined(LLVM_3_5)
+#if defined(LLVM_3_5)
         mang_ = new llvm::Mangler(tm_->getDataLayout());
 #elif defined(LLVM_OLDER_THAN_3_7)
         mang_ = new llvm::Mangler(tm_->getSubtargetImpl()->getDataLayout());
@@ -876,7 +866,7 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
         return targetMachine().getInstrInfo()->getName(mi.getOpcode());
 #elif (defined LLVM_OLDER_THAN_3_7)
         return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(

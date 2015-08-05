@@ -36,11 +36,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include <llvm/CodeGen/MachineFunction.h>
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include <llvm/Function.h>
-#else
 #include <llvm/IR/Function.h>
-#endif
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 
@@ -123,7 +119,7 @@ LLVMTCEScheduler::doInitialization(Module& m) {
 }
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#ifdef LLVM_3_5
     OperationPool::setLLVMTargetInstrInfo(MF.getTarget().getInstrInfo());
 #elif (defined LLVM_OLDER_THAN_3_7)
     OperationPool::setLLVMTargetInstrInfo(
