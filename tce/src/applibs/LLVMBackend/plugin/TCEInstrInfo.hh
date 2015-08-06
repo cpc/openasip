@@ -88,7 +88,7 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned srcReg, bool isKill, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
         }
 
@@ -105,7 +105,7 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
         }
 
