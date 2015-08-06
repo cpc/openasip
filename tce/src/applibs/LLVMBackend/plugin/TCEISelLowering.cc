@@ -499,7 +499,6 @@ TCETargetLowering::TCETargetLowering(
 #elif LLVM_OLDER_THAN_3_7
 TCETargetLowering::TCETargetLowering(
     TargetMachine& TM) :
-    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) 
     TargetLowering(TM), tm_(static_cast<TCETargetMachine&>(TM)) 
 #else
 TCETargetLowering::TCETargetLowering(
