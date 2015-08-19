@@ -4,7 +4,7 @@ rm -rf testi.dsdb
 rm -rf sim.tpef
 rm -rf ttasim_output.temp
 
-if egrep -q "#define.LLVM_3_6|#define.LLVM_3_5" ../../../../tce/tce_config.h; 
+if egrep -q "#define.LLVM_3_6|#define.LLVM_3_5" ../../../../../tce/tce_config.h; 
 then
     cp -f data/program.old data/program.ll
 else
