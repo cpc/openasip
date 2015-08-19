@@ -29,7 +29,7 @@ target triple = "tce-tut-llvm"
 @_profiling = internal global i32 0
 @_global_impure_ptr = internal constant %struct._reent* bitcast (%2* @impure_data to %struct._reent*)
 @.str2 = internal constant [2 x i8] c"C\00"
-@impure_data = internal global %2 { i32 0, %struct.__FILE* getelementptr (%struct._reent, %struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 0), %struct.__FILE* getelementptr (%struct._reent, %struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 1), %struct.__FILE* getelementptr (%struct._reent, %struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 2), i32 0, [25 x i8] zeroinitializer, i32 0, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str2, i32 0, i32 0), i32 0, void (%struct._reent*)* null, %struct._Bigint* null, i32 0, %struct._Bigint* null, %struct._Bigint** null, i32 0, i8* null, %3 { %4 { i32 0, i8* null, [26 x i8] zeroinitializer, %struct.__tm zeroinitializer, i32 0, i32 1, %struct._rand48 { [3 x i16] [i16 13070, i16 -21555, i16 4660], [3 x i16] [i16 -6547, i16 -8468, i16 5], i16 11 }, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, [8 x i8] zeroinitializer, [24 x i8] zeroinitializer, i32 0, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer }, [44 x i8] zeroinitializer }, %struct._atexit* null, %struct._atexit zeroinitializer, void (i32)** null, %struct._glue zeroinitializer, [3 x %struct.__FILE] zeroinitializer }
+@impure_data = internal global %2 { i32 0, %struct.__FILE* getelementptr (%struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 0), %struct.__FILE* getelementptr (%struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 1), %struct.__FILE* getelementptr (%struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 21, i32 2), i32 0, [25 x i8] zeroinitializer, i32 0, i8* getelementptr inbounds ([2 x i8]* @.str2, i32 0, i32 0), i32 0, void (%struct._reent*)* null, %struct._Bigint* null, i32 0, %struct._Bigint* null, %struct._Bigint** null, i32 0, i8* null, %3 { %4 { i32 0, i8* null, [26 x i8] zeroinitializer, %struct.__tm zeroinitializer, i32 0, i32 1, %struct._rand48 { [3 x i16] [i16 13070, i16 -21555, i16 4660], [3 x i16] [i16 -6547, i16 -8468, i16 5], i16 11 }, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, [8 x i8] zeroinitializer, [24 x i8] zeroinitializer, i32 0, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer, %struct._mbstate_t zeroinitializer }, [44 x i8] zeroinitializer }, %struct._atexit* null, %struct._atexit zeroinitializer, void (i32)** null, %struct._glue zeroinitializer, [3 x %struct.__FILE] zeroinitializer }
 @_impure_ptr = internal global %struct._reent* bitcast (%2* @impure_data to %struct._reent*)
 @end = internal global i8 0
 
@@ -37,8 +37,8 @@ define void @_start() {
 entry:
   store i32 -1, i32* @cr, align 4
   store i32 12, i32* @ci, align 4
-  store i32 -1, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @_Output, i32 0, i32 0), align 4
-  store i32 12, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @_Output, i32 0, i32 1), align 4
+  store i32 -1, i32* getelementptr inbounds ([2 x i32]* @_Output, i32 0, i32 0), align 4
+  store i32 12, i32* getelementptr inbounds ([2 x i32]* @_Output, i32 0, i32 1), align 4
   store i32 2, i32* @ar, align 4
   store i32 1, i32* @ai, align 4
   store i32 2, i32* @br, align 4
@@ -50,7 +50,7 @@ entry:
 define internal void @exit(i32 %code) {
 entry:
   tail call void @__call_exitprocs(i32 %code, i8* null)
-  %tmp3 = load void (%struct._reent*)*, void (%struct._reent*)** getelementptr (%struct._reent, %struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 9), align 4
+  %tmp3 = load void (%struct._reent*)** getelementptr (%struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 9), align 4
   %tmp4 = icmp eq void (%struct._reent*)* %tmp3, null
   br i1 %tmp4, label %cond_next, label %cond_true
 
@@ -77,8 +77,8 @@ define internal void @main() {
 entry:
   store i32 -1, i32* @cr, align 4
   store i32 12, i32* @ci, align 4
-  store i32 -1, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @_Output, i32 0, i32 0), align 4
-  store i32 12, i32* getelementptr inbounds ([2 x i32], [2 x i32]* @_Output, i32 0, i32 1), align 4
+  store i32 -1, i32* getelementptr inbounds ([2 x i32]* @_Output, i32 0, i32 0), align 4
+  store i32 12, i32* getelementptr inbounds ([2 x i32]* @_Output, i32 0, i32 1), align 4
   store i32 2, i32* @ar, align 4
   store i32 1, i32* @ai, align 4
   store i32 2, i32* @br, align 4
@@ -88,23 +88,23 @@ entry:
 
 define internal void @__call_exitprocs(i32 %code, i8* %d) {
 entry:
-  %tmp2 = load %struct._atexit*, %struct._atexit** getelementptr (%struct._reent, %struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 17), align 4
+  %tmp2 = load %struct._atexit** getelementptr (%struct._reent* bitcast (%2* @impure_data to %struct._reent*), i32 0, i32 17), align 4
   %tmp120 = icmp eq %struct._atexit* %tmp2, null
   br i1 %tmp120, label %return, label %bb
 
 bb:                                               ; preds = %entry
-  %tmp8 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 1
-  %tmp9 = load i32, i32* %tmp8, align 4
+  %tmp8 = getelementptr %struct._atexit* %tmp2, i32 0, i32 1
+  %tmp9 = load i32* %tmp8, align 4
   %n.0138 = add i32 %tmp9, -1
   %tmp114140 = icmp sgt i32 %n.0138, -1
   br i1 %tmp114140, label %bb11.preheader, label %return
 
 bb11.preheader:                                   ; preds = %bb
-  %tmp6 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3
+  %tmp6 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3
   %tmp15 = icmp eq i8* %d, null
   %tmp18 = icmp eq %struct._on_exit_args* %tmp6, null
-  %tmp72 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3, i32 2
-  %tmp83 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3, i32 3
+  %tmp72 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3, i32 2
+  %tmp83 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3, i32 3
   br label %bb11
 
 bb11:                                             ; preds = %bb112, %cond_true90, %bb79, %bb11.preheader
@@ -116,15 +116,15 @@ cond_true:                                        ; preds = %bb11
   br i1 %tmp18, label %bb112, label %cond_next
 
 cond_next:                                        ; preds = %cond_true
-  %tmp25 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3, i32 1, i32 %n.0124.0
-  %tmp26 = load i8*, i8** %tmp25, align 4
+  %tmp25 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3, i32 1, i32 %n.0124.0
+  %tmp26 = load i8** %tmp25, align 4
   %tmp28 = icmp eq i8* %tmp26, %d
   br i1 %tmp28, label %cond_next33, label %bb112
 
 cond_next33:                                      ; preds = %cond_next, %bb11
-  %tmp37 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 2, i32 %n.0124.0
-  %tmp38 = load void ()*, void ()** %tmp37, align 4
-  %tmp41 = load i32, i32* %tmp8, align 4
+  %tmp37 = getelementptr %struct._atexit* %tmp2, i32 0, i32 2, i32 %n.0124.0
+  %tmp38 = load void ()** %tmp37, align 4
+  %tmp41 = load i32* %tmp8, align 4
   %tmp42 = add i32 %tmp41, -1
   %tmp44 = icmp eq i32 %tmp42, %n.0124.0
   %tmp60 = icmp eq void ()* %tmp38, null
@@ -142,7 +142,7 @@ cond_next64:                                      ; preds = %cond_false, %cond_t
   br i1 %tmp18, label %bb79, label %cond_next70
 
 cond_next70:                                      ; preds = %cond_next64
-  %tmp73 = load i32, i32* %tmp72, align 4
+  %tmp73 = load i32* %tmp72, align 4
   %tmp75 = and i32 %tmp73, %tmp13
   %tmp76 = icmp eq i32 %tmp75, 0
   br i1 %tmp76, label %bb79, label %bb81
@@ -154,15 +154,15 @@ bb79:                                             ; preds = %cond_next70, %cond_
   br i1 %tmp114144, label %bb11, label %return
 
 bb81:                                             ; preds = %cond_next70
-  %tmp84 = load i32, i32* %tmp83, align 4
+  %tmp84 = load i32* %tmp83, align 4
   %tmp86 = and i32 %tmp84, %tmp13
   %tmp87 = icmp eq i32 %tmp86, 0
   br i1 %tmp87, label %cond_true90, label %cond_false99
 
 cond_true90:                                      ; preds = %bb81
   %tmp9192 = bitcast void ()* %tmp38 to void (i32, i8*)*
-  %tmp96 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3, i32 0, i32 %n.0124.0
-  %tmp97 = load i8*, i8** %tmp96, align 4
+  %tmp96 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3, i32 0, i32 %n.0124.0
+  %tmp97 = load i8** %tmp96, align 4
   tail call void %tmp9192(i32 %code, i8* %tmp97)
   %n.0145 = add i32 %n.0124.0, -1
   %tmp114147 = icmp sgt i32 %n.0145, -1
@@ -170,8 +170,8 @@ cond_true90:                                      ; preds = %bb81
 
 cond_false99:                                     ; preds = %bb81
   %tmp100101 = bitcast void ()* %tmp38 to void (i8*)*
-  %tmp105 = getelementptr %struct._atexit, %struct._atexit* %tmp2, i32 0, i32 3, i32 0, i32 %n.0124.0
-  %tmp106 = load i8*, i8** %tmp105, align 4
+  %tmp105 = getelementptr %struct._atexit* %tmp2, i32 0, i32 3, i32 0, i32 %n.0124.0
+  %tmp106 = load i8** %tmp105, align 4
   tail call void %tmp100101(i8* %tmp106)
   br label %bb112
 

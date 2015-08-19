@@ -120,9 +120,15 @@ DesignSpaceExplorerTest::testEvaluate() {
     //RowID confID = 
     dsdb->addConfiguration(conf);
     //RowID appID = 
+#ifdef LLVM_OLDER_THAN_3_7
+    dsdb->addApplication("data/TestApp-old");
+    //RowID appID2 = 
+    dsdb->addApplication("data/TestApp2-old");
+#else
     dsdb->addApplication("data/TestApp");
     //RowID appID2 = 
     dsdb->addApplication("data/TestApp2");
+#endif
     
     DesignSpaceExplorer explorer;
     explorer.setDSDB(*dsdb);
