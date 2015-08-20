@@ -94,8 +94,8 @@ public:
 // started to require MCInstPrinter to be created, a dummy
 // must be created therefore.
 MCInstPrinter *dummyInstrPrinterCtor(
-    const Triple &T,
-    unsigned SyntaxVariant,
+    const Triple &,
+    unsigned,
     const MCAsmInfo &MAI,
     const MCInstrInfo &MII,
     const MCRegisterInfo &MRI) {

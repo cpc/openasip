@@ -536,10 +536,7 @@ LLVMBackend::compile(
 #elif (defined LLVM_OLDER_THAN_3_7)
     addPass(new DataLayoutPass());
 #else
-    // Let's see if we still need to pass it in 3.7. In LLVM 3.6 it still
-    // broke down things.
-#warning Test and check this.
-
+    // LLVM 3.7 and newer don't require DataLayoutPass.
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
