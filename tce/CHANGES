@@ -1,7 +1,11 @@
 1.12         unknown
 ====================
 
-[bzr log checked on 2015-02-24]
+[bzr log checked on 2015-08-20]
+
+Notable changes and features
+----------------------------
+- Support for LLVM 3.7
 
 Other features and improvements
 ------------------------------
@@ -9,6 +13,13 @@ Other features and improvements
   by redefining them in a local OSAL search path.
 - Register files can be implemented using synchronous SRAMs. Included one
   RF implementation using Xilinx's BRAMs.
+
+Notable bugfixes
+----------------
+- Basic block with only call may have crashed the compiler
+- If converter broke with floating point immediate values
+- Fixes to FMA unit implementations.
+- ICDecoder sometimes generated VHDL syntax when should have generated Verilog
 
 1.11      March 2015
 ====================

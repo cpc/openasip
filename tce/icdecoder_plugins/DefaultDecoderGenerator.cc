@@ -3385,7 +3385,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
                 SocketCodeTable& scTable = enc.socketCodes();
                 RFPortCode& code = scTable.rfPortCode(rf->name());
                 if (code.hasEncoding()) {
-                    stream << " && " << portCodeCondition(VHDL, enc, code);
+                    stream << " && " << portCodeCondition(Verilog, enc, code);
 
                 }
                 stream << ")" << endl
