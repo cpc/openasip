@@ -43,9 +43,11 @@ namespace TTAMachine {
     class Machine;
     class HWOperation;
     class FUPort;
+    class FunctionUnit;
 }
 
 class Operand;
+class Operation;
 
 class MachineInfo {
 public:
@@ -69,6 +71,10 @@ public:
     static bool canEncodeImmediateInteger(
         const TTAMachine::Machine& mach, int64_t imm, 
         unsigned destWidth=UINT_MAX);
+    static int triggerIndex(
+        const TTAMachine::Machine& machine, const Operation& op);
+    static int triggerIndex(
+        const TTAMachine::FunctionUnit& fu, const Operation& op);
 
 private:
     MachineInfo();

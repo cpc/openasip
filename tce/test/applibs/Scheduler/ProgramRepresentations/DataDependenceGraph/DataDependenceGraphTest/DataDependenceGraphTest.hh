@@ -127,6 +127,7 @@ DataDependenceGraphTest::testProcedureDDG() {
 
     ddg = builder.build(
         cfg, DataDependenceGraph::ALL_ANTIDEPS, 
+        UniversalMachine::instance(),
         &UniversalMachine::instance());
 
     TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
@@ -279,7 +280,8 @@ DataDependenceGraphTest::testBBDDG() {
             BasicBlockNode& bb = cfg0.node(i);
             if (bb.isNormalBB()) {
                 ddg0 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, 
+                    UniversalMachine::instance(), "",
                     &UniversalMachine::instance());
 
                 // check for edges to itself, should not be
@@ -297,7 +299,8 @@ DataDependenceGraphTest::testBBDDG() {
             BasicBlockNode& bb = cfg1.node(i);
             if (bb.isNormalBB()) {
                 ddg1 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS,
+                    UniversalMachine::instance(), "",
                     &UniversalMachine::instance());
                                      
 
@@ -320,7 +323,8 @@ DataDependenceGraphTest::testBBDDG() {
             BasicBlockNode& bb = cfg2.node(i);
             if (bb.isNormalBB()) {
                 ddg2 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS,
+                    UniversalMachine::instance(), "",
                     &UniversalMachine::instance());
 
                 // check for edges to itself, should not be
@@ -385,7 +389,7 @@ DataDependenceGraphTest::testRallocatedDDG() {
         DataDependenceGraph* ddg = NULL;
         
         DataDependenceGraphBuilder builder;
-        ddg = builder.build(cfg, DataDependenceGraph::ALL_ANTIDEPS);
+        ddg = builder.build(cfg, DataDependenceGraph::ALL_ANTIDEPS, *machine);
 
         ddg->writeToDotFile("/dev/null");
 
@@ -494,7 +498,9 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             BasicBlockNode& bb = cfg0.node(i);
             if( bb.isNormalBB()) {
                 ddg0 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(), 
+                    DataDependenceGraph::ALL_ANTIDEPS,
+                    *machine);
                 delete ddg0; ddg0 = NULL;
             }
         }
@@ -503,7 +509,9 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             BasicBlockNode& bb = cfg1.node(i);
             if( bb.isNormalBB()) {
                 ddg1 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(), 
+                    DataDependenceGraph::ALL_ANTIDEPS,
+                    *machine);
                 if(cfg1.hasEdge(bb,bb)) { // looping bb
                     ddg1l = ddg1;
                 } else {
@@ -516,7 +524,9 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             BasicBlockNode& bb = cfg2.node(i);
             if( bb.isNormalBB()) {
                 ddg2 = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(),
+                    DataDependenceGraph::ALL_ANTIDEPS,
+                    *machine);
                 delete ddg2; ddg2 = NULL;
             }
         }
@@ -593,7 +603,8 @@ DataDependenceGraphTest::testPathCalculation() {
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 ddg = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS, "",
+                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS,
+                    UniversalMachine::instance(), "",
                     &UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths0[i]);
 
@@ -669,7 +680,9 @@ DataDependenceGraphTest::testPathCalculation() {
                 Move* move1 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 Move* move2 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(),
+                    DataDependenceGraph::ALL_ANTIDEPS,
+                    UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths1[i]);
 
 
@@ -748,7 +761,9 @@ DataDependenceGraphTest::testPathCalculation() {
                 Move* move2 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS);
+                    bb.basicBlock(),
+                    DataDependenceGraph::ALL_ANTIDEPS,
+                    UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths2[i]);
 
                 // test adding a new node into graph which forces a 
@@ -852,6 +867,7 @@ DataDependenceGraphTest::testSWBypassing() {
 
     ddg = builder.build(
         cfg, DataDependenceGraph::ALL_ANTIDEPS,
+        UniversalMachine::instance(),
         &UniversalMachine::instance());
 
     // these do not exist at the beginning..

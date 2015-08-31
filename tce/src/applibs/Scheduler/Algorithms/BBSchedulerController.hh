@@ -107,7 +107,8 @@ public:
     virtual std::string longDescription() const;
 
 protected:
-    virtual DataDependenceGraph* createDDGFromBB(TTAProgram::BasicBlock& bb);
+    virtual DataDependenceGraph* createDDGFromBB(
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach) override;
 
 private:
     

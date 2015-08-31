@@ -45,6 +45,10 @@
 class DataDependenceGraph;
 class ControleFlowGraph;
 
+namespace TTAMachine {
+    class Machine;
+}
+
 namespace TTAProgram{
     class Move;
     class Program;
@@ -56,7 +60,7 @@ namespace TTAProgram{
 class ProgramGraph {
 public:
     
-    ProgramGraph(TTAProgram::Program& program);
+    ProgramGraph(TTAProgram::Program& program, const TTAMachine::Machine& mach);
     virtual ~ProgramGraph();
     
     TTAProgram::Program& generateProgram() const;

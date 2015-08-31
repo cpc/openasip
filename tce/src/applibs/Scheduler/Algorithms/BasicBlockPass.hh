@@ -98,7 +98,8 @@ protected:
         bool final);
 
     
-    virtual DataDependenceGraph* createDDGFromBB(TTAProgram::BasicBlock& bb);
+    virtual DataDependenceGraph* createDDGFromBB(
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach);
 
 private:
     DataDependenceGraphBuilder ddgBuilder_;

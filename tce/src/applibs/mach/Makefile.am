@@ -12,6 +12,7 @@ PROJECT_ROOT = $(top_srcdir)
 
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/base/mach \
+	-I${PROJECT_ROOT}/src/base/umach \
 	-I${PROJECT_ROOT}/src/base/Graph \
 	-I${PROJECT_ROOT}/src/base/program \
 	-I${PROJECT_ROOT}/src/base/osal \

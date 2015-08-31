@@ -50,7 +50,8 @@
  * @param program Program in POM
  */
 
-ProgramGraph::ProgramGraph(TTAProgram::Program& program) : program_(program){
+ProgramGraph::ProgramGraph(
+    TTAProgram::Program& program, const TTAMachine::Machine& mach) : program_(program){
     for (int i = 0; i < program.procedureCount(); i++) {
         ControlFlowGraph* cfg = NULL;
         cfg = new ControlFlowGraph(program.procedure(i));    
@@ -60,7 +61,7 @@ ProgramGraph::ProgramGraph(TTAProgram::Program& program) : program_(program){
         cdgs_.push_back(cdg);
         DataDependenceGraphBuilder builder;
         DataDependenceGraph* ddg = NULL;
-        ddg = builder.build(*cfg, DataDependenceGraph::ALL_ANTIDEPS);
+        ddg = builder.build(*cfg, DataDependenceGraph::ALL_ANTIDEPS, mach);
         ddgs_.push_back(ddg);   
         ProgramDependenceGraph* pdg = NULL;
         pdg = new ProgramDependenceGraph(*cdg, *ddg);        

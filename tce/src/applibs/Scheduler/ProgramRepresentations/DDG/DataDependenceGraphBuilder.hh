@@ -77,6 +77,7 @@ public:
     virtual DataDependenceGraph* build(
         ControlFlowGraph& cGraph, 
         DataDependenceGraph::AntidependenceLevel antidependenceLevel,
+        const TTAMachine::Machine& mach,
         const UniversalMachine* um = NULL,
         bool createMemAndFUDeps = true, 
         bool createDeathInformation = true,
@@ -84,12 +85,15 @@ public:
     virtual DataDependenceGraph* build(
         TTAProgram::BasicBlock& bb,
         DataDependenceGraph::AntidependenceLevel antidependenceLevel,
+        const TTAMachine::Machine& mach,
         const TCEString& ddgname = "small bb",
         const UniversalMachine* um = NULL, 
         bool createMemAndFUDeps = true,
         llvm::AliasAnalysis* AA = NULL);
 
 protected:
+
+    bool isTriggering(const MoveNode& mn);
 
     std::set<TCEString> allParamRegs_;
 
@@ -310,6 +314,7 @@ protected:
     InterPassData* interPassData_;
     ControlFlowGraph* cfg_;
     bool rvIsParamReg_;
+    const TTAMachine::Machine* mach_;
 };
 
 #endif

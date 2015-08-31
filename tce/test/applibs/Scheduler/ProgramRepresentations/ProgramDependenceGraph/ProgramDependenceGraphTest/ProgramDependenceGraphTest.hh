@@ -91,7 +91,7 @@ ProgramGraphTest::testProcedureGraph() {
     TTAProgram::Program* currentProgram = factory.build();
 
     try {
-        ProgramGraph graph(*currentProgram);
+        ProgramGraph graph(*currentProgram, *umach);
         TS_ASSERT_EQUALS(graph.graphCount(), 3);
         for (int i = 0; i < graph.graphCount(); i++){
             TS_ASSERT_THROWS_NOTHING(graph.graph(graph.graphAt(i)->name()));
@@ -128,7 +128,7 @@ ProgramGraphTest::testRallocatedGraph() {
     TTAProgram::Program* currentProgram = factory.build();
 
     try {
-        ProgramGraph graph(*currentProgram);
+        ProgramGraph graph(*currentProgram, *machine);
         TS_ASSERT_EQUALS(graph.graphCount(), 3);
         TS_ASSERT_THROWS_NOTHING(graph.graph("_crt0"));
         TS_ASSERT_THROWS(graph.graph("__crt0"),InvalidData); 
@@ -163,7 +163,8 @@ ProgramGraphTest::testImmediatesGraph() {
         TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
         TTAProgram::Program* currentProgram = factory.build();
         
-        TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram), InvalidData);
+        TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram, *machine), 
+                         InvalidData);
 
         delete currentProgram;
         currentProgram = NULL;

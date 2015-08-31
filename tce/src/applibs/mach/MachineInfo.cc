@@ -45,6 +45,7 @@
 #include "InstructionTemplate.hh"
 #include "MathTools.hh"
 #include "MachineConnectivityCheck.hh"
+#include "UniversalMachine.hh"
 
 using namespace TTAMachine;
 
@@ -315,4 +316,56 @@ MachineInfo::canEncodeImmediateInteger(
     } 
     
     return false;
+}
+
+int MachineInfo::triggerIndex(
+    const TTAMachine::FunctionUnit& fu, const Operation& op) {
+    if (fu.hasOperation(op.name())) {
+        TTAMachine::HWOperation* hwop = 
+            fu.operation(op.name());
+        for (int j = 0; j < fu.operationPortCount(); j++) {
+            TTAMachine::FUPort* port = fu.operationPort(j);
+            if (port->isTriggering()) {
+                return hwop->io(*port);
+            }
+        } 
+    }
+    // operation not found in this FU
+    return 0;
+}
+
+/**
+ * Finds the operand index of trigger of given operation in the machine.
+ *
+ * If the operation is not found from the machine, return 0.
+ * If the index is ambiguos return -1.
+ */
+int MachineInfo::triggerIndex(
+    const TTAMachine::Machine& machine, const Operation& op) {
+    TTAMachine::Machine::FunctionUnitNavigator nav = 
+    machine.functionUnitNavigator();
+    if (&machine == &UniversalMachine::instance()) {
+        return op.numberOfInputs(); // last input
+    }
+    int index = 0;
+    for (int i = 0; i < nav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = nav.item(i);
+        int curIndex = triggerIndex(*fu, op);
+        if (curIndex > 0) {
+            if (index > 0 && curIndex != index) {
+                return -1;
+            } else {
+                index = curIndex;
+            }
+        }
+    }
+    int curIndex = triggerIndex(*machine.controlUnit(), op);
+    if (curIndex > 0) {
+        if (index > 0 && curIndex != index) {
+            return -1;
+        } else {
+            index = curIndex;
+        }
+    }
+    return index;
 }

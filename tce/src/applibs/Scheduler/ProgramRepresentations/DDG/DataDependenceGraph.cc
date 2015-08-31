@@ -2580,6 +2580,7 @@ DataDependenceGraph::setMachine(const TTAMachine::Machine& machine) {
     const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
         machine.functionUnitNavigator();
 
+    operationLatencies_.clear();
     for (int i = 0; i < fuNav.count(); i++) {
         const TTAMachine::FunctionUnit* fu = fuNav.item(i);
         for (int j = 0; j < fu->operationCount(); j++) {

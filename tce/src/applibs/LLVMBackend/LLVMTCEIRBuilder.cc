@@ -648,7 +648,8 @@ LLVMTCEIRBuilder::compileOptimized(
     llvm::AliasAnalysis* llvmAA) {
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
-        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, NULL, true, true, llvmAA);
+        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, 
+        *mach_, NULL, true, true, llvmAA);
 
     TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS

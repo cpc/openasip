@@ -86,6 +86,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "InterPassDatum.hh"
 //#include "SchedulerCmdLineOptions.hh"
 
+#include "MachineInfo.hh"
+
 using namespace TTAProgram;
 using namespace TTAMachine;
 
@@ -426,11 +428,13 @@ DataDependenceGraph*
 DataDependenceGraphBuilder::build(
     BasicBlock& bb, 
     DataDependenceGraph::AntidependenceLevel registerAntidependenceLevel,
+    const TTAMachine::Machine& mach,
     const TCEString& ddgName, 
     const UniversalMachine* um, 
     bool createMemAndFUDeps,
     llvm::AliasAnalysis* AA) {
 
+    mach_ = &mach;
     if (AA) {
         for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
             LLVMAliasAnalyzer* llvmaa = 
@@ -477,6 +481,7 @@ DataDependenceGraphBuilder::build(
 
     delete currentData_;
     currentData_ = NULL;
+    currentDDG_->setMachine(mach);
     return currentDDG_;
 }
 
@@ -675,6 +680,29 @@ DataDependenceGraphBuilder::processSource(MoveNode& moveNode) {
     }
 }
 
+
+bool DataDependenceGraphBuilder::isTriggering(const MoveNode& mn) {
+    int destIndex = mn.move().destination().operationIndex();
+    const Operation& op = mn.destinationOperation().operation();
+    int triggerIndex = MachineInfo::triggerIndex(*mach_, op);
+    switch (triggerIndex) {
+    case -1: {
+        TCEString msg = "Trigger index ambiguous for operation: ";
+        msg << op.name() << " in the machine.";
+        throw IllegalMachine(__FILE__,__LINE__,__func__, msg);
+        break; 
+    }
+    case 0: {
+        TCEString msg = "Operation: ";
+        msg << op.name() << " Not found from the machine";
+        throw CompileError(__FILE__,__LINE__,__func__, msg);
+        break;
+    }
+    default:
+        return triggerIndex == destIndex;
+    }
+}
+
 /**
  * Analyzes destination of a move.
  * Updates bookkeeping and handles WaW and WaR dependencies of the move.
@@ -697,18 +725,16 @@ DataDependenceGraphBuilder::processDestination(
             TerminalFUPort& tfpd = dynamic_cast<TerminalFUPort&>(dest);
             Operation &dop = tfpd.hintOperation();
 
-            // is this a trigger?
-            if (tfpd.isOpcodeSetting()) {
-                if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
+            if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
+                if (tfpd.isOpcodeSetting()) {
                     processTriggerRegistersAndOperations(
                         moveNode, dop);
                 } else {
-                    processTriggerMemoryAndFUStates(moveNode, dop);
-                }
-            } else { // not trigger
-                // we don't care about operands in second phase.
-                if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
                     processOperand(moveNode, dop);
+                }
+            } else { // memory and fu state deps
+                if (isTriggering(moveNode)) {
+                    processTriggerMemoryAndFUStates(moveNode, dop);
                 }
             }
         } else {  // RA write
@@ -1895,10 +1921,12 @@ DataDependenceGraph*
 DataDependenceGraphBuilder::build(
     ControlFlowGraph& cfg, 
     DataDependenceGraph::AntidependenceLevel antidependenceLevel,
+    const TTAMachine::Machine& mach,
     const UniversalMachine* um, 
     bool createMemAndFUDeps, bool createDeathInformation,
     llvm::AliasAnalysis* AA) {
 
+    mach_ = &mach;
     if (AA) {
         for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
             LLVMAliasAnalyzer* llvmaa = 
@@ -1952,6 +1980,7 @@ DataDependenceGraphBuilder::build(
         delete ddg;
         throw;
     }
+    ddg->setMachine(mach);
     return ddg;
 }
 

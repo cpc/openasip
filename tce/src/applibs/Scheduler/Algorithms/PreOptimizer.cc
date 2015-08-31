@@ -463,14 +463,14 @@ PreOptimizer::handleCFGDDG(
 void
 PreOptimizer::handleControlFlowGraph(
     ControlFlowGraph& cfg,
-    const TTAMachine::Machine&)
+    const TTAMachine::Machine& mach)
     throw (Exception) {
 
     DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
     // only RAW register edges and operation edges. no mem edges, 
     // no anti-edges.
     DataDependenceGraph* ddg = ddgBuilder.build(
-        cfg, DataDependenceGraph::NO_ANTIDEPS, NULL, false);
+        cfg, DataDependenceGraph::NO_ANTIDEPS, mach, NULL, false);
     
     handleCFGDDG(cfg, *ddg);
 

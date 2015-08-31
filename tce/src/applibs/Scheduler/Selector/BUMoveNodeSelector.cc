@@ -94,7 +94,8 @@ BUMoveNodeSelector::BUMoveNodeSelector(
     TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) : 
     ddgOwned_(true) {    
     DataDependenceGraphBuilder ddgBuilder;
-    ddg_ = ddgBuilder.build(bb,DataDependenceGraph::INTRA_BB_ANTIDEPS);
+    ddg_ = ddgBuilder.build(
+        bb,DataDependenceGraph::INTRA_BB_ANTIDEPS, machine);
     ddg_->setMachine(machine);
     initializeReadylist();
 #if 0    

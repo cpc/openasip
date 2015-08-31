@@ -228,7 +228,8 @@ BBSchedulerController::handleProcedure(
     cfg.writeToDotFile(procedure.name() + "_cfg.dot");
 #endif
 
-    bigDDG_ = ddgBuilder().build(cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS);
+    bigDDG_ = ddgBuilder().build(
+        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, targetMachine);
     
     if (options_ != NULL && options_->dumpDDGsDot()) {
         bigDDG_->writeToDotFile( 
@@ -366,12 +367,13 @@ BBSchedulerController::longDescription() const {
  * @param bb BasicBlock where DDG is to be created from
  */
 DataDependenceGraph*
-BBSchedulerController::createDDGFromBB(TTAProgram::BasicBlock& bb) {
+    BBSchedulerController::createDDGFromBB(
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach) {
     if (bigDDG_ != NULL) {
         return bigDDG_->createSubgraph(bb);
     } else {
         return this->ddgBuilder().build(
-            bb, DataDependenceGraph::INTRA_BB_ANTIDEPS);
+            bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, mach);
     }
 }
 
@@ -387,7 +389,7 @@ BBSchedulerController::executeDDGPass(
     throw (Exception) {
 
     static int bbNumber = 0;
-    DataDependenceGraph* ddg = createDDGFromBB(bb);
+    DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
 
     assert (ddgPasses.size() == 1);

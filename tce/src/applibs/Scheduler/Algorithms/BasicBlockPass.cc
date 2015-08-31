@@ -110,7 +110,7 @@ BasicBlockPass::executeDDGPass(
 
     std::cerr << "Calling bbpass::executedgpass." << std::endl;
 
-    DataDependenceGraph* ddg = createDDGFromBB(bb);
+    DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
 
 #ifdef DDG_SNAPSHOTS
     std::string name = "scheduling";
@@ -288,7 +288,8 @@ BasicBlockPass::copyRMToBB(
 
 
 DataDependenceGraph*
-BasicBlockPass::createDDGFromBB(TTAProgram::BasicBlock& bb) {
+BasicBlockPass::createDDGFromBB(
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach) {
     return ddgBuilder().build(
-        bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, "unknown_bb");
+        bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, mach, "unknown_bb");
 }
