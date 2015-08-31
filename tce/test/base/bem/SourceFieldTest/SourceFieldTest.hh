@@ -116,7 +116,7 @@ SourceFieldTest::testSocketEncodings() {
     const string s2 = "s2";
 
     SourceField* field = new SourceField(BinaryEncoding::LEFT, *slot_);
-    SocketEncoding* enc1 = new SocketEncoding(s1, 0, 0, *field);
+    SocketEncoding* enc1 = new SocketEncoding(s1, 0, 1, *field);
     TS_ASSERT(field->socketEncodingCount() == 1);
     TS_ASSERT(field->hasSocketEncoding(s1));
     TS_ASSERT(&field->socketEncoding(s1) == enc1);
@@ -144,11 +144,11 @@ SourceFieldTest::testBridgeEncodings() {
     const string br3 = "br3";
     
     SourceField* field = new SourceField(BinaryEncoding::LEFT, *slot_);
-    BridgeEncoding* enc = new BridgeEncoding(br1, 0, 1, *field);
+    BridgeEncoding* enc = new BridgeEncoding(br1, 0, 2, *field);
     TS_ASSERT(field->bridgeEncodingCount() == 1);
     TS_ASSERT(&field->bridgeEncoding(0) == enc);
     
-    TS_ASSERT_THROWS(new SocketEncoding("s1", 0, 2, *field), 
+    TS_ASSERT_THROWS(new SocketEncoding("s1", 0, 3, *field), 
 		     ObjectAlreadyExists);
     TS_ASSERT_THROWS_NOTHING(new SocketEncoding("s1", 1, 1, *field));
     TS_ASSERT_THROWS(new BridgeEncoding(br2, 1, 2, *field), 

@@ -186,7 +186,7 @@ PortCode::extraBits() const {
 int
 PortCode::width() const {
     if (hasEncoding()) {
-        return MathTools::requiredBits(encoding()) + extraBits() + 
+        return MathTools::bitLength(encoding()) + extraBits() + 
             indexWidth();
     } else {
         return indexWidth();

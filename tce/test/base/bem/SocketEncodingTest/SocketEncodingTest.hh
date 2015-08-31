@@ -92,7 +92,7 @@ SocketEncodingTest::testCreation() {
     const string s2 = "s2";
     const string s3 = "s3";
     
-    SocketEncoding* enc1 = new SocketEncoding(s1, 0, 0, *sField_);
+    SocketEncoding* enc1 = new SocketEncoding(s1, 0, 1, *sField_);
     TS_ASSERT(enc1->parent() == sField_);
     TS_ASSERT(sField_->socketEncodingCount() == 1);
     TS_ASSERT(enc1->socketName() == s1);
@@ -126,15 +126,15 @@ SocketEncodingTest::testSocketCodes() {
     TS_ASSERT(!enc1->hasSocketCodes());
     TS_ASSERT(&enc1->socketCodes() == &NullSocketCodeTable::instance());
     
-    TS_ASSERT(enc1->socketIDWidth() == 1);
+    TS_ASSERT(enc1->socketIDWidth() == 0);
     TS_ASSERT(enc1->extraBits() == 0);
-    TS_ASSERT(enc1->width() == 1);
+    TS_ASSERT(enc1->width() == 0);
 
     SocketCodeTable* table = new SocketCodeTable("t1", *bem_);
     enc1->setSocketCodes(*table);
     TS_ASSERT(enc1->hasSocketCodes());
     TS_ASSERT(&enc1->socketCodes() == table);
-    TS_ASSERT(enc1->width() == 1);
+    TS_ASSERT(enc1->width() == 0);
     
 }
 

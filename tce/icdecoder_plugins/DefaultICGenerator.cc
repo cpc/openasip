@@ -1563,7 +1563,7 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
         stream << indentation(ind+1) << INPUT_SOCKET_DATA_PORT 
                << " : out std_logic_vector(" << INPUT_SOCKET_DATAW_GENERIC 
                << "-1 downto 0)";
-        int controlWidth = MathTools::requiredBits(segmentConns - 1);
+        int controlWidth = MathTools::bitLength(segmentConns - 1);
         if (segmentConns > 1) {
             stream << ";" << endl;
             stream << indentation(ind+1) << SOCKET_BUS_CONTROL_PORT 
@@ -1595,7 +1595,7 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
                << "output reg[" << INPUT_SOCKET_DATAW_GENERIC 
                << "-1 : 0] "
                << INPUT_SOCKET_DATA_PORT;
-        int controlWidth = MathTools::requiredBits(segmentConns - 1);
+        int controlWidth = MathTools::bitLength(segmentConns - 1);
         if (segmentConns > 1) {
             stream << "," << endl;
             stream << indentation(ind+1)
@@ -1976,11 +1976,7 @@ DefaultICGenerator::busControlWidth(
     assert(busConns >= 1);
 
     if (direction == Socket::INPUT) {
-        if (busConns == 1) {
-            return 0;
-        } else {
-            return MathTools::requiredBits(busConns - 1);
-        }
+        return MathTools::bitLength(busConns - 1);
     } else {
         return busConns;
     }
@@ -2000,8 +1996,8 @@ DefaultICGenerator::dataControlWidth(
     TTAMachine::Socket::Direction direction,
     int portConns) {
 
-    if (direction == Socket::OUTPUT && portConns > 1) {
-        return MathTools::requiredBits(portConns - 1);
+    if (direction == Socket::OUTPUT) { // && portConns > 1) {
+        return MathTools::bitLength(portConns - 1);
     } else {
         return 0;
     }

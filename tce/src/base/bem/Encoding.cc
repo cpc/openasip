@@ -131,7 +131,7 @@ Encoding::extraBits() const {
  */
 int
 Encoding::width() const {
-    return MathTools::requiredBits(encoding()) + extraBits();
+    return MathTools::bitLength(encoding()) + extraBits();
 }
 
 

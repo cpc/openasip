@@ -131,7 +131,7 @@ BEMSerializerTest::testWriteAndRead() {
     new GPRGuardEncoding(rf1, 0, false, 0, *gField1);
     new FUGuardEncoding(fu1, port1, true, 1, *gField1);
     SourceField* srcField1 = new SourceField(BinaryEncoding::LEFT, *slot1);
-    new BridgeEncoding(bridge1, 0, 2, *srcField1);
+    new BridgeEncoding(bridge1, 0, 3, *srcField1);
     new BridgeEncoding(bridge2, 1, 2, *srcField1);
     SocketEncoding* sEnc1 = new SocketEncoding(socket1, 2, 1, *srcField1);
     new SocketEncoding(socket2, 3, 1, *srcField1);
@@ -143,7 +143,7 @@ BEMSerializerTest::testWriteAndRead() {
     new FUPortCode(fu1, port1, 24, 0, *table);
     new FUPortCode(fu1, port2, add, 25, 0, *table);
     new RFPortCode(rf1, 2, 0, 3, *table);
-    new IUPortCode(iu1, 0, 0, 4, *table);
+    new IUPortCode(iu1, 0, 1, 4, *table);
 
     sEnc1->setSocketCodes(*table);
 
@@ -152,7 +152,7 @@ BEMSerializerTest::testWriteAndRead() {
     new NOPEncoding(0, 0, *dstField1);
 
     SourceField* srcField2 = new SourceField(BinaryEncoding::LEFT, *slot2);
-    new SocketEncoding(socket1, 0, 0, *srcField2);
+    new SocketEncoding(socket1, 0, 1, *srcField2);
     SourceField* srcField3 = new SourceField(BinaryEncoding::LEFT, *slot3);
     new SocketEncoding(socket2, 1, 0, *srcField3);
 

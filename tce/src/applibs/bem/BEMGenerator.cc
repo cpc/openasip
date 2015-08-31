@@ -231,7 +231,7 @@ BEMGenerator::addLongImmDstRegisterFields(BinaryEncoding& bem) const {
             ImmediateUnit* iu = *iter;
             if (iu->numberOfRegisters() > 1) {
                 requiredSizes.insert(
-                    MathTools::requiredBits(iu->numberOfRegisters() - 1));
+                    MathTools::bitLength(iu->numberOfRegisters() - 1));
             }
         }
 
@@ -261,7 +261,7 @@ BEMGenerator::addLongImmDstRegisterFields(BinaryEncoding& bem) const {
                 if (iTemp->isOneOfDestinations(*iu) && 
                     iu->numberOfRegisters() > 1 &&
                     static_cast<unsigned int>(
-                        MathTools::requiredBits(iu->numberOfRegisters() - 1))
+                        MathTools::bitLength(iu->numberOfRegisters() - 1))
                     <= fieldWidth &&
                     !AssocTools::containsKey(
                         mappedDestinations, 
@@ -363,9 +363,8 @@ BEMGenerator::addEncodings(DestinationField& field) const {
         *bus, Socket::INPUT);
     // add socket code width for NOP encoding
     if (createNopField) {
-	socketCodeWidths.insert(0);
+        socketCodeWidths.insert(0);
     }
-
     multiset<Encoding> encodings;
     calculateEncodings(socketCodeWidths, true, encodings);
     
@@ -442,7 +441,7 @@ BEMGenerator::addEncodings(SourceField& field) const {
     }
     // one encoding for NOP
     if (createNopField) {
-	socketCodeWidths.insert(0);
+        socketCodeWidths.insert(0);
     }
 
     multiset<Encoding> encodings;
@@ -999,7 +998,7 @@ BEMGenerator::requiredIndexWidth(const BaseRegisterFile& regFile) {
     if (regFile.numberOfRegisters() <= 1) {
         return 0;
     } else {
-        return MathTools::requiredBits(regFile.numberOfRegisters() - 1);
+        return MathTools::bitLength(regFile.numberOfRegisters() - 1);
     }
 }
 
@@ -1022,7 +1021,7 @@ BEMGenerator::calculateEncodings(
     bool alignment,
     std::multiset<Encoding>& encodings) {
 
-    if (oppositeFieldWidths.size() <= 1) {
+    if (oppositeFieldWidths.size() < 1) {
         return;
     }
 
@@ -1040,11 +1039,11 @@ BEMGenerator::calculateEncodings(
         if (iter == oppositeFieldWidths.rbegin()) {
             nextEncoding = 0;
             encodings.insert(Encoding(nextEncoding, 0));
-            remainder = 2;
+            remainder = 1;
         } else {
             nextEncoding = prevEncoding + 1;
-            if (MathTools::requiredBits(nextEncoding) > 
-                MathTools::requiredBits(prevEncoding)) {
+            if (MathTools::bitLength(nextEncoding) > 
+                MathTools::bitLength(prevEncoding)) {
                 addExtraBits(encodings, 1);
                 unsigned int setEncodingCount = 
                     oppositeFieldWidths.size() - encodingsLeft;
@@ -1086,7 +1085,7 @@ BEMGenerator::calculateEncodings(
  * Adds the given number of extra bits to the encodings in the given set.
  *
  * @param encodings The encodings.
- * @param bitCount The number of bits.
+ * @param bitLength The number of bits.
  */
 void
 BEMGenerator::addExtraBits(

@@ -753,7 +753,6 @@ BinaryEncoding::loadState(const ObjectState* state)
             new LImmDstRegisterField(child, *this);
         }
     }
-
     delete newState;
 }
 

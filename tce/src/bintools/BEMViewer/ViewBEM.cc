@@ -392,10 +392,14 @@ printSlotFieldEncodings(const SlotField& slotField) {
         NOPEncoding& enc = slotField.noOperationEncoding();
         if (slotField.componentIDPosition() == BinaryEncoding::RIGHT) {
             printPattern("X", slotField.width() - enc.width());
-            cout << Conversion::toBinary(enc.encoding(), enc.width());
+            if (enc.width()) {
+                cout << Conversion::toBinary(enc.encoding(), enc.width());
+            }
         } else {
             printPattern("X", slotField.extraBits());
-            cout << Conversion::toBinary(enc.encoding(), enc.width());
+            if (enc.width()) {
+                cout << Conversion::toBinary(enc.encoding(), enc.width());
+            }
             printPattern(
                 "X",
                 slotField.width() - slotField.extraBits() - enc.width());
@@ -420,11 +424,15 @@ printSlotFieldEncodings(const SlotField& slotField) {
                     slotField.width() - slotField.extraBits() -
                     enc.socketIDWidth());
             }
-            cout << 
-                Conversion::toBinary(enc.encoding(), enc.socketIDWidth());
+            if (enc.socketIDWidth()) {
+                cout << 
+                    Conversion::toBinary(enc.encoding(), enc.socketIDWidth());
+            }
         } else {
-            cout << 
-                Conversion::toBinary(enc.encoding(), enc.socketIDWidth());
+            if (enc.socketIDWidth()) {
+                cout << 
+                    Conversion::toBinary(enc.encoding(), enc.socketIDWidth());
+            }
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 printPattern(
@@ -497,7 +505,7 @@ printSlotFieldEncodings(const SlotField& slotField) {
 static string
 portCodeBits(const PortCode& code) {
     string bits;
-    if (code.hasEncoding()) {
+    if (code.hasEncoding() && code.encodingWidth()) {
         bits += Conversion::toBinary(
             code.encoding(), code.encodingWidth());
     }
@@ -569,8 +577,10 @@ printSourceFieldEncodings(const MoveSlot& moveSlot) {
         ImmediateEncoding& enc = srcField.immediateEncoding();
         printPattern("X", srcField.extraBits());
         if (srcField.componentIDPosition() == BinaryEncoding::LEFT) {
-            cout << Conversion::toBinary(
-                enc.encoding(), enc.encodingWidth());
+            if (enc.encodingWidth()) {
+                cout << Conversion::toBinary(
+                    enc.encoding(), enc.encodingWidth());
+            }
             printPattern(
                 "X", srcField.width() - srcField.extraBits() - enc.width());
             printPattern("I", enc.immediateWidth());
@@ -578,8 +588,10 @@ printSourceFieldEncodings(const MoveSlot& moveSlot) {
             printPattern("I", enc.immediateWidth());
             printPattern(
                 "X", srcField.width() - srcField.extraBits() - enc.width());
-            cout << Conversion::toBinary(
-                enc.encoding(), enc.encodingWidth());
+            if (enc.encodingWidth()) {
+                cout << Conversion::toBinary(
+                    enc.encoding(), enc.encodingWidth());
+            }
         }
         cout << " : short immediate" << endl;
     }

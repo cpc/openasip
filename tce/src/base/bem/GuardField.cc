@@ -562,7 +562,7 @@ GuardField::width() const {
 
     for (int i = 0; i < gprGuards; i++) {
 	GPRGuardEncoding& encoding = gprGuardEncoding(i);
-	int requiredBits = MathTools::requiredBits(encoding.encoding());
+	int requiredBits = MathTools::bitLength(encoding.encoding());
 	if (requiredBits > width) {
 	    width = requiredBits;
 	}
@@ -570,7 +570,7 @@ GuardField::width() const {
 
     for (int i = 0; i < fuGuards; i++) {
 	FUGuardEncoding& encoding = fuGuardEncoding(i);
-	int requiredBits = MathTools::requiredBits(encoding.encoding());
+	int requiredBits = MathTools::bitLength(encoding.encoding());
 	if (requiredBits > width) {
 	    width = requiredBits;
 	}
@@ -579,7 +579,7 @@ GuardField::width() const {
     if (hasUnconditionalGuardEncoding(true)) {
         UnconditionalGuardEncoding& encoding = unconditionalGuardEncoding(
             true);
-        int requiredBits = MathTools::requiredBits(encoding.encoding());
+        int requiredBits = MathTools::bitLength(encoding.encoding());
         if (requiredBits > width) {
             width = requiredBits;
         }
@@ -588,7 +588,7 @@ GuardField::width() const {
     if (hasUnconditionalGuardEncoding(false)) {
         UnconditionalGuardEncoding& encoding = unconditionalGuardEncoding(
             false);
-        int requiredBits = MathTools::requiredBits(encoding.encoding());
+        int requiredBits = MathTools::bitLength(encoding.encoding());
         if (requiredBits > width) {
             width = requiredBits;
         }

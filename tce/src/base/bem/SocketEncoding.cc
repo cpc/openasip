@@ -237,7 +237,7 @@ SocketEncoding::socketIDPosition() const {
  */
 int
 SocketEncoding::socketIDWidth() const {
-    return MathTools::requiredBits(encoding()) + extraBits();
+    return MathTools::bitLength(encoding()) + extraBits();
 }
 
 

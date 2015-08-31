@@ -39,6 +39,7 @@
 
 class MathTools {
 public:
+    static unsigned int bitLength(long unsigned int number);
     static int requiredBits(long unsigned int number);
     static int requiredBitsSigned(long int number);
     static int requiredBitsSigned(int number);

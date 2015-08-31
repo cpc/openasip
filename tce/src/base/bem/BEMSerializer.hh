@@ -57,6 +57,7 @@ public:
 private:
     static ObjectState* convertToOMFormat(const ObjectState* fileState);
     static ObjectState* convertToFileFormat(const ObjectState* omState);
+    static void convertZeroEncExtraBits(ObjectState* os);
 
     static ObjectState* socketCodeTableToFile(const ObjectState* scTable);
     static ObjectState* longImmTagToFile(const ObjectState* immTag);

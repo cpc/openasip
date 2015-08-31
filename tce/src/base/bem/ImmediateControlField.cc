@@ -261,7 +261,7 @@ ImmediateControlField::width() const {
     for (EncodingMap::const_iterator iter = templates_.begin();
 	 iter != templates_.end(); iter++) {
 	int encoding = iter->second;
-	int requiredBits = MathTools::requiredBits(encoding);
+	int requiredBits = MathTools::bitLength(encoding);
 	if (requiredBits > minWidth) {
 	    minWidth = requiredBits;
 	}

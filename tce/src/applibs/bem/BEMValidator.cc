@@ -656,7 +656,7 @@ BEMValidator::checkLImmDstRegisterFields() {
                 destinationsInBEM.insert(dstIU);
                 if (AssocTools::containsKey(iTempDestinations, dstIU)) {
                     ImmediateUnit* iu = iuNav.item(dstIU);
-                    int regIndexWidth = MathTools::requiredBits(
+                    int regIndexWidth = MathTools::bitLength(
                         iu->numberOfRegisters() - 1);
                     if (field.width() < regIndexWidth) {
                         format errorMsg(

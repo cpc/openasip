@@ -68,7 +68,7 @@ BEMTester::canAddComponentEncoding(
     unsigned int encoding,
     unsigned int extraBits) {
 
-    unsigned int encodingWidth = MathTools::requiredBits(encoding) + 
+    unsigned int encodingWidth = MathTools::bitLength(encoding) + 
         extraBits;
 
     int socketEncodings = field.socketEncodingCount();
@@ -80,7 +80,7 @@ BEMTester::canAddComponentEncoding(
 	    commonBitCount(
 		encoding, extraBits, existingEnc.encoding(),
 		existingEnc.extraBits(), alignment);
-	if (commonBits == static_cast<int>(MathTools::requiredBits(encoding))
+	if (commonBits == static_cast<int>(MathTools::bitLength(encoding))
             + static_cast<int>(extraBits) || 
             commonBits == existingEnc.socketIDWidth()) {
 	    return false;
@@ -99,7 +99,7 @@ BEMTester::canAddComponentEncoding(
 		    encoding, extraBits, existingEnc.encoding(),
 		    existingEnc.extraBits(), alignment);
 	    if (commonBits == static_cast<int>(
-                    MathTools::requiredBits(encoding)) + 
+                    MathTools::bitLength(encoding)) + 
                 static_cast<int>(extraBits) || 
                 commonBits == existingEnc.width()) {
 		return false;
@@ -114,7 +114,7 @@ BEMTester::canAddComponentEncoding(
                 encoding, extraBits, immEnc.encoding(), immEnc.extraBits(),
                 alignment);
             if (commonBits == static_cast<int>(
-                    MathTools::requiredBits(encoding)) + 
+                    MathTools::bitLength(encoding)) + 
                 static_cast<int>(extraBits) || 
                 commonBits == immEnc.width()) {
                 return false;
@@ -129,7 +129,7 @@ BEMTester::canAddComponentEncoding(
                 encoding, extraBits, nopEnc.encoding(), nopEnc.extraBits(),
                 alignment);
             if (commonBits == static_cast<int>(
-                    MathTools::requiredBits(encoding)) +
+                    MathTools::bitLength(encoding)) +
                 static_cast<int>(extraBits) || 
                 commonBits == nopEnc.width()) {
                 return false;
@@ -137,7 +137,6 @@ BEMTester::canAddComponentEncoding(
         }
 
     }
-
     return true;
 }
 
@@ -164,7 +163,7 @@ BEMTester::canAddPortEncoding(
     unsigned int encoding,
     unsigned int extraBits) {
 
-    int encodingWidth = MathTools::requiredBits(encoding) + extraBits;
+    int encodingWidth = MathTools::bitLength(encoding) + extraBits;
 
     int fuPortEncodings = table.fuPortCodeCount();
     for (int i = 0; i < fuPortEncodings; i++) {
@@ -239,8 +238,8 @@ BEMTester::commonBitCount(
         enc1Offset = alignment * (-1);
     }
 
-    int maxEnc1Offset = MathTools::requiredBits(enc1) + extraBits1 - 1;
-    int maxEnc2Offset = MathTools::requiredBits(enc2) + extraBits2 - 1;
+    int maxEnc1Offset = MathTools::bitLength(enc1) + extraBits1 - 1;
+    int maxEnc2Offset = MathTools::bitLength(enc2) + extraBits2 - 1;
 
     while (enc1Offset <= maxEnc1Offset && enc2Offset <= maxEnc2Offset) {
         if (MathTools::bit(enc1, enc1Offset) == 

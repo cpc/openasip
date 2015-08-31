@@ -109,7 +109,7 @@ GuardFieldTest::testGuardEncodings() {
     GPRGuardEncoding* gge = new GPRGuardEncoding(rf1, 0, false, 0, *field);
     TS_ASSERT(field->gprGuardEncodingCount() == 1);
     TS_ASSERT(field->childFieldCount() == 0);
-    TS_ASSERT(field->width() == 1);
+    TS_ASSERT(field->width() == 0);
     TS_ASSERT(&field->gprGuardEncoding(0) == gge);
     TS_ASSERT_THROWS(field->gprGuardEncoding(-1), OutOfRange);
     TS_ASSERT_THROWS(field->gprGuardEncoding(1), OutOfRange);
@@ -124,7 +124,7 @@ GuardFieldTest::testGuardEncodings() {
     FUGuardEncoding* fge = new FUGuardEncoding(fu1, port1, false, 0, *field);
     TS_ASSERT(field->fuGuardEncodingCount() == 1);
     TS_ASSERT(field->childFieldCount() == 0);
-    TS_ASSERT(field->width() == 1);
+    TS_ASSERT(field->width() == 0);
     TS_ASSERT(&field->fuGuardEncoding(0) == fge);
     TS_ASSERT_THROWS(field->fuGuardEncoding(-1), OutOfRange);
     TS_ASSERT_THROWS(field->fuGuardEncoding(1), OutOfRange);

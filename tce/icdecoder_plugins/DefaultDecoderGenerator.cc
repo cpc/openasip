@@ -4498,7 +4498,7 @@ DefaultDecoderGenerator::opcodeWidth(
 int
 DefaultDecoderGenerator::busControlWidth(const TTAMachine::Socket& socket) {
     if (socket.direction() == Socket::INPUT) {
-        return MathTools::requiredBits(socket.segmentCount() - 1);
+        return MathTools::bitLength(socket.segmentCount() - 1);
     } else {
         return socket.segmentCount();
     }
@@ -4514,8 +4514,8 @@ DefaultDecoderGenerator::busControlWidth(const TTAMachine::Socket& socket) {
  */
 int
 DefaultDecoderGenerator::dataControlWidth(const TTAMachine::Socket& socket) {
-    if (socket.direction() == Socket::OUTPUT && socket.portCount() > 1) {
-        return MathTools::requiredBits(socket.portCount() - 1);
+    if (socket.direction() == Socket::OUTPUT) {
+        return MathTools::bitLength(socket.portCount() - 1);
     } else {
         return 0;
     }
@@ -4530,11 +4530,7 @@ DefaultDecoderGenerator::dataControlWidth(const TTAMachine::Socket& socket) {
  */
 int
 DefaultDecoderGenerator::rfOpcodeWidth(const TTAMachine::BaseRegisterFile& rf) {
-    if (rf.numberOfRegisters() == 1) {
-        return 0;
-    } else {
-        return MathTools::requiredBits(rf.numberOfRegisters() - 1);
-    }
+    return MathTools::bitLength(rf.numberOfRegisters() - 1);
 }
 
 
@@ -4604,6 +4600,14 @@ DefaultDecoderGenerator::portCodeCondition(
     const SocketEncoding& socketEnc,
     const PortCode& code) {
 
+    // empty encoding is always true
+    if (!code.encodingWidth()) {
+        if (language==VHDL) {
+            return "true";
+        } else {
+            return "1"; 
+        }
+    }
     SlotField* parent = socketEnc.parent();
     string signalName;
     if (dynamic_cast<SourceField*>(parent) != NULL) {

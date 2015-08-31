@@ -148,6 +148,9 @@ const string IMMEDIATE_SLOT_NAME = "name";
 const string IMMEDIATE_SLOT_WIDTH = "width";
 const string IMMEDIATE_SLOT_POS = "pos";
 
+const string EXTRA_BITS = "extra-bits";
+const string MAP = "map";
+
 const string BEM_SCHEMA_FILE = "bem/BEM_Schema.xsd";
 
 /**
@@ -179,9 +182,40 @@ BEMSerializer::readState()
     throw (SerializerException) {
 
     ObjectState* fileState = XMLSerializer::readState();
+
+    double version = fileState->doubleAttribute(VERSION);
+    if (version < 1.2) {
+        convertZeroEncExtraBits(fileState);
+    }
     ObjectState* omState = convertToOMFormat(fileState);
     delete fileState;
     return omState;
+}
+
+/**
+ * Recursively convert all encodings with zero encodings to have
+ * one more extra bit.
+ */
+void BEMSerializer::convertZeroEncExtraBits(ObjectState* os) {
+    if (os->name() == MAP) {
+        if (os->intValue() == 0 && os->hasAttribute(EXTRA_BITS)) {
+            int extraBits = os->intAttribute(EXTRA_BITS);
+            os->setAttribute(EXTRA_BITS, extraBits + 1);
+        }
+    }
+    if (os->name() == FU_PORT_CODE &&
+        os->hasChild(EXTRA_BITS) &&
+        os->hasChild(FU_PORT_CODE_ENCODING)) {
+        if (os->childByName(FU_PORT_CODE_ENCODING)->intValue() == 0) {
+            ObjectState* eb = os->childByName(EXTRA_BITS);
+            eb ->setValue(eb->intValue()+1);
+        }
+    }
+    // call recursively for children
+    for (int i = 0; i < os->childCount(); i++) {
+        ObjectState* child = os->child(i);
+        convertZeroEncExtraBits(child);
+    }
 }
 
 
@@ -281,8 +315,8 @@ ObjectState*
 BEMSerializer::convertToFileFormat(const ObjectState* state) {
 
     ObjectState* fileState = new ObjectState(ADF_ENCODING);
-    const string version = "1.0";
-    const string requiredVersion = "1.0";
+    const string version = "1.2";
+    const string requiredVersion = "1.2";
     fileState->setAttribute(VERSION, version);
     fileState->setAttribute(REQUIRED_VERSION, requiredVersion);
 
