@@ -108,7 +108,7 @@ public:
 
 protected:
     virtual DataDependenceGraph* createDDGFromBB(
-        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach) override;
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach);
 
 private:
     
