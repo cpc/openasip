@@ -62,6 +62,6 @@ patch -Np0 < $patch_dir/llvm-3.7-tcele.patch
 
 mkdir -p build
 cd build
-../configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
+../configure $LLVM_BUILD_MODE --enable-bindings=none --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
 make -j2 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
