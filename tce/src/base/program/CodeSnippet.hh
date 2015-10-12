@@ -84,6 +84,7 @@ public:
         throw (KeyNotFound);
 
     virtual Instruction& instructionAtIndex(int index) const;
+    virtual Instruction& operator[](size_t index) const;
 
     virtual bool hasNextInstruction(const Instruction& ins) const
         throw (IllegalRegistration);

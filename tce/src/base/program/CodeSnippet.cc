@@ -264,6 +264,11 @@ CodeSnippet::instructionAtIndex(int index) const {
     return *instructions_.at(index);
 }
 
+Instruction&
+CodeSnippet::operator[](size_t index) const {
+    return *instructions_[index];
+}
+
 /**
  * Tells whether the given instruction is the last instruction of the
  * code snippet or not.

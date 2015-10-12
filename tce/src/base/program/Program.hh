@@ -95,6 +95,7 @@ public:
         throw (IllegalRegistration);
     int procedureCount() const;
     Procedure& procedure(int index) const throw (OutOfRange);
+    Procedure& operator[](size_t index);
     Procedure& procedure(const std::string& name) const
         throw (KeyNotFound);
     bool hasProcedure(const std::string& name) const;

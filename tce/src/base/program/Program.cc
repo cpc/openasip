@@ -614,6 +614,18 @@ Program::procedure(int index) const throw (OutOfRange) {
             Conversion::toString(index));
     }
 }
+    
+/**
+ * Returns the procedure at the given index.
+ *
+ * @param index The position index.
+ * @return The procedure at the given index.
+ * @exception OutOfRange if the index is out of range.
+ */
+Procedure& 
+Program::operator[](size_t index) {
+    return *procedures_[index];
+}
 
 /**
  * Returns the procedure with the given name.
