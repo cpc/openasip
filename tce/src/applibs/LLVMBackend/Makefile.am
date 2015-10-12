@@ -9,7 +9,7 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
-	LLVMTCEScheduler.cc MachineInstrDDG.cc ConstantTransformer.cc
+	MachineInstrDDG.cc ConstantTransformer.cc
 
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module

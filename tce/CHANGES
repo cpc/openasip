@@ -21,7 +21,7 @@ Notable bugfixes
   nop encoding(nop encoding done by always false guard) 
   no longer loses the index field in the instruction encoding.
 
-1.12         unknown
+1.12  September 2015
 ====================
 
 Notable changes and features
