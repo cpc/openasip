@@ -38,7 +38,7 @@ You also need a version of "GNU Make" to build TCE.
 
 For example, to install the required libraries and tools for Ubuntu
 using its package manager 'apt-get', you need to execute the following
-command: 
+command:
 
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
