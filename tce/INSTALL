@@ -16,7 +16,7 @@ build TCE:
 
 Compiler              supported versions
 -----------------     ------------------
-GCC                   4.7+              
+GCC                   4.7+
 Clang                 3.5+
 
 Library               supported versions                   library license
