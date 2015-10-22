@@ -36,7 +36,7 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu 
+For example, to install the required libraries and tools for Ubuntu
 using its package manager 'apt-get', you need to execute the following 
 command: 
 
