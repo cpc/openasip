@@ -37,7 +37,7 @@ the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
 For example, to install the required libraries and tools for Ubuntu
-using its package manager 'apt-get', you need to execute the following 
+using its package manager 'apt-get', you need to execute the following
 command: 
 
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
