@@ -101,7 +101,7 @@ MachineInfo::defaultDataAddressSpace(const TTAMachine::Machine& mach) {
             if (asNav.item(i) != &instrAS) return asNav.item(i);
         }
     }
-    
+
     // no data address space found
     throw IllegalMachine(
         __FILE__, __LINE__, __func__,
@@ -109,7 +109,7 @@ MachineInfo::defaultDataAddressSpace(const TTAMachine::Machine& mach) {
     return NULL;
 }
 
-int 
+int
 MachineInfo::longestGuardLatency(
     const TTAMachine::Machine& mach) {
     int ggLatency = mach.controlUnit()->globalGuardLatency();
@@ -142,17 +142,17 @@ MachineInfo::longestGuardLatency(
  * Returns Operand object for the given hardware operation attached to the port.
  *
  * InstanceNotFound exception is thrown, if the hardware operation doesn't have
- * an operand in the given port. 
- * 
+ * an operand in the given port.
+ *
  * @param hwOp Hardware operation.
- * @param port The port containing the desired Operand. 
+ * @param port The port containing the desired Operand.
  * @return Reference to the Operand object.
  */
-Operand& 
+Operand&
 MachineInfo::operandFromPort(
     const TTAMachine::HWOperation& hwOp,
     const TTAMachine::FUPort& port) {
- 
+
     const TCEString& opName = hwOp.name();
     OperationPool opPool;
     const Operation& op = opPool.operation(opName.c_str());
@@ -212,10 +212,10 @@ MachineInfo::templatesUsingSlot(
 }
 
 
-bool 
+bool
 MachineInfo::supportsOperation(
     const TTAMachine::Machine& mach, TCEString operation) {
-    OperationDAGSelector::OperationSet opNames = 
+    OperationDAGSelector::OperationSet opNames =
         MachineInfo::getOpset(mach);
     return opNames.find(operation.upper()) != opNames.end();
 }
@@ -318,7 +318,8 @@ MachineInfo::canEncodeImmediateInteger(
     return false;
 }
 
-int MachineInfo::triggerIndex(
+int 
+MachineInfo::triggerIndex(
     const TTAMachine::FunctionUnit& fu, const Operation& op) {
     if (fu.hasOperation(op.name())) {
         TTAMachine::HWOperation* hwop = 
@@ -340,10 +341,11 @@ int MachineInfo::triggerIndex(
  * If the operation is not found from the machine, return 0.
  * If the index is ambiguos return -1.
  */
-int MachineInfo::triggerIndex(
+int
+MachineInfo::triggerIndex(
     const TTAMachine::Machine& machine, const Operation& op) {
     TTAMachine::Machine::FunctionUnitNavigator nav = 
-    machine.functionUnitNavigator();
+        machine.functionUnitNavigator();
     if (&machine == &UniversalMachine::instance()) {
         return op.numberOfInputs(); // last input
     }
@@ -368,4 +370,54 @@ int MachineInfo::triggerIndex(
         }
     }
     return index;
+}
+
+/**
+ * Finds the widest operand available in the machine.
+ *
+ * Helps finding the widest usable register in the machine.
+ */
+unsigned
+MachineInfo::findWidestOperand (
+    const TTAMachine::Machine& machine,
+    bool vector) {
+    OperationPool pool;
+    unsigned widestOperand = 0;
+
+    TTAMachine::Machine::FunctionUnitNavigator FUNavigator =
+        machine.functionUnitNavigator();
+
+    OperationDAGSelector::OperationSet opNames =
+        MachineInfo::getOpset(machine);
+    for (TCETools::CIStringSet::iterator it = opNames.begin();
+         it != opNames.end(); ++it) {
+
+        const Operation& op = pool.operation(it->c_str());
+
+        for (int j = 1; j < op.operandCount() + 1; ++j) {
+            if ((unsigned)(op.operand(j).width()) > widestOperand)
+                widestOperand = (unsigned)(op.operand(j).width());
+        }
+        return widestOperand;
+    }
+}
+/**
+ * Counts registers of given width.
+ */
+unsigned
+MachineInfo::numberOfRegisters(
+    const TTAMachine::Machine& machine, unsigned width) {
+
+    unsigned numRegisters = 0;
+    TTAMachine::Machine::RegisterFileNavigator RFNavigator =
+        machine.registerFileNavigator();
+
+    // Search register files of desired width and count registers
+    for (int i = 0; i < RFNavigator.count(); i++) {
+        TTAMachine::RegisterFile *rf = RFNavigator.item(i);
+        if ((unsigned)(rf->width()) == width) {
+            numRegisters += rf->size();
+        }
+    }
+    return numRegisters;
 }

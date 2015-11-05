@@ -50,6 +50,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 
+#include "TCEStubTargetMachine.hh"
 #include "TCETargetMachine.hh"
 #include "TCEMCAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
@@ -66,10 +67,6 @@ POP_COMPILER_DIAGS
 
 using namespace llvm;
 
-
-namespace llvm {
-    Target TheTCETarget;
-}
 
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
@@ -104,11 +101,9 @@ MCInstPrinter *dummyInstrPrinterCtor(
 
 #endif
 
-extern "C" void LLVMInitializeTCETargetInfo() { 
-    RegisterTarget<Triple::tce> X(TheTCETarget, "tce", 
-                                  "TTA-Based Co-design Environment");
+extern "C" void LLVMInitializeTCETarget() { 
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
-
+    
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
 #ifndef LLVM_OLDER_THAN_3_7
     TargetRegistry::RegisterMCInstPrinter(TheTCETarget, dummyInstrPrinterCtor);
@@ -132,7 +127,7 @@ TCETargetMachine::TCETargetMachine(
     const Target &T, const std::string &TT, const std::string& CPU,
     const std::string &FS, const TargetOptions &Options,
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
-    LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL), plugin_(NULL),
+    TCEBaseTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL), plugin_(NULL),
     pluginTool_(NULL) {
 }
 #else
@@ -141,7 +136,7 @@ TCETargetMachine::TCETargetMachine(
     const std::string& CPU, const std::string &FS, 
     const TargetOptions &Options,
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
-    LLVMTargetMachine(T, TCEBEDLString, TTriple, CPU, FS, Options, RM, CM, OL), 
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options, RM, CM, OL), 
     plugin_(NULL), pluginTool_(NULL) {
 }
 #endif

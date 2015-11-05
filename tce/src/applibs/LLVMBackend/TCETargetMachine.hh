@@ -50,6 +50,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #endif
 //#include "TCESubtarget.hh"
 
+#include "TCEStubTargetMachine.hh"
 #include "TCETargetMachinePlugin.hh"
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -71,7 +72,7 @@ class PluginTools;
 
 
 // just to be able to manually register tce target if needed.
-extern "C" void LLVMInitializeTCETargetInfo();
+extern "C" void LLVMInitializeTCETarget();
 
 namespace llvm {
     class TCEPassConfig : public TargetPassConfig {
@@ -103,7 +104,7 @@ namespace llvm {
     /**
      * TCE Universal machine target description.
      */
-    class TCETargetMachine : public LLVMTargetMachine {
+    class TCETargetMachine : public TCEBaseTargetMachine {
 
     public:
 #ifdef LLVM_OLDER_THAN_3_7

@@ -69,12 +69,16 @@ public:
         const TTAMachine::Machine& mach,
         const std::string& slotName);
     static bool canEncodeImmediateInteger(
-        const TTAMachine::Machine& mach, int64_t imm, 
+        const TTAMachine::Machine& mach, int64_t imm,
         unsigned destWidth=UINT_MAX);
     static int triggerIndex(
         const TTAMachine::Machine& machine, const Operation& op);
     static int triggerIndex(
         const TTAMachine::FunctionUnit& fu, const Operation& op);
+    static unsigned findWidestOperand(
+        const TTAMachine::Machine& machine, bool vector) ;
+    static unsigned numberOfRegisters(
+        const TTAMachine::Machine& machine, unsigned width);
 
 private:
     MachineInfo();
