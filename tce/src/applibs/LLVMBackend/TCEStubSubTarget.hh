@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -20,33 +20,47 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
- */
+*/
 /**
- * @file CIStringSet.hh
+ * @file TCEStubSubTarget.hh
  *
- * Declaration of CIStringSet type.
+ * Declaration of TCEStubSubTarget class.
  *
- * @author Pekka Jääskeläinen 2010
- 
+ * @author Ville Korhonen 2015
  */
 
-#ifndef TTA_CI_STRING_SET_HH
-#define TTA_CI_STRING_SET_HH
+#ifndef TTA_TCE_STUB_SUBTARGET_HH
+#define TTA_TCE_STUB_SUBTARGET_HH
 
-#include <cstring>
-#include <set>
-#include "TCEString.hh"
+#include "TCEStubTargetMachine.hh"
+#include <llvm/Target/TargetSubtargetInfo.h>
+#include <llvm/Target/TargetLowering.h>
 
-namespace TCETools {
+/**
+ * Minimalistic subtarget implementation to be used in LLVM middle end 
+ * optimization phase. 
+ *
+ * At the moment the purpose is only to offer 
+ * default targetLowering which is required by the LLVM.
+ * @todo a Proper targetLowering for more accurate targetTransformInfo
+ */
 
-    struct CaseInsensitiveCmp {
-        bool operator()(const TCEString& s1, const TCEString& s2) const {
-            return strcmp(s1.lower().c_str(), s2.lower().c_str()) < 0;
+namespace llvm {
+    class TCEStubTargetMachine;
+
+    class TCEStubSubTarget : public TargetSubtargetInfo {
+        const TCEStubTargetMachine &TM;
+        const TargetLowering TLI;
+
+    public:
+        TCEStubSubTarget(
+            const Triple &TT, const StringRef &CPU, 
+            const StringRef &FS, const TCEStubTargetMachine &TM);
+
+        const TargetLowering *getTargetLowering() const {
+            return &TLI;
         }
+
     };
-
-    // set for storing case insensitive strings (such as OSAL operation names)
-    typedef std::set<TCEString, CaseInsensitiveCmp> CIStringSet;
-}
-
+} // end namespace llvm
 #endif

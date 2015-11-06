@@ -97,6 +97,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "Conversion.hh"
 #include "FileSystem.hh"
 #include "TCETargetMachine.hh"
+#include "TCEStubTargetMachine.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "LLVMPOMBuilder.hh"
 #include "Program.hh"
@@ -460,6 +461,7 @@ LLVMBackend::compile(
 
     // Register target to llvm for using lookupTarget
     LLVMInitializeTCETargetInfo();
+    LLVMInitializeTCETarget();
 
     // get registered target machine and set plugin.
     const Target* tceTarget = 

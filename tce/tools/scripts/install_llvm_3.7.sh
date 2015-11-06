@@ -57,6 +57,7 @@ cd ../../$llvm_co_dir
 
 ##### Add patches here.
 patch -Np0 < $patch_dir/llvm-3.7-custom-vector-extension.patch
+patch -Np0 < $patch_dir/llvm-3.7-tce.patch
 patch -Np0 < $patch_dir/llvm-3.7-tcele.patch
 #####
 
