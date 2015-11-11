@@ -378,7 +378,7 @@ MachineInfo::triggerIndex(
  * Helps finding the widest usable register in the machine.
  */
 unsigned
-MachineInfo::findWidestOperand (
+MachineInfo::findWidestOperand(
     const TTAMachine::Machine& machine,
     bool vector) {
     OperationPool pool;

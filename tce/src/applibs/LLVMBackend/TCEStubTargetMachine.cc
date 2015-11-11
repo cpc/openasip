@@ -29,20 +29,25 @@
  * @author Ville Korhonen 2015
  */
 
-/** 
+/**
  * This Stub target is for middle end optimizations where the actual backend 
- * plugin is not yet generated. Intention is to use ADF information in 
+ * plugin is not yet generated.
+ *
+ * Intention is to use ADF information in
  * targetTransformInfo class to offer target spesific details for middle end 
  * optimizations such as loop vectorizer.
- * 
+ *
  * @todo pass for handing over the ADF to the stub target.
  * @todo add more target spesific features to targetTransformInfo
  * @todo unify TCEStubTarget and TCETarget features by migrating common 
- *       features to base class 
- */ 
+ *       features to base class
+ */
 
+#include "tce_config.h"
 #include "TCEStubTargetMachine.hh"
+#ifndef LLVM_OLDER_THAN_3_7
 #include "TCEStubTargetTransformInfo.hh"
+#endif
 #include "TCEStubSubTarget.hh"
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #include <llvm/Target/TargetMachine.h>
@@ -63,11 +68,13 @@ extern "C" void LLVMInitializeTCETargetInfo() {
         Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)");
 }
 
+#ifndef LLVM_OLDER_THAN_3_7
 extern "C" void LLVMInitializeTCEStubTarget() {
     // Register the targetmachine impl.
     RegisterTargetMachine<TCEStubTargetMachine> X(TheTCETarget);
     RegisterTargetMachine<TCEStubTargetMachine> Y(TheTCELETarget);
 }
+#endif
 
 extern "C" void LLVMInitializeTCEStubTargetMC() {}
 
@@ -89,6 +96,15 @@ StringRef getTargetDesc(const Triple &TT) {
 }
 
 /* Base class constructor */
+#ifdef LLVM_OLDER_THAN_3_7
+TCEBaseTargetMachine::TCEBaseTargetMachine(
+    const Target &T, const std::string& TT, const std::string& CPU,
+    const std::string &FS, const TargetOptions &Options,
+    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
+    ttaMach_(NULL) {
+}
+#else
 TCEBaseTargetMachine::TCEBaseTargetMachine(
     const Target &T, const Triple& TT, const std::string& CPU, 
     const std::string &FS, const TargetOptions &Options,
@@ -96,7 +112,9 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
     LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
     ttaMach_(NULL) {
 }
+#endif
 
+#ifndef LLVM_OLDER_THAN_3_7
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const std::string& CPU, 
     const std::string& FS, const TargetOptions &Options,
@@ -129,3 +147,4 @@ namespace {
 
     };
 } // end namespace
+#endif
