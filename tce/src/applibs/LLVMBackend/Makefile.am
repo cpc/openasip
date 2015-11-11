@@ -10,10 +10,12 @@ libtcellvmbackend_la_SOURCES = \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
 	MachineInstrDDG.cc ConstantTransformer.cc \
-	TCEStubTargetMachine.cc \
-	TCEStubTargetMachine.hh \
-	TCEStubSubTarget.cc \
-	TCEStubTargetTransformInfo.cc
+	TCEStubTargetMachine.cc
+
+if LLVM_3_7_OR_NEWER
+libtcellvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
+	TCEStubSubTarget.cc TCEStubTargetMachine.hh
+endif
 
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module
@@ -78,7 +80,8 @@ include_HEADERS = \
  TCETargetMachinePlugin.hh \
  plugin/TCESubtarget.hh \
  LLVMTCECmdLineOptions.hh \
- TCEStubTargetMachine.hh
+ TCEStubTargetMachine.hh \
+ TCEStubSubTarget.hh
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
@@ -94,6 +97,7 @@ libtcellvmbackend_la_SOURCES += \
 	TCEMCAsmInfo.hh ConstantTransformer.hh \
 	TCEStubTargetMachine.hh \
 	TCEStubSubTarget.hh \
-	TCEStubTargetTransformInfo.hh
+	TCEStubTargetTransformInfo.hh \
+	TCEStubSubTarget.hh
 
 ## headers end

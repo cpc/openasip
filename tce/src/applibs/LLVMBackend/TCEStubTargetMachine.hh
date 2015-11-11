@@ -34,9 +34,12 @@
 
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
-#include "llvm/Target/TargetLowering.h"
+#include <llvm/Target/TargetLowering.h>
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
+
+#include "tce_config.h"
+#include "TCEStubSubTarget.hh"
 
 // initializes TCE target to LLVM
 extern "C" void LLVMInitializeTCETargetInfo();
@@ -57,6 +60,7 @@ namespace llvm {
     class StringRef;
     class TCEStubTargetMachine;
     class TCEStubSubTarget;
+    class TargetSubTargetInfo;
 
     /**
      * Base class common to TCEStubTargetMachine(for middle end) and
@@ -64,13 +68,21 @@ namespace llvm {
      */
     class TCEBaseTargetMachine : public LLVMTargetMachine {
     public:
+#ifdef LLVM_OLDER_THAN_3_7
+        TCEBaseTargetMachine(
+            const Target &T, const std::string &TT,
+            const std::string& CPU, const std::string &FS,
+            const TargetOptions &Options,
+            Reloc::Model RM, CodeModel::Model CM,
+            CodeGenOpt::Level OL);
+#else
         TCEBaseTargetMachine(
             const Target &T, const Triple& TT,
             const std::string& CPU, const std::string &FS,
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
-
+#endif
         const TTAMachine::Machine* ttaMach_;
         virtual void setTTAMach(
             const TTAMachine::Machine* mach) {
@@ -78,6 +90,7 @@ namespace llvm {
         }
     };
 
+#ifndef LLVM_OLDER_THAN_3_7
     /**
      * TargetStub for middle end optimizations. (for loopvectorizer initially)
      */
@@ -94,15 +107,17 @@ namespace llvm {
             Reloc::Model RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
 
+        virtual TargetIRAnalysis getTargetIRAnalysis() override;
         virtual ~TCEStubTargetMachine();
 
+        //const TargetSubtargetInfo *getSubtargetImpl() const {
         const TCEStubSubTarget *getSubtargetImpl() const {
             return ST;
         }
-
-        virtual TargetIRAnalysis getTargetIRAnalysis() override;
-
+        const TCEStubSubTarget *getSubtargetImpl(const Function&) const {
+            return ST;
+        }
     };
-
+#endif
 } //end namespace llvm
 #endif

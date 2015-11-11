@@ -513,6 +513,9 @@ then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_7, 1, [LLVM version is older than 3.7])
 fi
 
+AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
+AM_CONDITIONAL([LLVM_3_7_OR_NEWER], test -z $LLVM_OLDER_THAN_3_7)
+
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
   # Try the alternative location where llvm.org/apt packages install it.

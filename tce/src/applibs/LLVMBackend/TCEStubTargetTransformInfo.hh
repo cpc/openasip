@@ -32,8 +32,8 @@
 #ifndef TTA_TCE_TARGET_TRANSFORM_INFO_HH
 #define TTA_TCE_TARGET_TRANSFORM_INFO_HH
 
-#include "llvm/Analysis/TargetTransformInfo.h"
-#include "llvm/CodeGen/BasicTTIImpl.h"
+#include <llvm/Analysis/TargetTransformInfo.h>
+#include <llvm/CodeGen/BasicTTIImpl.h>
 #include "TCEStubTargetTransformInfo.hh"
 #include "TCEStubTargetMachine.hh"
 #include "TCEStubSubTarget.hh"
