@@ -384,6 +384,10 @@ MachineInfo::findWidestOperand(
     OperationPool pool;
     unsigned widestOperand = 0;
 
+    if (vector) {
+        return 0;
+    }
+
     TTAMachine::Machine::FunctionUnitNavigator FUNavigator =
         machine.functionUnitNavigator();
 
@@ -398,9 +402,10 @@ MachineInfo::findWidestOperand(
             if ((unsigned)(op.operand(j).width()) > widestOperand)
                 widestOperand = (unsigned)(op.operand(j).width());
         }
-        return widestOperand;
     }
+    return widestOperand;
 }
+
 /**
  * Counts registers of given width.
  */
