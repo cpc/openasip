@@ -134,11 +134,6 @@ namespace llvm {
             emulationModule_ = mod;
         }
 
-        TTAMachine::Machine* ttaMach_;
-        virtual void setTTAMach(TTAMachine::Machine* mach) {
-            ttaMach_ = mach;
-        }
-
 #ifdef LLVM_OLDER_THAN_3_7
         virtual const TargetSubtargetInfo* getSubtargetImpl() const {
             return plugin_->getSubtarget(); 
