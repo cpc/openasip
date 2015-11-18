@@ -43,6 +43,9 @@
  *       features to base class
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "tce_config.h"
 #include "TCEStubTargetMachine.hh"
 #ifndef LLVM_OLDER_THAN_3_7

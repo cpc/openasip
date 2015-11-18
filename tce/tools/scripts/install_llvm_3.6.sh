@@ -59,5 +59,5 @@ cd ../../$llvm_co_dir
 #####
 
 ./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
-make -j2 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
+make -j6 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
