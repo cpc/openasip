@@ -148,4 +148,3 @@ See the TCE User Manual for more information on using the OpenCL in
 pocl to simulate a host-device setup where the device is a TTA core
 (simulated using the ttasim engine). Refer to the pocl documentation on
 how to use it.
-
