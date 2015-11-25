@@ -131,6 +131,7 @@ computer's speed.
 
 OpenCL support
 ==============
+
 There is experimental and incomplete support for OpenCL. It's currently 
 not usable for day-to-day OpenCL programming but is a work in progress. 
 If you want to compile the support, for example, to help in implementing 
