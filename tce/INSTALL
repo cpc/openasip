@@ -52,6 +52,7 @@ xerces-c-devel gcc-c++ make autoconf automake libtool
 
 Editline
 --------
+
 Editline is used for command line editing/history browsing capabilities to
 the command line interface of the simulator.
 
