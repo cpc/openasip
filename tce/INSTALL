@@ -122,6 +122,7 @@ In that case you have to install TCE as the root user.
 
 Running 'make'
 --------------
+
 After running configure, it should be enough to just type
 
       make && make install
