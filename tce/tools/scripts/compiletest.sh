@@ -42,7 +42,8 @@ tagIfSuccess=no
 # runs have been executed successfully. After the given count of executions,
 # an e-mail is sent. This is for getting some input occasionally from compile 
 # test machines to know they are functioning.
-goodRunCountFile=~/compile_test_ok_run_count
+mkdir -p $HOME/.tce
+goodRunCountFile=$HOME/.tce/compile_test_ok_run_count
 goodRunsBeforeEmail=10
 
 # check the branch of tce
