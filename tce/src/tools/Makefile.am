@@ -32,10 +32,11 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h \
 	CompilerWarnings.hh Environment.hh
 
-REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo "" | tr -d "\n")
+REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list --all --count)
+
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 
-tce_version_string.h: ../../../.bzr/branch/last-revision
+tce_version_string.h: ../../../.git/index
 	@echo "Setting TCE_VERSION_STRING to $(TCE_VERSION_STRING)"
 	@echo '#define TCE_VERSION_STRING "$(TCE_VERSION_STRING)"' > $@
 
