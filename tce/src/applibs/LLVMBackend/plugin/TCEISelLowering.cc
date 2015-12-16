@@ -645,11 +645,7 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
     setOperationAction(ISD::BR_CC, MVT::i32, Expand);
     setOperationAction(ISD::BR_CC, MVT::f32, Expand);
-<<<<<<< TREE
-=======
     setOperationAction(ISD::BR_CC, MVT::f64, Expand);
-#endif
->>>>>>> MERGE-SOURCE
     setOperationAction(ISD::MULHU,  MVT::i32, Expand);
     setOperationAction(ISD::MULHS,  MVT::i32, Expand);
     setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
