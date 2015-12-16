@@ -1,0 +1,32 @@
+This patch allows the TCE target machine to use 64bit doubles instead of 
+forcing them to 32bit (single precision "float").
+
+Index: lib/Basic/Targets.cpp
+===================================================================
+--- tools/clang/lib/Basic/Targets.cpp	(revision 222960)
++++ tools/clang/lib/Basic/Targets.cpp	(working copy)
+@@ -5973,17 +5973,17 @@
+       PtrDiffType = SignedInt;
+       FloatWidth = 32;
+       FloatAlign = 32;
+-      DoubleWidth = 32;
+-      DoubleAlign = 32;
+-      LongDoubleWidth = 32;
+-      LongDoubleAlign = 32;
++      DoubleWidth = 64;
++      DoubleAlign = 64;
++      LongDoubleWidth = 64;
++      LongDoubleAlign = 64;
+       FloatFormat = &llvm::APFloat::IEEEsingle;
+-      DoubleFormat = &llvm::APFloat::IEEEsingle;
+-      LongDoubleFormat = &llvm::APFloat::IEEEsingle;
++      DoubleFormat = &llvm::APFloat::IEEEdouble;
++      LongDoubleFormat = &llvm::APFloat::IEEEdouble;
+       DescriptionString = "E-p:32:32:32-i1:8:8-i8:8:32-"
+           "i16:16:32-i32:32:32-i64:32:32-"
+-          "f32:32:32-f64:32:32-v64:32:32-"
++          "f32:32:32-f64:64:64-v64:32:32-"
+           "v128:32:32-v256:32:32-v512:32:32-v1024:32:32-a0:0:32-n32";
+       AddrSpaceMap = &TCEOpenCLAddrSpaceMap;
+       UseAddrSpaceMapMangling = true;
+     }
