@@ -1,4 +1,5 @@
 *.o
+*.so
 src/**/Makefile
 *.dot
 lastresults.csv
@@ -8,6 +9,7 @@ vgcore*
 core.*
 core
 *.lo
+*.a
 *.la
 **/runner
 tce/Makefile
@@ -35,7 +37,7 @@ tce/*/Makefile
 tce/src/tools/tce_version_string.h
 tce/newlib-1.17.0/tce-llvm
 RE:.*/.deps
-RE:.*/.libs
+**/.libs
 tce/test/Makefile.in
 RE:tce/src/.*/Makefile
 RE:tce/test/.*/Makefile.in

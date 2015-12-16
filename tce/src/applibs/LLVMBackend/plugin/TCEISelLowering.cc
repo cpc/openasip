@@ -390,6 +390,8 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     } else if (sType == MVT::f16 || sType == MVT::f32) {
         ObjSize = 4;
         ValToStore = Val;
+        //TODO: inconsistent with argument counting code that allows f16 and
+        //f32 to be passed in registers.
     } else if (sType == MVT::i64 || sType == MVT::f64) {
         ObjSize = 8;
         ValToStore = Val;    // Whole thing is passed in memory.
@@ -422,7 +424,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Build a sequence of copy-to-reg nodes chained together with token
   // chain and flag operands which copy the outgoing args into registers.
-  // The InFlag in necessary since all emited instructions must be
+  // The InFlag is necessary since all emited instructions must be
   // stuck together.
   SDValue InFlag;
 
@@ -476,8 +478,10 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Copy all of the result registers out of their specified physreg. (only one rv reg)
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
-      unsigned Reg = RVLocs[i].getLocReg();
-   
+    unsigned Reg = RVLocs[i].getLocReg();
+    MVT sType = RVLocs[i].getValVT().SimpleTy;
+
+    //TODO://RWH:: add code for handling f64 return values
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
     InFlag = Chain.getValue(2);
@@ -515,8 +519,9 @@ TCETargetLowering::TCETargetLowering(
 
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
-    addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
     addRegisterClass(MVT::f16, &TCE::R32HFPRegsRegClass);
+    addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
+    addRegisterClass(MVT::f64, &TCE::R64FPRegsRegClass);
 
     if (opts->useVectorBackend()) {
         switch (tm_.maxVectorSize()) {
@@ -640,6 +645,11 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
     setOperationAction(ISD::BR_CC, MVT::i32, Expand);
     setOperationAction(ISD::BR_CC, MVT::f32, Expand);
+<<<<<<< TREE
+=======
+    setOperationAction(ISD::BR_CC, MVT::f64, Expand);
+#endif
+>>>>>>> MERGE-SOURCE
     setOperationAction(ISD::MULHU,  MVT::i32, Expand);
     setOperationAction(ISD::MULHS,  MVT::i32, Expand);
     setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
@@ -671,10 +681,15 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
 
     setTruncStoreAction(MVT::f32, MVT::f16, Expand);
+    setTruncStoreAction(MVT::f64, MVT::f16, Expand);
+    setTruncStoreAction(MVT::f64, MVT::f32, Expand);
 #ifdef LLVM_OLDER_THAN_3_6
     setLoadExtAction(ISD::EXTLOAD, MVT::f16, Expand);
+    setLoadExtAction(ISD::EXTLOAD, MVT::f32, Expand);
 #else
     setLoadExtAction(ISD::EXTLOAD, MVT::f16, MVT::f32, Expand);
+    setLoadExtAction(ISD::EXTLOAD, MVT::f16, MVT::f64, Expand);
+    setLoadExtAction(ISD::EXTLOAD, MVT::f32, MVT::f64, Expand);
 #endif
 
     setOperationAction(ISD::ADDE, MVT::i32, Expand);
@@ -684,7 +699,6 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::ADDE, MVT::i8, Expand);
     setOperationAction(ISD::ADDC, MVT::i8, Expand);
     
-
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
     // Set missing operations that can be emulated with emulation function
@@ -939,6 +953,8 @@ TCETargetLowering::getRegForInlineAsmConstraint(
     case 'f':
         if (VT == MVT::f32) {
             return std::make_pair(0U, &TCE::R32FPRegsRegClass);
+        } else if (VT == MVT::f64) {
+            return std::make_pair(0U, &TCE::R64FPRegsRegClass);
         }
     }
   }
@@ -948,7 +964,6 @@ TCETargetLowering::getRegForInlineAsmConstraint(
   return TargetLowering::getRegForInlineAsmConstraint(TRI, Constraint, VT);
 #endif
 }
-
 
 std::vector<unsigned> TCETargetLowering::
 getRegClassForInlineAsmConstraint(const std::string &Constraint,

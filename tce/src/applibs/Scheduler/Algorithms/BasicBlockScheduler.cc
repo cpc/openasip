@@ -816,7 +816,7 @@ BasicBlockScheduler::scheduleMove(
                 sourceReadyCycle, ddg_->earliestCycle(
                     moveNode, INT_MAX, true, true)); // TODO: 0 or INT_MAX
 
-            // rename if can and may alow scheuduling earlier.
+            // rename if can and may allow scheduling earlier.
             if (renamer_ != NULL && minRenamedEC < ddgCycle) {
                 minRenamedEC =  rm_->earliestCycle(minRenamedEC, moveNode);
                 if (minRenamedEC < ddgCycle) {
@@ -1051,7 +1051,7 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNo
 }
 
 /** 
- * Prints DDG to a dot file before and after scheudling
+ * Prints DDG to a dot file before and after scheduling
  * 
  * @param ddg to print
  * @param name operation name for ddg

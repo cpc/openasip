@@ -57,7 +57,7 @@ namespace TTAProgram {
  * A class that control operation of a basic block scheduler.
  *
  * This class handles calling other optimization passes and tranferring data
- * for the actual BB scheduler and loop scheudlers etc.
+ * for the actual BB scheduler and loop schedulers etc.
  */
 class BBSchedulerController :
     public BasicBlockPass, public ControlFlowGraphPass, public ProcedurePass,

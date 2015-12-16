@@ -673,6 +673,23 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>NEGD</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(negd, IO(1), IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue tmp;
+      EXEC_OPERATION(subd, IO(1), IO(1), tmp);
+      EXEC_OPERATION(subd, tmp, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>NEGF</name>
     <description/>
     <inputs>1</inputs>
@@ -710,6 +727,26 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       EXEC_OPERATION(subh, IO(1), IO(1), tmp);
       EXEC_OPERATION(subh, tmp, IO(1), IO(2));
     </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MAXD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
+  </operation>
+
+  <operation>
+    <name>MIND</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
   </operation>
 
   <operation>
@@ -810,6 +847,300 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(divu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ADDD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(addd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SUBD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(subd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(muld, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIVD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="3" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(divd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>EQD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eqd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NED</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ned, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtd, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtd, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GED</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ged, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtd, IO(1), IO(2), t1);
+      EXEC_OPERATION(eqd, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTD</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ltd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(ged, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LED</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(led, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(eqd, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtd, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>EQUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eqd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1;
+      EXEC_OPERATION(eqd, IO(1), IO(2), temp1);
+      EXEC_OPERATION(xor, temp1, 1, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtd, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GEUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1, temp2;
+      EXEC_OPERATION(gtd, IO(1), IO(2), temp1);
+      EXEC_OPERATION(eqd, IO(1), IO(2), temp2);
+      EXEC_OPERATION(ior, temp1, temp2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1, temp2, temp3;
+      EXEC_OPERATION(gtd, IO(1), IO(2), temp1);
+      EXEC_OPERATION(eqd, IO(1), IO(2), temp2);
+      EXEC_OPERATION(ior, temp1, temp2, temp3);
+      EXEC_OPERATION(xor, temp3, 1, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LEUD</name>
+    <description></description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1;
+      EXEC_OPERATION(gtd, IO(1), IO(2), temp1);
+      EXEC_OPERATION(xor,temp1,1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(eqd, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtd, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -973,7 +1304,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
     </trigger-semantics>
     <trigger-semantics>
-      EXEC_OPERATION(gtf, IO(2), IO(1), IO(3));
+      EXEC_OPERATION(gef, IO(2), IO(1), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -1327,6 +1658,54 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
       SimValue t1;
       EXEC_OPERATION(mulf, IO(2), IO(3), t1);
       EXEC_OPERATION(subf, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MACD</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="3" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="4" type="DoubleWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(muld, IO(2), IO(3), t1);
+      EXEC_OPERATION(addd, IO(1), t1, IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MSUD</name>
+    <description/>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="3" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="4" type="DoubleWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(muld, IO(2), IO(3), t1);
+      EXEC_OPERATION(subd, IO(1), t1, IO(4));
     </trigger-semantics>
   </operation>
 
@@ -1727,6 +2106,18 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>ABSD</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(absd, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>ABSF</name>
     <description/>
     <inputs>1</inputs>
@@ -2012,6 +2403,51 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
   </operation>
 
   <operation>
+    <name>ORDD</name>
+    <description>Returns 1 if floating point input operands are ordered. i.e. neither of the input operands is NaN.
+
+</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1, temp2;
+      EXEC_OPERATION(eqd, IO(1), IO(1), temp1);
+      EXEC_OPERATION(eqd, IO(2), IO(2), temp2);
+      EXEC_OPERATION(and, temp1, temp2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>UORDD</name>
+    <description>Returns 1 if the two floating point operands are unordered. i.e. isNaN(io1) || isNan(io2).
+
+</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <in element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue temp1, temp2, temp3;
+      EXEC_OPERATION(eqd, IO(1), IO(1), temp1);
+      EXEC_OPERATION(eqd, IO(2), IO(2), temp2);
+      EXEC_OPERATION(and, temp1, temp2, temp3);
+      EXEC_OPERATION(xor, temp3, 1, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>ORDF</name>
     <description>Returns 1 if floating point input operands are ordered. i.e. neither of the input operands is NaN.
 
@@ -2061,6 +2497,15 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
   </operation>
 
   <operation>
+    <name>SQRTD</name>
+    <description>Performs a square root of a double precision floating point.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
+  </operation>
+
+  <operation>
     <name>SQRTF</name>
     <description>Performs a square root of a single precision floating point. For example, the MIPS R4000 FPU implements it.
 </description>
@@ -2087,6 +2532,15 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
   </operation>
 
   <operation>
+    <name>INVSQRTD</name>
+    <description>Performs a inverse square root of a double-precision floating point.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
+  </operation>
+
+  <operation>
     <name>INVSQRTH</name>
     <description>Performs a inverse square root of a half-precision floating point.
 </description>
@@ -2094,6 +2548,18 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
+  </operation>
+
+  <operation>
+    <name>SQUARED</name>
+    <description>Computes the square of a double-precision floating point.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
+    <out element-count="1" element-width="64" id="2" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(muld, IO(1), IO(1), IO(2));
+    </trigger-semantics>
   </operation>
 
   <operation>

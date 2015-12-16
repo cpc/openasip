@@ -750,7 +750,7 @@ DataDependenceGraph::firstScheduledRegisterWrite(
 
 /**
  * Returns the highest cycle where accesses the given register.
- * If unscheudled moves accessing the register, returns INT_MAX;
+ * If unscheduled moves accessing the register, returns INT_MAX;
  * If none found, returns -1.
  *
  * @param rf The register file.
@@ -849,7 +849,7 @@ DataDependenceGraph::lastRegisterCycle(
 
 /**
  * Returns the lowest cycle where accesses the given register.
- * If unscheudled moves accessing the register, returns -1.
+ * If unscheduled moves accessing the register, returns -1.
  * If none found, return INT_MAX
  *
  * @param rf The register file.

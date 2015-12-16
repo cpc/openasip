@@ -39,6 +39,7 @@ SDTypeProfile<1, 1, [SDTCisFP<0>, SDTCisVT<1, f32>]>;
 
 def TCEftoi  : SDNode<"TCEISD::FTOI", SDTTCEFTOI>;
 def TCEitof  : SDNode<"TCEISD::ITOF", SDTTCEITOF>;
+//RWH: need anything here for F64?
 
 // These are target-independent nodes, but have target-specific formats.
 def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
@@ -142,6 +143,9 @@ def PRED_FALSE_MOVI32ri : InstTCE<(outs R32IRegs:$dst),
     		       (ins R1Regs:$pred, i32imm:$src),
 	           	   "$src -> $dst;", []>;
 
+def MOVF64de : InstTCE<(outs R64FPRegs:$dst), (ins f64imm:$val),
+	           "$val -> $dst;",
+                   [(set R64FPRegs:$dst, (f64 fpimm:$val))]>;
 def MOVF32fk : InstTCE<(outs R32FPRegs:$dst), (ins f32imm:$val),
 	           "$val -> $dst;",
                    [(set R32FPRegs:$dst, (f32 fpimm:$val))]>;
@@ -151,6 +155,7 @@ def MOVF16hk : InstTCE<(outs R32HFPRegs:$dst), (ins f16imm:$val),
 }
 
 // TODO: are these really ever used for anything? propably not?
+// RWH: add a double version? doesn't fit in R32....
 let isReMaterializable = 1, isMoveImm = 1 in {
 def MOVF32fi : InstTCE<(outs R32FPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
@@ -208,6 +213,11 @@ def MOVIF32fr : InstTCE<(outs R32FPRegs:$dst), (ins R32IRegs:$src),
                    [(set R32FPRegs:$dst, (bitconvert R32IRegs:$src))]>;
 
 def MOVF32ff : InstTCE<(outs R32FPRegs:$dst), (ins R32FPRegs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+//RWH: add moves to/from I32 or I64?
+def MOVF64dd : InstTCE<(outs R64FPRegs:$dst), (ins R64FPRegs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -337,6 +347,18 @@ def: Pat<(brind (i32 R32Regs:$dst)),
          (TCEBRIND R32Regs:$dst)>;
 
 // FP stores/loads
+    def LDDdr : InstTCE<(outs R64FPRegs:$op2),
+			(ins MEMrr:$op1), "", [(set R64FPRegs:$op2,
+						(load ADDRrr:$op1))]>;
+
+    def LDDdi : InstTCE<(outs R64FPRegs:$op2),
+			(ins MEMri:$op1), "", [(set R64FPRegs:$op2,
+						(load ADDRri:$op1))]>;
+
+    def STDdr : InstTCE<(outs), (ins MEMrr:$op1, R64FPRegs:$op2), "",
+			[(store R64FPRegs:$op2, ADDRrr:$op1)]>;
+    def STDdi : InstTCE<(outs), (ins MEMri:$op1, R64FPRegs:$op2), "",
+			[(store R64FPRegs:$op2, ADDRri:$op1)]>;
 
     def LDWfr : InstTCE<(outs R32FPRegs:$op2),
 			(ins MEMrr:$op1), "", [(set R32FPRegs:$op2,
@@ -723,7 +745,7 @@ def : Pat <(v8f32 (scalar_to_vector (f32 R32FPRegs:$e))),
         subvector2_0)),
     subvector4_0))>;
 
-// build done with inseet_subreg
+// build done with insert_subreg
 def : Pat <(v2i32 (build_vector (i32 R32IRegs:$e1), R32IRegs:$e2)),
     (v2i32 (INSERT_SUBREG
         (v2i32 (INSERT_SUBREG (v2i32 (IMPLICIT_DEF)),

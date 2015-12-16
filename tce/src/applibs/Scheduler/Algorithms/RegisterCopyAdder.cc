@@ -311,7 +311,7 @@ RegisterCopyAdder::addRegisterCopies(
  *
  * Returns 0 in case there is a connection already.
  *
- * @param originalMove The move that might not be unschedulable due to missing
+ * @param originalMove The move that might be unschedulable due to missing
  * connectivity. Will be modified to read from the temporary reg instead in
  * case connectivity is missing.
  * @param sourcePort The source port.
@@ -530,7 +530,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
        be in the ProgramOperation, i.e., an operation move. The original
        move should be either the last of the chain or the first, in case
        it's input or output move, respectively. In case of register move, 
-       the original move is considered the fisrt of the chain */
+       the original move is considered the first of the chain */
 
 
     TTAProgram::Terminal& omDest = originalMove.move().destination();
@@ -2061,7 +2061,7 @@ void RegisterCopyAdder::resultsScheduled(
 
 
 /** 
- * Find the temporary registers usef for reg copies
+ * Find the temporary registers used for reg copies
  */
 void
 RegisterCopyAdder::findTempRegisters(

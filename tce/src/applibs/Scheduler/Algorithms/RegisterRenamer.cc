@@ -55,7 +55,7 @@
 /**
  * Constructor.
  *
- * @param machine machine for which we are scheudling
+ * @param machine machine for which we are scheduling
  
 RegisterRenamer::RegisterRenamer(const TTAMachine::Machine& machine) :
     machine_(machine) {
@@ -66,7 +66,7 @@ RegisterRenamer::RegisterRenamer(const TTAMachine::Machine& machine) :
 /**
  * Constructor.
 *
- * @param machine machine for which we are scheudling
+ * @param machine machine for which we are scheduling
  */
 RegisterRenamer::RegisterRenamer(
     const TTAMachine::Machine& machine, TTAProgram::BasicBlock& bb) :
@@ -421,7 +421,7 @@ RegisterRenamer::renameDestinationRegister(
         node.move().destination().registerFile();
 
     // don't allow using same reg multiple times if loop scheduling.
-    // unscheudling would cause problems, missing war edges.
+    // unscheduling would cause problems, missing war edges.
     if (loopScheduling) {
         earliestCycle = -1;
     }

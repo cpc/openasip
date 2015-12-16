@@ -1526,13 +1526,13 @@ int ExecutionPipelineResource::resultReadyCycle(
  *
  * This checks that the guards are exclusive, and that the moves are
  * to be scheduled in same cycle (one already scheduled, on is going to
- * be scheudled to given cycle, which has to be the same.
+ * be scheduled to given cycle, which has to be the same.
  * the same cycle requirements makes sure the value of the guard cannot be
  * changed between the moves.
  *
  * @param mn1 movenode which has already been scheduled
  * @param mn2 move which we are going to schedule
- * @param cycle cycle where we are going to scheudle mn2.
+ * @param cycle cycle where we are going to schedule mn2.
  */
 bool ExecutionPipelineResource::exclusiveMoves(
     const MoveNode* mn1, const MoveNode* mn2, int cycle) const {
@@ -1817,7 +1817,7 @@ ExecutionPipelineResource::resultNotOverWritten(
         // no loop scheduling.
         ii = INT_MAX;
     } else {
-        // loop scheudling.
+        // loop scheduling.
         // make sure opeation does not cause conflict
         // with itself on next loop iteration.
         if (resultReadyCycle + (int)ii <= resultReadCycle) {
@@ -1958,7 +1958,7 @@ bool ExecutionPipelineResource::checkOperandAllowed(
 
                 // fail if the other operand happens eaelier than this (it has later usage).
                 
-                // loop scheudling, op overlaps
+                // loop scheduling, op overlaps
                 // need to also check that is not written before the use.
                 if (operandUseModCycle <
                     instructionIndex(mn.cycle())) {

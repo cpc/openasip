@@ -629,7 +629,7 @@ BypassingBUBasicBlockScheduler::scheduleMoveBU(
         endCycle -= targetMachine_->controlUnit()->delaySlots();
     }
 
-    // if regcpy is unscheudled it must be rescheduled
+    // if regcpy is unscheduled it must be rescheduled
     if (t == TempRegAfter) {
         MoveNode* regCopyAfter = regCopiesAfter_[&mn];
         if (regCopyAfter != NULL && 
@@ -726,7 +726,7 @@ BypassingBUBasicBlockScheduler::scheduleMoveBU(
         scheduledMoves_.insert(&mn);
         std::cerr << "\t\tScheduled to cycle: " << rmCycle << std::endl;
 
-        // if regcpy is unscheudled it must be rescheduled
+        // if regcpy is unscheduled it must be rescheduled
         if (t == TempRegBefore) {
             MoveNode* regCopyBefore = regCopiesBefore_[&mn];
             if (regCopyBefore != NULL &&

@@ -1,3 +1,14 @@
+Quick start
+===========
+
+Quick installation instructions are included for several operating systems.  If
+you're running a Debian-based Linux system (e.g. Ubuntu), follow the
+instructions in INSTALL.Debian.  Similarly, for RedHat-related distributions
+(e.g. CentOS), follow the instructions in INSTALL.RedHat.
+
+The remainder of this document goes into more detail on the dependencies,
+versions, and installation procedure for a Unix-style operating system.
+
 Operating system
 ================
 
