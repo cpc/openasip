@@ -64,5 +64,10 @@ patch -Np0 < $patch_dir/llvm-3.7-tcele.patch
 mkdir -p build
 cd build
 ../configure $LLVM_BUILD_MODE --enable-bindings=none --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
-make -j2 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
-make install || eexit "Installation of LLVM/Clang failed."
+make -j4 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
+if [ -w "$TARGET_DIR" ]; then
+    make install || eexit "Installation of LLVM/Clang failed."
+else
+    echo "Installation directory not writable, enter 'sudo' password or cancel and install manually."
+    sudo make install || eexit "Installation of LLVM/Clang failed."
+fi
