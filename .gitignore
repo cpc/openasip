@@ -8,8 +8,11 @@ vgcore*
 core.*
 core
 *.lo
+*.so
 *.la
+*.a
 **/runner
+**/llvm-build-temp
 tce/Makefile
 Makefile.in
 tce/Makefile.in
@@ -35,7 +38,7 @@ tce/*/Makefile
 tce/src/tools/tce_version_string.h
 tce/newlib-1.17.0/tce-llvm
 RE:.*/.deps
-RE:.*/.libs
+**/.libs
 tce/test/Makefile.in
 RE:tce/src/.*/Makefile
 RE:tce/test/.*/Makefile.in
@@ -77,6 +80,7 @@ tce/src/procgen/ProDe/prode
 tce/src/procgen/ProGe/buildicdecoderplugin
 tce/src/procgen/ProGe/generateprocessor
 tce/src/procgen/ProGe/ttaunittester
+tce/src/procgen/MachInfo/machinfo
 tce/a.out
 tce/aclocal.m4
 tce/autom4te.cache/
