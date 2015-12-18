@@ -66,9 +66,11 @@ mkdir -p build
 cd build
 ../configure $LLVM_BUILD_MODE --enable-bindings=none --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
 make -j16 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
+mkdir -p "$TARGET_DIR"
 if [ -w "$TARGET_DIR" ]; then
     make install || eexit "Installation of LLVM/Clang failed."
 else
     echo "Installation directory not writable, enter 'sudo' password or cancel and install manually."
+    sudo mkdir -p "$TARGET_DIR"
     sudo make install || eexit "Installation of LLVM/Clang failed."
 fi
