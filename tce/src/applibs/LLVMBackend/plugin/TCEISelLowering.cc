@@ -945,12 +945,12 @@ TCETargetLowering::getRegForInlineAsmConstraint(
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
     case 'r':
-        return std::make_pair(0U, &TCE::R32IRegsRegClass);
-    case 'f':
         if (VT == MVT::f32) {
             return std::make_pair(0U, &TCE::R32FPRegsRegClass);
         } else if (VT == MVT::f64) {
             return std::make_pair(0U, &TCE::R64FPRegsRegClass);
+        } else {
+            return std::make_pair(0U, &TCE::R32IRegsRegClass);
         }
     }
   }
