@@ -709,7 +709,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
     }
 
     o << std::endl
-      << "def R64Regs : RegisterClass<\"TCE\", [i64,f64], 32, (add " // DIRES
+      << "def R64Regs : RegisterClass<\"TCE\", [i64,f64], 64, (add " // DIRES
       << i64regs << ")> ;"
       << std::endl;
 
@@ -731,7 +731,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
         f64regs += "DRES0";
     }
     o << std::endl
-      << "def R64FPRegs : RegisterClass<\"TCE\", [f64], 32, (add "
+      << "def R64FPRegs : RegisterClass<\"TCE\", [f64], 64, (add "
       << f64regs << ")>;" << std::endl;
 }
 
