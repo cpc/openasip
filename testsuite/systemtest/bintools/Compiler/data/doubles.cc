@@ -23,7 +23,7 @@ volatile double data64[16] = { 1.0, -2.0,  2.0/3.0, 10.0,
                                2.3,  4.5,  1.1*4.9,  4.5};//pow(1.3, 4.5)};
 
 
-// helper function until TUT comes back from Christmas...
+// helper function until we can get fabs sorted out
 //#define my_fabs(val)  (((val)>=0) ? (val) : (-(val)))
 //inline double my_fabs(double val)
 //{
@@ -32,13 +32,20 @@ volatile double data64[16] = { 1.0, -2.0,  2.0/3.0, 10.0,
 //    else
 //        return -val;
 //}
+double my_fabs(double val)
+{
+    //return std::abs(val);
+    double abs_val;
+    _TCE_ABSD(val, abs_val);
+    return abs_val;
+}
 
 // helper function, check for approximate equality, update success
 void check_approx_eql(int &succ, double desired, double actual, const char *msg, double tol=5e-15)
 {
     // gentle variation from absolute tolerance at actual==0 to |actual|==1.0
     double abs_tol;
-    if (fabs(actual) < 1.0) {
+    if (my_fabs(actual) < 1.0) {
         // hybrid absolute/relative tolerance: absolute tolerance of tol/2 at
         // actual==0, increases quadratically to tol*actual (with the right
         // derivative) at |actual|==1.0
@@ -46,11 +53,11 @@ void check_approx_eql(int &succ, double desired, double actual, const char *msg,
     } else {
         // typical relative error measure, i.e. the absolute tolerance is
         // proportional to the actual value
-        abs_tol = fabs(tol * actual);
+        abs_tol = my_fabs(tol * actual);
     }
 
     // tolerance test
-    if (fabs(desired - actual) > abs_tol) {
+    if (my_fabs(desired - actual) > abs_tol) {
         lwpr_print_str(msg);
         succ = 0;
     }
@@ -64,31 +71,31 @@ int main()
     double a, b;
 
     // quick, simple tests
-    check_approx_eql(succ, 1.567, fabs(-1.567), "fabs (absd) failed");
+    check_approx_eql(succ, 1.567, my_fabs(-1.567), "fabs (absd) failed");
 
-    // test that memory stores are correct
-    a = 2.0;
-    b = 3.0;
-    check_approx_eql(succ, a/b, data64[2], "stored divide result failed");
-    a = 12.0;
-    b = 5.0;
-    check_approx_eql(succ, a+b, data64[6], "stored add result failed");
-    a = -4.0;
-    b = 2.0;
-    check_approx_eql(succ, a-b, data64[10], "stored subtract result failed");
-    a = 1.1;
-    b = 4.9;
-    check_approx_eql(succ, a*b, data64[14], "stored multiply result failed");
-
-    a = data64[14];
-    b = data64[15];
-    
-    a = 1.4;
-
-    data64[2] = a + b;
-    data64[3] = a - b;
-    data64[4] = a * b;
-    data64[5] = a / b;
+//future:    // test that memory stores are correct
+//future:    a = 2.0;
+//future:    b = 3.0;
+//future:    check_approx_eql(succ, a/b, data64[2], "stored divide result failed");
+//future:    a = 12.0;
+//future:    b = 5.0;
+//future:    check_approx_eql(succ, a+b, data64[6], "stored add result failed");
+//future:    a = -4.0;
+//future:    b = 2.0;
+//future:    check_approx_eql(succ, a-b, data64[10], "stored subtract result failed");
+//future:    a = 1.1;
+//future:    b = 4.9;
+//future:    check_approx_eql(succ, a*b, data64[14], "stored multiply result failed");
+//future:
+//future:    a = data64[14];
+//future:    b = data64[15];
+//future:    
+//future:    a = 1.4;
+//future:
+//future:    data64[2] = a + b;
+//future:    data64[3] = a - b;
+//future:    data64[4] = a * b;
+//future:    data64[5] = a / b;
 
 
     return !succ;
