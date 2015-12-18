@@ -5,8 +5,15 @@
 //#include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include "lwpr.h"
+#include <lwpr.h>
 #include "tceops.h"
+
+
+// this really belongs in tce/bclib/include/lwpr.h
+void lwpr_print_str(const char* str)
+{
+    lwpr_print_str(const_cast<char*>(str));
+}
 
 
 // check storing double data to DATA section
@@ -17,7 +24,7 @@ volatile double data64[16] = { 1.0, -2.0,  2.0/3.0, 10.0,
 
 
 // helper function until TUT comes back from Christmas...
-#define my_fabs(val)  (((val)>=0) ? (val) : (-(val)))
+//#define my_fabs(val)  (((val)>=0) ? (val) : (-(val)))
 //inline double my_fabs(double val)
 //{
 //    if (val >= 0.0)
@@ -27,30 +34,26 @@ volatile double data64[16] = { 1.0, -2.0,  2.0/3.0, 10.0,
 //}
 
 // helper function, check for approximate equality, update success
-void check_approx_eql(int &succ, double desired, double actual, const char *msg, double tol=1e-15)
+void check_approx_eql(int &succ, double desired, double actual, const char *msg, double tol=5e-15)
 {
-    double norm = actual;
-    double val_abs;
+    // gentle variation from absolute tolerance at actual==0 to |actual|==1.0
+    double abs_tol;
+    if (fabs(actual) < 1.0) {
+        // hybrid absolute/relative tolerance: absolute tolerance of tol/2 at
+        // actual==0, increases quadratically to tol*actual (with the right
+        // derivative) at |actual|==1.0
+        abs_tol = 0.5*tol * (1.0 + actual * actual);
+    } else {
+        // typical relative error measure, i.e. the absolute tolerance is
+        // proportional to the actual value
+        abs_tol = fabs(tol * actual);
+    }
 
-    // handle normalization, don't want to divide by zero
-    //if (fabs(desired) < tol) { // newlib making a mess of this
-    //if (desired < tol) { // newlib making a mess of this
-    if (my_fabs(desired) < tol) { // newlib making a mess of this
+    // tolerance test
+    if (fabs(desired - actual) > abs_tol) {
+        lwpr_print_str(msg);
         succ = 0;
     }
-    //if (fabs(desired) < tol) { // newlib making a mess of this
-    //_TCE_ABSD(desired, val_abs);
-    //if (val_abs < tol) {
-    //    norm = 1.0;
-    //} 
-
-//compiler:    // check for approximately equal within tolerance
-//compiler:    //if (fabs(actual - desired)/actual > tol) {
-//compiler:    _TCE_ABSD(actual - desired, val_abs);
-//compiler:    if (val_abs / actual > tol) {
-//compiler:        lwpr_print_str((char*)msg);
-//compiler:        succ = 0;
-//compiler:    }
 }
 
 
