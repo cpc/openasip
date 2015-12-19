@@ -5,9 +5,10 @@
 //#include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include <lwpr.h>
 #include "tceops.h"
-
+extern "C" {
+#include <lwpr.h>
+}
 
 // this really belongs in tce/bclib/include/lwpr.h
 void lwpr_print_str(const char* str)
