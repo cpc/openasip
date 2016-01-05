@@ -2728,11 +2728,15 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
     
     if(language_==VHDL){
         stream << indentation(4) << "if (" << squashSignal(bus.name())
-               << " = '0' and " << "conv_integer(unsigned("
-               << srcFieldSignal(bus.name()) << "("
-               << enc.encodingPosition() + enc.encodingWidth() - 1
-               << " downto " << enc.encodingPosition() << "))) = "
-               << enc.encoding() << ") then" << endl;
+               << " = '0'";
+        if (enc.encodingWidth() > 0) {
+            stream << " and " << "conv_integer(unsigned("
+                   << srcFieldSignal(bus.name()) << "("
+                   << enc.encodingPosition() + enc.encodingWidth() - 1
+                   << " downto " << enc.encodingPosition() << "))) = "
+                   << enc.encoding();
+        }
+        stream << ") then" << endl;
         stream << indentation(5) << simmCntrlSignalName(bus.name())
                << "(0) <= '1';" << endl;
         stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
@@ -2751,11 +2755,14 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
         stream << indentation(4) << "end if;" << endl;
     } else {
         stream << indentation(4) << "if (" 
-               << squashSignal(bus.name()) << " == 0 && "
-               << srcFieldSignal(bus.name()) << "[" 
-               << enc.encodingPosition() + enc.encodingWidth() - 1 << " : " 
-               << enc.encodingPosition() << "] == " << enc.encoding() << ")"
-               << endl
+               << squashSignal(bus.name()) << " == 0";
+        if (enc.encodingWidth() > 0) {
+            stream << " && "
+                << srcFieldSignal(bus.name()) << "["
+                << enc.encodingPosition() + enc.encodingWidth() - 1 << " : "
+                << enc.encodingPosition() << "] == " << enc.encoding();
+        }
+        stream << ")" << endl
                << indentation(4) << "begin" << endl
                << indentation(5) << simmCntrlSignalName(bus.name())
                << "[0] <= 1'b1;" << endl
@@ -4552,8 +4559,8 @@ DefaultDecoderGenerator::connectedBuses(const TTAMachine::Socket& socket) {
 
 
 /**
- * Returns the condition when data is tranferred by the given socket in the given
- * source field.
+ * Returns the condition when data is transferred by the given socket in the
+ * given source field.
  *
  * @param srcField The source field.
  * @param socketName Name of the socket.
@@ -4574,14 +4581,24 @@ DefaultDecoderGenerator::socketEncodingCondition(
     SocketEncoding& enc = slotField.socketEncoding(socketName);
     int start = enc.socketIDPosition();
     int end = start + enc.socketIDWidth() - 1;
-    if(language==VHDL){
-        return "conv_integer(unsigned(" + signalName + "(" + 
-            Conversion::toString(end) + " downto " +  Conversion::toString(start) +
-            "))) = " + Conversion::toString(enc.encoding());
+    if (language == VHDL) {
+        if (enc.socketIDWidth() == 0) {
+            return "true";
+        } else {
+            return "conv_integer(unsigned(" + signalName + "("
+                + Conversion::toString(end) + " downto "
+                + Conversion::toString(start)
+                + "))) = " + Conversion::toString(enc.encoding());
+        }
     } else {
-        return signalName + "[" + 
-            Conversion::toString(end) + " : " +  Conversion::toString(start) +
-            "] == " + Conversion::toString(enc.encoding());    
+        if (enc.socketIDWidth() == 0) {
+            return "1";
+        } else {
+            return signalName + "["
+                + Conversion::toString(end) + " : "
+                + Conversion::toString(start)
+                + "] == " + Conversion::toString(enc.encoding());
+        }
     }
 }
 

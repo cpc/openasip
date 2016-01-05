@@ -1058,7 +1058,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
-            if (outputSockets.size() == 0) {
+            // Skip bus assignment if no one can write into it.
+            if (outputSockets.size() == 0 && bus->immediateWidth() == 0) {
                 continue;
             }
             // Sort sockets by name to get deterministic HDL output.
