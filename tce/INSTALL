@@ -58,7 +58,7 @@ the command line interface of the simulator.
 
 You can download the sources here: http://www.thrysoee.dk/editline/
 
-Note: this library might require 'termcap' library in some distributions. 
+Note: this library might require 'termcap' library in some distributions.
 The package is named 'libedit-dev' in Debian-based distributions.
 
 Boost
