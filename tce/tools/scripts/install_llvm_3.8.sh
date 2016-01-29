@@ -26,8 +26,6 @@ temp_dir=llvm-build-temp
 mkdir -p $temp_dir
 cd $temp_dir
 
-PATCH_FAIL_LOG=$script_dir/$temp_dir/llvm-3.8-patch-fail.log
-
 function eexit {
    echo "$1"
    exit 1
@@ -65,8 +63,8 @@ function fetch_clang {
 }
 
 function try_patch {
-    patch -Np0 < $1 >& $PATCH_FAIL_LOG \
-	|| { echo "patching with $(basename $1) failed"; $ON_PATCH_FAIL; } 
+    patch -Np0 < $1 \
+        || { echo "patching with $(basename $1) failed"; $ON_PATCH_FAIL; } 
 }
 
 function apply_patches {
