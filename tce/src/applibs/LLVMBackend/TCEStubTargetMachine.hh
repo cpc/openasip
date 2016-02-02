@@ -114,7 +114,8 @@ namespace llvm {
         const TCEStubSubTarget *getSubtargetImpl() const {
             return ST;
         }
-        const TCEStubSubTarget *getSubtargetImpl(const Function&) const {
+        const TCEStubSubTarget *getSubtargetImpl(const Function&) 
+	    const override {
             return ST;
         }
     };

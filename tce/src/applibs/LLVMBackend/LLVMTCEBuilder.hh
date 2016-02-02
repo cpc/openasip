@@ -121,7 +121,11 @@ namespace llvm {
         }
 
         void getAnalysisUsage(AnalysisUsage &AU) const {
+#ifdef LLVM_OLDER_THAN_3_8
             AU.addRequired<AliasAnalysis>();
+#else
+	    AU.addRequired<AAResultsWrapperPass>();
+#endif
             AU.addRequired<MachineDCE>();
             AU.addPreserved<MachineDCE>();
             MachineFunctionPass::getAnalysisUsage(AU);

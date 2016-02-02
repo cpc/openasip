@@ -518,7 +518,11 @@ TCEInstrInfo::
 isProfitableToIfCvt(MachineBasicBlock &MBB,
                     unsigned NumCycles,
                     unsigned ExtraPredCycles,
+#ifdef LLVM_OLDER_THAN_3_8
                     const BranchProbability &Probability) const {
+#else
+                    BranchProbability Probability) const {
+#endif
     return true;
 }
 
@@ -531,6 +535,10 @@ isProfitableToIfCvt(MachineBasicBlock &TMBB,
                     MachineBasicBlock &FMBB,
                     unsigned NumFCycles,
                     unsigned ExtraFCycles,
+#ifdef LLVM_OLDER_THAN_3_8
                     const BranchProbability &Probability) const {
+#else
+                    BranchProbability Probability) const {
+#endif
     return true;
 }

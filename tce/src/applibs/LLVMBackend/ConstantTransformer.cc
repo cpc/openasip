@@ -166,7 +166,6 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                         << "Input " << inputIndex 
                         << " not found for operation "
                         << opname << std::endl;
-                    mi->dump();
                     assert(false);
                 }
                 assert(operand.isInput());
@@ -195,7 +194,6 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
 #if 0
                     Application::logStream() 
                         << "ConstantTransformer: converting constant in ";
-                    j->dump();
 #endif
                     // RV_HIGH = SUB 0 -X
                     BuildMI(

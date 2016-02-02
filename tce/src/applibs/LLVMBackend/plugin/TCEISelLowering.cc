@@ -774,11 +774,20 @@ SDValue TCETargetLowering::LowerTRAP(SDValue Op, SelectionDAG &DAG) const {
         DAG.getExternalSymbol("_exit", getPointerTy()),
         std::move(Args),
         0);
+#elif defined(LLVM_OLDER_THAN_3_8)
+    CLI.setCallee(
+        CallingConv::C, 
+        Type::getVoidTy(*DAG.getContext()),
+        DAG.getExternalSymbol("_exit", 
+             getPointerTy(*getTargetMachine().getDataLayout(), 0)),
+        std::move(Args),
+        0);
 #else
     CLI.setCallee(
         CallingConv::C, 
         Type::getVoidTy(*DAG.getContext()),
-        DAG.getExternalSymbol("_exit", getPointerTy(*getTargetMachine().getDataLayout(), 0)),
+        DAG.getExternalSymbol("_exit", 
+             getPointerTy(getTargetMachine().createDataLayout(), 0)),
         std::move(Args),
         0);
 #endif
@@ -812,10 +821,14 @@ TCETargetLowering::LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const {
   SDLoc dl(Op);
 #ifdef LLVM_OLDER_THAN_3_7
   return DAG.getNode(TCEISD::BLOCK_ADDR, dl, getPointerTy(), BA_SD);
-#else
+#elif defined(LLVM_OLDER_THAN_3_8)
   return DAG.getNode(
       TCEISD::BLOCK_ADDR, dl, 
       getPointerTy(*getTargetMachine().getDataLayout(), 0), BA_SD);
+#else
+  return DAG.getNode(
+      TCEISD::BLOCK_ADDR, dl, 
+      getPointerTy(getTargetMachine().createDataLayout(), 0), BA_SD);
 #endif
 }
 
@@ -846,10 +859,14 @@ TCETargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
     SDLoc dl(Op);
 #ifdef LLVM_OLDER_THAN_3_7
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
-#else
+#elif defined(LLVM_OLDER_THAN_3_8)
     EVT PtrVT = 
         DAG.getTargetLoweringInfo().getPointerTy(
             *getTargetMachine().getDataLayout(), 0);
+#else
+    EVT PtrVT = 
+        DAG.getTargetLoweringInfo().getPointerTy(
+            getTargetMachine().createDataLayout(), 0);
 #endif
     SDValue FR = DAG.getFrameIndex(getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();

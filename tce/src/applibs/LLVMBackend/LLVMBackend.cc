@@ -243,7 +243,9 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
     initializeScalarOpts(Registry);
     initializeIPO(Registry);
     initializeAnalysis(Registry);
+#ifdef LLVM_OLDER_THAN_3_8
     initializeIPA(Registry);
+#endif
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
     initializeTarget(Registry);
@@ -737,9 +739,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             pluginIncludeFlags +
             " -I" + tempDir_ + 
-            " -I" + LLVM_INCLUDEDIR +
-            " -I" + LLVM_INCLUDEDIR + "/Target" +
-            " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
+            " -I" + LLVM_INCLUDE_DIR +
+            " -I" + LLVM_INCLUDE_DIR + "/Target" +
+            " -I" + LLVM_INCLUDE_DIR + "/llvm/Target"; 
     }
 
     tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";

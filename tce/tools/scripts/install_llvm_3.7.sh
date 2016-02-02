@@ -59,6 +59,8 @@ cd ../../$llvm_co_dir
 patch -Np0 < $patch_dir/llvm-3.7-custom-vector-extension.patch
 patch -Np0 < $patch_dir/llvm-3.7-tce.patch
 patch -Np0 < $patch_dir/llvm-3.7-tcele.patch
+patch -Np0 < $patch_dir/llvm-3.7-memcpyoptimizer-only-on-default-as.patch
+patch -Np0 < $patch_dir/llvm-3.5-loopidiomrecognize-only-on-default-as.patch
 #####
 
 mkdir -p build

@@ -54,7 +54,8 @@ namespace llvm {
         }
 
     public:
-        explicit TCEStubTTIImpl(const TCEStubTargetMachine *TM, Function &F)
+        explicit TCEStubTTIImpl(const TCEStubTargetMachine *TM, 
+				const Function &F)
             : BaseT(TM, F.getParent()->getDataLayout()),
               TM(TM), ST(TM->getSubtargetImpl()) {}
 

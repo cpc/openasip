@@ -154,17 +154,27 @@ namespace llvm {
 	}
 #endif
 
-	virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
-					 unsigned ExtraPredCycles,
-					 const BranchProbability &Probability) const override;
-	
-	virtual bool isProfitableToIfCvt(MachineBasicBlock &TMBB,
-					 unsigned NumTCycles, unsigned ExtraTCycles,
-					 MachineBasicBlock &FMBB,
-					 unsigned NumFCycles, unsigned ExtraFCycles,
-					 const BranchProbability &Probability) const override;
+#ifdef LLVM_OLDER_THAN_3_8
+    virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
+                     unsigned ExtraPredCycles,
+                     const BranchProbability &Probability) const override;
 
+    virtual bool isProfitableToIfCvt(MachineBasicBlock &TMBB,
+                     unsigned NumTCycles, unsigned ExtraTCycles,
+                     MachineBasicBlock &FMBB,
+                     unsigned NumFCycles, unsigned ExtraFCycles,
+                     const BranchProbability &Probability) const override;
+#else
+    virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
+                     unsigned ExtraPredCycles,
+                     BranchProbability Probability) const override;
 
+    virtual bool isProfitableToIfCvt(MachineBasicBlock &TMBB,
+                     unsigned NumTCycles, unsigned ExtraTCycles,
+                     MachineBasicBlock &FMBB,
+                     unsigned NumFCycles, unsigned ExtraFCycles,
+                     BranchProbability Probability) const override;
+#endif
 
     private:
 	int getMatchingCondBranchOpcode(int Opc, bool inverted) const;

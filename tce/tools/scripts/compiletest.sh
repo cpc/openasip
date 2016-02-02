@@ -254,7 +254,7 @@ In.file.included.from.../../../../../..//test/cxxtest/../cxxtest/Root.cpp:17.*|\
 .*DataDependenceGraphBuilder.hh:38,|\
 .*ignoring.\#pragma.GCC.diagnostic.*|\
 distcc.*Warning.*|\
-.*clang..warning..argument.unused.during.compilation.*|\
+.*clang(-[[:digit:]].[[:digit:]])?..warning..argument.unused.during.compilation.*|\
 .*wxDummyCheckInt.*|\
 .*boost/.*warning:.typedef.'.*|\
 .*libtool:.link:.warning:.*libstdc\+\+\.la..seems.to.be.moved.*"

@@ -48,6 +48,7 @@ POP_COMPILER_DIAGS
 using namespace llvm;
 
 #include <iostream>
+#include <memory>
 #include <map>
 
 namespace {
@@ -112,12 +113,16 @@ LinkBitcode::doInitialization(Module& M) {
 	    &M, &inputModule_, Linker::DestroySource, &errors)) {
         errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
     } 
-#else
+#elif defined(LLVM_OLDER_THAN_3_8)
     // TODO: what about the destroysource thing?
     // TODO: DiagnosticHandledFunction
     if (Linker::LinkModules(&M, &inputModule_)) {
         errs() << "Error during linking in LinkBitcodePass: " << "\n";
-    } 
+    }
+#else
+    if (Linker::linkModules(M, std::unique_ptr<Module>(&inputModule_))) {
+        errs() << "Error during linking in LinkBitcodePass: " << "\n";
+    }
 #endif
     return true;
 }

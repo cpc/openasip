@@ -172,7 +172,6 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
 #endif
             MRI.setRegClass(result.getReg(), newRegClass);
 #ifdef DEBUG_PROGRAM_PARTITIONER
-            mi.dump();
             std::cerr << "[ASSIGNED REG CLASS " 
                       << newRegClass->getName() << "]" << std::endl;
 #endif
@@ -318,7 +317,6 @@ ProgramPartitioner::findNodeIndex(
     } else {
         std::cerr << "[NODE INDEX UNKNOWN]: ";
     }
-    mi.dump();
 #endif
     if (nodeIndex == UINT_MAX) return false;
     partitions[&mi] = nodeIndex;

@@ -1,0 +1,15 @@
+Index: lib/Transforms/Scalar/MemCpyOptimizer.cpp
+===================================================================
+--- lib/Transforms/Scalar/MemCpyOptimizer.cpp	(revision 245937)
++++ lib/Transforms/Scalar/MemCpyOptimizer.cpp	(working copy)
+@@ -493,6 +493,10 @@
+ 
+ bool MemCpyOpt::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
+   if (!SI->isSimple()) return false;
++
++  // The C memset and memcpy work only with the default address space.
++  if (SI->getPointerAddressSpace() != 0) return false;
++
+   const DataLayout &DL = SI->getModule()->getDataLayout();
+ 
+   // Detect cases where we're performing call slot forwarding, but

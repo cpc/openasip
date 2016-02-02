@@ -152,12 +152,14 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     dl_ = tm_->getDataLayout();
 #elif (defined(LLVM_OLDER_THAN_3_7))
     dl_ = tm_->getSubtargetImpl()->getDataLayout();
-#else
+#elif (defined(LLVM_OLDER_THAN_3_8))
     // The required type size info is the same for both BE and LE targets,
     // no need to ask for the sub target as it requires llvm::Function in
     // LLVM 3.7 for some reason. If the endianness is needed, ask for it
     // separately.
     dl_ = tm_->getDataLayout();
+#else
+    dl_ = new DataLayout(tm_->createDataLayout());
 #endif
 }
 
@@ -306,7 +308,11 @@ LLVMTCEBuilder::initDataSections() {
          i != mod_->global_end(); i++) {
 
         SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_3_8
         mang_->getNameWithPrefix(Buffer, i, false);
+#else
+	mang_->getNameWithPrefix(Buffer, &(*i), false);
+#endif
         TCEString name(Buffer.c_str());
         
         const llvm::GlobalValue& gv = *i;
@@ -467,11 +473,19 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
              i != mod_->global_end(); i++) {
 
             SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_3_8
             mang_->getNameWithPrefix(Buffer, i, false);
             if (def.name == Buffer.c_str()) {
                 var = i;
                 break;
             }
+#else
+            mang_->getNameWithPrefix(Buffer, &(*i), false);
+            if (def.name == Buffer.c_str()) {
+                var = &(*i);
+                break;
+            }
+#endif
         }
 
         unsigned addr = def.address;
@@ -921,7 +935,6 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             TTAProgram::Instruction* instr = NULL;
 #ifdef DEBUG_LLVMTCEBUILDER
             std::cerr << "### converting: ";
-            j->dump();
             std::cerr << std::endl;
 #endif
             instr = emitInstruction(j, proc);
@@ -1285,7 +1298,6 @@ LLVMTCEBuilder::emitInstruction(
     int inputOperand = 0;
     int outputOperand = operation.numberOfInputs();
 #ifdef DEBUG_LLVMTCEBUILDER
-    mi->dump();
     PRINT_VAR(operation.numberOfInputs());
     PRINT_VAR(operation.numberOfOutputs());
     Application::logStream() << " mi->getNumOperands() = " 
@@ -1585,7 +1597,6 @@ LLVMTCEBuilder::addPointerAnnotations(
         Application::logStream() << "move " << move->toString()
                                  << " does not have mem operands!"
                                  << std::endl;
-        mi->dump();
     }
 #endif
 
@@ -2527,7 +2538,6 @@ LLVMTCEBuilder::emitInlineAsm(
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
                           << "operation '" << opName << "'." << std::endl;
-                mi->dump();
                 assert(false);
             }
             src = createTerminal(mo);
@@ -2580,7 +2590,6 @@ LLVMTCEBuilder::emitInlineAsm(
         std::cerr << "Undefined: " << defOps.size() << " output operands, "
                   << useOps.size() << " input operands." << std::endl;
 
-        mi->dump();
         abortWithError("Cannot continue");
     }
 
@@ -2682,7 +2691,6 @@ LLVMTCEBuilder::emitReadSP(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
-        mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".read_sp\"");
     }
@@ -2724,7 +2732,6 @@ LLVMTCEBuilder::handleMemoryCategoryInfo(
     if (mi->getNumOperands() != 6) {
         Application::logStream() 
             << "got " << mi->getNumOperands() << " operands" << std::endl;
-        mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".pointer_category\"");
     }
@@ -2905,8 +2912,12 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
     // function pointers and priorities
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
-        
+
+#ifdef LLVM_OLDER_THAN_3_8        
         const GlobalVariable* gv = i;
+#else
+        const GlobalVariable* gv = &(*i);
+#endif
 
         if (gv->getName() == globalName && gv->use_empty()) {
             // The initializer should be an array of '{ int, void ()* }' 

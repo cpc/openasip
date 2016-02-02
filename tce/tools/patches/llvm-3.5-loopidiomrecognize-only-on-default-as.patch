@@ -1,0 +1,22 @@
+Index: lib/Transforms/Scalar/LoopIdiomRecognize.cpp
+===================================================================
+--- lib/Transforms/Scalar/LoopIdiomRecognize.cpp	(revision 230552)
++++ lib/Transforms/Scalar/LoopIdiomRecognize.cpp	(working copy)
+@@ -771,6 +771,8 @@
+ /// processLoopStore - See if this store can be promoted to a memset or memcpy.
+ bool LoopIdiomRecognize::processLoopStore(StoreInst *SI, const SCEV *BECount) {
+   if (!SI->isSimple()) return false;
++  // The C memset and memcpy work only with the default address space.
++  if (SI->getPointerAddressSpace() != 0) return false;
+ 
+   Value *StoredVal = SI->getValueOperand();
+   Value *StorePtr = SI->getPointerOperand();
+@@ -814,6 +816,8 @@
+   // this this may be transformable into a memcpy.  This kicks in for stuff like
+   //   for (i) A[i] = B[i];
+   if (LoadInst *LI = dyn_cast<LoadInst>(StoredVal)) {
++      if (LI->getPointerAddressSpace() != 0)
++          return false;
+     const SCEVAddRecExpr *LoadEv =
+       dyn_cast<SCEVAddRecExpr>(SE->getSCEV(LI->getOperand(0)));
+     if (LoadEv && LoadEv->getLoop() == CurLoop && LoadEv->isAffine() &&

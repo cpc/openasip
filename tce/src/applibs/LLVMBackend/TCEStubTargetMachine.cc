@@ -128,9 +128,15 @@ TCEStubTargetMachine::TCEStubTargetMachine(
 }
 
 TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
+#ifdef LLVM_OLDER_THAN_3_8
     return TargetIRAnalysis(
         [this](Function &F) {
             return TargetTransformInfo(TCEStubTTIImpl(this, F)); });
+#else
+    return TargetIRAnalysis(
+        [this](const Function &F) {
+            return TargetTransformInfo(TCEStubTTIImpl(this, F)); });
+#endif
 }
 
 TCEStubTargetMachine::~TCEStubTargetMachine() {}

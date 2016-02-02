@@ -480,13 +480,19 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
      LLVM_OLDER_THAN_3_6=1
      LLVM_OLDER_THAN_3_7=1
-   ;;   
+     LLVM_OLDER_THAN_3_8=1
+   ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
      LLVM_OLDER_THAN_3_7=1
+     LLVM_OLDER_THAN_3_8=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
+     LLVM_OLDER_THAN_3_8=1
+   ;;
+     3.8*)
+     AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
    ;;
      *)
    AC_MSG_NOTICE(
@@ -511,6 +517,11 @@ fi
 if test "x$LLVM_OLDER_THAN_3_7" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_7, 1, [LLVM version is older than 3.7])
+fi
+
+if  test "x$LLVM_OLDER_THAN_3_8" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_8, 1, [LLVM version is older than 3.8])
 fi
 
 AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
@@ -540,8 +551,8 @@ AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
 AC_SUBST([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"])
 #These are defined by llvm-config.h:
-#AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
 #AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
+AC_SUBST([LLVM_INCLUDE_DIR], ["$LLVM_INCLUDEDIR"])
 AC_SUBST([LLVM_BINDIR], ["$LLVM_BINDIR"])
 AC_SUBST([LLVM_CONFIG], ["$llvmConf"])
 
@@ -550,10 +561,9 @@ AC_DEFINE_UNQUOTED([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"],
 
 AC_DEFINE_UNQUOTED([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"],
                    [LLVM linkage flags.])
-
+AC_DEFINE_UNQUOTED([LLVM_INCLUDE_DIR], ["$LLVM_INCLUDEDIR"],
+                   [Directory containing LLVM headers.])
 #These are defined by llvm-config.h:
-#AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
-#                   [Directory containing LLVM headers.])
 #
 #AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
 #                   [Directory containing LLVM libraries.])

@@ -2062,7 +2062,7 @@ ControlFlowGraph::buildMBBFromBB(
 
 #ifdef DEBUG_POM_TO_MI
                 Application::logStream() << "MI: "; 
-                mi->dump();
+                //mi->dump();
 #endif
 
                 

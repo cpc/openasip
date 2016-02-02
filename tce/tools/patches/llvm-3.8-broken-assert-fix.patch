@@ -1,0 +1,41 @@
+Index: include/llvm/IR/Value.h
+===================================================================
+--- include/llvm/IR/Value.h	(revision 259321)
++++ include/llvm/IR/Value.h	(working copy)
+@@ -280,11 +280,7 @@
+   // when using them since you might not get all uses.
+   // The methods that don't start with materialized_ assert that modules is
+   // fully materialized.
+-#ifdef NDEBUG
+-  void assertModuleIsMaterialized() const {}
+-#else
+   void assertModuleIsMaterialized() const;
+-#endif
+ 
+   bool use_empty() const {
+     assertModuleIsMaterialized();
+Index: lib/IR/Value.cpp
+===================================================================
+--- lib/IR/Value.cpp	(revision 259321)
++++ lib/IR/Value.cpp	(working copy)
+@@ -313,8 +313,8 @@
+     ST->reinsertValue(this);
+ }
+ 
++void Value::assertModuleIsMaterialized() const {
+ #ifndef NDEBUG
+-void Value::assertModuleIsMaterialized() const {
+   const GlobalValue *GV = dyn_cast<GlobalValue>(this);
+   if (!GV)
+     return;
+@@ -322,8 +322,10 @@
+   if (!M)
+     return;
+   assert(M->isMaterialized());
++#endif
+ }
+ 
++#ifndef NDEBUG
+ static bool contains(SmallPtrSetImpl<ConstantExpr *> &Cache, ConstantExpr *Expr,
+                      Constant *C) {
+   if (!Cache.insert(Expr).second)

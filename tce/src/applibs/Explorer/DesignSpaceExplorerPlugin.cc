@@ -157,7 +157,6 @@ DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
             std::string msg = it->second.name() + " parameter is needed.";
             throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
         }
-        ++it;
     }
 }
 
