@@ -73,7 +73,6 @@ function apply_patches {
     try_patch $patch_dir/llvm-3.8-tce-and-tcele.patch
     try_patch $patch_dir/llvm-3.8-memcpyoptimizer-only-on-default-as.patch
     try_patch $patch_dir/llvm-3.8-loopidiomrecognize-only-on-default-as.patch
-    try_patch $patch_dir/llvm-3.8-broken-assert-fix.patch
     cd ..
 }
 
