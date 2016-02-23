@@ -65,11 +65,11 @@ namespace boost {
 #include "hash_map.hh"
 
 #include "CompilerWarnings.hh"
-IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 
 #include "Exception.hh"
 #include "Graph.hh"

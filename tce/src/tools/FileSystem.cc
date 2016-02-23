@@ -50,9 +50,9 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>
 #include "CompilerWarnings.hh"
-IGNORE_COMPILER_WARNING("-Wkeyword-macro");
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 #include <boost/format.hpp>
 
 #include "MathTools.hh"

@@ -69,5 +69,33 @@
 
 #endif
 
+// Macro to suppress warnings for clang only. In some cases the
+// IGNORE_COMPILER_WARNING is not preferred for both the GCC and clang. For
+// example, clang has own warning enabled with -Wall/-Wextra or warning option
+// differs slightly (-Wunused-local-typedef vs -Wunused-local-typedefs).
+// Use POP_CLANG_DIAGS to remove the diagnostic.
+#ifdef __clang__
+
+#define IGNORE_CLANG_WARNING(X)                           \
+    DO_PRAGMA(clang diagnostic push)                      \
+    DO_PRAGMA(clang diagnostic ignored X)
+
+#else
+
+#define IGNORE_CLANG_WARNING(X)
+
+#endif
+
+#ifdef __clang__
+
+#define POP_CLANG_DIAGS \
+    DO_PRAGMA(clang diagnostic pop)
+
+#else
+
+#define POP_CLANG_DIAGS
+
+#endif
+
 #endif
 

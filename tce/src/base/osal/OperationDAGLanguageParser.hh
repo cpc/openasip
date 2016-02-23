@@ -69,7 +69,7 @@
 
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
-IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #if BOOST_VERSION >= 103800
 
 #define PHOENIX_LIMIT 10
@@ -111,7 +111,7 @@ using namespace boost::spirit::classic;
 using namespace boost::spirit;
 
 #endif
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 POP_COMPILER_DIAGS
 
 #include "Conversion.hh"

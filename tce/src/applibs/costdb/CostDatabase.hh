@@ -39,9 +39,9 @@
 #include <map>
 #include <string>
 #include "CompilerWarnings.hh"
-IGNORE_COMPILER_WARNING("-Wkeyword-macro");
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 
 #include "CostDBTypes.hh"
 #include "Exception.hh"
