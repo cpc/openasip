@@ -31,7 +31,10 @@
  * @note rating: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
 #include <boost/lexical_cast.hpp>
+POP_COMPILER_DIAGS
 
 #include "ITemplateBroker.hh"
 #include "ITemplateResource.hh"

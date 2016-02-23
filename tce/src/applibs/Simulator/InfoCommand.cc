@@ -36,7 +36,10 @@
 #include <string>
 #include <sstream>
 
-#include "boost/regex.hpp"
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wkeyword-macro");
+#include <boost/regex.hpp>
+POP_COMPILER_DIAGS
 #include "boost/tuple/tuple.hpp"
 
 #include "InfoCommand.hh"

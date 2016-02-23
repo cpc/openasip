@@ -39,8 +39,13 @@
 #include <map>
 #include <vector>
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/depth_first_search.hpp>
+POP_COMPILER_DIAGS
+POP_COMPILER_DIAGS
 
 namespace llvm {
     class MCSymbol;

@@ -33,7 +33,10 @@
 
 #include <cstddef>
 
-#include "boost/regex.hpp"
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wkeyword-macro");
+#include <boost/regex.hpp>
+POP_COMPILER_DIAGS
 
 #include "Application.hh"
 #include "SimulatorTextGenerator.hh"
