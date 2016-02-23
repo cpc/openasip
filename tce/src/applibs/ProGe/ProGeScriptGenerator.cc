@@ -39,7 +39,10 @@
 #include <string>
 #include <fstream>
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wkeyword-macro");
 #include <boost/regex.hpp>
+POP_COMPILER_DIAGS
 
 #include "ProGeScriptGenerator.hh"
 #include "HDBManager.hh"

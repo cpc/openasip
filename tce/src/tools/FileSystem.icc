@@ -34,7 +34,11 @@
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>
 #include <boost/version.hpp>
+
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_COMPILER_DIAGS
 
 #include "Environment.hh"
 

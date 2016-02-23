@@ -257,7 +257,11 @@ distcc.*Warning.*|\
 .*clang(-[[:digit:]].[[:digit:]])?..warning..argument.unused.during.compilation.*|\
 .*wxDummyCheckInt.*|\
 .*boost/.*warning:.typedef.'.*|\
-.*libtool:.link:.warning:.*libstdc\+\+\.la..seems.to.be.moved.*"
+.*libtool:.link:.warning:.*libstdc\+\+\.la..seems.to.be.moved.*|\
+.*boost/.*warning:.unused.typedef.'.*|\
+.*boost/.*warning:.unused.parameter.'.*|\
+.*boost/.*warning:.anonymous.types.declared.in.an.anonymous.union.are.an.extension.*|\
+.*boost/.*graph_concepts.hpp.*warning:.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\

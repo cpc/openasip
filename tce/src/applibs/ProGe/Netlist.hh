@@ -39,7 +39,10 @@
 #include "hash_set.hh"
 #include "hash_map.hh"
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
 #include <boost/graph/adjacency_list.hpp>
+POP_COMPILER_DIAGS
 
 #include "PortConnectionProperty.hh"
 #include "Exception.hh"

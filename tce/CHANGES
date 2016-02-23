@@ -1,7 +1,5 @@
-1.13         unknown
+1.13   February 2016
 ====================
-
-[bzr log checked on 2015-08-31]
 
 Notable changes and features
 ----------------------------
@@ -13,6 +11,7 @@ Notable changes and features
   of >= 1.2. When an older BEM file is loaded, the amount of extrabits
   is automatically converted to the new format.
   Loading a new BEM file with older version of TCE is not supported.
+- Support for LLVM 3.8
 
 Notable bugfixes
 ----------------
