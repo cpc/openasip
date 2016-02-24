@@ -35,10 +35,10 @@
 #include "OperationDAGLanguageParser.hh"
 
 #include "CompilerWarnings.hh"
-IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 
 #include "OperationPool.hh"
 #include "OperationNode.hh"

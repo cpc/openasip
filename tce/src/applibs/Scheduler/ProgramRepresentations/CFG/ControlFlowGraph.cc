@@ -45,9 +45,9 @@
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "CompilerWarnings.hh"
-IGNORE_COMPILER_WARNING("-Wunused-local-typedef")
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/graph/depth_first_search.hpp>
-POP_COMPILER_DIAGS
+POP_CLANG_DIAGS
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
