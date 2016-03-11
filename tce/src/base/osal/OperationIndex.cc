@@ -450,9 +450,8 @@ OperationIndex::moduleOf(
         ObjectState* op = (*dt).second;
         for (int i = 0; i < op->childCount(); i++) {    
             ObjectState* child = op->child(i);
-            string childName = child->stringAttribute(Operation::OPRN_NAME);
-            string upName = StringTools::stringToUpper(childName);
-            if (upName == StringTools::stringToUpper(operName)) {
+            TCEString childName = child->stringAttribute(Operation::OPRN_NAME);
+            if (childName.ciEqual(operName)) {
                 return *(mods[j]);
             }
         }

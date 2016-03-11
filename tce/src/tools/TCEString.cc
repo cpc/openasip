@@ -57,7 +57,14 @@ TCEString::~TCEString() {
  */
 bool
 TCEString::ciEqual(const TCEString& other) const {
-    return (lower() == other.lower());
+    unsigned int len = length();
+    if (len != other.length()) return false;
+    for (unsigned int i = 0; i < len; i++) {
+        if (tolower((*this)[i]) != tolower(other[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 TCEString
