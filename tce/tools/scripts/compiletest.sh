@@ -299,7 +299,7 @@ VALGRIND_WANTED="\
 # remove -j parameter from makeflags to avoid an error with make jobserver
 MAKEFLAGS="${MAKEFLAGS#-j[0-9]}"
 MAKEFLAGS="${MAKEFLAGS#[0-9[:space:]]}"
-MAKE_OPT="-j2 -k"
+MAKE_OPT="-k"
 
 export PATH="$PATH:/bin:/usr/local/bin:/usr/bin"
 
