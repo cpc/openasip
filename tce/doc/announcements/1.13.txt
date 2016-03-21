@@ -9,7 +9,7 @@ RTL (VHDL and Verilog generation supported) and parallel program binaries.
 Processor customization points include the register files, function units,
 supported operations, and the interconnection network.
 
-This release adds support for LLVM 3.8, and fixes a coule of bugs.
+This release adds support for LLVM 3.8, and fixes a couple of bugs.
 
 Get the release via git by running:
 
