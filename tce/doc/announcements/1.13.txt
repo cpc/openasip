@@ -13,7 +13,7 @@ This release adds support for LLVM 3.8, and fixes a couple of bugs.
 
 Get the release via git by running:
 
-  git clone -b release-1.13 git@github.com:cpc/tce.git tce-1.13
+  git clone -b release-1.13 https://github.com/cpc/tce.git tce-1.13
 
 Acknowledgements
 ----------------
