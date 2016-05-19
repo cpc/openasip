@@ -69,13 +69,17 @@ public:
 
     static std::string environmentVariable(const std::string& variable);
     static std::vector<std::string> osalPaths();
-    static std::vector<std::string> codeCompressorPaths();
+    static std::vector<std::string> codeCompressorPaths(
+            bool libraryPathsOnly = false);
     static std::vector<std::string> schedulerPluginPaths();
-    static std::vector<std::string> icDecoderPluginPaths();
+    static std::vector<std::string> icDecoderPluginPaths(
+            bool libraryPathsOnly = false);
     static std::vector<std::string> hwModulePaths();
-    static std::vector<std::string> hdbPaths();
+    static std::vector<std::string> hdbPaths(
+            bool libraryPathsOnly = false);
     static std::vector<std::string> vhdlPaths(const std::string& hdbPath);
-    static std::vector<std::string> decompressorPaths();
+    static std::vector<std::string> decompressorPaths(
+            bool libraryPathsOnly = false);
     static std::vector<std::string> explorerPluginPaths();
     static std::vector<std::string> estimatorPluginPaths();
 
