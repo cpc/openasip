@@ -227,7 +227,7 @@ FUImplementationDialog::FUImplementationDialog(
     FindWindow(ID_MOVE_SOURCE_UP)->Disable();
     FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
 
-    update();
+    update(true);
 }
 
 /**
@@ -236,9 +236,15 @@ FUImplementationDialog::FUImplementationDialog(
 FUImplementationDialog::~FUImplementationDialog() {
 }
 
-
+/**
+ * Update handler
+ * Updates UI values to reflect new state. If called from constructor, 
+ * fills default values for opcodes.
+ *
+ * @param onInit Set true whe called from constructor
+ */
 void
-FUImplementationDialog::update() {
+FUImplementationDialog::update(bool onInit) {
 
     // Update architecture port list.
     archPortList_->DeleteAllItems();
@@ -343,11 +349,18 @@ FUImplementationDialog::update() {
             opcode =
                 WxConversion::toWxString(implementation_.opcode(operation));
         }
+#ifndef ALLOW_OPCODE_EDITING
         else {
+            // add default opcode (without ability to modify it)
+            opcode = WxConversion::toWxString(index);
+        }
+#else
+        else if (onInit) {
             // add default opcode
             opcode = WxConversion::toWxString(index);
             implementation_.setOpcode(operation, index);
         }
+#endif
         wxString operationName = WxConversion::toWxString(operation);
         opcodeList_->InsertItem(index, operationName);
         opcodeList_->SetItem(index, 1, opcode);

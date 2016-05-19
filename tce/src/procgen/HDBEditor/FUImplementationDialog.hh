@@ -59,7 +59,7 @@ public:
 private:
 
     void onOK(wxCommandEvent& event);
-    void update();
+    void update(bool onInit = false);
 
     HDB::FUPortImplementation* selectedArchPort();
     HDB::FUExternalPort* selectedExternalPort();
