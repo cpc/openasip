@@ -1007,6 +1007,24 @@ FUImplementationDialog::onOK(wxCommandEvent&) {
             dialog.ShowModal();
             return;            
         }
+        for (int k = i+1; k < implementation_.architecturePortCount(); k++) {
+            if (implementation_.architecturePort(i).name() == 
+                    implementation_.architecturePort(k).name()) {
+                wxString message =
+                _T("Ports '");
+                std::string port =
+                    implementation_.architecturePort(i).architecturePort();
+                message.Append(WxConversion::toWxString(port));
+                message.Append(_T("' and '"));
+                port =
+                    implementation_.architecturePort(k).architecturePort();
+                message.Append(WxConversion::toWxString(port));
+                message.Append(_T("' have the same name."));
+                InformationDialog dialog(this, message);
+                dialog.ShowModal();
+                return;       
+            }
+        }
     }
 #ifdef ALLOW_OPCODE_EDITING 
     if (architecture_.operationCount() > 1) {
