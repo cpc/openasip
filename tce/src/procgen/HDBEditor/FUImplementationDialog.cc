@@ -345,8 +345,8 @@ FUImplementationDialog::update() {
         }
         else {
             // add default opcode
-            opcode =
-                WxConversion::toWxString(index);
+            opcode = WxConversion::toWxString(index);
+            implementation_.setOpcode(operation, index);
         }
         wxString operationName = WxConversion::toWxString(operation);
         opcodeList_->InsertItem(index, operationName);
