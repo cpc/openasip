@@ -73,38 +73,37 @@ BEMTester::canAddComponentEncoding(
 
     int socketEncodings = field.socketEncodingCount();
     for (int i = 0; i < socketEncodings; i++) {
-	SocketEncoding& existingEnc = field.socketEncoding(i);
+        SocketEncoding& existingEnc = field.socketEncoding(i);
         int alignment = calculateAlignment(
             encodingWidth, existingEnc.socketIDWidth(), field);
-        int commonBits =
-	    commonBitCount(
-		encoding, extraBits, existingEnc.encoding(),
-		existingEnc.extraBits(), alignment);
-	if (commonBits == static_cast<int>(MathTools::bitLength(encoding))
-            + static_cast<int>(extraBits) || 
-            commonBits == existingEnc.socketIDWidth()) {
-	    return false;
-	}
+        int commonBits = commonBitCount(
+            encoding, extraBits, existingEnc.encoding(),
+            existingEnc.extraBits(), alignment);
+        if (commonBits == static_cast<int>(MathTools::bitLength(encoding))
+                + static_cast<int>(extraBits) || 
+                commonBits == existingEnc.socketIDWidth()) {
+            return false;
+        }
     }
 
     SourceField* sField = dynamic_cast<SourceField*>(&field);
     if (sField != NULL) {
-	int bridgeEncodings = sField->bridgeEncodingCount();
-	for (int i = 0; i < bridgeEncodings; i++) {
-	    BridgeEncoding& existingEnc = sField->bridgeEncoding(i);
-            int alignment = calculateAlignment(
-                encodingWidth, existingEnc.width(), field);
-	    int commonBits =
-		commonBitCount(
-		    encoding, extraBits, existingEnc.encoding(),
-		    existingEnc.extraBits(), alignment);
-	    if (commonBits == static_cast<int>(
-                    MathTools::bitLength(encoding)) + 
+    int bridgeEncodings = sField->bridgeEncodingCount();
+    for (int i = 0; i < bridgeEncodings; i++) {
+        BridgeEncoding& existingEnc = sField->bridgeEncoding(i);
+        int alignment = calculateAlignment(
+            encodingWidth, existingEnc.width(), field);
+        int commonBits =
+            commonBitCount(
+              encoding, extraBits, existingEnc.encoding(),
+              existingEnc.extraBits(), alignment);
+        if (commonBits == static_cast<int>(
+                MathTools::bitLength(encoding)) + 
                 static_cast<int>(extraBits) || 
                 commonBits == existingEnc.width()) {
-		return false;
-	    }
-	}
+            return false;
+        }
+    }
         
         if (sField->hasImmediateEncoding()) {
             ImmediateEncoding& immEnc = sField->immediateEncoding();
@@ -167,38 +166,44 @@ BEMTester::canAddPortEncoding(
 
     int fuPortEncodings = table.fuPortCodeCount();
     for (int i = 0; i < fuPortEncodings; i++) {
-	FUPortCode& code = table.fuPortCode(i);
-	int commonBits = commonBitCount(
-	    encoding, extraBits, code.encoding(), code.extraBits(), 
+        FUPortCode& code = table.fuPortCode(i);
+
+        int commonBits = commonBitCount(
+            encoding, extraBits, code.encoding(), code.extraBits(), 
             code.encodingWidth() - encodingWidth);
-	if (commonBits == encodingWidth ||
-	    commonBits == code.encodingWidth()) {
-	    return false;
-	}
+
+        if (commonBits == encodingWidth ||
+            commonBits == code.encodingWidth()) {
+            return false;
+        }
     }
 
     int rfPortEncodings = table.rfPortCodeCount();
     for (int i = 0; i < rfPortEncodings; i++) {
-	RFPortCode& code = table.rfPortCode(i);
-	int commonBits = commonBitCount(
-	    encoding, extraBits, code.encoding(), code.extraBits(),
-	    code.encodingWidth() - encodingWidth);
-	if (commonBits == encodingWidth ||
-            commonBits == code.encodingWidth()) {
-	    return false;
-	}
+        RFPortCode& code = table.rfPortCode(i);
+
+        int commonBits = commonBitCount(
+            encoding, extraBits, code.encoding(), code.extraBits(),
+            code.encodingWidth() - encodingWidth);
+
+        if (commonBits == encodingWidth ||
+                commonBits == code.encodingWidth()) {
+            return false;
+        }
     }
 
     int iuPortEncodings = table.iuPortCodeCount();
     for (int i = 0; i < iuPortEncodings; i++) {
-	IUPortCode& code = table.iuPortCode(i);
-	int commonBits = commonBitCount(
-	    encoding, extraBits, code.encoding(), code.extraBits(),
-	    code.encodingWidth() - encodingWidth);
-	if (commonBits == encodingWidth ||
-            commonBits == code.encodingWidth()) {
-	    return false;
-	}
+        IUPortCode& code = table.iuPortCode(i);
+
+        int commonBits = commonBitCount(
+            encoding, extraBits, code.encoding(), code.extraBits(),
+            code.encodingWidth() - encodingWidth);
+        
+        if (commonBits == encodingWidth ||
+                commonBits == code.encodingWidth()) {
+            return false;
+        }
     }
         
     return true;

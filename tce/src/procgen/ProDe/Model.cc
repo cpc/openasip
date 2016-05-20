@@ -131,7 +131,7 @@ Model::redo() {
 
     // replace machine from the redo cache
     if (machine_ != NULL) {
-	delete machine_;
+        delete machine_;
     }
 
     machine_ = undone;
@@ -199,7 +199,7 @@ void
 Model::popFromStack(bool modified) {
 
     if (machine_ != NULL) {
-	delete machine_;
+        delete machine_;
     }
 
     machine_ = undoStack_.front();

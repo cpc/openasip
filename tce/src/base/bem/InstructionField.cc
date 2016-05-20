@@ -57,7 +57,7 @@ InstructionField::InstructionField(InstructionField* parent) :
     relativePos_(0), extraBits_(0), parent_(parent) {
 
     if (parent != NULL) {
-	relativePos_ = parent->childFieldCount();
+        relativePos_ = parent->childFieldCount();
     }
 }
 
@@ -79,7 +79,7 @@ InstructionField::InstructionField(
     relativePos_(0), extraBits_(0), parent_(parent) {
 
     if (parent != NULL) {
-	relativePos_ = parent->childFieldCount();
+        relativePos_ = parent->childFieldCount();
     }
 
     loadState(state);
@@ -141,14 +141,14 @@ InstructionField::bitPosition() const {
     InstructionField* parent = this->parent();
 
     if (parent == NULL) {
-	return 0;
+        return 0;
     }
 
     int position(0);
 
     for (int i = 0; i < relativePosition(); i++) {
-	InstructionField& childField = parent->childField(i);
-	position += childField.width();
+        InstructionField& childField = parent->childField(i);
+        position += childField.width();
     }
 
     return position;
@@ -180,8 +180,8 @@ InstructionField::setRelativePosition(int position)
     throw (OutOfRange) {
 
     if (position < 0 || position >= parent()->childFieldCount()) {
-	const string procName = "InstructionField::setRelativePosition";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "InstructionField::setRelativePosition";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     InstructionField& fieldToMove = parent()->childField(position);
@@ -190,22 +190,22 @@ InstructionField::setRelativePosition(int position)
     int childFields = parent()->childFieldCount();
     int emptyPosition(-1);
     for (int i = 0; i < childFields; i++) {
-	if (&parent()->childField(i) == &NullInstructionField::instance()) {
-	    emptyPosition = i;
-	    break;
-	}
+        if (&parent()->childField(i) == &NullInstructionField::instance()) {
+            emptyPosition = i;
+            break;
+        }
     }
 
     if (emptyPosition != -1) {
-	if (emptyPosition < fieldToMove.relativePosition()) {
-	    fieldToMove.
-		setRelativePosition(fieldToMove.relativePosition() - 1);
-	} else if (emptyPosition > fieldToMove.relativePosition()) {
-	    fieldToMove.
-		setRelativePosition(fieldToMove.relativePosition() + 1);
-	} else {
-	    assert(false);
-	}
+        if (emptyPosition < fieldToMove.relativePosition()) {
+            fieldToMove.
+            setRelativePosition(fieldToMove.relativePosition() - 1);
+        } else if (emptyPosition > fieldToMove.relativePosition()) {
+            fieldToMove.
+            setRelativePosition(fieldToMove.relativePosition() + 1);
+        } else {
+            assert(false);
+        }
     }
 }
 
@@ -225,8 +225,8 @@ InstructionField::setExtraBits(int bits)
     throw (OutOfRange) {
 
     if (bits < 0) {
-	const string procName = "InstructionField::setExtraBits";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "InstructionField::setExtraBits";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     extraBits_ = bits;
@@ -258,7 +258,7 @@ InstructionField::loadState(const ObjectState* state)
     const string procName = "InstructionField::loadState";
 
     try {
-	setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
+    setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
         if (relativePosition() != state->intAttribute(OSKEY_POSITION)) {
             format errorMsg("Invalid relative position %1%. Should be %2%.");
             errorMsg % state->stringAttribute(OSKEY_POSITION) % 
@@ -268,8 +268,8 @@ InstructionField::loadState(const ObjectState* state)
         }
 
     } catch (const Exception& exception) {
-	throw ObjectStateLoadingException(
-	    __FILE__, __LINE__, procName, exception.errorMessage());
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
 
