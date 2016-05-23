@@ -35,6 +35,7 @@ LIB_APPLIBS_PROG_DIR = ../../applibs/program
 LIB_APPLIBS_SCHED_DIR = ../../applibs/Scheduler
 FSA_APPLIB_DIR = ../../applibs/FSA
 MACH_APPLIBS_DIR = ../../applibs/mach
+PRODE_DIR = ../../procgen/ProDe
 
 TRACE_DB_DIR = ../../applibs/TraceDB
 LIB_OSAL_DIR = ../../base/osal
@@ -92,7 +93,9 @@ AM_CPPFLAGS = -I${TOOLS_DIR} \
 	      -I${MACHINE_WINDOW_DIR} \
 	      -I${GUI_OPTIONS_DIR} \
 	      -I${OSAL_DIR} \
-	      -I${EPS_GENERATOR_DIR}
+	      -I${EPS_GENERATOR_DIR} \
+	      -I${PRODE_DIR}
+	      
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 

@@ -70,12 +70,13 @@ ChildFrame::~ChildFrame() {
  * Sets the statusbar text.
  *
  * @param text New text for the statusbar.
+ * @param field Field of status bar to set text for.
  */
 void
-ChildFrame::setStatus(const wxString text) {
+ChildFrame::setStatus(const wxString text, int field) {
     wxStatusBar* statusbar = parent_->GetStatusBar();
-    if (statusbar != NULL) {
-	statusbar->SetStatusText(text);
+    if (statusbar != NULL && statusbar->GetFieldsCount() > field) {
+        statusbar->SetStatusText(text, field);
     }
 }
 

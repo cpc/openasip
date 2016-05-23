@@ -26,7 +26,7 @@
  *
  * Definition of MachineCanvas class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka JÃ¤Ã¤skelÃ¤inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -47,6 +47,8 @@
 #include "MoveFigure.hh"
 #include "EPSDC.hh"
 #include "WxConversion.hh"
+#include "BEMGenerator.hh"
+#include "BinaryEncoding.hh"
 
 BEGIN_EVENT_TABLE(MachineCanvas, wxScrolledWindow)
 EVT_MOUSE_EVENTS(MachineCanvas::onMouseEvent)
@@ -55,22 +57,25 @@ END_EVENT_TABLE()
 using namespace TTAMachine;
 
 /**
- * The Constructor.
+ * The Constructor, with a parameter for parent frame.
  * 
  * @param parent Parent frame of the canvas.
  * @param policyFactory EditPolicyFactory for creating edit policies.
  */
 MachineCanvas::MachineCanvas(wxWindow* parent,
-    EditPolicyFactory* policyFactory) :
-                wxScrolledWindow(parent), tool_(NULL), machine_(NULL), editPolicyFactory_(
-                    policyFactory), zoomFactor_(1.0), dirty_(true), root_(
-                NULL), selection_(NULL), toolBounds_(0, 0, 0, 0) {
+    EditPolicyFactory* policyFactory, ChildFrame* parentFrame) :
+                wxScrolledWindow(parent), tool_(NULL), machine_(NULL), 
+                    editPolicyFactory_(policyFactory),  parent_(parentFrame), 
+                    zoomFactor_(1.0), dirty_(true), root_(NULL), 
+                    selection_(NULL), toolBounds_(0, 0, 0, 0) {
 
     root_ = new RootEditPart();
 
     SetScrollRate(20, 20);
     SetVirtualSize(1000, 800);
 }
+
+
 
 /**
  * The Destructor.
@@ -284,6 +289,20 @@ MachineCanvas::updateMachine() {
     assert(root_ != NULL);
     root_->setContents(contents);
     contents->figure()->setOptions(&options_);
+
+    if (parent_ != NULL){
+        wxString text;
+        try {
+            BinaryEncoding* bem = BEMGenerator(*machine_).generate();
+            int width = bem->width();
+            text = wxString::Format(_T("Instruction width: %u"), width);
+        }
+        catch (...) {
+            text = _T("Instruction width: N/A");
+        }
+        parent_->setStatus(text, 1);
+    }
+
     Refresh();
 }
 

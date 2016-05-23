@@ -173,7 +173,9 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new AboutCmd());
 
     toolbar_ = NULL;
-    CreateStatusBar();
+    CreateStatusBar(2);
+    int widths[2] = {-1, 200};
+    SetStatusWidths(2, widths);
 
     createMenubar();
     createToolbar();
@@ -210,7 +212,9 @@ MainFrame::onToggleStatusbar() {
         delete statusbar;
         statusbar = NULL;
     } else {
-        CreateStatusBar();
+        CreateStatusBar(2);
+        int widths[2] = {-1, 200};
+        SetStatusWidths(2, widths);
     }
     Layout();
     Fit();
