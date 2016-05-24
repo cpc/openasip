@@ -559,10 +559,11 @@ Environment::osalPaths() {
 /**
  * Returns the paths in which code compressor plugins are searched.
  *
+ * @param libraryPathsOnly When set to true, excludes CWD from search paths.
  * @return The paths in which code compressor plugins are searched.
  */
 vector<string>
-Environment::codeCompressorPaths() {
+Environment::codeCompressorPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
@@ -582,7 +583,7 @@ Environment::codeCompressorPaths() {
         paths.push_back(path);
     }
 
-    paths.push_back(cwd);        
+    if (!libraryPathsOnly) paths.push_back(cwd);
     return paths;
 }
 
@@ -623,10 +624,11 @@ Environment::schedulerPluginPaths() {
 /**
  * Returns the paths in which IC/decoder plugins are searched.
  *
+ * @param libraryPathsOnly Set to true excludes CWD from search paths.
  * @return The paths in which IC/decoder plugins are searched.
  */
 vector<string>
-Environment::icDecoderPluginPaths() {
+Environment::icDecoderPluginPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
 
@@ -638,7 +640,6 @@ Environment::icDecoderPluginPaths() {
         "icdecoder_plugins";
     string cwd = FileSystem::currentWorkingDir();
     string data = cwd + DS + "data";
-
     if (!DISTRIBUTED_VERSION) {
         string path = string(TCE_SRC_ROOT) + DS + "icdecoder_plugins";
         paths.push_back(path);
@@ -647,8 +648,8 @@ Environment::icDecoderPluginPaths() {
     paths.push_back(base);
     paths.push_back(personal);
     paths.push_back(custom);
-    paths.push_back(cwd);
-    paths.push_back(data);
+    if (!libraryPathsOnly) paths.push_back(cwd);
+    if (!libraryPathsOnly) paths.push_back(data);
     return paths;
 }
 
@@ -669,10 +670,11 @@ Environment::hwModulePaths() {
 /**
  * Returns the paths in which hardware databases are searched.
  *
+ * @param libraryPathsOnly When set to true, excludes CWD from search paths.
  * @return The paths in which hardware databases are searched.
  */
 std::vector<std::string>
-Environment::hdbPaths() {
+Environment::hdbPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
     if (!DISTRIBUTED_VERSION) {
@@ -683,9 +685,11 @@ Environment::hdbPaths() {
     string instBase = 
         string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) + "hdb";
     paths.push_back(instBase);
-    string cwd = FileSystem::currentWorkingDir();
-    paths.push_back(cwd);
-    paths.push_back(cwd + DS + "data"); 
+    if (!libraryPathsOnly) {
+        string cwd = FileSystem::currentWorkingDir();
+        paths.push_back(cwd);
+        paths.push_back(cwd + DS + "data");
+    }
     return paths;
 }
 
@@ -729,13 +733,16 @@ Environment::vhdlPaths(const std::string& hdbPath) {
 /**
  * Returns the paths in which decompressor module definitions are searhed.
  *
+ * @param libraryPathsOnly When set to true, excludes CWD from search paths.
  * @return The paths in which decompressor module definitions are searched.
  */
 std::vector<std::string>
-Environment::decompressorPaths() {
+Environment::decompressorPaths(bool libraryPathsOnly) {
     vector<string> paths;
-    paths.push_back(FileSystem::currentWorkingDir());
-    paths.push_back(FileSystem::currentWorkingDir() + DS + "data");
+    if (!libraryPathsOnly) {
+        paths.push_back(FileSystem::currentWorkingDir());
+        paths.push_back(FileSystem::currentWorkingDir() + DS + "data");
+    }
     return paths;
 }
 

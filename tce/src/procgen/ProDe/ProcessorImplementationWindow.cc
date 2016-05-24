@@ -737,9 +737,10 @@ ProcessorImplementationWindow::doSaveIDF() {
     if (dialog.ShowModal() == wxID_OK) {
         string path = WxConversion::toString(dialog.GetPath());
         try {
-            // Make local file paths relative
+            // Make local and default file paths relative.
             std::vector<string> searchPaths;
             searchPaths.push_back(FileSystem::currentWorkingDir());
+            std::vector<string> hdbSearchPaths = Environment::hdbPaths();
             impl_.makeImplFilesRelative(searchPaths);
  
             IDFSerializer serializer;

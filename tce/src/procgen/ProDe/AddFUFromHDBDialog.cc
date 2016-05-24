@@ -30,10 +30,13 @@
  * @note rating: red
  */
 
+#include <sstream>
+
 #include <boost/format.hpp>
 #include <wx/statline.h>
 #include <wx/listctrl.h>
 #include <wx/dir.h>
+#include <wx/textctrl.h>
 
 #include "AddFUFromHDBDialog.hh"
 #include "Model.hh"
@@ -64,6 +67,7 @@ BEGIN_EVENT_TABLE(AddFUFromHDBDialog, wxDialog)
     EVT_LIST_ITEM_DESELECTED(ID_LIST, AddFUFromHDBDialog::onListSelectionChange)
     EVT_BUTTON(ID_ADD, AddFUFromHDBDialog::onAdd)
     EVT_BUTTON(ID_CLOSE, AddFUFromHDBDialog::onClose)
+    EVT_TEXT(ID_FILTER_TEXTCTRL, AddFUFromHDBDialog::onFilterChange)
 END_EVENT_TABLE()
 
 
@@ -164,6 +168,10 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
         FUArchitecture* arch = manager.fuArchitectureByID(*iter);
         FunctionUnit& fu = arch->architecture();
 
+        if (!acceptToList(*arch, filterPatterns_)) {
+            continue;
+        }
+
         fuArchitectures_.insert(
             std::pair<int, FUArchitecture*>(list_->GetItemCount(), arch));
 
@@ -206,6 +214,68 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
 
     return true;
 }
+
+
+/**
+ * Returns true if the FU architecture should not be viewed.
+ *
+ * @param filterList The list of all keywords (uppercase), that the FU
+ *                   architecture should contain.
+ */
+bool
+AddFUFromHDBDialog::acceptToList(
+    const HDB::FUArchitecture& arch,
+    const std::vector<std::string>& filterList) {
+
+    if (filterList.empty()) {
+        return true;
+    }
+
+    // Construct string from where the keywords are searched.
+    std::string archStr;
+    const FunctionUnit& fu = arch.architecture();
+    for (int i = 0; i < fu.operationCount(); i++) {
+        const HWOperation& oper = *fu.operation(i);
+
+        // Operation with latency as viewed in the list.
+        archStr += oper.name()
+            + "(" + Conversion::toString(oper.latency()) + ") ";
+
+    }
+
+    for (auto& c : archStr) c = toupper(c);
+
+    for (const string& keyword : filterList) {
+        if (archStr.find(keyword) == std::string::npos) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ * Updates FU architecture list view accordingly to new filter rule.
+ */
+void
+AddFUFromHDBDialog::onFilterChange(wxCommandEvent& event) {
+
+    std::vector<std::string>& keywordList = filterPatterns_;
+
+    std::string tmp(event.GetString().mb_str());
+    std::istringstream rawFilterRules(tmp.c_str());
+    keywordList.clear();
+    std::string keyword;
+
+    while (rawFilterRules >> keyword) {
+        for (auto& c: keyword) c = toupper(c);
+        keywordList.push_back(keyword);
+    }
+
+    AddFUFromHDBDialog::TransferDataToWindow();
+}
+
 
 /**
  * Enables and disables the delete button according to slot list selection.
@@ -341,6 +411,10 @@ AddFUFromHDBDialog::createContents(
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
+
+    wxTextCtrl *filterCtrl = new wxTextCtrl(parent,
+        ID_FILTER_TEXTCTRL, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
+    item0->Add(filterCtrl, 0, wxGROW|wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_ADD, wxT("&Add"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
