@@ -146,6 +146,8 @@ PasteComponentCmd::Do() {
             machine->busNavigator();
         TTAMachine::Bus* copiedBus = new Bus(contents);
 
+        // cannot copy guards from one machine into another
+        // plus additional check if oroginal bus has been deleted
         if (clipboard->sourceMachine() == machine && 
                 navigator.hasItem(copiedBus->name())) {
 

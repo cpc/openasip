@@ -291,15 +291,16 @@ MachineCanvas::updateMachine() {
     contents->figure()->setOptions(&options_);
 
     if (parent_ != NULL){
-        wxString text;
+
+        wxString text(_T(""));
         try {
             BinaryEncoding* bem = BEMGenerator(*machine_).generate();
             int width = bem->width();
             text = wxString::Format(_T("Instruction width: %u"), width);
+        } catch (...) {
+            text = _T("BEM could not be generated");
         }
-        catch (...) {
-            text = _T("Instruction width: N/A");
-        }
+        
         parent_->setStatus(text, 1);
     }
 
