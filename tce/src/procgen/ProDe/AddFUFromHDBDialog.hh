@@ -34,6 +34,9 @@
 #define TTA_ADD_FU_FROM_HDB_DIALOG_HH
 
 #include <map>
+#include <vector>
+#include <string>
+
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 
@@ -60,6 +63,10 @@ private:
     void onAdd(wxCommandEvent& event);
     void onClose(wxCommandEvent& event);
     bool loadHDB(const HDB::HDBManager& manager);
+    bool acceptToList(
+        const HDB::FUArchitecture& arch,
+        const std::vector<std::string>& filterList);
+    void onFilterChange(wxCommandEvent& event);
 
     /// Model of the current adf file.
     Model* model_;
@@ -67,9 +74,13 @@ private:
     wxListCtrl* list_;
     /// Map of iu architectures displayed in the dialog list.
     std::map<int, HDB::FUArchitecture*> fuArchitectures_;
+    /// Keywords to filter HDB entries.
+    std::vector<std::string> filterPatterns_ = std::vector<std::string>();
 
     enum {
 	ID_LIST = 10000,
+	ID_FILTER_LABEL,
+	ID_FILTER_TEXTCTRL,
 	ID_ADD,
 	ID_CLOSE,
 	ID_LINE

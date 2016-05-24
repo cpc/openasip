@@ -30,8 +30,12 @@
  * @note rating: red
  */
 
+#include <algorithm>
+#include <string>
+
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
+#include <wx/textctrl.h>
 #include "OpsetDialog.hh"
 #include "HWOperation.hh"
 #include "Operation.hh"
@@ -50,6 +54,7 @@ using namespace TTAMachine;
 BEGIN_EVENT_TABLE(OpsetDialog, wxDialog)
     EVT_LISTBOX(ID_LIST, OpsetDialog::onSelectOperation)
     EVT_BUTTON(wxID_OK, OpsetDialog::onOK)
+    EVT_TEXT(ID_OP_FILTER, OpsetDialog::onOperationFilterChange)
 END_EVENT_TABLE()
 
 /**
@@ -84,17 +89,23 @@ OpsetDialog::TransferDataToWindow() {
     // appear w/o restarting prode.
     OperationPool::cleanupCache();
     OperationPool pool;
-    OperationIndex& index = pool.index();    
-    for (int m = 0; m < index.moduleCount(); m++) {        
-        OperationModule& module = index.module(m);        
+    OperationIndex& index = pool.index();
+    std::set<std::string> opset;
+    for (int m = 0; m < index.moduleCount(); m++) {
+        OperationModule& module = index.module(m);
         for (int i = 0; i < index.operationCount(module); i++) {
-            std::string opName = index.operationName(i, module);            
-            if (operationList_->FindString(WxConversion::toWxString(opName)) 
-                == -1) {
-                operationList_->Append(WxConversion::toWxString(opName));
+            std::string opName = index.operationName(i, module);
+            if (opNameFilter_.empty()
+                || opName.find(opNameFilter_) != std::string::npos) {
+                opset.insert(opName);
             }
         }
     }
+
+    for (const auto& opName : opset) {
+        operationList_->Append(WxConversion::toWxString(opName));
+    }
+
     return true;
 }
 
@@ -132,6 +143,23 @@ OpsetDialog::onOK(wxCommandEvent&) {
     }
     TransferDataFromWindow();
     EndModal(wxID_OK);
+}
+
+
+/**
+ * Event handler for opset filtering.
+ */
+void
+OpsetDialog::onOperationFilterChange(wxCommandEvent& event) {
+    std::string pattern(event.GetString().mb_str());
+    std::string::iterator it;
+    it = std::remove_if(pattern.begin(), pattern.end(), [](const char& c) {
+        return c == ' ';
+    });
+    pattern.erase(it, pattern.end());
+    for (auto& c : pattern) c = toupper(c);
+    opNameFilter_ = pattern;
+    OpsetDialog::TransferDataToWindow();
 }
 
 
@@ -249,6 +277,16 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxString *strs1 = (wxString*) NULL;
     wxListBox *item1 = new wxListBox( parent, ID_LIST, wxDefaultPosition, wxSize(100,200), 0, strs1, wxLB_SINGLE | wxLB_SORT );
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *opNameFilterLabel = new wxStaticText( parent,
+        ID_OP_FILTER_LABEL, wxT("Filter:"), wxDefaultPosition, wxDefaultSize,
+        0 );
+    item0->Add(opNameFilterLabel, 0,
+        wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+    wxTextCtrl *opNameFilter = new wxTextCtrl(parent, ID_OP_FILTER, wxT(""),
+        wxDefaultPosition, wxSize(100, -1), 0);
+    item0->Add(opNameFilter, 1, wxEXPAND|wxALIGN_LEFT|wxLEFT|wxRIGHT, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
