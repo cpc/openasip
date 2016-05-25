@@ -95,8 +95,8 @@ BEMTester::canAddComponentEncoding(
             encodingWidth, existingEnc.width(), field);
         int commonBits =
             commonBitCount(
-              encoding, extraBits, existingEnc.encoding(),
-              existingEnc.extraBits(), alignment);
+                encoding, extraBits, existingEnc.encoding(),
+                existingEnc.extraBits(), alignment);
         if (commonBits == static_cast<int>(
                 MathTools::bitLength(encoding)) + 
                 static_cast<int>(extraBits) || 
