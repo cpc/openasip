@@ -81,7 +81,7 @@ BEMTester::canAddComponentEncoding(
             existingEnc.extraBits(), alignment);
         if (commonBits == static_cast<int>(MathTools::bitLength(encoding))
                 + static_cast<int>(extraBits) || 
-                commonBits == existingEnc.socketIDWidth()) {
+            commonBits == existingEnc.socketIDWidth()) {
             return false;
         }
     }
@@ -100,7 +100,7 @@ BEMTester::canAddComponentEncoding(
         if (commonBits == static_cast<int>(
                 MathTools::bitLength(encoding)) + 
                 static_cast<int>(extraBits) || 
-                commonBits == existingEnc.width()) {
+            commonBits == existingEnc.width()) {
             return false;
         }
     }
@@ -129,7 +129,7 @@ BEMTester::canAddComponentEncoding(
                 alignment);
             if (commonBits == static_cast<int>(
                     MathTools::bitLength(encoding)) +
-                static_cast<int>(extraBits) || 
+                    static_cast<int>(extraBits) || 
                 commonBits == nopEnc.width()) {
                 return false;
             }
@@ -187,7 +187,7 @@ BEMTester::canAddPortEncoding(
             code.encodingWidth() - encodingWidth);
 
         if (commonBits == encodingWidth ||
-                commonBits == code.encodingWidth()) {
+            commonBits == code.encodingWidth()) {
             return false;
         }
     }
@@ -201,7 +201,7 @@ BEMTester::canAddPortEncoding(
             code.encodingWidth() - encodingWidth);
         
         if (commonBits == encodingWidth ||
-                commonBits == code.encodingWidth()) {
+            commonBits == code.encodingWidth()) {
             return false;
         }
     }

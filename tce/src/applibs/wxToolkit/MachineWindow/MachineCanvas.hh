@@ -64,7 +64,7 @@ class Figure;
 class MachineCanvas : public wxScrolledWindow {
 public:
     MachineCanvas(wxWindow* parent, EditPolicyFactory* policyFactory,
-                  ChildFrame* parentFrame = NULL);
+                  ChildFrame* parentFrame = nullptr);
     virtual ~MachineCanvas();
     virtual void OnDraw(wxDC& dc);
 

@@ -290,10 +290,10 @@ MachineCanvas::updateMachine() {
     root_->setContents(contents);
     contents->figure()->setOptions(&options_);
 
-    if (parent_ != NULL) {
+    if (parent_ != nullptr) {
 
         wxString text(_T(""));
-        BinaryEncoding* bem(NULL);
+        BinaryEncoding* bem(nullptr);
         try {
             bem = BEMGenerator(*machine_).generate();
             int width = bem->width();
