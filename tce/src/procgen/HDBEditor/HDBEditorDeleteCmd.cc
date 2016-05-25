@@ -71,6 +71,8 @@ HDBEditorDeleteCmd::Do() {
         if (manager->canRemoveFUArchitecture(id)) {
             if (confirmDeletion(_T("FU Architecture"))) {
                 manager->removeFUArchitecture(id);
+            } else {
+                return false;
             }
         } else {
             wxString message = _T("FU Architecture ");
@@ -86,6 +88,8 @@ HDBEditorDeleteCmd::Do() {
         if (manager->canRemoveRFArchitecture(id)) {
             if (confirmDeletion(_T("RF Architecture"))) {
                 manager->removeRFArchitecture(id);
+            } else {
+                return false;
             }
         } else {
             wxString message = _T("RF Architecture ");
@@ -101,37 +105,51 @@ HDBEditorDeleteCmd::Do() {
             int id = manager->fuEntryIDOfImplementation(
                 browser->selectedFUImplementation());
             manager->removeFUEntry(id);
+        } else {
+            return false;
         }
     } else if (browser->isRFImplementationSelected()) {
         if (confirmDeletion(_T("RF Implementation"))) {
             int id = manager->rfEntryIDOfImplementation(
                 browser->selectedRFImplementation());
             manager->removeRFEntry(id);
+        } else {
+            return false;
         }
     } else if (browser->isCostFunctionPluginSelected()) {
         if (confirmDeletion(_T("Cost Function Plugin"))) {
             int id = browser->selectedCostFunctionPlugin();
             manager->removeCostFunctionPlugin(id);
+        } else {
+            return false;
         }
     } else if (browser->isFUEntrySelected()) {
         if (confirmDeletion(_T("FU Entry"))) {
             int id = browser->selectedFUEntry();
             manager->removeFUEntry(id);
+        } else {
+            return false;
         }
     } else if (browser->isRFEntrySelected()) {
         if (confirmDeletion(_T("RF Entry"))) {
             int id = browser->selectedRFEntry();
             manager->removeRFEntry(id);
+        } else {
+            return false;
         }
     } else if (browser->isBusEntrySelected()) {
         if (confirmDeletion(_T("Bus Entry"))) {
             int id = browser->selectedBusEntry();
             manager->removeBusEntry(id);
+        } else {
+            return false;
         }
     } else if (browser->isSocketEntrySelected()) {
         if (confirmDeletion(_T("Socket Entry"))) {
             int id = browser->selectedSocketEntry();
             manager->removeSocketEntry(id);
+        } else {
+            return false;
         }
     } else {
         return false;
