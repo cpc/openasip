@@ -88,22 +88,22 @@ BEMTester::canAddComponentEncoding(
 
     SourceField* sField = dynamic_cast<SourceField*>(&field);
     if (sField != NULL) {
-    int bridgeEncodings = sField->bridgeEncodingCount();
-    for (int i = 0; i < bridgeEncodings; i++) {
-        BridgeEncoding& existingEnc = sField->bridgeEncoding(i);
-        int alignment = calculateAlignment(
-            encodingWidth, existingEnc.width(), field);
-        int commonBits =
-            commonBitCount(
-                encoding, extraBits, existingEnc.encoding(),
-                existingEnc.extraBits(), alignment);
-        if (commonBits == static_cast<int>(
-                MathTools::bitLength(encoding)) + 
-                static_cast<int>(extraBits) || 
-            commonBits == existingEnc.width()) {
-            return false;
+        int bridgeEncodings = sField->bridgeEncodingCount();
+        for (int i = 0; i < bridgeEncodings; i++) {
+            BridgeEncoding& existingEnc = sField->bridgeEncoding(i);
+            int alignment = calculateAlignment(
+                encodingWidth, existingEnc.width(), field);
+            int commonBits =
+                commonBitCount(
+                    encoding, extraBits, existingEnc.encoding(),
+                    existingEnc.extraBits(), alignment);
+            if (commonBits == static_cast<int>(
+                    MathTools::bitLength(encoding)) + 
+                    static_cast<int>(extraBits) || 
+                commonBits == existingEnc.width()) {
+                return false;
+            }
         }
-    }
         
         if (sField->hasImmediateEncoding()) {
             ImmediateEncoding& immEnc = sField->immediateEncoding();
