@@ -47,7 +47,8 @@ public:
     virtual HDBEditorDeleteCmd* create() const;
     virtual std::string icon() const;
     virtual bool isEnabled();
-
+private:
+    bool confirmDeletion(const wxString& component);
 };
 
 #endif

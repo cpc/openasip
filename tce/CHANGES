@@ -1,8 +1,11 @@
 1.14         Unknown
 ====================
+
 Usability features
 ------------------
-- HBDEditor automatically fills new implementations with sequential opcode numbers
+- HBDEditor automatically fills new implementations with sequential opcode 
+  numbers
+- ProDe shows machine instruction width in status bar
 
 1.13   February 2016
 ====================

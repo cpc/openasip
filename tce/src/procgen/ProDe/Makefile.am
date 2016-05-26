@@ -51,7 +51,7 @@ bin_PROGRAMS = prode
 
 prode_SOURCES = Model.cc\
 		  ProDe.cc ProDeOptionsSerializer.cc\
-		  ProDeOptions.cc ChildFrame.cc MainFrame.cc\
+		  ProDeOptions.cc MainFrame.cc\
 		  MDFDocument.cc MDFView.cc\
 		  FUDialog.cc AddFUCmd.cc \
 		  AddRFCmd.cc AddBusCmd.cc AddSocketCmd.cc\
@@ -188,7 +188,7 @@ prode_SOURCES += \
 	ModifySocketCmd.hh UndoCmd.hh \
 	AddFUFromHDBDialog.hh EditTemplatesCmd.hh \
 	GenerateProcessorDialog.hh DeleteFUCmd.hh \
-	ChildFrame.hh GCUDialog.hh \
+	GCUDialog.hh \
 	VerifyMachineCmd.hh ProDePortEditPolicy.hh \
 	DeleteIUCmd.hh EditAddressSpacesCmd.hh \
 	ModifyRFPortCmd.hh Model.hh \
