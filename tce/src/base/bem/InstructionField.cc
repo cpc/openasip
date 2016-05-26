@@ -258,14 +258,15 @@ InstructionField::loadState(const ObjectState* state)
     const string procName = "InstructionField::loadState";
 
     try {
-    setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
-        if (relativePosition() != state->intAttribute(OSKEY_POSITION)) {
-            format errorMsg("Invalid relative position %1%. Should be %2%.");
-            errorMsg % state->stringAttribute(OSKEY_POSITION) % 
-                relativePosition();
-            throw ObjectStateLoadingException(
-                __FILE__, __LINE__, __func__, errorMsg.str());
-        }
+        setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
+            if (relativePosition() != state->intAttribute(OSKEY_POSITION)) {
+                format errorMsg(
+                    "Invalid relative position %1%. Should be %2%.");
+                errorMsg % state->stringAttribute(OSKEY_POSITION) % 
+                    relativePosition();
+                throw ObjectStateLoadingException(
+                    __FILE__, __LINE__, __func__, errorMsg.str());
+            }
 
     } catch (const Exception& exception) {
         throw ObjectStateLoadingException(
