@@ -38,6 +38,10 @@
 #include "SimulatorEvent.hh"
 #include "ErrorDialog.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+#endif
+
 BEGIN_EVENT_TABLE(ProximCmdHistoryWindow, ProximSimulatorWindow)
     EVT_SIMULATOR_COMMAND_DONE(0, ProximCmdHistoryWindow::onSimulatorCommand)
     EVT_BUTTON(ID_CLOSE, ProximCmdHistoryWindow::onClose)

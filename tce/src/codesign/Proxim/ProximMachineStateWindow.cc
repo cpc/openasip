@@ -61,6 +61,11 @@
 #include "Program.hh"
 #include "OptionValue.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+#endif
+
 BEGIN_EVENT_TABLE(ProximMachineStateWindow, ProximSimulatorWindow)
     EVT_SIMULATOR_STOP(0, ProximMachineStateWindow::onSimulationStop)
     EVT_SIMULATOR_PROGRAM_LOADED(0, ProximMachineStateWindow::onProgramLoaded)

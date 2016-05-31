@@ -107,7 +107,7 @@ private:
      * Component ids.
      */
     enum {
-        ID_INPUT_LIST = 100000,
+        ID_INPUT_LIST = 12000,
         ID_VALUE,
         ID_BUTTON_UPDATE,
         ID_OUTPUT_LIST,

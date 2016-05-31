@@ -128,7 +128,7 @@ ProximToolbox::machineStateWindow() {
         return NULL;
     }
 
-    wxWindow* machineWin = topWindow->FindWindow(
+    wxWindow* machineWin = topWindow->FindWindowById(
         ProximConstants::ID_MACHINE_STATE_WINDOW);
 
     if (machineWin == NULL) {
@@ -155,7 +155,7 @@ ProximToolbox::disassemblyWindow() {
         return NULL;
     }
 
-    wxWindow* disasmWin = topWindow->FindWindow(
+    wxWindow* disasmWin = topWindow->FindWindowById(
         ProximConstants::ID_DISASSEMBLY_WINDOW);
 
     if (disasmWin == NULL) {

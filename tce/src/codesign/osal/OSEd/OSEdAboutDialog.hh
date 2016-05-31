@@ -56,7 +56,7 @@ private:
      * Widget ids.
      */
     enum {
-        ID_ABOUT_TEXT = 1000010,
+        ID_ABOUT_TEXT = 11000,
         ID_LINE
     };
 };

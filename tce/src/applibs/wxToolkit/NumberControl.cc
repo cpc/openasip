@@ -275,7 +275,8 @@ NumberControl::onText(wxCommandEvent&) {
         value_.intValue = 0;
         update();
         wxCommandEvent textEvent(wxEVT_COMMAND_TEXT_UPDATED, GetId());
-        GetParent()->AddPendingEvent(textEvent);
+        GetParent()->GetEventHandler()->AddPendingEvent(textEvent);
+
         return;
     }
 
@@ -309,7 +310,7 @@ NumberControl::onText(wxCommandEvent&) {
     }
 
     wxCommandEvent textEvent(wxEVT_COMMAND_TEXT_UPDATED, GetId());
-    GetParent()->AddPendingEvent(textEvent);
+    GetParent()->GetEventHandler()->AddPendingEvent(textEvent);
 
     if (text_->IsModified()) {
         update();

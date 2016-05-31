@@ -1094,13 +1094,13 @@ OperationDialog::createContents(
 
     wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
     item0->AddGrowableCol( 0 );
-    item0->AddGrowableCol( 1 );
+    //tem0->AddGrowableCol( 1 );
     item0->AddGrowableRow( 0 );
 
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
     item1->AddGrowableCol( 1 );
     item1->AddGrowableRow( 0 );
-    item1->AddGrowableRow( 1 );
+    //item1->AddGrowableRow( 1 );
 
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 1, 0, 0 );
     item2->AddGrowableRow( 1 );
@@ -1254,11 +1254,11 @@ OperationDialog::createContents(
 
     item0->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer( item0 );
-        if (call_fit)
+        if (call_fit) {
             item0->SetSizeHints( parent );
+        }
     }
     
     return item0;

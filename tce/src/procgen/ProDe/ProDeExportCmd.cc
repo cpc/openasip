@@ -42,6 +42,11 @@
 #include "ErrorDialog.hh"
 #include "FileSystem.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+#endif
+
 using std::string;
 
 /**

@@ -60,8 +60,6 @@ const string OSEdConstants::DEFAULT_EDITOR = Environment::defaultTextEditorPath(
 
 const wxString OSEdConstants::APPLICATION_NAME = _T("OSEd");
 
-const wxFont* OSEdConstants::BOLD = new wxFont(12, wxROMAN, wxNORMAL, wxBOLD);
-
 const int OSEdConstants::DEFAULT_COLUMN_WIDTH = 200;
 
 const string OSEdConstants::LOGO_NAME = "logo.png";
