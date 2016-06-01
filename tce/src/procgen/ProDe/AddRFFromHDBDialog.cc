@@ -140,7 +140,7 @@ AddRFFromHDBDialog::TransferDataToWindow() {
         dialog.ShowModal();
     }
 
-    list_->SetColumnWidth(9, wxLIST_AUTOSIZE);
+    list_->SetColumnWidth(8, wxLIST_AUTOSIZE);
     return wxDialog::TransferDataToWindow();
 }
 
