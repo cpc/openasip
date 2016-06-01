@@ -740,8 +740,8 @@ MainFrame::createToolbar() {
  *
  * @param event Command event to handle.
  */
- void
- MainFrame::OnExit(wxCommandEvent& event) {
-    this->Close();
- }
+void
+MainFrame::OnExit(wxCommandEvent& WXUNUSED(event)) {
+    Close();
+}
  
