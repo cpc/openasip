@@ -744,4 +744,3 @@ void
 MainFrame::OnExit(wxCommandEvent& WXUNUSED(event)) {
     Close();
 }
- 

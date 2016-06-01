@@ -58,7 +58,7 @@ public:
     void onToggleToolbar();
     void onToggleStatusbar();
     void updateUI();
-    void OnExit(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& WXUNUSED(event));
 
 private:
     wxMenu* createOptionsMenu();
