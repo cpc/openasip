@@ -1094,13 +1094,11 @@ OperationDialog::createContents(
 
     wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
     item0->AddGrowableCol( 0 );
-    //tem0->AddGrowableCol( 1 );
     item0->AddGrowableRow( 0 );
 
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
     item1->AddGrowableCol( 1 );
     item1->AddGrowableRow( 0 );
-    //item1->AddGrowableRow( 1 );
 
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 1, 0, 0 );
     item2->AddGrowableRow( 1 );

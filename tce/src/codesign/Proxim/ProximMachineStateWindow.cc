@@ -511,8 +511,12 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     wxString message = _T("Export processor figure.");
     wxString defaultDir = _T(".");
     wxString defaultFile= _T("");
+#if wxCHECK_VERSION(3, 0, 0)
+    wxString fileTypes = _T("Portable Network Graphics (.png)|*.png");
+#else
     wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps|");
     fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
+#endif
 
     wxFileDialog dialog(
         this, message, defaultDir, defaultFile, fileTypes,
@@ -527,6 +531,7 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     std::string creator = "TTA Processor Simulator (Proxim)";
     std::string title = "Processor Simulation";
 
+#if !wxCHECK_VERSION(3, 0, 0)
     if (extension == ".eps" || extension == ".epsi") {
         if (!canvas_->saveEPS(filename, title, creator)) {
             wxString message = _T("Error saving file '");
@@ -537,6 +542,9 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
             return;
         }
     } else if (extension == ".png") {
+#else
+    if (extension == ".png") {
+#endif
         if (!canvas_->savePNG(filename)) {  
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());

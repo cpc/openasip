@@ -36,7 +36,7 @@
 #include <wx/wx.h>
 #include "EPSGenerator.hh"
 
-// TODO: this module is commented off for wxwidgets version 3
+// TODO: this module is commented out for wxwidgets version 3
 // and needs to be rewritten
 #if !wxCHECK_VERSION(3, 0, 0)
 /**

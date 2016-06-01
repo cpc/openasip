@@ -94,10 +94,12 @@ public:
         const TTAMachine::Port* target) throw (InstanceNotFound);
     void clearMoves();
 
+#if !wxCHECK_VERSION(3, 0, 0)
     bool saveEPS(
         const std::string& filename,
         const std::string& title,
         const std::string& creator = "");
+#endif
 
     bool savePNG(const std::string& filename);
 

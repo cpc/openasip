@@ -511,6 +511,7 @@ MachineCanvas::clearMoves() {
     SequenceTools::deleteAllItems(moveFigures_);
 }
 
+#if !wxCHECK_VERSION(3, 0, 0)
 /**
  * Saves the machine figure to an eps file.
  *
@@ -523,7 +524,6 @@ bool
 MachineCanvas::saveEPS(const std::string& filename, const std::string& title,
     const std::string& creator) {
 
-#if !wxCHECK_VERSION(3, 0, 0)
     EPSDC dc;
     dc.setCreator(creator);
 
@@ -540,10 +540,10 @@ MachineCanvas::saveEPS(const std::string& filename, const std::string& title,
 
     dc.writeToStream(file);
     file.close();
-#endif
 
     return true;
 }
+#endif
 
 /**
  * Saves the machine figure to a .png file.*
