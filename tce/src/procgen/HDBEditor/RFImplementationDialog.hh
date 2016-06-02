@@ -33,6 +33,7 @@
 #ifndef TTA_RF_IMPLEMENTATION_DIALOG_HH
 #define TTA_RF_IMPLEMENTATION_DIALOG_HH
 
+#include <wx/listctrl.h>
 #include "RFImplementation.hh"
 
 class wxListCtrl;

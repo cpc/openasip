@@ -51,6 +51,11 @@
 #include "InformationDialog.hh"
 #include "ImmediateUnit.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxOPEN wxFD_OPEN
+    #define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
+#endif
+
 BEGIN_EVENT_TABLE(BlockImplementationDialog, wxDialog)
     EVT_BUTTON(ID_BROWSE, BlockImplementationDialog::onBrowse)
     EVT_BUTTON(wxID_OK, BlockImplementationDialog::onOK)

@@ -109,7 +109,8 @@ OSEdInfoView::pathView() {
         wxListItem item;
         if (FileSystem::fileExists(paths[i])) {
             // path exists, let's write it bold
-            item.SetFont(*OSEdConstants::BOLD);
+            wxFont boldFont = wxFont(10, wxROMAN, wxNORMAL, wxBOLD);
+            item.SetFont(boldFont);
         }
         item.SetId(i);
         int index = InsertItem(item);
@@ -179,7 +180,8 @@ OSEdInfoView::operationView(const std::string& path, const std::string& mod) {
         wxListItem item;
         if (OperationContainer::isEffective(module, name)) {
             // operation is effective, let's put it with bold font
-            item.SetFont(*OSEdConstants::BOLD);
+            wxFont boldFont = wxFont(10, wxROMAN, wxNORMAL, wxBOLD);
+            item.SetFont(boldFont);
         }
         item.SetId(j);
         int index = InsertItem(item);

@@ -34,6 +34,7 @@
 #define TTA_PROCESSOR_IMPLEMENTATION_WINDOW_HH
 
 #include <wx/wx.h>
+#include <wx/listctrl.h>
 #include "PluginTools.hh"
 
 namespace IDF {

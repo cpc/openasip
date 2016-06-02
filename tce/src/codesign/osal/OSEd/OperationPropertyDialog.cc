@@ -1288,14 +1288,13 @@ OperationPropertyDialog::createContents(
 
     wxStaticBox *opProperties = new wxStaticBox(parent, -1, wxT("Operation properties"));
     wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(opProperties, wxVERTICAL);
-    //wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(wxGROW, opProperties);
 
     opPropertiesContainer->Add(nameSizer, 0, wxGROW, 5);
     opPropertiesContainer->Add(item1, 0, wxGROW, 5);
 
     wxStaticBox *opDescription = new wxStaticBox(parent, -1, wxT("Operation description"));
     wxTextCtrl* editDescription = new wxTextCtrl(parent, ID_EDIT_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(250,50), wxTE_MULTILINE);
-    wxStaticBoxSizer *opDescriptionContainer = new wxStaticBoxSizer(opDescription, wxGROW);
+    wxStaticBoxSizer *opDescriptionContainer = new wxStaticBoxSizer(opDescription, wxHORIZONTAL);
 
     opDescriptionContainer->Add(editDescription, 0, wxALL|wxEXPAND, 5);
 

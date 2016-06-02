@@ -59,7 +59,7 @@ private:
      * Widget ids.
      */
     enum {
-        ID_TEXT = 1000000,
+        ID_TEXT = 10000,
         ID_EDITOR,
         ID_BUTTON_SAVE,
         ID_BUTTON_BROWSE

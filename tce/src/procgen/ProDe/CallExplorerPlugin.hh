@@ -34,6 +34,7 @@
 #define CALL_EXPLORER_PLUGIN_WINDOW_HH
 
 #include <wx/wx.h>
+#include <wx/listctrl.h>
 #include "PluginTools.hh"
 #include "DesignSpaceExplorer.hh"
 #include "ExplorerPluginParameter.hh"

@@ -247,6 +247,12 @@ OSEdTreeView::onDropDownMenu(wxMouseEvent& event) {
     wxPoint pos = event.GetPosition();
     int flags = wxTREE_HITTEST_ONITEMLABEL;
     wxTreeItemId id = HitTest(pos, flags);
+
+    // mouse is not clicked on a tree item
+    if (!id.IsOk()) {
+        return;
+    }
+
     SelectItem(id);
     DropDownMenu* menu = NULL;
     if (isPath(id)) {

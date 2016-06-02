@@ -69,10 +69,10 @@ ProximSimulationThread::~ProximSimulationThread() {
     delete interpreter_;
 
     if (simulation_ != NULL) {
-	delete simulation_;
+        delete simulation_;
     }
     if (runtimeErrorHandler_ != NULL) {
-	delete runtimeErrorHandler_;
+        delete runtimeErrorHandler_;
     }
     if (interpreterContext_ != NULL) {
         delete interpreterContext_;
@@ -93,27 +93,26 @@ ProximSimulationThread::initialize(ProximMainFrame* gui) {
 
     interpreterContext_ = new SimulatorInterpreterContext(*simulation_);
     interpreter_ = new SimulatorInterpreter(
-	0, NULL, *interpreterContext_, *lineReader_);
+        0, NULL, *interpreterContext_, *lineReader_);
 
     simulation_->registerListener(
         TracedSimulatorFrontend::SIMULATOR_LOADING_PROGRAM, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_PROGRAM_LOADED, this);
+        TracedSimulatorFrontend::SIMULATOR_PROGRAM_LOADED, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_LOADING_MACHINE, this);
+        TracedSimulatorFrontend::SIMULATOR_LOADING_MACHINE, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_MACHINE_LOADED, this);
+        TracedSimulatorFrontend::SIMULATOR_MACHINE_LOADED, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_START, this);
+        TracedSimulatorFrontend::SIMULATOR_START, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_STOP, this);
+        TracedSimulatorFrontend::SIMULATOR_STOP, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_RUN, this);
+        TracedSimulatorFrontend::SIMULATOR_RUN, this);
     simulation_->registerListener(
-	TracedSimulatorFrontend::SIMULATOR_RESET, this);
+        TracedSimulatorFrontend::SIMULATOR_RESET, this);
 
-    runtimeErrorHandler_ =
-	new ProximRuntimeErrorHandler(*simulation_, *gui_);
+    runtimeErrorHandler_ = new ProximRuntimeErrorHandler(*simulation_, *gui_);
 }
 
 
@@ -130,17 +129,17 @@ ProximSimulationThread::Entry() {
     assert(gui_ != NULL);
 
     while (!TestDestroy()) {
-	
-	std::string command = "";
+    
+        std::string command = "";
 
-	command = lineReader_->readLine();
-	command = StringTools::trim(command);
+        command = lineReader_->readLine();
+        command = StringTools::trim(command);
 
-	if (command == "") {
-	    continue;
-	}
+        if (command == "") {
+            continue;
+        }
 
-	if (command == "quit") {
+        if (command == "quit") {
             // Post an event which tells the gui thread to delete this thread.
             SimulatorEvent eventCmd(
                 SimulatorEvent::EVT_SIMULATOR_TERMINATED);
@@ -151,36 +150,36 @@ ProximSimulationThread::Entry() {
                 Sleep(100);
             }
             return 0;
-	}
+        }
 
-	// Inform GUI about the command being executed.
-	SimulatorEvent eventCmd(
-	    SimulatorEvent::EVT_SIMULATOR_COMMAND, command);
-	wxPostEvent(gui_, eventCmd);
+        // Inform GUI about the command being executed.
+        SimulatorEvent eventCmd(
+            SimulatorEvent::EVT_SIMULATOR_COMMAND, command);
+        wxPostEvent(gui_, eventCmd);
 
-	interpreter_->interpret(command);
+        interpreter_->interpret(command);
 
-	// Inform GUI about the command execution being done.
-	SimulatorEvent eventCmdDone(
-	    SimulatorEvent::EVT_SIMULATOR_COMMAND_DONE, command);
-	wxPostEvent(gui_, eventCmdDone);
+        // Inform GUI about the command execution being done.
+        SimulatorEvent eventCmdDone(
+            SimulatorEvent::EVT_SIMULATOR_COMMAND_DONE, command);
+        wxPostEvent(gui_, eventCmdDone);
 
         // If the command resulted in error, inform the GUI about the error.
-	if (interpreter_->error()) {
-	    SimulatorEvent eventError(
-		SimulatorEvent::EVT_SIMULATOR_ERROR,
-		interpreter_->result());
-	    wxPostEvent(gui_, eventError);
-	    continue;
-	}
+        if (interpreter_->error()) {
+            SimulatorEvent eventError(
+                SimulatorEvent::EVT_SIMULATOR_ERROR,
+                interpreter_->result());
+            wxPostEvent(gui_, eventError);
+            continue;
+        }
 
-	// Inform GUI about the simulator interpreter result.
-	if (interpreter_->result().size() > 0) {
-	    SimulatorEvent event(
-		SimulatorEvent::EVT_SIMULATOR_OUTPUT,
-		(interpreter_->result() + "\n"));
-	    wxPostEvent(gui_, event);
-	}
+        // Inform GUI about the simulator interpreter result.
+        if (interpreter_->result().size() > 0) {
+            SimulatorEvent event(
+                SimulatorEvent::EVT_SIMULATOR_OUTPUT,
+                (interpreter_->result() + "\n"));
+            wxPostEvent(gui_, event);
+        }
     }
     return 0;
 }
@@ -193,8 +192,8 @@ void
 ProximSimulationThread::requestStop() {
     simulation_->prepareToStop(SRE_USER_REQUESTED);
     if (simulation_->isSimulationStopped()) {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_STOP);
-	wxPostEvent(gui_, simEvent);
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_STOP);
+        wxPostEvent(gui_, simEvent);
     }
 }
 
@@ -205,7 +204,7 @@ ProximSimulationThread::requestStop() {
 void
 ProximSimulationThread::killSimulation() {
     if (simulation_->isSimulationRunning()) {
-	simulation_->prepareToStop(SRE_USER_REQUESTED);
+        simulation_->prepareToStop(SRE_USER_REQUESTED);
     }
     simulation_->killSimulation();
     SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_STOP);
@@ -218,7 +217,7 @@ ProximSimulationThread::killSimulation() {
 void
 ProximSimulationThread::finishSimulation() {
     if (simulation_->isSimulationRunning()) {
-	simulation_->prepareToStop(SRE_USER_REQUESTED);
+        simulation_->prepareToStop(SRE_USER_REQUESTED);
     }
     simulation_->finishSimulation();
 }
@@ -260,43 +259,43 @@ ProximSimulationThread::handleEvent(int event) {
 
     switch (event) {
     case TracedSimulatorFrontend::SIMULATOR_LOADING_MACHINE: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_LOADING_MACHINE);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_LOADING_MACHINE);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_MACHINE_LOADED: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_MACHINE_LOADED);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_MACHINE_LOADED);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_LOADING_PROGRAM: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_LOADING_PROGRAM);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_LOADING_PROGRAM);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_PROGRAM_LOADED: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_PROGRAM_LOADED);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_PROGRAM_LOADED);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_START: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_START);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_START);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_STOP: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_STOP);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_STOP);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_RUN: {
-	SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_RUN);
-	wxPostEvent(gui_, simEvent);
-	return;
+        SimulatorEvent simEvent(SimulatorEvent::EVT_SIMULATOR_RUN);
+        wxPostEvent(gui_, simEvent);
+        return;
     }
     case TracedSimulatorFrontend::SIMULATOR_RESET: {
         gui_->reset();
-	return;
+        return;
     }
     };
 }
@@ -318,8 +317,8 @@ ProximSimulationThread::frontend() {
 bool
 ProximSimulationThread::isBusy() {
     if (simulation_->isSimulationRunning()) {
-	return true;
+        return true;
     } else {
-	return false;
+        return false;
     } 
 }

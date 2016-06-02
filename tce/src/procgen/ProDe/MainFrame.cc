@@ -734,3 +734,13 @@ MainFrame::createToolbar() {
     SetToolBar(toolbar_);
     toolbar_->Show(true);
 }
+
+/**
+ * Performs routines before exiting a program
+ *
+ * @param event Command event to handle.
+ */
+void
+MainFrame::OnExit(wxCommandEvent& WXUNUSED(event)) {
+    Close();
+}

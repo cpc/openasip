@@ -108,9 +108,6 @@ public:
     
     /// The name of the application.
     static const wxString APPLICATION_NAME;
-    
-    /// Bold font. 
-    static const wxFont* BOLD;
 
     /// Default column width.
     static const int DEFAULT_COLUMN_WIDTH;

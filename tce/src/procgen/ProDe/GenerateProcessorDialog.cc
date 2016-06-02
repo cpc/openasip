@@ -59,6 +59,13 @@
 #include "ProGeScriptGenerator.hh"
 #include "ProGeTestBenchGenerator.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+    #define wxOPEN wxFD_OPEN
+    #define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
+#endif
+
 using std::vector;
 using std::string;
 
