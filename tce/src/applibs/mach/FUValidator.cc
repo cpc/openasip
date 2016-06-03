@@ -122,5 +122,5 @@ FUValidator::checkOperations(
                     "FU %1% has no valid operations.");
                 errorMsg % fu.name();
                 results.addError(
-                    MachineValidator::USED_IO_NOT_BOUND, errorMsg.str());
+                    MachineValidator::RF_NO_VALID_OPERATIONS, errorMsg.str());
 }
