@@ -69,8 +69,8 @@ public:
         PC_AND_RA_PORTS_HAVE_UNEQUAL_WIDTH,
         /// Instruction memory address width differs from PC/RA port width.
         IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC,
-        /// RF has no operations with a trigger
-        RF_NO_VALID_OPERATIONS
+        /// FU has no operations with a trigger
+        FU_NO_VALID_OPERATIONS
     };
 
     MachineValidator(const TTAMachine::Machine& machine);

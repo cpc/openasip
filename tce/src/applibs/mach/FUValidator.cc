@@ -118,9 +118,7 @@ FUValidator::checkOperations(
         }
     }
 
-    boost::format errorMsg(
-                    "FU %1% has no valid operations.");
-                errorMsg % fu.name();
-                results.addError(
-                    MachineValidator::RF_NO_VALID_OPERATIONS, errorMsg.str());
+    boost::format errorMsg("FU %1% has no valid operations.");
+    errorMsg % fu.name();
+    results.addError(MachineValidator::FU_NO_VALID_OPERATIONS, errorMsg.str());
 }
