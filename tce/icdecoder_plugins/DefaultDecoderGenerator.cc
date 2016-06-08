@@ -118,7 +118,7 @@ DefaultDecoderGenerator::DefaultDecoderGenerator(
     const CentralizedControlICGenerator& icGenerator) : 
     machine_(machine), bem_(bem), icGenerator_(icGenerator),
     nlGenerator_(NULL), decoderBlock_(NULL), generateLockTrace_(false),
-    lockTraceStartingCycle_(1) {
+    lockTraceStartingCycle_(1), generateDebugger_(false) {
 }
 
 /**
@@ -137,6 +137,10 @@ DefaultDecoderGenerator::SetHDL(ProGe::HDL language){
 DefaultDecoderGenerator::~DefaultDecoderGenerator() {
 }
 
+void
+DefaultDecoderGenerator::setGenerateDebugger(bool generate) {
+    generateDebugger_ = generate;
+}
 
 /**
  * Completes the decoder block in the given netlist by adding the
@@ -366,6 +370,12 @@ DefaultDecoderGenerator::completeDecoderBlock(
 
     addLockReqPortToDecoder();
     addGlockPortToDecoder();
+
+    if (generateDebugger_) {
+        /*NetlistPort* dbgResetPort = */ new NetlistPort(
+            "db_tta_nreset", "1", 1, 
+            ProGe::BIT, HDB::IN, decoder);
+    }
 }
 
 
@@ -491,6 +501,9 @@ DefaultDecoderGenerator::glockRequestWidth() const {
         if (nlGenerator_->hasGlockReqPort(*fuBlock)) {
             lockReqWidth++;
         }
+    }
+    if (generateDebugger_) {
+        lockReqWidth++;
     }
 
     return lockReqWidth;
@@ -2231,10 +2244,23 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
                << endl;
         writeResettingOfControlRegisters(stream);
         stream << endl << indentation(2) 
-           << "elsif (clk'event and clk = '1') then" << endl << indentation(3);
-        stream <<  "if (" << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
-           << " = '0') then -- rising clock edge"
-           << endl << endl;
+           << "elsif (clk'event and clk = '1') then"
+           << " -- rising clock edge" << endl;
+        if (generateDebugger_){
+            string softResetPort = "db_tta_nreset";
+            stream << indentation(3) << "if (" << softResetPort
+                   << " = '0') then"
+                   << endl;
+            writeResettingOfControlRegisters(stream);
+            stream << indentation(3) << "elsif ("
+                   << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT 
+                   << " = '0') then" << endl << endl;
+        } else {
+            stream << indentation(3) << "if ("
+                   << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
+                   << " = '0') then" << endl << endl;
+        }
+
         writeInstructionDecoding(stream);
         stream << indentation(3) << "end if;" << endl;
         stream << indentation(2) << "end if;" << endl;

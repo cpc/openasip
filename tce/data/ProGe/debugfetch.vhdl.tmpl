@@ -1,0 +1,207 @@
+-- Copyright (c) 2002-2009 Tampere University of Technology.
+--
+-- This file is part of TTA-Based Codesign Environment (TCE).
+-- 
+-- Permission is hereby granted, free of charge, to any person obtaining a
+-- copy of this software and associated documentation files (the "Software"),
+-- to deal in the Software without restriction, including without limitation
+-- the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-- and/or sell copies of the Software, and to permit persons to whom the
+-- Software is furnished to do so, subject to the following conditions:
+-- 
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+-- 
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-- DEALINGS IN THE SOFTWARE.
+
+library IEEE;
+use IEEE.Std_Logic_1164.all;
+use IEEE.Std_Logic_arith.all;
+use work.ENTITY_STR_globals.all;
+use work.ENTITY_STR_gcu_opcodes.all;
+use work.ENTITY_STR_imem_mau.all;
+
+entity ENTITY_STR_ifetch is
+
+  generic(
+    no_glock_loopback_g : std_logic := '0'); 
+  
+  port (
+
+    -- program counter in
+    pc_in            : in  std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+    --return address out
+    ra_out           : out std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+    -- return address in
+    ra_in            : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    -- ifetch control signals
+    pc_load          : in std_logic;
+    ra_load          : in std_logic;
+    pc_opcode        : in std_logic_vector(0 downto 0);
+    --instruction memory interface
+    imem_data         : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+    imem_addr         : out std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+    imem_en_x         : out std_logic;
+    fetchblock        : out std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+    busy              : in  std_logic;
+
+    -- global lock
+    glock : out std_logic;
+
+    -- external control interface
+    pc_init : in std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+    fetch_en  : in std_logic;             --fetch_enable
+
+    clk  : in std_logic;
+    rstx : in std_logic;
+
+    ---------------------------------------------------------------------------
+    -- debugger signals
+    ---------------------------------------------------------------------------
+    db_lockreq  : in std_logic;
+    db_rstx     : in std_logic;
+    db_pc       : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    db_pc_next  : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    db_cyclecnt : out std_logic_vector(32-1 downto 0);
+    db_lockcnt  : out std_logic_vector(32-1 downto 0)
+);
+  
+end ENTITY_STR_ifetch;
+
+architecture rtl_andor of ENTITY_STR_ifetch is
+
+  -- signals for program counter
+  signal pc_reg      : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+  signal pc_prev_reg : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+  signal next_pc     : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+
+  signal increased_pc    : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+  signal return_addr_reg : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
+  signal instruction_reg : std_logic_vector (IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+
+  -- internal signals for initializing and locking execution
+  signal lock       : std_logic;
+
+  constant IFETCH_DELAY : integer := 1;
+  signal reset_cntr : integer range 0 to IFETCH_DELAY;
+  signal reset_lock : std_logic;  
+
+  signal cyclecnt : std_logic_vector(32-1 downto 0);
+  signal lockcnt : std_logic_vector(32-1 downto 0);  
+
+begin
+  -----------------------------------------------------------------------------
+  -- debugger
+  -----------------------------------------------------------------------------
+  db_pc <= pc_reg;
+  db_pc_next <= next_pc;
+  db_cyclecnt <= cyclecnt;
+  db_lockcnt <= lockcnt;
+
+  -- enable instruction memory
+  imem_en_x <= '0'    when (fetch_en = '1' and db_rstx='1') else '1';
+  -- do not fetch new instruction when processor is locked
+  imem_addr <= pc_reg when (lock = '0')   else pc_prev_reg;
+
+  -- propagate lock to global lock
+  glock      <= busy or reset_lock or (not (fetch_en or no_glock_loopback_g)); 
+  ra_out     <= return_addr_reg;
+  fetchblock <= instruction_reg;
+
+  lock <= not fetch_en or busy;
+
+  -----------------------------------------------------------------------------
+  -- lock counter for debugger
+  -----------------------------------------------------------------------------
+  lockcnt_s : process(clk, rstx)
+  begin
+    if (rstx = '0') then
+      lockcnt <= (others => '0');
+    elsif rising_edge(clk) then
+      if db_rstx = '0' then
+        lockcnt <= (others => '0');
+      elsif (lock = '1' and db_lockreq = '0') then
+        lockcnt <= conv_std_logic_vector(conv_integer(unsigned(lockcnt))+1,
+                                         lockcnt'length);
+      end if;
+    end if;
+  end process;
+         
+    
+  process (clk, rstx)
+  begin  -- process immediates
+    if rstx = '0' then
+      pc_reg          <= (others => '0');
+      pc_prev_reg     <= (others => '0');
+      return_addr_reg <= (others => '0');
+      instruction_reg <= (others => '0');
+      reset_cntr      <= 0;
+      reset_lock      <= '1';      
+      cyclecnt        <= (others => '0');
+    elsif clk'event and clk = '1' then  -- rising clock edge
+      if db_rstx = '0' then 
+        pc_reg          <= pc_init;
+        pc_prev_reg     <= (others => '0');
+        return_addr_reg <= (others => '0');
+        instruction_reg <= (others => '0');
+        reset_cntr      <= 0;
+        reset_lock      <= '0';      
+        cyclecnt        <= (others => '0');
+      elsif lock = '0' then
+        if fetch_en = '1' then
+        -- for debugger: increase cycle count whenever instruction counter proceeds
+          -- TODO: cyclecnt should be reset to 0 when new program starts?
+          cyclecnt <= conv_std_logic_vector(conv_integer(unsigned(cyclecnt))+1, cyclecnt'length);
+
+          pc_reg      <= next_pc;
+          pc_prev_reg <= pc_reg;
+        end if;
+        if reset_cntr < IFETCH_DELAY then
+           reset_cntr <= reset_cntr + 1;
+           reset_lock <= '1';
+        elsif reset_cntr = IFETCH_DELAY then
+           reset_lock <= '0';
+        end if;
+        -- instruction register write
+        if fetch_en = '1' and reset_cntr = IFETCH_DELAY then
+          instruction_reg <= imem_data(instruction_reg'length-1 downto 0);
+        end if;
+          -- return address
+        if (ra_load = '1' and reset_cntr = IFETCH_DELAY) then
+          return_addr_reg <= ra_in;
+        elsif (pc_load = '1' and reset_cntr = IFETCH_DELAY and
+               pc_opcode = IFE_CALL) then
+          -- return address transformed to same form as all others addresses
+          -- provided as input
+          return_addr_reg <= increased_pc;
+        end if;
+      end if;
+    end if;
+  end process;
+
+
+  -- increase program counter
+  increased_pc <= conv_std_logic_vector(unsigned(pc_reg) + IMEMWIDTHINMAUS, increased_pc'length);
+
+  sel_next_pc : process (pc_load, pc_in, pc_reg, increased_pc)
+  begin
+    --next_pc <= pc_reg;
+
+    case pc_load is
+      when '1' =>
+        next_pc <= pc_in;
+        -- no branch
+      when others =>
+        next_pc <= increased_pc;
+    end case;
+
+  end process sel_next_pc;
+
+end rtl_andor;
+

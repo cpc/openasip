@@ -145,7 +145,8 @@ NetlistGenerator::NetlistGenerator(
     const IDF::MachineImplementation& implementation,
     ICDecoderGeneratorPlugin& plugin) :
     machine_(machine), machImplementation_(implementation), plugin_(plugin),
-    instructionDecoder_(NULL), raInPort_(NULL), raOutPort_(NULL) {
+    instructionDecoder_(NULL), instructionFetch_(NULL), raInPort_(NULL),
+    raOutPort_(NULL) {
 }
 
 
@@ -577,6 +578,23 @@ NetlistGenerator::instructionDecoder() const
     }
 }
 
+/**
+ * Returns the instruction fetch block in the netlist.
+ *
+ * @return The instruction fetch block.
+ * @exception InstanceNotFound If there is no instruction fetch in the
+ *                             netlist.
+ */
+NetlistBlock&
+NetlistGenerator::instructionFetch() const
+        throw (InstanceNotFound) {
+    if (instructionFetch_ == NULL) {
+        throw InstanceNotFound(__FILE__, __LINE__, __func__,
+            "Cannot find instruction fetch block from the netlist.");
+    } else {
+        return *instructionFetch_;
+    }
+}
 
 /**
  * Returns the FU entry which was selected to represent the given FU.
@@ -656,45 +674,45 @@ NetlistGenerator::addGCUToNetlist(
     mapResetPort(toplevelBlock, *tlRstPort);
 
     // add ifetch block
-    NetlistBlock* ifetchBlock = new NetlistBlock(
+    instructionFetch_ = new NetlistBlock(
         entityNameStr_ + "_" + IFETCH_BLOCK_NAME, "inst_fetch", netlist);
-    toplevelBlock.addSubBlock(ifetchBlock);
+    toplevelBlock.addSubBlock(instructionFetch_);
     NetlistPort* ifetchClkPort = new NetlistPort(
-        CLOCK_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        CLOCK_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchRstPort = new NetlistPort(
-        RESET_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        RESET_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchRAOutPort = new NetlistPort(
-        RA_OUT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT, *ifetchBlock);
+        RA_OUT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT, *instructionFetch_);
     raOutPort_ = ifetchRAOutPort;
     NetlistPort* ifetchRAInPort = new NetlistPort(
-        RA_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
+        RA_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
     raInPort_ = ifetchRAInPort;
     NetlistPort* ifetchBusyPort = new NetlistPort(
-        BUSY_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        BUSY_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchReadEnablePort = new NetlistPort(
-        READ_ENABLE_PORT_NAME, "1", BIT, HDB::OUT, *ifetchBlock);
+        READ_ENABLE_PORT_NAME, "1", BIT, HDB::OUT, *instructionFetch_);
     NetlistPort* ifetchAddressPort = new NetlistPort(
         ADDRESS_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT,
-        *ifetchBlock);
+        *instructionFetch_);
     NetlistPort* ifetchDataPort = new NetlistPort(
-        DATA_PORT_NAME, IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *ifetchBlock);
+        DATA_PORT_NAME, IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchPCInPort = new NetlistPort(
-        PC_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
+        PC_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchPCLoadPort = new NetlistPort(
-        PC_LOAD_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        PC_LOAD_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchRALoadPort = new NetlistPort(
-        RA_LOAD_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        RA_LOAD_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchPCOpcodePort = new NetlistPort(
-        PC_OPCODE_PORT_NAME, "1", 1, BIT_VECTOR, HDB::IN, *ifetchBlock);
+        PC_OPCODE_PORT_NAME, "1", 1, BIT_VECTOR, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchFetchPort = new NetlistPort(
-        FETCH_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
+        FETCH_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchGlockPort = new NetlistPort(
-        GLOBAL_LOCK_PORT_NAME, "1", BIT, HDB::OUT, *ifetchBlock);
+        GLOBAL_LOCK_PORT_NAME, "1", BIT, HDB::OUT, *instructionFetch_);
     NetlistPort* ifetchFetchBlockPort = new NetlistPort(
         FETCHBLOCK_PORT_NAME,
-        IMEMWIDTHFORMULA, BIT_VECTOR, HDB::OUT, *ifetchBlock);
+        IMEMWIDTHFORMULA, BIT_VECTOR, HDB::OUT, *instructionFetch_);
     NetlistPort* ifetchPCInitPort = new NetlistPort(
-        PC_INIT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
+        PC_INIT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
 
     // connect ifetch to toplevel
     netlist.connectPorts(*tlClkPort, *ifetchClkPort);

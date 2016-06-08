@@ -174,6 +174,10 @@ VHDLNetlistWriter::writeBlock(
     outFile << "use work." << netlist().coreEntityName()
             << "_imem_mau.all;" << endl;
 
+    for (size_t i = 0; i < block.packageCount(); i++) {
+        outFile << "use work." << block.package(i) << ".all;" << endl;
+    }
+
 
     if (netlist().parameterCount() > 0) {
         outFile << "use work." << netlistParameterPkgName() << ".all;"
@@ -350,7 +354,8 @@ VHDLNetlistWriter::writeSignalDeclarations(
                 vertex_descriptor dstVertex = boost::target(
                     edgeDescriptor, netlist());
                 NetlistPort* dstPort = netlist()[dstVertex];
-                if (dstPort->parentBlock() != &block) {
+                if (dstPort->parentBlock() != &block ||
+                    boost::out_degree(vertexDescriptor, block.netlist()) > 1) {
                     stream << indentation(1) << "signal "
                            << portSignalName(port) << " : "
                            << portSignalType(port) << ";" << endl;
@@ -418,6 +423,20 @@ VHDLNetlistWriter::writeSignalAssignments(
                     NetlistPort* dstPort = netlist()[dstVertex];
                     
                     if (dstPort->parentBlock() == &block) {
+                        if (dstPort->direction() == HDB::OUT &&
+                            srcPort->dataType() == dstPort->dataType() && 
+                            boost::out_degree(vertexDescriptor,
+                                block.netlist()) > 1) {
+                            // Handle the rare case of multiple outputs
+                            // through a wire signal. This isn't done normally
+                            // because there would be an ugly wire signal for
+                            // every clk, rstx, etc.
+                            stream << indentation(1)
+                                   << dstPort->name()
+                                   << " <= "
+                                   << portSignalName(*srcPort) << ";"
+                                   << endl;
+                        }
                         continue;
                     }
 
