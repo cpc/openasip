@@ -68,10 +68,51 @@ BEGIN_EVENT_TABLE(AddFUFromHDBDialog, wxDialog)
     EVT_BUTTON(ID_ADD, AddFUFromHDBDialog::onAdd)
     EVT_BUTTON(ID_CLOSE, AddFUFromHDBDialog::onClose)
     EVT_TEXT(ID_FILTER_TEXTCTRL, AddFUFromHDBDialog::onFilterChange)
+    EVT_LIST_COL_CLICK(ID_LIST, AddFUFromHDBDialog::onColumnClick)
 END_EVENT_TABLE()
 
 
 const wxString AddFUFromHDBDialog::HDB_FILE_FILTER = _T("*.hdb");
+
+int wxCALLBACK
+FUListCompareASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid1->latency - lid2->latency;
+    } else if (sortColumn == 1) {
+        return lid1->operations.Cmp(lid2->operations);
+    } else if (sortColumn == 3) {
+        return lid1->hdbId - lid2->hdbId;
+    } else if (sortColumn == 4) {
+        return lid1->path.Cmp(lid2->path);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK
+FUListCompareDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid2->latency - lid1->latency;
+    } else if (sortColumn == 1) {
+        return lid2->operations.Cmp(lid1->operations);
+    } else if (sortColumn == 3) {
+        return lid2->hdbId - lid1->hdbId;
+    } else if (sortColumn == 4) {
+        return lid2->path.Cmp(lid1->path);
+    }
+
+    return 0;
+}
 
 /**
  * The Constructor.
@@ -175,6 +216,8 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
         fuArchitectures_.insert(
             std::pair<int, FUArchitecture*>(list_->GetItemCount(), arch));
 
+        ListItemData* lid = new ListItemData;
+
         list_->InsertItem(0, _T(""));
         if (fu.operationCount() > 0) {
             wxString operations;
@@ -205,11 +248,16 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
             }
                 
             list_->SetItem(0, 0, latency);
+            lid->latency = minLatency;
             list_->SetItem(0, 1, operations);
+            lid->operations = operations;
         }
         list_->SetItem(0, 3, WxConversion::toWxString(*iter));
+        lid->hdbId = *iter;
         list_->SetItem(0, 4, WxConversion::toWxString(path));
-        list_->SetItemData(0, list_->GetItemCount() - 1);
+        lid->path = WxConversion::toWxString(path);
+        lid->id = list_->GetItemCount() - 1;
+        list_->SetItemData(0, (long)lid);
     }
 
     return true;
@@ -283,9 +331,9 @@ AddFUFromHDBDialog::onFilterChange(wxCommandEvent& event) {
 void
 AddFUFromHDBDialog::onListSelectionChange(wxListEvent&) {
     if (list_->GetSelectedItemCount() == 1) {
-	FindWindow(ID_ADD)->Enable();
+        FindWindow(ID_ADD)->Enable();
     } else {
-	FindWindow(ID_ADD)->Disable();
+        FindWindow(ID_ADD)->Disable();
     }
 }
 
@@ -300,7 +348,8 @@ AddFUFromHDBDialog::onAdd(wxCommandEvent&) {
     item = list_->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if ( item == -1 ) return;
     
-    int id = list_->GetItemData(item);
+    ListItemData* lid = (ListItemData*)list_->GetItemData(item);
+    int id = lid->id;
     const FUArchitecture* arch =
         MapTools::valueForKey<FUArchitecture*>(fuArchitectures_, id);
 
@@ -425,12 +474,27 @@ AddFUFromHDBDialog::createContents(
     wxButton *item4 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer( item0 );
-        if (call_fit)
+        if (call_fit) {
             item0->SetSizeHints( parent );
+        }
     }
     
     return item0;
+}
+
+/**
+ * Sorts HDB FU list according to clicked column.
+ */
+void
+AddFUFromHDBDialog::onColumnClick(wxListEvent& event) {
+    static bool sortingOrder = false;
+    sortingOrder = !sortingOrder;
+
+    if (sortingOrder) {
+        list_->SortItems(FUListCompareASC, event.GetColumn());
+    } else {
+        list_->SortItems(FUListCompareDESC, event.GetColumn());
+    }
 }
