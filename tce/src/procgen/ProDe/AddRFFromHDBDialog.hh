@@ -39,6 +39,19 @@
 
 class Model;
 
+struct ListItemData {
+    int id;
+    int width;
+    int size;
+    int readPorts;
+    int writePorts;
+    int bidirPorts;
+    int maxReads;
+    int maxWrites;
+    int hdbId;
+    wxString path;
+};
+
 namespace HDB {
     class RFArchitecture;
     class HDBManager;
@@ -60,6 +73,7 @@ private:
     void onAdd(wxCommandEvent& event);
     void onClose(wxCommandEvent& event);
     bool loadHDB(const HDB::HDBManager& manager);
+    void onColumnClick(wxListEvent& event);
 
     /// Model of the current adf file.
     Model* model_;
@@ -68,11 +82,14 @@ private:
     /// Map of rf architectures displayed in the dialog list.
     std::map<int, HDB::RFArchitecture*> rfArchitectures_;
 
+    int sortColumn_;
+    bool sortASC_;
+
     enum {
-	ID_LIST = 10000,
-	ID_ADD,
-	ID_CLOSE,
-	ID_LINE
+        ID_LIST = 10000,
+        ID_ADD,
+        ID_CLOSE,
+        ID_LINE
     };
 
     /// Default size for the rf, if the size is parameterized in the HDB.
