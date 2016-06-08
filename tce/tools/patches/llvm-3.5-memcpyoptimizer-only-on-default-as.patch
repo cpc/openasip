@@ -1,0 +1,16 @@
+Index: lib/Transforms/Scalar/MemCpyOptimizer.cpp
+===================================================================
+--- lib/Transforms/Scalar/MemCpyOptimizer.cpp	(revision 230552)
++++ lib/Transforms/Scalar/MemCpyOptimizer.cpp	(working copy)
+@@ -494,6 +494,11 @@
+ 
+   if (!DL) return false;
+ 
++  // Should not perform the optimizations for stores
++  // into different than the default address space.
++  if (SI->getPointerAddressSpace() != 0)
++      return false;
++
+   // Detect cases where we're performing call slot forwarding, but
+   // happen to be using a load-store pair to implement it, rather than
+   // a memcpy.

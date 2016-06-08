@@ -1,0 +1,177 @@
+tcele (TCE little endian) target for LLVM/Clang.
+
+Index: lib/Support/Triple.cpp
+===================================================================
+--- lib/Support/Triple.cpp	(revision 221779)
++++ lib/Support/Triple.cpp	(working copy)
+@@ -39,6 +39,7 @@
+   case sparcv9:     return "sparcv9";
+   case systemz:     return "s390x";
+   case tce:         return "tce";
++  case tcele:       return "tcele";
+   case thumb:       return "thumb";
+   case thumbeb:     return "thumbeb";
+   case x86:         return "i386";
+@@ -200,6 +201,7 @@
+     .Case("sparcv9", sparcv9)
+     .Case("systemz", systemz)
+     .Case("tce", tce)
++    .Case("tcele", tcele)
+     .Case("thumb", thumb)
+     .Case("thumbeb", thumbeb)
+     .Case("x86", x86)
+@@ -278,6 +280,7 @@
+     .Case("sparc", Triple::sparc)
+     .Cases("sparcv9", "sparc64", Triple::sparcv9)
+     .Case("tce", Triple::tce)
++    .Case("tcele", Triple::tcele)
+     .Case("xcore", Triple::xcore)
+     .Case("nvptx", Triple::nvptx)
+     .Case("nvptx64", Triple::nvptx64)
+@@ -827,6 +830,7 @@
+   case llvm::Triple::r600:
+   case llvm::Triple::sparc:
+   case llvm::Triple::tce:
++  case llvm::Triple::tcele:
+   case llvm::Triple::thumb:
+   case llvm::Triple::thumbeb:
+   case llvm::Triple::x86:
+@@ -893,6 +897,7 @@
+   case Triple::r600:
+   case Triple::sparc:
+   case Triple::tce:
++  case Triple::tcele:
+   case Triple::thumb:
+   case Triple::thumbeb:
+   case Triple::x86:
+@@ -924,6 +929,7 @@
+   case Triple::msp430:
+   case Triple::r600:
+   case Triple::tce:
++  case Triple::tcele:
+   case Triple::thumb:
+   case Triple::thumbeb:
+   case Triple::xcore:
+Index: include/llvm/ADT/Triple.h
+===================================================================
+--- include/llvm/ADT/Triple.h	(revision 221779)
++++ include/llvm/ADT/Triple.h	(working copy)
+@@ -66,6 +66,7 @@
+     sparcv9,    // Sparcv9: Sparcv9
+     systemz,    // SystemZ: s390x
+     tce,        // TCE (http://tce.cs.tut.fi/): tce
++    tcele,      // TCE little endian (http://tce.cs.tut.fi/): tcele
+     thumb,      // Thumb (little endian): thumb, thumbv.*
+     thumbeb,    // Thumb (big endian): thumbeb
+     x86,        // X86: i[3-9]86
+Index: tools/clang/lib/Basic/Targets.cpp
+===================================================================
+--- tools/clang/lib/Basic/Targets.cpp	(revision 221779)
++++ tools/clang/lib/Basic/Targets.cpp	(working copy)
+@@ -5259,6 +5259,29 @@
+     void getGCCRegAliases(const GCCRegAlias *&Aliases,
+                           unsigned &NumAliases) const override {}
+   };
++
++    class TCELETargetInfo : public TCETargetInfo {
++    public:
++      TCELETargetInfo(const llvm::Triple &Triple) : TCETargetInfo(Triple) {
++        BigEndian = false;
++
++        DescriptionString = "e-p:32:32:32-i1:8:8-i8:8:32-"
++            "i16:16:32-i32:32:32-i64:32:32-"
++            "f32:32:32-f64:32:32-v64:32:32-"
++            "v128:32:32-v256:32:32-v512:32:32-v1024:32:32-a0:0:32-n32";
++
++      }
++
++    virtual void getTargetDefines(const LangOptions &Opts,
++                                  MacroBuilder &Builder) const {
++      DefineStd(Builder, "tcele", Opts);
++      Builder.defineMacro("__TCE__");
++      Builder.defineMacro("__TCE_V1__");
++      Builder.defineMacro("__TCELE__");
++      Builder.defineMacro("__TCELE_V1__");
++    }
++
++    };
+ }
+ 
+ namespace {
+@@ -6282,6 +6304,9 @@
+   case llvm::Triple::tce:
+     return new TCETargetInfo(Triple);
+ 
++  case llvm::Triple::tcele:
++    return new TCELETargetInfo(Triple);
++
+   case llvm::Triple::x86:
+     if (Triple.isOSDarwin())
+       return new DarwinI386TargetInfo(Triple);
+Index: tools/clang/lib/Driver/ToolChains.cpp
+===================================================================
+--- tools/clang/lib/Driver/ToolChains.cpp	(revision 221779)
++++ tools/clang/lib/Driver/ToolChains.cpp	(working copy)
+@@ -2429,6 +2429,14 @@
+   return false;
+ }
+ 
++TCELEToolChain::TCELEToolChain(const Driver &D, const llvm::Triple& Triple,
++                               const ArgList &Args)
++  : TCEToolChain(D, Triple, Args) {
++}
++
++TCELEToolChain::~TCELEToolChain() {
++}
++
+ /// OpenBSD - OpenBSD tool chain which can call as(1) and ld(1) directly.
+ 
+ OpenBSD::OpenBSD(const Driver &D, const llvm::Triple& Triple, const ArgList &Args)
+Index: tools/clang/lib/Driver/ToolChains.h
+===================================================================
+--- tools/clang/lib/Driver/ToolChains.h	(revision 221779)
++++ tools/clang/lib/Driver/ToolChains.h	(working copy)
+@@ -728,6 +728,13 @@
+   bool isPICDefaultForced() const override;
+ };
+ 
++class LLVM_LIBRARY_VISIBILITY TCELEToolChain : public TCEToolChain {
++public:
++  TCELEToolChain(const Driver &D, const llvm::Triple &Triple,
++                 const llvm::opt::ArgList &Args);
++  ~TCELEToolChain();
++};
++
+ class LLVM_LIBRARY_VISIBILITY MSVCToolChain : public ToolChain {
+ public:
+   MSVCToolChain(const Driver &D, const llvm::Triple &Triple,
+Index: tools/clang/lib/Driver/Driver.cpp
+===================================================================
+--- tools/clang/lib/Driver/Driver.cpp	(revision 221779)
++++ tools/clang/lib/Driver/Driver.cpp	(working copy)
+@@ -2012,6 +2012,10 @@
+         TC = new toolchains::TCEToolChain(*this, Target, Args);
+         break;
+       }
++      if (Target.getArchName() == "tcele") {
++        TC = new toolchains::TCELEToolChain(*this, Target, Args);
++        break;
++      }
+       // If Hexagon is configured as an OSless target
+       if (Target.getArch() == llvm::Triple::hexagon) {
+         TC = new toolchains::Hexagon_TC(*this, Target, Args);
+Index: tools/clang/lib/CodeGen/TargetInfo.cpp
+===================================================================
+--- tools/clang/lib/CodeGen/TargetInfo.cpp	(revision 221779)
++++ tools/clang/lib/CodeGen/TargetInfo.cpp	(working copy)
+@@ -6815,6 +6815,10 @@
+   case llvm::Triple::tce:
+     return *(TheTargetCodeGenInfo = new TCETargetCodeGenInfo(Types));
+ 
++  // code gen info is same for tce and tce le
++  case llvm::Triple::tcele:
++    return *(TheTargetCodeGenInfo = new TCETargetCodeGenInfo(Types));
++
+   case llvm::Triple::x86: {
+     bool IsDarwinVectorABI = Triple.isOSDarwin();
+     bool IsSmallStructInRegABI =

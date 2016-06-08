@@ -39,6 +39,7 @@
 #include "FunctionUnit.hh"
 #include "ExecutionPipeline.hh"
 #include "HWOperation.hh"
+#include "FUPort.hh"
 
 using namespace TTAMachine;
 
@@ -85,4 +86,39 @@ FUValidator::checkOperandBindings(
             }
         }
     }
+}
+
+
+/**
+ * Checks that the FU has at least one operation which is valid, i.e.
+ * has at least one triggering input port
+ *
+ * @param fu The function unit.
+ * @param results Results of the validation are added to the given instance.
+ */
+void
+FUValidator::checkOperations(
+    const TTAMachine::FunctionUnit& fu,
+    MachineValidatorResults& results) {
+
+    for (int i = 0; i < fu.operationCount(); i++) {
+        HWOperation* operation = fu.operation(i);
+        ExecutionPipeline* pLine = operation->pipeline();
+        ExecutionPipeline::OperandSet usedOperands;
+        for (int i = 0; i < pLine->latency(); i++) {
+            ExecutionPipeline::OperandSet readOperands =
+                pLine->readOperands(i);
+            for (ExecutionPipeline::OperandSet::const_iterator iter =
+                    readOperands.begin(); iter != readOperands.end(); iter++) {
+                FUPort* port = operation->port(*iter);
+                if (port != NULL && port->isTriggering()) {
+                    return;
+                }
+            }
+        }
+    }
+
+    boost::format errorMsg("FU %1% has no valid operations.");
+    errorMsg % fu.name();
+    results.addError(MachineValidator::FU_NO_VALID_OPERATIONS, errorMsg.str());
 }

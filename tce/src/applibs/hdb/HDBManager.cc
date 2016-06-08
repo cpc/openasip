@@ -561,6 +561,7 @@ HDBManager::addFUArchitecture(const FUArchitecture& arch) const
     // check the operand bindings of the FU
     FunctionUnit& fu = arch.architecture();
     MachineValidatorResults results;
+    FUValidator::checkOperations(fu, results);
     FUValidator::checkOperandBindings(fu, results);
     if (results.errorCount() > 0) {
         throw InvalidData(
