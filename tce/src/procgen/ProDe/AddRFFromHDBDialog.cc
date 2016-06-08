@@ -404,7 +404,7 @@ void
 AddRFFromHDBDialog::onColumnClick(wxListEvent& event) {
 
     if (event.GetColumn() == sortColumn_) {
-        sortASC_ = !sortASC_;   // switch to descending sort
+        sortASC_ = !sortASC_;
     } else {
         sortASC_ = true;
         sortColumn_ = event.GetColumn();

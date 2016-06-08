@@ -127,7 +127,7 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
         parent, -1, _T("HDB Function Units"),
         wxDefaultPosition, wxDefaultSize,
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    model_(model) {        
+    model_(model), sortColumn_(1), sortASC_(true) {        
 
     createContents(this, true, true);
     SetSize(400, 300);
@@ -259,6 +259,8 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
         lid->id = list_->GetItemCount() - 1;
         list_->SetItemData(0, (long)lid);
     }
+    // default sorting column is "Operations"
+    list_->SortItems(FUListCompareASC, 1);
 
     return true;
 }
@@ -484,15 +486,21 @@ AddFUFromHDBDialog::createContents(
     return item0;
 }
 
+
 /**
  * Sorts HDB FU list according to clicked column.
  */
 void
 AddFUFromHDBDialog::onColumnClick(wxListEvent& event) {
-    static bool sortingOrder = false;
-    sortingOrder = !sortingOrder;
 
-    if (sortingOrder) {
+    if (event.GetColumn() == sortColumn_) {
+        sortASC_ = !sortASC_;
+    } else {
+        sortASC_ = true;
+        sortColumn_ = event.GetColumn();
+    }
+
+    if (sortASC_) {
         list_->SortItems(FUListCompareASC, event.GetColumn());
     } else {
         list_->SortItems(FUListCompareDESC, event.GetColumn());

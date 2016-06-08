@@ -86,6 +86,9 @@ private:
     /// Keywords to filter HDB entries.
     std::vector<std::string> filterPatterns_ = std::vector<std::string>();
 
+    int sortColumn_;
+    bool sortASC_;
+
     enum {
         ID_LIST = 10000,
         ID_FILTER_LABEL,

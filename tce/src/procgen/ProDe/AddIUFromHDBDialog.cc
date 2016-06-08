@@ -131,7 +131,7 @@ AddIUFromHDBDialog::AddIUFromHDBDialog(
         parent, -1, _T("HDB Immediate Units"),
         wxDefaultPosition, wxDefaultSize,
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    model_(model) {        
+    model_(model), sortColumn_(0), sortASC_(true) {        
 
     createContents(this, true, true);
     SetSize(400, 300);
@@ -287,6 +287,8 @@ AddIUFromHDBDialog::loadHDB(const std::string& path) {
         list_->SetItemData(0, (long)lid);
 
     }
+    // default sorting column is "Width"
+    list_->SortItems(IUListCompareASC, 0);
 
     return true;
 }
@@ -415,10 +417,15 @@ AddIUFromHDBDialog::createContents(
  */
 void
 AddIUFromHDBDialog::onColumnClick(wxListEvent& event) {
-    static bool sortingOrder = false;
-    sortingOrder = !sortingOrder;
 
-    if (sortingOrder) {
+    if (event.GetColumn() == sortColumn_) {
+        sortASC_ = !sortASC_;
+    } else {
+        sortASC_ = true;
+        sortColumn_ = event.GetColumn();
+    }
+
+    if (sortASC_) {
         list_->SortItems(IUListCompareASC, event.GetColumn());
     } else {
         list_->SortItems(IUListCompareDESC, event.GetColumn());

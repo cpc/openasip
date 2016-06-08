@@ -79,6 +79,9 @@ private:
     /// Map of iu architectures displayed in the dialog list.
     std::map<int, HDB::RFArchitecture*> iuArchitectures_;
 
+    int sortColumn_;
+    bool sortASC_;
+
     enum {
         ID_LIST = 10000,
         ID_ADD,
