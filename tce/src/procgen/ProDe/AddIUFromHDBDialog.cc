@@ -59,6 +59,7 @@ BEGIN_EVENT_TABLE(AddIUFromHDBDialog, wxDialog)
     EVT_LIST_ITEM_DESELECTED(ID_LIST, AddIUFromHDBDialog::onListSelectionChange)
     EVT_BUTTON(ID_ADD, AddIUFromHDBDialog::onAdd)
     EVT_BUTTON(ID_CLOSE, AddIUFromHDBDialog::onClose)
+    EVT_LIST_COL_CLICK(ID_LIST, AddIUFromHDBDialog::onColumnClick)
 END_EVENT_TABLE()
 
 
@@ -68,6 +69,54 @@ const Machine::Extension AddIUFromHDBDialog::DEFAULT_EXTENSION_MODE =
     Machine::ZERO;
 
 const wxString AddIUFromHDBDialog::HDB_FILE_FILTER = _T("*.hdb");
+
+int wxCALLBACK
+IUListCompareASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid1->width - lid2->width;
+    } else if (sortColumn == 1) {
+        return lid1->size - lid2->size;
+    } else if (sortColumn == 2) {
+        return lid1->readPorts - lid2->readPorts;
+    } else if (sortColumn == 3) {
+        return lid1->latency - lid2->latency;
+    } else if (sortColumn == 4) {
+        return lid1->hdbId - lid2->hdbId;
+    } else if (sortColumn == 5) {
+        return lid1->path.Cmp(lid2->path);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK
+IUListCompareDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid2->width - lid1->width;
+    } else if (sortColumn == 1) {
+        return lid2->size - lid1->size;
+    } else if (sortColumn == 2) {
+        return lid2->readPorts - lid1->readPorts;
+    } else if (sortColumn == 3) {
+        return lid2->latency - lid1->latency;
+    } else if (sortColumn == 4) {
+        return lid2->hdbId - lid1->hdbId;
+    } else if (sortColumn == 5) {
+        return lid2->path.Cmp(lid1->path);
+    }
+
+    return 0;
+}
 
 /**
  * The Constructor.
@@ -210,21 +259,33 @@ AddIUFromHDBDialog::loadHDB(const std::string& path) {
         iuArchitectures_.insert(
             std::pair<int, RFArchitecture*>(list_->GetItemCount(), arch));
 
+        ListItemData* lid = new ListItemData;
+
         if (arch->hasParameterizedWidth()) {
             list_->InsertItem(0, _T("param"));
+            lid->width = 0;
         } else {
             list_->InsertItem(0, WxConversion::toWxString(arch->width()));
+            lid->width = arch->width();
         }
         if (arch->hasParameterizedSize()) {
             list_->SetItem(0, 1, _T("param"));
+            lid->size = 0;
         } else {
             list_->SetItem(0, 1, WxConversion::toWxString(arch->size()));
+            lid->size = arch->size();
         }
-        list_->SetItem(0, 2, WxConversion::toWxString(arch->readPortCount())); 
+        list_->SetItem(0, 2, WxConversion::toWxString(arch->readPortCount()));
+        lid->readPorts = arch->readPortCount();
         list_->SetItem(0, 3, WxConversion::toWxString(arch->latency())); 
+        lid->latency = arch->latency();
         list_->SetItem(0, 4, WxConversion::toWxString(*iter));
+        lid->hdbId = *iter;
         list_->SetItem(0, 5, WxConversion::toWxString(path));
-        list_->SetItemData(0, list_->GetItemCount() - 1);
+        lid->path = WxConversion::toWxString(path);
+        lid->id = list_->GetItemCount() - 1;
+        list_->SetItemData(0, (long)lid);
+
     }
 
     return true;
@@ -236,9 +297,9 @@ AddIUFromHDBDialog::loadHDB(const std::string& path) {
 void
 AddIUFromHDBDialog::onListSelectionChange(wxListEvent&) {
     if (list_->GetSelectedItemCount() == 1) {
-	FindWindow(ID_ADD)->Enable();
+        FindWindow(ID_ADD)->Enable();
     } else {
-	FindWindow(ID_ADD)->Disable();
+        FindWindow(ID_ADD)->Disable();
     }
 }
 
@@ -253,7 +314,8 @@ AddIUFromHDBDialog::onAdd(wxCommandEvent&) {
     item = list_->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if ( item == -1 ) return;
     
-    int id = list_->GetItemData(item);
+    ListItemData* lid = (ListItemData*)list_->GetItemData(item);
+    int id = lid->id;
     const RFArchitecture* arch =
         MapTools::valueForKey<RFArchitecture*>(iuArchitectures_, id);
 
@@ -337,12 +399,28 @@ AddIUFromHDBDialog::createContents(
     wxButton *item4 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer( item0 );
-        if (call_fit)
+        if (call_fit) {
             item0->SetSizeHints( parent );
+        }
     }
     
     return item0;
+}
+
+
+/**
+ * Sorts HDB IU list according to clicked column.
+ */
+void
+AddIUFromHDBDialog::onColumnClick(wxListEvent& event) {
+    static bool sortingOrder = false;
+    sortingOrder = !sortingOrder;
+
+    if (sortingOrder) {
+        list_->SortItems(IUListCompareASC, event.GetColumn());
+    } else {
+        list_->SortItems(IUListCompareDESC, event.GetColumn());
+    }
 }

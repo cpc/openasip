@@ -40,6 +40,16 @@
 
 class Model;
 
+struct ListItemData {
+    int id;
+    int width;
+    int size;
+    int readPorts;
+    int latency;
+    int hdbId;
+    wxString path;
+};
+
 namespace HDB {
     class RFArchitecture;
 }
@@ -60,6 +70,7 @@ private:
     void onAdd(wxCommandEvent& event);
     void onClose(wxCommandEvent& event);
     bool loadHDB(const std::string& path);
+    void onColumnClick(wxListEvent& event);
 
     /// Model of the current adf file.
     Model* model_;
@@ -69,10 +80,10 @@ private:
     std::map<int, HDB::RFArchitecture*> iuArchitectures_;
 
     enum {
-	ID_LIST = 10000,
-	ID_ADD,
-	ID_CLOSE,
-	ID_LINE
+        ID_LIST = 10000,
+        ID_ADD,
+        ID_CLOSE,
+        ID_LINE
     };
 
     /// Default size for the IU, if the size is parameterized in the HDB.
