@@ -76,6 +76,7 @@ private:
         const std::vector<std::string>& filterList);
     void onFilterChange(wxCommandEvent& event);
     void onColumnClick(wxListEvent& event);
+    void setColumnImage(int col, int image);
 
     /// Model of the current adf file.
     Model* model_;

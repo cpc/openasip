@@ -34,6 +34,7 @@
 #include <wx/statline.h>
 #include <wx/listctrl.h>
 #include <wx/dir.h>
+#include <wx/imaglist.h>
 
 #include "AddIUFromHDBDialog.hh"
 #include "Model.hh"
@@ -48,6 +49,7 @@
 #include "Environment.hh"
 #include "FileSystem.hh"
 #include "Conversion.hh"
+#include "ProDeConstants.hh"
 
 using std::string;
 using boost::format;
@@ -138,14 +140,19 @@ AddIUFromHDBDialog::AddIUFromHDBDialog(
 
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
 
-    list_->InsertColumn(0, _T("Width"));
-    list_->InsertColumn(1, _T("Size"));
-    list_->InsertColumn(2, _T("Read ports"));
+    list_->InsertColumn(0, _T("Width"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(1, _T("Size"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(2, _T("Read ports"), wxLIST_FORMAT_LEFT, 100);
     //list_->InsertColumn(5, _T("Max Reads"));
     //list_->InsertColumn(6, _T("Max RW"));
-    list_->InsertColumn(3, _T("Latency"));
-    list_->InsertColumn(4, _T("ID"));
-    list_->InsertColumn(5, _T("HDB"));
+    list_->InsertColumn(3, _T("Latency"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(4, _T("ID"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(5, _T("HDB"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+
+    wxImageList* imageList = new wxImageList();
+    imageList->Add(wxIcon(ProDeConstants::ARROW_UP));
+    imageList->Add(wxIcon(ProDeConstants::ARROW_DOWN));
+    list_->SetImageList(imageList, wxIMAGE_LIST_SMALL);
 
     // Disable conditional buttons.
     FindWindow(ID_ADD)->Disable();
@@ -289,6 +296,7 @@ AddIUFromHDBDialog::loadHDB(const std::string& path) {
     }
     // default sorting column is "Width"
     list_->SortItems(IUListCompareASC, 0);
+    setColumnImage(0, sortASC_);
 
     return true;
 }
@@ -413,21 +421,41 @@ AddIUFromHDBDialog::createContents(
 
 
 /**
- * Sorts HDB IU list according to clicked column.
+ * Sorts HDB FU list according to clicked column.
  */
 void
 AddIUFromHDBDialog::onColumnClick(wxListEvent& event) {
 
-    if (event.GetColumn() == sortColumn_) {
+    int clickedColumn = event.GetColumn();
+
+    if (clickedColumn == sortColumn_) {
         sortASC_ = !sortASC_;
     } else {
         sortASC_ = true;
-        sortColumn_ = event.GetColumn();
+        setColumnImage(sortColumn_, -1);    // removes arrow from old column
+        sortColumn_ = clickedColumn;
     }
 
+    setColumnImage(clickedColumn, sortASC_);
+
     if (sortASC_) {
-        list_->SortItems(IUListCompareASC, event.GetColumn());
+        list_->SortItems(IUListCompareASC, clickedColumn);
     } else {
-        list_->SortItems(IUListCompareDESC, event.GetColumn());
+        list_->SortItems(IUListCompareDESC, clickedColumn);
     }
+}
+
+
+/**
+ * Sets sorting arrow image on selected column
+ *
+ * @param col Column index to set the image
+ * @param image Image index in wxImageList
+ */
+void
+AddIUFromHDBDialog::setColumnImage(int col, int image) {
+    wxListItem item;
+    item.SetMask(wxLIST_MASK_IMAGE);
+    item.SetImage(image);
+    list_->SetColumn(col, item);
 }

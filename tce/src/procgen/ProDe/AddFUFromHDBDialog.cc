@@ -37,6 +37,7 @@
 #include <wx/listctrl.h>
 #include <wx/dir.h>
 #include <wx/textctrl.h>
+#include <wx/imaglist.h>
 
 #include "AddFUFromHDBDialog.hh"
 #include "Model.hh"
@@ -56,6 +57,7 @@
 #include "ExecutionPipeline.hh"
 #include "HDBRegistry.hh"
 #include "ObjectState.hh"
+#include "ProDeConstants.hh"
 
 using std::string;
 using boost::format;
@@ -134,11 +136,16 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
 
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
 
-    list_->InsertColumn(0, _T("Latency"));
-    list_->InsertColumn(1, _T("Operations"));
-    list_->InsertColumn(2, _T("Impls"));
-    list_->InsertColumn(3, _T("HDB ID"));
-    list_->InsertColumn(4, _T("HDB"));
+    list_->InsertColumn(0, _T("Latency"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(1, _T("Operations"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(2, _T("Impls"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(3, _T("HDB ID"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(4, _T("HDB"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+
+    wxImageList* imageList = new wxImageList();
+    imageList->Add(wxIcon(ProDeConstants::ARROW_UP));
+    imageList->Add(wxIcon(ProDeConstants::ARROW_DOWN));
+    list_->SetImageList(imageList, wxIMAGE_LIST_SMALL);
 
     // Disable conditional buttons.
     FindWindow(ID_ADD)->Disable();
@@ -261,6 +268,7 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
     }
     // default sorting column is "Operations"
     list_->SortItems(FUListCompareASC, 1);
+    setColumnImage(1, sortASC_);
 
     return true;
 }
@@ -493,16 +501,36 @@ AddFUFromHDBDialog::createContents(
 void
 AddFUFromHDBDialog::onColumnClick(wxListEvent& event) {
 
-    if (event.GetColumn() == sortColumn_) {
+    int clickedColumn = event.GetColumn();
+
+    if (clickedColumn == sortColumn_) {
         sortASC_ = !sortASC_;
     } else {
         sortASC_ = true;
-        sortColumn_ = event.GetColumn();
+        setColumnImage(sortColumn_, -1);    // removes arrow from old column
+        sortColumn_ = clickedColumn;
     }
 
+    setColumnImage(clickedColumn, sortASC_);
+
     if (sortASC_) {
-        list_->SortItems(FUListCompareASC, event.GetColumn());
+        list_->SortItems(FUListCompareASC, clickedColumn);
     } else {
-        list_->SortItems(FUListCompareDESC, event.GetColumn());
+        list_->SortItems(FUListCompareDESC, clickedColumn);
     }
+}
+
+
+/**
+ * Sets sorting arrow image on selected column
+ *
+ * @param col Column index to set the image
+ * @param image Image index in wxImageList
+ */
+void
+AddFUFromHDBDialog::setColumnImage(int col, int image) {
+    wxListItem item;
+    item.SetMask(wxLIST_MASK_IMAGE);
+    item.SetImage(image);
+    list_->SetColumn(col, item);
 }

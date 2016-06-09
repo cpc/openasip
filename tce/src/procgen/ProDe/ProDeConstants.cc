@@ -92,8 +92,7 @@ const string ProDeConstants::CMD_NAME_SELECT = "Select";
 const string ProDeConstants::CMD_NAME_EDIT_CONNECTIONS = "Edit Connections";
 const string ProDeConstants::CMD_NAME_EDIT_IMMEDIATE_SLOTS =
     "Edit Immediate Slots";
-const string ProDeConstants::CMD_NAME_EDIT_BUS_ORDER =
-    "Bus Order";
+const string ProDeConstants::CMD_NAME_EDIT_BUS_ORDER = "Bus Order";
 const string ProDeConstants::CMD_NAME_EDIT_ADDRESS_SPACES =
     "Edit Address Spaces";
 const string ProDeConstants::CMD_NAME_EDIT_TEMPLATES = "Edit Templates";
@@ -121,7 +120,6 @@ const string ProDeConstants::CMD_NAME_SAVE_OPTIONS = "Save Options";
 const string ProDeConstants::CMD_NAME_SAVEAS_OPTIONS = "Save Options As";
 
 const string ProDeConstants::CMD_NAME_ABOUT = "About";
-
 
 const string ProDeConstants::CMD_SNAME_NEW_DOC = "New";
 const string ProDeConstants::CMD_SNAME_SAVE_DOC = "Save";
@@ -186,8 +184,7 @@ const string ProDeConstants::CMD_ICON_EDIT_OPTIONS = "options.png";
 const string ProDeConstants::CMD_ICON_SAVE_OPTIONS = "filesave.png";
 const string ProDeConstants::CMD_ICON_EDIT_ADDRESS_SPACES = "memory.png";
 const string ProDeConstants::CMD_ICON_EDIT_TEMPLATES = "default.png";
-const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS =
-    "connect.png";
+const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS = "connect.png";
 
 const string ProDeConstants::CMD_ICON_VERIFY_MACHINE = "verify_machine.png";
 const string ProDeConstants::CMD_ICON_IMPLEMENTATION = "default.png";
@@ -204,15 +201,15 @@ const string ProDeConstants::EDITOR_LOGO_PATH = "logo.png";
 const wxString ProDeConstants::EDITOR_NAME = _T("TTA Processor Designer");
 const wxString ProDeConstants::EDITOR_COPYRIGHT_TEXT = 
     _T("Portions of this program are copyright\n"
-       "\n"
-       "Xerces (c) 1999-2005 The Apache Software\n" 
-       "wxWidgets (c) 1998 Julian Smart, Robert Roebling \n"
-       "Tcl (c) 1998-1999 by Scriptics Corporation\n" 
-       "Editline (c) 1997 The NetBSD Foundation, Inc.\n"
-       "Boost C++ Libraries (c) 2003 Beman Dawes, David Abrahams\n" 
-       "\n" 
-       "For more information see User manual chapter \"Copyright notices\""
-      );
+        "\n"
+        "Xerces (c) 1999-2005 The Apache Software\n" 
+        "wxWidgets (c) 1998 Julian Smart, Robert Roebling \n"
+        "Tcl (c) 1998-1999 by Scriptics Corporation\n" 
+        "Editline (c) 1997 The NetBSD Foundation, Inc.\n"
+        "Boost C++ Libraries (c) 2003 Beman Dawes, David Abrahams\n" 
+        "\n" 
+        "For more information see User manual chapter \"Copyright notices\""
+    );
 
 const string ProDeConstants::COMP_DEFAULT_NAME_GCU = "gcu";
 const string ProDeConstants::COMP_DEFAULT_NAME_SEGMENT = "seg1";
@@ -232,6 +229,71 @@ const double ProDeConstants::MAX_ZOOM_FACTOR = 3;
 const double ProDeConstants::MIN_ZOOM_FACTOR = 0.25;
 const double ProDeConstants::ZOOM_STEP = 0.1;
 
-
 const string ProDeConstants::PROCESSOR_ARCH_FILE_EXTENSION = ".adf";
 const string ProDeConstants::PROCESSOR_CONFIG_FILE_EXTENSION = ".cfg";
+
+const char* ProDeConstants::ARROW_UP[] = {
+    /* columns rows colors chars-per-pixel */
+    "16 25 2 1",
+    "  c None",
+    "a c Black",
+    /* pixels */
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "       aa       ",
+    "      aaaa      ",
+    "     aaaaaa     ",
+    "    aa aa aa    ",
+    "   aa  aa  aa   ",
+    "  aa   aa   aa  ",
+    " aa    aa    aa ",
+    " a     aa     a ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                "
+};
+const char* ProDeConstants::ARROW_DOWN[] = {
+    /* columns rows colors chars-per-pixel */
+    "16 25 2 1",
+    "  c None",
+    "a c Black",
+    /* pixels */
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    "       aa       ",
+    " a     aa     a ",
+    " aa    aa    aa ",
+    "  aa   aa   aa  ",
+    "   aa  aa  aa   ",
+    "    aa aa aa    ",
+    "     aaaaaa     ",
+    "      aaaa      ",
+    "       aa       ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                "
+};

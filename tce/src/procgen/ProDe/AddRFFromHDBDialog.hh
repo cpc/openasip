@@ -74,6 +74,7 @@ private:
     void onClose(wxCommandEvent& event);
     bool loadHDB(const HDB::HDBManager& manager);
     void onColumnClick(wxListEvent& event);
+    void setColumnImage(int col, int image);
 
     /// Model of the current adf file.
     Model* model_;
