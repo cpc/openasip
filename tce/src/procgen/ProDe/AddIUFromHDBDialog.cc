@@ -421,7 +421,7 @@ AddIUFromHDBDialog::createContents(
 
 
 /**
- * Sorts HDB FU list according to clicked column.
+ * Sorts HDB IU list according to clicked column.
  */
 void
 AddIUFromHDBDialog::onColumnClick(wxListEvent& event) {

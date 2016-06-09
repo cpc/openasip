@@ -406,7 +406,7 @@ AddRFFromHDBDialog::createContents(
 
 
 /**
- * Sorts HDB FU list according to clicked column.
+ * Sorts HDB RF list according to clicked column.
  */
 void
 AddRFFromHDBDialog::onColumnClick(wxListEvent& event) {
