@@ -205,7 +205,7 @@ OSEdInfoView::operationPropertyView(
     const std::string& pathName) {
     
     clear();
-	
+
     OSEdTextGenerator& texts = OSEdTextGenerator::instance();
     format yesFmt = texts.text(OSEdTextGenerator::TXT_ROW_YES);
     format noFmt = texts.text(OSEdTextGenerator::TXT_ROW_NO);
@@ -213,7 +213,7 @@ OSEdInfoView::operationPropertyView(
     format falseFmt = texts.text(OSEdTextGenerator::TXT_ROW_FALSE);
 
     Operation* op = OperationContainer::operation(pathName, modName, opName);
-	
+
     // insert columns
     insertOperationPropertyColumns();
     
@@ -250,7 +250,7 @@ OSEdInfoView::operationPropertyView(
         SetItem(i, 1, WxConversion::toWxString(op->affects(k)));
         i++;
     }
-	
+
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_INPUT_OPERANDS);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
     i++;
@@ -307,7 +307,7 @@ OSEdInfoView::operationPropertyView(
                 fmt = texts.text(OSEdTextGenerator::TXT_ROW_CAN_SWAP);
                 SetItem(i, 1, WxConversion::toWxString(fmt.str()));
                 SetItem(i, 2, opId);
-				
+
             } else {
                 InsertItem(i, _T(""));
                 SetItem(i, 2, opId);
@@ -324,7 +324,7 @@ OSEdInfoView::operationPropertyView(
     // outputs
     for (int j = op->numberOfInputs() + 1;
          j <= op->numberOfOutputs() + op->numberOfInputs(); j++) {
-		
+
         Operand& operand = op->operand(j);
         InsertItem(i, _T(""));
         wxString opId = WxConversion::toWxString(j);
@@ -416,13 +416,13 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
     InsertItem(i, WxConversion::toWxString(fmt.str()));
     SetItem(i, 1, WxConversion::toWxString(op->description()));
     i++;
-	
+
     // number of inputs
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_INPUTS);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
     SetItem(i, 1, WxConversion::toWxString(op->numberOfInputs()));
     i++;
-	
+
     // number of outputs
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_OUTPUTS);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
@@ -438,7 +438,7 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
         SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
     i++;
-	
+
     // writes memory
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_WRITES_MEMORY);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
@@ -448,7 +448,7 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
         SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
     i++;
-	
+
     // can trap
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_CAN_TRAP);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
@@ -458,7 +458,7 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
         SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
     i++;
-	
+
     // has side effects
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_HAS_SIDE_EFFECTS);
     InsertItem(i, WxConversion::toWxString(fmt.str()));

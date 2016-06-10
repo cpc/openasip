@@ -182,6 +182,7 @@ HDBBrowserWindow::update() {
         dialog.Update(c, message);
 		dialog.SetSize(300,100);
     }
+    tree_->SortChildren(fus);
 
     cur = 0;
     ids = rfArchIds.size();

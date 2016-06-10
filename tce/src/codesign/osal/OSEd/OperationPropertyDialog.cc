@@ -242,7 +242,7 @@ OperationPropertyDialog::operation() const {
  */
 void
 OperationPropertyDialog::setTexts() {
-	
+
     GUITextGenerator& guiText = *GUITextGenerator::instance();
     OSEdTextGenerator& osedText = OSEdTextGenerator::instance();
 
@@ -274,7 +274,7 @@ OperationPropertyDialog::setTexts() {
 
     WidgetTools::setLabel(&guiText, FindWindow(ID_AFFECTS_ADD_BUTTON),
                           GUITextGenerator::TXT_BUTTON_ADD);
-	
+
     WidgetTools::setLabel(&guiText, FindWindow(ID_AFFECTS_DELETE_BUTTON),
                           GUITextGenerator::TXT_BUTTON_DELETE);
 
@@ -293,7 +293,7 @@ OperationPropertyDialog::setTexts() {
     WidgetTools::setLabel(&osedText, FindWindow(ID_OPEN_BUTTON),
                               OSEdTextGenerator::TXT_BUTTON_OPEN);
 
-	
+
     setBehaviorLabel();
 
     // column titles
@@ -307,19 +307,19 @@ OperationPropertyDialog::setTexts() {
         OSEdConstants::DEFAULT_COLUMN_WIDTH);
     
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_COUNT);
-	
+
     inputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_WIDTH);
-	
+
     inputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_TYPE);
-	
+
     inputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
@@ -331,19 +331,19 @@ OperationPropertyDialog::setTexts() {
         70);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_COUNT);
-	
+
     outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_ELEMENT_WIDTH);
-	
+
     outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
 
     fmt = osedText.text(OSEdTextGenerator::TXT_COLUMN_TYPE);
-	
+
     outputOperandList_->InsertColumn(
         0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         110);
@@ -369,7 +369,7 @@ OperationPropertyDialog::setTexts() {
 
     WidgetTools::setLabel(&osedText, FindWindow(ID_CLOCKED),
                           OSEdTextGenerator::TXT_CHECKBOX_CLOCKED);
-	
+
     // box sizers
     fmt = osedText.text(OSEdTextGenerator::TXT_BOX_AFFECTS);
     WidgetTools::setWidgetLabel(affectsSizer_, fmt.str());
@@ -419,9 +419,9 @@ OperationPropertyDialog::TransferDataToWindow() {
         clocked_ = operation_->isClocked();
         controlFlow_ = operation_->isControlFlowOperation();
         isCall_ = operation_->isCall();
-        isBranch_ = operation_->isBranch();	
+        isBranch_ = operation_->isBranch();
         updateOperands();
-        updateAffected();	
+        updateAffected();
     } else {
         readMemory_ = false;
         writeMemory_ = false;
@@ -460,7 +460,7 @@ OperationPropertyDialog::updateOperands() {
     int k = 0;
     for (unsigned int i = inputOperands_.size() + 1;
          i <= inputOperands_.size() + outputOperands_.size(); i++) {
-		
+
         wxString id = WxConversion::toWxString(i);
         outputOperandList_->InsertItem(k, id);
         std::string type = outputOperands_.at(k)->typeString();
@@ -483,7 +483,7 @@ OperationPropertyDialog::updateOperands() {
  */
 void
 OperationPropertyDialog::updateAffected() {
-	
+
     affectedByList_->DeleteAllItems();
     affectsList_->DeleteAllItems();
     
@@ -491,12 +491,12 @@ OperationPropertyDialog::updateAffected() {
         wxString oper = WxConversion::toWxString(affectedBy_[i]);
         affectedByList_->InsertItem(i, oper);
     }
-	
+
     for (unsigned int i = 0; i < affects_.size(); i++) {
         wxString oper = WxConversion::toWxString(affects_[i]);
         affectsList_->InsertItem(i, oper);
     }
-	
+
     OperationIndex& index = OperationContainer::operationIndex();
     affectsChoice_->Clear();
     affectedByChoice_->Clear();
@@ -524,8 +524,9 @@ OperationPropertyDialog::updateAffected() {
                     affectedByChoice_->Append(WxConversion::toWxString(name));
                 }
             }
+
         }
-	}
+    }
     affectsChoice_->SetSelection(0);
     affectedByChoice_->SetSelection(0);
     
@@ -540,7 +541,7 @@ OperationPropertyDialog::updateAffected() {
     } else {
         FindWindow(ID_AFFECTED_ADD_BUTTON)->Enable();
     }
-	
+
     wxListEvent dummy;
     onSelection(dummy);
 }
@@ -553,19 +554,19 @@ OperationPropertyDialog::updateAffected() {
  */ 
 void
 OperationPropertyDialog::onSelection(wxListEvent&) {
-	
+
     if (affectedByList_->GetSelectedItemCount() < 1) {
         FindWindow(ID_AFFECTED_DELETE_BUTTON)->Disable();
     } else {
         FindWindow(ID_AFFECTED_DELETE_BUTTON)->Enable();
     }
-	
+
     if (affectsList_->GetSelectedItemCount() < 1) {
         FindWindow(ID_AFFECTS_DELETE_BUTTON)->Disable();
     } else {
         FindWindow(ID_AFFECTS_DELETE_BUTTON)->Enable();
     }
-	
+
     if (inputOperandList_->GetSelectedItemCount() < 1) {
         FindWindow(ID_INPUT_DELETE_BUTTON)->Disable();
     } else {
@@ -600,7 +601,7 @@ OperationPropertyDialog::onSelection(wxListEvent&) {
             FindWindow(ID_INPUT_DOWN_BUTTON)->Disable();
         }
     }
-	
+
     if (outputOperandList_->GetSelectedItemCount() != 1) {
         FindWindow(ID_OUTPUT_MODIFY_BUTTON)->Disable();
         FindWindow(ID_OUTPUT_UP_BUTTON)->Disable();
@@ -876,7 +877,7 @@ OperationPropertyDialog::onMoveOutputDown(wxCommandEvent&) {
  */
 void
 OperationPropertyDialog::onOpen(wxCommandEvent&) {
-	
+
     OSEdTextGenerator& texts = OSEdTextGenerator::instance();
     OSEdOptions* options = wxGetApp().options();
     string editor = options->editor();
@@ -1102,7 +1103,7 @@ OperationPropertyDialog::updateOperation(bool newOpDag) {
  */
 ObjectState*
 OperationPropertyDialog::saveOperation() {
-	
+
     ObjectState* root = new ObjectState(Operation::OPRN_OPERATION);
     root->setAttribute(Operation::OPRN_NAME, WxConversion::toString(name_));
 
@@ -1333,7 +1334,7 @@ OperationPropertyDialog::createContents(
     {
         wxT("ComboItem")
     };
-    wxComboBox *item13 = new wxComboBox(parent, ID_OPERATION_AFFECTED_BY, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs13, wxCB_DROPDOWN);
+    wxComboBox *item13 = new wxComboBox(parent, ID_OPERATION_AFFECTED_BY, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs13, wxCB_SORT);
     item12->Add(item13, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxButton *item14 = new wxButton(parent, ID_AFFECTED_ADD_BUTTON, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0);
@@ -1398,7 +1399,7 @@ OperationPropertyDialog::createContents(
     {
         wxT("ComboItem")
     };
-    wxComboBox *item31 = new wxComboBox(parent, ID_OPERATION_AFFECTS, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs31, wxCB_DROPDOWN);
+    wxComboBox *item31 = new wxComboBox(parent, ID_OPERATION_AFFECTS, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs31, wxCB_SORT);
     item30->Add(item31, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxButton *item32 = new wxButton(parent, ID_AFFECTS_ADD_BUTTON, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0);
