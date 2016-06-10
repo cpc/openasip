@@ -180,7 +180,7 @@ HDBBrowserWindow::update() {
         cur++;
         message.Printf(wxT("Loading FU Architectures... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
     tree_->SortChildren(fus);
 
@@ -193,9 +193,9 @@ HDBBrowserWindow::update() {
         rfArchitectures_[*iter] = id;
         c++;
         cur++;
-		message.Printf(wxT("Loading RF Architectures... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading RF Architectures... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
 
     // FU Entries
@@ -224,9 +224,9 @@ HDBBrowserWindow::update() {
         delete fuEntry;
         c++;
         cur++;
-		message.Printf(wxT("Loading FU entries... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading FU entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
 
     // RF Entries
@@ -253,9 +253,9 @@ HDBBrowserWindow::update() {
         delete rfEntry;
         c++;
         cur++;
-		message.Printf(wxT("Loading RF entries... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading RF entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
 
     // Bus Entries
@@ -269,9 +269,9 @@ HDBBrowserWindow::update() {
         busEntries_[*iter] = entryTreeID;
         c++;
         cur++;
-		message.Printf(wxT("Loading bus entries... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading bus entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
 
     // Socket Entries
@@ -284,9 +284,9 @@ HDBBrowserWindow::update() {
 
         socketEntries_[*iter] = entryTreeID;
         cur++;
-		message.Printf(wxT("Loading socket entries... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading socket entries... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
     
     // Cost estimation plugin data
@@ -303,9 +303,9 @@ HDBBrowserWindow::update() {
         delete plugin;
         c++;
         cur++;
-		message.Printf(wxT("Loading cost estimation plugins... (%04d / %04d)"),cur,ids);
+        message.Printf(wxT("Loading cost estimation plugins... (%04d / %04d)"),cur,ids);
         dialog.Update(c, message);
-		dialog.SetSize(300,100);
+        dialog.SetSize(300,100);
     }
 
     tree_->Expand(root);
