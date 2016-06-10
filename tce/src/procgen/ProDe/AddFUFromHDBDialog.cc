@@ -142,12 +142,14 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
     list_->InsertColumn(3, _T("HDB ID"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
     list_->InsertColumn(4, _T("HDB"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
 
-    wxString iconPath = Environment::iconDirPath();
-    iconPath.Append(FileSystem::DIRECTORY_SEPARATOR);
+    string iconPath =
+        Environment::iconDirPath() + FileSystem::DIRECTORY_SEPARATOR;
 
     wxImageList* imageList = new wxImageList();
-    imageList->Add(wxIcon(iconPath + ProDeConstants::ICON_SORT_DESC));
-    imageList->Add(wxIcon(iconPath + ProDeConstants::ICON_SORT_ASC));
+    imageList->Add(wxIcon(
+        WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_DESC)));
+    imageList->Add(wxIcon(
+        WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_ASC)));
     list_->SetImageList(imageList, wxIMAGE_LIST_SMALL);
 
     // Disable conditional buttons.
