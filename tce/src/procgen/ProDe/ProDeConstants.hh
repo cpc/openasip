@@ -387,6 +387,11 @@ public:
     static const char* ARROW_UP[];
     static const char* ARROW_DOWN[];
 
+    /// Icon location for ascending sort
+    static const std::string ICON_SORT_ASC;
+    /// Icon location for descending sort
+    static const std::string ICON_SORT_DESC;
+
     /// Unique identifiers for the commands.
     enum CommandID {
         COMMAND_NEW_DOC = 20000,
