@@ -949,9 +949,6 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         stream << "use STD.textio.all;" << endl;
         stream << "use work." << entityNameStr_ << "_globals.all;" << endl
                << endl;
-        if (generateDebugger_) {
-            stream << "use work.debugger_if.all;" << endl;
-        }
             
         string entityName = entityNameStr_ + "_interconn";
         stream << "entity " << entityName << " is" << endl << endl;
@@ -963,7 +960,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             int bustrace_width=32*busNav.count();
 
             new NetlistPort(
-                "db_bustraces", "db_data_width*db_bustrace_count",
+                "db_bustraces", "32*BUSCOUNT",
                 bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, *icBlock_);
         }
 

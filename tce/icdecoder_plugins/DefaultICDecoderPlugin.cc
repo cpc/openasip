@@ -993,9 +993,6 @@ public:
                 break;
         }
 
-        //Include debugger package with width constants in tta0.vhdl
-        toplevelBlock.addPackage("debugger_if");
-
         //Figure out some constants
         int dbgDataWidth=32;
         int pcWidth=11;
@@ -1008,16 +1005,16 @@ public:
             "db_pc", "IMEMADDRWIDTH", pcWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaBustracePort = new NetlistPort(
-            "db_bustraces", "db_data_width*db_bustrace_count", 
+            "db_bustraces", "32*BUSCOUNT", 
             bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaInstrPort = new NetlistPort(
-            "db_instr", "IMEMWIDTHINMAUS*IMEMMAUWIDTH", 
+            "db_instr", "IMEMDATAWIDTH", 
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaLockcountPort = new NetlistPort(
-            "db_lockcnt", "db_data_width", dbgDataWidth,
+            "db_lockcnt", "32", dbgDataWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "db_data_width", dbgDataWidth,
+            "db_cyclecnt", "32", dbgDataWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaResetPort = new NetlistPort(
             "db_tta_nreset", "1", ProGe::BIT, HDB::IN, toplevelBlock);

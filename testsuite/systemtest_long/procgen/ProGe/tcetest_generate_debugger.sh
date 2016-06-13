@@ -39,10 +39,7 @@ then
   
   # TB doesn't suport debugger, remove sources from compilatiom
   sed "s#ghdl -i --workdir=work tb/.*.vhdl##g" $COMPILE_SCRIPT > temp
-  mv temp $COMPILE_SCRIPT
-  sed "s#testbench#tta0#g" $COMPILE_SCRIPT > temp
-  # and add required source file
-  sed "s#rm -rf tta0#rm -rf tta0 \n ghdl -i --workdir=work ../$DBIF#g" temp > $COMPILE_SCRIPT
+  sed "s#testbench#tta0#g" temp > $COMPILE_SCRIPT
   rm temp
   chmod a+x $COMPILE_SCRIPT
   
