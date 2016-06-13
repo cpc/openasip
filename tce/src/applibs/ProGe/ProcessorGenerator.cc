@@ -161,7 +161,7 @@ ProcessorGenerator::generateProcessor(
         assert(false);
     }
     
-    plugin.generate(language, pluginDstDir, netlistGenerator,implementation,
+    plugin.generate(language, pluginDstDir, netlistGenerator, implementation,
         entityStr_);
 
     if (!FileSystem::fileExists(topLevelDir)) {

@@ -212,7 +212,7 @@ NetlistPort::setToStatic(StaticSignal value) {
 }
 
 void
-NetlistPort::unsetToStatic() {
+NetlistPort::unsetStatic() {
 
     hasStaticValue_ = false;
 }

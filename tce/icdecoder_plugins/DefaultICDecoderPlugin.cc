@@ -1077,7 +1077,7 @@ public:
         // Connect decoder softreset
             NetlistPort* decoderDBResetPort =
                 decoderBlock->portByName("db_tta_nreset");
-            decoderDBResetPort->unsetToStatic();
+            decoderDBResetPort->unsetStatic();
             toplevelBlock.netlist().connectPorts(
                 *ttaResetPort, *decoderDBResetPort);
     }
