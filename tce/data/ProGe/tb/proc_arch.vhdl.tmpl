@@ -27,7 +27,7 @@
 -- Author     : Teemu Pitkänen (teemu.pitkanen@tut.fi)
 -- Company    : TUT/IDCS
 -- Created    : 2003-11-26
--- Last update: 2007/04/23
+-- Last update: 2016-06-14
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -54,7 +54,6 @@ architecture structural_dp_dmem of proc is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       fu_LSUA_data_in : in std_logic_vector(fu_LSUA_dataw-1 downto 0);
       fu_LSUA_data_out : out std_logic_vector(fu_LSUA_dataw-1 downto 0);
       fu_LSUA_addr : out std_logic_vector(fu_LSUA_addrw_plus_2-2-1 downto 0);
@@ -206,7 +205,6 @@ begin  -- struct
       imem_en_x        => imem_en_x,
       imem_addr        => imem_addr,
       imem_data        => imem_data,
-      pc_init          => pc_init,
       fu_LSUA_data_in   => dmem_q_a,
       fu_LSUA_data_out  => dmem_d_a,
       fu_LSUA_addr      => dmem_addr_a,

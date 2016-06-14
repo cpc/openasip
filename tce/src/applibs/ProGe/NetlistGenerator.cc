@@ -91,7 +91,6 @@ const string READ_ENABLE_PORT_NAME = "imem_en_x";
 const string ADDRESS_PORT_NAME = "imem_addr";
 const string DATA_PORT_NAME = "imem_data";
 const string PC_IN_PORT_NAME = "pc_in";
-const string PC_INIT_PORT_NAME = "pc_init";
 const string RA_IN_PORT_NAME = "ra_in";
 const string FETCH_PORT_NAME = "fetch_en";
 const string LOCK_PORT_NAME = "lock";
@@ -666,9 +665,6 @@ NetlistGenerator::addGCUToNetlist(
         toplevelBlock);
     NetlistPort* tlDataPort = new NetlistPort(
         DATA_PORT_NAME, IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, toplevelBlock);
-    NetlistPort* tlPCInitPort = new NetlistPort(
-        PC_INIT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN,
-        toplevelBlock);
 
     mapClockPort(toplevelBlock, *tlClkPort);
     mapResetPort(toplevelBlock, *tlRstPort);
@@ -711,8 +707,6 @@ NetlistGenerator::addGCUToNetlist(
     NetlistPort* ifetchFetchBlockPort = new NetlistPort(
         FETCHBLOCK_PORT_NAME,
         IMEMWIDTHFORMULA, BIT_VECTOR, HDB::OUT, *instructionFetch_);
-    NetlistPort* ifetchPCInitPort = new NetlistPort(
-        PC_INIT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
 
     // connect ifetch to toplevel
     netlist.connectPorts(*tlClkPort, *ifetchClkPort);
@@ -721,7 +715,6 @@ NetlistGenerator::addGCUToNetlist(
     netlist.connectPorts(*tlReadEnablePort, *ifetchReadEnablePort);
     netlist.connectPorts(*tlAddressPort, *ifetchAddressPort);
     netlist.connectPorts(*tlDataPort, *ifetchDataPort);
-    netlist.connectPorts(*tlPCInitPort, *ifetchPCInitPort);
 
     // map PC port
     ControlUnit* gcu = machine_.controlUnit();

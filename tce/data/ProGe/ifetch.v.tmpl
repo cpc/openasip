@@ -56,7 +56,6 @@ module ENTITY_STR_ifetch
     output   glock,
 
     // external control interface
-    input[IMEMADDRWIDTH-1:0]pc_init,
     input fetch_en,//fetch_enable
 
     input   clk ,
@@ -95,7 +94,7 @@ module ENTITY_STR_ifetch
     always@(posedge clk or negedge rstx)
     if(~rstx)
     begin
-        pc_reg          <= pc_init;
+        pc_reg          <= 0;
         pc_prev_reg     <= {IMEMADDRWIDTH{1'b0}};
         return_addr_reg <= {IMEMADDRWIDTH{1'b0}};
         instruction_reg <= {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};

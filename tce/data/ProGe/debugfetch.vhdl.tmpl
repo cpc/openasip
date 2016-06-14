@@ -54,8 +54,6 @@ entity ENTITY_STR_ifetch is
     -- global lock
     glock : out std_logic;
 
-    -- external control interface
-    pc_init : in std_logic_vector (IMEMADDRWIDTH-1 downto 0);
     fetch_en  : in std_logic;             --fetch_enable
 
     clk  : in std_logic;
@@ -66,6 +64,7 @@ entity ENTITY_STR_ifetch is
     ---------------------------------------------------------------------------
     db_lockreq  : in std_logic;
     db_rstx     : in std_logic;
+    db_pc_start : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
     db_pc       : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
     db_pc_next  : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
     db_cyclecnt : out std_logic_vector(32-1 downto 0);
@@ -146,7 +145,7 @@ begin
       cyclecnt        <= (others => '0');
     elsif clk'event and clk = '1' then  -- rising clock edge
       if db_rstx = '0' then 
-        pc_reg          <= pc_init;
+        pc_reg          <= db_pc_start;
         pc_prev_reg     <= (others => '0');
         return_addr_reg <= (others => '0');
         instruction_reg <= (others => '0');

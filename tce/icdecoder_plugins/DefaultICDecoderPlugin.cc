@@ -1001,6 +1001,9 @@ public:
         int bustrace_width = dbgDataWidth*busNav.count();
 
         //Add debugger interface ports to tta0 entity
+        NetlistPort* ttaPCStartPort = new NetlistPort(
+            "db_pc_start", "IMEMADDRWIDTH", pcWidth,
+            ProGe::BIT_VECTOR, HDB::IN, toplevelBlock);
         NetlistPort* ttaPCPort = new NetlistPort(
             "db_pc", "IMEMADDRWIDTH", pcWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
@@ -1042,6 +1045,9 @@ public:
             "db_rstx", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
         toplevelBlock.netlist().connectPorts(*ttaResetPort,
             *ifetchDebugResetPort);
+        NetlistPort* ifetchPcStartPort = new NetlistPort(
+            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::IN,
+            *fetchBlock);
         NetlistPort* ifetchPCPort = new NetlistPort(
             "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
             *fetchBlock);
@@ -1072,11 +1078,11 @@ public:
             *icBustracePort, *ttaBustracePort);
 
         // Connect decoder softreset
-            NetlistPort* decoderDBResetPort =
-                decoderBlock->portByName("db_tta_nreset");
-            decoderDBResetPort->unsetStatic();
-            toplevelBlock.netlist().connectPorts(
-                *ttaResetPort, *decoderDBResetPort);
+        NetlistPort* decoderDBResetPort =
+            decoderBlock->portByName("db_tta_nreset");
+        decoderDBResetPort->unsetStatic();
+        toplevelBlock.netlist().connectPorts(
+            *ttaResetPort, *decoderDBResetPort);
     }
 
     /**

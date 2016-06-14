@@ -73,11 +73,6 @@ VhdlRomGenerator::VhdlRomGenerator(
     busyToGnd->setToStatic(ProGe::GND);
     addPort("busy", busyToGnd);
 
-    HDLPort* initToZero = new HDLPort("startAddr", "IMEMADDRWIDTH",
-                                      ProGe::BIT_VECTOR, HDB::OUT, false);
-    initToZero->setToStatic(ProGe::GND);
-    addPort("pc_init", initToZero);
-
     ProGe::Netlist::Parameter addr = {"addrw", "integer", "IMEMADDRWIDTH"};
     ProGe::Netlist::Parameter data = {"instrw", "integer",
                                       "IMEMMAUWIDTH*IMEMWIDTHINMAUS"};
