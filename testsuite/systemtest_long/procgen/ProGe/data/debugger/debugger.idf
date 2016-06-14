@@ -7,6 +7,12 @@
     <parameter name="debugger">
       <value>external</value>
     </parameter>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
   </ic-decoder-plugin>
 
   <fu name="LSU">

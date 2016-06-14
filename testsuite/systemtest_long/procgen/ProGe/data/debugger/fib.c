@@ -22,17 +22,13 @@
         DEALINGS IN THE SOFTWARE.
  */
 
-#define __global__ __attribute__((address_space(5)))
-#define __param__ __attribute__((address_space(6)))
 #include "tceops.h"
 
 #define N 64
 
-__global__ char test[4]={1,2,3,4};
+volatile int results[N];
 
-volatile __global__ int results[N];
-
-volatile __param__ int done = 0;
+volatile int done = 0;
 
 int fib(int n) {
     int a1=0, a2=1, retval;

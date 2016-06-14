@@ -47,9 +47,59 @@
     </short-immediate>
   </bus>
 
+  <bus name="B1_1">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>BOOL</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
   <socket name="lsu_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -59,11 +109,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="lsu_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -73,11 +131,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="RF_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -87,11 +153,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="bool_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -101,11 +175,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="gcu_i2">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -115,11 +197,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <socket name="ALU_i1">
     <reads-from>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -129,11 +219,19 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <socket name="ALU_o1">
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -575,13 +673,13 @@
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>16777215</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <address-space name="instructions">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>1048576</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <global-control-unit name="gcu">
