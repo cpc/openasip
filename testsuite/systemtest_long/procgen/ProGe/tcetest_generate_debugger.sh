@@ -13,12 +13,7 @@ TPEF=debugger.tpef
 DBIF=data/debugger/debugger_if-pkg.vhdl
 SRC=data/debugger/fib.c
 PROC=tb/proc_arch.vhdl
-
-SYMBOLS=main,result
 PROGE_OUT=proge-output
-DMEM_IMG=custom_data.img
-IMEM_IMG=custom.img
-
 TBBUSTRACE=$PROGE_OUT/execbus.dump
 TTABUSTRACE=ttabustrace
 
@@ -47,8 +42,8 @@ then
   cd $PROGE_OUT || eexit "No such dir: $PROGE_OUT"
 
   # TB doesn't suport debugger, hack the code some for compatibility
-  sed "s#busy => '0',#&\n  db_lockrq => '0',db_tta_nreset => '1',#" $PROC > temp
-  mv temp $PROC
+  # sed "s#busy => '0',#&\n  db_lockrq => '0',db_tta_nreset => '1',#" $PROC > temp
+  # mv temp $PROC
   
   ./ghdl_compile.sh >& /dev/null || eexit "Ghdl compile failed"
   ./ghdl_simulate.sh >& /dev/null || eexit "Ghdl simulate failed"

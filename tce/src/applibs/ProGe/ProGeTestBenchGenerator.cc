@@ -295,6 +295,14 @@ ProGeTestBenchGenerator::generate(
             "imem_addr => imem_addr,\n"
             "imem_data => imem_data,\n"
             "pc_init => pc_init";
+
+        // Add external debugger ports, if needed
+        if (implementation.icDecoderParameterValue("debugger") == 
+            "external") {
+            LSUMapConst.append(",\n"
+                "db_tta_nreset => '1',\n"
+                "db_lockrq => '0'");
+        }
     } else {
         LSUMapConst=
             ".clk                (clk),\n"
