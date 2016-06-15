@@ -191,13 +191,18 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
     // Read operation operand information from the operation pool.
     std::set<int> inputs;
     std::set<int> outputs;
-    for (int i = 1; i <= op.numberOfInputs() + op.numberOfOutputs(); i++) {
+    wxString opWidths;
+
+    for (int i = 1; i <= op.operandCount(); i++) {
         const Operand& oper = op.operand(i);
+        opWidths.Append(WxConversion::toWxString(oper.width()));
 
         if (oper.isInput()) {
+            opWidths.Append(WxConversion::toWxString("b input, "));
             inputs.insert(oper.index());
             operation->pipeline()->addPortRead(oper.index(), 0, 1);
         } else if (oper.isOutput()) {
+            opWidths.Append(WxConversion::toWxString("b output, "));
             outputs.insert(oper.index());
             if (!inputs.empty()) {
                 // 0 and 1 latency means that the output operand is written
@@ -207,6 +212,9 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
             }
         }
     }
+
+    opWidths.RemoveLast(2);
+    opWidths.Append(_T("."));
 
     // Try to bind operation operands to function unit ports.
     for (int i = 0; i < fu.operationPortCount(); i++) {
@@ -253,6 +261,9 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
                 _T("Not enough output ports for the operation "
                    "output operands.\n"));
         }
+        message.Append(WxConversion::toWxString("\n" + operation_));
+        message.Append(_T(" needs a "));
+        message.Append(opWidths);
         ErrorDialog dialog(this, message);
         dialog.ShowModal();
         delete operation;
