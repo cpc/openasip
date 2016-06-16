@@ -1863,7 +1863,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <name>STREAM_IN</name>
     <description>The "default streaming" operation for input.
 Reads one sample of input from the data stream. The width of the sample is defined by the function unit output port width. 
-When triggered with 0 writes a new sample to the output, if there are one ore more samples to be read in the buffer, otherwise causes a global lock.</description>
+When triggered with 0 writes a new sample to the output, if there are one ore more samples to be read in the buffer, otherwise causes a global lock.
+The IN file can be set using TTASIM_STREAM_IN_FILE environment variable.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
@@ -1877,11 +1878,10 @@ When triggered with 0 writes a new sample to the output, if there are one ore mo
   <operation>
     <name>STREAM_OUT</name>
     <description>The "default streaming" operation for output.
-
 Writes one sample to the output data stream. The width of the sample is
 defined by the function unit input port width.
-
-In case no room is available in the output buffer, causes a global lock.</description>
+In case no room is available in the output buffer, causes a global lock.
+The OUT file can be set using TTASIM_STREAM_OUT_FILE environment variable.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <side-effects/>
