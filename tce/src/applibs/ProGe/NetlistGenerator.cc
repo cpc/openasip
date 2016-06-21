@@ -677,11 +677,11 @@ NetlistGenerator::addGCUToNetlist(
         CLOCK_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchRstPort = new NetlistPort(
         RESET_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
-    NetlistPort* ifetchRAOutPort = new NetlistPort(
-        RA_OUT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT, *instructionFetch_);
+    NetlistPort* ifetchRAOutPort = new NetlistPort(RA_OUT_PORT_NAME, 
+        IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT, *instructionFetch_);
     raOutPort_ = ifetchRAOutPort;
-    NetlistPort* ifetchRAInPort = new NetlistPort(
-        RA_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
+    NetlistPort* ifetchRAInPort = new NetlistPort(RA_IN_PORT_NAME, 
+        IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
     raInPort_ = ifetchRAInPort;
     NetlistPort* ifetchBusyPort = new NetlistPort(
         BUSY_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
@@ -690,10 +690,10 @@ NetlistGenerator::addGCUToNetlist(
     NetlistPort* ifetchAddressPort = new NetlistPort(
         ADDRESS_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT,
         *instructionFetch_);
-    NetlistPort* ifetchDataPort = new NetlistPort(
-        DATA_PORT_NAME, IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *instructionFetch_);
-    NetlistPort* ifetchPCInPort = new NetlistPort(
-        PC_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
+    NetlistPort* ifetchDataPort = new NetlistPort(DATA_PORT_NAME,
+        IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *instructionFetch_);
+    NetlistPort* ifetchPCInPort = new NetlistPort(PC_IN_PORT_NAME,
+        IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchPCLoadPort = new NetlistPort(
         PC_LOAD_PORT_NAME, "1", BIT, HDB::IN, *instructionFetch_);
     NetlistPort* ifetchRALoadPort = new NetlistPort(

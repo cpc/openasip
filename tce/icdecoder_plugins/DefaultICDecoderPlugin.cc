@@ -1045,9 +1045,11 @@ public:
             "db_rstx", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
         toplevelBlock.netlist().connectPorts(*ttaResetPort,
             *ifetchDebugResetPort);
-        NetlistPort* ifetchPcStartPort = new NetlistPort(
+        NetlistPort* ifetchPCStartPort = new NetlistPort(
             "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::IN,
             *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*ifetchPCStartPort,
+            *ttaPCStartPort);
         NetlistPort* ifetchPCPort = new NetlistPort(
             "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
             *fetchBlock);

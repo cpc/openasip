@@ -912,24 +912,36 @@ DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
 
     Machine::BusNavigator busNav = machine_.busNavigator();
 
-    for (int i=0; i<busNav.count(); i++) {
-        if (i%4 == 0) {
+    for (int i = 0; i < busNav.count(); i++) {
+        if (i % 4 == 0) {
             stream << indentation(2);
         }
 
         // Reverse order
         int idx = busNav.count() - 1 - i;
-        stream << busSignal(*busNav.item(idx)) << "(31 downto 0)";
+        int busWidth = busNav.item(idx)->width();
+
+        if (busWidth < 32) { // Pad short busses with zeroes
+            stream << "\"" << string(32 - busWidth, '0') << "\"&";
+        }
+
+        stream << busSignal(*busNav.item(idx));
+
+        if (busWidth > 32) { // Truncate large busses
+            stream << "(31 downto 0)";
+        }
 
         if (i != busNav.count() - 1) {
             stream << " & ";
+
+            if (i % 4 == 3) {
+                stream << endl;
+            }
         } else {
             stream << ";";
         }
 
-        if (i%4 == 3) {
-            stream << endl;
-        }
+        
     }
     stream << endl;
 }
@@ -957,7 +969,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             && (icBlock_->portByName("db_bustraces") == NULL)) {
             //Assume that all buses are 32-bit
             Machine::BusNavigator busNav = machine_.busNavigator();
-            int bustrace_width=32*busNav.count();
+            int bustrace_width = 32*busNav.count();
 
             new NetlistPort(
                 "db_bustraces", "32*BUSCOUNT",
