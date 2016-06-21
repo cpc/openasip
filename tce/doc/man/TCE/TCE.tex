@@ -1910,7 +1910,9 @@ The example streaming operations in the base operation set are
 called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
 These operations have a simulation behavior definition which simulates the
 stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host.
+the simulator host. STREAM\_IN and STREAM\_OUT operations allow defining
+in/out files using TTASIM\_STREAM\_IN\_FILE and TTASIM\_STREAM\_OUT\_FILE
+environment variables respectively.
 
 Here is an example C code that implements streaming I/O with the operations:
 

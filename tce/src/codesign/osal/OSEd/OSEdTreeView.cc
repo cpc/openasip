@@ -150,8 +150,9 @@ OSEdTreeView::constructTree() {
                 //operations_[opIndex.operationName(k, mod)] = oper;
                 operations_.insert(std::pair<std::string, wxTreeItemId>(opIndex.operationName(k, mod), oper));
             }
-            
+            SortChildren(module);
         }
+        SortChildren(path);
     }
     infoView_->pathView();
     return results;

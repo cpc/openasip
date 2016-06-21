@@ -42,6 +42,14 @@
 
 class Model;
 
+struct ListItemData {
+    int id;
+    int latency;
+    wxString operations;
+    int hdbId;
+    wxString path;
+};
+
 namespace HDB {
     class FUArchitecture;
     class HDBManager;
@@ -67,6 +75,8 @@ private:
         const HDB::FUArchitecture& arch,
         const std::vector<std::string>& filterList);
     void onFilterChange(wxCommandEvent& event);
+    void onColumnClick(wxListEvent& event);
+    void setColumnImage(int col, int image);
 
     /// Model of the current adf file.
     Model* model_;
@@ -77,13 +87,16 @@ private:
     /// Keywords to filter HDB entries.
     std::vector<std::string> filterPatterns_ = std::vector<std::string>();
 
+    int sortColumn_;
+    bool sortASC_;
+
     enum {
-	ID_LIST = 10000,
-	ID_FILTER_LABEL,
-	ID_FILTER_TEXTCTRL,
-	ID_ADD,
-	ID_CLOSE,
-	ID_LINE
+        ID_LIST = 10000,
+        ID_FILTER_LABEL,
+        ID_FILTER_TEXTCTRL,
+        ID_ADD,
+        ID_CLOSE,
+        ID_LINE
     };
 
     /// File filter for HDB files.

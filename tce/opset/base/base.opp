@@ -164,7 +164,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LT</name>
-    <description/>
+    <description>Less-than signed integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -177,7 +177,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LTU</name>
-    <description/>
+    <description>Less-than unsigned integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -190,7 +190,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NE</name>
-    <description/>
+    <description>Not equal signed integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord">
@@ -219,7 +219,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>GE</name>
-    <description/>
+    <description>Greater or equal signed integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -240,7 +240,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>GEU</name>
-    <description/>
+    <description>Greater or equal unsigned integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -261,7 +261,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LE</name>
-    <description/>
+    <description>Less or equal signed integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -282,7 +282,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LEU</name>
-    <description/>
+    <description>Less or equal unsigned integer comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -470,7 +470,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MINU</name>
-    <description/>
+    <description>Returns the smaller of the two unsigned input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -491,7 +491,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MAXU</name>
-    <description/>
+    <description>Returns the larger of the two unsigned input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord">
@@ -512,7 +512,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LDQ</name>
-    <description/>
+    <description>Reads quarter word from memory with sign extension.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -529,7 +529,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LDH</name>
-    <description/>
+    <description>Reads half word from memory with sign extension.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -546,7 +546,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LDD</name>
-    <description/>
+    <description>Reads double word from memory.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -563,7 +563,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>STQ</name>
-    <description/>
+    <description>Stores quarter word to memory</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -580,7 +580,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>STH</name>
-    <description/>
+    <description>Stores half word to memory.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -597,7 +597,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>STD</name>
-    <description/>
+    <description>Store double word to memory.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -662,7 +662,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NEG</name>
-    <description/>
+    <description>Arithmetic negation, signed integer.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -674,7 +674,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NEGF</name>
-    <description/>
+    <description>Arithmetic negation, floating-point.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -691,7 +691,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NEGH</name>
-    <description/>
+    <description>Arithmetic negation, half floating-point.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -714,7 +714,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MAXF</name>
-    <description/>
+    <description>Returns the larger of the two floating-point input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -724,7 +724,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MINF</name>
-    <description/>
+    <description>Returns the smaller of the two floating-point input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -734,7 +734,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MAXH</name>
-    <description/>
+    <description>Returns the larger of the two half floating-point input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -751,7 +751,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MINH</name>
-    <description/>
+    <description>Returns the smaller of the two half floating-point input values.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -789,7 +789,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>DIV</name>
-    <description/>
+    <description>Integer division.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -802,7 +802,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>DIVU</name>
-    <description/>
+    <description>Unsigned integer division.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -815,7 +815,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>ADDF</name>
-    <description/>
+    <description>Floating-point addition. Output 3 is sum of inputs 1 and 2.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
@@ -836,7 +836,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>SUBF</name>
-    <description/>
+    <description>Floating-point substraction.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -849,7 +849,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>MULF</name>
-    <description/>
+    <description>32-bit floating-point multiplication</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
@@ -870,7 +870,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>DIVF</name>
-    <description/>
+    <description>Floating-point division.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -883,7 +883,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>EQF</name>
-    <description/>
+    <description>Floating-point compare equal (ordered).</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
@@ -904,7 +904,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NEF</name>
-    <description/>
+    <description>Not equal floating-point comparison (ordered).</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
@@ -931,7 +931,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>GTF</name>
-    <description/>
+    <description>Greater-than floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -944,7 +944,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>GEF</name>
-    <description/>
+    <description>Greater or equal floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -963,7 +963,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LTF</name>
-    <description/>
+    <description>Less-than floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -979,7 +979,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LEF</name>
-    <description/>
+    <description>Less or equal floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -998,10 +998,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>EQUF</name>
-    <description>
-
-
-</description>    <inputs>2</inputs>
+    <description>Floating-point compare equal (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
@@ -1023,10 +1021,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>NEUF</name>
-    <description>
-
-
-</description>    <inputs>2</inputs>
+    <description>Not equal floating-point comparison (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord">
       <can-swap>
@@ -1048,9 +1044,8 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
 
   <operation>
     <name>GTUF</name>
-    <description>
-
-</description>    <inputs>2</inputs>
+    <description>Greater-than floating-point comparison (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
@@ -1062,10 +1057,8 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
 
   <operation>
     <name>GEUF</name>
-    <description>
-
-
-</description>    <inputs>2</inputs>
+    <description>Greater or equal floating-point comparison (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
@@ -1081,10 +1074,8 @@ EXEC_OPERATION(ior, temp1, temp2, IO(3));
 
   <operation>
     <name>LTUF</name>
-    <description>
-
-
-</description>    <inputs>2</inputs>
+    <description>Less-than floating-point comparison (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
@@ -1102,10 +1093,8 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 
   <operation>
     <name>LEUF</name>
-    <description>
-
-
-</description>    <inputs>2</inputs>
+    <description>Less or equal floating-point comparison (unordered).</description>
+    <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
@@ -1125,7 +1114,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ADDH</name>
-    <description/>
+    <description>Half precision floating-point addition. Output 3 is sum of inputs 1 and 2.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
@@ -1150,7 +1139,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>SUBH</name>
-    <description/>
+    <description>Half floating-point substraction.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1170,7 +1159,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MULH</name>
-    <description/>
+    <description>16-bit floating-point multiplication.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
@@ -1198,7 +1187,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>DIVH</name>
-    <description/>
+    <description>Half float division.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1218,7 +1207,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MACH</name>
-    <description/>
+    <description>Multiply and accumulate (half floating-point).</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1251,7 +1240,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MSUH</name>
-    <description/>
+    <description>Multiply and substract (half floating-point).</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1284,7 +1273,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MACF</name>
-    <description/>
+    <description>Multiply and accumulate (floating-point).</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1308,7 +1297,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MSUF</name>
-    <description/>
+    <description>Multiply and substract (floating-point).</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1332,7 +1321,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MAC</name>
-    <description/>
+    <description>Multiply and accumulate (signed integer).</description>
     <inputs>3</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -1356,7 +1345,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>EQH</name>
-    <description/>
+    <description>Half floating-point compare equal.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
@@ -1383,7 +1372,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>NEH</name>
-    <description/>
+    <description>Not equal half floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
@@ -1416,20 +1405,20 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>NEUH</name>
-    <description/>
+    <description>Not equal half floating-point comparison (unordered).</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="1" type="HalfFloatWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="HalfFloatWord">
+    <in element-count="1" element-width="16" id="2" type="HalfFloatWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -1440,7 +1429,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>GTH</name>
-    <description/>
+    <description>Greater-than half floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1459,7 +1448,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>GEH</name>
-    <description/>
+    <description>Greater or equal half floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1484,7 +1473,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>LTH</name>
-    <description/>
+    <description>Less-than half floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1506,7 +1495,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>LEH</name>
-    <description/>
+    <description>Less or equal half floating-point comparison.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1531,7 +1520,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CFI</name>
-    <description/>
+    <description>Converts floating-point to integer.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1543,7 +1532,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CFIU</name>
-    <description/>
+    <description>Converts floating-point to unsigned integer.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1555,7 +1544,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CIF</name>
-    <description/>
+    <description>Converts integer to float.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -1567,7 +1556,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CIFU</name>
-    <description/>
+    <description>Converts unsigned integer to floating-point.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1579,7 +1568,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CFD</name>
-    <description/>
+    <description>Converts single precision floating-point to double.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1591,7 +1580,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CDF</name>
-    <description/>
+    <description>Converts double precision floating-point to single precision.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="64" id="1" type="DoubleWord"/>
@@ -1603,7 +1592,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CHI</name>
-    <description/>
+    <description>Converts half floating-point to signed integer.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1620,7 +1609,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CHIU</name>
-    <description/>
+    <description>Converts half floating-point to unsigned integer.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1637,7 +1626,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CIH</name>
-    <description/>
+    <description>Converts integer to half floating-point.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -1654,7 +1643,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CIHU</name>
-    <description/>
+    <description>Converts unsigned integer to half floating-point.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1671,7 +1660,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CHF</name>
-    <description/>
+    <description>Converts half precision floating-point to single precision.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1683,7 +1672,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>CFH</name>
-    <description/>
+    <description>Converts single precision floating-point to half.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1695,7 +1684,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ROTL</name>
-    <description/>
+    <description>Rotate left.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1705,7 +1694,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ROTR</name>
-    <description/>
+    <description>Rotate right.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1718,9 +1707,8 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ABS</name>
-    <description>
-
-</description>    <inputs>1</inputs>
+    <description>Absolute value.</description>
+    <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
@@ -1728,7 +1716,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ABSF</name>
-    <description/>
+    <description>Floating-point absolute value.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
@@ -1740,7 +1728,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ABSH</name>
-    <description/>
+    <description>Half precision floating-point absolute value.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
@@ -1758,7 +1746,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>LDQU</name>
-    <description/>
+    <description>Reads quarter word from memory with zero extension</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1775,7 +1763,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>LDHU</name>
-    <description/>
+    <description>Reads half word from memory with zero extension.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1792,7 +1780,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MOD</name>
-    <description/>
+    <description>Integer modulo.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
@@ -1805,7 +1793,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>MODU</name>
-    <description/>
+    <description>Integer modulo (unsigned)</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1830,7 +1818,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>NOT</name>
-    <description/>
+    <description>Bitwise negation.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1839,20 +1827,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ANDN</name>
-    <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.
-
-
-
-
-
-
-
-
-
-
-
-
-</description>
+    <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
@@ -1887,15 +1862,9 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   <operation>
     <name>STREAM_IN</name>
     <description>The "default streaming" operation for input.
-
 Reads one sample of input from the data stream. The width of the sample is defined by the function unit output port width. 
-
 When triggered with 0 writes a new sample to the output, if there are one ore more samples to be read in the buffer, otherwise causes a global lock.
-
-
-
-
-</description>
+The IN file can be set using TTASIM_STREAM_IN_FILE environment variable.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
@@ -1909,13 +1878,10 @@ When triggered with 0 writes a new sample to the output, if there are one ore mo
   <operation>
     <name>STREAM_OUT</name>
     <description>The "default streaming" operation for output.
-
 Writes one sample to the output data stream. The width of the sample is
 defined by the function unit input port width.
-
 In case no room is available in the output buffer, causes a global lock.
-
-</description>
+The OUT file can be set using TTASIM_STREAM_OUT_FILE environment variable.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <side-effects/>
@@ -1937,9 +1903,7 @@ Return an integer with the following meanings:
 1 = not empty nor full (implies a buffer size &gt; 1 sample and that there is at least one sample in the buffer)
 2 = buffer full
 
-This operation allows handling stream buffer underflow without a global lock, thus allows doing something useful (run another thread, for example) while the buffer is empty.
-
-</description>
+This operation allows handling stream buffer underflow without a global lock, thus allows doing something useful (run another thread, for example) while the buffer is empty.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <affected-by>
@@ -1962,9 +1926,7 @@ Return an integer with the following meanings:
 2 = buffer full
 
 This operation allows handling stream buffer overflow without a global lock, thus allows doing something useful (run another thread, for example) while the
-buffer is full.
-
-</description>
+buffer is full.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
@@ -2359,7 +2321,7 @@ EXEC_OPERATION(ldw, tmp, IO(9));
 
   <operation>
     <name>BCAST4</name>
-    <description>Copies data to two outputs</description>
+    <description>Copies data to four outputs.</description>
     <inputs>1</inputs>
     <outputs>4</outputs>
     <in element-count="1" element-width="32" id="1" type="RawData"/>
@@ -2371,7 +2333,7 @@ EXEC_OPERATION(ldw, tmp, IO(9));
 
   <operation>
     <name>BCAST8</name>
-    <description>Copies data to two outputs</description>
+    <description>Copies data to eight outputs.</description>
     <inputs>1</inputs>
     <outputs>8</outputs>
     <in element-count="1" element-width="32" id="1" type="RawData"/>
