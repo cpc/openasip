@@ -137,7 +137,8 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
 
     list_->InsertColumn(0, _T("Latency"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    list_->InsertColumn(1, _T("Operations"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(
+                    1, _T("Operations"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
     list_->InsertColumn(2, _T("Impls"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
     list_->InsertColumn(3, _T("HDB ID"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
     list_->InsertColumn(4, _T("HDB"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
