@@ -51,6 +51,10 @@
 #include "Conversion.hh"
 #include "ProDeConstants.hh"
 
+#if !wxCHECK_VERSION(3, 0, 0)
+    typedef long int wxIntPtr;
+#endif
+
 using std::string;
 using boost::format;
 using namespace TTAMachine;
