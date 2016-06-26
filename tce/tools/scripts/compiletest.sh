@@ -261,7 +261,8 @@ distcc.*Warning.*|\
 .*boost/.*warning:.unused.typedef.'.*|\
 .*boost/.*warning:.unused.parameter.'.*|\
 .*boost/.*warning:.anonymous.types.declared.in.an.anonymous.union.are.an.extension.*|\
-.*boost/.*graph_concepts.hpp.*warning:.*"
+.*boost/.*graph_concepts.hpp.*warning:.*|\
+.*/wx/any.h.*warning:.expression.with.side.effects.will.be.evaluated.despite.being.used.as.an.operand.to.*..Wpotentially.evaluated.expression."
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
