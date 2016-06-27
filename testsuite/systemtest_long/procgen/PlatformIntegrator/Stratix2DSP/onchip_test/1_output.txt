@@ -46,7 +46,6 @@ architecture structural of stratix_test_onchip_onchip_toplevel is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       fu_leds_STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
       fu_LSU_dmem_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
       fu_LSU_dmem_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
@@ -98,7 +97,6 @@ begin
   imem_en_x_util_inverter_data_in_wire <= core_imem_en_x_wire;
   onchip_imem_0_address_wire <= core_imem_addr_wire;
   core_imem_data_wire <= onchip_imem_0_q_wire;
-  core_pc_init_wire <= (others => '0');
   core_fu_LSU_dmem_data_in_wire <= onchip_dmem_0_q_wire;
   onchip_dmem_0_data_wire <= core_fu_LSU_dmem_data_out_wire;
   onchip_dmem_0_address_wire <= core_fu_LSU_dmem_addr_wire;
@@ -117,7 +115,6 @@ begin
       imem_en_x => core_imem_en_x_wire,
       imem_addr => core_imem_addr_wire,
       imem_data => core_imem_data_wire,
-      pc_init => core_pc_init_wire,
       fu_leds_STRATIXII_LED => STRATIXII_LED,
       fu_LSU_dmem_data_in => core_fu_LSU_dmem_data_in_wire,
       fu_LSU_dmem_data_out => core_fu_LSU_dmem_data_out_wire,

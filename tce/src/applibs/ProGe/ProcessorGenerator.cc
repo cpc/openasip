@@ -161,7 +161,8 @@ ProcessorGenerator::generateProcessor(
         assert(false);
     }
     
-    plugin.generate(language, pluginDstDir, netlistGenerator);
+    plugin.generate(language, pluginDstDir, netlistGenerator, implementation,
+        entityStr_);
 
     if (!FileSystem::fileExists(topLevelDir)) {
         bool directoryCreated = FileSystem::createDirectory(topLevelDir);
@@ -225,6 +226,10 @@ ProcessorGenerator::generateGlobalsPackage(
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     
     if (language==ProGe::VHDL){
+        stream << "library work;" << endl
+               << "use work." << entityStr_ << "_imem_mau.all;" << endl
+               << endl;
+
 		stream << "package " << entityStr_ << "_globals is" << endl
                << "  -- instruction width" << endl
                << "  constant INSTRUCTIONWIDTH : positive := " << bem.width()
@@ -235,10 +240,16 @@ ProcessorGenerator::generateGlobalsPackage(
                << "  -- width of the instruction memory in MAUs" << endl
                << "  constant IMEMWIDTHINMAUS : positive := " << imemWidthInMAUs
                << ";" << endl
+               << "  -- width of instruction fetch block." << endl
+               << "  constant IMEMDATAWIDTH : positive := "
+               << "IMEMWIDTHINMAUS*IMEMMAUWIDTH;" << endl
+               << "  -- number of busses." << endl
+               << "  constant BUSCOUNT : positive := "
+               << busCount(machine) << ";" << endl
                << "  -- clock period" << endl
                << "  constant PERIOD : time := 10 ns;" << endl
                << "end " << entityStr_ << "_globals;" << endl;
-    }else {
+    } else {
 		stream << "// instruction width" << endl
 		       << "parameter INSTRUCTIONWIDTH = " << bem.width() << "," << endl
 		       << "// address width of the instruction memory" << endl
@@ -437,6 +448,20 @@ ProcessorGenerator::iMemWidth(
     assert(iMem != NULL);
 
     return iMem->width() * imemWidthInMAUs;
+}
+
+/**
+ * Returns the number of busses of the given machine.
+ *
+ * @param mach The machine.
+ * @return The bus count.
+ */
+int
+ProcessorGenerator::busCount(
+    const TTAMachine::Machine& mach) {
+
+    Machine::BusNavigator busses = mach.busNavigator();
+    return busses.count();
 }
 
 const Netlist*

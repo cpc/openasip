@@ -40,7 +40,8 @@
 #include "Socket.hh"
 #include "HDBTypes.hh"
 #include "ProGeTypes.hh"
-
+#include "MachineImplementation.hh"
+ 
 namespace TTAMachine {
 class Machine;
 class ImmediateUnit;
@@ -88,7 +89,9 @@ public:
     virtual void generate(
         HDL language,
         const std::string& destinationDirectory,
-        const NetlistGenerator& generator) = 0;
+        const NetlistGenerator& generator,
+        const IDF::MachineImplementation& implementation,
+        const std::string& entityString) = 0;
 
     /**
      * Returns the required latency of the hardware implementation of the

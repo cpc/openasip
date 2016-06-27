@@ -86,12 +86,15 @@
 #include "IUPortCode.hh"
 #include "FUPortCode.hh"
 #include "SocketCodeTable.hh"
+#include "BlockSourceCopier.hh"
 
 #include "Application.hh"
 #include "MathTools.hh"
 #include "DataObject.hh"
 #include "MapTools.hh"
 #include "Conversion.hh"
+#include "Environment.hh"
+ 
 
 using namespace CostEstimator;
 using std::cerr;
@@ -894,10 +897,13 @@ using namespace ProGe;
 using std::string;
 using std::endl;
 
+const std::string ENABLE_FEATURE = "yes";
 const std::string GENERATE_BUS_TRACE_PARAM = "bustrace";
-const std::string GENERATE_BUS_TRACE_PARAM_YES = "yes";
+const std::string GENERATE_BUS_TRACE_PARAM_YES = ENABLE_FEATURE;
 const std::string GENERATE_LOCK_TRACE_PARAM = "locktrace";
-const std::string GENERATE_LOCK_TRACE_PARAM_YES = "yes";
+const std::string GENERATE_LOCK_TRACE_PARAM_YES = ENABLE_FEATURE;
+const std::string GENERATE_DEBUGGER_PARAM = "debugger";
+const std::string GENERATE_DEBUGGER_PARAM_YES = "external";
 const std::string LOCK_TRACE_STARTING_CYCLE = "locktracestartingcycle";
 const std::string BUS_TRACE_STARTING_CYCLE = "bustracestartingcycle";
 const std::string PLUGIN_DESCRIPTION = 
@@ -912,18 +918,23 @@ public:
         const TTAMachine::Machine& machine,
         const BinaryEncoding& bem) :
         ICDecoderGeneratorPlugin(machine, bem, PLUGIN_DESCRIPTION),
-        icGenerator_(NULL), decoderGenerator_(NULL) {
+        icGenerator_(NULL), decoderGenerator_(NULL), ttamachine_(machine) {
 
         addParameter(
+            GENERATE_DEBUGGER_PARAM, 
+            "Generates wires to the hardware debugger if value is '"
+            + GENERATE_DEBUGGER_PARAM_YES + "'.");
+        addParameter(
             GENERATE_BUS_TRACE_PARAM, 
-            "Generates code that prints bus trace if the value is 'yes'.");
+            "Generates code that prints bus trace if the value is '"
+            + ENABLE_FEATURE + "'");
         addParameter(
             BUS_TRACE_STARTING_CYCLE,
             "The first cycle for which the bus trace is printed.");
         addParameter(
             GENERATE_LOCK_TRACE_PARAM,
-            "Generates code that prints global lock trace if the value is"
-            " 'yes'.");
+            "Generates code that prints global lock trace if the value is '"
+            + ENABLE_FEATURE + "'");
         addParameter(
             LOCK_TRACE_STARTING_CYCLE,
             "The first cycle for which the global lock trace is printed. "
@@ -952,6 +963,13 @@ public:
         Netlist& netlist,
         const NetlistGenerator& generator) {
 
+        if (generateDebugger()) {
+            icGenerator_->setGenerateDebugger(true);
+            decoderGenerator_->setGenerateDebugger(true);
+        } else {
+            icGenerator_->setGenerateDebugger(false);
+            decoderGenerator_->setGenerateDebugger(false);
+        }
         // add interconnection network to the netlist and connect it to the 
         // units
         icGenerator_->addICToNetlist(generator, netlist);
@@ -960,6 +978,114 @@ public:
         decoderGenerator_->completeDecoderBlock(generator, netlist);
     }
 
+    void generateDebuggerCode(const NetlistGenerator& generator) {
+        NetlistBlock* decoderBlock = &generator.instructionDecoder();
+        NetlistBlock& toplevelBlock = decoderBlock->netlist().topLevelBlock();
+        std::string addrWidthFormula = generator.gcuReturnAddressInPort()
+            .widthFormula();
+        NetlistBlock* fetchBlock = &generator.instructionFetch();
+        NetlistBlock* icBlock = NULL;
+        for (int i = 0; i < toplevelBlock.subBlockCount(); i++) {
+            icBlock = &toplevelBlock.subBlock(i);
+            if (icBlock->instanceName() == "ic")
+                break;
+            if (icBlock->moduleName() == "ic")
+                break;
+        }
+
+        //Figure out some constants
+        int dbgDataWidth=32;
+        int pcWidth=11;
+
+        Machine::BusNavigator busNav = ttamachine_.busNavigator();
+        int bustrace_width = dbgDataWidth*busNav.count();
+
+        //Add debugger interface ports to tta0 entity
+        NetlistPort* ttaPCStartPort = new NetlistPort(
+            "db_pc_start", "IMEMADDRWIDTH", pcWidth,
+            ProGe::BIT_VECTOR, HDB::IN, toplevelBlock);
+        NetlistPort* ttaPCPort = new NetlistPort(
+            "db_pc", "IMEMADDRWIDTH", pcWidth,
+            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* ttaBustracePort = new NetlistPort(
+            "db_bustraces", "32*BUSCOUNT", 
+            bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* ttaInstrPort = new NetlistPort(
+            "db_instr", "IMEMDATAWIDTH", 
+            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* ttaLockcountPort = new NetlistPort(
+            "db_lockcnt", "32", dbgDataWidth,
+            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* ttaCyclecountPort = new NetlistPort(
+            "db_cyclecnt", "32", dbgDataWidth,
+            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* ttaResetPort = new NetlistPort(
+            "db_tta_nreset", "1", ProGe::BIT, HDB::IN, toplevelBlock);
+
+        NetlistPort* dbPCNextPort = new NetlistPort(
+            "db_pc_next", "IMEMADDRWIDTH", pcWidth,
+            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort* dbGlockReqPort = new NetlistPort(
+            "db_lockrq", "1", ProGe::BIT, HDB::IN, toplevelBlock);
+
+        // Connect to the highest bit of decoder lockrq vector, others are
+        // already connected
+        NetlistPort* decoderGlockReqPort =
+            decoderBlock->portByName("lock_req");
+        int bit = decoderGenerator_->glockRequestWidth()-1;
+        toplevelBlock.netlist().connectPorts(
+            *dbGlockReqPort, *decoderGlockReqPort, 0, bit, 1);
+
+        // Connect ifetch debug ports        
+        NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
+            "db_lockreq", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*dbGlockReqPort,
+            *ifetchDebugLockRqPort);
+        NetlistPort* ifetchDebugResetPort = new NetlistPort(
+            "db_rstx", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*ttaResetPort,
+            *ifetchDebugResetPort);
+        NetlistPort* ifetchPCStartPort = new NetlistPort(
+            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::IN,
+            *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*ifetchPCStartPort,
+            *ttaPCStartPort);
+        NetlistPort* ifetchPCPort = new NetlistPort(
+            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
+            *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*ifetchPCPort, *ttaPCPort);
+        NetlistPort* ifetchPCNextPort = new NetlistPort(
+            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
+            *fetchBlock);
+        toplevelBlock.netlist().connectPorts(*ifetchPCNextPort, *dbPCNextPort);
+        NetlistPort* ifetchCyclecountPort = new NetlistPort(
+            "db_cyclecnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            *fetchBlock);
+        toplevelBlock.netlist().connectPorts(
+            *ifetchCyclecountPort, *ttaCyclecountPort);
+        NetlistPort* ifetchLockcountPort = new NetlistPort(
+            "db_lockcnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            *fetchBlock);
+        toplevelBlock.netlist().connectPorts(
+            *ifetchLockcountPort, *ttaLockcountPort);
+        NetlistPort* ifetchFetchblockPort =
+            fetchBlock->portByName("fetchblock");
+        toplevelBlock.netlist().connectPorts(
+            *ifetchFetchblockPort, *ttaInstrPort);
+
+        // Connect bustraces out and away
+        NetlistPort* icBustracePort = icBlock->portByName("db_bustraces");
+        assert(icBustracePort);
+        toplevelBlock.netlist().connectPorts(
+            *icBustracePort, *ttaBustracePort);
+
+        // Connect decoder softreset
+        NetlistPort* decoderDBResetPort =
+            decoderBlock->portByName("db_tta_nreset");
+        decoderDBResetPort->unsetStatic();
+        toplevelBlock.netlist().connectPorts(
+            *ttaResetPort, *decoderDBResetPort);
+    }
 
     /**
      * Generates the interconnection network and instruction decoder to
@@ -971,8 +1097,30 @@ public:
     virtual void generate(
         HDL language,
         const std::string& dstDirectory, 
-        const NetlistGenerator& generator) 
+        const NetlistGenerator& generator,
+        const IDF::MachineImplementation& implementation,
+        const std::string& entityString) 
         throw (Exception) {
+        const string DS = FileSystem::DIRECTORY_SEPARATOR;
+        const string templateDir = Environment::dataDirPath("ProGe");
+        
+        BlockSourceCopier copier(implementation, entityString, language);
+
+        if (generateDebugger()) {
+            icGenerator_->setGenerateDebugger(true);
+            decoderGenerator_->setGenerateDebugger(true);
+            if (language != VHDL) {
+                std::string errorMsg = 
+                    "Language not set to VHDL when HW debugger is in use.";
+                throw Exception(__FILE__, __LINE__, __func__, errorMsg);
+            }
+            copier.instantiateHDLTemplate(
+                templateDir + DS + "debugfetch.vhdl.tmpl",
+                dstDirectory, "ifetch.vhdl");
+        } else {
+            icGenerator_->setGenerateDebugger(false);
+            decoderGenerator_->setGenerateDebugger(false);
+        }
 
         if (generateBusTrace()) {
             icGenerator_->setGenerateBusTrace(true);
@@ -995,6 +1143,16 @@ public:
         // generate the decoder
         decoderGenerator_->SetHDL(language);
         decoderGenerator_->generateInstructionDecoder(generator, dstDirectory);
+
+        if (generateDebugger()) {
+            if (language != VHDL) {
+                std::string errorMsg =
+                    "Language not set to VHDL when HW debugger is in use.";
+                throw Exception(__FILE__, __LINE__, __func__, errorMsg);
+            } else {
+                generateDebuggerCode(generator);
+            }
+        }
     }
 
 
@@ -1024,6 +1182,24 @@ public:
     }
         
 private:
+
+    /**
+     * Tells whether IC generator should generate debug interface code.
+     *
+     * @return True if IC generator should generate the code.
+     */
+    bool generateDebugger() const {
+        if (!hasParameterSet(GENERATE_DEBUGGER_PARAM)) {
+            return false;
+        } else {
+            string paramValue = parameterValue(GENERATE_DEBUGGER_PARAM);
+            if (paramValue == GENERATE_DEBUGGER_PARAM_YES) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     /**
      * Tells whether IC generator should generate bus tracing code.
@@ -1142,6 +1318,7 @@ private:
     
     DefaultICGenerator* icGenerator_;
     DefaultDecoderGenerator* decoderGenerator_;
+    const TTAMachine::Machine& ttamachine_;
 };
 
     

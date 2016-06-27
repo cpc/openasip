@@ -71,11 +71,6 @@ AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
         new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, noInvert, 1);
     busyToGnd->setToStatic(ProGe::GND);
     addPort("busy", busyToGnd);
-    
-    HDLPort* initToZero = new HDLPort("startAddr", "IMEMADDRWIDTH",
-                                      ProGe::BIT_VECTOR, HDB::OUT, noInvert);
-    initToZero->setToStatic(ProGe::GND);
-    addPort("pc_init", initToZero);
 }
 
 

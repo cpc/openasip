@@ -82,7 +82,7 @@ public:
     NetlistBlock* parentBlock() const;
 
     void setToStatic(StaticSignal value);
-
+    void unsetStatic();
     bool hasStaticValue() const;
 
     StaticSignal staticValue() const;

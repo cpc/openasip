@@ -58,7 +58,6 @@ module testbench
     wire dmem_busy;
     wire imem_busy;
     wire[DMEMDATAWIDTH-1:0]    data_out;
-    reg[IMEMADDRWIDTH-1:0]    pc_init;
 
     initial
         clk=1;
@@ -80,7 +79,6 @@ module testbench
   initial
   begin
     rst_x=1'b0;
-    pc_init <= {IMEMADDRWIDTH{1'b0}};
     #(PERIOD*3);
     rst_x=1'b1;
     #RUNTIME;
@@ -104,8 +102,7 @@ module testbench
     .imem_ext_data ( imem_data),
     .imem_ext_addr ( imem_addr),
     .dmem_busy     ( dmem_busy),
-    .imem_busy     ( imem_busy),
-    .pc_init       ( pc_init)
+    .imem_busy     ( imem_busy)
     );
 
 endmodule
