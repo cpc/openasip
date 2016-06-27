@@ -40,10 +40,6 @@ GHDL=$(which ghdl 2> /dev/null)
 if [ "x${GHDL}" != "x" ]
 then
   cd $PROGE_OUT || eexit "No such dir: $PROGE_OUT"
-
-  # TB doesn't suport debugger, hack the code some for compatibility
-  # sed "s#busy => '0',#&\n  db_lockrq => '0',db_tta_nreset => '1',#" $PROC > temp
-  # mv temp $PROC
   
   ./ghdl_compile.sh >& /dev/null || eexit "Ghdl compile failed"
   ./ghdl_simulate.sh >& /dev/null || eexit "Ghdl simulate failed"
