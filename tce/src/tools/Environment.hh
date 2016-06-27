@@ -94,6 +94,7 @@ public:
     static std::string llvmtceCachePath();
 
     static std::vector<std::string> implementationTesterTemplatePaths();
+    static std::string instPath();
 
 private:
     Environment();
