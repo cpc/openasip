@@ -1090,9 +1090,9 @@ Environment::instPath() {
     string instPath = environmentVariable("TCE_USER_INSTALL");
 
     // .deb check: check if envvar TCE_USER_INSTALL is set
-    // and that dir contains valid data ("icons" dir in our case)
+    // and that dir exists ("icons" dir in our case)
     if (instPath != "" && FileSystem::fileExists(
-        string(INSTALLATION_DIR) + "icons")) {
+        instPath + string(INSTALLATION_DIR) + "data" + DS + "icons")) {
         return instPath;
     }
     return string(TCE_INSTALLATION_ROOT);
