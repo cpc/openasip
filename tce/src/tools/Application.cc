@@ -119,6 +119,8 @@ Application::initialize() {
         }
     }
 
+    installationRoot_ = installationDir();
+
     errorStream_ = &cerr;
     warningStream_ = &cerr;
 
@@ -506,9 +508,7 @@ Application::installationDir() {
     // and that dir exists ("icons" dir in our case)
     if (userRoot != "" && FileSystem::fileExists(
         userRoot + "/share/tce/data/icons")) {
-        installationRoot_ = userRoot;
-    } else {
-        installationRoot_ = string(TCE_INSTALLATION_ROOT);
+        return userRoot;
     }
-    return installationRoot_;
+    return string(TCE_INSTALLATION_ROOT);
 }
