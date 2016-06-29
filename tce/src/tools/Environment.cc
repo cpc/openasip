@@ -59,6 +59,7 @@
 #include "VectorTools.hh"
 #include "MapTools.hh"
 #include "TCEString.hh"
+#include "Application.hh"
 
 using std::vector;
 using std::string;
@@ -124,7 +125,7 @@ Environment::initialize() {
             FileSystem::DIRECTORY_SEPARATOR + string("doc"));
     }
 
-    string instDir = instPath() + string(INSTALLATION_DIR);
+    string instDir = Application::installationDir() + string(INSTALLATION_DIR);
     schemaPaths_.push_back(instDir);
     iconPaths_.push_back(instDir);
     dataPaths_.push_back(instDir);
@@ -281,7 +282,7 @@ Environment::confPath(const std::string& fileName) {
         TCEString(TCE_SRC_ROOT) + DS + CONF_DIR_NAME_ + DS + fileName;
 
     TCEString installedConf = 
-        instPath() + TCEString(INSTALLATION_DIR) +
+        Application::installationDir() + TCEString(INSTALLATION_DIR) +
         DS + CONF_DIR_NAME_ + DS + fileName;
     if (FileSystem::fileExists(userConf)) {
         return userConf;
@@ -369,7 +370,7 @@ Environment::includeDirPaths() {
         includes.push_back(APPLIBS + DS + "FSA");
         includes.push_back(TCE_BLD_ROOT);
     } 
-    includes.push_back(instPath() + DS + "include");
+    includes.push_back(Application::installationDir() + DS + "include");
     
     return includes;
 }
@@ -528,14 +529,16 @@ Environment::osalPaths() {
 
     // default path for predefined and "standard" operations
     string basePath =
-        instPath() + string(INSTALLATION_DIR) + "opset" + DS + "base";
+        Application::installationDir() + string(INSTALLATION_DIR) + "opset" +
+        DS + "base";
     // path for user-local custom operations
     string userPath =
         FileSystem::homeDirectory() + DS + ".tce" + DS + "opset" +
         DS + "custom";
     // path for system-wide, shared custom operations
     string customPath =
-        instPath() + string(INSTALLATION_DIR) + "opset" + DS + "custom";
+        Application::installationDir() + string(INSTALLATION_DIR) + "opset" +
+        DS + "custom";
     // search path taken from environment
     string envPath = Environment::environmentVariable("TCE_OSAL_PATH");
     // as a last resort fall-back, operations are always searched in
@@ -564,9 +567,9 @@ vector<string>
 Environment::codeCompressorPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
-    string base = instPath() + string(INSTALLATION_DIR) +
+    string base = Application::installationDir() + string(INSTALLATION_DIR) +
         "codecompressors" + DS + "base";
-    string custom = instPath() + string(INSTALLATION_DIR)+
+    string custom = Application::installationDir() + string(INSTALLATION_DIR)+
         "codecompressors" + DS + "custom";
     string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
         "codecompressors" + DS + "custom";
@@ -595,7 +598,7 @@ Environment::schedulerPluginPaths() {
 
     vector<string> paths;
 
-    string base = instPath() + string(INSTALLATION_DIR) +
+    string base = Application::installationDir() + string(INSTALLATION_DIR) +
         "scheduler" + DS + "passes";
 
     string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
@@ -629,9 +632,9 @@ Environment::icDecoderPluginPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
 
-    string base = instPath() + string(INSTALLATION_DIR) +
+    string base = Application::installationDir() + string(INSTALLATION_DIR) +
         "icdecoder_plugins" + DS + "base";
-    string custom = instPath() + string(INSTALLATION_DIR)+
+    string custom = Application::installationDir() + string(INSTALLATION_DIR)+
         "icdecoder_plugins" + DS + "custom";
     string personal = FileSystem::homeDirectory() + DS + ".tce" + DS + 
         "icdecoder_plugins";
@@ -679,7 +682,8 @@ Environment::hdbPaths(bool libraryPathsOnly) {
         paths.push_back(srcBase);
     }
 
-    string instBase = instPath() + string(INSTALLATION_DIR) + "hdb";
+    string instBase = Application::installationDir() +
+        string(INSTALLATION_DIR) + "hdb";
     paths.push_back(instBase);
     if (!libraryPathsOnly) {
         string cwd = FileSystem::currentWorkingDir();
@@ -715,7 +719,8 @@ Environment::vhdlPaths(const std::string& hdbPath) {
         paths.push_back(srcBase + DS + "vhdl");
     }
 
-    string srcBase = instPath() + string(INSTALLATION_DIR) + "hdb";
+    string srcBase = Application::installationDir() +
+        string(INSTALLATION_DIR) + "hdb";
     paths.push_back(srcBase);
     paths.push_back(srcBase + DS + "vhdl");
     string cwd = FileSystem::currentWorkingDir();
@@ -757,7 +762,7 @@ Environment::explorerPluginPaths() {
         paths.push_back(srcBase);
     }
 
-    string base = instPath() + string(INSTALLATION_DIR) +
+    string base = Application::installationDir() + string(INSTALLATION_DIR) +
         "explorer" + DS + "base";
     paths.push_back(base);
 
@@ -789,11 +794,11 @@ vector<string>
 Environment::estimatorPluginPaths() {
 
     vector<string> paths;
-    string base = instPath() + string(INSTALLATION_DIR) +
+    string base = Application::installationDir() + string(INSTALLATION_DIR) +
         "cost_estimator_plugins";
-    string baseRF = instPath() + string(INSTALLATION_DIR) +
+    string baseRF = Application::installationDir() + string(INSTALLATION_DIR) +
         "cost_estimator_plugins/rf";
-    string baseFU = instPath() + string(INSTALLATION_DIR) +
+    string baseFU = Application::installationDir() + string(INSTALLATION_DIR) +
         "cost_estimator_plugins/fu";
     string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
         "cost_estimator_plugins";
@@ -829,8 +834,8 @@ Environment::pdfManual() {
         if (FileSystem::fileExists(srcPath))
             return srcPath;
     } 
-    std::string path = instPath() + string(INSTALLATION_DIR) +
-        PDF_MANUAL_INSTALLED;
+    std::string path = Application::installationDir() +
+        string(INSTALLATION_DIR) + PDF_MANUAL_INSTALLED;
 
     if (!FileSystem::fileExists(path))
         debugLog("Installation broken, manual not found");
@@ -852,8 +857,8 @@ Environment::minimalADF() {
         if (FileSystem::fileExists(srcPath))
             return srcPath;
     } 
-    std::string path = instPath() + string(INSTALLATION_DIR) +
-        MINIMAL_ADF_INSTALLED;
+    std::string path = Application::installationDir() +
+        string(INSTALLATION_DIR) + MINIMAL_ADF_INSTALLED;
 
     assert(
         FileSystem::fileExists(path) && 
@@ -882,7 +887,7 @@ Environment::tceCompiler() {
             FileSystem::fileExists(llvmTceSrcPath))
             return srcPath;
     } 
-    std::string path = instPath() + "/bin/tcecc";
+    std::string path = Application::installationDir() + "/bin/tcecc";
     assert(
         FileSystem::fileExists(path) &&
         "Installation broken, tcecc not found.");
@@ -906,8 +911,8 @@ Environment::defaultSchedulerConf() {
         if (FileSystem::fileExists(srcPath))
             return srcPath;
     } 
-    std::string path = instPath() + string(INSTALLATION_DIR) +
-        "/scheduler/passes/default_scheduler.conf";
+    std::string path = Application::installationDir() +
+        string(INSTALLATION_DIR) + "/scheduler/passes/default_scheduler.conf";
     assert(
         FileSystem::fileExists(path) &&
         "Installation broken, default_scheduler.conf not found.");
@@ -934,8 +939,8 @@ Environment::oldGccSchedulerConf() {
         if (FileSystem::fileExists(srcPath))
             return srcPath;
     } 
-    std::string path = instPath() + string(INSTALLATION_DIR) +
-        "/scheduler/passes/old_gcc.conf";
+    std::string path = Application::installationDir() +
+        string(INSTALLATION_DIR) + "/scheduler/passes/old_gcc.conf";
     assert(
         FileSystem::fileExists(path) &&
         "Installation broken, old_gcc.conf not found.");
@@ -1073,27 +1078,8 @@ std::vector<std::string> Environment::implementationTesterTemplatePaths() {
         string path = string(TCE_SRC_ROOT) + DS + "data" + DS + "hdb";
         paths.push_back(path);
     }
-    string path = instPath() + string(INSTALLATION_DIR) + "data" + DS + "hdb";
+    string path = Application::installationDir() + string(INSTALLATION_DIR) +
+        "data" + DS + "hdb";
     paths.push_back(path);
     return paths;
-}
-
-/**
- * Returns the installation path for TCE
- * It can be .deb unpacked to homedir (TCE_USER_INSTALL envvar should be set)
- * or one created by 'make install'
- *
- * @return Path to TCE installation root
- */
-string
-Environment::instPath() {
-    string instPath = environmentVariable("TCE_USER_INSTALL");
-
-    // .deb check: check if envvar TCE_USER_INSTALL is set
-    // and that dir exists ("icons" dir in our case)
-    if (instPath != "" && FileSystem::fileExists(
-        instPath + string(INSTALLATION_DIR) + "data" + DS + "icons")) {
-        return instPath;
-    }
-    return string(TCE_INSTALLATION_ROOT);
 }
