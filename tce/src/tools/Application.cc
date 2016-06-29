@@ -489,7 +489,7 @@ Application::isInstalled() {
  * Returns the path to TCE installation root
  *
  * Installation root can be one created by 'make install' or .deb package
- * unpacked to homedir for example. Environment variable TCE_USER_INSTALL
+ * unpacked to homedir for example. Environment variable TCE_INSTALL_DIR
  * should be set in the second case pointing to that dir where .deb was
  * installed or tce installation manually copied/moved to.
  *
@@ -502,9 +502,9 @@ Application::installationDir() {
         return installationRoot_;
     }
 
-    string userRoot = Environment::environmentVariable("TCE_USER_INSTALL");
+    string userRoot = Environment::environmentVariable("TCE_INSTALL_DIR");
 
-    // .deb check: check if envvar TCE_USER_INSTALL is set
+    // .deb check: check if envvar TCE_INSTALL_DIR is set
     // and that dir exists ("icons" dir in our case)
     if (userRoot != "" && FileSystem::fileExists(
         userRoot + "/share/tce/data/icons")) {
