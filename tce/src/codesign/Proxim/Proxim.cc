@@ -91,6 +91,8 @@ Proxim::~Proxim() {
 bool
 Proxim::OnInit() {
 
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
+
     const wxCmdLineEntryDesc cmdLineDesc[] = {
 
 #if wxCHECK_VERSION(3,0,0)
