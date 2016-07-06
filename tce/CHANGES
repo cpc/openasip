@@ -1,9 +1,13 @@
 1.14         Unknown
 ====================
 
+Notable changes and features
+----------------------------
+- Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
+
 Usability features
 ------------------
-- HBDEditor automatically fills new implementations with sequential opcode 
+- HBDEditor automatically fills new implementations with sequential opcode
   numbers
 - ProDe shows machine instruction width in status bar
 
