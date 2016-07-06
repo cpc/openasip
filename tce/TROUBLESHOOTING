@@ -1,6 +1,20 @@
 This file lists solutions to common troubles people have with 
 compilation and installation of TCE.
 
+tcecc crashes with Ubuntu 16.04
+-------------------------------
+
+This is likely due to the default installation of LLVM 3.8 used
+by several Ubuntu libraries being accidentally used. It is not compatible
+with the TCE patched LLVM, thus the fix is to ensure the TCE tools
+use the correct version.
+
+For example, install your LLVM to /usr/local/lib and add it to
+your LD_LIBRARY_PATH. You might also need to create a symlink
+to libLLVM-3.8.so.1 from your libLLVM-3.8.so as TCE build seems
+to insist on linking to a file with that name (probably because it
+finds it in the default search paths during build).
+
 TCE build failing when linking with LLVM
 -----------------------------------------
 
@@ -35,7 +49,6 @@ Manuals and specification documents are not built
 
 Make sure you have installed the transfig package and latex2html.
 
-
 "Could not link against" error during configure
 -----------------------------------------------
 
@@ -47,7 +60,6 @@ versions of Boost or force the configure script to find only one version
 installed to a certain location. For example:
 
  ./configure --with-boost-libdir=/usr/lib/x86_64-linux-gnu
-
 
 A stack size error in Proxim's console
 --------------------------------------
