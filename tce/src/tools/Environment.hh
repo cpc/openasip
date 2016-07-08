@@ -94,6 +94,7 @@ public:
     static std::string llvmtceCachePath();
 
     static std::vector<std::string> implementationTesterTemplatePaths();
+    static std::string simTraceDirPath();
 
 private:
     Environment();
@@ -148,6 +149,8 @@ private:
     static std::string newConfFile_;
     /// Directory for new error log file.
     static std::string newErrorLogFileDir_;
+    /// Directory to store ttasim traces
+    static std::string simTraceDir_;
 
     /// Relative path to the installed TCE .pdf manual.
     static const std::string PDF_MANUAL_INSTALLED;

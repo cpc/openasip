@@ -10,6 +10,11 @@ Usability features
 - HBDEditor automatically fills new implementations with sequential opcode
   numbers
 - ProDe shows machine instruction width in status bar
+- Column/list sorting in some ProDe/OSEd dialogs
+- TCE_INSTALL_DIR environment variable can be set pointing to directory where
+  user manually installed TCE
+- Directory where ttasim dumps simulation traces can be changed using an
+  environment variable TTASIM_TRACE_DIR.
 
 1.13   February 2016
 ====================

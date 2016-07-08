@@ -87,6 +87,7 @@ string Environment::newIconFileDir_ = "";
 string Environment::newManFileDir_ = "";
 string Environment::newConfFile_ = "";
 string Environment::newErrorLogFileDir_ = "";
+string Environment::simTraceDir_ = "";
 
 const string Environment::PDF_MANUAL_INSTALLED = "manual/TCE_manual.pdf";
 const string Environment::PDF_MANUAL_SRC = "manual/TCE_manual.pdf";
@@ -131,6 +132,16 @@ Environment::initialize() {
     dataPaths_.push_back(instDir);
     bitmapsPaths_.push_back(instDir);
     manPaths_.push_back(instDir);
+
+    string traceEnv = environmentVariable("TTASIM_TRACE_DIR");
+    if (traceEnv != "") {
+        if (!FileSystem::fileExists(traceEnv)) {
+            if (!FileSystem::createDirectory(traceEnv)) {
+                traceEnv = "";
+            }
+        }
+    }
+    simTraceDir_ = traceEnv;
 
     initialized_ = true;
 }
@@ -1082,4 +1093,17 @@ std::vector<std::string> Environment::implementationTesterTemplatePaths() {
         "data" + DS + "hdb";
     paths.push_back(path);
     return paths;
+}
+
+/**
+ * Returns full path to ttasim trace dir if set using TTASIM_TRACE_DIR
+ * environment variable
+ *
+ * Return full path to ttasim trace dir location if environment variable
+ * TTASIM_TRACE_DIR is pointing to valid dir. Empty string otherwise.
+ */
+string
+Environment::simTraceDirPath() {
+    initialize();
+    return simTraceDir_;
 }
