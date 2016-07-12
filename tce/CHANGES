@@ -15,7 +15,7 @@ Usability features
   user manually installed TCE
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
-- Added export to SVG (wxwidgets 3.* only)
+- Added export to SVG (wxwidgets 3.* only) in ProDe.
 
 1.13   February 2016
 ====================
