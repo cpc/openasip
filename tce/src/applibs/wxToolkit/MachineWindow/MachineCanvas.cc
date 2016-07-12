@@ -50,6 +50,10 @@
 #include "BEMGenerator.hh"
 #include "BinaryEncoding.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+#include <wx/dcsvg.h>   // wxSVGFileDC only available in wxwidgets 3.*
+#endif
+
 BEGIN_EVENT_TABLE(MachineCanvas, wxScrolledWindow)
 EVT_MOUSE_EVENTS(MachineCanvas::onMouseEvent)
 END_EVENT_TABLE()
@@ -97,7 +101,17 @@ MachineCanvas::OnDraw(wxDC& dc) {
 
     wxBrush backgroundBrush(*wxLIGHT_GREY, wxSOLID);
     dc.SetBackground(backgroundBrush);
+
+#if wxCHECK_VERSION(3, 0, 0)
+    // Do not call Clear() for wxSVGFileDC object cause its not implemented
+    try {
+        dynamic_cast<wxSVGFileDC&> (dc);
+    } catch (const std::bad_cast& e) {
+        dc.Clear();
+    }
+#else
     dc.Clear();
+#endif
 
     // Set the canvas font.
     dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
@@ -511,7 +525,33 @@ MachineCanvas::clearMoves() {
     SequenceTools::deleteAllItems(moveFigures_);
 }
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(3, 0, 0)
+/**
+ * Saves the machine figure to a .svg file.
+ *
+ * @param filename Name of the .svg file.
+ * @return True, if the svg was succesfully saved.
+ */
+bool
+MachineCanvas::saveSVG(const std::string& filename) {
+    // Refresh machine figure to get the canvas size.
+    wxClientDC clientDC(this);
+    OnDraw(clientDC);
+
+    // Add minimum coordinates to maximum coordinates to create margins
+    // of equal width.
+    int width = clientDC.MaxX() + clientDC.MinX();
+    int height = clientDC.MaxY() + clientDC.MinY();
+
+    wxSVGFileDC svg(filename, width, height);
+    svg.StartPage();
+    OnDraw(svg);
+    svg.EndPage();
+
+    return true;
+}
+
+#else
 /**
  * Saves the machine figure to an eps file.
  *
@@ -546,7 +586,7 @@ MachineCanvas::saveEPS(const std::string& filename, const std::string& title,
 #endif
 
 /**
- * Saves the machine figure to a .png file.*
+ * Saves the machine figure to a .png file.
  *
  * @param filename Name of the .png file.
  * @return True, if the png was succesfully saved.

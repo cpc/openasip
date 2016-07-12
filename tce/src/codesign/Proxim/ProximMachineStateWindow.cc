@@ -512,11 +512,11 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     wxString defaultDir = _T(".");
     wxString defaultFile= _T("");
 #if wxCHECK_VERSION(3, 0, 0)
-    wxString fileTypes = _T("Portable Network Graphics (.png)|*.png");
+    wxString fileTypes = _T("Scalable Vector Graphics (.svg)|*.svg|");
 #else
-    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps|");
-    fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
+    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps;*.epsi|");
 #endif
+    fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
 
     wxFileDialog dialog(
         this, message, defaultDir, defaultFile, fileTypes,
@@ -531,27 +531,26 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     std::string creator = "TTA Processor Simulator (Proxim)";
     std::string title = "Processor Simulation";
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(3, 0, 0)
+    if (extension == ".svg") {
+        if (!canvas_->saveSVG(filename)) {
+#else
     if (extension == ".eps" || extension == ".epsi") {
         if (!canvas_->saveEPS(filename, title, creator)) {
+#endif
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());
             message.Append(_T("'."));
             ErrorDialog errorDialog(this, message);
             errorDialog.ShowModal();
-            return;
         }
     } else if (extension == ".png") {
-#else
-    if (extension == ".png") {
-#endif
         if (!canvas_->savePNG(filename)) {  
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());
             message.Append(_T("'."));
             ErrorDialog errorDialog(this, message);
             errorDialog.ShowModal();
-            return;
         }
     } else {
         wxString message = _T("File type with extension '");
