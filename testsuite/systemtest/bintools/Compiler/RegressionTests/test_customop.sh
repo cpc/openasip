@@ -4,7 +4,7 @@ tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm
 tceopgen=../../../../../tce/src/bintools/Compiler/tceopgen/tceopgen
 
-tpef=`mktemp tmpXXXXX`.tpef
+tpef=`mktemp tmpXXXXX`
 adf=../../../../../tce/scheduler/testbench/ADF/huge.adf
 program=data/customop.c
 
@@ -15,5 +15,6 @@ $tcecc -O1 -a $adf -o $tpef $program 2>/dev/null
 $tcedisasm -s $adf $tpef | grep -o "ALU8.S2.add"
 $tcedisasm -s $adf $tpef | grep -o "ALU6.S2.sub"
 
-rm $tpef
+rm -f $tpef
+
 
