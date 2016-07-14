@@ -1084,7 +1084,10 @@ if exitCode != 0:
     tceInstalled = False
 else:
     tceInstalled = True
-    tceprefix = output
+    if 'TCE_INSTALL_DIR' in os.environ.keys():
+        tceprefix = os.environ['TCE_INSTALL_DIR']
+    else
+        tceprefix = output
     
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries

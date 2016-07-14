@@ -165,11 +165,14 @@ class TCETestCase(unittest.TestCase):
     def get_tcePrefix(self):
         "Returns the path where TCE has been installed."
         if TCETestCase.prefix is None:
-            (timeout, TCETestCase.prefix, stderr, code) = \
-                      self.runWithTimeout("tce-config --prefix", 60)
-            TCETestCase.prefix = TCETestCase.prefix and TCETestCase.prefix.strip()
-            assert TCETestCase.prefix is not None and TCETestCase.prefix != "", \
-                   "Could not find TCE prefix. Is TCE installed in PATH?"
+            if 'TCE_INSTALL_DIR' in os.environ.keys():
+                TCETestCase.prefix = os.environ['TCE_INSTALL_DIR']
+            else
+                (timeout, TCETestCase.prefix, stderr, code) = \
+                        self.runWithTimeout("tce-config --prefix", 60)
+                TCETestCase.prefix = TCETestCase.prefix and TCETestCase.prefix.strip()
+                assert TCETestCase.prefix is not None and TCETestCase.prefix != "", \
+                        "Could not find TCE prefix. Is TCE installed in PATH?"
             
         return TCETestCase.prefix
 
