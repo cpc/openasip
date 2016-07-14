@@ -110,7 +110,6 @@ private:
         int imemWidthInMAUs,
         const std::string& dstDirectory)
         throw (IOException);
-    static int busCount(const TTAMachine::Machine& mach);
 
     Netlist* netlist_;
     TCEString entityStr_;

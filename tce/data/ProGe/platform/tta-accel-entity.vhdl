@@ -1,0 +1,113 @@
+-- Copyright (c) 2016 Tampere University of Technology
+-- 
+-- Permission is hereby granted, free of charge, to any person obtaining a
+-- copy of this software and associated documentation files (the "Software"),
+-- to deal in the Software without restriction, including without limitation
+-- the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-- and/or sell copies of the Software, and to permit persons to whom the
+-- Software is furnished to do so, subject to the following conditions:
+-- 
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+-- 
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-- DEALINGS IN THE SOFTWARE.
+-----------------------------------------------------------------------------
+-- Title      : Example ALMARVI interface TTA 
+-- Project    : 
+-------------------------------------------------------------------------------
+-- File       : tta-accel-entity.vhdl
+-- Author     : Viitanen Timo (Tampere University of Technology)  <timo.2.viitanen@tut.fi>
+-- Company    : 
+-- Created    : 2016-01-27
+-- Last update: 2016-01-27
+-- Platform   : 
+-- Standard   : VHDL'93
+-------------------------------------------------------------------------------
+-- Description: 
+-------------------------------------------------------------------------------
+-- Copyright (c) 2015 
+-------------------------------------------------------------------------------
+-- Revisions  :
+-- Date        Version  Author  Description
+-- 2016-01-27  1.0      viitanet Created
+-------------------------------------------------------------------------------
+library ieee;
+use ieee.std_logic_1164.all;
+use work.tta0_toplevel_params.all;
+use work.tta0_globals.all;
+use work.tta0_imem_mau.all;
+--use work.axi4_pkg.all;
+
+
+entity tta_accel is
+  port (
+    clk : in std_logic;
+    nreset : in std_logic;
+    s_axi_awaddr : in std_logic_vector(axi_addrw_g-1 downto 0);
+    s_axi_awvalid : in std_logic;
+    s_axi_awready : out std_logic;
+    s_axi_wdata : in std_logic_vector(32-1 downto 0);
+    s_axi_wstrb : in std_logic_vector(4-1 downto 0);
+    s_axi_wvalid : in std_logic;
+    s_axi_wready : out std_logic;
+    s_axi_bresp : out std_logic_vector(2-1 downto 0);
+    s_axi_bvalid : out std_logic;
+    s_axi_bready : in std_logic;
+    s_axi_araddr : in std_logic_vector(axi_addrw_g-1 downto 0);
+    s_axi_arvalid : in std_logic;
+    s_axi_arready : out std_logic;
+    s_axi_rdata : out std_logic_vector(32-1 downto 0);
+    s_axi_rresp : out std_logic_vector(2-1 downto 0);
+    s_axi_rvalid : out std_logic;
+    s_axi_rready : in std_logic;
+    core_busy : out std_logic;
+    core_imem_data : out std_logic_vector(IMEMDATAWIDTH-1 downto 0);
+    core_imem_en_x : in std_logic;
+    core_imem_addr : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    core_fu_LSU_DATA_addr : in std_logic_vector(fu_LSU_DATA_addrw-2-1 downto 0);
+    core_fu_LSU_DATA_mem_en : in std_logic_vector(1-1 downto 0);
+    core_fu_LSU_DATA_wr_en : in std_logic_vector(1-1 downto 0);
+    core_fu_LSU_DATA_wr_mask : in std_logic_vector(fu_LSU_DATA_dataw/8-1 downto 0);
+    core_fu_LSU_DATA_data_in : out std_logic_vector(fu_LSU_DATA_dataw-1 downto 0);
+    core_fu_LSU_DATA_data_out : in std_logic_vector(fu_LSU_DATA_dataw-1 downto 0);
+    core_fu_LSU_PARAM_addr : in std_logic_vector(fu_LSU_PARAM_addrw-2-1 downto 0);
+    core_fu_LSU_PARAM_mem_en : in std_logic_vector(1-1 downto 0);
+    core_fu_LSU_PARAM_wr_en : in std_logic_vector(1-1 downto 0);
+    core_fu_LSU_PARAM_wr_mask : in std_logic_vector(fu_LSU_PARAM_dataw/8-1 downto 0);
+    core_fu_LSU_PARAM_data_in : out std_logic_vector(fu_LSU_PARAM_dataw-1 downto 0);
+    core_fu_LSU_PARAM_data_out : in std_logic_vector(fu_LSU_PARAM_dataw-1 downto 0);
+    core_db_pc_start : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    core_db_instr : out std_logic_vector(IMEMDATAWIDTH-1 downto 0);
+    core_db_pc : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    core_db_pc_next : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    core_db_bustraces : in std_logic_vector(32*BUSCOUNT-1 downto 0);
+    core_db_lockcnt : in std_logic_vector(32-1 downto 0);
+    core_db_cyclecnt : in std_logic_vector(32-1 downto 0);
+    core_db_tta_nreset : out std_logic;
+    core_db_lockrq : out std_logic;
+    data_wr_en : out std_logic;
+    data_mem_en : out std_logic;
+    data_addr : out std_logic_vector(fu_LSU_DATA_addrw-2-1 downto 0);
+    data_data_in : out std_logic_vector(fu_LSU_DATA_dataw-1 downto 0);
+    data_data_out : in std_logic_vector(fu_LSU_DATA_dataw-1 downto 0);
+    data_wr_mask : out std_logic_vector(fu_LSU_DATA_dataw/8-1 downto 0);
+    param_wr_en : out std_logic;
+    param_mem_en : out std_logic;
+    param_addr : out std_logic_vector(fu_LSU_PARAM_addrw-2-1 downto 0);
+    param_data_in : out std_logic_vector(fu_LSU_PARAM_dataw-1 downto 0);
+    param_data_out : in std_logic_vector(fu_LSU_PARAM_dataw-1 downto 0);
+    param_wr_mask : out std_logic_vector(fu_LSU_PARAM_dataw/8-1 downto 0);
+    INSTR_wr_en : out std_logic;
+    INSTR_mem_en : out std_logic;
+    INSTR_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    INSTR_data_in : out std_logic_vector(((IMEMDATAWIDTH+7)/8)*8-1 downto 0);
+    INSTR_data_out : in std_logic_vector(((IMEMDATAWIDTH+7)/8)*8-1 downto 0);
+    INSTR_wr_mask : out std_logic_vector(((IMEMDATAWIDTH+7)/8)*8/8-1 downto 0));
+end entity tta_accel;
+

@@ -995,17 +995,16 @@ public:
 
         //Figure out some constants
         int dbgDataWidth=32;
-        int pcWidth=11;
 
         Machine::BusNavigator busNav = ttamachine_.busNavigator();
         int bustrace_width = dbgDataWidth*busNav.count();
 
         //Add debugger interface ports to tta0 entity
         NetlistPort* ttaPCStartPort = new NetlistPort(
-            "db_pc_start", "IMEMADDRWIDTH", pcWidth,
+            "db_pc_start", "IMEMADDRWIDTH", 
             ProGe::BIT_VECTOR, HDB::IN, toplevelBlock);
         NetlistPort* ttaPCPort = new NetlistPort(
-            "db_pc", "IMEMADDRWIDTH", pcWidth,
+            "db_pc", "IMEMADDRWIDTH", 
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaBustracePort = new NetlistPort(
             "db_bustraces", "32*BUSCOUNT", 
@@ -1023,7 +1022,7 @@ public:
             "db_tta_nreset", "1", ProGe::BIT, HDB::IN, toplevelBlock);
 
         NetlistPort* dbPCNextPort = new NetlistPort(
-            "db_pc_next", "IMEMADDRWIDTH", pcWidth,
+            "db_pc_next", "IMEMADDRWIDTH", 
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* dbGlockReqPort = new NetlistPort(
             "db_lockrq", "1", ProGe::BIT, HDB::IN, toplevelBlock);

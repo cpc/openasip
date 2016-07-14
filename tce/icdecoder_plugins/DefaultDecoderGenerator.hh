@@ -110,8 +110,8 @@ private:
     /// Set type for buses.
     typedef std::set<TTAMachine::Bus*> BusSet;
 
-    void addLockReqPortToDecoder() const;
-    void addGlockPortToDecoder() const;
+    void addLockReqPortToDecoder();
+    void addGlockPortToDecoder();
 
     void writeInstructionDecoder(std::ostream& stream) const;
     void writeLockDumpCode(std::ostream& stream) const;

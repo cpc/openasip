@@ -245,7 +245,7 @@ ProcessorGenerator::generateGlobalsPackage(
                << "IMEMWIDTHINMAUS*IMEMMAUWIDTH;" << endl
                << "  -- number of busses." << endl
                << "  constant BUSCOUNT : positive := "
-               << busCount(machine) << ";" << endl
+               << machine.busNavigator().count() << ";" << endl
                << "  -- clock period" << endl
                << "  constant PERIOD : time := 10 ns;" << endl
                << "end " << entityStr_ << "_globals;" << endl;
@@ -448,20 +448,6 @@ ProcessorGenerator::iMemWidth(
     assert(iMem != NULL);
 
     return iMem->width() * imemWidthInMAUs;
-}
-
-/**
- * Returns the number of busses of the given machine.
- *
- * @param mach The machine.
- * @return The bus count.
- */
-int
-ProcessorGenerator::busCount(
-    const TTAMachine::Machine& mach) {
-
-    Machine::BusNavigator busses = mach.busNavigator();
-    return busses.count();
 }
 
 const Netlist*

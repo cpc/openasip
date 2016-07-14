@@ -384,7 +384,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
  * request ports of FU's to it.
  */
 void
-DefaultDecoderGenerator::addLockReqPortToDecoder() const {
+DefaultDecoderGenerator::addLockReqPortToDecoder() {
 
     int lockReqWidth = glockRequestWidth();
 
@@ -425,7 +425,7 @@ DefaultDecoderGenerator::addLockReqPortToDecoder() const {
  * of units.
  */
 void
-DefaultDecoderGenerator::addGlockPortToDecoder() const {
+DefaultDecoderGenerator::addGlockPortToDecoder() {
 
     Netlist& netlist = decoderBlock_->netlist();
     NetlistPort* decGlockPort = new NetlistPort(

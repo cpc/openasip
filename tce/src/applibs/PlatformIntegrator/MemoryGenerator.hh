@@ -195,6 +195,8 @@ public:
         const TCEString& outFile,
         const TCEString& entity) const;
 
+    bool hasLsuArchitecture() const;
+
     const TTAMachine::FunctionUnit& lsuArchitecture() const;
 
     const HDB::FUImplementation& lsuImplementation() const;
