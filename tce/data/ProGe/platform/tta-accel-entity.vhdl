@@ -110,4 +110,3 @@ entity tta_accel is
     INSTR_data_out : in std_logic_vector(((IMEMDATAWIDTH+7)/8)*8-1 downto 0);
     INSTR_wr_mask : out std_logic_vector(((IMEMDATAWIDTH+7)/8)*8/8-1 downto 0));
 end entity tta_accel;
-

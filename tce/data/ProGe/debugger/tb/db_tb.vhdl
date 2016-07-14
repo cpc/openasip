@@ -770,5 +770,3 @@ assert nreset /= '1' or nreset_allowed or tta_nreset = '1'
   report "TTA reset for no reason" severity failure;
 
 end tb;
-
-
