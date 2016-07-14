@@ -98,7 +98,7 @@ describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
 
 Many people have contributed to this document, most notably Pekka
-Jääskeläinen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
+Jï¿½ï¿½skelï¿½inen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
 Salminen.
 
 
@@ -482,7 +482,7 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
       hdb      & HW database                                & SQLite \\
       \hline
       tpef     & TTA program exchange format                & bin \\
-      bem      & Binary encoding map                        & bin \\
+      bem      & Binary encoding map                        & XML \\
       opp      & Operation properties                       & XML \\
       cc       & Simulation behavior of an operation                   & C++\\
       opb      & Compiled operation behavior                & bin \\
@@ -4805,9 +4805,35 @@ Command is then:
 Integrator creates IP-XACT file 'spirit\_comp\_def\_koski\_tta.xml' to
 current working directory.
 
+\subsection{AlmarviIntegrator}
+
+Almarvi Integrator can be used to create a ALMARVI hardware interface compatible
+processor wrapper for a TTA processor. Due to the constrants placed by the
+specification, the TTA processor must have data and parameter memory spaces.
+The integrato recognizes these by the address space names, which should be set
+to 'data' and 'param' respectively. These memory spaces and instruction
+memory can be accessed through the AXI4 interface presented by the processor
+wrapper. Both data and parameter memory spaces must have 32-bit data width;
+instruction memory does not have this constraint. All other memory spaces are 
+mapped as scratchpad memory, inaccessible from the AXI bus.
+
+The LSU compatible with this integrator can be found in almarvi.hdb. Currently
+it is the only function unit shipped with TCE which implements this interface.
+This means that the only option for data and instruction memory type is 
+'onchip'. The memories will be synthesized as Xilinx-compatible single port
+block RAM. 
+
+\textbf{Usage example:} \\
+There's a processor with ALMARVI LSU, and the toplevel entity will be named
+'almarvi\_tta'. Command is
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmarviIntegrator
+-d onchip -f onchip -e almarvi\_tta -p program.tpef proc.adf}
+
 
 \section{Hardware Database Editor (HDB Editor)}
 \label{sec:hdbedit}
+
 % TODO: some text, describe at least the most important use cases [VP]
 % describe createhdb
 % Hardware Database (HDB) is the main database used by the
@@ -7463,6 +7489,10 @@ execution profile. The SQLite file can be browsed by executing SQL queries
 using the sqlite client and the pure text files can be browsed using any 
 text viewer/editor.
 
+By default simulation traces are dumped in the same directory as loaded program
+file. It is possible to override that directory by setting an environment
+variable TTASIM\_TRACE\_DIR pointing to desired location.
+
 \subsubsection{Profile Data}
 
 The simulator is able to produce enough data to provide an inclusive call 
@@ -8232,8 +8262,8 @@ store word to memory.
 \begin{figure}
   \begin{center} 
   \includegraphics[width=0.75\textwidth]{eps/tta}
-	\caption{TTA basic structure} 
-	\label{fig:tta1} 
+  \caption{TTA basic structure} 
+  \label{fig:tta1} 
   \end{center}
 \end{figure}
 
@@ -9206,9 +9236,9 @@ code and/or adjust the licensing conditions notice accordingly.
 \section{L-GPL}
 
 \begin{center}
-	  GNU LIBRARY GENERAL PUBLIC LICENSE
+    GNU LIBRARY GENERAL PUBLIC LICENSE
 
-	  ==================================
+    ==================================
 
                 Version 2, June 1991
 
