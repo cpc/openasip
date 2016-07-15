@@ -73,7 +73,7 @@
 #include "Stratix3DevKitIntegrator.hh"
 #include "KoskiIntegrator.hh"
 #include "AvalonIntegrator.hh"
-#include "AlmarviIntegrator.hh"
+#include "AlmaIFIntegrator.hh"
 
 using namespace IDF;
 using std::string;
@@ -471,8 +471,8 @@ ProGeUI::integrateProcessor(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
             imemInfo, dmem);
-    } else if (platformIntegrator == "AlmarviIntegrator") {
-        integrator = new AlmarviIntegrator(
+    } else if (platformIntegrator == "AlmaIFIntegrator") {
+        integrator = new AlmaIFIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
             imemInfo, dmem);

@@ -80,7 +80,7 @@ protected:
     TCEString almaifPortName(const TCEString& portBaseName);
 
     const bool connectToArbiter_;
-    ProGe::NetlistBlock* almarviIF_;
+    ProGe::NetlistBlock* almaifBlock_;
     TCEString signalPrefix_;
 
 private:

@@ -52,13 +52,13 @@ XilinxBlockRamGenerator::XilinxBlockRamGenerator(
     std::ostream& warningStream,
     std::ostream& errorStream,
     bool connectToArbiter,
-    ProGe::NetlistBlock* almarviIF,
+    ProGe::NetlistBlock* almaifBlock,
     TCEString signalPrefix): 
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                        integrator, warningStream, errorStream),
-    connectToArbiter_(connectToArbiter), almarviIF_(almarviIF), 
+    connectToArbiter_(connectToArbiter), almaifBlock_(almaifBlock), 
     signalPrefix_(signalPrefix) {
-    assert (!connectToArbiter || almarviIF != nullptr);
+    assert (!connectToArbiter || almaifBlock != nullptr);
     
     ProGe::Netlist::Parameter dataw = {"dataw", "integer", 
         Conversion::toString(memoryTotalWidth())};
@@ -136,7 +136,7 @@ XilinxBlockRamGenerator::addMemory(
         } else {
             if (connectToArbiter_) {
                 portName = almaifPortName(portKeyName(hdlPort));
-                corePort = almarviIF_->portByName(portName);
+                corePort = almaifBlock_->portByName(portName);
             } else {
                 corePort = ttaCore.portByName(portName);
             }
@@ -145,7 +145,7 @@ XilinxBlockRamGenerator::addMemory(
             TCEString msg = "Port ";
             msg << portName << " not found from";
             if (connectToArbiter_) {
-                msg << " Almarvi IF ";
+                msg << " AlmaIF ";
             } else {
                 msg << " TTA core ";
             }
@@ -210,7 +210,7 @@ bool
 XilinxBlockRamGenerator::isCompatible(const ProGe::NetlistBlock& ttaCore,
         std::vector<TCEString>& reasons) const {
     if (connectToArbiter_) {
-        // TODO: Actually check almarviIF_ ports? 
+        // TODO: Actually check almaifBlock_ ports? 
         return true;
     } else {
         return MemoryGenerator::isCompatible(ttaCore, reasons);

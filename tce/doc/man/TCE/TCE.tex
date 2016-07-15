@@ -4805,9 +4805,9 @@ Command is then:
 Integrator creates IP-XACT file 'spirit\_comp\_def\_koski\_tta.xml' to
 current working directory.
 
-\subsection{AlmarviIntegrator}
+\subsection{AlmaIFIntegrator}
 
-Almarvi Integrator can be used to create a ALMARVI hardware interface compatible
+AlmaIF Integrator can be used to create a AlmaIF-compatible
 processor wrapper for a TTA processor. Due to the constrants placed by the
 specification, the TTA processor must have data and parameter memory spaces.
 The integrato recognizes these by the address space names, which should be set
@@ -4817,18 +4817,22 @@ wrapper. Both data and parameter memory spaces must have 32-bit data width;
 instruction memory does not have this constraint. All other memory spaces are 
 mapped as scratchpad memory, inaccessible from the AXI bus.
 
-The LSU compatible with this integrator can be found in almarvi.hdb. Currently
+The LSU compatible with this integrator can be found in almaif.hdb. Currently
 it is the only function unit shipped with TCE which implements this interface.
 This means that the only option for data and instruction memory type is 
 'onchip'. The memories will be synthesized as Xilinx-compatible single port
-block RAM. 
+block RAM.
+
+Because the control interface for AlmaIF is implemented through the external 
+debugger interface, this must be enabled rom the Implementation-dialog's 
+IC / Decoder Plugin tab by setting the bustrace plugin parameter as 'external'.
 
 \textbf{Usage example:} \\
-There's a processor with ALMARVI LSU, and the toplevel entity will be named
-'almarvi\_tta'. Command is
+There's a processor with AlmaIF LSU, and the toplevel entity will be named
+'almaif\_tta'. Command is
 
-\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmarviIntegrator
--d onchip -f onchip -e almarvi\_tta -p program.tpef proc.adf}
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmaIFIntegrator
+-d onchip -f onchip -e almaif\_tta -p program.tpef proc.adf}
 
 
 \section{Hardware Database Editor (HDB Editor)}

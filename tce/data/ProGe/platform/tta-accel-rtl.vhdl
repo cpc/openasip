@@ -18,7 +18,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 -----------------------------------------------------------------------------
--- Title      : Example ALMARVI interface TTA 
+-- Title      : AXI interface for AlmaIF wrapper
 -- Project    : 
 -------------------------------------------------------------------------------
 -- File       : tta-accel-rtl.vhdl

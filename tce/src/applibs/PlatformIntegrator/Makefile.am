@@ -11,7 +11,7 @@ libplatformintegrator_la_SOURCES = \
 	IPXactHibiInterface.cc IPXactClkInterface.cc IPXactResetInterface.cc \
 	Vlnv.cc AlteraMemGenerator.cc IPXactAddressSpace.cc \
 	Stratix3DevKitIntegrator.cc XilinxBlockRamGenerator.cc \
-	AlmarviIntegrator.cc
+	AlmaIFIntegrator.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -59,5 +59,5 @@ libplatformintegrator_la_SOURCES += \
 	Stratix2DSPBoardIntegrator.hh MemoryGenerator.hh \
 	IPXactResetInterface.hh Stratix2SramGenerator.hh \
 	AvalonIntegrator.hh IPXactAddressSpace.hh \
-	XilinxBlockRamGenerator.hh AlmarviIntegrator.hh
+	XilinxBlockRamGenerator.hh AlmaIFIntegrator.hh
 ## headers end
