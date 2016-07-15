@@ -39,6 +39,7 @@
 #include "Environment.hh"
 #include "FileSystem.hh"
 #include "MathTools.hh"
+#include "HDLTemplateInstantiator.hh"
 
 
 using ProGe::NetlistBlock;
@@ -392,15 +393,18 @@ AlmaIFIntegrator::addAlmaifFiles() {
     dbPath << FileSystem::DIRECTORY_SEPARATOR << "debugger" << 
         FileSystem::DIRECTORY_SEPARATOR;
 
-    copyPlatformFile(platformPath + "tta-accel-entity.vhdl",
+    instantiatePlatformFile(platformPath + "tta-accel-entity.vhdl.tmpl",
         almaifFiles);
-    copyPlatformFile(platformPath + "tta-accel-rtl.vhdl",
+    instantiatePlatformFile(platformPath + "tta-accel-rtl.vhdl.tmpl",
         almaifFiles);
-    copyPlatformFile(platformPath + "tta-axislave-entity.vhdl",
+    instantiatePlatformFile(platformPath + "tta-axislave-entity.vhdl.tmpl",
         almaifFiles);
-    copyPlatformFile(platformPath + "tta-axislave-rtl.vhdl",
+    instantiatePlatformFile(platformPath + "tta-axislave-rtl.vhdl.tmpl",
         almaifFiles);
     
+
+    instantiatePlatformFile(dbPath + "debugger_if-pkg.vhdl.tmpl",
+        almaifFiles);
     copyPlatformFile(dbPath + "cdc-entity.vhdl",
         almaifFiles);
     copyPlatformFile(dbPath + "cdc-rtl.vhdl",
@@ -417,8 +421,6 @@ AlmaIFIntegrator::addAlmaifFiles() {
         almaifFiles);
     copyPlatformFile(dbPath + "debugger-struct.vhdl",
         almaifFiles);
-    copyPlatformFile(dbPath + "debugger_if-pkg.vhdl",
-        almaifFiles);
     copyPlatformFile(dbPath + "dbregbank-rtl.vhdl",
         almaifFiles);
     copyPlatformFile(dbPath + "registers-pkg.vhdl",
@@ -430,7 +432,6 @@ AlmaIFIntegrator::addAlmaifFiles() {
     }
 }
 
-
 void
 AlmaIFIntegrator::copyPlatformFile(const TCEString inputPath, 
     std::vector<TCEString>& fileList) const {
@@ -439,6 +440,21 @@ AlmaIFIntegrator::copyPlatformFile(const TCEString inputPath,
         true);
 
     FileSystem::copy(inputPath, outputPath);
+    fileList.push_back(outputPath);
+}
+
+void
+AlmaIFIntegrator::instantiatePlatformFile(const TCEString inputPath, 
+    std::vector<TCEString>& fileList) const {
+
+    TCEString filename = FileSystem::fileOfPath(inputPath);
+    filename.replaceString(".tmpl", "");
+    TCEString outputPath = outputFilePath(filename, true);
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(coreEntityName());
+    inst.instantiateTemplateFile(inputPath, outputPath);
+    
     fileList.push_back(outputPath);
 }
 

@@ -92,6 +92,8 @@ private:
     void addAlmaifFiles();
     void copyPlatformFile(const TCEString inputPath, 
         std::vector<TCEString>& fileList) const;
+    void instantiatePlatformFile(const TCEString inputPath, 
+        std::vector<TCEString>& fileList) const;
     int axiAddressWidth() const;
     bool verifyMemories() const;
 
