@@ -1079,16 +1079,18 @@ if exitCode1 != 0 and exitCode2 != 0:
     exitWithError(1, output)
 
 ### tce install prefix
-(exitCode, output) = runCommandBuffered("tce-config --prefix", False)
-if exitCode != 0:
-    tceInstalled = False
+tceInstalled = True
+if 'TCE_INSTALL_DIR' in os.environ.keys():
+    tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
-    tceInstalled = True
-    if 'TCE_INSTALL_DIR' in os.environ.keys():
-        tceprefix = os.environ['TCE_INSTALL_DIR']
-    else
+    (exitCode, output) = runCommandBuffered("tce-config --prefix", False)
+    if exitCode != 0:
+        tceInstalled = False
+    else:
         tceprefix = output
-    
+assert tceInstalled and tceprefix != "", \
+        "Could not find TCE prefix. Is TCE installed in PATH?"
+
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))

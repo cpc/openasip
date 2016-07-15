@@ -176,7 +176,7 @@ OperationBuilder::buildObject(
                it can happen the loading of libtce.so to access some 
                specific functionality might not import all the symbols
                required by the .opb loaded by libtce later. */
-            CXXFLAGS += " `tce-config --libs` ";
+            CXXFLAGS += " -L" + Application::installationDir() + "/lib -ltce ";
         }
 
         // Add user defined CXXFLAGS + CPPFLAGS to the end because they
