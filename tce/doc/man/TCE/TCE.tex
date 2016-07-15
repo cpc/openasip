@@ -98,7 +98,7 @@ describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
 
 Many people have contributed to this document, most notably Pekka
-J√§√§skel√§inen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
+J‰‰skel‰inen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
 Salminen.
 
 
@@ -4824,12 +4824,12 @@ This means that the only option for data and instruction memory type is
 block RAM.
 
 Because the control interface for AlmaIF is implemented through the external 
-debugger interface, this must be enabled rom the Implementation-dialog's 
+debugger interface, this must be enabled from the Implementation-dialog's 
 IC / Decoder Plugin tab by setting the bustrace plugin parameter as 'external'.
 
 \textbf{Usage example:} \\
-There's a processor with AlmaIF LSU, and the toplevel entity will be named
-'almaif\_tta'. Command is
+There's a processor with AlmaIF LSU and external debugger interface, and the 
+toplevel entity will be named 'almaif\_tta'. Command is
 
 \shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmaIFIntegrator
 -d onchip -f onchip -e almaif\_tta -p program.tpef proc.adf}
@@ -4837,7 +4837,6 @@ There's a processor with AlmaIF LSU, and the toplevel entity will be named
 
 \section{Hardware Database Editor (HDB Editor)}
 \label{sec:hdbedit}
-
 % TODO: some text, describe at least the most important use cases [VP]
 % describe createhdb
 % Hardware Database (HDB) is the main database used by the
@@ -7493,10 +7492,6 @@ execution profile. The SQLite file can be browsed by executing SQL queries
 using the sqlite client and the pure text files can be browsed using any 
 text viewer/editor.
 
-By default simulation traces are dumped in the same directory as loaded program
-file. It is possible to override that directory by setting an environment
-variable TTASIM\_TRACE\_DIR pointing to desired location.
-
 \subsubsection{Profile Data}
 
 The simulator is able to produce enough data to provide an inclusive call 
@@ -8266,8 +8261,8 @@ store word to memory.
 \begin{figure}
   \begin{center} 
   \includegraphics[width=0.75\textwidth]{eps/tta}
-    \caption{TTA basic structure} 
-    \label{fig:tta1} 
+	\caption{TTA basic structure} 
+	\label{fig:tta1} 
   \end{center}
 \end{figure}
 
@@ -9240,9 +9235,9 @@ code and/or adjust the licensing conditions notice accordingly.
 \section{L-GPL}
 
 \begin{center}
-    GNU LIBRARY GENERAL PUBLIC LICENSE
+	  GNU LIBRARY GENERAL PUBLIC LICENSE
 
-    ==================================
+	  ==================================
 
                 Version 2, June 1991
 
