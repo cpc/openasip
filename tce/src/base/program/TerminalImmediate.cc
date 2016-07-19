@@ -91,7 +91,7 @@ TerminalImmediate::copy() const {
  * @param other Terminal to compare.
  * @return true if terminals are equal.
  */
-bool 
+bool
 TerminalImmediate::equals(const Terminal& other) const {
 
     if (other.isImmediate() != true) {
@@ -102,7 +102,8 @@ TerminalImmediate::equals(const Terminal& other) const {
 
 TCEString
 TerminalImmediate::toString() const {
-    DisassemblyImmediate* disasm = POMDisassembler::createInlineImmediate(*this);
+    DisassemblyImmediate* disasm =
+        POMDisassembler::createInlineImmediate(*this, false);
     TCEString dis = disasm->toString();
     delete disasm;
     return dis;

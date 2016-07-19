@@ -186,21 +186,27 @@ POMDisassembler::createMove(const Move& move) {
     DisassemblyElement* destinationDis = createTerminal(move.destination());
     DisassemblyElement* sourceDis = NULL;
 
-    // Special case: if the move source is an inline immediate, and
-    // the move destination is call/jump operand, the inline immediate
-    // is disassembled as label if possible.
-    if (move.source().isImmediate() &&
-        isCallOrJump(move.destination()) &&
-        move.isInInstruction() && move.parent().isInProcedure() &&
-        move.parent().parent().isInProgram() &&
-        labelCount(
-            move.parent().parent().parent(),
-            move.source().value().uIntWordValue()) > 0) {
+    if (move.source().isImmediate()) {
 
-        Word immediate = move.source().value().uIntWordValue();
-        std::string codelabel = label(
-            move.parent().parent().parent(), immediate, 0);
-        sourceDis = new DisassemblyLabel(codelabel);    
+        // Special case: if the move source is an inline immediate, and
+        // the move destination is call/jump operand, the inline immediate
+        // is disassembled as label if possible.
+        if (isCallOrJump(move.destination()) &&
+            move.isInInstruction() && move.parent().isInProcedure() &&
+            move.parent().parent().isInProgram() &&
+            labelCount(
+                move.parent().parent().parent(),
+                move.source().value().uIntWordValue()) > 0) {
+
+            Word immediate = move.source().value().uIntWordValue();
+            std::string codelabel = label(
+                move.parent().parent().parent(), immediate, 0);
+            sourceDis = new DisassemblyLabel(codelabel);
+        } else {
+            sourceDis =
+                createInlineImmediate(
+                    move.source(), move.bus().signExtends());
+        }
     } else {
         sourceDis = createTerminal(move.source());
     }
@@ -241,9 +247,10 @@ DisassemblyElement*
 POMDisassembler::createTerminal(const Terminal& terminal)
     throw(WrongSubclass, InstanceNotFound) {
 
-    if (terminal.isImmediate()) {
-        return createInlineImmediate(terminal);
-    }
+    assert (
+        !terminal.isImmediate() &&
+        "Should handle immediate as a special case due to depending on "
+        "extension mode!");
 
     if (terminal.isFUPort()) {
         return createFUPort(terminal);
@@ -267,19 +274,23 @@ POMDisassembler::createTerminal(const Terminal& terminal)
  * Creates disassembly of an immediate value.
  *
  * @param terminal Immediate value to disassemble.
+ * @param signExtend If the immediate should be considered signed or unsigned.
  * @return Disassembly of the immediate value.
  */
 DisassemblyImmediate*
-POMDisassembler::createInlineImmediate(const Terminal& terminal) {
-    if (const TTAProgram::TerminalProgramOperation* tpo = 
+POMDisassembler::createInlineImmediate(
+    const Terminal& terminal, bool signExtend) {
+    if (const TTAProgram::TerminalProgramOperation* tpo =
         dynamic_cast<const TTAProgram::TerminalProgramOperation*>(&terminal)) {
         if (!tpo->isAddressKnown())
-            return new DisassemblyImmediate(NullSimValue::instance());
+            return new DisassemblyImmediate(NullSimValue::instance(), false);
     }
     try {
-        return new DisassemblyImmediate(terminal.value());
+        return new DisassemblyImmediate(
+            terminal.value(), signExtend);
     } catch (Exception& e) {
-        return new DisassemblyImmediate(NullSimValue::instance());
+        return new DisassemblyImmediate(
+            NullSimValue::instance(), signExtend);
     }
 }
 
