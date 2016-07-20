@@ -1088,8 +1088,6 @@ else:
         tceInstalled = False
     else:
         tceprefix = output
-assert tceInstalled and tceprefix != "", \
-        "Could not find TCE prefix. Is TCE installed in PATH?"
 
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
@@ -1097,6 +1095,9 @@ scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
      os.path.exists(os.path.join("@abs_top_builddir@", 
                                  "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
+
+assert not runningInstalled or (tceInstalled and tceprefix != ""), \
+        "Could not find TCE prefix. Is TCE installed in PATH?"
 
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
