@@ -126,8 +126,7 @@ begin
       if db_rstx = '0' then
         lockcnt <= (others => '0');
       elsif (lock = '1' and db_lockreq = '0') then
-        lockcnt <= conv_std_logic_vector(conv_integer(unsigned(lockcnt))+1,
-                                         lockcnt'length);
+        lockcnt <= conv_std_logic_vector(unsigned(lockcnt)+1, lockcnt'length);
       end if;
     end if;
   end process;
@@ -156,7 +155,7 @@ begin
         if fetch_en = '1' then
         -- for debugger: increase cycle count whenever instruction counter proceeds
           -- TODO: cyclecnt should be reset to 0 when new program starts?
-          cyclecnt <= conv_std_logic_vector(conv_integer(unsigned(cyclecnt))+1, cyclecnt'length);
+          cyclecnt <= conv_std_logic_vector(unsigned(cyclecnt)+1, cyclecnt'length);
 
           pc_reg      <= next_pc;
           pc_prev_reg <= pc_reg;

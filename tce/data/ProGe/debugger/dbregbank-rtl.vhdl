@@ -237,12 +237,14 @@ begin
       addr_delay    <= (others => '0');
       --selected_bustrace <= (others => '0');
     elsif rising_edge(clk) then
-      addr_delay  <= addr_if;
+
       dout_if_reg <= (others => '0');
       bustraces_reg <= bustraces;
 
       -- return tta info
       if (re_if = '1') then
+        addr_delay <= addr_if;
+
         if (unsigned(addr_if) = to_unsigned(TTA_CTRL_SIZE, 8)) then
           dout_if_reg <= std_logic_vector(to_unsigned(2**(db_addr_width+2), data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_DMEM_SIZE, 8)) then
