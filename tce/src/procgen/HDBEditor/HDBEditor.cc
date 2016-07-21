@@ -60,6 +60,8 @@ HDBEditor::~HDBEditor() {
  */
 bool
 HDBEditor::OnInit() {
+
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
 	
     mainFrame_ = new HDBEditorMainFrame(_T("HDB Editor"),
                                         wxPoint(50, 50), wxSize(900, 500));

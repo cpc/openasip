@@ -103,8 +103,8 @@ DisassemblyMoveTest::testUnguardedMove() {
     DisassemblyFUPort* fuPort1 = new DisassemblyFUPort("foounit", "port4");
     DisassemblyFUPort* fuPort2 = new DisassemblyFUPort("barunit", "port1");
     DisassemblyFUPort* fuPort3 = new DisassemblyFUPort("barunit", "port10");
-    DisassemblyImmediate* immediate1 = new DisassemblyImmediate(immValue1);
-    DisassemblyImmediate* immediate2 = new DisassemblyImmediate(immValue2);
+    DisassemblyImmediate* immediate1 = new DisassemblyImmediate(immValue1, true);
+    DisassemblyImmediate* immediate2 = new DisassemblyImmediate(immValue2, true);
     DisassemblyBoolRegister* boolReg = new DisassemblyBoolRegister();
     DisassemblyImmediateRegister* immReg =
 	new DisassemblyImmediateRegister("imm", 12345);
@@ -186,7 +186,7 @@ DisassemblyMoveTest::testGuardedMove() {
     immValue = 1234;
 
     // Create move elements.
-    DisassemblyImmediate* immediate = new DisassemblyImmediate(immValue);
+    DisassemblyImmediate* immediate = new DisassemblyImmediate(immValue, true);
 
     DisassemblyRegister* guardedRegister1 = new DisassemblyRegister("rf4", 1);
     DisassemblyRegister* guardedRegister2 = new DisassemblyRegister("rf4", 2);
@@ -216,7 +216,7 @@ DisassemblyMoveTest::testGuardedMove() {
 void
 DisassemblyMoveTest::testImmediateAssignment() {
     DisassemblyImmediateRegister* imm =
-	new DisassemblyImmediateRegister("imm", 0);
+        new DisassemblyImmediateRegister("imm", 0);
     SimValue value(32);
     value = 123;
     DisassemblyImmediateAssignment immAssignment(value, imm);

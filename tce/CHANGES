@@ -1,17 +1,28 @@
 1.14         Unknown
 ====================
 
+Notable changes and features
+----------------------------
+- Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
+
 Usability features
 ------------------
-- HBDEditor automatically fills new implementations with sequential opcode 
+- HBDEditor automatically fills new implementations with sequential opcode
   numbers
 - ProDe shows machine instruction width in status bar
+- Column/list sorting in some ProDe/OSEd dialogs
+- TCE_INSTALL_DIR environment variable can be set pointing to directory where
+  user manually installed TCE
+- Directory where ttasim dumps simulation traces can be changed using an
+  environment variable TTASIM_TRACE_DIR.
+- Added export to SVG (wxwidgets 3.* only) in ProDe.
 
 1.13   February 2016
 ====================
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.8
 - Semantics of extraBits in BEM changed: when the encoding is zero,
   the encoding size is now calculated as 0 and one more extra bit is
   needed than before to create the same encoding.
@@ -24,9 +35,9 @@ Notable changes and features
 
 Notable bugfixes
 ----------------
-- Bus having no only one source or destination socket which has a subfield
+- Bus having only one source or destination socket which has a subfield
   (trigger opcode index, register index, or immediate field) and no
-  nop encoding(nop encoding done by always false guard) 
+  nop encoding (nop encoding done by always false guard)
   no longer loses the index field in the instruction encoding.
 
 1.12  September 2015

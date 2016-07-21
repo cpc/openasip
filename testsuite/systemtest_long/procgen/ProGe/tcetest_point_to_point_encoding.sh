@@ -76,7 +76,7 @@ viewbem $BEM | grep 'move slot B9: 1' >& /dev/null \
 viewbem $BEM | grep 'move slot B10: 1' >& /dev/null \
     || { echo "unexpected encoding."; exit 8; }
 
-tceasm -o $TPEF $ADF $SRC || echo "Error from tceasm."
+tceasm -o $TPEF $ADF $SRC 2> /dev/null || echo "Error from tceasm."
 $GENBUSTRACE -i $DATA/execution_bus_trace/tb.opp -o $TTABUSTRACE $ADF $TPEF \
     || { echo "Error in bus trace generation."; exit 1; }
 $PROGE -t -e $TOP -i $IDF_VHDL -o ${PROGE_OUT_VHDL} $ADF \

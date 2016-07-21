@@ -94,7 +94,9 @@ public:
         const TTAMachine::Port* target) throw (InstanceNotFound);
     void clearMoves();
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(3, 0, 0)
+    bool saveSVG(const std::string& filename);
+#else
     bool saveEPS(
         const std::string& filename,
         const std::string& title,

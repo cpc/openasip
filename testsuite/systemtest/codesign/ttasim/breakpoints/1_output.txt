@@ -48,13 +48,13 @@ Stopped at breakpoint 3.
 testing the ignore count feature
      6: at address 20 
      6: at address 20 will be ignored 3 time(s) 
-Hel     20                    <_start+20>: -1 -> ALU.in2 ;
+Hel     20                    <_start+20>: 4294967295 -> ALU.in2 ;
 Stopped at breakpoint 6.
      6: at address 20 
-l     20                    <_start+20>: -1 -> ALU.in2 ;
+l     20                    <_start+20>: 4294967295 -> ALU.in2 ;
 Stopped at breakpoint 6.
      6: at address 20 
-o     20                    <_start+20>: -1 -> ALU.in2 ;
+o     20                    <_start+20>: 4294967295 -> ALU.in2 ;
 Stopped at breakpoint 6.
  TTA world!
 

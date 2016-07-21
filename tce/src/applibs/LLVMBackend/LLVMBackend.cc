@@ -329,7 +329,7 @@ LLVMBackend::compile(
 
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
-	    "\n" + errMsgParse;
+            "\n" + errMsgParse;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -467,7 +467,7 @@ LLVMBackend::compile(
 
     // get registered target machine and set plugin.
     const Target* tceTarget = 
-	TargetRegistry::lookupTarget(targetStr, errorStr); 
+        TargetRegistry::lookupTarget(targetStr, errorStr);
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
@@ -501,7 +501,7 @@ LLVMBackend::compile(
     TCETargetMachine* targetMachine = 
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
-		targetStr, cpuStr, featureString, Options));
+        targetStr, cpuStr, featureString, Options));
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";
@@ -650,7 +650,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     std::string srcsPath = "";
     std::string pluginIncludeFlags = "";
     if (useInstalledVersion_) {
-        srcsPath = std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
+        srcsPath = Application::installationDir() +  DS + "include" + DS;
         pluginIncludeFlags = " -I" + srcsPath;
     } else {
         srcsPath = std::string(TCE_SRC_ROOT) + DS +

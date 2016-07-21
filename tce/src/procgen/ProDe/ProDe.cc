@@ -88,6 +88,8 @@ ProDe::ProDe(): docManager_((wxDocManager*)NULL), options_(NULL) {
 bool
 ProDe::OnInit() {
 
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
+
     // parse command line
     static const wxCmdLineEntryDesc cmdLineDesc[] = {
 

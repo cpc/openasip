@@ -169,6 +169,7 @@ public:
     static int argc() { return argc_; }
     static char** argv() { return argv_; }
     static bool isInstalled();
+    static std::string installationDir();
 
     /**
      * An interface for classes that can receive notification when a Unix
@@ -225,6 +226,9 @@ private:
     /// The original argc and argv given to the main program, if applicable.
     static int argc_;
     static char** argv_;
+
+    /// Path to the TCE installation root
+    static std::string installationRoot_;
 };
 
 #endif

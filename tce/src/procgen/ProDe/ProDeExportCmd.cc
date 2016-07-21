@@ -83,11 +83,11 @@ ProDeExportCmd::Do() {
     wxString defaultDir = _T(".");
     wxString defaultFile= _T("");
 #if wxCHECK_VERSION(3, 0, 0)
-    wxString fileTypes = _T("Portable Network Graphics (.png)|*.png");
+    wxString fileTypes = _T("Scalable Vector Graphics (.svg)|*.svg|");
 #else
-    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps|");
-    fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
+    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps;*.epsi|");
 #endif
+    fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
 
     wxFileDialog dialog(
         parentWindow(), message, defaultDir, defaultFile, fileTypes,
@@ -103,9 +103,13 @@ ProDeExportCmd::Do() {
     std::string title =
         WxConversion::toString(view->GetDocument()->GetTitle());
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(3, 0, 0)
+    if (extension == ".svg") {
+        if (!canvas->saveSVG(filename)) {
+#else
     if (extension == ".eps" || extension == ".epsi") {
         if (!canvas->saveEPS(filename, title, creator)) {
+#endif
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());
             message.Append(_T("'."));
@@ -113,9 +117,6 @@ ProDeExportCmd::Do() {
             errorDialog.ShowModal();
         }
     } else if (extension == ".png") {
-#else
-    if (extension == ".png") {
-#endif
         if (!canvas->savePNG(filename)) {
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());

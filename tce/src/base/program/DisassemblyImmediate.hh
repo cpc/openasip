@@ -41,12 +41,14 @@
  */
 class DisassemblyImmediate : public DisassemblyElement {
 public:
-    DisassemblyImmediate(SimValue value);
+    DisassemblyImmediate(SimValue value, bool signExtend);
     virtual ~DisassemblyImmediate();
     virtual std::string toString() const;
 private:
     /// Immediate value.
     SimValue value_;
+    /// The value is sign extended if set to true.
+    bool signExtend_;
 };
 
 #endif
