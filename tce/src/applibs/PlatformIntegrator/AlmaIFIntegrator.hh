@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -86,13 +86,13 @@ protected:
 
 
 private:
-    void addMemoryPorts(const TCEString as_name, const TCEString data_width, 
+    void addMemoryPorts(const TCEString as_name, const TCEString data_width,
                         const TCEString addr_width);
     void addAlmaifBlock();
     void addAlmaifFiles();
-    void copyPlatformFile(const TCEString inputPath, 
+    void copyPlatformFile(const TCEString inputPath,
         std::vector<TCEString>& fileList) const;
-    void instantiatePlatformFile(const TCEString inputPath, 
+    void instantiatePlatformFile(const TCEString inputPath,
         std::vector<TCEString>& fileList) const;
     int axiAddressWidth() const;
     bool verifyMemories() const;
@@ -105,7 +105,7 @@ private:
     MemoryGenerator* imemGen_;
     std::map<TCEString, MemoryGenerator*> dmemGen_;
     std::map<TCEString, ProGe::NetlistPort*> almaif_ttacore_ports;
-    
+
     ProGe::NetlistBlock* almaifBlock_;
 
     TCEString deviceFamily_;

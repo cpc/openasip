@@ -246,27 +246,36 @@ begin
         addr_delay <= addr_if;
 
         if (unsigned(addr_if) = to_unsigned(TTA_CTRL_SIZE, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(2**(db_addr_width+2), data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(2**(db_addr_width+2),
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_DMEM_SIZE, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_dmem_size_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_dmem_size_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_PMEM_SIZE, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_pmem_size_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_pmem_size_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_IMEM_SIZE, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_imem_size_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_imem_size_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_DEVICECLASS, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_deviceclass_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_deviceclass_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_DEVICE_ID, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_device_id_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_device_id_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_INTERFACE_TYPE, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_interface_type_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_interface_type_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_CORE_COUNT, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_core_count_c, data_width_g));
+          dout_if_reg <= std_logic_vector(to_unsigned(debinfo_core_count_c,
+                                          data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_DEBUG_SUPPORT, 8)) then
           -- We have debug features
           dout_if_reg <= std_logic_vector(to_unsigned(1, data_width_g));
         elsif (unsigned(addr_if) = to_unsigned(TTA_BP_COUNT, 8)) then
-          dout_if_reg <= std_logic_vector(to_unsigned(db_breakpoints_pc, data_width_g));
-        else  
+          dout_if_reg <= std_logic_vector(to_unsigned(db_breakpoints_pc,
+                                          data_width_g));
+        else
           regix := unsigned(addr_if(addr_width_g-2 downto 0));
           --status register read access
           if (addr_if(addr_width_g-1) = '0') then
@@ -277,7 +286,8 @@ begin
           -- control register read access
           else
             if (to_integer(regix) < nof_control_registers_c) then
-              dout_if_reg <= dbcontrol(to_integer(regix)+control_addresspace_start_c);
+              dout_if_reg <= dbcontrol(to_integer(regix)
+                                       + control_addresspace_start_c);
             else
               assert (false)
                 report "Non-exiting control register read access"

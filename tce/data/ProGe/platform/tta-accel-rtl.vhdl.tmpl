@@ -57,7 +57,7 @@ architecture rtl of tta_accel is
   constant instr_word_width_c  : integer := (IMEMDATAWIDTH+31)/32;
   constant instr_word_sel_c    : integer := bit_width(instr_word_width_c);
 
-  constant mem_widths : integer_array(3 downto 0) := 
+  constant mem_widths : integer_array(3 downto 0) :=
                             (IMEMADDRWIDTH+instr_word_sel_c,
                             db_addr_width,
                             fu_LSU_PARAM_addrw-2,
@@ -79,7 +79,7 @@ architecture rtl of tta_accel is
   signal dbg_din_fpga       : std_logic_vector(db_data_width-1 downto 0);
   signal dbg_dout_fpga      : std_logic_vector(db_data_width-1 downto 0);
   signal dbg_dv_fpga        : std_logic;
- 
+
   signal dbg_busy           : std_logic;
   
   signal io_active : std_logic;
@@ -92,12 +92,14 @@ architecture rtl of tta_accel is
   constant IO_param : std_logic_vector(1 downto 0) := "11";
 
   -- TODO: Allow for memory widths other than 32
-  signal saved_tta_data_addr : std_logic_vector((fu_LSU_DATA_addrw-2)-1 downto 0);
+  signal saved_tta_data_addr : std_logic_vector((fu_LSU_DATA_addrw-2)-1
+                                                            downto 0);
   signal saved_tta_data_wr_mask :  std_logic_vector(32/8-1 downto 0);
   signal saved_tta_data_data_in : std_logic_vector(31 downto 0);
   signal saved_tta_data_wr_en : std_logic;
   signal saved_tta_data_mem_en : std_logic;
-  signal saved_tta_param_addr : std_logic_vector((fu_LSU_PARAM_addrw-2)-1 downto 0);
+  signal saved_tta_param_addr : std_logic_vector((fu_LSU_PARAM_addrw-2)-1
+                                                                downto 0);
   signal saved_tta_param_wr_mask :  std_logic_vector(32/8-1 downto 0);
   signal saved_tta_param_data_in : std_logic_vector(31 downto 0);
   signal saved_tta_param_wr_en : std_logic;
@@ -135,8 +137,8 @@ begin
   -----------------------------------------------------------------------------
   tta_axislave_1: entity work.tta_axislave
   generic map (
-    -- Must be at least 2 + mmax(mmax(IMEMADDRWIDTH+IMEMWORDSEL,db_addr_width),fu_LSU_addrw-2)
-    -- where IMEMWORDSEL = bit_width((IMEMDATAWIDTH+31)/32)
+    -- Must be at least max address space width with 8-bit MAUs
+    -- with CTRL, PARAM, DATA and instruction memory
     axi_addrw_g => axi_addrw_g,
     axi_dataw_g => dataw_c
   )
@@ -250,15 +252,19 @@ begin
   dbg_addr_fpga <= io_addr(db_addr_width-1 downto 0);
   dbg_din_fpga <= io_wr_data;
 
-  -- Dmem & param interfaces are designed to always give single-cycle access to the AXI I/O.
-  -- -> In case of access conflict, TTA stalls (via lock_tta signal), and the TTA's memory request is
-  --    saved (saved_tta_data_*) and retried before resuming execution.
-  -- TODO: multi-cycle AXI access in case of conflict would make a simpler example implementation..
+  -- Dmem & param interfaces are designed to always give single-cycle access
+  -- to the AXI I/O.
+  -- -> In case of access conflict, TTA stalls (via lock_tta signal), and the
+  -- TTA's memory request is saved (saved_tta_data_*) and retried before
+  -- resuming execution.
 
-    data_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en, io_addr, io_wr_data, io_wr_mask,
-                              saved_tta_data_addr, core_fu_LSU_DATA_wr_en, core_fu_LSU_DATA_mem_en, core_fu_LSU_DATA_addr,
-                              core_fu_LSU_DATA_data_out, core_fu_LSU_DATA_wr_mask, tta_locked) is
-  begin 
+    data_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en,
+                                io_addr, io_wr_data, io_wr_mask,
+                                saved_tta_data_addr, core_fu_LSU_DATA_wr_en,
+                                core_fu_LSU_DATA_mem_en, core_fu_LSU_DATA_addr,
+                                core_fu_LSU_DATA_data_out,
+                                core_fu_LSU_DATA_wr_mask, tta_locked) is
+  begin
     lock_tta_dmem <= '0';
 
     if io_target_memory = IO_DMEM and io_active = '1' then
@@ -304,10 +310,13 @@ begin
     end if;
   end process;
 
-  param_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en, io_addr,
-                              saved_tta_param_addr, core_fu_LSU_PARAM_wr_en, core_fu_LSU_PARAM_mem_en, core_fu_LSU_PARAM_addr,
-                              core_fu_LSU_PARAM_data_out, core_fu_LSU_PARAM_wr_mask, tta_locked) is
-  begin 
+  param_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en,
+                               io_addr, saved_tta_param_addr,
+                               core_fu_LSU_PARAM_wr_en,
+                               core_fu_LSU_PARAM_mem_en, core_fu_LSU_PARAM_addr,
+                              core_fu_LSU_PARAM_data_out,
+                              core_fu_LSU_PARAM_wr_mask, tta_locked) is
+  begin
     lock_tta_param <= '0';
 
     if io_target_memory = IO_param and io_active = '1' then
@@ -353,12 +362,15 @@ begin
     end if;
   end process;
 
-  instr_io_interface : process(io_target_memory, io_active, io_addr, core_imem_addr, wstrb_buf, io_wr_en, io_wr_mask) is
-  begin 
+  instr_io_interface : process(io_target_memory, io_active, io_addr,
+                               core_imem_addr, wstrb_buf, io_wr_en, io_wr_mask)
+                               is
+  begin
     wstrb_buf <= (others=>'0');
 
     if io_target_memory = IO_IMEM and io_wr_en = '1' then
-      instr_addr <= io_addr(IMEMADDRWIDTH+instr_word_sel_c-1 downto instr_word_sel_c);
+      instr_addr <= io_addr(IMEMADDRWIDTH+instr_word_sel_c-1 downto
+                                                    instr_word_sel_c);
       instr_wr_en <= '1';
 
       for I in instr_word_width_c-1 downto 0 loop
@@ -378,11 +390,13 @@ begin
   io_wr_data_expand : process (io_wr_data) is
   begin
     for I in instr_dataw_bytes_c-1 downto 0 loop
-      instr_data_in(8*(I+1)-1 downto 8*I) <= io_wr_data(((I mod 4)+1)*8-1 downto (I mod 4)*8);
+      instr_data_in(8*(I+1)-1 downto 8*I)
+                            <= io_wr_data(((I mod 4)+1)*8-1 downto (I mod 4)*8);
     end loop;
   end process;
 
-  io_read_result : process(io_target_memory_delay, dbg_dout_fpga, data_data_out, param_data_out) is
+  io_read_result : process(io_target_memory_delay, dbg_dout_fpga, data_data_out,
+                           param_data_out) is
   begin
     if    io_target_memory_delay = IO_CTRL then
       io_rd_data <= dbg_dout_fpga;
@@ -395,5 +409,4 @@ begin
       io_rd_data <= (others=>'0');
     end if;
   end process;
-  
 end architecture rtl;

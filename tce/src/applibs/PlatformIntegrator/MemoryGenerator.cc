@@ -362,7 +362,7 @@ MemoryGenerator::instantiateTemplate(
 }
 
 bool
-MemoryGenerator::hasLsuArchitecture() const {
+MemoryGenerator::hasLSUArchitecture() const {
     return lsuArch_ != NULL;
 }
 

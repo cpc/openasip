@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,9 +52,9 @@ public:
         bool connectToArbiter = false,
         ProGe::NetlistBlock* AlmarviIF = nullptr,
         TCEString signalPrefix = "");
-    
+
     virtual ~XilinxBlockRamGenerator();
-    
+
     virtual bool generatesComponentHdlFile() const;
 
     virtual std::vector<TCEString>
@@ -74,7 +74,7 @@ public:
 protected:
 
     virtual TCEString moduleName() const;
-    
+
     virtual TCEString instanceName(int memIndex) const;
 
     TCEString almaifPortName(const TCEString& portBaseName);

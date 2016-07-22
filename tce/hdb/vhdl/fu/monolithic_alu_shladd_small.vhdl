@@ -1,17 +1,17 @@
 -- Copyright (c) 2002-2009 Tampere University of Technology.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the "Software"),
 -- to deal in the Software without restriction, including without limitation
 -- the rights to use, copy, modify, merge, publish, distribute, sublicense,
 -- and/or sell copies of the Software, and to permit persons to whom the
 -- Software is furnished to do so, subject to the following conditions:
--- 
+--
 -- The above copyright notice and this permission notice shall be included in
 -- all copies or substantial portions of the Software.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,14 +21,14 @@
 -- DEALINGS IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 -- Title      : ALU unit for TTA
--- Project    : 
+-- Project    :
 -------------------------------------------------------------------------------
 -- File       : monolithic_alu_shladd.vhdl
 -- Author     : Teemu Pitkänen <teemu.pitkanen@tut.fi>
--- Company    : 
+-- Company    :
 -- Created    : 2002-06-24
 -- Last update: 2013-01-16
--- Platform   : 
+-- Platform   :
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author   Description
@@ -36,11 +36,11 @@
 -- 2013-01-16  1.2      viitanet added shladd operations to accelerate address computation
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
--- Entity declaration for add_sub_eq_gt_gtu_shl_shr unit's user-defined architecture 
+-- Entity declaration for add_sub_eq_gt_gtu_shl_shr unit's user-defined architecture
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Entity declaration for shl_shr unit's user-defined architecture 
+-- Entity declaration for shl_shr unit's user-defined architecture
 -------------------------------------------------------------------------------
 library IEEE;
 use IEEE.std_Logic_1164.all;
@@ -59,7 +59,7 @@ package opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw
   constant SHL2ADD_OPC  : std_logic_vector(3 downto 0)  := "1000";
   constant SHR_OPC      : std_logic_vector(3 downto 0)  := "1001";
   constant SHRU_OPC     : std_logic_vector(3 downto 0)  := "1010";
-                
+
   constant SUB_OPC      : std_logic_vector(3 downto 0)  := "1011";
   constant SXHW_OPC     : std_logic_vector(3 downto 0)  := "1100";
   constant SXQW_OPC     : std_logic_vector(3 downto 0)  := "1101";
@@ -75,28 +75,29 @@ use work.opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxq
 package shl_shr_shru_pkg_monolithic_alu_fast is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
-                       opc : std_logic_vector;dataw : integer; shiftw : integer) 
+                       opc : std_logic_vector;dataw : integer; shiftw : integer)
     return std_logic_vector;
 end shl_shr_shru_pkg_monolithic_alu_fast;
 
 package body shl_shr_shru_pkg_monolithic_alu_fast is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
-                       opc: std_logic_vector;dataw : integer; shiftw : integer) 
+                       opc: std_logic_vector;dataw : integer; shiftw : integer)
     return std_logic_vector is
-    
-    constant max_shift : integer := shiftw;        
+
+    constant max_shift : integer := shiftw;
     variable shift_in : std_logic;
-    type std_logic_vector_array is array (natural range <>) of std_logic_vector(dataw-1 downto 0);
+    type std_logic_vector_array is array (natural range <>) of
+                                            std_logic_vector(dataw-1 downto 0);
     variable y_temp : std_logic_vector_array (0 to max_shift);
     variable y : std_logic_vector(dataw-1 downto 0);
     variable shift_ammount : std_logic_vector(shiftw-1 downto 0);
   begin
     shift_ammount := shft_amount(shiftw-1 downto 0);
-    
+
     if ((opc = SHR_OPC) or (opc = SHRU_OPC)) then
       y_temp(0) := flip_bits(input);
-      --shift_in := y_temp(0)(0);      
+      --shift_in := y_temp(0)(0);
     else
       y_temp(0) := input;
       --shift_in := '0';
@@ -105,10 +106,10 @@ package body shl_shr_shru_pkg_monolithic_alu_fast is
     if (opc = SHR_OPC) then
       shift_in := y_temp(0)(0);
     else
-      shift_in := '0';         
+      shift_in := '0';
     end if;
 
-    
+
     for i in 0 to max_shift-1 loop
       if (shift_ammount(i) = '1') then
         y_temp(i+1)                       := (others => shift_in);
@@ -121,7 +122,7 @@ package body shl_shr_shru_pkg_monolithic_alu_fast is
     if ( (opc = SHR_OPC) or (opc = SHRU_OPC)) then
       y := flip_bits(y_temp(max_shift));
     else
-      y :=  y_temp(max_shift);    
+      y :=  y_temp(max_shift);
     end if;
     return y;
   end shift_func;
@@ -156,7 +157,7 @@ architecture comb of add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw
   signal add_op1      : std_logic_vector(dataw downto 0);
   signal add_op2      : std_logic_vector(dataw downto 0);
   signal add_op3      : std_logic_vector(0 downto 0);
- 
+
   signal add_result_l : std_logic_vector(dataw downto 0);
   signal add_result   : std_logic_vector(dataw-1 downto 0);
 
@@ -173,36 +174,27 @@ begin
   begin
     case OPC is
       when ADD_OPC =>
-        add_result_l <= std_logic_vector(resize(ieee.numeric_std.signed(A), dataw+1) + resize(ieee.numeric_std.signed(B), dataw+1));
+        add_result_l
+          <= std_logic_vector(resize(ieee.numeric_std.signed(A), dataw+1)
+             + resize(ieee.numeric_std.signed(B), dataw+1));
       when SHL1ADD_OPC =>
-        add_result_l <= std_logic_vector(resize(ieee.numeric_std.signed(A&"0"), dataw+1) + resize(ieee.numeric_std.signed(B), dataw+1));
+        add_result_l
+          <= std_logic_vector(resize(ieee.numeric_std.signed(A&"0"), dataw+1)
+             + resize(ieee.numeric_std.signed(B), dataw+1));
       when SHL2ADD_OPC =>
-        add_result_l <= std_logic_vector(resize(ieee.numeric_std.signed(A&"00"), dataw+1) + resize(ieee.numeric_std.signed(B), dataw+1));
+        add_result_l
+          <= std_logic_vector(resize(ieee.numeric_std.signed(A&"00"), dataw+1)
+             + resize(ieee.numeric_std.signed(B), dataw+1));
       when GTU_OPC =>
-        add_result_l <= std_logic_vector(resize(ieee.numeric_std.unsigned(A), dataw+1) - resize(ieee.numeric_std.unsigned(B), dataw+1));
+        add_result_l
+          <= std_logic_vector(resize(ieee.numeric_std.unsigned(A), dataw+1)
+               - resize(ieee.numeric_std.unsigned(B), dataw+1));
       when others =>
-        add_result_l <= std_logic_vector(resize(ieee.numeric_std.signed(A), dataw+1) - resize(ieee.numeric_std.signed(B), dataw+1));
+        add_result_l
+          <= std_logic_vector(resize(ieee.numeric_std.signed(A), dataw+1)
+             - resize(ieee.numeric_std.signed(B), dataw+1));
     end case;
   end process;
-
-  --sub_sel <= '1' when OPC=SUB_OPC or OPC=GT_OPC or OPC=GTU_OPC else '0';
-  --
-  --add_op1(dataw-1 downto 0) <= 
-  --  A(dataw-3 downto 0)&"00" when OPC=SHL2ADD_OPC else
-  --  A(dataw-2 downto 0)&"0"  when OPC=SHL1ADD_OPC else
-  --  A;
-  --add_op1(dataw) <= '0' when OPC=GTU_OPC else
-  --                     A(dataw-1);
-  --
-  --add_op2(dataw-1 downto 0) <= not B when sub_sel='1' else B;
-  --add_op2(dataw) <= '1' when OPC=GTU_OPC else
-  --                     not B(dataw-1);
-  --
-  --add_op3 <= "1" when sub_sel='1' else "0";
-  --
-  --add_result_l <= std_logic_vector(ieee.numeric_std.unsigned(add_op1) 
-  --  + ieee.numeric_std.unsigned(add_op2)
-  --  + ieee.numeric_std.unsigned(add_op3));
 
   add_result   <= add_result_l(dataw-1 downto 0);
 
@@ -238,7 +230,7 @@ begin
         R  <= add_result;
       when SHL2ADD_OPC =>
         R  <= add_result;
-      when SUB_OPC => 
+      when SUB_OPC =>
         R  <= add_result;
       when EQ_OPC  =>
         R <= cmp_result;
@@ -287,7 +279,7 @@ entity fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_a
 end fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_always_1;
 
 architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_always_1 is
-  
+
   component add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith
     generic (
       dataw : integer := 32;
@@ -305,9 +297,9 @@ architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sx
   signal r1      : std_logic_vector(dataw-1 downto 0);
   signal opc_reg : std_logic_vector(3 downto 0);
   signal control : std_logic_vector(1 downto 0);
-  
+
 begin
-  
+
   fu_arch : add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith
     generic map (
       dataw => dataw,
@@ -327,7 +319,7 @@ begin
       o1reg   <= (others => '0');
       o1temp  <= (others => '0');
       opc_reg <= (others => '0');
-      
+
     elsif clk'event and clk = '1' then  -- rising clock edge
       if (glock = '0') then
 
@@ -340,7 +332,7 @@ begin
           when "10" =>
             o1temp <= o1data;
           when "01" =>
-            opc_reg <= t1opcode;            
+            opc_reg <= t1opcode;
             t1reg   <= t1data;
             o1reg   <= o1temp;
           when others => null;
@@ -396,7 +388,7 @@ entity fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_a
 end fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_always_2;
 
 architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_always_2 is
-  
+
   component add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith
     generic (
       dataw : integer := 32;
@@ -416,9 +408,9 @@ architecture rtl of fu_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sx
   signal control : std_logic_vector(1 downto 0);
 
   signal result_en_reg : std_logic;
-  
+
 begin
-  
+
   fu_arch : add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith
     generic map (
       dataw => dataw,
@@ -438,7 +430,7 @@ begin
       o1reg <= (others => '0');
       r1reg <= (others => '0');
       opc_reg <= (others => '0');
-      
+
       result_en_reg <= '0';
     elsif clk'event and clk = '1' then  -- rising clock edge
       if (glock = '0') then
@@ -469,14 +461,14 @@ begin
             end if;
           else
             r1reg <= sxt(r1,r1data'length);
-          end if;          
+          end if;
           --if busw < dataw then
           --  r1reg(busw-1) <= r1(dataw-1);
           --  r1reg(busw-2 downto 0) <= r1(busw-2 downto 0);
           --else
           --  r1reg <= sxt(r1,busw);
           --end if;
-          --r1reg <= r1;          
+          --r1reg <= r1;
         end if;
 
       end if;
@@ -484,5 +476,5 @@ begin
   end process regs;
   --r1data <= sxt(r1reg, busw);
   r1data <= r1reg;
-  
+
 end rtl;

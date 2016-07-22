@@ -19,8 +19,9 @@
 -- DEALINGS IN THE SOFTWARE.
 --
 --  Xilinx Single Port Byte-Write Read First RAM
---  This code implements a parameterizable single-port byte-write read-first memory where when data
---  is written to the memory, the output reflects the prior contents of the memory location.
+--  This code implements a parameterizable single-port byte-write read-first
+--  memory where when data is written to the memory, the output reflects the
+--  prior contents of the memory location.
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -38,10 +39,10 @@ entity ENTITY_STR_xilinx_blockram is generic (
     data     : in std_logic_vector(dataw-1 downto 0);
     q        : out std_logic_vector(dataw-1 downto 0);
     byteena  : in std_logic_vector(dataw/8-1 downto 0)
-    );                     
+    );
 end ENTITY_STR_xilinx_blockram;
 
-architecture rtl of ENTITY_STR_xilinx_blockram is  
+architecture rtl of ENTITY_STR_xilinx_blockram is
 
 constant C_NB_COL     : integer := dataw/8;
 constant C_COL_WIDTH  : integer := 8;
@@ -53,7 +54,8 @@ signal wea   : std_logic_vector(C_NB_COL-1 downto 0);
 signal ena   : std_logic;
 signal douta : std_logic_vector(C_NB_COL*C_COL_WIDTH-1 downto 0);
 
-type ram_type is array (C_RAM_DEPTH-1 downto 0) of std_logic_vector (C_NB_COL*C_COL_WIDTH-1 downto 0);
+type ram_type is array (C_RAM_DEPTH-1 downto 0) of std_logic_vector
+                                              (C_NB_COL*C_COL_WIDTH-1 downto 0);
 signal ram_data : std_logic_vector(C_NB_COL*C_COL_WIDTH-1 downto 0) ;
 
 
@@ -66,14 +68,16 @@ begin
   q <= douta;
   dina <= data;
   addra <= address;
-  
+
 process(clk)
 begin
     if(clk'event and clk = '1') then
         if(ena = '1') then
-            for i in 0 to C_NB_COL-1 loop 
+            for i in 0 to C_NB_COL-1 loop
                 if(wea(i) = '1') then
-                    RAM_ARR(to_integer(unsigned(addra)))((i+1)*C_COL_WIDTH-1 downto i*C_COL_WIDTH) <= dina((i+1)*C_COL_WIDTH-1 downto i*C_COL_WIDTH);
+                    RAM_ARR(to_integer(unsigned(addra)))
+                                ((i+1)*C_COL_WIDTH-1 downto i*C_COL_WIDTH)
+                              <= dina((i+1)*C_COL_WIDTH-1 downto i*C_COL_WIDTH);
                 end if;
             end loop;
             ram_data <= RAM_ARR(to_integer(unsigned(addra)));

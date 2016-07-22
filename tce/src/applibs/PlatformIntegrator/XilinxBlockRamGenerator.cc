@@ -40,7 +40,7 @@
 #include "Conversion.hh"
 using std::endl;
 
-const TCEString XilinxBlockRamGenerator::COMPONENT_FILE = 
+const TCEString XilinxBlockRamGenerator::COMPONENT_FILE =
     "xilinx_blockram.vhdl.tmpl";
 
 XilinxBlockRamGenerator::XilinxBlockRamGenerator(
@@ -53,23 +53,23 @@ XilinxBlockRamGenerator::XilinxBlockRamGenerator(
     std::ostream& errorStream,
     bool connectToArbiter,
     ProGe::NetlistBlock* almaifBlock,
-    TCEString signalPrefix): 
+    TCEString signalPrefix):
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                        integrator, warningStream, errorStream),
-    connectToArbiter_(connectToArbiter), almaifBlock_(almaifBlock), 
+    connectToArbiter_(connectToArbiter), almaifBlock_(almaifBlock),
     signalPrefix_(signalPrefix) {
     assert (!connectToArbiter || almaifBlock != nullptr);
-    
-    ProGe::Netlist::Parameter dataw = {"dataw", "integer", 
+
+    ProGe::Netlist::Parameter dataw = {"dataw", "integer",
         Conversion::toString(memoryTotalWidth())};
-    ProGe::Netlist::Parameter addrw = {"addrw", "integer", 
+    ProGe::Netlist::Parameter addrw = {"addrw", "integer",
         Conversion::toString(memoryAddrWidth())};
 
     addParameter(dataw);
     addParameter(addrw);
 
     bool noInvert = false;
-    addPort("data_in", 
+    addPort("data_in",
             new HDLPort("data", "dataw",
                         ProGe::BIT_VECTOR, HDB::IN, noInvert,
                         memoryTotalWidth()));
@@ -123,9 +123,9 @@ XilinxBlockRamGenerator::addMemory(
                 msg << hdlPort->name() << " not found from netlist block";
                 throw InvalidData(__FILE__, __LINE__, "MemoryGenerator", msg);
             }
-        } 
+        }
 
-        
+
         TCEString portName = corePortName(portKeyName(hdlPort));
         ProGe::NetlistPort* corePort = NULL;
         // clock and reset must be connected to new toplevel ports
@@ -166,13 +166,13 @@ XilinxBlockRamGenerator::addMemory(
 
 std::vector<TCEString>
 XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
-    TCEString inputFile = 
+    TCEString inputFile =
         templatePath() << FileSystem::DIRECTORY_SEPARATOR
                        << COMPONENT_FILE;
     TCEString outputFile;
-    outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR  
+    outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR
                << moduleName() << ".vhdl";
-    
+
     instantiateTemplate(inputFile, outputFile, ttaCoreName());
     std::vector<TCEString> files;
     files.push_back(outputFile);
@@ -184,7 +184,7 @@ TCEString
 XilinxBlockRamGenerator::moduleName() const {
     return ttaCoreName() + "_xilinx_blockram";
 }
-    
+
 
 TCEString
 XilinxBlockRamGenerator::instanceName(int memIndex) const {
@@ -210,7 +210,7 @@ bool
 XilinxBlockRamGenerator::isCompatible(const ProGe::NetlistBlock& ttaCore,
         std::vector<TCEString>& reasons) const {
     if (connectToArbiter_) {
-        // TODO: Actually check almaifBlock_ ports? 
+        // TODO: Actually check almaifBlock_ ports?
         return true;
     } else {
         return MemoryGenerator::isCompatible(ttaCore, reasons);

@@ -50,7 +50,8 @@ package debugger_if is
 
   -- Pad instruction to next power-of-two
   constant debinfo_imem_dataw_bytes   : integer := bit_width(IMEMDATAWIDTH)-3;
-  constant debinfo_imem_addrw         : integer := IMEMADDRWIDTH + debinfo_imem_dataw_bytes;
+  constant debinfo_imem_addrw         : integer := IMEMADDRWIDTH
+                                                   + debinfo_imem_dataw_bytes;
   constant debinfo_dmem_addrw         : integer := fu_LSU_DATA_addrw;
   constant debinfo_pmem_addrw         : integer := fu_LSU_PARAM_addrw;
 

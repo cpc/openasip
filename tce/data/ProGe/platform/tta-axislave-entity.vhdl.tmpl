@@ -50,7 +50,8 @@ use work.debugger_if.all;
 
 entity tta_axislave is
   generic (
-    -- Must be at least 2 + mmax(mmax(IMEMADDRWIDTH+IMEMWORDSEL,db_addr_width),fu_LSU_addrw-2)
+    -- Must be at least 2 + max(max(IMEMADDRWIDTH+IMEMWORDSEL,db_addr_width),
+    --                          fu_LSU_addrw-2)
     -- where IMEMWORDSEL = bit_width((IMEMDATAWIDTH+31)/32)
     axi_addrw_g : integer := 17;
     axi_dataw_g  : integer := 32

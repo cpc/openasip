@@ -1,17 +1,17 @@
 -- Copyright (c) 2002-2009 Tampere University of Technology.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the "Software"),
 -- to deal in the Software without restriction, including without limitation
 -- the rights to use, copy, modify, merge, publish, distribute, sublicense,
 -- and/or sell copies of the Software, and to permit persons to whom the
 -- Software is furnished to do so, subject to the following conditions:
--- 
+--
 -- The above copyright notice and this permission notice shall be included in
 -- all copies or substantial portions of the Software.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,10 +25,10 @@
 -------------------------------------------------------------------------------
 -- File       : ldw_ldq_ldh_stw_stq_sth_ldqu_ldhu.vhdl
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
--- Company    : 
+-- Company    :
 -- Created    : 2002-06-24
 -- Last update: 2013-10-17
--- Platform   : 
+-- Platform   :
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
 --
@@ -137,7 +137,7 @@ architecture rtl of fu_ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw_always_3 is
 begin
 
   t1data_lower_2 <= t1data(1 downto 0);
-  
+
   seq : process (clk, rstx)
     variable opc : integer;
     variable idx : integer;
@@ -161,10 +161,10 @@ begin
 
       o1shadow_reg <= (others => '0');
       r1_reg       <= (others => '0');
-      
+
     elsif clk'event and clk = '1' then  -- rising clock edge
       if glock = '0' then
-        
+
         if t1load = '1' then
           opc := conv_integer(unsigned(t1opcode));
           case opc is
@@ -211,7 +211,7 @@ begin
               -- big endian
               --        Byte #
               --        |0|1|2|3|
-              addr_reg <= t1data(addrw-1 downto 2);              
+              addr_reg <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 if t1data(1) = '0' then
                   wr_mask_x_reg <= MSW_MASK_BIGENDIAN;
@@ -243,35 +243,44 @@ begin
               addr_reg <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 case t1data_lower_2 is
-                  -- endianes dependent code                            
+                  -- endianes dependent code
                   when "00" =>
                     wr_mask_x_reg <= "0111";
-                    data_out_reg  <= o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS&ZEROS;
+                    data_out_reg  <= o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS
+                                     &ZEROS&ZEROS;
                   when "01" =>
                     wr_mask_x_reg <= "1011";
-                    data_out_reg  <= ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS;
+                    data_out_reg  <= ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS&ZEROS;
                   when "10" =>
                     wr_mask_x_reg <= "1101";
-                    data_out_reg  <= ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS;
+                    data_out_reg  <= ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS;
                   when others =>
                     wr_mask_x_reg <= "1110";
-                    data_out_reg  <= ZEROS&ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0);
+                    data_out_reg  <= ZEROS&ZEROS&ZEROS
+                                     &o1data(SIZE_OF_BYTE-1 downto 0);
                 end case;
               else
                 case t1data_lower_2 is
-                  -- endianes dependent code                            
+                  -- endianes dependent code
                   when "00" =>
                     wr_mask_x_reg <= "0111";
-                    data_out_reg  <= o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS&ZEROS;
+                    data_out_reg  <= o1shadow_reg(SIZE_OF_BYTE-1 downto 0)
+                                    &ZEROS&ZEROS&ZEROS;
                   when "01" =>
                     wr_mask_x_reg <= "1011";
-                    data_out_reg  <= ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS;
+                    data_out_reg  <= ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS&ZEROS;
                   when "10" =>
                     wr_mask_x_reg <= "1101";
-                    data_out_reg  <= ZEROS&ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS;
+                    data_out_reg  <= ZEROS&ZEROS
+                                     &o1shadow_reg(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS;
                   when others =>
                     wr_mask_x_reg <= "1110";
-                    data_out_reg  <= ZEROS&ZEROS&ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0);
+                    data_out_reg  <= ZEROS&ZEROS&ZEROS
+                                     &o1shadow_reg(SIZE_OF_BYTE-1 downto 0);
                 end case;
               end if;
               mem_en_x_reg(0) <= '0';
@@ -290,7 +299,7 @@ begin
         end if;
 
         status_addr_reg(1) <= status_addr_reg(0);
-        
+
         if status_addr_reg(1)(4 downto 2) = LDW then
           r1_reg <= data_in_reg;
         elsif status_addr_reg(1)(4 downto 2) = LDH then
@@ -306,13 +315,20 @@ begin
           case status_addr_reg(1)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+                            r1_reg'length);
             when "01" =>
-              r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto dataw-2*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1
+                                        downto dataw-2*SIZE_OF_BYTE),
+                            r1_reg'length);
             when "10" =>
-              r1_reg <= SXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1 downto dataw-3*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+                                        downto dataw-3*SIZE_OF_BYTE),
+                            r1_reg'length);
             when others =>
-              r1_reg <= SXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1 downto dataw-4*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+                                        downto dataw-4*SIZE_OF_BYTE),
+                            r1_reg'length);
           end case;
 
         elsif status_addr_reg(1)(4 downto 2) = LDHU then
@@ -328,13 +344,19 @@ begin
           case status_addr_reg(1)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= EXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+                            r1_reg'length);
             when "01" =>
-              r1_reg <= EXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto dataw-2*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto
+                                        dataw-2*SIZE_OF_BYTE), r1_reg'length);
             when "10" =>
-              r1_reg <= EXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1 downto dataw-3*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+                                        downto dataw-3*SIZE_OF_BYTE),
+                            r1_reg'length);
             when others =>
-              r1_reg <= EXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1 downto dataw-4*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+                                        downto dataw-4*SIZE_OF_BYTE),
+                            r1_reg'length);
           end case;
         end if;
 
@@ -430,7 +452,7 @@ architecture rtl of fu_ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw_always_4 is
 begin
 
   t1data_lower_2 <= t1data(1 downto 0);
-  
+
   seq : process (clk, rstx)
     variable opc : integer;
     variable idx : integer;
@@ -454,10 +476,10 @@ begin
 
       o1shadow_reg <= (others => '0');
       r1_reg       <= (others => '0');
-      
+
     elsif clk'event and clk = '1' then  -- rising clock edge
       if glock = '0' then
-        
+
         if t1load = '1' then
           opc := conv_integer(unsigned(t1opcode));
           case opc is
@@ -504,7 +526,7 @@ begin
               -- big endian
               --        Byte #
               --        |0|1|2|3|
-              addr_reg <= t1data(addrw-1 downto 2);              
+              addr_reg <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 if t1data(1) = '0' then
                   wr_mask_x_reg <= MSW_MASK_BIGENDIAN;
@@ -536,35 +558,44 @@ begin
               addr_reg <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 case t1data_lower_2 is
-                  -- endianes dependent code                            
+                  -- endianes dependent code
                   when "00" =>
                     wr_mask_x_reg <= "0111";
-                    data_out_reg  <= o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS&ZEROS;
+                    data_out_reg  <= o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS
+                                     &ZEROS&ZEROS;
                   when "01" =>
                     wr_mask_x_reg <= "1011";
-                    data_out_reg  <= ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS;
+                    data_out_reg  <= ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS&ZEROS;
                   when "10" =>
                     wr_mask_x_reg <= "1101";
-                    data_out_reg  <= ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS;
+                    data_out_reg  <= ZEROS&ZEROS
+                                     &o1data(SIZE_OF_BYTE-1 downto 0)&ZEROS;
                   when others =>
                     wr_mask_x_reg <= "1110";
-                    data_out_reg  <= ZEROS&ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0);
+                    data_out_reg  <= ZEROS&ZEROS&ZEROS
+                                     &o1data(SIZE_OF_BYTE-1 downto 0);
                 end case;
               else
                 case t1data_lower_2 is
-                  -- endianes dependent code                            
+                  -- endianes dependent code
                   when "00" =>
                     wr_mask_x_reg <= "0111";
-                    data_out_reg  <= o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS&ZEROS;
+                    data_out_reg  <= o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS
+                                     &ZEROS&ZEROS;
                   when "01" =>
                     wr_mask_x_reg <= "1011";
-                    data_out_reg  <= ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS&ZEROS;
+                    data_out_reg  <= ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS&ZEROS;
                   when "10" =>
                     wr_mask_x_reg <= "1101";
-                    data_out_reg  <= ZEROS&ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0)&ZEROS;
+                    data_out_reg  <= ZEROS&ZEROS
+                                     &o1shadow_reg(SIZE_OF_BYTE-1 downto 0)
+                                     &ZEROS;
                   when others =>
                     wr_mask_x_reg <= "1110";
-                    data_out_reg  <= ZEROS&ZEROS&ZEROS&o1shadow_reg(SIZE_OF_BYTE-1 downto 0);
+                    data_out_reg  <= ZEROS&ZEROS&ZEROS
+                                     &o1shadow_reg(SIZE_OF_BYTE-1 downto 0);
                 end case;
               end if;
               mem_en_x_reg(0) <= '0';
@@ -583,11 +614,11 @@ begin
         end if;
 
         status_addr_reg(1) <= status_addr_reg(0);
-        
+
         data_in_reg <= data_in;
 
         status_addr_reg(2) <= status_addr_reg(1);
-        
+
         if status_addr_reg(2)(4 downto 2) = LDW then
           r1_reg <= data_in_reg;
         elsif status_addr_reg(2)(4 downto 2) = LDH then
@@ -603,13 +634,20 @@ begin
           case status_addr_reg(2)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+                            sr1_reg'length);
             when "01" =>
-              r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto dataw-2*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1
+                                        downto dataw-2*SIZE_OF_BYTE),
+                            r1_reg'length);
             when "10" =>
-              r1_reg <= SXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1 downto dataw-3*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+                                        downto dataw-3*SIZE_OF_BYTE),
+                            r1_reg'length);
             when others =>
-              r1_reg <= SXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1 downto dataw-4*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= SXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+                                        downto dataw-4*SIZE_OF_BYTE),
+                            r1_reg'length);
           end case;
 
         elsif status_addr_reg(2)(4 downto 2) = LDHU then
@@ -625,13 +663,20 @@ begin
           case status_addr_reg(2)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= EXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+                            r1_reg'length);
             when "01" =>
-              r1_reg <= EXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto dataw-2*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-SIZE_OF_BYTE-1
+                                        downto dataw-2*SIZE_OF_BYTE),
+                            r1_reg'length);
             when "10" =>
-              r1_reg <= EXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1 downto dataw-3*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+                                        downto dataw-3*SIZE_OF_BYTE),
+                            r1_reg'length);
             when others =>
-              r1_reg <= EXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1 downto dataw-4*SIZE_OF_BYTE), r1_reg'length);
+              r1_reg <= EXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+                                        downto dataw-4*SIZE_OF_BYTE),
+                            r1_reg'length);
           end case;
         end if;
 

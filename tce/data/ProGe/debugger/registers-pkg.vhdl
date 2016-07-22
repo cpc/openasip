@@ -77,7 +77,7 @@ package register_pkg is
   constant TTA_DEVICE_ID        : integer := 1 + info_addresspace_start_c;
   constant TTA_INTERFACE_TYPE   : integer := 2 + info_addresspace_start_c;
   constant TTA_CORE_COUNT       : integer := 3 + info_addresspace_start_c;
-  constant TTA_CTRL_SIZE        : integer := 4 + info_addresspace_start_c; 
+  constant TTA_CTRL_SIZE        : integer := 4 + info_addresspace_start_c;
   constant TTA_DMEM_SIZE        : integer := 5 + info_addresspace_start_c;
   constant TTA_IMEM_SIZE        : integer := 6 + info_addresspace_start_c;
   constant TTA_PMEM_SIZE        : integer := 7 + info_addresspace_start_c;
@@ -117,7 +117,8 @@ package register_pkg is
   constant control_registers_c : registers_t(control_addresspace_start_c to
                                                control_addresspace_start_c
                                                + nof_control_registers_c-1)
-    := ( (reg => TTA_DEBUG_CMD,  bits => 1),  -- continue- and break bits are not registred
+          -- continue- and break bits are not registred
+    := ( (reg => TTA_DEBUG_CMD,  bits => 1),
          (reg => TTA_PC_START,   bits => pc_width_c),
          (reg => TTA_DEBUG_CTRL, bits => 12),
          (reg => TTA_DEBUG_BP0,  bits => 32),

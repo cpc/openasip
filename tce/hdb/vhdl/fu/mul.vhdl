@@ -105,13 +105,21 @@ architecture rtl of mul_arith_2_stage is
 begin
   mul: process(clk, rstx)
   begin
-    if rstx = '0' then 
+    if rstx = '0' then
       half_mul <= (others => '0');
     elsif clk'event and clk = '1' then  -- rising clock edge
       if (glock = '0') then
-        half_mul(dataw*3-1 downto dataw*2) <= conv_std_logic_vector(unsigned(A(dataw/2-1 downto 0)) * unsigned(B(dataw/2-1 downto 0)), dataw);
-        half_mul(dataw*2-1 downto dataw*3/2) <= conv_std_logic_vector(unsigned(A(dataw/2-1 downto 0)) * unsigned(B(dataw-1 downto dataw/2)), dataw)((dataw+1)/2-1 downto 0);
-        half_mul(dataw-1 downto dataw/2)     <= conv_std_logic_vector(unsigned(A(dataw-1 downto dataw/2)) * unsigned(B(dataw/2-1 downto 0)), dataw)((dataw+1)/2-1 downto 0);
+        half_mul(dataw*3-1 downto dataw*2)
+            <=  conv_std_logic_vector(unsigned(A(dataw/2-1 downto 0))
+                * unsigned(B(dataw/2-1 downto 0)), dataw);
+        half_mul(dataw*2-1 downto dataw*3/2)
+            <=  conv_std_logic_vector(unsigned(A(dataw/2-1 downto 0))
+                * unsigned(B(dataw-1 downto dataw/2)), dataw)((dataw+1)/2-1
+                                                          downto 0);
+        half_mul(dataw-1 downto dataw/2)
+            <= conv_std_logic_vector(unsigned(A(dataw-1 downto dataw/2))
+               * unsigned(B(dataw/2-1 downto 0)), dataw)((dataw+1)/2-1
+                                                         downto 0);
       end if;
 
     end if;
@@ -219,7 +227,7 @@ begin
 
   r1data <= sxt(r1reg, busw);
   --r1data <= r1;
-  
+
 end rtl;
 
 library IEEE;
@@ -319,5 +327,5 @@ begin
 
   r1data <= sxt(r1reg, busw);
   --r1data <= r1;
-  
+
 end rtl;

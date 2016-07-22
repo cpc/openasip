@@ -60,8 +60,9 @@ architecture rtl of dbsm is
   signal stepn_target : std_logic_vector(cyclecnt'range);
   signal bpcc_type_r  : std_logic_vector(bpcc_type'range); 
 begin
-  
-  bp_lockrq <= lockrq_bpcc or lockrq_bppc(1) or lockrq_bppc(0) or lockrq_forcebp or lockrq_wait;
+
+  bp_lockrq <= lockrq_bpcc or lockrq_bppc(1) or lockrq_bppc(0) or lockrq_forcebp
+                                                                 or lockrq_wait;
   bp_hit <= '0' & lockrq_forcebp & lockrq_bppc & lockrq_bpcc;
   cyclecnt_next <= unsigned(cyclecnt)+1;
   -----------------------------------------------------------------------------
@@ -96,10 +97,11 @@ begin
               severity error;
         end case;
       end if;
-      
+
       if (tta_continue = '1') then
         lockrq_bpcc <= '0';
-        stepn_target <= std_logic_vector(unsigned(cyclecnt_r) + unsigned(bp_target_cc) - 1);
+        stepn_target <= std_logic_vector(unsigned(cyclecnt_r)
+                        + unsigned(bp_target_cc) - 1);
       end if;
 
     end if;
@@ -123,7 +125,8 @@ begin
         else
           lockrq_wait <= '0';
           for i in 0 to 1 loop
-            bp_next := unsigned(bp_target_pc((i+1)*pc_width_g-1 downto i*pc_width_g));
+            bp_next := unsigned(bp_target_pc((i+1)*pc_width_g-1
+                                             downto i*pc_width_g));
             if (bp_ena(i+1) = '1') then
               if (tta_jump = '1' and unsigned(pc_next_r) = bp_next) then
                 lockrq_bppc(i) <= '1';
