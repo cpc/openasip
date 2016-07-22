@@ -3322,7 +3322,89 @@ other TTA program produced by tcecc.
 
 The \textit{oclhost-sa} library provides the more-or-less dummy
 implementations of the host runtime APIs to enable launching the
-kernel and moving the buffers etc. 
+kernel and moving the buffers etc.
+
+\section{System-on-a-Chip design with AlmaIF Integrator}
+
+% TODO: Intro
+
+This tutorial will cover TTA core generation and integration with a Zynq-7000
+series SoC, but the workflow should adapt quite well for other AXI4-capable
+Xilinx SoCs.
+
+% TODO: ProDe bits, e.g. need to choose right LSU (from almaif.hdb) and set
+%       AS names, example machine, program
+
+\subsection{Generate the Processor}
+
+The command to generate a processor core with an AlmaIF wrapper is as follows:
+
+\shellcmd{generateprocessor -d onchip -f onchip -e tta\_core -i mach.idf
+-g AlmaIFIntegrator -o proge-out -p program.tpef mach.adf}
+
+\shellcmd{generatebits -e tta\_core -x proge-out mach.adf}
+
+\subsection{Create a New Vivado Project}
+
+To create a new project in Vivado, select \textit{File>New project} from the
+menu bar. You will be presented with a window, where you can configure the
+project to be created. Click \textit{Next} and set the project name and location
+to your preference. On the next screen, pick \textit{RTL Project} and click
+\textit{Next}. Select the \textit{proge-out} folder and verify the
+\textit{Include files from subdirectories} checkbox is checked. No action is
+needed for the next two screens, so you can click past them. Select the part
+you intend to use for the project from the list, click \textit{Next} and
+\textit{Finish}.
+
+You should now have a fresh project with the TTA sources included.
+
+\subsection{Create a Block Design}
+
+Navigate to \textit{Flow>Create Block Design} and name it \textit{toplevel}.
+Right click on the design, select \textit{Add IP} and add a \textit{ZYNQ7
+Processing System} block. Next, add the TTA cores. Again, right click on the
+design, but this time choose \textit{Add block...}. Since our entity name
+was \textit{tta\_core}, the AlmaIF wrapper was named
+\textit{tta\_core\_toplevel}. Add that, and repeat once.
+
+You should now have two TTA cores and one \textit{ZYNQ7 Processing System} in
+your block design. We will need to connect these together. Luckily, Vivado
+will recognize the AXI4 bus on our AlmaIF wrapper, and will offer to connect
+it for us. Right click on an empty part of the block design and select
+\textit{Run block automation}, Click OK. Right click on the block design again
+and select \textit{Run connection automation}. Check  the
+\textit{All Automation} checkbox and click OK.
+
+After this, Vivado has picked address spaces for the cores. You can see these
+from the Address Editor tab. You will need these addresses to control the cores
+from the hard processor cores.
+
+\subsection{Cleanup}
+
+You will notice that the TTA cores' asynchronous reset has been left
+unconnected. We can actuate a synchronous reset through AlmaIF, so we can
+connect these to a constant high signal. Right click on the design, select
+\textit{Add IP} and add the \textit{Constant} IP block. Right click on the
+newly created block and select \textit{Customize IP}. Set both \textit{Width}
+and \textit{Value} to 1. Connect the output to both cores' asynchronous reset
+pin.
+
+You may customize the TTA cores' clock frequency by right clicking on the
+\textit{ZYNQ7 Processing System} block and selecting \textit{Customize IP}.
+The FPGA fabric clock frequencies can be set under \textit{Clock Configuration}.
+
+\subsection{Synthesis and Implementation}
+
+Our block design is ready, but we'll have to create a wrapper for it before
+it can be synthesized. Select \textit{Flow>Project Manager} from the menu bar.
+You can see the \textit{toplevel} block design in the sources window. Right
+click on it and select \textit{Create HDL Wrapper}. The default setting works
+for us, click \textit{OK}. Right click on the newly created
+\textit{toplevel\_wrapper} and select \textit{Set as Top}.
+
+You can now select \textit{Flow>Generate Bitstream} from the menu bar. This will
+run the design through synthesis and implementation, and give you a bitstream
+file with which you can program the FPGA fabric on your SoC.
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
@@ -4807,28 +4889,30 @@ current working directory.
 
 \subsection{AlmaIFIntegrator}
 
-AlmaIF Integrator can be used to create a AlmaIF-compatible
-processor wrapper for a TTA processor. Due to the constrants placed by the
-specification, the TTA processor must have data and parameter memory spaces.
-The integrato recognizes these by the address space names, which should be set
-to 'data' and 'param' respectively. These memory spaces and instruction
-memory can be accessed through the AXI4 interface presented by the processor
-wrapper. Both data and parameter memory spaces must have 32-bit data width;
-instruction memory does not have this constraint. All other memory spaces are 
-mapped as scratchpad memory, inaccessible from the AXI bus.
+AlmaIF Integrator can be used to create an AlmaIF-compatible
+processor wrapper for a TTA processor. AlmaIF is a simple control interface
+that can be used for control and debug access to devices in a system-on-a-chip.
+Due to the constrants placed by the specification, the TTA processor must have
+data and parameter memory spaces. The integrator recognizes these by the address
+space names, which should be set to 'data' and 'param' respectively. These
+memory spaces and instruction memory can be accessed through the AXI4 interface
+presented by the processor wrapper. Both data and parameter memory spaces must
+have 32-bit data width; instruction memory does not have this constraint. All
+other memory spaces are mapped as scratchpad memory, inaccessible from the AXI
+bus.
 
 The LSU compatible with this integrator can be found in almaif.hdb. Currently
 it is the only function unit shipped with TCE which implements this interface.
-This means that the only option for data and instruction memory type is 
+This means that the only option for data and instruction memory type is
 'onchip'. The memories will be synthesized as Xilinx-compatible single port
 block RAM.
 
-Because the control interface for AlmaIF is implemented through the external 
-debugger interface, this must be enabled from the Implementation-dialog's 
+Because the control interface for AlmaIF is implemented through the external
+debugger interface, this must be enabled from the Implementation-dialog's
 IC / Decoder Plugin tab by setting the bustrace plugin parameter as 'external'.
 
 \textbf{Usage example:} \\
-There's a processor with AlmaIF LSU and external debugger interface, and the 
+There's a processor with AlmaIF LSU and external debugger interface, and the
 toplevel entity will be named 'almaif\_tta'. Command is
 
 \shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmaIFIntegrator
