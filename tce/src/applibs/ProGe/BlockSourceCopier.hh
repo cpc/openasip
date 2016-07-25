@@ -69,6 +69,11 @@ public:
     void copyProcessorSpecific(const std::string& dstDirectory)
         throw (IOException);
 
+    void instantiateHDLTemplate(const std::string& srcFile,
+             const std::string& dstDirectory,
+             std::string newName = "0")
+    throw (IOException);
+
 private:
     void copyBaseRFFiles(
         const IDF::RFImplementationLocation& implementation,

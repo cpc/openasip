@@ -47,6 +47,9 @@ public:
     static void checkOperandBindings(
         const TTAMachine::FunctionUnit& fu,
         MachineValidatorResults& results);
+    static void checkOperations(
+        const TTAMachine::FunctionUnit& fu,
+        MachineValidatorResults& results);
 
 private:
     FUValidator();

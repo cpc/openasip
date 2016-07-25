@@ -38,9 +38,9 @@
  *
  * @param value Inline immediate value.
  */
-DisassemblyImmediate::DisassemblyImmediate(SimValue value):
+DisassemblyImmediate::DisassemblyImmediate(SimValue value, bool signExtend) :
     DisassemblyElement(),
-    value_(value) {
+    value_(value), signExtend_(signExtend) {
 }
 
 
@@ -61,5 +61,12 @@ DisassemblyImmediate::toString() const {
     if (value_.width() == 0) {
         return "Invalid Immediate";
     }
-    return Conversion::toString(value_.intValue());
+    // Select the extension mode in the printout depending on the
+    // move slots's (bus) extension mode. Wrong extension mode can
+    // produce wrong output that cannot be assembled in case
+    // of a negative-looking value on a zero extending slot.
+    if (signExtend_)
+        return Conversion::toString(value_.intValue());
+    else
+        return Conversion::toString(value_.unsignedValue());
 }

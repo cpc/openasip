@@ -261,7 +261,8 @@ distcc.*Warning.*|\
 .*boost/.*warning:.unused.typedef.'.*|\
 .*boost/.*warning:.unused.parameter.'.*|\
 .*boost/.*warning:.anonymous.types.declared.in.an.anonymous.union.are.an.extension.*|\
-.*boost/.*graph_concepts.hpp.*warning:.*"
+.*boost/.*graph_concepts.hpp.*warning:.*|\
+.*/wx/any.h.*warning:.expression.with.side.effects.will.be.evaluated.despite.being.used.as.an.operand.to.*..Wpotentially.evaluated.expression."
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
@@ -299,7 +300,7 @@ VALGRIND_WANTED="\
 # remove -j parameter from makeflags to avoid an error with make jobserver
 MAKEFLAGS="${MAKEFLAGS#-j[0-9]}"
 MAKEFLAGS="${MAKEFLAGS#[0-9[:space:]]}"
-MAKE_OPT="-j2 -k"
+MAKE_OPT="-k"
 
 export PATH="$PATH:/bin:/usr/local/bin:/usr/bin"
 

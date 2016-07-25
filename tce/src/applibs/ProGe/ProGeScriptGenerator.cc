@@ -668,11 +668,11 @@ ProGeScriptGenerator::prepareFiles() {
 
         string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
         list<string> vhdlFirstOrder;
+        vhdlFirstOrder.push_back(toplevelEntity_ + "_imem_mau_pkg.vhdl");
         vhdlFirstOrder.push_back("globals_pkg.vhdl");
         vhdlFirstOrder.push_back("tce_util_pkg.vhdl");
         string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
         vhdlFirstOrder.push_back(paramsPkg);
-        vhdlFirstOrder.push_back("imem_mau_pkg.vhdl");
         // add FU and RF files in correct order
         getBlockOrder(vhdlFirstOrder);
         prefixStrings(vhdlFirstOrder, vhdlDirName);

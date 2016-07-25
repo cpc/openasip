@@ -3,7 +3,7 @@ tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 ttasim=../../../../../tce/src/codesign/ttasim/ttasim
 tceopgen=../../../../../tce/src/bintools/Compiler/tceopgen/tceopgen
 
-tpef=`mktemp tmpXXXXX`.tpef
+tpef=`mktemp tmpXXXXX`
 adf=../../../../../tce/data/mach/minimal.adf
 
 $tcecc -O0 -a $adf -o $tpef \

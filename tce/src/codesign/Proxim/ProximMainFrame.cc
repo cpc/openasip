@@ -331,7 +331,7 @@ ProximMainFrame::createMenubar() {
 
     // Source menu
     menuBar->Append(sourceMenu, _T("&Source"));
-    sourceMenu->Append(80000, _T("&Profile Data"), highlightMenu);
+    sourceMenu->Append(17000, _T("&Profile Data"), highlightMenu);
 
     highlightMenu->Append(
         ProximConstants::COMMAND_CLEAR_DISASSEMBLY_HIGHLIGHT,
@@ -687,7 +687,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 
     case ProximConstants::COMMAND_TOGGLE_MEMORY_WIN: {
 	// Toggle memory window.
-	wxWindow* memoryWindow = FindWindow(ProximConstants::ID_MEMORY_WINDOW);
+	wxWindow* memoryWindow = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
 	if (memoryWindow == NULL) {
 	    memoryWindow = new ProximMemoryWindow(
                 this, ProximConstants::ID_MEMORY_WINDOW);
@@ -703,7 +703,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
     case ProximConstants::COMMAND_TOGGLE_CONTROL_WIN: {
 	// Toggle memory window.
 	wxWindow* controlWindow =
-            FindWindow(ProximConstants::ID_CONTROL_WINDOW);
+            FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
 	if (controlWindow == NULL) {
 	    controlWindow = new ProximControlWindow(
                 this, ProximConstants::ID_CONTROL_WINDOW);
@@ -719,7 +719,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 
     case ProximConstants::COMMAND_TOGGLE_MACHINE_WIN: {
 	// Toggle machine window.
-	wxWindow* machineWindow = FindWindow(
+	wxWindow* machineWindow = FindWindowById(
             ProximConstants::ID_MACHINE_STATE_WINDOW);
 	if (machineWindow == NULL) {
 	    machineWindow = new ProximMachineStateWindow(
@@ -737,7 +737,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 
     case ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN: {
 	// Toggle breakpoitn window.
-	wxWindow* breakpointWindow = FindWindow(
+	wxWindow* breakpointWindow = FindWindowById(
             ProximConstants::ID_BREAKPOINT_WINDOW);
 	if (breakpointWindow == NULL) {
 	    breakpointWindow = new ProximBreakpointWindow(
@@ -754,7 +754,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 
     case ProximConstants::COMMAND_TOGGLE_CMD_HISTORY_WIN: {
 	// Toggle command history window.
-	wxWindow* historyWindow = FindWindow(
+	wxWindow* historyWindow = FindWindowById(
             ProximConstants::ID_CMD_HISTORY_WINDOW);
 	if (historyWindow == NULL) {
 	    historyWindow = new ProximCmdHistoryWindow(
@@ -817,7 +817,7 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // memory window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_MEMORY_WIN) {
-	bool exists = FindWindow(ProximConstants::ID_MEMORY_WINDOW);
+	bool exists = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
 	if (exists) {
 	    event.Check(true);
 	} else {
@@ -827,7 +827,7 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // simulator control window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_CONTROL_WIN) {
-	bool exists = FindWindow(ProximConstants::ID_CONTROL_WINDOW);
+	bool exists = FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
 	if (exists) {
 	    event.Check(true);
 	} else {
@@ -837,7 +837,7 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // machine window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_MACHINE_WIN) {
-	bool exists = FindWindow(ProximConstants::ID_MACHINE_STATE_WINDOW);
+	bool exists = FindWindowById(ProximConstants::ID_MACHINE_STATE_WINDOW);
 	if (exists) {
 	    event.Check(true);
 	} else {
@@ -847,7 +847,7 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // breakpoint window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN) {
-	bool exists = FindWindow(ProximConstants::ID_BREAKPOINT_WINDOW);
+	bool exists = FindWindowById(ProximConstants::ID_BREAKPOINT_WINDOW);
 	if (exists) {
 	    event.Check(true);
 	} else {
@@ -857,7 +857,7 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // command history window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_CMD_HISTORY_WIN) {
-	bool exists = FindWindow(ProximConstants::ID_CMD_HISTORY_WINDOW);
+	bool exists = FindWindowById(ProximConstants::ID_CMD_HISTORY_WINDOW);
 	if (exists) {
 	    event.Check(true);
 	} else {
@@ -949,7 +949,7 @@ ProximMainFrame::updateMemoryWindowMenuItem() {
         wxGetApp().simulation()->frontend()->memorySystem().
         memoryCount() == 0) {
         GetMenuBar()->Enable(ProximConstants::COMMAND_TOGGLE_MEMORY_WIN, false);
-        wxWindow* memoryWindow = FindWindow(ProximConstants::ID_MEMORY_WINDOW);
+        wxWindow* memoryWindow = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
         if (memoryWindow != NULL) {
             memoryWindow->Destroy();
             memoryWindow = NULL;

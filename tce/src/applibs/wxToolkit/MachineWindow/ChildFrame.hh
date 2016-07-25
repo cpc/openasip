@@ -44,7 +44,7 @@ public:
     ChildFrame(wxDocument* doc, wxView* view, wxDocMDIParentFrame* parent);
     ~ChildFrame();
 
-    void setStatus(const wxString text);
+    void setStatus(const wxString text, int field = 0);
 
 private:
     void onFocus(wxFocusEvent& event);

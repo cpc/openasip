@@ -373,7 +373,7 @@ TPEFDisassembler::createDisassemblyElement(
 
             SimValue immValue(32);
             immValue = imm->word();
-            return new DisassemblyImmediate(immValue);
+            return new DisassemblyImmediate(immValue, false);
 
         } else {
             // register reference to immediate register.

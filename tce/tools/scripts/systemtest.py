@@ -295,6 +295,7 @@ class IntegrationTestCase(object):
                     in_file = None
 
             self._test_data.append((in_file, os.path.basename(out_file)))
+            self.ignore_stdout = False;
 
         if len(self._test_data) == 0:
             # Assume the test case should be executed only once, does not
@@ -703,7 +704,7 @@ def setup_exec_env():
                        "proxim", "tceasm", "tcecc", "tce-config", "tcedisasm",
                        "tceoclextgen", "tceopgen",
                        "testhdb", "testosal", "ttasim", "ttasim-tandem",
-                       "ttaunittester", "viewbem"]
+                       "ttaunittester", "viewbem", "rtlstats", "generatetests"]
     tce_path_env = ""
     max_depth = 2
     for root in subtreeroots:
@@ -718,7 +719,8 @@ def setup_exec_env():
 
     # Let's add these on demand. For now dirs required by pocl build.
     includedirs = ['src/tools', 'src/applibs/Simulator', 'src/base/mach',
-                   'src/base/memory', 'src/base/program', '']
+                   'src/base/memory', 'src/base/program',
+                   'src/applibs/LLVMBackend', '']
     cpp_flags = ""
     for include in includedirs:
         cpp_flags += "-I" + os.path.join(bld_root, include) + " "
@@ -728,6 +730,7 @@ def setup_exec_env():
     os.environ['TCE_LDFLAGS'] = "-L" + lib_tce_dir
     os.environ['TCE_CPPFLAGS'] = cpp_flags
     os.environ['TCE_LD_LIBRARY_PATH'] = lib_tce_dir
+    os.environ['TCE_BUILD_ROOT'] = bld_root
     os.environ['ORIGINALPATH'] = os.environ['PATH']
     os.environ['PATH'] = tce_path_env + os.environ['PATH']
     os.environ['minimal_with_stdout'] = \

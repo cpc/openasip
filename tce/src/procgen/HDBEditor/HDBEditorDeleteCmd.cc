@@ -69,7 +69,11 @@ HDBEditorDeleteCmd::Do() {
     if (browser->isFUArchitectureSelected()) {
         int id = browser->selectedFUArchitecture();
         if (manager->canRemoveFUArchitecture(id)) {
-            manager->removeFUArchitecture(id);
+            if (confirmDeletion(_T("FU Architecture"))) {
+                manager->removeFUArchitecture(id);
+            } else {
+                return false;
+            }
         } else {
             wxString message = _T("FU Architecture ");
             message.Append(WxConversion::toWxString(id));
@@ -82,7 +86,11 @@ HDBEditorDeleteCmd::Do() {
     } else if (browser->isRFArchitectureSelected()) {
         int id = browser->selectedRFArchitecture();
         if (manager->canRemoveRFArchitecture(id)) {
-            manager->removeRFArchitecture(id);
+            if (confirmDeletion(_T("RF Architecture"))) {
+                manager->removeRFArchitecture(id);
+            } else {
+                return false;
+            }
         } else {
             wxString message = _T("RF Architecture ");
             message.Append(WxConversion::toWxString(id));
@@ -93,28 +101,56 @@ HDBEditorDeleteCmd::Do() {
             return false;
         }
     } else if (browser->isFUImplementationSelected()) {
-        int id = manager->fuEntryIDOfImplementation(
-            browser->selectedFUImplementation());
-        manager->removeFUEntry(id);
+        if (confirmDeletion(_T("FU Implementation"))) {
+            int id = manager->fuEntryIDOfImplementation(
+                browser->selectedFUImplementation());
+            manager->removeFUEntry(id);
+        } else {
+            return false;
+        }
     } else if (browser->isRFImplementationSelected()) {
-        int id = manager->rfEntryIDOfImplementation(
-            browser->selectedRFImplementation());
-        manager->removeRFEntry(id);
+        if (confirmDeletion(_T("RF Implementation"))) {
+            int id = manager->rfEntryIDOfImplementation(
+                browser->selectedRFImplementation());
+            manager->removeRFEntry(id);
+        } else {
+            return false;
+        }
     } else if (browser->isCostFunctionPluginSelected()) {
-        int id = browser->selectedCostFunctionPlugin();
-        manager->removeCostFunctionPlugin(id);
+        if (confirmDeletion(_T("Cost Function Plugin"))) {
+            int id = browser->selectedCostFunctionPlugin();
+            manager->removeCostFunctionPlugin(id);
+        } else {
+            return false;
+        }
     } else if (browser->isFUEntrySelected()) {
-        int id = browser->selectedFUEntry();
-        manager->removeFUEntry(id);
+        if (confirmDeletion(_T("FU Entry"))) {
+            int id = browser->selectedFUEntry();
+            manager->removeFUEntry(id);
+        } else {
+            return false;
+        }
     } else if (browser->isRFEntrySelected()) {
-        int id = browser->selectedRFEntry();
-        manager->removeRFEntry(id);
+        if (confirmDeletion(_T("RF Entry"))) {
+            int id = browser->selectedRFEntry();
+            manager->removeRFEntry(id);
+        } else {
+            return false;
+        }
     } else if (browser->isBusEntrySelected()) {
-        int id = browser->selectedBusEntry();
-        manager->removeBusEntry(id);
+        if (confirmDeletion(_T("Bus Entry"))) {
+            int id = browser->selectedBusEntry();
+            manager->removeBusEntry(id);
+        } else {
+            return false;
+        }
     } else if (browser->isSocketEntrySelected()) {
-        int id = browser->selectedSocketEntry();
-        manager->removeSocketEntry(id);
+        if (confirmDeletion(_T("Socket Entry"))) {
+            int id = browser->selectedSocketEntry();
+            manager->removeSocketEntry(id);
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
@@ -187,5 +223,21 @@ HDBEditorDeleteCmd::isEnabled() {
     }
 
     return false;
+}
+
+/**
+ * Creates a dialog box to confirm deletion.
+ *
+ * @param component Type of component to be deleted.
+ * @return true if Yes was pressed, false otherwise.
+ */
+bool
+HDBEditorDeleteCmd::confirmDeletion(const wxString& component){
+    wxString message = _T("Are you sure you want to delete this ");
+    message.Append(component);
+    message.Append(_T("?"));
+    MessageDialog dialog(parentWindow(), _T("Confirm deletion"), message,
+        wxYES_DEFAULT | wxYES_NO);
+    return dialog.ShowModal() == wxID_YES;
 }
 

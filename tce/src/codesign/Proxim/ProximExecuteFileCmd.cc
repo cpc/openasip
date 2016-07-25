@@ -39,6 +39,10 @@
 #include "ErrorDialog.hh"
 #include "TracedSimulatorFrontend.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxOPEN wxFD_OPEN
+#endif
+
 /**
  * The Constructor.
  */

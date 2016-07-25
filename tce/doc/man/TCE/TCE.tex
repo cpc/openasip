@@ -482,7 +482,7 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
       hdb      & HW database                                & SQLite \\
       \hline
       tpef     & TTA program exchange format                & bin \\
-      bem      & Binary encoding map                        & bin \\
+      bem      & Binary encoding map                        & XML \\
       opp      & Operation properties                       & XML \\
       cc       & Simulation behavior of an operation                   & C++\\
       opb      & Compiled operation behavior                & bin \\
@@ -657,7 +657,9 @@ command to the command line at the bottom of the simulator:
 
 \shellcmd{x /u w result}
 
-The correct checksum result is \textbf{0x62488e82}.
+The command specifies the data width (4 bytes) and the \textit{result} symbol we
+told the compiler to preserve before. The correct checksum result is
+\textbf{0x62488e82}.
 
 Processor resource utilization data can be viewed with command:
 
@@ -695,7 +697,12 @@ RF:
 \end{verbatim}
 
 Your output may vary depending on the compiler version, the optimizations
-used and your architecture.
+used and your architecture. For more information on the simulator's command 
+line tools and syntax, you may use the 
+
+\shellcmd{help}
+
+command.
 
 Proxim can also show othes various pieces of information about the
 program's execution and its processor resource utilization. For
@@ -1416,7 +1423,7 @@ processor during its execution.
 
 \textbf{2. Opcodes.}
 
-Set the operation codes as they are in the top of the vhdl file. REFLECT32
+Check that the operation codes match the top of the vhdl file. REFLECT32
 has operation code ``0'' and REFLECT8 has operation code ``1''. 
 
 The operation codes must be always numbered according to the alphabetical order of 
@@ -1903,7 +1910,9 @@ The example streaming operations in the base operation set are
 called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
 These operations have a simulation behavior definition which simulates the
 stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host.
+the simulator host. STREAM\_IN and STREAM\_OUT operations allow defining
+in/out files using TTASIM\_STREAM\_IN\_FILE and TTASIM\_STREAM\_OUT\_FILE
+environment variables respectively.
 
 Here is an example C code that implements streaming I/O with the operations:
 
@@ -7453,6 +7462,10 @@ such as '.calls' for the call profile and '.profile' for the instruction
 execution profile. The SQLite file can be browsed by executing SQL queries
 using the sqlite client and the pure text files can be browsed using any 
 text viewer/editor.
+
+By default simulation traces are dumped in the same directory as loaded program
+file. It is possible to override that directory by setting an environment
+variable TTASIM\_TRACE\_DIR pointing to desired location.
 
 \subsubsection{Profile Data}
 

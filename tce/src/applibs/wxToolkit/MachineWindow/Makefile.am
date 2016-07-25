@@ -14,7 +14,8 @@ libmachinewindow_la_SOURCES = MachineEditPartFactory.cc BidirBridgeFigure.cc \
 	UnitPortFactory.cc UnitPortFigure.cc UnknownSocketFigure.cc \
 	MachineCanvas.cc EditPolicyFactory.cc MachineCanvasTool.cc \
 	Request.cc ComponentCommand.cc MoveFigure.cc TriggeringPortFigure.cc \
-	MachineCanvasOptions.cc MachineCanvasLayoutConstraints.cc
+	MachineCanvasOptions.cc MachineCanvasLayoutConstraints.cc \
+	ChildFrame.cc
 
 
 PROJECT_ROOT = $(top_srcdir)
@@ -24,11 +25,15 @@ LIB_MACH_DIR = ${PROJECT_ROOT}/src/base/mach
 LIB_UMACH_DIR = ${PROJECT_ROOT}/src/base/umach
 LIB_WXTOOLKIT_DIR = ${PROJECT_ROOT}/src/applibs/wxToolkit
 LIB_EPS_GENERATOR_DIR = ${PROJECT_ROOT}/src/applibs/EPSGenerator
+LIB_BEM_GENERATOR_DIR = ${PROJECT_ROOT}/src/applibs/bem
+LIB_BEM_DIR = ${PROJECT_ROOT}/src/base/bem
+PRODE_DIR = ${PROJECT_ROOT}/src/procgen/ProDe
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
 AM_CPPFLAGS = -I${LIB_TCEtools_DIR} -I${LIB_MACH_DIR} -I${LIB_WXTOOLKIT_DIR} \
-	-I${LIB_EPS_GENERATOR_DIR} -I${LIB_UMACH_DIR}
+	-I${LIB_EPS_GENERATOR_DIR} -I${LIB_UMACH_DIR} -I${LIB_BEM_GENERATOR_DIR} \
+	-I${LIB_BEM_DIR} -I${PRODE_DIR}
 
 AM_CXXFLAGS = $(AM_WXCXXFLAGS)
 
@@ -69,5 +74,6 @@ libmachinewindow_la_SOURCES += \
 	Figure.icc EditPolicy.icc \
 	SegmentFigure.icc RootEditPart.icc \
 	EditPart.icc EditPartFactory.icc \
-	EditPolicyFactory.icc ConnectionEditPart.icc 
+	EditPolicyFactory.icc ConnectionEditPart.icc \
+	ChildFrame.hh
 ## headers end

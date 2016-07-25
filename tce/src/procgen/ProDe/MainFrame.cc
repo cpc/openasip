@@ -173,7 +173,9 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new AboutCmd());
 
     toolbar_ = NULL;
-    CreateStatusBar();
+    CreateStatusBar(2);
+    int widths[2] = {-1, 200};
+    SetStatusWidths(2, widths);
 
     createMenubar();
     createToolbar();
@@ -210,7 +212,9 @@ MainFrame::onToggleStatusbar() {
         delete statusbar;
         statusbar = NULL;
     } else {
-        CreateStatusBar();
+        CreateStatusBar(2);
+        int widths[2] = {-1, 200};
+        SetStatusWidths(2, widths);
     }
     Layout();
     Fit();
@@ -729,4 +733,14 @@ MainFrame::createToolbar() {
     // set new toolbar as the MainFrame toolbar
     SetToolBar(toolbar_);
     toolbar_->Show(true);
+}
+
+/**
+ * Performs routines before exiting a program
+ *
+ * @param event Command event to handle.
+ */
+void
+MainFrame::OnExit(wxCommandEvent& WXUNUSED(event)) {
+    Close();
 }

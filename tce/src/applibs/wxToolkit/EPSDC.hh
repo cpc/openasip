@@ -36,6 +36,9 @@
 #include <wx/wx.h>
 #include "EPSGenerator.hh"
 
+// TODO: this module is commented out for wxwidgets version 3
+// and needs to be rewritten
+#if !wxCHECK_VERSION(3, 0, 0)
 /**
  * Encapsulated postscript device context.
  *
@@ -190,4 +193,5 @@ private:
     unsigned fontSize_;
 };
 
+#endif
 #endif

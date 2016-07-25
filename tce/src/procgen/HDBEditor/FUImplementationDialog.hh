@@ -33,6 +33,7 @@
 #ifndef TTA_FU_IMPLEMENTATION_DIALOG_HH
 #define TTA_FU_IMPLEMENTATION_DIALOG_HH
 
+#include <wx/listctrl.h>
 #include "FUImplementation.hh"
 
 // Remove this define when opcode editing should be disabled.
@@ -59,7 +60,7 @@ public:
 private:
 
     void onOK(wxCommandEvent& event);
-    void update();
+    void update(bool onInit = false);
 
     HDB::FUPortImplementation* selectedArchPort();
     HDB::FUExternalPort* selectedExternalPort();

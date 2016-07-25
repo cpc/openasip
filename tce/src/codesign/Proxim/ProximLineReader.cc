@@ -59,6 +59,7 @@ ProximLineReader::ProximLineReader() :
  * The Destructor.
  */
 ProximLineReader::~ProximLineReader() {
+    mutex_->Unlock();
     delete mutex_;
     delete input_;
 }
@@ -98,12 +99,12 @@ ProximLineReader::readLine(std::string prompt)
     throw (ObjectNotInitialized, EndOfFile) {
 
     if (!initialized()) {
-	std::string method = "ProximLineReader::readLine";
-	throw ObjectNotInitialized(__FILE__, __LINE__, method);
+        std::string method = "ProximLineReader::readLine";
+        throw ObjectNotInitialized(__FILE__, __LINE__, method);
     }
 
     if (prompt == "") {
-	prompt = prompt_;
+       prompt = prompt_;
     }
 
     if (inputQueue_.empty()) {
@@ -113,7 +114,6 @@ ProximLineReader::readLine(std::string prompt)
     }
     std::string input = inputQueue_.front();
     inputQueue_.pop();
-
 
     output(input + "\n");
 
@@ -155,7 +155,7 @@ ProximLineReader::charQuestion(
     char /* (default answer) UNUSED */) throw (ObjectNotInitialized) {
 
     if (!initialized()) {
-	throw ObjectNotInitialized(__FILE__, __LINE__);
+        throw ObjectNotInitialized(__FILE__, __LINE__);
     }
 
 
@@ -285,14 +285,14 @@ ProximLROutputBuffer::sync() {
 void
 ProximLROutputBuffer::flushBuffer() {
     if (pbase() != pptr()) {
-	// Buffer is not empty.
-	int len = pptr() - pbase();
-	char* buffer = new char[len+1];
-	strncpy(buffer, pbase(), len);
-	buffer[len] = '\0';
-	lineReader_->output(std::string(buffer));
-	setp(pbase(), epptr());
-	delete[] buffer;
+        // Buffer is not empty.
+        int len = pptr() - pbase();
+        char* buffer = new char[len+1];
+        strncpy(buffer, pbase(), len);
+        buffer[len] = '\0';
+        lineReader_->output(std::string(buffer));
+        setp(pbase(), epptr());
+        delete[] buffer;
     }
 }
 

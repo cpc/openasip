@@ -84,9 +84,8 @@ all-local: ${pkglib_LTLIBRARIES}
 	if test "${srcdir}" != "."; then  ln -sf ${srcdir}/base.opp base.opp; fi;
 
 install-exec-hook:
-	ln -sf ${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
-	ln -sf ${pkglibdir}/avalon.so $(DESTDIR)/${pkglibdir}/avalon.opb
-	ln -sf ${pkglibdir}/simple_io.so $(DESTDIR)/${pkglibdir}/simple_io.opb
+	cd $(DESTDIR)/${pkglibdir} ; ln -sf base.so base.opb ; \
+ln -sf avalon.so avalon.opb ; ln -sf simple_io.so simple_io.opb
 
 clean-local:
 	rm -f ./base.opb

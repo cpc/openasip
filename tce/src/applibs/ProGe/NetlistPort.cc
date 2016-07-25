@@ -211,6 +211,11 @@ NetlistPort::setToStatic(StaticSignal value) {
     staticValue_ = value;
 }
 
+void
+NetlistPort::unsetStatic() {
+
+    hasStaticValue_ = false;
+}
 
 bool
 NetlistPort::hasStaticValue() const {

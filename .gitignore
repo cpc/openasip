@@ -9,11 +9,15 @@ core.*
 core
 *.lo
 *.la
+**/data
+**/*-runner
 **/runner
 tce/Makefile
 Makefile.in
 tce/Makefile.in
 compiletest.*.log
+**/.libs
+*.so
 **/runner.cpp
 **/*.html
 **/*.orig

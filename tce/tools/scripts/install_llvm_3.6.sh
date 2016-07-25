@@ -56,6 +56,11 @@ fi
 cd ../../$llvm_co_dir
 
 ##### Add patches here.
+patch -Np0 < $patch_dir/llvm-3.6-custom-vector-extension.patch                                                                                   
+patch -Np0 < $patch_dir/llvm-3.6-tce.patch                                                                                                       
+patch -Np0 < $patch_dir/llvm-3.6-tcele.patch                                                                                                     
+patch -Np0 < $patch_dir/llvm-3.5-memcpyoptimizer-only-on-default-as.patch                                                                        
+patch -Np0 < $patch_dir/llvm-3.5-loopidiomrecognize-only-on-default-as.patch                                                                     
 #####
 
 ./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."

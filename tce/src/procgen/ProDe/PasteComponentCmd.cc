@@ -145,19 +145,29 @@ PasteComponentCmd::Do() {
         Machine::BusNavigator navigator =
             machine->busNavigator();
         TTAMachine::Bus* copiedBus = new Bus(contents);
-        TTAMachine::Bus& original = 
-            *navigator.item(copiedBus->name());
 
-        // register the bus to the machine, possibly rename it to
-        // avoid name clashes
-        paste(*machine, copiedBus, navigator);
+        // cannot copy guards from one machine into another
+        // plus additional check if oroginal bus has been deleted
+        if (clipboard->sourceMachine() == machine && 
+            navigator.hasItem(copiedBus->name())) {
 
-        // also copy the guards from the original Bus 
-        assert(copiedBus->guardCount() == 0);
-        for (int i = 0; i < original.guardCount(); ++i) {
-            original.guard(i)->copyTo(*copiedBus);
+            TTAMachine::Bus& original = 
+                *navigator.item(copiedBus->name());
+    
+            // register the bus to the machine, possibly rename it to
+            // avoid name clashes
+            paste(*machine, copiedBus, navigator);
+    
+            // also copy the guards from the original Bus 
+            assert(copiedBus->guardCount() == 0);
+            for (int i = 0; i < original.guardCount(); ++i) {
+                original.guard(i)->copyTo(*copiedBus);
+            }
+        } else {
+            // register the bus as above
+            paste(*machine, copiedBus, navigator);
+            assert(copiedBus->guardCount() == 0);
         }
-
     } else if (contents->name() == ControlUnit::OSNAME_CONTROL_UNIT) {
         // control unit
         if (machine->controlUnit() != NULL) {

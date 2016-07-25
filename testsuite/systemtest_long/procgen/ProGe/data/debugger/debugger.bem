@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-encoding required-version="1.2" version="1.2">
+
+  <map-ports name="lsu_i1">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="LSU" name="in1t" operation="ldh">
+      <encoding>0</encoding>
+      <extra-bits>3</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="ldhu">
+      <encoding>1</encoding>
+      <extra-bits>2</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="ldq">
+      <encoding>2</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="ldqu">
+      <encoding>3</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="ldw">
+      <encoding>4</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="sth">
+      <encoding>5</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="stq">
+      <encoding>6</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="LSU" name="in1t" operation="stw">
+      <encoding>7</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="RF_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="3" rf="RF">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </rf-port-code>
+  </map-ports>
+
+  <map-ports name="RF_o1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="3" rf="RF">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </rf-port-code>
+  </map-ports>
+
+  <map-ports name="bool_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="BOOL">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </rf-port-code>
+  </map-ports>
+
+  <map-ports name="bool_o1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="BOOL">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </rf-port-code>
+  </map-ports>
+
+  <map-ports name="gcu_i1">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="gcu" name="pc" operation="call">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="gcu" name="pc" operation="jump">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="ALU_i1">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="ALU" name="in1t" operation="add">
+      <encoding>0</encoding>
+      <extra-bits>4</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="and">
+      <encoding>1</encoding>
+      <extra-bits>3</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="eq">
+      <encoding>2</encoding>
+      <extra-bits>2</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="gt">
+      <encoding>3</encoding>
+      <extra-bits>2</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="gtu">
+      <encoding>4</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="ior">
+      <encoding>5</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="shl">
+      <encoding>6</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="shr">
+      <encoding>7</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="shru">
+      <encoding>8</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="sub">
+      <encoding>9</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="sxhw">
+      <encoding>10</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="sxqw">
+      <encoding>11</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ALU" name="in1t" operation="xor">
+      <encoding>12</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <slot name="B1">
+    <pos>0</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="BOOL">1</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="BOOL">2</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="BOOL">3</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="BOOL">4</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="32">
+        <map extra-bits="1">0</map>
+      </immediate>
+      <socket name="RF_o1">
+        <map codes="RF_o1" extra-bits="0">8</map>
+      </socket>
+      <socket name="bool_o1">
+        <map codes="bool_o1" extra-bits="0">9</map>
+      </socket>
+      <socket name="lsu_o1">
+        <map extra-bits="0">11</map>
+      </socket>
+      <socket name="gcu_o1">
+        <map extra-bits="0">12</map>
+      </socket>
+      <socket name="ALU_o1">
+        <map extra-bits="0">13</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">10</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ALU_i1">
+        <map codes="ALU_i1" extra-bits="2">0</map>
+      </socket>
+      <socket name="lsu_i1">
+        <map codes="lsu_i1" extra-bits="1">2</map>
+      </socket>
+      <socket name="RF_i1">
+        <map codes="RF_i1" extra-bits="1">3</map>
+      </socket>
+      <socket name="bool_i1">
+        <map codes="bool_i1" extra-bits="0">8</map>
+      </socket>
+      <socket name="gcu_i1">
+        <map codes="gcu_i1" extra-bits="0">9</map>
+      </socket>
+      <socket name="lsu_i2">
+        <map extra-bits="0">11</map>
+      </socket>
+      <socket name="gcu_i2">
+        <map extra-bits="0">12</map>
+      </socket>
+      <socket name="ALU_i2">
+        <map extra-bits="0">13</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">10</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+</adf-encoding>

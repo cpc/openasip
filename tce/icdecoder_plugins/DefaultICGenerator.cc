@@ -79,7 +79,7 @@ const string SOCKET_DATA_CONTROL_PORT = "data_cntrl";
  */
 DefaultICGenerator::DefaultICGenerator(const TTAMachine::Machine& machine) :
     machine_(machine), icBlock_(NULL), generateBusTrace_(false),
-    busTraceStartingCycle_(0) {
+    generateDebugger_(false), busTraceStartingCycle_(0) {
 }
 
 
@@ -317,6 +317,15 @@ DefaultICGenerator::verifyCompatibility() const
     }
 }
 
+/**
+ * Enables or disables generating debugger code.
+ *
+ * @param generate Tells whether to generate the debugger code.
+ */
+void
+DefaultICGenerator::setGenerateDebugger(bool generate) {
+    generateDebugger_ = generate;
+}
 
 /**
  * Enables or disables generating bus trace code.
@@ -892,6 +901,50 @@ DefaultICGenerator::generateOutputSocket(
     }
 }
 
+/**
+ * Writes the bus dump lines required by the HW debugger.
+ *
+ * @param stream The stream.
+ */
+void
+DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
+    stream << indentation(1) << "db_bustraces <= " << endl;
+
+    Machine::BusNavigator busNav = machine_.busNavigator();
+
+    for (int i = 0; i < busNav.count(); i++) {
+        if (i % 4 == 0) {
+            stream << indentation(2);
+        }
+
+        // Reverse order
+        int idx = busNav.count() - 1 - i;
+        int busWidth = busNav.item(idx)->width();
+
+        if (busWidth < 32) { // Pad short busses with zeroes
+            stream << "\"" << string(32 - busWidth, '0') << "\"&";
+        }
+
+        stream << busSignal(*busNav.item(idx));
+
+        if (busWidth > 32) { // Truncate large busses
+            stream << "(31 downto 0)";
+        }
+
+        if (i != busNav.count() - 1) {
+            stream << " & ";
+
+            if (i % 4 == 3) {
+                stream << endl;
+            }
+        } else {
+            stream << ";";
+        }
+
+        
+    }
+    stream << endl;
+}
 
 /**
  * Writes the interconnection network to the given stream.
@@ -912,6 +965,17 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         string entityName = entityNameStr_ + "_interconn";
         stream << "entity " << entityName << " is" << endl << endl;
 
+        if (generateDebugger_
+            && (icBlock_->portByName("db_bustraces") == NULL)) {
+            //Assume that all buses are 32-bit
+            Machine::BusNavigator busNav = machine_.busNavigator();
+            int bustrace_width = 32*busNav.count();
+
+            new NetlistPort(
+                "db_bustraces", "32*BUSCOUNT",
+                bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, *icBlock_);
+        }
+
         VHDLNetlistWriter::writePortDeclaration(
             *icBlock_, 1, indentation(1), stream);
 
@@ -928,6 +992,11 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
 
         if (generateBusTrace_) {
             writeBusDumpCode(stream);
+            stream << endl;
+        }
+
+        if (generateDebugger_) {
+            writeDebuggerCode(stream);
             stream << endl;
         }
             

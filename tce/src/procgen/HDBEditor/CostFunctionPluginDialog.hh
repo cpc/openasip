@@ -34,6 +34,7 @@
 #define TTA_COST_FUNCTION_PLUGIN_DIALOG_HH
 
 #include <wx/wx.h>
+#include <wx/listctrl.h>
 
 namespace HDB {
     class HDBManager;

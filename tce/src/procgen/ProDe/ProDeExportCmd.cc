@@ -42,6 +42,11 @@
 #include "ErrorDialog.hh"
 #include "FileSystem.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+#endif
+
 using std::string;
 
 /**
@@ -77,7 +82,11 @@ ProDeExportCmd::Do() {
     wxString message = _T("Export processor figure.");
     wxString defaultDir = _T(".");
     wxString defaultFile= _T("");
-    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps|");
+#if wxCHECK_VERSION(3, 0, 0)
+    wxString fileTypes = _T("Scalable Vector Graphics (.svg)|*.svg|");
+#else
+    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps;*.epsi|");
+#endif
     fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
 
     wxFileDialog dialog(
@@ -94,8 +103,13 @@ ProDeExportCmd::Do() {
     std::string title =
         WxConversion::toString(view->GetDocument()->GetTitle());
 
+#if wxCHECK_VERSION(3, 0, 0)
+    if (extension == ".svg") {
+        if (!canvas->saveSVG(filename)) {
+#else
     if (extension == ".eps" || extension == ".epsi") {
         if (!canvas->saveEPS(filename, title, creator)) {
+#endif
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());
             message.Append(_T("'."));

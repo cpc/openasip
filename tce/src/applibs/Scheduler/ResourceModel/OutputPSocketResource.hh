@@ -69,6 +69,7 @@ protected:
     virtual bool validateRelatedGroups();
 
 private:
+    mutable int activeCycle_;
     // Copying forbidden
     OutputPSocketResource(const OutputPSocketResource&);
     // Assignment forbidden

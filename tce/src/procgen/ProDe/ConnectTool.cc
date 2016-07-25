@@ -244,6 +244,7 @@ ConnectTool::rightClick(wxMouseEvent& event) {
     CommandRegistry* registry = wxGetApp().commandRegistry();
     contextMenu->Append(ProDeConstants::COMMAND_UNDO, _T("&Undo"));
     contextMenu->Append(ProDeConstants::COMMAND_REDO, _T("&Redo"));
+    contextMenu->Append(ProDeConstants::COMMAND_PASTE, _T("&Paste"));
     contextMenu->Enable(ProDeConstants::COMMAND_UNDO,
                         registry->isEnabled(ProDeConstants::CMD_NAME_UNDO));
     contextMenu->Enable(ProDeConstants::COMMAND_REDO,

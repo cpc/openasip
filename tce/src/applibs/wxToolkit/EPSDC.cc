@@ -35,6 +35,7 @@
 #include "VertexList.hh"
 #include "Conversion.hh"
 
+#if !wxCHECK_VERSION(3, 0, 0)
 /**
  * The Constructor.
  */
@@ -46,7 +47,6 @@ EPSDC::EPSDC() : wxDC(), fill_(false), fontSize_(0) {
  */
 EPSDC::~EPSDC() {
 }
-
 
 /**
  * Returns true, if the DC is ok to use.
@@ -576,3 +576,4 @@ void
 EPSDC::EndDoc() {
     // Do nothing.
 }
+#endif

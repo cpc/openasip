@@ -91,8 +91,16 @@ Proxim::~Proxim() {
 bool
 Proxim::OnInit() {
 
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
+
     const wxCmdLineEntryDesc cmdLineDesc[] = {
+
+#if wxCHECK_VERSION(3,0,0)
+        { wxCMD_LINE_PARAM,  NULL, NULL, "input file",
+#else
         { wxCMD_LINE_PARAM,  NULL, NULL, _T("input file"),
+#endif
+
           wxCMD_LINE_VAL_STRING,
           (wxCMD_LINE_PARAM_MULTIPLE | wxCMD_LINE_PARAM_OPTIONAL) },
         { wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0 }

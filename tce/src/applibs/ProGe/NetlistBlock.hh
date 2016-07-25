@@ -104,6 +104,11 @@ public:
 
     virtual bool isVirtual() const;
 
+    size_t packageCount() const;
+    const std::string& package(size_t idx) const;
+    void addPackage(const std::string& packageName);
+
+
 private:
     /// Vector type for NetlistBlock.
     typedef std::vector<NetlistBlock*> NetlistBlockTable;
@@ -128,6 +133,8 @@ private:
     PortTable ports_;
     /// Parameters of the block.
     ParameterTable parameters_;
+    /// The referenced packages by the module.
+    std::vector<std::string> packages_;
 
 };
 

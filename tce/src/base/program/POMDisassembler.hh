@@ -85,7 +85,7 @@ public:
         throw (Exception);
 
     static DisassemblyImmediate* createInlineImmediate(
-        const TTAProgram::Terminal& terminal);
+        const TTAProgram::Terminal& terminal, bool signExtend);
 
 private:
     static int labelCount(const TTAProgram::Program& program, Word address);

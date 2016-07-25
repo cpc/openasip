@@ -162,6 +162,9 @@ public:
     bool checkImplFiles(
         size_t& missingFiles,
         size_t& alternativeFiles);
+    bool isLibraryImplFile(
+            const std::string& path,
+            std::string& resolvedPath);
     
     /// ObjectState name for machine implementation.
     static const std::string OSNAME_MACHINE_IMPLEMENTATION;
@@ -208,6 +211,7 @@ private:
         const std::vector<std::string>& primarySearchPaths,
         const std::vector<std::string>& secondarySearchPaths,
         std::string& file);
+    bool isLibraryImplFile();
     void makeHDBPathRelative(
         const std::vector<std::string>& searchPaths,
         UnitImplementationLocation& implem) const;
