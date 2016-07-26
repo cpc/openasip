@@ -100,7 +100,8 @@ END_EVENT_TABLE()
 OperationDialog::OperationDialog(
     wxWindow* parent,
     HWOperation* operation) :
-    wxDialog(parent, -1, _T(""), wxDefaultPosition),
+    wxDialog(
+        parent, -1, _T(""), wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER),
     operation_(operation),
     name_(_T("")),
     resourceName_(_T("")),
@@ -1185,22 +1186,22 @@ OperationDialog::createContents(
     wxStaticText *item26 = new wxStaticText( parent, ID_LABEL_RESOURCE_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item27 = new wxTextCtrl( parent, ID_RESOURCE_NAME, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item27 = new wxTextCtrl( parent, ID_RESOURCE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item27, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item28 = new wxButton( parent, ID_ADD_RESOURCE, wxT("Add"), wxDefaultPosition, wxSize(50,-1), 0 );
+    wxButton *item28 = new wxButton( parent, ID_ADD_RESOURCE, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );
     item28->Enable( false );
     item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item29 = new wxButton( parent, ID_DELETE_RESOURCE, wxT("Delete"), wxDefaultPosition, wxSize(50,-1), 0 );
+    wxButton *item29 = new wxButton( parent, ID_DELETE_RESOURCE, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item29->Enable( false );
     item25->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item25->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    //item25->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item23->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item21->Add( item23, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item20->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
@@ -1210,7 +1211,7 @@ OperationDialog::createContents(
 
     wxGrid *item34 = new wxGrid( parent, ID_OPERAND_GRID, wxDefaultPosition, wxSize(400,200), wxWANTS_CHARS );
     item34->CreateGrid( 0, 0, wxGrid::wxGridSelectCells );
-    item32->Add( item34, 0, wxGROW|wxALL, 5 );
+    item32->Add( item34, 1, wxGROW|wxALL, 5 );
 
     item20->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
