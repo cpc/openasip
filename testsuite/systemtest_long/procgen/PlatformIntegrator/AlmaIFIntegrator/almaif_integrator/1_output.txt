@@ -1,0 +1,110 @@
+./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd:109:32:warning: universal integer bound must be numeric literal or attribute
+analyze ./vhdl/almaif_core_imem_mau_pkg.vhdl
+analyze ./vhdl/almaif_core_globals_pkg.vhdl
+analyze ./vhdl/tce_util_pkg.vhdl
+analyze ./vhdl/almaif_core_params_pkg.vhdl
+analyze ./platform/debugger_if-pkg.vhdl
+analyze ./platform/registers-pkg.vhdl
+analyze ./platform/almaif_core_toplevel_params_pkg.vhdl
+analyze ./platform/almaif_core_toplevel.vhdl
+analyze ../data/tta-almaif-tb.vhdl
+analyze ./vhdl/almaif_core.vhdl
+analyze ./platform/tta-accel-entity.vhdl
+analyze ./platform/almaif_core_xilinx_blockram.vhdl
+analyze ./gcu_ic/gcu_opcodes_pkg.vhdl
+analyze ./gcu_ic/ifetch.vhdl
+analyze ./gcu_ic/idecompressor.vhdl
+analyze ./gcu_ic/decoder.vhdl
+analyze ./vhdl/mul.vhdl
+analyze ./vhdl/ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw.vhdl
+analyze ./vhdl/util_pkg.vhdl
+analyze ./vhdl/monolithic_alu_shladd_small.vhdl
+analyze ./vhdl/rf_1wr_1rd_always_1_guarded_0.vhd
+analyze ./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd
+./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd:109:32:warning: universal integer bound must be numeric literal or attribute
+analyze ./gcu_ic/ic.vhdl
+analyze ./gcu_ic/input_socket_1.vhdl
+analyze ./gcu_ic/output_socket_3_1.vhdl
+analyze ./gcu_ic/input_socket_2.vhdl
+analyze ./gcu_ic/output_socket_4_1.vhdl
+analyze ./gcu_ic/output_socket_2_1.vhdl
+analyze ./gcu_ic/output_socket_1_1.vhdl
+analyze ./platform/tta-axislave-entity.vhdl
+analyze ./platform/debugger-entity.vhdl
+analyze ./platform/tta-axislave-rtl.vhdl
+analyze ./platform/cdc-entity.vhdl
+analyze ./platform/dbregbank-entity.vhdl
+analyze ./platform/dbsm-entity.vhdl
+analyze ./platform/cdc-rtl.vhdl
+analyze ./platform/dbregbank-rtl.vhdl
+analyze ./platform/dbsm-rtl.vhdl
+analyze ./platform/debugger-struct.vhdl
+analyze ./platform/tta-accel-rtl.vhdl
+elaborate tta_almaif_tb
+DMEM size: 32768
+PMEM size: 2048
+IMEM size: 32768
+Data at address 0: 732765498
+Data at address 1: 0
+Data at address 2: 1
+Data at address 3: 1
+Data at address 4: 2
+Data at address 5: 3
+Data at address 6: 5
+Data at address 7: 8
+Data at address 8: 13
+Data at address 9: 21
+Data at address 10: 34
+Data at address 11: 55
+Data at address 12: 89
+Data at address 13: 144
+Data at address 14: 233
+Data at address 15: 377
+Data at address 16: 610
+Data at address 17: 987
+Data at address 18: 1597
+Data at address 19: 2584
+Data at address 20: 4181
+Data at address 21: 6765
+Data at address 22: 10946
+Data at address 23: 17711
+Data at address 24: 28657
+Data at address 25: 46368
+Data at address 26: 75025
+Data at address 27: 121393
+Data at address 28: 196418
+Data at address 29: 317811
+Data at address 30: 514229
+Data at address 31: 832040
+Data at address 32: 1346269
+Data at address 33: 2178309
+Data at address 34: 3524578
+Data at address 35: 5702887
+Data at address 36: 9227465
+Data at address 37: 14930352
+Data at address 38: 24157817
+Data at address 39: 39088169
+Data at address 40: 63245986
+Data at address 41: 102334155
+Data at address 42: 165580141
+Data at address 43: 267914296
+Data at address 44: 433494437
+Data at address 45: 701408733
+Data at address 46: 1134903170
+Data at address 47: 1836311903
+Data at address 48: 823731425
+Data at address 49: 512559680
+Data at address 50: 1336291105
+Data at address 51: 1848850785
+Data at address 52: 1037658242
+Data at address 53: 739025379
+Data at address 54: 1776683621
+Data at address 55: 368225352
+Data at address 56: 2144908973
+Data at address 57: 365650677
+Data at address 58: 363076002
+Data at address 59: 728726679
+Data at address 60: 1091802681
+Data at address 61: 1820529360
+Data at address 62: 764848393
+Data at address 63: 437894105

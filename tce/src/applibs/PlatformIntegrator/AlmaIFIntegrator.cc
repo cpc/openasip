@@ -50,7 +50,7 @@ const TCEString AlmaIFIntegrator::PMEM_NAME = "param";
 const TCEString AlmaIFIntegrator::ALMAIF_MODULE = "tta_accel";
 
 
-AlmaIFIntegrator::AlmaIFIntegrator(): PlatformIntegrator() {
+AlmaIFIntegrator::AlmaIFIntegrator() : PlatformIntegrator() {
 }
 
 
@@ -382,7 +382,6 @@ AlmaIFIntegrator::addMemoryPorts(const TCEString as_name,
 
 void
 AlmaIFIntegrator::addAlmaifFiles() {
-    bool instantiate = true;
     std::vector<TCEString> almaifFiles;
 
     TCEString basePath = Environment::dataDirPath("ProGe");

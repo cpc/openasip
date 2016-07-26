@@ -635,7 +635,7 @@ begin
             -- endianes dependent code
             when "00" =>
               r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
-                            sr1_reg'length);
+                            r1_reg'length);
             when "01" =>
               r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1
                                         downto dataw-2*SIZE_OF_BYTE),

@@ -69,7 +69,7 @@ entity tta_accel is
     core_busy : out std_logic;
     core_imem_data : out std_logic_vector(IMEMDATAWIDTH-1 downto 0);
     core_imem_en_x : in std_logic;
-    core_imem_addr : in std_logic_vector(IMEMADDRWIDTH-1downto 0);
+    core_imem_addr : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
     core_fu_LSU_DATA_addr : in std_logic_vector(fu_LSU_DATA_addrw-2-1 downto 0);
     core_fu_LSU_DATA_mem_en : in std_logic_vector(1-1 downto 0);
     core_fu_LSU_DATA_wr_en : in std_logic_vector(1-1 downto 0);

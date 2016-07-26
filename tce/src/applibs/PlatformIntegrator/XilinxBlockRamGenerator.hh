@@ -75,7 +75,7 @@ protected:
 
     virtual TCEString moduleName() const;
 
-    virtual TCEString instanceName(int memIndex) const;
+    virtual TCEString instanceName(int) const;
 
     TCEString almaifPortName(const TCEString& portBaseName);
 

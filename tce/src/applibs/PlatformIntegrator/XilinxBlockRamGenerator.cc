@@ -187,7 +187,7 @@ XilinxBlockRamGenerator::moduleName() const {
 
 
 TCEString
-XilinxBlockRamGenerator::instanceName(int memIndex) const {
+XilinxBlockRamGenerator::instanceName(int) const {
     TCEString iname("onchip_mem_");
     return iname << signalPrefix_;
 }
