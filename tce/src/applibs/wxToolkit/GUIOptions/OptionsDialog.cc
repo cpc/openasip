@@ -776,7 +776,7 @@ OptionsDialog::createContents(
     item0->AddGrowableCol( 0 );
     item0->AddGrowableRow( 0 );
 
-    wxNotebook *item2 = new wxNotebook( parent, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+    wxNotebook *item2 = new wxNotebook( parent, ID_NOTEBOOK, wxDefaultPosition, wxSize(570,-1), 0 );
 #if !wxCHECK_VERSION(2,5,2)
     wxNotebookSizer *item1 = new wxNotebookSizer( item2 );
 #else
