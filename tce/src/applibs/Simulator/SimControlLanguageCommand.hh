@@ -42,6 +42,7 @@
 #include "Exception.hh"
 #include "SimulatorConstants.hh"
 #include "Address.hh"
+#include "MemorySystem.hh"
 
 class SimulatorFrontend;
 class Breakpoint;
@@ -97,6 +98,16 @@ public:
     bool verifyBreakpointHandles(
         const std::vector<DataObject>& arguments, 
         std::size_t startIndex = 1);
+
+protected:
+    bool setMemoryAddress(
+        const std::string& addressString,
+        std::string& addressSpaceName,
+        std::size_t& memoryAddress);
+    bool setMemoryPointer(
+        MemorySystem::MemoryPtr& memory,
+        const std::string& addressSpaceName);
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -45,20 +45,12 @@
 #include <iostream>
 #include <fstream>
 
-/**
- * Constructor.
- *
- * Sets the name of the command to the base class.
- */
+
 MemWriteCommand::MemWriteCommand() : 
     SimControlLanguageCommand("load_data") {
 }
 
-/**
- * Destructor.
- *
- * Does nothing.
- */
+
 MemWriteCommand::~MemWriteCommand() {
 }
 
@@ -95,15 +87,7 @@ MemWriteCommand::execute(const std::vector<DataObject>& arguments)
     }
 
     const std::string addressString = arguments.at(nextArg).stringValue();
-    try {
-        const TTAProgram::Address& parsedAddress =
-            parseDataAddressExpression(addressString);
-        if (&parsedAddress.space() != 
-            &TTAMachine::NullAddressSpace::instance()) {
-            addressSpaceName = parsedAddress.space().name();
-        }
-        writeAddress = parsedAddress.location();
-    } catch(const IllegalParameters& n) {
+    if (!setMemoryAddress(addressString, addressSpaceName, writeAddress)) {
         return false;
     }
 
@@ -121,31 +105,8 @@ MemWriteCommand::execute(const std::vector<DataObject>& arguments)
     }
 
     MemorySystem::MemoryPtr memory;
-
-    if (simulatorFrontend().memorySystem().memoryCount() < 1) {
-        interpreter()->setError(
-            SimulatorToolbox::textGenerator().text(
-                Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+    if (!setMemoryPointer(memory, addressSpaceName)) {
         return false;
-    } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
-        memory = simulatorFrontend().memorySystem().memory(0);
-    } else {
-        /// must have the address space defined
-        if (addressSpaceName == "") {
-            interpreter()->setError(
-                SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_NO_ADDRESS_SPACE_GIVEN).str());
-            return false;
-        }
-        try {
-            memory = 
-                simulatorFrontend().memorySystem().memory(addressSpaceName);
-        } catch (const InstanceNotFound&) {
-            interpreter()->setError(
-                SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
-            return false;
-        }
     }
 
     std::ifstream inputFile(fileName.c_str(), std::ios::binary);
@@ -170,13 +131,7 @@ MemWriteCommand::execute(const std::vector<DataObject>& arguments)
     return true;
 }
 
-/**
- * Returns the help text for this command.
- * 
- * Help text is searched from SimulatorTextGenerator.
- *
- * @return The help text.
- */
+
 std::string 
 MemWriteCommand::helpText() const {
     return SimulatorToolbox::textGenerator().text(
