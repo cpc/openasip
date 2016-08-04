@@ -723,9 +723,9 @@ SimControlLanguageCommand::verifyBreakpointHandles(
 }
 
 /**
- * Sets corresponding memory address and address space given by address string.
+ * Parses the address string to corresponding memory address and address space.
  *
- * @param addressString Memory address.
+ * @param addressString Memory address command string to parse.
  * @param addressSpaceName Address space name to be set.
  * @param memoryAddress Memory address to be set.
  * @return true on success.
