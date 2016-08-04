@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of MemDumpCommand class
  *
  * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Alex Hirvonen 2016
  * @note rating: red
  */
 
@@ -136,8 +137,8 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
             ++i;
         } else if (i == arguments.size() - 1) {
             const std::string addressString = arguments.at(i).stringValue();
-            if (!setMemoryAddress(addressString, addressSpaceName,
-                newDisplayedAddress)) {
+            if (!setMemoryAddress(
+                    addressString, addressSpaceName, newDisplayedAddress)) {
                 return false;
             }
         } else {
