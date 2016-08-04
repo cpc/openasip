@@ -354,6 +354,11 @@ HDBManager::HDBManager(const std::string& hdbFile)
         throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
     }
 
+    if (!FileSystem::fileIsWritable(hdbFile)) {
+        string errorMsg = "File '" + hdbFile + "' is not writable.";
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    }
+
     try {
         dbConnection_ = &db_->connect(hdbFile);
     } catch (const RelationalDBException& exception) {
