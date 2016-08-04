@@ -722,6 +722,75 @@ SimControlLanguageCommand::verifyBreakpointHandles(
     return true;
 }
 
+/**
+ * Sets corresponding memory address and address space given by address string.
+ *
+ * @param addressString Memory address.
+ * @param addressSpaceName Address space name to be set.
+ * @param memoryAddress Memory address to be set.
+ * @return true on success.
+ */
+bool
+SimControlLanguageCommand::setMemoryAddress(
+    const std::string& addressString,
+    std::string& addressSpaceName,
+    std::size_t& memoryAddress) {
+
+    try {
+        const TTAProgram::Address& parsedAddress =
+            parseDataAddressExpression(addressString);
+        if (&parsedAddress.space() !=
+            &TTAMachine::NullAddressSpace::instance()) {
+            addressSpaceName = parsedAddress.space().name();
+        }
+        memoryAddress = parsedAddress.location();
+    } catch(const IllegalParameters& n) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Sets memory instance from a given AddressSpaceName to given memory.
+ *
+ * @param memory Memory pointer to be set
+ * @param addressSpaceName The name of the address space.
+ * @return true on success.
+ */
+bool
+SimControlLanguageCommand::setMemoryPointer(
+    MemorySystem::MemoryPtr& memory,
+    const std::string& addressSpaceName) {
+
+    if (simulatorFrontend().memorySystem().memoryCount() < 1) {
+        interpreter()->setError(
+            SimulatorToolbox::textGenerator().text(
+                Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+        return false;
+    } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
+        memory = simulatorFrontend().memorySystem().memory(0);
+    } else {
+        /// must have the address space defined
+        if (addressSpaceName == "") {
+            interpreter()->setError(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_NO_ADDRESS_SPACE_GIVEN).str());
+            return false;
+        }
+        try {
+            memory =
+                simulatorFrontend().memorySystem().memory(addressSpaceName);
+        } catch (const InstanceNotFound&) {
+            interpreter()->setError(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+            return false;
+        }
+    }
+    return true;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // SimControlLanguageSubCommand
 ///////////////////////////////////////////////////////////////////////////////

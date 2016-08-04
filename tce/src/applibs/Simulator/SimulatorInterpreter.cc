@@ -59,6 +59,7 @@
 #include "WatchCommand.hh"
 #include "CommandsCommand.hh"
 #include "SymbolAddressCommand.hh"
+#include "MemWriteCommand.hh"
 
 /**
  * Constructor.
@@ -103,6 +104,7 @@ SimulatorInterpreter::SimulatorInterpreter(
     addCustomCommand(new NextiCommand());
     addCustomCommand(new KillCommand());
     addCustomCommand(new MemDumpCommand());
+    addCustomCommand(new MemWriteCommand());
     addCustomCommand(new WatchCommand());
     addCustomCommand(new CommandsCommand());
     addCustomCommand(new SymbolAddressCommand());

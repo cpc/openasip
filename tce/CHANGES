@@ -5,17 +5,21 @@ Notable changes and features
 ----------------------------
 - Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
 
+Other features and improvements
+------------------------------
+- TCE_INSTALL_DIR environment variable can be set pointing to directory where
+  user manually installed TCE
+- Added export to SVG (wxwidgets 3.* only) in ProDe and Proxim.
+- Added ability to modify memory in simulator with load_data command.
+
 Usability features
 ------------------
 - HBDEditor automatically fills new implementations with sequential opcode
   numbers
 - ProDe shows machine instruction width in status bar
 - Column/list sorting in some ProDe/OSEd dialogs
-- TCE_INSTALL_DIR environment variable can be set pointing to directory where
-  user manually installed TCE
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
-- Added export to SVG (wxwidgets 3.* only) in ProDe.
 
 1.13   February 2016
 ====================

@@ -136,15 +136,8 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
             ++i;
         } else if (i == arguments.size() - 1) {
             const std::string addressString = arguments.at(i).stringValue();
-            try {
-                const TTAProgram::Address& parsedAddress =
-                    parseDataAddressExpression(addressString);
-                if (&parsedAddress.space() != 
-                    &TTAMachine::NullAddressSpace::instance()) {
-                    addressSpaceName = parsedAddress.space().name();
-                }
-                newDisplayedAddress = parsedAddress.location();
-            } catch(const IllegalParameters& n) {
+            if (!setMemoryAddress(addressString, addressSpaceName,
+                newDisplayedAddress)) {
                 return false;
             }
         } else {
@@ -165,39 +158,17 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     lastDisplayedAddress = newDisplayedAddress;
 
     MemorySystem::MemoryPtr memory;
-
-    size_t MAUSize = 8;
-
-    if (simulatorFrontend().memorySystem().memoryCount() < 1) {
-        interpreter()->setError(
-            SimulatorToolbox::textGenerator().text(
-                Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+    if (!setMemoryPointer(memory, addressSpaceName)) {
         return false;
-    } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
-        MAUSize = 
-            simulatorFrontend().memorySystem().addressSpace(0).width();
-        memory = simulatorFrontend().memorySystem().memory(0);
-    } else {
-        /// must have the address space defined
-        if (addressSpaceName == "") {
-            interpreter()->setError(
-                SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_NO_ADDRESS_SPACE_GIVEN).str());
-            return false;
-        }
-        try {
-            MAUSize = 
-                simulatorFrontend().memorySystem().
-                addressSpace(addressSpaceName).width();
+    }
 
-            memory = 
-                simulatorFrontend().memorySystem().memory(addressSpaceName);
-        } catch (const InstanceNotFound&) {
-            interpreter()->setError(
-                SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
-            return false;
-        }
+    size_t MAUSize;
+    if (simulatorFrontend().memorySystem().memoryCount() == 1) {
+        MAUSize = simulatorFrontend().memorySystem().addressSpace(0).width();
+    } else {
+        MAUSize =
+            simulatorFrontend().memorySystem().
+            addressSpace(addressSpaceName).width();
     }
 
     if (MAUSize*newMAUCount > SIMULATOR_MAX_INTWORD_BITWIDTH) {

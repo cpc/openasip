@@ -148,6 +148,19 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
         "command is maintained. ");
 
     addText(
+        Texts::TXT_INTERP_HELP_LOADDATA,
+        "Reads binary data from filename to the specified address in "
+        "memory\n\n"
+
+        "\tload_data [/a address_space_name] address filename [size]\n\n"
+
+        "Parameter /a can be used to select the address space if there are "
+        "multiple address spaces in the target machine.\n\n"
+
+        "Read [size] in bytes is optional."
+        );
+
+    addText(
         Texts::TXT_CLI_ONLINE_HELP, 
         "The interactive simulation can be controlled by using "
         "simulator control language, which is based on the Toolset "

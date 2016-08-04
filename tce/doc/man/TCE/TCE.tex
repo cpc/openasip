@@ -7278,18 +7278,21 @@ message:
   This command is used to terminate simulation and exit the Simulator.
 \end{description}
 
-\subsubsection{Examining Program Code and Data}
+\subsubsection{Examining and modifying Program Code and Data}
 \label{ssec:debug-data}
 
-The Simulator allows to examine the program being simulated and the data it
-uses
+The Simulator allows to examine and modify the program being simulated and
+the data it uses
 
 \begin{description}
-\item[x {[/\emph{nfu}][\emph{addr}]}] %
+\item[x {[/\emph{anfu}][\emph{addr}]}] %
   This low-level command prints the data in memory starting at specified
   addresses \emph{addr}.  The optional parameters \emph{n} and
   \emph{u} specify how much memory to display and how to format it.
   \begin{description}
+  \item[\emph{a}] %
+    Parameter [/\emph{a address\_space}] can be used to select the address
+    space if there are multiple address spaces in the target machine.
   \item[\emph{n}] %
     Repeat count: how many data words (counting by units \emph{u}) to
     display.  If omitted, it defaults to 1.
@@ -7299,8 +7302,7 @@ uses
   \item[\emph{u}] %
     Unit size: `b' (MAU, a byte in byte-addressed memories), `h' (double
     MAU), `w' (quadruple word, a `word' in byte-addressed 32-bit
-    architectures), `g' (giant words, 8 MAU's).  The unit size is ignored
-    for formats `s' and `i'.
+    architectures).  The unit size is ignored for formats `s' and `i'.
   \end{description}
 
   If \emph{addr} is omitted, then the first address past the last address
@@ -7310,6 +7312,13 @@ uses
 
   The values printed by command \emph{x} are not entered in the value
   history (see Section~\ref{ssec:debug-history}).
+
+\item[load\_data {[/\emph{a address space}] \emph{address file }[\emph{size}]}] %
+
+  Reads binary data from filename to the specified address in memory.
+  Optional parameter /\emph{a address\_space} can be used to select the address
+  space if there are multiple address spaces in the target machine.
+  Optional parameter size specifies read size in bytes.
 
 \item[symbol\_address \emph{datasym} ] %
 
