@@ -111,7 +111,8 @@ begin
   imem_addr <= pc_reg when (lock = '0')   else pc_prev_reg;
 
   -- propagate lock to global lock
-  glock      <= busy or reset_lock or (not (fetch_en or no_glock_loopback_g));
+  glock      <= not db_rstx or busy or reset_lock
+                or (not (fetch_en or no_glock_loopback_g));
   ra_out     <= return_addr_reg;
   fetchblock <= instruction_reg;
 
@@ -151,7 +152,7 @@ begin
         return_addr_reg <= (others => '0');
         instruction_reg <= (others => '0');
         reset_cntr      <= 0;
-        reset_lock      <= '0';
+        reset_lock      <= '1';
         cyclecnt        <= (others => '0');
       elsif lock = '0' then
         if fetch_en = '1' then
