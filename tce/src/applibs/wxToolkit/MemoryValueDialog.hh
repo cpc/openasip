@@ -60,7 +60,7 @@ private:
      * Widget ids.
      */
     enum {
-        ID_VALUE = 100000
+        ID_VALUE = 10000
     };
 
     /// NumberControl for giving new values to memory.
