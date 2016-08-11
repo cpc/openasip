@@ -513,7 +513,7 @@ TemplateListDialog::createContents(
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
     templateSizer_ = item2;
 
-    wxListCtrl *item4 = new wxListCtrl( parent, ID_TEMPLATE_LIST, wxDefaultPosition, wxSize(-1,200), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item4 = new wxListCtrl( parent, ID_TEMPLATE_LIST, wxDefaultPosition, wxSize(160,200), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
@@ -542,7 +542,7 @@ TemplateListDialog::createContents(
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
     slotSizer_ = item11;
 
-    wxListCtrl *item13 = new wxListCtrl( parent, ID_SLOT_LIST, wxDefaultPosition, wxSize(-1,245), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item13 = new wxListCtrl( parent, ID_SLOT_LIST, wxDefaultPosition, wxSize(250,245), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
