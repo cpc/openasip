@@ -735,7 +735,7 @@ ProcessorImplementationWindow::doSaveIDF() {
         defaultFile = _T(".idf");
     }
 
-    wxString fileTypes = _T("Implementation Definition File (.idf)|*.idf|");
+    wxString fileTypes = _T("Implementation Definition File (.idf)|*.idf");
 
     wxFileDialog dialog(
         this, message, defaultDir, defaultFile, fileTypes,
