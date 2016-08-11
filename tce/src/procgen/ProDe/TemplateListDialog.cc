@@ -208,8 +208,8 @@ TemplateListDialog::updateSlotList() {
     InstructionTemplate* templ = selectedTemplate();
 
     if (templ == NULL) {
-	FindWindow(ID_ADD_SLOT)->Disable();
-	return;
+        FindWindow(ID_ADD_SLOT)->Disable();
+        return;
     }
 
     FindWindow(ID_ADD_SLOT)->Enable();
@@ -226,10 +226,10 @@ TemplateListDialog::updateSlotList() {
 
             // Add slot Destination.
 
-	    // Set slot destination.
-	    wxString name = WxConversion::toWxString(
-		templ->destinationOfSlot(slot->name())->name());
-	    slotList_->SetItem(0, 1, name);
+            // Set slot destination.
+            wxString name = WxConversion::toWxString(
+                templ->destinationOfSlot(slot->name())->name());
+            slotList_->SetItem(0, 1, name);
 
             // Set slot width.
             wxString width = WxConversion::toWxString(
@@ -240,7 +240,7 @@ TemplateListDialog::updateSlotList() {
 
     // Add immediate slots.
     Machine::ImmediateSlotNavigator immsNavigator =
-	machine_->immediateSlotNavigator();
+        machine_->immediateSlotNavigator();
     for (int i = 0; i < immsNavigator.count(); i++) {
         if (templ->usesSlot(immsNavigator.item(i)->name())) {
 
@@ -250,10 +250,10 @@ TemplateListDialog::updateSlotList() {
             slotList_->InsertItem(
                 0, WxConversion::toWxString(slot->name()));
 
-	    // Set slot destination.
-	    wxString name = WxConversion::toWxString(
-		templ->destinationOfSlot(slot->name())->name());
-	    slotList_->SetItem(0, 1, name);
+            // Set slot destination.
+            wxString name = WxConversion::toWxString(
+                templ->destinationOfSlot(slot->name())->name());
+            slotList_->SetItem(0, 1, name);
 
             // Set slot width.
             wxString width = WxConversion::toWxString(
@@ -319,7 +319,7 @@ TemplateListDialog::selectedTemplate() {
         item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
     if (item < 0) {
-	return NULL;
+        return NULL;
     }
 
     InstructionTemplate* temp =
@@ -415,7 +415,7 @@ void
 TemplateListDialog::onAddSlot(wxCommandEvent&) {
 
     if (selectedTemplate() == NULL) {
-	assert(false);
+        assert(false);
     }
 
     // Check that there is at least one immediate unit in the machine.
@@ -446,7 +446,7 @@ TemplateListDialog::onAddSlot(wxCommandEvent&) {
 
     // check immediate slots
     const Machine::ImmediateSlotNavigator immsNavigator =
-	machine_->immediateSlotNavigator();
+        machine_->immediateSlotNavigator();
     for (int i = 0; i < immsNavigator.count(); i++) {
         if (!selectedTemplate()->usesSlot(immsNavigator.item(i)->name())) {
             available = true;
