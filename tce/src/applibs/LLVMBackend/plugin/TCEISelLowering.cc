@@ -400,7 +400,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
 
     if (ValToStore.getNode()) {
-      SDValue StackPtr = DAG.getRegister(TCE::SP, MVT::i32);
+      SDValue StackPtr = DAG.getCopyFromReg(Chain, dl, TCE::SP, getPointerTy());
 #ifdef LLVM_OLDER_THAN_3_7
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
 #else
