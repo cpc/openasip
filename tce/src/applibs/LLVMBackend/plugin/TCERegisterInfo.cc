@@ -85,8 +85,12 @@ const uint16_t*
 const MCPhysReg*
 #endif
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-    static const uint16_t calleeSavedRegs[] = { 0 };
-    return calleeSavedRegs;
+    static const uint16_t calleeSavedRegs[] = { TCE::FP, 0 };
+    if (hasFP(*MF)) {
+        return calleeSavedRegs+1; // skip first, it's reserved
+    } else {
+        return calleeSavedRegs;
+    }
 }
 
 /**
@@ -100,6 +104,11 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     reserved.set(TCE::KLUDGE_REGISTER);
     reserved.set(TCE::RA);
     reserved.set(TCE::IRES0);
+
+    if (hasFP(mf)) {
+        reserved.set(TCE::FP);
+    }
+
     return reserved;
 }
 
@@ -155,14 +164,16 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
         hasCalls = containsCall(mf);
     }
 
-    numBytes = (numBytes + 3) & ~3; // stack size alignment
+    // stack size alignment
+    numBytes = (numBytes + (stackAlignment_-1)) & ~(stackAlignment_-1);
+
 
     MachineBasicBlock::iterator ii = mbb.begin();
 
     DebugLoc dl = (ii != mbb.end() ?
                    ii->getDebugLoc() : DebugLoc());
 
-    if (hasCalls) {
+    if (hasCalls && !mf.getFunction()->doesNotReturn()) {
         BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
@@ -255,7 +266,11 @@ TCERegisterInfo::getRARegister() const {
 
 unsigned
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
-    return 0;
+    if (hasFP(mf)) {
+        return TCE::FP;
+    } else {
+        return 0;
+    }
 }
 
 bool

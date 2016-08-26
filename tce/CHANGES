@@ -21,6 +21,11 @@ Usability features
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
 
+Notable bugfixes
+----------------
+- If the processor had narrower than 32-bit buses that can transport
+  immediate values, broken code could have been generated
+
 1.13   February 2016
 ====================
 

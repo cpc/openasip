@@ -598,7 +598,7 @@ SimulateDialog::createContents(
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
     NumberControl *item6 = new NumberControl(
-        parent, ID_VALUE, wxDefaultPosition, wxSize(140, 20), 
+        parent, ID_VALUE, wxDefaultPosition, wxSize(200, -1),
         NumberControl::MODE_BINARY | NumberControl::MODE_INT | 
         NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL |
         NumberControl::MODE_FLOAT | NumberControl::MODE_DOUBLE);

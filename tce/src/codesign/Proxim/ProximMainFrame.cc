@@ -692,7 +692,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 	    memoryWindow = new ProximMemoryWindow(
                 this, ProximConstants::ID_MEMORY_WINDOW);
             ProximToolbox::addFramedWindow(
-                memoryWindow, _T("Memory"), false, wxSize(600, 400));
+                memoryWindow, _T("Memory"), false, wxSize(620, 400));
 	} else {
 	    memoryWindow->GetParent()->Destroy();
 	    memoryWindow = NULL;
