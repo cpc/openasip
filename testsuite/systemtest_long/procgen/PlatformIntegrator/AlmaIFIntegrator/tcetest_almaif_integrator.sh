@@ -44,7 +44,7 @@ then
   ghdl -i --workdir=work ../data/tta-almaif-tb.vhdl
   ghdl -m --workdir=work --ieee=synopsys -fexplicit --warn-no-unused --warn-no-specs tta_almaif_tb
 
-  ./tta_almaif_tb --stop-time=523900ns 2>/dev/null || eexit "Simulation failed"
+  ./tta_almaif_tb --stop-time=1500us 2>/dev/null || eexit "Simulation failed"
 
   cd ..
   cat run.log
