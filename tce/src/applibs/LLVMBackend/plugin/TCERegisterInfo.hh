@@ -77,6 +77,8 @@ namespace llvm {
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;
+        // TODO: call TCEFrameInfo::hasFP(MF)
+        void hasFP(const MachineFunction &MF) const { return false; };
 
     private:
         const TargetInstrInfo& tii_;
