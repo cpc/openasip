@@ -55,7 +55,7 @@ namespace llvm {
 
     class TCEInstrInfo : public TCEGenInstrInfo {
     public:
-        TCEInstrInfo(const TCETargetMachinePlugin* plugin, int stackAlignment);
+        TCEInstrInfo(const TCETargetMachinePlugin* plugin);
         virtual ~TCEInstrInfo();
 
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
