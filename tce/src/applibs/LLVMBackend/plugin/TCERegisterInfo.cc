@@ -173,7 +173,10 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     DebugLoc dl = (ii != mbb.end() ?
                    ii->getDebugLoc() : DebugLoc());
 
-    if (hasCalls && !mf.getFunction()->doesNotReturn()) {
+    // No need to save RA if does not call anything or does no return
+    // if (hasCalls && !mf.getFunction()->doesNotReturn()) {
+    // However, there is a bug elsewhere and this triggers it.
+    if (hasCalls) {
         BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);

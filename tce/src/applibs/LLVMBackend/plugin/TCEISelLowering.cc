@@ -400,10 +400,19 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
 
     if (ValToStore.getNode()) {
-      SDValue StackPtr = DAG.getCopyFromReg(Chain, dl, TCE::SP, getPointerTy());
 #ifdef LLVM_OLDER_THAN_3_7
-      SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
+        SDValue StackPtr = DAG.getCopyFromReg(Chain, dl, TCE::SP, getPointerTy());
+        SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
 #else
+#if defined(LLVM_OLDER_THAN_3_8)
+        SDValue StackPtr = DAG.getCopyFromReg(
+            Chain, dl, TCE::SP, getPointerTy(
+                *getTargetMachine().getDataLayout(), 0));
+#else
+        SDValue StackPtr = DAG.getCopyFromReg(
+            Chain, dl, TCE::SP, getPointerTy(
+                getTargetMachine().createDataLayout(), 0));
+#endif
       SDValue PtrOff = DAG.getConstant(ArgOffset, dl, MVT::i32);
 #endif
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
