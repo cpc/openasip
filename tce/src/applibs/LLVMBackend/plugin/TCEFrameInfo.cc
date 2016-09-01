@@ -106,7 +106,6 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
 
 bool TCEFrameInfo::hasFP(const MachineFunction &MF) const {
     if (MF.getFrameInfo()->hasVarSizedObjects()) {
-        assert(false && "var objects not yet supported");
         return true;
     }
     return false;
@@ -142,15 +141,7 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
     MachineBasicBlock& mbb = mf.front();
     MachineFrameInfo* mfi = mf.getFrameInfo();
     int numBytes = (int)mfi->getStackSize();
-    if (mfi->hasVarSizedObjects()) {
-        TCEString errMsg;
-        errMsg << "ERROR: function '"
-	       << (std::string)(mf.getFunction()->getName())
-               << "' contains dynamic stack objects which are not supported by tcecc yet.\n"
-               << "See the user manual section Unsupported C Language Constructs for more info.\n";
-        std::cerr << errMsg;
-        exit(1);
-    }
+
     // this unfortunately return true for inline asm.
     bool hasCalls = mfi->hasCalls();
     if (hasCalls) {
