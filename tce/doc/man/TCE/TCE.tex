@@ -5508,20 +5508,20 @@ Currently the compiler supports the ISO C99 standard and its standard library
 almost perfectly. Therefore, it is easier to list the features which are 
 known \textit{not} to be supported. They are as follows:
 
-\begin{enumerate}
- \item Variable sized local arrays.
-
-Sizes of the arrays that reside in stack must be compile time known. This is
-due to the lack of frame pointer (fp) in the default ABI of TTA which makes dynamic
-stack allocation hard to implement. We have considered adding an fp as a customizable
-feature but it hasn't been seen as an important enough feature just yet.
-
-\item alloca().
-
-While strictly not a standard function, some legacy code uses this to allocate
-memory dynamically on the stack. See the previous item for an explanation.
-
-\end{enumerate}
+%\begin{enumerate}
+% \item Variable sized local arrays.
+%
+%Sizes of the arrays that reside in stack must be compile time known. This is
+%due to the lack of frame pointer (fp) in the default ABI of TTA which makes dynamic
+%stack allocation hard to implement. We have considered adding an fp as a customizable
+%feature but it hasn't been seen as an important enough feature just yet.
+%
+%\item alloca().
+%
+%While strictly not a standard function, some legacy code uses this to allocate
+%memory dynamically on the stack. See the previous item for an explanation.
+%
+%\end{enumerate}
 
 
 
@@ -8631,42 +8631,91 @@ aligned base memory operations shipped with TCE.
 
 The register assigned to act as the stack pointer register (referred to as 
 SPR) is the register number 0 of the first 32b register file in the ADF. 
-There is no frame pointer.
+There is optional frame pointer(FPR) which is enabled on only functions with
+variable arrays or alloca calls. The FPR is the the third 32-bit register
+available in the ADF, calculated in round-robin fashion between register files.
+
+The default mode without FPR is called NoFP mode and the mode with FPR is
+called HasFP mode. On NoFP mode the FPR is a freely usable GPR with
+callee-save semantics.
+The two stack frame modes are function-specific, same program can contain
+functions which use either mode and the parameter passing of the two modes
+is compatible in such way that code in either mode can call any function
+which uses either mode.
 
 \begin{figure}[t]
   \centerline{
-  \psfig{figure=eps/StackFrame.eps,width=9.75cm}
+  \psfig{figure=eps/stack.eps,width=1.00\textwidth}
   }
-  \caption{Stack layout for a situation with two call frames, A() calling B().}
+  \caption{Stack layout(NoFP mode on left, HasFP mode on right)
+for a situation with two call frames, A() calling B().
+Functions like B that do not call any other functions do not store
+their return address to the stack.}
   \label{fig:stack-frame}
 \end{figure}
+
+The stack of TTA's supported by TCE grows downwards.
+%therefore the incoming arguments and the local variables on
+%the local stack frame have positive offsets when accessed from the current
+%function, whereas the outgoing arguments have negative stack offsets.
 
 The stack of a program is divided up into blocks of contiguous memory called
 \emph{frames}. Each frame is activated upon entering a function and is
 destroyed (its storage is made available for new frames) when that function
-invocation returns. The stack frame of a function contains the arguments
-with which the function is called and variables local to the procedure.
+invocation returns.
+%The stack frame of a function contains the arguments
+%with which the function is called and variables local to the procedure.
 
-The stack pointer register (SPR) always points to the the first word past
-the area of the current frame that is dedicated to local variables.  The
-area of the stack past the local variables area contains the outgoing
-arguments of called functions (if any).  The stack of TTA's supported by TCE
+In NoFP mode, the stack pointer register (SPR) always points to the
+place of last outgoing variable that the function can call, and this
+pointer is only adjusted at the beginning and end of a function.
+If the function contains calls to another functions, the first word
+after(below) the old stack pointer contains the old return address.
+After(below) that is the area for the local variables.
+The local variables and spilled registers are the same area, there is no
+distinction between them.
+After(below) the local variables is the are for outgoing parameters.
+When a function calls multiple other functions,
+the space allocated for outgoing parameters is calculated by the size
+of parameters of the call which needs most parameter area.
+
+In HasFP mode, space for the outgoing variables is not allocated
+in the beginning of the function. In the beginning of a function,
+Old Return Address(RA) and FPR are pushed to stack,
+and SPR is then copied to FPR.
+Then space for local variables is allocated by decreasing the SPR.
+The stack pointer(SPR) always points to the topmost item
+of the stack. Usually this is the end of the local variable area.
+When a function is called, the function parameters are pushed into the
+stack, and SPR adjusted accordingly, allocating the area for the outgoing
+parameters from the stack
+
+%the first word past
+%the area of the current frame that is dedicated to local variables.  The
+%area of the stack past the local variables area contains the outgoing
+%arguments of called functions (if any).  The stack of TTA's supported by TCE
+
+
+%he stack pointer register (SPR) always points to the the first word past
+%the area of the current frame that is dedicated to local variables.  The
+%area of the stack past the local variables area contains the outgoing
+%arguments of called functions (if any).  The stack of TTA's supported by TCE
 grows downwards, therefore the incoming arguments and the local variables on
 the local stack frame have positive offsets when accessed from the current
 function, whereas the outgoing arguments have negative stack offsets.
 
-Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
-stack that contains two frames: A and B.  When function A frame is
-activated, SPR points to the first word past the top of the local variable
-area of the caller frame (this location is shown as ``SPR'' in figure).  At
-function entry and before accessing the stack, function A initialises SPR
-with the top of its frame (shown as ``SPR-A'' in figure).  When function A
-prepares a call to function B, it sets up the outgoing arguments in the
-stack area past its local variable area.  At function entry, function B
-initialises SPR with the first word past the top of its local variable area
-(shown as ``SPR-B'' in figure).  In case function B does not use any stack
-for passing outgoing arguments, the location SPR-B corresponds to one word
-past the top of the frame.
+%Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
+%stack that contains two frames: A and B.  When function A frame is
+%activated, SPR points to the first word past the top of the local variable
+%area of the caller frame (this location is shown as ``SPR'' in figure).  At
+%function entry and before accessing the stack, function A initialises SPR
+%with the top of its frame (shown as ``SPR-A'' in figure).  When function A
+%prepares a call to function B, it sets up the outgoing arguments in the
+%stack area past its local variable area.  At function entry, function B
+%initialises SPR with the first word past the top of its local variable area
+%(shown as ``SPR-B'' in figure).  In case function B does not use any stack
+%for passing outgoing arguments, the location SPR-B corresponds to one word
+%past the top of the frame.
 
 The value of the return address register is pushed to stack before the 
 function's local variables in case the function is not a leaf function
@@ -8685,7 +8734,8 @@ TCE-TTA processors follow the big endian byte order.
 
 The current default calling convention generated by tcecc is as follows.
 
-The register number 1 in the first 32b register file of ADF 
+The second 32-bit GPR (first register of second 32-bit register file,
+or second register of only 32-bit register file) of ADF
 is a return value register which is used to return 
 32b values such as $int$s or $float$s from functions. 
 The same register is reused for the first 
@@ -8720,7 +8770,7 @@ dedicate one register file completely to caller-saved registers and another
 to callee-saved registers.
 
 The current default register saving convention followed by tcecc is to have 
-treat all registers as caller saved. 
+treat all registers except FPR(when not used as FPR) as caller saved.
 
 \chapter{PRODUCING EFFICIENT TTA DESIGNS WITH TCE}
 
