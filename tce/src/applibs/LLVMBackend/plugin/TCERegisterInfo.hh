@@ -42,6 +42,11 @@
 
 #include "tce_config.h"
 
+#ifndef LLVM_OLDER_THAN_3_7
+// LLVM 3.7 tdgen expects the name class TCEFrameLowering
+#define TCEFrameInfo TCEFrameLowering 
+#endif
+
 namespace llvm {
     class TargetInstrInfo;
     class Type;

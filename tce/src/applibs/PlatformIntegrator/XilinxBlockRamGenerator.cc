@@ -69,11 +69,11 @@ XilinxBlockRamGenerator::XilinxBlockRamGenerator(
     addParameter(addrw);
 
     bool noInvert = false;
-    addPort("data_in",
+    addPort("data_out",
             new HDLPort("data", "dataw",
                         ProGe::BIT_VECTOR, HDB::IN, noInvert,
                         memoryTotalWidth()));
-    addPort("data_out",
+    addPort("data_in",
             new HDLPort("q", "dataw",
                         ProGe::BIT_VECTOR, HDB::OUT, noInvert,
                         memoryTotalWidth()));
@@ -201,7 +201,14 @@ XilinxBlockRamGenerator::almaifPortName(const TCEString& portBaseName) {
     }
 
     TCEString portName = signalPrefix_;
-    portName << "_" << portBaseName;
+
+    if (portBaseName == "data_in") {
+        portName << "_" <<  "data_out";
+    } else if (portBaseName == "data_out") {
+        portName << "_" <<  "data_in";
+    } else {
+        portName << "_" << portBaseName;
+    }
     return portName;
 
 }
