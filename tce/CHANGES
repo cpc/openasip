@@ -4,6 +4,8 @@
 Notable changes and features
 ----------------------------
 - Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
+- Optional support for Frame Pointer Register.
+  Used for compiling functions with alloca/variable-length arrays.
 
 Other features and improvements
 ------------------------------
