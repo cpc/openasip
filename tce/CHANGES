@@ -4,8 +4,9 @@
 Notable changes and features
 ----------------------------
 - Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
-- Optional support for Frame Pointer Register.
-  Used for compiling functions with alloca/variable-length arrays.
+- Support for variable-length local arrays/alloca. Usage of this feature
+  requires processor architecture with one more 32-bit registers as
+  one is used as Frame Pointer.
 
 Other features and improvements
 ------------------------------
