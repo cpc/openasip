@@ -31,7 +31,7 @@
 
   <fu name="LSU_PRIVATE">
     <hdb-file>tce:almaif.hdb</hdb-file>
-    <fu-id>1</fu-id>
+    <fu-id>4</fu-id>
   </fu>
 
   <fu name="ALU2">

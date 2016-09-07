@@ -1119,144 +1119,6 @@
     <address-space>param</address-space>
   </function-unit>
 
-  <function-unit name="LSU_PRIVATE">
-    <port name="in1t">
-      <connects-to>lsu_i1_1_2</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="out1">
-      <connects-to>lsu_o1_1_2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="in2">
-      <connects-to>lsu_i2_1_2</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>ldw</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>3</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>ldq</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>3</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>ldh</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>3</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>stw</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>stq</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>sth</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>ldqu</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>3</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>ldhu</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>3</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space>private</address-space>
-  </function-unit>
-
   <function-unit name="ALU2">
     <port name="in1t">
       <connects-to>lsu_i2_1_1</connects-to>
@@ -1563,6 +1425,144 @@
       </pipeline>
     </operation>
     <address-space/>
+  </function-unit>
+
+  <function-unit name="LSU_PRIVATE">
+    <port name="in1t">
+      <connects-to>lsu_i1_1_2</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="out1">
+      <connects-to>lsu_o1_1_2</connects-to>
+      <width>32</width>
+    </port>
+    <port name="in2">
+      <connects-to>lsu_i2_1_2</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ldw</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldq</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldh</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stw</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stq</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sth</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldqu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldhu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space>private</address-space>
   </function-unit>
 
   <register-file name="RF">

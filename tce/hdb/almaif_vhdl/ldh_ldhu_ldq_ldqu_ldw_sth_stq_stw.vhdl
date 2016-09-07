@@ -99,7 +99,6 @@ architecture rtl of fu_ldh_ldhu_ldq_ldqu_ldw_sth_stq_stw_always_3 is
   type reg_array is array (natural range <>) of std_logic_vector(4 downto 0);
 
   signal addr_reg      : std_logic_vector(addrw-2-1 downto 0);
-  signal data_in_reg   : std_logic_vector(dataw-1 downto 0);
   signal data_out_reg  : std_logic_vector(dataw-1 downto 0);
   signal wr_en_x_reg   : std_logic_vector(0 downto 0);
   signal mem_en_x_reg  : std_logic_vector(0 downto 0);
@@ -148,7 +147,6 @@ begin
 
     if rstx = '0' then                  -- asynchronous reset (active low)
       addr_reg      <= (others => '0');
-      data_in_reg   <= (others => '0');
       data_out_reg  <= (others => '0');
       -- use preset instead of reset
       wr_en_x_reg(0)   <= '1';
@@ -301,32 +299,32 @@ begin
         status_addr_reg(1) <= status_addr_reg(0);
 
         if status_addr_reg(1)(4 downto 2) = LDW then
-          r1_reg <= data_in_reg;
+          r1_reg <= data_in;
         elsif status_addr_reg(1)(4 downto 2) = LDH then
           -- endianes dependent code
           -- select either upper or lower part of the word
           if status_addr_reg(1)(1) = '0' then
-            r1_reg <= SXT(data_in_reg(dataw-1 downto dataw/2), r1_reg'length);
+            r1_reg <= SXT(data_in(dataw-1 downto dataw/2), r1_reg'length);
           else
-            r1_reg <= SXT(data_in_reg(dataw/2-1 downto 0), r1_reg'length);
+            r1_reg <= SXT(data_in(dataw/2-1 downto 0), r1_reg'length);
           end if;
 
         elsif status_addr_reg(1)(4 downto 2) = LDQ then
           case status_addr_reg(1)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= SXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+              r1_reg <= SXT(data_in(dataw-1 downto dataw-SIZE_OF_BYTE),
                             r1_reg'length);
             when "01" =>
-              r1_reg <= SXT(data_in_reg(dataw-SIZE_OF_BYTE-1
+              r1_reg <= SXT(data_in(dataw-SIZE_OF_BYTE-1
                                         downto dataw-2*SIZE_OF_BYTE),
                             r1_reg'length);
             when "10" =>
-              r1_reg <= SXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+              r1_reg <= SXT(data_in(dataw-2*SIZE_OF_BYTE-1
                                         downto dataw-3*SIZE_OF_BYTE),
                             r1_reg'length);
             when others =>
-              r1_reg <= SXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+              r1_reg <= SXT(data_in(dataw-3*SIZE_OF_BYTE-1
                                         downto dataw-4*SIZE_OF_BYTE),
                             r1_reg'length);
           end case;
@@ -335,26 +333,26 @@ begin
           -- endianes dependent code
           -- select either upper or lower part of the word
           if status_addr_reg(1)(1) = '0' then
-            r1_reg <= EXT(data_in_reg(dataw-1 downto dataw/2), r1_reg'length);
+            r1_reg <= EXT(data_in(dataw-1 downto dataw/2), r1_reg'length);
           else
-            r1_reg <= EXT(data_in_reg(dataw/2-1 downto 0), r1_reg'length);
+            r1_reg <= EXT(data_in(dataw/2-1 downto 0), r1_reg'length);
           end if;
 
         elsif status_addr_reg(1)(4 downto 2) = LDQU then
           case status_addr_reg(1)(1 downto 0) is
             -- endianes dependent code
             when "00" =>
-              r1_reg <= EXT(data_in_reg(dataw-1 downto dataw-SIZE_OF_BYTE),
+              r1_reg <= EXT(data_in(dataw-1 downto dataw-SIZE_OF_BYTE),
                             r1_reg'length);
             when "01" =>
-              r1_reg <= EXT(data_in_reg(dataw-SIZE_OF_BYTE-1 downto
+              r1_reg <= EXT(data_in(dataw-SIZE_OF_BYTE-1 downto
                                         dataw-2*SIZE_OF_BYTE), r1_reg'length);
             when "10" =>
-              r1_reg <= EXT(data_in_reg(dataw-2*SIZE_OF_BYTE-1
+              r1_reg <= EXT(data_in(dataw-2*SIZE_OF_BYTE-1
                                         downto dataw-3*SIZE_OF_BYTE),
                             r1_reg'length);
             when others =>
-              r1_reg <= EXT(data_in_reg(dataw-3*SIZE_OF_BYTE-1
+              r1_reg <= EXT(data_in(dataw-3*SIZE_OF_BYTE-1
                                         downto dataw-4*SIZE_OF_BYTE),
                             r1_reg'length);
           end case;
