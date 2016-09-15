@@ -72,14 +72,14 @@ use IEEE.numeric_std.all;
 use work.util.all;
 use work.opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor.all;
 
-package shl_shr_shru_pkg_monolithic_alu_fast is
+package monolithic_alu_shladd_small_shift_pkg_monolithic_alu_fast is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc : std_logic_vector;dataw : integer; shiftw : integer)
     return std_logic_vector;
-end shl_shr_shru_pkg_monolithic_alu_fast;
+end monolithic_alu_shladd_small_shift_pkg_monolithic_alu_fast;
 
-package body shl_shr_shru_pkg_monolithic_alu_fast is
+package body monolithic_alu_shladd_small_shift_pkg_monolithic_alu_fast is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc: std_logic_vector;dataw : integer; shiftw : integer)
@@ -126,14 +126,14 @@ package body shl_shr_shru_pkg_monolithic_alu_fast is
     end if;
     return y;
   end shift_func;
-end shl_shr_shru_pkg_monolithic_alu_fast;
+end monolithic_alu_shladd_small_shift_pkg_monolithic_alu_fast;
 
 library IEEE;
 use IEEE.numeric_std.all;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.opcodes_add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor.all;
-use work.shl_shr_shru_pkg_monolithic_alu_fast.all;
+use work.monolithic_alu_shladd_small_shift_pkg_monolithic_alu_fast.all;
 
 entity add_and_eq_gt_gtu_ior_shl_shl1add_shl2add_shr_shru_sub_sxhw_sxqw_xor_arith is
   generic (
