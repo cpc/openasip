@@ -18,7 +18,14 @@ This needs root/admin privileges.
   ## https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
   sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev autoconf automake libtool subversion bzr
+    libffi-dev autoconf automake libtool subversion git cmake
+
+  ## Ubuntu 16.04 LTS:
+  ## You need to enable the universe and multiverse repositories first:
+  ## https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
+  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
+    libffi-dev autoconf automake libtool subversion git cmake
 
 * Get the latest TCE source code from the version control system:
 
