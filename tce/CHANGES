@@ -1,28 +1,45 @@
-1.14         Unknown
-====================
+1.14       unreleased
+=====================
+
+[updated 2016-09-23]
 
 Notable changes and features
 ----------------------------
-- Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
-- Support for variable-length local arrays/alloca. Usage of this feature
-  requires processor architecture with one more 32-bit registers as
-  one is used as Frame Pointer.
+- Support for wxWidgets 3.x and thus Ubuntu 16.04 which doesn't ship wxW 2.x
+  anymore. Check the TROUBLESHOOTING file in case encountering problems.
+- Support for variable-length local arrays and alloca, that is, dynamic
+  stack objects. When using dynamic stack objects, the architecture must
+  have an additional 32-bit register (total minimum of 6) as one of them
+  will be used as a frame pointer in functions with dynamic stack
+  objects.
+- ProGe now can generate a simple control interface "AlmaIF" that can be
+  used for control and debug access to devices in SoCs.
 
 Other features and improvements
 ------------------------------
 - TCE_INSTALL_DIR environment variable can be set pointing to directory where
-  user manually installed TCE
+  user manually installed TCE.
 - Added export to SVG (wxwidgets 3.* only) in ProDe and Proxim.
 - Added ability to modify memory in simulator with load_data command.
 
 Usability features
 ------------------
 - HBDEditor automatically fills new implementations with sequential opcode
-  numbers
-- ProDe shows machine instruction width in status bar
-- Column/list sorting in some ProDe/OSEd dialogs
+  numbers.
+- Made IDF's more portable: In case referring to the TCE-shipped HDB files,
+  a magic string tce: can be used instead of absolute paths which differ from
+  the system to system.
+- SVG export was added when using wxWidgets 3.0 (replaces the EPS export)
+- ProDe shows machine instruction width in status bar.
+- ProDe now shows more information of the operations in the opset dialog.
+- Column/list sorting in various ProDe/OSEd dialogs.
+- List filtering in ProDe dialogs 'Add from opset' and 'Add FU from HDB'.
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
+
+Documentation
+-------------
+- Added descriptions for all non-obvious base.opp operations.
 
 Notable bugfixes
 ----------------
