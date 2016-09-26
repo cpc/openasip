@@ -433,7 +433,7 @@ ProgramOperation::opcodeSettingNode()
 MoveNodeSet&
 ProgramOperation::inputNode(int index) const
     throw (OutOfRange,KeyNotFound) {
-    if (index < 1 || index > (int)inputMoves_.size()) {
+    if (index < 1 || index > operation_.numberOfInputs()) {
         std::string msg = "InputNode index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
