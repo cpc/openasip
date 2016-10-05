@@ -15,8 +15,6 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - clang
-    - g++-4.8
-    - gcc-4.8
     - ccache
     - libwxgtk2.8-dev
     - libboost-all-dev
