@@ -19,7 +19,8 @@ addons:
     - ccache
     - libwxgtk2.8-dev
     - libboost-all-dev
-    - tcl8.4-dev
+    - tcl-dev
+    - tcl
     - libedit-dev
     - libsqlite3-dev
     - sqlite3
