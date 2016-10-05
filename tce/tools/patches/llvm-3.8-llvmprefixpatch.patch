@@ -1,0 +1,16 @@
+Index: tools/clang/lib/Driver/ToolChains.cpp
+===================================================================
+--- tools/clang/lib/Driver/ToolChains.cpp
++++ tools/clang/lib/Driver/ToolChains.cpp
+@@ -2607,9 +2607,11 @@
+   if (getVFS().exists(InstallRelDir = InstalledDir + "/../target"))
+     return InstallRelDir;
+ 
++#ifdef LLVM_PREFIX
+   std::string PrefixRelDir = std::string(LLVM_PREFIX) + "/target";
+   if (getVFS().exists(PrefixRelDir))
+     return PrefixRelDir;
++#endif
+ 
+   return InstallRelDir;
+ }
