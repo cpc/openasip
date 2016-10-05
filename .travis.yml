@@ -1,0 +1,53 @@
+language: c++
+cache: ccache
+os:
+- linux
+- osx
+compiler:
+- clang
+env:
+- INSTALLDIR="/usr/local/tceinstallloc"
+addons:
+  apt:
+    sources:
+    - george-edison55-precise-backports
+    - ubuntu-toolchain-r-test
+    packages:
+    - clang
+    - g++-4.8
+    - gcc-4.8
+    - ccache
+    - libwxgtk2.8-dev
+    - libboost-all-dev
+    - tcl8.4-dev
+    - libedit-dev
+    - libsqlite3-dev
+    - sqlite3
+    - libxerces-c2-dev
+    - libffi-dev
+    - libtool
+    - automake
+    - autoconf
+before_install:
+- echo $TRAVIS_OS_NAME
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate http://cmake.org/files/v3.4/cmake-3.4.3-Linux-x86_64.tar.gz   ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar -xzf cmake-3.4.3-Linux-x86_64.tar.gz                                                  ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8" ;fi                         ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH=$PWD/cmake-3.4.3-Linux-x86_64/bin:$PATH ;fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then rm cmake-3.4.3-Linux-x86_64.tar.gz ;fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache; fi
+- if [ "$CC"  == "clang" ]; then ln -s $(which ccache) $HOME/clang && ln -s $(which ccache) $HOME/clang++ && export PATH=$HOME:$PATH; fi
+- ccache -z -M 500M
+install:
+- cd tce
+- ./tools/scripts/install_llvm_3.8.sh $INSTALLDIR
+- export PATH=$INSTALLDIR/bin:
+- ./autogen.sh
+- ./configure --prefix=$INSTALLDIR
+- make
+- make install
+notifications:
+  email: false
+before_cache: ccache -s
