@@ -1,7 +1,7 @@
-Index: llvm/tools/clang/lib/Driver/ToolChains.cpp
+Index: tools/clang/lib/Driver/ToolChains.cpp
 ===================================================================
---- llvm/tools/clang/lib/Driver/ToolChains.cpp
-+++ llvm/tools/clang/lib/Driver/ToolChains.cpp
+--- tools/clang/lib/Driver/ToolChains.cpp
++++ tools/clang/lib/Driver/ToolChains.cpp
 @@ -2607,9 +2607,11 @@
    if (getVFS().exists(InstallRelDir = InstalledDir + "/../target"))
      return InstallRelDir;
