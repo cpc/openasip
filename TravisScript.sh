@@ -1,5 +1,5 @@
 export WORKDIR=$PWD
-
+if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 #tcl tk install region
 wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tcl8.6.6-src.tar.gz
 tar -xzf tcl8.6.6-src.tar.gz
@@ -13,11 +13,11 @@ cd tk8.5.19/unix
 ./configure --prefix=$INSTALLDIR/tcl
 make install
 #tcl tk install region
-
+fi
 cd $WORKDIR/tce
 ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
-if [ ! -f '`llvm-config --libdir`/libLLVM-*' ]; then ./gen_llvm_shared_lib.sh ;fi
+./gen_llvm_shared_lib.sh
 ./autogen.sh
 ./configure --prefix=$INSTALLDIR
 make
