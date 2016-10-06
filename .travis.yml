@@ -55,7 +55,7 @@ install:
 - cd tce
 - ./tools/scripts/install_llvm_3.7.sh $INSTALLDIR/llvm
 - export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
-- ./gen_llvm_shared_lib.sh
+- if [ ! -f `llvm-config --libdir`/libLLVM-* ]; then ./gen_llvm_shared_lib.sh ;fi
 - ./autogen.sh
 - ./configure --prefix=$INSTALLDIR
 - make
