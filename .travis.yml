@@ -59,15 +59,7 @@ before_install:
 - export CC='clang -Qunused-arguments -fcolor-diagnostics'
 - export CXX='clang++ -Qunused-arguments -fcolor-diagnostics'
 - ccache -z -M 500M
-install:
-- cd tce
-- ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
-- export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
-- if [ ! -f `llvm-config --libdir`/libLLVM-* ]; then ./gen_llvm_shared_lib.sh ;fi
-- ./autogen.sh
-- ./configure --prefix=$INSTALLDIR
-- make
-- make install
+script: "./TravisScript.sh"
 notifications:
   email: false
 before_cache: ccache -s
