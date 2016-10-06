@@ -19,6 +19,6 @@ cd $WORKDIR/tce
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 ./gen_llvm_shared_lib.sh
 ./autogen.sh
-./configure --prefix=$INSTALLDIR
+./configure --prefix=$INSTALLDIR --with-tcl=$INSTALLDIR/tcl
 make
 make install
