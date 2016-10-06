@@ -7,7 +7,7 @@ os:
 compiler:
 - clang
 env:
-
+- LLVM_TARGETS_TO_BUILD="X86"
 addons:
   apt:
     sources:
