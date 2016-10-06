@@ -121,6 +121,21 @@ namespace {
         void addFunctionForFootprints(
             Module& M, FunctionType* fType, Operation& op, 
             std::string suffix);
+
+    private:
+        std::string stringType(const Type* type) const;
+
+        ARGLIST_CONST Type* getLLVMType(
+            Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType);
+
+        std::string getFootprint(Instruction& I);
+
+#ifndef LLVM_OLDER_THAN_3_9
+        // getGlobalContext() was removed form LLVM.
+        LLVMContext& getGlobalContext() const {
+            return dstModule_->getContext();
+        }
+#endif
     };
 
     char LowerMissingInstructions::ID = 0;    
@@ -143,34 +158,36 @@ LowerMissingInstructions::LowerMissingInstructions(
 }
 
 // convert type name to string
-std::string stringType(const Type* type) {
-    
-    if (type == Type::getInt64Ty(getGlobalContext())) {
+std::string 
+LowerMissingInstructions::stringType(const Type* type) const {
+    LLVMContext& context = getGlobalContext();
+    if (type == Type::getInt64Ty(context)) {
         return "i64";
-    } else if (type == Type::getInt32Ty(getGlobalContext())) {
+    } else if (type == Type::getInt32Ty(context)) {
         return "i32";
-    }  else if (type == Type::getInt16Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt16Ty(context)) {
         return "i16";
-    }  else if (type == Type::getInt8Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt8Ty(context)) {
         return "i8";
-    }  else if (type == Type::getInt1Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt1Ty(context)) {
         return "i1";
-    }  else if (type == Type::getHalfTy(getGlobalContext())) {
-	return "f16";
-    }  else if (type == Type::getFloatTy(getGlobalContext())) {
+    }  else if (type == Type::getHalfTy(context)) {
+        return "f16";
+    }  else if (type == Type::getFloatTy(context)) {
         return "f32";
-    }  else if (type == Type::getDoubleTy(getGlobalContext())) {
+    }  else if (type == Type::getDoubleTy(context)) {
         return "f64";
-    }  else if (type == Type::getLabelTy(getGlobalContext())) {
+    }  else if (type == Type::getLabelTy(context)) {
         return "label";
-    }  else if (type == Type::getVoidTy(getGlobalContext())) {
+    }  else if (type == Type::getVoidTy(context)) {
         return "void";
     } else {
         return "unknown";
     }
 }
 
-ARGLIST_CONST Type* getLLVMType(
+ARGLIST_CONST Type* 
+LowerMissingInstructions::getLLVMType(
     Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType) {
     switch (type) {
     case Operand::SINT_WORD:
@@ -282,7 +299,8 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
     return footprints[tceOp];
 }
 
-std::string getFootprint(Instruction& I) {
+std::string 
+LowerMissingInstructions::getFootprint(Instruction& I) {
     
     std::string footPrint = stringType(I.getType());
 
@@ -537,7 +555,7 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
-    
+
     BasicBlock::InstListType &BBIL = BB.getInstList();
 
     // Loop over all of the instructions, looking for instructions to lower

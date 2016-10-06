@@ -530,9 +530,7 @@ LLVMTCEBuilder::createDataDefinition(
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, zeros));
-
         addr += pad;
-
     }
 
     // paddedAddr is the actual address data was put to
@@ -546,7 +544,6 @@ LLVMTCEBuilder::createDataDefinition(
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, sz, NULL, false));
-
         addr += sz;
         return paddedAddr;
     }
@@ -807,8 +804,16 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
+#ifdef LLVM_OLDER_THAN_3_9
         int64_t ptrOffset = offset + dl_->getIndexedOffset(
             ptr->getType(), idxVec);
+#else
+        APInt offsetAI(dl_->getPointerTypeSizeInBits(ce->getType()), 0);
+        bool success = cast<GEPOperator>(ce)->accumulateConstantOffset(
+            *dl_, offsetAI);
+        assert(success); // Fails if GEP is not all-constant.
+        int64_t ptrOffset = offset + offsetAI.getSExtValue();
+#endif
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(

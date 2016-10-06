@@ -79,7 +79,12 @@ namespace llvm {
         tri_(tri), tii_(*tii), stackAlignment_(stackAlignment) {
             tri->setTFI(this); }
 
-        void eliminateCallFramePseudoInstr(
+#ifdef LLVM_OLDER_THAN_3_9
+        void
+#else
+        MachineBasicBlock::iterator
+#endif
+        eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const override;

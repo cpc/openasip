@@ -94,7 +94,11 @@ TCEInstrInfo::InsertBranch(
 #else
     ArrayRef<MachineOperand> cond,
 #endif
+#ifdef LLVM_OLDER_THAN_3_9
     DebugLoc dl) const {
+#else
+    const DebugLoc& dl) const {
+#endif
 
     if (mbb.size() != 0) {
         // already has a uncond branch, no need for another.
@@ -230,7 +234,12 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
  */
 void TCEInstrInfo::copyPhysReg(
     MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi, DebugLoc DL,
+    MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_3_9
+    DebugLoc DL,
+#else
+    const DebugLoc& DL,
+#endif
     unsigned destReg, unsigned srcReg,
     bool killSrc) const
 {
@@ -325,8 +334,12 @@ TCEInstrInfo::ReverseBranchCondition(
  * @param cond puts the condition data (predcate reg and T/F) here
  * @return false if could analyze, true if could not analyze
  */
-bool 
-TCEInstrInfo::AnalyzeBranch(
+bool
+#ifdef LLVM_OLDER_THAN_3_9
+    TCEInstrInfo::AnalyzeBranch(
+#else
+    TCEInstrInfo::analyzeBranch(
+#endif
     MachineBasicBlock &mbb, MachineBasicBlock *&tbb,
     MachineBasicBlock *&fbb, 
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond, bool allowModify)
@@ -386,8 +399,14 @@ TCEInstrInfo::AnalyzeBranch(
     // should never be here
     return true;
 }
+
 bool 
+#ifdef LLVM_OLDER_THAN_3_9
 TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
+#else
+TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
+    const MachineInstr* mi = &mi_ref;
+#endif
     // TODO: should be conditional move here..
     if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
         return false;
@@ -402,8 +421,13 @@ TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
     return opName[0] == '?' || opName[0] == '!';
 }
 
-bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
-
+bool
+#ifdef LLVM_OLDER_THAN_3_9
+TCEInstrInfo::isPredicable(MachineInstr *mi) const {
+#else
+TCEInstrInfo::isPredicable(MachineInstr& mi_ref) const {
+    MachineInstr* mi = &mi_ref;
+#endif
     if (mi->getOpcode() == TCE::COPY) {
         return false;
     }
@@ -413,7 +437,11 @@ bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
         return false;
     }
 
+#ifdef LLVM_OLDER_THAN_3_9
     if (isPredicated(mi)) {
+#else
+    if (isPredicated(*mi)) {
+#endif
         return false;
     }
 
@@ -427,7 +455,11 @@ bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
 // todo: mostlly ripped from hexagon.
 // check the legal things
 bool TCEInstrInfo::PredicateInstruction(
+#ifdef LLVM_OLDER_THAN_3_9
     MachineInstr *mi,
+#else
+    MachineInstr& mi_ref,
+#endif
 #ifdef LLVM_OLDER_THAN_3_7
     const SmallVectorImpl<MachineOperand> &cond
 #else
@@ -435,9 +467,18 @@ bool TCEInstrInfo::PredicateInstruction(
 #endif
 ) const {
 
+#ifndef LLVM_OLDER_THAN_3_9
+    MachineInstr *mi = &mi_ref;
+#endif
+
     int opc = mi->getOpcode();
 
+#ifdef LLVM_OLDER_THAN_3_9
     assert (isPredicable(mi) && "Expected predicable instruction");
+#else
+    assert (isPredicable(*mi) && "Expected predicable instruction");
+#endif
+
     bool invertJump = (cond.size() >1 && cond[1].isImm() &&
                        (cond[1].getImm() == 0));
     
@@ -498,8 +539,15 @@ int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
 
 // mostly ripped from hexagon
 bool
-TCEInstrInfo::DefinesPredicate(MachineInstr *MI,
-			       std::vector<MachineOperand> &Pred) const {
+#ifdef LLVM_OLDER_THAN_3_9
+TCEInstrInfo::DefinesPredicate(
+    MachineInstr *MI, std::vector<MachineOperand> &Pred) const {
+#else
+TCEInstrInfo::DefinesPredicate(
+    MachineInstr& MI_ref, std::vector<MachineOperand> &Pred) const {
+
+    MachineInstr *MI = &MI_ref;
+#endif
     for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
 	MachineOperand MO = MI->getOperand(oper);
 	if (MO.isReg() && MO.isDef()) {

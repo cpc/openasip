@@ -42,7 +42,13 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
+
+#ifdef LLVM_OLDER_THAN_3_9
 #include "llvm/Target/TargetSelectionDAGInfo.h"
+#else
+#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
+#endif
+
 #ifdef LLVM_OLDER_THAN_3_7
 #include "llvm/PassManager.h"
 #else
@@ -61,6 +67,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/IR/DataLayout.h"
+
+#ifdef LLVM_OLDER_THAN_3_9
+#else
+#include "llvm/CodeGen/TargetPassConfig.h"
+#endif
 
 POP_COMPILER_DIAGS
 
@@ -113,12 +124,19 @@ namespace llvm {
             const std::string& CPU, const std::string &FS,
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
-#else
+#elif defined LLVM_OLDER_THAN_3_9
         TCETargetMachine(
             const Target &T, const Triple& TTriple,
             const std::string& CPU, const std::string &FS, 
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
+#else
+        TCETargetMachine(
+            const Target &T, const Triple& TTriple,
+            const std::string& CPU, const std::string &FS,
+            const TargetOptions &Options,
+            Optional<Reloc::Model> RM, CodeModel::Model CM,
+            CodeGenOpt::Level OL);
 #endif
         virtual ~TCETargetMachine();
 
@@ -164,7 +182,8 @@ namespace llvm {
         }
 
 #ifdef LLVM_3_5
-        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override {
+        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() 
+            const override {
             return plugin_->getSelectionDAGInfo();
         }
 #endif
