@@ -25,7 +25,7 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 else
 ./configure --prefix=$INSTALLDIR
 fi
-
+cat config.log
 
 make
 make install
