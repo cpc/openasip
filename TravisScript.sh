@@ -7,9 +7,9 @@ cd tcl8.6.6/unix
 ./configure --prefix=$INSTALLDIR/tcl
 make install
 export PATH="$INSTALLDIR/tcl/bin:$PATH"
-wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tk8.5.19-src.tar.gz
-tar -xzf tk8.5.19-src.tar.gz
-cd tk8.5.19/unix
+wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tk8.6.6-src.tar.gz
+tar -xzf tk8.6.6-src.tar.gz
+cd tk8.6.6/unix
 ./configure --prefix=$INSTALLDIR/tcl
 make install
 #tcl tk install region
