@@ -7,6 +7,7 @@ os:
 compiler:
 - clang
 env:
+- LLVM_VER_BUILD=trunk
 - LLVM_VER_BUILD=3.9
 - LLVM_VER_BUILD=3.8
 - LLVM_VER_BUILD=3.7
