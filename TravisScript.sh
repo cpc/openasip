@@ -10,9 +10,8 @@ export PATH="$INSTALLDIR/tcl/bin:$PATH"
 wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tk8.5.19-src.tar.gz
 tar -xzf tk8.5.19-src.tar.gz
 cd tk8.5.19/unix
-./configure --prefix=$INSTALLDIR/tk
+./configure --prefix=$INSTALLDIR/tcl
 make install
-export PATH="$INSTALLDIR/tk/bin:$PATH"
 #tcl tk install region
 
 cd $WORKDIR/tce
