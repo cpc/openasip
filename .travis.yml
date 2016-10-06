@@ -53,8 +53,8 @@ before_install:
 - ccache -z -M 500M
 install:
 - cd tce
-- ./tools/scripts/install_llvm_3.7.sh $INSTALLDIR
-- export PATH=$INSTALLDIR/bin:
+- ./tools/scripts/install_llvm_3.7.sh $INSTALLDIR/llvm
+- export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 - ./gen_llvm_shared_lib.sh
 - ./autogen.sh
 - ./configure --prefix=$INSTALLDIR
