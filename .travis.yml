@@ -1,6 +1,7 @@
 sudo: false
 language: c++
-cache: ccache
+cache: 
+  ccache: true
   timeout: 3000
 os:
 - linux
