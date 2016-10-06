@@ -1,3 +1,5 @@
+export WORKDIR=$PWD
+
 #tcl tk install region
 wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tcl8.6.6-src.tar.gz
 tar -xzf tcl8.6.6-src.tar.gz
@@ -13,7 +15,7 @@ make install
 export PATH="$INSTALLDIR/tk/bin:$PATH"
 #tcl tk install region
 
-cd tce
+cd $WORKDIR/tce
 ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 if [ ! -f '`llvm-config --libdir`/libLLVM-*' ]; then ./gen_llvm_shared_lib.sh ;fi
