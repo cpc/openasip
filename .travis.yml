@@ -22,7 +22,7 @@ addons:
     - clang
     - ccache
     - libwxgtk2.8-dev
-    - libboost-all-dev
+    - libboost-{filesystem,graph,regex,thread}-dev
     - tcl-dev
     - tcl
     - libedit-dev
