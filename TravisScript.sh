@@ -19,7 +19,9 @@ cd $WORKDIR/tce
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 ./gen_llvm_shared_lib.sh
 ./autogen.sh
-
+if [[ "$TRAVIS_OS_NAME" == "osx" ]];
+sleep 50m && killall make &
+fi
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 ./configure --prefix=$INSTALLDIR --with-tcl=$INSTALLDIR/tcl
 else
@@ -29,3 +31,5 @@ cat config.log
 
 make
 make install
+
+wait
