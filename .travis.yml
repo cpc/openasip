@@ -7,7 +7,12 @@ os:
 compiler:
 - clang
 env:
-- LLVM_TARGETS_TO_BUILD="X86"
+- LLVM_VER_BUILD=3.9
+- LLVM_VER_BUILD=3.8
+- LLVM_VER_BUILD=3.7
+- LLVM_VER_BUILD=3.6
+- LLVM_VER_BUILD=3.5
+- LLVM_VER_BUILD=3.4
 addons:
   apt:
     sources:
@@ -53,7 +58,7 @@ before_install:
 - ccache -z -M 500M
 install:
 - cd tce
-- ./tools/scripts/install_llvm_3.9.sh $INSTALLDIR/llvm
+- ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
 - export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 - if [ ! -f `llvm-config --libdir`/libLLVM-* ]; then ./gen_llvm_shared_lib.sh ;fi
 - ./autogen.sh
