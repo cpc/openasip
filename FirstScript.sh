@@ -13,7 +13,7 @@ fi
 #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH=$PWD/clang+llvm-3.4.2-x86_64-unknown-ubuntu12.04/bin:$PATH ;fi
 #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then rm clang+llvm-3.4.2-x86_64-unknown-ubuntu12.04.xz ;fi
 
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
 brew update;
 brew install ccache;
 brew install boost;
