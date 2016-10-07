@@ -1,3 +1,4 @@
+#!/bin/env bash
 export INSTALLDIR="$PWD/tceinstallloc"
 echo $TRAVIS_OS_NAME
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
