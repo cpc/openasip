@@ -1,6 +1,7 @@
 export WORKDIR=$PWD
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 #tcl tk install region
+alias make="make -s"
 wget --no-check-certificate http://prdownloads.sourceforge.net/tcl/tcl8.6.6-src.tar.gz
 tar -xzf tcl8.6.6-src.tar.gz
 cd tcl8.6.6/unix
@@ -13,6 +14,7 @@ cd tk8.6.6/unix
 ./configure --prefix=$INSTALLDIR/tcl
 make install
 #tcl tk install region
+unalias make
 fi
 cd $WORKDIR/tce
 
