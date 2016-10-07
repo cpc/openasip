@@ -8,6 +8,8 @@ rm cmake-3.4.3-Linux-x86_64.tar.gz
 fi
 if [ "$LLVM_VER_BUILD" == "3.8" ] || [ "$LLVM_VER_BUILD" == "3.9" ]; then
 sed -e "s/cmake -G \"Unix Makefiles\"/cmake -G \"Ninja\"/g" tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh > tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp && mv tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
+sed -e "s/make -j4/ninja/g" tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh > tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp && mv tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
+sed -e "s/make install/ninja install/g" tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh > tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp && mv tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
 chmod +x tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
 fi
 
