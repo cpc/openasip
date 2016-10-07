@@ -7,6 +7,7 @@ os:
 - linux
 - osx
 compiler:
+- gcc
 - clang
 env:
 - LLVM_VER_BUILD=3.9
@@ -22,14 +23,14 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - clang
+    - gcc-4.8
+    - g++-4.8
     - ccache
     - libwxgtk2.8-dev
     - libboost-filesystem-dev
     - libboost-graph-dev
     - libboost-regex-dev
     - libboost-thread-dev
-    - tcl-dev
-    - tcl
     - libedit-dev
     - libsqlite3-dev
     - sqlite3
@@ -58,8 +59,8 @@ before_install:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=/usr/local/opt/llvm/bin:$PATH ; fi
 - if [ "$CC"  == "clang" ]; then ln -s $(which ccache) $HOME/clang && ln -s $(which ccache) $HOME/clang++ && export PATH=$HOME:$PATH; fi
-- export CC='clang -Qunused-arguments -fcolor-diagnostics'
-- export CXX='clang++ -Qunused-arguments -fcolor-diagnostics'
+- if [ "$CC"  == "clang" ]; then export CC='clang -Qunused-arguments -fcolor-diagnostics' ;fi
+- if [ "$CC"  == "clang" ]; then export CXX='clang++ -Qunused-arguments -fcolor-diagnostics' ;fi
 - ccache -z -M 500M
 script: "./TravisScript.sh"
 notifications:
