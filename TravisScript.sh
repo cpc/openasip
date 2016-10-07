@@ -15,14 +15,17 @@ make install
 #tcl tk install region
 fi
 cd $WORKDIR/tce
-./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
-export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
-./gen_llvm_shared_lib.sh
-./autogen.sh
+
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 sleep 30m;killall make;exit 1; &
 sleep 30m;killall cmake; exit 1; &
 fi
+
+./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
+export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
+./gen_llvm_shared_lib.sh
+./autogen.sh
+
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALLDIR/tcl/lib
 ./configure --prefix=$INSTALLDIR --with-tcl=$INSTALLDIR/tcl
