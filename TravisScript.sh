@@ -19,7 +19,7 @@ cd $WORKDIR/tce
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 ./gen_llvm_shared_lib.sh
 ./autogen.sh
-if [[ "$TRAVIS_OS_NAME" == "osx" ]];
+if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 sleep 50m && killall make &
 fi
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
