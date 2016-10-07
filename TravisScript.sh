@@ -17,8 +17,8 @@ fi
 cd $WORKDIR/tce
 
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-sleep 30m;killall make;exit 1; &
-sleep 30m;killall cmake; exit 1; &
+sleep 30m;killall make;exit 1 &
+sleep 30m;killall cmake; exit 1 &
 fi
 
 ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
