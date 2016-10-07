@@ -1,3 +1,5 @@
+#!/bin/env bash
+
 export WORKDIR=$PWD
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 #tcl tk install region
