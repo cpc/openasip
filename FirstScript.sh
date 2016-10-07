@@ -12,7 +12,9 @@ sed -e "s/make -j4 CXXFLAGS=\"-std=c++11\" REQUIRES_RTTI=1/CXXFLAGS=\"-std=c++11
 sed -e "s/make install/ninja install/g" tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh > tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp && mv tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
 chmod +x tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
 fi
-
+  # Implement a platform-independent timeout function.
+  function timeout() { perl -e 'alarm shift; exec @ARGV' "$@"; }
+TIMEOUT=2400
 #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget --no-check-certificate http://llvm.org/releases/3.4.2/clang+llvm-3.4.2-x86_64-unknown-ubuntu12.04.xz ;fi
 #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then xz -d -c clang+llvm-3.4.2-x86_64-unknown-ubuntu12.04.xz | tar -x ;fi 
 #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH=$PWD/clang+llvm-3.4.2-x86_64-unknown-ubuntu12.04/bin:$PATH ;fi
@@ -38,4 +40,9 @@ if [ "$CC"  == "gcc" ]; then
 export CC='gcc-4.8'; export CXX='g++-4.8'
 fi
 ccache -z -M 500M
-./InstallScript.sh
+
+timeout $TIMEOUT ./InstallScript.sh
+RESULT=$?; if [ $RESULT -eq 0 ] || [ $RESULT -eq 142 ]; then true; else false; fi;
+
+
+
