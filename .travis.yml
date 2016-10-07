@@ -16,12 +16,12 @@ compiler:
 env:
   global:
     - TIMEOUT=0
-- LLVM_VER_BUILD=3.9
-- LLVM_VER_BUILD=3.8
-- LLVM_VER_BUILD=3.7
-- LLVM_VER_BUILD=3.6
-- LLVM_VER_BUILD=3.5
-- LLVM_VER_BUILD=3.4
+    - LLVM_VER_BUILD=3.9
+    - LLVM_VER_BUILD=3.8
+    - LLVM_VER_BUILD=3.7
+    - LLVM_VER_BUILD=3.6
+    - LLVM_VER_BUILD=3.5
+    - LLVM_VER_BUILD=3.4
 addons:
   apt:
     sources:
