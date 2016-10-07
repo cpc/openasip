@@ -28,7 +28,7 @@ ls /home/travis/build/jfmherokiller/tce/tceinstallloc/tcl/lib
 else
 ./configure --prefix=$INSTALLDIR
 fi
-cat config.log
+
 
 make
 make install
