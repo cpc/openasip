@@ -6,7 +6,7 @@ tar -xzf cmake-3.4.3-Linux-x86_64.tar.gz
 export PATH=$PWD/cmake-3.4.3-Linux-x86_64/bin:$PATH
 rm cmake-3.4.3-Linux-x86_64.tar.gz
 fi
-if [[ "$LLVM_VER_BUILD" == "3.8" -o "$LLVM_VER_BUILD" == "3.9" ]]; then
+if [ "$LLVM_VER_BUILD" == "3.8" ] || [ "$LLVM_VER_BUILD" == "3.9" ]; then
 sed -e "s/cmake -G \"Unix Makefiles\"/cmake -G \"Ninja\"/g" tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh > tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp && mv tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh.tmp tce/tools/scripts/install_llvm_$LLVM_VER_BUILD.sh
 fi
 
