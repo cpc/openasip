@@ -23,6 +23,7 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 sleep 30m;killall make &
 fi
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+ls /home/travis/build/jfmherokiller/tce/tceinstallloc/tcl/lib
 ./configure --prefix=$INSTALLDIR --with-tcl=$INSTALLDIR/tcl
 else
 ./configure --prefix=$INSTALLDIR
