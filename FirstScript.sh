@@ -21,6 +21,7 @@ brew install ccache;
 brew install boost;
 brew install xerces-c;
 brew install llvm;
+brew install ninja;
 export PATH=/usr/local/opt/llvm/bin:$PATH
 fi
 
