@@ -28,11 +28,11 @@ fi
 ./tools/scripts/install_llvm_$LLVM_VER_BUILD.sh $INSTALLDIR/llvm
 export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 
-if [ "$CC"  == "gcc" ]; then 
+
 ln -s $(which ccache) $HOME/clang && ln -s $(which ccache) $HOME/clang++ && export PATH=$HOME:$PATH;
 export CC='clang -Qunused-arguments -fcolor-diagnostics'
 export CXX='clang++ -Qunused-arguments -fcolor-diagnostics' 
-fi
+
 ./gen_llvm_shared_lib.sh
 ./autogen.sh
 
