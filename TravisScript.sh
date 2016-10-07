@@ -21,6 +21,7 @@ export PATH="$HOME:$INSTALLDIR/llvm/bin:$PATH"
 ./autogen.sh
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 sleep 30m;killall make &
+sleep 30m;killall cmake &
 fi
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALLDIR/tcl/lib
