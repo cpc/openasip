@@ -34,10 +34,7 @@ addons:
     - g++-4.8
     - ccache
     - libwxgtk2.8-dev
-    - libboost-filesystem-dev
-    - libboost-graph-dev
-    - libboost-regex-dev
-    - libboost-thread-dev
+    - libboost-all-dev
     - libedit-dev
     - libsqlite3-dev
     - sqlite3
