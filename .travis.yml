@@ -1,4 +1,11 @@
 matrix:
+  env:
+      - LLVM_VER_BUILD=3.9
+      - LLVM_VER_BUILD=3.8
+      - LLVM_VER_BUILD=3.7
+      - LLVM_VER_BUILD=3.6
+      - LLVM_VER_BUILD=3.5
+      - LLVM_VER_BUILD=3.4
   exclude:
    - os: osx
      compiler: gcc
@@ -14,12 +21,6 @@ compiler:
 - gcc
 - clang
 env:
-  - LLVM_VER_BUILD=3.9
-  - LLVM_VER_BUILD=3.8
-  - LLVM_VER_BUILD=3.7
-  - LLVM_VER_BUILD=3.6
-  - LLVM_VER_BUILD=3.5
-  - LLVM_VER_BUILD=3.4
   global:
     - TIMEOUT=0
 addons:
