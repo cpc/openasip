@@ -1,3 +1,6 @@
+env:
+  global:
+    - TIMEOUT=0
 matrix:
   exclude:
    - os: osx
