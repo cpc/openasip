@@ -1,3 +1,7 @@
+matrix:
+  exclude:
+   - os: osx
+     compiler: gcc
 sudo: false
 language: c++
 cache: 
