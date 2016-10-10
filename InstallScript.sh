@@ -37,7 +37,7 @@ export CXX='clang++ -Qunused-arguments -fcolor-diagnostics'
 ./autogen.sh
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALLDIR/tcl/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALLDIR/tcl/lib:/usr/lib:/usr/local/lib
 ./configure --prefix=$INSTALLDIR --with-tcl=$INSTALLDIR/tcl
 else
 ./configure --prefix=$INSTALLDIR
