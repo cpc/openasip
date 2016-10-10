@@ -14,6 +14,7 @@ Notable changes and features
   objects.
 - ProGe now can generate a simple control interface "AlmaIF" that can be
   used for control and debug access to devices in SoCs.
+- Support for LLVM 3.9.
 
 Other features and improvements
 ------------------------------

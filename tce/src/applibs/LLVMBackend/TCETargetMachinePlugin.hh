@@ -54,7 +54,11 @@
     "-v1024:32:1024"
 
 #include <llvm/IR/DataLayout.h>
+#ifdef LLVM_OLDER_THAN_3_9
 #include <llvm/Target/TargetSelectionDAGInfo.h>
+#else
+#include <llvm/CodeGen/SelectionDAGTargetInfo.h>
+#endif
 
 typedef llvm::DataLayout TargetData;
 
@@ -177,12 +181,15 @@ namespace llvm {
         virtual TCETargetMachine *getCurrentTargetMachine() {
             return tm_;
         }
-       
+#ifdef LLVM_OLDER_THAN_3_9
         virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
+#else
+        virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const {
+#endif
             return &tsInfo_;
         }
 
-       
+
    protected:
        /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;
@@ -191,7 +198,11 @@ namespace llvm {
        TCETargetMachine* tm_;
        TCESubtarget* subTarget_;
        DataLayout dl_; // Calculates type size & alignment
+#ifdef LLVM_OLDER_THAN_3_9
        TargetSelectionDAGInfo tsInfo_;
+#else
+       SelectionDAGTargetInfo tsInfo_;
+#endif
    };
 
 }

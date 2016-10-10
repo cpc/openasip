@@ -74,6 +74,10 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include <llvm/IR/Verifier.h>
 
+#ifndef LLVM_OLDER_THAN_3_9
+#include <llvm-c/Core.h> // LLVMGetGlobalContext()
+#endif
+
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
 #ifdef LLVM_LIBDIR
@@ -296,7 +300,11 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errMsgParse;
+#ifdef LLVM_OLDER_THAN_3_9
     LLVMContext &context = getGlobalContext();
+#else
+    LLVMContext context;
+#endif
 
     std::unique_ptr<llvm::Module> m;
 
@@ -498,10 +506,15 @@ LLVMBackend::compile(
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
     Options.StackAlignmentOverride = false; //OverrideStackAlignment;
 
-    TCETargetMachine* targetMachine = 
+    TCETargetMachine* targetMachine =
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
-        targetStr, cpuStr, featureString, Options));
+#ifdef LLVM_OLDER_THAN_3_9
+                targetStr, cpuStr, featureString, Options));
+#else
+                targetStr, cpuStr, featureString, Options,
+                Reloc::Model::Static));
+#endif
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";

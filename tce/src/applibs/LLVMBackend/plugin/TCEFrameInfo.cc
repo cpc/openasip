@@ -50,12 +50,24 @@ using namespace llvm;
  * Emits machine function prologue to machine functions.
  */
 
+#ifdef LLVM_OLDER_THAN_3_9
+#define ERASE_INSTR_AND_RETURN(I)                \
+    MBB.erase(I);                                \
+    return
+#else
+#define ERASE_INSTR_AND_RETURN(I) return MBB.erase(I)
+#endif
+
 /**
  * Eliminates call frame pseudo instructions.
  *
  * Stack space is already reserved in caller stack.
  */
+#ifdef LLVM_OLDER_THAN_3_9
 void
+#else
+MachineBasicBlock::iterator
+#endif
 TCEFrameInfo::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
@@ -67,8 +79,7 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
             MachineOperand mo2 = I->getOperand(2);
             long val = I->getOperand(0).getImm();
             if (val == 0) {
-                MBB.erase(I);
-                return ;
+                ERASE_INSTR_AND_RETURN(I);
             }
             I->setDesc(tii_.get(TCE::SUBrri));
             I->getOperand(0).ChangeToRegister(mo1.getReg(), mo1.isDef(),
@@ -85,8 +96,7 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
             MachineOperand mo2 = I->getOperand(3);
             long val = I->getOperand(0).getImm();
             if (val == 0) {
-                MBB.erase(I);
-                return ;
+                ERASE_INSTR_AND_RETURN(I);
             }
             I->setDesc(tii_.get(TCE::ADDrri));
             I->getOperand(0).ChangeToRegister(mo1.getReg(), mo1.isDef(),
@@ -99,10 +109,15 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
             I->RemoveOperand(3);
         }
     } else {
-        MBB.erase(I);
+        ERASE_INSTR_AND_RETURN(I);
     }
+#ifndef LLVM_OLDER_THAN_3_9
+    // LLVM 3.9 wants an iterator pointing to the instruction after 
+    // the replaced one.
+    return I++;
+#endif
 }
-
+#undef ERASE_INSTR_AND_RETURN
 
 bool TCEFrameInfo::hasFP(const MachineFunction &MF) const {
     if (MF.getFrameInfo()->hasVarSizedObjects()) {
@@ -277,3 +292,5 @@ TCEFrameInfo::emitEpilogue(
             .addImm(stackAlignment_);
     }
 }
+
+

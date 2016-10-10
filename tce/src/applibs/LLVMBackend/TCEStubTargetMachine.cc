@@ -58,6 +58,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetOptions.h>
+#ifndef LLVM_OLDER_THAN_3_9
+#include <llvm/CodeGen/TargetPassConfig.h>
+#endif
 
 using namespace llvm;
 
@@ -118,6 +121,7 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
 #endif
 
 #ifndef LLVM_OLDER_THAN_3_7
+#ifdef LLVM_OLDER_THAN_3_9
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const std::string& CPU, 
     const std::string& FS, const TargetOptions &Options,
@@ -126,6 +130,18 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     TLOF(new TargetLoweringObjectFileELF) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
 }
+#else
+TCEStubTargetMachine::TCEStubTargetMachine(
+    const Target &T, const Triple &TT, const std::string& CPU,
+    const std::string& FS, const TargetOptions &Options,
+    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    TLOF(new TargetLoweringObjectFileELF) {
+    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
+}
+#endif
 
 TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
 #ifdef LLVM_OLDER_THAN_3_8
