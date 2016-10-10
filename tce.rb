@@ -6,16 +6,16 @@ class Tce < Formula
   version '1.14'
   sha256 ''
   depends_on 'boost'
-  depends_on 'automake'
-  depends_on 'autoconf'
+  depends_on 'automake' => :build
+  depends_on 'autoconf' => :build
   depends_on 'wxwidgets'
   depends_on 'xerces-c'
-  depends_on :sqlite
+  depends_on 'sqlite'
   depends_on :x11 # if your formula requires any X11/XQuartz components
   depends_on :python
-  depends_on :libedit
+  depends_on 'libedit'
   depends_on 'pkg-config' => :run
-  depends_on 'wxgtk'
+  #depends_on 'wxgtk'
   depends_on 'libtool'
 
   def install
@@ -23,7 +23,7 @@ class Tce < Formula
     # ENV.deparallelize  # if your formula fails when building in parallel
 
     # Remove unrecognized options if warned by configure
-    system './tce/tools/scripts/install_llvm_3.7.sh', "#{prefix}/llvm"
+    system './tce/tools/scripts/install_llvm_3.8.1.sh', "#{prefix}/llvm"
     
     ENV.prepend_create_path 'PATH', "#{prefix}/llvm/bin"
     cd 'tce' do
