@@ -1,25 +1,38 @@
-# Documentation: https://github.com/Homebrew/brew/blob/master/docs/Formula-Cookbook.md
-#                http://www.rubydoc.info/github/Homebrew/brew/master/Formula
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
 
 class Tce < Formula
-  desc "TTA-based Co-Design Environment"
-  homepage "http://tce.cs.tut.fi/"
-  url "https://github.com/jfmherokiller/tce/archive/master.zip"
-  version "1.14"
-  sha256 ""
-
+  desc 'TTA-based Co-Design Environment'
+  homepage 'http://tce.cs.tut.fi/'
+  url 'https://github.com/jfmherokiller/tce/archive/master.zip'
+  version '1.14'
+  sha256 ''
+  depends_on 'boost'
+  depends_on 'automake'
+  depends_on 'autoconf'
+  depends_on 'wxwidgets'
+  depends_on 'xerces-c'
+  depends_on :sqlite
   depends_on :x11 # if your formula requires any X11/XQuartz components
+  depends_on :python
+  depends_on :libedit
+  depends_on 'pkg-config' => :run
+  depends_on 'wxgtk'
+  depends_on 'libtool'
 
   def install
+
     # ENV.deparallelize  # if your formula fails when building in parallel
 
     # Remove unrecognized options if warned by configure
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
-                          "--disable-silent-rules",
-                          "--prefix=#{prefix}"
-    system "make", "install" # if this fails, try separate make/make install steps
+    system './tce/tools/scripts/install_llvm_3.7.sh', "#{prefix}/llvm"
+    
+    ENV.prepend_create_path 'PATH', "#{prefix}/llvm/bin"
+    cd 'tce' do
+      system './configure', '--disable-debug',
+             '--disable-dependency-tracking',
+             '--disable-silent-rules',
+             "--prefix=#{prefix}"
+      system 'make', 'install'
+    end
   end
 
   test do
@@ -32,6 +45,6 @@ class Tce < Formula
     #
     # The installed folder is not in the path, so use the entire path to any
     # executables being tested: `system "#{bin}/program", "do", "something"`.
-    system "false"
+    system 'false'
   end
 end
