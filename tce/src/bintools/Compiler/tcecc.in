@@ -953,6 +953,11 @@ p.add_option('--no-rename-registers', action='store_false', dest='rename_registe
              help=\
 """Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
 
+p.add_option('--disable-dsf', action="store_true",
+             dest='disable_dsf', default=False,
+             help=\
+"""Disable the post-pass delay slot filler optimizer.""")
+
 p.add_option('--vector-backend', action='store_true', dest='vector_backend', default=False,
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
@@ -1286,6 +1291,9 @@ if options.adf_file != "":
         command += " --rename-registers"
     else:
         command += " --no-rename-registers"
+
+    if options.disable_dsf:
+        command += " --disable-dsf"
 
     if options.vector_backend:
         command += " --vector-backend"

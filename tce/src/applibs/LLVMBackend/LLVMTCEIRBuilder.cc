@@ -121,7 +121,7 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
             dynamic_cast<LLVMTCECmdLineOptions*>(
                 Application::cmdLineOptions());
     }
-    delaySlotFilling_ = true;
+    delaySlotFilling_ = !options_->disableDelaySlotFiller();
 }
 
 bool
