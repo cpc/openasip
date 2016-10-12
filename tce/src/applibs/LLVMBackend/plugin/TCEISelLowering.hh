@@ -67,6 +67,12 @@ namespace TCEISD {
 
 namespace llvm {
 
+#ifdef LLVM_OLDER_THAN_3_9
+#define SDLOC_PARAM_TYPE SDLoc
+#else
+#define SDLOC_PARAM_TYPE const SDLoc&
+#endif
+
     class TCETargetMachine;
 
     /**
@@ -112,7 +118,7 @@ namespace llvm {
                              CallingConv::ID CallConv,
                              bool isVarArg,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
-                             SDLoc dl, SelectionDAG &DAG,
+                             SDLOC_PARAM_TYPE dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) const override;
 
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
@@ -128,7 +134,7 @@ namespace llvm {
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
-                    SDLoc dl, SelectionDAG &DAG) const override;
+                    SDLOC_PARAM_TYPE dl, SelectionDAG &DAG) const override;
 
 #if defined(LLVM_3_5)
         virtual bool allowsUnalignedMemoryAccesses(EVT,

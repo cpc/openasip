@@ -1453,9 +1453,32 @@ ProgramWriter::createDataSections(Binary* bin) const {
                     currSect->lengthInMAUs() + currDef.size());
             }
 
+
+#if 0
+            // Prints debug data of all encountered data definitions.
+            if (currSect != NULL) {
+                Application::logStream()
+                    << "datadef: addr: " 
+                    << currDef.startAddress().space().name() << ":"
+                    << currDef.startAddress().location()
+                    << "\t" << "size: " << currDef.size()
+                    << "\t" << "init: " << currDef.isInitialized()
+                    << "\t" << "isAddr: " << currDef.isAddress();
+                if (currDef.isAddress()) {
+                    Application::logStream()
+                        << "\t" << "dest: "
+                        << currDef.destinationAddress().space().name() << ":"
+                        << currDef.destinationAddress().location();
+                }
+                Application::logStream()
+                    << std::endl;
+            }
+#endif
+
 #if 0
             // prints out debug data of all created data sections
             if (currSect != NULL) {
+                DataSection* dSectTmp = dynamic_cast<DataSection*>(currSect);
                 Application::logStream()
                     << "data section " << currSect << " length: " 
                     << currSect->lengthInMAUs()
@@ -1464,7 +1487,8 @@ ProgramWriter::createDataSections(Binary* bin) const {
                         *bin, *currSect->aSpace())
                     << ":" << currSect->startingAddress()
                     << "\tinitialized: " 
-                    << static_cast<int>(currSect->isDataSection())
+                    // << static_cast<int>(currSect->isDataSection())
+                    << (dSectTmp?true:false)
                     << std::endl;
             }
 #endif

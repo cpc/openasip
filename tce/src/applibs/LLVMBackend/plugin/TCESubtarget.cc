@@ -110,7 +110,11 @@ const TargetLowering* TCESubtarget::getTargetLowering() const {
     return plugin_->getTargetLowering();
 }
 
+#ifdef LLVM_OLDER_THAN_3_9
 const TargetSelectionDAGInfo* TCESubtarget::getSelectionDAGInfo() const {
+#else
+const SelectionDAGTargetInfo* TCESubtarget::getSelectionDAGInfo() const {
+#endif
     return plugin_->getSelectionDAGInfo();
 }
 

@@ -35,8 +35,13 @@
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetLowering.h>
+// LLVM has function with parameter named as "PIC". Command line
+// option -DPIC messes up the compilation.
+#pragma push_macro("PIC")
+#undef PIC
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
+#pragma pop_macro("PIC")
 
 #include "tce_config.h"
 #include "TCEStubSubTarget.hh"
@@ -100,12 +105,21 @@ namespace llvm {
         TCEStubSubTarget *ST;
 
     public:
+#ifdef LLVM_OLDER_THAN_3_9
         TCEStubTargetMachine(
             const Target &T, const Triple& TT,
             const std::string& CPU, const std::string& FS,
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
+#else
+        TCEStubTargetMachine(
+            const Target &T, const Triple& TT,
+            const std::string& CPU, const std::string& FS,
+            const TargetOptions &Options,
+            Optional<Reloc::Model> RM, CodeModel::Model CM,
+            CodeGenOpt::Level OL);
+#endif
 
         virtual TargetIRAnalysis getTargetIRAnalysis() override;
         virtual ~TCEStubTargetMachine();
