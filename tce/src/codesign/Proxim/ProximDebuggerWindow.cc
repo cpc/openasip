@@ -139,7 +139,8 @@ ProximDebuggerWindow::loadSourceCode(wxString sourceFile) {
  * @param lineNum Line number
  * @param style Style attributes (text color, background color, font, alignment)
  */
-void ProximDebuggerWindow::setLineAttributes(int lineNum, wxTextAttr style) {
+void
+ProximDebuggerWindow::setLineAttributes(int lineNum, wxTextAttr style) {
     long lineStart = sourceCodeText_->XYToPosition(0, lineNum - 1);
     long lineEnd = lineStart + sourceCodeText_->GetLineLength(lineNum - 1);
     sourceCodeText_->SetStyle(lineStart, lineEnd, style);
