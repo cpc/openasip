@@ -583,7 +583,7 @@ ProximMainFrame::onSimulatorEvent(SimulatorEvent& event) {
     if (eventType == SimulatorEvent::EVT_SIMULATOR_RUNTIME_ERROR) {
         wxString message = WxConversion::toWxString(event.data());
         ErrorDialog dialog(this, message);
-            dialog.ShowModal();
+        dialog.ShowModal();
     }
 
     if (eventType == SimulatorEvent::EVT_SIMULATOR_RUNTIME_WARNING) {
@@ -743,7 +743,7 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
     case ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN: {
     // Toggle breakpoitn window.
     wxWindow* breakpointWindow = FindWindowById(
-            ProximConstants::ID_BREAKPOINT_WINDOW);
+        ProximConstants::ID_BREAKPOINT_WINDOW);
     if (breakpointWindow == NULL) {
         breakpointWindow = new ProximBreakpointWindow(
             this, ProximConstants::ID_BREAKPOINT_WINDOW);
