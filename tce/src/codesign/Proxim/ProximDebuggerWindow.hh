@@ -79,8 +79,7 @@ private:
     // Widget IDs.
     enum {
         ID_SOURCEFILE_CHOICE = 19000,
-        ID_SOURCECODE,
-        ID_TEXT_INSTR_INFO
+        ID_SOURCECODE
     };
 
     DECLARE_EVENT_TABLE()
