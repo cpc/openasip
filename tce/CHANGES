@@ -1,7 +1,7 @@
 1.14       unreleased
 =====================
 
-[updated 2016-09-23]
+[updated 2016-10-18]
 
 Notable changes and features
 ----------------------------
@@ -14,12 +14,12 @@ Notable changes and features
   objects.
 - ProGe now can generate a simple control interface "AlmaIF" that can be
   used for control and debug access to devices in SoCs.
+- Support for LLVM 3.9.
 
 Other features and improvements
 ------------------------------
 - TCE_INSTALL_DIR environment variable can be set pointing to directory where
   user manually installed TCE.
-- Added export to SVG (wxwidgets 3.* only) in ProDe and Proxim.
 - Added ability to modify memory in simulator with load_data command.
 
 Usability features
@@ -36,6 +36,7 @@ Usability features
 - List filtering in ProDe dialogs 'Add from opset' and 'Add FU from HDB'.
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
+- Added source code debugging window to Proxim.
 
 Documentation
 -------------

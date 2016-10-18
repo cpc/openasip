@@ -82,6 +82,7 @@
 #include "ProximStopDialog.hh"
 #include "ProximSimulationThread.hh"
 #include "MemorySystem.hh"
+#include "ProximDebuggerWindow.hh"
 
 BEGIN_EVENT_TABLE(ProximMainFrame, wxFrame)
     EVT_KEY_DOWN(ProximMainFrame::onKeyEvent)
@@ -90,7 +91,7 @@ BEGIN_EVENT_TABLE(ProximMainFrame, wxFrame)
 		   ProximConstants::COMMAND_LAST,
 		   ProximMainFrame::onCommandEvent)
     EVT_MENU_RANGE(ProximConstants::COMMAND_TOGGLE_CONSOLE_WIN,
-		   ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
+		   ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
 		   ProximMainFrame::onToggleWindow)
     EVT_MENU(UserManualCmd::COMMAND_ID, ProximMainFrame::onCommandEvent)
     EVT_COMMAND_RANGE(ProximConstants::COMMAND_FIRST,
@@ -102,7 +103,7 @@ BEGIN_EVENT_TABLE(ProximMainFrame, wxFrame)
 			ProximMainFrame::updateCommand)
 
     EVT_UPDATE_UI_RANGE(ProximConstants::COMMAND_TOGGLE_CONSOLE_WIN,
-			ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
+			ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
 			ProximMainFrame::updateToggleItem)
 
     EVT_SIMULATOR_START(0, ProximMainFrame::onSimulatorEvent)
@@ -279,6 +280,10 @@ ProximMainFrame::createMenubar() {
     viewMenu->AppendCheckItem(
         ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
         _T("&Breakpoint Window"));
+
+    viewMenu->AppendCheckItem(
+        ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
+        _T("&Debugger Window"));
 
     viewMenu->AppendSeparator();
     viewMenu->Append(
@@ -770,6 +775,23 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
 	return;
 
     }
+
+    case ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN: {
+    // Toggle command history window.
+    wxWindow* debuggerWindow = FindWindowById(
+            ProximConstants::ID_DEBUGGER_WINDOW);
+    if (debuggerWindow == NULL) {
+        debuggerWindow = new ProximDebuggerWindow(
+                this, ProximConstants::ID_DEBUGGER_WINDOW);
+        ProximToolbox::addFramedWindow(
+            debuggerWindow, _T("Source code debugger"), false);
+    } else {
+        debuggerWindow->GetParent()->Close();
+        debuggerWindow = NULL;
+    }
+    return;
+
+    }
     }
     event.Skip();
 }
@@ -863,6 +885,16 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 	} else {
 	    event.Check(false);
 	}
+    }
+
+    // debugger window check-item
+    if (event.GetId() == ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN) {
+        bool exists = FindWindowById(ProximConstants::ID_DEBUGGER_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+    }
     }
 }
 
