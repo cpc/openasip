@@ -75,8 +75,6 @@ private:
     wxChoice* sourceFileList_;
     // Widget for displaying source code contents
     wxTextCtrl* sourceCodeText_;
-    // Additional instruction info
-    wxStaticText* instrInfo_;
 
     // Widget IDs.
     enum {
