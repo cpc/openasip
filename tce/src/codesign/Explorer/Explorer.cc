@@ -746,9 +746,6 @@ int main(int argc, char* argv[]) {
             } catch (const FileNotFound& e) {
                 std::cerr << "Could not find HDB file " 
                           << options->hdbFileName(i) << std::endl;
-            } catch (const IOException& e) {
-                std::cerr << "HDB file " << options->hdbFileName(i)
-                          << " is not writable." << std::endl;
             }
         }
     } else {
@@ -764,20 +761,11 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
-
         try {
-            if (!FileSystem::fileIsWritable(pathToHdb)) {
-                std::cerr << "HDB file " << pathToHdb << " is not writable."
-                          << std::endl;
-            } else {
-                HDB::HDBRegistry::instance().hdb(pathToHdb);
-            }
+            HDB::HDBRegistry::instance().hdb(pathToHdb);
         } catch (const FileNotFound& e) {
             std::cerr << "Could not find HDB file " 
                       << pathToHdb << std::endl;
-        } catch (const IOException& e) {
-            std::cerr << "HDB file " << pathToHdb
-                      << " is not writable." << std::endl;
         }
     }
     
