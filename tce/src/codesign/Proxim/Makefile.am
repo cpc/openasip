@@ -74,7 +74,7 @@ proxim_SOURCES = Proxim.cc ProximMainFrame.cc ConsoleWindow.cc \
 	ProximDisassemblyGridTable.cc DisasmTopCountAttrProvider.cc \
 	HighlightTopExecCountsCmd.cc ClearDisassemblyHighlightCmd.cc \
 	ProximDisasmAttrProvider.cc DisasmExecPercentageAttrProvider.cc \
-	HighlightExecPercentageCmd.cc ProximUnitWindow.cc
+	HighlightExecPercentageCmd.cc ProximUnitWindow.cc ProximDebuggerWindow.cc
 
 proxim_LDFLAGS = $(TCE_LDFLAGS)
 proxim_LDADD = ../../libtce.la
@@ -157,5 +157,5 @@ proxim_SOURCES += \
 	Proxim.hh ProximFUDetailsCmd.hh \
 	ProximDisassemblyWindow.hh ProximCDCmd.hh \
 	ProximDisassemblyGridTable.hh ProximSocketEditPolicy.hh \
-	ProximAboutDialog.hh 
+	ProximAboutDialog.hh ProximDebuggerWindow.hh
 ## headers end

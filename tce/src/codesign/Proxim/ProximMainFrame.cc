@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -82,28 +82,29 @@
 #include "ProximStopDialog.hh"
 #include "ProximSimulationThread.hh"
 #include "MemorySystem.hh"
+#include "ProximDebuggerWindow.hh"
 
 BEGIN_EVENT_TABLE(ProximMainFrame, wxFrame)
     EVT_KEY_DOWN(ProximMainFrame::onKeyEvent)
     EVT_CLOSE(ProximMainFrame::onClose)
     EVT_MENU_RANGE(ProximConstants::COMMAND_FIRST,
-		   ProximConstants::COMMAND_LAST,
-		   ProximMainFrame::onCommandEvent)
+        ProximConstants::COMMAND_LAST,
+        ProximMainFrame::onCommandEvent)
     EVT_MENU_RANGE(ProximConstants::COMMAND_TOGGLE_CONSOLE_WIN,
-		   ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
-		   ProximMainFrame::onToggleWindow)
+        ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
+        ProximMainFrame::onToggleWindow)
     EVT_MENU(UserManualCmd::COMMAND_ID, ProximMainFrame::onCommandEvent)
     EVT_COMMAND_RANGE(ProximConstants::COMMAND_FIRST,
-		      ProximConstants::COMMAND_LAST,
-		      wxEVT_COMMAND_BUTTON_CLICKED,
-		      ProximMainFrame::onCommandEvent)
+        ProximConstants::COMMAND_LAST,
+        wxEVT_COMMAND_BUTTON_CLICKED,
+        ProximMainFrame::onCommandEvent)
     EVT_UPDATE_UI_RANGE(ProximConstants::COMMAND_FIRST,
-			ProximConstants::COMMAND_LAST,
-			ProximMainFrame::updateCommand)
+        ProximConstants::COMMAND_LAST,
+        ProximMainFrame::updateCommand)
 
     EVT_UPDATE_UI_RANGE(ProximConstants::COMMAND_TOGGLE_CONSOLE_WIN,
-			ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
-			ProximMainFrame::updateToggleItem)
+        ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
+        ProximMainFrame::updateToggleItem)
 
     EVT_SIMULATOR_START(0, ProximMainFrame::onSimulatorEvent)
     EVT_SIMULATOR_STOP(0, ProximMainFrame::onSimulatorEvent)
@@ -280,6 +281,10 @@ ProximMainFrame::createMenubar() {
         ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN,
         _T("&Breakpoint Window"));
 
+    viewMenu->AppendCheckItem(
+        ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN,
+        _T("&Debugger Window"));
+
     viewMenu->AppendSeparator();
     viewMenu->Append(
         ProximConstants::COMMAND_NEW_REGISTER_WINDOW,
@@ -313,7 +318,7 @@ ProximMainFrame::createMenubar() {
 
     // Command menu
     commandMenu->Append(
-	ProximConstants::COMMAND_CLEAR_CONSOLE,
+    ProximConstants::COMMAND_CLEAR_CONSOLE,
         menuAccelerator(ProximConstants::COMMAND_CLEAR_CONSOLE).Prepend(
             _T("&Clear Console")));
 
@@ -478,13 +483,13 @@ void
 ProximMainFrame::onCommandEvent(wxCommandEvent& event) {
 
     GUICommand* command =
-	wxGetApp().commandRegistry().createCommand(event.GetId());
+        wxGetApp().commandRegistry().createCommand(event.GetId());
 
     if (command == NULL) {
-	ErrorDialog dialog(
-	    this, _T("No handler found for the command event"));
-	dialog.ShowModal();
-	return;
+        ErrorDialog dialog(
+            this, _T("No handler found for the command event"));
+        dialog.ShowModal();
+        return;
     }
 
     command->setParentWindow(this);
@@ -504,9 +509,9 @@ ProximMainFrame::dockWindow(wxWindow* window) {
     // If the frame is empty, the window is added directly to the sizer
     // w/o a splitterwindow.
     if (topSplitter_ == NULL) {
-	topSplitter_ = window;
-	sizer_->Add(window);
-	return;
+        topSplitter_ = window;
+        sizer_->Add(window);
+        return;
     }
 
     // The frame already contained window(s). A new splitter window is created,
@@ -576,15 +581,15 @@ ProximMainFrame::onSimulatorEvent(SimulatorEvent& event) {
     }
 
     if (eventType == SimulatorEvent::EVT_SIMULATOR_RUNTIME_ERROR) {
-	wxString message = WxConversion::toWxString(event.data());
-	ErrorDialog dialog(this, message);
-	dialog.ShowModal();
+        wxString message = WxConversion::toWxString(event.data());
+        ErrorDialog dialog(this, message);
+        dialog.ShowModal();
     }
 
     if (eventType == SimulatorEvent::EVT_SIMULATOR_RUNTIME_WARNING) {
-	wxString message = WxConversion::toWxString(event.data());
-	WarningDialog dialog(this, message);
-	dialog.ShowModal();
+        wxString message = WxConversion::toWxString(event.data());
+        WarningDialog dialog(this, message);
+        dialog.ShowModal();
     }
 
     // Loading program.
@@ -634,7 +639,7 @@ ProximMainFrame::onSimulatorEvent(SimulatorEvent& event) {
     }
 
     for (unsigned i = 0; i < subwindows.size(); i++) {
-	wxWindow * window = subwindows[i];
+        wxWindow * window = subwindows[i];
         wxPostEvent(window, event);
     }
 
@@ -686,88 +691,104 @@ ProximMainFrame::onToggleWindow(wxCommandEvent& event) {
     switch (id) {
 
     case ProximConstants::COMMAND_TOGGLE_MEMORY_WIN: {
-	// Toggle memory window.
-	wxWindow* memoryWindow = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
-	if (memoryWindow == NULL) {
-	    memoryWindow = new ProximMemoryWindow(
-                this, ProximConstants::ID_MEMORY_WINDOW);
-            ProximToolbox::addFramedWindow(
-                memoryWindow, _T("Memory"), false, wxSize(620, 400));
-	} else {
-	    memoryWindow->GetParent()->Destroy();
-	    memoryWindow = NULL;
-	}
-	return;
+    // Toggle memory window.
+    wxWindow* memoryWindow = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
+    if (memoryWindow == NULL) {
+        memoryWindow = new ProximMemoryWindow(
+            this, ProximConstants::ID_MEMORY_WINDOW);
+        ProximToolbox::addFramedWindow(
+            memoryWindow, _T("Memory"), false, wxSize(620, 400));
+    } else {
+        memoryWindow->GetParent()->Destroy();
+        memoryWindow = NULL;
+    }
+    return;
+
     }
 
     case ProximConstants::COMMAND_TOGGLE_CONTROL_WIN: {
-	// Toggle memory window.
-	wxWindow* controlWindow =
-            FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
-	if (controlWindow == NULL) {
-	    controlWindow = new ProximControlWindow(
-                this, ProximConstants::ID_CONTROL_WINDOW);
-            ProximToolbox::addFramedWindow(
-                controlWindow, _T("Simulator control"), false);
-	} else {
-	    controlWindow->GetParent()->Destroy();
-	    controlWindow = NULL;
-	}
-	return;
+    // Toggle control window.
+    wxWindow* controlWindow =
+        FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
+    if (controlWindow == NULL) {
+        controlWindow = new ProximControlWindow(
+            this, ProximConstants::ID_CONTROL_WINDOW);
+        ProximToolbox::addFramedWindow(
+            controlWindow, _T("Simulator control"), false);
+    } else {
+        controlWindow->GetParent()->Destroy();
+        controlWindow = NULL;
+    }
+    return;
 
     }
 
     case ProximConstants::COMMAND_TOGGLE_MACHINE_WIN: {
-	// Toggle machine window.
-	wxWindow* machineWindow = FindWindowById(
-            ProximConstants::ID_MACHINE_STATE_WINDOW);
-	if (machineWindow == NULL) {
-	    machineWindow = new ProximMachineStateWindow(
-                this, ProximConstants::ID_MACHINE_STATE_WINDOW);
-            ProximToolbox::addFramedWindow(
-                machineWindow, _T("Simulated Machine"), false,
-                wxSize(600,400));
-	} else {
-	    machineWindow->GetParent()->Destroy();
-	    machineWindow = NULL;
-	}
-	return;
+    // Toggle machine window.
+    wxWindow* machineWindow = FindWindowById(
+        ProximConstants::ID_MACHINE_STATE_WINDOW);
+    if (machineWindow == NULL) {
+        machineWindow = new ProximMachineStateWindow(
+            this, ProximConstants::ID_MACHINE_STATE_WINDOW);
+        ProximToolbox::addFramedWindow(
+            machineWindow, _T("Simulated Machine"), false, wxSize(600,400));
+    } else {
+        machineWindow->GetParent()->Destroy();
+        machineWindow = NULL;
+    }
+    return;
 
     }
 
     case ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN: {
-	// Toggle breakpoitn window.
-	wxWindow* breakpointWindow = FindWindowById(
-            ProximConstants::ID_BREAKPOINT_WINDOW);
-	if (breakpointWindow == NULL) {
-	    breakpointWindow = new ProximBreakpointWindow(
-                this, ProximConstants::ID_BREAKPOINT_WINDOW);
-            ProximToolbox::addFramedWindow(
-                breakpointWindow, _T("Breakpoints"), false);
-	} else {
-	    breakpointWindow->GetParent()->Close();
-	    breakpointWindow = NULL;
-	}
-	return;
+    // Toggle breakpoitn window.
+    wxWindow* breakpointWindow = FindWindowById(
+        ProximConstants::ID_BREAKPOINT_WINDOW);
+    if (breakpointWindow == NULL) {
+        breakpointWindow = new ProximBreakpointWindow(
+            this, ProximConstants::ID_BREAKPOINT_WINDOW);
+        ProximToolbox::addFramedWindow(
+            breakpointWindow, _T("Breakpoints"), false);
+    } else {
+        breakpointWindow->GetParent()->Close();
+        breakpointWindow = NULL;
+    }
+    return;
 
     }
 
     case ProximConstants::COMMAND_TOGGLE_CMD_HISTORY_WIN: {
-	// Toggle command history window.
-	wxWindow* historyWindow = FindWindowById(
-            ProximConstants::ID_CMD_HISTORY_WINDOW);
-	if (historyWindow == NULL) {
-	    historyWindow = new ProximCmdHistoryWindow(
-                this, ProximConstants::ID_CMD_HISTORY_WINDOW,
-                ProximToolbox::lineReader());
+    // Toggle command history window.
+    wxWindow* historyWindow = FindWindowById(
+        ProximConstants::ID_CMD_HISTORY_WINDOW);
+    if (historyWindow == NULL) {
+        historyWindow = new ProximCmdHistoryWindow(
+            this, ProximConstants::ID_CMD_HISTORY_WINDOW,
+            ProximToolbox::lineReader());
+        ProximToolbox::addFramedWindow(
+            historyWindow, _T("Command History"), false);
+    } else {
+        historyWindow->GetParent()->Close();
+        historyWindow = NULL;
+    }
+    return;
 
-            ProximToolbox::addFramedWindow(
-                historyWindow, _T("Command History"), false);
-	} else {
-	    historyWindow->GetParent()->Close();
-	    historyWindow = NULL;
-	}
-	return;
+    }
+
+    case ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN: {
+    // Toggle command history window.
+    wxWindow* debuggerWindow = FindWindowById(
+        ProximConstants::ID_DEBUGGER_WINDOW);
+    if (debuggerWindow == NULL) {
+        debuggerWindow = new ProximDebuggerWindow(
+            this, ProximConstants::ID_DEBUGGER_WINDOW);
+        ProximToolbox::addFramedWindow(
+            debuggerWindow, _T("Source code debugger"), false);
+    } else {
+        debuggerWindow->GetParent()->Close();
+        debuggerWindow = NULL;
+    }
+    return;
 
     }
     }
@@ -794,13 +815,13 @@ ProximMainFrame::updateCommand(wxUpdateUIEvent& event) {
     }
 
     GUICommand* command =
-	wxGetApp().commandRegistry().createCommand(event.GetId());
+        wxGetApp().commandRegistry().createCommand(event.GetId());
 
     if (command != NULL) {
-	event.Enable(command->isEnabled());
+        event.Enable(command->isEnabled());
         delete command;
     } else {
-	event.Enable(false);
+        event.Enable(false);
     }
 }
 
@@ -817,52 +838,62 @@ ProximMainFrame::updateToggleItem(wxUpdateUIEvent& event) {
 
     // memory window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_MEMORY_WIN) {
-	bool exists = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
-	if (exists) {
-	    event.Check(true);
-	} else {
-	    event.Check(false);
-	}
+        bool exists = FindWindowById(ProximConstants::ID_MEMORY_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
     }
 
     // simulator control window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_CONTROL_WIN) {
-	bool exists = FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
-	if (exists) {
-	    event.Check(true);
-	} else {
-	    event.Check(false);
-	}
+        bool exists = FindWindowById(ProximConstants::ID_CONTROL_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
     }
 
     // machine window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_MACHINE_WIN) {
-	bool exists = FindWindowById(ProximConstants::ID_MACHINE_STATE_WINDOW);
-	if (exists) {
-	    event.Check(true);
-	} else {
-	    event.Check(false);
-	}
+        bool exists = FindWindowById(ProximConstants::ID_MACHINE_STATE_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
     }
 
     // breakpoint window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_BREAKPOINT_WIN) {
-	bool exists = FindWindowById(ProximConstants::ID_BREAKPOINT_WINDOW);
-	if (exists) {
-	    event.Check(true);
-	} else {
-	    event.Check(false);
-	}
+        bool exists = FindWindowById(ProximConstants::ID_BREAKPOINT_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
     }
 
     // command history window check-item
     if (event.GetId() == ProximConstants::COMMAND_TOGGLE_CMD_HISTORY_WIN) {
-	bool exists = FindWindowById(ProximConstants::ID_CMD_HISTORY_WINDOW);
-	if (exists) {
-	    event.Check(true);
-	} else {
-	    event.Check(false);
-	}
+        bool exists = FindWindowById(ProximConstants::ID_CMD_HISTORY_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
+    }
+
+    // debugger window check-item
+    if (event.GetId() == ProximConstants::COMMAND_TOGGLE_DEBUGGER_WIN) {
+        bool exists = FindWindowById(ProximConstants::ID_DEBUGGER_WINDOW);
+        if (exists) {
+            event.Check(true);
+        } else {
+            event.Check(false);
+        }
     }
 }
 
