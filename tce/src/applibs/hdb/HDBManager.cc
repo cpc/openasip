@@ -354,8 +354,8 @@ HDBManager::HDBManager(const std::string& hdbFile)
         throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    if (!FileSystem::fileIsWritable(hdbFile)) {
-        string errorMsg = "File '" + hdbFile + "' is not writable.";
+    if (!FileSystem::fileIsReadable(hdbFile)) {
+        string errorMsg = "File '" + hdbFile + "' has no read rights.";
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
 
