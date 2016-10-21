@@ -68,7 +68,7 @@ public:
         int transitionCount = 0);
     virtual ~FiniteStateAutomaton();
 
-    virtual std::string transitionName(FSAStateTransitionIndex transition)
+    virtual const std::string& transitionName(FSAStateTransitionIndex transition)
         const;
 
     virtual std::string stateName(FSAStateIndex state) const;
