@@ -60,7 +60,7 @@ END_EVENT_TABLE()
 ProximDebuggerWindow::ProximDebuggerWindow(
     ProximMainFrame* parent, int id):
     ProximSimulatorWindow(parent, id, wxDefaultPosition, wxSize(800,600)),
-    currentFile_(""), currentLineNum_(0) {
+    currentFile_(), currentLineNum_(0) {
 
     createContents(this, true, true);
     loadProgram(ProximToolbox::program());
@@ -79,7 +79,7 @@ void
 ProximDebuggerWindow::reset() {
     sourceFileList_->Clear();
     sourceCodeText_->Clear();
-    currentFile_ = "";
+    currentFile_.clear();
     currentLineNum_ = 0;
 }
 
