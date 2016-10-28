@@ -33,8 +33,6 @@
 
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
-#include <vector>
-#include <string>
 
 #include "ProximDebuggerWindow.hh"
 #include "ProximToolbox.hh"
@@ -60,7 +58,7 @@ END_EVENT_TABLE()
 ProximDebuggerWindow::ProximDebuggerWindow(
     ProximMainFrame* parent, int id):
     ProximSimulatorWindow(parent, id, wxDefaultPosition, wxSize(800,600)),
-    currentFile_(), currentLineNum_(0) {
+    currentFile_() {
 
     createContents(this, true, true);
     loadProgram(ProximToolbox::program());
@@ -80,7 +78,7 @@ ProximDebuggerWindow::reset() {
     sourceFileList_->Clear();
     sourceCodeText_->Clear();
     currentFile_.clear();
-    currentLineNum_ = 0;
+    currentLineNums_.clear();
 }
 
 
@@ -91,7 +89,6 @@ ProximDebuggerWindow::reset() {
  */
 void
 ProximDebuggerWindow::loadProgram(const Program& program) {
-
     // get list of used source code files for drop-down list
     for (int i = 0; i < program.moveCount(); i++) {
 
@@ -106,14 +103,46 @@ ProximDebuggerWindow::loadProgram(const Program& program) {
         }
     }
 
+    // load first file from drop-down list and set hilights
     if (sourceFileList_->GetCount() > 0) {
         loadSourceCode(sourceFileList_->GetString(0));
+        updateAnnotations();
     } else {
         ErrorDialog dialog(
             this, _T("No debugging information available."));
         dialog.ShowModal();
     }
 }
+
+
+/**
+ * Parses possible annotations in the current instruction and hilights
+ * source code lines.
+ */
+void
+ProximDebuggerWindow::updateAnnotations() {
+
+    Word pc = wxGetApp().simulation()->frontend()->programCounter();
+
+    const TTAProgram::Instruction& instruction =
+        ProximToolbox::program().instructionAt(pc);
+
+    // check annotations and hilight possible lines
+    for (int i = 0; i < instruction.moveCount(); i++) {
+        const TTAProgram::Move& m = instruction.move(i);
+
+        if (m.hasSourceLineNumber()) {
+            if (m.sourceFileName() == currentFile_) {
+                highlightLine(m.sourceLineNumber());
+            }
+        }
+    }
+    // make last higlighted line visible
+    if (currentLineNums_.size() > 0) {
+        showLine(currentLineNums_.back());
+    }
+}
+
 
 
 /**
@@ -124,12 +153,9 @@ ProximDebuggerWindow::loadProgram(const Program& program) {
 void
 ProximDebuggerWindow::loadSourceCode(wxString sourceFile) {
 
-    if (sourceFile != currentFile_) {
-        sourceCodeText_->LoadFile(sourceFile);
-        currentFile_ = sourceFile;
-        
-        sourceFileList_->SetSelection(sourceFileList_->FindString(sourceFile));
-    }
+    sourceCodeText_->LoadFile(sourceFile);
+    currentFile_ = sourceFile;
+    sourceFileList_->SetSelection(sourceFileList_->FindString(sourceFile));
 }
 
 
@@ -141,8 +167,10 @@ ProximDebuggerWindow::loadSourceCode(wxString sourceFile) {
  */
 void
 ProximDebuggerWindow::setLineAttributes(int lineNum, wxTextAttr style) {
+
     long lineStart = sourceCodeText_->XYToPosition(0, lineNum - 1);
     long lineEnd = lineStart + sourceCodeText_->GetLineLength(lineNum - 1);
+
     sourceCodeText_->SetStyle(lineStart, lineEnd, style);
 }
 
@@ -155,17 +183,11 @@ ProximDebuggerWindow::setLineAttributes(int lineNum, wxTextAttr style) {
 void
 ProximDebuggerWindow::highlightLine(int lineNum) {
 
-    if (lineNum != currentLineNum_) {
-        // run this only if we have some line selection active
-        if (currentLineNum_ != 0) {
-            // unhighlight old line first
-            setLineAttributes(currentLineNum_, wxTextAttr(*wxBLACK, *wxWHITE));
-        }
-        // highlight new line with blue
-        currentLineNum_ = lineNum;
-        setLineAttributes(currentLineNum_, wxTextAttr(*wxWHITE, *wxBLUE));
-        // make highlined line visible
-        showLine(lineNum);
+    if (std::find(currentLineNums_.begin(), currentLineNums_.end(), lineNum) ==
+        currentLineNums_.end()) {
+
+        currentLineNums_.push_back(lineNum);
+        setLineAttributes(lineNum, wxTextAttr(*wxWHITE, *wxBLUE));
     }
 }
 
@@ -191,29 +213,17 @@ ProximDebuggerWindow::onProgramLoaded(const SimulatorEvent&) {
 
 
 /**
- * Event handler for simulation stop.
- *
- * Refreshes the source code window information according to current
- * simulation state.
+ * Event handler which is called when simulation step ends.
  */
 void
 ProximDebuggerWindow::onSimulationStop(const SimulatorEvent&) {
-
-    if (sourceFileList_->GetCount() > 0) {
-        Word pc = wxGetApp().simulation()->frontend()->programCounter();
-
-        const TTAProgram::Instruction& instruction =
-            ProximToolbox::program().instructionAt(pc);
-
-        if (instruction.moveCount() > 0) {
-            const TTAProgram::Move& m = instruction.move(0);
-
-            if (m.hasSourceLineNumber()) {
-                loadSourceCode(WxConversion::toWxString(m.sourceFileName()));
-                highlightLine(m.sourceLineNumber());
-            }
-        }
+    // unhilight old lines
+    for (int lineNum : currentLineNums_) {
+        setLineAttributes(lineNum, wxTextAttr(*wxBLACK, *wxWHITE));
     }
+    currentLineNums_.clear();
+
+    updateAnnotations();
 }
 
 
@@ -225,6 +235,8 @@ ProximDebuggerWindow::onSimulationStop(const SimulatorEvent&) {
 void
 ProximDebuggerWindow::onSourceFileChoice(wxCommandEvent&) {
     loadSourceCode(sourceFileList_->GetString(sourceFileList_->GetSelection()));
+    currentLineNums_.clear();
+    updateAnnotations();
 }
 
 

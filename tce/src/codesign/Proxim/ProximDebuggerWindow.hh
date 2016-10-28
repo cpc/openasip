@@ -35,6 +35,8 @@
 #define TTA_PROXIM_DEBUGGER_WINDOW_HH
 
 
+#include <vector>
+
 #include "ProximSimulatorWindow.hh"
 #include "SimulatorEvent.hh"
 
@@ -44,11 +46,10 @@ namespace TTAProgram {
 }
 
 /**
- * Proxim subwindow with buttons to control the simulation process.
+ * Proxim subwindow which displays program source code annotations.
  *
- * ProximDebuggerWindow doesn't handle button events. The events are
- * passed to the parent window. Button enabled status is updated
- * using wxUpdateUI events.
+ * This window listens to SimulatorEvents and updates the window
+ * contents automatically.
  */
 class ProximDebuggerWindow : public ProximSimulatorWindow {
 public:
@@ -56,6 +57,7 @@ public:
     virtual ~ProximDebuggerWindow();
     virtual void reset();
     void loadProgram(const TTAProgram::Program& program);
+    void updateAnnotations();
     void loadSourceCode(wxString sourceFile);
     void setLineAttributes(int lineNum, wxTextAttr style);
     void highlightLine(int lineNum);
@@ -69,8 +71,8 @@ private:
 
     // Currently loaded source code file
     wxString currentFile_;
-    // Currently highlighted source code line number
-    int currentLineNum_;
+    // Currently highlighted source code line numbers
+    std::vector<int> currentLineNums_;
     // Drop-down list of available source code files
     wxChoice* sourceFileList_;
     // Widget for displaying source code contents
