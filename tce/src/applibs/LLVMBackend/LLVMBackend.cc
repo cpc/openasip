@@ -598,6 +598,12 @@ LLVMBackend::compile(
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
 
+        // FP register datum.
+        RegDatum* fpReg = new RegDatum;
+        fpReg->first = plugin.rfName(plugin.fpDRegNum());
+        fpReg->second = plugin.registerIndex(plugin.fpDRegNum());
+        ipData_->setDatum("FRAME_POINTER", fpReg);
+
         // Return value register datum.
         RegDatum* rvReg = new RegDatum;
         rvReg->first = plugin.rfName(plugin.rvDRegNum());

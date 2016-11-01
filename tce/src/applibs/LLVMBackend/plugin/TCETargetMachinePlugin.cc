@@ -66,6 +66,10 @@ public:
         return TCE::SP;
     }
 
+    virtual unsigned spDRegNum() {
+        return TCE::FP;
+    }
+
     virtual unsigned rvDRegNum() {
         return TCE::IRES0;
     }

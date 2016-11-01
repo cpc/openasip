@@ -135,6 +135,8 @@ namespace llvm {
        virtual unsigned raPortDRegNum() = 0;
        /// Returns ID number of the stack pointer register.
        virtual unsigned spDRegNum() = 0;
+       /// Returns ID number of the frame pointer register.
+       virtual unsigned fpDRegNum() = 0;
 
        virtual unsigned rvDRegNum() = 0;
 
