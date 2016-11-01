@@ -731,6 +731,8 @@ ProcessorImplementationWindow::doSaveIDF() {
             WxConversion::toString(defaultFile));
         defaultDir = WxConversion::toWxString(
             FileSystem::directoryOfPath(absolutePathToADF));
+        defaultFile = WxConversion::toWxString(
+            FileSystem::fileOfPath(WxConversion::toString(defaultFile)));
     } else {
         defaultFile = _T(".idf");
     }
