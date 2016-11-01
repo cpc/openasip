@@ -132,7 +132,8 @@ ProximDebuggerWindow::updateAnnotations() {
         const TTAProgram::Move& m = instruction.move(i);
 
         if (m.hasSourceLineNumber()) {
-            if (m.sourceFileName() == currentFile_) {
+            wxString sourceFile = WxConversion::toWxString(m.sourceFileName());
+            if (sourceFile == currentFile_) {
                 highlightLine(m.sourceLineNumber());
             }
         }
