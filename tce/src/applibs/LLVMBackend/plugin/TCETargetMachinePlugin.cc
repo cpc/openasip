@@ -66,7 +66,7 @@ public:
         return TCE::SP;
     }
 
-    virtual unsigned spDRegNum() {
+    virtual unsigned fpDRegNum() {
         return TCE::FP;
     }
 
