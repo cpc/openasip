@@ -1457,12 +1457,13 @@ package body float_pkg is
   function to_slv (
     arg : UNRESOLVED_float)             -- fp vector
     return STD_LOGIC_VECTOR is
-    variable result : STD_LOGIC_VECTOR (arg'length-1 downto 0);
+    subtype result_subtype is STD_LOGIC_VECTOR (arg'length-1 downto 0);
+    variable result : result_subtype;
   begin  -- function to_STD_LOGIC_vector
     if arg'length < 1 then
       return NSLV;
     end if;
-    result := STD_LOGIC_VECTOR (arg);
+    result := result_subtype (arg);
     return result;
   end function to_slv;
 

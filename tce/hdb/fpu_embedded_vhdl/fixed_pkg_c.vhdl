@@ -2239,24 +2239,26 @@ end SYS_fmod;
   function to_slv (
     arg : UNRESOLVED_ufixed)            -- fixed point vector
     return STD_LOGIC_VECTOR is
-    variable result : STD_LOGIC_VECTOR (arg'length-1 downto 0);
+    subtype result_subtype is std_logic_vector (arg'length-1 downto 0);
+    variable result : result_subtype;
   begin
     if arg'length < 1 then
       return NSLV;
     end if;
-    result := STD_LOGIC_VECTOR (arg);
+    result := result_subtype (arg);
     return result;
   end function to_slv;
 
   function to_slv (
     arg : UNRESOLVED_sfixed)            -- fixed point vector
     return STD_LOGIC_VECTOR is
-    variable result : STD_LOGIC_VECTOR (arg'length-1 downto 0);
+    subtype result_subtype is std_logic_vector (arg'length-1 downto 0);
+    variable result : result_subtype;
   begin
     if arg'length < 1 then
       return NSLV;
     end if;
-    result := STD_LOGIC_VECTOR (arg);
+    result := result_subtype (arg);
     return result;
   end function to_slv;
 
