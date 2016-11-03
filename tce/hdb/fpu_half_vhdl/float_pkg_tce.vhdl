@@ -211,9 +211,10 @@ package body float_pkg_tce is
   function to_suv (
     arg : UNRESOLVED_float)             -- fp vector
     return STD_ULOGIC_VECTOR is
-    variable result : STD_ULOGIC_VECTOR (arg'length-1 downto 0);
+    subtype result_subtype is STD_ULOGIC_VECTOR (arg'length-1 downto 0);
+    variable result : result_subtype;
   begin  -- function to_std_ulogic_vector
-    result := STD_ULOGIC_VECTOR (arg);
+    result := result_subtype (arg);
     return result;
   end function to_suv;
 

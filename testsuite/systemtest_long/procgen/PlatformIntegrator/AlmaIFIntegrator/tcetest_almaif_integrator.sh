@@ -42,7 +42,11 @@ then
   find -name "*.vhd"  -exec ghdl -i --workdir=work {} \;
 
   ghdl -i --workdir=work ../data/tta-almaif-tb.vhdl
-  ghdl -m --workdir=work --ieee=synopsys -fexplicit --warn-no-unused --warn-no-specs tta_almaif_tb
+  ghdl -m --workdir=work --ieee=synopsys -fexplicit --warn-no-unused tta_almaif_tb 2>errors
+
+
+  # Remove an expected error which reports a different column with different GHDL versions
+  cat errors | grep -v "universal integer bound must be numeric literal or attribute"
 
   ./tta_almaif_tb --stop-time=1500us 2>/dev/null || eexit "Simulation failed"
 

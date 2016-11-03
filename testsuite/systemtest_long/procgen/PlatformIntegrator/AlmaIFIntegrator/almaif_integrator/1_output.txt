@@ -1,4 +1,3 @@
-./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd:109:32:warning: universal integer bound must be numeric literal or attribute
 analyze ./vhdl/almaif_core_imem_mau_pkg.vhdl
 analyze ./vhdl/almaif_core_globals_pkg.vhdl
 analyze ./vhdl/tce_util_pkg.vhdl
@@ -21,7 +20,6 @@ analyze ./vhdl/util_pkg.vhdl
 analyze ./vhdl/monolithic_alu_shladd_small.vhdl
 analyze ./vhdl/rf_1wr_1rd_always_1_guarded_0.vhd
 analyze ./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd
-./vhdl/rf_1wr_1rd_always_1_guarded_1.vhd:109:32:warning: universal integer bound must be numeric literal or attribute
 analyze ./gcu_ic/ic.vhdl
 analyze ./gcu_ic/input_socket_1.vhdl
 analyze ./gcu_ic/output_socket_3_1.vhdl
