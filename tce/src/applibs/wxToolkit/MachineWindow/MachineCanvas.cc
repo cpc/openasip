@@ -105,7 +105,7 @@ MachineCanvas::OnDraw(wxDC& dc) {
 #if wxCHECK_VERSION(3, 0, 0)
     // Do not call Clear() for wxSVGFileDC object cause its not implemented
     try {
-        dynamic_cast<wxSVGFileDC&> (dc);
+        (void)dynamic_cast<wxSVGFileDC&> (dc);
     } catch (const std::bad_cast& e) {
         dc.Clear();
     }
