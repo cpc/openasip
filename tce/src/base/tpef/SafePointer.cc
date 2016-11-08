@@ -686,7 +686,6 @@ SafePointer::cleanup() {
 
     cleanupKeyTables();
     MapTools::deleteAllValues(*referenceMap_);
-    AssocTools::deleteAllItems(*aliveSafePointers_);
 }
 
 // Debugging methods.......
