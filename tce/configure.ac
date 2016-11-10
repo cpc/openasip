@@ -7,7 +7,7 @@ AC_INIT([tce],[1.14-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2>/dev/null || echo "" | tr -d "\n")
+REVNO=$(which git > /dev/null && echo -n "-r" && git rev-list --all --count)
 
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
