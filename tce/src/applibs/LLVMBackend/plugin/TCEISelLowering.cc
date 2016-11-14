@@ -681,6 +681,7 @@ TCETargetLowering::TCETargetLowering(
     // Expand conditional branches.
     setOperationAction(ISD::BR_CC, MVT::i1, Expand);
     setOperationAction(ISD::BR_CC, MVT::i32, Expand);
+    setOperationAction(ISD::BR_CC, MVT::f16, Expand);
     setOperationAction(ISD::BR_CC, MVT::f32, Expand);
     setOperationAction(ISD::MULHU,  MVT::i32, Expand);
     setOperationAction(ISD::MULHS,  MVT::i32, Expand);
