@@ -1,10 +1,9 @@
-1.14       unreleased
+1.14    November 2016
 =====================
-
-[updated 2016-10-18]
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 3.9.
 - Support for wxWidgets 3.x and thus Ubuntu 16.04 which doesn't ship wxW 2.x
   anymore. Check the TROUBLESHOOTING file in case encountering problems.
 - Support for variable-length local arrays and alloca, that is, dynamic
@@ -13,8 +12,7 @@ Notable changes and features
   will be used as a frame pointer in functions with dynamic stack
   objects.
 - ProGe now can generate a simple control interface "AlmaIF" that can be
-  used for control and debug access to devices in SoCs.
-- Support for LLVM 3.9.
+  used for control and debug access to TCE processors integrated in SoCs.
 - Added source code debugging window to Proxim.
 
 Other features and improvements
