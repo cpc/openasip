@@ -358,16 +358,17 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
 
         for (; dataID != dataIDs.end(); dataID++) {
             CostEstimationData data = hdb_.costEstimationData(*dataID);
+            const std::string dataName = data.name();
             // input delays
 
             // this case is for one delay/unit case
-            if (data.name() == "input_delay") {
+            if (dataName == "input_delay") {
                 newStatistics->setDelay(
                     "input_delay", data.value().doubleValue());
                 continue;
             }
             boost::smatch match = 
-                getValues(data.name(), "input_delay[ \t]*(\\S+)");
+                getValues(dataName, "input_delay[ \t]*(\\S+)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the port name
@@ -379,13 +380,13 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
             // output delays
 
             // this case is for one delay/unit case
-            if (data.name() == "output_delay") {
+            if (dataName == "output_delay") {
                 newStatistics->setDelay(
                     "output_delay", data.value().doubleValue());
                 continue;
             }
 
-            match = getValues(data.name(), "output_delay[ \t]*(\\S+)");
+            match = getValues(dataName, "output_delay[ \t]*(\\S+)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the port name
@@ -394,7 +395,7 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
                 continue;
             }
             
-            if (data.name() == "output_delay") {
+            if (dataName == "output_delay") {
                 // match[0] contains the whole string
                 // match[1] contains the name of the port
                 newStatistics->setDelay(
@@ -403,9 +404,8 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
             }
 
             // access energies
-            match = 
-                getValues(
-                    data.name(), "rf_access_energy ([0-9])* ([0-9])*");
+            match =
+                getValues(dataName, "rf_access_energy ([0-9])* ([0-9])*");
             if (match.size() == 3) {
                 // match[0] contains the whole string
                 // match[1] contains the number of reads
@@ -418,7 +418,7 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
             }
 
             // idle energy
-            if (data.name() == "rf_idle_energy") {
+            if (dataName == "rf_idle_energy") {
                 newStatistics->setEnergyIdle(data.value().doubleValue());
                 continue;
             }
@@ -562,17 +562,18 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         dataID = dataIDs.begin();
         for (; dataID != dataIDs.end(); dataID++) {
             CostEstimationData data = hdb_.costEstimationData(*dataID);
+            const std::string dataName = data.name();
             // input delays
 
             // this case is for one delay/unit case
-            if (data.name() == "input_delay") {
+            if (dataName == "input_delay") {
                 newStatistics->setDelay("input_delay",
                                         data.value().doubleValue());
                 continue;
             }
 
             boost::smatch match = 
-                getValues(data.name(), "input_delay[ \t]*(\\S+)");
+                getValues(dataName, "input_delay[ \t]*(\\S+)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the name of the port
@@ -584,14 +585,14 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
             // output delays
 
             // this case is for one delay/unit case
-            if (data.name() == "output_delay") {
+            if (dataName == "output_delay") {
                 newStatistics->setDelay(
                     "output_delay", data.value().doubleValue());
                 continue;
             }
 
             match = getValues(
-                data.name(), "output_delay[ \t]*(\\S+)");
+                dataName, "output_delay[ \t]*(\\S+)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the name of the port
@@ -600,7 +601,7 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
                 continue;
             }
             match = getValues(
-                data.name(), "(output_delay)");
+                dataName, "(output_delay)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the name of the port
@@ -611,7 +612,7 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
 
             // operation energies
             match = getValues(
-                data.name(), "operation_execution_energy (\\S+)");
+                dataName, "operation_execution_energy (\\S+)");
             if (match.size() == 2) {
                 // match[0] contains the whole string
                 // match[1] contains the operation name
@@ -621,7 +622,7 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
             }
 
             // idle energy
-            if (data.name() == "fu_idle_energy") {
+            if (dataName == "fu_idle_energy") {
                 newStatistics->setEnergyIdle(data.value().doubleValue());
                 continue;
             }
@@ -1012,7 +1013,7 @@ CostDatabase::setSearchStrategy(SearchStrategy* strategy) {
  *         if matching failed.
  **/
 boost::smatch
-CostDatabase::getValues(string text, string regex) {
+CostDatabase::getValues(const string& text, const string& regex) {
     boost::regex regx(regex + ".*");
     boost::smatch what;
     if (boost::regex_match(text, what, regx, boost::match_extra)) {
