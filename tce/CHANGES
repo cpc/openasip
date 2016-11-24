@@ -9,8 +9,7 @@ Notable changes and features
 - Support for variable-length local arrays and alloca, that is, dynamic
   stack objects. When using dynamic stack objects, the architecture must
   have an additional 32-bit register (total minimum of 6) as one of them
-  will be used as a frame pointer in functions with dynamic stack
-  objects.
+  will be used as a frame pointer in functions with dynamic stack objects.
 - ProGe now can generate a simple control interface "AlmaIF" that can be
   used for control and debug access to TCE processors integrated in SoCs.
 - Added source code debugging window to Proxim.

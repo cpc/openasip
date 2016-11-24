@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 # Mandatory macro. Set the name of the package and the version number.
-# Email address is for bug reporting. 
-AC_INIT([tce],[1.14-pre],[tce-users@cs.tut.fi])
+# Email address is for bug reporting.
+AC_INIT([tce],[1.14],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
