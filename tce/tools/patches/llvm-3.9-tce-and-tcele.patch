@@ -1,18 +1,6 @@
-Index: include/llvm/ADT/Triple.h
-===================================================================
---- include/llvm/ADT/Triple.h   (revision 277705)
-+++ include/llvm/ADT/Triple.h   (working copy)
-@@ -69,6 +69,7 @@
-     sparcel,        // Sparc: (endianness = little). NB: 'Sparcle' is a CPU variant
-     systemz,        // SystemZ: s390x
-     tce,            // TCE (http://tce.cs.tut.fi/): tce
-+    tcele,          // TCE little endian (http://tce.cs.tut.fi/): tcele
-     thumb,          // Thumb (little endian): thumb, thumbv.*
-     thumbeb,        // Thumb (big endian): thumbeb
-     x86,            // X86: i[3-9]86
 Index: lib/Support/Triple.cpp
 ===================================================================
---- lib/Support/Triple.cpp	(revision 277705)
+--- lib/Support/Triple.cpp	(revision 285547)
 +++ lib/Support/Triple.cpp	(working copy)
 @@ -44,6 +44,7 @@
    case sparcel:        return "sparcel";
@@ -102,11 +90,23 @@ Index: lib/Support/Triple.cpp
    case Triple::renderscript32:
    case Triple::renderscript64:
      return true;
+Index: include/llvm/ADT/Triple.h
+===================================================================
+--- include/llvm/ADT/Triple.h	(revision 285547)
++++ include/llvm/ADT/Triple.h	(working copy)
+@@ -69,6 +69,7 @@
+     sparcel,        // Sparc: (endianness = little). NB: 'Sparcle' is a CPU variant
+     systemz,        // SystemZ: s390x
+     tce,            // TCE (http://tce.cs.tut.fi/): tce
++    tcele,          // TCE little endian (http://tce.cs.tut.fi/): tcele
+     thumb,          // Thumb (little endian): thumb, thumbv.*
+     thumbeb,        // Thumb (big endian): thumbeb
+     x86,            // X86: i[3-9]86
 Index: tools/clang/lib/Basic/Targets.cpp
 ===================================================================
---- tools/clang/lib/Basic/Targets.cpp   (revision 277705)
-+++ tools/clang/lib/Basic/Targets.cpp   (working copy)
-@@ -7008,8 +7008,11 @@
+--- tools/clang/lib/Basic/Targets.cpp	(revision 288508)
++++ tools/clang/lib/Basic/Targets.cpp	(working copy)
+@@ -7021,8 +7021,11 @@
      FloatFormat = &llvm::APFloat::IEEEsingle;
      DoubleFormat = &llvm::APFloat::IEEEsingle;
      LongDoubleFormat = &llvm::APFloat::IEEEsingle;
@@ -120,8 +120,25 @@ Index: tools/clang/lib/Basic/Targets.cpp
      AddrSpaceMap = &TCEOpenCLAddrSpaceMap;
      UseAddrSpaceMapMangling = true;
    }
-@@ -7037,6 +7040,31 @@
+@@ -7048,8 +7051,48 @@
+   ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override {
+     return None;
    }
++
++  void setSupportedOpenCLOpts() override {
++    auto &Opts = getSupportedOpenCLOpts();
++    Opts.cl_khr_icd = 1;
++    Opts.cl_khr_fp16 = 1;
++    Opts.cl_khr_fp64 = 0;
++    Opts.cl_khr_byte_addressable_store = 1;
++    Opts.cl_khr_global_int32_base_atomics = 1;
++    Opts.cl_khr_global_int32_extended_atomics = 1;
++    Opts.cl_khr_local_int32_base_atomics = 1;
++    Opts.cl_khr_local_int32_extended_atomics = 1;
++    Opts.cl_khr_int64_base_atomics = 0;
++    Opts.cl_khr_int64_extended_atomics = 0;
++  }
++
  };
  
 +class TCELETargetInfo : public TCETargetInfo {
@@ -152,7 +169,7 @@ Index: tools/clang/lib/Basic/Targets.cpp
  class BPFTargetInfo : public TargetInfo {
  public:
    BPFTargetInfo(const llvm::Triple &Triple, const TargetOptions &)
-@@ -8415,6 +8442,9 @@
+@@ -8430,6 +8473,9 @@
    case llvm::Triple::tce:
      return new TCETargetInfo(Triple, Opts);
  
@@ -164,9 +181,9 @@ Index: tools/clang/lib/Basic/Targets.cpp
        return new DarwinI386TargetInfo(Triple, Opts);
 Index: tools/clang/lib/CodeGen/TargetInfo.cpp
 ===================================================================
---- tools/clang/lib/CodeGen/TargetInfo.cpp	(revision 258809)
+--- tools/clang/lib/CodeGen/TargetInfo.cpp	(revision 288508)
 +++ tools/clang/lib/CodeGen/TargetInfo.cpp	(working copy)
-@@ -7551,6 +7551,10 @@
+@@ -7993,6 +7993,10 @@
    case llvm::Triple::tce:
      return SetCGInfo(new TCETargetCodeGenInfo(Types));
  
@@ -179,9 +196,9 @@ Index: tools/clang/lib/CodeGen/TargetInfo.cpp
      bool RetSmallStructInRegABI =
 Index: tools/clang/lib/Driver/Driver.cpp
 ===================================================================
---- tools/clang/lib/Driver/Driver.cpp	(revision 258809)
+--- tools/clang/lib/Driver/Driver.cpp	(revision 288508)
 +++ tools/clang/lib/Driver/Driver.cpp	(working copy)
-@@ -2287,6 +2287,9 @@
+@@ -2686,6 +2686,9 @@
        case llvm::Triple::tce:
          TC = new toolchains::TCEToolChain(*this, Target, Args);
          break;
@@ -193,10 +210,10 @@ Index: tools/clang/lib/Driver/Driver.cpp
          break;
 Index: tools/clang/lib/Driver/ToolChains.cpp
 ===================================================================
---- tools/clang/lib/Driver/ToolChains.cpp	(revision 258809)
+--- tools/clang/lib/Driver/ToolChains.cpp	(revision 288508)
 +++ tools/clang/lib/Driver/ToolChains.cpp	(working copy)
-@@ -2971,6 +2971,14 @@
-   return new tools::cloudabi::Linker(*this);
+@@ -3341,6 +3341,14 @@
+   }
  }
  
 +TCELEToolChain::TCELEToolChain(const Driver &D, const llvm::Triple& Triple,
@@ -212,9 +229,9 @@ Index: tools/clang/lib/Driver/ToolChains.cpp
  OpenBSD::OpenBSD(const Driver &D, const llvm::Triple &Triple,
 Index: tools/clang/lib/Driver/ToolChains.h
 ===================================================================
---- tools/clang/lib/Driver/ToolChains.h	(revision 258809)
+--- tools/clang/lib/Driver/ToolChains.h	(revision 288508)
 +++ tools/clang/lib/Driver/ToolChains.h	(working copy)
-@@ -952,6 +952,13 @@
+@@ -1024,6 +1024,13 @@
    bool isPICDefaultForced() const override;
  };
  
