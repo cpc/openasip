@@ -707,9 +707,14 @@ LLVMTCEBuilder::createFPDataDefinition(
         def = new TTAProgram::DataDefinition(start, maus);
     } else if (type->getTypeID() == Type::HalfTyID) {
 
-		APFloat apf = cfp->getValueAPF();
-		bool inexact;
-        apf.convert( APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+        APFloat apf = cfp->getValueAPF();
+        bool inexact;
+#if LLVM_OLDER_THAN_4_0
+        apf.convert(APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+#else
+        apf.convert(APFloat::IEEEhalf(),
+            APFloat::rmNearestTiesToEven, &inexact);
+#endif
         APInt api = apf.bitcastToAPInt();
         assert(sz == 2);
         union {
@@ -718,9 +723,9 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.i = api.getRawData()[0];
-		for (unsigned i = sz; i < 4; i++) {
+        for (unsigned i = sz; i < 4; i++) {
             maus.push_back(0);
-			}
+        }
         for (unsigned i = 0; i < sz; i++) {
             maus.push_back(u.bytes[sz - i - 1]);
         }
@@ -942,7 +947,11 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             std::cerr << "### converting: ";
             std::cerr << std::endl;
 #endif
+#if LLVM_OLDER_THAN_4_0
             instr = emitInstruction(j, proc);
+#else
+            instr = emitInstruction(&*j, proc);
+#endif
 
             // Pseudo instructions:
             if (instr == NULL) continue;
@@ -1920,18 +1929,22 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
-		if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
-			APInt api = apf.bitcastToAPInt();
-			uint16_t binary = (uint16_t)api.getRawData()[0];
-		    SimValue val(32);
-			val = HalfFloatWord( binary );
-        	return new TTAProgram::TerminalImmediate(val);
-		} else {
-        	float fval = apf.convertToFloat();
-        	SimValue val(32);
+#if LLVM_OLDER_THAN_4_0
+        if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
+#else
+        if (&apf.getSemantics() == &APFloat::IEEEhalf()) { //Half float
+#endif
+            APInt api = apf.bitcastToAPInt();
+            uint16_t binary = (uint16_t)api.getRawData()[0];
+            SimValue val(32);
+            val = HalfFloatWord( binary );
+            return new TTAProgram::TerminalImmediate(val);
+        } else {
+            float fval = apf.convertToFloat();
+            SimValue val(32);
             val = fval;
-        	return new TTAProgram::TerminalImmediate(val);
-		}
+            return new TTAProgram::TerminalImmediate(val);
+        }
     } else if (mo.isImm()) {
         int width = bitLimit;
         SimValue val(mo.getImm(), width);

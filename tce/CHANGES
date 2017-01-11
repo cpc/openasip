@@ -1,7 +1,9 @@
 1.15       Unreleased
 =====================
 
-
+Notable changes and features
+----------------------------
+- Support for LLVM 4.0.
 
 1.14    November 2016
 =====================

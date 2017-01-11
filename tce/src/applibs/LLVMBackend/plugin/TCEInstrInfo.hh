@@ -62,7 +62,11 @@ namespace llvm {
             return ri_; 
         }
 
+#ifdef LLVM_OLDER_THAN_4_0
         virtual unsigned InsertBranch(
+#else
+        virtual unsigned insertBranch(
+#endif
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,
             MachineBasicBlock *FBB,
 #ifdef LLVM_OLDER_THAN_3_7
@@ -71,12 +75,24 @@ namespace llvm {
             ArrayRef<MachineOperand> Cond,
 #endif
 #ifdef LLVM_OLDER_THAN_3_9
-            DebugLoc DL) const override;
+            DebugLoc DL
 #else
-            const DebugLoc& DL) const override;
+            const DebugLoc& DL
+#endif
+#ifdef LLVM_OLDER_THAN_4_0
+        ) const override;
+#else
+        , int *BytesAdded = nullptr) const override;
 #endif
 
+
+#ifdef LLVM_OLDER_THAN_4_0
         unsigned RemoveBranch(MachineBasicBlock &mbb) const override;
+#else
+        unsigned removeBranch(
+            MachineBasicBlock &mbb,
+            int *BytesRemoved = nullptr) const override;
+#endif
 
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
@@ -124,7 +140,11 @@ namespace llvm {
         unsigned destReg, unsigned srcReg,
         bool KillSrc) const override;
 
+#if LLVM_OLDER_THAN_4_0
         virtual bool ReverseBranchCondition(
+#else
+        virtual bool reverseBranchCondition(
+#endif
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const override;
 
 #ifdef LLVM_OLDER_THAN_3_9

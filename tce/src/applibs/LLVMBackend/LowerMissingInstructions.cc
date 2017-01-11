@@ -114,7 +114,11 @@ namespace {
 
         bool runOnBasicBlock(BasicBlock &BB);
 
-        virtual const char *getPassName() const {
+#if LLVM_OLDER_THAN_4_0
+    virtual const char *getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
             return "TCE: LowerMissingInstructions";
         }
 

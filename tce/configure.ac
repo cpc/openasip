@@ -484,29 +484,37 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
      LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
+     LLVM_OLDER_THAN_4_0=1
+   ;;
+     4.0*)
+     AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
    ;;
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. 
+Unsupported LLVM version $LLVM_VERSION.
    ])
    LLVM_VERSION=
    ;;
@@ -536,6 +544,11 @@ fi
 if  test "x$LLVM_OLDER_THAN_3_9" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_9, 1, [LLVM version is older than 3.9])
+fi
+
+if  test "x$LLVM_OLDER_THAN_4_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_4_0, 1, [LLVM version is older than 4.0])
 fi
 
 AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)

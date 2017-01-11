@@ -431,7 +431,11 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             TTAProgram::Instruction* instr = NULL;
-            instr = emitInstruction(j, bb);                        
+#if LLVM_OLDER_THAN_4_0
+            instr = emitInstruction(j, bb);
+#else
+            instr = emitInstruction(&*j, bb);
+#endif
 
             if (instr == NULL) {
                 continue;
@@ -679,7 +683,10 @@ LLVMTCEIRBuilder::compileOptimized(
     }
 
     CycleLookBackSoftwareBypasser bypasser;
-    BBSchedulerController bbsc(*ipData_, &bypasser, &delaySlotFiller());
+    CopyingDelaySlotFiller* dsf = nullptr;
+    if (delaySlotFilling_)
+        dsf = &delaySlotFiller();
+    BBSchedulerController bbsc(*ipData_, &bypasser, dsf);
     if (delaySlotFilling_)
         delaySlotFiller().initialize(cfg, *ddg, *mach_);
     bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
@@ -873,10 +880,14 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
 #elif (defined LLVM_OLDER_THAN_3_7)
         return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(
             mi.getOpcode());
-#else
+#elif (defined LLVM_OLDER_THAN_4_0)
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode());
+#else
+        return targetMachine().getSubtargetImpl(
+            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode()).str();
 #endif
     }
 }

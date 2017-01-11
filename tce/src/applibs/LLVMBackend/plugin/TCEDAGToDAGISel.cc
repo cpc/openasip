@@ -57,7 +57,11 @@ public:
     void Select(llvm::SDNode* op) override;
 #endif
 
+#if LLVM_OLDER_THAN_4_0
     virtual const char* getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
 

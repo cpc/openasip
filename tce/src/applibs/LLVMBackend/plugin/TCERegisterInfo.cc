@@ -26,8 +26,8 @@
  *
  * Implementation of TCERegisterInfo class.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2016 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -121,13 +121,20 @@ void TCERegisterInfo::eliminateFrameIndex(
     // Addressable stack objects are accessed using neg. offsets from %fp
     // NO THEY ARE NOT! apwards from SP!
     MachineFunction &MF = *MI.getParent()->getParent();
+
+#if LLVM_OLDER_THAN_4_0
+    auto& frameinfo = *MF.getFrameInfo();
+#else
+    auto& frameinfo = MF.getFrameInfo();
+#endif
+
     if (tfi_->hasFP(MF)) {
-        int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
+        int Offset = frameinfo.getObjectOffset(FrameIndex);
         int stackAlign = tfi_->stackAlignment();
         // FP storage space increases offset by stackAlign.
         Offset+= stackAlign;
         // RA storage space increases offset of incoming vars
-        if (FrameIndex < 0  && MF.getFrameInfo()->hasCalls() && tfi_->containsCall(MF)) {
+        if (FrameIndex < 0  && frameinfo.hasCalls() && tfi_->containsCall(MF)) {
             Offset+= stackAlign;
         }
 
@@ -148,7 +155,7 @@ void TCERegisterInfo::eliminateFrameIndex(
         }
     } else {
         int Offset =
-            MF.getFrameInfo()->getObjectOffset(FrameIndex) + MF.getFrameInfo()->getStackSize();
+            frameinfo.getObjectOffset(FrameIndex) + frameinfo.getStackSize();
 
         if (Offset != 0) {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);

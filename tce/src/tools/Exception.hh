@@ -26,13 +26,18 @@
  *
  * Declarations of exception classes.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXCEPTION_HH
 #define TTA_EXCEPTION_HH
 
 #include <string>
+
+/// Exception wrapper macro that automatically includes
+/// file name, line number and function name where the throw is made.
+#define THROW_EXCEPTION(exceptionType, message) \
+    throw exceptionType(__FILE__, __LINE__, __func__, std::string() + message)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Exception

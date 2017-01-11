@@ -2100,8 +2100,13 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
 
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround %1%";
     if (opName == "chf") return "fextend %1%";
+#else
+    if (opName == "cfh") return "fpround %1%";
+    if (opName == "chf") return "fpextend %1%";
+#endif
 
     if (opName == "cih") return "sint_to_fp %1%";
     if (opName == "chi") return "fp_to_sint %1%";
@@ -2255,9 +2260,14 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
-    
+
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround";
     if (opName == "chf") return "fextend";
+#else
+    if (opName == "cfh") return "fpround";
+    if (opName == "chf") return "fpextend";
+#endif
 
     if (opName == "ldq") return "sextloadi8";
     if (opName == "ldqu") return "zextloadi8";

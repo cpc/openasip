@@ -119,7 +119,11 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
         MachineBasicBlock& mbb = *i;
         for (MachineBasicBlock::iterator j = mbb.begin();
              j != mbb.end(); j++) {
+#if LLVM_OLDER_THAN_4_0
             const llvm::MachineInstr* mi = j;
+#else
+            const llvm::MachineInstr* mi = &*j;
+#endif
             unsigned opc = mi->getOpcode();
 
             const llvm::MCInstrDesc& opDesc = mi->getDesc();

@@ -30,8 +30,8 @@
  *       easier to track and copy paste changes from LLVM.
  *       So please follow LLVM style when adding or fixing things.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -84,8 +84,12 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  *
  * @return number of branch instructions inserted
  */
-unsigned 
+unsigned
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::InsertBranch(
+#else
+TCEInstrInfo::insertBranch(
+#endif
     MachineBasicBlock& mbb,
     MachineBasicBlock* tbb,
     MachineBasicBlock* fbb,
@@ -95,9 +99,14 @@ TCEInstrInfo::InsertBranch(
     ArrayRef<MachineOperand> cond,
 #endif
 #ifdef LLVM_OLDER_THAN_3_9
-    DebugLoc dl) const {
+    DebugLoc dl
 #else
-    const DebugLoc& dl) const {
+    const DebugLoc& dl
+#endif
+#ifdef LLVM_OLDER_THAN_4_0
+    ) const {
+#else
+    , int *BytesAdded) const {
 #endif
 
     if (mbb.size() != 0) {
@@ -156,7 +165,12 @@ TCEInstrInfo::InsertBranch(
  * @return number of braches removed
  */
 unsigned
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
+#else
+TCEInstrInfo::removeBranch(
+    MachineBasicBlock &mbb, int *BytesRemoved) const {
+#endif
     MachineBasicBlock::iterator i = mbb.end();
     if (i == mbb.begin()) return 0;
     i--;
@@ -302,8 +316,12 @@ void TCEInstrInfo::copyPhysReg(
  *
  * @return false if did reverse condition, true if could not.
  */
-bool 
+bool
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::ReverseBranchCondition(
+#else
+TCEInstrInfo::reverseBranchCondition(
+#endif
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
 
     assert(cond.size() != 0);

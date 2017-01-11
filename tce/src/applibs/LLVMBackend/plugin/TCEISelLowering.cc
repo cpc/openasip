@@ -26,8 +26,8 @@
  *
  * Implementation of TCETargetLowering class.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -142,6 +142,11 @@ TCETargetLowering::LowerFormalArguments(
 {
 
     MachineFunction &MF = DAG.getMachineFunction();
+#if LLVM_OLDER_THAN_4_0
+    auto& frameInfo = *MF.getFrameInfo();
+#else
+    auto& frameInfo = MF.getFrameInfo();
+#endif
     MachineRegisterInfo &RegInfo = MF.getRegInfo();
 
     // Assign locations to all of the incoming arguments.
@@ -193,7 +198,7 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(Arg);
 
             } else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                int FrameIdx = frameInfo.CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
 
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
@@ -244,7 +249,7 @@ TCETargetLowering::LowerFormalArguments(
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                int FrameIdx = frameInfo.CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
 #ifdef LLVM_OLDER_THAN_3_9
@@ -262,7 +267,7 @@ TCETargetLowering::LowerFormalArguments(
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                int FrameIdx = frameInfo.CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
 #ifdef LLVM_OLDER_THAN_3_9
@@ -281,7 +286,7 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 SDValue HiVal;
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                int FrameIdx = frameInfo.CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
 #ifdef LLVM_OLDER_THAN_3_9
@@ -293,7 +298,7 @@ TCETargetLowering::LowerFormalArguments(
                     MVT::i32, dl, Chain, FIPtr, MachinePointerInfo());
 #endif
                 SDValue LoVal;
-                FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                FrameIdx = frameInfo.CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
 #ifdef LLVM_OLDER_THAN_3_9
@@ -327,7 +332,7 @@ TCETargetLowering::LowerFormalArguments(
     if (isVarArg) {
         // This will point to the next argument passed via stack.
 
-        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
+        VarArgsFrameOffset = frameInfo.CreateFixedObject(
             4, ArgOffset, /*immutable=*/true);
     }
     

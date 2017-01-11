@@ -7,7 +7,8 @@ src=data/multi_addrspace.c
 program=$(mktemp tmpXXXXXX)
 
 #set -x
-tcecc -a $mach -O3 $src -o $program --bottom-up-scheduler && \
+tcecc -a $mach -O3 $src -o $program \
+      --no-rename-registers --bottom-up-scheduler && \
 ttasim -a $mach -p $program --no-debugmode
 
 rm -f $program

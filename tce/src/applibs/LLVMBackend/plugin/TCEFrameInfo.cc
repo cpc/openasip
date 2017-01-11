@@ -120,7 +120,11 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
 #undef ERASE_INSTR_AND_RETURN
 
 bool TCEFrameInfo::hasFP(const MachineFunction &MF) const {
+#if LLVM_OLDER_THAN_4_0
     if (MF.getFrameInfo()->hasVarSizedObjects()) {
+#else
+    if (MF.getFrameInfo().hasVarSizedObjects()) {
+#endif
         return true;
     }
     return false;
@@ -154,11 +158,15 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 #endif
  const {
     MachineBasicBlock& mbb = mf.front();
-    MachineFrameInfo* mfi = mf.getFrameInfo();
-    int numBytes = (int)mfi->getStackSize();
+#if LLVM_OLDER_THAN_4_0
+    MachineFrameInfo& mfi = *mf.getFrameInfo();
+#else
+    MachineFrameInfo& mfi = mf.getFrameInfo();
+#endif
+    int numBytes = (int)mfi.getStackSize();
 
     // this unfortunately return true for inline asm.
-    bool hasCalls = mfi->hasCalls();
+    bool hasCalls = mfi.hasCalls();
     if (hasCalls) {
         // so then check again. Return false if only inline asm, no calls.
         hasCalls = containsCall(mf);
@@ -213,7 +221,7 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             .setMIFlag(MachineInstr::FrameSetup);
     }
 
-    mfi->setStackSize(numBytes);
+    mfi.setStackSize(numBytes);
 
     // Adjust stack pointer
     if (varBytes != 0) {
@@ -229,7 +237,12 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 void
 TCEFrameInfo::emitEpilogue(
     MachineFunction& mf, MachineBasicBlock& mbb) const {
-    MachineFrameInfo* mfi = mf.getFrameInfo();
+
+#if LLVM_OLDER_THAN_4_0
+    MachineFrameInfo& mfi = *mf.getFrameInfo();
+#else
+    MachineFrameInfo& mfi = mf.getFrameInfo();
+#endif
 
     MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
 
@@ -239,7 +252,7 @@ TCEFrameInfo::emitEpilogue(
         assert(false && "ERROR: Inserting epilogue w/o return?");
     }
 
-    unsigned numBytes = mfi->getStackSize();
+    unsigned numBytes = mfi.getStackSize();
     unsigned varBytes = numBytes;
 
     if (hasFP(mf)) {
@@ -247,7 +260,7 @@ TCEFrameInfo::emitEpilogue(
     }
 
     // this unfortunately return true for inline asm.
-    bool hasCalls = mfi->hasCalls();
+    bool hasCalls = mfi.hasCalls();
     if (hasCalls) {
         // so then check again. Return false if only inline asm, no calls.
         hasCalls = containsCall(mf);

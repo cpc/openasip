@@ -573,7 +573,11 @@ MIDDGNode::osalOperationName() const {
             ++numDefs;
         opName = mi_->getOperand(numDefs).getSymbolName();
     } else {
+#if LLVM_OLDER_THAN_4_0
         opName = TII->getName(mi_->getOpcode());
+#else
+        opName = TII->getName(mi_->getOpcode()).str();
+#endif
     }
 
     // Clean up the operand type string encoded as 

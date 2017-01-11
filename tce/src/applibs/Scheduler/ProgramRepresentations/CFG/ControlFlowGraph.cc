@@ -1862,7 +1862,11 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
     const llvm::MCInstrInfo& tii) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
+#if LLVM_OLDER_THAN_4_0
         if (name.ciEqual(tii.getName(opc))) {
+#else
+        if (name.ciEqual(tii.getName(opc).str())) {
+#endif
             return tii.get(opc);
         }
     }

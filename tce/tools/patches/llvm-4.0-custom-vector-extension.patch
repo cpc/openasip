@@ -568,9 +568,9 @@ Index: tools/llvm-config/llvm-config.cpp
    --link-shared     Link the components as shared libraries.\n\
    --link-static     Link the component libraries statically.\n\
 +  --tce-patches     Print list of applied TCE patches.\n\
+   --ignore-libllvm  Ignore libLLVM and link component libraries instead.\n\
  Typical components:\n\
    all               All LLVM libraries (default).\n\
-   engine            Either a native JIT or a bitcode interpreter.\n";
 @@ -545,6 +546,11 @@
          LinkMode = LinkModeShared;
        } else if (Arg == "--link-static") {

@@ -26,9 +26,9 @@
  *
  * TCE compiler backend 
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2015
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2009-2015
  * @note rating: red
  */
 
@@ -53,7 +53,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/CodeGen/GCStrategy.h>
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/CodeGen/MachineFunctionAnalysis.h>
+#endif
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -70,7 +72,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/Bitcode/ReaderWriter.h>
+#else
+#include <llvm/Bitcode/BitcodeReader.h>
+#endif
 
 #include <llvm/IR/Verifier.h>
 
@@ -323,16 +329,24 @@ LLVMBackend::compile(
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
 #elif defined(LLVM_OLDER_THAN_3_7)
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
-#else
-    ErrorOr<std::unique_ptr<llvm::Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+    ErrorOr<std::unique_ptr<llvm::Module> > module =
         parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+#else
+    Expected<std::unique_ptr<llvm::Module> > module =
+        parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+    if (Error E = module.takeError()) {
+        THROW_EXCEPTION(CompileError, "Error parsing bytecode file: "
+            + bytecodeFile);
+    }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
     m.reset(module.get());
 #else
     // TODO: why does this work? it should not?
-    m.reset(module.get().get());
+//    m.reset(module.get().get());
+    m = std::move(module.get());
 #endif
 
     if (m.get() == 0) {
@@ -361,9 +375,17 @@ LLVMBackend::compile(
 #elif (defined LLVM_OLDER_THAN_3_7)
         ErrorOr<Module*> module = 
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
-#else
-        ErrorOr<std::unique_ptr<Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+        ErrorOr<std::unique_ptr<Module> > module =
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+#else
+        Expected<std::unique_ptr<Module> > module =
+            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+        if (Error E = module.takeError()) {
+            THROW_EXCEPTION(CompileError, "Error parsing bytecode file: " +
+                emulationBytecodeFile + " of emulation library \n"
+                + errMsgParse);
+        }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
