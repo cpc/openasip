@@ -1,6 +1,7 @@
 #!/bin/bash
 # Simulates the processor used in function pointer test.
-#./testbench --assert-level=none --stop-time=15750ns >& /dev/null
+
+STOP_TIME=72390ns
 cd proge-output
 
 # change the simulation time
@@ -10,5 +11,12 @@ rm temp
 
 ./ghdl_compile.sh >& /dev/null ||  exit 1
 # need to run the testbench longer
-./testbench --assert-level=none --stop-time=72390ns >& /dev/null || exit 1
 
+if [ -e testbench ]; then
+    ./testbench --assert-level=none --stop-time=$STOP_TIME >& /dev/null \
+        || exit 1
+else
+    # Newer versions of GHDL does not produce executable.
+    ghdl -r --workdir=work --ieee=synopsys testbench \
+         --assert-level=none --stop-time=$STOP_TIME >& /dev/null || exit 1
+fi

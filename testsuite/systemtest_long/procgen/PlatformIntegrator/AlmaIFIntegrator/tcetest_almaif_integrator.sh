@@ -38,17 +38,24 @@ then
   cd $PROGE_OUT || eexit "No such dir: $PROGE_OUT"
 
   mkdir work
-  find -name "*.vhdl" -exec ghdl -i --workdir=work {} \;
-  find -name "*.vhd"  -exec ghdl -i --workdir=work {} \;
+  find -name "*.vhdl" -exec ghdl -i --workdir=work {} \; >/dev/null 2>&1
+  find -name "*.vhd"  -exec ghdl -i --workdir=work {} \; >/dev/null 2>&1
 
-  ghdl -i --workdir=work ../data/tta-almaif-tb.vhdl
-  ghdl -m --workdir=work --ieee=synopsys -fexplicit --warn-no-unused tta_almaif_tb 2>errors
+  ghdl -i --workdir=work ../data/tta-almaif-tb.vhdl >/dev/null 2>&1
+  ghdl -m --workdir=work --ieee=synopsys -fexplicit --warn-no-unused tta_almaif_tb >/dev/null 2>errors
 
 
   # Remove an expected error which reports a different column with different GHDL versions
   cat errors | grep -v "universal integer bound must be numeric literal or attribute"
 
-  ./tta_almaif_tb --stop-time=1500us 2>/dev/null || eexit "Simulation failed"
+  if [ -e tta_almaif_tb ]; then
+    ./tta_almaif_tb --stop-time=1500us 2>/dev/null || eexit "Simulation failed"
+  else
+    # Simulation command for latest GHDL.
+      ghdl -r --ieee=synopsys --workdir=work \
+        tta_almaif_tb --stop-time=1500us 2>/dev/null \
+        || eexit "Simulation failed"
+  fi
 
   cd ..
   cat run.log
