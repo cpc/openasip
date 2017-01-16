@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of SimValue class.
  *
- * @author Pekka Jääskeläinen 2004 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2004 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -895,28 +895,42 @@ SimValue::binaryValue() const {
 /**
  * Returns the value as a big endian ordered hex string.
  *
+ * @param noHexIdentifier Leaves "0x" prefix out if set to true.
  * @return SimValue bytes in hex format.
  */
 TCEString
-SimValue::hexValue() const {
+SimValue::hexValue(bool noHexIdentifier) const {
+    size_t hexNumbers = (bitWidth_ + 3) / 4;
     if (bitWidth_ <= 32) {
-        size_t hexNumbers = (bitWidth_ + 3) / 4;
-        return Conversion::toHexString(sIntWordValue(), hexNumbers); 
+        if (noHexIdentifier) {
+            return Conversion::toHexString(
+                sIntWordValue(), hexNumbers).substr(2);
+        } else {
+            return Conversion::toHexString(sIntWordValue(), hexNumbers);
+        }
     }
-    
+
     const size_t BYTE_COUNT =
         (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
     const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
+    const unsigned MSB_MASK = ~(0xffffffffu << (8-(BYTE_COUNT*8-bitWidth_)));
 
-    TCEString hexStr = "0x";
-
+    TCEString hexStr;
     // Convert the raw data buffer to hex string values one byte at a time.
     // Also, remove "0x" from the front of the hex string for each hex value.
     for (size_t i = 0; i < BYTE_COUNT; ++i) {
         unsigned int value = 
             static_cast<unsigned int>(rawData_[LEFT_BYTE_POS + i]);
+        if (i == 0) {
+            value &= MSB_MASK;
+        }
         hexStr += Conversion::toHexString(value, 2).substr(2);
     }
+
+    // Remove extraneous zero digit from the front.
+    hexStr = hexStr.substr(hexStr.size()-hexNumbers);
+
+    if (!noHexIdentifier) hexStr.insert(0, "0x");
 
     return hexStr;
 }

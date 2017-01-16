@@ -26,7 +26,7 @@
  *
  * Inline definitions of BusState class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -49,5 +49,5 @@ BusState::setValueInlined(const SimValue& value) {
  */
 inline void
 BusState::clear() {
-    value_ = 0;
+    value_.clearToZero(value_.width());
 }
