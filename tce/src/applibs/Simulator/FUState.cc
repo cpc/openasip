@@ -27,7 +27,7 @@
  * Definition of FUState class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -97,6 +97,17 @@ void
 FUState::clearPorts() {
     inputPorts_.clear();
     outputPorts_.clear();
+}
+
+void
+FUState::reset() {
+    for (ExecutorContainer::iterator i = executors_.begin();
+         i != executors_.end(); ++i) {
+        Operation* op = (*i).first;
+        // Ensure the init state is called again.
+        op->deleteState(context());
+        op->createState(context());
+    }
 }
 
 /**

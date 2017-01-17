@@ -27,7 +27,7 @@
  * Declaration of FUState class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -85,6 +85,8 @@ public:
     virtual OperationExecutor* executor(Operation& op);
 
     virtual OperationContext& context();
+
+    virtual void reset();
 
 protected:
     /// The idle status of the FU. The derived classes should
