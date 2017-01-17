@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,13 +73,13 @@ public:
     virtual void addOutputPortState(PortState& port);
 
     virtual void addOperationExecutor(
-        OperationExecutor& opExec, 
+        OperationExecutor& opExec,
         Operation& op);
 
     virtual void setOperationSimulator(DetailedOperationSimulator& sim);
 
     virtual void replaceOperationExecutor(
-        Operation& op, 
+        Operation& op,
         OperationExecutor* newExecutor);
 
     virtual OperationExecutor* executor(Operation& op);
