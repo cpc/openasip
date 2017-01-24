@@ -26,7 +26,7 @@
  *
  * Implementation of InfoCommand class
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
@@ -777,8 +777,6 @@ public:
                 assert(bus != NULL);
                 const ClockCycleCount writes =
                     stats.busWrites(bus->name());
-                if (writes == 0)
-                    continue;
 
                 result
                     << std::left << std::setw(COLUMN_WIDTH)
@@ -800,8 +798,6 @@ public:
                 assert(socket != NULL);
                 const ClockCycleCount writes =
                     stats.socketWrites(socket->name());
-                if (writes == 0) 
-                    continue;
 
                 result
                     << std::left << std::setw(COLUMN_WIDTH)
@@ -829,8 +825,6 @@ public:
                 const ClockCycleCount totalTriggersOfFU = 
                     stats.triggerCount(fu->name());
 
-                if (totalTriggersOfFU == 0)
-                    continue;
                 result
                     << fu->name() << ":" << std::endl;
 
@@ -843,8 +837,6 @@ public:
                     const ClockCycleCount executions =
                         stats.operationExecutions(
                             fu->name(), operationUpper);
-                    if (executions == 0) 
-                        continue;
 
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
@@ -884,8 +876,6 @@ public:
                      operationsOfMachine.end(); ++i) {
                 const ClockCycleCount executions =
                     stats.operationExecutions(*i);
-                if (executions == 0)
-                    continue;
 
                 result
                     << std::left << std::setw(COLUMN_WIDTH)
@@ -953,8 +943,6 @@ public:
                         stats.guardRegisterReads(rf->name(), reg);
                     ClockCycleCount writes =
                         stats.registerWrites(rf->name(), reg);
-                    if (reads == 0 && writes == 0 && guardReads == 0)
-                        continue;
                     ++regsUsedInFile;
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
@@ -995,8 +983,6 @@ public:
                         stats.registerReads(iu->name(), reg);
                     ClockCycleCount writes =
                         stats.registerWrites(iu->name(), reg);
-                    if (reads == 0 && writes == 0)
-                        continue;
                     ++usedRegCount;
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
@@ -1161,10 +1147,7 @@ public:
                 assert(fu != NULL);
                 const ClockCycleCount totalTriggersOfFU =
                     stats.triggerCount(fu->name());
-            
-                if (totalTriggersOfFU == 0)
-                    continue;
-                        
+
                 for (int j = 0; j < fu->operationCount(); ++j) {
                     const TTAMachine::HWOperation* op = fu->operation(j);
                     assert (op != NULL);
