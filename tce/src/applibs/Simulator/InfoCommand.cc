@@ -1145,8 +1145,6 @@ public:
                 else
                     fu = mach.controlUnit();
                 assert(fu != NULL);
-                const ClockCycleCount totalTriggersOfFU =
-                    stats.triggerCount(fu->name());
 
                 for (int j = 0; j < fu->operationCount(); ++j) {
                     const TTAMachine::HWOperation* op = fu->operation(j);
