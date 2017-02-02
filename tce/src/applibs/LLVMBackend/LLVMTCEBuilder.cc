@@ -1806,12 +1806,6 @@ void
 LLVMTCEBuilder::debugDataToAnnotations(
     const llvm::MachineInstr* mi, TTAProgram::Move* move) {
 
-    DebugLoc dl = mi->getDebugLoc();
-#ifndef LLVM_OLDER_THAN_3_7
-    if (!dl)
-        return;
-#endif
-
     // annotate the moves generated from known ra saves.
     if (mi->getFlag(MachineInstr::FrameSetup)) {
             TTAProgram::ProgramAnnotation progAnnotation(
@@ -1819,6 +1813,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
             move->setAnnotation(progAnnotation); 
     }
 
+    DebugLoc dl = mi->getDebugLoc();
+#ifndef LLVM_OLDER_THAN_3_7
+    if (!dl)
+        return;
+#endif
+
+    // TODO: nobody currently generates these
+    // spill line number kludges, this is deprecated.
     // annotate the moves generated from known spill instructions
     if (dl.getLine() == 0xFFFFFFF0) {
         TTAProgram::ProgramAnnotation progAnnotation(
