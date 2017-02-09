@@ -1,0 +1,66 @@
+ttasim --no-debugmode -e "bp; quit;"
+No simulation running.
+ttasim --no-debugmode -e "run; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "stepi 12; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "deletebp 1; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "disablebp 1; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "disassemble; quit;"
+No program loaded.
+ttasim --no-debugmode -e "enablebp 1; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "ignore 1 2; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "load_data foo bar; quit;"
+No program loaded.
+ttasim --no-debugmode -e "nexti 12; quit;"
+No simulation running.
+ttasim --no-debugmode -e "resume; quit;"
+No simulation running.
+ttasim --no-debugmode -e "run; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "until 1; quit;"
+No simulation running.
+ttasim --no-debugmode -e "symbol_address foo; quit;"
+No program loaded.
+ttasim --no-debugmode -e "tbp 2; quit;"
+No simulation running.
+ttasim --no-debugmode -e "x; quit;"
+No program loaded.
+ttasim --no-debugmode -e "info buses foo; quit;"
+Unknown subcommand.
+ttasim --no-debugmode -e "info breakpoints; quit;"
+Simulation not initialized.
+ttasim --no-debugmode -e "info funits; quit;"
+No machine loaded.
+ttasim --no-debugmode -e "info immediates foo bar; quit;"
+No program loaded.
+ttasim --no-debugmode -e "info iunits; quit;"
+No machine loaded.
+ttasim --no-debugmode -e "info ports funit foo; quit;"
+No machine loaded.
+ttasim --no-debugmode -e "info proc cycles; quit;"
+No simulation running.
+ttasim --no-debugmode -e "info proc mapping; quit;"
+No simulation running.
+ttasim --no-debugmode -e "info proc stats; quit;"
+No simulation running.
+ttasim --no-debugmode -e "info program; quit;"
+Program not loaded.
+ttasim --no-debugmode -e "info program is_instruction_reference 1 1; quit;"
+Program not loaded.
+ttasim --no-debugmode -e "info regfiles; quit;"
+No machine loaded.
+ttasim --no-debugmode -e "info registers baz 1; quit;"
+No program loaded.
+ttasim --no-debugmode -e "info segments foo; quit;"
+No machine loaded.
+ttasim --no-debugmode -e "info stats executed_operations; quit;"
+No simulation running.
+ttasim --no-debugmode -e "info stats register_reads; quit;"
+No simulation running.
+ttasim --no-debugmode -e "info stats register_writes; quit;"
+No simulation running.

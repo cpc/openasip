@@ -26,7 +26,7 @@
  *
  * Declaration of SimControlLanguageCommand class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -79,6 +79,7 @@ public:
     bool checkSimulationStopped();
     bool checkSimulationEnded();
     bool checkProgramLoaded();
+    bool checkMachineLoaded();
 
     InstructionAddress parseInstructionAddressExpression(
         const std::string& expression)

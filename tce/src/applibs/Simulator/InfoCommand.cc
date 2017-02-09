@@ -26,8 +26,9 @@
  *
  * Implementation of InfoCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -333,6 +334,9 @@ public:
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
             return false;
         }
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
         const TTAMachine::Machine::RegisterFileNavigator& nav = 
@@ -382,6 +386,9 @@ public:
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
+            return false;
+        }
+        if (!parent().checkMachineLoaded()) {
             return false;
         }
         const TTAMachine::Machine& mach = 
@@ -519,6 +526,10 @@ public:
 
         const int argumentCount = arguments.size() - 2;
 
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
+
         if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
             return false;
         }
@@ -612,6 +623,9 @@ public:
         if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
             return false;
         }
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
 
@@ -678,6 +692,9 @@ public:
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
+            return false;
+        }
+        if (!parent().checkMachineLoaded()) {
             return false;
         }
         const TTAMachine::Machine& mach = 

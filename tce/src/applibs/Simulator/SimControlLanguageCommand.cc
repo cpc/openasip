@@ -24,7 +24,8 @@
 /**
  * Implementation of SimControlLanguageCommand class
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry LinjamÃ¤ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -183,6 +184,21 @@ SimControlLanguageCommand::checkProgramLoaded() {
             SimulatorToolbox::textGenerator().text(
                 Texts::TXT_NO_PROGRAM_LOADED).str());
 
+        return false;
+    }
+    return true;
+}
+
+
+/**
+ * Checks that the simulated machine has been loaded successfully.
+ *
+ * @return True if machine has been loaded.
+ */
+bool
+SimControlLanguageCommand::checkMachineLoaded() {
+    if (!simulatorFrontend().isMachineLoaded()) {
+        interpreter()->setError(std::string("No machine loaded."));
         return false;
     }
     return true;
