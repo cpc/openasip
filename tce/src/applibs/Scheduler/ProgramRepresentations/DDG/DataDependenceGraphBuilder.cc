@@ -2541,6 +2541,12 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
             currentBB_->basicBlock().liveRangeData_->regDefReaches_[paramReg].insert(mnd2);
         }
     }
+
+    TCEString fp = specialRegisters_[REG_FP];
+    if (fp != "") {
+        currentBB_->basicBlock().liveRangeData_->regDefReaches_[fp].insert(
+            mnd2);
+    }
 }
 
 /**
