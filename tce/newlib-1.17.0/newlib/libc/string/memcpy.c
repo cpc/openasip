@@ -49,10 +49,16 @@ QUICKREF
 /* Threshhold for punting to the byte copier.  */
 #define TOO_SMALL(LEN)  ((LEN) < BIGBLOCKSIZE)
 
+#ifdef C99
+#define RESTRICT restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
 _PTR
 _DEFUN (memcpy, (dst0, src0, len0),
-	_PTR dst0 _AND
-	_CONST _PTR src0 _AND
+	_PTR RESTRICT dst0 _AND
+	_CONST _PTR RESTRICT src0 _AND
 	size_t len0)
 {
 #if defined(PREFER_SIZE_OVER_SPEED) || defined(__OPTIMIZE_SIZE__)
