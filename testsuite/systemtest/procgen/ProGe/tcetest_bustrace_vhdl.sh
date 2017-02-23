@@ -39,7 +39,7 @@ clear_test_data() {
 
 clear_test_data
 
-set -eu
+set -u
 
 tceasm -o $TPEF $ADF $SRC > tceasm.log 2>&1 || echo "Error from tceasm."
 $GENBUSTRACE -i $DATA/valgen.opp -o $TTABUSTRACE $ADF $TPEF \
