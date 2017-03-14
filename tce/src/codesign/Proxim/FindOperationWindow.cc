@@ -175,15 +175,6 @@ FindOperationWindow::find(std::string searchString) {
 
 
 /**
- * Event handler which is called when a new program is loaded in the simulator.
- */
-void
-FindOperationWindow::onProgramLoaded(const SimulatorEvent&) {
-    //loadProgram(ProximToolbox::program());
-}
-
-
-/**
  * Creates the dialog widgets.
  */
 wxSizer*
@@ -194,7 +185,7 @@ FindOperationWindow::createContents(
     wxBoxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
 
     opInput_ = new wxTextCtrl(parent, ID_OP_INPUT, wxT(""),
-        wxDefaultPosition, wxSize(250,-1), wxTE_PROCESS_ENTER);
+        wxDefaultPosition, wxSize(300, -1), wxTE_PROCESS_ENTER);
     mainSizer->Add(opInput_, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5);
 
     infoLabel_ = new wxStaticText(parent, ID_INFO_LABEL, wxT(""),
@@ -217,6 +208,6 @@ FindOperationWindow::createContents(
             mainSizer->SetSizeHints(parent);
         }
     }
-    
+
     return mainSizer;
 }

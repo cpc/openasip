@@ -55,7 +55,6 @@ private:
     void onInputText(wxCommandEvent& event);
     void onFindPrev(wxCommandEvent& event);
     void onFindNext(wxCommandEvent& event);
-    void onProgramLoaded(const SimulatorEvent& event);
     bool find(std::string searchString);
 
     wxSizer* createContents(wxWindow *parent, bool call_fit, bool set_sizer);
