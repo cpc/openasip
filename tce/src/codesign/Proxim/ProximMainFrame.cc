@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2016 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -67,6 +67,7 @@
 #include "HighlightExecPercentageCmd.hh"
 #include "ClearDisassemblyHighlightCmd.hh"
 #include "UserManualCmd.hh"
+#include "ProximFindOperationCmd.hh"
 
 #include "ConsoleWindow.hh"
 #include "ProximDisassemblyWindow.hh"
@@ -159,6 +160,7 @@ ProximMainFrame::ProximMainFrame(
     cmdRegistry.addCommand(new HighlightExecPercentageCmd());
     cmdRegistry.addCommand(new ClearDisassemblyHighlightCmd());
     cmdRegistry.addCommand(new UserManualCmd());
+    cmdRegistry.addCommand(new ProximFindOperationCmd());
 
     resetMutex_ = new wxMutex();
     resetCondition_ = new wxCondition(*resetMutex_);
@@ -326,6 +328,11 @@ ProximMainFrame::createMenubar() {
         ProximConstants::COMMAND_EXECUTE_FILE,
         menuAccelerator(ProximConstants::COMMAND_EXECUTE_FILE).Prepend(
             _T("&Execute File...")));
+
+    commandMenu->Append(
+        ProximConstants::COMMAND_FIND_OPERATION,
+        menuAccelerator(ProximConstants::COMMAND_FIND_OPERATION).Prepend(
+            _T("&Find Operation...")));
 
     commandMenu->AppendSeparator();
     commandMenu->AppendCheckItem(

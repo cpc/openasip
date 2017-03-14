@@ -68,6 +68,7 @@ public:
         COMMAND_SIMULATOR_SETTINGS,
         COMMAND_EDIT_OPTIONS,
         COMMAND_EXECUTE_FILE,
+        COMMAND_FIND_OPERATION,
         COMMAND_HIGHLIGHT_TOP_EXEC_COUNTS,
         COMMAND_HIGHLIGHT_EXEC_PERCENTAGE,
         COMMAND_CLEAR_DISASSEMBLY_HIGHLIGHT,
@@ -134,6 +135,8 @@ public:
     static const std::string COMMAND_NAME_EDIT_OPTIONS;
     /// Name of the execute file command.
     static const std::string COMMAND_NAME_EXECUTE_FILE;
+    /// Name of the find operation command
+    static const std::string COMMAND_NAME_FIND_OPERATION;
 
     // Simulator Control Language commands.
     // ---

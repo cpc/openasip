@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -310,6 +310,10 @@ Proxim::createDefaultOptions() {
     KeyboardShortcut* scResume = new KeyboardShortcut(
         ProximConstants::COMMAND_NAME_RESUME, 9, false, false, 0);
 
+    // Ctrl + F -> find operation in assembly code window
+    KeyboardShortcut* scFindOperation = new KeyboardShortcut(
+        ProximConstants::COMMAND_NAME_FIND_OPERATION, 0, true, false, int('F'));
+
     options_ = new GUIOptions(ProximConstants::CONFIGURATION_NAME);
     string fileName = Environment::userConfPath(CONFIG_FILE_NAME);
 
@@ -331,6 +335,7 @@ Proxim::createDefaultOptions() {
     options_->addKeyboardShortcut(scNexti);
     options_->addKeyboardShortcut(scResume);
     options_->addKeyboardShortcut(scKill);
+    options_->addKeyboardShortcut(scFindOperation);
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,6 +54,8 @@ const std::string ProximConstants::COMMAND_NAME_SIMULATOR_SETTINGS =
     "Simulator Settings";
 const std::string ProximConstants::COMMAND_NAME_EDIT_OPTIONS = "Options";
 const std::string ProximConstants::COMMAND_NAME_EXECUTE_FILE = "Execute File";
+const std::string ProximConstants::COMMAND_NAME_FIND_OPERATION =
+    "Find Operation";
 
 const std::string ProximConstants::SCL_LOAD_PROGRAM = "prog";
 const std::string ProximConstants::SCL_LOAD_MACHINE = "mach";
