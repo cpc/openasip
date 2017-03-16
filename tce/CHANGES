@@ -1,4 +1,4 @@
-1.15       Unreleased
+1.15       March 2017
 =====================
 
 Notable changes and features
@@ -9,6 +9,18 @@ Other features and improvements
 -------------------------------
 - Bus trace format is changed to comma separated values listing. Bus
   values are displayed in hexadecimals and more than 32 bits.
+- GHDL test bench scripts updated to work with its latest version.
+- Bus trace format improved:
+  TTA simulator and RTL testbenchs now write bus trace dump in comma
+  separated values (CSV) format where the bus values are hexadecimal
+  numbers. Additionally, the dumped bus values are not limited to 32
+  bits.
+
+Notable bugfixes
+----------------
+- ttasim: Operation state is now reset with 'kill' command.
+- tcecc: Fix alias analysis or separating RA save/restore on function.
+- tcecc: Register renamer did not handle frame pointer correctly.
 
 1.14    November 2016
 =====================
