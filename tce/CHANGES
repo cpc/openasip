@@ -10,11 +10,6 @@ Other features and improvements
 - Bus trace format is changed to comma separated values listing. Bus
   values are displayed in hexadecimals and more than 32 bits.
 - GHDL test bench scripts updated to work with its latest version.
-- Bus trace format improved:
-  TTA simulator and RTL testbenchs now write bus trace dump in comma
-  separated values (CSV) format where the bus values are hexadecimal
-  numbers. Additionally, the dumped bus values are not limited to 32
-  bits.
 
 Notable bugfixes
 ----------------
