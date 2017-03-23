@@ -1,4 +1,16 @@
-1.15       Unreleased
+1.16
+=====================
+
+Notable changes and features
+----------------------------
+
+Other features and improvements
+-------------------------------
+
+Notable bugfixes
+----------------
+
+1.15       March 2017
 =====================
 
 Notable changes and features
@@ -14,6 +26,13 @@ Other features and improvements
 -------------------------------
 - Bus trace format is changed to comma separated values listing. Bus
   values are displayed in hexadecimals and more than 32 bits.
+- GHDL test bench scripts updated to work with its latest version.
+
+Notable bugfixes
+----------------
+- ttasim: Operation state is now reset with 'kill' command.
+- tcecc: Fix alias analysis or separating RA save/restore on function.
+- tcecc: Register renamer did not handle frame pointer correctly.
 
 1.14    November 2016
 =====================
