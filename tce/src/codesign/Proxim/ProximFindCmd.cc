@@ -70,8 +70,10 @@ ProximFindCmd::Do() {
 
             ProximToolbox::addFramedWindow(
                 findWindow, _T("Find pattern in disassembly"), false,
-                    wxSize(300, 150));
+                    wxSize(300, 160));
                 findWindow->GetParent()->Center();
+
+            findWindow->GetParent()->SetSize(300, 160);
         }
     } else {
         ErrorDialog error(parentWindow(), _T("Simulation not initialized."));
