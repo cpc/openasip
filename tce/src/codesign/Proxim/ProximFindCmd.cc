@@ -22,29 +22,29 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProximFindOperationCmd.cc
+ * @file ProximFindCmd.cc
  *
- * Implementation of ProximFindOperationCmd class.
+ * Implementation of ProximFindCmd class.
  *
  * @author Alex Hirvonen 2017 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
-#include "ProximFindOperationCmd.hh"
+#include "ProximFindCmd.hh"
 #include "ProximConstants.hh"
-#include "FindOperationWindow.hh"
+#include "FindWindow.hh"
 #include "TracedSimulatorFrontend.hh"
 #include "ProximToolbox.hh"
 #include "ErrorDialog.hh"
+#include "ProximMainFrame.hh"
 
 
-
-ProximFindOperationCmd::ProximFindOperationCmd():
-    GUICommand(ProximConstants::COMMAND_NAME_FIND_OPERATION, NULL) {
+ProximFindCmd::ProximFindCmd():
+    GUICommand(ProximConstants::COMMAND_NAME_FIND, NULL) {
 }
 
 
-ProximFindOperationCmd::~ProximFindOperationCmd() {
+ProximFindCmd::~ProximFindCmd() {
 }
 
 
@@ -52,7 +52,7 @@ ProximFindOperationCmd::~ProximFindOperationCmd() {
  * Executes the command.
  */
 bool
-ProximFindOperationCmd::Do() {
+ProximFindCmd::Do() {
 
     SimulatorFrontend* simulation = ProximToolbox::frontend();
 
@@ -60,10 +60,19 @@ ProximFindOperationCmd::Do() {
         simulation->isSimulationRunning() ||
         simulation->isSimulationStopped()) {
 
-        FindOperationWindow* findOperationWindow = new FindOperationWindow(
-            ProximToolbox::mainFrame(), -1);
-        ProximToolbox::addFramedWindow(
-            findOperationWindow, _T("Find operation in assembly code"), true);
+        FindWindow* findWindow = dynamic_cast<FindWindow*>(
+            ProximToolbox::mainFrame()->
+            FindWindowById(ProximConstants::ID_FIND_WINDOW));
+
+        if (findWindow == NULL) {
+            findWindow = new FindWindow(ProximToolbox::mainFrame(),
+                ProximConstants::ID_FIND_WINDOW);
+
+            ProximToolbox::addFramedWindow(
+                findWindow, _T("Find pattern in disassembly"), false,
+                    wxSize(300, 150));
+                findWindow->GetParent()->Center();
+        }
     } else {
         ErrorDialog error(parentWindow(), _T("Simulation not initialized."));
         error.ShowModal();
@@ -79,7 +88,7 @@ ProximFindOperationCmd::Do() {
  * @return Full path to the command icon file.
  */
 std::string
-ProximFindOperationCmd::icon() const {
+ProximFindCmd::icon() const {
     return "find.png";
 }
 
@@ -88,8 +97,8 @@ ProximFindOperationCmd::icon() const {
  * Returns ID of this command.
  */
 int
-ProximFindOperationCmd::id() const {
-    return ProximConstants::COMMAND_FIND_OPERATION;
+ProximFindCmd::id() const {
+    return ProximConstants::COMMAND_FIND;
 }
 
 
@@ -98,9 +107,9 @@ ProximFindOperationCmd::id() const {
  *
  * @return Newly created instance of this command.
  */
-ProximFindOperationCmd*
-ProximFindOperationCmd::create() const {
-    return new ProximFindOperationCmd();
+ProximFindCmd*
+ProximFindCmd::create() const {
+    return new ProximFindCmd();
 }
 
 
@@ -110,6 +119,6 @@ ProximFindOperationCmd::create() const {
  * @return Always true.
  */
 bool
-ProximFindOperationCmd::isEnabled() {
+ProximFindCmd::isEnabled() {
     return true;
 }

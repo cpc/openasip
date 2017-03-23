@@ -22,32 +22,63 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProximFindOperationCmd.hh
- *
- * Declaration of ProximFindOperationCmd class.
- *
+ * @file FindWindow.hh
+ * 
+ * Declaration of FindWindow class.
+ * 
  * @author Alex Hirvonen 2017 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
-#ifndef TTA_PROXIM_FIND_OPERATION_CMD_HH
-#define TTA_PROXIM_FIND_OPERATION_CMD_HH
 
-#include "GUICommand.hh"
+#ifndef TTA_FIND_WINDOW_HH
+#define TTA_FIND_WINDOW_HH
+
+
+#include <vector>
+#include <string>
+#include <wx/wx.h>
+#include <wx/checkbox.h>
+
+#include "ProximSimulatorWindow.hh"
 
 
 /**
- * Command for displaying Proxim find operation dialog.
+ * Window for searching text patterns in disassembly instructions.
  */
-class ProximFindOperationCmd : public GUICommand {
+class FindWindow : public ProximSimulatorWindow {
 public:
-    ProximFindOperationCmd();
-    virtual ~ProximFindOperationCmd();
-    virtual bool Do();
-    virtual int id() const;
-    virtual ProximFindOperationCmd* create() const;
-    virtual std::string icon() const;
-    virtual bool isEnabled();
-};
+    FindWindow(ProximMainFrame* parent, int id);
+    virtual ~FindWindow();
+    virtual void reset();
 
+private:
+    void onInputText(wxCommandEvent& event);
+    void onFindPrev(wxCommandEvent& event);
+    void onFindNext(wxCommandEvent& event);
+    bool find(std::string searchString);
+
+    wxSizer* createContents(wxWindow *parent, bool call_fit, bool set_sizer);
+
+    wxTextCtrl* opInput_;
+    wxCheckBox* matchCase_;
+    wxStaticText* infoLabel_;
+    wxButton* findPrevBtn_;
+    wxButton* findNextBtn_;
+
+    /// List of code linenumbers where serached text was found
+    std::vector<int> matchedLines;
+    /// Currently displayed codeline index in matchedLines
+    int matchedIndex;
+
+    /// Widget IDs.
+    enum {
+        ID_OP_INPUT,
+        ID_MATCH_CASE,
+        ID_INFO_LABEL,
+        ID_FIND_PREV,
+        ID_FIND_NEXT,
+    };
+    DECLARE_EVENT_TABLE()
+};
 #endif

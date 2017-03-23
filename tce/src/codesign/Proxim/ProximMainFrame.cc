@@ -67,7 +67,7 @@
 #include "HighlightExecPercentageCmd.hh"
 #include "ClearDisassemblyHighlightCmd.hh"
 #include "UserManualCmd.hh"
-#include "ProximFindOperationCmd.hh"
+#include "ProximFindCmd.hh"
 
 #include "ConsoleWindow.hh"
 #include "ProximDisassemblyWindow.hh"
@@ -160,7 +160,7 @@ ProximMainFrame::ProximMainFrame(
     cmdRegistry.addCommand(new HighlightExecPercentageCmd());
     cmdRegistry.addCommand(new ClearDisassemblyHighlightCmd());
     cmdRegistry.addCommand(new UserManualCmd());
-    cmdRegistry.addCommand(new ProximFindOperationCmd());
+    cmdRegistry.addCommand(new ProximFindCmd());
 
     resetMutex_ = new wxMutex();
     resetCondition_ = new wxCondition(*resetMutex_);
@@ -330,9 +330,9 @@ ProximMainFrame::createMenubar() {
             _T("&Execute File...")));
 
     commandMenu->Append(
-        ProximConstants::COMMAND_FIND_OPERATION,
-        menuAccelerator(ProximConstants::COMMAND_FIND_OPERATION).Prepend(
-            _T("&Find Operation...")));
+        ProximConstants::COMMAND_FIND,
+        menuAccelerator(ProximConstants::COMMAND_FIND).Prepend(
+            _T("&Find in disassembly...")));
 
     commandMenu->AppendSeparator();
     commandMenu->AppendCheckItem(

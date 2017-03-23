@@ -22,46 +22,50 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FindOperationWindow.cc
+ * @file FindWindow.cc
  * 
- * Definition of FindOperationWindow class.
+ * Definition of FindWindow class.
  * 
  * @author Alex Hirvonen 2017 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
 
+#include <algorithm>
 #include <wx/textctrl.h>
 #include <wx/stattext.h>
 
-#include "FindOperationWindow.hh"
+#include "FindWindow.hh"
 #include "ProximToolbox.hh"
 #include "WxConversion.hh"
 #include "ProximDisassemblyWindow.hh"
 #include "Program.hh"
 #include "Instruction.hh"
+#include "Move.hh"
 
 
-BEGIN_EVENT_TABLE(FindOperationWindow, ProximSimulatorWindow)
-    EVT_TEXT(ID_OP_INPUT, FindOperationWindow::onInputText)
-    EVT_SIMULATOR_PROGRAM_LOADED(0, FindOperationWindow::onInputText)
-    EVT_TEXT_ENTER(ID_OP_INPUT, FindOperationWindow::onFindNext)
-    EVT_BUTTON(ID_FIND_PREV, FindOperationWindow::onFindPrev)
-    EVT_BUTTON(ID_FIND_NEXT, FindOperationWindow::onFindNext)
+BEGIN_EVENT_TABLE(FindWindow, ProximSimulatorWindow)
+    EVT_TEXT(ID_OP_INPUT, FindWindow::onInputText)
+    EVT_SIMULATOR_PROGRAM_LOADED(0, FindWindow::onInputText)
+    EVT_TEXT_ENTER(ID_OP_INPUT, FindWindow::onFindNext)
+    EVT_BUTTON(ID_FIND_PREV, FindWindow::onFindPrev)
+    EVT_BUTTON(ID_FIND_NEXT, FindWindow::onFindNext)
+    EVT_CHECKBOX(ID_MATCH_CASE, FindWindow::onInputText)
 END_EVENT_TABLE()
 
 
-FindOperationWindow::FindOperationWindow(ProximMainFrame* parent, int id):
+FindWindow::FindWindow(ProximMainFrame* parent, int id):
     ProximSimulatorWindow(parent, id) {
 
     createContents(this, true, true);
     opInput_->SetFocus();
+    matchCase_->SetValue(false);
     findPrevBtn_->Disable();
     findNextBtn_->Disable();
 }
 
 
-FindOperationWindow::~FindOperationWindow() {
+FindWindow::~FindWindow() {
 }
 
 
@@ -69,21 +73,21 @@ FindOperationWindow::~FindOperationWindow() {
  * Called when the simulator program, memory and machine models are reset.
  */
 void
-FindOperationWindow::reset() {
+FindWindow::reset() {
     // Do nothing.
 }
 
 /**
- * Called when the input text changes.
+ * Called when the input text changes or match case checkbox changes state.
  */
 void
-FindOperationWindow::onInputText(wxCommandEvent&) {
+FindWindow::onInputText(wxCommandEvent&) {
     wxString inputwxString = opInput_->GetValue();
 
     if (inputwxString.Length() > 2) {
-        std::string searchString = WxConversion::toString(inputwxString);
+        std::string pattern = WxConversion::toString(inputwxString);
 
-        bool found = find(searchString);
+        bool found = find(pattern);
         if (found) {
             findPrevBtn_->Enable();
             findNextBtn_->Enable();
@@ -91,17 +95,19 @@ FindOperationWindow::onInputText(wxCommandEvent&) {
             int total = matchedLines.size();
             // update label
             infoLabel_->SetLabel(wxT("1 of ") + WxConversion::toWxString(total)+
-                wxT(" matches"));
+                wxT(" matched lines"));
             // jump to first matched line
             ProximToolbox::disassemblyWindow()->showAddress(matchedLines[0]);
 
             return;
 
         } else {
-            infoLabel_->SetLabel(wxT("Operation not found"));
+            infoLabel_->SetLabel(wxT("Pattern not found"));
+            return;
         }
 
     }
+    infoLabel_->SetLabel(wxT(""));
     findPrevBtn_->Disable();
     findNextBtn_->Disable();
 }
@@ -111,9 +117,12 @@ FindOperationWindow::onInputText(wxCommandEvent&) {
  * Called when the [Previous] button is pressed.
  */
 void
-FindOperationWindow::onFindPrev(wxCommandEvent&) {
+FindWindow::onFindPrev(wxCommandEvent&) {
 
     int matchedSize = matchedLines.size();
+    if (matchedSize == 0) {
+        return;
+    }
 
     if (matchedIndex == 0) {
         matchedIndex = matchedSize - 1;
@@ -121,7 +130,7 @@ FindOperationWindow::onFindPrev(wxCommandEvent&) {
         matchedIndex--;
     }
     infoLabel_->SetLabel(WxConversion::toWxString(matchedIndex+1) + wxT(" of ") +
-        WxConversion::toWxString(matchedSize) + wxT(" matches"));
+        WxConversion::toWxString(matchedSize) + wxT(" matched lines"));
     ProximToolbox::disassemblyWindow()->showAddress(matchedLines[matchedIndex]);
 }
 
@@ -130,9 +139,12 @@ FindOperationWindow::onFindPrev(wxCommandEvent&) {
  * Called when the [Find Next] button is pressed.
  */
 void
-FindOperationWindow::onFindNext(wxCommandEvent&) {
+FindWindow::onFindNext(wxCommandEvent&) {
 
     int matchedSize = matchedLines.size();
+    if (matchedSize == 0) {
+        return;
+    }
 
     if (matchedIndex == matchedSize - 1) {
         matchedIndex = 0;
@@ -141,7 +153,7 @@ FindOperationWindow::onFindNext(wxCommandEvent&) {
     }
     // update label
     infoLabel_->SetLabel(WxConversion::toWxString(matchedIndex+1) + wxT(" of ") +
-        WxConversion::toWxString(matchedSize) + wxT(" matches"));
+        WxConversion::toWxString(matchedSize) + wxT(" matched lines"));
 
     ProximToolbox::disassemblyWindow()->showAddress(matchedLines[matchedIndex]);
 }
@@ -149,12 +161,12 @@ FindOperationWindow::onFindNext(wxCommandEvent&) {
 
 /*
  * Searches through program's assembly instructions and collects information
- * on which lines the serached text appears.
+ * on which lines the pattern text appears.
  *
- * @param searchString Text string to be searched.
+ * @param pattern Text string to be searched.
  */
 bool
-FindOperationWindow::find(std::string searchString) {
+FindWindow::find(std::string pattern) {
 
     const TTAProgram::Program& program = ProximToolbox::program();
     std::size_t found;
@@ -164,12 +176,30 @@ FindOperationWindow::find(std::string searchString) {
     for (int i = 0; i < program.instructionCount(); i++) {
         const TTAProgram::Instruction& instruction = program.instructionAt(i);
 
-        found = instruction.toString().find(searchString);
+        std::string instrString = "";
+
+        for (int j = 0; j < instruction.moveCount(); j++) {
+            const TTAProgram::Move& move = instruction.move(j);
+            instrString += move.toString();
+        }
+        // remove spaces in instruction and search pattern
+        instrString.erase(remove_if(instrString.begin(), instrString.end(),
+            isspace), instrString.end());
+        pattern.erase(remove_if(pattern.begin(), pattern.end(),
+            isspace), pattern.end());
+        // case insensitive search
+        if (!matchCase_->IsChecked()) {
+            std::transform(instrString.begin(), instrString.end(),
+                instrString.begin(), ::tolower);
+            std::transform(pattern.begin(), pattern.end(), pattern.begin(),
+                ::tolower);
+        }
+
+        found = instrString.find(pattern);
         if (found != std::string::npos) {
             matchedLines.push_back(i);
         }
     }
-
     return matchedLines.size() > 0;
 }
 
@@ -178,15 +208,19 @@ FindOperationWindow::find(std::string searchString) {
  * Creates the dialog widgets.
  */
 wxSizer*
-FindOperationWindow::createContents(
+FindWindow::createContents(
     wxWindow *parent, bool call_fit, bool set_sizer) {
 
     wxBoxSizer *mainSizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
 
     opInput_ = new wxTextCtrl(parent, ID_OP_INPUT, wxT(""),
-        wxDefaultPosition, wxSize(300, -1), wxTE_PROCESS_ENTER);
+        wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     mainSizer->Add(opInput_, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5);
+
+    matchCase_ = new wxCheckBox(parent, ID_MATCH_CASE, wxT("Case sensitive"),
+        wxDefaultPosition, wxDefaultSize);
+    mainSizer->Add(matchCase_, 0, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
 
     infoLabel_ = new wxStaticText(parent, ID_INFO_LABEL, wxT(""),
         wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);

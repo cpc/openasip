@@ -22,60 +22,32 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FindOperationWindow.hh
- * 
- * Declaration of FindOperationWindow class.
- * 
+ * @file ProximFindCmd.hh
+ *
+ * Declaration of ProximFindCmd class.
+ *
  * @author Alex Hirvonen 2017 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
+#ifndef TTA_PROXIM_FIND_CMD_HH
+#define TTA_PROXIM_FIND_CMD_HH
 
-#ifndef TTA_FIND_OPERATION_WINDOW_HH
-#define TTA_FIND_OPERATION_WINDOW_HH
-
-
-#include <vector>
-#include <string>
-#include <wx/wx.h>
-
-#include "ProximSimulatorWindow.hh"
+#include "GUICommand.hh"
 
 
 /**
- * Window for searching certain operations in assembly window.
+ * Command for displaying Proxim disassembly search window.
  */
-class FindOperationWindow : public ProximSimulatorWindow {
+class ProximFindCmd : public GUICommand {
 public:
-    FindOperationWindow(ProximMainFrame* parent, int id);
-    virtual ~FindOperationWindow();
-    virtual void reset();
-
-private:
-    void onInputText(wxCommandEvent& event);
-    void onFindPrev(wxCommandEvent& event);
-    void onFindNext(wxCommandEvent& event);
-    bool find(std::string searchString);
-
-    wxSizer* createContents(wxWindow *parent, bool call_fit, bool set_sizer);
-
-    wxTextCtrl* opInput_;
-    wxStaticText* infoLabel_;
-    wxButton* findPrevBtn_;
-    wxButton* findNextBtn_;
-
-    /// List of code linenumbers where serached text was found
-    std::vector<int> matchedLines;
-    /// Currently displayed codeline index in matchedLines
-    int matchedIndex;
-
-    /// Widget IDs.
-    enum {
-        ID_OP_INPUT,
-        ID_INFO_LABEL,
-        ID_FIND_PREV,
-        ID_FIND_NEXT,
-    };
-    DECLARE_EVENT_TABLE();
+    ProximFindCmd();
+    virtual ~ProximFindCmd();
+    virtual bool Do();
+    virtual int id() const;
+    virtual ProximFindCmd* create() const;
+    virtual std::string icon() const;
+    virtual bool isEnabled();
 };
+
 #endif

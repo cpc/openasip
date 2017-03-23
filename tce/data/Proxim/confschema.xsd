@@ -19,7 +19,7 @@
         <xsd:enumeration value="New Port Window"/>
         <xsd:enumeration value="CD"/>
         <xsd:enumeration value="About"/>
-        <xsd:enumeration value="Find Operation"/>
+        <xsd:enumeration value="Find"/>
     </xsd:restriction>
 </xsd:simpleType>
 
