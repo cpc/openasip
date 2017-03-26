@@ -34,6 +34,7 @@
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
+#include <wx/listctrl.h>
 #include <set>
 
 class NumberControl;

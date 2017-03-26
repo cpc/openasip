@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : TUT/IDCS
 -- Created    : 2001-07-13
--- Last update: 2007/04/03
+-- Last update: 2016-06-14
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Simply resets the processor and triggers execution
@@ -74,8 +74,7 @@ architecture testbench of testbench is
       imem_ext_data     : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
       imem_ext_addr     : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       dmem_busy      : out std_logic;
-      imem_busy      : out std_logic;
-      pc_init       : in std_logic_vector(IMEMADDRWIDTH-1 downto 0));
+      imem_busy      : out std_logic);
   end component;
 
   signal rst_x         : std_logic;
@@ -92,9 +91,6 @@ architecture testbench of testbench is
   signal dmem_busy     : std_logic;
   signal imem_busy     : std_logic;
   signal data_out      : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
-  signal pc_init       : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-
-  constant INIT : std_logic_vector := conv_std_logic_vector(0, IMEMADDRWIDTH);
 begin
 
   clock : clkgen
@@ -120,8 +116,7 @@ begin
       imem_ext_data => imem_data,
       imem_ext_addr => imem_addr,
       dmem_busy     => dmem_busy,
-      imem_busy     => imem_busy,
-      pc_init       => pc_init);
+      imem_busy     => imem_busy);
 
   dmem_bit_wr_x <= (others => '1');
   dmem_wr_x     <= '1';
@@ -138,7 +133,6 @@ begin
   run_test : process
   begin
     rst_x <= '0';
-    pc_init <= INIT;
     wait for PERIOD*3;
     rst_x <= '1';
 

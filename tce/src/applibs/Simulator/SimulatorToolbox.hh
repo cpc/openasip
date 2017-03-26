@@ -37,7 +37,10 @@
 #include <string>
 #include <vector>
 #include "SimulatorTextGenerator.hh"
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include "boost/regex.hpp"
+POP_CLANG_DIAGS
 
 class OperationPool;
 class SimulationEventHandler;

@@ -208,14 +208,14 @@ MemoryControl::createContents() {
     sizer_->Add(grid_, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     dataMode_ = new wxChoice(
-        this, ID_CHOICE_DATA, wxDefaultPosition, wxSize(140, -1), 0, NULL, 0);
+        this, ID_CHOICE_DATA, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
     sizeMode_ = new wxChoice(
-        this, ID_CHOICE_MODE, wxDefaultPosition, wxSize(140, -1), 0, NULL, 0);
+        this, ID_CHOICE_MODE, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
     widthMode_ = new wxChoice(
-	this, ID_CHOICE_WIDTH, wxDefaultPosition, wxSize(70, -1), 0, NULL, 0);
+	this, ID_CHOICE_WIDTH, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
 
     wxTextCtrl* addressCtrl = new wxTextCtrl(
-        this, ID_ADDRESS_GO_TO, wxT(""), wxDefaultPosition, wxSize(80, -1),
+        this, ID_ADDRESS_GO_TO, wxT(""), wxDefaultPosition, wxDefaultSize,
         wxTE_PROCESS_ENTER);
 
     wxButton* goTo = new wxButton(this, ID_BUTTON_GO_TO, wxT("Go to"));
@@ -504,6 +504,7 @@ MemoryControl::onWidthChanged(wxCommandEvent&) {
 	table_->setNumberOfColumns(32);
     }
     grid_->SetTable(table_);
+    updateView();
 }
 
 

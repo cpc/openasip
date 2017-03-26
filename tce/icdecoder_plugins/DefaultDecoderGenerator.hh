@@ -87,6 +87,8 @@ public:
         const CentralizedControlICGenerator& icGenerator);
     virtual ~DefaultDecoderGenerator();
 
+    void setGenerateDebugger(bool generate);
+
     void SetHDL(ProGe::HDL language);
     
     void completeDecoderBlock(
@@ -99,6 +101,7 @@ public:
     int requiredRFLatency(const TTAMachine::ImmediateUnit& iu) const;
     void verifyCompatibility() const
         throw (InvalidData);
+    int glockRequestWidth() const;
 
     void setGenerateLockTrace(bool generate);
     void setLockTraceStartingCycle(unsigned int startCycle);
@@ -107,9 +110,8 @@ private:
     /// Set type for buses.
     typedef std::set<TTAMachine::Bus*> BusSet;
 
-    void addLockReqPortToDecoder() const;
-    void addGlockPortToDecoder() const;
-    int glockRequestWidth() const;
+    void addLockReqPortToDecoder();
+    void addGlockPortToDecoder();
 
     void writeInstructionDecoder(std::ostream& stream) const;
     void writeLockDumpCode(std::ostream& stream) const;
@@ -288,7 +290,8 @@ private:
     unsigned int lockTraceStartingCycle_;
     TCEString entityNameStr_;
     ProGe::HDL language_;
-
+    /// Generate debugger signals?
+    bool generateDebugger_;  
 };
 
 #endif

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+    <parameter name="locktrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="locktracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="ALU">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>376</fu-id>
+  </fu>
+
+  <fu name="LSU">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="TB">
+    <hdb-file>execution_bus_trace/execbustrace.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>1040</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+  <iu name="IMM">
+    <hdb-file>asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </iu>
+
+</adf-implementation>

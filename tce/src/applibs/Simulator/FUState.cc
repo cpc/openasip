@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of FUState class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -64,9 +64,10 @@ using std::string;
  *
  * @param lock Global lock signal.
  */
-FUState::FUState() : 
+FUState::FUState() :
     ClockedState(), idle_(false), trigger_(false),
-    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(DEFAULT_FU_NAME), 
+    nextOperation_(NULL), nextExecutor_(NULL),
+    operationContext_(DEFAULT_FU_NAME),
     activeExecutors_(0), detailedModel_(NULL) {
 }
 
@@ -75,9 +76,9 @@ FUState::FUState() :
  *
  * @param lock Global lock signal.
  */
-FUState::FUState(const TCEString& name) : 
+FUState::FUState(const TCEString& name) :
     ClockedState(), idle_(false), trigger_(false),
-    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(name), 
+    nextOperation_(NULL), nextExecutor_(NULL), operationContext_(name),
     activeExecutors_(0), detailedModel_(NULL) {
 }
 
@@ -96,6 +97,17 @@ void
 FUState::clearPorts() {
     inputPorts_.clear();
     outputPorts_.clear();
+}
+
+void
+FUState::reset() {
+    for (ExecutorContainer::iterator i = executors_.begin();
+         i != executors_.end(); ++i) {
+        Operation* op = (*i).first;
+        // Ensure the init state is called again.
+        op->deleteState(context());
+        op->createState(context());
+    }
 }
 
 /**
@@ -288,8 +300,8 @@ FUState::setOperationSimulator(
  */
 void
 FUState::setOperationSimulator(DetailedOperationSimulator& sim) {
-    
-    for (ExecutorContainer::iterator i = executors_.begin(); 
+
+    for (ExecutorContainer::iterator i = executors_.begin();
          i != executors_.end(); ++i) {
         Operation* op = (*i).first;
         setOperationSimulator(*op, sim);

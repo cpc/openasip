@@ -92,9 +92,6 @@ MachineInstrDDG::MachineInstrDDG(
             addNode(*node);
             assert(hasNode(*node));
             ++instructions;
-#ifdef DEBUG_MI_DDG
-            i.dump();
-#endif
             for (unsigned oi = 0; oi < i.getNumOperands(); ++oi) {
                 const llvm::MachineOperand& operand = i.getOperand(oi);
                 if (!operand.isReg())
@@ -120,7 +117,6 @@ MachineInstrDDG::MachineInstrDDG(
                         << std::endl;
                     if (operand.getType() == llvm::MachineOperand::MO_FrameIndex)
                         Application::logStream() << "SP";
-                    i.dump();
 #endif
                     continue;
                 }
@@ -577,7 +573,11 @@ MIDDGNode::osalOperationName() const {
             ++numDefs;
         opName = mi_->getOperand(numDefs).getSymbolName();
     } else {
+#if LLVM_OLDER_THAN_4_0
         opName = TII->getName(mi_->getOpcode());
+#else
+        opName = TII->getName(mi_->getOpcode()).str();
+#endif
     }
 
     // Clean up the operand type string encoded as 

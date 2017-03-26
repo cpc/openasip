@@ -64,9 +64,12 @@ namespace boost {
 #include "hash_set.hh"
 #include "hash_map.hh"
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
+POP_CLANG_DIAGS
 
 #include "Exception.hh"
 #include "Graph.hh"

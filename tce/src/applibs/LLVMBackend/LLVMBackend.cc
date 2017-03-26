@@ -26,9 +26,9 @@
  *
  * TCE compiler backend 
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2015
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2009-2015
  * @note rating: red
  */
 
@@ -53,7 +53,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/CodeGen/GCStrategy.h>
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/CodeGen/MachineFunctionAnalysis.h>
+#endif
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -70,9 +72,17 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/Bitcode/ReaderWriter.h>
+#else
+#include <llvm/Bitcode/BitcodeReader.h>
+#endif
 
 #include <llvm/IR/Verifier.h>
+
+#ifndef LLVM_OLDER_THAN_3_9
+#include <llvm-c/Core.h> // LLVMGetGlobalContext()
+#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -243,7 +253,9 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
     initializeScalarOpts(Registry);
     initializeIPO(Registry);
     initializeAnalysis(Registry);
+#ifdef LLVM_OLDER_THAN_3_8
     initializeIPA(Registry);
+#endif
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
     initializeTarget(Registry);
@@ -294,7 +306,11 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errMsgParse;
+#ifdef LLVM_OLDER_THAN_3_9
     LLVMContext &context = getGlobalContext();
+#else
+    LLVMContext context;
+#endif
 
     std::unique_ptr<llvm::Module> m;
 
@@ -313,21 +329,29 @@ LLVMBackend::compile(
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
 #elif defined(LLVM_OLDER_THAN_3_7)
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
-#else
-    ErrorOr<std::unique_ptr<llvm::Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+    ErrorOr<std::unique_ptr<llvm::Module> > module =
         parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+#else
+    Expected<std::unique_ptr<llvm::Module> > module =
+        parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+    if (Error E = module.takeError()) {
+        THROW_EXCEPTION(CompileError, "Error parsing bytecode file: "
+            + bytecodeFile);
+    }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
     m.reset(module.get());
 #else
     // TODO: why does this work? it should not?
-    m.reset(module.get().get());
+//    m.reset(module.get().get());
+    m = std::move(module.get());
 #endif
 
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
-	    "\n" + errMsgParse;
+            "\n" + errMsgParse;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -351,9 +375,17 @@ LLVMBackend::compile(
 #elif (defined LLVM_OLDER_THAN_3_7)
         ErrorOr<Module*> module = 
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
-#else
-        ErrorOr<std::unique_ptr<Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+        ErrorOr<std::unique_ptr<Module> > module =
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+#else
+        Expected<std::unique_ptr<Module> > module =
+            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+        if (Error E = module.takeError()) {
+            THROW_EXCEPTION(CompileError, "Error parsing bytecode file: " +
+                emulationBytecodeFile + " of emulation library \n"
+                + errMsgParse);
+        }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
@@ -465,7 +497,7 @@ LLVMBackend::compile(
 
     // get registered target machine and set plugin.
     const Target* tceTarget = 
-	TargetRegistry::lookupTarget(targetStr, errorStr); 
+        TargetRegistry::lookupTarget(targetStr, errorStr);
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
@@ -496,10 +528,15 @@ LLVMBackend::compile(
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
     Options.StackAlignmentOverride = false; //OverrideStackAlignment;
 
-    TCETargetMachine* targetMachine = 
+    TCETargetMachine* targetMachine =
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
-		targetStr, cpuStr, featureString, Options));
+#ifdef LLVM_OLDER_THAN_3_9
+                targetStr, cpuStr, featureString, Options));
+#else
+                targetStr, cpuStr, featureString, Options,
+                Reloc::Model::Static));
+#endif
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";
@@ -583,6 +620,12 @@ LLVMBackend::compile(
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
 
+        // FP register datum.
+        RegDatum* fpReg = new RegDatum;
+        fpReg->first = plugin.rfName(plugin.fpDRegNum());
+        fpReg->second = plugin.registerIndex(plugin.fpDRegNum());
+        ipData_->setDatum("FRAME_POINTER", fpReg);
+
         // Return value register datum.
         RegDatum* rvReg = new RegDatum;
         rvReg->first = plugin.rfName(plugin.rvDRegNum());
@@ -648,7 +691,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     std::string srcsPath = "";
     std::string pluginIncludeFlags = "";
     if (useInstalledVersion_) {
-        srcsPath = std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
+        srcsPath = Application::installationDir() +  DS + "include" + DS;
         pluginIncludeFlags = " -I" + srcsPath;
     } else {
         srcsPath = std::string(TCE_SRC_ROOT) + DS +
@@ -737,9 +780,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             pluginIncludeFlags +
             " -I" + tempDir_ + 
-            " -I" + LLVM_INCLUDEDIR +
-            " -I" + LLVM_INCLUDEDIR + "/Target" +
-            " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
+            " -I" + LLVM_INCLUDE_DIR +
+            " -I" + LLVM_INCLUDE_DIR + "/Target" +
+            " -I" + LLVM_INCLUDE_DIR + "/llvm/Target"; 
     }
 
     tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";

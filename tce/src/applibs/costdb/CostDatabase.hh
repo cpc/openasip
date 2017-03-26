@@ -38,7 +38,10 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 
 #include "CostDBTypes.hh"
 #include "Exception.hh"
@@ -90,7 +93,7 @@ private:
     CostDatabase(const HDB::HDBManager& hdb);
 
     /// Finds string matches using regular expressions.
-    boost::smatch getValues(std::string text, std::string regex);
+    boost::smatch getValues(const std::string& text, const std::string& regex);
 
     /// Value type for map of search types.
     typedef std::pair<

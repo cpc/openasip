@@ -464,4 +464,23 @@ NetlistBlock::resolveRealWidth(const NetlistPort* port, int& width) const {
     return success;
 }
 
+void
+NetlistBlock::addPackage(
+    const std::string& packageName) {
+
+    if (!ContainerTools::containsValue(packages_, packageName)) {
+        packages_.push_back(packageName);
+    }
+}
+
+size_t
+NetlistBlock::packageCount() const {
+    return packages_.size();
+}
+
+const std::string&
+NetlistBlock::package(size_t idx) const {
+    return packages_.at(idx);
+}
+
 } // namespace ProGe

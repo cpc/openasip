@@ -26,7 +26,7 @@
  *
  * Declaration of SimValue class.
  *
- * @author Pekka Jääskeläinen 2004,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2004,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -146,7 +146,7 @@ public:
     HalfFloatWord halfFloatWordValue() const;
 
     TCEString binaryValue() const;
-    TCEString hexValue() const;
+    TCEString hexValue(bool noHexIdentifier = false) const;
 
     void setValue(TCEString hexValue);
     void clearToZero(int bitWidth);

@@ -77,7 +77,7 @@ FiniteStateAutomaton::~FiniteStateAutomaton() {
  * @param transition The index of the transition of which name to return.
  * @return The name of the transition.
  */
-std::string
+const std::string&
 FiniteStateAutomaton::transitionName(
     FSAStateTransitionIndex transition) const {
     return transitionNames_.at(transition);

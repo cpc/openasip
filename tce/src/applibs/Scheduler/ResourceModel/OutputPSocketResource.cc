@@ -46,7 +46,7 @@
  * @param name Name of resource.
  */
 OutputPSocketResource::OutputPSocketResource(const std::string& name, unsigned int initiationInterval) :
-    PSocketResource(name, initiationInterval) {}
+    PSocketResource(name, initiationInterval), activeCycle_(-1) {}
 
 /**
  * Destructor.
@@ -175,7 +175,7 @@ OutputPSocketResource::canAssign(const int cycle, const MoveNode& node)
             }
         }
     }
-
+    activeCycle_ = cycle;
     return true;
 }
 
@@ -229,6 +229,25 @@ OutputPSocketResource::operator< (const SchedulingResource& other) const {
         dynamic_cast<const OutputPSocketResource*>(&other);
     if (opsr == NULL) {
         return false;
+    }
+
+    // first priority is to put reads from same source to same psocket.
+    // so favour the one with most moves in current cycle.
+    int myCount = 0;
+    int otherCount = 0;
+    ResourceRecordType::const_iterator myIter = resourceRecord_.find(activeCycle_);
+    if (myIter != resourceRecord_.end()) {
+        myCount = myIter->second.size();
+    }
+
+    ResourceRecordType::const_iterator otherIter = opsr->resourceRecord_.find(opsr->activeCycle_);
+    if (otherIter != opsr->resourceRecord_.end()) {
+        otherCount = otherIter->second.size();
+    }
+    if (myCount  < otherCount) {
+        return false;
+    } else if (myCount > otherCount) {
+        return true;
     }
 
     // favour sockets which have connections to busses with fewest connections

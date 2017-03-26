@@ -26,9 +26,9 @@
  *
  * Implementation of ProGeScriptGenerator class.
  *
- * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa Mï¿½ï¿½ttï¿½ 2007 (esa.maatta-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2011
  * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
@@ -39,7 +39,10 @@
 #include <string>
 #include <fstream>
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 
 #include "ProGeScriptGenerator.hh"
 #include "HDBManager.hh"
@@ -288,10 +291,17 @@ ProGeScriptGenerator::generateGhdlSimulate()
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     generateStart(stream);
 
-    stream << "./" << testbenchName_ 
+    stream << "if [ -e " << testbenchName_ << " ]; then" << endl
+           << "    ./" << testbenchName_
            << " --assert-level=none --stop-time="
            << MAGICAL_RUNTIME_CONSTANT
-           << endl;
+           << endl
+           << "else" << endl
+           << "    # Newer GHDL versions does not produce binary." << endl
+           << "    ghdl -r --workdir=work --ieee=synopsys " << testbenchName_
+           << " --assert-level=none --stop-time="
+           << MAGICAL_RUNTIME_CONSTANT << endl
+           << "fi" << endl;
 
     stream.close();
 }
@@ -665,11 +675,11 @@ ProGeScriptGenerator::prepareFiles() {
 
         string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
         list<string> vhdlFirstOrder;
+        vhdlFirstOrder.push_back(toplevelEntity_ + "_imem_mau_pkg.vhdl");
         vhdlFirstOrder.push_back("globals_pkg.vhdl");
         vhdlFirstOrder.push_back("tce_util_pkg.vhdl");
         string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
         vhdlFirstOrder.push_back(paramsPkg);
-        vhdlFirstOrder.push_back("imem_mau_pkg.vhdl");
         // add FU and RF files in correct order
         getBlockOrder(vhdlFirstOrder);
         prefixStrings(vhdlFirstOrder, vhdlDirName);

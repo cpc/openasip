@@ -88,12 +88,23 @@ ProDe::ProDe(): docManager_((wxDocManager*)NULL), options_(NULL) {
 bool
 ProDe::OnInit() {
 
+    Application::initialize(argc, WxConversion::toCStringArray(argc, argv));
+
     // parse command line
     static const wxCmdLineEntryDesc cmdLineDesc[] = {
+
+#if wxCHECK_VERSION(3, 0, 0)
+        { wxCMD_LINE_PARAM, "", "", "file", wxCMD_LINE_VAL_STRING,
+          wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE },
+
+        { wxCMD_LINE_NONE, "", "", "", wxCMD_LINE_VAL_STRING, 0}
+#else
         { wxCMD_LINE_PARAM, _T(""), _T(""), _T("file"), wxCMD_LINE_VAL_STRING,
           wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE },
 
         { wxCMD_LINE_NONE, _T(""), _T(""), _T(""), wxCMD_LINE_VAL_STRING, 0}
+#endif
+
     };
 
     wxCmdLineParser parser(cmdLineDesc, argc, argv);

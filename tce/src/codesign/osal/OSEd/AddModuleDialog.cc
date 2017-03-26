@@ -31,7 +31,10 @@
  */
 
 #include <boost/format.hpp>
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 
 #include "AddModuleDialog.hh"
 #include "ErrorDialog.hh"

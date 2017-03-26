@@ -195,7 +195,7 @@ EditLineReader::charQuestion(
     prompt_ = StringTools::stringToCharPtr(question);
 
     if (defaultAnswer == '\0') {
-        const char* answer;
+        const char* answer = nullptr;
         do {
             int count;
             answer = el_gets(editLine_, &count);
@@ -208,7 +208,7 @@ EditLineReader::charQuestion(
         prompt_ = oldPrompt;
         return answer[0];
     } else {
-        const char* answer;
+        const char* answer = nullptr;
         int count;
         answer = el_gets(editLine_, &count);
         if (strlen(answer) != 1 && 

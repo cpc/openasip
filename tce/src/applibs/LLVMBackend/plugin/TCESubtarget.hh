@@ -41,6 +41,10 @@
 
 #include "tce_config.h"
 
+#ifndef LLVM_OLDER_THAN_3_9
+#include "llvm/CodeGen/SelectionDAGTargetInfo.h"
+#endif
+
 namespace llvm {
 
     class TCETargetMachinePlugin;
@@ -59,7 +63,12 @@ namespace llvm {
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;
+#ifdef LLVM_OLDER_THAN_3_9
         virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override;
+#else
+       virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const override;
+#endif
+
 #ifdef LLVM_OLDER_THAN_3_7
         virtual const DataLayout* getDataLayout() const override;
 #endif

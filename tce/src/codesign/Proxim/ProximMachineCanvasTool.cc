@@ -112,7 +112,7 @@ ProximMachineCanvasTool::onMouseEvent(wxMouseEvent& event, wxDC& dc) {
     }
 
     if (event.RightDown()) {
-	popupMenu(x, y);
+        popupMenu(x, y);
     }
 }
 
@@ -127,9 +127,9 @@ void
 ProximMachineCanvasTool::popupMenu(int x, int y) {
     wxMenu* popupMenu = new wxMenu();
     popupMenu->Append(
-	ProximMachineStateWindow::COMMAND_ZOOM_IN, _T("Zoom In"));
+        ProximMachineStateWindow::COMMAND_ZOOM_IN, _T("Zoom In"));
     popupMenu->Append(
-	ProximMachineStateWindow::COMMAND_ZOOM_OUT, _T("Zoom Out"));
+        ProximMachineStateWindow::COMMAND_ZOOM_OUT, _T("Zoom Out"));
     popupMenu->AppendSeparator();
     popupMenu->AppendCheckItem(
         ProximMachineStateWindow::COMMAND_TOGGLE_UNIT_INFO,
@@ -143,7 +143,7 @@ ProximMachineCanvasTool::popupMenu(int x, int y) {
 
     popupMenu->AppendSeparator();
     popupMenu->Append(
-	ProximMachineStateWindow::COMMAND_EXPORT, _T("Export figure..."));
+        ProximMachineStateWindow::COMMAND_EXPORT, _T("Export figure..."));
 
     canvas_->PopupMenu(popupMenu, wxPoint(x, y));
 }

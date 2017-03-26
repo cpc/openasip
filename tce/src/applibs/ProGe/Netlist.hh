@@ -39,7 +39,10 @@
 #include "hash_set.hh"
 #include "hash_map.hh"
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/graph/adjacency_list.hpp>
+POP_CLANG_DIAGS
 
 #include "PortConnectionProperty.hh"
 #include "Exception.hh"

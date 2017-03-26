@@ -26,9 +26,9 @@
  *
  * Implementation of TCERegisterInfo class.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Heikki Kultala 2011-2016 (heikki.kultala-no.spam-tut.fi)
  */
 
 #include <assert.h>
@@ -44,11 +44,8 @@
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
-#include "TCEString.hh"
 #include "Application.hh"
 #include "tce_config.h"
-
-#include <iostream> // DEBUG
 
 using namespace llvm;
 
@@ -70,10 +67,9 @@ using namespace llvm;
  * @param tii Target architecture instruction info.
  */
 TCERegisterInfo::TCERegisterInfo(
-    const TargetInstrInfo& tii, int stackAlignment) :
+    const TargetInstrInfo& tii) :
     TCEGenRegisterInfo(TCE::RA),
-    tii_(tii),
-    stackAlignment_(stackAlignment) {
+    tii_(tii) {
 }
 
 /**
@@ -85,8 +81,12 @@ const uint16_t*
 const MCPhysReg*
 #endif
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-    static const uint16_t calleeSavedRegs[] = { 0 };
-    return calleeSavedRegs;
+    static const uint16_t calleeSavedRegs[] = { TCE::FP, 0 };
+    if (hasFP(*MF)) {
+        return calleeSavedRegs+1; // skip first, it's reserved
+    } else {
+        return calleeSavedRegs;
+    }
 }
 
 /**
@@ -100,6 +100,11 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     reserved.set(TCE::KLUDGE_REGISTER);
     reserved.set(TCE::RA);
     reserved.set(TCE::IRES0);
+
+    if (hasFP(mf)) {
+        reserved.set(TCE::FP);
+    }
+
     return reserved;
 }
 
@@ -117,132 +122,48 @@ void TCERegisterInfo::eliminateFrameIndex(
     // NO THEY ARE NOT! apwards from SP!
     MachineFunction &MF = *MI.getParent()->getParent();
 
-    int Offset = 
-        MF.getFrameInfo()->getObjectOffset(FrameIndex) + MF.getFrameInfo()->getStackSize();
+#if LLVM_OLDER_THAN_4_0
+    auto& frameinfo = *MF.getFrameInfo();
+#else
+    auto& frameinfo = MF.getFrameInfo();
+#endif
 
-    if (Offset != 0) {
-        MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
-        BuildMI(
-            *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
-            TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
+    if (tfi_->hasFP(MF)) {
+        int Offset = frameinfo.getObjectOffset(FrameIndex);
+        int stackAlign = tfi_->stackAlignment();
+        // FP storage space increases offset by stackAlign.
+        Offset+= stackAlign;
+        // RA storage space increases offset of incoming vars
+        if (FrameIndex < 0  && frameinfo.hasCalls() && tfi_->containsCall(MF)) {
+            Offset+= stackAlign;
+        }
+
+        if (Offset != 0) {
+            MI.getOperand(FIOperandNum).ChangeToRegister(
+                TCE::KLUDGE_REGISTER, false, false, true/*iskill*/);
+            if (Offset > 0) {
+                BuildMI(
+                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
+                    TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(Offset);
+            } else { // for negative offsets used sub, not add
+                BuildMI(
+                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::SUBrri),
+                    TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(-Offset);
+            }
+        } else {
+            MI.getOperand(FIOperandNum).ChangeToRegister(TCE::FP, false);
+        }
     } else {
-        MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
-    }
-}
+        int Offset =
+            frameinfo.getObjectOffset(FrameIndex) + frameinfo.getStackSize();
 
-/**
- * Emits machine function prologue to machine functions.
- */
-void
-TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
-
-    MachineBasicBlock& mbb = mf.front();
-    MachineFrameInfo* mfi = mf.getFrameInfo();
-    int numBytes = (int)mfi->getStackSize();
-    if (mfi->hasVarSizedObjects()) {
-        TCEString errMsg;
-        errMsg << "ERROR: function '" 
-	       << (std::string)(mf.getFunction()->getName())
-               << "' contains dynamic stack objects which are not supported by tcecc yet.\n"
-               << "See the user manual section Unsupported C Language Constructs for more info.\n";
-        std::cerr << errMsg;
-        exit(1);
-    }
-    // this unfortunately return true for inline asm.
-    bool hasCalls = mfi->hasCalls();
-    if (hasCalls) {
-        // so then check again. Return false if only inline asm, no calls.
-        hasCalls = containsCall(mf);
-    }
-
-    numBytes = (numBytes + 3) & ~3; // stack size alignment
-
-    MachineBasicBlock::iterator ii = mbb.begin();
-
-    DebugLoc dl = (ii != mbb.end() ?
-                   ii->getDebugLoc() : DebugLoc());
-
-    if (hasCalls) {
-        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
-            .addReg(TCE::SP)
-            .addImm(stackAlignment_);
-
-        // Save RA to stack.
-        BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
-            .addReg(TCE::SP)
-            .addImm(0)
-            .addReg(TCE::RA)
-            .setMIFlag(MachineInstr::FrameSetup);
-
-        mfi->setStackSize(numBytes + stackAlignment_);
-
-        // Adjust stack pointer
-        if (numBytes != 0) {
-            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
-                .addReg(TCE::SP)
-                .addImm(numBytes);
-        }
-    } else { // leaf function
-        mfi->setStackSize(numBytes);
-
-        // Adjust stack pointer
-        if (numBytes != 0) {
-            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
-                .addReg(TCE::SP)
-                .addImm(numBytes);
-        }
-    }
-}
-
-/**
- * Emits machine function epilogue to machine functions.
- */
-void
-TCERegisterInfo::emitEpilogue(
-    MachineFunction& mf, MachineBasicBlock& mbb) const {
-
-    MachineFrameInfo* mfi = mf.getFrameInfo();
-
-    MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
-
-    DebugLoc dl = mbbi->getDebugLoc();
-
-    if (mbbi->getOpcode() != TCE::RETL && mbbi->getOpcode() != TCE::RETL_old) {
-        assert(false && "ERROR: Insertiing epilogue w/o return?");
-    }
-    
-    unsigned numBytes = mfi->getStackSize();
-
-    // this unfortunately return true for inline asm.
-    bool hasCalls = mfi->hasCalls();
-    if (hasCalls) {
-        // so then check again. Return false if only inline asm, no calls.
-        hasCalls = containsCall(mf);
-    }
-
-    if (hasCalls) {
-        if (numBytes != stackAlignment_) {
-            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
-                .addReg(TCE::SP)
-                .addImm(numBytes - stackAlignment_);
-        }
-
-        // Restore RA from stack.
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA)
-            .addReg(TCE::SP)
-            .addImm(0)
-            .setMIFlag(MachineInstr::FrameSetup);
-        
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
-            .addReg(TCE::SP)
-            .addImm(stackAlignment_);
-    } else { // leaf function
-        
-        // adjust by stack size
-        if (numBytes != 0) {
-            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
-                .addReg(TCE::SP)
-                .addImm(numBytes);
+        if (Offset != 0) {
+            MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
+            BuildMI(
+                *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
+                TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
+        } else {
+            MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
         }
     }
 }
@@ -255,22 +176,13 @@ TCERegisterInfo::getRARegister() const {
 
 unsigned
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
-    return 0;
+    if (hasFP(mf)) {
+        return TCE::FP;
+    } else {
+        return 0;
+    }
 }
 
-bool
-TCERegisterInfo::containsCall(MachineFunction& mf) const {
-    for (MachineFunction::iterator i = mf.begin(); i != mf.end(); i++) {
-        const MachineBasicBlock& mbb = *i;
-        for (MachineBasicBlock::const_iterator j = mbb.begin();
-             j != mbb.end(); j++){
-            const MachineInstr& ins = *j;
-            if (ins.getOpcode() == TCE::CALL || 
-                ins.getOpcode() == TCE::CALL_MEMrr || 
-                ins.getOpcode() == TCE::CALL_MEMri) {
-                return true;
-            }
-        }
-    }
-    return false;
+bool TCERegisterInfo::hasFP(const MachineFunction &MF) const {
+    return tfi_->hasFP(MF);
 }

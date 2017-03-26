@@ -2,12 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # Mandatory macro. Set the name of the package and the version number.
-# Email address is for bug reporting. 
-AC_INIT([tce],[1.13-pre],[tce-users@cs.tut.fi])
+# Email address is for bug reporting.
+AC_INIT([tce],[1.16-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2>/dev/null || echo "" | tr -d "\n")
+REVNO=$(which git > /dev/null && echo -n "-r" && git rev-list --all --count)
 
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
@@ -23,9 +23,12 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.9 = 9:0:0
 # TCE 1.10 = 10:0:0
 # TCE 1.11 = 11:0:0
-# TCE 1.12 = 12:0:0
+# TCE 1.12 = 12:0:
 # TCE 1.13 = 13:0:0
-AC_SUBST([LIB_VERSION], ["13:0:0"])
+# TCE 1.14 = 14:0:0
+# TCE 1.15 = 15:0:0
+# TCE 1.16 = 16:0:0
+AC_SUBST([LIB_VERSION], ["16:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -480,18 +483,39 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
      LLVM_OLDER_THAN_3_6=1
      LLVM_OLDER_THAN_3_7=1
-   ;;   
+     LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+   ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
      LLVM_OLDER_THAN_3_7=1
+     LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
+     LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+   ;;
+     3.8*)
+     AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+   ;;
+     3.9*)
+     AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
+     LLVM_OLDER_THAN_4_0=1
+   ;;
+     4.0*)
+     AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
    ;;
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. 
+Unsupported LLVM version $LLVM_VERSION.
    ])
    LLVM_VERSION=
    ;;
@@ -511,6 +535,21 @@ fi
 if test "x$LLVM_OLDER_THAN_3_7" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_7, 1, [LLVM version is older than 3.7])
+fi
+
+if  test "x$LLVM_OLDER_THAN_3_8" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_8, 1, [LLVM version is older than 3.8])
+fi
+
+if  test "x$LLVM_OLDER_THAN_3_9" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_9, 1, [LLVM version is older than 3.9])
+fi
+
+if  test "x$LLVM_OLDER_THAN_4_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_4_0, 1, [LLVM version is older than 4.0])
 fi
 
 AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
@@ -540,8 +579,8 @@ AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
 AC_SUBST([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"])
 #These are defined by llvm-config.h:
-#AC_SUBST([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"])
 #AC_SUBST([LLVM_LIBDIR], ["$LLVM_LIBDIR"])
+AC_SUBST([LLVM_INCLUDE_DIR], ["$LLVM_INCLUDEDIR"])
 AC_SUBST([LLVM_BINDIR], ["$LLVM_BINDIR"])
 AC_SUBST([LLVM_CONFIG], ["$llvmConf"])
 
@@ -550,10 +589,9 @@ AC_DEFINE_UNQUOTED([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"],
 
 AC_DEFINE_UNQUOTED([LLVM_LDFLAGS], ["$LLVM_LDFLAGS"],
                    [LLVM linkage flags.])
-
+AC_DEFINE_UNQUOTED([LLVM_INCLUDE_DIR], ["$LLVM_INCLUDEDIR"],
+                   [Directory containing LLVM headers.])
 #These are defined by llvm-config.h:
-#AC_DEFINE_UNQUOTED([LLVM_INCLUDEDIR], ["$LLVM_INCLUDEDIR"],
-#                   [Directory containing LLVM headers.])
 #
 #AC_DEFINE_UNQUOTED([LLVM_LIBDIR], ["$LLVM_LIBDIR"],
 #                   [Directory containing LLVM libraries.])
@@ -601,14 +639,14 @@ GUI_INCLUDES="$GUI_INCLUDES $($wxwindowsBin --cxxflags)"
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$($wxwindowsBin --version)" in
-     2.6.* | 2.8.* | 2.9.* )
+     2.6.* | 2.8.* | 2.9.* | 3.0.*)
    DO_WX_COMPILE=true
    ;;
      *)
    DO_WX_COMPILE=false
    AC_MSG_NOTICE(
    [
-    wxWidgets version must be 2.6.* or 2.8.* in order to
+    wxWidgets version must be 2.6.*, 2.8.* or 3.0.* in order to
     build graphical user interfaces.
    ])
    ;;
@@ -1324,7 +1362,8 @@ SHARED_CXX_FLAGS=$SHARED_CXX_FLAGS
 LIBRARY_SUFFIX=$LIBRARY_SUFFIX
 DL_FLAGS=$DL_FLAGS
 
-CPPFLAGS=$CPPFLAGS 
+CPPFLAGS=$CPPFLAGS
+CXXFLAGS=$CXXFLAGS
 LLVM_CPPFLAGS=$LLVM_CPPFLAGS
 
 DYNAMIC_FLAG=$DYNAMIC_FLAG

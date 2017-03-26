@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,39 +22,36 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ChildFrame.hh
+ * @file MemWriteCommand.hh
  *
- * Declaration of ChildFrame class.
+ * Declaration of MemWriteCommand class
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Alex Hirvonen 2016 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
-#ifndef TTA_CHILD_FRAME
-#define TTA_CHILD_FRAME
+#ifndef TTA_MEMWRITE_COMMAND
+#define TTA_MEMWRITE_COMMAND
 
-#include <wx/docmdi.h>
+#include <string>
+#include <vector>
 
+#include "DataObject.hh"
+#include "CustomCommand.hh"
+#include "Exception.hh"
+#include "SimControlLanguageCommand.hh"
 
 /**
- * MDI child frame for displaying a document.
+ * Implementation of the "load_data" command of the Simulator Control Language.
  */
-class ChildFrame : public wxDocMDIChildFrame {
+class MemWriteCommand : public SimControlLanguageCommand {
 public:
-    ChildFrame(wxDocument* doc, wxView* view, wxDocMDIParentFrame* parent);
-    ~ChildFrame();
+    MemWriteCommand();
+    virtual ~MemWriteCommand();
 
-    void setStatus(const wxString text);
-
-private:
-    void onFocus(wxFocusEvent& event);
-
-    /// View of the document which is displayed in the frame.
-    wxView* view_;
-    /// MDI parent frame of the ChildFrame.
-    wxDocMDIParentFrame* parent_;
-
-    DECLARE_EVENT_TABLE()
+    virtual bool execute(const std::vector<DataObject>& arguments)
+        throw (NumberFormatException);
+    virtual std::string helpText() const;
 };
-
 #endif

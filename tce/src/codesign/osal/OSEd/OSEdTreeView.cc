@@ -150,8 +150,9 @@ OSEdTreeView::constructTree() {
                 //operations_[opIndex.operationName(k, mod)] = oper;
                 operations_.insert(std::pair<std::string, wxTreeItemId>(opIndex.operationName(k, mod), oper));
             }
-            
+            SortChildren(module);
         }
+        SortChildren(path);
     }
     infoView_->pathView();
     return results;
@@ -247,6 +248,12 @@ OSEdTreeView::onDropDownMenu(wxMouseEvent& event) {
     wxPoint pos = event.GetPosition();
     int flags = wxTREE_HITTEST_ONITEMLABEL;
     wxTreeItemId id = HitTest(pos, flags);
+
+    // mouse is not clicked on a tree item
+    if (!id.IsOk()) {
+        return;
+    }
+
     SelectItem(id);
     DropDownMenu* menu = NULL;
     if (isPath(id)) {

@@ -58,6 +58,13 @@
 #include "ObjectState.hh"
 #include "AutoSelectImplementationsDialog.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+    #define wxOPEN wxFD_OPEN
+    #define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
+#endif
+
 using namespace IDF;
 using namespace TTAMachine;
 using namespace ProGe;
@@ -724,11 +731,13 @@ ProcessorImplementationWindow::doSaveIDF() {
             WxConversion::toString(defaultFile));
         defaultDir = WxConversion::toWxString(
             FileSystem::directoryOfPath(absolutePathToADF));
+        defaultFile = WxConversion::toWxString(
+            FileSystem::fileOfPath(WxConversion::toString(defaultFile)));
     } else {
         defaultFile = _T(".idf");
     }
 
-    wxString fileTypes = _T("Implementation Definition File (.idf)|*.idf|");
+    wxString fileTypes = _T("Implementation Definition File (.idf)|*.idf");
 
     wxFileDialog dialog(
         this, message, defaultDir, defaultFile, fileTypes,
@@ -737,9 +746,10 @@ ProcessorImplementationWindow::doSaveIDF() {
     if (dialog.ShowModal() == wxID_OK) {
         string path = WxConversion::toString(dialog.GetPath());
         try {
-            // Make local file paths relative
+            // Make local and default file paths relative.
             std::vector<string> searchPaths;
             searchPaths.push_back(FileSystem::currentWorkingDir());
+            std::vector<string> hdbSearchPaths = Environment::hdbPaths();
             impl_.makeImplFilesRelative(searchPaths);
  
             IDFSerializer serializer;

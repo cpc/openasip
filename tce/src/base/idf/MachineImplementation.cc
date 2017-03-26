@@ -153,7 +153,9 @@ MachineImplementation::icDecoderPluginFile() const
 
     vector<string> paths = Environment::icDecoderPluginPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
-    string expandedPath = FileSystem::expandTilde(icDecoderPluginFile_);
+    TCEString expandedPath(icDecoderPluginFile_);
+    expandedPath.replaceString("tce:", "");
+    expandedPath = FileSystem::expandTilde(expandedPath);
     return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
 
@@ -179,7 +181,9 @@ MachineImplementation::icDecoderHDB() const
     
     vector<string> paths = Environment::hdbPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
-    return FileSystem::findFileInSearchPaths(paths, icDecoderHDB_);
+    TCEString expandedPath(icDecoderHDB_);
+    expandedPath.replaceString("tce:", "");
+    return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
 
 /**
@@ -205,7 +209,9 @@ MachineImplementation::decompressorFile() const
 
     vector<string> paths = Environment::decompressorPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
-    return FileSystem::findFileInSearchPaths(paths, decompressorFile_);
+    TCEString expandedPath(decompressorFile_);
+    expandedPath.replaceString("tce:", "");
+    return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
 
 
@@ -1007,13 +1013,20 @@ MachineImplementation::makeImplFilesRelative(
             string relPath;
             if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
                 icDecoderPluginFile_ = relPath;
-            } 
+            } else if (FileSystem::makeRelativePath(
+                    Environment::icDecoderPluginPaths(true),
+                    filePath, relPath)) {
+                icDecoderPluginFile_ = std::string("tce:") + relPath;
+            }
         }
         if (hasICDecoderHDB()) {
             string filePath = icDecoderHDB_;
             string relPath;
             if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
                 icDecoderHDB_ = relPath;
+            } else if (FileSystem::makeRelativePath(
+                    Environment::decompressorPaths(true), filePath, relPath)) {
+                icDecoderHDB_ = std::string("tce:") + relPath;
             }
         }
     }
@@ -1024,6 +1037,9 @@ MachineImplementation::makeImplFilesRelative(
         string relPath;
         if (FileSystem::makeRelativePath(sPaths, filePath, relPath)) {
             decompressorFile_ = relPath;
+        } else if (FileSystem::makeRelativePath(
+                Environment::decompressorPaths(), filePath, relPath)) {
+            decompressorFile_ = std::string("tce:") + relPath;
         }
     }
 
@@ -1087,16 +1103,18 @@ MachineImplementation::checkImplFiles(
     vector<string> defSearchPaths;
     
     // file that will be searched under search paths
-    string filePath;
+    TCEString filePath;
 
     // ic&decoder files
     if (hasICDecoderPluginName()) {
         if (hasICDecoderPluginFile()) {
             defSearchPaths = Environment::icDecoderPluginPaths();
             filePath = icDecoderPluginFile_;
-            
+
+            if (isLibraryImplFile(filePath, filePath)) {
+                icDecoderPluginFile_ = filePath;
             // try to find file under local or default search paths
-            if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
                 // found under default search paths, fix the path
                 icDecoderPluginFile_ = filePath;
             }
@@ -1106,7 +1124,10 @@ MachineImplementation::checkImplFiles(
             defSearchPaths = Environment::hdbPaths();
             filePath = icDecoderHDB_;
 
-            if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+            if (isLibraryImplFile(filePath, filePath)) {
+                icDecoderHDB_ = filePath;
+                // try to find file under local or default search paths
+            } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
                 icDecoderHDB_ = filePath;
             }
         }
@@ -1117,7 +1138,10 @@ MachineImplementation::checkImplFiles(
         defSearchPaths = Environment::decompressorPaths();
         filePath = decompressorFile_;
 
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            decompressorFile_ = filePath;
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             decompressorFile_ = filePath;
         }
     }
@@ -1130,7 +1154,10 @@ MachineImplementation::checkImplFiles(
         UnitImplementationLocation& impl = fuImplementation(i);
         filePath = impl.hdbFileOriginal();
 
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            impl.setHDBFile(filePath);
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             impl.setHDBFile(filePath);
         }
     }
@@ -1140,7 +1167,10 @@ MachineImplementation::checkImplFiles(
         UnitImplementationLocation& impl = rfImplementation(i);
         filePath = impl.hdbFileOriginal();
         
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            impl.setHDBFile(filePath);
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             impl.setHDBFile(filePath);
         }
     }
@@ -1150,7 +1180,10 @@ MachineImplementation::checkImplFiles(
         UnitImplementationLocation& impl = iuImplementation(i);
         filePath = impl.hdbFileOriginal();
 
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            impl.setHDBFile(filePath);
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             impl.setHDBFile(filePath);
         }
     }
@@ -1160,7 +1193,10 @@ MachineImplementation::checkImplFiles(
         UnitImplementationLocation& impl = busImplementation(i);
         filePath = impl.hdbFileOriginal();
 
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            impl.setHDBFile(filePath);
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             impl.setHDBFile(filePath);
         }
     }
@@ -1170,7 +1206,10 @@ MachineImplementation::checkImplFiles(
         UnitImplementationLocation& impl = socketImplementation(i);
         filePath = impl.hdbFileOriginal();
 
-        if (checkImplFile(localPaths, defSearchPaths, filePath)) {
+        if (isLibraryImplFile(filePath, filePath)) {
+            impl.setHDBFile(filePath);
+            // try to find file under local or default search paths
+        } else if (checkImplFile(localPaths, defSearchPaths, filePath)) {
             impl.setHDBFile(filePath);
         }
     }
@@ -1214,6 +1253,11 @@ MachineImplementation::checkImplFile(
 
     if (file == "") {
         return false;
+    }
+
+    // Remove tce file specifier.
+    if (TCEString(file).startsWith("tce:")) {
+        file = TCEString(file).replaceString("tce:", "");
     }
 
     // return if the file path has already been processed as a missing file
@@ -1275,7 +1319,10 @@ MachineImplementation::makeHDBPathRelative(
         string relPath;
         if (FileSystem::makeRelativePath(searchPaths, filePath, relPath)) {
             implem.setHDBFile(relPath);
-        } 
+        } else if (FileSystem::makeRelativePath(Environment::hdbPaths(true),
+                filePath, relPath)) {
+            implem.setHDBFile(std::string("tce:") + relPath);
+        }
     } catch (FileNotFound& e) {
         implem.setHDBFile("");
     }
@@ -1520,6 +1567,44 @@ MachineImplementation::loadFromIDF(const std::string& idfFileName)
     serializer.setSourceFile(idfFileName);
 
     return serializer.readMachineImplementation();
+}
+
+
+/**
+ * Returns true if the given file is a library file of TCE.
+ *
+ * If the file is a TCE library file, its absolute absolute path returned via
+ * reference.
+ *
+ * @param path The file path that is relative or absolute.
+ * @param resolvedPath The resolved absolute path.
+ * @return True, if the file is TCE library file. Otherwise, false.
+ */
+bool
+MachineImplementation::isLibraryImplFile(
+        const std::string& path,
+        std::string& resolvedPath) {
+
+    TCEString toSearched(path);
+    toSearched.replaceString("tce:", "");
+
+    std::vector<std::string> defaultPaths;
+    std::vector<std::string> tmp = Environment::hdbPaths(true);
+    defaultPaths.insert(defaultPaths.end(), tmp.begin(), tmp.end());
+    tmp = Environment::icDecoderPluginPaths(true);
+    defaultPaths.insert(defaultPaths.end(), tmp.begin(), tmp.end());
+    tmp = Environment::decompressorPaths(true);
+    defaultPaths.insert(defaultPaths.end(), tmp.begin(), tmp.end());
+
+    try {
+        resolvedPath = FileSystem::findFileInSearchPaths(
+            defaultPaths, toSearched);
+        return true;
+    } catch (Exception& e) {
+        // file was not found
+    }
+
+    return false;
 }
 
 }

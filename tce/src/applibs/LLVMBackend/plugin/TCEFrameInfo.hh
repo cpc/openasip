@@ -37,6 +37,7 @@
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Target/TargetFrameLowering.h>
 #include "TCERegisterInfo.hh"
+#include "TCEInstrInfo.hh"
 
 namespace llvm {
 
@@ -68,16 +69,22 @@ namespace llvm {
      * having a bigger alignment than the stack's own alignment, will be 
      * reduced to have the stack's alignment.
      */
-        TCEFrameInfo(const TCERegisterInfo* tri, int stackAlignment) : 
+        TCEFrameInfo(TCERegisterInfo* tri, const TCEInstrInfo* tii, int stackAlignment) :
         TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 
             stackAlignment, 
             -stackAlignment,
             1,
             true /*false*/),
-        tri_(tri) {}
+        tri_(tri), tii_(*tii), stackAlignment_(stackAlignment) {
+            tri->setTFI(this); }
 
-        void eliminateCallFramePseudoInstr(
+#ifdef LLVM_OLDER_THAN_3_9
+        void
+#else
+        MachineBasicBlock::iterator
+#endif
+        eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const override;
@@ -87,11 +94,14 @@ namespace llvm {
 #else
     void emitPrologue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
 #endif
-	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
-	bool hasFP(const MachineFunction &MF) const override { return false; }
-
+        void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+        bool hasFP(const MachineFunction &MF) const override;
+        int stackAlignment() const { return stackAlignment_; }
+        bool containsCall(MachineFunction& mf) const;
     private:
-	const TCERegisterInfo* tri_;
+        int stackAlignment_;
+        const TCERegisterInfo* tri_;
+        const TCEInstrInfo& tii_;
     };
 } // /namespace
 

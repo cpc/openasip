@@ -116,6 +116,7 @@ BBSchedulerController::handleBasicBlock(
 
     // TODO: define them somewhere in one place.
     static const TCEString SP_DATUM = "STACK_POINTER";
+    static const TCEString FP_DATUM = "FRAME_POINTER";
     static const TCEString RV_DATUM = "RV_REGISTER";
     // high part of 64-bit return values.
     static const TCEString RV_HIGH_DATUM = "RV_HIGH_REGISTER";
@@ -135,6 +136,7 @@ BBSchedulerController::handleBasicBlock(
     // reserved registers.
     if (options != NULL && options->renameRegisters() && bigDDG_ != NULL
         && BasicBlockPass::interPassData().hasDatum(SP_DATUM) &&
+        BasicBlockPass::interPassData().hasDatum(FP_DATUM) &&
         BasicBlockPass::interPassData().hasDatum(RV_DATUM) &&
         BasicBlockPass::interPassData().hasDatum(RV_HIGH_DATUM)) {
         rr = new RegisterRenamer(targetMachine, bb);

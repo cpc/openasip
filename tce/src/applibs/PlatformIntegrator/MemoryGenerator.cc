@@ -361,6 +361,10 @@ MemoryGenerator::instantiateTemplate(
     inst.instantiateTemplateFile(inFile, outFile);
 }
 
+bool
+MemoryGenerator::hasLSUArchitecture() const {
+    return lsuArch_ != NULL;
+}
 
 const TTAMachine::FunctionUnit&
 MemoryGenerator::lsuArchitecture() const {

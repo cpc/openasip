@@ -80,11 +80,15 @@ namespace llvm {
     /// cannot be eliminated.
     UserList baseUsers_;
 
-    virtual bool doInitialization(Module &M);
-    virtual bool runOnMachineFunction(MachineFunction &F);
-    virtual bool doFinalization(Module &M);
+    virtual bool doInitialization(Module &M) override;
+    virtual bool runOnMachineFunction(MachineFunction &F) override;
+    virtual bool doFinalization(Module &M) override;
 
-    virtual const char *getPassName() const {
+#if LLVM_OLDER_THAN_4_0
+    virtual const char *getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
         return "TCE deadcode elimination of unused emulation functions";
     }
 

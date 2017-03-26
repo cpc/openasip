@@ -32,6 +32,10 @@
 
 #include "SelectionFigure.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+#include <wx/dcsvg.h>   // wxSVGFileDC only available in wxwidgets 3.*
+#endif
+
 const int SelectionFigure::SELECT_BOX_MARGIN = 4;
 
 
@@ -55,9 +59,23 @@ SelectionFigure::~SelectionFigure() {
  */
 void
 SelectionFigure::drawSelf(wxDC* dc) {
+    // wxWidgets implementation of SVGFileDC doesnt support dashed lines, so
+    // we draw solid blue line when some item is selected when saving to *.svg
+    bool isSVGcontext = false;
+
+#if wxCHECK_VERSION(3, 0, 0)
+    if (dynamic_cast<wxSVGFileDC*> (dc)) {
+        isSVGcontext = true;
+    }
+#endif
+
     // Draw blue rectangles around selected EditParts figures.
     if (selection_ != NULL) {
+
         wxPen pen = wxPen(wxColour(0,0,255), 2, wxSHORT_DASH);
+        if (isSVGcontext) {
+            pen.SetStyle(wxSOLID);
+        }
         wxBrush brush = wxBrush(wxColor(0,0,0), wxTRANSPARENT);
         dc->SetBrush(brush);
         dc->SetPen(pen);

@@ -32,9 +32,11 @@ function start_compiletest {
     # remove the zOMG error mail when testing is finished, buildbot will handle the mails
     export ERROR_MAIL=no
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
-    export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
+    export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra $CXXFLAGS"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
     export LDFLAGS="-L/usr/local/lib"
+
+    echo "CXXFLAGS: $CXXFLAGS"
 
     ./autogen.sh >& bb_autogen.log
 
@@ -47,6 +49,7 @@ function start_compiletest {
 
     ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 }
+
 
 # supercomplex main program
 export PATH=$LLVM_DIR/bin:$PATH

@@ -120,7 +120,7 @@ MDFView::OnCreate(wxDocument* doc, long) {
     frame_->Show(true);
 
     // create a canvas for the child frame
-    canvas_ = new MachineCanvas(frame_, new ProDeEditPolicyFactory());
+    canvas_ = new MachineCanvas(frame_, new ProDeEditPolicyFactory(), frame_);
     // create select tool and set it as active tool for the canvas
     SelectTool* selectTool = new SelectTool(frame_, this);
     canvas_->setTool(selectTool);

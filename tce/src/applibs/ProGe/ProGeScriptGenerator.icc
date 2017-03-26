@@ -30,7 +30,10 @@
  * @note rating: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 
 #include "FileSystem.hh"
 

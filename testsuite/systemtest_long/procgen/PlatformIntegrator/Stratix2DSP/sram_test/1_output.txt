@@ -52,7 +52,6 @@ architecture structural of stratix_test_array_sram_toplevel is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       fu_leds_STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
       fu_LSU_STRATIXII_SRAM_DQ : inout std_logic_vector(fu_LSU_sram_dataw-1 downto 0);
       fu_LSU_STRATIXII_SRAM_ADDR : out std_logic_vector(fu_LSU_sram_addrw-1 downto 0);
@@ -83,7 +82,6 @@ begin
   imem_array_instance_0_en_x_wire <= core_imem_en_x_wire;
   imem_array_instance_0_addr_wire <= core_imem_addr_wire;
   core_imem_data_wire <= imem_array_instance_0_dataout_wire;
-  core_pc_init_wire <= (others => '0');
 
   core : stratix_test_array_sram
     port map (
@@ -93,7 +91,6 @@ begin
       imem_en_x => core_imem_en_x_wire,
       imem_addr => core_imem_addr_wire,
       imem_data => core_imem_data_wire,
-      pc_init => core_pc_init_wire,
       fu_leds_STRATIXII_LED => STRATIXII_LED,
       fu_LSU_STRATIXII_SRAM_DQ => STRATIXII_SRAM_DQ,
       fu_LSU_STRATIXII_SRAM_ADDR => STRATIXII_SRAM_ADDR,

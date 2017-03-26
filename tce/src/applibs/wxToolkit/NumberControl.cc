@@ -138,7 +138,7 @@ NumberControl::create(const wxSize& size) {
     wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     int textWidth = size.GetWidth();
-    if ((style_ & NO_MODE_CHOICER) != 0) {
+    if ((style_ & NO_MODE_CHOICER) == 0) {
         textWidth = textWidth - CHOICER_WIDTH;
         if (textWidth < 20) {
             textWidth = 20;
@@ -275,7 +275,8 @@ NumberControl::onText(wxCommandEvent&) {
         value_.intValue = 0;
         update();
         wxCommandEvent textEvent(wxEVT_COMMAND_TEXT_UPDATED, GetId());
-        GetParent()->AddPendingEvent(textEvent);
+        GetParent()->GetEventHandler()->AddPendingEvent(textEvent);
+
         return;
     }
 
@@ -309,7 +310,7 @@ NumberControl::onText(wxCommandEvent&) {
     }
 
     wxCommandEvent textEvent(wxEVT_COMMAND_TEXT_UPDATED, GetId());
-    GetParent()->AddPendingEvent(textEvent);
+    GetParent()->GetEventHandler()->AddPendingEvent(textEvent);
 
     if (text_->IsModified()) {
         update();

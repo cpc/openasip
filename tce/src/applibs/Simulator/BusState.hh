@@ -26,8 +26,8 @@
  *
  * Declaration of BusState class.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nykï¿½nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -56,7 +56,9 @@ public:
     void clear();
 
     void setSquashed(bool isSquashed);
-    bool isSquashed() const;    
+    bool isSquashed() const;
+
+    int width() const;
 
 private:
     /// Copying not allowed.

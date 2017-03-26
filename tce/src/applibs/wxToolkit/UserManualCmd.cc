@@ -41,6 +41,10 @@
 #include "WidgetTools.hh"
 #include "StringTools.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxOPEN wxFD_OPEN
+#endif
+
 using std::string;
 
 bool UserManualCmd::mimeTypesManagerInitialized_ = false;
@@ -48,7 +52,7 @@ bool UserManualCmd::mimeTypesManagerInitialized_ = false;
 const std::string UserManualCmd::COMMAND_NAME = "User Manual";
 const std::string UserManualCmd::COMMAND_ICON = "help.png";
 const std::string UserManualCmd::COMMAND_SHORT_NAME = "Help";
-const int UserManualCmd::COMMAND_ID = 200000;
+const int UserManualCmd::COMMAND_ID = 30000;
 
 /**
  * The Constructor.

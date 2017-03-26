@@ -49,7 +49,10 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/exception.hpp>
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 #include <boost/format.hpp>
 
 #include "MathTools.hh"

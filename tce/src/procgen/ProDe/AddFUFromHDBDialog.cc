@@ -30,10 +30,14 @@
  * @note rating: red
  */
 
+#include <sstream>
+
 #include <boost/format.hpp>
 #include <wx/statline.h>
 #include <wx/listctrl.h>
 #include <wx/dir.h>
+#include <wx/textctrl.h>
+#include <wx/imaglist.h>
 
 #include "AddFUFromHDBDialog.hh"
 #include "Model.hh"
@@ -53,6 +57,11 @@
 #include "ExecutionPipeline.hh"
 #include "HDBRegistry.hh"
 #include "ObjectState.hh"
+#include "ProDeConstants.hh"
+
+#if !wxCHECK_VERSION(3, 0, 0)
+    typedef long int wxIntPtr;
+#endif
 
 using std::string;
 using boost::format;
@@ -64,10 +73,52 @@ BEGIN_EVENT_TABLE(AddFUFromHDBDialog, wxDialog)
     EVT_LIST_ITEM_DESELECTED(ID_LIST, AddFUFromHDBDialog::onListSelectionChange)
     EVT_BUTTON(ID_ADD, AddFUFromHDBDialog::onAdd)
     EVT_BUTTON(ID_CLOSE, AddFUFromHDBDialog::onClose)
+    EVT_TEXT(ID_FILTER_TEXTCTRL, AddFUFromHDBDialog::onFilterChange)
+    EVT_LIST_COL_CLICK(ID_LIST, AddFUFromHDBDialog::onColumnClick)
 END_EVENT_TABLE()
 
 
 const wxString AddFUFromHDBDialog::HDB_FILE_FILTER = _T("*.hdb");
+
+int wxCALLBACK
+FUListCompareASC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid1->latency - lid2->latency;
+    } else if (sortColumn == 1) {
+        return lid1->operations.Cmp(lid2->operations);
+    } else if (sortColumn == 3) {
+        return lid1->hdbId - lid2->hdbId;
+    } else if (sortColumn == 4) {
+        return lid1->path.Cmp(lid2->path);
+    }
+
+    return 0;
+}
+
+int wxCALLBACK
+FUListCompareDESC(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData) {
+
+    ListItemData* lid1 = (ListItemData*)item1;
+    ListItemData* lid2 = (ListItemData*)item2;
+    int sortColumn = (int)sortData;
+
+    if (sortColumn == 0) {
+        return lid2->latency - lid1->latency;
+    } else if (sortColumn == 1) {
+        return lid2->operations.Cmp(lid1->operations);
+    } else if (sortColumn == 3) {
+        return lid2->hdbId - lid1->hdbId;
+    } else if (sortColumn == 4) {
+        return lid2->path.Cmp(lid1->path);
+    }
+
+    return 0;
+}
 
 /**
  * The Constructor.
@@ -82,18 +133,29 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
         parent, -1, _T("HDB Function Units"),
         wxDefaultPosition, wxDefaultSize,
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    model_(model) {        
+    model_(model), sortColumn_(1), sortASC_(true) {        
 
     createContents(this, true, true);
     SetSize(400, 300);
 
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
 
-    list_->InsertColumn(0, _T("Latency"));
-    list_->InsertColumn(1, _T("Operations"));
-    list_->InsertColumn(2, _T("Impls"));
-    list_->InsertColumn(3, _T("HDB ID"));
-    list_->InsertColumn(4, _T("HDB"));
+    list_->InsertColumn(0, _T("Latency"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(
+                    1, _T("Operations"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(2, _T("Impls"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(3, _T("HDB ID"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    list_->InsertColumn(4, _T("HDB"), wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+
+    string iconPath =
+        Environment::iconDirPath() + FileSystem::DIRECTORY_SEPARATOR;
+
+    wxImageList* imageList = new wxImageList();
+    imageList->Add(wxIcon(
+        WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_DESC)));
+    imageList->Add(wxIcon(
+        WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_ASC)));
+    list_->SetImageList(imageList, wxIMAGE_LIST_SMALL);
 
     // Disable conditional buttons.
     FindWindow(ID_ADD)->Disable();
@@ -164,8 +226,14 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
         FUArchitecture* arch = manager.fuArchitectureByID(*iter);
         FunctionUnit& fu = arch->architecture();
 
+        if (!acceptToList(*arch, filterPatterns_)) {
+            continue;
+        }
+
         fuArchitectures_.insert(
             std::pair<int, FUArchitecture*>(list_->GetItemCount(), arch));
+
+        ListItemData* lid = new ListItemData;
 
         list_->InsertItem(0, _T(""));
         if (fu.operationCount() > 0) {
@@ -197,15 +265,85 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
             }
                 
             list_->SetItem(0, 0, latency);
+            lid->latency = minLatency;
             list_->SetItem(0, 1, operations);
+            lid->operations = operations;
         }
         list_->SetItem(0, 3, WxConversion::toWxString(*iter));
+        lid->hdbId = *iter;
         list_->SetItem(0, 4, WxConversion::toWxString(path));
-        list_->SetItemData(0, list_->GetItemCount() - 1);
+        lid->path = WxConversion::toWxString(path);
+        lid->id = list_->GetItemCount() - 1;
+        list_->SetItemData(0, (long)lid);
+    }
+    // default sorting column is "Operations"
+    list_->SortItems(FUListCompareASC, 1);
+    setColumnImage(1, sortASC_);
+
+    return true;
+}
+
+
+/**
+ * Returns true if the FU architecture should not be viewed.
+ *
+ * @param filterList The list of all keywords (uppercase), that the FU
+ *                   architecture should contain.
+ */
+bool
+AddFUFromHDBDialog::acceptToList(
+    const HDB::FUArchitecture& arch,
+    const std::vector<std::string>& filterList) {
+
+    if (filterList.empty()) {
+        return true;
+    }
+
+    // Construct string from where the keywords are searched.
+    std::string archStr;
+    const FunctionUnit& fu = arch.architecture();
+    for (int i = 0; i < fu.operationCount(); i++) {
+        const HWOperation& oper = *fu.operation(i);
+
+        // Operation with latency as viewed in the list.
+        archStr += oper.name()
+            + "(" + Conversion::toString(oper.latency()) + ") ";
+
+    }
+
+    for (auto& c : archStr) c = toupper(c);
+
+    for (const string& keyword : filterList) {
+        if (archStr.find(keyword) == std::string::npos) {
+            return false;
+        }
     }
 
     return true;
 }
+
+
+/**
+ * Updates FU architecture list view accordingly to new filter rule.
+ */
+void
+AddFUFromHDBDialog::onFilterChange(wxCommandEvent& event) {
+
+    std::vector<std::string>& keywordList = filterPatterns_;
+
+    std::string tmp(event.GetString().mb_str());
+    std::istringstream rawFilterRules(tmp.c_str());
+    keywordList.clear();
+    std::string keyword;
+
+    while (rawFilterRules >> keyword) {
+        for (auto& c: keyword) c = toupper(c);
+        keywordList.push_back(keyword);
+    }
+
+    AddFUFromHDBDialog::TransferDataToWindow();
+}
+
 
 /**
  * Enables and disables the delete button according to slot list selection.
@@ -213,9 +351,9 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
 void
 AddFUFromHDBDialog::onListSelectionChange(wxListEvent&) {
     if (list_->GetSelectedItemCount() == 1) {
-	FindWindow(ID_ADD)->Enable();
+        FindWindow(ID_ADD)->Enable();
     } else {
-	FindWindow(ID_ADD)->Disable();
+        FindWindow(ID_ADD)->Disable();
     }
 }
 
@@ -230,7 +368,8 @@ AddFUFromHDBDialog::onAdd(wxCommandEvent&) {
     item = list_->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if ( item == -1 ) return;
     
-    int id = list_->GetItemData(item);
+    ListItemData* lid = (ListItemData*)list_->GetItemData(item);
+    int id = lid->id;
     const FUArchitecture* arch =
         MapTools::valueForKey<FUArchitecture*>(fuArchitectures_, id);
 
@@ -342,6 +481,10 @@ AddFUFromHDBDialog::createContents(
     wxListCtrl *item1 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
+    wxTextCtrl *filterCtrl = new wxTextCtrl(parent,
+        ID_FILTER_TEXTCTRL, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
+    item0->Add(filterCtrl, 0, wxGROW|wxALL, 5);
+
     wxButton *item2 = new wxButton( parent, ID_ADD, wxT("&Add"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -351,12 +494,53 @@ AddFUFromHDBDialog::createContents(
     wxButton *item4 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer( item0 );
-        if (call_fit)
+        if (call_fit) {
             item0->SetSizeHints( parent );
+        }
     }
     
     return item0;
+}
+
+
+/**
+ * Sorts HDB FU list according to clicked column.
+ */
+void
+AddFUFromHDBDialog::onColumnClick(wxListEvent& event) {
+
+    int clickedColumn = event.GetColumn();
+
+    if (clickedColumn == sortColumn_) {
+        sortASC_ = !sortASC_;
+    } else {
+        sortASC_ = true;
+        setColumnImage(sortColumn_, -1);    // removes arrow from old column
+        sortColumn_ = clickedColumn;
+    }
+
+    setColumnImage(clickedColumn, sortASC_);
+
+    if (sortASC_) {
+        list_->SortItems(FUListCompareASC, clickedColumn);
+    } else {
+        list_->SortItems(FUListCompareDESC, clickedColumn);
+    }
+}
+
+
+/**
+ * Sets sorting arrow image on selected column
+ *
+ * @param col Column index to set the image
+ * @param image Image index in wxImageList
+ */
+void
+AddFUFromHDBDialog::setColumnImage(int col, int image) {
+    wxListItem item;
+    item.SetMask(wxLIST_MASK_IMAGE);
+    item.SetImage(image);
+    list_->SetColumn(col, item);
 }

@@ -117,6 +117,8 @@ public:
 
     NetlistBlock& instructionDecoder() const
         throw (InstanceNotFound);
+    NetlistBlock& instructionFetch() const
+        throw (InstanceNotFound);
 
     HDB::FUEntry& fuEntry(const std::string& fuName) const
         throw (InstanceNotFound);
@@ -255,6 +257,8 @@ private:
     IUPortMap iuPortMap_;
     /// The instruction decoder block.
     NetlistBlock* instructionDecoder_;
+    /// The instruction fetch block
+    NetlistBlock* instructionFetch_;
     /// Maps FU implementations for different FU's.
     FUEntryMap fuEntryMap_;
     /// Maps RF implementations for different RF's.

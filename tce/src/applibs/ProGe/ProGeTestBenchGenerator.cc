@@ -39,7 +39,10 @@
 #include <list>
 #include <cmath> // for log
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 
 #include "ProGeTypes.hh"
 #include "ProGeTestBenchGenerator.hh"
@@ -290,8 +293,16 @@ ProGeTestBenchGenerator::generate(
             "busy => '0',\n"
             "imem_en_x => imem_en_x,\n"
             "imem_addr => imem_addr,\n"
-            "imem_data => imem_data,\n"
-            "pc_init => pc_init";
+            "imem_data => imem_data";
+
+        // Add external debugger ports, if needed
+        if (implementation.icDecoderParameterValue("debugger") == 
+            "external") {
+            LSUMapConst.append(",\n"
+                "db_pc_start => (others => '0'),\n"
+                "db_tta_nreset => '1',\n"
+                "db_lockrq => '0'");
+        }
     } else {
         LSUMapConst=
             ".clk                (clk),\n"
@@ -299,8 +310,7 @@ ProGeTestBenchGenerator::generate(
             ".busy               (1'b0),\n"
             ".imem_en_x          (imem_en_x),\n"
             ".imem_addr          (imem_addr),\n"
-            ".imem_data          (imem_data),\n"
-            ".pc_init            (pc_init)";
+            ".imem_data          (imem_data)";
     }
     
     if (LSUMap.length() < 1) {

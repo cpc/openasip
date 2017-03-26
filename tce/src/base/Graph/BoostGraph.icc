@@ -40,6 +40,10 @@
 #include <climits>
 #include <boost/version.hpp>
 #include <boost/format.hpp>
+
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/graph/topological_sort.hpp>
 
 #if BOOST_VERSION < 104000
@@ -51,6 +55,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
+POP_CLANG_DIAGS
+POP_COMPILER_DIAGS
 
 #include "Conversion.hh"
 #include "AssocTools.hh"

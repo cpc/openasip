@@ -953,6 +953,11 @@ p.add_option('--no-rename-registers', action='store_false', dest='rename_registe
              help=\
 """Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
 
+p.add_option('--disable-dsf', action="store_true",
+             dest='disable_dsf', default=False,
+             help=\
+"""Disable the post-pass delay slot filler optimizer.""")
+
 p.add_option('--vector-backend', action='store_true', dest='vector_backend', default=False,
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
@@ -1079,19 +1084,25 @@ if exitCode1 != 0 and exitCode2 != 0:
     exitWithError(1, output)
 
 ### tce install prefix
-(exitCode, output) = runCommandBuffered("tce-config --prefix", False)
-if exitCode != 0:
-    tceInstalled = False
+tceInstalled = True
+if 'TCE_INSTALL_DIR' in os.environ.keys():
+    tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
-    tceInstalled = True
-    tceprefix = output
-    
+    (exitCode, output) = runCommandBuffered("tce-config --prefix", False)
+    if exitCode != 0:
+        tceInstalled = False
+    else:
+        tceprefix = output
+
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
      os.path.exists(os.path.join("@abs_top_builddir@", 
                                  "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
+
+assert not runningInstalled or (tceInstalled and tceprefix != ""), \
+        "Could not find TCE prefix. Is TCE installed in PATH?"
 
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
@@ -1280,6 +1291,9 @@ if options.adf_file != "":
         command += " --rename-registers"
     else:
         command += " --no-rename-registers"
+
+    if options.disable_dsf:
+        command += " --disable-dsf"
 
     if options.vector_backend:
         command += " --vector-backend"

@@ -1,0 +1,48 @@
+TTA-based Co-design Environment (TCE) v1.14 released
+----------------------------------------------------
+
+TTA-based Co-design Environment (TCE) is a toolset for design and
+programming of low power customized processors based on the Transport
+Triggered Architecture (TTA). The toolset provides a complete retargetable
+co-design flow from high-level language programs down to synthesizable
+processor RTL (VHDL and Verilog generation supported) and parallel program
+binaries. Processor customization points include the register files,
+function units, supported operations, and the interconnection network.
+
+Release Highlights
+==================
+
+- Support for LLVM 3.9.
+- Support for wxWidgets 3.x and thus Ubuntu 16.04 which doesn't ship wxW 2.x
+  anymore. Check the TROUBLESHOOTING file in case encountering problems.
+- Support for variable-length local arrays and alloca, that is, dynamic
+  stack objects. When using dynamic stack objects, the architecture must
+  have an additional 32-bit register (total minimum of 6) as one of them
+  will be used as a frame pointer in functions with dynamic stack objects.
+- ProGe now can generate a simple control interface "AlmaIF" that can be
+  used for control and debug access to TCE processors integrated in SoCs.
+- Added source code debugging window to Proxim.
+
+Download
+========
+
+Get the release via git by cloning the release branch:
+
+  git clone -b release-1.14 https://github.com/cpc/tce.git tce-1.14
+
+Acknowledgements
+================
+
+We'd like to thank Finnish Funding Agency for Technology and Innovation
+(project "Parallel Acceleration 3", funding decision 1134/31/2015), ARTEMIS
+joint undertaking under grant agreement no 621439 (ALMARVI), and Academy of
+Finland (via PLC project) for financially supporting most of the development
+work in this release. Much appreciated!
+
+Links
+=====
+
+TCE download page:  http://tce.cs.tut.fi/download.html
+This announcement:  http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Change log:         http://tce.cs.tut.fi/downloads/CHANGES
+Install info:       http://tce.cs.tut.fi/downloads/INSTALL

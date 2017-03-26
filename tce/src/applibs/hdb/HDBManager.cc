@@ -354,6 +354,11 @@ HDBManager::HDBManager(const std::string& hdbFile)
         throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
     }
 
+    if (!FileSystem::fileIsReadable(hdbFile)) {
+        string errorMsg = "File '" + hdbFile + "' has no read rights.";
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    }
+
     try {
         dbConnection_ = &db_->connect(hdbFile);
     } catch (const RelationalDBException& exception) {
@@ -561,6 +566,7 @@ HDBManager::addFUArchitecture(const FUArchitecture& arch) const
     // check the operand bindings of the FU
     FunctionUnit& fu = arch.architecture();
     MachineValidatorResults results;
+    FUValidator::checkOperations(fu, results);
     FUValidator::checkOperandBindings(fu, results);
     if (results.errorCount() > 0) {
         throw InvalidData(

@@ -118,7 +118,7 @@ DefaultDecoderGenerator::DefaultDecoderGenerator(
     const CentralizedControlICGenerator& icGenerator) : 
     machine_(machine), bem_(bem), icGenerator_(icGenerator),
     nlGenerator_(NULL), decoderBlock_(NULL), generateLockTrace_(false),
-    lockTraceStartingCycle_(1) {
+    lockTraceStartingCycle_(1), generateDebugger_(false) {
 }
 
 /**
@@ -137,6 +137,10 @@ DefaultDecoderGenerator::SetHDL(ProGe::HDL language){
 DefaultDecoderGenerator::~DefaultDecoderGenerator() {
 }
 
+void
+DefaultDecoderGenerator::setGenerateDebugger(bool generate) {
+    generateDebugger_ = generate;
+}
 
 /**
  * Completes the decoder block in the given netlist by adding the
@@ -366,6 +370,12 @@ DefaultDecoderGenerator::completeDecoderBlock(
 
     addLockReqPortToDecoder();
     addGlockPortToDecoder();
+
+    if (generateDebugger_) {
+        /*NetlistPort* dbgResetPort = */ new NetlistPort(
+            "db_tta_nreset", "1", 1, 
+            ProGe::BIT, HDB::IN, decoder);
+    }
 }
 
 
@@ -374,7 +384,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
  * request ports of FU's to it.
  */
 void
-DefaultDecoderGenerator::addLockReqPortToDecoder() const {
+DefaultDecoderGenerator::addLockReqPortToDecoder() {
 
     int lockReqWidth = glockRequestWidth();
 
@@ -415,7 +425,7 @@ DefaultDecoderGenerator::addLockReqPortToDecoder() const {
  * of units.
  */
 void
-DefaultDecoderGenerator::addGlockPortToDecoder() const {
+DefaultDecoderGenerator::addGlockPortToDecoder() {
 
     Netlist& netlist = decoderBlock_->netlist();
     NetlistPort* decGlockPort = new NetlistPort(
@@ -491,6 +501,9 @@ DefaultDecoderGenerator::glockRequestWidth() const {
         if (nlGenerator_->hasGlockReqPort(*fuBlock)) {
             lockReqWidth++;
         }
+    }
+    if (generateDebugger_) {
+        lockReqWidth++;
     }
 
     return lockReqWidth;
@@ -2231,10 +2244,23 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
                << endl;
         writeResettingOfControlRegisters(stream);
         stream << endl << indentation(2) 
-           << "elsif (clk'event and clk = '1') then" << endl << indentation(3);
-        stream <<  "if (" << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
-           << " = '0') then -- rising clock edge"
-           << endl << endl;
+           << "elsif (clk'event and clk = '1') then"
+           << " -- rising clock edge" << endl;
+        if (generateDebugger_){
+            string softResetPort = "db_tta_nreset";
+            stream << indentation(3) << "if (" << softResetPort
+                   << " = '0') then"
+                   << endl;
+            writeResettingOfControlRegisters(stream);
+            stream << indentation(3) << "elsif ("
+                   << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT 
+                   << " = '0') then" << endl << endl;
+        } else {
+            stream << indentation(3) << "if ("
+                   << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT
+                   << " = '0') then" << endl << endl;
+        }
+
         writeInstructionDecoding(stream);
         stream << indentation(3) << "end if;" << endl;
         stream << indentation(2) << "end if;" << endl;
@@ -2728,11 +2754,15 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
     
     if(language_==VHDL){
         stream << indentation(4) << "if (" << squashSignal(bus.name())
-               << " = '0' and " << "conv_integer(unsigned("
-               << srcFieldSignal(bus.name()) << "("
-               << enc.encodingPosition() + enc.encodingWidth() - 1
-               << " downto " << enc.encodingPosition() << "))) = "
-               << enc.encoding() << ") then" << endl;
+               << " = '0'";
+        if (enc.encodingWidth() > 0) {
+            stream << " and " << "conv_integer(unsigned("
+                   << srcFieldSignal(bus.name()) << "("
+                   << enc.encodingPosition() + enc.encodingWidth() - 1
+                   << " downto " << enc.encodingPosition() << "))) = "
+                   << enc.encoding();
+        }
+        stream << ") then" << endl;
         stream << indentation(5) << simmCntrlSignalName(bus.name())
                << "(0) <= '1';" << endl;
         stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
@@ -2751,11 +2781,14 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
         stream << indentation(4) << "end if;" << endl;
     } else {
         stream << indentation(4) << "if (" 
-               << squashSignal(bus.name()) << " == 0 && "
-               << srcFieldSignal(bus.name()) << "[" 
-               << enc.encodingPosition() + enc.encodingWidth() - 1 << " : " 
-               << enc.encodingPosition() << "] == " << enc.encoding() << ")"
-               << endl
+               << squashSignal(bus.name()) << " == 0";
+        if (enc.encodingWidth() > 0) {
+            stream << " && "
+                << srcFieldSignal(bus.name()) << "["
+                << enc.encodingPosition() + enc.encodingWidth() - 1 << " : "
+                << enc.encodingPosition() << "] == " << enc.encoding();
+        }
+        stream << ")" << endl
                << indentation(4) << "begin" << endl
                << indentation(5) << simmCntrlSignalName(bus.name())
                << "[0] <= 1'b1;" << endl
@@ -4552,8 +4585,8 @@ DefaultDecoderGenerator::connectedBuses(const TTAMachine::Socket& socket) {
 
 
 /**
- * Returns the condition when data is tranferred by the given socket in the given
- * source field.
+ * Returns the condition when data is transferred by the given socket in the
+ * given source field.
  *
  * @param srcField The source field.
  * @param socketName Name of the socket.
@@ -4574,14 +4607,24 @@ DefaultDecoderGenerator::socketEncodingCondition(
     SocketEncoding& enc = slotField.socketEncoding(socketName);
     int start = enc.socketIDPosition();
     int end = start + enc.socketIDWidth() - 1;
-    if(language==VHDL){
-        return "conv_integer(unsigned(" + signalName + "(" + 
-            Conversion::toString(end) + " downto " +  Conversion::toString(start) +
-            "))) = " + Conversion::toString(enc.encoding());
+    if (language == VHDL) {
+        if (enc.socketIDWidth() == 0) {
+            return "true";
+        } else {
+            return "conv_integer(unsigned(" + signalName + "("
+                + Conversion::toString(end) + " downto "
+                + Conversion::toString(start)
+                + "))) = " + Conversion::toString(enc.encoding());
+        }
     } else {
-        return signalName + "[" + 
-            Conversion::toString(end) + " : " +  Conversion::toString(start) +
-            "] == " + Conversion::toString(enc.encoding());    
+        if (enc.socketIDWidth() == 0) {
+            return "1";
+        } else {
+            return signalName + "["
+                + Conversion::toString(end) + " : "
+                + Conversion::toString(start)
+                + "] == " + Conversion::toString(enc.encoding());
+        }
     }
 }
 

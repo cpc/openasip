@@ -49,6 +49,7 @@
 #include "Stratix3DevKitIntegrator.hh"
 #include "KoskiIntegrator.hh"
 #include "AvalonIntegrator.hh"
+#include "AlmaIFIntegrator.hh"
 #include "MemoryGenerator.hh"
 #include "StringTools.hh"
 
@@ -378,6 +379,7 @@ GenerateProcessor::listIntegrators() const {
     integrators.push_back(new Stratix3DevKitIntegrator());
     integrators.push_back(new KoskiIntegrator());
     integrators.push_back(new AvalonIntegrator());
+    integrators.push_back(new AlmaIFIntegrator());
 
     for (unsigned int i = 0; i < integrators.size(); i++) {
         integrators.at(i)->printInfo(std::cout);

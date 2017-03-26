@@ -182,7 +182,9 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
     string ifetchDstFile = 
         ifetchTargetDir + DS + ((language_==Verilog)?"ifetch.v":"ifetch.vhdl");
 
-    inst.instantiateTemplateFile(ifetchSrcFile, ifetchDstFile);
+     if (!FileSystem::fileExists(ifetchDstFile)) {
+        inst.instantiateTemplateFile(ifetchSrcFile, ifetchDstFile);
+    }
 
     // copy opcodes package
     string opcodesTargetDir = decompressorTargetDir;
@@ -195,7 +197,50 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
     inst.instantiateTemplateFile(opcodesSrcFile, opcodesDstFile);
 }
 
+/**
+ * Copies given template file to given directory and instantiates it, ie.
+ * removes the .tmpl from the filename and converts it to .vhdl while
+ * replacing occurances of "ENTITY_STR" with entityStr_.
+ *
+ * @param srcFile The location and name of the .tmpl file to copy
+ * @param dstDirectory The directory to copy to and instantiate in.
+ * @param newName New name for the file. If "0", only ".tmpl" is removed.
+ */
+void
+BlockSourceCopier::instantiateHDLTemplate(
+    const std::string& srcFile,
+    const std::string& dstDirectory,
+    std::string newName)
+    throw (IOException) {
 
+    const string DS = FileSystem::DIRECTORY_SEPARATOR;
+
+    if (!FileSystem::fileExists(srcFile)) {
+        string errorMsg = "Source file " + srcFile + " not found.";
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    }
+
+    if (!FileSystem::fileExists(dstDirectory)) {
+        if (!FileSystem::createDirectory(dstDirectory)) {
+            string errorMsg = "Unable to create directory " +
+                dstDirectory;
+            throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+        }
+    }
+
+    string source = FileSystem::fileOfPath(srcFile);
+    string dstFile;
+
+    if (newName == "0") {
+        dstFile = source.erase(source.find(".tmpl", 0), string::npos);
+    } else {
+        dstFile = newName;
+    }
+
+    HDLTemplateInstantiator inst;
+    inst.setEntityString(entityStr_);
+    inst.instantiateTemplateFile(srcFile, dstDirectory + DS + dstFile);
+}
 
 /**
  * Copies the block definition files of the given RF implementation to the

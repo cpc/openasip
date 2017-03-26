@@ -74,6 +74,7 @@ public:
         throw (InvalidData);
 
     void setGenerateBusTrace(bool generate);
+    void setGenerateDebugger(bool generate);
     void setBusTraceStartingCycle(unsigned int cycle);
 
     virtual int outputSocketCntrlPinForSegment(
@@ -134,6 +135,7 @@ private:
         int ind,
         std::ostream& stream);
     void writeBusDumpCode(std::ostream& stream) const;
+    void writeDebuggerCode(std::ostream& stream) const;
 
     static std::set<TTAMachine::Socket*> outputSockets(
         const TTAMachine::Bus& bus);
@@ -204,6 +206,8 @@ private:
     BusAltSignalMap altSignalMap_;
     /// Tells whether to generate bus tracing code.
     bool generateBusTrace_;
+    /// Tells whether to generate debugger code.
+    bool generateDebugger_;
     /// The starting cycle for bus tracing.
     unsigned int busTraceStartingCycle_;
     TCEString entityNameStr_;

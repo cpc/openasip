@@ -72,10 +72,7 @@ module proc
     // control pin to indicate that data memory is accessed internally
     // and external access is blocked in the current cycle 
     output dmem_busy,
-    output imem_busy,
-
-    // program counter initialization
-    input[IMEMADDRWIDTH-1 : 0] pc_init
+    output imem_busy
 );
     
 //architecture structural_dp_dmem of proc is
@@ -116,7 +113,6 @@ module proc
         .imem_en_x          (imem_en_x),
         .imem_addr          (imem_addr),
         .imem_data          (imem_data),
-        .pc_init            (pc_init),
         .fu_LSUA_data_in    (dmem_q_a),
         .fu_LSUA_data_out   (dmem_d_a),
         .fu_LSUA_addr       (dmem_addr_a),

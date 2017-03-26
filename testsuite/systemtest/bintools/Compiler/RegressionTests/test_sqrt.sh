@@ -1,7 +1,7 @@
 #!/bin/bash
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
 tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm 
-tpef=`mktemp tmpXXXXX`.tpef
+tpef=`mktemp tmpXXXXX`
 soft_float_adf=data/minimal_with_stdout.adf
 hw_sqrt_adf=data/minimal_with_stdout_and_sqrtf.adf
 ttasim=../../../../../tce/src/codesign/ttasim/ttasim

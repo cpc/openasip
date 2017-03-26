@@ -130,13 +130,24 @@ TCETargetMachine::TCETargetMachine(
     TCEBaseTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL), plugin_(NULL),
     pluginTool_(NULL) {
 }
-#else
+#elif defined LLVM_OLDER_THAN_3_9
 TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const std::string& CPU, const std::string &FS, 
     const TargetOptions &Options,
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options, RM, CM, OL), 
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const std::string& CPU, const std::string &FS,
+    const TargetOptions &Options,
+    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
     plugin_(NULL), pluginTool_(NULL) {
 }
 #endif

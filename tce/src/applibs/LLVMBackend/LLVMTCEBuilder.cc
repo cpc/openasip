@@ -152,12 +152,14 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     dl_ = tm_->getDataLayout();
 #elif (defined(LLVM_OLDER_THAN_3_7))
     dl_ = tm_->getSubtargetImpl()->getDataLayout();
-#else
+#elif (defined(LLVM_OLDER_THAN_3_8))
     // The required type size info is the same for both BE and LE targets,
     // no need to ask for the sub target as it requires llvm::Function in
     // LLVM 3.7 for some reason. If the endianness is needed, ask for it
     // separately.
     dl_ = tm_->getDataLayout();
+#else
+    dl_ = new DataLayout(tm_->createDataLayout());
 #endif
 }
 
@@ -306,7 +308,11 @@ LLVMTCEBuilder::initDataSections() {
          i != mod_->global_end(); i++) {
 
         SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_3_8
         mang_->getNameWithPrefix(Buffer, i, false);
+#else
+	mang_->getNameWithPrefix(Buffer, &(*i), false);
+#endif
         TCEString name(Buffer.c_str());
         
         const llvm::GlobalValue& gv = *i;
@@ -467,11 +473,19 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
              i != mod_->global_end(); i++) {
 
             SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_3_8
             mang_->getNameWithPrefix(Buffer, i, false);
             if (def.name == Buffer.c_str()) {
                 var = i;
                 break;
             }
+#else
+            mang_->getNameWithPrefix(Buffer, &(*i), false);
+            if (def.name == Buffer.c_str()) {
+                var = &(*i);
+                break;
+            }
+#endif
         }
 
         unsigned addr = def.address;
@@ -516,9 +530,7 @@ LLVMTCEBuilder::createDataDefinition(
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, zeros));
-
         addr += pad;
-
     }
 
     // paddedAddr is the actual address data was put to
@@ -532,7 +544,6 @@ LLVMTCEBuilder::createDataDefinition(
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
             new TTAProgram::DataDefinition(address, sz, NULL, false));
-
         addr += sz;
         return paddedAddr;
     }
@@ -696,9 +707,14 @@ LLVMTCEBuilder::createFPDataDefinition(
         def = new TTAProgram::DataDefinition(start, maus);
     } else if (type->getTypeID() == Type::HalfTyID) {
 
-		APFloat apf = cfp->getValueAPF();
-		bool inexact;
-        apf.convert( APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+        APFloat apf = cfp->getValueAPF();
+        bool inexact;
+#if LLVM_OLDER_THAN_4_0
+        apf.convert(APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+#else
+        apf.convert(APFloat::IEEEhalf(),
+            APFloat::rmNearestTiesToEven, &inexact);
+#endif
         APInt api = apf.bitcastToAPInt();
         assert(sz == 2);
         union {
@@ -707,9 +723,9 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.i = api.getRawData()[0];
-		for (unsigned i = sz; i < 4; i++) {
+        for (unsigned i = sz; i < 4; i++) {
             maus.push_back(0);
-			}
+        }
         for (unsigned i = 0; i < sz; i++) {
             maus.push_back(u.bytes[sz - i - 1]);
         }
@@ -793,8 +809,16 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
+#ifdef LLVM_OLDER_THAN_3_9
         int64_t ptrOffset = offset + dl_->getIndexedOffset(
             ptr->getType(), idxVec);
+#else
+        APInt offsetAI(dl_->getPointerTypeSizeInBits(ce->getType()), 0);
+        bool success = cast<GEPOperator>(ce)->accumulateConstantOffset(
+            *dl_, offsetAI);
+        assert(success); // Fails if GEP is not all-constant.
+        int64_t ptrOffset = offset + offsetAI.getSExtValue();
+#endif
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(
@@ -921,10 +945,13 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             TTAProgram::Instruction* instr = NULL;
 #ifdef DEBUG_LLVMTCEBUILDER
             std::cerr << "### converting: ";
-            j->dump();
             std::cerr << std::endl;
 #endif
+#if LLVM_OLDER_THAN_4_0
             instr = emitInstruction(j, proc);
+#else
+            instr = emitInstruction(&*j, proc);
+#endif
 
             // Pseudo instructions:
             if (instr == NULL) continue;
@@ -1285,7 +1312,6 @@ LLVMTCEBuilder::emitInstruction(
     int inputOperand = 0;
     int outputOperand = operation.numberOfInputs();
 #ifdef DEBUG_LLVMTCEBUILDER
-    mi->dump();
     PRINT_VAR(operation.numberOfInputs());
     PRINT_VAR(operation.numberOfOutputs());
     Application::logStream() << " mi->getNumOperands() = " 
@@ -1585,7 +1611,6 @@ LLVMTCEBuilder::addPointerAnnotations(
         Application::logStream() << "move " << move->toString()
                                  << " does not have mem operands!"
                                  << std::endl;
-        mi->dump();
     }
 #endif
 
@@ -1781,12 +1806,6 @@ void
 LLVMTCEBuilder::debugDataToAnnotations(
     const llvm::MachineInstr* mi, TTAProgram::Move* move) {
 
-    DebugLoc dl = mi->getDebugLoc();
-#ifndef LLVM_OLDER_THAN_3_7
-    if (!dl)
-        return;
-#endif
-
     // annotate the moves generated from known ra saves.
     if (mi->getFlag(MachineInstr::FrameSetup)) {
             TTAProgram::ProgramAnnotation progAnnotation(
@@ -1794,6 +1813,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
             move->setAnnotation(progAnnotation); 
     }
 
+    DebugLoc dl = mi->getDebugLoc();
+#ifndef LLVM_OLDER_THAN_3_7
+    if (!dl)
+        return;
+#endif
+
+    // TODO: nobody currently generates these
+    // spill line number kludges, this is deprecated.
     // annotate the moves generated from known spill instructions
     if (dl.getLine() == 0xFFFFFFF0) {
         TTAProgram::ProgramAnnotation progAnnotation(
@@ -1904,18 +1931,22 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
-		if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
-			APInt api = apf.bitcastToAPInt();
-			uint16_t binary = (uint16_t)api.getRawData()[0];
-		    SimValue val(32);
-			val = HalfFloatWord( binary );
-        	return new TTAProgram::TerminalImmediate(val);
-		} else {
-        	float fval = apf.convertToFloat();
-        	SimValue val(32);
+#if LLVM_OLDER_THAN_4_0
+        if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
+#else
+        if (&apf.getSemantics() == &APFloat::IEEEhalf()) { //Half float
+#endif
+            APInt api = apf.bitcastToAPInt();
+            uint16_t binary = (uint16_t)api.getRawData()[0];
+            SimValue val(32);
+            val = HalfFloatWord( binary );
+            return new TTAProgram::TerminalImmediate(val);
+        } else {
+            float fval = apf.convertToFloat();
+            SimValue val(32);
             val = fval;
-        	return new TTAProgram::TerminalImmediate(val);
-		}
+            return new TTAProgram::TerminalImmediate(val);
+        }
     } else if (mo.isImm()) {
         int width = bitLimit;
         SimValue val(mo.getImm(), width);
@@ -2527,7 +2558,6 @@ LLVMTCEBuilder::emitInlineAsm(
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
                           << "operation '" << opName << "'." << std::endl;
-                mi->dump();
                 assert(false);
             }
             src = createTerminal(mo);
@@ -2580,7 +2610,6 @@ LLVMTCEBuilder::emitInlineAsm(
         std::cerr << "Undefined: " << defOps.size() << " output operands, "
                   << useOps.size() << " input operands." << std::endl;
 
-        mi->dump();
         abortWithError("Cannot continue");
     }
 
@@ -2682,7 +2711,6 @@ LLVMTCEBuilder::emitReadSP(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
-        mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".read_sp\"");
     }
@@ -2724,7 +2752,6 @@ LLVMTCEBuilder::handleMemoryCategoryInfo(
     if (mi->getNumOperands() != 6) {
         Application::logStream() 
             << "got " << mi->getNumOperands() << " operands" << std::endl;
-        mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".pointer_category\"");
     }
@@ -2905,8 +2932,12 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
     // function pointers and priorities
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
-        
+
+#ifdef LLVM_OLDER_THAN_3_8        
         const GlobalVariable* gv = i;
+#else
+        const GlobalVariable* gv = &(*i);
+#endif
 
         if (gv->getName() == globalName && gv->use_empty()) {
             // The initializer should be an array of '{ int, void ()* }' 

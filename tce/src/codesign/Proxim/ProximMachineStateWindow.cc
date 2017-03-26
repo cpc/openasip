@@ -61,6 +61,11 @@
 #include "Program.hh"
 #include "OptionValue.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxSAVE wxFD_SAVE
+    #define wxOVERWRITE_PROMPT wxFD_OVERWRITE_PROMPT
+#endif
+
 BEGIN_EVENT_TABLE(ProximMachineStateWindow, ProximSimulatorWindow)
     EVT_SIMULATOR_STOP(0, ProximMachineStateWindow::onSimulationStop)
     EVT_SIMULATOR_PROGRAM_LOADED(0, ProximMachineStateWindow::onProgramLoaded)
@@ -506,7 +511,11 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     wxString message = _T("Export processor figure.");
     wxString defaultDir = _T(".");
     wxString defaultFile= _T("");
-    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps|");
+#if wxCHECK_VERSION(3, 0, 0)
+    wxString fileTypes = _T("Scalable Vector Graphics (.svg)|*.svg|");
+#else
+    wxString fileTypes = _T("Encapsulated Postscript (.eps)|*.eps;*.epsi|");
+#endif
     fileTypes.Append(_T("Portable Network Graphics (.png)|*.png"));
 
     wxFileDialog dialog(
@@ -522,14 +531,18 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
     std::string creator = "TTA Processor Simulator (Proxim)";
     std::string title = "Processor Simulation";
 
+#if wxCHECK_VERSION(3, 0, 0)
+    if (extension == ".svg") {
+        if (!canvas_->saveSVG(filename)) {
+#else
     if (extension == ".eps" || extension == ".epsi") {
         if (!canvas_->saveEPS(filename, title, creator)) {
+#endif
             wxString message = _T("Error saving file '");
             message.Append(dialog.GetPath());
             message.Append(_T("'."));
             ErrorDialog errorDialog(this, message);
             errorDialog.ShowModal();
-            return;
         }
     } else if (extension == ".png") {
         if (!canvas_->savePNG(filename)) {  
@@ -538,7 +551,6 @@ ProximMachineStateWindow::onExport(wxCommandEvent&) {
             message.Append(_T("'."));
             ErrorDialog errorDialog(this, message);
             errorDialog.ShowModal();
-            return;
         }
     } else {
         wxString message = _T("File type with extension '");

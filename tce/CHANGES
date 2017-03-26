@@ -1,10 +1,92 @@
-1.13         unknown
-====================
-
-[bzr log checked on 2015-08-31]
+1.16
+=====================
 
 Notable changes and features
 ----------------------------
+
+
+Usability features
+----------------------------
+- (Proxim) Added ability to search for a certain pattern in dissasembly window
+   Feature can be accessed using ctrl-F key combination in the main window.
+
+Other features and improvements
+-------------------------------
+
+Notable bugfixes
+----------------
+
+1.15       March 2017
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 4.0.
+
+Other features and improvements
+-------------------------------
+- Bus trace format is changed to comma separated values listing. Bus
+  values are displayed in hexadecimals and more than 32 bits.
+- GHDL test bench scripts updated to work with its latest version.
+
+Notable bugfixes
+----------------
+- ttasim: Operation state is now reset with 'kill' command.
+- tcecc: Fix alias analysis or separating RA save/restore on function.
+- tcecc: Register renamer did not handle frame pointer correctly.
+
+1.14    November 2016
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 3.9.
+- Support for wxWidgets 3.x and thus Ubuntu 16.04 which doesn't ship wxW 2.x
+  anymore. Check the TROUBLESHOOTING file in case encountering problems.
+- Support for variable-length local arrays and alloca, that is, dynamic
+  stack objects. When using dynamic stack objects, the architecture must
+  have an additional 32-bit register (total minimum of 6) as one of them
+  will be used as a frame pointer in functions with dynamic stack objects.
+- ProGe now can generate a simple control interface "AlmaIF" that can be
+  used for control and debug access to TCE processors integrated in SoCs.
+- Added source code debugging window to Proxim.
+
+Other features and improvements
+-------------------------------
+- TCE_INSTALL_DIR environment variable can be set pointing to directory where
+  user manually installed TCE.
+- Added ability to modify memory in simulator with load_data command.
+
+Usability features
+------------------
+- HBDEditor automatically fills new implementations with sequential opcode
+  numbers.
+- Made IDF's more portable: In case referring to the TCE-shipped HDB files,
+  a magic string tce: can be used instead of absolute paths which differ from
+  the system to system.
+- SVG export was added when using wxWidgets 3.0 (replaces the EPS export)
+- ProDe shows machine instruction width in status bar.
+- ProDe now shows more information of the operations in the opset dialog.
+- Column/list sorting in various ProDe/OSEd dialogs.
+- List filtering in ProDe dialogs 'Add from opset' and 'Add FU from HDB'.
+- Directory where ttasim dumps simulation traces can be changed using an
+  environment variable TTASIM_TRACE_DIR.
+
+Documentation
+-------------
+- Added descriptions for all non-obvious base.opp operations.
+
+Notable bugfixes
+----------------
+- If the processor had narrower than 32-bit buses that can transport
+  immediate values, broken code could have been generated
+
+1.13   February 2016
+====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 3.8
 - Semantics of extraBits in BEM changed: when the encoding is zero,
   the encoding size is now calculated as 0 and one more extra bit is
   needed than before to create the same encoding.
@@ -13,12 +95,13 @@ Notable changes and features
   of >= 1.2. When an older BEM file is loaded, the amount of extrabits
   is automatically converted to the new format.
   Loading a new BEM file with older version of TCE is not supported.
+- Support for LLVM 3.8
 
 Notable bugfixes
 ----------------
-- Bus having no only one source or destination socket which has a subfield
+- Bus having only one source or destination socket which has a subfield
   (trigger opcode index, register index, or immediate field) and no
-  nop encoding(nop encoding done by always false guard) 
+  nop encoding (nop encoding done by always false guard)
   no longer loses the index field in the instruction encoding.
 
 1.12  September 2015

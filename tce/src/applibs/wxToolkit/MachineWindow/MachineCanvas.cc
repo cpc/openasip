@@ -26,7 +26,7 @@
  *
  * Definition of MachineCanvas class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -47,6 +47,12 @@
 #include "MoveFigure.hh"
 #include "EPSDC.hh"
 #include "WxConversion.hh"
+#include "BEMGenerator.hh"
+#include "BinaryEncoding.hh"
+
+#if wxCHECK_VERSION(3, 0, 0)
+#include <wx/dcsvg.h>   // wxSVGFileDC only available in wxwidgets 3.*
+#endif
 
 BEGIN_EVENT_TABLE(MachineCanvas, wxScrolledWindow)
 EVT_MOUSE_EVENTS(MachineCanvas::onMouseEvent)
@@ -55,22 +61,25 @@ END_EVENT_TABLE()
 using namespace TTAMachine;
 
 /**
- * The Constructor.
+ * The Constructor, with a parameter for parent frame.
  * 
  * @param parent Parent frame of the canvas.
  * @param policyFactory EditPolicyFactory for creating edit policies.
  */
 MachineCanvas::MachineCanvas(wxWindow* parent,
-    EditPolicyFactory* policyFactory) :
-                wxScrolledWindow(parent), tool_(NULL), machine_(NULL), editPolicyFactory_(
-                    policyFactory), zoomFactor_(1.0), dirty_(true), root_(
-                NULL), selection_(NULL), toolBounds_(0, 0, 0, 0) {
+    EditPolicyFactory* policyFactory, ChildFrame* parentFrame) :
+                wxScrolledWindow(parent), tool_(NULL), machine_(NULL), 
+                    editPolicyFactory_(policyFactory),  parent_(parentFrame), 
+                    zoomFactor_(1.0), dirty_(true), root_(NULL), 
+                    selection_(NULL), toolBounds_(0, 0, 0, 0) {
 
     root_ = new RootEditPart();
 
     SetScrollRate(20, 20);
     SetVirtualSize(1000, 800);
 }
+
+
 
 /**
  * The Destructor.
@@ -92,7 +101,17 @@ MachineCanvas::OnDraw(wxDC& dc) {
 
     wxBrush backgroundBrush(*wxLIGHT_GREY, wxSOLID);
     dc.SetBackground(backgroundBrush);
+
+#if wxCHECK_VERSION(3, 0, 0)
+    // Do not call Clear() for wxSVGFileDC object cause its not implemented
+    try {
+        (void)dynamic_cast<wxSVGFileDC&> (dc);
+    } catch (const std::bad_cast& e) {
+        dc.Clear();
+    }
+#else
     dc.Clear();
+#endif
 
     // Set the canvas font.
     dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
@@ -284,6 +303,22 @@ MachineCanvas::updateMachine() {
     assert(root_ != NULL);
     root_->setContents(contents);
     contents->figure()->setOptions(&options_);
+
+    if (parent_ != nullptr) {
+
+        wxString text(_T(""));
+        BinaryEncoding* bem(nullptr);
+        try {
+            bem = BEMGenerator(*machine_).generate();
+            int width = bem->width();
+            text = wxString::Format(_T("Instruction width: %u"), width);
+        } catch (...) {
+            text = _T("BEM could not be generated");
+        }
+        delete bem;
+        parent_->setStatus(text, 1);
+    }
+
     Refresh();
 }
 
@@ -490,6 +525,33 @@ MachineCanvas::clearMoves() {
     SequenceTools::deleteAllItems(moveFigures_);
 }
 
+#if wxCHECK_VERSION(3, 0, 0)
+/**
+ * Saves the machine figure to a .svg file.
+ *
+ * @param filename Name of the .svg file.
+ * @return True, if the svg was succesfully saved.
+ */
+bool
+MachineCanvas::saveSVG(const std::string& filename) {
+    // Refresh machine figure to get the canvas size.
+    wxClientDC clientDC(this);
+    OnDraw(clientDC);
+
+    // Add minimum coordinates to maximum coordinates to create margins
+    // of equal width.
+    int width = clientDC.MaxX() + clientDC.MinX();
+    int height = clientDC.MaxY() + clientDC.MinY();
+
+    wxSVGFileDC svg(filename, width, height);
+    svg.StartPage();
+    OnDraw(svg);
+    svg.EndPage();
+
+    return true;
+}
+
+#else
 /**
  * Saves the machine figure to an eps file.
  *
@@ -521,9 +583,10 @@ MachineCanvas::saveEPS(const std::string& filename, const std::string& title,
 
     return true;
 }
+#endif
 
 /**
- * Saves the machine figure to a .png file.*
+ * Saves the machine figure to a .png file.
  *
  * @param filename Name of the .png file.
  * @return True, if the png was succesfully saved.

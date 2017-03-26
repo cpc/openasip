@@ -26,7 +26,8 @@
  *
  * Declaration of BusTracker class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry LinjamÃ¤ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -47,7 +48,7 @@ class SimulatorFrontend;
 /**
  * Tracks the bus activity.
  *
- * Stores bus data in a bus trace.
+ * Stores bus data as hexadecimal numbers in a bus trace file in CSV format.
  */
 class BusTracker : public Listener {
 public:

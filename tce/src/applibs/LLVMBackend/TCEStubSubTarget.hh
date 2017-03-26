@@ -49,7 +49,6 @@ namespace llvm {
     class TCEStubTargetMachine;
 
     class TCEStubSubTarget : public TargetSubtargetInfo {
-        const TCEStubTargetMachine &TM;
         const TargetLowering TLI;
 
     public:

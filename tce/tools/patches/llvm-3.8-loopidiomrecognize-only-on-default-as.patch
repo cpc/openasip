@@ -1,0 +1,23 @@
+Index: lib/Transforms/Scalar/LoopIdiomRecognize.cpp
+===================================================================
+--- lib/Transforms/Scalar/LoopIdiomRecognize.cpp	(revision 257630)
++++ lib/Transforms/Scalar/LoopIdiomRecognize.cpp	(working copy)
+@@ -462,6 +462,9 @@
+ bool LoopIdiomRecognize::processLoopStore(StoreInst *SI, const SCEV *BECount) {
+   assert(SI->isSimple() && "Expected only non-volatile stores.");
+ 
++  // The C memset and memcpy work only with the default address space.
++  if (SI->getPointerAddressSpace() != 0) return false;
++
+   Value *StoredVal = SI->getValueOperand();
+   Value *StorePtr = SI->getPointerOperand();
+ 
+@@ -683,6 +686,8 @@
+   // The store must be feeding a non-volatile load.
+   LoadInst *LI = cast<LoadInst>(SI->getValueOperand());
+   assert(LI->isSimple() && "Expected only non-volatile stores.");
++  if (LI->getPointerAddressSpace() != 0)
++    return false; 
+ 
+   // See if the pointer expression is an AddRec like {base,+,1} on the current
+   // loop, which indicates a strided load.  If we have something else, it's a

@@ -30,7 +30,10 @@
  * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/lexical_cast.hpp>
+POP_CLANG_DIAGS
 
 inline std::string 
 DesignSpaceExplorerPlugin::description() const { 

@@ -21,7 +21,7 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	ResumeCommand.cc InfoCommand.cc BPCommand.cc TBPCommand.cc \
 	ConditionCommand.cc IgnoreCommand.cc DeleteBPCommand.cc \
 	EnableBPCommand.cc DisableBPCommand.cc NextiCommand.cc \
-	KillCommand.cc MemDumpCommand.cc BusTracker.cc \
+	KillCommand.cc MemDumpCommand.cc MemWriteCommand.cc BusTracker.cc \
 	BuslessExecutableMove.cc \
 	SimulationStatisticsCalculator.cc SimulationStatistics.cc \
 	UtilizationStats.cc StopPoint.cc StopPointManager.cc Watch.cc \
@@ -135,7 +135,7 @@ libsimulator_la_SOURCES += \
 	LongImmediateRegisterState.hh AssignmentQueue.hh \
 	StepiCommand.hh RegisterFileState.hh \
 	MemorySystem.hh FSAFUResourceConflictDetectorPimpl.hh \
-	MemDumpCommand.hh CompiledSimulationPimpl.hh \
+	MemDumpCommand.hh MemWriteCommand.hh CompiledSimulationPimpl.hh \
 	GCUState.hh EnableBPCommand.hh \
 	DisassembleCommand.hh SimulatorTextGenerator.hh \
 	SimulatorInterpreter.hh StopPointManager.hh \

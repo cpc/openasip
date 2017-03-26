@@ -227,7 +227,7 @@ FUImplementationDialog::FUImplementationDialog(
     FindWindow(ID_MOVE_SOURCE_UP)->Disable();
     FindWindow(ID_MOVE_SOURCE_DOWN)->Disable();
 
-    update();
+    update(true);
 }
 
 /**
@@ -236,9 +236,15 @@ FUImplementationDialog::FUImplementationDialog(
 FUImplementationDialog::~FUImplementationDialog() {
 }
 
-
+/**
+ * Update handler
+ * Updates UI values to reflect new state. If called from constructor, 
+ * fills default values for opcodes.
+ *
+ * @param onInit Set true whe called from constructor
+ */
 void
-FUImplementationDialog::update() {
+FUImplementationDialog::update(bool onInit) {
 
     // Update architecture port list.
     archPortList_->DeleteAllItems();
@@ -346,8 +352,13 @@ FUImplementationDialog::update() {
 #ifndef ALLOW_OPCODE_EDITING
         else {
             // add default opcode (without ability to modify it)
-            opcode =
-                WxConversion::toWxString(index);
+            opcode = WxConversion::toWxString(index);
+        }
+#else
+        else if (onInit) {
+            // add default opcode
+            opcode = WxConversion::toWxString(index);
+            implementation_.setOpcode(operation, index);
         }
 #endif
         wxString operationName = WxConversion::toWxString(operation);
@@ -995,6 +1006,24 @@ FUImplementationDialog::onOK(wxCommandEvent&) {
             InformationDialog dialog(this, message);
             dialog.ShowModal();
             return;            
+        }
+        for (int k = i+1; k < implementation_.architecturePortCount(); k++) {
+            if (implementation_.architecturePort(i).name() == 
+                    implementation_.architecturePort(k).name()) {
+                wxString message =
+                _T("Ports '");
+                std::string port =
+                    implementation_.architecturePort(i).architecturePort();
+                message.Append(WxConversion::toWxString(port));
+                message.Append(_T("' and '"));
+                port =
+                    implementation_.architecturePort(k).architecturePort();
+                message.Append(WxConversion::toWxString(port));
+                message.Append(_T("' have the same name."));
+                InformationDialog dialog(this, message);
+                dialog.ShowModal();
+                return;       
+            }
         }
     }
 #ifdef ALLOW_OPCODE_EDITING 

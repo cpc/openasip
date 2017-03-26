@@ -1,4 +1,4 @@
-% Copyright (c) 2002-2015 Tampere University of Technology.
+% Copyright (c) 2002-2017 Tampere University of Technology.
 %
 % This file is part of TTA-Based Co-design Environment (TCE).
 % 
@@ -26,10 +26,10 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.13-pre}
-\ver{30}
+\title{TTA-based Co-design Environment v1.16-pre}
+\ver{31}
 \firstday{2006-10-25}
-\lastday{2015-01-06}
+\lastday{2016-02-23}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -46,16 +46,16 @@
 This is the user manual for TTA Co-design Environment (TCE)
 \cite{tcewww}
 \cite{lptce1}
-%\cite{lptce}. 
-The document describes all the tools in the toolset, and a set of common use 
+%\cite{lptce}.
+The document describes all the tools in the toolset, and a set of common use
 cases in the form of tutorials.
 
 Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. TCE supports
 programs written in C/C++ and OpenCL. User can easily design new customized
 Transport-Triggered Architecture (TTA) processors, compile the program,
 analyze the performance, and generate HDL implementations of the designed
-processors. The generated application-specific processor HDL can be 
-synthesized for example to an FPGA chip. Then, user can modify the 
+processors. The generated application-specific processor HDL can be
+synthesized for example to an FPGA chip. Then, user can modify the
 application and upload new program image to continue development.
 
 \begin{figure}
@@ -79,8 +79,8 @@ be carried out in the order of minutes and hence most of the time can
 be reserved to application and architecture co-development. It is fast
 to iterate over new TTA configurations, e.g., change the number and
 type of function units (FU), configure interconnection network (IC),
-register files (RF), or experiment with special function units 
-(custom operations).  
+register files (RF), or experiment with special function units
+(custom operations). 
 
 Simple TTA designs with support for a couple of
 parallel arithmetic operations consume in the order of
@@ -482,7 +482,7 @@ Table~\ref{tab:files} summarizes briefly the most common TCE file types.
       hdb      & HW database                                & SQLite \\
       \hline
       tpef     & TTA program exchange format                & bin \\
-      bem      & Binary encoding map                        & bin \\
+      bem      & Binary encoding map                        & XML \\
       opp      & Operation properties                       & XML \\
       cc       & Simulation behavior of an operation                   & C++\\
       opb      & Compiled operation behavior                & bin \\
@@ -657,7 +657,9 @@ command to the command line at the bottom of the simulator:
 
 \shellcmd{x /u w result}
 
-The correct checksum result is \textbf{0x62488e82}.
+The command specifies the data width (4 bytes) and the \textit{result} symbol we
+told the compiler to preserve before. The correct checksum result is
+\textbf{0x62488e82}.
 
 Processor resource utilization data can be viewed with command:
 
@@ -695,7 +697,12 @@ RF:
 \end{verbatim}
 
 Your output may vary depending on the compiler version, the optimizations
-used and your architecture.
+used and your architecture. For more information on the simulator's command 
+line tools and syntax, you may use the 
+
+\shellcmd{help}
+
+command.
 
 Proxim can also show othes various pieces of information about the
 program's execution and its processor resource utilization. For
@@ -1416,7 +1423,7 @@ processor during its execution.
 
 \textbf{2. Opcodes.}
 
-Set the operation codes as they are in the top of the vhdl file. REFLECT32
+Check that the operation codes match the top of the vhdl file. REFLECT32
 has operation code ``0'' and REFLECT8 has operation code ``1''. 
 
 The operation codes must be always numbered according to the alphabetical order of 
@@ -1686,11 +1693,11 @@ Aftern simulation, you should see a message
 \shellcmd{./testbench:info: simulation stopped by --stop-time}
 The simulation produces file ``bus.dump'' which looks like this:
 \begin{verbatim}
-           0 |            0 | 
-           1 |            4 | 
-           2 |        32760 | 
-           3 |           24 | 
-           ...
+0,00000000
+1,00000004
+2,00007ff8
+3,00000018
+    ...
 \end{verbatim}
 
 
@@ -1903,7 +1910,9 @@ The example streaming operations in the base operation set are
 called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
 These operations have a simulation behavior definition which simulates the
 stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host.
+the simulator host. STREAM\_IN and STREAM\_OUT operations allow defining
+in/out files using TTASIM\_STREAM\_IN\_FILE and TTASIM\_STREAM\_OUT\_FILE
+environment variables respectively.
 
 Here is an example C code that implements streaming I/O with the operations:
 
@@ -3313,7 +3322,89 @@ other TTA program produced by tcecc.
 
 The \textit{oclhost-sa} library provides the more-or-less dummy
 implementations of the host runtime APIs to enable launching the
-kernel and moving the buffers etc. 
+kernel and moving the buffers etc.
+
+\section{System-on-a-Chip design with AlmaIF Integrator}
+
+% TODO: Intro
+
+This tutorial will cover TTA core generation and integration with a Zynq-7000
+series SoC, but the workflow should adapt quite well for other AXI4-capable
+Xilinx SoCs.
+
+% TODO: ProDe bits, e.g. need to choose right LSU (from almaif.hdb) and set
+%       AS names, example machine, program
+
+\subsection{Generate the Processor}
+
+The command to generate a processor core with an AlmaIF wrapper is as follows:
+
+\shellcmd{generateprocessor -d onchip -f onchip -e tta\_core -i mach.idf
+-g AlmaIFIntegrator -o proge-out -p program.tpef mach.adf}
+
+\shellcmd{generatebits -e tta\_core -x proge-out mach.adf}
+
+\subsection{Create a New Vivado Project}
+
+To create a new project in Vivado, select \textit{File>New project} from the
+menu bar. You will be presented with a window, where you can configure the
+project to be created. Click \textit{Next} and set the project name and location
+to your preference. On the next screen, pick \textit{RTL Project} and click
+\textit{Next}. Select the \textit{proge-out} folder and verify the
+\textit{Include files from subdirectories} checkbox is checked. No action is
+needed for the next two screens, so you can click past them. Select the part
+you intend to use for the project from the list, click \textit{Next} and
+\textit{Finish}.
+
+You should now have a fresh project with the TTA sources included.
+
+\subsection{Create a Block Design}
+
+Navigate to \textit{Flow>Create Block Design} and name it \textit{toplevel}.
+Right click on the design, select \textit{Add IP} and add a \textit{ZYNQ7
+Processing System} block. Next, add the TTA cores. Again, right click on the
+design, but this time choose \textit{Add block...}. Since our entity name
+was \textit{tta\_core}, the AlmaIF wrapper was named
+\textit{tta\_core\_toplevel}. Add that, and repeat once.
+
+You should now have two TTA cores and one \textit{ZYNQ7 Processing System} in
+your block design. We will need to connect these together. Luckily, Vivado
+will recognize the AXI4 bus on our AlmaIF wrapper, and will offer to connect
+it for us. Right click on an empty part of the block design and select
+\textit{Run block automation}, Click OK. Right click on the block design again
+and select \textit{Run connection automation}. Check  the
+\textit{All Automation} checkbox and click OK.
+
+After this, Vivado has picked address spaces for the cores. You can see these
+from the Address Editor tab. You will need these addresses to control the cores
+from the hard processor cores.
+
+\subsection{Cleanup}
+
+You will notice that the TTA cores' asynchronous reset has been left
+unconnected. We can actuate a synchronous reset through AlmaIF, so we can
+connect these to a constant high signal. Right click on the design, select
+\textit{Add IP} and add the \textit{Constant} IP block. Right click on the
+newly created block and select \textit{Customize IP}. Set both \textit{Width}
+and \textit{Value} to 1. Connect the output to both cores' asynchronous reset
+pin.
+
+You may customize the TTA cores' clock frequency by right clicking on the
+\textit{ZYNQ7 Processing System} block and selecting \textit{Customize IP}.
+The FPGA fabric clock frequencies can be set under \textit{Clock Configuration}.
+
+\subsection{Synthesis and Implementation}
+
+Our block design is ready, but we'll have to create a wrapper for it before
+it can be synthesized. Select \textit{Flow>Project Manager} from the menu bar.
+You can see the \textit{toplevel} block design in the sources window. Right
+click on it and select \textit{Create HDL Wrapper}. The default setting works
+for us, click \textit{OK}. Right click on the newly created
+\textit{toplevel\_wrapper} and select \textit{Set as Top}.
+
+You can now select \textit{Flow>Generate Bitstream} from the menu bar. This will
+run the design through synthesis and implementation, and give you a bitstream
+file with which you can program the FPGA fabric on your SoC.
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
@@ -4796,6 +4887,37 @@ Command is then:
 Integrator creates IP-XACT file 'spirit\_comp\_def\_koski\_tta.xml' to
 current working directory.
 
+\subsection{AlmaIFIntegrator}
+
+AlmaIF Integrator can be used to create an AlmaIF-compatible
+processor wrapper for a TTA processor. AlmaIF is a simple control interface
+that can be used for control and debug access to devices in a system-on-a-chip.
+Due to the constrants placed by the specification, the TTA processor must have
+data and parameter memory spaces. The integrator recognizes these by the address
+space names, which should be set to 'data' and 'param' respectively. These
+memory spaces and instruction memory can be accessed through the AXI4 interface
+presented by the processor wrapper. Both data and parameter memory spaces must
+have 32-bit data width; instruction memory does not have this constraint. All
+other memory spaces are mapped as scratchpad memory, inaccessible from the AXI
+bus.
+
+The LSU compatible with this integrator can be found in almaif.hdb. Currently
+it is the only function unit shipped with TCE which implements this interface.
+This means that the only option for data and instruction memory type is
+'onchip'. The memories will be synthesized as Xilinx-compatible single port
+block RAM.
+
+Because the control interface for AlmaIF is implemented through the external
+debugger interface, this must be enabled from the Implementation-dialog's
+IC / Decoder Plugin tab by setting the bustrace plugin parameter as 'external'.
+
+\textbf{Usage example:} \\
+There's a processor with AlmaIF LSU and external debugger interface, and the
+toplevel entity will be named 'almaif\_tta'. Command is
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmaIFIntegrator
+-d onchip -f onchip -e almaif\_tta -p program.tpef proc.adf}
+
 
 \section{Hardware Database Editor (HDB Editor)}
 \label{sec:hdbedit}
@@ -5380,26 +5502,26 @@ Examples of usage:
 % easily understand it's not necessarily same 
 % "global" , "private", "shared", or "local" that's visible in OpenCL/C code.
 
-\subsection{Unsupported C Language Features}
+%\subsection{Unsupported C Language Features}
+%
+%Currently the compiler supports the ISO C99 standard and its standard library 
+%almost perfectly. Therefore, it is easier to list the features which are 
+%known \textit{not} to be supported. They are as follows:
 
-Currently the compiler supports the ISO C99 standard and its standard library 
-almost perfectly. Therefore, it is easier to list the features which are 
-known \textit{not} to be supported. They are as follows:
-
-\begin{enumerate}
- \item Variable sized local arrays.
-
-Sizes of the arrays that reside in stack must be compile time known. This is
-due to the lack of frame pointer (fp) in the default ABI of TTA which makes dynamic
-stack allocation hard to implement. We have considered adding an fp as a customizable
-feature but it hasn't been seen as an important enough feature just yet.
-
-\item alloca().
-
-While strictly not a standard function, some legacy code uses this to allocate
-memory dynamically on the stack. See the previous item for an explanation.
-
-\end{enumerate}
+%\begin{enumerate}
+% \item Variable sized local arrays.
+%
+%Sizes of the arrays that reside in stack must be compile time known. This is
+%due to the lack of frame pointer (fp) in the default ABI of TTA which makes dynamic
+%stack allocation hard to implement. We have considered adding an fp as a customizable
+%feature but it hasn't been seen as an important enough feature just yet.
+%
+%\item alloca().
+%
+%While strictly not a standard function, some legacy code uses this to allocate
+%memory dynamically on the stack. See the previous item for an explanation.
+%
+%\end{enumerate}
 
 
 
@@ -7156,18 +7278,21 @@ message:
   This command is used to terminate simulation and exit the Simulator.
 \end{description}
 
-\subsubsection{Examining Program Code and Data}
+\subsubsection{Examining and modifying Program Code and Data}
 \label{ssec:debug-data}
 
-The Simulator allows to examine the program being simulated and the data it
-uses
+The Simulator allows to examine and modify the program being simulated and
+the data it uses
 
 \begin{description}
-\item[x {[/\emph{nfu}][\emph{addr}]}] %
+\item[x {[/\emph{anfu}][\emph{addr}]}] %
   This low-level command prints the data in memory starting at specified
   addresses \emph{addr}.  The optional parameters \emph{n} and
   \emph{u} specify how much memory to display and how to format it.
   \begin{description}
+  \item[\emph{a}] %
+    Parameter [/\emph{a address\_space}] can be used to select the address
+    space if there are multiple address spaces in the target machine.
   \item[\emph{n}] %
     Repeat count: how many data words (counting by units \emph{u}) to
     display.  If omitted, it defaults to 1.
@@ -7177,8 +7302,7 @@ uses
   \item[\emph{u}] %
     Unit size: `b' (MAU, a byte in byte-addressed memories), `h' (double
     MAU), `w' (quadruple word, a `word' in byte-addressed 32-bit
-    architectures), `g' (giant words, 8 MAU's).  The unit size is ignored
-    for formats `s' and `i'.
+    architectures).  The unit size is ignored for formats `s' and `i'.
   \end{description}
 
   If \emph{addr} is omitted, then the first address past the last address
@@ -7188,6 +7312,13 @@ uses
 
   The values printed by command \emph{x} are not entered in the value
   history (see Section~\ref{ssec:debug-history}).
+
+\item[load\_data {[/\emph{a address space}] \emph{address file }[\emph{size}]}] %
+
+  Reads binary data from filename to the specified address in memory.
+  Optional parameter /\emph{a address\_space} can be used to select the address
+  space if there are multiple address spaces in the target machine.
+  Optional parameter size specifies read size in bytes.
 
 \item[symbol\_address \emph{datasym} ] %
 
@@ -7453,6 +7584,10 @@ such as '.calls' for the call profile and '.profile' for the instruction
 execution profile. The SQLite file can be browsed by executing SQL queries
 using the sqlite client and the pure text files can be browsed using any 
 text viewer/editor.
+
+By default simulation traces are dumped in the same directory as loaded program
+file. It is possible to override that directory by setting an environment
+variable TTASIM\_TRACE\_DIR pointing to desired location.
 
 \subsubsection{Profile Data}
 
@@ -8496,42 +8631,91 @@ aligned base memory operations shipped with TCE.
 
 The register assigned to act as the stack pointer register (referred to as 
 SPR) is the register number 0 of the first 32b register file in the ADF. 
-There is no frame pointer.
+There is optional frame pointer(FPR) which is enabled on only functions with
+variable arrays or alloca calls. The FPR is the the third 32-bit register
+available in the ADF, calculated in round-robin fashion between register files.
+
+The default mode without FPR is called NoFP mode and the mode with FPR is
+called HasFP mode. On NoFP mode the FPR is a freely usable GPR with
+callee-save semantics.
+The two stack frame modes are function-specific, same program can contain
+functions which use either mode and the parameter passing of the two modes
+is compatible in such way that code in either mode can call any function
+which uses either mode.
 
 \begin{figure}[t]
   \centerline{
-  \psfig{figure=eps/StackFrame.eps,width=9.75cm}
+  \psfig{figure=eps/stack.eps,width=1.00\textwidth}
   }
-  \caption{Stack layout for a situation with two call frames, A() calling B().}
+  \caption{Stack layout(NoFP mode on left, HasFP mode on right)
+for a situation with two call frames, A() calling B().
+Functions like B that do not call any other functions do not store
+their return address to the stack.}
   \label{fig:stack-frame}
 \end{figure}
+
+The stack of TTA's supported by TCE grows downwards.
+%therefore the incoming arguments and the local variables on
+%the local stack frame have positive offsets when accessed from the current
+%function, whereas the outgoing arguments have negative stack offsets.
 
 The stack of a program is divided up into blocks of contiguous memory called
 \emph{frames}. Each frame is activated upon entering a function and is
 destroyed (its storage is made available for new frames) when that function
-invocation returns. The stack frame of a function contains the arguments
-with which the function is called and variables local to the procedure.
+invocation returns.
+%The stack frame of a function contains the arguments
+%with which the function is called and variables local to the procedure.
 
-The stack pointer register (SPR) always points to the the first word past
-the area of the current frame that is dedicated to local variables.  The
-area of the stack past the local variables area contains the outgoing
-arguments of called functions (if any).  The stack of TTA's supported by TCE
+In NoFP mode, the stack pointer register (SPR) always points to the
+place of last outgoing variable that the function can call, and this
+pointer is only adjusted at the beginning and end of a function.
+If the function contains calls to another functions, the first word
+after(below) the old stack pointer contains the old return address.
+After(below) that is the area for the local variables.
+The local variables and spilled registers are the same area, there is no
+distinction between them.
+After(below) the local variables is the are for outgoing parameters.
+When a function calls multiple other functions,
+the space allocated for outgoing parameters is calculated by the size
+of parameters of the call which needs most parameter area.
+
+In HasFP mode, space for the outgoing variables is not allocated
+in the beginning of the function. In the beginning of a function,
+Old Return Address(RA) and FPR are pushed to stack,
+and SPR is then copied to FPR.
+Then space for local variables is allocated by decreasing the SPR.
+The stack pointer(SPR) always points to the topmost item
+of the stack. Usually this is the end of the local variable area.
+When a function is called, the function parameters are pushed into the
+stack, and SPR adjusted accordingly, allocating the area for the outgoing
+parameters from the stack
+
+%the first word past
+%the area of the current frame that is dedicated to local variables.  The
+%area of the stack past the local variables area contains the outgoing
+%arguments of called functions (if any).  The stack of TTA's supported by TCE
+
+
+%he stack pointer register (SPR) always points to the the first word past
+%the area of the current frame that is dedicated to local variables.  The
+%area of the stack past the local variables area contains the outgoing
+%arguments of called functions (if any).  The stack of TTA's supported by TCE
 grows downwards, therefore the incoming arguments and the local variables on
 the local stack frame have positive offsets when accessed from the current
 function, whereas the outgoing arguments have negative stack offsets.
 
-Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
-stack that contains two frames: A and B.  When function A frame is
-activated, SPR points to the first word past the top of the local variable
-area of the caller frame (this location is shown as ``SPR'' in figure).  At
-function entry and before accessing the stack, function A initialises SPR
-with the top of its frame (shown as ``SPR-A'' in figure).  When function A
-prepares a call to function B, it sets up the outgoing arguments in the
-stack area past its local variable area.  At function entry, function B
-initialises SPR with the first word past the top of its local variable area
-(shown as ``SPR-B'' in figure).  In case function B does not use any stack
-for passing outgoing arguments, the location SPR-B corresponds to one word
-past the top of the frame.
+%Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
+%stack that contains two frames: A and B.  When function A frame is
+%activated, SPR points to the first word past the top of the local variable
+%area of the caller frame (this location is shown as ``SPR'' in figure).  At
+%function entry and before accessing the stack, function A initialises SPR
+%with the top of its frame (shown as ``SPR-A'' in figure).  When function A
+%prepares a call to function B, it sets up the outgoing arguments in the
+%stack area past its local variable area.  At function entry, function B
+%initialises SPR with the first word past the top of its local variable area
+%(shown as ``SPR-B'' in figure).  In case function B does not use any stack
+%for passing outgoing arguments, the location SPR-B corresponds to one word
+%past the top of the frame.
 
 The value of the return address register is pushed to stack before the 
 function's local variables in case the function is not a leaf function
@@ -8550,7 +8734,8 @@ TCE-TTA processors follow the big endian byte order.
 
 The current default calling convention generated by tcecc is as follows.
 
-The register number 1 in the first 32b register file of ADF 
+The second 32-bit GPR (first register of second 32-bit register file,
+or second register of only 32-bit register file) of ADF
 is a return value register which is used to return 
 32b values such as $int$s or $float$s from functions. 
 The same register is reused for the first 
@@ -8585,7 +8770,7 @@ dedicate one register file completely to caller-saved registers and another
 to callee-saved registers.
 
 The current default register saving convention followed by tcecc is to have 
-treat all registers as caller saved. 
+treat all registers except FPR(when not used as FPR) as caller saved.
 
 \chapter{PRODUCING EFFICIENT TTA DESIGNS WITH TCE}
 

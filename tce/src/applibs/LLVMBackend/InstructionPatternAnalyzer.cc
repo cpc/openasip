@@ -33,7 +33,9 @@
 #include "MachineInstrDDG.hh"
 
 #include "llvm/CodeGen/MachineFunction.h"
+#if LLVM_OLDER_THAN_4_0
 #include "llvm/CodeGen/MachineFunctionAnalysis.h"
+#endif
 #include "llvm/IR/Function.h"
 using namespace llvm;
 

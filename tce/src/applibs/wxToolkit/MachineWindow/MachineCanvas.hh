@@ -38,6 +38,7 @@
 #include <wx/docmdi.h>
 #include "Exception.hh"
 #include "MachineCanvasOptions.hh"
+#include "ChildFrame.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -62,7 +63,8 @@ class Figure;
  */
 class MachineCanvas : public wxScrolledWindow {
 public:
-    MachineCanvas(wxWindow* parent, EditPolicyFactory* policyFactory);
+    MachineCanvas(wxWindow* parent, EditPolicyFactory* policyFactory,
+                  ChildFrame* parentFrame = nullptr);
     virtual ~MachineCanvas();
     virtual void OnDraw(wxDC& dc);
 
@@ -92,10 +94,14 @@ public:
         const TTAMachine::Port* target) throw (InstanceNotFound);
     void clearMoves();
 
+#if wxCHECK_VERSION(3, 0, 0)
+    bool saveSVG(const std::string& filename);
+#else
     bool saveEPS(
         const std::string& filename,
         const std::string& title,
         const std::string& creator = "");
+#endif
 
     bool savePNG(const std::string& filename);
 
@@ -112,6 +118,8 @@ private:
     TTAMachine::Machine* machine_;
     /// EditPolicyFactory which creates edit policies for machine components.
     EditPolicyFactory* editPolicyFactory_;
+    /// Parent frame which holds the MachineCanvas
+    ChildFrame* parent_;
 
     /// Zoom factor of the canvas.
     double zoomFactor_;

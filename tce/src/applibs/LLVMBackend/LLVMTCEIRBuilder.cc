@@ -121,7 +121,7 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
             dynamic_cast<LLVMTCECmdLineOptions*>(
                 Application::cmdLineOptions());
     }
-    delaySlotFilling_ = true;
+    delaySlotFilling_ = !options_->disableDelaySlotFiller();
 }
 
 bool
@@ -136,7 +136,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         // ensure data sections have been initialized when compiling
         // the whole program at a time
         initDataSections();
-        emitConstantPool(*mf.getConstantPool());	
+        emitConstantPool(*mf.getConstantPool());    
     } else {
 #if defined(LLVM_3_5)
         mang_ = new llvm::Mangler(tm_->getDataLayout());
@@ -187,7 +187,14 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         if (!AA_) {
             // Called through LLVMBackend. We are actual module and 
             // can get previous pass analysis!
-            AA = getAnalysisIfAvailable<AliasAnalysis>(); 
+#ifdef LLVM_OLDER_THAN_3_8
+            AA = getAnalysisIfAvailable<AliasAnalysis>();
+#else
+            AAResultsWrapperPass* AARWPass =
+                getAnalysisIfAvailable<AAResultsWrapperPass>();
+            if (AARWPass)
+                AA = &AARWPass->getAAResults();
+#endif
         } else {
             // Called through LLVMTCEScheduler. We are not registered
             // module in pass manager, so we do not have previous
@@ -367,9 +374,7 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                     } else {
                         // has to be uncond jump, and last ins of bb.
                         if (&(*j) != &(mbb.back())) {
-                            j->dump();
                             Application::logStream() << " not at the end of ";
-                            mbb.dump();
                             if (j->getDesc().isBranch())
                                 Application::logStream() << " is branch";
                             abortWithError("Jump was not last ins of BB.");
@@ -426,7 +431,11 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             TTAProgram::Instruction* instr = NULL;
-            instr = emitInstruction(j, bb);                        
+#if LLVM_OLDER_THAN_4_0
+            instr = emitInstruction(j, bb);
+#else
+            instr = emitInstruction(&*j, bb);
+#endif
 
             if (instr == NULL) {
                 continue;
@@ -674,7 +683,10 @@ LLVMTCEIRBuilder::compileOptimized(
     }
 
     CycleLookBackSoftwareBypasser bypasser;
-    BBSchedulerController bbsc(*ipData_, &bypasser, &delaySlotFiller());
+    CopyingDelaySlotFiller* dsf = nullptr;
+    if (delaySlotFilling_)
+        dsf = &delaySlotFiller();
+    BBSchedulerController bbsc(*ipData_, &bypasser, dsf);
     if (delaySlotFilling_)
         delaySlotFiller().initialize(cfg, *ddg, *mach_);
     bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
@@ -733,10 +745,8 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
                         << std::endl;
                     Application::logStream() 
                         << "first: " << bb->toString() << std::endl;
-                    mbb->dump();
                     Application::logStream()
                         << "another: " << bbt.toString() << std::endl;
-                    mbbt->dump();
 #endif
                     // in case the original BB is split to multiple machine BBs,
                     // refer to the first one in the chain because the original
@@ -766,7 +776,6 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
             Application::logStream() 
                 << "Could not find referred MBB matching the referred BB:"
                 << std::endl;
-            mo.getBlockAddress()->getBasicBlock()->dump();
             assert (bb != NULL);
         }
         return new TTAProgram::TerminalBasicBlockReference(*bb);
@@ -779,7 +788,6 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
         std::map<const MachineBasicBlock*, BasicBlockNode*>::iterator j = 
             skippedBBs_.find(mbb);
         if (j == skippedBBs_.end()) {
-            mo.getParent()->dump();
             assert(j != skippedBBs_.end());
         }        
         return new TTAProgram::TerminalBasicBlockReference(
@@ -872,10 +880,14 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
 #elif (defined LLVM_OLDER_THAN_3_7)
         return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(
             mi.getOpcode());
-#else
+#elif (defined LLVM_OLDER_THAN_4_0)
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode());
+#else
+        return targetMachine().getSubtargetImpl(
+            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode()).str();
 #endif
     }
 }
@@ -973,7 +985,11 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
             // Slight cheating to force LLVM to emit machine basic block label
             // to avoid missing references from Jump Table Records to basic
             // blocks. TODO: Proper fix is needed.
-            newMBB->setIsLandingPad();                        
+#ifdef LLVM_OLDER_THAN_3_8
+            newMBB->setIsLandingPad();
+#else
+            newMBB->setIsEHPad();
+#endif
         }
     }
 }

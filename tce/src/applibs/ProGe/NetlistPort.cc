@@ -72,7 +72,9 @@ NetlistPort::NetlistPort(
     // check to "< 0" from "< 1" 
     // RF (and IU?) opcode ports may have width 0
     if (realWidth_ < 0 ) {
-        throw OutOfRange(__FILE__, __LINE__, __func__);
+        TCEString msg = "Port ";
+        msg << name << " has a negative width.";
+        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
 
     parent.addPort(this);
@@ -211,6 +213,11 @@ NetlistPort::setToStatic(StaticSignal value) {
     staticValue_ = value;
 }
 
+void
+NetlistPort::unsetStatic() {
+
+    hasStaticValue_ = false;
+}
 
 bool
 NetlistPort::hasStaticValue() const {

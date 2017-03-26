@@ -66,6 +66,10 @@ public:
         return TCE::SP;
     }
 
+    virtual unsigned fpDRegNum() {
+        return TCE::FP;
+    }
+
     virtual unsigned rvDRegNum() {
         return TCE::IRES0;
     }
@@ -151,14 +155,16 @@ GeneratedTCEPlugin::GeneratedTCEPlugin() :
     TCETargetMachinePlugin() {
      int stackAlignment = static_cast<int>(getMaxMemoryAlignment());
 
-     instrInfo_ = new TCEInstrInfo(this, stackAlignment);
+     auto tii = new TCEInstrInfo(this);
+     instrInfo_ = tii;
      // Initialize register & opcode maps.
      initialize();
 
-     const TCERegisterInfo* ri = 
-         static_cast<const TCERegisterInfo*>(getRegisterInfo());
-     frameInfo_ = new TCEFrameInfo(ri, stackAlignment);
+     TCERegisterInfo* ri =
+         const_cast<TCERegisterInfo*>(
+             static_cast<const TCERegisterInfo*>(getRegisterInfo()));
 
+     frameInfo_ = new TCEFrameInfo(ri, tii, stackAlignment);
      subTarget_ = new TCESubtarget(this);
 }
 

@@ -55,7 +55,10 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/IR/CallSite.h"
-
+#ifndef LLVM_OLDER_THAN_3_8
+#include "llvm/IR/InstrTypes.h" // CreateIntegerCast()
+#include "llvm/ADT/Twine.h"
+#endif
 
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt
@@ -111,13 +114,32 @@ namespace {
 
         bool runOnBasicBlock(BasicBlock &BB);
 
-        virtual const char *getPassName() const {
+#if LLVM_OLDER_THAN_4_0
+    virtual const char *getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
             return "TCE: LowerMissingInstructions";
         }
 
         void addFunctionForFootprints(
             Module& M, FunctionType* fType, Operation& op, 
             std::string suffix);
+
+    private:
+        std::string stringType(const Type* type) const;
+
+        ARGLIST_CONST Type* getLLVMType(
+            Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType);
+
+        std::string getFootprint(Instruction& I);
+
+#ifndef LLVM_OLDER_THAN_3_9
+        // getGlobalContext() was removed form LLVM.
+        LLVMContext& getGlobalContext() const {
+            return dstModule_->getContext();
+        }
+#endif
     };
 
     char LowerMissingInstructions::ID = 0;    
@@ -140,34 +162,36 @@ LowerMissingInstructions::LowerMissingInstructions(
 }
 
 // convert type name to string
-std::string stringType(const Type* type) {
-    
-    if (type == Type::getInt64Ty(getGlobalContext())) {
+std::string 
+LowerMissingInstructions::stringType(const Type* type) const {
+    LLVMContext& context = getGlobalContext();
+    if (type == Type::getInt64Ty(context)) {
         return "i64";
-    } else if (type == Type::getInt32Ty(getGlobalContext())) {
+    } else if (type == Type::getInt32Ty(context)) {
         return "i32";
-    }  else if (type == Type::getInt16Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt16Ty(context)) {
         return "i16";
-    }  else if (type == Type::getInt8Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt8Ty(context)) {
         return "i8";
-    }  else if (type == Type::getInt1Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt1Ty(context)) {
         return "i1";
-    }  else if (type == Type::getHalfTy(getGlobalContext())) {
-	return "f16";
-    }  else if (type == Type::getFloatTy(getGlobalContext())) {
+    }  else if (type == Type::getHalfTy(context)) {
+        return "f16";
+    }  else if (type == Type::getFloatTy(context)) {
         return "f32";
-    }  else if (type == Type::getDoubleTy(getGlobalContext())) {
+    }  else if (type == Type::getDoubleTy(context)) {
         return "f64";
-    }  else if (type == Type::getLabelTy(getGlobalContext())) {
+    }  else if (type == Type::getLabelTy(context)) {
         return "label";
-    }  else if (type == Type::getVoidTy(getGlobalContext())) {
+    }  else if (type == Type::getVoidTy(context)) {
         return "void";
     } else {
         return "unknown";
     }
 }
 
-ARGLIST_CONST Type* getLLVMType(
+ARGLIST_CONST Type* 
+LowerMissingInstructions::getLLVMType(
     Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType) {
     switch (type) {
     case Operand::SINT_WORD:
@@ -279,7 +303,8 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
     return footprints[tceOp];
 }
 
-std::string getFootprint(Instruction& I) {
+std::string 
+LowerMissingInstructions::getFootprint(Instruction& I) {
     
     std::string footPrint = stringType(I.getType());
 
@@ -455,7 +480,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             for (int j = 1; j <= op.numberOfInputs(); j++) { 
                 Operand& operand = op.operand(j);                
                 ARGLIST_CONST Type* llvmOp = getLLVMType(
-		    operand.type(), Type::getInt32Ty(getGlobalContext()));
+            operand.type(), Type::getInt32Ty(getGlobalContext()));
                 argList_i32.push_back(llvmOp);
                 if (llvmOp == Type::getInt32Ty(getGlobalContext())) {
                     useInt = true;
@@ -534,7 +559,7 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
-    
+
     BasicBlock::InstListType &BBIL = BB.getInstList();
 
     // Loop over all of the instructions, looking for instructions to lower
@@ -585,25 +610,40 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         footPrint == "f32.sitofp.i8") {
 
                         // sign extension needed
+#ifdef LLVM_OLDER_THAN_3_8
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j), 
                                 Type::getInt32Ty(getGlobalContext()), true, "", I));
-
+#else
+            args.push_back(
+                            llvm::CastInst::CreateIntegerCast(
+                                I->getOperand(j), 
+                                Type::getInt32Ty(getGlobalContext()), 
+                                true, "", &(*I)));
+#endif
                     } else if (footPrint == "f32.uitofp.i16" ||
                                footPrint == "f32.uitofp.i8") {
-
                         // zero extension needed
+#ifdef LLVM_OLDER_THAN_3_8
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j), Type::getInt32Ty(getGlobalContext()),
                                 false, "", I));
+#else
+                        args.push_back(
+                            llvm::CastInst::CreateIntegerCast(
+                                I->getOperand(j), 
+                                Type::getInt32Ty(getGlobalContext()),
+                                false, "", &(*I)));
+#endif
                     } else {
                         // unknown extension needed
                         assert(false && "Unknown operation footprint "
                                "requiring operand extension.");
                     }
-                } else if (I->getOpcode() == llvm::Instruction::Call && j == 0) {                    
+                } else if (I->getOpcode() == llvm::Instruction::Call
+                           && j == 0) {
                     // the first operand of a Call is the called function pointer, 
                     // ignore it
                     continue;                    
@@ -611,10 +651,15 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                     args.push_back(I->getOperand(j));
                 }
             }
+#ifdef LLVM_OLDER_THAN_3_8
             CallInst *NewCall = 
                 CallInst::Create(
                     replaceFunc->second, args, "", I);
-
+#else
+            CallInst *NewCall = 
+                CallInst::Create(
+                replaceFunc->second, args, Twine(""), &(*I));
+#endif
             NewCall->setTailCall();    
 
             // Replace all uses of the instruction with call instruction
@@ -626,10 +671,15 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                 Instruction::CastOps castOps =
                     llvm::CastInst::getCastOpcode(
                         NewCall, false, I->getType(), false);
-
+#ifdef LLVM_OLDER_THAN_3_8
                 MCast = llvm::CastInst::Create(
                     castOps, NewCall, I->getType(), "", I);
-                I->replaceAllUsesWith(MCast);                                
+#else
+                MCast = llvm::CastInst::Create(
+                    castOps, NewCall, I->getType(), Twine(""), 
+                    &(*I));
+#endif
+                I->replaceAllUsesWith(MCast);
 
             } else {
                 I->replaceAllUsesWith(NewCall);

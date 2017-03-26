@@ -44,7 +44,10 @@
 #include <functional>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 #include <boost/graph/depth_first_search.hpp>
+POP_CLANG_DIAGS
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetInstrInfo.h>
@@ -1859,7 +1862,11 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
     const llvm::MCInstrInfo& tii) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
+#if LLVM_OLDER_THAN_4_0
         if (name.ciEqual(tii.getName(opc))) {
+#else
+        if (name.ciEqual(tii.getName(opc).str())) {
+#endif
             return tii.get(opc);
         }
     }
@@ -2062,7 +2069,7 @@ ControlFlowGraph::buildMBBFromBB(
 
 #ifdef DEBUG_POM_TO_MI
                 Application::logStream() << "MI: "; 
-                mi->dump();
+                //mi->dump();
 #endif
 
                 

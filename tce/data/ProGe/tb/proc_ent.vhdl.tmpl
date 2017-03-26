@@ -27,7 +27,7 @@
 -- Author     : Teemu Pitkänen <teemu.pitkanen@tut.fi>
 -- Company    : TUT/IDCS
 -- Created    : 2003-08-28
--- Last update: 2006-04-03
+-- Last update: 2016-06-14
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -85,9 +85,6 @@ entity proc is
     -- control pin to indicate that data memory is accessed internally
     -- and external access is blocked in the current cycle 
     dmem_busy      : out std_logic;
-    imem_busy      : out std_logic;
-
-    -- program counter initialization
-    pc_init : in std_logic_vector(IMEMADDRWIDTH-1 downto 0)
+    imem_busy      : out std_logic
     );
 end proc;

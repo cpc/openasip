@@ -37,7 +37,10 @@
 #include <iomanip>
 #include <ctime>
 
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
+POP_CLANG_DIAGS
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 #include <boost/version.hpp>
@@ -412,7 +415,17 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
     initializeSimulation();
     initializeDataMemories();
 
-    programFileName_ = fileName;
+    // Dump simulation traces in the same directory as loaded program file
+    // or user-defined directory 
+    std::string traceDir = Environment::simTraceDirPath();
+    if (traceDir == "") {
+        programFileName_ = fileName;
+    } else {
+        programFileName_ =
+            traceDir + FileSystem::DIRECTORY_SEPARATOR +
+            FileSystem::fileOfPath(fileName);
+    }
+
     // tracing can't be enabled before loading program so try to initialize
     // the tracing after program is loaded
     initializeTracing();

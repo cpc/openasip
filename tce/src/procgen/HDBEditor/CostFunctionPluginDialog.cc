@@ -41,6 +41,11 @@
 #include "CostFunctionPlugin.hh"
 #include "ErrorDialog.hh"
 
+#if wxCHECK_VERSION(3, 0, 0)
+    #define wxOPEN wxFD_OPEN
+    #define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
+#endif
+
 using namespace HDB;
 
 BEGIN_EVENT_TABLE(CostFunctionPluginDialog, wxDialog)

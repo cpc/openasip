@@ -45,5 +45,4 @@ TCEStubSubTarget::TCEStubSubTarget(
     : TargetSubtargetInfo(TT, CPU, FS, ArrayRef<SubtargetFeatureKV>(),
                           ArrayRef<SubtargetFeatureKV>(), NULL, NULL,
                           NULL, NULL, NULL, NULL, NULL),
-      TM(TM),
       TLI(TM) {}

@@ -74,6 +74,8 @@ public:
 
     bool useOldBackendSources() const;
     
+    bool disableDelaySlotFiller() const;
+
     bool isWorkItemAAFileDefined() const;
     std::string workItemAAFile() const;
 
@@ -113,6 +115,7 @@ private:
     static const std::string LEAVE_DIRTY;
     static const std::string DISABLE_LLVMAA;
     static const std::string CONSERVATIVE_PRE_RA_SCHEDULER;
+    static const std::string DISABLE_DSF;
     static const std::string SWL_DUMP_DDGS_DOT;
     static const std::string SWL_DUMP_DDGS_XML;
     static const std::string SWL_SAVE_BACKEND_PLUGIN;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,9 @@
  *
  * Implementation of InfoCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -36,7 +37,10 @@
 #include <string>
 #include <sstream>
 
-#include "boost/regex.hpp"
+#include "CompilerWarnings.hh"
+IGNORE_CLANG_WARNING("-Wkeyword-macro")
+#include <boost/regex.hpp>
+POP_CLANG_DIAGS
 #include "boost/tuple/tuple.hpp"
 
 #include "InfoCommand.hh"
@@ -330,6 +334,9 @@ public:
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
             return false;
         }
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
         const TTAMachine::Machine::RegisterFileNavigator& nav = 
@@ -379,6 +386,9 @@ public:
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
+            return false;
+        }
+        if (!parent().checkMachineLoaded()) {
             return false;
         }
         const TTAMachine::Machine& mach = 
@@ -516,6 +526,10 @@ public:
 
         const int argumentCount = arguments.size() - 2;
 
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
+
         if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
             return false;
         }
@@ -609,6 +623,9 @@ public:
         if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
             return false;
         }
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
 
@@ -677,6 +694,9 @@ public:
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
             return false;
         }
+        if (!parent().checkMachineLoaded()) {
+            return false;
+        }
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
         const TTAMachine::Machine::FunctionUnitNavigator& nav = 
@@ -730,13 +750,13 @@ public:
             return false;
         }
 
-        const int argumentCount = arguments.size() - 2; 
+        const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 1, 1)) {
             return false;
         }
 
-        const std::string command = 
+        const std::string command =
             StringTools::stringToLower(arguments[2].stringValue());
 
         if (command == "cycles") {
@@ -746,19 +766,12 @@ public:
             return true;
         } else if (command == "stats") {
             std::stringstream result;
-            
-            const ClockCycleCount totalCycles = 
+
+            const ClockCycleCount totalCycles =
                 parent().simulatorFrontend().cycleCount();
-            
-            result
-                << std::endl 
-                << "Calculating statistics..." << std::flush;
 
-            const UtilizationStats& stats = 
+            const UtilizationStats& stats =
                 parent().simulatorFrontend().utilizationStatistics();
-
-            result
-                << "done." << std::endl;
 
             result
                 << std::endl
@@ -766,46 +779,42 @@ public:
                 << "------------" << std::endl;
 
             const int COLUMN_WIDTH = 15;
-            const TTAMachine::Machine& mach = 
+            const TTAMachine::Machine& mach =
                 parent().simulatorFrontend().machine();
             std::set<std::string> operationsOfMachine;
 
             result
                 << std::endl << "buses:" << std::endl << std::endl;
-            
-            const TTAMachine::Machine::BusNavigator& busNav = 
+
+            const TTAMachine::Machine::BusNavigator& busNav =
                 mach.busNavigator();
-            
+
             for (int i = 0; i < busNav.count(); ++i) {
                 TTAMachine::Bus* bus = busNav.item(i);
                 assert(bus != NULL);
-                const ClockCycleCount writes = 
+                const ClockCycleCount writes =
                     stats.busWrites(bus->name());
-                if (writes == 0)
-                    continue;
 
-                result                    
+                result
                     << std::left << std::setw(COLUMN_WIDTH)
-                    << bus->name() << " " 
+                    << bus->name() << " "
                     << std::left << std::setw(COLUMN_WIDTH)
                     << Conversion::toString(writes * 100.0 / totalCycles) +
                     "% (" + Conversion::toString(writes) + " writes)"
                     << std::endl;
             }
-                
+
             result
                 << std::endl
                 << "sockets:" << std::endl << std::endl;
-            
-            const TTAMachine::Machine::SocketNavigator& socketNav = 
+
+            const TTAMachine::Machine::SocketNavigator& socketNav =
                 mach.socketNavigator();
             for (int i = 0; i < socketNav.count(); ++i) {
                 TTAMachine::Socket* socket = socketNav.item(i);
                 assert(socket != NULL);
-                const ClockCycleCount writes = 
+                const ClockCycleCount writes =
                     stats.socketWrites(socket->name());
-                if (writes == 0) 
-                    continue;
 
                 result
                     << std::left << std::setw(COLUMN_WIDTH)
@@ -814,14 +823,14 @@ public:
                     << Conversion::toString(writes * 100.0 / totalCycles) +
                     "% (" + Conversion::toString(writes) + " writes)"
                     << std::endl;
-            }            
-             
-            result                    
+            }
+
+            result
                 << std::endl
-                << "operations executed in function units:" 
+                << "operations executed in function units:"
                 << std::endl << std::endl;
-            
-            const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
+
+            const TTAMachine::Machine::FunctionUnitNavigator& fuNav =
                 mach.functionUnitNavigator();
             for (int i = 0; i <= fuNav.count(); ++i) {
                 TTAMachine::FunctionUnit* fu = NULL;
@@ -833,42 +842,37 @@ public:
                 const ClockCycleCount totalTriggersOfFU = 
                     stats.triggerCount(fu->name());
 
-                if (totalTriggersOfFU == 0)
-                    continue;
-
-                result                        
+                result
                     << fu->name() << ":" << std::endl;
 
                 for (int j = 0; j < fu->operationCount(); ++j) {
                     const TTAMachine::HWOperation* op = fu->operation(j);
                     assert(op != NULL);
-                    const std::string operationUpper = 
+                    const std::string operationUpper =
                         StringTools::stringToUpper(op->name());
                     operationsOfMachine.insert(operationUpper);
-                    const ClockCycleCount executions = 
+                    const ClockCycleCount executions =
                         stats.operationExecutions(
                             fu->name(), operationUpper);
-                    if (executions == 0) 
-                        continue;
 
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
-                        << operationUpper << " " 
+                        << operationUpper << " "
                         << std::left << std::setw(COLUMN_WIDTH)
                         << Conversion::toString(
-                            executions * 100.0 / totalTriggersOfFU) + 
-                        "% of FU total (" + 
+                            executions * 100.0 / totalTriggersOfFU) +
+                        "% of FU total (" +
                         Conversion::toString(executions) + " executions)"
                         << std::endl;
                 }
 
-                result                   
+                result
                     << std::left << std::setw(COLUMN_WIDTH)
-                    << "TOTAL" << " " 
+                    << "TOTAL" << " "
                     << std::left << std::setw(COLUMN_WIDTH)
                     << Conversion::toString(
                         totalTriggersOfFU * 100.0 / totalCycles) + "% (" +
-                    Conversion::toString(totalTriggersOfFU) + 
+                    Conversion::toString(totalTriggersOfFU) +
                     " triggers)" << std::endl << std::endl;
             }
 
@@ -876,53 +880,51 @@ public:
             for (int j = 0; j < gcu.operationCount(); ++j) {
                 const TTAMachine::HWOperation* op = gcu.operation(j);
                 assert(op != NULL);
-                const std::string operationUpper = 
+                const std::string operationUpper =
                     StringTools::stringToUpper(op->name());
                 operationsOfMachine.insert(operationUpper);
             }
 
             result
                 << std::endl << "operations:" << std::endl << std::endl;
-            
-            for (std::set<std::string>::iterator i = 
-                     operationsOfMachine.begin(); i != 
+
+            for (std::set<std::string>::iterator i =
+                     operationsOfMachine.begin(); i !=
                      operationsOfMachine.end(); ++i) {
-                const ClockCycleCount executions = 
+                const ClockCycleCount executions =
                     stats.operationExecutions(*i);
-                if (executions == 0)
-                    continue;
 
                 result
                     << std::left << std::setw(COLUMN_WIDTH)
                     << *i << " " << std::left << std::setw(COLUMN_WIDTH)
                     << Conversion::toString(executions * 100.0 / totalCycles) +
-                    "% (" + Conversion::toString(executions) + " executions)" 
+                    "% (" + Conversion::toString(executions) + " executions)"
                     << std::endl;
             }
-            
+
             result
                 << std::endl
                 << "FU port guard accesses:" << std::endl;
-            
+
             UtilizationStats::FUOperationUtilizationIndex fuGuardAccesses =
                 stats.FUGuardAccesses();
-            
+
             // loop each FU
-            for (UtilizationStats::FUOperationUtilizationIndex::iterator i = 
+            for (UtilizationStats::FUOperationUtilizationIndex::iterator i =
                 fuGuardAccesses.begin(); i != fuGuardAccesses.end(); ++i) {
-                
+
                 std::string fuName = i->first;
-                
+
                 result
                     << std::endl
                     << fuName << ":"
                     << std::endl;
-                
+
                 // loop each FU port in the utilization list
-                for (UtilizationStats::ComponentUtilizationIndex::iterator j = 
+                for (UtilizationStats::ComponentUtilizationIndex::iterator j =
                     i->second.begin(); j != i->second.end(); ++j) {
                     std::string fuPort = j->first;
-                    
+
                     ClockCycleCount count =
                     stats.FUGuardAccesses(fuName, fuPort);
                         result
@@ -935,16 +937,16 @@ public:
 
             result
                 << std::endl
-                << "register accesses:" << std::endl 
+                << "register accesses:" << std::endl
                 << std::endl;
-            
-            const TTAMachine::Machine::RegisterFileNavigator& rfNav = 
+
+            const TTAMachine::Machine::RegisterFileNavigator& rfNav =
                 mach.registerFileNavigator();
             for (int i = 0; i < rfNav.count(); ++i) {
                 TTAMachine::RegisterFile* rf = rfNav.item(i);
                 assert(rf != NULL);
 
-                result 
+                result
                     << rf->name() << ":" << std::endl;
 
                 int regsUsedInFile = 0;
@@ -952,22 +954,20 @@ public:
                 lastReg = rf->numberOfRegisters() - 1;
 
                 for (int reg = 0; reg <= lastReg; ++reg) {
-                    ClockCycleCount reads = 
+                    ClockCycleCount reads =
                         stats.registerReads(rf->name(), reg);
-                    ClockCycleCount guardReads = 
+                    ClockCycleCount guardReads =
                         stats.guardRegisterReads(rf->name(), reg);
-                    ClockCycleCount writes = 
+                    ClockCycleCount writes =
                         stats.registerWrites(rf->name(), reg);
-                    if (reads == 0 && writes == 0 && guardReads == 0)
-                        continue;
                     ++regsUsedInFile;
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
-                        << reg << " " 
+                        << reg << " "
                         << std::left << std::setw(COLUMN_WIDTH)
                         << Conversion::toString(reads) + " reads, "
                         << std::left << std::setw(COLUMN_WIDTH + 5)
-                        << Conversion::toString(guardReads) + " guard reads, " 
+                        << Conversion::toString(guardReads) + " guard reads, "
                         << std::left << std::setw(COLUMN_WIDTH)
                         << Conversion::toString(writes) + " writes"
                         << std::endl;
@@ -976,13 +976,13 @@ public:
                     << "TOTAL " << regsUsedInFile << " registers used"
                     << std::endl << std::endl;
             }
-                        
+
             result
                 << std::endl
-                << "immediate unit accesses:" << std::endl 
+                << "immediate unit accesses:" << std::endl
                 << std::endl;
-            
-            const TTAMachine::Machine::ImmediateUnitNavigator& iuNav = 
+
+            const TTAMachine::Machine::ImmediateUnitNavigator& iuNav =
                 mach.immediateUnitNavigator();
             for (int i = 0; i < iuNav.count(); ++i) {
                 TTAMachine::ImmediateUnit* iu = iuNav.item(i);
@@ -994,20 +994,18 @@ public:
                 int usedRegCount = 0;
                 int lastReg = 0;
                 lastReg = iu->numberOfRegisters() - 1;
-                
+
                 for (int reg = 0; reg <= lastReg; ++reg) {
-                    ClockCycleCount reads = 
+                    ClockCycleCount reads =
                         stats.registerReads(iu->name(), reg);
-                    ClockCycleCount writes = 
+                    ClockCycleCount writes =
                         stats.registerWrites(iu->name(), reg);
-                    if (reads == 0 && writes == 0)
-                        continue;
                     ++usedRegCount;
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
-                        << reg << " " 
+                        << reg << " "
                         << std::left << std::setw(COLUMN_WIDTH)
-                        << Conversion::toString(reads) + " reads, " 
+                        << Conversion::toString(reads) + " reads, "
                         << std::left << std::setw(COLUMN_WIDTH)
                         << Conversion::toString(writes) + " writes"
                         << std::endl;
@@ -1015,13 +1013,13 @@ public:
                 result
                     << "TOTAL " << usedRegCount << " registers used"
                     << std::endl << std::endl;
-            }            
+            }
 
 
             if (parent().simulatorFrontend().rfAccessTracing()) {
-                
+
                 try {
-                    const RFAccessTracker& rfAccessTracker = 
+                    const RFAccessTracker& rfAccessTracker =
                         parent().simulatorFrontend().rfAccessTracker();
 
                     result
@@ -1064,9 +1062,9 @@ public:
             return true;
 
         } else if (command == "mapping") {
-            const TTAMachine::Machine& mach = 
+            const TTAMachine::Machine& mach =
                 parent().simulatorFrontend().machine();
-            const TTAMachine::Machine::AddressSpaceNavigator& nav = 
+            const TTAMachine::Machine::AddressSpaceNavigator& nav =
                 mach.addressSpaceNavigator();
             for (int i = 0; i < nav.count(); ++i) {
                 TTAMachine::AddressSpace& space = *nav.item(i);
@@ -1074,7 +1072,7 @@ public:
                 parent().outputStream()
                     << std::left << std::setw(15)
                     << space.name()
-                    << std::left 
+                    << std::left
                     << Conversion::toHexString(space.start(), 8)
                     << " - "
                     << Conversion::toHexString(space.end(), 8)
@@ -1082,9 +1080,9 @@ public:
                 if (space.width() == 8) {
                     parent().outputStream() << "bytes";
                 } else {
-                    parent().outputStream() 
+                    parent().outputStream()
                         << "words of size " << space.width() << " bits";
-                }                    
+                }
                 parent().outputStream() << ")" << std::endl;
             }
             return true;
@@ -1150,11 +1148,11 @@ public:
         ClockCycleCount totalRegisterReads = 0;
         ClockCycleCount totalRegisterWrites = 0;        
 
-        const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
-            mach.functionUnitNavigator();                            
-            
-        const TTAMachine::Machine::RegisterFileNavigator& rfNav = 
-                mach.registerFileNavigator();                
+        const TTAMachine::Machine::FunctionUnitNavigator& fuNav =
+            mach.functionUnitNavigator();
+
+        const TTAMachine::Machine::RegisterFileNavigator& rfNav =
+                mach.registerFileNavigator();
 
         if (command == "executed_operations") {
             for (int i = 0; i <= fuNav.count(); ++i) {
@@ -1164,23 +1162,17 @@ public:
                 else
                     fu = mach.controlUnit();
                 assert(fu != NULL);
-                const ClockCycleCount totalTriggersOfFU =
-                    stats.triggerCount(fu->name());
-            
-                if (totalTriggersOfFU == 0)
-                    continue;
-                        
+
                 for (int j = 0; j < fu->operationCount(); ++j) {
                     const TTAMachine::HWOperation* op = fu->operation(j);
                     assert (op != NULL);
                     totalOperationExecutions += stats.operationExecutions(
-                    fu->name(), StringTools::stringToUpper(op->name()));                    
+                    fu->name(), StringTools::stringToUpper(op->name()));
                 }
             }
             parent().interpreter()->setResult(
                    static_cast<double>(totalOperationExecutions));
             return true;
-            
         } else if (command == "register_reads") {
             for (int i = 0; i < rfNav.count(); ++i) {
                 TTAMachine::RegisterFile* rf = rfNav.item(i);

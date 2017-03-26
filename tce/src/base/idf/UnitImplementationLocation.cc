@@ -107,7 +107,9 @@ UnitImplementationLocation::hdbFile() const
     vector<string> paths = Environment::hdbPaths();
     paths.insert(
         paths.begin(), FileSystem::directoryOfPath(parent_->sourceIDF()));
-    string expandedPath = FileSystem::expandTilde(hdbFile_);
+    TCEString expandedPath(hdbFile_);
+    expandedPath.replaceString("tce:", "");
+    expandedPath = FileSystem::expandTilde(expandedPath);
     return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
 

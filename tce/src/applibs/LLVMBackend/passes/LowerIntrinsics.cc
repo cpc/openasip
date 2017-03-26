@@ -156,7 +156,11 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
                        // code even with full optimizations.
                        I->replaceAllUsesWith(
                            ConstantInt::get(
+#ifdef LLVM_OLDER_THAN_3_9
                                Type::getInt32Ty(getGlobalContext()), 0, true));
+#else
+                               Type::getInt32Ty(BB.getContext()), 0, true));
+#endif
                        I->eraseFromParent();
                        changed = true;
                        break;

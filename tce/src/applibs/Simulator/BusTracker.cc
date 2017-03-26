@@ -26,7 +26,8 @@
  *
  * Definition of BusTracker class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry LinjamÃ¤ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -46,9 +47,10 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <locale>
+#include <functional>
 
-const int BusTracker::COLUMN_WIDTH = 12;
-const std::string BusTracker::COLUMN_SEPARATOR = " | ";
+const std::string BusTracker::COLUMN_SEPARATOR = ",";
 
 /**
  * Constructor.
@@ -83,33 +85,24 @@ BusTracker::~BusTracker() {
 void 
 BusTracker::handleEvent() {
 
-    TTAMachine::Machine::BusNavigator navigator = 
+    TTAMachine::Machine::BusNavigator navigator =
         frontend_.machine().busNavigator();
 
-    ClockCycleCount currentCycle = frontend_.cycleCount();
-    traceStream_ << std::right << std::setw(COLUMN_WIDTH) << currentCycle
-                 << COLUMN_SEPARATOR;
+    traceStream_ << frontend_.cycleCount();
 
     for (int i = 0; i < navigator.count(); ++i) {
-
         const std::string busName = navigator.item(i)->name();
-        //int width = navigator.item(i)->width();
 
         BusState& bus = frontend_.machineState().busState(busName);
+        int columnWidth = (bus.width()+3)/4;
 
+        traceStream_ << COLUMN_SEPARATOR;
         if (!bus.isSquashed()) {
-            // automatically extended to int width
-            //int value = MathTools::signExtendTo(bus.value().intValue(), width);
-            int value = bus.value().intValue(); 
-
-            traceStream_ << std::setw(COLUMN_WIDTH)
-                         << Conversion::toString(value)
-                         << COLUMN_SEPARATOR;
+            traceStream_ << bus.value().hexValue(true);
         } else {
             // Squashed values are displayed as zeros.
-            traceStream_ << std::setw(COLUMN_WIDTH) << "0" << COLUMN_SEPARATOR;
+            traceStream_ << std::string(columnWidth, '0');
         }
     }
-
-    traceStream_ << std::endl;
+    traceStream_ << "\n";
 }

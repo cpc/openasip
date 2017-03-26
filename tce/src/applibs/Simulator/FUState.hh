@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of FUState class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2017 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -73,18 +73,20 @@ public:
     virtual void addOutputPortState(PortState& port);
 
     virtual void addOperationExecutor(
-        OperationExecutor& opExec, 
+        OperationExecutor& opExec,
         Operation& op);
 
     virtual void setOperationSimulator(DetailedOperationSimulator& sim);
 
     virtual void replaceOperationExecutor(
-        Operation& op, 
+        Operation& op,
         OperationExecutor* newExecutor);
 
     virtual OperationExecutor* executor(Operation& op);
 
     virtual OperationContext& context();
+
+    virtual void reset();
 
 protected:
     /// The idle status of the FU. The derived classes should

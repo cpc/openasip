@@ -55,6 +55,7 @@ private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void onSelectOperation(wxCommandEvent& event);
     void onOK(wxCommandEvent& event);
+    void onOperationFilterChange(wxCommandEvent& event);
 
     /// Chosen latency.
     int latency_;
@@ -62,10 +63,17 @@ private:
     std::string operation_;
     /// Operation list widget.
     wxListBox* operationList_;
+    /// A string to filter opset list.
+    std::string opNameFilter_ = "";
 
     /// Widget IDs.
     enum {
         ID_LIST = 20000,
+        ID_OP_FILTER_LABEL,
+        ID_OP_FILTER,
+        ID_OP_DESCRIPTION,
+        ID_OP_INPUTS,
+        ID_OP_OUTPUTS,
         ID_LATENCY,
         ID_TEXT,
         ID_LINE

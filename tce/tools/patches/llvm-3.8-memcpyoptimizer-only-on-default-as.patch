@@ -1,0 +1,14 @@
+Index: lib/Transforms/Scalar/MemCpyOptimizer.cpp
+===================================================================
+--- lib/Transforms/Scalar/MemCpyOptimizer.cpp	(revision 257630)
++++ lib/Transforms/Scalar/MemCpyOptimizer.cpp	(working copy)
+@@ -505,6 +505,9 @@
+   if (SI->getMetadata(LLVMContext::MD_nontemporal))
+     return false;
+ 
++  // The C memset and memcpy work only with the default address space.
++  if (SI->getPointerAddressSpace() != 0) return false;
++
+   const DataLayout &DL = SI->getModule()->getDataLayout();
+ 
+   // Load to store forwarding can be interpreted as memcpy.

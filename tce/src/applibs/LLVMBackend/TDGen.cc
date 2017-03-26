@@ -539,12 +539,12 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     // --- Hardcoded reserved registers. ---
     writeRegisterDef(o, regs32bit_[0], "SP", "R32", "", RESERVED);
     writeRegisterDef(o, regs32bit_[1], "IRES0", "R32", "", RESULT);
+    writeRegisterDef(o, regs32bit_[2], "FP", "R32", "", RESERVED);
     writeRegisterDef(
-        o, regs32bit_[2], "KLUDGE_REGISTER", "R32", "", RESERVED);
-
+        o, regs32bit_[3], "KLUDGE_REGISTER", "R32", "", RESERVED);
     // -------------------------------------
     
-    for (unsigned i = 3; i < regs32bit_.size(); i++) {
+    for (unsigned i = 4; i < regs32bit_.size(); i++) {
         std::string regName = "I" + Conversion::toString(i);
         writeRegisterDef(o, regs32bit_[i], regName, "R32", "", GPR);
     }
@@ -2180,8 +2180,13 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
 
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround %1%";
     if (opName == "chf") return "fextend %1%";
+#else
+    if (opName == "cfh") return "fpround %1%";
+    if (opName == "chf") return "fpextend %1%";
+#endif
 
     if (opName == "cih") return "sint_to_fp %1%";
     if (opName == "chi") return "fp_to_sint %1%";
@@ -2369,9 +2374,14 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
-    
+
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround";
     if (opName == "chf") return "fextend";
+#else
+    if (opName == "cfh") return "fpround";
+    if (opName == "chf") return "fpextend";
+#endif
 
     if (opName == "cih") return "sint_to_fp";
     if (opName == "chi") return "fp_to_sint";

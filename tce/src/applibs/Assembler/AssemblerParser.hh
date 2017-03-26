@@ -36,6 +36,8 @@
 
 #include <boost/version.hpp>
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #if BOOST_VERSION >= 103800
 
 #include <boost/spirit/include/classic.hpp>
@@ -63,7 +65,7 @@ using namespace boost::spirit::classic;
 using namespace boost::spirit;
 
 #endif
-
+POP_COMPILER_DIAGS
 
 #include "Exception.hh"
 

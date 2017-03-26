@@ -1,6 +1,6 @@
 #!/bin/bash
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-tpef=`mktemp tmpXXXXX`.tpef
+tpef=`mktemp tmpXXXXX`
 adf=data/printf_machine_works.adf
 ttasim=../../../../../tce/src/codesign/ttasim/ttasim
 

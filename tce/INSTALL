@@ -33,11 +33,11 @@ Clang                 3.5+
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
 Xerces-C++            2.3.0+                               Apache v2.0
-wxWidgets             2.6.0+                               wxWidgets
+wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  3.5-3.6                              LLVM Release License
+LLVM                  3.9-4.0                              LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
@@ -69,7 +69,7 @@ the command line interface of the simulator.
 
 You can download the sources here: http://www.thrysoee.dk/editline/
 
-Note: this library might require 'termcap' library in some distributions. 
+Note: this library might require 'termcap' library in some distributions.
 The package is named 'libedit-dev' in Debian-based distributions.
 
 Boost
@@ -96,7 +96,7 @@ issues affecting TCE use.
 
 You can do this most easily by executing 
  
-  tools/scripts/install_llvm_3.7.sh DEST_PATH
+   tools/scripts/install_llvm_3.8.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches

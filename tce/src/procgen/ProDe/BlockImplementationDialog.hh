@@ -36,6 +36,7 @@
 #include <set>
 #include <string>
 #include <wx/wx.h>
+#include <wx/listctrl.h>
 
 namespace TTAMachine {
     class Component;
