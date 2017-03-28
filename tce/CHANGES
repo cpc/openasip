@@ -4,6 +4,12 @@
 Notable changes and features
 ----------------------------
 
+
+Usability features
+----------------------------
+- (Proxim) Added ability to search for a certain pattern in dissasembly window
+   Feature can be accessed using ctrl-F key combination in the main window.
+
 Other features and improvements
 -------------------------------
 
