@@ -37,18 +37,21 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu
+For example, to install the required libraries and tools for Ubuntu 16.04 LTS
 using its package manager 'apt-get', you need to execute the following
 command:
 
-  sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev
+  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
+    libffi-dev autoconf automake libtool subversion git cmake
 
 This installs the required packages for an Red Hat 6 (and CentOS):
 
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
 xerces-c-devel gcc-c++ make autoconf automake libtool
+
+See INSTALL.Debian for package list in other versions of Debian-based distributions and
+INSTALL.RedHat for more information on installing TCE on Red Hat based distros.
 
 Editline
 --------
