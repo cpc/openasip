@@ -1,0 +1,10 @@
+ld32 0x64
+st32 0x64 0x01020304
+!advanceclock
+!mem byte 0x64
+!mem byte 0x65
+!mem byte 0x66
+!mem byte 0x67
+!output hex
+ld32 0x64
+!quit

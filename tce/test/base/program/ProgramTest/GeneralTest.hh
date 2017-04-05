@@ -167,26 +167,26 @@ GeneralTest::testDataMemoryRequestsAndOrganizing() {
 
     DataMemory testMem(NullAddressSpace::instance());
 
-    DataDefinition* testDef1 = 
-        new DataDefinition(Address(10, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef2 = 
-        new DataDefinition(Address(20, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef3 = 
-        new DataDefinition(Address(30, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef4 = 
-        new DataDefinition(Address(40, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef5 = 
-        new DataDefinition(Address(50, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef6 = 
-        new DataDefinition(Address(60, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef7 = 
-        new DataDefinition(Address(70, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef8 = 
-        new DataDefinition(Address(80, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef9 = 
-        new DataDefinition(Address(90, NullAddressSpace::instance()), 10);
-    DataDefinition* testDef10 = 
-        new DataDefinition(Address(100, NullAddressSpace::instance()), 10);
+    DataDefinition* testDef1 = new DataDefinition(
+        Address(10, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef2 = new DataDefinition(
+        Address(20, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef3 = new DataDefinition(
+        Address(30, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef4 = new DataDefinition(
+        Address(40, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef5 = new DataDefinition(
+        Address(50, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef6 = new DataDefinition(
+        Address(60, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef7 = new DataDefinition(
+        Address(70, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef8 = new DataDefinition(
+        Address(80, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef9 = new DataDefinition(
+        Address(90, NullAddressSpace::instance()), 10, false);
+    DataDefinition* testDef10 = new DataDefinition(
+        Address(100, NullAddressSpace::instance()), 10, false);
 
     // add definitions to memory in random order
     testMem.addDataDefinition(testDef2);

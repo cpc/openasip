@@ -194,7 +194,7 @@ ProgramWriterTest::testCreateSequential() {
     seqProgram.addDataMemory(dataMemory);
 
     dataMemory->addDataDefinition(
-        new DataDefinition(Address(12, uMach->dataAddressSpace()), 1));
+        new DataDefinition(Address(12, uMach->dataAddressSpace()), 1, false));
 
     Instruction* instr = new Instruction();
 
@@ -278,7 +278,8 @@ ProgramWriterTest::testCreateSequential2() {
 
     TTAProgram::DataDefinition* dataDef = 
         new TTAProgram::DataDefinition(
-            TTAProgram::Address(0, universalMachine.dataAddressSpace()), 1);
+            TTAProgram::Address(0, universalMachine.dataAddressSpace()), 1,
+            false);
 
     dataMemory1->addDataDefinition(dataDef);
 
@@ -341,7 +342,8 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
 
     TTAProgram::DataDefinition* dataDef = 
         new TTAProgram::DataDefinition(
-            TTAProgram::Address(0, universalMachine->dataAddressSpace()), 1);
+            TTAProgram::Address(0, universalMachine->dataAddressSpace()), 1,
+            false);
 
     dataMemory1->addDataDefinition(dataDef);
 

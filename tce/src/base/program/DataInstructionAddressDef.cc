@@ -45,8 +45,8 @@ namespace TTAProgram {
  * @param dest Instruction which is referred by the data definition.
  */
 DataInstructionAddressDef::DataInstructionAddressDef(
-    Address start, int size, InstructionReference& dest) :
-    DataDefinition(start, size), dest_(dest) {
+    Address start, int size, InstructionReference& dest, bool littleEndian) :
+    DataDefinition(start, size, littleEndian), dest_(dest) {
 }
 
 /**

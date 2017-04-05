@@ -1,13 +1,6 @@
-pkglibdir = ${prefix}/tce-llvm/lib
-pkglib_LIBRARIES = libcpp.a 
+srclib_datadir = ${prefix}/share/tce/srclibs/
+srclib_data_DATA = libcpp.sa
 
-libcpp_a_SOURCES = exception_handling.c terminate.cc
+src_datadir = ${srclib_datadir}/cpp
+src_data_DATA =  exception_handling.c terminate.cc
 
-TCECC_CPPFLAGS = -I$(srcdir)/../include
-TCECC = ../../src/bintools/Compiler/tcecc
-
-.c.o:
-	$(TCECC) $(TCECC_CPPFLAGS) -g -c -O3 -o $@ $<
-
-.cc.o:
-	$(TCECC) $(TCECC_CPPFLAGS) -g -c -O3 -o $@ $<

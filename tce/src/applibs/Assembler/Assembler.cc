@@ -102,7 +102,7 @@ Assembler::compile()
             throw error;
         }
 
-        parser.finalize();
+        parser.finalize(mach_->isLittleEndian());
 
     } catch (CompileError& e) {
 

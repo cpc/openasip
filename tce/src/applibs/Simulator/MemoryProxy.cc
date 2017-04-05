@@ -44,7 +44,8 @@
  * @param memory Tracked memory.
  */
 MemoryProxy::MemoryProxy(SimulatorFrontend& frontend, Memory* memory) :
-    Memory(memory->start(), memory->end(), memory->MAUSize()), 
+    Memory(memory->start(), memory->end(), memory->MAUSize(),
+           memory->isLittleEndian()),
     frontend_(frontend), memory_(memory) {
 }
 

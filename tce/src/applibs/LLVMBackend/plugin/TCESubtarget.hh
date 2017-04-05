@@ -58,6 +58,7 @@ namespace llvm {
     public:
         TCESubtarget(TCETargetMachinePlugin* plugin); //const std::string &TT, const std::string &FS);
         std::string pluginFileName();
+        virtual bool isLittleEndian() const { return false; };
 
 #if (!(defined(LLVM_3_5)))
         virtual const TargetInstrInfo* getInstrInfo() const override;
@@ -80,6 +81,14 @@ namespace llvm {
     private:
         std::string pluginFile_;
         TCETargetMachinePlugin* plugin_;
+    };
+
+    class  TCELESubtarget: public TCESubtarget {
+    public:
+        TCELESubtarget(TCETargetMachinePlugin* plugin) : 
+            TCESubtarget(plugin) {}
+
+        virtual bool isLittleEndian() const { return true; }
     };
 }
 

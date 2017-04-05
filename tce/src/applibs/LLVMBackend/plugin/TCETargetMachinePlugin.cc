@@ -132,6 +132,9 @@ public:
 
     virtual unsigned getMaxMemoryAlignment() const;
 
+    // If machine is little-endian.
+    virtual bool isLittleEndian() const override;
+
 private:
     void initialize();
     
@@ -184,6 +187,13 @@ void
 GeneratedTCEPlugin::registerTargetMachine(
     TCETargetMachine &tm) {
     tm_ = &tm;
+
+    if (isLittleEndian()) {
+        subTarget_ = new TCELESubtarget(this);
+    } else {
+        subTarget_ = new TCESubtarget(this);
+    }
+
     if (lowering_ == NULL) {
 #ifdef LLVM_OLDER_THAN_3_7
         lowering_ = new TCETargetLowering(*tm_);
@@ -332,9 +342,22 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::LDQUBr) return "ldqu";
     if (opc == TCE::LDQUBi) return "ldqu";
 
+    if (opc == TCE::ST8Brb) return "st8";
+    if (opc == TCE::ST8Bib) return "st8";
+    if (opc == TCE::ST8Brj) return "st8";
+    if (opc == TCE::ST8Bij) return "st8";
+
+    if (opc == TCE::LD8Br) return "ld8";
+    if (opc == TCE::LD8Bi) return "ld8";
+    if (opc == TCE::LDU8Br) return "ldu8";
+    if (opc == TCE::LDU8Bi) return "ldu8";
+
+
     // temporary RA register store/loads
     if (opc == TCE::STWRArr) return "stw";
     if (opc == TCE::LDWRAr) return "ldw";
+    if (opc == TCE::ST32RArr) return "st32";
+    if (opc == TCE::LD32RAr) return "ld32";
     
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBRICOND) return "!jump";

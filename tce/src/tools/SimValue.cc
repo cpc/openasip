@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of SimValue class.
  *
- * @author Pekka J��skel�inen 2004 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2004,2014-2015 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -37,12 +37,11 @@
 #include "Conversion.hh"
 #include "TCEString.hh"
 
-
 /**
  * Default constructor.
  *
  * To allow creation of SimValue arrays. Constructs a SimValue with
- * width of SIMULATOR_MAX_INTWORD_BITWIDTH (32) bits.
+ * width of SIMULATOR_MAX_INTWORD_BITWIDTH bits.
  */
 SimValue::SimValue() :
     mask_(~UIntWord(0)) {
@@ -65,7 +64,7 @@ SimValue::SimValue(int width) :
 /**
  * Constructor.
  *
- * @param value The numeric value of this SimValue.
+ * @param value The numeric value of this SimValue (in host endianness).
  * @param width The bit width of the created SimValue.
  */
 SimValue::SimValue(int value, int width) :
@@ -74,12 +73,11 @@ SimValue::SimValue(int value, int width) :
     setBitWidth(width);
 
     const int BYTE_COUNT = (width + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const int LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(((const Byte*)&value), BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(((const Byte*)&value), BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &value, BYTE_COUNT);
+    memcpy(rawData_, &value, BYTE_COUNT);
 #endif
 }
 
@@ -135,13 +133,13 @@ SimValue::setBitWidth(int width) {
  */
 SimValue&
 SimValue::operator=(const SIntWord& source) {
-    const size_t BYTE_COUNT = sizeof(SIntWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+    const size_t BYTE_COUNT = sizeof(SIntWord);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &source, BYTE_COUNT);
+    memcpy(rawData_, &source, BYTE_COUNT);
 #endif
     return (*this);
 }
@@ -154,13 +152,13 @@ SimValue::operator=(const SIntWord& source) {
  */
 SimValue&
 SimValue::operator=(const UIntWord& source) {
-    const size_t BYTE_COUNT = sizeof(UIntWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+    const size_t BYTE_COUNT = sizeof(UIntWord);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &source, BYTE_COUNT);
+    memcpy(rawData_, &source, BYTE_COUNT);
 #endif
     return (*this);
 }
@@ -173,16 +171,16 @@ SimValue::operator=(const UIntWord& source) {
  */
 SimValue&
 SimValue::operator=(const HalfFloatWord& source) {
+
     const size_t BYTE_COUNT = sizeof(uint16_t);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
     uint16_t data = source.getBinaryRep();
 
     setBitWidth(BYTE_COUNT * BYTE_BITWIDTH);
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder((const Byte*)&data, BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&data, BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &data, BYTE_COUNT);
+    memcpy(rawData_, &data, BYTE_COUNT);
 #endif
     return (*this);
 }
@@ -195,15 +193,15 @@ SimValue::operator=(const HalfFloatWord& source) {
  */
 SimValue&
 SimValue::operator=(const FloatWord& source) {
+
     const size_t BYTE_COUNT = sizeof(FloatWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     setBitWidth(BYTE_COUNT * BYTE_BITWIDTH);
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &source, BYTE_COUNT);
+    memcpy(rawData_, &source, BYTE_COUNT);
 #endif
     return (*this);
 }
@@ -216,15 +214,15 @@ SimValue::operator=(const FloatWord& source) {
  */
 SimValue&
 SimValue::operator=(const DoubleWord& source) {
+
     const size_t BYTE_COUNT = sizeof(DoubleWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     setBitWidth(BYTE_COUNT * BYTE_BITWIDTH);
 
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_ + LEFT_BYTE_POS);
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
 #else
-    memcpy(rawData_ + LEFT_BYTE_POS, &source, BYTE_COUNT);
+    memcpy(rawData_, &source, BYTE_COUNT);
 #endif
     return (*this);
 }
@@ -232,28 +230,29 @@ SimValue::operator=(const DoubleWord& source) {
 /**
  * Assignment operator for source value of type SimValue.
  *
- * The amount of copied bytes is dominated by the destination SimValue width.
- * In case the bit widths don't match, sign extension is done to the target
- * at the highest bit of the narrower value. This models dropping the extra
- * most significant bits of the target value in case the widths don't match
- * in a way that signed values keep their original meaning in signed
- * calculations. That is, a 1-bit "-1" is still "-1" when written to a
- * 4-bit SimValue, and vice versa.
- *
- * Since bytes are always laid out in big endian convention in SimValues,
- * the data can be directly copied between them without byte swapping.
+ * @note No sign extension is done in case
+ * the destination width differs from the source width.
  *
  * @param source The source value.
  * @return Reference to itself.
  */
 SimValue&
 SimValue::operator=(const SimValue& source) {
-    const size_t BYTE_COUNT = 
-        (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-    memcpy(
-        rawData_ + LEFT_BYTE_POS, source.rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    const size_t DST_BYTE_COUNT =
+        (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    const size_t SRC_BYTE_COUNT =
+        (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+
+    memcpy(rawData_, source.rawData_, SRC_BYTE_COUNT);
+    if (SRC_BYTE_COUNT < DST_BYTE_COUNT) {
+        memset(rawData_+SRC_BYTE_COUNT, 0, DST_BYTE_COUNT-SRC_BYTE_COUNT);
+    } else if (bitWidth_ % BYTE_BITWIDTH) {
+        const unsigned bitsInMSB = bitWidth_ % BYTE_BITWIDTH;
+        const Byte msbBitMask = static_cast<Byte>((1 << bitsInMSB) - 1);
+        rawData_[DST_BYTE_COUNT-1] &= msbBitMask;
+    }
+
     return (*this);
 }
 
@@ -264,12 +263,11 @@ SimValue::operator=(const SimValue& source) {
  */
 void
 SimValue::deepCopy(const SimValue& source) {
-    const size_t BYTE_COUNT = 
-        (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-    memcpy(
-        rawData_ + LEFT_BYTE_POS, source.rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    const size_t BYTE_COUNT =
+        (source.bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+
+    memcpy(rawData_, source.rawData_, BYTE_COUNT);
     bitWidth_ = source.bitWidth_;
     mask_ = source.mask_;
 }
@@ -601,6 +599,9 @@ SimValue::operator*(const DoubleWord& rightHand) {
  * These operators are defined to avoid ambiguous overload because of built-in
  * operators.
  *
+ * @note This compares only the first value as a 32bit uintword, thus
+ *       does not work for values that exceed that width.
+ *
  * @param rightHand The right hand side of the comparison.
  * @return Reference to itself.
  *
@@ -692,10 +693,10 @@ SimValue::operator==(const DoubleWord& rightHand) const {
  *
  * @return Sign extended integer value.
  */
-int 
+int
 SimValue::intValue() const {
+
     const size_t BYTE_COUNT = sizeof(int);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -703,11 +704,11 @@ SimValue::intValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_ , BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
     return MathTools::fastSignExtendTo(cast.value, bitWidth);
@@ -718,10 +719,9 @@ SimValue::intValue() const {
  *
  * @return Zero extended unsigned integer value.
  */
-unsigned int 
+unsigned int
 SimValue::unsignedValue() const {
     const size_t BYTE_COUNT = sizeof(unsigned int);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -729,13 +729,13 @@ SimValue::unsignedValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
-    
+
     int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
     return MathTools::fastZeroExtendTo(cast.value, bitWidth);
 }
@@ -745,10 +745,10 @@ SimValue::unsignedValue() const {
  *
  * @return SIntWord value.
  */
-SIntWord 
+SIntWord
 SimValue::sIntWordValue() const {
+
     const size_t BYTE_COUNT = sizeof(SIntWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -756,11 +756,11 @@ SimValue::sIntWordValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     return cast.value & mask_;
 }
@@ -770,10 +770,10 @@ SimValue::sIntWordValue() const {
  *
  * @return UIntWord value.
  */
-UIntWord 
+UIntWord
 SimValue::uIntWordValue() const {
+
     const size_t BYTE_COUNT = sizeof(UIntWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -781,24 +781,24 @@ SimValue::uIntWordValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     return cast.value & mask_;
 }
 
 /**
- * Returns the SimValue as DoubleWord value.
+ * Returns the SimValue as a host endian DoubleWord value.
  *
  * @return DoubleWord value.
  */
 DoubleWord
 SimValue::doubleWordValue() const {
+
     const size_t BYTE_COUNT = sizeof(DoubleWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -806,11 +806,11 @@ SimValue::doubleWordValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     return cast.value;
 }
@@ -818,12 +818,12 @@ SimValue::doubleWordValue() const {
 /**
  * Returns the SimValue as FloatWord value.
  *
- * @return FloatWord value.
+ * @return the SimValue as a host endian FloatWord value.
  */
-FloatWord 
+FloatWord
 SimValue::floatWordValue() const {
+
     const size_t BYTE_COUNT = sizeof(FloatWord);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -831,11 +831,11 @@ SimValue::floatWordValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     return cast.value;
 }
@@ -843,12 +843,11 @@ SimValue::floatWordValue() const {
 /**
  * Returns the SimValue as HalfFloatWord value.
  *
- * @return HalfFloatWord value.
+ * @return the SimValue as a host endian HalfFloatWord value.
  */
-HalfFloatWord 
+HalfFloatWord
 SimValue::halfFloatWordValue() const {
     const size_t BYTE_COUNT = sizeof(uint16_t);
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     union CastUnion {
         Byte bytes[BYTE_COUNT];
@@ -856,11 +855,11 @@ SimValue::halfFloatWordValue() const {
     };
 
     CastUnion cast;
-    
-#if WORDS_BIGENDIAN != 1
-    swapByteOrder(rawData_ + LEFT_BYTE_POS, BYTE_COUNT, cast.bytes);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
 #else
-    memcpy(cast.bytes, rawData_ + LEFT_BYTE_POS, BYTE_COUNT);
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
     return HalfFloatWord(cast.value);
 }
@@ -868,32 +867,33 @@ SimValue::halfFloatWordValue() const {
 /**
  * Returns the value as a binary string.
  *
- * @return SimValue bytes in binary format.
+ * @return the value as a 2's complement (MSB left) binary string in ascii.
  */
 TCEString
 SimValue::binaryValue() const {
+
     const size_t BYTE_COUNT = bitWidth_ / BYTE_BITWIDTH;
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
     int remainBits = bitWidth_ % BYTE_BITWIDTH;
     TCEString binaryStr = "";
 
     if (remainBits > 0) {
         binaryStr += Conversion::toBinary(
-            static_cast<unsigned int>(rawData_[LEFT_BYTE_POS - 1]), 
+            static_cast<unsigned int>(rawData_[BYTE_COUNT]),
             remainBits);
     }
 
-    for (size_t i = 0; i < BYTE_COUNT; ++i) {
+    for (int i = BYTE_COUNT - 1; i >= 0; --i) {
         binaryStr += Conversion::toBinary(
-            static_cast<unsigned int>(rawData_[LEFT_BYTE_POS + i]), 8);
+            static_cast<unsigned int>(rawData_[i]), 8);
     }
 
     return binaryStr;
 }
 
 /**
- * Returns the value as a big endian ordered hex string.
+ * Returns the value as a big endian ordered (C-literal style) hex
+ * ascii string.
  *
  * @param noHexIdentifier Leaves "0x" prefix out if set to true.
  * @return SimValue bytes in hex format.
@@ -912,23 +912,22 @@ SimValue::hexValue(bool noHexIdentifier) const {
 
     const size_t BYTE_COUNT =
         (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
     const unsigned MSB_MASK = ~(0xffffffffu << (8-(BYTE_COUNT*8-bitWidth_)));
 
     TCEString hexStr;
     // Convert the raw data buffer to hex string values one byte at a time.
     // Also, remove "0x" from the front of the hex string for each hex value.
-    for (size_t i = 0; i < BYTE_COUNT; ++i) {
-        unsigned int value = 
-            static_cast<unsigned int>(rawData_[LEFT_BYTE_POS + i]);
-        if (i == 0) {
+    for (int i = BYTE_COUNT - 1; i >= 0; --i) {
+        unsigned int value = static_cast<unsigned int>(rawData_[i]);
+        if (i == static_cast<int>(BYTE_COUNT - 1)) {
+
             value &= MSB_MASK;
         }
         hexStr += Conversion::toHexString(value, 2).substr(2);
     }
 
     // Remove extraneous zero digit from the front.
-    hexStr = hexStr.substr(hexStr.size()-hexNumbers);
+    hexStr = hexStr.substr(hexStr.size() - hexNumbers);
 
     if (!noHexIdentifier) hexStr.insert(0, "0x");
 
@@ -938,7 +937,7 @@ SimValue::hexValue(bool noHexIdentifier) const {
 /**
  * Sets SimValue to correspond the hex value.
  *
- * Given hex string must be in little-endian order when it is given. For
+ * Given hex string must be in big-endian order when it is given. For
  * instance, if the user wants to set integer value 5 through this function,
  * the function should be called "setValue("0x00000005");". Add leading
  * zeroes if you want to clear bytes before the byte that has value 5.
@@ -953,6 +952,11 @@ SimValue::setValue(TCEString hexValue) {
 
     const size_t VALUE_BITWIDTH = hexValue.size() * 4;
 
+    // stretch the SimValue to the hex value bit width in case
+    // this is an initialization
+    if (bitWidth_ == 0) bitWidth_ = VALUE_BITWIDTH;
+
+    size_t paddingBytes = 0;
     // Check the hex string value is legal.
     if (VALUE_BITWIDTH > SIMD_WORD_WIDTH) {
         throw NumberFormatException(
@@ -960,15 +964,23 @@ SimValue::setValue(TCEString hexValue) {
     } else if (VALUE_BITWIDTH == 0) {
         throw NumberFormatException(
             __FILE__, __LINE__, __func__, "Input value is empty.");
+    } else if (VALUE_BITWIDTH > (size_t)bitWidth_) {
+        // Add padding zero bytes in case the hexValue defines less
+        // bytes than the width of the value.
+        paddingBytes = (VALUE_BITWIDTH - bitWidth_) / 8;
+        for (size_t i = 0; i < paddingBytes; ++i)
+            rawData_[VALUE_BITWIDTH / 8 + i] = 0;
     }
+    Byte bigEndianData[SIMVALUE_MAX_BYTE_SIZE];
+    Conversion::toRawData(hexValue, bigEndianData);
 
-    const size_t BYTE_COUNT = 
-        (VALUE_BITWIDTH + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;    
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
+    // because the hexValues are 4bits each they might not fill exact
+    // bytes, thus we need to round up to consume an extra byte for
+    // remaining 4bits
+    int byteWidth = VALUE_BITWIDTH / 8;
+    if (VALUE_BITWIDTH % 8 != 0) ++byteWidth;
 
-    /// @todo Use memset to init the SimValue to 0 for the whole bitwidth 
-    /// before copying the bytes?
-    Conversion::toRawData(hexValue, rawData_ + LEFT_BYTE_POS);
+    swapByteOrder(bigEndianData, byteWidth, rawData_);
 }
 
 /**
@@ -981,9 +993,38 @@ SimValue::clearToZero(int bitWidth) {
     assert(bitWidth <= SIMD_WORD_WIDTH);
 
     const size_t BYTE_COUNT = (bitWidth + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const size_t LEFT_BYTE_POS = SIMVALUE_MAX_BYTE_SIZE - BYTE_COUNT;
 
-    memset(rawData_ + LEFT_BYTE_POS, 0, BYTE_COUNT);
+    memset(rawData_, 0, BYTE_COUNT);
+}
+
+/**
+ * Sets all SimValue bytes to 0.
+ */
+void
+SimValue::clearToZero() {
+    clearToZero(SIMD_WORD_WIDTH);
+}
+
+/**
+ * Dumps raw data encoded in the SimValue in hexadecimal format.
+ */
+TCEString
+SimValue::dump() const {
+    TCEString result = "width=";
+    result += Conversion::toString(width());
+    result += " mask=";
+    result += Conversion::toBinary(mask_, 32);
+    result += " data=0x";
+
+    // Convert the raw data buffer to hex string values one byte at a time.
+    // Also, remove "0x" from the front of the hex string for each hex value.
+    for (int i = SIMVALUE_MAX_BYTE_SIZE - 1; i >= 0; --i) {
+        unsigned int value =
+            static_cast<unsigned int>(rawData_[i]);
+        result += Conversion::toHexString(value, 2).substr(2);
+    }
+
+    return result;
 }
 
 /**
@@ -998,7 +1039,8 @@ SimValue::clearToZero(int bitWidth) {
 void
 SimValue::swapByteOrder(
     const Byte* from, size_t byteCount, Byte* to) const {
- 
+
+    assert (from != to);
     for (size_t i = 0; i < byteCount; ++i) {
         to[byteCount - 1 - i] = from[i];
     }

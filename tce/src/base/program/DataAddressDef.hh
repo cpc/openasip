@@ -44,7 +44,7 @@ namespace TTAProgram {
  */
 class DataAddressDef : public DataDefinition {
 public:
-    DataAddressDef(Address start, int size, Address dest);
+    DataAddressDef(Address start, int size, Address dest, bool littleEndian);
     virtual ~DataAddressDef();
     
     virtual bool isInitialized() const;

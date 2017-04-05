@@ -76,7 +76,7 @@ public:
     typedef MinimumAddressableUnit MAU;
     typedef MAU* MAUTable;
 
-    Memory(Word start, Word end, Word MAUSize);
+    Memory(Word start, Word end, Word MAUSize, bool littleEndian_);
     virtual ~Memory();
 
     virtual void advanceClock();
@@ -84,12 +84,29 @@ public:
     virtual void write(Word address, MAU data) = 0;
     virtual Memory::MAU read(Word address) = 0;
 
-    virtual void write(Word address, int size, UIntWord data);
-    virtual void write(Word address, FloatWord data);
-    virtual void write(Word address, DoubleWord data);
-    virtual void read(Word address, int size, UIntWord& data);
-    virtual void read(Word address, FloatWord& data);
-    virtual void read(Word address, DoubleWord& data);
+    virtual void writeBE(Word address, int size, UIntWord data);
+    virtual void writeLE(Word address, int size, UIntWord data);
+    void write(Word address, int size, UIntWord data);
+
+    virtual void writeDirectlyBE(Word address, int size, UIntWord data);
+    virtual void writeDirectlyLE(Word address, int size, UIntWord data);
+
+    void write(Word address, FloatWord data);
+    void write(Word address, DoubleWord data);
+    void read(Word address, int size, UIntWord& data);
+    void read(Word address, DoubleWord& data);
+    void read(Word address, FloatWord& data);
+
+    virtual void writeBE(Word address, FloatWord data);
+    virtual void writeBE(Word address, DoubleWord data);
+    virtual void writeLE(Word address, FloatWord data);
+    virtual void writeLE(Word address, DoubleWord data);
+    virtual void readBE(Word address, int size, UIntWord& data);
+    virtual void readLE(Word address, int size, UIntWord& data);
+    virtual void readBE(Word address, FloatWord& data);
+    virtual void readBE(Word address, DoubleWord& data);
+    virtual void readLE(Word address, FloatWord& data);
+    virtual void readLE(Word address, DoubleWord& data);
 
     virtual void reset();
     virtual void fillWithZeros();
@@ -98,11 +115,15 @@ public:
     virtual Word end() { return end_; }
     virtual Word MAUSize() { return MAUSize_; }
 
+    bool isLittleEndian() { return littleEndian_; }
 protected:
 
-    void pack(const Memory::MAUTable data, int size, UIntWord& value);
-    void unpack(const UIntWord& value, int size, Memory::MAUTable data);
-
+    void packBE(const Memory::MAUTable data, int size, UIntWord& value);
+    void unpackBE(const UIntWord& value, int size, Memory::MAUTable data);
+    void packLE(const Memory::MAUTable data, int size, UIntWord& value);
+    void unpackLE(const UIntWord& value, int size, Memory::MAUTable data);
+    
+    bool littleEndian_;
 private:
     /// Copying not allowed.
     Memory(const Memory&);

@@ -827,7 +827,8 @@ Program::copyDataMemoriesFrom(const Program& srcProg) {
                         dstInstr);
                 
                 newDef = new DataInstructionAddressDef(
-                    currDef.startAddress(), currDef.size(), dstRef);
+                    currDef.startAddress(), currDef.size(), dstRef,
+                    targetProcessor().isLittleEndian());
 
             } else {
                 newDef = currDef.copy();

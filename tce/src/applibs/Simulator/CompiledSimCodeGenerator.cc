@@ -1528,9 +1528,9 @@ CompiledSimCodeGenerator::generateStoreTrigger(
     if (op.name() == "stq") {
         method = "fastWriteMAU";
     } else if (op.name() == "sth") {
-        method = "fastWrite2MAUs";
+        method = "fastWrite2MAUsBE";
     } else if (op.name() == "stw") {
-        method = "fastWrite4MAUs";
+        method = "fastWrite4MAUsBE";
     }
     
     return memory + "." + method + "(" + address + ", " + dataToWrite + ");";
@@ -1562,11 +1562,11 @@ CompiledSimCodeGenerator::generateLoadTrigger(
         resultSignExtend = temp + " = " + extensionMode 
             + "(" + temp + ", " + MAUSize + ");";
     } else if (op.name() == "ldh" || op.name() == "ldhu") {
-        method = "fastRead2MAUs";
+        method = "fastRead2MAUsBE";
         resultSignExtend = temp + " = " + extensionMode 
             + "(" + temp + ", (" + MAUSize + "*2));";
     } else if (op.name() == "ldw") {
-        method = "fastRead4MAUs";
+        method = "fastRead4MAUsBE";
     }
     
     ss << "UIntWord " << temp << "; " << memory + "." << method << "("

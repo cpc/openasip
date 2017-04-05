@@ -5,7 +5,12 @@ SUBDIRS += scheduler
 endif
 
 if COMPILER_FOUND
-SUBDIRS += newlib-1.17.0 bclib
+SUBDIRS += bclib
+SUBDIRS += newlib-1.17.0/tce-llvm
+endif
+
+if TCELE_AVAILABLE
+SUBDIRS += newlib-1.17.0/tcele-llvm
 endif
 
 AUTOMAKE_OPTIONS = foreign

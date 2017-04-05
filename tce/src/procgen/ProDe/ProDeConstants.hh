@@ -143,6 +143,8 @@ public:
     static const std::string CMD_NAME_EDIT_BUS_ORDER;
     /// Command name for the "Fully connect busses" command.
     static const std::string CMD_NAME_FULLY_CONNECT_BUSSES;
+    /// Command name for the "Processor configurations" command.
+    static const std::string CMD_NAME_EDIT_MACHINE;
 
     /// Command name for the "Zoom In" command.
     static const std::string CMD_NAME_ZOOM_IN;
@@ -221,6 +223,8 @@ public:
     static const std::string CMD_SNAME_EDIT_ADDRESS_SPACES;
     /// Command name for the "Edit Templates" command.
     static const std::string CMD_SNAME_EDIT_TEMPLATES;
+    /// Command name for the "Processor Configurations" command.
+    static const std::string CMD_SNAME_EDIT_MACHINE;
     /// Command name for the "Edit Immediate slots" command.
     static const std::string CMD_SNAME_EDIT_IMMEDIATE_SLOTS;
     /// Command name for the "Edit Bus Order" command.
@@ -324,6 +328,8 @@ public:
     static const std::string CMD_ICON_EDIT_TEMPLATES;
     /// Icon location for the "Edit Connections" command.
     static const std::string CMD_ICON_EDIT_CONNECTIONS;
+    /// Icon location for the "Processor Configurations" command.
+    static const std::string CMD_ICON_EDIT_MACHINE;
     /// Icon location for the "Verify Machine" command.
     static const std::string CMD_ICON_VERIFY_MACHINE;
     /// Icon location for the "Implementation" command.
@@ -420,7 +426,8 @@ public:
             COMMAND_EDIT_ADDRESS_SPACES,
             COMMAND_EDIT_TEMPLATES,
         COMMAND_EDIT_IMMEDIATE_SLOTS,
-            COMMAND_EDIT_BUS_ORDER,
+        COMMAND_EDIT_BUS_ORDER,
+        COMMAND_EDIT_MACHINE,
 
         COMMAND_ZOOM_IN,
         COMMAND_ZOOM_OUT,

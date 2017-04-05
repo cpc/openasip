@@ -50,10 +50,12 @@ namespace TTAProgram {
  */
 
 DataDefinition::DataDefinition(
-    Address start, int size, MinimumAddressableUnit *initData,
-    bool allZeros) 
+    Address start, int size, bool littleEndian,
+    MinimumAddressableUnit *initData,
+    bool allZeros)
     throw (OutOfRange) :
-    start_(start), size_(size), allZeros_(allZeros) {
+    start_(start), size_(size), allZeros_(allZeros),
+    littleEndian_(littleEndian) {
     
     if (initData != NULL) {
         data_ = new std::vector<MinimumAddressableUnit>(size);
@@ -86,9 +88,10 @@ DataDefinition::DataDefinition(
  * do not fit in a MAU.
  */
 DataDefinition::DataDefinition(
-    Address start, const std::vector<MinimumAddressableUnit>& initData) 
+    Address start, const std::vector<MinimumAddressableUnit>& initData,
+    bool littleEndian) 
     throw (OutOfRange) :
-    start_(start), allZeros_(false) {    
+    start_(start), allZeros_(false), littleEndian_(littleEndian) {    
 
     // check that the MAUs are not too large for the address space
     for (std::size_t i = 0 ; i < initData.size(); i++) {
@@ -156,6 +159,10 @@ DataDefinition::MAU(int index) const {
     assert(index < size());
 
     if (isAddress()) {    
+        if (littleEndian_) {
+            index = size() - index -1;
+        }
+
         MinimumAddressableUnit retVal = destinationAddress().location();
         
         // how many bits should be masked out
@@ -259,11 +266,11 @@ DataDefinition* DataDefinition::copy() const {
     DataDefinition* newDef = NULL;
 
     if (allZeros_) {
-        newDef = new DataDefinition(start_, size_, NULL, true);
+        newDef = new DataDefinition(start_, size_, littleEndian_, NULL, true);
     } else if (isInitialized()) {
-        newDef = new DataDefinition(start_, *data_);
+        newDef = new DataDefinition(start_, *data_, littleEndian_);
     } else {
-        newDef = new DataDefinition(start_, size_);
+        newDef = new DataDefinition(start_, size_, littleEndian_);
     }
 
     return newDef;

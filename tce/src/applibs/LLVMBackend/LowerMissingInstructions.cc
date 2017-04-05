@@ -105,14 +105,14 @@ namespace {
 
         
         // from llvm::Pass:
-        bool doInitialization(Module &M);
-        bool doFinalization (Module &M);
+        bool doInitialization(Module &M) override;
+        bool doFinalization (Module &M) override;
 
         // to suppress Clang warnings
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
 
-        bool runOnBasicBlock(BasicBlock &BB);
+        bool runOnBasicBlock(BasicBlock &BB) override;
 
 #if LLVM_OLDER_THAN_4_0
     virtual const char *getPassName() const override {
@@ -430,7 +430,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
         opSet = MachineInfo::getOpset(*mach_);
     
     OperationDAGSelector::OperationSet
-        requiredSet = LLVMBackend::llvmRequiredOpset();
+        requiredSet = LLVMBackend::llvmRequiredOpset(true, mach_->isLittleEndian());
     
     OperationPool osal;
     

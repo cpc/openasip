@@ -149,7 +149,7 @@ const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
  * @return Minimumn opset that is required for llvm.
  */
 OperationDAGSelector::OperationSet 
-LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
+LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian) {
     OperationDAGSelector::OperationSet requiredOps;
 
     requiredOps.insert("ADD");
@@ -161,14 +161,25 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
     requiredOps.insert("MOD");
     requiredOps.insert("MODU");
 
-    requiredOps.insert("LDW");
-    requiredOps.insert("LDH");
-    requiredOps.insert("LDHU");
-    requiredOps.insert("LDQ");
-    requiredOps.insert("LDQU");
-    requiredOps.insert("STW");
-    requiredOps.insert("STH");
-    requiredOps.insert("STQ");
+    if (littleEndian) {
+        requiredOps.insert("LD32");
+        requiredOps.insert("LD16");
+        requiredOps.insert("LDU16");
+        requiredOps.insert("LD8");
+        requiredOps.insert("LDU8");
+        requiredOps.insert("ST32");
+        requiredOps.insert("ST16");
+        requiredOps.insert("ST8");
+    } else {
+        requiredOps.insert("LDW");
+        requiredOps.insert("LDH");
+        requiredOps.insert("LDHU");
+        requiredOps.insert("LDQ");
+        requiredOps.insert("LDQU");
+        requiredOps.insert("STW");
+        requiredOps.insert("STH");
+        requiredOps.insert("STQ");
+    }
 
     requiredOps.insert("SXHW");
     requiredOps.insert("SXQW");
@@ -477,7 +488,7 @@ LLVMBackend::compile(
     throw (Exception) {
 
     ipData_ = ipData;
-    std::string targetStr = "tce-llvm";
+    std::string targetStr = target.isLittleEndian()?"tcele-llvm":"tce-llvm";
     std::string errorStr;
 
     std::string featureString ="";
@@ -543,6 +554,15 @@ LLVMBackend::compile(
         return NULL;
     }
 
+#ifndef LLVM_OLDER_THAN_3_7
+    const llvm::DataLayout& moduleDL = module.getDataLayout();
+    const llvm::DataLayout& targetDL = targetMachine->createDataLayout();
+    if (moduleDL != targetDL) {
+      errs() << "DataLayout mismatch with module: " << module.getName() << "\n"
+             << "Module: " << moduleDL.getStringRepresentation() << "\n"
+             << "Target: " << targetDL.getStringRepresentation() << "\n";
+    }
+#endif
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
     targetMachine->setTargetMachinePlugin(plugin);
@@ -788,12 +808,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
     // Generate TCEGenRegisterInfo.inc
-
     std::string cmd = tblgenCmd +
         " -gen-register-info" +
         " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenRegisterInfo.inc";
 
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "LLVMBackend: " << cmd << std::endl;
+    }
     int ret = system(cmd.c_str());
     if (ret) {
         std::string msg = std::string() +
@@ -875,6 +897,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCETargetMachinePlugin.cc " +
         srcsPath + "TCESubtarget.cc ";
 
+    TCEString endianOption = target.isLittleEndian() ?
+        "-DLITTLE_ENDIAN_TARGET" : "";
+
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
@@ -887,6 +912,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 #elif defined(HAVE_CXX11)
         " " + CXX11_FLAG +
 #endif
+        " " + endianOption +
         " " + pluginSources +
         " -o " + pluginFileName;
 
@@ -894,6 +920,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // plugin. this is a temporary solution
     if (options_->useVectorBackend()) {
         cmd += " -DUSE_VECTOR_REGS";
+    }
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "LLVMBackend: " << cmd << std::endl;
     }
     ret = system(cmd.c_str());
     if (ret) {

@@ -133,7 +133,11 @@ ADFSerializerTest::testWriteState() {
     mach->setTriggerInvalidatesResults(true);
     TS_ASSERT(mach->triggerInvalidatesResults());    
     mach->setFUOrdered(false);
-        
+
+    TS_ASSERT(!mach->isLittleEndian());
+    mach->setLittleEndian(true);
+    TS_ASSERT(mach->isLittleEndian());
+
     Bus* bus1 = new Bus(bus1Name, 16, 16, Machine::SIGN);
     Bus* bus2 = new Bus(bus2Name, 32, 32, Machine::ZERO);
     new Segment(seg1Name, *bus1);
@@ -224,6 +228,7 @@ ADFSerializerTest::testReadState() {
 
     Machine* mach = serializer->readMachine();
 
+    TS_ASSERT(mach->isLittleEndian());
     TS_ASSERT(mach->triggerInvalidatesResults());
     TS_ASSERT(!mach->alwaysWriteResults());
     TS_ASSERT(!mach->isFUOrdered());

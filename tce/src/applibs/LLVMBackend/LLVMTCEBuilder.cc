@@ -375,7 +375,8 @@ LLVMTCEBuilder::initDataSections() {
         if (pad > 0) {
             TTAProgram::Address address(dataEndPos, aSpace);
             dmem.addDataDefinition(
-                new TTAProgram::DataDefinition(address, pad, NULL, true));
+                new TTAProgram::DataDefinition(
+                    address, pad, mach_->isLittleEndian(), NULL, true));
             dataEndPos += pad;
         }
 
@@ -407,7 +408,8 @@ LLVMTCEBuilder::initDataSections() {
         if (pad > 0) {
             TTAProgram::Address address(dataEndPos, aSpace);
             dmem.addDataDefinition(
-                new TTAProgram::DataDefinition(address, pad));
+                new TTAProgram::DataDefinition(
+                    address, pad, mach_->isLittleEndian()));
 
             dataEndPos += pad;
         }
@@ -463,7 +465,8 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
 
         TTAProgram::Address addr(def.address, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(addr, def.size));
+            new TTAProgram::DataDefinition(
+                addr, def.size, mach_->isLittleEndian()));
 
         return;
     } else {
@@ -529,7 +532,8 @@ LLVMTCEBuilder::createDataDefinition(
         std::vector<MinimumAddressableUnit> zeros(pad, 0);
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, zeros));
+            new TTAProgram::DataDefinition(
+                address, zeros, mach_->isLittleEndian()));
         addr += pad;
     }
 
@@ -543,7 +547,8 @@ LLVMTCEBuilder::createDataDefinition(
         (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL)) {
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, sz, NULL, false));
+            new TTAProgram::DataDefinition(
+                address, sz, mach_->isLittleEndian(), NULL, true));
         addr += sz;
         return paddedAddr;
     }
@@ -568,10 +573,11 @@ LLVMTCEBuilder::createDataDefinition(
         if (cda->isNullValue()) {
             TTAProgram::Address address(addr, aSpace);
             dmem.addDataDefinition( 
-                new TTAProgram::DataDefinition(address, sz, NULL, false) );
+                new TTAProgram::DataDefinition(
+                    address, sz, mach_->isLittleEndian(), NULL, false) );
         } else {
             /* If the array has non-zero values, do not split the
-               definitions to iinitialized and initialized data sections, but
+               definitions to initialized and uninitialized data sections, but
                initialize them all. Otherwise we might end up having zillions
                of UData and Data sections after each other in the TPEF for the
                initialization data, because the sections have only one start 
@@ -645,11 +651,17 @@ LLVMTCEBuilder::createIntDataDefinition(
     
     TTAProgram::DataDefinition* def;
 
-    for (unsigned i = 0; i < sz; i++) {
-        maus.push_back(u.bytes[sz - i - 1]);
+    if (!mach_->isLittleEndian()) {
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[sz - i - 1]);
+        }
+    } else {
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[i]);
+        }
     }
 
-    def = new TTAProgram::DataDefinition(start, maus);
+    def = new TTAProgram::DataDefinition(start, maus, mach_->isLittleEndian());
     addr += def->size();
     dmem.addDataDefinition(def);
 }
@@ -687,10 +699,17 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.d = val;
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else if (type->getTypeID() == Type::FloatTyID) {
 
         float val = cfp->getValueAPF().convertToFloat();
@@ -701,10 +720,17 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.f = val;
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else if (type->getTypeID() == Type::HalfTyID) {
 
         APFloat apf = cfp->getValueAPF();
@@ -726,10 +752,17 @@ LLVMTCEBuilder::createFPDataDefinition(
         for (unsigned i = sz; i < 4; i++) {
             maus.push_back(0);
         }
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else {
         assert(false && "Unknown floating point typeID!");
     }
@@ -777,12 +810,14 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
         TTAProgram::InstructionReference ref =
             prog_->instructionReferenceManager().createReference(*instr);
 
-        def = new TTAProgram::DataInstructionAddressDef(start, sz, ref);
+        def = new TTAProgram::DataInstructionAddressDef(
+            start, sz, ref, mach_->isLittleEndian());
     } else if (dataLabels_.find(label) != dataLabels_.end()) {
         TTAProgram::Address ref(
             (dataLabels_[label] + offset), aSpace);
 
-        def = new TTAProgram::DataAddressDef(start, sz, ref);
+        def = new TTAProgram::DataAddressDef(
+            start, sz, ref, mach_->isLittleEndian());
     } else {
         assert(false && "Global value label not found!");
     }

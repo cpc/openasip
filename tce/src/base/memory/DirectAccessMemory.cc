@@ -53,8 +53,8 @@ using std::string;
  * @param MAUSize Bit width of the minimum addressable unit of the memory.
  */
 DirectAccessMemory::DirectAccessMemory(
-    Word start, Word end, Word MAUSize) : 
-    Memory(start, end, MAUSize), 
+    Word start, Word end, Word MAUSize, bool littleEndian) : 
+    Memory(start, end, MAUSize, littleEndian), 
     start_(start), end_(end), MAUSize_(MAUSize),
     MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2) {
         
@@ -113,8 +113,8 @@ DirectAccessMemory::write(Word address, Memory::MAU data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-DirectAccessMemory::write(Word address, int count, UIntWord data) {
-    Memory::write(address, count,  data);
+DirectAccessMemory::writeBE(Word address, int count, UIntWord data) {
+    Memory::writeBE(address, count,  data);
     // compiled simulator does not call advance clock of
     // memories at every cycle for efficiency, so we have
     // to "flush" the writes right away
@@ -156,14 +156,14 @@ DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite2MAUs(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite2MAUsBE(Word address, UIntWord data) {  
     const Word index = address - start_;
     data_->writeData(index, (int)((data >> MAUSize_) & mask_));
     data_->writeData(index + 1, (int)(data & mask_));
 }
 
 /**
- * Writes 4 MAUs to the memory as fast as possible
+ * Writes 2 MAUs to the memory as fast as possible in little Endian
  * 
  * @param address address to write
  * @param data data to be written
@@ -171,12 +171,44 @@ DirectAccessMemory::fastWrite2MAUs(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite4MAUs(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite2MAUsLE(Word address, UIntWord data) {  
+    const Word index = address - start_;
+    data_->writeData(index + 1, (int)((data >> MAUSize_) & mask_));
+    data_->writeData(index, (int)(data & mask_));
+}
+
+/**
+ * Writes 4 MAUs to the memory as fast as possible in BE.
+ * 
+ * @param address address to write
+ * @param data data to be written
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
+ */
+void 
+DirectAccessMemory::fastWrite4MAUsBE(Word address, UIntWord data) {  
     const Word index = address - start_;
     data_->writeData(index, (int)((data >> MAUSize3_) & mask_));
     data_->writeData(index + 1, (int)((data >> MAUSize2_) & mask_));
     data_->writeData(index + 2, (int)((data >> MAUSize_) & mask_));
     data_->writeData(index + 3, (int)(data & mask_));
+}
+
+/**
+ * Writes 4 MAUs to the memory as fast as possible in LE
+ * 
+ * @param address address to write
+ * @param data data to be written
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
+ */
+void 
+DirectAccessMemory::fastWrite4MAUsLE(Word address, UIntWord data) {  
+    const Word index = address - start_;
+    data_->writeData(index + 3, (int)((data >> MAUSize3_) & mask_));
+    data_->writeData(index + 2, (int)((data >> MAUSize2_) & mask_));
+    data_->writeData(index + 1, (int)((data >> MAUSize_) & mask_));
+    data_->writeData(index, (int)(data & mask_));
 }
 
 /**
@@ -193,7 +225,7 @@ DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
 }
 
 /**
- * Reads 2 MAUs from the memory as fast as possible
+ * Reads 2 MAUs from the memory as fast as possible in BE
  * 
  * @param address address to read
  * @param data reference to the read data
@@ -201,14 +233,14 @@ DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead2MAUs(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead2MAUsBE(Word address, UIntWord& data) {
     const Word index = address - start_;
     data = data_->readData(index) << MAUSize_;
     data |= data_->readData(index + 1);
 }
 
 /**
- * Reads 4 MAUs from the memory as fast as possible
+ * Reads 2 MAUs from the memory as fast as possible in LE
  * 
  * @param address address to read
  * @param data reference to the read data
@@ -216,10 +248,42 @@ DirectAccessMemory::fastRead2MAUs(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead4MAUs(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead2MAUsLE(Word address, UIntWord& data) {
+    const Word index = address - start_;
+    data = data_->readData(index +1) << MAUSize_;
+    data |= data_->readData(index);
+}
+
+/**
+ * Reads 4 MAUs from the memory as fast as possible in BE
+ * 
+ * @param address address to read
+ * @param data reference to the read data
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
+ */
+void 
+DirectAccessMemory::fastRead4MAUsBE(Word address, UIntWord& data) {
     const Word index = address - start_;
     data = data_->readData(index) << MAUSize3_;
     data |= data_->readData(index + 1) << MAUSize2_;
     data |= data_->readData(index + 2) << MAUSize_;
     data |= data_->readData(index + 3);
+}
+
+/**
+ * Reads 4 MAUs from the memory as fast as possible in LE
+ * 
+ * @param address address to read
+ * @param data reference to the read data
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
+ */
+void 
+DirectAccessMemory::fastRead4MAUsLE(Word address, UIntWord& data) {
+    const Word index = address - start_;
+    data = data_->readData(index + 3) << MAUSize3_;
+    data |= data_->readData(index + 2) << MAUSize2_;
+    data |= data_->readData(index + 1) << MAUSize_;
+    data |= data_->readData(index);
 }

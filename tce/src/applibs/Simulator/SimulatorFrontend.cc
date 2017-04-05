@@ -246,10 +246,11 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     delete memorySystem_;
     memorySystem_ = NULL;
 
-    // compiled sim does not handle long guard latencies correctly.
+    // compiled sim does not handle long guard latencies nor LE  correctly.
     // remove when fixed.
     if (isCompiledSimulation() && 
-        machine.controlUnit()->globalGuardLatency() > 1) {
+        (machine.controlUnit()->globalGuardLatency() > 1 ||
+         machine.isLittleEndian())) {
         setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
@@ -1718,17 +1719,17 @@ SimulatorFrontend::initializeMemorySystem() {
         case SIM_COMPILED:
              mem = MemorySystem::MemoryPtr(
                  new DirectAccessMemory(
-                    space.start(), space.end(), space.width()));
+                     space.start(), space.end(), space.width(), machine.isLittleEndian()));
              break;
         case SIM_NORMAL:
              mem = MemorySystem::MemoryPtr(
                  new IdealSRAM(
-                    space.start(), space.end(), space.width()));
+                    space.start(), space.end(), space.width(), machine.isLittleEndian()));
              break;
         case SIM_REMOTE:
         case SIM_CUSTOM:
              mem = MemorySystem::MemoryPtr(
-                 new RemoteMemory( space ));
+                 new RemoteMemory( space, machine.isLittleEndian()));
 
             break;
         default:            

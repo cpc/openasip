@@ -86,6 +86,7 @@
 #include "AddIUFromHDBCmd.hh"
 #include "AddFUFromHDBCmd.hh"
 #include "ToggleUnitDetailsCmd.hh"
+#include "EditMachineCmd.hh"
 
 #include "KeyboardShortcut.hh"
 #include "ProDeOptions.hh"
@@ -155,6 +156,7 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new EditAddressSpacesCmd());
     commandRegistry_->addCommand(new EditBusOrderCmd());
     commandRegistry_->addCommand(new EditTemplatesCmd());
+    commandRegistry_->addCommand(new EditMachineCmd());
     commandRegistry_->addCommand(new EditImmediateSlotsCmd());
     commandRegistry_->addCommand(new SelectCmd());
     commandRegistry_->addCommand(new FullyConnectBussesCmd());
@@ -174,7 +176,7 @@ MainFrame::MainFrame(
 
     toolbar_ = NULL;
     CreateStatusBar(2);
-    int widths[2] = {-1, 200};
+    int widths[2] = {-2, -1};
     SetStatusWidths(2, widths);
 
     createMenubar();
@@ -213,7 +215,7 @@ MainFrame::onToggleStatusbar() {
         statusbar = NULL;
     } else {
         CreateStatusBar(2);
-        int widths[2] = {-1, 200};
+        int widths[2] = {-4, -1};
         SetStatusWidths(2, widths);
     }
     Layout();
@@ -579,6 +581,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_EDIT_BUS_ORDER,
         menuAccelerator(ProDeConstants::COMMAND_EDIT_BUS_ORDER).Prepend(
             _T("Transport Bus &Order...")));
+
+    editMenu->Append(
+        ProDeConstants::COMMAND_EDIT_MACHINE,
+        menuAccelerator(ProDeConstants::COMMAND_EDIT_MACHINE).Prepend(
+            _T("Architecture Features...")));
 
     // View menu
     wxMenu* viewMenu = new wxMenu;

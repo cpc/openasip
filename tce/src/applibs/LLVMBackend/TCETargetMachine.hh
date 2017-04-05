@@ -157,6 +157,15 @@ namespace llvm {
             return plugin_->getSubtarget(); 
         }
 #else
+
+        // This method is only in llvm < 3.7, but keep this here to
+        // allow calling this ourselves.
+        virtual const TCESubtarget* getSubtargetImpl() const {
+            // compiler does not know it's derived without the plugin,
+            // but this class cannow include the plugin. 
+            return reinterpret_cast<const TCESubtarget*>(plugin_->getSubtarget());
+        }
+
         virtual const TargetSubtargetInfo* getSubtargetImpl(const Function&) const {
             return plugin_->getSubtarget(); 
         }

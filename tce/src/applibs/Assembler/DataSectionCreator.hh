@@ -60,7 +60,7 @@ public:
 
     void addDataLine(const DataLine& origLine);
 
-    void finalize(TPEF::Binary& tpef, LabelManager& labels)
+    void finalize(TPEF::Binary& tpef, LabelManager& labels, bool littleEndian)
         throw (CompileError);
 
     void cleanup();

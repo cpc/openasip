@@ -48,6 +48,7 @@ namespace TPEF {
     class Binary;
     class InstructionElement;
     class DataSection;
+    class Section;
 }
 
 namespace TTAMachine {
@@ -89,12 +90,12 @@ public:
     void loadBEM(const BinaryEncoding& bem);
     
     void generateProgramImage(
-        std::string& programName,
+        const std::string& programName,
         std::ostream& stream,
         OutputFormat format,
         int mausPerLine = 0);
     void generateDataImage(
-        std::string& programName,
+        const std::string& programName,
         TPEF::Binary& program,
         const std::string& addressSpace, 
         std::ostream& stream, 
@@ -114,6 +115,11 @@ public:
         const std::string& fileName,
         std::ostream& stream)
         throw (FileNotFound, DynamicLibraryException);
+
+    void writeDataSection(TPEF::Binary& program,
+                          BitVector& bitVector,
+                          const std::string& addressSpace,
+                          TPEF::Section& section);
 
 private:
     /// Typedef for program set.

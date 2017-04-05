@@ -107,6 +107,8 @@ const string ProDeConstants::CMD_NAME_TOGGLE_UNIT_DETAILS =
 
 const string ProDeConstants::CMD_NAME_FULLY_CONNECT_BUSSES =
     "Fully Connect IC";
+const string ProDeConstants::CMD_NAME_EDIT_MACHINE =
+    "Processor Configurations";
 
 const string ProDeConstants::CMD_NAME_VERIFY_MACHINE = "Verify Machine";
 const string ProDeConstants::CMD_NAME_IMPLEMENTATION =
@@ -155,6 +157,7 @@ const string ProDeConstants::CMD_SNAME_SAVE_OPTIONS = "Sv Opt";
 const string ProDeConstants::CMD_SNAME_SAVEAS_OPTIONS = "SvAs Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_ADDRESS_SPACES = "AS's";
 const string ProDeConstants::CMD_SNAME_EDIT_TEMPLATES = "ITs";
+const string ProDeConstants::CMD_SNAME_EDIT_MACHINE = "Mach Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_IMMEDIATE_SLOTS = "ImmSlots";
 const string ProDeConstants::CMD_SNAME_EDIT_BUS_ORDER = "Bus Ord.";
 const string ProDeConstants::CMD_SNAME_EDIT_CONNECTIONS = "Connect";
@@ -185,6 +188,7 @@ const string ProDeConstants::CMD_ICON_SAVE_OPTIONS = "filesave.png";
 const string ProDeConstants::CMD_ICON_EDIT_ADDRESS_SPACES = "memory.png";
 const string ProDeConstants::CMD_ICON_EDIT_TEMPLATES = "default.png";
 const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS = "connect.png";
+const string ProDeConstants::CMD_ICON_EDIT_MACHINE = "default.png";
 
 const string ProDeConstants::CMD_ICON_VERIFY_MACHINE = "verify_machine.png";
 const string ProDeConstants::CMD_ICON_IMPLEMENTATION = "default.png";

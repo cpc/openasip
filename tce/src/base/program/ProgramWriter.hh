@@ -180,7 +180,7 @@ private:
         TPEF::CodeSection* code,
         TPEFResourceUpdater& updater) const;
 
-    void createDataSections(TPEF::Binary* bin) const;
+    void createDataSections(TPEF::Binary* bin, bool littleEndian) const;
 
     void createRelocSections(TPEF::Binary* bin) const
         throw (NotAvailable);

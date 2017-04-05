@@ -15,3 +15,8 @@ rm -f func_ptr_data.img
 
 #renames the disables test back to normal
 rm -f *.disabled
+
+rm -f *imem_mau_pkg.vhdl
+rm -f *imem_mau_pkg.vh
+rm -f dmem_endianess*
+rm -f *.tpef *.img

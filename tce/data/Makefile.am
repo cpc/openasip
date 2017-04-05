@@ -4,9 +4,12 @@ datadir = ${prefix}/share/tce/data
 
 nobase_data_DATA = $(srcdir)/ProDe/confschema.xsd \
                    $(srcdir)/bem/BEM_Schema.xsd \
-                   $(srcdir)/mach/ADF_Schema.xsd mach/minimal.adf mach/minimal_with_stdout.adf \
+                   $(srcdir)/mach/ADF_Schema.xsd \
+                   $(srcdir)/mach/minimal.adf \
+                   $(srcdir)/mach/minimal_with_stdout.adf \
+                   $(srcdir)/mach/minimal_le_with_io.adf \
                    $(srcdir)/osal/Operation_Schema.xsd \
-				   $(srcdir)/idf/IDF_Schema.xsd \
+                   $(srcdir)/idf/IDF_Schema.xsd \
                    $(srcdir)/OSEd/behavior_definition_template.cc \
                    $(srcdir)/ProGe/idecompressor.vhdl.tmpl ProGe/ifetch.vhdl.tmpl \
                    $(srcdir)/ProGe/debugfetch.vhdl.tmpl \

@@ -110,7 +110,8 @@ prode_SOURCES = Model.cc\
 		  BlockImplementationDialog.cc ImplementMachineCmd.cc \
 		  GenerateProcessorDialog.cc OpsetDialog.cc \
 		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
-		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc
+		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc \
+		  MachineDialog.cc EditMachineCmd.cc
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
@@ -237,5 +238,6 @@ prode_SOURCES += \
 	ProDeOptionsSerializer.hh AddIUFromHDBCmd.hh \
 	ModifyRFCmd.hh AddASCmd.hh \
 	ProDeRFEditPolicy.hh PasteComponentCmd.icc \
-	MDFView.icc AutoSelectImplementationsDialog.hh
+	MDFView.icc AutoSelectImplementationsDialog.hh \
+	MachineDialog.hh EditMachineCmd.hh
 ## headers end

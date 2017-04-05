@@ -422,6 +422,7 @@ LabelManager::finalize() throw (CompileError) {
                 newReloc->setDestination(&codeSect->instruction(dstIndex));
                 
             } else if (dstSect->type() == Section::ST_DATA ||
+                       dstSect->type() == Section::ST_LEDATA ||
                        dstSect->type() == Section::ST_UDATA) {
                 
                 UDataSection* uDataSect =
@@ -471,6 +472,7 @@ LabelManager::findSectionByAddress(InternalLabel *currLabel) {
 
             // address must be found from section
             if (currSect->type() == Section::ST_DATA ||
+                currSect->type() == Section::ST_LEDATA ||
                 currSect->type() == Section::ST_UDATA) {
 
                 UDataSection* sect =
@@ -658,6 +660,7 @@ LabelManager::findRelocationDstSection(InternalRelocation* currReloc) {
                 }
                 
             } else if (currSect->type() == Section::ST_DATA ||
+                       currSect->type() == Section::ST_LEDATA ||
                        currSect->type() == Section::ST_UDATA) {
                 
                 UDataSection* uDataSect =

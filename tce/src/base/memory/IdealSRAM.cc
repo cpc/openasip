@@ -53,8 +53,9 @@ using std::string;
  * @param wordSize Number of MAUs that make up a natural word.
  * @param align Alignment of natural words, expressed in number of MAUs.
  */
-IdealSRAM::IdealSRAM(Word start, Word end, Word MAUSize) :
-    Memory(start, end, MAUSize), start_(start), end_(end), MAUSize_(MAUSize) {
+IdealSRAM::IdealSRAM(Word start, Word end, Word MAUSize, bool littleEndian) :
+    Memory(start, end, MAUSize, littleEndian), start_(start), end_(end), 
+    MAUSize_(MAUSize) {
     data_ = new MemoryContents(end_ - start_);
 }
 

@@ -89,7 +89,7 @@ IdealSRAMTest::tearDown() {
 void
 IdealSRAMTest::testBasicInterface() {
     
-    IdealSRAM memory(START, END, MAUSIZE);
+    IdealSRAM memory(START, END, MAUSIZE, false);
 
     UIntWord result;
 

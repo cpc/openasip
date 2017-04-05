@@ -36,7 +36,7 @@
 /**
  * Prints the given string *without* a trailing newline (like with puts).
  */
-void lwpr_print_str(char* str);
+void lwpr_print_str(const char* str);
 
 /**
  * Prints an integer.

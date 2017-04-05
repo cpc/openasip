@@ -258,6 +258,9 @@ public:
     /// of their sequential presence in ADF
     static const std::string OSKEY_FUNCTION_UNITS_ORDERED;
 
+    bool isLittleEndian() const { return littleEndian_; }
+    void setLittleEndian(bool flag) { littleEndian_ = flag; }
+
 private:
     /// Assignment not allowed.
     Machine& operator=(const Machine&);
@@ -327,7 +330,8 @@ private:
     // If set to 1, each FU will be given order id based on their sequential
     // ordering in the ADF.
     bool fuOrdered_;
-
+    // True in case the machine is little-endian, big-endian otherwise.
+    bool littleEndian_;
 };
 }
 

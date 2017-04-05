@@ -66,8 +66,9 @@ PluginTools OperationContainer::tools_;
 InstructionAddress OperationContainer::programCounter_;
 SimValue OperationContainer::returnAddress_;
 
+// TODO: endianess
 IdealSRAM* OperationContainer::memory_ = 
-    new IdealSRAM(MEMORY_START, MEMORY_END, MAUSIZE);
+    new IdealSRAM(MEMORY_START, MEMORY_END, MAUSIZE, false);
 
 OperationContext OperationContainer::context_(
     memory_, programCounter_, returnAddress_);

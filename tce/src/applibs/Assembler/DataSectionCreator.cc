@@ -187,7 +187,7 @@ DataSectionCreator::cleanup() {
  * @exception CompileError If there is any errors during compiling.
  */
 void
-DataSectionCreator::finalize(Binary& tpef, LabelManager &labels)
+DataSectionCreator::finalize(Binary& tpef, LabelManager &labels, bool littleEndian)
     throw (CompileError) {
 
     // completed tpef data sections.
@@ -211,7 +211,11 @@ DataSectionCreator::finalize(Binary& tpef, LabelManager &labels)
 
             // if initialized, generate initialization data
             if (section.isInitialized) {
-                newSection = Section::createSection(Section::ST_DATA);
+                if (littleEndian) {
+                    newSection = Section::createSection(Section::ST_LEDATA);
+                } else {
+                    newSection = Section::createSection(Section::ST_DATA);
+                }
             } else {
                 newSection = Section::createSection(Section::ST_UDATA);
             }

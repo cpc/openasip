@@ -70,7 +70,7 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 #include "fvwrite.h"
 #include "local.h"
 
-#ifdef __TCE_V1__
+#ifdef __TCE__
 #include "tceops.h"
 int 
 _DEFUN(puts, (s),

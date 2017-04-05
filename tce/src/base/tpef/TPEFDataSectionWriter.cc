@@ -56,8 +56,10 @@ const TPEFDataSectionWriter TPEFDataSectionWriter::instance_;
 /**
  * Constructor.
  */
-TPEFDataSectionWriter::TPEFDataSectionWriter() : TPEFSectionWriter() {
-    registerSectionWriter(this);
+TPEFDataSectionWriter::TPEFDataSectionWriter(bool reg) : TPEFSectionWriter() {
+    if (reg) {
+        registerSectionWriter(this);
+    }
 }
 
 /**

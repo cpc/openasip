@@ -67,9 +67,7 @@ public:
 
 private:
     llvm::TCETargetLowering& lowering_;
-#ifdef LLVM_OLDER_THAN_3_7
     const llvm::TCESubtarget& subtarget_;
-#endif
     llvm::TCETargetMachine* tm_;
 
     #include "TCEGenDAGISel.inc"
@@ -88,7 +86,7 @@ TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
     SelectionDAGISel(tm), 
     lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())), 
-    tm_(&tm) {
+    subtarget_(*tm.getSubtargetImpl()), tm_(&tm) {
 }
 #endif
 

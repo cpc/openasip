@@ -50,6 +50,7 @@
 #include "ASpaceSection.hh"
 #include "CodeSection.hh"
 #include "DataSection.hh"
+#include "LEDataSection.hh"
 
 #include "TPEFBaseType.hh"
 #include "Locator.hh"
@@ -238,6 +239,7 @@ TPEFRelocSectionReader::finalize(Section* section) const {
 
                 int mauSize = dataSect->aSpace()->MAU(); 
 
+                // BE
                 for (int i = 0; i < elem->size() / mauSize; i++) {
                     address = address << mauSize;
                     address = address |  dataSect->MAU(startIndex+i);
@@ -247,6 +249,30 @@ TPEFRelocSectionReader::finalize(Section* section) const {
                 bool requestedChunkWasOutOfRange = false;
                 assert(requestedChunkWasOutOfRange);
             }
+
+        } else if (refSection->type() == Section::ST_LEDATA) {
+
+            try {
+                LEDataSection *dataSect =
+                    dynamic_cast<LEDataSection*>(refSection);
+
+                int startIndex = 
+                    dataSect->chunkToMAUIndex(
+                        dynamic_cast<Chunk*>(elem->location()));
+
+                int mauSize = dataSect->aSpace()->MAU(); 
+
+                // LE
+                for (int i = 0; i < elem->size() / mauSize; i++) {
+                    address |= (dataSect->MAU(startIndex+i) << (mauSize*i));
+                }
+
+            } catch (const OutOfRange &e) {
+                bool requestedChunkWasOutOfRange = false;
+                assert(requestedChunkWasOutOfRange);
+            }
+
+
 
         } else {
             bool referencedSectionMustBeEitherCodeOrData = false;
