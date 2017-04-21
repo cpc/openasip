@@ -125,7 +125,7 @@ bool
 ZoomInCmd::isEnabled() {
     wxDocManager* manager = wxGetApp().docManager();
     if (manager->GetCurrentView() != NULL) {
-	return true;
+        return true;
     }
     return false;
 }

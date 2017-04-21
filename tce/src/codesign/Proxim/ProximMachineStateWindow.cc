@@ -104,14 +104,14 @@ ProximMachineStateWindow::ProximMachineStateWindow(
     simulator_ = wxGetApp().simulation()->frontend();
 
     if (simulator_->isSimulationInitialized() ||
-	simulator_->isSimulationStopped() ||
-	simulator_->isSimulationRunning() ||
-	simulator_->hasSimulationEnded()) {
+        simulator_->isSimulationStopped() ||
+        simulator_->isSimulationRunning() ||
+        simulator_->hasSimulationEnded()) {
 
-	TTAMachine::Machine* machine =
+    TTAMachine::Machine* machine =
             const_cast<Machine*>(&ProximToolbox::machine());
 
-	canvas_->setMachine(machine);
+    canvas_->setMachine(machine);
     
     if (showUtilizations_) {
         setUtilizationHighlights();
@@ -360,7 +360,7 @@ ProximMachineStateWindow::addMoves() {
     InstructionAddress address = simulator_->lastExecutedInstruction();
 
     const TTAProgram::Instruction& instruction =
-	simulator_->program().instructionAt(address);
+        simulator_->program().instructionAt(address);
 
     canvas_->clearMoves();
     for (int i = 0; i < instruction.moveCount(); i++) {

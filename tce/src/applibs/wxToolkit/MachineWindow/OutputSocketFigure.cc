@@ -42,8 +42,8 @@ const wxColour OutputSocketFigure::DEFAULT_BG_COLOUR = wxColour(255, 255, 255);
  */
 OutputSocketFigure::OutputSocketFigure(): Figure() {
     size_ = wxSize(
-	MachineCanvasLayoutConstraints::SOCKET_WIDTH,
-	MachineCanvasLayoutConstraints::SOCKET_HEIGHT);
+    MachineCanvasLayoutConstraints::SOCKET_WIDTH,
+    MachineCanvasLayoutConstraints::SOCKET_HEIGHT);
 }
 
 /**
@@ -76,6 +76,6 @@ OutputSocketFigure::drawSelf(wxDC* dc) {
 
     dc->DrawPolygon(3, trianglePoints, location_.x, location_.y);
     dc->DrawRectangle(
-	location_.x, location_.y + triangleHeight, size_.GetWidth(),
-	size_.GetHeight() - triangleHeight);
+    location_.x, location_.y + triangleHeight, size_.GetWidth(),
+    size_.GetHeight() - triangleHeight);
 }
