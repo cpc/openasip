@@ -198,7 +198,7 @@ prode_SOURCES += \
 	ProDeTextGenerator.hh AboutCmd.hh \
 	OpsetDialog.hh ModifyComponentCmd.hh \
 	PrintCmd.hh ProDeGCUEditPolicy.hh \
-	MDFLayoutConstraints.hh EditParameterDialog.hh \
+	EditParameterDialog.hh \
 	DeleteBridgeCmd.hh FitHeightCmd.hh \
 	ZoomOutCmd.hh ModifySRPortCmd.hh \
 	AddIUCmd.hh BusDialog.hh \

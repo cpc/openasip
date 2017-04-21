@@ -32,7 +32,6 @@
 
 #include "Application.hh"
 #include "SocketBusConnToolFigure.hh"
-#include "MDFLayoutConstraints.hh"
 #include "ProDeConstants.hh"
 
 const wxColor SocketBusConnToolFigure::LINE_COLOR_GREEN = wxColor(0, 200, 0);
