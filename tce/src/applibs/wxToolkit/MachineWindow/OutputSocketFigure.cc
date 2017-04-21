@@ -69,13 +69,12 @@ OutputSocketFigure::drawSelf(wxDC* dc) {
 
     int triangleHeight = MachineCanvasLayoutConstraints::TRIANGLE_HEIGHT;
 
-    wxPoint point1 = wxPoint(location_.x, location_.y);
-    wxPoint point2 = wxPoint(location_.x + size_.GetWidth(), location_.y);
-    wxPoint point3 = wxPoint(
-	location_.x + size_.GetWidth()/2, location_.y + triangleHeight);
+    wxPoint point1 = wxPoint(0, 0);
+    wxPoint point2 = wxPoint(size_.GetWidth(), 0);
+    wxPoint point3 = wxPoint(size_.GetWidth()/2, triangleHeight);
     wxPoint trianglePoints[3] = {point1, point2, point3};
 
-    dc->DrawPolygon(3, trianglePoints);
+    dc->DrawPolygon(3, trianglePoints, location_.x, location_.y);
     dc->DrawRectangle(
 	location_.x, location_.y + triangleHeight, size_.GetWidth(),
 	size_.GetHeight() - triangleHeight);
