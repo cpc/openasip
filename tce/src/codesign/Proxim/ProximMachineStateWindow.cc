@@ -82,9 +82,6 @@ using std::string;
 using namespace TTAMachine;
 using namespace TTAProgram;
 
-const double ProximMachineStateWindow::ZOOM_STEP = 0.2;
-const double ProximMachineStateWindow::MIN_ZOOM_FACTOR = 0.5;
-const double ProximMachineStateWindow::MAX_ZOOM_FACTOR = 4;
 const int ProximMachineStateWindow::MINIMUM_PANE_WIDTH = 150;
 const int ProximMachineStateWindow::INITIAL_DETAILS_PANE_WIDTH = 200;
 
@@ -290,20 +287,12 @@ ProximMachineStateWindow::onZoom(wxCommandEvent& event) {
 
     // Zoom in.
     if (event.GetId() == COMMAND_ZOOM_IN) {
-	double factor = canvas_->zoomFactor() + ZOOM_STEP;
-	if (factor > MAX_ZOOM_FACTOR) {
-	    factor = MAX_ZOOM_FACTOR;
-	}
-	canvas_->setZoomFactor(factor);
+        canvas_->zoomIn();
     }
 
     // Zoom out.
     if (event.GetId() == COMMAND_ZOOM_OUT) {
-	double factor = canvas_->zoomFactor() - ZOOM_STEP;
-	if (factor < MIN_ZOOM_FACTOR) {
-	    factor = MIN_ZOOM_FACTOR;
-	}
-	canvas_->setZoomFactor(factor);
+        canvas_->zoomOut();
     }
 }
 

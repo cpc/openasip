@@ -49,6 +49,7 @@
 #include "WxConversion.hh"
 #include "BEMGenerator.hh"
 #include "BinaryEncoding.hh"
+#include "CanvasConstants.hh"
 
 #if wxCHECK_VERSION(3, 0, 0)
 #include <wx/dcsvg.h>   // wxSVGFileDC only available in wxwidgets 3.*
@@ -118,7 +119,6 @@ MachineCanvas::OnDraw(wxDC& dc) {
 
     // Set scaling factor.
     dc.SetUserScale(zoomFactor_, zoomFactor_);
-
     // draw machine
     if (root_->contents() != NULL) {
         if (dirty_) {
@@ -186,6 +186,14 @@ MachineCanvas::refreshToolFigure() {
  */
 void
 MachineCanvas::setZoomFactor(double factor) {
+
+    // Limit the min/max size of the zoom factor
+    if (factor > CanvasConstants::MAX_ZOOM_FACTOR) {
+        factor = CanvasConstants::MAX_ZOOM_FACTOR;
+    } else if (factor < CanvasConstants::MIN_ZOOM_FACTOR) {
+        factor = CanvasConstants::MIN_ZOOM_FACTOR;
+    }
+
     // when scrolling, try to:
     // * On X direction, keep the middle pointing to same position in machine
     // * On Y direction, keep the upper edge of the windows pointer to
@@ -212,6 +220,7 @@ MachineCanvas::setZoomFactor(double factor) {
     Refresh();
 }
 
+
 /**
  * Returns the zoom factor of the canvas.
  *
@@ -221,6 +230,29 @@ double
 MachineCanvas::zoomFactor() {
     return zoomFactor_;
 }
+
+
+/**
+ * Zooms in the canvas by a predefined factor
+ *
+ */
+void
+MachineCanvas::zoomIn() {
+    double factor = zoomFactor() + CanvasConstants::ZOOM_STEP;
+    setZoomFactor(factor);
+}
+
+
+/**
+ * Zooms out the canvas by a predefined factor
+ *
+ */
+void
+MachineCanvas::zoomOut() {
+    double factor = zoomFactor() - CanvasConstants::ZOOM_STEP;
+    setZoomFactor(factor);
+}
+
 
 /**
  * Handles mouse events on the canvas.
@@ -236,10 +268,29 @@ MachineCanvas::onMouseEvent(wxMouseEvent& event) {
     PrepareDC(dc);
     dc.SetUserScale(zoomFactor_, zoomFactor_);
 
+    // Zoomin/out with mousewheel
+    if (event.GetEventType() == wxEVT_MOUSEWHEEL) {
+        double factor;
+
+        if (event.GetWheelRotation() > 0) {
+            factor = zoomFactor() + CanvasConstants::ZOOM_STEP;
+        } else {
+            factor = zoomFactor() - CanvasConstants::ZOOM_STEP;
+        }
+        setZoomFactor(factor);
+    }
+
     if (tool_ != NULL) {
         tool_->onMouseEvent(event, dc);
     }
 }
+
+
+wxSize
+MachineCanvas::getFigureSize() const {
+    return root_->contents()->figure()->bounds().GetSize();
+}
+
 
 /**
  * Sets the active tool.

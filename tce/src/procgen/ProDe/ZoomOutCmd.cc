@@ -64,12 +64,8 @@ bool
 ZoomOutCmd::Do() {
     MDFView* mView = dynamic_cast<MDFView*>(view());
     MachineCanvas* canvas = mView->canvas();
-    double factor = canvas->zoomFactor() - ProDeConstants::ZOOM_STEP;
-    if (factor < ProDeConstants::MIN_ZOOM_FACTOR) {
-	factor = ProDeConstants::MIN_ZOOM_FACTOR;
-    }
-    canvas->setZoomFactor(factor);
-    canvas->Refresh();
+
+    canvas->zoomOut();
     return true;
 }
 
