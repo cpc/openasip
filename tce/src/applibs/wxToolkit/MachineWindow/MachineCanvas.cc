@@ -286,6 +286,10 @@ MachineCanvas::onMouseEvent(wxMouseEvent& event) {
 }
 
 
+/**
+ * Return the original size of the currently loaded Machine Figure
+ *
+ */
 wxSize
 MachineCanvas::getFigureSize() const {
     return root_->contents()->figure()->bounds().GetSize();
