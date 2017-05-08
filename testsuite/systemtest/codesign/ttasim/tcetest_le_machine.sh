@@ -15,4 +15,4 @@ trap on_exit EXIT
 
 set -e
 tcecc -o $TPEF -a $ADF $SRC
-ttasim --no-debugmode -a $ADF -p $TPEF
+ttasim -q --no-debugmode -a $ADF -p $TPEF

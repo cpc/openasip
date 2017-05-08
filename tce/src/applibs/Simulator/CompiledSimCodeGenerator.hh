@@ -44,6 +44,7 @@
 #include "SimulatorConstants.hh"
 #include "ConflictDetectionCodeGenerator.hh"
 #include "CompiledSimSymbolGenerator.hh"
+#include "CIStringSet.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -119,6 +120,8 @@ public:
     virtual StringSet createdFiles() const;
     virtual AddressMap basicBlocks() const;
     virtual ProcedureBBRelations procedureBBRelations() const;
+
+    static TCETools::CIStringSet supportedMemoryOperations();
 
 private:
     /// Copying not allowed.
@@ -197,6 +200,9 @@ private:
     
     std::vector<TTAMachine::Port*> fuOutputPorts(
         const TTAMachine::FunctionUnit& fu) const;
+
+    static bool isStoreOperation(const std::string& opName);
+    static bool isLoadOperation(const std::string& opName);
                 
     /// The machine used for simulation
     const TTAMachine::Machine& machine_;

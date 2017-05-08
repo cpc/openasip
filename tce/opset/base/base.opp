@@ -698,6 +698,9 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="16" id="2" type="RawData">
       <mem-data/>
     </in>
+    <trigger-semantics>EXEC_OPERATION(st16, IO(1), IO(2));
+
+</trigger-semantics>
   </operation>
 
   <operation>

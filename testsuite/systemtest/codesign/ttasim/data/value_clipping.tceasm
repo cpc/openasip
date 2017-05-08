@@ -1,0 +1,11 @@
+
+CODE;
+
+0xFF -> BOOL.0;
+BOOL.0 -> ALU.in2;
+1 -> ALU.in1t.eq;
+ALU.out1 -> BOOL.1;
+?BOOL.1 0x54 -> IO.T.stdout; # 'T'
+!BOOL.1 0x46 -> IO.T.stdout; # 'F'
+0xA -> IO.T.stdout; # '\n'
+

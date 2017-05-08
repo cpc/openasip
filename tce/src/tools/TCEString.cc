@@ -139,3 +139,18 @@ TCEString::operator<<(const int rhs) {
     *this += Conversion::toString(rhs);
     return *this;
 }
+
+/**
+ * Implementation of lhs < rhs string comparison case insensitively.
+ *
+ * @param lhs The left side string.
+ * @param rhs Thr rigth side string.
+ * @return Boolean result from comparison.
+ */
+bool
+TCEString::ICLess::operator() (
+    const TCEString& lhs, const TCEString& rhs) const {
+    return lhs.lower() < rhs.lower();
+}
+
+

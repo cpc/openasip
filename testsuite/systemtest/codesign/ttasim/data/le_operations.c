@@ -4,9 +4,9 @@
 
 volatile int sInt;
 volatile short sShort;
-volatile unsigned uShort;
+volatile unsigned short uShort;
 volatile char sChar;
-volatile unsigned uChar;
+volatile unsigned char uChar;
 
 int
 main() {

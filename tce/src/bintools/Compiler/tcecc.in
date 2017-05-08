@@ -231,10 +231,10 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 # Disable generation of fmuladd intrinsics automatically in
                 # case soft float is used. This causes problems because the
                 # intrinsics is lowered later after emulated instructions are
-                # figured after which it's too late to try to lower it to fmul + fadd or
-                # fmac (which need to be emulated). This is not the best
-                # possible fix, but soft float should not be used for
-                # performance critical FP code anyways.
+                # figured after which it's too late to try to lower it
+                # to fmul + fadd or fmac (which need to be emulated).
+                # This is not the best possible fix, but soft float should
+                # not be used for performance critical FP code anyways.
 
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"

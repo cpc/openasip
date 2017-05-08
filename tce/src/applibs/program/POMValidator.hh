@@ -38,7 +38,14 @@
 
 namespace TTAMachine {
     class Machine;
+    class FunctionUnit;
 }
+
+namespace TTAProgram {
+    class Instruction;
+}
+
+class Operation;
 
 class POMValidatorResults;
 
@@ -71,6 +78,11 @@ private:
     void checkLongImmediates(POMValidatorResults& results);
     void checkSimulatability(POMValidatorResults& results);
     void checkCompiledSimulatability(POMValidatorResults& results);
+    void checkMemoryOperationForCompiledSimulatibility(
+        POMValidatorResults& results,
+        const TTAProgram::Instruction& instr,
+        const TTAMachine::FunctionUnit& fu,
+        const Operation& op);
 
     /// The program's instructions in a quickly accessed vector.
     const TTAProgram::Program::InstructionVector instructions_;

@@ -77,6 +77,7 @@
 #include "CompiledSimCompiler.hh"
 #include "DisassemblyRegister.hh"
 #include "MapTools.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -84,6 +85,65 @@ using std::string;
 using std::fstream;
 using std::endl;
 using std::vector;
+
+namespace {
+
+enum class AccessMode : unsigned char { read, write };
+enum class ExtensionMode : unsigned char { sign, zero };
+enum class MAUOrder : unsigned char { littleEndian, bigEndian };
+
+struct MemoryOperationDescription {
+    AccessMode accessMode;
+    unsigned mauCount;
+    ExtensionMode extensionMode; // relevant only for load ops
+    MAUOrder mauOrder;
+
+};
+
+// Since DirectAccessMemory's advanceClock() method is empty and is not
+// called, memory operations with latency more than one are not supported
+// in compiled simulation.
+// However, these operations are exception and uses other methods for
+// simulating latency.
+std::map<TCEString, MemoryOperationDescription, TCEString::ICLess>
+supportedMemoryOps{
+    {"ldq",
+        {AccessMode::read, 1, ExtensionMode::sign, MAUOrder::bigEndian}},
+    {"ldqu",
+        {AccessMode::read, 1, ExtensionMode::zero, MAUOrder::bigEndian}},
+    {"ldh",
+        {AccessMode::read, 2, ExtensionMode::sign, MAUOrder::bigEndian}},
+    {"ldhu",
+        {AccessMode::read, 2, ExtensionMode::zero, MAUOrder::bigEndian}},
+    {"ldw",
+        {AccessMode::read, 4, ExtensionMode::sign, MAUOrder::bigEndian}},
+    {"ld8",
+        {AccessMode::read, 1, ExtensionMode::sign, MAUOrder::littleEndian}},
+    {"ldu8",
+        {AccessMode::read, 1, ExtensionMode::zero, MAUOrder::littleEndian}},
+    {"ld16",
+        {AccessMode::read, 2, ExtensionMode::sign, MAUOrder::littleEndian}},
+    {"ldu16",
+        {AccessMode::read, 2, ExtensionMode::zero, MAUOrder::littleEndian}},
+    {"ld32",
+        {AccessMode::read, 4, ExtensionMode::sign, MAUOrder::littleEndian}},
+
+    {"st8",
+        {AccessMode::write, 1, ExtensionMode::zero, MAUOrder::littleEndian}},
+    {"st16",
+        {AccessMode::write, 2, ExtensionMode::zero, MAUOrder::littleEndian}},
+    {"st32",
+        {AccessMode::write, 4, ExtensionMode::zero, MAUOrder::littleEndian}},
+    {"stq",
+        {AccessMode::write, 1, ExtensionMode::zero, MAUOrder::bigEndian}},
+    {"sth",
+        {AccessMode::write, 2, ExtensionMode::zero, MAUOrder::bigEndian}},
+    {"stw",
+        {AccessMode::write, 4, ExtensionMode::zero, MAUOrder::bigEndian}}
+};
+
+} // anonymous namespace.
+
 
 /**
  * The constructor
@@ -1262,8 +1322,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             static_cast<const TerminalFUPort&>(move.destination());
         const HWOperation& hwOperation = *tfup.hwOperation();
 
-        if (hwOperation.name() == "stw" ||hwOperation.name() == "sth" || 
-            hwOperation.name() == "stq") {
+        if (isStoreOperation(hwOperation.name())) {
             continue;
         }
 
@@ -1313,7 +1372,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             static_cast<const TerminalFUPort&>(move.destination());
         const HWOperation& hwOperation = *tfup.hwOperation();
 
-        if (!(hwOperation.name() == "stw" || hwOperation.name() == "sth" || hwOperation.name() == "stq")) {
+        if (!isStoreOperation(hwOperation.name())) {
             continue;
         }
 
@@ -1445,10 +1504,9 @@ CompiledSimCodeGenerator::generateTriggerCode(
         }
     }
     
-    if (op.name() == "stw" || op.name() == "sth" || op.name() == "stq") {
+    if (isStoreOperation(op.name())) {
         return generateStoreTrigger(op);
-    } else if (op.name() == "ldw" || op.name() == "ldh" || op.name() == "ldq" || 
-               op.name() == "ldhu" || op.name() == "ldqu") {
+    } else if (isLoadOperation(op.name())) {
         return generateLoadTrigger(op);
     }
     OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
@@ -1524,13 +1582,19 @@ CompiledSimCodeGenerator::generateStoreTrigger(
     string dataToWrite = symbolGen_.portSymbol(*op.port(2)) + ".uIntWordValue()";
     string memory = symbolGen_.DAMemorySymbol(op.parentUnit()->name());
     string method;
-    
-    if (op.name() == "stq") {
-        method = "fastWriteMAU";
-    } else if (op.name() == "sth") {
-        method = "fastWrite2MAUsBE";
-    } else if (op.name() == "stw") {
-        method = "fastWrite4MAUsBE";
+
+    const MemoryOperationDescription& memOpDesc = supportedMemoryOps.at(
+        op.name());
+    method = "fastWrite";
+    if (memOpDesc.mauCount > 1) {
+        method += std::to_string(memOpDesc.mauCount) + "MAUs";
+        if (memOpDesc.mauOrder == MAUOrder::littleEndian) {
+            method += "LE";
+        } else { // big-endian
+            method += "BE";
+        }
+    } else {
+        method += "MAU";
     }
     
     return memory + "." + method + "(" + address + ", " + dataToWrite + ");";
@@ -1552,23 +1616,31 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     string extensionMode = "SIGN_EXTEND";
     string resultSignExtend;
     string temp = symbolGen_.generateTempVariable();
-    
-    if (op.name() == "ldqu" || op.name() == "ldhu") {
+
+    const MemoryOperationDescription& memOpDesc = supportedMemoryOps.at(
+        op.name());
+    method = "fastRead";
+    if (memOpDesc.mauCount > 1) {
+        method += std::to_string(memOpDesc.mauCount) + "MAUs";
+        if (memOpDesc.mauOrder == MAUOrder::littleEndian) {
+            method += "LE";
+        } else { // big-endian
+            method += "BE";
+        }
+    } else {
+        method += "MAU";
+    }
+
+    if (memOpDesc.extensionMode == ExtensionMode::sign) {
+        extensionMode = "SIGN_EXTEND";
+    } else {
         extensionMode = "ZERO_EXTEND";
     }
-    
-    if (op.name() == "ldq" || op.name() == "ldqu") {
-        method = "fastReadMAU";
-        resultSignExtend = temp + " = " + extensionMode 
-            + "(" + temp + ", " + MAUSize + ");";
-    } else if (op.name() == "ldh" || op.name() == "ldhu") {
-        method = "fastRead2MAUsBE";
-        resultSignExtend = temp + " = " + extensionMode 
-            + "(" + temp + ", (" + MAUSize + "*2));";
-    } else if (op.name() == "ldw") {
-        method = "fastRead4MAUsBE";
-    }
-    
+
+    resultSignExtend = temp + " = " + extensionMode
+        + "(" + temp + ", (" + MAUSize + "*"
+        + std::to_string(memOpDesc.mauCount) +"));";
+
     ss << "UIntWord " << temp << "; " << memory + "." << method << "("
        << address << ", " << temp << "); ";
 
@@ -1777,4 +1849,35 @@ bool CompiledSimCodeGenerator::handleRegisterWrite(
     }
     return false;
 }
-             
+
+
+/**
+ * Returns list of all supported memory accessing operations for compiled
+ * simulation.
+ */
+TCETools::CIStringSet
+CompiledSimCodeGenerator::supportedMemoryOperations() {
+    TCETools::CIStringSet result;
+    for (auto& pair : supportedMemoryOps) {
+        result.insert(pair.first);
+    }
+    return result;
+}
+
+
+bool
+CompiledSimCodeGenerator::isStoreOperation(const std::string& opName) {
+    auto it = supportedMemoryOps.find(opName);
+    if (it == supportedMemoryOps.end()) return false;
+
+    return (it->second.accessMode == AccessMode::write);
+}
+
+bool
+CompiledSimCodeGenerator::isLoadOperation(const std::string& opName) {
+    auto it = supportedMemoryOps.find(opName);
+    if (it == supportedMemoryOps.end()) return false;
+
+    return (it->second.accessMode == AccessMode::read);
+}
+
