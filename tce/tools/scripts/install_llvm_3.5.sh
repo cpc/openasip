@@ -55,10 +55,15 @@ fi
 
 cd ../../$llvm_co_dir
 
-##### Add patches here.
-# ...
-#####
+# apply patches
+patch -Np0 < $patch_dir/clang-3.5-64bit-doubles-not-forced-to-single.patch
 
 ./configure $LLVM_BUILD_MODE --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
 make -j2 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
-make install || eexit "Installation of LLVM/Clang failed."
+if -w $TARGET_DIR 
+then
+    make install || eexit "Installation of LLVM/Clang failed."
+else
+    echo "Installation directory not writable, enter 'sudo' password or cancel and install manually."
+    sudo make install || eexit "Installation of LLVM/Clang failed."
+fi

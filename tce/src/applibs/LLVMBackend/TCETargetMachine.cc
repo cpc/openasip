@@ -203,7 +203,7 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-i64:32:32";
     dataLayoutStr += "-f16:16:16";
     dataLayoutStr += "-f32:32:32";
-    dataLayoutStr += "-f64:32:64";
+    dataLayoutStr += "-f64:64:64";
     dataLayoutStr += "-v64:32:64";
     dataLayoutStr += "-v128:32:128";
     dataLayoutStr += "-v256:32:256";

@@ -270,6 +270,9 @@ void TCEInstrInfo::copyPhysReg(
     } else if (TCE::R32IRegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::R64FPRegsRegClass.contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVF64dd), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::R32FPRegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVF32ff), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));

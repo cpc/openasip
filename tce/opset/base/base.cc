@@ -493,25 +493,30 @@ END_TRIGGER;
 END_OPERATION(NOT)
 
 //////////////////////////////////////////////////////////////////////////////
-// NEQF - arithmetic negation, floating-point
+// NEGF - arithmetic negation, single-precision floating-point
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(NEGF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE) {
-        FloatWord in = FLT(1);
-        in = -in;
-        IO(2) = in;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE) {
-        DoubleWord in = DBL(1);
-        in = -in;
-        IO(2) = in;
-    } else {
-        abortWithError("bit width of operand erronous");
-    }
+    FloatWord in = FLT(1);
+    in = -in;
+    IO(2) = in;
 END_TRIGGER;
 
 END_OPERATION(NEGF)
+
+//////////////////////////////////////////////////////////////////////////////
+// NEGD - arithmetic negation, double-precision floating-point
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NEGD)
+
+TRIGGER
+    DoubleWord in = DBL(1);
+    in = -in;
+    IO(2) = in;
+END_TRIGGER;
+
+END_OPERATION(NEGD)
 
 //////////////////////////////////////////////////////////////////////////////
 // MUL - integer multiply
@@ -598,13 +603,7 @@ END_OPERATION(MODU)
 OPERATION(ADDF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = FLT(1) + FLT(2);
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = DBL(1) + DBL(2);
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = FLT(1) + FLT(2);
 END_TRIGGER;
 
 END_OPERATION(ADDF)
@@ -615,13 +614,7 @@ END_OPERATION(ADDF)
 OPERATION(SUBF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = FLT(1) - FLT(2);
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = DBL(1) - DBL(2);
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = FLT(1) - FLT(2);
 END_TRIGGER;
 
 END_OPERATION(SUBF)
@@ -632,13 +625,7 @@ END_OPERATION(SUBF)
 OPERATION(MULF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = FLT(1) * FLT(2);
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = DBL(1) * DBL(2);
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = FLT(1) * FLT(2);
 END_TRIGGER;
 
 END_OPERATION(MULF)
@@ -649,13 +636,7 @@ END_OPERATION(MULF)
 OPERATION(DIVF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = FLT(1) / FLT(2);
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = DBL(1) / DBL(2);
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = FLT(1) / FLT(2);
 END_TRIGGER;
 
 END_OPERATION(DIVF)
@@ -666,13 +647,7 @@ END_OPERATION(DIVF)
 OPERATION(EQF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) == FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) == DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) == FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(EQF)
@@ -684,13 +659,7 @@ END_OPERATION(EQF)
 OPERATION(EQUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) == FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) == DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) == FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(EQUF)
@@ -702,13 +671,7 @@ END_OPERATION(EQUF)
 OPERATION(NEF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) != FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) != DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) != FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(NEF)
@@ -720,13 +683,7 @@ END_OPERATION(NEF)
 OPERATION(NEUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) != FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) != DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) != FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(NEUF)
@@ -737,13 +694,7 @@ END_OPERATION(NEUF)
 OPERATION(GTF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) > FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) > DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) > FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(GTF)
@@ -754,13 +705,7 @@ END_OPERATION(GTF)
 OPERATION(GTUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) > FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) > DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) > FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(GTUF)
@@ -771,13 +716,7 @@ END_OPERATION(GTUF)
 OPERATION(GEF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) >= FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) >= DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) >= FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(GEF)
@@ -788,13 +727,7 @@ END_OPERATION(GEF)
 OPERATION(GEUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) >= FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) >= DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) >= FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(GEUF)
@@ -805,13 +738,7 @@ END_OPERATION(GEUF)
 OPERATION(LTF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) < FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) < DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) < FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(LTF)
@@ -823,13 +750,7 @@ END_OPERATION(LTF)
 OPERATION(LTUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) < FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) < DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) < FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(LTUF)
@@ -840,13 +761,7 @@ END_OPERATION(LTUF)
 OPERATION(LEF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) <= FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) <= DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) <= FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(LEF)
@@ -857,13 +772,7 @@ END_OPERATION(LEF)
 OPERATION(LEUF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) <= FLT(2)) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) <= DBL(2)) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) <= FLT(2)) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(LEUF)
@@ -875,13 +784,7 @@ END_OPERATION(LEUF)
 OPERATION(ORDF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2))) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2))) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2))) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(ORDF)
@@ -893,16 +796,216 @@ END_OPERATION(ORDF)
 OPERATION(UORDF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (isnan(FLT(1)) || isnan(FLT(2))) ? 1 : 0;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (isnan(DBL(1)) || isnan(DBL(2))) ? 1 : 0;
-    } else {
-        abortWithError("bit widths of operands erronous");
-    }
+    IO(3) = (isnan(FLT(1)) || isnan(FLT(2))) ? 1 : 0;
 END_TRIGGER;
 
 END_OPERATION(UORDF)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// ADDD - double-precision floating-point add
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ADDD)
+
+TRIGGER
+    IO(3) = DBL(1) + DBL(2);
+END_TRIGGER;
+
+END_OPERATION(ADDD)
+
+//////////////////////////////////////////////////////////////////////////////
+// SUBD - double-precision floating-point subtract
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SUBD)
+
+TRIGGER
+    IO(3) = DBL(1) - DBL(2);
+END_TRIGGER;
+
+END_OPERATION(SUBD)
+
+//////////////////////////////////////////////////////////////////////////////
+// MULD - double-precision floating-point multiply
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MULD)
+
+TRIGGER
+    IO(3) = DBL(1) * DBL(2);
+END_TRIGGER;
+
+END_OPERATION(MULD)
+
+//////////////////////////////////////////////////////////////////////////////
+// DIVD - double-precision floating-point divide
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(DIVD)
+
+TRIGGER
+    IO(3) = DBL(1) / DBL(2);
+END_TRIGGER;
+
+END_OPERATION(DIVD)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// EQD - double-precision floating-point compare equal (ordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(EQD)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) == DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(EQD)
+
+  
+//////////////////////////////////////////////////////////////////////////////
+// EQUD - double-precision floating-point compare equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(EQUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) == DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(EQUD)
+
+  
+//////////////////////////////////////////////////////////////////////////////
+// NED - double-precision floating-point compare not equal (ordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NED)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) != DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(NED)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// NEUD - floating-point compare not equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NEUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) != DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(NEUD)
+
+//////////////////////////////////////////////////////////////////////////////
+// GTD - double-precision floating-point compare greater (ordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GTD)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) > DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(GTD)
+
+//////////////////////////////////////////////////////////////////////////////
+// GTUD - double-precision floating-point compare greater (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GTUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) > DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(GTUD)
+
+//////////////////////////////////////////////////////////////////////////////
+// GED - double-precision floating-point compare greater or equal
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GED)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) >= DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(GED)
+
+//////////////////////////////////////////////////////////////////////////////
+// GEUD - double-precision floating-point compare greater or equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GEUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) >= DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(GEUD)
+
+//////////////////////////////////////////////////////////////////////////////
+// LTD - double-precision floating-point compare lower (ordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LTD)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) < DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(LTD)
+
+  
+//////////////////////////////////////////////////////////////////////////////
+// LTUD - double-precision floating-point compare lower (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LTUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) < DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(LTUD)
+
+//////////////////////////////////////////////////////////////////////////////
+// LED - double-precision floating-point compare lower or equal
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LED)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) <= DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(LED)
+
+//////////////////////////////////////////////////////////////////////////////
+// LEUD - double-precision floating-point compare lower or equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LEUD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) <= DBL(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(LEUD)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// ORDD - double-precision floating-point order check
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ORDD)
+
+TRIGGER
+    IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2))) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(ORDD)
+
+	 
+//////////////////////////////////////////////////////////////////////////////
+// UORDD - floating-point unorder check
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(UORDD)
+
+TRIGGER
+    IO(3) = (isnan(DBL(1)) || isnan(DBL(2))) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(UORDD)
 
 //////////////////////////////////////////////////////////////////////////////
 // CFI  - convert floating-point to integer
@@ -955,6 +1058,58 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(CIFU)
+
+//////////////////////////////////////////////////////////////////////////////
+// CDI  - convert double-precision floating-point to integer
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(CDI)
+
+TRIGGER
+    DoubleWord in = DBL(1);
+    SIntWord out = static_cast<SIntWord>(in);
+    IO(2) = out;
+END_TRIGGER;
+
+END_OPERATION(CDI)
+
+//////////////////////////////////////////////////////////////////////////////
+// CDIU  - convert double-precision floating-point to unsigned integer
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(CDIU)
+
+TRIGGER
+    DoubleWord in = DBL(1);
+    UIntWord out = static_cast<UIntWord>(in);
+    IO(2) = out;
+END_TRIGGER;
+
+END_OPERATION(CDIU)
+
+//////////////////////////////////////////////////////////////////////////////
+// CID - convert integer to floating-point (i2d)
+//////////////////////////////////////////////////////////////////////////////
+// NOTE: can't be tested whether the output really is double...
+OPERATION(CID)
+
+TRIGGER
+    SIntWord in = INT(1);
+    IO(2) = static_cast<DoubleWord>(in);
+END_TRIGGER;
+
+END_OPERATION(CID)
+
+//////////////////////////////////////////////////////////////////////////////
+// CIDU - convert unsigned integer to floating-point (i2d)
+//////////////////////////////////////////////////////////////////////////////
+// NOTE: can't be tested whether the output really is double...
+OPERATION(CIDU)
+
+TRIGGER
+    UIntWord in = UINT(1);
+    IO(2) = static_cast<DoubleWord>(in);
+END_TRIGGER;
+
+END_OPERATION(CIDU)
 
 //////////////////////////////////////////////////////////////////////////////
 // CFD  - convert single precision floating-point to double
@@ -1061,6 +1216,19 @@ END_TRIGGER;
 END_OPERATION(CIHU)
 
 //////////////////////////////////////////////////////////////////////////////
+// INVSQRTD - double-precision floating-point inverse square root
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(INVSQRTD)
+
+TRIGGER
+    DoubleWord in = DBL(1);
+    DoubleWord result(1.0 / sqrt(in));
+    IO(2) = result;
+END_TRIGGER;
+
+END_OPERATION(INVSQRTD)
+
+//////////////////////////////////////////////////////////////////////////////
 // INVSQRTH - half-float inverse square root
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(INVSQRTH)
@@ -1133,27 +1301,17 @@ END_TRIGGER;
 END_OPERATION(ABS)
 
 //////////////////////////////////////////////////////////////////////////////
-// ABSF - floating-point absolute value
+// ABSF - single-precision floating-point absolute value
 //////////////////////////////////////////////////////////////////////////////
 
 OPERATION(ABSF)
 
 TRIGGER
-    if (BWIDTH(1) == FLT_WORD_SIZE) {
-        FloatWord in1 = FLT(1);
-        if (in1 < 0) {
-            in1 = -in1;
-        }
-        IO(2) = in1;
-    } else if (BWIDTH(1) == DBL_WORD_SIZE) {
-        DoubleWord in = DBL(1);
-        if (in < 0) {
-            in = -in;
-        }
-        IO(2) = in;
-    } else { 
-        abortWithError("bit width of operand erronous");
+    FloatWord in1 = FLT(1);
+    if (in1 < 0) {
+        in1 = -in1;
     }
+    IO(2) = in1;
 END_TRIGGER;
 
 END_OPERATION(ABSF)
@@ -1207,6 +1365,72 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(MINF)
+
+//////////////////////////////////////////////////////////////////////////////
+// ABSD - double-precision floating-point absolute value
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(ABSD)
+
+TRIGGER
+    DoubleWord in = DBL(1);
+    if (in < 0) {
+        in = -in;
+    }
+    IO(2) = in;
+END_TRIGGER;
+
+END_OPERATION(ABSD)
+
+//////////////////////////////////////////////////////////////////////////////
+// SQRTD - floating-point square root
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(SQRTD)
+
+TRIGGER
+    IO(2) = sqrt(DBL(1));
+END_TRIGGER;
+
+END_OPERATION(SQRTD)
+
+//////////////////////////////////////////////////////////////////////////////
+// MAXD - higher of two floating-point values
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(MAXD)
+
+TRIGGER
+    DoubleWord in1 = DBL(1);
+    DoubleWord in2 = DBL(2);
+    if( in2 > in1 ) {
+      IO(3) = in2;
+    }
+    else {
+      IO(3) = in1;
+    }
+END_TRIGGER;
+
+END_OPERATION(MAXD)
+
+//////////////////////////////////////////////////////////////////////////////
+// MIND - lower of two floating-point values
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(MIND)
+
+TRIGGER
+    DoubleWord in1 = DBL(1);
+    DoubleWord in2 = DBL(2);
+    if( in2 < in1 ) {
+      IO(3) = in2;
+    }
+    else {
+      IO(3) = in1;
+    }
+END_TRIGGER;
+
+END_OPERATION(MIND)
 
 //////////////////////////////////////////////////////////////////////////////
 // LDQU - load 1 mimimum addressable unit from memory (unsigned)

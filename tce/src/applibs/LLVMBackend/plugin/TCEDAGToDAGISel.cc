@@ -200,7 +200,10 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                         int opc;
                         ISD::CondCode cc = cast<CondCodeSDNode>(
                             node2->getOperand(2))->get();
-                        
+
+                        //TODO://RWH: review for i64/f64, looks like
+                        //getMinOpcode call should suffice if correct opcodes
+                        //are included in the machine
                         switch (cc) {
                         case ISD::SETLT:
                         case ISD::SETLE:

@@ -61,10 +61,18 @@ patch -Np0 < $patch_dir/llvm-3.7-tce.patch
 patch -Np0 < $patch_dir/llvm-3.7-tcele.patch
 patch -Np0 < $patch_dir/llvm-3.7-memcpyoptimizer-only-on-default-as.patch
 patch -Np0 < $patch_dir/llvm-3.5-loopidiomrecognize-only-on-default-as.patch
+patch -Np0 < $patch_dir/clang-3.7-64bit-doubles-not-forced-to-single.patch
 #####
 
 mkdir -p build
 cd build
 ../configure $LLVM_BUILD_MODE --enable-bindings=none --enable-shared --prefix=$TARGET_DIR || eexit "Configuring LLVM/Clang failed."
-make -j2 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
-make install || eexit "Installation of LLVM/Clang failed."
+make -j4 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 || eexit "Building LLVM/Clang failed."
+mkdir -p "$TARGET_DIR"
+if [ -w "$TARGET_DIR" ]; then
+    make install || eexit "Installation of LLVM/Clang failed."
+else
+    echo "Installation directory not writable, enter 'sudo' password or cancel and install manually."
+    sudo mkdir -p "$TARGET_DIR"
+    sudo make install || eexit "Installation of LLVM/Clang failed."
+fi

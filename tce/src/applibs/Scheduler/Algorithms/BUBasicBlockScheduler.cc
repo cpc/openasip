@@ -737,7 +737,7 @@ BUBasicBlockScheduler::scheduleMove(
                 latestFromTrigger, ddg_->latestCycle(
                     moveNode, INT_MAX, true)); // TODO: 0 or INT_MAX
 
-            // rename if can and may alow scheuduling later.
+            // rename if can and may alow scheduling later.
             if (minRenamedEC > ddgCycle) {
                 minRenamedEC =  rm_->latestCycle(minRenamedEC, moveNode);
                 if (minRenamedEC > ddgCycle) {

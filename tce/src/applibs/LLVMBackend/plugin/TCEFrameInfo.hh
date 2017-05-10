@@ -45,7 +45,7 @@ namespace llvm {
      * ON EVERY LLVM UPDATE CHECK THESE INTERFACES VERY CAREFULLY
      * FROM include/llvm/Target/TargetFrameInfo.h
      *
-     * Compiler doesn warn or give error if parameter lists are changed.
+     * Compiler doesn't warn or give error if parameter lists are changed.
      * Many times also base class implementation works, but does not do
      * very good job.
      */

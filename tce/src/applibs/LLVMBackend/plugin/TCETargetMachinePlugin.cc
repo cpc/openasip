@@ -316,6 +316,12 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVFI16rh) return MOVE;
     if (opc == TCE::MOVIF16hr) return MOVE;
     if (opc == TCE::MOVF16hi) return MOVE;
+    if (opc == TCE::MOVF64dd) return MOVE;
+    //if (opc == TCE::MOVF64d?) return MOVE;  //TODO: move from 64b integer immediate
+    if (opc == TCE::MOVF64de) return MOVE;
+    //if (opc == TCE::MOVI64I1rr) return MOVE;
+    //if (opc == TCE::MOVFI64?d) return MOVE; //TODO: move to 64b integer register
+    //if (opc == TCE::MOVIF64d?) return MOVE; //TODO: move from 64b integer register
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 

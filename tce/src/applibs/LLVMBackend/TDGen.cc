@@ -231,6 +231,7 @@ TDGen::writeRegisterInfo(std::ostream& o)
     write1bitRegisterInfo(o);
     //write16bitRegisterInfo(o);
     write32bitRegisterInfo(o);
+    write64bitRegisterInfo(o);
     writeVectorRegisterInfo(o);
 
     return true;
@@ -248,13 +249,6 @@ TDGen::writeRegisterClasses(std::ostream& o) {
           << "}" << std::endl;
     }
     
-    o << "class R32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
-      << "}" << std::endl;
-    if (hasExIntRegs_) {
-        o << "class R32_Ex<string n, list<Register> aliases> : R32<n, aliases> {}"
-          << std::endl;
-    }
-    
     o << "class R16<string n, list<Register> aliases> : TCEReg<n, aliases> {"
       << "}" << std::endl;
     if (hasExIntRegs_) {
@@ -262,6 +256,20 @@ TDGen::writeRegisterClasses(std::ostream& o) {
           << std::endl;
     }
 
+    o << "class R32<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+    if (hasExIntRegs_) {
+        o << "class R32_Ex<string n, list<Register> aliases> : R32<n, aliases> {}"
+          << std::endl;
+    }
+    
+    o << "class R64<string n, list<Register> aliases> : TCEReg<n, aliases> {"
+      << "}" << std::endl;
+    if (hasExIntRegs_) {
+        o << "class R64_Ex<string n, list<Register> aliases> : R64<n, aliases> {}"
+          << std::endl;
+    }
+    
     for (int i = 0; i <= highestLaneInt_; i++) {
         o << "class R32_L_" << i << "<string n, list<Register> aliases> : R32<n, aliases>{}" << std::endl;
     }
@@ -604,7 +612,6 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
             o << ")>;" << std::endl;
         }
     }
-    
 
     o << std::endl;
 }
@@ -688,22 +695,21 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 
     if (regs64bit_.size() < 1) {
         RegInfo reg = { "dummy64", 0 };
-        writeRegisterDef(o, reg, "DIRES0", "Ri64", "", RESERVED);
+        writeRegisterDef(o, reg, "DIRES0", "R64", "", RESERVED);
         i64regs = "DIRES0";
     } else {
-  
-      writeRegisterDef(o, regs64bit_[0], "DIRES0", "Ri64", "", RESERVED);
+        writeRegisterDef(o, regs64bit_[0], "DIRES0", "R64", "", RESERVED);
         for (unsigned i = 1; i < regs64bit_.size(); i++) {
             std::string regName = "DI" + Conversion::toString(i);
             i64regs += regName;
             i64regs += ", ";
-            writeRegisterDef(o, regs64bit_[i], regName, "Ri64", "", GPR);
+            writeRegisterDef(o, regs64bit_[i], regName, "R64", "", GPR);
         }
         i64regs += "DIRES0";
     }
 
     o << std::endl
-      << "def I64Regs : RegisterClass<\"TCE\", [i64], 32, (add " // DIRES
+      << "def R64Regs : RegisterClass<\"TCE\", [i64,f64], 64, (add " // DIRES
       << i64regs << ")> ;"
       << std::endl;
 
@@ -711,23 +717,21 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 
     if (regs64bit_.size() < 1) {
         RegInfo reg = { "dummy64", 0 };
-        writeRegisterDef(o, reg, "DRES0", "Rf64", "", RESERVED);
+        writeRegisterDef(o, reg, "DRES0", "R64", "", RESERVED);
         f64regs = "DRES0";
     } else {
-        writeRegisterDef(
-            o, regs64bit_[0], "DRES0", "Ri64", "DIRES0", RESERVED);
+        writeRegisterDef(o, regs64bit_[0], "DRES0", "R64", "DIRES0", RESERVED);
         for (unsigned i = 1; i < regs64bit_.size(); i++) {
             std::string regName = "D" + Conversion::toString(i);
             std::string aliasName = "DI" + Conversion::toString(i);
             f64regs += regName;
             f64regs += ", ";
-            writeRegisterDef(
-                o, regs64bit_[i], regName, "Rf64", aliasName, GPR);
+            writeRegisterDef(o, regs64bit_[i], regName, "R64", aliasName, GPR);
         }
         f64regs += "DRES0";
     }
     o << std::endl
-      << "def F64Regs : RegisterClass<\"TCE\", [f64], 32, (add "
+      << "def R64FPRegs : RegisterClass<\"TCE\", [f64], 64, (add "
       << f64regs << ")>;" << std::endl;
 }
 
@@ -887,6 +891,7 @@ TDGen::writeVectorRegisterInfo(
               << "HFPRegs : RegisterClass<\"TCE\", [v" << vectorWidth
               << "f16], " << 32 * vectorWidth  << ", (add V" << vectorWidth << "R32DUMMY)> ;"
               << std::endl << std::endl;*/
+            //RWH: need something here for f64?
         } else {
             o << "def " << regClassBase << "_L_" << i
               << "Regs : RegisterClass<\"TCE\", [v" << vectorWidth
@@ -1044,6 +1049,11 @@ TDGen::writeInstrInfo(std::ostream& os) {
             opNames.insert(StringTools::stringToUpper(opName));
         }
     }
+
+    opNames_["LDDdr"] = "LDD";
+    opNames_["LDDdi"] = "LDD";
+    opNames_["STDdr"] = "STD";
+    opNames_["STDdi"] = "STD";
 
     opNames_["LDWfr"] = "LDW";
     opNames_["LDWfi"] = "LDW";
@@ -1379,6 +1389,7 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "sxhw") hasSXHW = true;
             if (opName == "sxqw") hasSXQW = true;
 	    if (opName == "sqrtf") hasSQRTF = true;
+            //RWH: add more cases here for double-precision ops?
         }
     }
 
@@ -1433,15 +1444,15 @@ TDGen::writeTopLevelTD(std::ostream& o) {
  * a
  * b = Boolean/predicate register
  * c
- * d
- * e
+ * d = Float64 register
+ * e = immediate float64
  * f = Float32 register
  * g
  * h = Float16 register
  * i = Immediate integer
  * j = immediate boolean
- * k = immediate float?
- * l = immediate float16?
+ * k = immediate float32
+ * l = immediate float16
  * m = float2 vec?
  * n = float4 vec?
  * o = float8 vec?
@@ -1501,6 +1512,10 @@ TDGen::writeOperationDefs(
 
         return;
     }
+    if (op.name() == "CDI" || op.name() == "CDIU") {
+        writeOperationDef(o, op, "rd", attrs, skipPattern);
+        return;
+    }
         
     // rotations are allways n x n -> n bits.
     if (op.name() == "ROTL" || op.name() == "ROTR" ||
@@ -1537,9 +1552,18 @@ TDGen::writeOperationDefs(
         writeOperationDef(o, op, "bjjb", attrs, skipPattern);
         writeOperationDef(o, op, "bjbb", attrs, skipPattern);
         writeOperationDef(o, op, "bbjb", attrs, skipPattern);
-        // TODO: what about floating-point values?
+        writeOperationDef(o, op, "dddb", attrs, skipPattern);
+        writeOperationDef(o, op, "deeb", attrs, skipPattern);
+        writeOperationDef(o, op, "dedb", attrs, skipPattern);
+        writeOperationDef(o, op, "ddeb", attrs, skipPattern);
         writeOperationDef(o, op, "fffb", attrs, skipPattern);
+        writeOperationDef(o, op, "fkkb", attrs, skipPattern);
+        writeOperationDef(o, op, "fkfb", attrs, skipPattern);
+        writeOperationDef(o, op, "ffkb", attrs, skipPattern);
         writeOperationDef(o, op, "hhhb", attrs, skipPattern);
+        writeOperationDef(o, op, "hllb", attrs, skipPattern);
+        writeOperationDef(o, op, "hlhb", attrs, skipPattern);
+        writeOperationDef(o, op, "hhlb", attrs, skipPattern);
 
         hasSelect_ = true;
         return;
@@ -1549,7 +1573,6 @@ TDGen::writeOperationDefs(
     if (op.numberOfInputs() == 2 && op.numberOfOutputs() == 0) {
         Operand& operand1 = op.operand(1);
         Operand& operand2 = op.operand(2);
-        // TODO: add an else branch here for float immediates
         if ((operand1.type() == Operand::UINT_WORD || 
              operand1.type() == Operand::SINT_WORD ||
              operand1.type() == Operand::RAW_DATA) &&
@@ -1558,6 +1581,15 @@ TDGen::writeOperationDefs(
             operand2.type() == Operand::RAW_DATA)) {
 
             writeOperationDef(o, op, "ii", attrs, skipPattern);
+        } else if (operand1.type() == Operand::DOUBLE_WORD &&
+                   operand2.type() == Operand::DOUBLE_WORD) {
+            writeOperationDef(o, op, "ee", attrs, skipPattern);
+        } else if (operand1.type() == Operand::FLOAT_WORD &&
+                   operand2.type() == Operand::FLOAT_WORD) {
+            writeOperationDef(o, op, "kk", attrs, skipPattern);
+        } else if (operand1.type() == Operand::HALF_FLOAT_WORD &&
+                   operand2.type() == Operand::HALF_FLOAT_WORD) {
+            writeOperationDef(o, op, "ll", attrs, skipPattern);
         }
     }
 
@@ -1565,9 +1597,6 @@ TDGen::writeOperationDefs(
     // this the ordinary def
 
     // then try with immediates.
-    // TODO: this should be 2^n loop instead of n loop, to get
-    // all permutations.
-
     writeOperationDefs(o, op, operandTypes, attrs, skipPattern);
 
     // then with boolean outs, and vector versions.
@@ -1584,8 +1613,11 @@ TDGen::writeOperationDefs(
         // create vector versions.
 
 	// TODO: no half vectors yet, pending f16v4..f16v16 types in llvm.
+	// Also double vectors not implemented yet.
 	if (outOperand.type() != Operand::HALF_FLOAT_WORD && 
-            op.operand(1).type() != Operand::HALF_FLOAT_WORD) { 
+            outOperand.type() != Operand::DOUBLE_WORD &&
+            op.operand(1).type() != Operand::HALF_FLOAT_WORD &&
+            op.operand(1).type() != Operand::DOUBLE_WORD) { 
             for (int i = 0, w = 2; i < 3; i++, w<<=1) {
                 char floatChar = 'm' + i;
                 char intChar = 'v' + i;
@@ -1620,6 +1652,8 @@ TDGen::writeOperationDefs(
     // first without imms.
     writeOperationDef(o, op, operandTypes, attrs, skipPattern, backendPrefix);
 
+    // TODO: this should be 2^n loop instead of n loop, to get
+    // all permutations.
     for (int i = 0; i < op.numberOfInputs(); i++) {
         bool canSwap = false;
         for (int j = i+1 ; j < op.numberOfInputs(); j++) {
@@ -1641,6 +1675,9 @@ TDGen::writeOperationDefs(
                 break;
             case 'b':
                 c = 'j';
+                break;
+            case 'd':
+                c = 'e';
                 break;
             case 'f':
                 c = 'k';
@@ -1907,7 +1944,7 @@ TDGen::writeOperationDef(
 /**
  * Checks whether operand is integer or float type.
  *
- * @return 'r' for integer, 'f' for float
+ * @return letter from operand type table, e.g. 'r' for integer, 'f' for float
  */
 char 
 TDGen::operandChar(Operand& operand) {
@@ -1915,9 +1952,11 @@ TDGen::operandChar(Operand& operand) {
         return 'b';
     } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
         return 'h';
+    } else if (operand.type() == Operand::DOUBLE_WORD) {
+        return 'd';
     } else if (operand.type() != Operand::UINT_WORD &&
-        operand.type() != Operand::SINT_WORD &&
-        operand.type() != Operand::RAW_DATA) {
+               operand.type() != Operand::SINT_WORD &&
+               operand.type() != Operand::RAW_DATA) {
         return 'f';
     } else {
         return 'r';
@@ -1988,7 +2027,7 @@ TDGen::writeEmulationPattern(
             char inputType = operandChar(op.operand(i+1));
             if (immInput == i+1) {
                 // float imm operands not allowed
-                if (inputType == 'f' || inputType == 'h') {
+                if (inputType == 'f' || inputType == 'h' || inputType == 'd') {
                     ok = false;
                     break;
                 } else {
@@ -2011,12 +2050,19 @@ TDGen::writeEmulationPattern(
                 op.name() == "LEF" || op.name() == "LEUF" ||
                 op.name() == "GTF" || op.name() == "GTUF" ||
                 op.name() == "NEF" || op.name() == "NEUF" ||
+                op.name() == "LTD" || op.name() == "LTUD" ||
+                op.name() == "EQD" || op.name() == "EQUD" ||
+                op.name() == "GED" || op.name() == "GEUD" || 
+                op.name() == "LED" || op.name() == "LEUD" ||
+                op.name() == "GTD" || op.name() == "GTUD" ||
+                op.name() == "NED" || op.name() == "NEUD" ||
                 op.name() == "EQ" || op.name() == "NE" ||
                 op.name() == "GE" ||op.name() == "GEU" ||
                 op.name() == "GT" || op.name() == "GTU" ||
                 op.name() == "LE" || op.name() == "LEU" ||
                 op.name() == "LT" || op.name() == "LTU" ||
-                op.name() == "ORDF" || op.name() == "UORDF") {
+                op.name() == "ORDF" || op.name() == "UORDF" ||
+                op.name() == "ORDD" || op.name() == "UORDD") {
                 std::string boolOperandTypes = operandTypes;
                 boolOperandTypes[0] = 'b';
                 o << "def : Pat<(" << match1.str() << "), "
@@ -2095,6 +2141,40 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "negf") return "fneg %1%";
     if (opName == "sqrtf") return "fsqrt %1%";
 
+    if (opName == "eqd") return "setoeq %1%, %2%";
+    if (opName == "ned") return "setone %1%, %2%";
+    if (opName == "ltd") return "setolt %1%, %2%";
+    if (opName == "led") return "setole %1%, %2%";
+    if (opName == "gtd") return "setogt %1%, %2%";
+    if (opName == "ged") return "setoge %1%, %2%";
+
+    if (opName == "equd") return "setueq %1%, %2%";
+    if (opName == "neud") return "setune %1%, %2%";
+    if (opName == "ltud") return "setult %1%, %2%";
+    if (opName == "leud") return "setule %1%, %2%";
+    if (opName == "gtud") return "setugt %1%, %2%";
+    if (opName == "geud") return "setuge %1%, %2%";
+
+    if (opName == "ordd") return "seto %1%, %2%";
+    if (opName == "uordd") return "setuo %1%, %2%";
+
+    if (opName == "addd") return "fadd %1%, %2%";
+    if (opName == "subd") return "fsub %1%, %2%";
+    if (opName == "muld") return "fmul %1%, %2%";
+    if (opName == "divd") return "fdiv %1%, %2%";
+    if (opName == "absd") return "fabs %1%";
+    if (opName == "negd") return "fneg %1%";
+    if (opName == "sqrtd") return "fsqrt %1%";
+
+    //RWH: check
+    if (opName == "cid") return "sint_to_fp %1%";
+    if (opName == "cdi") return "fp_to_sint %1%";
+    if (opName == "cidu") return "uint_to_fp %1%";
+    if (opName == "cdiu") return "fp_to_uint %1%";
+
+    if (opName == "cdf") return "fround %1%";//fptrunc %1% to float
+    if (opName == "cfd") return "fextend %1%";//fpext %1% to double
+
     if (opName == "cif") return "sint_to_fp %1%";
     if (opName == "cfi") return "fp_to_sint %1%";
     if (opName == "cifu") return "uint_to_fp %1%";
@@ -2147,12 +2227,12 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "ldh") return "sextloadi16 %1%";
     if (opName == "ldhu") return "zextloadi16 %1%";
     if (opName == "ldw") return "load %1%";
-    //if (opName == "ldd") return "load";
+    if (opName == "ldd") return "load %1%";//rwh: check
 
     if (opName == "stq") return "truncstorei8 %2%, %1%";
     if (opName == "sth") return "truncstorei16 %2%, %1%";
     if (opName == "stw") return "store %2%, %1%";
-    //if (opName == "std") return "load";
+    if (opName == "std") return "store %2%, %1%";//rwh: check
 
     if (opName == "sxhw") {
         switch (operandType) {
@@ -2256,6 +2336,40 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "negf") return "fneg";
     if (opName == "sqrtf") return "fsqrt";
 
+    if (opName == "eqd") return "setoeq";
+    if (opName == "ned") return "setone";
+    if (opName == "ltd") return "setolt";
+    if (opName == "led") return "setole";
+    if (opName == "gtd") return "setogt";
+    if (opName == "ged") return "setoge";
+
+    if (opName == "equd") return "setueq";
+    if (opName == "neud") return "setune";
+    if (opName == "ltud") return "setult";
+    if (opName == "leud") return "setule";
+    if (opName == "gtud") return "setugt";
+    if (opName == "geud") return "setuge";
+
+    if (opName == "ordd") return "seto";
+    if (opName == "uordd") return "setuo";
+
+    if (opName == "addd") return "fadd";
+    if (opName == "subd") return "fsub";
+    if (opName == "muld") return "fmul";
+    if (opName == "divd") return "fdiv";
+    if (opName == "absd") return "fabs";
+    if (opName == "negd") return "fneg";
+    if (opName == "sqrtd") return "fsqrt";
+
+    //RWH: check
+    if (opName == "cid") return "sint_to_fp";
+    if (opName == "cdi") return "fp_to_sint";
+    if (opName == "cidu") return "uint_to_fp";
+    if (opName == "cdiu") return "fp_to_uint";
+
+    if (opName == "cdf") return "fround";//fptrunc to float
+    if (opName == "cfd") return "fextend";//fpext to double
+
     if (opName == "cif") return "sint_to_fp";
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
@@ -2269,17 +2383,51 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "chf") return "fpextend";
 #endif
 
+    if (opName == "cih") return "sint_to_fp";
+    if (opName == "chi") return "fp_to_sint";
+    if (opName == "cihu") return "uint_to_fp";
+    if (opName == "chiu") return "fp_to_uint";
+
+    if (opName == "neuh") return "setune";
+    if (opName == "eqh") return "setoeq";
+    if (opName == "neh") return "setone";
+    if (opName == "lth") return "setolt";
+    if (opName == "leh") return "setole";
+    if (opName == "gth") return "setogt";
+    if (opName == "geh") return "setoge";
+
+    if (opName == "ordh") return "seto";
+    if (opName == "uordh") return "setuo";
+
+    if (opName == "addh") return "fadd";
+    if (opName == "subh") return "fsub";
+    if (opName == "mulh") return "fmul";
+    if (opName == "divh") return "fdiv";
+    if (opName == "absh") return "fabs";
+    if (opName == "negh") return "fneg";
+    if (opName == "sqrth") return "fsqrt";
+
+    if (opName == "cih") return "sint_to_fp";
+    if (opName == "chi") return "fp_to_sint";
+    if (opName == "cihu") return "uint_to_fp";
+    if (opName == "chiu") return "fp_to_uint";
+
+    if (opName == "csh") return "sint_to_fp";
+    if (opName == "cshu") return "uint_to_fp";
+    if (opName == "chs") return "fp_to_sint";
+    if (opName == "chsu") return "fp_to_uint";
+
     if (opName == "ldq") return "sextloadi8";
     if (opName == "ldqu") return "zextloadi8";
     if (opName == "ldh") return "sextloadi16";
     if (opName == "ldhu") return "zextloadi16";
     if (opName == "ldw") return "load";
-    //if (opName == "ldd") return "load";
+    if (opName == "ldd") return "load";//RWH: check
 
     if (opName == "stq") return "truncstorei8";
     if (opName == "sth") return "truncstorei16";
     if (opName == "stw") return "store";
-    //if (opName == "std") return "load";
+    if (opName == "std") return "store";
 
     if (opName == "sxhw") return "sext_inreg";
     if (opName == "sxqw") return "sext_inreg";
@@ -2324,6 +2472,8 @@ TDGen::operationCanBeMatched(
     if (llvmOperationPattern(op,'r') != "") {
         return true;
     }
+    //RWH: should probably lookup operand type instead of assuming 'r' in call
+    //to llvmOperationPattern
 
     std::set<std::string> useSet;
     if (recursionCycleCheck != NULL) {
@@ -2601,11 +2751,15 @@ TDGen::constantNodeString(
             case 'b':
                 return "(i1 " + Conversion::toString(node.value()) + ")";
             case 'h':
+            case 'l':
                 return "(f16 " + Conversion::toString(node.value()) + ")";
                 // TODO: f16 vectors not yet implemented
             case 'f':
             case 'k':
                 return "(f32 " + Conversion::toString(node.value()) + ")";
+            case 'd':
+            case 'e':
+                return "(f64 " + Conversion::toString(node.value()) + ")";
             case 'm':
                 return ("(v2f32 (build_vector (f32 " + 
                         Conversion::toString(node.value()) +
@@ -2762,12 +2916,17 @@ TDGen::emulatingOpNodeLLVMName(
                 } else {
                     if (dynamic_cast<ConstantNode*>(
                             &(dag.tailNode(edge)))) {
-                        if (operand.type() == Operand::SINT_WORD ||
-                            operand.type() == Operand::UINT_WORD ||
-                            operand.type() == Operand::RAW_DATA) {
-                            operationName += 'i';
-                        } else {
+                        if (operand.type() == Operand::BOOL) {
+                            operationName += 'j';
+                        } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
+                            operationName += 'l';
+                        } else if (operand.type() == Operand::FLOAT_WORD) {
                             operationName += 'k';
+                        } else if (operand.type() == Operand::DOUBLE_WORD) {
+                            operationName += 'e';
+                        } else {
+                            // should be a 32b integer register (signed, unsigned, or raw)
+                            operationName += 'i';
                         }
                     } else {
                         TerminalNode* t = 
@@ -3009,7 +3168,7 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??
-        return "F64Regs:$op" + Conversion::toString(idx);
+        return "R64FPRegs:$op" + Conversion::toString(idx);
     } else {
         assert(false && "Unknown operand type.");
     }
@@ -3117,9 +3276,7 @@ TDGen::canBeImmediate(
 
 void
 TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
-    // vector store/load generation code
-
-    TCEString prefix = "&"; // address of -operator
+    TCEString prefix = "&"; // address-of operator
     TCEString rcpf = "RegsRegClass";
     TCEString rapf = "TCE::RARegRegClass";
 
@@ -3149,6 +3306,10 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
                << "HFP" << rcpf << ") return TCE::STHhr;" << std::endl;
+        }
+        if (ri->first.find("R64") == 0) {
+            os << "\tif (rc == " << prefix << "TCE::"  << ri->first
+               << "FP" << rcpf << ") return TCE::STDdr;" << std::endl;
         }
     }
     
@@ -3244,6 +3405,10 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
                << "HFP" << rcpf << ") return TCE::LDHhr;" << std::endl;
         }
+        if (ri->first.find("R64") == 0) {
+            os << "\tif (rc == " << prefix << "TCE::" << ri->first
+               << "FP" << rcpf << ") return TCE::LDDdr;" << std::endl;
+        }
     }
 
     if (opNames_.find("LDW2vr") != opNames_.end()) {
@@ -3323,6 +3488,9 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
     if (opNames_.find("MINFfff") != opNames_.end()) {
         os << "if (vt == MVT::f32) return TCE::MINFfff;" << std::endl;
     }
+    if (opNames_.find("MINDddd") != opNames_.end()) {
+        os << "if (vt == MVT::f64) return TCE::MINDddd;" << std::endl;
+    }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
 
     // MAX
@@ -3334,21 +3502,40 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
     if (opNames_.find("MAXFfff") != opNames_.end()) {
         os << "if (vt == MVT::f32) return TCE::MAXFfff;" << std::endl;
     }
+    if (opNames_.find("MAXDddd") != opNames_.end()) {
+        os << "if (vt == MVT::f64) return TCE::MAXDddd;" << std::endl;
+    }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
     
-    // MINU
+    // MINU: unsigned for integer, unordered for float
     os  << "int GeneratedTCEPlugin::getMinuOpcode(SDNode* n) const {" << std::endl;
     if (opNames_.find("MINUrrr") != opNames_.end()) {
         os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
         os << "if (vt == MVT::i32) return TCE::MINUrrr;" << std::endl;
     }
+    if (opNames_.find("MINUFfff") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::f32) return TCE::MINUFfff;" << std::endl;
+    }
+    if (opNames_.find("MINUDddd") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::f64) return TCE::MINUDddd;" << std::endl;
+    }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
 
-    // MAXU
+    // MAXU: unsigned for integer, unordered for float
     os  << "int GeneratedTCEPlugin::getMaxuOpcode(SDNode* n) const {" << std::endl;
     if (opNames_.find("MAXUrrr") != opNames_.end()) {
         os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
         os << "if (vt == MVT::i32) return TCE::MAXUrrr;" << std::endl;
+    }
+    if (opNames_.find("MAXUFfff") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::f32) return TCE::MAXUFfff;" << std::endl;
+    }
+    if (opNames_.find("MAXUDddd") != opNames_.end()) {
+        os << "\tEVT vt = n->getOperand(1).getValueType();" << std::endl;
+        os << "if (vt == MVT::f64) return TCE::MAXUDddd;" << std::endl;
     }
     os << "\treturn -1; " << std::endl << "}" << std::endl;
 }
@@ -3372,6 +3559,7 @@ void TDGen::createShortExtLoadPatterns(std::ostream& os) {
            << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;" << std::endl;
 
 }
+//RWH: need load patterns for 64b?
 
 void
 TDGen::writeCallingConv(std::ostream& os) {
@@ -3381,9 +3569,13 @@ TDGen::writeCallingConv(std::ostream& os) {
     os << "def RetCC_TCE : CallingConv<[" << std::endl
        << "  CCIfType<[i1], CCPromoteToType<i32>>," << std::endl
        << "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl
+       << "  CCIfType<[i64], CCAssignToReg<[DIRES0]>>," << std::endl
        << "  CCIfType<[f32], CCAssignToReg<[IRES0]>>," << std::endl
+       << "  CCIfType<[f64], CCAssignToReg<[DRES0]>>," << std::endl
        << "  CCAssignToStack<4, 4>" << std::endl
        << "]>;" << std::endl << std::endl;
+    //RWH: //TODO: need to figure out function return value second column for
+    // f64
 
     os << "// Function argument value types." << std::endl;
     os << 
@@ -3392,14 +3584,14 @@ TDGen::writeCallingConv(std::ostream& os) {
         "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl;
 
     os << 
-        "  // Integer values get stored in stack slots that are 4 bytes in "
+        "  // Integer and float32 values get stored in stack slots that are 4 bytes in "
        << std::endl <<
         "  // size and 4-byte aligned." << std::endl << 
         "  CCIfType<[i32, f32], CCAssignToStack<4, 4>>," << std::endl <<
-        "  // Integer values get stored in stack slots that are 8 bytes in"
+        "  // Long integer and float64 values get stored in stack slots that are 8 bytes in"
        << std::endl <<
         "  // size and 8-byte aligned." << std::endl << 
-        "  CCIfType<[f64], CCAssignToStack<8, 8>>" << std::endl << 
+        "  CCIfType<[i64, f64], CCAssignToStack<8, 8>>" << std::endl << 
 
         "]>;" << std::endl;
 }
@@ -3474,6 +3666,9 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "(XORbbj R1Regs:$c, 1))>;"
                << std::endl << std::endl;
             
+            //RWH: not defining for fp64 due to the coctail of instructions
+            // necessary, esp. with immediates, which aren't supported by the
+            // current instruction patterns.
             os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
                << "(IORfff (ANDfff R32FPRegs:$t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
                << "(ANDfff R32FPRegs:$f, (SUBfri (ANDext R1Regs:$c,1),1)))>;"
@@ -3492,6 +3687,7 @@ void TDGen::createSelectPatterns(std::ostream& os) {
             opNames_["SELECT_I32ir"] = "CMOV_SELECT";
             opNames_["SELECT_I32ri"] = "CMOV_SELECT";
             opNames_["SELECT_I32ii"] = "CMOV_SELECT";
+            opNames_["SELECT_F64"] = "CMOV_SELECT";
             opNames_["SELECT_F32"] = "CMOV_SELECT";
             opNames_["SELECT_F16"] = "CMOV_SELECT";
 
@@ -3556,6 +3752,13 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "\"# SELECT_I32 PSEUDO!\","
                << "[(set R32IRegs:$dst,"
                << "(select R32IRegs:$c, (i32 imm:$T), (i32 imm:$F)))]>;"
+               << std::endl << std::endl
+                
+               << "def SELECT_F64 : InstTCE<(outs R64FPRegs:$dst),"
+               << "(ins R1Regs:$c, R64FPRegs:$T, R64FPRegs:$F),"
+               << "\"# SELECT_F64 PSEUDO!\","
+               << "[(set R64FPRegs:$dst,"
+               << "(select R1Regs:$c, R64FPRegs:$T, R64FPRegs:$F))]>;"
                << std::endl << std::endl
                 
                << "def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),"
