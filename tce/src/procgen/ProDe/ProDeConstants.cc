@@ -224,11 +224,6 @@ const string ProDeConstants::COMP_NEW_NAME_PREFIX_BRIDGE = "Br";
 const string ProDeConstants::COMP_NEW_NAME_PREFIX_OPERATION = "operation";
 const string ProDeConstants::COMP_NEW_NAME_PREFIX_AS = "AS";
 
-const double ProDeConstants::MAX_ZOOM_FACTOR = 3;
-// Zoom factors less than 0.25 seem to bug with GTK1 wxWidgets.
-const double ProDeConstants::MIN_ZOOM_FACTOR = 0.25;
-const double ProDeConstants::ZOOM_STEP = 0.1;
-
 const string ProDeConstants::PROCESSOR_ARCH_FILE_EXTENSION = ".adf";
 const string ProDeConstants::PROCESSOR_CONFIG_FILE_EXTENSION = ".cfg";
 

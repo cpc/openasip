@@ -70,6 +70,10 @@ public:
 
     double zoomFactor();
     void setZoomFactor(double factor);
+    void zoomIn();
+    void zoomOut();
+    wxSize getFigureSize() const;
+
 
     void setTool(MachineCanvasTool* tool);
     MachineCanvasTool* tool();

@@ -358,16 +358,6 @@ public:
     /// Prefix for new address space names.
     static const std::string COMP_NEW_NAME_PREFIX_AS;
 
-    // zooming constants
-
-    /// Minimum zoom factor.
-    static const double MIN_ZOOM_FACTOR;
-    /// Maximum zoom factor.
-    static const double MAX_ZOOM_FACTOR;
-    /// Step between zoom levels.
-    static const double ZOOM_STEP;
-
-
     // editor constants
 
     /// Copyright text of the Editor.

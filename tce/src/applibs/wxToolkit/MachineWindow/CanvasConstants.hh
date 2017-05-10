@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,51 +22,33 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file SocketBusConnToolFigure.cc
+ * @file CanvasConstants.hh
  *
- * Definition of SocketBusConnToolFigure class.
+ * Declaration of CanvasConstants class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Alex Hirvonen 2017 (alex.hirvonen-no.spam-gmail.com)
  * @note rating: red
  */
 
-#include "Application.hh"
-#include "SocketBusConnToolFigure.hh"
-#include "ProDeConstants.hh"
+#ifndef TTA_CANVAS_CONSTANTS_HH
+#define TTA_CANVAS_CONSTANTS_HH
 
-const wxColor SocketBusConnToolFigure::LINE_COLOR_GREEN = wxColor(0, 200, 0);
-const wxColor SocketBusConnToolFigure::LINE_COLOR_RED = wxColor(255, 0, 0);
 
 /**
- * The Constructor.
+ * Constants for machine canvas
  */
-SocketBusConnToolFigure::SocketBusConnToolFigure(bool creating):
-    SocketBusConnFigure() {
+class CanvasConstants {
+public:
+    // zooming constants
 
-    if (creating) {
-        color_ = LINE_COLOR_GREEN;
-    } else {
-        color_ = LINE_COLOR_RED;
-    }
-}
+    /// Minimum zoom factor.
+    static const double MIN_ZOOM_FACTOR;
+    /// Maximum zoom factor.
+    static const double MAX_ZOOM_FACTOR;
+    /// Step between zoom levels.
+    static const double ZOOM_STEP;
+    /// More precise step for automatic canvas resizing
+    static const double AUTOZOOM_STEP;
+    };
 
-/**
- * The Destructor.
- */
-SocketBusConnToolFigure::~SocketBusConnToolFigure() {
-}
-
-/**
- * Draws the connection's Figure on the given device context.
- *
- * @param dc The device context.
- */
-void
-SocketBusConnToolFigure::drawSelf(wxDC* dc) {
-    assert(source_ != NULL && target_ != NULL);
-    wxPen pen = wxPen(color_, 1, wxSOLID);
-    wxBrush brush = wxBrush(color_, wxSOLID);
-    dc->SetPen(pen);
-    dc->SetBrush(brush);
-    drawConnection(dc);
-}
+#endif

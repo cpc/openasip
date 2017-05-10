@@ -15,7 +15,7 @@ libmachinewindow_la_SOURCES = MachineEditPartFactory.cc BidirBridgeFigure.cc \
 	MachineCanvas.cc EditPolicyFactory.cc MachineCanvasTool.cc \
 	Request.cc ComponentCommand.cc MoveFigure.cc TriggeringPortFigure.cc \
 	MachineCanvasOptions.cc MachineCanvasLayoutConstraints.cc \
-	ChildFrame.cc
+	ChildFrame.cc CanvasConstants.cc
 
 
 PROJECT_ROOT = $(top_srcdir)
@@ -75,5 +75,5 @@ libmachinewindow_la_SOURCES += \
 	SegmentFigure.icc RootEditPart.icc \
 	EditPart.icc EditPartFactory.icc \
 	EditPolicyFactory.icc ConnectionEditPart.icc \
-	ChildFrame.hh
+	ChildFrame.hh CanvasConstants.hh
 ## headers end
