@@ -143,6 +143,8 @@ public:
     static const std::string CMD_NAME_EDIT_BUS_ORDER;
     /// Command name for the "Fully connect busses" command.
     static const std::string CMD_NAME_FULLY_CONNECT_BUSSES;
+    /// Command name for the "VLIW Connect IC" command.
+    static const std::string CMD_NAME_VLIW_CONNECT_IC;
     /// Command name for the "Processor configurations" command.
     static const std::string CMD_NAME_EDIT_MACHINE;
 
@@ -233,6 +235,8 @@ public:
     static const std::string CMD_SNAME_EDIT_CONNECTIONS;
     /// Command name for the "Fully connect busses" command.
     static const std::string CMD_SNAME_FULLY_CONNECT_BUSSES;
+    /// Command name for the "VLIW Connect IC" command.
+    static const std::string CMD_SNAME_VLIW_CONNECT_IC;
     /// Command name for the "Verify Machine" command.
     static const std::string CMD_SNAME_VERIFY_MACHINE;
     /// Command name for the "Processor Implementation" command.
@@ -437,6 +441,7 @@ public:
             COMMAND_TOGGLE_UNIT_DETAILS,
 
             COMMAND_FULLY_CONNECT_BUSSES,
+            COMMAND_VLIW_CONNECT_IC,
             COMMAND_VERIFY_MACHINE,
             COMMAND_IMPLEMENTATION,
             COMMAND_CALL_EXPLORER_PLUGIN,

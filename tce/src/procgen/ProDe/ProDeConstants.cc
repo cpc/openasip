@@ -107,6 +107,8 @@ const string ProDeConstants::CMD_NAME_TOGGLE_UNIT_DETAILS =
 
 const string ProDeConstants::CMD_NAME_FULLY_CONNECT_BUSSES =
     "Fully Connect IC";
+const string ProDeConstants::CMD_NAME_VLIW_CONNECT_IC =
+    "VLIW Connect IC";
 const string ProDeConstants::CMD_NAME_EDIT_MACHINE =
     "Processor Configurations";
 
@@ -162,6 +164,7 @@ const string ProDeConstants::CMD_SNAME_EDIT_IMMEDIATE_SLOTS = "ImmSlots";
 const string ProDeConstants::CMD_SNAME_EDIT_BUS_ORDER = "Bus Ord.";
 const string ProDeConstants::CMD_SNAME_EDIT_CONNECTIONS = "Connect";
 const string ProDeConstants::CMD_SNAME_FULLY_CONNECT_BUSSES = "Full IC";
+const string ProDeConstants::CMD_SNAME_VLIW_CONNECT_IC = "VLIW IC";
 const string ProDeConstants::CMD_SNAME_VERIFY_MACHINE = "Verify";
 const string ProDeConstants::CMD_SNAME_IMPLEMENTATION = "Implement";
 const string ProDeConstants::CMD_SNAME_EXPLORER_PLUGIN = "Explorer";
