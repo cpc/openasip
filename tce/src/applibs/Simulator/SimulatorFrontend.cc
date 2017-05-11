@@ -249,8 +249,7 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     // compiled sim does not handle long guard latencies nor LE  correctly.
     // remove when fixed.
     if (isCompiledSimulation() && 
-        (machine.controlUnit()->globalGuardLatency() > 1 ||
-         machine.isLittleEndian())) {
+        machine.controlUnit()->globalGuardLatency() > 1) {
         setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.

@@ -49,8 +49,6 @@
 #include "TCEString.hh"
 #include "MathTools.hh"
 #include "Conversion.hh"
-#include "CIStringSet.hh"
-#include "HWOperation.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -325,88 +323,28 @@ POMValidator::checkSimulatability(POMValidatorResults& results) {
  */
 void 
 POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {    
+
     for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
         const Instruction* instruction = instructions_.at(instrI);
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
             Terminal* destination = &move.destination();
-
-            // Check triggering moves.
-            if (!destination->isFUPort() || !destination->isOpcodeSetting()) {
-                continue;
-            }
-
             // clocked operations
-            if (destination->operation().isClocked()) {
-                InstructionAddress address =
-                    instruction->address().location();
-                std::string errorMessage =
-                    "Instruction at address: " +
-                    Conversion::toString(address) +
-                    "' cannot be simulated with the compiled simulator. "
-                    "(Operation " + destination->operation().name() +
-                    " is a clocked operation).";
+            if (destination->isFUPort()) {
+                if (destination->isOpcodeSetting() && 
+                    destination->operation().isClocked()) {
+                    InstructionAddress address = instruction->address().location();
+                    std::string errorMessage =
+                        "Instruction at address: " +
+                        Conversion::toString(address) +
+                        "' cannot be simulated with the compiled simulator. "
+                        "(Operation " + destination->operation().name() + 
+                        " is a clocked operation).";
                     
-                results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
-                                 errorMessage);
-            }
-
-            const auto& op = destination->operation();
-            if (op.readsMemory() || op.writesMemory()) {
-                checkMemoryOperationForCompiledSimulatibility(
-                    results, *instruction, destination->functionUnit(), op);
+                    results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
+                    errorMessage);
+                }
             }
         } // end for
     }
 }
-
-/**
- * Checks the memory operation is simulatable in compiled simulation.
- *
- * Compiled simulation uses different Memory model that does not support
- * pipelining. Therefore, the operations may not have latency more than one
- * except for some selected operations.
- *
- */
-void
-POMValidator::checkMemoryOperationForCompiledSimulatibility(
-    POMValidatorResults& results,
-    const TTAProgram::Instruction& instr,
-    const TTAMachine::FunctionUnit& fu,
-    const Operation& op) {
-
-    assert(op.readsMemory() || op.writesMemory());
-
-    static const TCETools::CIStringSet supportedMemOps{
-        "ldq", "ldqu", "ldh", "ldhu", "ldw",
-        "ld8", "ldu8", "ld16", "ldu16", "ld32",
-        "stq", "sth", "stw",
-        "st8", "st16", "st32"};
-
-     if (supportedMemOps.count(op.name())) return;
-
-     const HWOperation* hwOp = fu.operation(op.name());
-     if (hwOp->latency() > 1) {
-         InstructionAddress address = instr.address().location();
-         std::string errMsg =
-             "Instruction at address: " +
-             Conversion::toString(address) +
-             " cannot be simulated with the compiled simulator.\n"
-             "Reason: Operation " + op.name() +
-             " has unsupported latency of " +
-             std::to_string(hwOp->latency()) + " (>1).\n";
-         errMsg += "Note: following operations with 1+ latency are "
-                   "supported:\n";
-         auto beginIt = supportedMemOps.begin();
-         auto endIt = supportedMemOps.end();
-         for (auto it = beginIt; it != endIt; it++) {
-             if (it != beginIt) errMsg += ", ";
-             errMsg += *it;
-         }
-
-         results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
-                          errMsg);
-     }
-}
-
-
