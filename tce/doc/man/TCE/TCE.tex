@@ -588,9 +588,10 @@ Copy the \file{minimal.adf} included in TCE distribution to a new ADF
 file which is your starting point architecture. You can view it using the
 graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
-
-\shellcmd{prode start.adf \&}
+\begin{verbatim}
+  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
+  prode start.adf &
+\end{verbatim}
 
 Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
 and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
@@ -2647,7 +2648,9 @@ assumes clock frequency of 100 MHz.
 
 Now compile the source code with the following command:
 
-\shellcmd{tcecc -O0 -{}-swfp -a test.adf -o std\_print.tpef std\_print.c}
+\begin{verbatim}
+  tcecc -O0 --swfp -a test.adf -o std\print.tpef std\print.c
+\end{verbatim}
 
 The compilation command contains a few flags that should be explained
 in more detail. Let's first look into the \textit{-{}-swfp} flag: this
