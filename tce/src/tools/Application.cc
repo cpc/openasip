@@ -475,7 +475,15 @@ Application::isInstalled() {
         return true;
 
     TCEString execPath(argv_[0]);
-    
+
+    Path execDir(FileSystem::directoryOfPath(execPath));
+
+    // In source tree the binaries are placed under .lib directory.
+    std::vector<TCEString> dirPieces = TCEString(execDir.string()).split("/");
+    if (dirPieces.back() == ".libs") {
+        return false;
+    }
+
     // assume that the binaries executed from the build tree
     // contain the libtool lt- prefix
     std::vector<TCEString> pieces = execPath.split("/");
