@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -163,8 +163,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
         }
 
         sort(distinctBusWidths_.begin(), distinctBusWidths_.end());
-        std::vector<int>::size_type numDistinctBusWidths =
-            distinctBusWidths_.size();
+        int numDistinctBusWidths = distinctBusWidths_.size();
 
         // save directions and sockets
         std::vector<Socket::Direction> directions;
@@ -182,7 +181,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
             int width = sock->port(0)->width();
             int widx = widthIndex(width);
 
-            if(dynamic_cast<BaseRegisterFile*>(parentUnit) == NULL
+            if (dynamic_cast<BaseRegisterFile*>(parentUnit) == NULL
                 && dynamic_cast<ControlUnit*>(parentUnit) == NULL) {
                 if (dir == Socket::INPUT) {
                     readSockets[widx].push_back(i);
@@ -208,12 +207,12 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
         // Add new bus for each fu/gcu socket
         std::vector< std::vector<int> > readBuses(numDistinctBusWidths),
             writeBuses(numDistinctBusWidths);
-        int busCount=0;
+        int busCount = 0;
         
-        for (int widx=0; widx<numDistinctBusWidths; ++widx) {
+        for (int widx = 0; widx < numDistinctBusWidths; ++widx) {
             int width = distinctBusWidths_[widx];
             
-            if(widx == 0) {
+            if (widx == 0) {
                 TTAMachine::Segment* newSegment = createBus(mach, 32);
                 
                 for (unsigned int i = 0; i < controlSockets[widx].size(); i++) {
@@ -243,7 +242,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
         }
 
         // Add register file
-        for (int widx=0; widx<numDistinctBusWidths; ++widx) {
+        for (int widx = 0; widx < numDistinctBusWidths; ++widx) {
             if (readBuses[widx].size() == 0 && writeBuses[widx].size() == 0) {
                 continue;
             }
@@ -270,7 +269,8 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
                     
                     RFPort* newPort = new RFPort(socketName, *rf);
                     newPort->attachSocket(*newSocket);
-                    busNavi.item(readBuses[widx][i])->segment(0)->attachSocket(*newSocket);
+                    busNavi.item(readBuses[widx][i])->segment(0)->
+                        attachSocket(*newSocket);
                     newSocket->setDirection(Socket::OUTPUT);
                 }
 
@@ -283,14 +283,15 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
                     
                     RFPort* newPort = new RFPort(socketName, *rf);
                     newPort->attachSocket(*newSocket);
-                    busNavi.item(writeBuses[widx][i])->segment(0)->attachSocket(*newSocket);
+                    busNavi.item(writeBuses[widx][i])->segment(0)->
+                        attachSocket(*newSocket);
                     newSocket->setDirection(Socket::INPUT);
                 }
             }
         }
 
         // Add bypasses
-        for (int widx=0; widx<numDistinctBusWidths; ++widx) {
+        for (int widx = 0; widx < numDistinctBusWidths; ++widx) {
             for (unsigned int i = 0; i < writeSockets[widx].size(); i++) {
                 Socket* output = socketNavi.item(writeSockets[widx][i]);
                 for (unsigned int j = 0; j < readBuses[widx].size(); j++) {
@@ -318,7 +319,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
         // add unconnected long immediate buses
         ImmediateUnit* immu = mach->immediateUnitNavigator().item(0);
         
-        while(mach->instructionTemplateNavigator().count() > 0) {
+        while (mach->instructionTemplateNavigator().count() > 0) {
             mach->deleteInstructionTemplate(
                 *mach->instructionTemplateNavigator().item(0));
         }
@@ -373,8 +374,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
      */
     TTAMachine::Segment* createBus(TTAMachine::Machine* mach, int width) {
         int idx = mach->busNavigator().count();
-        TCEString busName = "B"
-            + Conversion::toString(idx);
+        TCEString busName = "B" + Conversion::toString(idx);
         Bus* newBus = new Bus(busName, width, 0, Machine::SIGN);
         TTAMachine::Segment* newSegment = 
             new TTAMachine::Segment(busName, *newBus);
