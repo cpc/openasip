@@ -261,7 +261,8 @@ class STATE_NAME##_State : public OperationState { \
 bool simulateTrigger( \
     SimValue** io, \
     OperationContext& context) const { \
-        if (&context == 0 || io == 0) { }
+        (void)context; \
+        if (io == 0) { }
 
 /**
  * Fetches the state instance.
@@ -284,7 +285,7 @@ bool simulateTrigger( \
  */
 #define ADVANCE_CLOCK \
     void advanceClock(OperationContext& context) { \
-        if (&context == 0) { }
+        (void)context;
 
 /**
  * Ends the definition block for the clock advancing simulation function.
