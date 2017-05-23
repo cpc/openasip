@@ -87,6 +87,7 @@
 #include "AddFUFromHDBCmd.hh"
 #include "ToggleUnitDetailsCmd.hh"
 #include "EditMachineCmd.hh"
+#include "VLIWConnectICCmd.hh"
 
 #include "KeyboardShortcut.hh"
 #include "ProDeOptions.hh"
@@ -173,6 +174,7 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new SaveOptionsCmd());
     commandRegistry_->addCommand(new UserManualCmd());
     commandRegistry_->addCommand(new AboutCmd());
+    commandRegistry_->addCommand(new VLIWConnectICCmd());
 
     toolbar_ = NULL;
     CreateStatusBar(2);
@@ -646,6 +648,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_FULLY_CONNECT_BUSSES,
         menuAccelerator(ProDeConstants::COMMAND_FULLY_CONNECT_BUSSES).Prepend(
             _T("&Fully Connect IC")));
+
+    toolMenu->Append(
+        ProDeConstants::COMMAND_VLIW_CONNECT_IC,
+        menuAccelerator(ProDeConstants::COMMAND_VLIW_CONNECT_IC).Prepend(
+            _T("&VLIW Connect IC")));
 
     toolMenu->Append(
         ProDeConstants::COMMAND_VERIFY_MACHINE,
