@@ -52,7 +52,8 @@ using std::endl;
 
 class 
 VLIWConnectIC : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Fully connects all buses in the machine.");
+    PLUGIN_DESCRIPTION("Arranges architecture FUs into a VLIW-like "
+        "interconnection by adding separate RF for each distinct bus width.");
 
     VLIWConnectIC(): DesignSpaceExplorerPlugin(),
         wipeRegisterFile_(false),
@@ -317,22 +318,24 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
         }
 
         // add unconnected long immediate buses
-        ImmediateUnit* immu = mach->immediateUnitNavigator().item(0);
-        
-        while (mach->instructionTemplateNavigator().count() > 0) {
-            mach->deleteInstructionTemplate(
-                *mach->instructionTemplateNavigator().item(0));
-        }
-
-        new InstructionTemplate("no_limm", *mach);
-        
-        InstructionTemplate* limm 
-            = new InstructionTemplate("limm", *mach);
-        for (int i = 0; i < longImmediateBusCount_; i++) {
-            TTAMachine::Segment* newSegment = createBus(mach, 32);
-            Bus* newBus = newSegment->parentBus();
+        if (mach->immediateUnitNavigator().count() != 0) {
+            ImmediateUnit* immu = mach->immediateUnitNavigator().item(0);
             
-            limm->addSlot(newBus->name(), 32/longImmediateBusCount_, *immu);
+            while (mach->instructionTemplateNavigator().count() > 0) {
+                mach->deleteInstructionTemplate(
+                    *mach->instructionTemplateNavigator().item(0));
+            }
+
+            new InstructionTemplate("no_limm", *mach);
+
+            InstructionTemplate* limm
+                = new InstructionTemplate("limm", *mach);
+            for (int i = 0; i < longImmediateBusCount_; i++) {
+                TTAMachine::Segment* newSegment = createBus(mach, 32);
+                Bus* newBus = newSegment->parentBus();
+
+                limm->addSlot(newBus->name(), 32/longImmediateBusCount_, *immu);
+            }
         }
 
         // add machine to configuration
