@@ -73,6 +73,7 @@ public:
     virtual void bindPort(int operand, const FUPort& port)
         throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange);
     virtual void unbindPort(const FUPort& port);
+    int operandCount() const;
     virtual FUPort* port(int operand) const;
     bool isBound(const FUPort& port) const;
     int io(const FUPort& port) const

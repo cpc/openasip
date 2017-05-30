@@ -310,6 +310,16 @@ HWOperation::unbindPort(const FUPort& port) {
     port.updateBindingString();
 }
 
+/**
+ * Returns the number of operands of the operation.
+ *
+ * @return Number of operands
+ */
+int
+HWOperation::operandCount() const {
+    return operandBinding_.size();
+}
+
 
 /**
  * Returns the port of the function unit that is bound to the given operand.
