@@ -63,9 +63,9 @@ DirectAccessMemory::DirectAccessMemory(
     /// We should probably give user a warning if MAUSize is larger than 
     /// the integer size!
     if (MAUSize_ >= static_cast<Word>(std::numeric_limits<Word>::digits)) {
-        mask_ = ~0;
+        mask_ = ~0u;
     } else {
-        mask_ = ~(~0 << MAUSize_);
+        mask_ = ~(~0u << MAUSize_);
     }
 
     data_ = new MemoryContents(end_ - start_);

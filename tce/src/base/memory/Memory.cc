@@ -69,7 +69,7 @@ Memory::Memory(Word start, Word end, Word MAUSize, bool littleEndian) :
         msg += " bits.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     } else {
-        mask_ = ~0 << MAUSize_;
+        mask_ = ~0u << MAUSize_;
         mask_ = ~mask_;
     }
 }

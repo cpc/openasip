@@ -111,7 +111,7 @@ prode_SOURCES = Model.cc\
 		  GenerateProcessorDialog.cc OpsetDialog.cc \
 		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
 		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc \
-		  MachineDialog.cc EditMachineCmd.cc
+		  MachineDialog.cc EditMachineCmd.cc VLIWConnectICCmd.cc
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
@@ -239,5 +239,5 @@ prode_SOURCES += \
 	ModifyRFCmd.hh AddASCmd.hh \
 	ProDeRFEditPolicy.hh PasteComponentCmd.icc \
 	MDFView.icc AutoSelectImplementationsDialog.hh \
-	MachineDialog.hh EditMachineCmd.hh
+	MachineDialog.hh EditMachineCmd.hh VLIWConnectICCmd.hh
 ## headers end

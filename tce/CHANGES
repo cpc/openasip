@@ -4,12 +4,14 @@
 Notable changes and features
 ----------------------------
 - Little-endian support.
+- VLIWConnectIC: an explorer plugin which arranges architecture FUs into a
+  VLIW-like interconnection by adding separate RF for each distinct bus width.
 
 Usability features
 ----------------------------
 - (Proxim) Added ability to search for a certain pattern in dissasembly window
    Feature can be accessed using ctrl-F key combination in the main window.
-- (ProDe/Proxim) Zoom in/out machine canvas with mouse wheel
+- (ProDe/Proxim) Zoom in/out machine canvas with mouse wheel.
 
 Other features and improvements
 -------------------------------

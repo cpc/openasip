@@ -8364,6 +8364,26 @@ The created architecture and implementation definition file can be written to ar
 
 \shellcmd{explore -w 2 test.dsdb}
 
+\subsection{Explorer Plugin: VLIWConnectIC}
+
+VLIWConnectIC takes an .ADF architecture as input, and arranges its FUs into a
+VLIW-like interconnection. This is typically as baseline for running the
+BusMergeMinimizer and RFPortMergeMinimizer plugins. The output machine has some
+empty buses whose instruction slots are used to encode long immediates.
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+wipe\_register\_file & yes & Replace the original register file(s) with a native VLIW RF. \\
+limm\_bus\_count & 1 & Number of empty buses used to encode long immediates. \\
+simm\_width & 6 & Short immediate width. \\
+\end{tabular}\\
+
+Example of invoking the plugin:
+
+\shellcmd{explore -e VLIWConnectIC -a test.adf -s 1 test.dsdb}\\
+\shellcmd{explore -w 2 test.dsdb}
 
 \chapter{PROCESSOR TEMPLATE}
 \label{section:template}

@@ -2723,7 +2723,6 @@ ControlFlowGraph::mergeNodes(
     assert(node2.isNormalBB());
     TTAProgram::BasicBlock& bb1 = node1.basicBlock();
     TTAProgram::BasicBlock& bb2 = node2.basicBlock();
-    assert(&bb2 != NULL);
     for (int i = bb2.instructionCount() -1; i >= 0; i--) {
         Instruction& ins = bb2.instructionAtIndex(i);
         if (ddg != NULL) {
