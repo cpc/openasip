@@ -39,8 +39,10 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/timer.h>
 
 class Model;
+class wxSearchCtrl;
 
 struct ListItemData {
     int id;
@@ -72,9 +74,11 @@ private:
     void onClose(wxCommandEvent& event);
     bool loadHDB(const HDB::HDBManager& manager);
     bool acceptToList(
+        const std::string hdbFilePath, 
         const HDB::FUArchitecture& arch,
         const std::vector<std::string>& filterList);
     void onFilterChange(wxCommandEvent& event);
+    void onFilterTimeOut(wxTimerEvent& event);
     void onColumnClick(wxListEvent& event);
     void setColumnImage(int col, int image);
 
@@ -84,8 +88,12 @@ private:
     wxListCtrl* list_;
     /// Map of iu architectures displayed in the dialog list.
     std::map<int, HDB::FUArchitecture*> fuArchitectures_;
+    /// The list filter text control.
+    wxSearchCtrl* filterCtrl_ = nullptr;
     /// Keywords to filter HDB entries.
-    std::vector<std::string> filterPatterns_ = std::vector<std::string>();
+    std::vector<std::string> filterPatterns_;
+    /// Timer to postpone filtering while typing filter patterns.
+    wxTimer filterTimer_;
 
     int sortColumn_;
     bool sortASC_;
@@ -96,7 +104,8 @@ private:
         ID_FILTER_TEXTCTRL,
         ID_ADD,
         ID_CLOSE,
-        ID_LINE
+        ID_LINE,
+        ID_FILTER_TIMER
     };
 
     /// File filter for HDB files.
