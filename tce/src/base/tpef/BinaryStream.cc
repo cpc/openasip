@@ -40,14 +40,15 @@
 
 #include "BinaryStream.hh"
 #include "Swapper.hh"
+#include "BaseType.hh"
 
 using std::fstream;
 using std::ios;
 
 namespace TPEF {
 
-BinaryStream::BinaryStream(std::ostream& stream): 
-    fileName_(""), extOStream_(&stream) {
+BinaryStream::BinaryStream(std::ostream& stream, bool littleEndian): 
+    fileName_(""), extOStream_(&stream), littleEndianStorage_(littleEndian) {
 }
 
 /**
@@ -59,10 +60,19 @@ BinaryStream::BinaryStream(std::ostream& stream):
  * @param name is the name of the input file.
  * @note The initial read and write positions of the stream are 0.
  */
-BinaryStream::BinaryStream(std::string name): 
-    fileName_(name), extOStream_(NULL) {
+BinaryStream::BinaryStream(std::string name, bool littleEndian): 
+    fileName_(name), extOStream_(NULL), littleEndianStorage_(littleEndian) {
 }
 
+/**
+ * Returns true in case words should be swapped due to mismatch between
+ * the host and current target (TTA) endianness.
+ */
+bool
+BinaryStream::needsSwap() const {
+    return (littleEndianStorage_ && (HOST_BIGENDIAN == 1)) ||
+        (!littleEndianStorage_ && (HOST_BIGENDIAN == 0));
+}
 
 /**
  * Closes the stream.
@@ -121,10 +131,13 @@ HalfWord
 BinaryStream::readHalfWord()
         throw (UnreachableStream, EndOfFile) {
 
-    Byte buffer[sizeof(HalfWord)];
+    union {
+        Byte buffer[sizeof(HalfWord)];
+        HalfWord result;
+    } U;
 
     try {
-        readByteBlock(buffer, sizeof(HalfWord));
+        readByteBlock(U.buffer, sizeof(HalfWord));
 
     } catch (const EndOfFile& error) {
         EndOfFile newException =
@@ -140,10 +153,10 @@ BinaryStream::readHalfWord()
     }
 
     // convert half-word to host endianess
-    HalfWord result;
-    Swapper::fromBigEndianToHostByteOrder(buffer, result);
+    if (needsSwap())
+        Swapper::swap(U.buffer, (Byte*)&U.result, sizeof(U.result));
 
-    return result;
+    return U.result;
 }
 
 
@@ -158,10 +171,13 @@ Word
 BinaryStream::readWord()
     throw (UnreachableStream, EndOfFile) {
 
-    Byte buffer[sizeof(Word)];
+    union {
+        Byte buffer[sizeof(Word)];
+        Word result;
+    } U;
 
     try {
-        readByteBlock(buffer, sizeof(Word));
+        readByteBlock(U.buffer, sizeof(Word));
 
     } catch (const EndOfFile& error) {
         EndOfFile newException =
@@ -177,10 +193,10 @@ BinaryStream::readWord()
     }
 
     // convert word to host endianess
-    Word result;
-    Swapper::fromBigEndianToHostByteOrder(buffer, result);
-
-    return result;
+    if (needsSwap())
+        Swapper::swap(U.buffer, (Byte*)&U.result, sizeof(U.result));
+    
+    return U.result;
 }
 
 
@@ -321,8 +337,9 @@ BinaryStream::writeHalfWord(HalfWord halfword)
 
     Byte buffer[sizeof(HalfWord)];
 
-    // convert HalfWord to big-endian byte order.
-    Swapper::fromHostToBigEndianByteOrder(halfword, buffer);
+    // convert HalfWord to the target byte order.
+    if (needsSwap())
+        Swapper::swap((Byte*)&halfword, buffer, sizeof(HalfWord));
 
     try {
         writeByteBlock(buffer, sizeof(HalfWord));
@@ -355,8 +372,9 @@ BinaryStream::writeWord(Word word)
 
     Byte buffer[sizeof(Word)];
 
-    // convert Word to big-endian byte order.
-    Swapper::fromHostToBigEndianByteOrder(word, buffer);
+    // convert Word to the target byte order.
+    if (needsSwap())
+        Swapper::swap((Byte*)&word, buffer, sizeof(Word));
 
     try {
         writeByteBlock(buffer, sizeof(Word));

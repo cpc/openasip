@@ -52,8 +52,9 @@ TPEFDataSectionReader TPEFDataSectionReader::proto_;
  *
  * Registers itself to SectionReader.
  */
-TPEFDataSectionReader::TPEFDataSectionReader() : TPEFSectionReader() {
-    SectionReader::registerSectionReader(this);
+TPEFDataSectionReader::TPEFDataSectionReader(bool reg) : TPEFSectionReader() {
+    if (reg)
+        SectionReader::registerSectionReader(this);
 }
 
 /**

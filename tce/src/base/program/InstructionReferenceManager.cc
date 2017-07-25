@@ -69,7 +69,6 @@ InstructionReferenceManager::~InstructionReferenceManager() {
  */
 InstructionReference
 InstructionReferenceManager::createReference(Instruction& ins) {
-    assert(&ins != NULL);
     RefMap::const_iterator iter = references_.find(&ins);
     if (iter == references_.end()) {
         InstructionReferenceImpl* newRef = 
@@ -95,7 +94,6 @@ void
 InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
     throw (InstanceNotFound) {
 
-    assert(&insB != NULL);
     RefMap::iterator itera = references_.find(&insA);
     if (itera == references_.end()) {
         throw InstanceNotFound(

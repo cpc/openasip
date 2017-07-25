@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,9 +28,7 @@
  *
  * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
  * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
- * @note reviewed 23 October 2003 by am, jn, ll, pj
- *
- * @note rating: yellow
+ * @author Pekka J‰‰skel‰inen 2014
  */
 
 #include <tce_config.h>
@@ -38,161 +36,19 @@
 namespace TPEF {
 
 /**
- * Converts a type T data element from host to target byte order if
- * needed.
- *
- * The byte order is changed if the byte order of host and target
- * differ.
- *
- * @param source The source data element.
- * @param dest The return value: Source converted to a Byte pointer
- *        and target byte order.
- */
-template <typename T> void
-Swapper::fromHostToTargetByteOrder(T source, Byte* dest) {
-
-    Byte* tmp = reinterpret_cast<Byte*>(&source);
-
-    if (needHostTargetSwap()) {
-        swap(tmp, sizeof(T));
-    }
-
-    for (unsigned int i = 0; i < sizeof(T); i++) {
-        dest[i] = tmp[i];
-    }
-}
-
-/**
- * Converts a type T data element from target to host byte order if
- * needed.
- *
- * The byte order is changed if the byte order of host and target
- * differ.
- *
- * @param source The source data element.
- * @param dest The return value: Source converted to type T and host
- *        byte order.
- */
-template <typename T> void
-Swapper::fromTargetToHostByteOrder(Byte* source, T& dest) {
-    if (needHostTargetSwap()) {
-        swap(source, sizeof(T));
-    }
-    dest = *(reinterpret_cast<T*>(source));
-}
-
-
-/**
- * Converts a Byte pointer representing a type T data element in big-endian
- * byte order to host byte order.
- *
- * The byte order is changed if the host is not using big-endian byte order.
- *
- * @param source Source data element in Bytes.
- * @param dest The return value: Source converted to type T and host
- *        byte order.
- */
-template <typename T> void
-Swapper::fromBigEndianToHostByteOrder(Byte* source, T& dest) {
-    if (!isHostBigEndian()) {
-        swap(source, sizeof(T));
-    }
-    dest = *(reinterpret_cast<T*>(source));
-}
-
-
-/**
- * Converts a type T data element to big-endian byte order.
- *
- * The byte order is changed if the host is not using big-endian byte order.
- *
- * @param source Source data element.
- * @param dest The return value: Source converted to a Byte pointer
- *        and big-endian byte order.
- */
-template <typename T> void
-Swapper::fromHostToBigEndianByteOrder(T source, Byte* dest) {
-
-    Byte* tmp = reinterpret_cast<Byte*>(&source);
-
-    if (!isHostBigEndian()) {
-        swap(tmp, sizeof(T));
-    }
-
-    for (unsigned int i = 0; i < sizeof(T); i++) {
-        dest[i] = tmp[i];
-    }
-}
-
-/**
- * Converts a type T data element to little-endian byte order.
- *
- * The byte order is changed if the host don't use little-endian byte order.
- *
- * @param source Source data element.
- * @param dest The return value: Source converted to a Byte pointer
- *        and little-endian byte order.
- */
-template <typename T> void
-Swapper::fromHostToLittleEndianByteOrder(T source, Byte* dest) {
-
-    Byte* tmp = reinterpret_cast<Byte*>(&source);
-
-    if (isHostBigEndian()) {
-        swap(tmp, sizeof(T));
-    }
-
-    for (unsigned int i = 0; i < sizeof(T); i++) {
-        dest[i] = tmp[i];
-    }
-}
-
-/**
- * Determines whether byte order swapping between target and host
- * machines is needed or not.
- *
- * @return True if target and host byte order differ, false otherwise.
- */
-inline bool
-Swapper::needHostTargetSwap(){
-    if (WORDS_BIGENDIAN && !TARGET_WORDS_BIGENDIAN) {
-        return true;
-    } else if (!WORDS_BIGENDIAN && TARGET_WORDS_BIGENDIAN) {
-        return true;
-    } else{
-        return false;
-    }
-}
-
-
-/**
- * Returns true if host is using big-endian byte order, false otherwise.
- * 
- * @return True if host is using big-endian byte order, false otherwise.
- */
-inline bool
-Swapper::isHostBigEndian(){
-    if (WORDS_BIGENDIAN) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-
-/**
  * Swaps the byte order of the parameter.
  *
- * @param p The Byte block to be swapped (also the return value).
+ * @param src The Byte block to be swapped.
+ * @param dst The destination for the swapped value.
  * @param size Number of Bytes in the block.
  */
 inline void
-Swapper::swap(Byte* p, int size){
+Swapper::swap(const Byte* src, Byte* dst, int size){
     for (int i = 0; i < size-1-i; ++i) {
         Byte tmp;
-        tmp = p[i];
-        p[i] = p[size-1-i];
-        p[size-1-i] = tmp;
+        tmp = src[i];
+        dst[i] = src[size-1-i];
+        dst[size-1-i] = tmp;
     }
 }
 

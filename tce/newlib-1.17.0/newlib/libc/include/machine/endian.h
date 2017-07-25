@@ -13,6 +13,9 @@
 #ifdef __IEEE_LITTLE_ENDIAN
 #define BYTE_ORDER LITTLE_ENDIAN
 #else
+#ifndef __IEEE_BIG_ENDIAN
+#error endianess not set!
+#endif
 #define BYTE_ORDER BIG_ENDIAN
 #endif
 #endif

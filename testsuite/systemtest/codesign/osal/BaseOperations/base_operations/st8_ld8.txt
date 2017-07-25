@@ -1,0 +1,10 @@
+!output bin
+!mem byte 0xff
+st8 0xff 00000101b
+!advanceclock
+!mem byte 0xff
+st8 0xff 10010010b
+!advanceclock
+!mem byte 0xff
+ld8 0xff
+!quit

@@ -304,8 +304,8 @@ _DEFUN (lo0bits, (y), __ULong *y)
     {
       k++;
       x >>= 1;
-      if (!x & 1)
-	return 32;
+      if ((!x) & 1)
+        return 32;
     }
   *y = x;
   return k;

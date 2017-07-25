@@ -45,7 +45,7 @@ namespace TPEF {
  */
 class TPEFDataSectionReader : public TPEFSectionReader {
 protected:
-    TPEFDataSectionReader();
+    TPEFDataSectionReader(bool reg = true);
     virtual ~TPEFDataSectionReader();
 
     virtual void readData(

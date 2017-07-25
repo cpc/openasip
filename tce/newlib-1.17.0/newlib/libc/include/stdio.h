@@ -697,9 +697,8 @@ _ELIDABLE_INLINE int __sputc_r(struct _reent *_ptr, int _c, FILE *_p) {
 
 #define	getchar()	getc(stdin)
 
-#ifdef __TCE_V1__
-#include "tceops.h"
-#define putchar(x) _TCE_STDOUT((int)(x))
+#ifdef __TCE__
+#define putchar(x) asm("STDOUT"::"ir"((int)(x)));
 #else
 #define	putchar(x)	putc(x, stdout)
 #endif

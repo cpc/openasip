@@ -87,15 +87,15 @@ SimValueTest::testConstructors() {
 
     // explicit SimValue(int value, int width)
     SimValue simValue3(0xabcdef00, 16);
-    TS_ASSERT_EQUALS(simValue3.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0xef);
-    TS_ASSERT_EQUALS(simValue3.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x00);
+    TS_ASSERT_EQUALS(simValue3.rawData_[1], 0xef);
+    TS_ASSERT_EQUALS(simValue3.rawData_[0], 0x00);
     TS_ASSERT_EQUALS(simValue3.intValue(), (int)0xffffef00);
     TS_ASSERT_EQUALS(simValue3.unsignedValue(), (unsigned)0x0000ef00);
     
     // SimValue(const SimValue& source)
     SimValue simValue4(simValue3);
-    TS_ASSERT_EQUALS(simValue4.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0xef);
-    TS_ASSERT_EQUALS(simValue4.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x00);
+    TS_ASSERT_EQUALS(simValue4.rawData_[1], 0xef);
+    TS_ASSERT_EQUALS(simValue4.rawData_[0], 0x00);
     TS_ASSERT_EQUALS(simValue4.intValue(), int(0xffffef00));
     TS_ASSERT_EQUALS(simValue4.unsignedValue(), unsigned(0x0000ef00));
     
@@ -165,17 +165,17 @@ SimValueTest::testAssignments() {
     // SimValue& operator=(const SIntWord& source)
     SimValue simValue(32);
     simValue = SIntWord(0x12345678);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0x12);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0x34);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0x56);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x78);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0x12);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0x34);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0x56);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x78);
 
     // SimValue& operator=(const UIntWord& source)
     simValue = UIntWord(0xffeeddcc);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0xff);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0xee);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0xdd);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0xcc);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0xff);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0xee);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0xdd);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0xcc);
 
     // SimValue& operator=(const HalfFloatWord& source)
     simValue = HalfFloatWord(uint16_t(0x8000));
@@ -202,10 +202,10 @@ SimValueTest::testAssignments() {
     
     // SimValue& operator=(const SimValue& source)
     simValue = SimValue(0xfedcba98, 32);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0xfe);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0xdc);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0xba);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x98);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0xfe);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0xdc);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0xba);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x98);
 
     // void deepCopy(const SimValue& source)
     SimValue simValue1(8);
@@ -231,9 +231,9 @@ SimValueTest::testAdditions() {
     simValue.setBitWidth(24);
     simValue = SimValue(0x12345678, 24) + UIntWord(0x7);
     TS_ASSERT_EQUALS(simValue.uIntWordValue(), UIntWord(0x0034567f));
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0x34);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0x56);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x7f);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0x34);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0x56);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x7f);
 
     // const SimValue operator+(const HalfFloatWord& rightHand)
     simValue = HalfFloatWord(uint16_t(0x3c00)); // 1.0 + (-2.0) = -1.0
@@ -264,10 +264,10 @@ SimValueTest::testDifferences() {
     // const SimValue operator-(const UIntWord& rightHand)
     simValue = SimValue(0x12345678, 32) - UIntWord(0x01111111);
     TS_ASSERT_EQUALS(simValue.uIntWordValue(), UIntWord(0x11234567));
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0x11);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0x23);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0x45);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x67);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0x11);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0x23);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0x45);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x67);
 
     // const SimValue operator-(const HalfFloatWord& rightHand)
     simValue = HalfFloatWord(uint16_t(0x3c00)); // 1.0 - (-2.0) = 3.0
@@ -298,10 +298,10 @@ SimValueTest::testDivisions() {
     // const SimValue operator/(const UIntWord& rightHand)
     simValue = SimValue(16, 32) / UIntWord(2);
     TS_ASSERT_EQUALS(simValue.uIntWordValue(), UIntWord(8));
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x08);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x08);
 
     // const SimValue operator/(const HalfFloatWord& rightHand)
     simValue = HalfFloatWord(uint16_t(0x3c00));
@@ -332,10 +332,10 @@ SimValueTest::testProducts() {
     // const SimValue operator*(const UIntWord& rightHand)
     simValue = SimValue(16, 32) * UIntWord(2);
     TS_ASSERT_EQUALS(simValue.uIntWordValue(), UIntWord(32));
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-4], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-3], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-2], 0x00);
-    TS_ASSERT_EQUALS(simValue.rawData_[SIMVALUE_MAX_BYTE_SIZE-1], 0x20);
+    TS_ASSERT_EQUALS(simValue.rawData_[3], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[2], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[1], 0x00);
+    TS_ASSERT_EQUALS(simValue.rawData_[0], 0x20);
 
     // const SimValue operator*(const HalfFloatWord& rightHand)
     simValue = HalfFloatWord(uint16_t(0x3c00));

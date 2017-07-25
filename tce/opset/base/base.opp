@@ -82,7 +82,7 @@
 
   <operation>
     <name>LDW</name>
-    <description>Loads 32 bits. Input 1 is address and output 2 read data.</description>
+    <description>Loads a 32-bit word in big endian byte order. Input 1 is address and output 2 read data.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -98,8 +98,25 @@
   </operation>
 
   <operation>
+    <name>LD32</name>
+    <description>Loads a 32-bit word in little endian byte order.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ld32, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>STW</name>
-    <description>Stores 32 bits. Input 1 is address and output 2 is write data.</description>
+    <description>Stores a 32-bit word to big endian byte order. Input 1 is address and output 2 is write data.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -111,6 +128,23 @@
     </in>
     <trigger-semantics>
       EXEC_OPERATION(stw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ST32</name>
+    <description>Stores a 32-bit word to little endian byte order.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(st32, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -512,7 +546,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>LDQ</name>
-    <description>Reads quarter word from memory with sign extension.</description>
+    <description>Loads a byte and sign extends it to the output port width.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -524,6 +558,26 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     </out>
     <trigger-semantics>
       EXEC_OPERATION(ldq, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LD8</name>
+    <description>Loads a byte and sign extends it to the output port width (identical to LDQ).</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="8" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldq, IO(1), IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(ld8, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -541,6 +595,23 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     </out>
     <trigger-semantics>
       EXEC_OPERATION(ldh, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LD16</name>
+    <description>Loads a 16-bit word in little endian byte order and sign extends to the output port width.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="16" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ld16, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -563,7 +634,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
 
   <operation>
     <name>STQ</name>
-    <description>Stores quarter word to memory</description>
+    <description>Stores a byte to an absolute byte address in memory.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -579,8 +650,28 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>ST8</name>
+    <description>Stores a byte to an absolute byte address in memory (identical to STQ).</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in element-count="1" element-width="8" id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(stq, IO(1), IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(st8, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>STH</name>
-    <description>Stores half word to memory.</description>
+    <description>Stores a 16-bit word to big endian byte order.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -593,6 +684,23 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <trigger-semantics>
       EXEC_OPERATION(sth, IO(1), IO(2));
     </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ST16</name>
+    <description>Stores a 16-bit word to little endian byte order.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in element-count="1" element-width="16" id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>EXEC_OPERATION(st16, IO(1), IO(2));
+
+</trigger-semantics>
   </operation>
 
   <operation>
@@ -1746,7 +1854,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>LDQU</name>
-    <description>Reads quarter word from memory with zero extension</description>
+    <description>Loads a byte and zero extends to the output port width.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1762,8 +1870,28 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>LDU8</name>
+    <description>Loads a byte and zero extends to the output port width (identical to LDQU).</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="8" id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldqu, IO(1), IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(ldu8, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>LDHU</name>
-    <description>Reads half word from memory with zero extension.</description>
+    <description>Loads a 16-bit word in big endian byte order and zero extends to 32 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1775,6 +1903,23 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     </out>
     <trigger-semantics>
       EXEC_OPERATION(ldhu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDU16</name>
+    <description>Loads a 16-bit word in little endian byte order and zero extends to 32 bits.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldu16, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 

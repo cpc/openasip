@@ -172,24 +172,26 @@ namespace llvm {
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
-        virtual const DataLayout* getDataLayout() const {
-            return &dl_;
-        }
+       virtual bool isLittleEndian() const = 0;
 
-        virtual DataLayout* getDataLayout() {
-            return &dl_;
-        }
+       virtual const DataLayout* getDataLayout() const {
+           return &dl_;
+       }
 
-        virtual TCETargetMachine *getCurrentTargetMachine() {
-            return tm_;
-        }
+       virtual DataLayout* getDataLayout() {
+           return &dl_;
+       }
+
+       virtual TCETargetMachine *getCurrentTargetMachine() {
+           return tm_;
+       }
 #ifdef LLVM_OLDER_THAN_3_9
-        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
+       virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
 #else
-        virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const {
+       virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const {
 #endif
-            return &tsInfo_;
-        }
+           return &tsInfo_;
+       }
 
 
    protected:

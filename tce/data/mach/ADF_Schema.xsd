@@ -361,6 +361,7 @@
             <xs:element name="trigger-invalidates-old-results" type="empty-type" minOccurs="0"/>
             <xs:element name="always-write-back-results" type="empty-type" minOccurs="0"/>
             <xs:element name="fu-ordered" type="empty-type" minOccurs="0"/>
+            <xs:element name="little-endian" type="empty-type" minOccurs="0"/>
             <xs:element name="bus" type="bus-type"
                         minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="socket" type="socket-type"

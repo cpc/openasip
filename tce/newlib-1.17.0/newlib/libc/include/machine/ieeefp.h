@@ -323,7 +323,11 @@
 #endif
 
 #ifdef __TCE__
+#ifndef __TCELE__
 #define __IEEE_BIG_ENDIAN
+#else
+#define __IEEE_LITTLE_ENDIAN
+#endif
 #define _DOUBLE_IS_32BITS
 /* 
    This define is used but never defined anywhere.. maybe it's not needed at all

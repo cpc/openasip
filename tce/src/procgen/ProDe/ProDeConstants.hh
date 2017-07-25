@@ -143,6 +143,10 @@ public:
     static const std::string CMD_NAME_EDIT_BUS_ORDER;
     /// Command name for the "Fully connect busses" command.
     static const std::string CMD_NAME_FULLY_CONNECT_BUSSES;
+    /// Command name for the "VLIW Connect IC" command.
+    static const std::string CMD_NAME_VLIW_CONNECT_IC;
+    /// Command name for the "Processor configurations" command.
+    static const std::string CMD_NAME_EDIT_MACHINE;
 
     /// Command name for the "Zoom In" command.
     static const std::string CMD_NAME_ZOOM_IN;
@@ -221,6 +225,8 @@ public:
     static const std::string CMD_SNAME_EDIT_ADDRESS_SPACES;
     /// Command name for the "Edit Templates" command.
     static const std::string CMD_SNAME_EDIT_TEMPLATES;
+    /// Command name for the "Processor Configurations" command.
+    static const std::string CMD_SNAME_EDIT_MACHINE;
     /// Command name for the "Edit Immediate slots" command.
     static const std::string CMD_SNAME_EDIT_IMMEDIATE_SLOTS;
     /// Command name for the "Edit Bus Order" command.
@@ -229,6 +235,8 @@ public:
     static const std::string CMD_SNAME_EDIT_CONNECTIONS;
     /// Command name for the "Fully connect busses" command.
     static const std::string CMD_SNAME_FULLY_CONNECT_BUSSES;
+    /// Command name for the "VLIW Connect IC" command.
+    static const std::string CMD_SNAME_VLIW_CONNECT_IC;
     /// Command name for the "Verify Machine" command.
     static const std::string CMD_SNAME_VERIFY_MACHINE;
     /// Command name for the "Processor Implementation" command.
@@ -324,6 +332,8 @@ public:
     static const std::string CMD_ICON_EDIT_TEMPLATES;
     /// Icon location for the "Edit Connections" command.
     static const std::string CMD_ICON_EDIT_CONNECTIONS;
+    /// Icon location for the "Processor Configurations" command.
+    static const std::string CMD_ICON_EDIT_MACHINE;
     /// Icon location for the "Verify Machine" command.
     static const std::string CMD_ICON_VERIFY_MACHINE;
     /// Icon location for the "Implementation" command.
@@ -357,16 +367,6 @@ public:
     static const std::string COMP_NEW_NAME_PREFIX_OPERATION;
     /// Prefix for new address space names.
     static const std::string COMP_NEW_NAME_PREFIX_AS;
-
-    // zooming constants
-
-    /// Minimum zoom factor.
-    static const double MIN_ZOOM_FACTOR;
-    /// Maximum zoom factor.
-    static const double MAX_ZOOM_FACTOR;
-    /// Step between zoom levels.
-    static const double ZOOM_STEP;
-
 
     // editor constants
 
@@ -430,7 +430,8 @@ public:
             COMMAND_EDIT_ADDRESS_SPACES,
             COMMAND_EDIT_TEMPLATES,
         COMMAND_EDIT_IMMEDIATE_SLOTS,
-            COMMAND_EDIT_BUS_ORDER,
+        COMMAND_EDIT_BUS_ORDER,
+        COMMAND_EDIT_MACHINE,
 
         COMMAND_ZOOM_IN,
         COMMAND_ZOOM_OUT,
@@ -440,6 +441,7 @@ public:
             COMMAND_TOGGLE_UNIT_DETAILS,
 
             COMMAND_FULLY_CONNECT_BUSSES,
+            COMMAND_VLIW_CONNECT_IC,
             COMMAND_VERIFY_MACHINE,
             COMMAND_IMPLEMENTATION,
             COMMAND_CALL_EXPLORER_PLUGIN,

@@ -53,13 +53,13 @@ class DataDefinition {
 public:
     DataDefinition(
         Address start, 
-        int size, MinimumAddressableUnit *initData = NULL,
+        int size, bool littleEndian, MinimumAddressableUnit *initData = NULL,
         bool allZeros = false)
         throw (OutOfRange);
 
     DataDefinition(
         Address start, 
-        const std::vector<MinimumAddressableUnit>& initData)
+        const std::vector<MinimumAddressableUnit>& initData, bool littleEndian)
         throw (OutOfRange);
 
     virtual ~DataDefinition();
@@ -78,6 +78,7 @@ public:
     
     virtual DataDefinition* copy() const;
 
+    bool isLittleEndian() const { return littleEndian_; }
 private:
     /// Start address of definition.
     Address start_;
@@ -90,6 +91,8 @@ private:
 
     /// Is all the data zeros? (In this case data_ is null)
     bool allZeros_;
+
+    bool littleEndian_;
 
 };
 

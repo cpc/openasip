@@ -183,7 +183,7 @@ ProgramImageGenerator::loadBEM(const BinaryEncoding& bem) {
  */
 void
 ProgramImageGenerator::generateProgramImage(
-    std::string& programName,
+    const std::string& programName,
     std::ostream& stream,
     OutputFormat format,
     int mausPerLine) {
@@ -396,7 +396,7 @@ ProgramImageGenerator::generateProgramImage(
  */
 void
 ProgramImageGenerator::generateDataImage(
-    std::string& programName,
+    const std::string& programName,
     TPEF::Binary& program,
     const std::string& addressSpace,
     std::ostream& stream,
@@ -430,67 +430,52 @@ ProgramImageGenerator::generateDataImage(
         delete programBits;
     }
 
-    CodeSection* codeSection = dynamic_cast<CodeSection*>(
-        program.section(Section::ST_CODE, 0));
     BitVector dataBits;
     
-    // get the data section
-    StringSection* stringSection = program.strings();
+    // TODO: LEDATA? if le adf?
     for (unsigned int i = 0; i < program.sectionCount(Section::ST_DATA); 
          i++) {
-        Section* section = program.section(Section::ST_DATA, i);
-        if (stringSection->chunk2String(section->aSpace()->name()) == 
-            addressSpace) {
-            
-            // correct data section found
-            DataSection* dataSection = dynamic_cast<DataSection*>(section);
-            assert(dataSection != NULL);
+        writeDataSection(program, dataBits, addressSpace,
+                         *program.section(Section::ST_DATA, i));
+    }
+    for (unsigned int i = 0; i < program.sectionCount(Section::ST_LEDATA); 
+         i++) {
 
-            // fill the beginning of the data image with zeros
-            AddressImage startingAddress = dataSection->startingAddress();
-            // If we already have put something, fill the correct number,
-            // not from 0.
-            unsigned int zeroFillStart = dataBits.size() / 8; // 8 bits per byte
-            for (AddressImage i = zeroFillStart; i < startingAddress; i++) {
-                dataBits.pushBack(0, 8);
-            }
-            if (zeroFillStart > startingAddress) {
-                throw InvalidData(
-                    __FILE__,__LINE__,__func__, "Illegal order of data sections.");
-            }
+        unsigned int lineOffset = dataBits.size(); // start afer previous
+        // this writes data into the databits struct, not from it!
+        writeDataSection(program, dataBits, addressSpace,
+                         *program.section(Section::ST_LEDATA, i));
 
-            // fill the data
-            Word sectionLength = dataSection->length();
-            for (Word offset = 0; offset < sectionLength;) {
-                InstructionElement* relocTarget = 
-                    this->relocTarget(program, *dataSection, offset);
-                if (relocTarget != NULL) {
-                    Word indexOfInstruction = 
-                        codeSection->indexOfInstruction(*relocTarget);
-                    Instruction& instruction = 
-                        compressor_->currentProgram().instructionAt(
-                            indexOfInstruction);
-                    try {
-                        unsigned int memAddress = compressor_->memoryAddress(
-                            instruction);
-                        dataBits.pushBack(memAddress, 32);
-                        offset += 4;
-                    } catch (const Exception& e) {
-                        string errorMsg = 
-                            "Program image must be generated before "
-                            "generating data image.";
-                        throw InvalidData(
-                            __FILE__, __LINE__, __func__, errorMsg);
-                    }
-                } else {                    
-                    Byte byte = dataSection->byte(offset);
-                    dataBits.pushBack(byte, 8);
-                    offset++;
+        // The stupid binary images are in big-endian bitness
+        // format(bit 0 == highest bit).
+        // Have to convert LE data into nasty mixed endian for
+        // initialization with those tools.
+        while (lineOffset < dataBits.size()) {
+            // Pad to full line width
+            if (lineOffset + ((mausPerLine-1)*as->width()) > dataBits.size()) {
+                unsigned int preferredSize =
+                    ((dataBits.size() / (mausPerLine*as->width()))+1) *
+                    (mausPerLine*as->width());
+                while (dataBits.size() < preferredSize) {
+                    dataBits.push_back(0);
                 }
             }
+
+            for (int k = 0; k < mausPerLine/2; k++) {
+                int bitOffset0 = k * as->width();
+                int bitOffset1 = (mausPerLine-k-1) * as->width();
+                // swap bytes of one MAU.
+                for (int j = 0; j < as->width(); j++) {
+                    bool bit0 = dataBits[lineOffset+bitOffset0 + j];
+                    dataBits[lineOffset+bitOffset0+j] =
+                        dataBits[lineOffset+bitOffset1+j];
+                    dataBits[lineOffset+bitOffset1+j] = bit0;
+                }
+            }
+            lineOffset += (mausPerLine*as->width());
         }
     }
-    
+
     BitImageWriter* writer = NULL;
     if (format == BINARY) {
         writer = new RawImageWriter(dataBits);
@@ -511,6 +496,67 @@ ProgramImageGenerator::generateDataImage(
 
     writer->writeImage(stream);
     delete writer;
+}
+
+void ProgramImageGenerator::writeDataSection(TPEF::Binary& program, BitVector& dataBits,
+                      const std::string& addressSpace,
+                      Section& section) {
+    
+    // get the data section
+    StringSection* stringSection = program.strings();
+
+    CodeSection* codeSection = dynamic_cast<CodeSection*>(
+        program.section(Section::ST_CODE, 0));
+
+    if (stringSection->chunk2String(section.aSpace()->name()) == 
+        addressSpace) {
+        
+        // correct data section found
+        DataSection& dataSection = dynamic_cast<DataSection&>(section);
+        
+        // fill the beginning of the data image with zeros
+        AddressImage startingAddress = dataSection.startingAddress();
+        // If we already have put something, fill the correct number,
+        // not from 0.
+        unsigned int zeroFillStart = dataBits.size() / 8; // 8 bits per byte
+        for (AddressImage i = zeroFillStart; i < startingAddress; i++) {
+            dataBits.pushBack(0, 8);
+        }
+        if (zeroFillStart > startingAddress) {
+            throw InvalidData(
+                __FILE__,__LINE__,__func__, "Illegal order of data sections.");
+        }
+        
+        // fill the data
+        Word sectionLength = dataSection.length();
+        for (Word offset = 0; offset < sectionLength;) {
+            InstructionElement* relocTarget = 
+                this->relocTarget(program, dataSection, offset);
+            if (relocTarget != NULL) {
+                Word indexOfInstruction = 
+                    codeSection->indexOfInstruction(*relocTarget);
+                Instruction& instruction = 
+                    compressor_->currentProgram().instructionAt(
+                        indexOfInstruction);
+                try {
+                    unsigned int memAddress = compressor_->memoryAddress(
+                        instruction);
+                    dataBits.pushBack(memAddress, 32);
+                    offset += 4;
+                    } catch (const Exception& e) {
+                    string errorMsg = 
+                            "Program image must be generated before "
+                        "generating data image.";
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__, errorMsg);
+                }
+            } else {                    
+                Byte byte = dataSection.byte(offset);
+                dataBits.pushBack(byte, 8);
+                offset++;
+            }
+        }
+    }
 }
 
 

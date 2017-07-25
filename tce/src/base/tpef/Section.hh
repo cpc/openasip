@@ -79,6 +79,7 @@ public:
         ST_CODE   = 0x81, ///< Text section.
         ST_DATA   = 0x82, ///< Initialized data section.
         ST_UDATA  = 0x83, ///< Uninitialized data section.
+        ST_LEDATA = 0x84, ///< Initialized little endian data section.
         ST_DUMMY  = 0xff  ///< Dummy section type for testing purposes.
     };
 
@@ -140,6 +141,7 @@ public:
     void setName(Chunk* sectionName);
     Chunk* name() const;
 
+    virtual bool isDataSection() { return false; }
 protected:
     /// Creates clone of instance.
     virtual Section* clone() const = 0;

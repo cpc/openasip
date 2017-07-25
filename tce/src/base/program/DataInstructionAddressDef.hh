@@ -48,7 +48,8 @@ namespace TTAProgram {
 class DataInstructionAddressDef : public DataDefinition {
 public:
     DataInstructionAddressDef(
-        Address start, int size, InstructionReference& dest);
+        Address start, int size, InstructionReference& dest,
+        bool littleEndian);
 
     virtual ~DataInstructionAddressDef();
     

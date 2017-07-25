@@ -21,6 +21,7 @@
 % IN THE SOFTWARE.
 \documentclass[twoside]{tceusermanual}
 \usepackage{pslatex,verbatim}
+\usepackage[dvipdfm]{hyperref}
 
 % for index
 \makeindex
@@ -4347,11 +4348,28 @@ to define the memory access behavior:
 \begin{description}
 \item[MEMORY.read(address, count, target)]%
   Reads \emph{count} units of data from the \emph{address} to the variable
-  \emph{target}.
+  \emph{target} in the order of target endianess.
 \item[MEMORY.write(address, count, data)]%
-  Writes \emph{count} units of data in variable \emph{data} to 
-  the \emph{address}.
+  Writes \emph{count} units of data in variable \emph{data} to
+  the \emph{address} in the order of target endianess.
+\item[MEMORY.readBE(address, count, target)]%
+   Explicitly reads \emph{count} units of data from the \emph{address} to the variable
+   \emph{target} in big endian order.
+\item[MEMORY.readLE(address, count, target)]%
+   Explicitly reads \emph{count} units of data from the \emph{address} to the variable
+   \emph{target} in little endian order.
+\item[MEMORY.writeBE(address, count, data)]%
+  Explicitly writes \emph{count} units of data in variable \emph{data} to
+  the \emph{address} in big endian order.
+\item[MEMORY.writeLE(address, count, data)]%
+  Explicitly writes \emph{count} units of data in variable \emph{data} to
+  the \emph{address} in little endian order.
 \end{description}
+
+The endianess mode for \emph{MEMORY.read(3)} and
+\emph{MEMORY.write(3)} is determined by the target machine (see
+section~\ref{ss:endianess-mode}) in the TTA simulator. In the OSAL
+tester, the endianess mode is fixed to big endian.
 
 \section{OSAL search paths}
 \label{sec:osalpaths}
@@ -5523,6 +5541,40 @@ Examples of usage:
 %
 %\end{enumerate}
 
+
+\subsection{Endianess Mode}
+\label{ss:endianess-mode}
+
+Endianess mode property of the target architecture determines how the
+initialized data is layout into the data memories and operation
+selections for accessing the memories by the compiler. In the
+table~\ref{table:mem-ops-for-endianess-modes} is list of memory
+operations required by the compiler in the selected endianess
+mode.
+
+\begin{table}
+\begin{center}
+  \begin{tabular}{|c|c|}
+    \hline
+    Big endian & Little endian \\
+    \hline
+    ldq & ld8 \\
+    ldqu & ldu8 \\
+    ldh & ld16 \\
+    ldhu & ldu16 \\
+    ldw & ld32 \\
+    stq & st8 \\
+    sth & st16 \\
+    stw & st32 \\
+    \hline
+  \end{tabular}
+\end{center}
+\caption{The required memory operations in the selected endianess modes.}
+\label{table:mem-ops-for-endianess-modes}
+\end{table}
+
+The endianess mode is selected in ProDe's \emph{Architecture
+  Features...}  dialog (Edit -> Architecture Features...).
 
 
 \subsection{Known issues}
@@ -8309,6 +8361,26 @@ The created architecture and implementation definition file can be written to ar
 
 \shellcmd{explore -w 2 test.dsdb}
 
+\subsection{Explorer Plugin: VLIWConnectIC}
+
+VLIWConnectIC takes an .ADF architecture as input, and arranges its FUs into a
+VLIW-like interconnection. This is typically as baseline for running the
+BusMergeMinimizer and RFPortMergeMinimizer plugins. The output machine has some
+empty buses whose instruction slots are used to encode long immediates.
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+wipe\_register\_file & yes & Replace the original register file(s) with a native VLIW RF. \\
+limm\_bus\_count & 1 & Number of empty buses used to encode long immediates. \\
+simm\_width & 6 & Short immediate width. \\
+\end{tabular}\\
+
+Example of invoking the plugin:
+
+\shellcmd{explore -e VLIWConnectIC -a test.adf -s 1 test.dsdb}\\
+\shellcmd{explore -w 2 test.dsdb}
 
 \chapter{PROCESSOR TEMPLATE}
 \label{section:template}
@@ -8727,7 +8799,9 @@ stack where the return value object will be written by the called function.
 \subsection{Word Byte Order}
 \label{ssec:word-order}
 
-TCE-TTA processors follow the big endian byte order.
+TCE-TTA processors follow the little endian byte order if ADF of the
+processor has little endian property enabled. Otherwise, the processors
+follow big endian byte order.
 
 \subsection{Function Calling Conventions}
 \label{ssec:calling-conventions}

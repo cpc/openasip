@@ -1,10 +1,5 @@
-pkglibdir = ${prefix}/tce-llvm/lib
-pkglib_LIBRARIES = liblwpr.a 
+srclib_datadir = ${prefix}/share/tce/srclibs/
+srclib_data_DATA = liblwpr.sa
 
-liblwpr_a_SOURCES = lwpr.c
-
-TCECC_CPPFLAGS = -I$(srcdir)/../include
-TCECC = ../../src/bintools/Compiler/tcecc
-
-.c.o:
-	$(TCECC) $(TCECC_CPPFLAGS) -g -c -O3 -o $@ $<
+src_datadir = ${srclib_datadir}/lwpr
+src_data_DATA =  lwpr.c

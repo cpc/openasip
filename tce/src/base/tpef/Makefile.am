@@ -4,13 +4,14 @@ libtpef_la_SOURCES = AOutDataSectionReader.cc AOutReader.cc \
 	AOutRelocationSectionReader.cc AOutStringSectionReader.cc \
 	AOutSymbolSectionReader.cc AOutTextSectionReader.cc \
 	ASpaceSection.cc Binary.cc BinaryReader.cc BinaryStream.cc \
-	DataSection.cc ReferenceKey.cc RelocSection.cc \
+	DataSection.cc LEDataSection.cc ReferenceKey.cc RelocSection.cc \
 	SafePointable.cc SafePointer.cc Section.cc SectionReader.cc \
 	StringSection.cc SymbolSection.cc CodeSection.cc \
 	UDataSection.cc RelocElement.cc SymbolElement.cc MoveElement.cc \
 	ImmediateElement.cc Chunk.cc ASpaceElement.cc BasicElement.cc \
 	SectionElement.cc InstructionElement.cc BinaryWriter.cc \
 	SectionWriter.cc ValueReplacer.cc AOutSectionReader.cc \
+	TPEFLEDataSectionWriter.cc \
 	TPEFWriter.cc TPEFSectionWriter.cc TPEFDataSectionWriter.cc \
 	FileOffsetReplacer.cc SectionOffsetReplacer.cc \
 	TPEFCodeSectionWriter.cc SectionSizeReplacer.cc \
@@ -19,7 +20,7 @@ libtpef_la_SOURCES = AOutDataSectionReader.cc AOutReader.cc \
 	TPEFUDataSectionWriter.cc TPEFStringSectionReader.cc \
 	TPEFASpaceSectionWriter.cc SectionIdReplacer.cc \
 	SectionIndexReplacer.cc TPEFCodeSectionReader.cc \
-	TPEFRelocSectionWriter.cc TPEFDataSectionReader.cc \
+	TPEFRelocSectionWriter.cc TPEFDataSectionReader.cc TPEFLEDataSectionReader.cc \
 	TPEFUDataSectionReader.cc TPEFRelocSectionReader.cc \
 	NullSection.cc TPEFNullSectionWriter.cc \
 	TPEFNullSectionReader.cc ResourceSection.cc \
@@ -54,22 +55,21 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libtpef_la_SOURCES += \
 	BasicElement.hh TPEFNullSectionReader.hh \
-	ASpaceSection.hh AOutDataSectionReader.hh \
-	AOutRelocationSectionReader.hh TPEFDebugSectionWriter.hh \
+	ASpaceSection.hh TPEFDebugSectionWriter.hh \
 	TPEFASpaceSectionWriter.hh LineNumSection.hh \
-	TPEFRelocSectionWriter.hh AOutStringSectionReader.hh \
+	TPEFRelocSectionWriter.hh \
 	InstructionElement.hh LineNumElement.hh \
 	BinaryWriter.hh ImmediateElement.hh \
 	FileSymElement.hh SafePointable.hh \
 	TPEFReader.hh TPEFStringSectionWriter.hh \
 	TPEFResourceSectionWriter.hh SectionIdReplacer.hh \
-	SectionOffsetReplacer.hh AOutSymbolSectionReader.hh \
+	SectionOffsetReplacer.hh \
 	TPEFWriter.hh Binary.hh \
 	SafePointer.hh TPEFBaseType.hh \
-	AOutReader.hh TPEFDebugSectionReader.hh \
+	TPEFDebugSectionReader.hh \
 	SectionElement.hh TPEFCodeSectionReader.hh \
 	TPEFUDataSectionReader.hh ResourceElement.hh \
-	AOutTextSectionReader.hh Chunk.hh \
+	Chunk.hh TPEFLEDataSectionWriter.hh \
 	TPEFResourceSectionReader.hh TPEFSectionReader.hh \
 	TPEFTools.hh BinaryStream.hh \
 	TPEFStringSectionReader.hh TPEFSymbolSectionReader.hh \
@@ -90,11 +90,11 @@ libtpef_la_SOURCES += \
 	TPEFNullSectionWriter.hh DataSymElement.hh \
 	NoTypeSymElement.hh TPEFHeaders.hh \
 	FileOffsetReplacer.hh SectionSymElement.hh \
-	DataSection.hh Locator.hh \
+	DataSection.hh LEDataSection.hh Locator.hh \
 	LineNumProcedure.hh TPEFUDataSectionWriter.hh \
 	SymbolElement.hh DebugElement.hh \
 	ValueReplacer.hh RelocSection.hh \
-	ReferenceKey.hh TPEFDataSectionReader.hh \
+	ReferenceKey.hh TPEFDataSectionReader.hh TPEFLEDataSectionReader.hh \
 	TPEFLineNumSectionWriter.hh SafePointer.icc \
 	ASpaceElement.icc Section.icc \
 	MoveElement.icc ReferenceKey.icc \

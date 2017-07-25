@@ -18,3 +18,4 @@ Runtime error:  MODU: Divide by zero.
 FU Entry 202 from ../../../../tce/hdb/asic_130nm_1.5V.hdb failed.
 Runtime error:  MODU: Divide by zero.
 FU Entry 203 from ../../../../tce/hdb/asic_130nm_1.5V.hdb failed.
+Cannot test FU id 400 because: FU has only one port

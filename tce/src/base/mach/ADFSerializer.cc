@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of ADFSerializer class.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka Jääskeläine 2004-2012
+ * @author Pekka Jääskeläinen 2009-2014 (pjaaskel-no.spam-cs tut.fi)
  * @note reviewed 15 Jun 2004 by pj, vpj, ml, ll
  * @note rating: red
  */
@@ -62,8 +62,14 @@ using namespace TTAMachine;
 const string MDF = "adf";
 const string MDF_VERSION = "version";
 // writes files according to ADF specs version 1.7.x
-const string MDF_VERSION_NUMBER = "1.7";
+const string MDF_VERSION_NUMBER = "1.8";
+
+// 1.8:
+// - adf: little-endian
+
+
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
+const string LITTLE_ENDIAN_MACHINE = "little-endian";
 const string ALWAYS_WRITE_BACK_RESULTS = "always-write-back-results";
 const string FUNCTION_UNITS_ORDERED = "fu-ordered";
 const string BUS = "bus";
@@ -303,6 +309,10 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
     if (machineState->hasAttribute(Machine::OSKEY_FUNCTION_UNITS_ORDERED) &&
         machineState->boolAttribute(Machine::OSKEY_FUNCTION_UNITS_ORDERED)) { 
         root->addChild(new ObjectState(FUNCTION_UNITS_ORDERED));              
+    }
+    if (machineState->hasAttribute(LITTLE_ENDIAN_MACHINE) &&
+        machineState->boolAttribute(LITTLE_ENDIAN_MACHINE)) { 
+        root->addChild(new ObjectState(LITTLE_ENDIAN_MACHINE));              
     }
     
     // add buses
@@ -979,7 +989,9 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
                     Machine::OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, true);            
             } else if (child->name() == ALWAYS_WRITE_BACK_RESULTS) {
                 machine->setAttribute(
-                    Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);                
+                    Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);
+            } else if (child->name() == LITTLE_ENDIAN_MACHINE) {
+                machine->setAttribute(LITTLE_ENDIAN_MACHINE, true);
             } else if (child->name() == FUNCTION_UNITS_ORDERED) {
                 machine->setAttribute(
                     Machine::OSKEY_FUNCTION_UNITS_ORDERED, true);                

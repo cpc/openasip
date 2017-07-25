@@ -103,10 +103,14 @@ MCInstPrinter *dummyInstrPrinterCtor(
 
 extern "C" void LLVMInitializeTCETarget() { 
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
-    
+    RegisterTargetMachine<TCETargetMachine> X(TheTCELETarget);
+
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+    RegisterMCAsmInfo<TCEMCAsmInfo> V(TheTCELETarget);
 #ifndef LLVM_OLDER_THAN_3_7
     TargetRegistry::RegisterMCInstPrinter(TheTCETarget, dummyInstrPrinterCtor);
+    TargetRegistry::RegisterMCInstPrinter(
+        TheTCELETarget, dummyInstrPrinterCtor);
 #endif
 }
 

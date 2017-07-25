@@ -466,6 +466,28 @@ if test x"$LLVM_RTTI_CHECK" != x; then
 AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
 fi
 
+# Check if the tcele target is supported.
+AC_LANG_CONFTEST(
+[AC_LANG_PROGRAM(
+  [])
+])
+
+LLVM_TCELE_TARGET=no
+
+AC_MSG_CHECKING([if the little endian tcele target is supported in Clang/LLVM])
+if $LLVM_BINDIR/clang conftest.c -target tcele-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele-tut-llvm"';
+then
+  AC_MSG_RESULT([yes])
+  LLVM_TCELE_TARGET=yes
+  AC_DEFINE_UNQUOTED(LLVM_TCELE_TARGET, 1, [LLVM patched to support tcele target])
+else
+  AC_MSG_ERROR([tcele target in LLVM required, install one using a install_llvm_*.sh script])
+fi
+
+if test x"$LLVM_RTTI_CHECK" != x; then
+AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
+fi
+
 # Add LLVM libdir into the Darwin RPATH
 case $host_os in
   darwin* )
@@ -571,6 +593,8 @@ fi
 
 # test if $llvmConf is empty string
 fi
+
+AM_CONDITIONAL(TCELE_AVAILABLE, test x$LLVM_TCELE_TARGET = xyes)
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
 "The LLVM version string.")
@@ -1530,32 +1554,47 @@ AC_CONFIG_FILES([src/bintools/Compiler/tcecc],
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
 
+NEWLIB_CFLAGS="-O2 -fno-builtin -Wno-unknown-warning-option \
+-Wno-literal-range -Wno-pointer-sign -Wno-return-type \
+-Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value"
+
 AC_CONFIG_COMMANDS_POST ([
-echo "=== Configuring newlib =====";
+echo "=== Configuring newlib for big endian machines =====";
 # make srcdir absolute
 builddirectory=$PWD
 cd $srcdir;
 srcdir=$PWD;
 cd $builddirectory;
 # create builddir (if necessary)
-mkdir -p newlib-1.17.0; 
-cd newlib-1.17.0;
-#echo RANLIB_FOR_TARGET=llvm-ranlib \
-#NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
-#AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-#CFLAGS=-O2 \
-#CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-#CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-#$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+mkdir -p newlib-1.17.0/tce-llvm; 
+cd newlib-1.17.0/tce-llvm;
 RANLIB_FOR_TARGET=ranlib \
 NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
 AS_FOR_TARGET=as LD_FOR_TARGET=ld \
-CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
--Wno-literal-range -Wno-pointer-sign -Wno-return-type \
--Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \
-CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+CFLAGS_FOR_TARGET=$NEWLIB_CFLAGS \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
+])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib for little endian machines =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0/tcele-llvm; 
+cd newlib-1.17.0/tcele-llvm;
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
+CFLAGS_FOR_TARGET="--little-endian $NEWLIB_CFLAGS" \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
 

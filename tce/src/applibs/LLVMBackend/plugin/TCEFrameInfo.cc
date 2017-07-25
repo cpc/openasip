@@ -192,12 +192,19 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             .addImm(stackAlignment_);
 
         // Save RA to stack.
+#ifdef LITTLE_ENDIAN_TARGET
+        BuildMI(mbb, ii, dl, tii_.get(TCE::ST32RArr))
+            .addReg(TCE::SP)
+            .addImm(0)
+            .addReg(TCE::RA)
+            .setMIFlag(MachineInstr::FrameSetup);
+#else
         BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
             .addReg(TCE::SP)
             .addImm(0)
             .addReg(TCE::RA)
             .setMIFlag(MachineInstr::FrameSetup);
-
+#endif
         numBytes += stackAlignment_;
     }
 
@@ -208,12 +215,19 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
                 .addReg(TCE::SP)
                 .addImm(stackAlignment_);
 
+#ifdef LITTLE_ENDIAN_TARGET
+            BuildMI(mbb, ii, dl, tii_.get(TCE::ST32rr))
+                .addReg(TCE::SP)
+                .addImm(0)
+                .addReg(TCE::FP)
+                .setMIFlag(MachineInstr::FrameSetup);
+#else
             BuildMI(mbb, ii, dl, tii_.get(TCE::STWrr))
                 .addReg(TCE::SP)
                 .addImm(0)
                 .addReg(TCE::FP)
                 .setMIFlag(MachineInstr::FrameSetup);
-
+#endif
             numBytes += stackAlignment_;
         }
         // if FP used by this function, move SP to FP
@@ -276,11 +290,17 @@ TCEFrameInfo::emitEpilogue(
             .setMIFlag(MachineInstr::FrameSetup);
 
         // restore old FP from stack
+#ifdef LITTLE_ENDIAN_TARGET
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LD32rr), TCE::FP)
+            .addReg(TCE::FP)
+            .addImm(0)
+            .setMIFlag(MachineInstr::FrameSetup);
+#else
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWrr), TCE::FP)
             .addReg(TCE::FP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
-
+#endif
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
@@ -295,11 +315,17 @@ TCEFrameInfo::emitEpilogue(
 
     if (hasCalls) {
         // Restore RA from stack.
+#ifdef LITTLE_ENDIAN_TARGET
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LD32RAr), TCE::RA)
+            .addReg(TCE::SP)
+            .addImm(0)
+            .setMIFlag(MachineInstr::FrameSetup);
+#else
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA)
             .addReg(TCE::SP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
-
+#endif
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);

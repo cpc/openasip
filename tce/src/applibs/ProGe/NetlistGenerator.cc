@@ -1812,18 +1812,19 @@ NetlistGenerator::isLSU(const TTAMachine::FunctionUnit& fu) const {
     if (!fu.hasAddressSpace()) {
         return false;
     }
-    
-    const int opCount = 10;
-    TCEString ops[opCount] = 
-        {"ldw","ldh","ldq","ldw2","ldw4","stw","sth","stq","stw2","stw4"};
-    bool foundOp = false;
-    for (int i = 0; i < opCount; i++) {
-        if (fu.hasOperationLowercase(ops[i])) {
-            foundOp = true;
-            break;
+
+    const std::vector<TCEString> ops{
+        "ldw", "ldh", "ldq", "ldw2", "ldw4",
+        "stw", "sth", "stq", "stw2", "stw4",
+        "ld8", "ldu8", "ld16", "ldu16", "ld32",
+        "st8", "st16", "st32"
+    };
+    for (auto& op : ops) {
+        if (fu.hasOperationLowercase(op)) {
+            return true;
         }
     }
-    return foundOp;
+    return false;
 }
 
 } // namespace ProGe

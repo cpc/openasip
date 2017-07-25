@@ -268,6 +268,7 @@ throw (InvalidData);
 
     void createByteExtLoadPatterns(std::ostream& os);
     void createShortExtLoadPatterns(std::ostream& os);
+    void createEndiannesQuery(std::ostream& os);
 
     const TTAMachine::Machine& mach_;
 
@@ -309,6 +310,7 @@ throw (InvalidData);
 
     bool hasConditionalMoves_;
 
+    bool littleEndian_;
     /// Minimum number of 32 bit registers.
     unsigned static const REQUIRED_I32_REGS;
     /// List of register that are associated with a guard on a bus.
@@ -320,6 +322,8 @@ throw (InvalidData);
     typedef std::map<std::string, std::vector<std::string> > RegClassMap;
     /// All registers in certain group
     RegClassMap regsInClasses_;
+    // Registers grouped by corresponding RFs
+    RegClassMap regsInRFClasses_;
 };
 
 #endif

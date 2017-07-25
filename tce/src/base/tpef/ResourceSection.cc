@@ -92,7 +92,7 @@ ResourceSection::findResource(
     ResourceElement::ResourceType aType, HalfWord anId) const {
 
     for (Word i = 0; i < elementCount(); i++) {
-        ResourceElement *elem = dynamic_cast<ResourceElement*>(element(i));
+        ResourceElement *elem = static_cast<ResourceElement*>(element(i));
 
         if (elem->type() == aType && elem->id() == anId) {
             return *elem;
@@ -121,7 +121,7 @@ ResourceSection::hasResource(
     ResourceElement::ResourceType aType, HalfWord anId) const {
 
     for (Word i = 0; i < elementCount(); i++) {
-        ResourceElement *elem = dynamic_cast<ResourceElement*>(element(i));
+        ResourceElement *elem = static_cast<ResourceElement*>(element(i));
 
         if (elem->type() == aType && elem->id() == anId) {
             return true;

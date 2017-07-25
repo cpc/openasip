@@ -1,0 +1,5 @@
+!output bin
+st8 100 60
+!advanceclock
+ldu8 100
+!quit

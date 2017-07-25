@@ -77,7 +77,8 @@ Machine::Machine() :
     machineTester_(new MachineTester(*this)), 
     dummyMachineTester_(new DummyMachineTester(*this)),
     EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResults_(false), 
-    triggerInvalidatesResults_(false), fuOrdered_(false) {
+    triggerInvalidatesResults_(false), fuOrdered_(false),
+    littleEndian_(false) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
@@ -93,7 +94,8 @@ Machine::Machine() :
 Machine::Machine(const Machine& old) : 
     Serializable(), controlUnit_(NULL), doValidityChecks_(false),
     machineTester_(new MachineTester(*this)), 
-    dummyMachineTester_(new DummyMachineTester(*this)) {
+    dummyMachineTester_(new DummyMachineTester(*this)),
+    littleEndian_(old.littleEndian_) {
     
     ObjectState* state = old.saveState();
     loadState(state);
@@ -727,12 +729,14 @@ Machine::saveState() const {
     if (controlUnit_ != NULL) {
         rootState->addChild(controlUnit_->saveState());
     }
+
     rootState->setAttribute(
         OSKEY_ALWAYS_WRITE_BACK_RESULTS, alwaysWriteResults_);
     rootState->setAttribute(
         OSKEY_TRIGGER_INVALIDATES_OLD_RESULTS, triggerInvalidatesResults_);
     rootState->setAttribute(
         OSKEY_FUNCTION_UNITS_ORDERED, fuOrdered_);
+    rootState->setAttribute("little-endian", littleEndian_);
     
     return rootState;
 }
@@ -782,6 +786,9 @@ Machine::loadState(const ObjectState* state)
     setFUOrdered(
         state->hasAttribute(OSKEY_FUNCTION_UNITS_ORDERED) &&
         state->boolAttribute(OSKEY_FUNCTION_UNITS_ORDERED));
+    setLittleEndian(
+        state->hasAttribute("little-endian") &&
+        state->boolAttribute("little-endian"));
 
     try {
         // create skeletons

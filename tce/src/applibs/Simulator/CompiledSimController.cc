@@ -52,6 +52,7 @@
 using std::endl;
 using namespace TTAMachine;
 
+//#define DEBUG_COMPILED_SIMULATION
 
 /**
  * The constructor
@@ -69,6 +70,10 @@ CompiledSimController::CompiledSimController(
     TTASimulationController(frontend, machine, program),
     pluginTools_(true, false), compiledSimulationPath_(""), 
     leaveDirty_(leaveDirty) {
+
+#ifdef DEBUG_COMPILED_SIMULATION
+    leaveDirty_ = true;
+#endif
 
     // Make the symbols unique in case we use more than one
     // simulator engines in the same process.
@@ -267,7 +272,10 @@ CompiledSimController::reset() {
         Conversion::toString(instanceId_));
 
     CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
-    
+#ifdef DEBUG_COMPILED_SIMULATION
+    std::cerr << "Generated compiled simulation sources to: '"
+              << compiledSimulationPath_ << "'" << std::endl;
+#endif
     basicBlocks_ = generator.basicBlocks();
     procedureBBRelations_ = generator.procedureBBRelations();
 
