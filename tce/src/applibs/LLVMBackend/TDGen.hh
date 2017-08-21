@@ -270,6 +270,8 @@ throw (InvalidData);
     void createShortExtLoadPatterns(std::ostream& os);
     void createEndiannesQuery(std::ostream& os);
 
+    void writeCallSeqStart(std::ostream& os);
+
     const TTAMachine::Machine& mach_;
 
     // Current dwarf register number.

@@ -205,7 +205,6 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
     if (MBB.empty()) return false;
     switch (MBB.back().getOpcode()) {
     case TCE::RETL:    // Return.
-    case TCE::RETL_old:
     case TCE::TCEBR:  // Uncond branch.
     case TCE::TCEBRIND:  // Uncond indirect branch.
         return true;
@@ -426,7 +425,7 @@ TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
     const MachineInstr* mi = &mi_ref;
 #endif
     // TODO: should be conditional move here..
-    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
+    if (mi->getOpcode() == TCE::RETL) {
         return false;
     }
 
@@ -443,15 +442,21 @@ bool
 #ifdef LLVM_OLDER_THAN_3_9
 TCEInstrInfo::isPredicable(MachineInstr *mi) const {
 #else
+#ifdef LLVM_OLDER_THAN_5_0
 TCEInstrInfo::isPredicable(MachineInstr& mi_ref) const {
     MachineInstr* mi = &mi_ref;
+#else
+TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
+    const MachineInstr* mi = &mi_ref;
+#endif
+
 #endif
     if (mi->getOpcode() == TCE::COPY) {
         return false;
     }
 
     // TODO: why is RETL not predicable?
-    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
+    if (mi->getOpcode() == TCE::RETL) {
         return false;
     }
 

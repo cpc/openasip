@@ -311,7 +311,7 @@ LowerMissingInstructions::getFootprint(Instruction& I) {
     switch (I.getOpcode()) {
 
     case Instruction::FCmp: {
-        FCmpInst* cmpInst = dynamic_cast<FCmpInst*>(&I);
+        FCmpInst* cmpInst = dyn_cast<FCmpInst>(&I);
         footPrint += std::string(".") + cmpInst->getOpcodeName() + ".";
         
         switch (cmpInst->getPredicate()) {
@@ -369,11 +369,11 @@ LowerMissingInstructions::getFootprint(Instruction& I) {
     } break;
 
     case Instruction::Call: {
-        if (dynamic_cast<CallInst*>(&I) == NULL ||
-            dynamic_cast<CallInst*>(&I)->getCalledFunction() == NULL)
+        if (!isa<CallInst>(&I) ||
+            dyn_cast<CallInst>(&I)->getCalledFunction() == NULL)
             break;
         std::string calledName = 
-            dynamic_cast<CallInst*>(&I)->getCalledFunction()->getName();
+            dyn_cast<CallInst>(&I)->getCalledFunction()->getName();
         if (calledName == "llvm.sqrt.f32") {
             return "f32.sqrt.f32";
         }

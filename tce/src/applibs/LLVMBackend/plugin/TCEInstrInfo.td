@@ -43,13 +43,9 @@ def TCEftoi  : SDNode<"TCEISD::FTOI", SDTTCEFTOI>;
 def TCEitof  : SDNode<"TCEISD::ITOF", SDTTCEITOF>;
 
 // These are target-independent nodes, but have target-specific formats.
-def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
 def SDT_TCECallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
                                         SDTCisVT<1, i32> ]>;
 
-
-def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeqStart,
-                           [SDNPHasChain, SDNPOutGlue]>;
 def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
@@ -58,11 +54,6 @@ def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
 def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
-// this is for llvm-3.2 and older
-def retflag_old       : SDNode<"TCEISD::RET_FLAG_old", SDTNone,
-                           [SDNPHasChain, SDNPOptInGlue]>;
-
-// this is for llvm-3.3 and newer
 def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
                            [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
@@ -100,11 +91,7 @@ def truncstorev8i16 : PatFrag<(ops node:$val, node:$ptr),
 //  Pseudo instructions
 // =========================
 
-
 let Defs = [SP], Uses = [SP] in {
-def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),
-                               "# ADJCALLSTACKDOWN $amt",
-                               [(callseq_start timm:$amt)]>;
 def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
                             "# ADJCALLSTACKUP $amt1",
                             [(callseq_end timm:$amt1, timm:$amt2)]>;
@@ -305,14 +292,7 @@ def : Pat<(TCEBlockAddress tblockaddress:$src1),
 //  Control flow
 // ============================
 
-// Return. for llvm-3.2 and older
-let isReturn = 1, isTerminator = 1, 
-    hasDelaySlot = 1, isBarrier = 1 in {
-    def RETL_old: InstTCE<(outs), (ins),
-       "return-address -> jump.1; # RETURN", [(retflag_old)]>;
-}
-
-// Return. for llvm-3.3 and newer
+// Return.
 let isReturn = 1, isTerminator = 1, 
     hasDelaySlot = 1, isBarrier = 1 in {
     def RETL: InstTCE<(outs), (ins),

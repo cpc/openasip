@@ -2997,7 +2997,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     }
 
                     // Emit the call.
-                    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
+                    GlobalValue* gv =  dyn_cast<GlobalValue>(
                         cs->getOperand(1));
                     assert(gv != NULL&&"global constructor name not constv");
 

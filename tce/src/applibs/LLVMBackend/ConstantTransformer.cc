@@ -211,11 +211,20 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                     for (unsigned opr = 0; opr < j->getNumOperands(); ++opr) {
                         MachineOperand& orig = j->getOperand(opr);
                         if (opr == operandI) {
+#ifdef LLVM_OLDER_THAN_5_0
                             mib.addOperand(
                                 MachineOperand::CreateReg(plugin.rvHighDRegNum(), false));
+#else
+			    mib.add(MachineOperand::CreateReg(
+					plugin.rvHighDRegNum(), false));
+#endif
                             continue;
                         }
+#ifdef LLVM_OLDER_THAN_5_0
                         mib.addOperand(orig);
+#else
+                        mib.add(orig);
+#endif
                         orig.clearParent();
                     }
                         

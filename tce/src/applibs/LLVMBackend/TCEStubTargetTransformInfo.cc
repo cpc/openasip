@@ -68,7 +68,11 @@ TCEStubTTIImpl::getNumberOfRegisters(bool vector) {
 }
 
 unsigned
-TCEStubTTIImpl::getRegisterBitWidth(bool vector) {
+TCEStubTTIImpl::getRegisterBitWidth(bool vector)
+#ifndef LLVM_OLDER_THAN_5_0
+const
+#endif
+{
     // without adf information we have no clue about registers
     // and vectors are not supported
     if (TM->ttaMach_ == NULL || vector)
@@ -87,7 +91,11 @@ TCEStubTTIImpl::getMaxInterleaveFactor(unsigned VF) {
 }
 
 unsigned
-TCEStubTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src) {
+TCEStubTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src
+#ifndef LLVM_OLDER_THAN_5_0
+				 , const Instruction*
+#endif
+) {
     // TODO: Maybe use ADF/osal information to figure out real cost
     // 1 selected at the moment because LLVM cost model assumed way too high
     // cost for trunc/zext instructions. Too low value here might lead to 

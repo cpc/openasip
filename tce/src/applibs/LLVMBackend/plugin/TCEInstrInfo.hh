@@ -163,7 +163,11 @@ namespace llvm {
     virtual bool isPredicable(MachineInstr *MI) const override;
 #else
     virtual bool isPredicated(const MachineInstr& MI) const override;
+#ifdef LLVM_OLDER_THAN_5_0
     virtual bool isPredicable(MachineInstr& MI) const override;
+#else
+    virtual bool isPredicable(const MachineInstr& MI) const override;
+#endif
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7

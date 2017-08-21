@@ -526,7 +526,11 @@ LLVMBackend::compile(
     std::string cpuStr = "tce";
 
     TargetOptions Options;
+#ifdef LLVM_OLDER_THAN_5_0
     Options.LessPreciseFPMADOption = true; //EnableFPMAD;
+#else
+    // TODO: has this been removed or replaced with something else?
+#endif
     Options.PrintMachineCode = false; //PrintCode;
 #ifdef LLVM_OLDER_THAN_3_7
     Options.NoFramePointerElim = false; // DisableFPElim;

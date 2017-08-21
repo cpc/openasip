@@ -145,7 +145,7 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
        changed = false;
        for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
            
-           CallInst* ci = dynamic_cast<CallInst*>(&(*I));
+           CallInst* ci = dyn_cast<CallInst>(&(*I));
            if (ci != NULL && ci->getNumArgOperands() != 0) {
                Function* callee = ci->getCalledFunction();
                if (callee != NULL && callee->isIntrinsic() &&

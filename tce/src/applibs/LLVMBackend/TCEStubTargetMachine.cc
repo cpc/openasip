@@ -164,7 +164,11 @@ namespace {
     class TCEStubPassConfig : public TargetPassConfig {
     public:
         TCEStubPassConfig(TCEStubTargetMachine *TM, PassManagerBase &PM)
+#ifdef LLVM_OLDER_THAN_5_0
             : TargetPassConfig(TM, PM) {}
+#else
+            : TargetPassConfig(*TM, PM) {}
+#endif
 
         TCEStubTargetMachine &getTCEStubTargetMachine() const {
             return getTM<TCEStubTargetMachine>();

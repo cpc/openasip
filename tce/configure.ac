@@ -508,6 +508,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -515,24 +516,36 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
      LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
+     LLVM_OLDER_THAN_5_0=1
+   ;;
+     5.0*)
+     AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
+     LLVM_VERSION=5.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
      *)
    AC_MSG_NOTICE(

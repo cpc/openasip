@@ -92,7 +92,12 @@ namespace llvm {
 	    LLVMTargetMachine* tm, 
 	    PassManagerBase& pm, 
 	    TCETargetMachinePlugin* plugin) :
-	    TargetPassConfig(tm, pm), plugin_(plugin) {
+#ifdef LLVM_OLDER_THAN_5_0
+	    TargetPassConfig(tm, pm),
+#else
+	    TargetPassConfig(*tm, pm),
+#endif
+plugin_(plugin) {
 	    assert(plugin_ != NULL);
 	}
 

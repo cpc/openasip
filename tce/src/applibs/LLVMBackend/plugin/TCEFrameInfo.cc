@@ -75,9 +75,15 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
         int opc = I->getOpcode();
         // convert stack down to sub
         if (opc == TCE::ADJCALLSTACKDOWN) {
+#ifdef LLVM_OLDER_THAN_5_0
             MachineOperand mo1 = I->getOperand(1);
             MachineOperand mo2 = I->getOperand(2);
+#else
+            MachineOperand mo1 = I->getOperand(2);
+            MachineOperand mo2 = I->getOperand(3);
+#endif
             long val = I->getOperand(0).getImm();
+
             if (val == 0) {
                 ERASE_INSTR_AND_RETURN(I);
             }
@@ -262,7 +268,7 @@ TCEFrameInfo::emitEpilogue(
 
     DebugLoc dl = mbbi->getDebugLoc();
 
-    if (mbbi->getOpcode() != TCE::RETL && mbbi->getOpcode() != TCE::RETL_old) {
+    if (mbbi->getOpcode() != TCE::RETL) {
         assert(false && "ERROR: Inserting epilogue w/o return?");
     }
 

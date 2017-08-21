@@ -1055,6 +1055,9 @@ TDGen::checkRequiredRegisters()
 void
 TDGen::writeInstrInfo(std::ostream& os) {
 
+    // llvm-version-dependent
+    writeCallSeqStart(os);
+
     OperationDAGSelector::OperationSet opNames;
     OperationDAGSelector::OperationSet requiredOps =
         LLVMBackend::llvmRequiredOpset(true, littleEndian_);
@@ -3308,7 +3311,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 #ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
+#ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#endif
 #endif
         << "\tassert(0&&\"Storing given regclass to stack not supported. "
         << "Bug in backend?\");"
@@ -3410,7 +3417,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 #ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
+#ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#endif
 #endif
         << "\tassert(0&&\"loading from stack to given regclass not supported."
         << " Bug in backend?\");"
@@ -3704,4 +3715,35 @@ void TDGen::createSelectPatterns(std::ostream& os) {
     } else {
         os << "// Has select instr!. " << std::endl;
     }
+}
+
+void TDGen::writeCallSeqStart(std::ostream& os) {
+
+#ifdef LLVM_OLDER_THAN_5_0
+
+  os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>]>;"
+     << std::endl << std::endl
+     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
+     << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
+     << std::endl
+     << "let Defs = [SP], Uses = [SP] in {" << std::endl
+     << "def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),"
+     << "\"# ADJCALLSTACKDOWN $amt\","
+     << "[(callseq_start timm:$amt)]>;}" << std::endl << std::endl;
+
+#else
+
+  os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,"
+     << "SDTCisVT<1, i32> ]>;" << std::endl << std::endl
+     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
+     << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
+     << std::endl
+     << "let Defs = [SP], Uses = [SP] in {" << std::endl
+     << "def ADJCALLSTACKDOWN : Pseudo<(outs),"
+     << "(ins i32imm:$amt1, i32imm:$amt2),"
+     << "\"# ADJCALLSTACKDOWN $amt1, $amt2\","
+     << "[(callseq_start timm:$amt1, timm:$amt2)]>;}"
+     << std::endl << std::endl;
+
+#endif
 }

@@ -394,8 +394,12 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     Chain = 
         DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true), dl);
 #else
+#ifdef LLVM_OLDER_THAN_5_0
     Chain = 
         DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, dl, true), dl);
+#else
+    Chain = DAG.getCALLSEQ_START(Chain, ArgsSize, 0, dl);
+#endif
 #endif
     SmallVector<SDValue, 8> MemOpChains;
    
