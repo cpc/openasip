@@ -587,6 +587,11 @@ then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_4_0, 1, [LLVM version is older than 4.0])
 fi
 
+if  test "x$LLVM_OLDER_THAN_5_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_5_0, 1, [LLVM version is older than 5.0])
+fi
+
 AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
 AM_CONDITIONAL([LLVM_3_7_OR_NEWER], test -z $LLVM_OLDER_THAN_3_7)
 
