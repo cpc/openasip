@@ -35,7 +35,7 @@ This needs root/admin privileges.
 
   cd tce-devel/tce
   sudo apt-get install subversion cmake
-  sudo tools/scripts/install_llvm_3.8.sh $HOME/local
+  sudo tools/scripts/install_llvm_5.0.sh $HOME/local
 
 * Now you need to set the libraries and the binaries location in your home dir
   to search paths:

@@ -1,23 +1,26 @@
-1.16
+1.16   September 2017
 =====================
 
 Notable changes and features
 ----------------------------
-- Little-endian support.
-- VLIWConnectIC: an explorer plugin which arranges architecture FUs into a
-  VLIW-like interconnection by adding separate RF for each distinct bus width.
+- Support for LLVM 5.0.
+- Support for little-endian TTAs.
+- VLIWConnectIC: An explorer plugin which creates a VLIW-like interconnection
+  network and creates a separate RF for each distinct bus width.
 
 Usability features
 ----------------------------
-- (Proxim) Added ability to search for a certain pattern in dissasembly window
-   Feature can be accessed using ctrl-F key combination in the main window.
-- (ProDe/Proxim) Zoom in/out machine canvas with mouse wheel.
-
-Other features and improvements
--------------------------------
+- Proxim: Added ability to search for a certain pattern in dissasembly window
+  The feature can be accessed by pressing ctrl-f in the main window.
+- ProDe/Proxim: Zoom in/out the machine canvas with mouse wheel.
+- ProDe: Improved search in 'Add FU From HDB'-dialog.
+- OSEd: Fixed OperationDAGDialog scaling at resize time.
 
 Notable bugfixes
 ----------------
+- ProDe: fix crashes in "Add from OSAL"-dialog.
+- ProDe: Address space dialog now displays max-address correctly with 32bits.
+- Fixed execution of TCE tools from the build tree in Debian Stretch.
 
 1.15       March 2017
 =====================
