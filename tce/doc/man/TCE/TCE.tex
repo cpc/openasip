@@ -9079,6 +9079,12 @@ The VHDL implementation and the HDB entry of the FU should be fixed to use
 this kind of opcode numbering. See section \ref{sec:opcodeorder} for more 
 details.
 
+\subsubsection{RTL simulation uses vast amounts of memory or crashes}
+
+RTL simulation, especially with GHDL, requires a large amount of memory when
+simulating processors with large address spaces. One workaround is to lower
+the memory address widths for the address spaces in the simulated processor.
+
 \section{tcecc}
 
 \subsubsection{Disappearing code}
