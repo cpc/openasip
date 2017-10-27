@@ -132,6 +132,9 @@ After running configure, it should be enough to just type
 
       make && make install
 
+Note: you need to run 'make' before 'make install' due to a newlib's
+build system issue.
+
 After installing TCE to somewhere in PATH, you can run a "smoke test" suite
 for the most important tools in the TCE installation by running the command
 'tce-selftest -v'. This might take a couple of hours, depending on your
