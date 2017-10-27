@@ -93,3 +93,9 @@ make -j4 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
 
+echo "LLVM installation is finished, add following lines to the search path:"
+echo
+echo "  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:"$TARGET_DIR"/lib"
+echo "  export PATH=\$PATH:"$TARGET_DIR"/bin"
+echo "  export LDFLAGS=-L"$TARGET_DIR"/lib"
+echo
