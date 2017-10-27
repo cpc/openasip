@@ -1212,35 +1212,6 @@ AC_CHECK_SIZEOF(char)
 # first, define WORDS_BIGENDIAN
 AC_C_BIGENDIAN
 
-# Define the target TTA processor byte order (endianess).
-# --enable-bigendian=yes : the target machine stores the most significant
-# byte of a word at the lowest address
-# --enable-bigendian=no : the target machine stores the least significant
-# byte of a word at the lowest address
-# Default target machine byte order is most significant byte first.
-AC_ARG_ENABLE(bigendian,
-[AS_HELP_STRING([--enable-bigendian],[target machine uses bigendian])],
-[ case "${enableval}" in
-  yes) 
-    bigendian=true 
-    ;;
-  no) 
-    bigendian=false 
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-bigendian}) 
-    ;;
-  esac], 
-  [bigendian=true]
-)
-
-# If target machine is big-endian, define TARGET_WORDS_BIGENDIAN.
-if test x"$bigendian" = xtrue; then
-   AC_DEFINE(TARGET_WORDS_BIGENDIAN, 1, 
-   [defines whether the target processor has big-endian byte order])
-fi
-
-
 #################################################################
 #
 # Determine whether the C++11 language standard is enabled or not.
