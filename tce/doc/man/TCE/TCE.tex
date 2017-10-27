@@ -588,9 +588,10 @@ Copy the \file{minimal.adf} included in TCE distribution to a new ADF
 file which is your starting point architecture. You can view it using the
 graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
-
-\shellcmd{prode start.adf \&}
+\begin{verbatim}
+  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
+  prode start.adf &
+\end{verbatim}
 
 Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
 and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
@@ -1691,7 +1692,7 @@ widths in Prode (Section~\ref{ssec:start_point} ), the simulation will crash and
 signals but you can ignore them. 
 
 Aftern simulation, you should see a message
-\shellcmd{./testbench:info: simulation stopped by --stop-time}
+\verb|./testbench:info: simulation stopped by --stop-time|
 The simulation produces file ``bus.dump'' which looks like this:
 \begin{verbatim}
 0,00000000
@@ -2647,10 +2648,12 @@ assumes clock frequency of 100 MHz.
 
 Now compile the source code with the following command:
 
-\shellcmd{tcecc -O0 -{}-swfp -a test.adf -o std\_print.tpef std\_print.c}
+\begin{verbatim}
+  tcecc -O0 --swfp -a test.adf -o std_print.tpef std_print.c
+\end{verbatim}
 
 The compilation command contains a few flags that should be explained
-in more detail. Let's first look into the \textit{-{}-swfp} flag: this
+in more detail. Let's first look into the \verb|--swfp| flag: this
 tells the compiler to link the program with the floating point
 emulation library. Floating point support is needed because
 \textit{printf()} function includes support for printing floating
@@ -2952,7 +2955,7 @@ can be performed by using the \emph{float} datatype in C code, or by using macro
 \emph{tceops.h}, such as \emph{\_TCE\_ADDF}. 
 
 If the compilation target architecture does not support these operations, 
-they can be emulated using integer arithmetic in software. Passing the switch \emph{--swfp} 
+they can be emulated using integer arithmetic in software. Passing the switch \verb|--swfp| 
 to tcecc enables the software emulation library linkage.
 
 A set of floating-point FU implementations is included with TCE, in a HDB file named 
@@ -3232,22 +3235,22 @@ In order to add multiple TTA cores to your system level design, there are
 two useful switches in the Processor Generator and Program Image Generator 
 tools. 
 
-One of them is \textit{--shared-files-dir} which can be used to define 
+One of them is \verb|--shared-files-dir| which can be used to define 
 a directory to which HDL files that can be shared between multiple TTAs are 
 copied. This avoids name clashes, e.g. on FU names when two or more TTAs 
 use the same implementation. 
 
-The second useful switch is \textit{--entity-name}. This switch allows
+The second useful switch is \verb|--entity-name|. This switch allows
 naming the generated core in the HDL files with a custom name. The name 
 string is also inserted to all the core-specific component names to make
 them unique to avoid name clashes in HDL compilation of the system. It
 should be noted that the Program Image Generator (generatebits) also
-supports the \textit{--entity-name} switch and the same entity name should
+supports the \verb|--entity-name| switch and the same entity name should
 be given for both tools to produce functioning TTA cores.
 
 Using these switches, generating cores to designs with multiple TTAs can
-be done by using a shared HDL directory for all the cores (--shared-files-dir) 
-and then naming each core with a different entity name (--entity-name) to 
+be done by using a shared HDL directory for all the cores (\verb|--shared-files-dir|) 
+and then naming each core with a different entity name (\verb|--entity-name|) to 
 avoid name clashes. How the cores are connected and the generation of
 the shared memory hierarchy is currently out of scope of TCE. While
 these switches assist in HDL generation of multi-TTA designs, the
@@ -3265,7 +3268,7 @@ The OpenCL support uses the {Portable OpenCL (pocl)} project. In order to
 add OpenCL support to tcecc, you should download and install the latest version of 
 pocl. At the end of the configure run, the script 
 mentions whether the OpenCL support was enabled or not. After building TCE
-You can check if the OpenCL C support is enabled via ``tcecc --supported-languages''
+You can check if the OpenCL C support is enabled via ``\verb|tcecc --supported-languages|''
 switch.
 
 It must be emphasized that the OpenCL support is a work in progress and
@@ -7023,7 +7026,7 @@ The possible options for the application are as follows:\\
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
 a & adf & Sets the architecture definition file (ADF). \\
-d & debugmode & Start simulator in interactive "debugging mode". This is enabled by default. Use --no-debugmode to disable.\\
+d & debugmode & Start simulator in interactive "debugging mode". This is enabled by default. Use \verb|--no-debugmode| to disable.\\
 e & execute-script & Executes the given string as a simulator control language script. For an examples of usage, see later in this section. \\
 p & program & Sets the program to be simulated. Program must be given as a TTA program exchange format file (.TPEF) \\
 q & quick & Simulates the program as fast as possible using the compiled simulation engine. \\
@@ -7686,7 +7689,7 @@ the 'callgrind\_annotate' tool from the 'valgrind' package:
  callgrind_annotate myprogram.tpef.trace.cachegrind --inclusive=yes
 \end{verbatim}
 
-In case --inclusive=yes is not given, exclusive call profile is printed.
+In case \verb|--inclusive=yes| is not given, exclusive call profile is printed.
 Exclusive profile shows the cycles for each function itself and does not
 include the cost from the called functions.
 
@@ -8028,7 +8031,7 @@ the application directory.
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
-program.bc & The program byte code (produced using ``tcecc --emit-llvm'').\\
+program.bc & The program byte code (produced using ``\verb|tcecc --emit-llvm|'').\\
 description.txt & The application description.\\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
@@ -8068,8 +8071,7 @@ Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\shellcmd{explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb 
-data/test.dsdb}
+\verb|explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb data/test.dsdb|
 
 \begin{verbatim}
 Best result configurations:
@@ -8077,7 +8079,7 @@ Best result configurations:
 \end{verbatim}
 Exploration plugins may also estimate the costs of configurations with the
 available applications. If there are estimation results for the configuratios
-those can be queried with option \textbf{--conf\_summary} by giving the
+those can be queried with option \verb|--conf_summary| by giving the
 ordering of the results.
 
 The Explorer plugins explained in chapters below can be listed with a command:
@@ -8110,14 +8112,14 @@ The explore tool has a pareto set finder which can output the interesting
 configurations from the DSDB after the IC exploration. The pareto set
 can be printed with:
 
-\shellcmd{explore --pareto\_set C database.dsdb}
+\verb|explore --pareto_set C database.dsdb|
 
 This prints out the pareto efficient configurations using the
 number of connections in the architecture and the execution cycle count as
 the quality measures. For visualizing the pareto set you can use the
 \textit{pareto\_vis} script (installed with TCE) to plot the configurations:
 
-\shellcmd{explore --pareto\_set C database.dsdb | pareto\_vis}
+\verb#explore --pareto_set C database.dsdb | pareto_vis#
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 
@@ -8653,7 +8655,7 @@ in case the program uses dynamic memory allocation. It grows upwards.
 The stack, used to store the function local variables and to pass 
 parameters in the function calls, grows from the largest memory address 
 downwards. The start address of the stack can be changed with the tcecc 
-switch \textit{{--}init-sp}.
+switch \verb|--init-sp|.
 
 As both heap and stack grow dynamically towards each other, to way to
 increase the available space for heap/stack is to 
