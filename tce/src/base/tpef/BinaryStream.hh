@@ -57,8 +57,8 @@ namespace TPEF {
  */
 class BinaryStream {
 public:
-    BinaryStream(std::ostream &stream, bool littleEndian=false);
-    BinaryStream(std::string name, bool littleEndian=false);
+    BinaryStream(std::ostream &stream, bool littleEndian=true);
+    BinaryStream(std::string name, bool littleEndian=true);
     virtual ~BinaryStream();
 
     Byte readByte() throw (UnreachableStream, EndOfFile);

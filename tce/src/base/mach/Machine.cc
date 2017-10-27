@@ -78,7 +78,7 @@ Machine::Machine() :
     dummyMachineTester_(new DummyMachineTester(*this)),
     EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResults_(false), 
     triggerInvalidatesResults_(false), fuOrdered_(false),
-    littleEndian_(false) {
+    littleEndian_(true) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
