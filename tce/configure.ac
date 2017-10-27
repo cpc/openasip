@@ -1467,6 +1467,7 @@ AC_CONFIG_FILES([
   src/codesign/Estimator/Makefile
   src/procgen/HDB/Makefile 
   src/procgen/ProGe/Makefile
+  src/procgen/FuGe/Makefile
   src/procgen/HDBEditor/Makefile
   src/procgen/MachInfo/Makefile
   src/applibs/Scheduler/Makefile
