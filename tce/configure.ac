@@ -543,7 +543,10 @@ case "$LLVM_VERSION" in
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
-     LLVM_VERSION=5.0
+   ;;
+     6.0*)
+     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0svn")
+     LLVM_VERSION=6.0
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
