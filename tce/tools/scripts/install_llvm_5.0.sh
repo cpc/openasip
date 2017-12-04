@@ -9,11 +9,13 @@ LLVM_BUILD_MODE="-DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_ASSERTIONS=ON"
 export CFLAGS=-O0
 export CPPFLAGS=-O0
 export CXXFLAGS=-O0
+BUILD_DIR=build-debug
 else
 export CFLAGS=-O3
 export CPPFLAGS=-O3
 export CXXFLAGS=-O3
 LLVM_BUILD_MODE="-DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=ON"
+BUILD_DIR=build-release
 fi
 
 echo "### LLVM build mode: "$LLVM_BUILD_MODE
@@ -79,8 +81,8 @@ fetch_clang
 apply_patches
 
 cd $llvm_co_dir
-mkdir -p build
-cd build
+mkdir -p $BUILD_DIR
+cd $BUILD_DIR
 
 cmake -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
