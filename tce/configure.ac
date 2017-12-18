@@ -438,7 +438,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -602,9 +602,6 @@ if  test "x$LLVM_OLDER_THAN_5_0" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_5_0, 1, [LLVM version is older than 5.0])
 fi
-
-AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
-AM_CONDITIONAL([LLVM_3_7_OR_NEWER], test -z $LLVM_OLDER_THAN_3_7)
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then

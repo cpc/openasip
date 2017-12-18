@@ -12,10 +12,8 @@ libtcellvmbackend_la_SOURCES = \
 	MachineInstrDDG.cc ConstantTransformer.cc \
 	TCEStubTargetMachine.cc
 
-if LLVM_3_7_OR_NEWER
 libtcellvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
 	TCEStubSubTarget.cc TCEStubTargetMachine.hh
-endif
 
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module
