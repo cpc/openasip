@@ -37,8 +37,13 @@
 #include <llvm/IR/Function.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#endif
 #include <llvm/Target/TargetOptions.h>
+
 #include <llvm/ADT/STLExtras.h>
 #include <llvm/CodeGen/RegisterScavenging.h>
 

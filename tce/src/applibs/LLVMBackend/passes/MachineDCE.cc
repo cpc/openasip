@@ -156,7 +156,11 @@ bool MachineDCE::doInitialization(Module &M) {
 
 bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
 
+#ifdef LLVM_OLDER_THAN_6_0
     std::string funcName = F.getFunction()->getName();
+#else
+    std::string funcName = F.getFunction().getName();
+#endif
 
     // add function to function map...
     functionMappings_[funcName] = &F;

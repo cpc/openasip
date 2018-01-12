@@ -34,12 +34,16 @@
 
 #include <string>
 
+#include "tce_config.h"
+
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetSubtargetInfo.h"
+#else
+#include "llvm/CodeGen/TargetSubtargetInfo.h"
+#endif
 
 #define GET_SUBTARGETINFO_HEADER
 #include "TCEGenSubTargetInfo.inc"
-
-#include "tce_config.h"
 
 #ifndef LLVM_OLDER_THAN_3_9
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"

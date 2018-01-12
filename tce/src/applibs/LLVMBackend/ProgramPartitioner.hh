@@ -55,7 +55,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Analysis/CFG.h"
 
 #include "llvm/Support/Compiler.h"
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetInstrInfo.h"
+#else
+#include "llvm/CodeGen/TargetInstrInfo.h"
+#endif
 #include "llvm/ADT/DepthFirstIterator.h"
 
 #include "llvm/Analysis/CallGraph.h"

@@ -47,7 +47,11 @@ bool
 InstructionPatternAnalyzer::runOnMachineFunction(llvm::MachineFunction &F) {
     MachineInstrDDG ddg(F);
     ddg.computeOptimalSchedule();
+#ifdef LLVM_OLDER_THAN_6_0
     ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.dot");
+#else
+    ddg.writeToDotFile(F.getFunction().getName().str() + ".pre_ra.dot");
+#endif
     return false;
 }
 

@@ -95,9 +95,14 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetLowering.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#include <llvm/CodeGen/TargetLowering.h>
+#endif
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -953,7 +958,11 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     // TODO: make list of mf's which for the pass will be ran afterwards..
     
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     emitConstantPool(*mf.getConstantPool());
@@ -2333,7 +2342,11 @@ LLVMTCEBuilder::emitSelect(
 std::string
 LLVMTCEBuilder::mbbName(const MachineBasicBlock& mbb) {
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mbb.getParent()->getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mbb.getParent()->getFunction(), false);
+#endif
     TCEString name(Buffer.c_str());
     name += " ";
     name += Conversion::toString(mbb.getNumber());

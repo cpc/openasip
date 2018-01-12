@@ -33,7 +33,11 @@
 #ifndef TCE_TARGET_LOWERING_H
 #define TCE_TARGET_LOWERING_H
 
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLowering.h>
+#else
+#include <llvm/CodeGen/TargetLowering.h>
+#endif
 #include "TCEPlugin.hh"
 #include "TCESubtarget.hh"
 #include "tce_config.h"
