@@ -50,8 +50,9 @@ This installs the required packages for an Red Hat 6 (and CentOS):
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
 xerces-c-devel gcc-c++ make autoconf automake libtool
 
-See INSTALL.Debian for package list in other versions of Debian-based distributions and
-INSTALL.RedHat for more information on installing TCE on Red Hat based distros.
+See INSTALL.Debian for package list in other versions of Debian-based
+distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
+on installing TCE on Red Hat based distros.
 
 Editline
 --------
