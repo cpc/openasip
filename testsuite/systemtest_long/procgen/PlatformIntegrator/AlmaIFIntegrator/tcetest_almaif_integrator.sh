@@ -49,11 +49,12 @@ then
   cat errors | grep -v "universal integer bound must be numeric literal or attribute"
 
   if [ -e tta_almaif_tb ]; then
-    ./tta_almaif_tb --stop-time=1500us 2>/dev/null || eexit "Simulation failed"
+    ./tta_almaif_tb --stop-time=10ms 2>/dev/null || eexit "Simulation failed"
   else
     # Simulation command for latest GHDL.
       ghdl -r --ieee=synopsys --workdir=work \
-        tta_almaif_tb --stop-time=1500us 2>/dev/null \
+        tta_almaif_tb --stop-time=10ms \
+        --ieee-asserts=disable-at-0 \
         || eexit "Simulation failed"
   fi
 

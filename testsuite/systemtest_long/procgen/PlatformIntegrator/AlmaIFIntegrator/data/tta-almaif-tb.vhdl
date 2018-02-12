@@ -66,7 +66,8 @@ architecture testbench of tta_almaif_tb is
   constant core_dbg_dataw : integer := 32;
   constant imem_word_width_c  : integer := (IMEMDATAWIDTH+31)/32;
   constant imem_word_sel_c    : integer := bit_width(imem_word_width_c-1);
-  signal clk : std_logic := '0';
+  signal clk       : std_logic := '0';
+  signal clk_ena   : std_logic := '1';
   signal nreset    : std_logic;
 
   constant io_addrw_c : integer := axi_addrw_g-2;
@@ -107,7 +108,12 @@ architecture testbench of tta_almaif_tb is
 
 begin
 
-  clk <= not clk after PERIOD/2;
+  clk_gen : process(clk, clk_ena)
+  begin
+    if clk_ena = '1' then
+      clk <= not clk after PERIOD/2;
+    end if;
+  end process clk_gen;
 
   dut : entity work.almaif_core_toplevel
     port map (
@@ -302,6 +308,7 @@ begin
         writeline(logfile, line_out);
     end loop;
 
+    clk_ena <= '0';
     wait;
   end process;
 
