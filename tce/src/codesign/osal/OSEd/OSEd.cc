@@ -71,7 +71,7 @@ OSEd::~OSEd() {
 /**
  * Initializes the application.
  *
- * Creates mainframe as well as reads the configure file. 
+ * Creates mainframe as well as reads the configure file.
  *
  * @return True.
  */
@@ -82,22 +82,22 @@ OSEd::OnInit() {
 
     mainFrame_ = new OSEdMainFrame(_T("Operation Set Editor"),
                                    wxPoint(50, 50), wxSize(900, 500));
-    
+
     mainFrame_->updateMenuBar();
-    
+
     options_ = new OSEdOptions();
     OSEdOptionsSerializer serializer;
-    
+
     string confFile = Environment::confPath(OSEdConstants::CONF_FILE_NAME);
     serializer.setSourceFile(confFile);
-    
+
     try {
         options_->loadState(serializer.readState());
     } catch (const Exception& e) {
         cerr << "Config file not found, default options will be used." << endl
-             << "OseD may use the editor in your $EDITOR or $VISUAL"
+             << "OseD may use the editor in your $VISUAL"
              << " environmental variable." << endl
-             << "If these point to some non-graphical editor, "
+             << "If this points to some non-graphical editor, "
              << "please change the editor from settings." << endl;
         createDefaultOptions();
     }
@@ -117,7 +117,7 @@ OSEd::OnInit() {
     mainFrame_->Show(true);
     SetTopWindow(mainFrame_);
 
-    return true;    
+    return true;
 }
 
 /**
