@@ -574,9 +574,18 @@ lookup table. This is a quite usual method of algorithm optimization.
 
 \subsection{Starting Point Processor Architecture}
 \label{ssec:start_point}
-We use the {\em minimal architecture} as the starting point. File
-\file{minimal.adf} describes a minimalistic architecture containing
-just enough resources that the TCE compiler can still compile programs for it. 
+
+
+Copy the \file{minimal.adf} file included in TCE distribution to a new ADF
+file:
+
+\begin{verbatim}
+  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
+\end{verbatim}
+
+The file describes a minimalistic architecture containing just enough
+resources that the TCE compiler can still compile programs for it.
+We use this {\em minimal architecture} as the starting point.
 Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
 implementation of the processor automatically later in the tutorial.
@@ -584,17 +593,15 @@ implementation of the processor automatically later in the tutorial.
 % design all the components from scratch in order to evaluate the architecture
 % without actually implementing the components in VHDL.
 
-Copy the \file{minimal.adf} included in TCE distribution to a new ADF
-file which is your starting point architecture. You can view it using the
-graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
+You can view the architecture using the graphical Processor Designer
+(ProDe, Section~\ref{sec:prode}) tool:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
   prode start.adf &
 \end{verbatim}
 
 Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
-and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
+and 5 units: global control unit (GCU), 2 register files, 1 ALU, and
 1 LSU.
 \begin{figure}
   \begin{center}
@@ -822,7 +829,7 @@ Let's try the latter option because this way we increase the number of registers
 that can be accessed simultaneously on one clock cycle. This can be done by
 selecting the RF and using copy and paste. Then connect it to the IC.
 Simulation statistics should indicate performance increase. As expected, the
-number of load and store opertations decreased. But notice also that the number
+number of load and store operations decreased. But notice also that the number
 of add operations decreased quite a lot. The reason is simple: addition is used
 to calculate stack memory addresses for the spilled registers.
 % over 50% further reduction to 935 cycles
@@ -1225,14 +1232,13 @@ Then:
 \item%
   Add a new function unit to the design, right click the canvas and
   select: \textit{Add>Function Unit}. Name the FU ''REFLECTER``. Add
-  one input port (named as trigger) and an output port (output1) to
-  the FU in the Function unit dialog. Set the input port (trigger)
-  triggering (\textit{Click the port named trigger->Edit->Check dialog
-    ''triggers``}). This port starts the execution of the operation
-  when it is written to.
+  one output port (named output1) and one input port (trigger), to
+  the FU in the Function unit dialog. When adding the input port, set
+  the port as triggering by checking the \textit{Triggers} checkbox. This port
+  starts the execution of the operation when it is written to.
 \item%
   Add the operation ''REFLECT8`` we defined to the FU: \textit{Add
-    from opset>REFLECT8>OK} and set the latency to 1. Click on the
+  from opset>REFLECT8>OK} and set the latency to 1. Click on the
   REFLECT8 operation and ensure that the operation input is bound to
   the input ports and the output is bound to the output port. Check
   that the operand usage is in such a way that input is read at cycle
@@ -1673,16 +1679,22 @@ level entity name, which in this case is ``tta0''.
 
 \paragraph{Simulation and verification}
 
-If you have GHDL installed you can now simulate the processor VHDL. First
-cd to proge-output directory:
+If you have GHDL or Modelsim installed you can now simulate the processor VHDL.
+First cd to proge-output directory:
 
 \shellcmd{cd proge-output}
 
-Then compile and simulate the testbench:
+Then compile and simulate the testbench. With GHDL:
 
 \shellcmd{./ghdl\_compile.sh}
 
 \shellcmd{./ghdl\_simulate.sh}
+
+Or with Modelsim:
+
+\shellcmd{./modsim\_compile.sh}
+
+\shellcmd{./modsim\_simulate.sh}
 
 Compilation gives a couple of warnings from Synopsys' std\_arith
 package but that should do no harm.  Simulation will take some time as
@@ -1691,7 +1703,7 @@ widths in Prode (Section~\ref{ssec:start_point} ), the simulation will crash and
 ``Killed''. There will be many warnings at $0 ns$ due uninitialized
 signals but you can ignore them. 
 
-Aftern simulation, you should see a message
+After simulation, you should see a message
 \verb|./testbench:info: simulation stopped by --stop-time|
 The simulation produces file ``bus.dump'' which looks like this:
 \begin{verbatim}
@@ -1716,9 +1728,9 @@ from the VHDL simulation and the architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
-If the command does not print anything the dumps were equal and GHDL
+If the command does not print anything the dumps were equal and the RTL
 simulation matches the ttasim. Now you have succesfully added a custom
-operation, verified it, and gained notably performance increase. Well
+operation, verified it, and gained a notable performance increase. Well
 done!
 
 
